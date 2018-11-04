@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+		<meta name="Description" content="<#location> weather data" />
+		<meta name="Keywords" content="Cumulus, <#location> weather data, weather, data, weather station" />
+		<title><#location> weather</title>
+  
+		<link href="weatherstyle.css" rel="stylesheet" type="text/css">
+		<style>
+
+            body {
+                overflow-y:scroll;
+            }
+
+            text {
+                font: 12px sans-serif;
+            }
+
+            #chartcontainer  {
+                min-height: 700px;
+                height: 700px;
+                margin-top:50px;
+                margin-bottom: 10px;
+                background-color:white;
+            }
+
+            .button {
+                -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+                -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+                box-shadow:inset 0px 1px 0px 0px #ffffff;
+                background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #f9f9f9), color-stop(1, #e9e9e9) );
+                background:-moz-linear-gradient( center top, #f9f9f9 5%, #e9e9e9 100% );
+                filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9f9f9', endColorstr='#e9e9e9');
+                background-color:#f9f9f9;
+                -webkit-border-top-left-radius:0px;
+                -moz-border-radius-topleft:0px;
+                border-top-left-radius:0px;
+                -webkit-border-top-right-radius:0px;
+                -moz-border-radius-topright:0px;
+                border-top-right-radius:0px;
+                -webkit-border-bottom-right-radius:0px;
+                -moz-border-radius-bottomright:0px;
+                border-bottom-right-radius:0px;
+                -webkit-border-bottom-left-radius:0px;
+                -moz-border-radius-bottomleft:0px;
+                border-bottom-left-radius:0px;
+                text-indent:0;
+                border:1px solid #dcdcdc;
+                display:inline-block;
+                color:#666666;
+                font-family:Arial;
+                font-size:15px;
+                font-weight:bold;
+                font-style:normal;
+                height:40px;
+                line-height:40px;
+                width:100px;
+                text-decoration:none;
+                text-align:center;
+                text-shadow:1px 1px 0px #ffffff;
+            }
+            .button:hover {
+                background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #e9e9e9), color-stop(1, #f9f9f9) );
+                background:-moz-linear-gradient( center top, #e9e9e9 5%, #f9f9f9 100% );
+                filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#e9e9e9', endColorstr='#f9f9f9');
+                background-color:#e9e9e9;
+            }
+            .button:active {
+                position:relative;
+                top:1px;
+            }
+			
+            .td_left {
+                width: 85px;
+            }
+        </style>
+        
+    </head>
+	<body>
+		<div id="content">
+			<h1><#location> weather</h1>
+			<h2 style="text-align: left; text-transform: none;">&nbsp;Latitude&nbsp;<#latitude>&nbsp;&nbsp;&nbsp;&nbsp;Longitude&nbsp;<#longitude>&nbsp;&nbsp;&nbsp;&nbsp;Elevation&nbsp;<#altitude></h2>
+			<p>Click on a button to display the corresponding chart.</p>
+            <p>Mouse over the chart to see the values at any given time.</p>
+            <p>You can add or remove data sets from the chart by clicking the entry on the chart legend.</p>
+			
+			<div id="chartcontainer">                
+            </div>
+			<table cellpadding="0" cellspacing="0" id="Graph_menu" style="margin: 0 auto">
+				<tbody>
+					<tr>
+						<td colspan="10">Click on a button to show the corresponding graph above.</td>
+					</tr>
+     				<tr>
+						<td class="td_left">
+							<input name="btnTemp" class="button" tabindex="1" type="button" value="Temperature" onclick="changeGraph(&quot;temp&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnDailyTemp" class="button" tabindex="2" type="button" value="Daily Temp" onclick="changeGraph(&quot;dailytemp&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnPress" class="button" tabindex="3" type="button" value="Pressure" onclick="changeGraph(&quot;press&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnWind" class="button" tabindex="4" type="button" value="Wind Speed" onclick="changeGraph(&quot;wind&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnWindDir" class="button" tabindex="5" type="button" value="Wind Dir." onclick="changeGraph(&quot;windDir&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnHum" class="button" tabindex="6" type="button" value="Humidity" onclick="changeGraph(&quot;humidity&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnRain" class="button" tabindex="7" type="button" value="Rainfall" onclick="changeGraph(&quot;rain&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnDailyRain" class="button" tabindex="8" type="button" value="Daily Rain" onclick="changeGraph(&quot;dailyrain&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnSolar" class="button" tabindex="9" type="button" value="Solar" onclick="changeGraph(&quot;solar&quot;);">
+						</td>
+						<td class="td_left">
+							<input name="btnSunHours" class="button" tabindex="10" type="button" value="Sun Hours" onclick="changeGraph(&quot;sunhours&quot;);">
+						</td>
+					</tr>
+					<tr>
+					<td colspan="10" class="td_navigation_bar">:<a href="index.htm">now</a>::<a href="gauges.htm">gauges</a>::<a href="today.htm">today</a>::<a href="yesterday.htm">yesterday</a>::<a href="thismonth.htm">this&nbsp;month</a>::<a href="thisyear.htm">this&nbsp;year</a>::<a href="record.htm">records</a>::<a href="monthlyrecord.htm">monthly&nbsp;records</a>::<a href="trends.htm">trends</a>:<#forum><#webcam></td>
+					</tr>
+				</tbody>
+			</table>
+			<p class="credits"><br>
+			charts by <a href="http://www.highcharts.com/" target="_blank">Highcharts</a><br>
+			page updated <#update><br>
+			powered by
+			<a href="http://sandaysoft.com/products/cumulus" target="_blank">Cumulus</a> v<#version> (<#build>) 
+			</p>
+		</div>
+		<script src="lib/jquery/jquery-latest.min.js"></script>
+		<script src="lib/highstock/js/highstock.js"></script>
+        <script src="lib/highstock/js/themes/grid.js"></script>
+        <script src="js/cumuluscharts.js"></script>    
+
+	</body>
+</html>

@@ -1,0 +1,4 @@
+Web tag date/time formatting change: HH for 24-hour, MM for month, mm for minute
+Escaping in web tag formats need \
+HTTP listener needs permission on Windows: netsh http add urlacl http://+:8001/ user=Everyone listen=yes
+- Not sure if anything like above is needed on Linux/Mac

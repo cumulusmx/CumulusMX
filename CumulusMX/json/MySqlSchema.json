@@ -1,0 +1,123 @@
+﻿{
+    "type": "object",
+    "properties": {
+        "server": {
+            "type": "object",
+            "title": "Server details",
+            "properties": {
+                "host": {
+                    "title": "Host name"
+                },
+                "port": {
+                    "title": "Port",
+                    "type": "number"
+                },
+                "user": {
+                    "title": "User name"
+                },
+                "pass": {
+                    "title": "Password"
+                },
+                "database": {
+                    "title": "Database name"
+                }
+            }
+        },
+        "monthly": {
+            "type": "object",
+            "title": "Monthly log file upload",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "table": {
+                    "title": "Table name"
+                }
+            }
+        },
+        "realtime": {
+            "type": "object",
+            "title": "Realtime.txt upload",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "table": {
+                    "title": "Table name"
+                },
+                "retention": {
+                    "title": "Retention string"
+                }
+            }
+        },
+        "dayfile": {
+            "type": "object",
+            "title": "Dayfile.txt upload",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "table": {
+                    "title": "Table name"
+                }
+            }
+        },
+        "customseconds": {
+            "type": "object",
+            "title": "Custom upload - seconds interval",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "command": {
+                    "title": "SQL command"
+                },
+                "interval": {
+                    "title": "Interval (seconds)",
+                    "type": "number"
+                }
+            }
+        },
+        "customminutes": {
+            "type": "object",
+            "title": "Custom upload - minutes interval",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "command": {
+                    "title": "SQL command"
+                },
+                "intervalindex": {
+                    "title": "Interval",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11
+                    ]
+                }
+            }
+        },
+        "customrollover": {
+            "type": "object",
+            "title": "Custom upload - at rollover",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "command": {
+                    "title": "SQL command"
+                }
+            }
+        }
+    }
+}

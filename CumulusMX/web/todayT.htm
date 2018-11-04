@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="<#location> weather data" />
+<meta name="keywords" content="Cumulus, <#location> weather data, weather, data, weather station" />
+  <title><#location> weather</title>
+  <link href="weatherstyle.css" rel="stylesheet" type="text/css" />
+</head>
+
+
+<body>
+<div id="content">
+<h1><#location> weather</h1>
+<h2 style="text-align: left; text-transform: none;">
+&nbsp;Latitude&nbsp;<#latitude>&nbsp;&nbsp;&nbsp;&nbsp;Longitude&nbsp;<#longitude>&nbsp;&nbsp;&nbsp;&nbsp;Elevation&nbsp;<#altitude></h2>
+
+
+<p>This page shows a summary of the data since <#rollovertime> local time. </p>
+<table style="width:100%;border-collapse: collapse; border-spacing: 0;" >
+
+  <caption>Today&#39;s data</caption>
+  <tbody>
+    <tr>
+      <td colspan="3" class="tableseparator_temp">Temperature and Humidity </td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>High&nbsp;Temperature</td>
+      <td><#tempTH>&nbsp;<#tempunit></td>
+      <td>at&nbsp;<#TtempTH>&nbsp;</td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>Low&nbsp;Temperature</td>
+      <td><#tempTL>&nbsp;<#tempunit></td>
+      <td>at&nbsp;<#TtempTL></td>
+    </tr>
+	<tr class="td_temperature_data">
+      <td>Temperature&nbsp;Range</td>
+      <td><#temprange>&nbsp;<#tempunit></td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>High&nbsp;Apparent&nbsp;Temperature</td>
+      <td><#apptempTH>&nbsp;<#tempunit></td>
+      <td>at&nbsp;<#TapptempTH>&nbsp;</td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>Low&nbsp;Apparent&nbsp;Temperature</td>
+      <td><#apptempTL>&nbsp;<#tempunit></td>
+      <td>at&nbsp;<#TapptempTL></td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>Low&nbsp;Wind&nbsp;Chill</td>
+      <td><#wchillTL>&nbsp;<#tempunit></td>
+      <td>at&nbsp;<#TwchillTL></td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>High&nbsp;Heat&nbsp;Index</td>
+      <td><#heatindexTH>&nbsp;<#tempunit></td>
+      <td>at&nbsp;<#TheatindexTH></td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>High&nbsp;Humidity</td>
+      <td><#humTH>&nbsp;%</td>
+      <td>at&nbsp;<#ThumTH>&nbsp;</td>
+    </tr>
+    <tr class="td_temperature_data">
+      <td>Low&nbsp;Humidity</td>
+      <td><#humTL>&nbsp;%</td>
+      <td>at&nbsp;<#ThumTL></td>
+    </tr>
+    <!-- Solar data. If you don't have a solar sensor, you may wish to delete everything from here to the next comment -->
+    <tr class="td_temperature_data">
+      <td>High Solar Radiation</td>
+      <td><#solarTH></td>
+      <td><#TsolarTH></td>
+    </tr>
+	<tr class="td_temperature_data">
+      <td>Hours&nbsp;of&nbsp;Sunshine</td>
+      <td><#SunshineHours></td>
+      <td>&nbsp;</td>
+    </tr>
+    <!-- End of solar data -->
+    <tr>
+      <td colspan="3" class="tableseparator_rainfall">Rainfall</td>
+    </tr>
+    <tr class="td_rainfall_data">
+      <td>Rainfall&nbsp;Today</td>
+      <td><#rfall>&nbsp;<#rainunit></td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr class="td_rainfall_data">
+      <td>Rainfall&nbsp;Rate&nbsp;Max </td>
+      <td><#rrateTM>&nbsp;<#rainunit>/hr</td>
+      <td>at&nbsp;<#TrrateTM></td>
+    </tr>
+    <tr class="td_rainfall_data">
+      <td>High&nbsp;Hourly&nbsp;Rainfall</td>
+      <td><#hourlyrainTH>&nbsp;<#rainunit></td>
+      <td>at&nbsp;<#ThourlyrainTH></td>
+    </tr>
+	<tr class="td_rainfall_data">
+      <td>Days&nbsp;Since&nbsp;Last&nbsp;Dry&nbsp;Day</td>
+      <td><#ConsecutiveRainDays></td>
+      <td>&nbsp;</td>
+    </tr>
+	<tr class="td_rainfall_data">
+      <td>Days&nbsp;Since&nbsp;It&nbsp;Last&nbsp;Rained</td>
+      <td><#ConsecutiveDryDays></td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td colspan="3" class="tableseparator_wind">Wind</td>
+    </tr>
+    <tr class="td_wind_data">
+      <td>Highest&nbsp;Gust</td>
+      <td><#wgustTM>&nbsp;<#windunit></td>
+      <td>at&nbsp;<#TwgustTM></td>
+    </tr>
+    <tr class="td_wind_data">
+      <td>Highest&nbsp;Speed&nbsp;(10&nbsp;minute&nbsp;average)</td>
+      <td><#windTM>&nbsp;<#windunit>&nbsp;(<#Tbeaufort>)</td>
+      <td>at&nbsp;<#TwindTM></td>
+    </tr>
+    <tr class="td_wind_data">
+      <td>Wind Run</td>
+      <td><#windrun>&nbsp;<#windrununit></td>
+      <td>&nbsp;</td>
+    </tr>
+	<tr class="td_wind_data">
+      <td>Dominant Direction</td>
+      <td><#domwindbearing>&deg;&nbsp;<#domwinddir></td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td colspan="3" class="tableseparator_pressure">Pressure</td>
+    </tr>
+    <tr class="td_pressure_data">
+      <td>High&nbsp;Pressure&nbsp;(SL)</td>
+      <td><#pressTH>&nbsp;<#pressunit></td>
+      <td>at&nbsp;<#TpressTH></td>
+    </tr>
+    <tr class="td_pressure_data">
+      <td>Low&nbsp;Pressure&nbsp;(SL)</td>
+      <td><#pressTL>&nbsp;<#pressunit></td>
+      <td>at&nbsp;<#TpressTL></td>
+    </tr>
+    <tr>
+      <td colspan="3" class="td_navigation_bar">:<a href="index.htm">now</a>::<a href="gauges.htm">gauges</a>::<a href="today.htm">today</a>::<a href="yesterday.htm">yesterday</a>::<a href="thismonth.htm">this&nbsp;month</a>::<a href="thisyear.htm">this&nbsp;year</a>::<a href="record.htm">records</a>::<a href="monthlyrecord.htm">monthly&nbsp;records</a>::<a href="trends.htm">trends</a>:<#forum><#webcam></td>
+    </tr>
+
+  </tbody>
+</table>
+<p class="credits"><br />
+Page updated <#update><br />
+powered by
+<a href="http://sandaysoft.com/products/cumulus" target="_blank">Cumulus</a> 
+v<#version> (<#build>)
+</p>
+</div>
+</body>
+</html>

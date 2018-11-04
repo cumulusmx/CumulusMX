@@ -1,0 +1,200 @@
+﻿@charset "UTF-8";
+body {
+	background-color: #FFFFFF;
+	font-family: Verdana, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #585858;
+	text-align: left;
+	background-attachment: fixed;
+	background-image: url(images/picture.jpg);
+	background-repeat: no-repeat;
+	background-position: left bottom;
+}
+#content {
+	margin-top: 5%;
+	margin-right: 20%;
+	margin-bottom: 5%;
+	margin-left: 20%;
+}
+h1 {
+	font-size: 150%;
+	font-weight: bold;
+	text-transform: lowercase;
+	color: #678090;
+	letter-spacing: 0.7em;
+	padding-bottom: 1em;
+	text-align: left;
+}
+h2 {
+	font-size: 125%;
+	font-weight: bold;
+	color: #6F9DBE;
+	letter-spacing: 0.4em;
+	text-transform: lowercase;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: left;
+}
+a {
+	color: #FF6600;
+	text-decoration: none;
+	font-weight: normal;
+}
+a:visited {
+	text-decoration: none;
+	color: #CC6600;
+}
+a:hover {
+	text-decoration: underline overline;
+	color: #6F9DBE;
+}
+a:active {
+	text-decoration: none;
+}
+h1,h2,h3,h4,h5,h6 {
+	font-family: Arial, Helvetica, sans-serif;
+}
+.credits {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 70%;
+	font-style: italic;
+	text-transform: lowercase;
+	letter-spacing: 0.3em;
+	text-align: right;
+}
+h3 {
+	font-size: 110%;
+	font-weight: normal;
+	color: #585858;
+	letter-spacing: 0.4em;
+	text-transform: lowercase;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: left;
+}
+ul {
+	font-size: 75%;
+	padding-bottom: 1em;
+	padding-top: 1em;
+	margin-left: 10%;
+	list-style-type: square;
+	text-transform: lowercase;
+}
+li {
+	padding-bottom: 0.5em;
+}
+h2 {
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size: 90%;
+	color: #555555;
+	letter-spacing: 0.15em;
+	padding-bottom: .2em;
+	background-color: #c0cad3;
+	text-align: right;
+	padding-top: .2em;
+	padding-right: 1em;
+}
+.blockquote {
+	background-color: #E7E7DE;
+	margin-right: 22%;
+}
+caption {
+	font-size: 95%;
+	font-style: normal;
+	font-weight: bold;
+	letter-spacing: .1em;
+	padding-top: 0.5em;
+	padding-bottom: 0.25em;
+	text-align: left;
+}
+table {
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+}
+.tableseparator_temp {
+	font-size: 90%;
+	font-weight: 400;
+	background-color: #678090;
+	color: #CCCCCC;
+	padding: .5em;
+	letter-spacing: .1em;
+}
+.tableseparator_rainfall {
+
+	font-size: 90%;
+	font-weight: 400;
+	background-color: #8499A7;
+	color: #CCCCCC;
+	padding: .5em;
+	letter-spacing: .1em;
+}
+.tableseparator_wind{
+
+
+	font-size: 90%;
+	font-weight: 400;
+	background-color: #A2B1BD;
+	color: #666666;
+	padding: .5em;
+	letter-spacing: .1em;
+}
+.tableseparator_pressure {
+
+
+
+	font-size: 90%;
+	font-weight: 400;
+	background-color: #C0CAD3;
+	color: #666666;
+	padding: .5em;
+	letter-spacing: .1em;
+}
+td {
+	font-size: 100%;
+	padding-top: 0.2em;
+	padding-right: 0.5em;
+	padding-bottom: 0.2em;
+	padding-left: 0.5em;
+	color: #222222;
+}
+
+.td_thumbnails {
+	padding-top: 0.1em;
+	padding-right: 0.2em;
+	padding-bottom: 0.1em;
+	padding-left: 0.0em;
+}
+
+.td_temperature_data {
+	background-color: #F1D3B7;
+}
+.td_rainfall_data {
+
+	background-color: #F5E0CC;
+}
+.td_wind_data {
+
+
+	background-color: #F9EDE1;
+}
+.td_pressure_data {
+
+
+
+	background-color: #FDFAF6;
+}
+.td_navigation_bar {
+	text-align: center;
+	padding-top: 1em;
+	padding-bottom: 1em;
+	letter-spacing: 0.2em;
+	background-color: #ffffff;
+}
+.labels {
+	font-weight: bold;
+	background-position: left;
+}
+.site_data {
+	text-align: right;
+}
+.colon_separator {
+	font-weight: 400;
+	background-position: left;
+}

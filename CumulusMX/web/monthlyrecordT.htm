@@ -1,0 +1,290 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="<#location> weather data" />
+<meta name="keywords" content="Cumulus, <#location> weather data, weather, data, weather station" />
+<title><#location> weather</title>
+<link href="weatherstyle.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="content">
+<h1><#location> weather</h1>
+<h2 style="text-align: left; text-transform: none;">&nbsp;Latitude&nbsp;<#latitude>&nbsp;&nbsp;&nbsp;&nbsp;Longitude&nbsp;<#longitude>&nbsp;&nbsp;&nbsp;&nbsp;Elevation&nbsp;<#altitude></h2>
+
+<p>Records began on <#recordsbegandate>. Here are the month-by-month extremes recorded since then.</p>
+<input type="button" value="Jan" onclick="changeData(0)"/>
+<input type="button" value="Feb" onclick="changeData(1)"/>
+<input type="button" value="Mar" onclick="changeData(2)"/>
+<input type="button" value="Apr" onclick="changeData(3)"/>
+<input type="button" value="May" onclick="changeData(4)"/>
+<input type="button" value="Jun" onclick="changeData(5)"/>
+<input type="button" value="Jul" onclick="changeData(6)"/>
+<input type="button" value="Aug" onclick="changeData(7)"/>
+<input type="button" value="Sep" onclick="changeData(8)"/>
+<input type="button" value="Oct" onclick="changeData(9)"/>
+<input type="button" value="Nov" onclick="changeData(10)"/>
+<input type="button" value="Dec" onclick="changeData(11)"/>
+<table style="width:100%;border-collapse: collapse; border-spacing: 0;" >
+   <caption>Records for the month of <span id="MonthName">January</span></caption>
+  <tr>
+    <td colspan="3" class="tableseparator_temp">Temperature and Humidity </td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Temperature</td>
+    <td class="right_align_indented"><span id="TempH"><#ByMonthTempH mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="TempHT"><#ByMonthTempHT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Temperature </td>
+    <td class="right_align_indented"><span id="TempL"><#ByMonthTempL mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="TempLT"><#ByMonthTempLT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Dew&nbsp;Point</td>
+    <td class="right_align_indented"><span id="DewPointH"><#ByMonthDewPointH mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="DewPointHT"><#ByMonthDewPointHT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Dew&nbsp;Point </td>
+    <td class="right_align_indented"><span id="DewPointL"><#ByMonthDewPointL mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="DewPointLT"><#ByMonthDewPointLT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Apparent&nbsp;Temperature</td>
+    <td class="right_align_indented"><span id="AppTempH"><#ByMonthAppTempH mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="AppTempHT"><#ByMonthAppTempHT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Apparent&nbsp;Temperature </td>
+    <td class="right_align_indented"><span id="AppTempL"><#ByMonthAppTempL mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="AppTempLT"><#ByMonthAppTempLT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Wind&nbsp;Chill&nbsp;Temperature</td>
+    <td class="right_align_indented"><span id="WChillL"><#ByMonthWChillL mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="WChillLT"><#ByMonthWChillLT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Heat&nbsp;Index</td>
+    <td class="right_align_indented"><span id="HeatIndexH"><#ByMonthHeatIndexH mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="HeatIndexHT"><#ByMonthHeatIndexHT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest Minimum </td>
+    <td class="right_align_indented"><span id="MinTempH"><#ByMonthMinTempH mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="MinTempHT"><#ByMonthMinTempHT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest Maximum </td>
+    <td class="right_align_indented"><span id="MaxTempL"><#ByMonthMaxTempL mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="MaxTempLT"><#ByMonthMaxTempLT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Humidity</td>
+    <td class="right_align_indented"><span id="HumH"><#ByMonthHumH mon=1></span>&nbsp;%</td>
+    <td class="right_align_indented"><span id="HumHT"><#ByMonthHumHT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Humidity </td>
+    <td class="right_align_indented"><span id="HumL"><#ByMonthHumL mon=1></span>&nbsp;%</td>
+    <td class="right_align_indented"><span id="HumLT"><#ByMonthHumLT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Daily&nbsp;Range</td>
+    <td class="right_align_indented"><span id="HighDailyTempRange"><#ByMonthHighDailyTempRange mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="HighDailyTempRangeT"><#ByMonthHighDailyTempRangeT mon=1></span></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Daily&nbsp;Range</td>
+    <td class="right_align_indented"><span id="LowDailyTempRange"><#ByMonthLowDailyTempRange mon=1></span>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><span id="LowDailyTempRangeT"><#ByMonthLowDailyTempRangeT mon=1></span></td>
+  </tr>
+  <tr>
+    <td colspan="3" class="tableseparator_rainfall">Rainfall</td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Rain&nbsp;Rate</td>
+    <td class="right_align_indented"><span id="RainRateH"><#ByMonthRainRateH mon=1></span>&nbsp;<#rainunit>/hr</td>
+    <td class="right_align_indented"><span id="RainRateHT"><#ByMonthRainRateHT mon=1></span></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Hourly&nbsp;Rainfall</td>
+    <td class="right_align_indented"><span id="HourlyRainH"><#ByMonthHourlyRainH mon=1></span>&nbsp;<#rainunit></td>
+    <td class="right_align_indented"><span id="HourlyRainHT"><#ByMonthHourlyRainHT mon=1></span></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Daily&nbsp;Rainfall</td>
+    <td class="right_align_indented"><span id="DailyRainH"><#ByMonthDailyRainH mon=1></span>&nbsp;<#rainunit></td>
+    <td class="right_align_indented"><span id="DailyRainHT"><#ByMonthDailyRainHT mon=1></span></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Monthly&nbsp;Rainfall</td>
+    <td class="right_align_indented"><span id="MonthlyRainH"><#ByMonthMonthlyRainH mon=1></span>&nbsp;<#rainunit></td>
+    <td class="right_align_indented"><span id="MonthlyRainHT"><#ByMonthMonthlyRainHT mon=1></span></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Longest&nbsp;Dry&nbsp;Period</td>
+    <td class="right_align_indented"><span id="LongestDryPeriod"><#ByMonthLongestDryPeriod mon=1></span>&nbsp;days</td>
+    <td class="right_align_indented"><span id="LongestDryPeriodT"><#ByMonthLongestDryPeriodT mon=1></span></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Longest&nbsp;Wet&nbsp;Period</td>
+    <td class="right_align_indented"><span id="LongestWetPeriod"><#ByMonthLongestWetPeriod mon=1></span>&nbsp;days</td>
+    <td class="right_align_indented"><span id="LongestWetPeriodT"><#ByMonthLongestWetPeriodT mon=1></span></td>
+  </tr>
+  <tr>
+    <td colspan="3" class="tableseparator_wind">Wind</td>
+  </tr>
+  <tr class="td_wind_data">
+    <td class="main_table_text_labels">Highest&nbsp;Wind&nbsp;Gust</td>
+    <td class="right_align_indented"><span id="GustH"><#ByMonthGustH mon=1></span>&nbsp;<#windunit></td>
+    <td class="right_align_indented"><span id="GustHT"><#ByMonthGustHT mon=1></span></td>
+  </tr>
+  <tr class="td_wind_data">
+    <td class="main_table_text_labels">Highest&nbsp;Wind&nbsp;Speed&nbsp;Average</td>
+    <td class="right_align_indented"><span id="WindH"><#ByMonthWindH mon=1></span>&nbsp;<#windunit></td>
+    <td class="right_align_indented"><span id="WindHT"><#ByMonthWindHT mon=1></span></td>
+  </tr>
+  <tr class="td_wind_data">
+    <td class="main_table_text_labels">Highest&nbsp;Daily Wind Run</td>
+    <td class="right_align_indented"><span id="WindRunH"><#ByMonthWindRunH mon=1></span>&nbsp;<#windrununit></td>
+    <td class="right_align_indented"><span id="WindRunHT"><#ByMonthWindRunHT mon=1></span></td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="tableseparator_pressure">Pressure</td>
+  </tr>
+  <tr class="td_pressure_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Pressure&nbsp;(sl) </td>
+    <td class="right_align_indented"><span id="PressL"><#ByMonthPressL mon=1></span>&nbsp;<#pressunit></td>
+    <td class="right_align_indented"><span id="PressLT"><#ByMonthPressLT mon=1></span></td>
+  </tr>
+  <tr class="td_pressure_data">
+    <td class="main_table_text_labels">Highest&nbsp;Pressure&nbsp;(sl)</td>
+    <td class="right_align_indented"><span id="PressH"><#ByMonthPressH mon=1></span>&nbsp;<#pressunit></td>
+    <td class="right_align_indented"><span id="PressHT"><#ByMonthPressHT mon=1></span></td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_navigation_bar">:<a href="index.htm">now</a>::<a href="gauges.htm">gauges</a>::<a href="today.htm">today</a>::<a href="yesterday.htm">yesterday</a>::<a href="thismonth.htm">this&nbsp;month</a>::<a href="thisyear.htm">this&nbsp;year</a>::<a href="record.htm">records</a>::<a href="monthlyrecord.htm">monthly&nbsp;records</a>::<a href="trends.htm">trends</a>:<#forum><#webcam></td>
+  </tr>
+</table>
+<p class="credits"><br />
+Page updated <#update><br />
+powered by
+<a href="http://sandaysoft.com/products/cumulus" target="_blank">Cumulus</a> v<#version> (<#build>)
+</p>
+</div>
+<script type="text/javascript">
+var monthnames = new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+var hightemp = new Array("<#ByMonthTempH mon=1>","<#ByMonthTempH mon=2>","<#ByMonthTempH mon=3>","<#ByMonthTempH mon=4>","<#ByMonthTempH mon=5>","<#ByMonthTempH mon=6>","<#ByMonthTempH mon=7>","<#ByMonthTempH mon=8>","<#ByMonthTempH mon=9>","<#ByMonthTempH mon=10>","<#ByMonthTempH mon=11>","<#ByMonthTempH mon=12>");
+var hightempT = new Array("<#ByMonthTempHT mon=1>","<#ByMonthTempHT mon=2>","<#ByMonthTempHT mon=3>","<#ByMonthTempHT mon=4>","<#ByMonthTempHT mon=5>","<#ByMonthTempHT mon=6>","<#ByMonthTempHT mon=7>","<#ByMonthTempHT mon=8>","<#ByMonthTempHT mon=9>","<#ByMonthTempHT mon=10>","<#ByMonthTempHT mon=11>","<#ByMonthTempHT mon=12>");
+var lowtemp = new Array("<#ByMonthTempL mon=1>","<#ByMonthTempL mon=2>","<#ByMonthTempL mon=3>","<#ByMonthTempL mon=4>","<#ByMonthTempL mon=5>","<#ByMonthTempL mon=6>","<#ByMonthTempL mon=7>","<#ByMonthTempL mon=8>","<#ByMonthTempL mon=9>","<#ByMonthTempL mon=10>","<#ByMonthTempL mon=11>","<#ByMonthTempL mon=12>");
+var lowtempT = new Array("<#ByMonthTempLT mon=1>","<#ByMonthTempLT mon=2>","<#ByMonthTempLT mon=3>","<#ByMonthTempLT mon=4>","<#ByMonthTempLT mon=5>","<#ByMonthTempLT mon=6>","<#ByMonthTempLT mon=7>","<#ByMonthTempLT mon=8>","<#ByMonthTempLT mon=9>","<#ByMonthTempLT mon=10>","<#ByMonthTempLT mon=11>","<#ByMonthTempLT mon=12>");
+var highDP = new Array("<#ByMonthDewPointH mon=1>","<#ByMonthDewPointH mon=2>","<#ByMonthDewPointH mon=3>","<#ByMonthDewPointH mon=4>","<#ByMonthDewPointH mon=5>","<#ByMonthDewPointH mon=6>","<#ByMonthDewPointH mon=7>","<#ByMonthDewPointH mon=8>","<#ByMonthDewPointH mon=9>","<#ByMonthDewPointH mon=10>","<#ByMonthDewPointH mon=11>","<#ByMonthDewPointH mon=12>");
+var highDPT = new Array("<#ByMonthDewPointHT mon=1>","<#ByMonthDewPointHT mon=2>","<#ByMonthDewPointHT mon=3>","<#ByMonthDewPointHT mon=4>","<#ByMonthDewPointHT mon=5>","<#ByMonthDewPointHT mon=6>","<#ByMonthDewPointHT mon=7>","<#ByMonthDewPointHT mon=8>","<#ByMonthDewPointHT mon=9>","<#ByMonthDewPointHT mon=10>","<#ByMonthDewPointHT mon=11>","<#ByMonthDewPointHT mon=12>");
+var lowDP = new Array("<#ByMonthDewPointL mon=1>","<#ByMonthDewPointL mon=2>","<#ByMonthDewPointL mon=3>","<#ByMonthDewPointL mon=4>","<#ByMonthDewPointL mon=5>","<#ByMonthDewPointL mon=6>","<#ByMonthDewPointL mon=7>","<#ByMonthDewPointL mon=8>","<#ByMonthDewPointL mon=9>","<#ByMonthDewPointL mon=10>","<#ByMonthDewPointL mon=11>","<#ByMonthDewPointL mon=12>");
+var lowDPT = new Array("<#ByMonthDewPointLT mon=1>","<#ByMonthDewPointLT mon=2>","<#ByMonthDewPointLT mon=3>","<#ByMonthDewPointLT mon=4>","<#ByMonthDewPointLT mon=5>","<#ByMonthDewPointLT mon=6>","<#ByMonthDewPointLT mon=7>","<#ByMonthDewPointLT mon=8>","<#ByMonthDewPointLT mon=9>","<#ByMonthDewPointLT mon=10>","<#ByMonthDewPointLT mon=11>","<#ByMonthDewPointLT mon=12>");
+var highapptemp = new Array("<#ByMonthAppTempH mon=1>","<#ByMonthAppTempH mon=2>","<#ByMonthAppTempH mon=3>","<#ByMonthAppTempH mon=4>","<#ByMonthAppTempH mon=5>","<#ByMonthAppTempH mon=6>","<#ByMonthAppTempH mon=7>","<#ByMonthAppTempH mon=8>","<#ByMonthAppTempH mon=9>","<#ByMonthAppTempH mon=10>","<#ByMonthAppTempH mon=11>","<#ByMonthAppTempH mon=12>");
+var highapptempT = new Array("<#ByMonthAppTempHT mon=1>","<#ByMonthAppTempHT mon=2>","<#ByMonthAppTempHT mon=3>","<#ByMonthAppTempHT mon=4>","<#ByMonthAppTempHT mon=5>","<#ByMonthAppTempHT mon=6>","<#ByMonthAppTempHT mon=7>","<#ByMonthAppTempHT mon=8>","<#ByMonthAppTempHT mon=9>","<#ByMonthAppTempHT mon=10>","<#ByMonthAppTempHT mon=11>","<#ByMonthAppTempHT mon=12>");
+var lowapptemp = new Array("<#ByMonthAppTempL mon=1>","<#ByMonthAppTempL mon=2>","<#ByMonthAppTempL mon=3>","<#ByMonthAppTempL mon=4>","<#ByMonthAppTempL mon=5>","<#ByMonthAppTempL mon=6>","<#ByMonthAppTempL mon=7>","<#ByMonthAppTempL mon=8>","<#ByMonthAppTempL mon=9>","<#ByMonthAppTempL mon=10>","<#ByMonthAppTempL mon=11>","<#ByMonthAppTempL mon=12>");
+var lowapptempT = new Array("<#ByMonthAppTempLT mon=1>","<#ByMonthAppTempLT mon=2>","<#ByMonthAppTempLT mon=3>","<#ByMonthAppTempLT mon=4>","<#ByMonthAppTempLT mon=5>","<#ByMonthAppTempLT mon=6>","<#ByMonthAppTempLT mon=7>","<#ByMonthAppTempLT mon=8>","<#ByMonthAppTempLT mon=9>","<#ByMonthAppTempLT mon=10>","<#ByMonthAppTempLT mon=11>","<#ByMonthAppTempLT mon=12>");
+var lowchill = new Array("<#ByMonthWChillL mon=1>","<#ByMonthWChillL mon=2>","<#ByMonthWChillL mon=3>","<#ByMonthWChillL mon=4>","<#ByMonthWChillL mon=5>","<#ByMonthWChillL mon=6>","<#ByMonthWChillL mon=7>","<#ByMonthWChillL mon=8>","<#ByMonthWChillL mon=9>","<#ByMonthWChillL mon=10>","<#ByMonthWChillL mon=11>","<#ByMonthWChillL mon=12>");
+var lowchillT = new Array("<#ByMonthWChillLT mon=1>","<#ByMonthWChillLT mon=2>","<#ByMonthWChillLT mon=3>","<#ByMonthWChillLT mon=4>","<#ByMonthWChillLT mon=5>","<#ByMonthWChillLT mon=6>","<#ByMonthWChillLT mon=7>","<#ByMonthWChillLT mon=8>","<#ByMonthWChillLT mon=9>","<#ByMonthWChillLT mon=10>","<#ByMonthWChillLT mon=11>","<#ByMonthWChillLT mon=12>");
+var highheatindex = new Array("<#ByMonthHeatIndexH mon=1>","<#ByMonthHeatIndexH mon=2>","<#ByMonthHeatIndexH mon=3>","<#ByMonthHeatIndexH mon=4>","<#ByMonthHeatIndexH mon=5>","<#ByMonthHeatIndexH mon=6>","<#ByMonthHeatIndexH mon=7>","<#ByMonthHeatIndexH mon=8>","<#ByMonthHeatIndexH mon=9>","<#ByMonthHeatIndexH mon=10>","<#ByMonthHeatIndexH mon=11>","<#ByMonthHeatIndexH mon=12>");
+var highheatindexT = new Array("<#ByMonthHeatIndexHT mon=1>","<#ByMonthHeatIndexHT mon=2>","<#ByMonthHeatIndexHT mon=3>","<#ByMonthHeatIndexHT mon=4>","<#ByMonthHeatIndexHT mon=5>","<#ByMonthHeatIndexHT mon=6>","<#ByMonthHeatIndexHT mon=7>","<#ByMonthHeatIndexHT mon=8>","<#ByMonthHeatIndexHT mon=9>","<#ByMonthHeatIndexHT mon=10>","<#ByMonthHeatIndexHT mon=11>","<#ByMonthHeatIndexHT mon=12>");
+var highmintemp = new Array("<#ByMonthMinTempH mon=1>","<#ByMonthMinTempH mon=2>","<#ByMonthMinTempH mon=3>","<#ByMonthMinTempH mon=4>","<#ByMonthMinTempH mon=5>","<#ByMonthMinTempH mon=6>","<#ByMonthMinTempH mon=7>","<#ByMonthMinTempH mon=8>","<#ByMonthMinTempH mon=9>","<#ByMonthMinTempH mon=10>","<#ByMonthMinTempH mon=11>","<#ByMonthMinTempH mon=12>");
+var highmintempT = new Array("<#ByMonthMinTempHT mon=1>","<#ByMonthMinTempHT mon=2>","<#ByMonthMinTempHT mon=3>","<#ByMonthMinTempHT mon=4>","<#ByMonthMinTempHT mon=5>","<#ByMonthMinTempHT mon=6>","<#ByMonthMinTempHT mon=7>","<#ByMonthMinTempHT mon=8>","<#ByMonthMinTempHT mon=9>","<#ByMonthMinTempHT mon=10>","<#ByMonthMinTempHT mon=11>","<#ByMonthMinTempHT mon=12>");
+var lowmaxtemp = new Array("<#ByMonthMaxTempL mon=1>","<#ByMonthMaxTempL mon=2>","<#ByMonthMaxTempL mon=3>","<#ByMonthMaxTempL mon=4>","<#ByMonthMaxTempL mon=5>","<#ByMonthMaxTempL mon=6>","<#ByMonthMaxTempL mon=7>","<#ByMonthMaxTempL mon=8>","<#ByMonthMaxTempL mon=9>","<#ByMonthMaxTempL mon=10>","<#ByMonthMaxTempL mon=11>","<#ByMonthMaxTempL mon=12>");
+var lowmaxtempT = new Array("<#ByMonthMaxTempLT mon=1>","<#ByMonthMaxTempLT mon=2>","<#ByMonthMaxTempLT mon=3>","<#ByMonthMaxTempLT mon=4>","<#ByMonthMaxTempLT mon=5>","<#ByMonthMaxTempLT mon=6>","<#ByMonthMaxTempLT mon=7>","<#ByMonthMaxTempLT mon=8>","<#ByMonthMaxTempLT mon=9>","<#ByMonthMaxTempLT mon=10>","<#ByMonthMaxTempLT mon=11>","<#ByMonthMaxTempLT mon=12>");
+var highhum = new Array("<#ByMonthHumH mon=1>","<#ByMonthHumH mon=2>","<#ByMonthHumH mon=3>","<#ByMonthHumH mon=4>","<#ByMonthHumH mon=5>","<#ByMonthHumH mon=6>","<#ByMonthHumH mon=7>","<#ByMonthHumH mon=8>","<#ByMonthHumH mon=9>","<#ByMonthHumH mon=10>","<#ByMonthHumH mon=11>","<#ByMonthHumH mon=12>");
+var highhumT = new Array("<#ByMonthHumHT mon=1>","<#ByMonthHumHT mon=2>","<#ByMonthHumHT mon=3>","<#ByMonthHumHT mon=4>","<#ByMonthHumHT mon=5>","<#ByMonthHumHT mon=6>","<#ByMonthHumHT mon=7>","<#ByMonthHumHT mon=8>","<#ByMonthHumHT mon=9>","<#ByMonthHumHT mon=10>","<#ByMonthHumHT mon=11>","<#ByMonthHumHT mon=12>");
+var lowhum = new Array("<#ByMonthHumL mon=1>","<#ByMonthHumL mon=2>","<#ByMonthHumL mon=3>","<#ByMonthHumL mon=4>","<#ByMonthHumL mon=5>","<#ByMonthHumL mon=6>","<#ByMonthHumL mon=7>","<#ByMonthHumL mon=8>","<#ByMonthHumL mon=9>","<#ByMonthHumL mon=10>","<#ByMonthHumL mon=11>","<#ByMonthHumL mon=12>");
+var lowhumT = new Array("<#ByMonthHumLT mon=1>","<#ByMonthHumLT mon=2>","<#ByMonthHumLT mon=3>","<#ByMonthHumLT mon=4>","<#ByMonthHumLT mon=5>","<#ByMonthHumLT mon=6>","<#ByMonthHumLT mon=7>","<#ByMonthHumLT mon=8>","<#ByMonthHumLT mon=9>","<#ByMonthHumLT mon=10>","<#ByMonthHumLT mon=11>","<#ByMonthHumLT mon=12>");
+var hightemprange = new Array("<#ByMonthHighDailyTempRange mon=1>","<#ByMonthHighDailyTempRange mon=2>","<#ByMonthHighDailyTempRange mon=3>","<#ByMonthHighDailyTempRange mon=4>","<#ByMonthHighDailyTempRange mon=5>","<#ByMonthHighDailyTempRange mon=6>","<#ByMonthHighDailyTempRange mon=7>","<#ByMonthHighDailyTempRange mon=8>","<#ByMonthHighDailyTempRange mon=9>","<#ByMonthHighDailyTempRange mon=10>","<#ByMonthHighDailyTempRange mon=11>","<#ByMonthHighDailyTempRange mon=12>");
+var hightemprangeT = new Array("<#ByMonthHighDailyTempRangeT mon=1>","<#ByMonthHighDailyTempRangeT mon=2>","<#ByMonthHighDailyTempRangeT mon=3>","<#ByMonthHighDailyTempRangeT mon=4>","<#ByMonthHighDailyTempRangeT mon=5>","<#ByMonthHighDailyTempRangeT mon=6>","<#ByMonthHighDailyTempRangeT mon=7>","<#ByMonthHighDailyTempRangeT mon=8>","<#ByMonthHighDailyTempRangeT mon=9>","<#ByMonthHighDailyTempRangeT mon=10>","<#ByMonthHighDailyTempRangeT mon=11>","<#ByMonthHighDailyTempRangeT mon=12>");
+var lowtemprange = new Array("<#ByMonthLowDailyTempRange mon=1>","<#ByMonthLowDailyTempRange mon=2>","<#ByMonthLowDailyTempRange mon=3>","<#ByMonthLowDailyTempRange mon=4>","<#ByMonthLowDailyTempRange mon=5>","<#ByMonthLowDailyTempRange mon=6>","<#ByMonthLowDailyTempRange mon=7>","<#ByMonthLowDailyTempRange mon=8>","<#ByMonthLowDailyTempRange mon=9>","<#ByMonthLowDailyTempRange mon=10>","<#ByMonthLowDailyTempRange mon=11>","<#ByMonthLowDailyTempRange mon=12>");
+var lowtemprangeT = new Array("<#ByMonthLowDailyTempRangeT mon=1>","<#ByMonthLowDailyTempRangeT mon=2>","<#ByMonthLowDailyTempRangeT mon=3>","<#ByMonthLowDailyTempRangeT mon=4>","<#ByMonthLowDailyTempRangeT mon=5>","<#ByMonthLowDailyTempRangeT mon=6>","<#ByMonthLowDailyTempRangeT mon=7>","<#ByMonthLowDailyTempRangeT mon=8>","<#ByMonthLowDailyTempRangeT mon=9>","<#ByMonthLowDailyTempRangeT mon=10>","<#ByMonthLowDailyTempRangeT mon=11>","<#ByMonthLowDailyTempRangeT mon=12>");
+var rainrate = new Array("<#ByMonthRainRateH mon=1>","<#ByMonthRainRateH mon=2>","<#ByMonthRainRateH mon=3>","<#ByMonthRainRateH mon=4>","<#ByMonthRainRateH mon=5>","<#ByMonthRainRateH mon=6>","<#ByMonthRainRateH mon=7>","<#ByMonthRainRateH mon=8>","<#ByMonthRainRateH mon=9>","<#ByMonthRainRateH mon=10>","<#ByMonthRainRateH mon=11>","<#ByMonthRainRateH mon=12>");
+var rainrateT = new Array("<#ByMonthRainRateHT mon=1>","<#ByMonthRainRateHT mon=2>","<#ByMonthRainRateHT mon=3>","<#ByMonthRainRateHT mon=4>","<#ByMonthRainRateHT mon=5>","<#ByMonthRainRateHT mon=6>","<#ByMonthRainRateHT mon=7>","<#ByMonthRainRateHT mon=8>","<#ByMonthRainRateHT mon=9>","<#ByMonthRainRateHT mon=10>","<#ByMonthRainRateHT mon=11>","<#ByMonthRainRateHT mon=12>");
+var hourlyrain = new Array("<#ByMonthHourlyRainH mon=1>","<#ByMonthHourlyRainH mon=2>","<#ByMonthHourlyRainH mon=3>","<#ByMonthHourlyRainH mon=4>","<#ByMonthHourlyRainH mon=5>","<#ByMonthHourlyRainH mon=6>","<#ByMonthHourlyRainH mon=7>","<#ByMonthHourlyRainH mon=8>","<#ByMonthHourlyRainH mon=9>","<#ByMonthHourlyRainH mon=10>","<#ByMonthHourlyRainH mon=11>","<#ByMonthHourlyRainH mon=12>");
+var hourlyrainT = new Array("<#ByMonthHourlyRainHT mon=1>","<#ByMonthHourlyRainHT mon=2>","<#ByMonthHourlyRainHT mon=3>","<#ByMonthHourlyRainHT mon=4>","<#ByMonthHourlyRainHT mon=5>","<#ByMonthHourlyRainHT mon=6>","<#ByMonthHourlyRainHT mon=7>","<#ByMonthHourlyRainHT mon=8>","<#ByMonthHourlyRainHT mon=9>","<#ByMonthHourlyRainHT mon=10>","<#ByMonthHourlyRainHT mon=11>","<#ByMonthHourlyRainHT mon=12>");
+var dailyrain = new Array("<#ByMonthDailyRainH mon=1>","<#ByMonthDailyRainH mon=2>","<#ByMonthDailyRainH mon=3>","<#ByMonthDailyRainH mon=4>","<#ByMonthDailyRainH mon=5>","<#ByMonthDailyRainH mon=6>","<#ByMonthDailyRainH mon=7>","<#ByMonthDailyRainH mon=8>","<#ByMonthDailyRainH mon=9>","<#ByMonthDailyRainH mon=10>","<#ByMonthDailyRainH mon=11>","<#ByMonthDailyRainH mon=12>");
+var dailyrainT = new Array("<#ByMonthDailyRainHT mon=1>","<#ByMonthDailyRainHT mon=2>","<#ByMonthDailyRainHT mon=3>","<#ByMonthDailyRainHT mon=4>","<#ByMonthDailyRainHT mon=5>","<#ByMonthDailyRainHT mon=6>","<#ByMonthDailyRainHT mon=7>","<#ByMonthDailyRainHT mon=8>","<#ByMonthDailyRainHT mon=9>","<#ByMonthDailyRainHT mon=10>","<#ByMonthDailyRainHT mon=11>","<#ByMonthDailyRainHT mon=12>");
+var monthlyrain = new Array("<#ByMonthMonthlyRainH mon=1>","<#ByMonthMonthlyRainH mon=2>","<#ByMonthMonthlyRainH mon=3>","<#ByMonthMonthlyRainH mon=4>","<#ByMonthMonthlyRainH mon=5>","<#ByMonthMonthlyRainH mon=6>","<#ByMonthMonthlyRainH mon=7>","<#ByMonthMonthlyRainH mon=8>","<#ByMonthMonthlyRainH mon=9>","<#ByMonthMonthlyRainH mon=10>","<#ByMonthMonthlyRainH mon=11>","<#ByMonthMonthlyRainH mon=12>");
+var monthlyrainT = new Array("<#ByMonthMonthlyRainHT mon=1>","<#ByMonthMonthlyRainHT mon=2>","<#ByMonthMonthlyRainHT mon=3>","<#ByMonthMonthlyRainHT mon=4>","<#ByMonthMonthlyRainHT mon=5>","<#ByMonthMonthlyRainHT mon=6>","<#ByMonthMonthlyRainHT mon=7>","<#ByMonthMonthlyRainHT mon=8>","<#ByMonthMonthlyRainHT mon=9>","<#ByMonthMonthlyRainHT mon=10>","<#ByMonthMonthlyRainHT mon=11>","<#ByMonthMonthlyRainHT mon=12>");
+var dryperiod = new Array("<#ByMonthLongestDryPeriod mon=1>","<#ByMonthLongestDryPeriod mon=2>","<#ByMonthLongestDryPeriod mon=3>","<#ByMonthLongestDryPeriod mon=4>","<#ByMonthLongestDryPeriod mon=5>","<#ByMonthLongestDryPeriod mon=6>","<#ByMonthLongestDryPeriod mon=7>","<#ByMonthLongestDryPeriod mon=8>","<#ByMonthLongestDryPeriod mon=9>","<#ByMonthLongestDryPeriod mon=10>","<#ByMonthLongestDryPeriod mon=11>","<#ByMonthLongestDryPeriod mon=12>");
+var dryperiodT = new Array("<#ByMonthLongestDryPeriodT mon=1>","<#ByMonthLongestDryPeriodT mon=2>","<#ByMonthLongestDryPeriodT mon=3>","<#ByMonthLongestDryPeriodT mon=4>","<#ByMonthLongestDryPeriodT mon=5>","<#ByMonthLongestDryPeriodT mon=6>","<#ByMonthLongestDryPeriodT mon=7>","<#ByMonthLongestDryPeriodT mon=8>","<#ByMonthLongestDryPeriodT mon=9>","<#ByMonthLongestDryPeriodT mon=10>","<#ByMonthLongestDryPeriodT mon=11>","<#ByMonthLongestDryPeriodT mon=12>");
+var wetperiod = new Array("<#ByMonthLongestWetPeriod mon=1>","<#ByMonthLongestWetPeriod mon=2>","<#ByMonthLongestWetPeriod mon=3>","<#ByMonthLongestWetPeriod mon=4>","<#ByMonthLongestWetPeriod mon=5>","<#ByMonthLongestWetPeriod mon=6>","<#ByMonthLongestWetPeriod mon=7>","<#ByMonthLongestWetPeriod mon=8>","<#ByMonthLongestWetPeriod mon=9>","<#ByMonthLongestWetPeriod mon=10>","<#ByMonthLongestWetPeriod mon=11>","<#ByMonthLongestWetPeriod mon=12>");
+var wetperiodT = new Array("<#ByMonthLongestWetPeriodT mon=1>","<#ByMonthLongestWetPeriodT mon=2>","<#ByMonthLongestWetPeriodT mon=3>","<#ByMonthLongestWetPeriodT mon=4>","<#ByMonthLongestWetPeriodT mon=5>","<#ByMonthLongestWetPeriodT mon=6>","<#ByMonthLongestWetPeriodT mon=7>","<#ByMonthLongestWetPeriodT mon=8>","<#ByMonthLongestWetPeriodT mon=9>","<#ByMonthLongestWetPeriodT mon=10>","<#ByMonthLongestWetPeriodT mon=11>","<#ByMonthLongestWetPeriodT mon=12>");
+var highgust = new Array("<#ByMonthGustH mon=1>","<#ByMonthGustH mon=2>","<#ByMonthGustH mon=3>","<#ByMonthGustH mon=4>","<#ByMonthGustH mon=5>","<#ByMonthGustH mon=6>","<#ByMonthGustH mon=7>","<#ByMonthGustH mon=8>","<#ByMonthGustH mon=9>","<#ByMonthGustH mon=10>","<#ByMonthGustH mon=11>","<#ByMonthGustH mon=12>");
+var highgustT = new Array("<#ByMonthGustHT mon=1>","<#ByMonthGustHT mon=2>","<#ByMonthGustHT mon=3>","<#ByMonthGustHT mon=4>","<#ByMonthGustHT mon=5>","<#ByMonthGustHT mon=6>","<#ByMonthGustHT mon=7>","<#ByMonthGustHT mon=8>","<#ByMonthGustHT mon=9>","<#ByMonthGustHT mon=10>","<#ByMonthGustHT mon=11>","<#ByMonthGustHT mon=12>");
+var highwind = new Array("<#ByMonthWindH mon=1>","<#ByMonthWindH mon=2>","<#ByMonthWindH mon=3>","<#ByMonthWindH mon=4>","<#ByMonthWindH mon=5>","<#ByMonthWindH mon=6>","<#ByMonthWindH mon=7>","<#ByMonthWindH mon=8>","<#ByMonthWindH mon=9>","<#ByMonthWindH mon=10>","<#ByMonthWindH mon=11>","<#ByMonthWindH mon=12>");
+var highwindT = new Array("<#ByMonthWindHT mon=1>","<#ByMonthWindHT mon=2>","<#ByMonthWindHT mon=3>","<#ByMonthWindHT mon=4>","<#ByMonthWindHT mon=5>","<#ByMonthWindHT mon=6>","<#ByMonthWindHT mon=7>","<#ByMonthWindHT mon=8>","<#ByMonthWindHT mon=9>","<#ByMonthWindHT mon=10>","<#ByMonthWindHT mon=11>","<#ByMonthWindHT mon=12>");
+var highwindrun = new Array("<#ByMonthWindRunH mon=1>","<#ByMonthWindRunH mon=2>","<#ByMonthWindRunH mon=3>","<#ByMonthWindRunH mon=4>","<#ByMonthWindRunH mon=5>","<#ByMonthWindRunH mon=6>","<#ByMonthWindRunH mon=7>","<#ByMonthWindRunH mon=8>","<#ByMonthWindRunH mon=9>","<#ByMonthWindRunH mon=10>","<#ByMonthWindRunH mon=11>","<#ByMonthWindRunH mon=12>");
+var highwindrunT = new Array("<#ByMonthWindRunHT mon=1>","<#ByMonthWindRunHT mon=2>","<#ByMonthWindRunHT mon=3>","<#ByMonthWindRunHT mon=4>","<#ByMonthWindRunHT mon=5>","<#ByMonthWindRunHT mon=6>","<#ByMonthWindRunHT mon=7>","<#ByMonthWindRunHT mon=8>","<#ByMonthWindRunHT mon=9>","<#ByMonthWindRunHT mon=10>","<#ByMonthWindRunHT mon=11>","<#ByMonthWindRunHT mon=12>");
+var highpress = new Array("<#ByMonthPressH mon=1>","<#ByMonthPressH mon=2>","<#ByMonthPressH mon=3>","<#ByMonthPressH mon=4>","<#ByMonthPressH mon=5>","<#ByMonthPressH mon=6>","<#ByMonthPressH mon=7>","<#ByMonthPressH mon=8>","<#ByMonthPressH mon=9>","<#ByMonthPressH mon=10>","<#ByMonthPressH mon=11>","<#ByMonthPressH mon=12>");
+var highpressT = new Array("<#ByMonthPressHT mon=1>","<#ByMonthPressHT mon=2>","<#ByMonthPressHT mon=3>","<#ByMonthPressHT mon=4>","<#ByMonthPressHT mon=5>","<#ByMonthPressHT mon=6>","<#ByMonthPressHT mon=7>","<#ByMonthPressHT mon=8>","<#ByMonthPressHT mon=9>","<#ByMonthPressHT mon=10>","<#ByMonthPressHT mon=11>","<#ByMonthPressHT mon=12>");
+var lowpress = new Array("<#ByMonthPressL mon=1>","<#ByMonthPressL mon=2>","<#ByMonthPressL mon=3>","<#ByMonthPressL mon=4>","<#ByMonthPressL mon=5>","<#ByMonthPressL mon=6>","<#ByMonthPressL mon=7>","<#ByMonthPressL mon=8>","<#ByMonthPressL mon=9>","<#ByMonthPressL mon=10>","<#ByMonthPressL mon=11>","<#ByMonthPressL mon=12>");
+var lowpressT = new Array("<#ByMonthPressLT mon=1>","<#ByMonthPressLT mon=2>","<#ByMonthPressLT mon=3>","<#ByMonthPressLT mon=4>","<#ByMonthPressLT mon=5>","<#ByMonthPressLT mon=6>","<#ByMonthPressLT mon=7>","<#ByMonthPressLT mon=8>","<#ByMonthPressLT mon=9>","<#ByMonthPressLT mon=10>","<#ByMonthPressLT mon=11>","<#ByMonthPressLT mon=12>");
+
+function changeData(month) {
+	document.getElementById('MonthName').innerHTML = monthnames[month];
+	document.getElementById('TempH').innerHTML = hightemp[month];
+	document.getElementById('TempHT').innerHTML = hightempT[month];
+	document.getElementById('TempL').innerHTML = lowtemp[month];
+	document.getElementById('TempLT').innerHTML = lowtempT[month];
+	document.getElementById('DewPointH').innerHTML = highDP[month];
+	document.getElementById('DewPointHT').innerHTML = highDPT[month];
+	document.getElementById('DewPointL').innerHTML = lowDP[month];
+	document.getElementById('DewPointLT').innerHTML = lowDPT[month];
+	document.getElementById('AppTempH').innerHTML = highapptemp[month];
+	document.getElementById('AppTempHT').innerHTML = highapptempT[month];
+	document.getElementById('AppTempL').innerHTML = lowapptemp[month];
+	document.getElementById('AppTempLT').innerHTML = lowapptempT[month];
+	document.getElementById('WChillL').innerHTML = lowchill[month];
+	document.getElementById('WChillLT').innerHTML = lowchillT[month];
+	document.getElementById('HeatIndexH').innerHTML = highheatindex[month];
+	document.getElementById('HeatIndexHT').innerHTML = highheatindexT[month];
+	document.getElementById('MinTempH').innerHTML = highmintemp[month];
+	document.getElementById('MinTempHT').innerHTML = highmintempT[month];
+	document.getElementById('MaxTempL').innerHTML = lowmaxtemp[month];
+	document.getElementById('MaxTempLT').innerHTML = lowmaxtempT[month];
+	document.getElementById('HumH').innerHTML = highhum[month];
+	document.getElementById('HumHT').innerHTML = highhumT[month];
+	document.getElementById('HumL').innerHTML = lowhum[month];
+	document.getElementById('HumLT').innerHTML = lowhumT[month];
+	document.getElementById('HighDailyTempRange').innerHTML = hightemprange[month];
+	document.getElementById('HighDailyTempRangeT').innerHTML = hightemprangeT[month];
+	document.getElementById('LowDailyTempRange').innerHTML = lowtemprange[month];
+	document.getElementById('LowDailyTempRangeT').innerHTML = lowtemprangeT[month];
+	document.getElementById('RainRateH').innerHTML = rainrate[month];
+	document.getElementById('RainRateHT').innerHTML = rainrateT[month];
+	document.getElementById('HourlyRainH').innerHTML = hourlyrain[month];
+	document.getElementById('HourlyRainHT').innerHTML = hourlyrainT[month];
+	document.getElementById('DailyRainH').innerHTML = dailyrain[month];
+	document.getElementById('DailyRainHT').innerHTML = dailyrainT[month];
+	document.getElementById('MonthlyRainH').innerHTML = monthlyrain[month];
+	document.getElementById('MonthlyRainHT').innerHTML = monthlyrainT[month];
+	document.getElementById('LongestDryPeriod').innerHTML = dryperiod[month];
+	document.getElementById('LongestDryPeriodT').innerHTML = dryperiodT[month];
+	document.getElementById('LongestWetPeriod').innerHTML = wetperiod[month];
+	document.getElementById('LongestWetPeriodT').innerHTML = wetperiodT[month];
+	document.getElementById('GustH').innerHTML = highgust[month];
+	document.getElementById('GustHT').innerHTML = highgustT[month];
+	document.getElementById('WindH').innerHTML = highwind[month];
+	document.getElementById('WindHT').innerHTML = highwindT[month];
+	document.getElementById('WindRunH').innerHTML = highwindrun[month];
+	document.getElementById('WindRunHT').innerHTML = highwindrunT[month];
+	document.getElementById('PressL').innerHTML = lowpress[month];
+	document.getElementById('PressLT').innerHTML = lowpressT[month];
+	document.getElementById('PressH').innerHTML = highpress[month];
+	document.getElementById('PressHT').innerHTML = highpressT[month];
+} 
+
+// If you want the page to display the current month when it opens,
+// remove the "//" from the start of the next line
+//changeData(+'<#month>' - 1);
+</script>    
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="<#location> weather data" />
+<meta name="keywords" content="Cumulus, <#location> weather data, weather, data, weather station" />
+  <title><#location> weather</title>
+  <link href="weatherstyle.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<div id="content">
+<h1><#location> weather</h1>
+<h2 style="text-align: left; text-transform: none;">&nbsp;Latitude&nbsp;<#latitude>&nbsp;&nbsp;&nbsp;&nbsp;Longitude&nbsp;<#longitude>&nbsp;&nbsp;&nbsp;&nbsp;Elevation&nbsp;<#altitude></h2>
+
+<p>Records began on <#recordsbegandate>. Here are the extremes recorded since then.</p>
+<table style="width:100%;border-collapse: collapse; border-spacing: 0;" >
+   <caption>Records Since <#recordsbegandate></caption>
+  <tr>
+    <td colspan="3" class="tableseparator_temp">Temperature and Humidity </td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Temperature</td>
+    <td class="right_align_indented"><#tempH>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TtempH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Temperature </td>
+    <td class="right_align_indented"><#tempL>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TtempL></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Dew&nbsp;Point</td>
+    <td class="right_align_indented"><#dewpointH>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TdewpointH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Dew&nbsp;Point </td>
+    <td class="right_align_indented"><#dewpointL>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TdewpointL></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Apparent&nbsp;Temperature</td>
+    <td class="right_align_indented"><#apptempH>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TapptempH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Apparent&nbsp;Temperature </td>
+    <td class="right_align_indented"><#apptempL>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TapptempL></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Wind&nbsp;Chill&nbsp;Temperature</td>
+    <td class="right_align_indented"><#wchillH>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TwchillH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Heat&nbsp;Index</td>
+    <td class="right_align_indented"><#heatindexH>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TheatindexH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest Minimum </td>
+    <td class="right_align_indented"><#mintempH>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TmintempH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest Maximum </td>
+    <td class="right_align_indented"><#maxtempL>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TmaxtempL></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Humidity</td>
+    <td class="right_align_indented"><#humH>&nbsp;%</td>
+    <td class="right_align_indented"><#ThumH></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Humidity </td>
+    <td class="right_align_indented"><#humL>&nbsp;%</td>
+    <td class="right_align_indented"><#ThumL></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Highest&nbsp;Daily&nbsp;Range</td>
+    <td class="right_align_indented"><#HighDailyTempRange>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#THighDailyTempRange></td>
+  </tr>
+  <tr class="td_temperature_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Daily&nbsp;Range</td>
+    <td class="right_align_indented"><#LowDailyTempRange>&nbsp;<#tempunit></td>
+    <td class="right_align_indented"><#TLowDailyTempRange></td>
+  </tr>
+  <tr>
+    <td colspan="3" class="tableseparator_rainfall">Rainfall</td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Rain&nbsp;Rate</td>
+    <td class="right_align_indented"><#rrateM>&nbsp;<#rainunit>/hr</td>
+    <td class="right_align_indented"><#TrrateM></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Hourly&nbsp;Rainfall</td>
+    <td class="right_align_indented"><#rfallhH>&nbsp;<#rainunit></td>
+    <td class="right_align_indented"><#TrfallhH></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Daily&nbsp;Rainfall</td>
+    <td class="right_align_indented"><#rfallH>&nbsp;<#rainunit></td>
+    <td class="right_align_indented"><#TrfallH></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Highest&nbsp;Monthly&nbsp;Rainfall</td>
+    <td class="right_align_indented"><#rfallmH>&nbsp;<#rainunit></td>
+    <td class="right_align_indented"><#TrfallmH></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Longest&nbsp;Dry&nbsp;Period</td>
+    <td class="right_align_indented"><#LongestDryPeriod>&nbsp;days</td>
+    <td class="right_align_indented"><#TLongestDryPeriod></td>
+  </tr>
+  <tr class="td_rainfall_data">
+    <td class="main_table_text_labels">Longest&nbsp;Wet&nbsp;Period</td>
+    <td class="right_align_indented"><#LongestWetPeriod>&nbsp;days</td>
+    <td class="right_align_indented"><#TLongestWetPeriod></td>
+  </tr>
+  <tr>
+    <td colspan="3" class="tableseparator_wind">Wind</td>
+  </tr>
+  <tr class="td_wind_data">
+    <td class="main_table_text_labels">Highest&nbsp;Wind&nbsp;Gust</td>
+    <td class="right_align_indented"><#gustM>&nbsp;<#windunit></td>
+    <td class="right_align_indented"><#TgustM></td>
+  </tr>
+  <tr class="td_wind_data">
+    <td class="main_table_text_labels">Highest&nbsp;Wind&nbsp;Speed&nbsp;Average</td>
+    <td class="right_align_indented"><#wspeedH>&nbsp;<#windunit></td>
+    <td class="right_align_indented"><#TwspeedH></td>
+  </tr>
+  <tr class="td_wind_data">
+    <td class="main_table_text_labels">Highest&nbsp;Daily Wind Run</td>
+    <td class="right_align_indented"><#windrunH>&nbsp;<#windrununit></td>
+    <td class="right_align_indented"><#TwindrunH></td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="tableseparator_pressure">Pressure</td>
+  </tr>
+  <tr class="td_pressure_data">
+    <td class="main_table_text_labels">Lowest&nbsp;Pressure&nbsp;(sl) </td>
+    <td class="right_align_indented"><#pressL>&nbsp;<#pressunit></td>
+    <td class="right_align_indented"><#TpressL></td>
+  </tr>
+  <tr class="td_pressure_data">
+    <td class="main_table_text_labels">Highest&nbsp;Pressure&nbsp;(sl)</td>
+    <td class="right_align_indented"><#pressH>&nbsp;<#pressunit></td>
+    <td class="right_align_indented"><#TpressH></td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_navigation_bar">:<a href="index.htm">now</a>::<a href="gauges.htm">gauges</a>::<a href="today.htm">today</a>::<a href="yesterday.htm">yesterday</a>::<a href="thismonth.htm">this&nbsp;month</a>::<a href="thisyear.htm">this&nbsp;year</a>::<a href="record.htm">records</a>::<a href="monthlyrecord.htm">monthly&nbsp;records</a>::<a href="trends.htm">trends</a>:<#forum><#webcam></td>
+  </tr>
+</table>
+<p class="credits"><br />
+Page updated <#update><br />
+powered by
+<a href="http://sandaysoft.com/products/cumulus" target="_blank">Cumulus</a> v<#version> (<#build>)
+</p>
+</div>
+</body>
+</html>
