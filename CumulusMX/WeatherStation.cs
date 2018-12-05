@@ -1297,9 +1297,9 @@ namespace CumulusMX
 
 			if (DateTime.Now.Second%3 == 0)
 			{
-				// send current data to websocket every 3 seconds for now
+                // send current data to websocket every 3 seconds for now
 
-				foreach (var conn in cumulus.WSconnections)
+                foreach (var conn in cumulus.WSconnections)
 				{
 					try
 					{
@@ -1337,8 +1337,7 @@ namespace CumulusMX
 						ser.WriteObject(stream, data);
 
 						stream.Position = 0;
-
-						conn.Send(new StreamReader(stream).ReadToEnd());
+                        conn.Send(new StreamReader(stream).ReadToEnd());
 					}
 					catch (Exception ex)
 					{
@@ -1419,7 +1418,7 @@ namespace CumulusMX
 
 			CheckForDataStopped();
 
-			CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor);
+			CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity);
 			if (((Pressure > 0) && TempReadyToPlot && WindReadyToPlot) || cumulus.NoSensorCheck)
 			{
 				// increment wind run by one minute's worth of average speed
@@ -3615,7 +3614,7 @@ namespace CumulusMX
 				HighSolarToday = SolarRad;
 				highsolartodaytime = timestamp;
 			}
-			CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor);
+			CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity);
 
 			if (!cumulus.UseBlakeLarsen)
 			{
@@ -8775,7 +8774,7 @@ namespace CumulusMX
 				lowwindchilltodaytime.ToString("HH:mm"), (int)SolarRad, (int)HighSolarToday, highsolartodaytime.ToString("HH:mm"), UV, HighUVToday,
 				highuvtodaytime.ToString("HH:mm"), forecaststr, getTimeString(cumulus.SunRiseTime), getTimeString(cumulus.SunSetTime),
 				getTimeString(cumulus.MoonRiseTime), getTimeString(cumulus.MoonSetTime), HighHeatIndexToday, highheatindextodaytime.ToString("HH:mm"), HighAppTempToday,
-				LowAppTempToday, highapptemptodaytime.ToString("HH:mm"), lowapptemptodaytime.ToString("HH:mm"), (int)CurrentSolarMax,
+				LowAppTempToday, highapptemptodaytime.ToString("HH:mm"), lowapptemptodaytime.ToString("HH:mm"), (int)Math.Round(CurrentSolarMax),
 				alltimerecarray[AT_highpress].value, alltimerecarray[AT_lowpress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour);

@@ -1,0 +1,18 @@
+﻿{
+    "fields": {
+        "offsets": {
+            "collapsed": "true"
+        },
+        "multipliers": {
+            "collapsed": "true"
+        },
+        "spikeremoval": {
+            "collapsed": "true",
+            "fields": {
+                "log": {
+                    "rightLabel": "Log to error log"
+                }
+            }
+        }
+    }
+}

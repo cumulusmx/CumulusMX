@@ -1,0 +1,439 @@
+﻿{
+    "type": "object",
+    "properties": {
+        "website": {
+            "title": "Web/FTP site",
+            "type": "object",
+            "properties": {
+                "hostname": {
+                    "title": "Host name"
+                },
+                "ftpport": {
+                    "title": "FTP port",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "directory": {
+                    "title": "Directory"
+                },
+                "username": {
+                    "title": "Username"
+                },
+                "password": {
+                    "title": "Password"
+                },
+                "forumurl": {
+                    "title": "Forum URL"
+                },
+                "webcamurl": {
+                    "title": "Webcam URL"
+                }
+            }
+        },
+        "websettings": {
+            "title": "Web/FTP settings",
+            "type": "object",
+            "properties": {
+                "autoupdate": {
+                    "type": "boolean"
+                },
+                "includestdfiles": {
+                    "type": "boolean"
+                },
+                "includegraphdatafiles": {
+                    "type": "boolean"
+                },
+                "activeftp": {
+                    "type": "boolean"
+                },
+                "sslftp": {
+                    "type": "boolean"
+                },
+                "ftprename": {
+                    "type": "boolean"
+                },
+                "ftpdelete": {
+                    "type": "boolean"
+                },
+                "utf8encode": {
+                    "type": "boolean"
+                },
+                "ftplogging": {
+                    "type": "boolean"
+                },
+                "ftpinterval": {
+                    "title": "Upload interval",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "enablerealtime": {
+                    "type": "boolean"
+                },
+                "enablerealtimeftp": {
+                    "type": "boolean"
+                },
+                "realtimetxtftp": {
+                    "type": "boolean"
+                },
+                "realtimegaugestxtftp": {
+                    "type": "boolean"
+                },
+                "realtimeinterval": {
+                    "title": "Realtime interval",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "externalprograms": {
+            "title": "External programs",
+            "type": "object",
+            "properties": {
+                "program": {
+                    "title": "Program"
+                },
+                "programparams": {
+                    "title": "Program parameters"
+                },
+                "realtimeprogram": {
+                    "title": "Realtime program"
+                },
+                "realtimeprogramparams": {
+                    "title": "Realtime program parameters"
+                },
+                "dailyprogram": {
+                    "title": "Daily program"
+                },
+                "dailyprogramparams": {
+                    "title": "Daily program parameters"
+                }
+            }
+        },
+        "twitter": {
+            "title": "Twitter",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "sendlocation": {
+                    "type": "boolean"
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer"
+                },
+                "user": {
+                    "title": "User"
+                },
+                "password": {
+                    "title": "Password"
+                }
+            }
+        },
+        "wunderground": {
+            "title": "Weather Underground",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includeindoor": {
+                    "type": "boolean"
+                },
+                "includeuv": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "type": "boolean"
+                },
+                "rapidfire": {
+                    "type": "boolean"
+                },
+                "sendavgwind": {
+                    "type": "boolean"
+                },
+                "catchup": {
+                    "type": "boolean"
+                },
+                "stationid": {
+                    "title": "Station ID"
+                },
+                "password": {
+                    "title": "Password"
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "pwsweather": {
+            "title": "PWS Weather",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includeuv": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "type": "boolean"
+                },
+                "catchup": {
+                    "type": "boolean"
+                },
+                "stationid": {
+                    "title": "Station ID"
+                },
+                "password": {
+                    "title": "Password"
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "wow": {
+            "title": "Met Office WOW",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includeuv": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "type": "boolean"
+                },
+                "catchup": {
+                    "type": "boolean"
+                },
+                "stationid": {
+                    "title": "Site ID"
+                },
+                "password": {
+                    "title": "PIN"
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "weatherbug": {
+            "title": "Weatherbug",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includeuv": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "type": "boolean"
+                },
+                "catchup": {
+                    "type": "boolean"
+                },
+                "publisherid": {
+                    "title": "Publisher ID"
+                },
+                "number": {
+                    "title": "Number"
+                },
+                "password": {
+                    "title": "password"
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "cwop": {
+            "title": "APRS/CWOP",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "title": "",
+                    "type": "boolean"
+                },
+                "id": {
+                    "title": "ID"
+                },
+                "password": {
+                    "title": "password"
+                },
+                "server": {
+                    "title": "Server"
+                },
+                "port": {
+                    "title": "Port",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "awekas": {
+            "title": "Awekas",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includeuv": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "type": "boolean"
+                },
+                "includesoiltemp": {
+                    "type": "boolean"
+                },
+                "user": {
+                    "title": "User"
+                },
+                "password": {
+                    "title": "Password"
+                },
+                "lang": {
+                    "title": "Language"
+                },
+                "interval": {
+                    "title": "Interval",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "weathercloud": {
+            "title": "WeatherCloud",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "includeuv": {
+                    "type": "boolean"
+                },
+                "includesolar": {
+                    "type": "boolean"
+                },
+                "wid": {
+                    "title": "Wid"
+                },
+                "key": {
+                    "title": "Key"
+                }
+            }
+        },
+        "proxies": {
+            "title": "Proxies",
+            "type": "object",
+            "properties": {
+                "httpproxy": {
+                    "title": "HTTP proxy",
+                    "type": "object",
+                    "properties": {
+                        "proxy": {
+                            "title": "Proxy",
+                            "type": "string"
+                        },
+                        "port": {
+                            "title": "Port",
+                            "type": "number"
+                        },
+                        "user": {
+                            "title": "User",
+                            "type": "string"
+                        },
+                        "password": {
+                            "title": "Password",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "customhttp": {
+            "title": "Custom HTTP",
+            "type": "object",
+            "properties": {
+                "customseconds": {
+                    "type": "object",
+                    "title": "Custom HTTP call - seconds interval",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "url": {
+                            "title": "HTTP URL"
+                        },
+                        "interval": {
+                            "title": "Interval (seconds)",
+                            "type": "number"
+                        }
+                    }
+                },
+                "customminutes": {
+                    "type": "object",
+                    "title": "Custom HTTP call - minutes interval",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "url": {
+                            "title": "HTTP URL"
+                        },
+                        "intervalindex": {
+                            "title": "Interval",
+                            "enum": [
+                                0,
+                                1,
+                                2,
+                                3,
+                                4,
+                                5,
+                                6,
+                                7,
+                                8,
+                                9,
+                                10,
+                                11
+                            ]
+                        }
+                    }
+                },
+                "customrollover": {
+                    "type": "object",
+                    "title": "Custom HTTP call - at rollover",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "url": {
+                            "title": "HTTP URL"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

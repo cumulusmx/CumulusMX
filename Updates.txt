@@ -1,0 +1,43 @@
+3044
+====
+- Added new solar calculation method "Bras"
+	- New Cumulus.ini entries...
+		SolarCalc=0    		(0=Ryan-Stolzenbach, 1=Bras, default=0)
+		BrasTurbidity=2   	(atmospheric turbidity factor (2=clear, 5=smoggy, default=2)
+	- Updated the Interface web files to reflect the new settings.
+
+- Updated HidSharp to ver 2.0.5
+	- Now uses libudev1 for Fine Offset and WMR200 stations
+
+- Fixed corrupt/missing MySQL port causing CumulusMX to crash on startup
+
+- Attempt to reconnect to Davis IP logger on connection failure (only a possible fix)
+
+- Updated the default forum URL to it's new home
+
+- Updated included website files to new URL
+
+- URL encode Twitter messages (I know Twitter is largely broken)
+
+- Davis VP2 - (Steve Loft) Added sanity checks for invalid wind speed/direction values
+
+- Davis VP2 - Added automatic disabling of the use of LOOP2 packets on firmware versions < 1.90
+
+- Change RG11 devices to use a new Cumulus.ini file entry. The previous MX builds would not work on Linux.
+  For example:
+	RG11port=2   (depreciated)
+	RG11port2=3
+		now use
+	RG11portName=COM2   (for Windows or /dev/ttyUSB2 for Linux)
+	RG11portName2=COM3   (for Windows or /dev/ttyUSB3 for Linux)
+
+- The default Comm port values are now set to either COM1 or /dev/ttyUSB0 depending on the platform. Hopefully this will prevent some of the confusion of new users.
+
+
+3045
+====
+
+- Switch to FluentFTP package, which allows CumulusMX to now use TLS 1.2 for SFTP sessions
+
+
+

@@ -1,0 +1,18 @@
+td.number {
+	text-align: right;
+	font-weight: bold;
+	padding-right: 5px;
+	white-space: nowrap;
+}
+
+th.number {
+	text-align: right;
+}
+
+td.boolean {
+	text-align: center;
+}
+
+th.boolean {
+	text-align: center;
+}

@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using LinqToTwitter;
+using System.Globalization;
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -99,6 +100,11 @@ namespace CumulusMX
 
 				DavisFirmwareVersion = GetFirmwareVersion();
 				cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
+                if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < 1.9) && cumulus.UseDavisLoop2)
+                {
+                    cumulus.UseDavisLoop2 = false;
+                    cumulus.LogMessage("FW version does not support LOOP2, disabling it");
+                }
 
 				if (cumulus.DavisReadReceptionStats)
 				{
@@ -341,7 +347,7 @@ namespace CumulusMX
 				while (attempt < 5 && client == null)
 				{
 					attempt++;
-					cumulus.LogDebugMessage("Connect attempt " + attempt);
+					cumulus.LogDebugMessage("TCP Logger Connect attempt " + attempt);
 					client = new TcpClient(ipaddr, port); 
 					
 					if (!client.Connected)
@@ -860,6 +866,8 @@ namespace CumulusMX
 								socket.GetStream().WriteByte(10);
 								socket.Client.Shutdown(SocketShutdown.Both);
 								socket.Client.Disconnect(false);
+                                // dispose of the object
+                                socket.Client.Close();
 								Thread.Sleep(cumulus.VP2PeriodicDisconnectInterval*1000);
 								cumulus.LogDebugMessage("Attempting reconnect");
 								socket = OpenTcpPort();
@@ -873,8 +881,13 @@ namespace CumulusMX
 							catch (Exception ex)
 							{
 								cumulus.LogMessage("Periodic disconnect: " + ex.Message);
-							}
-							return;
+                                // close the existing connection
+                                socket.Client.Close();
+                                Thread.Sleep(2000);
+                                // attempt to open a new connection
+                                socket = OpenTcpPort();
+                            }
+                            return;
 						}
 					}
 					// Wait until the buffer is full - we've received returnLength characters from the command response
@@ -985,7 +998,7 @@ namespace CumulusMX
 				// Check for sensible figures (spec says max for large cups is 175mph)
 				if (loopData.CurrentWindSpeed < 200 && loopData.AvgWindSpeed < 200)
 				{
-				    int winddir = loopData.AvgWindSpeed;
+				    int winddir = loopData.WindDirection;
 
 				    if (winddir > 360)
 				    {

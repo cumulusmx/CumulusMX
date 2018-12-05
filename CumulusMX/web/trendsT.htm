@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="Description" content="<#location> weather data" />
 		<meta name="Keywords" content="Cumulus, <#location> weather data, weather, data, weather station" />
 		<title><#location> weather</title>
-  
+
 		<link href="weatherstyle.css" rel="stylesheet" type="text/css">
 		<style>
 
@@ -70,12 +70,12 @@
                 position:relative;
                 top:1px;
             }
-			
+
             .td_left {
                 width: 85px;
             }
         </style>
-        
+
     </head>
 	<body>
 		<div id="content">
@@ -84,8 +84,8 @@
 			<p>Click on a button to display the corresponding chart.</p>
             <p>Mouse over the chart to see the values at any given time.</p>
             <p>You can add or remove data sets from the chart by clicking the entry on the chart legend.</p>
-			
-			<div id="chartcontainer">                
+
+			<div id="chartcontainer">
             </div>
 			<table cellpadding="0" cellspacing="0" id="Graph_menu" style="margin: 0 auto">
 				<tbody>
@@ -130,16 +130,16 @@
 				</tbody>
 			</table>
 			<p class="credits"><br>
-			charts by <a href="http://www.highcharts.com/" target="_blank">Highcharts</a><br>
+			charts by <a href="https://www.highcharts.com/" target="_blank">Highcharts</a><br>
 			page updated <#update><br>
 			powered by
-			<a href="http://sandaysoft.com/products/cumulus" target="_blank">Cumulus</a> v<#version> (<#build>) 
+			<a href="https://cumuluswiki.wxforum.net/a/Software" target="_blank">Cumulus</a> v<#version> (<#build>)
 			</p>
 		</div>
 		<script src="lib/jquery/jquery-latest.min.js"></script>
 		<script src="lib/highstock/js/highstock.js"></script>
         <script src="lib/highstock/js/themes/grid.js"></script>
-        <script src="js/cumuluscharts.js"></script>    
+        <script src="js/cumuluscharts.js"></script>
 
 	</body>
 </html>

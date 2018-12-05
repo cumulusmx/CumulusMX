@@ -100,7 +100,14 @@ namespace CumulusMX
 
                 // server
                 cumulus.MySqlHost = settings.server.host;
-                cumulus.MySqlPort = settings.server.port;
+                if (settings.server.port > 0 && settings.server.port < 65536)
+                {
+                    cumulus.MySqlPort = settings.server.port;
+                }
+                else
+                {
+                    cumulus.MySqlPort = 3306;
+                }
                 cumulus.MySqlDatabase = settings.server.database;
                 cumulus.MySqlUser = settings.server.user;
                 cumulus.MySqlPass = settings.server.pass;

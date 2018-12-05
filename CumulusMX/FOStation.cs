@@ -18,7 +18,7 @@ namespace CumulusMX
         //private IDevice[] stations;
         //private IDevice device;
 
-        private readonly HidDeviceLoader hidloader;
+        private readonly DeviceList devicelist;
         private readonly double pressureOffset;
         private HidDevice hidDevice;
         private readonly HidStream stream;
@@ -41,7 +41,7 @@ namespace CumulusMX
         private int raininlasttip = 0;
         private int interval = 0;
         private int followinginterval = 0;
-        private readonly double[] WindRunHourMult = {3.6, 1.0, 1.0, 1.0};
+        //private readonly double[] WindRunHourMult = {3.6, 1.0, 1.0, 1.0};
         private Timer tmrDataRead;
         private int ReadCounter;
         private bool hadfirstsyncdata;
@@ -80,7 +80,7 @@ namespace CumulusMX
                 FOmaxhistoryentries = 4080;
             }
                         
-            hidloader = new HidDeviceLoader();
+            devicelist = DeviceList.Local;
 
             int VID = (cumulus.VendorID < 0 ? defaultVID : cumulus.VendorID);
             int PID = (cumulus.ProductID < 0 ? defaultPID : cumulus.ProductID);
@@ -88,7 +88,7 @@ namespace CumulusMX
             cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+VID.ToString("X4")+" ProductID=0x"+PID.ToString("X4"));
             Console.WriteLine("Looking for Fine Offset station, VendorID=0x" + VID.ToString("X4") + " ProductID=0x" + PID.ToString("X4"));
 
-            hidDevice = hidloader.GetDeviceOrDefault(vendorID: VID, productID: PID);
+            hidDevice = devicelist.GetHidDeviceOrNull(vendorID: VID, productID: PID);
 
             if (hidDevice != null)
             {

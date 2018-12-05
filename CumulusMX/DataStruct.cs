@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.Serialization;
-using HidSharp.ReportDescriptors.Units;
 
 namespace CumulusMX
 {

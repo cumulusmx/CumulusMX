@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cumulus MX</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+
+
+
+        <link href="css/font-style.css" rel="stylesheet">
+        <link href="css/main.css" rel="stylesheet">
+
+        <!-- jquery -->
+        <script src="lib/jquery/jquery-latest.min.js"></script>
+        <script src="lib/jquery/jquery.tmpl.js"></script>
+
+        <!-- Bootstrap -->
+        <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="lib/bootstrap/css/bootstrap-theme.css" rel="stylesheet" />
+        <script src="lib/bootstrap/js/bootstrap.js"></script>
+
+
+        <!-- Custom Files -->
+        <script src="js/raintodayeditor.js"></script>
+
+        <link href="css/cumulus.css" rel="stylesheet">
+
+        <script>
+            $(document).ready(function () {
+                $.ajax({url: "api/settings/version.json", dataType: "json", success: function (result) {
+                        $('#Version').text(result.Version);
+                        $('#Build').text(result.Build);
+                    }});
+            });
+        </script>
+
+    </head>
+    <body>
+
+        <!-- NAVIGATION MENU -->
+        <div class="navbar-nav navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>   
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="index.html">Dashboard</a></li>
+                        <li><a href="now.html">Now</a></li>
+                        <li><a href="gauges.html">Gauges</a></li>
+                        <li><a href="charts.html">Charts</a></li>
+                        <li><a href="todayyest.html">Today/Yesterday</a></li>
+                        <li><a href="records.html">Records</a></li>
+                        <li><a href="extra.html">Extra sensors</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Data logs<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="datalogs.html">Data logs</a></li>
+                                <li><a href="extradatalogs.html">Extra data logs</a></li>
+                                <li><a href="dayfileviewer.html">Dayfile</a></li>                                
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Settings<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="stationsettings.html">Station settings</a></li>
+                                <li><a href="internetsettings.html">Internet settings</a></li> 
+                                <li><a href="extrawebfiles.html">Extra web files</a></li>
+                                <li><a href="calibrationsettings.html">Calibration settings</a></li>
+                                <li><a href="noaasettings.html">NOAA settings</a></li>
+                                <li><a href="mysqlsettings.html">MySQL settings</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown active">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Edit<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="raintodayeditor.html">Today's rain</a></li>                              
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
+        <!-- END NAVIGATION MENU -->
+
+        <div class="container">
+            <h1>Today's rain editor</h1>
+            
+
+            <div class="row">
+                <div class="col-md-12">
+                    <form class="form-horizontal" id="rainform">
+                        <div class="form-group">
+                            <label for="inputCurrentCounter" class="control-label col-xs-2">Current rain counter</label>
+                            <div class="col-xs-10">
+                                <input type="number" class="form-control" id="inputCurrentCounter" step="0.01" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputStartCounter" class="control-label col-xs-2">Start of day rain counter</label>
+                            <div class="col-xs-10">
+                                <input type="number" class="form-control" id="inputStartCounter" step="0.01" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputRainMultiplier" class="control-label col-xs-2">Rain multiplier</label>
+                            <div class="col-xs-10">
+                                <input type="number" class="form-control" id="inputRainMultiplier" step="0.001" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputRainToday" class="control-label col-xs-2">Today's rain</label>
+                            <div class="col-xs-10">
+                                <input type="number" class="form-control" id="inputRainToday" name="raintoday" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-offset-2 col-xs-10">
+                                <button type="submit" class="btn btn-primary"  form="rainform">Apply</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>  
+        <!-- FOOTER -->    
+        <div id="footerwrap">
+            <footer class="clearfix"></footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <!--<p><img src="img/logo.png" alt=""></p>-->
+                        <p>Cumulus MX <span id="Version"></span>&nbsp;b<span id="Build"></span></p>
+                    </div>
+                </div><!-- /row -->
+            </div><!-- /container -->		
+        </div><!-- /footerwrap -->
+
+
+
+
+    </body>
+
+
+</html>

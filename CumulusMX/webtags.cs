@@ -2650,7 +2650,7 @@ namespace CumulusMX
 
         private string TagCurrentSolarMax(Dictionary<string,string> TagParams)
         {
-            return ((int) station.CurrentSolarMax).ToString();
+            return ((int) Math.Round(station.CurrentSolarMax)).ToString();
         }
 
         private string TagSunshineHours(Dictionary<string,string> TagParams)

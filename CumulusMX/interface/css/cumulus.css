@@ -1,0 +1,15 @@
+/*
+    CSS overrides for Cumulus UI
+*/
+
+body {
+    padding-top: 60px;
+}
+
+.top-buffer { margin-top:40px; }
+
+.dropdown-menu { background-color: #222222;}
+.dropdown-menu>li>a { color: #FFFFFF}
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus { color: #000000}   
+
+.datepicker.dropdown-menu { background-color: #dddddd;}

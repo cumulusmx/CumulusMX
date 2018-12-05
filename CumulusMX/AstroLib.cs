@@ -5,6 +5,35 @@ namespace CumulusMX
 {
     internal class AstroLib
     {
+        public static double BrasSolar(double el, double r, double nfac)
+        {
+            // el      solar elevation deg from horizon
+            // r       distance from earth to sun in AU
+            // nfac    atmospheric turbidity parameter (2=clear, 4-5=smoggy)
+ 
+            double sinal = Math.Sin(degToRad(el)); // Sine of the solar elevation angle
+
+            if (sinal < 0)
+            {
+                return 0;
+            }
+            else
+            {
+                // solar radiation on horizonal surface at top of atmosphere
+                double i0 = (1367 / (r * r)) * sinal;
+
+                // optical air mass
+                double m = 1/(sinal + (0.15 * Math.Pow(el + 3.885, -1.253)));
+
+                // molecular scattering coeff
+                double al = 0.128 - (0.054 * Math.Log(m) / Math.Log(10));
+
+                // clear-sky solar radiation at earth surface on horizontal surface (W/m^2)
+                return i0 * Math.Exp(-nfac * al * m);
+
+            }
+        }
+   
         public static double RyanStolzSolar(double el, double erv, double atc, double z)
         {
             // el      solar elevation deg from horizon
@@ -26,7 +55,8 @@ namespace CumulusMX
                 double rm = Math.Pow(((288.0 - 0.0065*z)/288.0), 5.256)/(sinal + 0.15*Math.Pow((a0 + 3.885), (-1.253)));
 
                 double rs_toa = 1360*sinal/(erv*erv); // RS on the top of atmosphere
-                return rs_toa*Math.Pow(atc, rm); //RS on the ground
+
+                return rs_toa *Math.Pow(atc, rm); //RS on the ground
             }
         }
 
@@ -41,7 +71,7 @@ namespace CumulusMX
         }
 
         public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
-                                      out double solarelevation, double transfactor)
+                                      out double solarelevation, double transfactor, double turbidity)
         {
             double az;
 
@@ -52,7 +82,18 @@ namespace CumulusMX
             double erv = CalcSunDistance(utctime, dEpoch);
 
             //cumulus.LogMessage(utctime+" lat="+latitude+" lon="+longitude+" sun elev="+solarelevation);
-            return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
+            if (Program.cumulus.SolarCalc == 0)
+            {
+                return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
+            }
+            else if (Program.cumulus.SolarCalc == 1)
+            {
+                return BrasSolar(solarelevation, erv, turbidity);
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         // http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
@@ -545,6 +586,10 @@ namespace CumulusMX
             double tau;
             double salt;
             double rads;
+            double alt;
+            double refrac;
+            double te;
+            double step1, step2, step3;
             rads = 0.0174532925;
             mjd = mjd0 + hour / 24.0;
             t = (mjd - 51544.5) / 36525.0;
@@ -553,7 +598,33 @@ namespace CumulusMX
             tau = 15.0 * (lmst(mjd, glong) - ra);
             // sin(alt) of object using the conversion formulas
             salt = sglat * System.Math.Sin(rads * dec) + cglat * System.Math.Cos(rads * dec) * System.Math.Cos(rads * tau);
-            return salt;
+            // MC: Add a simplified atmospheric refraction correction
+            alt = radToDeg(Math.Asin(salt));
+            if (alt > 85.0)
+            {
+                refrac = 0;
+            }
+            else
+            {
+                te = Math.Tan(degToRad(alt));
+                if (alt > 5.0)
+                {
+                    refrac = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
+                }
+                else if (alt > -0.575)
+                {
+                    step1 = -12.79 + alt * 0.7111;
+                    step2 = 103.4 + alt * step1;
+                    step3 = -518.2 + alt * step2;
+                    refrac = 1735.0 + alt * step3;
+                }
+                else
+                {
+                    refrac = -20.774 / te;
+                }
+                refrac /= 3600.0;
+            }
+            return Math.Sin(degToRad(alt + refrac));
         }
 
         //

@@ -1,0 +1,325 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cumulus MX</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+
+
+        <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="css/main.css" rel="stylesheet">
+        <link href="css/font-style.css" rel="stylesheet">
+        <link href="css/table.css" rel="stylesheet">
+
+        <!-- jquery -->
+        <script src="lib/jquery/jquery-latest.min.js"></script>
+        <script src="lib/jquery/jquery.tmpl.js"></script>
+
+        <script type="text/javascript"  src="lib/datatables/media/js/jquery.dataTables.js"></script>
+        
+        <script src="lib/bootstrap/js/bootstrap.js"></script>
+        <script src="js/now.js"></script>
+        
+        <link href="css/cumulus.css" rel="stylesheet">
+
+    </head>
+    <body>
+
+        <!-- NAVIGATION MENU -->
+        <div class="navbar-nav navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>   
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="index.html">Dashboard</a></li>
+                        <li class="active"><a href="now.html">Now</a></li>
+                        <li><a href="gauges.html">Gauges</a></li>
+                        <li><a href="charts.html">Charts</a></li>
+                        <li><a href="todayyest.html">Today/Yesterday</a></li>
+                        <li><a href="records.html">Records</a></li>
+                        <li><a href="extra.html">Extra sensors</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Data logs<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="datalogs.html">Data logs</a></li>
+                                <li><a href="extradatalogs.html">Extra data logs</a></li>
+                                <li><a href="dayfileviewer.html">Dayfile</a></li>                                
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Settings<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="stationsettings.html">Station settings</a></li>
+                                <li><a href="internetsettings.html">Internet settings</a></li> 
+                                <li><a href="extrawebfiles.html">Extra web files</a></li>
+                                <li><a href="calibrationsettings.html">Calibration settings</a></li>
+                                <li><a href="noaasettings.html">NOAA settings</a></li>
+                                <li><a href="mysqlsettings.html">MySQL settings</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Edit<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="raintodayeditor.html">Today's rain</a></li>                              
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
+        <!-- END NAVIGATION MENU -->
+
+        <div class="container">
+            
+            <div class="row top-buffer">
+                <div class="col-md-12">
+                <h1>Current data</h1>
+                </div>
+            </div>
+            <div class="row top-buffer">
+                <div class="col-md-4">
+
+                    <table id="TempTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;Temperature/Humidity</th>
+                                <th></th>
+                                <th></th>  
+                            </tr>
+                            
+                        </thead>
+                        <tr>
+                            <td>Outdoor Temperature</td>
+                            <td><span id="OutdoorTemp">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Dew Point</td>
+                            <td><span id="OutdoorDewpoint">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Wind Chill</td>
+                            <td><span id="WindChill">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Apparent Temperature</td>
+                            <td><span id="AppTemp">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Heat Index</td>
+                            <td><span id="HeatIndex">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Humidex</td>
+                            <td><span id="Humidex">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Indoor Temperature</td>
+                            <td><span id="IndoorTemp">--</span></td>
+                            <td><span class="TempUnit">--</span></td>
+                        </tr>
+                        
+
+                    </table>
+                </div>
+
+                
+                <div class="col-md-4">
+
+                    <table id="RainTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;Rainfall</th>
+                                <th></th>
+                                <th></th>  
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td>Rain Today</td>
+                            <td><span id="RainToday">--</span></td>
+                            <td><span class="RainUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Rain Rate</td>
+                            <td><span id="RainRate">--</span></td>
+                            <td><span class="RainUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Rain Last Hour</td>
+                            <td><span id="RainLastHour">--</span></td>
+                            <td><span class="RainUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Rain This Month</td>
+                            <td><span id="RainMonth">--</span></td>
+                            <td><span class="RainUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Rain This Year</td>
+                            <td><span id="RainYear">--</span></td>
+                            <td><span class="RainUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Rain Yesterday</td>
+                            <td><span id="RainYesterday">--</span></td>
+                            <td><span class="RainUnit">--</span></td>
+                        </tr>
+                        
+
+                    </table>
+                </div>
+                
+                <div class="col-md-4">
+                    <table id="WindTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;Wind</th>
+                                <th></th>
+                                <th></th>  
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td>Latest</td>
+                            <td><span id="WindLatest">--</span></td>
+                            <td><span class="WindUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Average Speed</td>
+                            <td><span id="WindAverage">--</span></td>
+                            <td><span class="WindUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Peak Gust</td>
+                            <td><span id="Recentmaxgust">--</span></td>
+                            <td><span class="WindUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Bearing</td>
+                            <td><span id="Bearing">--</span></td>
+                            <td><span id="BearingCP">&deg;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Average Bearing</td>
+                            <td><span id="Avgbearing">--</span></td>
+                            <td><span id="AvgbearingCP">&deg;</span></td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div> 
+
+            <div class="row top-buffer">
+
+                <div class="col-md-4">
+                   
+
+                    <table id="HumidityTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;Humidity</th>
+                                <th></th>
+                                <th></th>  
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td>Outdoor Humidity</td>
+                            <td><span id="OutdoorHum">--</span></td>
+                            <td><span>%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Indoor Humidity</td>
+                            <td><span id="IndoorHum">--</span></td>
+                            <td><span>%</span></td>
+                        </tr>
+                        
+                        
+                    </table>
+                </div>
+                 <div class="col-md-4">
+                    <table id="PressureTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;Barometer</th>
+                                <th></th>
+                                <th></th>  
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td>Pressure</td>
+                            <td><span id="Pressure">--</span></td>
+                            <td><span class="PressUnit">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>Trend</td>
+                            <td><span id="PressTrend">--</span></td>
+                            <td><span class="PressUnit">--</span>/hr</td>
+                        </tr>
+                        
+                        
+                    </table>
+                </div>
+
+               
+                <div class="col-md-4">
+                    <table id="SolarTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;Solar</th>
+                                <th></th>
+                                <th></th>  
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td>Solar Radiation</td>
+                            <td><span id="SolarRad">--</span></td>
+                            <td>W/m<sup>2</sup></td>
+                        </tr>
+                        <tr>
+                            <td>Sunshine Today</td>
+                            <td><span id="SunshineHours">--</span></td>
+                            <td>hrs</td>
+                        </tr>
+                        <!--
+                        <tr>
+                            <td>UV</td>
+                            <td><span id="UVindex">--</span></td>
+                            <td></td>
+                        </tr>
+                        -->
+                    </table>
+                </div>
+
+                
+                
+            </div> 
+        </div>
+        
+        <div id="footerwrap">
+            <footer class="clearfix"></footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <!--<p><img src="img/logo.png" alt=""></p>-->
+                        <p>Cumulus MX <span id="Version"></span>&nbsp;b<span id="Build"></span></p>
+                    </div>
+                </div><!-- /row -->
+            </div><!-- /container -->		
+        </div><!-- /footerwrap -->    
+        
+    </body>
+    
+    
+</html>

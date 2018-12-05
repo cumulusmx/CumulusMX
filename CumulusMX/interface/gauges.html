@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cumulus MX</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+
+
+        <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="css/main.css" rel="stylesheet">
+        <link href="css/gauges-ss.css" rel="stylesheet">
+        
+        <!-- jquery -->
+        <script src="lib/jquery/jquery-latest.min.js"></script>
+        <script src="lib/jquery/jquery.tmpl.js"></script>
+        
+        <script src="lib/bootstrap/js/bootstrap.js"></script>
+
+        <!-- SteelSeries -->
+        <script src="lib/steelseries/scripts/steelseries_tween.min.js"></script>
+        <script src="lib/steelseries/scripts/language.min.js"></script>
+        <script src="lib/steelseries/scripts/RGraph.common.core.min.js"></script>
+        <script src="lib/steelseries/scripts/RGraph.rose.min.js"></script>       
+        <script src="lib/steelseries/scripts/gauges.js"></script>
+        
+        <script src="js/gaugefeed.js"></script>        
+
+        <link href="css/cumulus.css" rel="stylesheet">
+        
+        <script>
+            $(document).ready(function () {
+                $.ajax({url: "api/settings/version.json", dataType: "json", success: function (result) {
+                        $('#Version').text(result.Version);
+                        $('#Build').text(result.Build);
+                    }});
+            });
+        </script>
+    </head>
+    <body>
+        <!-- NAVIGATION MENU -->
+        <div class="navbar-nav navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>   
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="index.html">Dashboard</a></li>
+                        <li><a href="now.html">Now</a></li>
+                        <li class="active"><a href="gauges.html">Gauges</a></li>
+                        <li><a href="charts.html">Charts</a></li>
+                        <li><a href="todayyest.html">Today/Yesterday</a></li>
+                        <li><a href="records.html">Records</a></li>
+                        <li><a href="extra.html">Extra sensors</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Data logs<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="datalogs.html">Data logs</a></li>
+                                <li><a href="extradatalogs.html">Extra data logs</a></li>
+                                <li><a href="dayfileviewer.html">Dayfile</a></li>                                
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Settings<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="stationsettings.html">Station settings</a></li>
+                                <li><a href="internetsettings.html">Internet settings</a></li> 
+                                <li><a href="extrawebfiles.html">Extra web files</a></li>
+                                <li><a href="calibrationsettings.html">Calibration settings</a></li>
+                                <li><a href="noaasettings.html">NOAA settings</a></li>
+                                <li><a href="mysqlsettings.html">MySQL settings</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Edit<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="raintodayeditor.html">Today's rain</a></li>                              
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
+        <!-- END NAVIGATION MENU -->
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="dash-unit" style="height:360px">
+                        <span class="dtitle">Temperature</span>
+                        <hr>
+                        <div class="cont">
+                            <div id="tip_0">
+                                <canvas id="canvas_temp" width="221" height="221"></canvas>
+                            </div>
+                            <input id="rad_temp1" type="radio" name="rad_temp" value="out" onclick="gauges.doTemp(this);" checked ><label id="lab_temp1" for="rad_temp1">Outside</label>
+                            <input id="rad_temp2" type="radio" name="rad_temp" value="in" onclick="gauges.doTemp(this);"><label id="lab_temp2" for="rad_temp2">Inside</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-unit" style="height:360px">
+                        <span class="dtitle">Other temps</span>
+                        <hr>
+                        <div class="cont">
+                            <div id="tip_1">
+                                <canvas id="canvas_dew" width="221" height="221"></canvas>
+                            </div>
+                            <input id="rad_dew1" type="radio" name="rad_dew" value="dew" onclick="gauges.doDew(this);"><label id="lab_dew1" for="rad_dew1">Dew Point</label>
+                            <input id="rad_dew2" type="radio" name="rad_dew" value="app" onclick="gauges.doDew(this);" checked ><label id="lab_dew2" for="rad_dew2">Apparent</label>
+                            <br>
+                            <input id="rad_dew3" type="radio" name="rad_dew" value="wnd" onclick="gauges.doDew(this);"><label id="lab_dew3" for="rad_dew3">Wind Chill</label>
+                            <input id="rad_dew4" type="radio" name="rad_dew" value="hea" onclick="gauges.doDew(this);"><label id="lab_dew4" for="rad_dew4">Heat Index</label>
+                            <br>
+                            <input id="rad_dew5" type="radio" name="rad_dew" value="hum" onclick="gauges.doDew(this);"><label id="lab_dew5" for="rad_dew5">Humidex</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-unit" style="height:360px">
+                        <span class="dtitle">Humidity</span>
+                        <hr>
+                        <div class="cont">
+                            <div id="tip_4">
+                                <canvas id="canvas_hum" width="221" height="221"></canvas>
+                            </div>
+                            <input id="rad_hum1" type="radio" name="rad_hum" value="out" onclick="gauges.doHum(this);" checked><label id="lab_hum1" for="rad_hum1">Outside</label>
+                            <input id="rad_hum2" type="radio" name="rad_hum" value="in" onclick="gauges.doHum(this);"><label id="lab_hum2" for="rad_hum2">Inside</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- WIND SPEED GAUGE BLOCK-->
+                <div class="col-md-4">
+                    <div class="dash-unit" >
+                        <span class="dtitle">Wind speed</span>
+                        <hr>
+                        <div id="tip_6" class="gauge">
+                            <canvas id="canvas_wind" class="gaugeSizeStd"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind direction gauge -->
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind direction</span>
+                        <hr>
+                        <div id="tip_7" class="gauge">
+                            <canvas id="canvas_dir" class="gaugeSizeStd"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind rose -->
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind rose</span>
+                        <hr>
+                        <div id="tip_10" class="gauge">
+                            <canvas id="canvas_rose" class="gaugeSizeStd"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /row -->
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Pressure</span>
+                        <hr>
+                        <div id="tip_5" class="gauge">
+                            <canvas id="canvas_baro" width="221" height="221"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Rainfall</span>
+                        <hr>
+                        <div id="tip_2" class="gauge">
+                            <canvas id="canvas_rain" width="221" height="221"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Rain rate</span>
+                        <hr>
+                        <div id="tip_3" class="gauge">
+                            <canvas id="canvas_rrate" width="221" height="221"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">UV Index</span>
+                        <hr>
+                        <div id="tip_8" class="gauge">
+                            <canvas id="canvas_uv" width="221" height="221"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Solar Radiation</span>
+                        <hr>
+                        <div id="tip_9" class="gauge">
+                            <canvas id="canvas_solar" width="221" height="221"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-unit">
+                        <span class="dtitle">Cloud Base</span>
+                        <hr>
+                        <div id="tip_11" class="gauge">
+                            <canvas id="canvas_cloud" width="221" height="221"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->    
+        <div id="footerwrap">
+            <footer class="clearfix"></footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <!--<p><img src="img/logo.png" alt=""></p>-->
+                        <p>Cumulus MX <span id="Version"></span>&nbsp;b<span id="Build"></span></p>
+                    </div>
+                </div><!-- /row -->
+            </div><!-- /container -->		
+        </div><!-- /footerwrap -->
+
+
+        
+
+
+    </body>
+</html>

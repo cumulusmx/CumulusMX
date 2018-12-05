@@ -1,0 +1,110 @@
+﻿{
+    "type": "object",
+    "properties": {
+        "offsets": {
+            "type": "object",
+            "title": "Offsets",
+            "properties": {
+                "pressure": {
+                    "title": "Pressure",
+                    "type": "number"
+                },
+                "temperature": {
+                    "title": "Outdoor temperature",
+                    "type": "number"
+                },
+                "indoortemp": {
+                    "title": "Indoor temperature",
+                    "type": "number"
+                },
+                "humidity": {
+                    "title": "Outdoor humidity",
+                    "type": "integer"
+                },
+                "winddir": {
+                    "title": "Wind direction",
+                    "type": "integer"
+                },
+                "uv": {
+                    "title": "UV",
+                    "type": "number"
+                },
+                "wetbulb": {
+                    "title": "Wet bulb",
+                    "type": "number"
+                }
+            }
+        },
+        "multipliers": {
+            "type": "object",
+            "title": "Multipliers",
+            "properties": {
+                "windspeed": {
+                    "title": "Wind speed",
+                    "type": "number"
+                },
+                "windgust": {
+                    "title": "Wind gust",
+                    "type": "number"
+                },
+                "outdoortemp": {
+                    "title": "Outdoor temperature",
+                    "type": "number"
+                },
+                "humidity": {
+                    "title": "Outdoor humidity",
+                    "type": "number"
+                },
+                "rainfall": {
+                    "title": "Rainfall",
+                    "type": "number"
+                },
+                "uv": {
+                    "title": "UV",
+                    "type": "number"
+                },
+                "wetbulb": {
+                    "title": "Wet bulb",
+                    "type": "number"
+                }
+            }
+        },
+        "spikeremoval": {
+            "type": "object",
+            "title": "Spike removal",
+            "properties": {
+                "windspeed": {
+                    "title": "Wind speed (m/s)",
+                    "type": "number"
+                },
+                "windgust": {
+                    "title": "Wind gust (m/s)",
+                    "type": "number"
+                },
+                "outdoortemp": {
+                    "title": "Outdoor temperature (C)",
+                    "type": "number"
+                },
+                "humidity": {
+                    "title": "Outdoor humidity (%)",
+                    "type": "number"
+                },
+                "pressure": {
+                    "title": "Pressure (mb)",
+                    "type": "number"
+                },
+                "maxrainrate": {
+                    "title": "Max rain rate (mm/hr)",
+                    "type": "number"
+                },
+                "maxhourlyrain": {
+                    "title": "Max hourly rain (mm)",
+                    "type": "number"
+                },
+                "log": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

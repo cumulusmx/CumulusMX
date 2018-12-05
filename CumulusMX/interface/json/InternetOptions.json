@@ -1,0 +1,340 @@
+﻿{
+    "fields": {
+        "website": {
+            "collapsed": "true",
+            "fields": {
+                "password": {
+                    "type": "password"
+                }
+            }
+        },
+        "websettings": {
+            "collapsed": "true",
+            "fields": {
+                "autoupdate": {
+                    "rightLabel": "Auto update"
+                },
+                "includestdfiles": {
+                    "rightLabel": "Include standard files",
+                    "helper": "Select this to have the standard web site files uploaded"
+                },
+                "includegraphdatafiles": {
+                    "rightLabel": "Include graph data files",
+                    "helper": "Select this to have the graph data files uploaded"
+                },
+                "activeftp": {
+                    "rightLabel": "Active FTP mode"
+                },
+                "sslftp": {
+                    "rightLabel": "Use SSL for FTP (FTPS)"
+                },
+                "ftprename": {
+                    "rightLabel": "FTP rename",
+                    "helper": "Use this if your FTP server supports it (most do)"
+                },
+                "ftpdelete": {
+                    "rightLabel": "Delete before upload",
+                    "helper": "Use this only if your FTP server requires it (most do not)"
+                },
+                "utf8encode": {
+                    "rightLabel": "UTF-8 encoding",
+                    "helper": "Use UTF-8 encoding for the standard files"
+                },
+                "ftplogging": {
+                    "rightLabel": "FTP logging",
+                    "helper": "Log FTP activity to ftplog.txt for diagnostic purposes"
+                },
+                "updateinterval": {
+                    "helper": "Interval between web page updates in minutes"
+                },
+                "enablerealtime": {
+                    "rightLabel": "Enable Realtime",
+                    "helper": "Start the realtime timer so that realtime actions can take place"
+                },
+                "enablerealtimeftp": {
+                    "rightLabel": "Enable realtime FTP",
+                    "helper": "Establish the realtime FTP connection so that FTP uploads can take place at the realtime interval"
+                },
+                "realtimetxtftp": {
+                    "rightLabel": "Realtime.txt FTP",
+                    "helper": "FTP the realtime.txt file at the realtime interval. Cumulus MX does not use this file itself"
+                },
+                "realtimegaugestxtftp": {
+                    "rightLabel": "Realtimegauges.txt FTP",
+                    "helper": "FTP the realtimegauges.txt file at the realtime interval. Cumulus MX uses this for the SteelSeries gauges"
+                },
+                "realtimeinterval": {
+                    "helper": "Interval between realtime updates in seconds"
+                }
+            }
+        },
+        "externalprograms": {
+            "collapsed": "true",
+            "fields": {
+                "program": {
+                    "helper": "A program or command to be run at each web update interval"
+                },
+                "programparams": {
+                    "helper": "Parameters for the above program or command"
+                },
+                "realtimeprogram": {
+                    "helper": "A program or command to be run at each realtime interval"
+                },
+                "realtimeprogramparams": {
+                    "helper": "Parameters for the above program or command"
+                },
+                "dailyprogram": {
+                    "helper": "A program or command to be run at the start of each day"
+                },
+                "dailyprogramparams": {
+                    "helper": "Parameters for the above program or command"
+                }
+            }
+        },
+        "twitter": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "sendlocation": {
+                    "rightLabel": "Send location",
+                    "helper": "Send your location with each update"
+                },
+                "password": {
+                    "type": "password"
+                },
+                "interval": {
+                    "helper":  "Interval between updates in minutes"
+                }
+            }
+        },
+        "wunderground": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includeindoor": {
+                    "rightLabel": "Include indoor data",
+                    "helper": "Include indoor temperature and humidity in the update"
+                },
+                "includeuv": {
+                    "rightLabel": "Include UV",
+                    "helper": "Include UV index in the update"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                },
+                "rapidfire": {
+                    "rightLabel": "Use Rapid Fire"
+                },
+                "sendavgwind": {
+                    "rightLabel": "Send average wind speed",
+                    "helper": "Send the average wind speed for the current speed"
+                },
+                "catchup": {
+                    "rightLabel": "Catch up",
+                    "helper": "When Cumulus starts, send each entry read from the station logger"
+                },
+                "interval": {
+                    "helper": "Interval in minutes between updates. Not used if rapid fire is enabled (5 seconds is used)"
+                },
+                "password": {
+                    "type": "password"
+                }
+            }
+        },
+        "pwsweather": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includeuv": {
+                    "rightLabel": "Include UV",
+                    "helper": "Include UV index in the update"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                },
+                "catchup": {
+                    "rightLabel": "Catch up",
+                    "helper": "When Cumulus starts, send each entry read from the station logger"
+                },
+                "password": {
+                    "type": "password"
+                },
+                "interval": {
+                    "helper":  "Interval between updates in minutes"
+                }
+            }
+        },
+        "wow": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includeuv": {
+                    "rightLabel": "Include UV",
+                    "helper": "Include UV index in the update"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                },
+                "catchup": {
+                    "rightLabel": "Catch up",
+                    "helper": "When Cumulus starts, send each entry read from the station logger"
+                },
+                "password": {
+                    "type": "password"
+                },
+                "interval": {
+                    "helper":  "Interval between updates in minutes"
+                }
+            }
+        },
+        "weatherbug": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includeuv": {
+                    "rightLabel": "Include UV",
+                    "helper": "Include UV index in the update"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                },
+                "catchup": {
+                    "rightLabel": "Catch up",
+                    "helper": "When Cumulus starts, send each entry read from the station logger"
+                },
+                "password": {
+                    "type": "password"
+                },
+                "interval": {
+                    "helper":  "Interval between updates in minutes"
+                }
+            }
+        },
+        "cwop": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                },
+                "password": {
+                    "helper":  "Leave at -1 unless you are using an amateur radio callsign"
+                }
+            }
+        },
+        "awekas": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includeuv": {
+                    "rightLabel": "Include UV",
+                    "helper": "Include UV index in the update"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                },
+                "includesoiltemp": {
+                    "rightLabel": "Include soil temp",
+                    "helper": "Include soil temperature in the update"
+                },
+                "lang": {
+                    "helper": "One of fr/de/en/it/nl"
+                },
+                "interval": {
+                    "helper": "Update interval in minutes"
+                },
+                "password": {
+                    "type": "password"
+                }
+            }
+        },
+        "weathercloud": {
+            "collapsed": "true",
+            "fields": {
+                "enabled": {
+                    "rightLabel": "Enabled"
+                },
+                "includeuv": {
+                    "rightLabel": "Include UV",
+                    "helper": "Include UV index in the update"
+                },
+                "includesolar": {
+                    "rightLabel": "Include solar radiation",
+                    "helper": "Include the solar radiation reading in the update"
+                }
+            }
+        },
+        "proxies": {
+            "collapsed": "true"
+        },
+        "customhttp": {
+            "collapsed": "true",
+            "fields": {
+                "customseconds": {
+                    "collapsed": true,
+                    "helper": "A custom HTTP URL to be invoked at an interval in seconds - can include webtags",
+                    "fields": {
+                        "enabled": {
+                            "rightLabel": "Enabled"
+                        }
+                    }
+                },
+                "customminutes": {
+                    "collapsed": true,
+                    "helper": "A custom HTTP URL to be invoked at an interval in minutes - can include webtags",
+                    "fields": {
+                        "enabled": {
+                            "rightLabel": "Enabled"
+                        },
+                        "intervalindex": {
+                            "optionLabels": [
+                                "1 minute",
+                                "2 minutes",
+                                "3 minutes",
+                                "4 minutes",
+                                "5 minutes",
+                                "6 minutes",
+                                "10 minutes",
+                                "12 minutes",
+                                "15 minutes",
+                                "20 minutes",
+                                "30 minutes",
+                                "60 minutes"
+                            ],
+                            "removeDefaultNone": true
+                        }
+                    }
+                },
+                "customrollover": {
+                    "collapsed": true,
+                    "helper": "A custom HTTP URL to be invoked just before end of day rollover - can include webtags",
+                    "fields": {
+                        "enabled": {
+                            "rightLabel": "Enabled"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -14,7 +14,7 @@ namespace CumulusMX
 {
     internal sealed class WMR200Station : WeatherStation
     {
-        private readonly HidDeviceLoader hidloader;
+        private readonly DeviceList devicelist;
         private readonly HidDevice station;
         private readonly HidStream stream;
         private const int Vendorid = 0x0FDE;
@@ -52,8 +52,8 @@ namespace CumulusMX
             : base(cumulus)
         {
             cumulus.Manufacturer = cumulus.OREGONUSB;
-            hidloader = new HidDeviceLoader();
-            station = hidloader.GetDeviceOrDefault(Vendorid, Productid);
+            devicelist = DeviceList.Local;
+            station = devicelist.GetHidDeviceOrNull(Vendorid, Productid);
 
             if (station != null)
             {

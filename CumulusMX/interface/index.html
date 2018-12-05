@@ -1,0 +1,324 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Cumulus MX</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+
+        <!-- Bootstrap -->
+        <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="lib/bootstrap/css/bootstrap-theme.css" rel="stylesheet" />
+
+
+
+        <link href="css/main.css" rel="stylesheet">
+        <link href="css/font-style.css" rel="stylesheet">
+
+        <link href="css/gauges-ss.css" rel="stylesheet">
+
+        <link href="css/cumulus.css" rel="stylesheet">
+
+        <!-- jquery -->
+        <script src="lib/jquery/jquery-latest.min.js"></script>
+        <script src="lib/jquery/jquery.tmpl.js"></script>
+
+        <script src="lib/bootstrap/js/bootstrap.js"></script>
+
+        <!-- SteelSeries -->
+        <script src="lib/steelseries/scripts/steelseries_tween.min.js"></script>
+        <script src="lib/steelseries/scripts/language.min.js"></script>
+        <script src="lib/steelseries/scripts/RGraph.common.core.min.js"></script>
+        <script src="lib/steelseries/scripts/RGraph.rose.min.js"></script>       
+        <script src="lib/steelseries/scripts/gauges.js"></script>
+        
+        <script src="js/dashboard.js"></script>
+
+    </head>
+    <body>
+
+        <!-- NAVIGATION MENU -->
+        <div class="navbar-nav navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>   
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="index.html">Dashboard</a></li>
+                        <li><a href="now.html">Now</a></li>
+                        <li><a href="gauges.html">Gauges</a></li>
+                        <li><a href="charts.html">Charts</a></li>
+                        <li><a href="todayyest.html">Today/Yesterday</a></li>
+                        <li><a href="records.html">Records</a></li>
+                        <li><a href="extra.html">Extra sensors</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Data logs<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="datalogs.html">Data logs</a></li>
+                                <li><a href="extradatalogs.html">Extra data logs</a></li>
+                                <li><a href="dayfileviewer.html">Dayfile</a></li>                                
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Settings<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="stationsettings.html">Station settings</a></li>
+                                <li><a href="internetsettings.html">Internet settings</a></li> 
+                                <li><a href="extrawebfiles.html">Extra web files</a></li>
+                                <li><a href="calibrationsettings.html">Calibration settings</a></li>
+                                <li><a href="noaasettings.html">NOAA settings</a></li>
+                                <li><a href="mysqlsettings.html">MySQL settings</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Edit<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="raintodayeditor.html">Today's rain</a></li>                              
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </div>
+        <!-- END NAVIGATION MENU -->
+
+        <div class="container">
+            <div class="row top-buffer">
+                <div class="col-sm-12 col-lg-12">
+                    <div class="half-unit">
+                        <div class="cont">
+                            <p><span>Sunrise</span>&nbsp;<span id="Sunrise" class="low"></span>  Sunset&nbsp;<span id="Sunset" class="high"></span>  Moonrise&nbsp;<span id="Moonrise" class="low"></span>  Moonset&nbsp;<span id="Moonset" class="high"></span></p>
+                            <p><span id="Forecast"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FIRST ROW OF BLOCKS -->
+            <div class="row">
+
+                <!-- TEMPERATURE BLOCK -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Temperature</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <span id="OutdoorTemp" style="font-size:400%">--.-</span>&nbsp;<span class="TempUnit" style="vertical-align:150%">&deg;C</span>
+                                <p><img id="TempTrendImg" src="img/up-small.png" alt=""> <span id="TempTrend">-.-</span>&nbsp;<span class="TempUnit">&deg;C</span>/hr</p>
+                            </div>
+                            <div class="cont" >
+                                <p><span>High&nbsp;</span><span id="HighTempToday" class="high">--.-</span><br><span id="HighTempTodayTime">--:--</span></p>
+                                <p><span>Low&nbsp;&nbsp;</span><span id="LowTempToday" class="low">--.-</span><br><span id="LowTempTodayTime">--:--</span></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRESSURE BLOCK-->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Pressure</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <span id="Pressure" style="font-size:400%">----.-</span>&nbsp;<span class="PressUnit" style="vertical-align:150%">mb</span>
+                                <p><img id="PressTrendImg" src="img/up-small.png" alt=""> <span id="PressTrend">-.-</span>&nbsp;<span class="PressUnit">mb</span>/hr</p>
+                            </div>
+                            <div class="cont" >
+                                <p><span>High&nbsp;</span><span id ="HighPressToday" class="high">----.-</span><br><span id ="HighPressTodayTime">--:--</span></p>
+                                <p><span>Low&nbsp;&nbsp;</span><span id ="LowPressToday" class="low">----.-</span><br><span id ="LowPressTodayTime">--:--</span></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RAINFALL BLOCK -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Rainfall</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <span id="RainToday" style="font-size:400%">-.-</span>&nbsp;<span class="RainUnit" style="vertical-align:150%">mm</span>
+                                <p>Rate <span id="RainRate">-.-</span>&nbsp;<span class="RainUnit">mm</span>/hr</p>
+                            </div>
+                            <div class="cont" >
+
+                                <p><span>High&nbsp;</span><span id="HighRainRateToday" class="high">--.-</span><br><span id="HighRainRateTodayTime">--:--</span></p>
+                                <p>This month:&nbsp;<span id="RainMonth">-.-</span>&nbsp;<span class="RainUnit">mm</span><br>
+                                    This year:&nbsp;<span id="RainYear">-.-</span>&nbsp;<span class="RainUnit">mm</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+
+                    <!-- LOCAL TIME BLOCK -->
+                    <div class="dash-unit">
+                        <span class="dtitle">Local Time</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="clockcenter">
+                                <span class="digiclock">--:--:--</span>
+                            </div>
+
+                            <p>Last Cumulus update</p>
+                            <p><img id= "LastUpdateIcon" src="img/up.png" alt=""> <span id="lastupdatetime" class="bold">--:--:--</span></p>
+
+                            <p>Last station update</p>
+                            <p><img id= "DataStoppedIcon" src="img/up.png" alt=""><span id="LastDataRead" class="bold">--:--:--</span></p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div><!-- /row -->
+
+
+            <!-- SECOND ROW OF BLOCKS -->
+            <div class="row">
+                <!-- WIND SPEED GAUGE BLOCK-->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind speed</span>
+                        <hr>
+                        <div id="tip_6" class="gauge">
+                            <canvas id="canvas_wind" class="gaugeSizeStd"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind direction gauge -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind direction</span>
+                        <hr>
+                        <div id="tip_7" class="gauge">
+                            <canvas id="canvas_dir" class="gaugeSizeStd"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind rose -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind rose</span>
+                        <hr>
+                        <div id="tip_10" class="gauge">
+                            <canvas id="canvas_rose" class="gaugeSizeStd"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind speeds block -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind speeds</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <p>Average</p>
+                                <p><span id="WindAverage" style="font-size:200%">-.-</span>&nbsp;<span class="WindUnit">---</span></p>
+                            </div>
+                            <div class="cont" >
+                                <p>Gust</p>
+                                <p><span id="Recentmaxgust" style="font-size:200%">--.-</span>&nbsp;<span class="WindUnit">---</span></p>
+                                <p><span>High&nbsp;</span><span id="HighGustToday" class="high">--.-</span><br><span id="HighGustTodayTime">--:--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /row -->
+
+            <!-- THIRD ROW OF BLOCKS -->
+            <div class="row">
+
+                <!-- HUMIDITY BLOCK -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Humidity</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <span id="OutdoorHum" style="font-size:400%">--.-</span><span style="vertical-align:150%">&nbsp;%</span>
+
+                            </div>
+                            <div class="cont" >
+                                <p><span>High&nbsp;</span><span id="HighHumToday" class="high">--</span><br><span id="HighHumTodayTime">--:--</span></p>
+                                <p><span>Low&nbsp;&nbsp;</span><span id="LowHumToday" class="low">--</span><br><span id="LowHumTodayTime">--:--</span></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dew point Block -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Dew Point</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <span id="OutdoorDewpoint" style="font-size:400%">--.-</span>&nbsp;<span class="TempUnit" style="vertical-align:150%">&deg;C</span>
+                            </div>
+                            <div class="cont" >
+                                <p><span>High&nbsp;</span><span id="HighDewpointToday" class="high">--.-</span><br><span id="HighDewpointTodayTime">--:--</span></p>
+                                <p><span>Low&nbsp;&nbsp;</span><span id="LowDewpointToday" class="low">--.-</span><br><span id="LowDewpointTodayTime">--:--</span></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind Chill block -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Wind Chill</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <span id="WindChill" style="font-size:400%">--.-</span>&nbsp;<span class="TempUnit" style="vertical-align:150%">&deg;C</span>
+                            </div>
+                            <div class="cont" >
+
+                                <p><span>Low&nbsp;&nbsp;</span><span id="LowWindChillToday" class="low">--.-</span><br><span id="LowWindChillTodayTime">--:--</span></p></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Solar block -->
+                <div class="col-sm-6 col-lg-3">
+                    <div class="dash-unit">
+                        <span class="dtitle">Solar</span>
+                        <hr>
+                        <div class="cont">
+                            <div class="cont" >
+                                <p>Radiation&nbsp;<span id="SolarRad" style="font-size:200%">---.-</span>&nbsp;W/m<sup>2</sup></p>
+                                <p><span>High&nbsp;</span><span id="HighSolarRadToday" class="high">--.-</span><br><span id="HighSolarRadTodayTime">--:--</span></p>
+                            </div>
+                            <div class="cont" >
+                                <p>UV Index&nbsp;<span id="UVindex" style="font-size:200%">--</span></p>
+                                <p><span>High&nbsp;</span><span id="HighUVindexToday" class="high">--.-</span><br><span id="HighUVindexTodayTime">--:--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!--/row -->
+
+        </div> <!-- /container -->
+        <div id="footerwrap">
+            <footer class="clearfix"></footer>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12">
+                        <!--<p><img src="img/logo.png" alt=""></p>-->
+                        <p>Cumulus MX <span id="Version"></span>&nbsp;b<span id="Build"></span></p>
+                    </div>
+                </div><!-- /row -->
+            </div><!-- /container -->		
+        </div><!-- /footerwrap -->
+    </body>
+</html>

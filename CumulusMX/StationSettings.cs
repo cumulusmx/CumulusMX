@@ -118,7 +118,9 @@ namespace CumulusMX
                             solarmin = cumulus.SolarMinimum,
                             transfactor = cumulus.RStransfactor,
                             sunthreshold = cumulus.SunThreshold,
-                            useblakelarsen = cumulus.UseBlakeLarsen
+                            useblakelarsen = cumulus.UseBlakeLarsen,
+                            solarcalc = cumulus.SolarCalc,
+                            turbidity = cumulus.BrasTurbidity
                         };
 
             var annualrainfall = new JsonStationSettingsAnnualRainfall() {rainseasonstart = cumulus.RainSeasonStart, ytdamount = cumulus.YTDrain, ytdyear = cumulus.YTDrainyear};
@@ -238,6 +240,8 @@ namespace CumulusMX
                 cumulus.RStransfactor = settings.Solar.transfactor;
                 cumulus.SunThreshold = settings.Solar.sunthreshold;
                 cumulus.UseBlakeLarsen = settings.Solar.useblakelarsen;
+                cumulus.SolarCalc = settings.Solar.solarcalc;
+                cumulus.BrasTurbidity = settings.Solar.turbidity;
                 
                 // Forecast
                 cumulus.FChighpress = settings.Forecast.highpressureextreme;
@@ -454,6 +458,9 @@ namespace CumulusMX
         public int solarmin { get; set; }
         public double transfactor { get; set; }
         public bool useblakelarsen { get; set; }
+        public int solarcalc { get; set; }
+
+        public double turbidity { get; set; }
     }
 
     public class JsonStationSettingsAnnualRainfall

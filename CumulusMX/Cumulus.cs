@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3043";
+		public string Build = "3044";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -76,6 +76,11 @@ namespace CumulusMX
 			IN
 		}
 
+		public enum solarcalcTypes
+		{
+			RyanStolzenbach = 0,
+			Bras = 1
+		}
 
 		public struct Dataunits
 		{
@@ -349,7 +354,7 @@ namespace CumulusMX
 		public string RainFormat;
 
 		internal int PressDPlaces = 1;
-	    internal bool DavisIncrementPressureDP;
+		internal bool DavisIncrementPressureDP;
 		public string PressFormat;
 
 		internal int UVDPlaces = 1;
@@ -359,7 +364,8 @@ namespace CumulusMX
 
 		public int VPrainGaugeType = -1;
 
-		public string ComportName = "COM1";
+		public string ComportName;
+		public string DefaultComportName;
 		public int ImetBaudRate;
 
 		public int VendorID;
@@ -504,7 +510,7 @@ namespace CumulusMX
 		public bool RealtimeEnabled; // The timer is to be started
 		public bool RealtimeFTPEnabled; // The FTP connection is to be established
 		public bool RealtimeTxtFTP; // The realtime.txt file is to be uploaded
-	    public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
+		public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
 
 		// Twitter settings
 		public string Twitteruser = " ";
@@ -641,7 +647,7 @@ namespace CumulusMX
 		private const double DEFAULTFCLOWPRESS = 950.0;
 		private const double DEFAULTFCHIGHPRESS = 1050.0;
 
-		private const string ForumDefault = "http://sandaysoft.com/forum/";
+		private const string ForumDefault = "https://cumulus.hosiene.co.uk/";
 
 		private const string WebcamDefault = "";
 
@@ -770,8 +776,8 @@ namespace CumulusMX
 
 
 		/*
-		CryptoLicense lic = new CryptoLicense();            
-		
+		CryptoLicense lic = new CryptoLicense();
+
 
 		//create code for applicationsecret
 		byte[] applicationSecret = Convert.FromBase64String("QpJGpsqWfkKu+yM8Ljp6+A==");
@@ -868,7 +874,7 @@ namespace CumulusMX
 				}
 
 				Console.WriteLine("Licence is valid");
-				
+
 			}
 		}
 		*/
@@ -879,13 +885,13 @@ namespace CumulusMX
 
 			/*lic.ValidationKey = "AMAAMACrfxYrYEOGd+D5ypZ32bnLCvviBrTlejReXNRdvgWzSgyvdfkLvNDvDX1WuMh2JIEDAAEAAQ==";
 
-			// Load license from the file            
-			lic.StorageMode = LicenseStorageMode.ToFile;            
-			if (lic.Load("licence.lic") == false)                
+			// Load license from the file
+			lic.StorageMode = LicenseStorageMode.ToFile;
+			if (lic.Load("licence.lic") == false)
 				throw new Exception("License could not be loaded");
 
-			// Validate the license using .Status property            
-			if (lic.Status != LicenseStatus.Valid)                
+			// Validate the license using .Status property
+			if (lic.Status != LicenseStatus.Valid)
 				throw new Exception("license validation failed");
 			*/
 
@@ -980,19 +986,30 @@ namespace CumulusMX
 
 			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
 
+			// Set the default comport name depending on platform
+			if (Platform.Substring(0, 3) == "Win")
+			{
+				DefaultComportName = "COM1";
+			}
+			else
+			{
+				DefaultComportName = "/dev/ttyUSB0";
+			}
+
+
 			LogMessage("Platform: " + Platform);
 
 			LogMessage("OS version: " + Environment.OSVersion.ToString());
 
-            Type type = Type.GetType("Mono.Runtime");
-            if (type != null)
-            {
-                MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
-                if (displayName != null)
-                    LogMessage("Mono version: "+displayName.Invoke(null, null));
-            }
+			Type type = Type.GetType("Mono.Runtime");
+			if (type != null)
+			{
+				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
+				if (displayName != null)
+					LogMessage("Mono version: "+displayName.Invoke(null, null));
+			}
 
-            LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -1037,7 +1054,7 @@ namespace CumulusMX
 			ThisMonthTFile = "web" + DirectorySeparator + "thismonthT.htm";
 			ThisYearTFile = "web" + DirectorySeparator + "thisyearT.htm";
 			MonthlyRecordTFile = "web" + DirectorySeparator + "monthlyrecordT.htm";
-		    RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
+			RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
 
 			Indexfile = "web" + DirectorySeparator + "index.htm";
 			Todayfile = "web" + DirectorySeparator + "today.htm";
@@ -1048,9 +1065,9 @@ namespace CumulusMX
 			ThisMonthfile = "web" + DirectorySeparator + "thismonth.htm";
 			ThisYearfile = "web" + DirectorySeparator + "thisyear.htm";
 			MonthlyRecordfile = "web" + DirectorySeparator + "monthlyrecord.htm";
-            RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
+			RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
 
-            localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
+			localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
 			remotewebtextfiles = new[] { "index.htm", "today.htm", "yesterday.htm", "record.htm", "trends.htm", "gauges.htm", "thismonth.htm", "thisyear.htm", "monthlyrecord.htm" };
 
 			//localgraphdatafiles = new[] {"units.json","tempdatad3.json", "pressdatad3.json", "winddatad3.json", "wdirdatad3.json", "humdatad3.json", "raindatad3.json", "solardatad3.json"};
@@ -1114,9 +1131,9 @@ namespace CumulusMX
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval]);
-            LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
+			LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
 
-            TempFormat = "F" + TempDPlaces;
+			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
 			RainFormat = "F" + RainDPlaces;
 			PressFormat = "F" + PressDPlaces;
@@ -1626,31 +1643,27 @@ namespace CumulusMX
 
 		private void OnSend(UserContext context)
 		{
-			//Console.WriteLine("OnSend From : " + context.ClientAddress.ToString());
+			LogDebugMessage("OnSend From : " + context.ClientAddress.ToString());
 		}
 
 		private void OnReceive(UserContext context)
 		{
-			//Console.WriteLine("WS receive : " + context.DataFrame.ToString());
+			LogDebugMessage("WS receive : " + context.DataFrame.ToString());
 		}
 
 		private void InitialiseRG11()
 		{
-			if (RG11Port > 0)
+			if (RG11Port.Length > 0)
 			{
-				var device = "COM" + RG11Port;
-
-				cmprtRG11 = new SerialPort(device, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
+				cmprtRG11 = new SerialPort(RG11Port, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
 
 				cmprtRG11.PinChanged += RG11StateChange;
 			}
 
-			if (RG11Port2 > 0 && (RG11Port2 != RG11Port))
+			if (RG11Port2.Length > 0 && (!RG11Port2.Equals(RG11Port)))
 			{
 				// a second RG11 is in use, using a different com port
-				var device = "COM" + RG11Port;
-
-				cmprt2RG11 = new SerialPort(device, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
+				cmprt2RG11 = new SerialPort(RG11Port2, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
 
 				cmprt2RG11.PinChanged += RG11StateChange;
 			}
@@ -1662,9 +1675,9 @@ namespace CumulusMX
 			bool isCTS = e.EventType == SerialPinChange.CtsChanged;
 
 			// Is this a trigger that the first RG11 is configured for?
-			bool isDevice1 = (((SerialPort)sender).PortName == "COM" + RG11Port) && ((isDSR && RG11DTRmode) || (isCTS && !RG11DTRmode));
+			bool isDevice1 = (((SerialPort)sender).PortName == RG11Port) && ((isDSR && RG11DTRmode) || (isCTS && !RG11DTRmode));
 			// Is this a trigger that the second RG11 is configured for?
-			bool isDevice2 = (((SerialPort)sender).PortName == "COM" + RG11Port2) && ((isDSR && RG11DTRmode2) || (isCTS && !RG11DTRmode2));
+			bool isDevice2 = (((SerialPort)sender).PortName == RG11Port2) && ((isDSR && RG11DTRmode2) || (isCTS && !RG11DTRmode2));
 
 			// is the pin on or off?
 			bool isOn = (isDSR && ((SerialPort)sender).DsrHolding) || (isCTS && ((SerialPort)sender).CtsHolding);
@@ -1711,9 +1724,9 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!WebUpdating) 
+			if (!WebUpdating)
 			{
-				WebUpdating = true;                
+				WebUpdating = true;
 				ftpThread = new Thread(DoHTMLFiles);
 				ftpThread.IsBackground = true;
 				ftpThread.Start();
@@ -1779,6 +1792,9 @@ namespace CumulusMX
 				}
 
 				LogDebugMessage("Updating Twitter: " + status);
+
+				// URL encode the string to make it safe
+				status = WebUtility.UrlEncode(status);
 
 				Status tweet;
 
@@ -1954,60 +1970,60 @@ namespace CumulusMX
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
-            if (!RealtimeInProgress)
-            {
-                try
-                {
-                    RealtimeInProgress = true;
-                    if (RealtimeFTPEnabled)
-                    {
-                        if (!RealtimeFTP.IsConnected)
-                        {
-                            try
-                            {
-                                LogDebugMessage("Realtime ftp not connected - connecting");
-                                RealtimeFTP.Connect();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage("Error connecting ftp - " + ex.Message);
-                            }
+			if (!RealtimeInProgress)
+			{
+				try
+				{
+					RealtimeInProgress = true;
+					if (RealtimeFTPEnabled)
+					{
+						if (!RealtimeFTP.IsConnected)
+						{
+							try
+							{
+								LogDebugMessage("Realtime ftp not connected - reconnecting");
+								RealtimeFTP.Connect();
+							}
+							catch (Exception ex)
+							{
+								LogMessage("Error connecting ftp - " + ex.Message);
+							}
 
-                            RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-                        }
+							RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+						}
 
-                        try
-                        {
-                            //LogDebugMessage("Create realtime file");
-                            CreateRealtimeFile();
-                            //LogDebugMessage("Create extra realtime files");
-                            CreateRealtimeHTMLfiles();
-                            //LogDebugMessage("Upload realtime files");
-                            RealtimeFTPUpload();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogMessage("Error during realtime update: " + ex.Message);
-                        }
-                    }
-                    else
-                    {
-                        // No FTP, just process files
-                        CreateRealtimeFile();
-                        CreateRealtimeHTMLfiles();
-                    }
+						try
+						{
+							//LogDebugMessage("Create realtime file");
+							CreateRealtimeFile();
+							//LogDebugMessage("Create extra realtime files");
+							CreateRealtimeHTMLfiles();
+							//LogDebugMessage("Upload realtime files");
+							RealtimeFTPUpload();
+						}
+						catch (Exception ex)
+						{
+							LogMessage("Error during realtime update: " + ex.Message);
+						}
+					}
+					else
+					{
+						// No FTP, just process files
+						CreateRealtimeFile();
+						CreateRealtimeHTMLfiles();
+					}
 
-                    if (!string.IsNullOrEmpty(RealtimeProgram))
-                    {
-                        //LogDebugMessage("Execute realtime program");
-                        ExecuteProgram(RealtimeProgram, RealtimeParams);
-                    }
-                }
-                finally
-                {
-                    RealtimeInProgress = false;
-                }
-            }
+					if (!string.IsNullOrEmpty(RealtimeProgram))
+					{
+						//LogDebugMessage("Execute realtime program");
+						ExecuteProgram(RealtimeProgram, RealtimeParams);
+					}
+				}
+				finally
+				{
+					RealtimeInProgress = false;
+				}
+			}
 		}
 
 		private void RealtimeFTPUpload()
@@ -2018,12 +2034,12 @@ namespace CumulusMX
 			if (ftp_directory == "")
 			{
 				filepath = "realtime.txt";
-			    gaugesfilepath = "realtimegauges.txt";
+				gaugesfilepath = "realtimegauges.txt";
 			}
 			else
 			{
 				filepath = ftp_directory + "/realtime.txt";
-			    gaugesfilepath = ftp_directory + "/realtimegauges.txt";
+				gaugesfilepath = ftp_directory + "/realtimegauges.txt";
 			}
 
 			if (RealtimeTxtFTP)
@@ -2031,11 +2047,11 @@ namespace CumulusMX
 				UploadFile(RealtimeFTP, RealtimeFile, filepath);
 			}
 
-		    if (RealtimeGaugesTxtFTP)
-		    {
-                ProcessTemplateFile(RealtimeGaugesTxtTFile,RealtimeGaugesTxtFile, realtimeTokenParser);
-		        UploadFile(RealtimeFTP, RealtimeGaugesTxtFile,gaugesfilepath);
-		    }
+			if (RealtimeGaugesTxtFTP)
+			{
+				ProcessTemplateFile(RealtimeGaugesTxtTFile,RealtimeGaugesTxtFile, realtimeTokenParser);
+				UploadFile(RealtimeFTP, RealtimeGaugesTxtFile,gaugesfilepath);
+			}
 
 			// Extra files
 			for (int i = 0; i < numextrafiles; i++)
@@ -2664,7 +2680,7 @@ namespace CumulusMX
 			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 200);
 			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 1000);
 			DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
-            DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
+			DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
 			if (StationType == StationTypes.VantagePro)
 			{
 				UseDavisLoop2 = false;
@@ -2672,7 +2688,7 @@ namespace CumulusMX
 
 			serial_port = ini.GetValue("Station", "Port", 0);
 
-			ComportName = ini.GetValue("Station", "ComportName", "COM" + serial_port);
+			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
 			ImetBaudRate = ini.GetValue("Station", "ImetBaudRate", 19200);
 
 			VendorID = ini.GetValue("Station", "VendorID", -1);
@@ -2834,7 +2850,7 @@ namespace CumulusMX
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
 			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
-		    ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
+			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
@@ -2857,13 +2873,13 @@ namespace CumulusMX
 			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
 
-			RG11Port = ini.GetValue("Station", "RG11port", 0);
+			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
 			RG11TBRmode = ini.GetValue("Station", "RG11TBRmode", false);
 			RG11tipsize = ini.GetValue("Station", "RG11tipsize", 0.0);
 			RG11IgnoreFirst = ini.GetValue("Station", "RG11IgnoreFirst", false);
 			RG11DTRmode = ini.GetValue("Station", "RG11DTRmode", true);
 
-			RG11Port2 = ini.GetValue("Station", "RG11port2", 0);
+			RG11Port2 = ini.GetValue("Station", "RG11port2Name", DefaultComportName);
 			RG11TBRmode2 = ini.GetValue("Station", "RG11TBRmode2", false);
 			RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0);
 			RG11IgnoreFirst2 = ini.GetValue("Station", "RG11IgnoreFirst2", false);
@@ -2934,7 +2950,7 @@ namespace CumulusMX
 			RealtimeEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
 			RealtimeFTPEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
 			RealtimeTxtFTP = ini.GetValue("FTP site", "RealtimeTxtFTP", false);
-		    RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", true);
+			RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", true);
 			RealtimeInterval = ini.GetValue("FTP site", "RealtimeInterval", 30000);
 			if (RealtimeInterval < 1) { RealtimeInterval = 1; }
 			//RealtimeTimer.Change(0,RealtimeInterval);
@@ -3162,6 +3178,8 @@ namespace CumulusMX
 			SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 0);
 			LuxToWM2 = ini.GetValue("Solar", "LuxToWM2", 0.0079);
 			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
+			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
+			BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
 
 			NOAAname = ini.GetValue("NOAA", "Name", " ");
 			NOAAcity = ini.GetValue("NOAA", "City", " ");
@@ -3427,13 +3445,13 @@ namespace CumulusMX
 
 			//ini.SetValue("Station", "ImetBaudRate", ImetBaudRate);
 
-			ini.SetValue("Station", "RG11port", RG11Port);
+			ini.SetValue("Station", "RG11portName", RG11Port);
 			ini.SetValue("Station", "RG11TBRmode", RG11TBRmode);
 			ini.SetValue("Station", "RG11tipsize", RG11tipsize);
 			ini.SetValue("Station", "RG11IgnoreFirst", RG11IgnoreFirst);
 			ini.SetValue("Station", "RG11DTRmode", RG11DTRmode);
 
-			ini.SetValue("Station", "RG11port2", RG11Port2);
+			ini.SetValue("Station", "RG11portName2", RG11Port2);
 			ini.SetValue("Station", "RG11TBRmode2", RG11TBRmode2);
 			ini.SetValue("Station", "RG11tipsize2", RG11tipsize2);
 			ini.SetValue("Station", "RG11IgnoreFirst2", RG11IgnoreFirst2);
@@ -3456,7 +3474,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "EnableRealtime", RealtimeEnabled);
 			ini.SetValue("FTP site", "RealtimeFTPEnabled", RealtimeFTPEnabled);
 			ini.SetValue("FTP site", "RealtimeTxtFTP", RealtimeTxtFTP);
-            ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeGaugesTxtFTP);
+			ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeGaugesTxtFTP);
 			ini.SetValue("FTP site", "RealtimeInterval", RealtimeInterval);
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			ini.SetValue("FTP site", "IncludeSTD", IncludeStandardFiles);
@@ -3641,6 +3659,9 @@ namespace CumulusMX
 			ini.SetValue("Solar", "RStransfactor", RStransfactor);
 			ini.SetValue("Solar", "SolarMinimum", SolarMinimum);
 			ini.SetValue("Solar", "UseBlakeLarsen", UseBlakeLarsen);
+			ini.SetValue("Solar", "SolarCalc", SolarCalc);
+			ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
+
 
 			ini.SetValue("NOAA", "Name", NOAAname);
 			ini.SetValue("NOAA", "City", NOAAcity);
@@ -4084,6 +4105,10 @@ namespace CumulusMX
 
 		public int SunThreshold { get; set; }
 
+		public int SolarCalc { get; set; }
+
+		public double BrasTurbidity { get; set; }
+
 		public int xapPort { get; set; }
 
 		public string xapUID { get; set; }
@@ -4179,7 +4204,7 @@ namespace CumulusMX
 
 		public bool RG11TBRmode2 { get; set; }
 
-		public int RG11Port2 { get; set; }
+		public string RG11Port2 { get; set; }
 
 		public bool RG11DTRmode { get; set; }
 
@@ -4189,7 +4214,7 @@ namespace CumulusMX
 
 		public bool RG11TBRmode { get; set; }
 
-		public int RG11Port { get; set; }
+		public string RG11Port { get; set; }
 
 		public double ChillHourThreshold { get; set; }
 
@@ -4221,7 +4246,7 @@ namespace CumulusMX
 
 		public int ImetWaitTime { get; set; }
 
-        public bool ImetUpdateLogPointer { get; set; }
+		public bool ImetUpdateLogPointer { get; set; }
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -4363,7 +4388,7 @@ namespace CumulusMX
 		public bool DavisStation { get; set; }
 		public string TempTrendFormat { get; set; }
 		public string AppDir { get; set; }
-		
+
 		public int Manufacturer { get; set; }
 		public int ImetLoggerInterval { get; set; }
 		public TimeSpan DayLength { get; set; }
@@ -4413,9 +4438,9 @@ namespace CumulusMX
 		private string ThisYearTFile;
 		private string GaugesTFile;
 		private string RealtimeFile = "realtime.txt";
-	    private string RealtimeGaugesTxtTFile;
-        private string RealtimeGaugesTxtFile;
-        private string TwitterTxtFile;
+		private string RealtimeGaugesTxtTFile;
+		private string RealtimeGaugesTxtFile;
+		private string TwitterTxtFile;
 		public bool IncludeStandardFiles = true;
 		public bool IncludeGraphDataFiles;
 		public bool TwitterSendLocation;
@@ -4609,7 +4634,7 @@ namespace CumulusMX
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("Writing log entry for " + timestamp);
 			LogDebugMessage("max gust: " + station.RecentMaxGust.ToString(WindFormat));
-			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor);
+			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor, BrasTurbidity);
 			var filename = GetLogFileName(timestamp);
 
 			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
@@ -4681,13 +4706,13 @@ namespace CumulusMX
 					MySqlCommand cmd = new MySqlCommand();
 					cmd.CommandText = queryString;
 					cmd.Connection = MonthlyMySqlConn;
-					LogMessage(queryString);
+					LogDebugMessage(queryString);
 
 					try
 					{
 						MonthlyMySqlConn.Open();
 						int aff = cmd.ExecuteNonQuery();
-						LogMessage("MySQL: " + aff + " rows were affected.");
+						LogMessage("MySQL: Table " + MySqlMonthlyTable + " " + aff + " rows were affected.");
 					}
 					catch (Exception ex)
 					{
@@ -5326,7 +5351,7 @@ namespace CumulusMX
 			start.FileName = externalProgram;
 			// Dont show a console window
 			start.CreateNoWindow = true;
-			// Run the external process 
+			// Run the external process
 			Process.Start(start);
 		}
 
@@ -5578,15 +5603,15 @@ namespace CumulusMX
 			{
 				if (DeleteBeforeUpload)
 				{
-                    // delete the existing file
-                    try
-                    {
-                        conn.DeleteFile(remotefile);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
-                    }
+					// delete the existing file
+					try
+					{
+						conn.DeleteFile(remotefile);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
+					}
 				}
 
 				using (Stream ostream = conn.OpenWrite(remotefilename))
@@ -5810,7 +5835,7 @@ namespace CumulusMX
 								station.Forecastnumber.ToString() + ",'" + (IsDaylight() ? "1" : "0") + "','" + (station.SensorContactLost ? "1" : "0") + "','" +
 								station.CompassPoint(station.AvgBearing) + "'," + ((int)station.CloudBase).ToString() + ",'" + (CloudBaseInFeet ? "ft" : "m") + "'," +
 								station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString("F1", InvC) + ',' +
-								((int)station.CurrentSolarMax).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";
+								((int) Math.Round(station.CurrentSolarMax)).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";
 
 
 				string queryString = StartOfRealtimeInsertSQL + values;
@@ -6135,13 +6160,13 @@ namespace CumulusMX
 				MySqlCommand cmd = new MySqlCommand();
 				cmd.CommandText = MySqlList[i];
 				cmd.Connection = mySqlConn;
-				LogMessage(MySqlList[i]);
+				LogDebugMessage(MySqlList[i]);
 
 				try
 				{
 					mySqlConn.Open();
 					int aff = cmd.ExecuteNonQuery();
-					LogMessage("MySQL: " + aff + " rows were affected.");
+					LogMessage("MySQL: Table " + MySqlMonthlyTable + "  " + aff + " rows were affected.");
 				}
 				catch (Exception ex)
 				{
