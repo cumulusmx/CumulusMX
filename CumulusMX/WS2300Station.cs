@@ -96,10 +96,10 @@ namespace CumulusMX
             DoDayResetIfNeeded();
             DoTrendValues(DateTime.Now);
             cumulus.StartTimers();
-        }
+		}
 
 
-        private void bw_DoWork(object sender, DoWorkEventArgs e)
+		private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
             getAndProcessHistoryData();
         }

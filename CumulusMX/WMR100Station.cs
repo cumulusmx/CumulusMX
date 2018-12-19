@@ -195,7 +195,7 @@ namespace CumulusMX
                 Thread.Sleep(100);
             }
 
-                // Catch the ThreadAbortException
+            // Catch the ThreadAbortException
             catch (ThreadAbortException)
             {
             }

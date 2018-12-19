@@ -19,12 +19,12 @@ namespace CumulusMX
 		private string ipaddr;
 		private int port;
 		private bool savedUseSpeedForAvgCalc;
-		private int min;
+		//private int min;
 		private int previousMinuteDisconnect = 60;
 		private const int ACK = 6;
 		private bool clockSetNeeded = false;
 		private int previousMinuteSetClock = 60;
-		private string newline = "\n";
+		private const string newline = "\n";
 		private DateTime lastRecepStatsTime;
 
 		private TcpClient socket;
@@ -36,9 +36,6 @@ namespace CumulusMX
 			calculaterainrate = false;
 
 			IsSerial = (cumulus.VP2ConnectionType == 0);
-
-			ipaddr = cumulus.VP2IPAddr;
-			port = Convert.ToInt32(cumulus.VP2TCPPort);
 
 			bool connectedOK = false;
 
@@ -69,6 +66,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				ipaddr = cumulus.VP2IPAddr;
+				port = Convert.ToInt32(cumulus.VP2TCPPort);
+
 				cumulus.LogMessage("IP address = " + ipaddr + " Port = " + port);
 				cumulus.LogMessage("periodic disconnect = " + cumulus.VP2PeriodicDisconnectInterval);
 				socket = OpenTcpPort();
@@ -93,10 +93,7 @@ namespace CumulusMX
 				// get time of last db entry (also sets raincounter and prevraincounter)
 				//lastArchiveTimeUTC = getLastArchiveTime();
 
-				if (!IsSerial)
-				{
-					init(socket);
-				}
+				init(socket);
 
 				DavisFirmwareVersion = GetFirmwareVersion();
 				cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
@@ -134,8 +131,6 @@ namespace CumulusMX
 					// there's nothing in the database, so we haven't got a rain counter
 					// we can't load the history data, so we'll just have to go live
 
-					cumulus.LogMessage("Start normal running");
-					cumulus.CurrentActivity = "Normal running";
 					//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes == 10)
 					//{
 					//    CalcRecentMaxGust = false;
@@ -148,7 +143,6 @@ namespace CumulusMX
 				else
 				{
 					// Read the data from the logger
-					cumulus.LogMessage("Start reading archive data");
 					startReadingHistoryData();
 				}
 			}
@@ -238,7 +232,7 @@ namespace CumulusMX
 						cumulus.LogMessage(ex.Message);
 					}
 
-					cumulus.LogDebugMessage(BitConverter.ToString(buffer));
+					cumulus.LogDebugMessage("NVER response: " + BitConverter.ToString(buffer));
 				}
 			}
 
@@ -340,14 +334,15 @@ namespace CumulusMX
 		private TcpClient OpenTcpPort()
 		{
 			TcpClient client = null;
-			try
+			int attempt = 0;
+
+			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
+			while (attempt < 5 && client == null)
 			{
-				int attempt = 0;
-				// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
-				while (attempt < 5 && client == null)
+				attempt++;
+				cumulus.LogDebugMessage("TCP Logger Connect attempt " + attempt);
+				try
 				{
-					attempt++;
-					cumulus.LogDebugMessage("TCP Logger Connect attempt " + attempt);
 					client = new TcpClient(ipaddr, port); 
 					
 					if (!client.Connected)
@@ -355,20 +350,55 @@ namespace CumulusMX
 						client = null;
 					}
 
-					Thread.Sleep(1000);                   
+					Thread.Sleep(1000);
 				}
-
-				// Set the timeout of the underlying stream
-				if (!(client == null)) {
-					client.GetStream().ReadTimeout = 2500;
+				catch
+				{
+					//MessageBox.Show(ex.Message);
 				}
-
-				return client;
 			}
-			catch
+
+			// Set the timeout of the underlying stream
+			if (!(client == null)) {
+				client.GetStream().ReadTimeout = 2500;
+			}
+
+			return client;
+		}
+
+		// Re-open a TCP socket. 
+		private bool ReOpenTcpPort(TcpClient client)
+		{
+			try
 			{
-				//MessageBox.Show(ex.Message);
-				return (null);
+				int attempt = 0;
+
+				while (attempt < 5 && !client.Connected)
+				{
+					attempt++;
+					cumulus.LogDebugMessage("TCP Logger Re-Connect attempt " + attempt);
+					client.Connect(ipaddr, port);
+
+					Thread.Sleep(1000);
+				}
+
+				return client.Connected;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogDebugMessage("Error reconnecting TCP logger port: " + ex.Message);
+				cumulus.LogDebugMessage("Attempt to close/open TCP logger port.");
+				try
+				{
+					socket.Close();
+					OpenTcpPort();
+					return client.Connected;
+				}
+				catch
+				{
+					cumulus.LogDebugMessage("Close/Open TCP logger port: " + ex.Message);
+					return (false);
+				}
 			}
 		}
 
@@ -376,10 +406,11 @@ namespace CumulusMX
 		{
 			cumulus.CurrentActivity = "Reading archive data";
 			//lastArchiveTimeUTC = getLastArchiveTime();
-			cumulus.LogMessage("Reading archive data");
+			cumulus.LogMessage("Reading history data from log files");
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
+			cumulus.LogMessage("Reading archive data from logger");
 			bw = new BackgroundWorker();
 			//histprog = new historyProgressWindow();
 			//histprog.Owner = mainWindow;
@@ -418,7 +449,7 @@ namespace CumulusMX
             //histprog.histprogPB.Value = 100;
             //histprog.Close();
             //mainWindow.FillLastHourGraphData();
-            cumulus.LogMessage("Archive reading thread completed");
+            cumulus.LogMessage("Logger archive reading thread completed");
             if (e.Error != null)
             {
                 cumulus.LogMessage("Archive reading thread apparently terminated with an error: "+e.Error.Message);
@@ -429,7 +460,6 @@ namespace CumulusMX
 			//    UpdateHighsAndLows(dataContext);
 			//}
 			cumulus.CurrentActivity = "Normal running";
-			Console.WriteLine(DateTime.Now.ToLongTimeString() + " Normal running");
 			//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes == 10)
 			//{
 			//    CalcRecentMaxGust = false;
@@ -665,14 +695,15 @@ namespace CumulusMX
                 string commandString = "BARREAD\n";
                 if (WakeVP(socket))
                 {
-                    stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+					try
+					{
 
-                    Thread.Sleep(cumulus.DavisIPResponseTime);
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
-                    var bytesRead = 0;
-                    byte[] buffer = new byte[64];
-                    try
-                    {
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+
+						var bytesRead = 0;
+						byte[] buffer = new byte[64];
                         while (stream.DataAvailable)
                         {
                             // Read the current character
@@ -682,15 +713,15 @@ namespace CumulusMX
                             bytesRead++;
                             //cumulus.LogMessage("Received " + ch.ToString("X2"));
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        cumulus.LogMessage(ex.Message);
-                    }
 
-                    cumulus.LogDebugMessage(BitConverter.ToString(buffer));
-                }
-            }
+						cumulus.LogDebugMessage("SendBarRed: Response - " + BitConverter.ToString(buffer));
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogDebugMessage("SendBarRead: Error - " + ex.Message);
+					}
+				}
+			}
 
         }
 
@@ -759,37 +790,50 @@ namespace CumulusMX
 			int passCount = 1;
 			const int maxPasses = 4;
 
-
-			NetworkStream stream = tcpPort.GetStream();
-
-			// Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
-			// a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
-			// we get nothing back, we assume that the connection is broken
-			while (!Found_ACK && passCount < maxPasses)
+			if (tcpPort.Connected)
 			{
-				// send the LOOP n command
-				cumulus.LogDebugMessage("Sending command: " + commandString + ", attempt "+passCount);
-				stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-				Thread.Sleep(cumulus.DavisIPResponseTime);
-				cumulus.LogDebugMessage("Wait for ACK");
-				// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
-				// in the buffer first or no response is given.  If all else fails, try again.
-				while (stream.DataAvailable && !Found_ACK)
+				try
 				{
-					
-					// Read the current character
-					int data = stream.ReadByte();
-					cumulus.LogDataMessage("Received 0x"+data.ToString("X2"));
-					if (data == ACK)
+					NetworkStream stream = tcpPort.GetStream();
+
+					// Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
+					// a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
+					// we get nothing back, we assume that the connection is broken
+					while (!Found_ACK && passCount < maxPasses)
 					{
-						cumulus.LogDebugMessage("Received ACK");
-						Found_ACK = true;
+						// send the LOOP n command
+						cumulus.LogDebugMessage("Sending command: " + commandString + ", attempt " + passCount);
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+						cumulus.LogDebugMessage("Wait for ACK");
+						// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+						// in the buffer first or no response is given.  If all else fails, try again.
+						while (stream.DataAvailable && !Found_ACK)
+						{
+
+							// Read the current character
+							int data = stream.ReadByte();
+							cumulus.LogDataMessage("Received 0x" + data.ToString("X2"));
+							if (data == ACK)
+							{
+								cumulus.LogDebugMessage("Received ACK");
+								Found_ACK = true;
+							}
+						}
+
+						passCount++;
 					}
 				}
-
-				passCount++;
+				catch (Exception ex)
+				{
+					cumulus.LogDataMessage("Error sending LOOP command: " + ex.Message);
+				}
 			}
-
+			else
+			{
+				cumulus.LogDataMessage("Error sending LOOP command: Port is not connected.");
+			}
+			
 			// return result to indicate success or otherwise
 			return (Found_ACK);
 		}
@@ -859,34 +903,36 @@ namespace CumulusMX
 
 						if (min != previousMinuteDisconnect)
 						{
-							// time to disconnect - first stop the loop data by sending a newline
 							try
 							{
-								cumulus.LogDebugMessage("Periodic disconnect");
-								socket.GetStream().WriteByte(10);
-								socket.Client.Shutdown(SocketShutdown.Both);
-								socket.Client.Disconnect(false);
-                                // dispose of the object
-                                socket.Client.Close();
-								Thread.Sleep(cumulus.VP2PeriodicDisconnectInterval*1000);
-								cumulus.LogDebugMessage("Attempting reconnect");
-								socket = OpenTcpPort();
-								if (socket == null)
-								{
-									cumulus.LogMessage("Unable to reconnect");
-									Console.WriteLine("Unable to connect to station, closing");
-								}
 								previousMinuteDisconnect = min;
+
+								cumulus.LogDebugMessage("Periodic disconnect from logger");
+								// time to disconnect - first stop the loop data by sending a newline
+								socket.GetStream().WriteByte(10);
+								//socket.Client.Shutdown(SocketShutdown.Both);
+								//socket.Client.Disconnect(false);
 							}
 							catch (Exception ex)
 							{
 								cumulus.LogMessage("Periodic disconnect: " + ex.Message);
-                                // close the existing connection
-                                socket.Client.Close();
-                                Thread.Sleep(2000);
-                                // attempt to open a new connection
-                                socket = OpenTcpPort();
-                            }
+							}
+							finally
+							{
+								socket.Client.Close(0);
+							}
+
+							// Wait
+							Thread.Sleep(cumulus.VP2PeriodicDisconnectInterval*1000);
+
+							cumulus.LogDebugMessage("Attempting reconnect to logger");
+							// open a new connection
+							socket = OpenTcpPort();
+							if (socket == null)
+							{
+								cumulus.LogMessage("Unable to reconnect to logger");
+								//Console.WriteLine("Unable to connect to station, closing");
+							}
                             return;
 						}
 					}
@@ -2348,8 +2394,8 @@ namespace CumulusMX
 				}
 			}
 			catch (Exception ex)
-			{
-				//MessageBox.Show(ex.Message);
+			{ 
+				cumulus.LogDebugMessage("WakeVP Error: " + ex.Message);
 				return (false);
 			}
 		}

@@ -336,7 +336,7 @@ namespace CumulusMX
 		public override void startReadingHistoryData()
 		{
 			cumulus.LogMessage("Start reading history data");
-
+			Console.WriteLine("Start reading history data...");
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -364,10 +364,10 @@ namespace CumulusMX
 			//mainWindow.FillLastHourGraphData();
 
 			cumulus.CurrentActivity = "Normal running";
+			cumulus.LogMessage("Archive reading thread completed");
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
 			cumulus.StartTimers();
-			Console.WriteLine("Reading live data");
 			StartLoop();
 		}
 
@@ -381,8 +381,8 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			// Positions of fields in logger data
-			const int IDPOS = 1;
-			const int TYPEPOS = 2;
+			//const int IDPOS = 1;
+			//const int TYPEPOS = 2;
 			const int INTERVALPOS = 3;
 			const int TIMEPOS = 4;
 			const int DATEPOS = 5;
@@ -392,13 +392,13 @@ namespace CumulusMX
 			const int TEMP2MINPOS = 9;
 			const int TEMP2MAXPOS = 10;
 			const int TEMP2AVGPOS = 11;
-			const int RELHUMMINPOS = 12;
-			const int RELHUMMAXPOS = 13;
+			//const int RELHUMMINPOS = 12;
+			//const int RELHUMMAXPOS = 13;
 			const int RELHUMAVGPOS = 14;
-			const int PRESSMINPOS = 15;
-			const int PRESSMAXPOS = 16;
+			//const int PRESSMINPOS = 15;
+			//const int PRESSMAXPOS = 16;
 			const int PRESSAVGPOS = 17;
-			const int WINDMINPOS = 18;
+			//const int WINDMINPOS = 18;
 			const int WINDMAXPOS = 19;
 			const int WINDAVGPOS = 20;
 			const int DIRPOS = 21;
@@ -442,7 +442,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Downloading history from " + startfrom);
 			Console.WriteLine("Reading archive data from " + startfrom + " - please wait");
 			//RegressLogs(cumulus.LastUpdateTime);
-			bool valid = false;
+			//bool valid = false;
 			int numrecs = GetNumberOfLogs();
 			cumulus.LogMessage("Logs available = " + numrecs);
 			if (numrecs > 0)
@@ -785,7 +785,7 @@ namespace CumulusMX
 			const int DIRPOS = 6;
 			const int SUNPOS = 7;
 			const int RAINPOS = 8;
-			const int CHECKSUMPOS = 9;
+			//const int CHECKSUMPOS = 9;
 
 			DateTime now = DateTime.Now;
 

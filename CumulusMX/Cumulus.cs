@@ -6,21 +6,21 @@ using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Net;
-using System.Net.FtpClient;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Timers;
-using Alchemy;
-using Alchemy.Classes;
 using Devart.Data.MySql;
+using FluentFTP;
 using LinqToTwitter;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
+using Unosquare.Labs.EmbedIO.Constants;
 using Timer = System.Timers.Timer;
 using SQLite;
 
@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3044";
+		public string Build = "3045-TEST5";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -76,11 +76,11 @@ namespace CumulusMX
 			IN
 		}
 
-		public enum solarcalcTypes
-		{
-			RyanStolzenbach = 0,
-			Bras = 1
-		}
+        public enum solarcalcTypes
+        {
+            RyanStolzenbach = 0,
+            Bras = 1
+        }
 
 		public struct Dataunits
 		{
@@ -157,12 +157,12 @@ namespace CumulusMX
 
 		private WeatherStation station;
 
-		private StationSettings stationSettings;
-		private InternetSettings internetSettings;
-		private CalibrationSettings calibrationSettings;
-		private NOAASettings noaaSettings;
-		private MysqlSettings mySqlSettings;
-		private DataEditor dataEditor;
+		private readonly StationSettings stationSettings;
+		private readonly InternetSettings internetSettings;
+		private readonly CalibrationSettings calibrationSettings;
+		private readonly NOAASettings noaaSettings;
+		private readonly MysqlSettings mySqlSettings;
+		private readonly DataEditor dataEditor;
 
 		public DateTime LastUpdateTime;
 
@@ -175,7 +175,7 @@ namespace CumulusMX
 
 		public string CurrentActivity = "Stopped";
 
-		private static TraceListener ftpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
+		private static readonly TraceListener ftpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
 
 		/// <summary>
 		/// Temperature unit currently in use
@@ -347,14 +347,14 @@ namespace CumulusMX
 		internal int HumDPlaces = 0;
 		public string HumFormat;
 
-		private int WindRunDPlaces = 1;
+		private readonly int WindRunDPlaces = 1;
 		public string WindRunFormat;
 
 		public int RainDPlaces = 1;
 		public string RainFormat;
 
 		internal int PressDPlaces = 1;
-		internal bool DavisIncrementPressureDP;
+	    internal bool DavisIncrementPressureDP;
 		public string PressFormat;
 
 		internal int UVDPlaces = 1;
@@ -364,9 +364,9 @@ namespace CumulusMX
 
 		public int VPrainGaugeType = -1;
 
-		public string ComportName;
-		public string DefaultComportName;
-		public int ImetBaudRate;
+        public string ComportName;
+        public string DefaultComportName;
+        public int ImetBaudRate;
 
 		public int VendorID;
 		public int ProductID;
@@ -407,8 +407,8 @@ namespace CumulusMX
 
 		public double RStransfactor = 0.8;
 
-		private int HttpPort = 8998;
-		internal int wsPort = 8002;
+		private readonly int HttpPort = 8998;
+		internal int wsPort = 8998;
 
 		public bool LogExtraSensors = false;
 
@@ -435,32 +435,32 @@ namespace CumulusMX
 
 		public int FineOffsetReadTime;
 
-		private string AlltimeFile;
+		private readonly string AlltimeFile;
 		public string AlltimeIniFile;
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
-		private string LogFilePath;
+		private readonly string LogFilePath;
 		public string DayFile;
 		public string YesterdayFile;
 		public string TodayIniFile;
 		public string MonthIniFile;
 		public string YearIniFile;
-		private string stringsFile;
-		private string backuppath;
-		private string ExternaldataFile;
+		//private readonly string stringsFile;
+		private readonly string backuppath;
+		//private readonly string ExternaldataFile;
 		public string WebTagFile;
-		private string Indexfile;
-		private string Todayfile;
-		private string Yesterfile;
-		private string Recordfile;
-		private string Trendsfile;
-		private string Gaugesfile;
-		private string ThisMonthfile;
-		private string ThisYearfile;
-		private string MonthlyRecordfile;
+		private readonly string Indexfile;
+		private readonly string Todayfile;
+		private readonly string Yesterfile;
+		private readonly string Recordfile;
+		private readonly string Trendsfile;
+		private readonly string Gaugesfile;
+		private readonly string ThisMonthfile;
+		private readonly string ThisYearfile;
+		private readonly string MonthlyRecordfile;
 
-		private string[] localwebtextfiles;
-		private string[] remotewebtextfiles;
+		private readonly string[] localwebtextfiles;
+		private readonly string[] remotewebtextfiles;
 
 		public bool SynchronisedWebUpdate;
 		public bool SynchronisedWUUpdate;
@@ -497,20 +497,21 @@ namespace CumulusMX
 		public double TempMult = 1.0;
 		public double TempMult2 = 0.0;
 		public double HumMult = 1.0;
+		public double HumMult2 = 0.0;
 		public double RainMult = 1.0;
 		public double UVMult = 1.0;
 		public double WetBulbMult = 1.0;
 
-		private int CurrentYear;
-		private int CurrentMonth;
-		private int CurrentDay;
+		//private int CurrentYear;
+		//private int CurrentMonth;
+		//private int CurrentDay;
 
 		public bool ListWebTags;
 
 		public bool RealtimeEnabled; // The timer is to be started
 		public bool RealtimeFTPEnabled; // The FTP connection is to be established
 		public bool RealtimeTxtFTP; // The realtime.txt file is to be uploaded
-		public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
+	    public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
 
 		// Twitter settings
 		public string Twitteruser = " ";
@@ -657,18 +658,20 @@ namespace CumulusMX
 
 		public string ForecastNotAvailable;
 
-		private WebServer httpServer;
-		private Thread httpThread;
+		public WebServer httpServer;
+		//public WebSocket websock;
+
+		//private Thread httpThread;
 
 		private static HttpClientHandler WUhttpHandler = new HttpClientHandler();
 		private HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
 		private bool UpdatingWU = false;
 
-		private static HttpClientHandler AwekashttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler();
 		private HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
 		private bool UpdatingAwekas = false;
 
-		private static HttpClientHandler WCloudhttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler WCloudhttpHandler = new HttpClientHandler();
 		private HttpClient WCloudhttpClient = new HttpClient(WCloudhttpHandler);
 		private bool UpdatingWCloud = false;
 
@@ -775,9 +778,9 @@ namespace CumulusMX
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet" };
 
 
-		/*
-		CryptoLicense lic = new CryptoLicense();
-
+        /*
+		CryptoLicense lic = new CryptoLicense();            
+		
 
 		//create code for applicationsecret
 		byte[] applicationSecret = Convert.FromBase64String("QpJGpsqWfkKu+yM8Ljp6+A==");
@@ -874,31 +877,31 @@ namespace CumulusMX
 				}
 
 				Console.WriteLine("Licence is valid");
-
+				
 			}
 		}
 		*/
 
-		public Cumulus(int HTTPport, int WSport)
-		{
-			//DoLicenseCheck();
+        public Cumulus(int HTTPport, int WSport)
+        {
+            //DoLicenseCheck();
 
-			/*lic.ValidationKey = "AMAAMACrfxYrYEOGd+D5ypZ32bnLCvviBrTlejReXNRdvgWzSgyvdfkLvNDvDX1WuMh2JIEDAAEAAQ==";
+            /*lic.ValidationKey = "AMAAMACrfxYrYEOGd+D5ypZ32bnLCvviBrTlejReXNRdvgWzSgyvdfkLvNDvDX1WuMh2JIEDAAEAAQ==";
 
-			// Load license from the file
-			lic.StorageMode = LicenseStorageMode.ToFile;
-			if (lic.Load("licence.lic") == false)
+			// Load license from the file            
+			lic.StorageMode = LicenseStorageMode.ToFile;            
+			if (lic.Load("licence.lic") == false)                
 				throw new Exception("License could not be loaded");
 
-			// Validate the license using .Status property
-			if (lic.Status != LicenseStatus.Valid)
+			// Validate the license using .Status property            
+			if (lic.Status != LicenseStatus.Valid)                
 				throw new Exception("license validation failed");
 			*/
 
-			string serial = CalculateMD5Hash(Environment.MachineName);
-			Console.WriteLine("Serial: " + serial);
-			File.WriteAllText("serial.txt", serial);
-			/*
+            string serial = CalculateMD5Hash(Environment.MachineName);
+            Console.WriteLine("Serial: " + serial);
+            File.WriteAllText("serial.txt", serial);
+            /*
 						try
 						{
 							using (TextReader reader = File.OpenText(@"licence.lic"))
@@ -947,69 +950,71 @@ namespace CumulusMX
 							Environment.Exit(0);
 						}
 			*/
-			DirectorySeparator = Path.DirectorySeparatorChar;
+            DirectorySeparator = Path.DirectorySeparatorChar;
 
-			AppDir = AppDomain.CurrentDomain.BaseDirectory;
+            AppDir = AppDomain.CurrentDomain.BaseDirectory;
 
-			TwitterTxtFile = AppDir + "twitter.txt";
-			WebTagFile = AppDir + "WebTags.txt";
+            TwitterTxtFile = AppDir + "twitter.txt";
+            WebTagFile = AppDir + "WebTags.txt";
 
-			// interface port passed as param
-			HttpPort = HTTPport;
+            // interface port passed as param
+            HttpPort = HTTPport;
 
-			wsPort = WSport;
+			//b3045, use smae port for WS...  WS port = HTTPS port
+			//wsPort = WSport;
+			wsPort = HTTPport;
 
-			// Set up the diagnostic tracing
-			string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+            // Set up the diagnostic tracing
+            string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
 
-			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
+            TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
 
-			Trace.Listeners.Add(myTextListener);
-			Trace.AutoFlush = true;
-
-
-			// Read the configuration file
-
-			LogMessage(" ========================== Cumulus MX starting ==========================");
-
-			LogMessage("Command line: " + Environment.CommandLine);
+            Trace.Listeners.Add(myTextListener);
+            Trace.AutoFlush = true;
 
 
-			Assembly thisAssembly = this.GetType().Assembly;
-			//Version = thisAssembly.GetName().Version.ToString();
-			//VersionLabel.Content = "Cumulus v." + thisAssembly.GetName().Version;
-			LogMessage("Cumulus MX v." + Version + " build " + Build);
-			Console.WriteLine("Cumulus MX v." + Version + " build " + Build);
-			//Console.WriteLine("This is pre-release beta software");
+            // Read the configuration file
 
-			IsOSX = IsRunningOnMac();
+            LogMessage(" ========================== Cumulus MX starting ==========================");
 
-			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
-
-			// Set the default comport name depending on platform
-			if (Platform.Substring(0, 3) == "Win")
-			{
-				DefaultComportName = "COM1";
-			}
-			else
-			{
-				DefaultComportName = "/dev/ttyUSB0";
-			}
+            LogMessage("Command line: " + Environment.CommandLine);
 
 
-			LogMessage("Platform: " + Platform);
+            Assembly thisAssembly = this.GetType().Assembly;
+            //Version = thisAssembly.GetName().Version.ToString();
+            //VersionLabel.Content = "Cumulus v." + thisAssembly.GetName().Version;
+            LogMessage("Cumulus MX v." + Version + " build " + Build);
+            Console.WriteLine("Cumulus MX v." + Version + " build " + Build);
+            //Console.WriteLine("This is pre-release beta software");
+
+            IsOSX = IsRunningOnMac();
+
+            Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
+
+            // Set the default comport name depending on platform
+            if (Platform.Substring(0, 3) == "Win")
+            {
+                DefaultComportName = "COM1";
+            }
+            else
+            {
+                DefaultComportName = "/dev/ttyUSB0";
+            }
+
+
+            LogMessage("Platform: " + Platform);
 
 			LogMessage("OS version: " + Environment.OSVersion.ToString());
 
-			Type type = Type.GetType("Mono.Runtime");
-			if (type != null)
-			{
-				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
-				if (displayName != null)
-					LogMessage("Mono version: "+displayName.Invoke(null, null));
-			}
+            Type type = Type.GetType("Mono.Runtime");
+            if (type != null)
+            {
+                MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
+                if (displayName != null)
+                    LogMessage("Mono version: "+displayName.Invoke(null, null));
+            }
 
-			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+            LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -1043,7 +1048,7 @@ namespace CumulusMX
 			TodayIniFile = Datapath + "today.ini";
 			MonthIniFile = Datapath + "month.ini";
 			YearIniFile = Datapath + "year.ini";
-			stringsFile = "strings.ini";
+			//stringsFile = "strings.ini";
 
 			IndexTFile = "web" + DirectorySeparator + "indexT.htm";
 			TodayTFile = "web" + DirectorySeparator + "todayT.htm";
@@ -1054,7 +1059,7 @@ namespace CumulusMX
 			ThisMonthTFile = "web" + DirectorySeparator + "thismonthT.htm";
 			ThisYearTFile = "web" + DirectorySeparator + "thisyearT.htm";
 			MonthlyRecordTFile = "web" + DirectorySeparator + "monthlyrecordT.htm";
-			RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
+		    RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
 
 			Indexfile = "web" + DirectorySeparator + "index.htm";
 			Todayfile = "web" + DirectorySeparator + "today.htm";
@@ -1065,9 +1070,9 @@ namespace CumulusMX
 			ThisMonthfile = "web" + DirectorySeparator + "thismonth.htm";
 			ThisYearfile = "web" + DirectorySeparator + "thisyear.htm";
 			MonthlyRecordfile = "web" + DirectorySeparator + "monthlyrecord.htm";
-			RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
+            RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
 
-			localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
+            localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
 			remotewebtextfiles = new[] { "index.htm", "today.htm", "yesterday.htm", "record.htm", "trends.htm", "gauges.htm", "thismonth.htm", "thisyear.htm", "monthlyrecord.htm" };
 
 			//localgraphdatafiles = new[] {"units.json","tempdatad3.json", "pressdatad3.json", "winddatad3.json", "wdirdatad3.json", "humdatad3.json", "raindatad3.json", "solardatad3.json"};
@@ -1131,9 +1136,9 @@ namespace CumulusMX
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval]);
-			LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
+            LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
 
-			TempFormat = "F" + TempDPlaces;
+            TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
 			RainFormat = "F" + RainDPlaces;
 			PressFormat = "F" + PressDPlaces;
@@ -1152,6 +1157,10 @@ namespace CumulusMX
 			if (ActiveFTPMode)
 			{
 				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+			}
+			else if (DisableEPSV)
+			{
+				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
 			}
 
 			ReadStringsFile();
@@ -1241,7 +1250,7 @@ namespace CumulusMX
 			LogMessage("PO=" + PressOffset.ToString("F3") + " TO=" + TempOffset.ToString("F3") + " HO=" + HumOffset + " WDO=" + WindDirOffset + " ITO=" +
 					   InTempoffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
 			LogMessage("WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
-					   " HM=" + HumMult.ToString("F3") + " RM=" + RainMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
+					   " HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
 			LogMessage("Spike removal:");
 			LogMessage("TD=" + EWtempdiff.ToString("F3") + " GD=" + EWgustdiff.ToString("F3") + " WD=" + EWwinddiff.ToString("F3") + " HD=" + EWhumiditydiff.ToString("F3") + " PD=" +
 					   EWpressurediff.ToString("F3"));
@@ -1310,15 +1319,6 @@ namespace CumulusMX
 			realtimeTokenParser = new TokenParser();
 			realtimeTokenParser.OnToken += TokenParserOnToken;
 
-			/*httpServer = new MyHttpServer(HttpPort, this);
-
-			httpThread = new Thread(new ThreadStart(httpServer.listen));
-			httpThread.IsBackground = true;
-			httpThread.Name = "httpThread";
-
-			httpThread.Start();
-			*/
-
 			stationSettings = new StationSettings(this);
 			internetSettings = new InternetSettings(this);
 			calibrationSettings = new CalibrationSettings(this);
@@ -1328,9 +1328,10 @@ namespace CumulusMX
 
 			//ILog Log = Logger.For<Program>();
 
-			// var httpURL = "http://" + LocalIPAddress() + ":" + HttpPort + "/";
+			// switch off logging from Unosquare.Swan which underlies embedIO
+			Unosquare.Swan.Terminal.Settings.DisplayLoggingMessageType = Unosquare.Swan.LogMessageType.None;
 
-			httpServer = new WebServer(HttpPort);
+			WebServer httpServer = new WebServer(HttpPort, RoutingStrategy.Wildcard);
 
 
 			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
@@ -1341,6 +1342,7 @@ namespace CumulusMX
 			httpServer.RegisterModule(new StaticFilesModule(htmlRootPath));
 			httpServer.Module<StaticFilesModule>().UseRamCache = true;
 
+			// Set up the API web server
 			Api.Setup(httpServer);
 			Api.Station = station;
 			Api.stationSettings = stationSettings;
@@ -1350,27 +1352,13 @@ namespace CumulusMX
 			Api.mySqlSettings = mySqlSettings;
 			Api.dataEditor = dataEditor;
 
+			// Set up the Web Socket server
+			WebSocket.Setup(httpServer, this);
+
 			httpServer.RunAsync();
 
-			//Console.WriteLine("Cumulus running at " + httpURL);
 			Console.WriteLine("Cumulus running at: " + httpServer.Listener.Prefixes.First());
 			Console.WriteLine("(Replace * with any IP address on this machine, or localhost)");
-
-			wsServer = new WebSocketServer(wsPort, IPAddress.Any)
-			{
-				OnReceive = OnReceive,
-				OnSend = OnSend,
-				OnConnect = OnConnect,
-				OnConnected = OnConnected,
-				OnDisconnect = OnDisconnect,
-				FlashAccessPolicyEnabled = false,
-				TimeOut = new TimeSpan(0, 5, 0)
-			};
-
-			Console.WriteLine("Starting web socket server on port " + wsPort);
-			LogMessage("Starting web socket server on port " + wsPort);
-			wsServer.Start();
-
 			RealtimeTimer.Interval = RealtimeInterval;
 			RealtimeTimer.Elapsed += RealtimeTimerTick;
 			RealtimeTimer.AutoReset = true;
@@ -1615,6 +1603,7 @@ namespace CumulusMX
 			return localIP;
 		}
 
+		/*
 		private void OnDisconnect(UserContext context)
 		{
 			LogDebugMessage("Disconnect From : " + context.ClientAddress.ToString());
@@ -1630,7 +1619,7 @@ namespace CumulusMX
 
 		private void OnConnected(UserContext context)
 		{
-			LogDebugMessage("Connected From : " + context.ClientAddress.ToString());
+            LogDebugMessage("Connected From : " + context.ClientAddress.ToString());
 		}
 
 		private void OnConnect(UserContext context)
@@ -1643,14 +1632,14 @@ namespace CumulusMX
 
 		private void OnSend(UserContext context)
 		{
-			LogDebugMessage("OnSend From : " + context.ClientAddress.ToString());
+            LogDebugMessage("OnSend From : " + context.ClientAddress.ToString());
 		}
 
 		private void OnReceive(UserContext context)
 		{
-			LogDebugMessage("WS receive : " + context.DataFrame.ToString());
+            LogDebugMessage("WS receive : " + context.DataFrame.ToString());
 		}
-
+*/
 		private void InitialiseRG11()
 		{
 			if (RG11Port.Length > 0)
@@ -1724,9 +1713,9 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!WebUpdating)
+			if (!WebUpdating) 
 			{
-				WebUpdating = true;
+				WebUpdating = true;                
 				ftpThread = new Thread(DoHTMLFiles);
 				ftpThread.IsBackground = true;
 				ftpThread.Start();
@@ -1793,10 +1782,7 @@ namespace CumulusMX
 
 				LogDebugMessage("Updating Twitter: " + status);
 
-				// URL encode the string to make it safe
-				status = WebUtility.UrlEncode(status);
-
-				Status tweet;
+                Status tweet;
 
 				try
 				{
@@ -1970,60 +1956,60 @@ namespace CumulusMX
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
-			if (!RealtimeInProgress)
-			{
-				try
-				{
-					RealtimeInProgress = true;
-					if (RealtimeFTPEnabled)
-					{
-						if (!RealtimeFTP.IsConnected)
-						{
-							try
-							{
-								LogDebugMessage("Realtime ftp not connected - reconnecting");
-								RealtimeFTP.Connect();
-							}
-							catch (Exception ex)
-							{
-								LogMessage("Error connecting ftp - " + ex.Message);
-							}
+            if (!RealtimeInProgress)
+            {
+                try
+                {
+                    RealtimeInProgress = true;
+                    if (RealtimeFTPEnabled)
+                    {
+                        if (!RealtimeFTP.IsConnected)
+                        {
+                            try
+                            {
+                                LogDebugMessage("Realtime ftp not connected - reconnecting");
+                                RealtimeFTP.Connect();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage("Error connecting ftp - " + ex.Message);
+                            }
 
-							RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-						}
+                            RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+                        }
 
-						try
-						{
-							//LogDebugMessage("Create realtime file");
-							CreateRealtimeFile();
-							//LogDebugMessage("Create extra realtime files");
-							CreateRealtimeHTMLfiles();
-							//LogDebugMessage("Upload realtime files");
-							RealtimeFTPUpload();
-						}
-						catch (Exception ex)
-						{
-							LogMessage("Error during realtime update: " + ex.Message);
-						}
-					}
-					else
-					{
-						// No FTP, just process files
-						CreateRealtimeFile();
-						CreateRealtimeHTMLfiles();
-					}
+                        try
+                        {
+                            //LogDebugMessage("Create realtime file");
+                            CreateRealtimeFile();
+                            //LogDebugMessage("Create extra realtime files");
+                            CreateRealtimeHTMLfiles();
+                            //LogDebugMessage("Upload realtime files");
+                            RealtimeFTPUpload();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogMessage("Error during realtime update: " + ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        // No FTP, just process files
+                        CreateRealtimeFile();
+                        CreateRealtimeHTMLfiles();
+                    }
 
-					if (!string.IsNullOrEmpty(RealtimeProgram))
-					{
-						//LogDebugMessage("Execute realtime program");
-						ExecuteProgram(RealtimeProgram, RealtimeParams);
-					}
-				}
-				finally
-				{
-					RealtimeInProgress = false;
-				}
-			}
+                    if (!string.IsNullOrEmpty(RealtimeProgram))
+                    {
+                        //LogDebugMessage("Execute realtime program");
+                        ExecuteProgram(RealtimeProgram, RealtimeParams);
+                    }
+                }
+                finally
+                {
+                    RealtimeInProgress = false;
+                }
+            }
 		}
 
 		private void RealtimeFTPUpload()
@@ -2034,12 +2020,12 @@ namespace CumulusMX
 			if (ftp_directory == "")
 			{
 				filepath = "realtime.txt";
-				gaugesfilepath = "realtimegauges.txt";
+			    gaugesfilepath = "realtimegauges.txt";
 			}
 			else
 			{
 				filepath = ftp_directory + "/realtime.txt";
-				gaugesfilepath = ftp_directory + "/realtimegauges.txt";
+			    gaugesfilepath = ftp_directory + "/realtimegauges.txt";
 			}
 
 			if (RealtimeTxtFTP)
@@ -2047,11 +2033,11 @@ namespace CumulusMX
 				UploadFile(RealtimeFTP, RealtimeFile, filepath);
 			}
 
-			if (RealtimeGaugesTxtFTP)
-			{
-				ProcessTemplateFile(RealtimeGaugesTxtTFile,RealtimeGaugesTxtFile, realtimeTokenParser);
-				UploadFile(RealtimeFTP, RealtimeGaugesTxtFile,gaugesfilepath);
-			}
+		    if (RealtimeGaugesTxtFTP)
+		    {
+                ProcessTemplateFile(RealtimeGaugesTxtTFile,RealtimeGaugesTxtFile, realtimeTokenParser);
+		        UploadFile(RealtimeFTP, RealtimeGaugesTxtFile,gaugesfilepath);
+		    }
 
 			// Extra files
 			for (int i = 0; i < numextrafiles; i++)
@@ -2122,7 +2108,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogDebugMessage("Copying extra realtime file: " + ex.ExceptionMessage());
+								LogDebugMessage("Copying extra realtime file: " + ex.Message);
 							}
 						}
 					}
@@ -2648,7 +2634,7 @@ namespace CumulusMX
 		{
 			const int maxEntries = 10;
 
-			var fileEntries = new List<string>(Directory.GetFiles(directory));
+			List<string> fileEntries = new List<string>(Directory.GetFiles(directory));
 
 			fileEntries.Sort();
 
@@ -2680,7 +2666,7 @@ namespace CumulusMX
 			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 200);
 			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 1000);
 			DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
-			DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
+            DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
 			if (StationType == StationTypes.VantagePro)
 			{
 				UseDavisLoop2 = false;
@@ -2850,7 +2836,7 @@ namespace CumulusMX
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
 			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
-			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
+		    ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
@@ -2945,12 +2931,12 @@ namespace CumulusMX
 			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);
 			ActiveFTPMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			Sslftp = ini.GetValue("FTP site", "Sslftp", false);
-
+			DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
 			FTPlogging = ini.GetValue("FTP site", "FTPlogging", false);
 			RealtimeEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
 			RealtimeFTPEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
 			RealtimeTxtFTP = ini.GetValue("FTP site", "RealtimeTxtFTP", false);
-			RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", true);
+		    RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", false);
 			RealtimeInterval = ini.GetValue("FTP site", "RealtimeInterval", 30000);
 			if (RealtimeInterval < 1) { RealtimeInterval = 1; }
 			//RealtimeTimer.Change(0,RealtimeInterval);
@@ -3165,6 +3151,7 @@ namespace CumulusMX
 			TempMult = ini.GetValue("Offsets", "TempMult", 1.0);
 			TempMult2 = ini.GetValue("Offsets", "TempMult2", 0.0);
 			HumMult = ini.GetValue("Offsets", "HumMult", 1.0);
+			HumMult2 = ini.GetValue("Offsets", "HumMult2", 0.0);
 			RainMult = ini.GetValue("Offsets", "RainMult", 1.0);
 			UVMult = ini.GetValue("Offsets", "UVMult", 1.0);
 			WetBulbMult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
@@ -3178,8 +3165,8 @@ namespace CumulusMX
 			SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 0);
 			LuxToWM2 = ini.GetValue("Solar", "LuxToWM2", 0.0079);
 			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
-			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
-			BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+            SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
+            BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
 
 			NOAAname = ini.GetValue("NOAA", "Name", " ");
 			NOAAcity = ini.GetValue("NOAA", "City", " ");
@@ -3474,7 +3461,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "EnableRealtime", RealtimeEnabled);
 			ini.SetValue("FTP site", "RealtimeFTPEnabled", RealtimeFTPEnabled);
 			ini.SetValue("FTP site", "RealtimeTxtFTP", RealtimeTxtFTP);
-			ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeGaugesTxtFTP);
+            ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeGaugesTxtFTP);
 			ini.SetValue("FTP site", "RealtimeInterval", RealtimeInterval);
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			ini.SetValue("FTP site", "IncludeSTD", IncludeStandardFiles);
@@ -3659,11 +3646,11 @@ namespace CumulusMX
 			ini.SetValue("Solar", "RStransfactor", RStransfactor);
 			ini.SetValue("Solar", "SolarMinimum", SolarMinimum);
 			ini.SetValue("Solar", "UseBlakeLarsen", UseBlakeLarsen);
-			ini.SetValue("Solar", "SolarCalc", SolarCalc);
-			ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
+            ini.SetValue("Solar", "SolarCalc", SolarCalc);
+            ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
 
 
-			ini.SetValue("NOAA", "Name", NOAAname);
+            ini.SetValue("NOAA", "Name", NOAAname);
 			ini.SetValue("NOAA", "City", NOAAcity);
 			ini.SetValue("NOAA", "State", NOAAstate);
 			ini.SetValue("NOAA", "12hourformat", NOAA12hourformat);
@@ -4105,11 +4092,11 @@ namespace CumulusMX
 
 		public int SunThreshold { get; set; }
 
-		public int SolarCalc { get; set; }
+        public int SolarCalc { get; set; }
 
-		public double BrasTurbidity { get; set; }
+        public double BrasTurbidity { get; set; }
 
-		public int xapPort { get; set; }
+        public int xapPort { get; set; }
 
 		public string xapUID { get; set; }
 
@@ -4152,6 +4139,7 @@ namespace CumulusMX
 		public bool ActiveFTPMode { get; set; }
 
 		public bool Sslftp { get; set; }
+		public bool DisableEPSV { get; set; }
 
 		public bool FTPlogging { get; set; }
 
@@ -4246,7 +4234,7 @@ namespace CumulusMX
 
 		public int ImetWaitTime { get; set; }
 
-		public bool ImetUpdateLogPointer { get; set; }
+        public bool ImetUpdateLogPointer { get; set; }
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -4388,7 +4376,7 @@ namespace CumulusMX
 		public bool DavisStation { get; set; }
 		public string TempTrendFormat { get; set; }
 		public string AppDir { get; set; }
-
+		
 		public int Manufacturer { get; set; }
 		public int ImetLoggerInterval { get; set; }
 		public TimeSpan DayLength { get; set; }
@@ -4428,23 +4416,23 @@ namespace CumulusMX
 		public string LatestError;
 		public DateTime LatestErrorTS = DateTime.MinValue;
 		public string wxnowfile = "wxnow.txt";
-		private string IndexTFile;
-		private string TodayTFile;
-		private string YesterdayTFile;
-		private string RecordTFile;
-		private string MonthlyRecordTFile;
-		private string TrendsTFile;
-		private string ThisMonthTFile;
-		private string ThisYearTFile;
-		private string GaugesTFile;
-		private string RealtimeFile = "realtime.txt";
-		private string RealtimeGaugesTxtTFile;
-		private string RealtimeGaugesTxtFile;
-		private string TwitterTxtFile;
+		private readonly string IndexTFile;
+		private readonly string TodayTFile;
+		private readonly string YesterdayTFile;
+		private readonly string RecordTFile;
+		private readonly string MonthlyRecordTFile;
+		private readonly string TrendsTFile;
+		private readonly string ThisMonthTFile;
+		private readonly string ThisYearTFile;
+		private readonly string GaugesTFile;
+		private readonly string RealtimeFile = "realtime.txt";
+	    private readonly string RealtimeGaugesTxtTFile;
+        private readonly string RealtimeGaugesTxtFile;
+        private readonly string TwitterTxtFile;
 		public bool IncludeStandardFiles = true;
 		public bool IncludeGraphDataFiles;
 		public bool TwitterSendLocation;
-		private int numwebtextfiles = 9;
+		private const int numwebtextfiles = 9;
 		private FtpClient RealtimeFTP = new FtpClient();
 		private bool RealtimeInProgress = false;
 		public bool SendSoilTemp1ToWund;
@@ -4458,9 +4446,9 @@ namespace CumulusMX
 		public bool SendLeafWetness1ToWund;
 		public bool SendLeafWetness2ToWund;
 		private string[] localgraphdatafiles;
-		private string[] remotegraphdatafiles;
+		private readonly string[] remotegraphdatafiles;
 		public string exceptional;
-		private WebSocketServer wsServer;
+//		private WebSocketServer wsServer;
 		public string[] WMR200ExtraChannelCaptions = new string[11];
 		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
 		public string[] ExtraHumCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
@@ -5325,8 +5313,8 @@ namespace CumulusMX
 			WriteIniFile();
 
 			//httpServer.Stop();
-
-			if (httpServer != null) httpServer.Dispose();
+			
+			//if (httpServer != null) httpServer.Dispose();
 
 			if (station != null)
 			{
@@ -5351,7 +5339,7 @@ namespace CumulusMX
 			start.FileName = externalProgram;
 			// Dont show a console window
 			start.CreateNoWindow = true;
-			// Run the external process
+			// Run the external process 
 			Process.Start(start);
 		}
 
@@ -5483,11 +5471,17 @@ namespace CumulusMX
 					conn.EncryptionMode = FtpEncryptionMode.Explicit;
 					conn.DataConnectionEncryption = true;
 					conn.ValidateCertificate += Client_ValidateCertificate;
-				}
+                    // b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+                    RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+                }
 
-				if (ActiveFTPMode)
+                if (ActiveFTPMode)
 				{
 					conn.DataConnectionType = FtpDataConnectionType.PORT;
+				}
+				else if (DisableEPSV)
+				{
+					conn.DataConnectionType = FtpDataConnectionType.PASV;
 				}
 
 				try
@@ -5590,7 +5584,10 @@ namespace CumulusMX
 						}
 					}
 				}
-			}
+
+                // b3045 - dispose of connection
+                conn.Disconnect();
+            }
 		}
 
 		private void UploadFile(FtpClient conn, string localfile, string remotefile)
@@ -5603,15 +5600,15 @@ namespace CumulusMX
 			{
 				if (DeleteBeforeUpload)
 				{
-					// delete the existing file
-					try
-					{
-						conn.DeleteFile(remotefile);
-					}
-					catch (Exception ex)
-					{
-						LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
-					}
+                    // delete the existing file
+                    try
+                    {
+                        conn.DeleteFile(remotefile);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
+                    }
 				}
 
 				using (Stream ostream = conn.OpenWrite(remotefilename))
@@ -5634,8 +5631,10 @@ namespace CumulusMX
 					{
 						ostream.Close();
 						istream.Close();
+						conn.GetReply(); // required FluentFTP 19.2
 					}
 				}
+
 
 				if (FTPRename)
 				{
@@ -6060,6 +6059,9 @@ namespace CumulusMX
 
 			WebTimer.Interval = UpdateInterval * 60 * 1000; // mins to millisecs
 			WebTimer.Enabled = WebAutoUpdate && !SynchronisedWebUpdate;
+
+			LogMessage("Normal running");
+			Console.WriteLine("Normal running");
 		}
 
 		private void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -6190,13 +6192,20 @@ namespace CumulusMX
 			RealtimeFTP.Host = ftp_host;
 			RealtimeFTP.Port = ftp_port;
 			RealtimeFTP.Credentials = new NetworkCredential(ftp_user, ftp_password);
+            // b3045 - Reduce the default polling interval to try and keep the session alive
+            RealtimeFTP.SocketKeepAlive = true;
+            RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
+
 
 			if (Sslftp)
 			{
 				RealtimeFTP.EncryptionMode = FtpEncryptionMode.Explicit;
 				RealtimeFTP.DataConnectionEncryption = true;
 				RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
-			}
+                // b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+                RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+
+            }
 
 
 			if (ftp_host != "" && ftp_host != " ")
@@ -6320,7 +6329,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Wbug update: " + ex.Message);
+                    LogMessage("Wbug update: " + ex.Message);
 				}
 			}
 

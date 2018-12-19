@@ -37,7 +37,44 @@
 3045
 ====
 
-- Switch to FluentFTP package, which allows CumulusMX to now use TLS 1.2 for SFTP sessions
+- Update the targeted .Net version to 4.5.2 (4.5 and 4.5.1 are no longer supported by Microsoft)
+
+- Switch to FluentFTP package, which allows CumulusMX to now use TLS 1.1 & 1.2 for SFTP sessions
+
+- Update Microsoft.Net.Http package to latest stable version
+
+- Update fastJSON package to latest stable version
+
+- Update embedIO package to latest stable version
+
+- Remove Alchemy WS package from build
 
 
 
+
+- Davis TCP connections.
+	- Added additional error handling.
+
+- Astro calcs for Solar
+	- Added refraction correction.
+	- updated to add some extra terms.
+
+- Removed URL encode Twitter messages added in b3044
+
+- Added second order humidity correction factor, works the same as the temperature. Has to be set manually in Cumulus.ini.
+	- Cumulus.ini
+		[Offsets]
+		HumMult2=0.0
+
+- FTP Updates
+	- Now supports SFTP over TLS1.1 and 1.2
+	- In Passive FTP, you can disable EPSV mode if it causes problems with your host. Some hosts are reporting they support it, but a firewall along the route cannot handle the connections.
+	  Requires manually adding a new Cumulus.ini entry...
+		[FTP site]
+		DisableEPSV=1
+	- RealtimeGaugesTxt is no longer automatically enabled for FTP.
+
+- Web Sockets are no longer on a separate port, it shares the same port as HTTP.
+	- The wsport switch is still recognised for backwards compatibilty, but it is no longer used.
+
+- Fix the FO with solar logger reading, now limited to the reduced number of logger entries available on solar stations.

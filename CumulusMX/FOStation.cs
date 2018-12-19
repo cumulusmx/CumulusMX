@@ -24,7 +24,7 @@ namespace CumulusMX
         private readonly HidStream stream;
         private List<HistoryData> datalist;
 
-        private int maxHistoryEntries = 4080;
+        private readonly int maxHistoryEntries;
         private int prevaddr = -1;
         private double previouspress = 9999;
         private double previousgust = 999;
@@ -48,7 +48,7 @@ namespace CumulusMX
         private byte[] prevdata = new byte[16];
         private int FOentrysize;
         private int FOMaxAddr;
-        private int FOmaxhistoryentries;
+        //private int FOmaxhistoryentries;
         private bool hasSolar;
         private bool readingData = false;
 
@@ -71,13 +71,13 @@ namespace CumulusMX
             {
                 FOentrysize = 0x14;
                 FOMaxAddr = 0xFFEC;
-                FOmaxhistoryentries = 3264;
+				maxHistoryEntries = 3264;
             }
             else
             {
                 FOentrysize = 0x10;
                 FOMaxAddr = 0xFFF0;
-                FOmaxhistoryentries = 4080;
+				maxHistoryEntries = 4080;
             }
                         
             devicelist = DeviceList.Local;
@@ -153,14 +153,15 @@ namespace CumulusMX
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             cumulus.CurrentActivity = "Normal running";
-            Start();
+			cumulus.LogMessage("Archive reading thread completed");
+			Start();
             DoDayResetIfNeeded();
             DoTrendValues(DateTime.Now);
             cumulus.StartTimers();
-        }
+		}
 
 
-        private void bw_DoWork(object sender, DoWorkEventArgs e)
+		private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
@@ -173,7 +174,7 @@ namespace CumulusMX
             cumulus.LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
             DateTime now = DateTime.Now;
             cumulus.LogMessage(DateTime.Now.ToString("G"));
-            cumulus.LogMessage("Reading history data");
+            cumulus.LogMessage("Start reading history data");
             DateTime timestamp = DateTime.Now;
             //LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
             cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);

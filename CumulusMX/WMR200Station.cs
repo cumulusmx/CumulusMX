@@ -33,8 +33,8 @@ namespace CumulusMX
         private byte[] PacketBuffer;
         private int CurrentPacketLength;
         private const int PacketBufferBound = 255;
-        private bool ArchiveDataAvailable = false;
-        private bool ArchiveDataDownloaded = false;
+        //private bool ArchiveDataAvailable = false;
+        //private bool ArchiveDataDownloaded = false;
         private int ArchiveDataCount = 0;
         private bool FirstArchiveData = true;
         private bool midnightraindone;
@@ -118,14 +118,14 @@ namespace CumulusMX
 
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            
-        }
+		}
 
-        public override void getAndProcessHistoryData()
+		public override void getAndProcessHistoryData()
         {
             var data = new byte[32];
-            cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Reading history data");
-            DateTime timestamp = DateTime.Now;
+            cumulus.LogMessage("Start reading history data");
+			Console.WriteLine("Start reading history data...");
+			DateTime timestamp = DateTime.Now;
             //LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
             cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
             
@@ -246,7 +246,7 @@ namespace CumulusMX
 	                            // Check for a history data available packet on the end of the current data
 	                            if ((CurrentPacketLength == 1) && (PacketBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE))
 	                            {
-		                            ArchiveDataAvailable = true;
+		                            //ArchiveDataAvailable = true;
 		                            if (cumulus.logging)
 		                            {
 			                            cumulus.LogMessage("HISTORY_AVAILABLE_PACKET_TYPE");
@@ -287,10 +287,9 @@ namespace CumulusMX
                                             break;
                                     }
 
-                                    if
-                                        (PacketBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE)
+                                    if (PacketBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE)
                                     {
-                                        ArchiveDataAvailable = true;
+                                        //ArchiveDataAvailable = true;
                                         if (cumulus.logging)
                                         {
                                             cumulus.LogMessage("Sending DA response");
@@ -1374,11 +1373,11 @@ namespace CumulusMX
             // Byte 47: (cL) Check-sum low  byte
             // Byte 48: (cH) Check-sum high byte
             DateTime timestamp;
-            int s;
-            int ms;
+            //int s;
+            //int ms;
             int i;
             double num;
-            int intnum;
+            //int intnum;
             int sign;
             int interval;
             double wc;
@@ -1387,7 +1386,7 @@ namespace CumulusMX
             int sensorcount;
             int sensornumber;
             int offset;
-            ArchiveDataDownloaded = true;
+            //ArchiveDataDownloaded = true;
             // Byte 02: (mm) Minute
             // Byte 03: (hh) Hour
             // Byte 04: (dd) Day

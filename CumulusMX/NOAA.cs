@@ -52,8 +52,8 @@ namespace CumulusMX
             public double highwindspeed;
             public int highwindday;
             public int winddomdir;
-            public double totalwinddirX;
-            public double totalwinddirY;
+            //public double totalwinddirX;
+            //public double totalwinddirY;
             public int raincount1;
             public int raincount2;
             public int raincount3;

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
 {
@@ -20,11 +21,12 @@ namespace CumulusMX
             this.station = station;
             this.cumulus = cumulus;
             
-        }        
+        }
 
-        internal string EditRainToday(HttpListenerContext context)
-        {
-            var InvC = new CultureInfo("");
+		//internal string EditRainToday(HttpListenerContext context)
+		internal string EditRainToday(IHttpContext context)
+		{
+			var InvC = new CultureInfo("");
             var request = context.Request;
             string text;
             using (var reader = new StreamReader(request.InputStream,

@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using fastJSON;
 using System.Web.UI;
+using Unosquare.Labs.EmbedIO;
+
 
 namespace CumulusMX
 {
@@ -211,10 +213,11 @@ namespace CumulusMX
             d = secs / 60;
         }
 
-        public string UpdateStationConfig(HttpListenerContext context)
-        {
-            // get the response 
-            try
+		//public string UpdateStationConfig(HttpListenerContext context)
+		public string UpdateStationConfig(IHttpContext context)
+		{
+			// get the response 
+			try
             {
                 cumulus.LogMessage("Updating station settings");
 

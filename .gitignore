@@ -160,6 +160,8 @@ ClientBin/
 *.publishsettings
 node_modules/
 sqlite3/
+*.sqlite
+.vs/
 
 # RIA/Silverlight projects
 Generated_Code/
@@ -183,3 +185,4 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+

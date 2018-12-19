@@ -129,12 +129,12 @@ namespace CumulusMX
                 (280.466 + 36000.77 * julianCenturies));
 
             double meanAnomaly = CorrectAngle(Deg2Rad *
-                (357.529 + 35999.05 * julianCenturies));
+                (357.52911 + 35999.05029 * julianCenturies));
 
-            double equationOfCenter = Deg2Rad * ((1.915 - 0.005 * julianCenturies) *
-                Math.Sin(meanAnomaly) + 0.02 * Math.Sin(2 * meanAnomaly));
+			double equationOfCenter = Deg2Rad * ((1.914602 - 0.004817 * julianCenturies) *
+                Math.Sin(meanAnomaly) + 0.019993 * Math.Sin(2 * meanAnomaly));
 
-            double elipticalLongitude =
+			double elipticalLongitude =
                 CorrectAngle(meanLongitude + equationOfCenter);
 
             double obliquity = (23.439 - 0.013 * julianCenturies) * Deg2Rad;
@@ -159,9 +159,39 @@ namespace CumulusMX
                 Math.Sin(declination) + Math.Cos(latitude * Deg2Rad) *
                 Math.Cos(declination) * Math.Cos(hourAngle));
 
-            // Nominator and denominator for calculating Azimuth
-            // angle. Needed to test which quadrant the angle is in.
-            double aziNom = -Math.Sin(hourAngle);
+			// refraction correction
+			// work in degrees
+			altitude *= Rad2Deg;
+			double refractionCorrection;
+			if (altitude > 85.0 || altitude <= -0.575)
+			{
+				refractionCorrection = 0.0;
+			}
+			else
+			{
+				double te = Math.Tan(degToRad(altitude));
+				if (altitude > 5.0)
+				{
+					refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
+				}
+				else if (altitude > -0.575)
+				{
+					double step1 = (-12.79 + altitude * 0.711);
+					double step2 = (103.4 + altitude * (step1));
+					double step3 = (-518.2 + altitude * (step2));
+					refractionCorrection = 1735.0 + altitude * (step3);
+				}
+				else
+				{
+					refractionCorrection = -20.774 / te;
+				}
+				refractionCorrection /= 3600.0;
+			}
+			altitude += refractionCorrection;
+
+			// Nominator and denominator for calculating Azimuth
+			// angle. Needed to test which quadrant the angle is in.
+			double aziNom = -Math.Sin(hourAngle);
             double aziDenom =
                 Math.Tan(declination) * Math.Cos(latitude * Deg2Rad) -
                 Math.Sin(latitude * Deg2Rad) * Math.Cos(hourAngle);
@@ -178,7 +208,7 @@ namespace CumulusMX
             }
 
             azimuth = azimuth * Rad2Deg;
-            altitude = altitude * Rad2Deg;
+            //altitude = altitude * Rad2Deg;
         }
 
         /*! 
@@ -600,7 +630,7 @@ namespace CumulusMX
             salt = sglat * System.Math.Sin(rads * dec) + cglat * System.Math.Cos(rads * dec) * System.Math.Cos(rads * tau);
             // MC: Add a simplified atmospheric refraction correction
             alt = radToDeg(Math.Asin(salt));
-            if (alt > 85.0)
+            if (alt > 85.0 || alt <= -0.575)
             {
                 refrac = 0;
             }

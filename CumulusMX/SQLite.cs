@@ -907,7 +907,7 @@ namespace SQLite
 			try {
 				Execute ("savepoint " + retVal);
 			} catch (Exception ex) {
-				var sqlExp = ex as SQLiteException;
+				SQLiteException sqlExp = ex as SQLiteException;
 				if (sqlExp != null) {
 					// It is recommended that applications respond to the errors listed below 
 					//    by explicitly issuing a ROLLBACK command.
@@ -2522,8 +2522,8 @@ namespace SQLite
 				var lambda = (LambdaExpression)orderExpr;
 				
 				MemberExpression mem = null;
-				
-				var unary = lambda.Body as UnaryExpression;
+
+				UnaryExpression unary = lambda.Body as UnaryExpression;
 				if (unary != null && unary.NodeType == ExpressionType.Convert) {
 					mem = unary.Operand as MemberExpression;
 				}
@@ -2622,7 +2622,7 @@ namespace SQLite
 			if (expr == null) {
 				throw new NotSupportedException ("Expression is NULL");
 			} else if (expr is BinaryExpression) {
-				var bin = (BinaryExpression)expr;
+				BinaryExpression bin = (BinaryExpression)expr;
 				
 				var leftr = CompileExpr (bin.Left, queryArgs);
 				var rightr = CompileExpr (bin.Right, queryArgs);

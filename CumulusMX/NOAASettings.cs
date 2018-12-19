@@ -8,6 +8,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using fastJSON;
+using Unosquare.Labs.EmbedIO;
+
 
 namespace CumulusMX
 {
@@ -105,9 +107,10 @@ namespace CumulusMX
             }
         }
 
-        public string UpdateNoaaConfig(HttpListenerContext context)
-        {
-            try
+		//public string UpdateNoaaConfig(HttpListenerContext context)
+		public string UpdateNoaaConfig(IHttpContext context)
+		{
+			try
             {
                 var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 

@@ -45,10 +45,10 @@ namespace CumulusMX
 			public DateTime Timestamp;
 		}
 
-		private Object monthIniThreadLock = new Object();
-		private Object yearIniThreadLock = new Object();
-		private Object alltimeIniThreadLock = new Object();
-		private Object monthlyalltimeIniThreadLock = new Object();
+		private readonly Object monthIniThreadLock = new Object();
+		private readonly Object yearIniThreadLock = new Object();
+		private readonly Object alltimeIniThreadLock = new Object();
+		private readonly Object monthlyalltimeIniThreadLock = new Object();
 
 		// holds all time highs and lows
 		public TAlltime[] alltimerecarray = new TAlltime[alltimerecbound + 1];
@@ -63,11 +63,11 @@ namespace CumulusMX
 										   "High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range"
 									   };
 
-		public DateTime lastArchiveTimeUTC;
+		//public DateTime lastArchiveTimeUTC;
 
 		public string LatestFOReading { get; set; }
 
-		public int LastDailySummaryOADate;
+		//public int LastDailySummaryOADate;
 
 		public Cumulus cumulus;
 
@@ -154,7 +154,7 @@ namespace CumulusMX
 		private double hiPressure = 0.0;
 		private double hiWind = 0.0;
 		private double hiGust = 0.0;
-		private double gust10 = 0.0;
+		//private double gust10 = 0.0;
 		private int hiWindBearing = 0;
 		private int hiGustBearing = 0;
 		private double hiRainRate = 0;
@@ -163,8 +163,8 @@ namespace CumulusMX
 		private double hiDewPoint = -999;
 		private double hiHeatIndex = -999;
 		private double hiHumidex = -999;
-		private double hiUV = 0;
-		private double hiSolarRad = 0;
+		//private double hiUV = 0;
+		//private double hiSolarRad = 0;
 
 		// today highs and lows
 		public double highgusttoday;
@@ -1234,6 +1234,7 @@ namespace CumulusMX
 		/// Checks whether a new day has started and does a rollover if necessary
 		/// </summary>
 		/// <param name="oadate"></param>
+		/*
 		public void CheckForRollover(int oadate)
 		{
 			if (oadate != LastDailySummaryOADate)
@@ -1241,7 +1242,7 @@ namespace CumulusMX
 				DoRollover();
 			}
 		}
-
+		*/
 		private void DoRollover()
 		{
 			//throw new NotImplementedException();
@@ -1297,52 +1298,49 @@ namespace CumulusMX
 
 			if (DateTime.Now.Second%3 == 0)
 			{
-                // send current data to websocket every 3 seconds for now
-
-                foreach (var conn in cumulus.WSconnections)
+				// send current data to websocket every 3 seconds for now
+				try
 				{
-					try
+					String windRoseData = (windcounts[0] * cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+
+					for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 					{
-						String windRoseData = (windcounts[0]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
-
-						for (var i = 1; i < cumulus.NumWindRosePoints; i++)
-						{
-							windRoseData = windRoseData + "," + (windcounts[i]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
-						}
-
-						string stormRainStart = StartOfStorm == DateTime.MinValue ? "-----" : StartOfStorm.ToString("d");
-
-						var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
-							Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
-							RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, highgusttoday, highgusttodaytime.ToString("HH:mm"), highwindtoday,
-							highgustbearing, cumulus.WindUnitText, BearingRangeFrom10, BearingRangeTo10, windRoseData, HighTempToday, LowTempToday,
-							hightemptodaytime.ToString("HH:mm"), lowtemptodaytime.ToString("HH:mm"), highpresstoday, lowpresstoday, highpresstodaytime.ToString("HH:mm"),
-							lowpresstodaytime.ToString("HH:mm"), highraintoday, highraintodaytime.ToString("HH:mm"), highhumiditytoday, lowhumiditytoday,
-							highhumiditytodaytime.ToString("HH:mm"), lowhumiditytodaytime.ToString("HH:mm"), cumulus.PressUnitText, cumulus.TempUnitText, cumulus.RainUnitText,
-							HighDewpointToday, LowDewpointToday, HighDewpointTodayTime.ToString("HH:mm"), LowDewpointTodayTime.ToString("HH:mm"), LowWindChillToday,
-							lowwindchilltodaytime.ToString("HH:mm"), (int) SolarRad, (int) HighSolarToday, highsolartodaytime.ToString("HH:mm"), UV, HighUVToday,
-							highuvtodaytime.ToString("HH:mm"), forecaststr, getTimeString(cumulus.SunRiseTime), getTimeString(cumulus.SunSetTime),
-							getTimeString(cumulus.MoonRiseTime), getTimeString(cumulus.MoonSetTime), HighHeatIndexToday, highheatindextodaytime.ToString("HH:mm"), HighAppTempToday,
-							LowAppTempToday, highapptemptodaytime.ToString("HH:mm"), lowapptemptodaytime.ToString("HH:mm"), (int) CurrentSolarMax,
-							alltimerecarray[AT_highpress].value, alltimerecarray[AT_lowpress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
-							highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage), cumulus.BeaufortDesc(WindAverage),
-							LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour);
-
-						//var json = jss.Serialize(data);
-
-						var ser = new DataContractJsonSerializer(typeof (DataStruct));
-
-						var stream = new MemoryStream();
-
-						ser.WriteObject(stream, data);
-
-						stream.Position = 0;
-                        conn.Send(new StreamReader(stream).ReadToEnd());
+						windRoseData = windRoseData + "," + (windcounts[i] * cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
 					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage(ex.Message);
-					}
+
+					string stormRainStart = StartOfStorm == DateTime.MinValue ? "-----" : StartOfStorm.ToString("d");
+
+					var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
+						Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
+						RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, highgusttoday, highgusttodaytime.ToString("HH:mm"), highwindtoday,
+						highgustbearing, cumulus.WindUnitText, BearingRangeFrom10, BearingRangeTo10, windRoseData, HighTempToday, LowTempToday,
+						hightemptodaytime.ToString("HH:mm"), lowtemptodaytime.ToString("HH:mm"), highpresstoday, lowpresstoday, highpresstodaytime.ToString("HH:mm"),
+						lowpresstodaytime.ToString("HH:mm"), highraintoday, highraintodaytime.ToString("HH:mm"), highhumiditytoday, lowhumiditytoday,
+						highhumiditytodaytime.ToString("HH:mm"), lowhumiditytodaytime.ToString("HH:mm"), cumulus.PressUnitText, cumulus.TempUnitText, cumulus.RainUnitText,
+						HighDewpointToday, LowDewpointToday, HighDewpointTodayTime.ToString("HH:mm"), LowDewpointTodayTime.ToString("HH:mm"), LowWindChillToday,
+						lowwindchilltodaytime.ToString("HH:mm"), (int)SolarRad, (int)HighSolarToday, highsolartodaytime.ToString("HH:mm"), UV, HighUVToday,
+						highuvtodaytime.ToString("HH:mm"), forecaststr, getTimeString(cumulus.SunRiseTime), getTimeString(cumulus.SunSetTime),
+						getTimeString(cumulus.MoonRiseTime), getTimeString(cumulus.MoonSetTime), HighHeatIndexToday, highheatindextodaytime.ToString("HH:mm"), HighAppTempToday,
+						LowAppTempToday, highapptemptodaytime.ToString("HH:mm"), lowapptemptodaytime.ToString("HH:mm"), (int)CurrentSolarMax,
+						alltimerecarray[AT_highpress].value, alltimerecarray[AT_lowpress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
+						highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage), cumulus.BeaufortDesc(WindAverage),
+						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour);
+
+					//var json = jss.Serialize(data);
+
+					var ser = new DataContractJsonSerializer(typeof(DataStruct));
+
+					var stream = new MemoryStream();
+
+					ser.WriteObject(stream, data);
+
+					stream.Position = 0;
+
+					WebSocket.SendMessage(new StreamReader(stream).ReadToEnd());
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage(ex.Message);
 				}
 			}
 		}
@@ -1508,7 +1506,7 @@ namespace CumulusMX
 				if ((!cumulus.WebUpdating) && cumulus.WebAutoUpdate && cumulus.SynchronisedWebUpdate && (now.Minute%cumulus.UpdateInterval == 0))
 				{
 					cumulus.WebUpdating = true;
-					manualftp = false;
+					//manualftp = false;
 					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
 					cumulus.ftpThread.IsBackground = true;
 					cumulus.ftpThread.Start();
@@ -2447,8 +2445,6 @@ namespace CumulusMX
 		public void SwitchToNormalRunning()
 		{
 			cumulus.CurrentActivity = "Normal running";
-			cumulus.LogMessage("Switch to normal running");
-			Console.WriteLine("Switch to normal running");
 
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
@@ -2499,8 +2495,8 @@ namespace CumulusMX
 				OutdoorHumidity = humpar;
 			}
 
-			// apply offset and multiplier and round. This is different to C1, which truncates. I'm not sure why C1 does that
-			OutdoorHumidity = (int) Math.Round((OutdoorHumidity*cumulus.HumMult) + cumulus.HumOffset);
+			// apply offset and multipliers and round. This is different to C1, which truncates. I'm not sure why C1 does that
+			OutdoorHumidity = (int) Math.Round((OutdoorHumidity * OutdoorHumidity * cumulus.HumMult2) + (OutdoorHumidity * cumulus.HumMult) + cumulus.HumOffset);
 
 			if (OutdoorHumidity < 0)
 			{
@@ -2797,7 +2793,7 @@ namespace CumulusMX
 
 			if (chillvalid)
 			{
-				WindChillReadyToPlot = true;
+				//WindChillReadyToPlot = true;
 
 				if (WindChill < LowWindChillToday)
 				{
@@ -3038,7 +3034,7 @@ namespace CumulusMX
 			Raincounter = total;
 
 
-			first_rain = false;
+			//first_rain = false;
 			if (notraininit)
 			{
 				raindaystart = Raincounter;
@@ -3194,7 +3190,7 @@ namespace CumulusMX
 					// Yesterday"s rain - Scale for units
 					// rainyest = rainyesterday * RainMult;
 
-					RainReadyToPlot = true;
+					//RainReadyToPlot = true;
 				}
 			}
 			HaveReadData = true;
@@ -3859,13 +3855,13 @@ namespace CumulusMX
 		public DateTime LongestWetPeriodThisYearTS;
 		public DateTime LowDailyTempRangeThisYearTS;
 		public DateTime HighDailyTempRangeThisYearTS;
-		private bool first_rain = true;
+		//private bool first_rain = true;
 		private bool FirstChanceRainReset = false;
 		public bool notraininit = true;
-		private bool RainReadyToPlot = false;
+		//private bool RainReadyToPlot = false;
 		private double rainthismonth = 0;
 		private double rainthisyear = 0;
-		private bool WindChillReadyToPlot = false;
+		//private bool WindChillReadyToPlot = false;
 		public bool noET = false;
 		private int DayResetDay = 0;
 		protected bool FirstRun = false;
@@ -3880,7 +3876,7 @@ namespace CumulusMX
 		public int DavisNumCRCerrors = 0;
 		public string DavisFirmwareVersion;
 
-		private bool manualftp;
+		//private bool manualftp;
 
 
 		public void WriteYesterdayFile()
@@ -5482,7 +5478,7 @@ namespace CumulusMX
 
 		public double getStartOfDayRainCounter(DateTime timestamp)
 		{
-			// TODO
+			// TODO: 
 			return -1;
 		}
 
@@ -8535,7 +8531,7 @@ namespace CumulusMX
 		/// <param name="draw"></param>
 		/// <param name="start"></param>
 		/// <param name="length"></param>
-		/// <returns></returns>
+		/// <returns>JSON encoded section of the dayfile</returns>
 		public string GetDayfile(string draw, int start, int length)
 		{
 			try

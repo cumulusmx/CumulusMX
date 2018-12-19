@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Web;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
+using Unosquare.Labs.EmbedIO.Constants;
+using Unosquare.Swan;
 
 namespace CumulusMX
 {
@@ -93,105 +95,117 @@ namespace CumulusMX
             server.Module<WebApiModule>().RegisterController<ExtraDataController>();
             server.Module<WebApiModule>().RegisterController<GetSettingsController>();
             server.Module<WebApiModule>().RegisterController<SetSettingsController>();
-            server.Module<WebApiModule>().RegisterController<EditControllerGet>();
-            server.Module<WebApiModule>().RegisterController<EditControllerPost>();
-        }
+			server.Module<WebApiModule>().RegisterController<EditControllerGet>();
+			server.Module<WebApiModule>().RegisterController<EditControllerPost>();
+		}
 
-        public class EditControllerGet : WebApiController
+		public class EditControllerGet : WebApiController
         {
+			public EditControllerGet(IHttpContext context) : base(context)
+			{
+			}
+	
             [WebApiHandler(HttpVerbs.Get, RelativePath + "edit/*")]
-            public bool EditData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public bool EditData()
+			{
+				try
                 {
-                    // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
                                         
                     switch (lastSegment)
                     {
                         case "raintodayeditdata.json":
-                            return context.JsonResponse(dataEditor.GetRainTodayEditData());
+                            return this.JsonResponse(dataEditor.GetRainTodayEditData());
                         
                         case "raintoday":
-                            return context.JsonResponse(dataEditor.EditRainToday(context));                        
+                            return this.JsonResponse(dataEditor.EditRainToday(this));                        
                     }
 
                     throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
-                }
+					return HandleError(ex, 404);
+				}
 
-            }
+			}
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+				this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class EditControllerPost : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Post, RelativePath + "edit/*")]
-            public bool EditData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public EditControllerPost(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Post, RelativePath + "edit/*")]
+			public bool EditData()
+			{
+				try
                 {
-                    // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
 
                     switch (lastSegment)
                     {
                         case "raintodayeditdata.json":
-                            return context.JsonResponse(dataEditor.GetRainTodayEditData());
+                            return this.JsonResponse(dataEditor.GetRainTodayEditData());
 
                         case "raintoday":
-                            return context.JsonResponse(dataEditor.EditRainToday(context));
+                            return this.JsonResponse(dataEditor.EditRainToday(this));
                     }
 
                     throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+				this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class DataController : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Get, RelativePath + "data/*")]
-            public bool GetData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public DataController(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "data/*")]
+			public bool GetData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
 
-                    var query = HttpUtility.ParseQueryString(context.Request.Url.Query);
+                    var query = HttpUtility.ParseQueryString(Request.Url.Query);
                     var date = query["date"];
                     var month = query["month"];                    
                     var draw = query["draw"];
@@ -201,15 +215,15 @@ namespace CumulusMX
                     switch (lastSegment)
                     {
                         case "dayfile":
-                            return context.JsonResponse(Station.GetDayfile(draw,start,length));
+                            return this.JsonResponse(Station.GetDayfile(draw,start,length));
                         case "logfile":
-                            return context.JsonResponse(Station.GetLogfile(month,draw,start,length,false));
+                            return this.JsonResponse(Station.GetLogfile(month,draw,start,length,false));
                         case "extralogfile":
-                            return context.JsonResponse(Station.GetLogfile(month, draw, start, length, true));
+                            return this.JsonResponse(Station.GetLogfile(month, draw, start, length, true));
                         case "currentdata":
-                            return context.JsonResponse(Station.GetCurrentData());
+                            return this.JsonResponse(Station.GetCurrentData());
                         case "diary":
-                            return context.JsonResponse(Station.GetDiaryData(date));
+                            return this.JsonResponse(Station.GetDiaryData(date));
                             
                     }
 
@@ -217,122 +231,130 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class GraphDataController : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Get, RelativePath + "graphdata/*")]
-            public bool GetGraphData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public GraphDataController(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "graphdata/*")]
+			public bool GetGraphData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
                     
                     switch (lastSegment)
                     {
                         case "tempdata.json":
-                            return context.JsonResponse(Station.GetTempGraphData());
+                            return this.JsonResponse(Station.GetTempGraphData());
                         case "tempdatad3.json":
-                            return context.JsonResponse(Station.GetTempGraphDataD3());
+                            return this.JsonResponse(Station.GetTempGraphDataD3());
                         case "winddata.json":
-                            return context.JsonResponse(Station.GetWindGraphData());
+                            return this.JsonResponse(Station.GetWindGraphData());
                         case "winddatad3.json":
-                            return context.JsonResponse(Station.GetWindGraphDataD3());
+                            return this.JsonResponse(Station.GetWindGraphDataD3());
                         case "raindata.json":
-                            return context.JsonResponse(Station.GetRainGraphData());
+                            return this.JsonResponse(Station.GetRainGraphData());
                         case "raindatad3.json":
-                            return context.JsonResponse(Station.GetRainGraphDataD3());
+                            return this.JsonResponse(Station.GetRainGraphDataD3());
                         case "pressdata.json":
-                            return context.JsonResponse(Station.GetPressGraphData());
+                            return this.JsonResponse(Station.GetPressGraphData());
                         case "pressdatad3.json":
-                            return context.JsonResponse(Station.GetPressGraphDataD3());
+                            return this.JsonResponse(Station.GetPressGraphDataD3());
                         case "wdirdata.json":
-                            return context.JsonResponse(Station.GetWindDirGraphData());
+                            return this.JsonResponse(Station.GetWindDirGraphData());
                         case "wdirdatad3.json":
-                            return context.JsonResponse(Station.GetWindDirGraphDataD3());
+                            return this.JsonResponse(Station.GetWindDirGraphDataD3());
                         case "humdata.json":
-                            return context.JsonResponse(Station.GetHumGraphData());
+                            return this.JsonResponse(Station.GetHumGraphData());
                         case "humdatad3.json":
-                            return context.JsonResponse(Station.GetHumGraphDataD3());
+                            return this.JsonResponse(Station.GetHumGraphDataD3());
                         case "solardata.json":
-                            return context.JsonResponse(Station.GetSolarGraphData());
+                            return this.JsonResponse(Station.GetSolarGraphData());
                         case "solardatad3.json":
-                            return context.JsonResponse(Station.GetSolarGraphDataD3());
+                            return this.JsonResponse(Station.GetSolarGraphDataD3());
                         case "dailyrain.json":
-                            return context.JsonResponse(Station.GetDailyRainGraphData());
+                            return this.JsonResponse(Station.GetDailyRainGraphData());
                         case "sunhours.json":
-                            return context.JsonResponse(Station.GetSunHoursGraphData());
+                            return this.JsonResponse(Station.GetSunHoursGraphData());
                         case "dailytemp.json":
-                            return context.JsonResponse(Station.GetDailyTempGraphData());
+                            return this.JsonResponse(Station.GetDailyTempGraphData());
                         case "units.json":
-                            return context.JsonResponse(Station.GetUnits());
+                            return this.JsonResponse(Station.GetUnits());
                         case "graphconfig.json":
-                            return context.JsonResponse(Station.GetGraphConfig());
+                            return this.JsonResponse(Station.GetGraphConfig());
                     }
 
                     throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
                 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class RecordsController : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Get, RelativePath + "records/alltime/*")]
-            public bool GetAlltimeData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public RecordsController(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/alltime/*")]
+			public bool GetAlltimeData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
 
                     switch (lastSegment)
                     {
                         case "temperature.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetTempRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetTempRecords()));
                         case "humidity.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetHumRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetHumRecords()));
                         case "pressure.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetPressRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetPressRecords()));
                         case "wind.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetWindRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetWindRecords()));
                         case "rain.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetRainRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetRainRecords()));
                         
                     }
 
@@ -340,33 +362,33 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
             [WebApiHandler(HttpVerbs.Get, RelativePath + "records/month/*")]
-            public bool GetMonthlyRecordData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public bool GetMonthlyRecordData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
                     // Get penultimate segment and trim off traling slash. This gives the required month
-                    int month = Convert.ToInt32(context.Request.Url.Segments[context.Request.Url.Segments.Length - 2].TrimEnd('/'));
+                    int month = Convert.ToInt32(Request.Url.Segments[Request.Url.Segments.Length - 2].TrimEnd('/'));
 
                     switch (lastSegment)
                     {
                         case "temperature.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetMonthlyTempRecords(month)));
+                            return this.JsonResponse(EscapeUnicode(Station.GetMonthlyTempRecords(month)));
                         case "humidity.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetMonthlyHumRecords(month)));
+                            return this.JsonResponse(EscapeUnicode(Station.GetMonthlyHumRecords(month)));
                         case "pressure.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetMonthlyPressRecords(month)));
+                            return this.JsonResponse(EscapeUnicode(Station.GetMonthlyPressRecords(month)));
                         case "wind.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetMonthlyWindRecords(month)));
+                            return this.JsonResponse(EscapeUnicode(Station.GetMonthlyWindRecords(month)));
                         case "rain.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetMonthlyRainRecords(month)));
+                            return this.JsonResponse(EscapeUnicode(Station.GetMonthlyRainRecords(month)));
 
                     }
 
@@ -374,31 +396,31 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
             [WebApiHandler(HttpVerbs.Get, RelativePath + "records/thismonth/*")]
-            public bool GetThisMonthRecordData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public bool GetThisMonthRecordData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
                     
                     switch (lastSegment)
                     {
                         case "temperature.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisMonthTempRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisMonthTempRecords()));
                         case "humidity.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisMonthHumRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisMonthHumRecords()));
                         case "pressure.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisMonthPressRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisMonthPressRecords()));
                         case "wind.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisMonthWindRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisMonthWindRecords()));
                         case "rain.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisMonthRainRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisMonthRainRecords()));
 
                     }
 
@@ -406,31 +428,31 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
             [WebApiHandler(HttpVerbs.Get, RelativePath + "records/thisyear/*")]
-            public bool GetThisYearRecordData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public bool GetThisYearRecordData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
 
                     switch (lastSegment)
                     {
                         case "temperature.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisYearTempRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisYearTempRecords()));
                         case "humidity.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisYearHumRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisYearHumRecords()));
                         case "pressure.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisYearPressRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisYearPressRecords()));
                         case "wind.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisYearWindRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisYearWindRecords()));
                         case "rain.json":
-                            return context.JsonResponse(EscapeUnicode(Station.GetThisYearRainRecords()));
+                            return this.JsonResponse(EscapeUnicode(Station.GetThisYearRainRecords()));
 
                     }
 
@@ -438,49 +460,51 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class TodayYestDataController : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Get, RelativePath + "todayyest/*")]
-            public bool GetYesterdayData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public TodayYestDataController(IHttpContext context) : base(context) {}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "todayyest/*")]
+			public bool GetYesterdayData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
 
                     switch (lastSegment)
                     {
                         case "temp.json":
-                            return context.JsonResponse(Station.GetTodayYestTemp());
+                            return this.JsonResponse(Station.GetTodayYestTemp());
                         case "hum.json":
-                            return context.JsonResponse(Station.GetTodayYestHum());
+                            return this.JsonResponse(Station.GetTodayYestHum());
                         case "rain.json":
-                            return context.JsonResponse(Station.GetTodayYestRain());
+                            return this.JsonResponse(Station.GetTodayYestRain());
                         case "wind.json":
-                            return context.JsonResponse(Station.GetTodayYestWind());
+                            return this.JsonResponse(Station.GetTodayYestWind());
                         case "pressure.json":
-                            return context.JsonResponse(Station.GetTodayYestPressure());
+                            return this.JsonResponse(Station.GetTodayYestPressure());
                         case "solar.json":
-                            return context.JsonResponse(Station.GetTodayYestSolar());
+                            return this.JsonResponse(Station.GetTodayYestSolar());
 
                     }
 
@@ -488,51 +512,53 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class ExtraDataController : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Get, RelativePath + "extra/*")]
-            public bool GetExtraData(WebServer server, HttpListenerContext context)
-            {
-                try
+			public ExtraDataController(IHttpContext context) : base(context) { }
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "extra/*")]
+			public bool GetExtraData()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
 
                     switch (lastSegment)
                     {
                         case "temp.json":
-                            return context.JsonResponse(Station.GetExtraTemp());
+                            return this.JsonResponse(Station.GetExtraTemp());
                         case "hum.json":
-                            return context.JsonResponse(Station.GetExtraHum());
+                            return this.JsonResponse(Station.GetExtraHum());
                         case "dew.json":
-                            return context.JsonResponse(Station.GetExtraDew());
+                            return this.JsonResponse(Station.GetExtraDew());
                         case "soiltemp.json":
-                            return context.JsonResponse(Station.GetSoilTemp());
+                            return this.JsonResponse(Station.GetSoilTemp());
                         case "soilmoisture.json":
-                            return context.JsonResponse(Station.GetSoilMoisture());
+                            return this.JsonResponse(Station.GetSoilMoisture());
                         case "leaf.json":
-                            return context.JsonResponse(Station.GetLeaf());
+                            return this.JsonResponse(Station.GetLeaf());
                         case "leaf4.json":
-                            return context.JsonResponse(Station.GetLeaf4());
+                            return this.JsonResponse(Station.GetLeaf4());
 
                     }
 
@@ -540,184 +566,187 @@ namespace CumulusMX
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
         public class SetSettingsController : WebApiController
         {
-            [WebApiHandler(HttpVerbs.Post, RelativePath + "setsettings/*")]
-            public bool SettingsSet(WebServer server, HttpListenerContext context)
-            {
-                try
+			public SetSettingsController(IHttpContext context) : base(context) { }
+
+			[WebApiHandler(HttpVerbs.Post, RelativePath + "setsettings/*")]
+			public bool SettingsSet()
+			{
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
                     
                     switch (lastSegment)
                     {
                        
                         case "updatestationconfig.json":
-                            return context.JsonResponse(stationSettings.UpdateStationConfig(context));
+                            return this.JsonResponse(stationSettings.UpdateStationConfig(this));
                         case "updateinternetconfig.json":
-                            return context.JsonResponse(internetSettings.UpdateInternetConfig(context));
+                            return this.JsonResponse(internetSettings.UpdateInternetConfig(this));
                         case "updatecalibrationconfig.json":
-                            return context.JsonResponse(calibrationSettings.UpdateCalibrationConfig(context));
+                            return this.JsonResponse(calibrationSettings.UpdateCalibrationConfig(this));
                         case "updatenoaaconfig.json":
-                            return context.JsonResponse(noaaSettings.UpdateNoaaConfig(context));
+                            return this.JsonResponse(noaaSettings.UpdateNoaaConfig(this));
                         case "updateextrawebfiles.html":
-                            return context.JsonResponse(internetSettings.UpdateExtraWebFiles(context));
+                            return this.JsonResponse(internetSettings.UpdateExtraWebFiles(this));
                         case "updatemysqlconfig.json":
-                            return context.JsonResponse(mySqlSettings.UpdateMysqlConfig(context));
+                            return this.JsonResponse(mySqlSettings.UpdateMysqlConfig(this));
                         case "createmonthlysql.json":
-                            return context.JsonResponse(mySqlSettings.CreateMonthlySQL(context));
+                            return this.JsonResponse(mySqlSettings.CreateMonthlySQL(this));
                         case "createdayfilesql.json":
-                            return context.JsonResponse(mySqlSettings.CreateDayfileSQL(context));
+                            return this.JsonResponse(mySqlSettings.CreateDayfileSQL(this));
                         case "createrealtimesql.json":
-                            return context.JsonResponse(mySqlSettings.CreateRealtimeSQL(context));
+                            return this.JsonResponse(mySqlSettings.CreateRealtimeSQL(this));
                     }
 
                     throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
 
-        public class GetSettingsController : WebApiController
-        {
-            
-            [WebApiHandler(HttpVerbs.Get, RelativePath + "settings/*")]
-            public bool SettingsGet(WebServer server, HttpListenerContext context)
-            {
-               /* string authorization = context.Request.Headers["Authorization"];
-                string userInfo;
-                string username = "";
-                string password = "";
-                if (authorization != null)
-                {
-                    byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
-                    userInfo = System.Text.Encoding.UTF8.GetString(tempConverted);
-                    string[] usernamePassword = userInfo.Split(new string[] {":"}, StringSplitOptions.RemoveEmptyEntries);
-                    username = usernamePassword[0];
-                    password = usernamePassword[1];
-                    Console.WriteLine("username = "+username+" password = "+password);
-                }
-                else
-                {
-                    var errorResponse = new
-                    {
-                        Title = "Authentication required",
-                        ErrorCode = "Authentication required",
-                        Description = "You must authenticate",
-                    };
+		public class GetSettingsController : WebApiController
+		{
+			public GetSettingsController(IHttpContext context) : base(context) { }
 
-                    context.Response.StatusCode = 401;
-                    return context.JsonResponse(errorResponse);
-                }*/
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "settings/*")]
+			public bool SettingsGet()
+			{
+				/* string authorization = context.Request.Headers["Authorization"];
+				 string userInfo;
+				 string username = "";
+				 string password = "";
+				 if (authorization != null)
+				 {
+					 byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
+					 userInfo = System.Text.Encoding.UTF8.GetString(tempConverted);
+					 string[] usernamePassword = userInfo.Split(new string[] {":"}, StringSplitOptions.RemoveEmptyEntries);
+					 username = usernamePassword[0];
+					 password = usernamePassword[1];
+					 Console.WriteLine("username = "+username+" password = "+password);
+				 }
+				 else
+				 {
+					 var errorResponse = new
+					 {
+						 Title = "Authentication required",
+						 ErrorCode = "Authentication required",
+						 Description = "You must authenticate",
+					 };
 
-                try
+					 context.Response.StatusCode = 401;
+					 return context.JsonResponse(errorResponse);
+				 }*/
+
+				try
                 {
                     // read the last segment of the URL to determine what data the caller wants
-                    var lastSegment = context.Request.Url.Segments.Last();
+                    var lastSegment = Request.Url.Segments.Last();
                     
                     switch (lastSegment)
                     {
                         case "stationdata.json":
-                            return context.JsonResponse(stationSettings.GetStationAlpacaFormData());
+                            return this.JsonResponse(stationSettings.GetStationAlpacaFormData());
                         case "stationoptions.json":
-                            return context.JsonResponse(stationSettings.GetStationAlpacaFormOptions());
+                            return this.JsonResponse(stationSettings.GetStationAlpacaFormOptions());
                         case "stationschema.json":
-                            return context.JsonResponse(stationSettings.GetStationAlpacaFormSchema());
+                            return this.JsonResponse(stationSettings.GetStationAlpacaFormSchema());
 
                         case "internetdata.json":
-                            return context.JsonResponse(internetSettings.GetInternetAlpacaFormData());
+                            return this.JsonResponse(internetSettings.GetInternetAlpacaFormData());
                         case "internetoptions.json":
-                            return context.JsonResponse(internetSettings.GetInternetAlpacaFormOptions());
+                            return this.JsonResponse(internetSettings.GetInternetAlpacaFormOptions());
                         case "internetschema.json":
-                            return context.JsonResponse(internetSettings.GetInternetAlpacaFormSchema());
+                            return this.JsonResponse(internetSettings.GetInternetAlpacaFormSchema());
 
                         case "extrawebfiles.json":
-                            return context.JsonResponse(internetSettings.GetExtraWebFilesData());
+                            return this.JsonResponse(internetSettings.GetExtraWebFilesData());
 
                         case "calibrationdata.json":
-                            return context.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormData());
+                            return this.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormData());
                         case "calibrationoptions.json":
-                            return context.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormOptions());
+                            return this.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormOptions());
                         case "calibrationschema.json":
-                            return context.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormSchema());
+                            return this.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormSchema());
 
                         case "noaadata.json":
-                            return context.JsonResponse(noaaSettings.GetNoaaAlpacaFormData());
+                            return this.JsonResponse(noaaSettings.GetNoaaAlpacaFormData());
                         case "noaaoptions.json":
-                            return context.JsonResponse(noaaSettings.GetNoaaAlpacaFormOptions());
+                            return this.JsonResponse(noaaSettings.GetNoaaAlpacaFormOptions());
                         case "noaaschema.json":
-                            return context.JsonResponse(noaaSettings.GetNoaaAlpacaFormSchema());
+                            return this.JsonResponse(noaaSettings.GetNoaaAlpacaFormSchema());
 
                         case "wsport.json":
-                            return context.JsonResponse(stationSettings.GetWSport());
+                            return this.JsonResponse(stationSettings.GetWSport());
                         case "version.json":
-                            return context.JsonResponse(stationSettings.GetVersion());
+                            return this.JsonResponse(stationSettings.GetVersion());
 
                         case "mysqldata.json":
-                            return context.JsonResponse(mySqlSettings.GetMySqlAlpacaFormData());
+                            return this.JsonResponse(mySqlSettings.GetMySqlAlpacaFormData());
                         case "mysqloptions.json":
-                            return context.JsonResponse(mySqlSettings.GetMySqAlpacaFormOptions());
+                            return this.JsonResponse(mySqlSettings.GetMySqAlpacaFormOptions());
                         case "mysqlschema.json":
-                            return context.JsonResponse(mySqlSettings.GetMySqAlpacaFormSchema());
+                            return this.JsonResponse(mySqlSettings.GetMySqAlpacaFormSchema());
                     }
 
                     throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(context, ex, 404);
+                    return HandleError(ex, 404);
                 }
 
             }
 
-            private bool HandleError(HttpListenerContext context, Exception ex, int statusCode)
-            {
-                var errorResponse = new
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
                 {
                     Title = "Unexpected Error",
                     ErrorCode = ex.GetType().Name,
-                    Description = ex.ExceptionMessage(),
+                    Description = ex.Message,
                 };
 
-                context.Response.StatusCode = statusCode;
-                return context.JsonResponse(errorResponse);
+                this.Response.StatusCode = statusCode;
+                return this.JsonResponse(errorResponse);
             }
         }
     }

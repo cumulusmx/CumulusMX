@@ -11,7 +11,7 @@ namespace CumulusMX
     {
         public static Cumulus cumulus;
         public static bool exitSystem = false;
-        private exitHandler ctrlchandler;
+        //private exitHandler ctrlchandler;
         
         private static void Main(string[] args)
         {
@@ -147,7 +147,7 @@ namespace CumulusMX
         [DllImport("Kernel32")]
         private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
 
-        private Program program;
+        //private Program program;
 
         private delegate bool EventHandler(CtrlType sig);
 

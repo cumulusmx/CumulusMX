@@ -56,8 +56,8 @@ namespace CumulusMX
                 DoDayResetIfNeeded();
                 DoTrendValues(DateTime.Now);
                 timerStartNeeded = true;
-            }
-            catch (Exception ex)
+			}
+			catch (Exception ex)
             {
                 cumulus.LogMessage("Error opening com port: " + ex.Message);
                 //MessageBox.Show(ex.Message);

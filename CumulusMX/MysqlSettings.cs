@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using Devart.Data.MySql;
 using fastJSON;
+using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
 {
@@ -84,9 +85,10 @@ namespace CumulusMX
             }
         }
 
-        public object UpdateMysqlConfig(HttpListenerContext context)
-        {
-            try
+		//public object UpdateMysqlConfig(HttpListenerContext context)
+		public object UpdateMysqlConfig(IHttpContext context)
+		{
+			try
             {
                 var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
@@ -240,23 +242,26 @@ namespace CumulusMX
             return res;
         }
 
-        public string CreateMonthlySQL(HttpListenerContext context)
-        {
-            context.Response.StatusCode = 200;
+		//public string CreateMonthlySQL(HttpListenerContext context)
+		public string CreateMonthlySQL(IHttpContext context)
+		{
+			context.Response.StatusCode = 200;
             string json = "{\"result\":\"" + CreateMySQLTable(cumulus.CreateMonthlySQL) + "\"}";
             return json;
         }
 
-        public string CreateDayfileSQL(HttpListenerContext context)
-        {
-            context.Response.StatusCode = 200;
+		//public string CreateDayfileSQL(HttpListenerContext context)
+		public string CreateDayfileSQL(IHttpContext context)
+		{
+			context.Response.StatusCode = 200;
             string json = "{\"result\":\"" + CreateMySQLTable(cumulus.CreateDayfileSQL) + "\"}";
             return json;
         }
 
-        public string CreateRealtimeSQL(HttpListenerContext context)
-        {
-            context.Response.StatusCode = 200;
+		//public string CreateRealtimeSQL(HttpListenerContext context)
+		public string CreateRealtimeSQL(IHttpContext context)
+		{
+			context.Response.StatusCode = 200;
             string json = "{\"result\":\"" + CreateMySQLTable(cumulus.CreateRealtimeSQL) + "\"}";
             return json;
         }

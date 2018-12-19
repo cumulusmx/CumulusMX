@@ -4,6 +4,9 @@ using System.IO;
 using System.Net;
 using System.Web;
 using fastJSON;
+using Unosquare.Labs.EmbedIO;
+
+
 
 namespace CumulusMX
 {
@@ -20,7 +23,8 @@ namespace CumulusMX
 			internetSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "InternetSchema.json";
 		}
 
-		public string UpdateInternetConfig(HttpListenerContext context)
+		//public string UpdateInternetConfig(HttpListenerContext context)
+		public string UpdateInternetConfig(IHttpContext context)
 		{
 			try
 			{
@@ -441,7 +445,8 @@ namespace CumulusMX
 			return json;
 		}
 
-		public string UpdateExtraWebFiles(HttpListenerContext context)
+		//public string UpdateExtraWebFiles(HttpListenerContext context)
+		public string UpdateExtraWebFiles(IHttpContext context)
 		{
 			try
 			{

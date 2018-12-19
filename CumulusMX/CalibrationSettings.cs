@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using fastJSON;
+using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
 {
@@ -23,9 +24,10 @@ namespace CumulusMX
             calibrationSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
         }
 
-        public string UpdateCalibrationConfig(HttpListenerContext context)
-        {
-            try
+		//public string UpdateCalibrationConfig(HttpListenerContext context)
+		public string UpdateCalibrationConfig(IHttpContext context)
+		{
+			try
             {
                 var InvC = new CultureInfo("");
                 var data = new StreamReader(context.Request.InputStream).ReadToEnd();
