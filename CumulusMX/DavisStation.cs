@@ -73,8 +73,12 @@ namespace CumulusMX
 				cumulus.LogMessage("periodic disconnect = " + cumulus.VP2PeriodicDisconnectInterval);
 				socket = OpenTcpPort();
 
-
 				connectedOK = socket != null;
+
+				if (connectedOK)
+				{
+					init(socket);
+				}
 			}
 
 			if (connectedOK)
@@ -92,8 +96,6 @@ namespace CumulusMX
 			{
 				// get time of last db entry (also sets raincounter and prevraincounter)
 				//lastArchiveTimeUTC = getLastArchiveTime();
-
-				init(socket);
 
 				DavisFirmwareVersion = GetFirmwareVersion();
 				cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
@@ -162,7 +164,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage(ex.Message);
+				cumulus.LogDebugMessage("DecodeReceptionStats: Error - " + ex.Message);
 			}
 		}
 
@@ -194,29 +196,30 @@ namespace CumulusMX
 							bytesRead++;
 							//cumulus.LogMessage("Received " + ch.ToString("X2"));
 						}
+						cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage(ex.Message);
+						cumulus.LogMessage("GetFirmwareVersion: Error - " + ex.Message);
 					}
-
-					cumulus.LogDebugMessage(BitConverter.ToString(buffer));
 				}
 			}
 			else
 			{
-				NetworkStream stream = socket.GetStream();
 				string commandString = "NVER\n";
 				if (WakeVP(socket))
 				{
-					stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-
-					Thread.Sleep(cumulus.DavisIPResponseTime);
-
-					var bytesRead = 0;
-					byte[] buffer = new byte[20];
 					try
 					{
+						NetworkStream stream = socket.GetStream();
+
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+
+						var bytesRead = 0;
+						byte[] buffer = new byte[20];
+					
 						while (stream.DataAvailable)
 						{
 							// Read the current character
@@ -226,13 +229,12 @@ namespace CumulusMX
 							bytesRead++;
 							//cumulus.LogMessage("Received " + ch.ToString("X2"));
 						}
+						cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage(ex.Message);
+						cumulus.LogMessage("GetFirmwareVersion: Error - " + ex.Message);
 					}
-
-					cumulus.LogDebugMessage("NVER response: " + BitConverter.ToString(buffer));
 				}
 			}
 
@@ -280,26 +282,28 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage(ex.Message);
+						cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message);
 					}
 
-					cumulus.LogDebugMessage(BitConverter.ToString(buffer));
+					cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
 				}
 			}
 			else
 			{
-				NetworkStream stream = socket.GetStream();
 				string commandString = "RXCHECK\n";
 				if (WakeVP(socket))
 				{
-					stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-
-					Thread.Sleep(cumulus.DavisIPResponseTime);
-
 					var bytesRead = 0;
 					byte[] buffer = new byte[40];
+
 					try
 					{
+						NetworkStream stream = socket.GetStream();
+
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+
 						while (stream.DataAvailable)
 						{
 							// Read the current character
@@ -312,10 +316,10 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage(ex.Message);
+						cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message);
 					}
 
-					cumulus.LogDebugMessage(BitConverter.ToString(buffer));
+					cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
 				}
 			}
 
@@ -361,6 +365,11 @@ namespace CumulusMX
 			// Set the timeout of the underlying stream
 			if (!(client == null)) {
 				client.GetStream().ReadTimeout = 2500;
+				cumulus.LogDebugMessage("TCP Logger reconnected");
+			}
+			else
+			{
+				cumulus.LogDebugMessage("TCP Logger connect failed");
 			}
 
 			return client;
@@ -691,19 +700,19 @@ namespace CumulusMX
             }
             else
             {
-                NetworkStream stream = socket.GetStream();
                 string commandString = "BARREAD\n";
                 if (WakeVP(socket))
                 {
 					try
 					{
-
+						NetworkStream stream = socket.GetStream();
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
 						Thread.Sleep(cumulus.DavisIPResponseTime);
 
 						var bytesRead = 0;
 						byte[] buffer = new byte[64];
+
                         while (stream.DataAvailable)
                         {
                             // Read the current character
@@ -714,7 +723,7 @@ namespace CumulusMX
                             //cumulus.LogMessage("Received " + ch.ToString("X2"));
                         }
 
-						cumulus.LogDebugMessage("SendBarRed: Response - " + BitConverter.ToString(buffer));
+						cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
 					}
 					catch (Exception ex)
 					{
@@ -790,48 +799,41 @@ namespace CumulusMX
 			int passCount = 1;
 			const int maxPasses = 4;
 
-			if (tcpPort.Connected)
+			try
 			{
-				try
-				{
-					NetworkStream stream = tcpPort.GetStream();
+				NetworkStream stream = tcpPort.GetStream();
 
-					// Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
-					// a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
-					// we get nothing back, we assume that the connection is broken
-					while (!Found_ACK && passCount < maxPasses)
+				// Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
+				// a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
+				// we get nothing back, we assume that the connection is broken
+				while (!Found_ACK && passCount < maxPasses)
+				{
+					// send the LOOP n command
+					cumulus.LogDebugMessage("Sending command: " + commandString.Replace("\n","") + ", attempt " + passCount);
+					stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+					Thread.Sleep(cumulus.DavisIPResponseTime);
+					cumulus.LogDebugMessage("Wait for ACK");
+					// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+					// in the buffer first or no response is given.  If all else fails, try again.
+					while (stream.DataAvailable && !Found_ACK)
 					{
-						// send the LOOP n command
-						cumulus.LogDebugMessage("Sending command: " + commandString + ", attempt " + passCount);
-						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-						Thread.Sleep(cumulus.DavisIPResponseTime);
-						cumulus.LogDebugMessage("Wait for ACK");
-						// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
-						// in the buffer first or no response is given.  If all else fails, try again.
-						while (stream.DataAvailable && !Found_ACK)
+
+						// Read the current character
+						int data = stream.ReadByte();
+						cumulus.LogDataMessage("Received 0x" + data.ToString("X2"));
+						if (data == ACK)
 						{
-
-							// Read the current character
-							int data = stream.ReadByte();
-							cumulus.LogDataMessage("Received 0x" + data.ToString("X2"));
-							if (data == ACK)
-							{
-								cumulus.LogDebugMessage("Received ACK");
-								Found_ACK = true;
-							}
+							cumulus.LogDebugMessage("Received ACK");
+							Found_ACK = true;
 						}
-
-						passCount++;
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogDataMessage("Error sending LOOP command: " + ex.Message);
+
+					passCount++;
 				}
 			}
-			else
+			catch (Exception ex)
 			{
-				cumulus.LogDataMessage("Error sending LOOP command: Port is not connected.");
+				cumulus.LogDataMessage("Error sending LOOP command: " + ex.Message);
 			}
 			
 			// return result to indicate success or otherwise
@@ -1370,29 +1372,36 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage(ex.ToString());
+						cumulus.LogMessage("GetAndProcessLoop2Data: Error - " + ex.ToString());
 					}
 				}
 				else
 				{
-					// Wait until the buffer is full
-					int loopcount = 1;
-					while (loopcount < 100 && socket.Available < loopDataLength)
+					try
 					{
-						// Wait a short period to let more data load into the buffer
-						Thread.Sleep(200);
-						loopcount++;
-					}
+						// Wait until the buffer is full
+						int loopcount = 1;
+						while (loopcount < 100 && socket.Available < loopDataLength)
+						{
+							// Wait a short period to let more data load into the buffer
+							Thread.Sleep(200);
+							loopcount++;
+						}
 
-					if (loopcount == 100)
+						if (loopcount == 100)
+						{
+							// all data not received
+							cumulus.LogMessage("!!! loop2 data not received");
+							return;
+						}
+
+						// Read the first 99 bytes of the buffer into the array
+						socket.GetStream().Read(loopString, 0, loopDataLength);
+					}
+					catch (Exception ex)
 					{
-						// all data not received
-						cumulus.LogMessage("!!! loop2 data not received");
-						return;
+						cumulus.LogDebugMessage("Loop2 data: Error - " + ex.Message);
 					}
-
-					// Read the first 99 bytes of the buffer into the array
-					socket.GetStream().Read(loopString, 0, loopDataLength);                    
 				}
 
 				if (!(loopString[0] == 'L' && loopString[1] == 'O' && loopString[2] == 'O'))
@@ -1403,10 +1412,7 @@ namespace CumulusMX
 
 				if (!crcOK(loopString)) continue;
 
-				//if (cumulus.DataLogging)
-				//{
-				cumulus.LogDebugMessage("Loop2: " + BitConverter.ToString(loopString));
-				//}
+				cumulus.LogDataMessage("Loop2: " + BitConverter.ToString(loopString));
 
 				// Allocate a structure for the data
 				loopData = new VPLoop2Data();
@@ -1511,7 +1517,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Get Archive Data");
 
-			Console.WriteLine(DateTime.Now.ToLongTimeString() + " Downloading Archive Data");
+			Console.WriteLine("Downloading Archive Data");
 
 			bool badCRC = false;
 			const int ACK = 6;
@@ -2303,7 +2309,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.ToString());
+				cumulus.LogMessage("WakeVP: Error - " + ex.ToString());
 				return (false);
 			}
 		}
@@ -2324,14 +2330,14 @@ namespace CumulusMX
 				{
 					// Read the current character
 					int ch = stream.ReadByte();
-					cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
+					cumulus.LogDataMessage("Received 0x" + ch.ToString("X2"));
 
 					Thread.Sleep(200);
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("init: Error - " + ex.Message);
 			}
 		}
 
@@ -2341,6 +2347,7 @@ namespace CumulusMX
 			byte newLineASCII = 10;
 			byte LF = 13;
 			int passCount = 1, maxPasses = 4;
+			NetworkStream theStream;
 
 			if (cumulus.DataLogging)
 			{
@@ -2349,7 +2356,41 @@ namespace CumulusMX
 
 			try
 			{
-				NetworkStream theStream = thePort.GetStream();
+				try
+				{
+					theStream = thePort.GetStream();
+				}
+				catch (Exception exStream)
+				{
+					// There is a problem with the connection, try to disconnect/connect
+					// refer back to the socket field of this class
+					try
+					{
+						cumulus.LogDebugMessage("WakeVP: Problem with TCP connection - " + exStream.Message);
+						socket.Client.Close(0);
+						
+					}
+					finally
+					{
+						// Wait a second
+						Thread.Sleep(1000);
+						socket = null;
+
+						cumulus.LogDebugMessage("WakeVP: Attempting reconnect to logger");
+						// open a new connection
+						socket = OpenTcpPort();
+						thePort = socket;
+					}
+
+					if (thePort == null)
+					{
+						return (false);
+					}
+					else
+					{
+						theStream = thePort.GetStream();
+					}
+				}
 
 				// First flush the stream
 				while (theStream.DataAvailable)
@@ -2440,7 +2481,7 @@ namespace CumulusMX
 						//cumulus.LogMessage("Received " + ch.ToString("X2"));
 					}
 
-					cumulus.LogMessage(BitConverter.ToString(buffer));
+					cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
 
 					if (bytesRead != 9)
 					{
@@ -2465,81 +2506,88 @@ namespace CumulusMX
 			}
 			else
 			{
-				NetworkStream stream = socket.GetStream();
 				string commandString = "GETTIME\n";
 				if (WakeVP(socket))
 				{
-					stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-
-					Thread.Sleep(cumulus.DavisIPResponseTime);
-
-					bool Found_ACK = false;
-					int ch;
-
-					while (stream.DataAvailable && !Found_ACK)
+					try
 					{
-						// Read the current character
-						ch = stream.ReadByte();
-						cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
-						if (ch == ACK)
-							Found_ACK = true;
-					}
+						NetworkStream stream = socket.GetStream();
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
-					if (!Found_ACK)
-					{
-						cumulus.LogMessage("No ACK - wait a little longer");
-						// wait a little longer
-						Thread.Sleep(500);
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+
+						bool Found_ACK = false;
+						int ch;
+
 						while (stream.DataAvailable && !Found_ACK)
 						{
 							// Read the current character
 							ch = stream.ReadByte();
-							cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
+							//cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
 							if (ch == ACK)
 								Found_ACK = true;
 						}
+
 						if (!Found_ACK)
 						{
-							cumulus.LogMessage("No ACK");
-							return DateTime.MinValue;
+							cumulus.LogMessage("No ACK - wait a little longer");
+							// wait a little longer
+							Thread.Sleep(500);
+							while (stream.DataAvailable && !Found_ACK)
+							{
+								// Read the current character
+								ch = stream.ReadByte();
+								cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
+								if (ch == ACK)
+									Found_ACK = true;
+							}
+							if (!Found_ACK)
+							{
+								cumulus.LogMessage("No ACK");
+								return DateTime.MinValue;
+							}
 						}
-					}
 
-					cumulus.LogMessage("ACK received");
+						cumulus.LogMessage("ACK received");
 
-					// Read the time
-					var bytesRead = 0;
-					byte[] buffer = new byte[8];
-					while (stream.DataAvailable && bytesRead < 8)
-					{
-						// Read the current character
-						ch = stream.ReadByte();
-						buffer[bytesRead] = (byte) ch;
-
-						bytesRead++;
-						//cumulus.LogMessage("Received " + ch.ToString("X2"));
-					}
-
-					cumulus.LogMessage(BitConverter.ToString(buffer));
-
-					if (bytesRead != 8)
-					{
-						cumulus.LogMessage("Expected 8 bytes, got " + bytesRead);
-					}
-					/*else if (!crcOK(buffer))
-					{
-						cumulus.LogMessage("Invalid CRC");
-					}*/
-					else
-					{
-						try
+						// Read the time
+						var bytesRead = 0;
+						byte[] buffer = new byte[8];
+						while (stream.DataAvailable && bytesRead < 8)
 						{
-							return new DateTime(buffer[5] + 1900, buffer[4], buffer[3], buffer[2], buffer[1], buffer[0]);
+							// Read the current character
+							ch = stream.ReadByte();
+							buffer[bytesRead] = (byte)ch;
+
+							bytesRead++;
+							//cumulus.LogMessage("Received " + ch.ToString("X2"));
 						}
-						catch (Exception)
+
+						cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
+
+						if (bytesRead != 8)
 						{
-							cumulus.LogMessage("Error in time format");
+							cumulus.LogMessage("Expected 8 bytes, got " + bytesRead);
 						}
+						/*else if (!crcOK(buffer))
+						{
+							cumulus.LogMessage("Invalid CRC");
+						}*/
+						else
+						{
+							try
+							{
+								return new DateTime(buffer[5] + 1900, buffer[4], buffer[3], buffer[2], buffer[1], buffer[0]);
+							}
+							catch (Exception)
+							{
+								cumulus.LogMessage("Error in time format");
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogDebugMessage("Get date time: Error - " + ex.Message);
 					}
 				}
 			}
@@ -2615,79 +2663,84 @@ namespace CumulusMX
 			}
 			else
 			{
-				NetworkStream stream = socket.GetStream();
 				string commandString = "SETTIME\n";
 				if (WakeVP(socket))
 				{
-					stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-
-					Thread.Sleep(cumulus.DavisIPResponseTime);
-
-					bool Found_ACK = false;
-					int ch;
-
-					while (stream.DataAvailable && !Found_ACK)
+					try
 					{
-						// Read the current character
-						ch = stream.ReadByte();
-						cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
-						if (ch == ACK)
-							Found_ACK = true;
-					}
+						NetworkStream stream = socket.GetStream();
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
-					if (!Found_ACK)
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+
+						bool Found_ACK = false;
+						int ch;
+
+						while (stream.DataAvailable && !Found_ACK)
+						{
+							// Read the current character
+							ch = stream.ReadByte();
+							cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
+							if (ch == ACK)
+								Found_ACK = true;
+						}
+
+						if (!Found_ACK)
+						{
+							cumulus.LogMessage("No ACK");
+							return;
+						}
+
+						cumulus.LogMessage("ACK received");
+
+						DateTime now = DateTime.Now;
+
+						byte[] buffer = new byte[8];
+
+						buffer[0] = (byte)now.Second;
+						buffer[1] = (byte)now.Minute;
+						buffer[2] = (byte)now.Hour;
+						buffer[3] = (byte)now.Day;
+						buffer[4] = (byte)now.Month;
+						buffer[5] = (byte)(now.Year - 1900);
+
+						// calculate and insert CRC
+
+						byte[] datacopy = new byte[6];
+
+						Array.Copy(buffer, datacopy, 6);
+						int crc = calculateCRC(datacopy);
+
+						buffer[6] = (byte)(crc / 256);
+						buffer[7] = (byte)(crc % 256);
+
+						stream.Write(buffer, 0, buffer.Length);
+
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+
+						Found_ACK = false;
+
+						while (stream.DataAvailable && !Found_ACK)
+						{
+							// Read the current character
+							ch = stream.ReadByte();
+							cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
+							if (ch == ACK)
+								Found_ACK = true;
+						}
+
+						if (!Found_ACK)
+						{
+							cumulus.LogMessage("No ACK");
+							return;
+						}
+
+						cumulus.LogMessage("ACK received");
+					}
+					catch (Exception ex)
 					{
-						cumulus.LogMessage("No ACK");
-						return;
+						cumulus.LogDebugMessage("setTime Error - " + ex.Message);
 					}
-
-					cumulus.LogMessage("ACK received");
-
-					DateTime now = DateTime.Now;
-
-					byte[] buffer = new byte[8];
-
-					buffer[0] = (byte) now.Second;
-					buffer[1] = (byte) now.Minute;
-					buffer[2] = (byte) now.Hour;
-					buffer[3] = (byte) now.Day;
-					buffer[4] = (byte) now.Month;
-					buffer[5] = (byte) (now.Year - 1900);
-
-					// calculate and insert CRC
-
-					byte[] datacopy = new byte[6];
-
-					Array.Copy(buffer, datacopy, 6);
-					int crc = calculateCRC(datacopy);
-
-					buffer[6] = (byte) (crc/256);
-					buffer[7] = (byte) (crc%256);
-
-					stream.Write(buffer, 0, buffer.Length);
-
-					Thread.Sleep(cumulus.DavisIPResponseTime);
-
-					Found_ACK = false;
-
-					while (stream.DataAvailable && !Found_ACK)
-					{
-						// Read the current character
-						ch = stream.ReadByte();
-						cumulus.LogMessage("Received 0x" + ch.ToString("X2"));
-						if (ch == ACK)
-							Found_ACK = true;
-					}
-
-					if (!Found_ACK)
-					{
-						cumulus.LogMessage("No ACK");
-						return;
-					}
-
-					cumulus.LogMessage("ACK received");
-
-					// send the data
 				}
 			}
 		}

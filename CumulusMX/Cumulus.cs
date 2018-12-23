@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3045-TEST5";
+		public string Build = "3045";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
