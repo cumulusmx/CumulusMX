@@ -166,9 +166,15 @@ namespace CumulusMX
 
                         case "raintoday":
                             return this.JsonResponse(dataEditor.EditRainToday(this));
-                    }
 
-                    throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+						case "diarydata":
+							return this.JsonResponse(dataEditor.EditDiary(this));
+
+						case "diarydelete":
+							return this.JsonResponse(dataEditor.DeleteDiary(this));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {
@@ -207,7 +213,8 @@ namespace CumulusMX
 
                     var query = HttpUtility.ParseQueryString(Request.Url.Query);
                     var date = query["date"];
-                    var month = query["month"];                    
+					var year = query["year"];
+                    var month = query["month"];                   
                     var draw = query["draw"];
                     int start = Convert.ToInt32(query["start"]);
                     int length = Convert.ToInt32(query["length"]);
@@ -222,12 +229,14 @@ namespace CumulusMX
                             return this.JsonResponse(Station.GetLogfile(month, draw, start, length, true));
                         case "currentdata":
                             return this.JsonResponse(Station.GetCurrentData());
-                        case "diary":
-                            return this.JsonResponse(Station.GetDiaryData(date));
-                            
-                    }
+						case "diarydata":
+							return this.JsonResponse(Station.GetDiaryData(date));
+						case "diarysummary":
+							//return this.JsonResponse(Station.GetDiarySummary(year, month));
+							return this.JsonResponse(Station.GetDiarySummary());
+					}
 
-                    throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
                 }
                 catch (Exception ex)
                 {

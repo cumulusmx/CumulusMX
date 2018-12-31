@@ -29,8 +29,7 @@ namespace CumulusMX
 			var InvC = new CultureInfo("");
             var request = context.Request;
             string text;
-            using (var reader = new StreamReader(request.InputStream,
-                                                 request.ContentEncoding))
+            using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
             {
                 text = reader.ReadToEnd();
             }
@@ -75,7 +74,62 @@ namespace CumulusMX
 
             return json;
         }
-    }
+
+		internal string EditDiary(IHttpContext context)
+		{
+			try
+			{
+				var request = context.Request;
+				string text;
+
+				using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+				{
+					text = reader.ReadToEnd();
+				}
+
+				var newData = JSON.ToObject<DiaryData>(text);
+
+				// write new/updated entry to the database
+				var result = cumulus.DiaryDB.InsertOrReplace(newData);
+
+				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") +"\"}";
+
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Edit Diary: " + ex.Message);
+				return "{\"result\":\"Failed\"}";
+			}
+		}
+
+		internal string DeleteDiary(IHttpContext context)
+		{
+			try
+			{
+				var request = context.Request;
+				string text;
+
+				using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+				{
+					text = reader.ReadToEnd();
+				}
+
+				var record = JSON.ToObject<DiaryData>(text);
+
+				// Delete the corresponding entry from the database
+				var result = cumulus.DiaryDB.Delete(record);
+
+				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
+
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Delete Diary: " + ex.Message);
+				return "{\"result\":\"Failed\"}";
+			}
+
+		}
+	}
 
     internal class JsonEditRainData
     {

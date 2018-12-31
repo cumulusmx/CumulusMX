@@ -1975,7 +1975,7 @@ namespace CumulusMX
                                 LogMessage("Error connecting ftp - " + ex.Message);
                             }
 
-                            RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+                            //RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
                         }
 
                         try
@@ -4807,6 +4807,7 @@ namespace CumulusMX
 				var todaybackup = foldername + "today.ini";
 				var monthbackup = foldername + "month.ini";
 				var yearbackup = foldername + "year.ini";
+				var diarybackup = foldername + "diary.db";
 
 				// First determine the date for the logfile.
 				// if (we"re using 9am rollover, the date should be 9 hours (10 in summer)
@@ -4851,6 +4852,10 @@ namespace CumulusMX
 					if (File.Exists(YearIniFile))
 					{
 						File.Copy(YearIniFile, yearbackup);
+					}
+					if (File.Exists(diaryfile))
+					{
+						File.Copy(diaryfile, diarybackup);
 					}
 
 					LogMessage("Created backup folder " + foldername);
@@ -5461,7 +5466,8 @@ namespace CumulusMX
 		{
 			using (FtpClient conn = new FtpClient())
 			{
-				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Connecting to " + ftp_host);
+				FtpTrace.WriteLine(""); // insert a blank line
+				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " CumulusMX Connecting to " + ftp_host);
 				conn.Host = ftp_host;
 				conn.Port = ftp_port;
 				conn.Credentials = new NetworkCredential(ftp_user, ftp_password);
@@ -5502,6 +5508,7 @@ namespace CumulusMX
 					{
 						// upload NOAA reports
 						LogMessage("Uploading NOAA reports");
+						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
 
 						var uploadfile = ReportPath + NOAALatestMonthlyReport;
 						var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
@@ -5547,6 +5554,7 @@ namespace CumulusMX
 					if (IncludeStandardFiles)
 					{
 						//LogDebugMessage("Uploading standard files");
+						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading standard files");
 						try
 						{
 							for (int i = 0; i < numwebtextfiles; i++)
@@ -5569,6 +5577,7 @@ namespace CumulusMX
 						try
 						{
 							//LogDebugMessage("Uploading graph data files");
+							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading graph data files");
 							for (int i = 0; i < localgraphdatafiles.Length; i++)
 							{
 								var uploadfile = localgraphdatafiles[i];
@@ -5587,13 +5596,15 @@ namespace CumulusMX
 
                 // b3045 - dispose of connection
                 conn.Disconnect();
-            }
+				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Disconnected from " + ftp_host);
+			}
 		}
 
 		private void UploadFile(FtpClient conn, string localfile, string remotefile)
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
 
+			FtpTrace.WriteLine("");
 			FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading " + localfile + " to " + remotefile);
 
 			try
@@ -5641,6 +5652,8 @@ namespace CumulusMX
 					// rename the file
 					conn.Rename(remotefilename, remotefile);
 				}
+
+				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Completed uploading " + localfile + " to " + remotefile);
 			}
 			catch (Exception ex)
 			{
@@ -6194,7 +6207,7 @@ namespace CumulusMX
 			RealtimeFTP.Credentials = new NetworkCredential(ftp_user, ftp_password);
             // b3045 - Reduce the default polling interval to try and keep the session alive
             RealtimeFTP.SocketKeepAlive = true;
-            RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
+            //RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
 
 
 			if (Sslftp)
@@ -6694,8 +6707,8 @@ namespace CumulusMX
 		public DateTime Timestamp { get; set; }
 
 		public string entry { get; set; }
-		public bool snowFalling { get; set; }
-		public bool snowLying { get; set; }
+		public int snowFalling { get; set; }
+		public int snowLying { get; set; }
 		public double snowDepth { get; set; }
 	}
 }

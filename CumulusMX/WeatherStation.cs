@@ -8595,11 +8595,43 @@ namespace CumulusMX
 
 			if (result.Count > 0)
 			{
-				json = "{\"entry\":\"" + result[0].entry + "\"}";
+				json = "{\"entry\":\"" + result[0].entry + "\"," +
+					"\"snowFalling\":" + result[0].snowFalling + "," +
+					"\"snowLying\":" + result[0].snowLying + "," +
+					"\"snowDepth\":\"" + result[0].snowDepth + "\"}";
 			}
 			else
 			{
-				json = "{\"entry\":\"\"}";
+				json = "{\"entry\":\"\"," +
+					"\"snowFalling\":0," +
+					"\"snowLying\":0," +
+					"\"snowDepth\":\"\"}";
+			}
+
+			return json;
+		}
+
+		// Fetchs all days in the required month that have a diary entry
+		//internal string GetDiarySummary(string year, string month)
+		internal string GetDiarySummary()
+		{
+			string json;
+			//var result = cumulus.DiaryDB.Query<DiaryData>("select Timestamp from DiaryData where strftime('%Y', Timestamp) = ? and strftime('%m', Timestamp) = ? order by Timestamp", year, month);
+			var result = cumulus.DiaryDB.Query<DiaryData>("select Timestamp from DiaryData order by Timestamp");
+
+			if (result.Count > 0)
+			{
+				json = "{\"dates\":[";
+				for (int i = 0; i < result.Count; i++)
+				{
+					json += "\"" + result[i].Timestamp.ToString("yyy-MM-dd") + "\",";
+				}
+				json = json.Remove(json.Length - 1);
+				json += "]}";
+			}
+			else
+			{
+				json = "{\"dates\":[]}";
 			}
 
 			return json;

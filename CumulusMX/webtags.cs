@@ -90,38 +90,28 @@ namespace CumulusMX
             return AStr.Replace(',', '.');
         }
 
-        private int GetSnowDepth(DateTime day)
+        private double GetSnowDepth(DateTime day)
         {
-            int result = 0;
-            /* TODO: private int GetSnowDepth(DateTime day)
-             * int depth;
-            try {
-                try {
-                    //@ Unsupported property or method(C): 'Open'
-                    MainUnit.Units.MainUnit.MainForm.ClientDataSet1.Open;
-                    //@ Unsupported property or method(C): 'LoadFromFile'
-                    MainUnit.Units.MainUnit.MainForm.ClientDataSet1.LoadFromFile;
-                    //@ Unsupported property or method(A): 'Locate'
-                    if (MainUnit.Units.MainUnit.MainForm.ClientDataSet1.Locate("EntryDate", day, new object.Get(] {}))
-                    {
-                        //@ Unsupported property or method(A): 'Lookup'
-                        depth = MainUnit.Units.MainUnit.MainForm.ClientDataSet1.Lookup("EntryDate", day, "SnowDepth");
-                    }
-                    else
-                    {
-                        depth = 0;
-                    }
-                }
-                catch(Exception E) {
-                    MainUnit.Units.MainUnit.cumulus.LogMessage("Error reading diary file: " + E.Message);
-                    depth = 0;
-                }
-            } finally {
-                //@ Unsupported property or method(C): 'Close'
-                MainUnit.Units.MainUnit.MainForm.ClientDataSet1.Close;
+			double depth;
+            try
+			{
+				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date(Timestamp) = ?", DateTime.Now.ToString("yyyy-MM-dd"));
+
+				if (result.Count == 1)
+				{
+					depth = result[0].snowDepth;
+				}
+				else
+				{
+					depth = 0;
+				}
             }
-            result = depth; */
-            return result;
+            catch(Exception e)
+			{
+                cumulus.LogMessage("Error reading diary database: " + e.Message);
+                depth = 0;
+            }
+            return depth;
         }
 
         private string EncodeForWeb(string AStr)
