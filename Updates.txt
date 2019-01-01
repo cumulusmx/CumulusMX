@@ -36,7 +36,7 @@
 
 3045
 ====
--Internal Stuff
+- Internal Stuff
 	- Update the targeted .Net version to 4.5.2 (4.5 and 4.5.1 are no longer supported by Microsoft)
 	- Upgrade System.Net.FtpClient to replacement FluentFTP package
 	- Update Microsoft.Net.Http package to latest stable version
@@ -59,7 +59,7 @@
 		HumMult2=0.0
 
 - FTP Updates
-	- Now supports SFTP over TLS1.1 and 1.2
+	- Now supports FTPS over TLS1.1 and 1.2
 	- In Passive FTP, you can disable Enhanced Passive (EPSV) mode if it causes problems with your host. Some hosts are reporting they support it, but a firewall along the route cannot handle the connections.
 	  Requires manually adding a new Cumulus.ini entry...
 		[FTP site]
@@ -67,9 +67,18 @@
 	- RealtimeGaugesTxt is no longer automatically enabled for FTP.
 
 - Web Sockets are no longer on a separate port, it shares the same port as HTTP.
-	- The wsport command line switch is still recognised for backwards compatibilty, but it is no longer used.
+	- The wsport command line switch is still recognised for backwards compatibility, but it is no longer used.
 
 - Fix Fine Offset with solar logger reading, now limited to the reduced number of logger entries available on solar stations.
 
-- Fix for Slovenian locale (and any other with a two character date seperator)
+- Fix for Slovenian locale (and any other with a two character date separator)
 
+3046test
+========
+- Weather Diary
+	- Added Weather Diary page to manegement interface
+	- Added diary.db file to daily backup files
+	- Removed diary.db from distribution (it is created on first use to avoid overwriting the file on CMX distro updates)
+
+- Web Tags
+	- Added <#snowdepth> tag
