@@ -73,12 +73,17 @@
 
 - Fix for Slovenian locale (and any other with a two character date separator)
 
-3046test
-========
+
+3046
+====
 - Weather Diary
 	- Added Weather Diary page to manegement interface
 	- Added diary.db file to daily backup files
 	- Removed diary.db from distribution (it is created on first use to avoid overwriting the file on CMX distro updates)
 
 - Web Tags
-	- Added <#snowdepth> tag
+	- Added <#snowdepth> tag processing
+
+- ET annual rollover fix
+
+- Fix to TLS 1.2 FTPS of the 'periodic' files

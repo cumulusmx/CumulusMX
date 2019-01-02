@@ -6281,17 +6281,22 @@ namespace CumulusMX
 				noET = false;
 			}
 
-			if ((value == 0) && (StartofdayET > 0))
+			//if ((value == 0) && (StartofdayET > 0))
+			if (value < StartofdayET) // change b3046
 			{
 				// ET reset
-				cumulus.LogMessage("*** ET Reset");
+				cumulus.LogMessage("*** ET Reset *** AnnualET: " + AnnualETTotal.ToString("#.##") + " StartofdayET: " + StartofdayET.ToString("#.##") + " StationET: " + value.ToString("#.##") + " CurrentET: " + ET.ToString("#.##"));
+				AnnualETTotal = value; // add b3046
 				// set the start of day figure so it reflects the ET
 				// so far today
 				StartofdayET = AnnualETTotal - ET;
 				WriteTodayFile(timestamp, false);
+				cumulus.LogMessage("New ET values. AnnualET: " + AnnualETTotal.ToString("#.##") + " StartofdayET: " + StartofdayET.ToString("#.##") + " StationET: " + value.ToString("#.##") + " CurrentET: " + ET.ToString("#.##"));
 			}
-
-			AnnualETTotal = value;
+			else
+			{
+				AnnualETTotal = value;
+			}
 
 			ET = AnnualETTotal - StartofdayET;
 

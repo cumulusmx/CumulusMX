@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3046test";
+		public string Build = "3046";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -379,10 +379,10 @@ namespace CumulusMX
 
 		public string Platform;
 
-		public string dbfile = "cumulusmx.db";
+		public string dbfile;
 		public SQLiteConnection LogDB;
 
-		public string diaryfile = "diary.db";
+		public string diaryfile;
 		public SQLiteConnection DiaryDB;
 
 		public string Datapath;
@@ -779,8 +779,8 @@ namespace CumulusMX
 
 
         /*
-		CryptoLicense lic = new CryptoLicense();            
-		
+		CryptoLicense lic = new CryptoLicense();
+
 
 		//create code for applicationsecret
 		byte[] applicationSecret = Convert.FromBase64String("QpJGpsqWfkKu+yM8Ljp6+A==");
@@ -877,7 +877,7 @@ namespace CumulusMX
 				}
 
 				Console.WriteLine("Licence is valid");
-				
+
 			}
 		}
 		*/
@@ -888,13 +888,13 @@ namespace CumulusMX
 
             /*lic.ValidationKey = "AMAAMACrfxYrYEOGd+D5ypZ32bnLCvviBrTlejReXNRdvgWzSgyvdfkLvNDvDX1WuMh2JIEDAAEAAQ==";
 
-			// Load license from the file            
-			lic.StorageMode = LicenseStorageMode.ToFile;            
-			if (lic.Load("licence.lic") == false)                
+			// Load license from the file
+			lic.StorageMode = LicenseStorageMode.ToFile;
+			if (lic.Load("licence.lic") == false)
 				throw new Exception("License could not be loaded");
 
-			// Validate the license using .Status property            
-			if (lic.Status != LicenseStatus.Valid)                
+			// Validate the license using .Status property
+			if (lic.Status != LicenseStatus.Valid)
 				throw new Exception("license validation failed");
 			*/
 
@@ -1038,6 +1038,9 @@ namespace CumulusMX
 			backuppath = "backup" + DirectorySeparator;
 			ReportPath = "Reports" + DirectorySeparator;
 
+			dbfile = Datapath + "cumulusmx.db";
+			diaryfile = Datapath + "diary.db";
+
 			AlltimeFile = Datapath + "alltime.rec";
 			AlltimeIniFile = Datapath + "alltime.ini";
 			Alltimelogfile = Datapath + "alltimelog.txt";
@@ -1105,12 +1108,12 @@ namespace CumulusMX
 
 			// Open database (create file if it doesn't exist)
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-			LogDB = new SQLiteConnection(Datapath + dbfile, flags);
+			LogDB = new SQLiteConnection(dbfile, flags);
 
 			LogDB.CreateTable<StandardData>();
 
 			// Open diary database (create file if it doesn't exist)
-			DiaryDB = new SQLiteConnection(Datapath + diaryfile, flags);
+			DiaryDB = new SQLiteConnection(diaryfile, flags);
 
 			DiaryDB.CreateTable<DiaryData>();
 
@@ -1713,9 +1716,9 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!WebUpdating) 
+			if (!WebUpdating)
 			{
-				WebUpdating = true;                
+				WebUpdating = true;
 				ftpThread = new Thread(DoHTMLFiles);
 				ftpThread.IsBackground = true;
 				ftpThread.Start();
@@ -4376,7 +4379,7 @@ namespace CumulusMX
 		public bool DavisStation { get; set; }
 		public string TempTrendFormat { get; set; }
 		public string AppDir { get; set; }
-		
+
 		public int Manufacturer { get; set; }
 		public int ImetLoggerInterval { get; set; }
 		public TimeSpan DayLength { get; set; }
@@ -5318,7 +5321,7 @@ namespace CumulusMX
 			WriteIniFile();
 
 			//httpServer.Stop();
-			
+
 			//if (httpServer != null) httpServer.Dispose();
 
 			if (station != null)
@@ -5344,7 +5347,7 @@ namespace CumulusMX
 			start.FileName = externalProgram;
 			// Dont show a console window
 			start.CreateNoWindow = true;
-			// Run the external process 
+			// Run the external process
 			Process.Start(start);
 		}
 
@@ -5478,7 +5481,7 @@ namespace CumulusMX
 					conn.DataConnectionEncryption = true;
 					conn.ValidateCertificate += Client_ValidateCertificate;
                     // b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
-                    RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+                    conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
                 }
 
                 if (ActiveFTPMode)
