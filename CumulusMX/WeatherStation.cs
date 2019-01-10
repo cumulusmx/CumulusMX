@@ -6282,16 +6282,16 @@ namespace CumulusMX
 			}
 
 			//if ((value == 0) && (StartofdayET > 0))
-			if (value < StartofdayET) // change b3046
+			if (Math.Round(value, 3) < Math.Round(StartofdayET,3)) // change b3046
 			{
 				// ET reset
-				cumulus.LogMessage("*** ET Reset *** AnnualET: " + AnnualETTotal.ToString("#.##") + " StartofdayET: " + StartofdayET.ToString("#.##") + " StationET: " + value.ToString("#.##") + " CurrentET: " + ET.ToString("#.##"));
+				cumulus.LogMessage(String.Format("*** ET Reset *** AnnualET: {0:0.000}, StartofdayET: {0:0.000}, StationET: {0:0.000}, CurrentET: {0:0.000}", AnnualETTotal, StartofdayET, value, ET));
 				AnnualETTotal = value; // add b3046
 				// set the start of day figure so it reflects the ET
 				// so far today
 				StartofdayET = AnnualETTotal - ET;
 				WriteTodayFile(timestamp, false);
-				cumulus.LogMessage("New ET values. AnnualET: " + AnnualETTotal.ToString("#.##") + " StartofdayET: " + StartofdayET.ToString("#.##") + " StationET: " + value.ToString("#.##") + " CurrentET: " + ET.ToString("#.##"));
+				cumulus.LogMessage(String.Format("New ET values. AnnualET: {0:0.000}, StartofdayET: {0:0.000}, StationET: {0:0.000}, CurrentET: {0:0.000}", AnnualETTotal, StartofdayET, value, ET));
 			}
 			else
 			{

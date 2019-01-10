@@ -102,7 +102,8 @@ namespace CumulusMX
                 if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < 1.9) && cumulus.UseDavisLoop2)
                 {
                     cumulus.UseDavisLoop2 = false;
-                    cumulus.LogMessage("FW version does not support LOOP2, disabling it");
+					cumulus.LogMessage("LOOP2 disabled. It is enabled in Cumulus.ini but this firmare version does not support it.");
+					Console.WriteLine("FW version does not support LOOP2, disabling it");
                 }
 
 				if (cumulus.DavisReadReceptionStats)

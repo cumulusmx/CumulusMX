@@ -77,7 +77,7 @@
 3046
 ====
 - Weather Diary
-	- Added Weather Diary page to manegement interface
+	- Added Weather Diary page to management interface
 	- Added diary.db file to daily backup files
 	- Removed diary.db from distribution (it is created on first use to avoid overwriting the file on CMX distro updates)
 
@@ -87,3 +87,14 @@
 - ET annual rollover fix
 
 - Fix to TLS 1.2 FTPS of the 'periodic' files
+
+3047test
+========
+- Web token parser updated to cope with html tag characters "<>" in the format string.
+	- You can now do things like...
+		<#TapptempH format="dd'&nbsp;'MMM'&nbsp;'yyyy'<span class=\'xx\'> at 'HH:mm'</span>'">
+		which gives...
+		04&nbsp;Dec&nbsp;2018<span class='xx'> at 10:12</span>
+
+		Note: that you have to use single quotes for HTML entity names, and they have to be escaped "\'"
+

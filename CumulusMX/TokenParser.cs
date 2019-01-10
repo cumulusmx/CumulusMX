@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CumulusMX
 {
@@ -52,24 +53,24 @@ namespace CumulusMX
         /// <returns>
         ///     It returns the string between the tokens "<#" and ">"
         /// </returns>
-        private string ExtractToken(string strToken)
+        /*private string ExtractToken(string strToken)
         {
-            int firstPos = strToken.IndexOf("<#") + 2;
-            int secondPos = strToken.LastIndexOf(">");
-            string result = strToken.Substring(firstPos, secondPos - firstPos);
+			int firstPos = strToken.IndexOf("<#") + 2;
+			int secondPos = strToken.LastIndexOf(">");
+			string result = strToken.Substring(firstPos, secondPos - firstPos);
 
-            return result.Trim();
-        }
+			return result.Trim();
+		}*/
 
 
-        /// <summary>
-        ///     Parse() iterates through each character of the class variable "inputText"
-        /// </summary>
-        /// <returns>
-        ///     Parse() returns a string representing inputText with its tokens exchanged
-        ///     for the calling code's values.
-        /// </returns>
-        /*private String Parse()
+		/// <summary>
+		///     Parse() iterates through each character of the class variable "inputText"
+		/// </summary>
+		/// <returns>
+		///     Parse() returns a string representing inputText with its tokens exchanged
+		///     for the calling code's values.
+		/// </returns>
+		/*private String Parse()
         {
             const string tokenStart = "<";
             const string tokenNext = "#";
@@ -133,11 +134,76 @@ namespace CumulusMX
             return outText;
         }*/
 
-        private String Parse2()
+		/*private String Parse2()
+		{
+			const string tokenStart = "<#";
+			const string tokenEnd = ">";
+
+			String outText = String.Empty;
+			String token = String.Empty;
+			String replacement = String.Empty;
+
+			int i = 0;
+			int len = InputText.Length;
+
+			while (i < len)
+			{
+				int nextTagPos = InputText.IndexOf(tokenStart, i);
+
+				if (nextTagPos == -1)
+				{
+					// no more tokens, copy remainder of string
+					outText += InputText.Substring(i);
+					i = len; // to cause loop to terminate
+				}
+				else
+				{
+					// copy from where we were, up to char before token
+					outText += InputText.Substring(i, nextTagPos - i);
+
+					// look for the end of the token
+					int endPos = InputText.IndexOf(tokenEnd, nextTagPos);
+
+					if (endPos == -1)
+					{
+						// no end of token, copy remainder of string
+						outText += InputText.Substring(nextTagPos);
+						i = len; // to cause loop to terminate
+					}
+					else
+					{
+						// found end of token, process it
+						token = InputText.Substring(nextTagPos + 2, endPos - (nextTagPos + 2));
+
+						try
+						{
+							OnToken(token, ref replacement);
+							outText += replacement;
+
+
+						}
+						catch (Exception e)
+						{
+							Trace.WriteLine("Web tag error");
+							Trace.WriteLine("Exception: i=" + i + " len=" + len);
+							Trace.WriteLine("inputText.Length=" + InputText.Length);
+							Trace.WriteLine("token=" + token);
+							Trace.WriteLine(e.ToString());
+							//cumulus.LogMessage(InputText);
+							Console.WriteLine("*** web tag error - see MXdiags file ***");
+							outText += e.Message;
+						}
+
+						// move past the token
+						i = endPos + 1;
+					}
+				}
+			}
+			return outText;
+		}*/
+
+		private String Parse3()
         {
-            const string tokenStart = "<#";
-            const string tokenEnd = ">";
-            
             String outText = String.Empty;
             String token = String.Empty;
             String replacement = String.Empty;
@@ -145,60 +211,44 @@ namespace CumulusMX
             int i = 0;
             int len = InputText.Length;
 
-            while (i < len)
-            {
-                int nextTagPos = InputText.IndexOf(tokenStart, i);
+			Regex rx = new Regex("<#[^>]*?(?:(?:(\")[^\"]*?\\1)[^>]*?)*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+			// Find matches.
+			MatchCollection matches = rx.Matches(InputText);
 
-                if (nextTagPos == -1)
-                {
-                    // no more tokens, copy remainder of string
-                    outText += InputText.Substring(i);
-                    i = len; // to cause loop to terminate
-                }
-                else
-                {
-                    // copy from where we were, up to char before token
-                    outText += InputText.Substring(i, nextTagPos - i);
-                    
-                    // look for the end of the token
-                    int endPos = InputText.IndexOf(tokenEnd, nextTagPos);
+			if (matches.Count > 0)
+			{
+				foreach (Match match in matches)
+				{
+					outText += InputText.Substring(i, match.Index - i);
+					try
+					{
+						// strip the "<#" ">" characters from the token string
+						token = match.Value;
+						token = token.Substring(2, token.Length - 3);
+						OnToken(token, ref replacement);
+						outText += replacement;
+					}
+					catch (Exception e)
+					{
+						Trace.WriteLine("Web tag error");
+						Trace.WriteLine("Exception: i=" + i + " len=" + len);
+						Trace.WriteLine("inputText.Length=" + InputText.Length);
+						Trace.WriteLine("token=" + match.Value);
+						Trace.WriteLine(e.ToString());
+						//cumulus.LogMessage(InputText);
+						Console.WriteLine("*** web tag error - see MXdiags file ***");
+						outText += e.Message;
+					}
+					i = match.Index + match.Length;
+				}
+				outText += InputText.Substring(i, InputText.Length - i);
+			}
+			else
+			{
+				outText = InputText;
+			}
 
-                    if (endPos == -1)
-                    {
-                        // no end of token, copy remainder of string
-                        outText += InputText.Substring(nextTagPos);
-                        i = len; // to cause loop to terminate
-                    }
-                    else
-                    {
-                        // found end of token, process it
-                        token = InputText.Substring(nextTagPos + 2, endPos - (nextTagPos + 2));
-
-                        try
-                        {
-                            OnToken(token, ref replacement);
-                            outText += replacement;
-                    
-
-                        }
-                        catch (Exception e)
-                        {
-                            Trace.WriteLine("Web tag error");
-                            Trace.WriteLine("Exception: i=" + i + " len=" + len);
-                            Trace.WriteLine("inputText.Length=" + InputText.Length);
-                            Trace.WriteLine("token=" + token);
-                            Trace.WriteLine(e.ToString());
-                            //cumulus.LogMessage(InputText);
-                            Console.WriteLine("*** web tag error - see MXdiags file ***");
-                            outText += e.Message;
-                        }
-
-                        // move past the token
-                        i = endPos + 1;
-                    }
-                }
-            }
-            return outText;
+			return outText;
         }
 
         private static string Utf16ToUtf8(string utf16String)
@@ -290,7 +340,7 @@ namespace CumulusMX
                 {
                     InputText = reader.ReadToEnd();
                 }
-                result = Parse2();
+                result = Parse3();
             }
             catch (Exception e)
             {
@@ -305,7 +355,7 @@ namespace CumulusMX
             string result;
             try
             {
-                result = Parse2();
+                result = Parse3();
             }
             catch (Exception e)
             {
