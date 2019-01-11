@@ -4,8 +4,8 @@ using System.Text;
 
 namespace CumulusMX.Extensions
 {
-    public interface ISystemSettings : IExtension
+    public interface IExtension
     {
-        bool IsOSX { get; }
+        string Identifier { get; }
     }
 }

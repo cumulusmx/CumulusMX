@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace CumulusMX.ExtensionMethods
+namespace CumulusMX.Extensions
 {
-    public interface IDataReporter
+    public interface IDataReporter : IExtension
     {
     }
 }

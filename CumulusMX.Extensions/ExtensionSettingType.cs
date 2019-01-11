@@ -4,8 +4,10 @@ using System.Text;
 
 namespace CumulusMX.Extensions
 {
-    public interface ISystemSettings : IExtension
+    public enum ExtensionSettingType
     {
-        bool IsOSX { get; }
+        String,
+        Decimal,
+        Integer
     }
 }
