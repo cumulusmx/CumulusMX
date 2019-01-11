@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cumulus4.Data
+namespace CumulusMX.Data
 {
     public class WeatherDataContext : DbContext
     {

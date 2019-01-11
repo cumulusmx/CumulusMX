@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Cumulus4
+namespace CumulusMX
 {
     public struct TExtraFiles
     {

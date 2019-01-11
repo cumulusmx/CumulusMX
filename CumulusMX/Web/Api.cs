@@ -12,7 +12,7 @@ using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
 using Unosquare.Swan;
 
-namespace Cumulus4.Web
+namespace CumulusMX.Web
 {
     public static class Api
     {

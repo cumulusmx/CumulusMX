@@ -4,7 +4,7 @@ using System.Text;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
 
-namespace Cumulus4.Web.Controllers
+namespace CumulusMX.Web.Controllers
 {
     public abstract class ControllerBase : WebApiController
     {

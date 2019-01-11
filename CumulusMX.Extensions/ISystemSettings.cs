@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Cumulus4.Extensions
+namespace CumulusMX.ExtensionMethods
 {
     public interface ISystemSettings
     {

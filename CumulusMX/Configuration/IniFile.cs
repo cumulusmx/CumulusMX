@@ -9,7 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Cumulus4.Configuration
+namespace CumulusMX.Configuration
 
 {
 

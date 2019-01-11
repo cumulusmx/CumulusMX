@@ -6,7 +6,7 @@ using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Constants;
 using Unosquare.Labs.EmbedIO.Modules;
 
-namespace Cumulus4.Web.Controllers
+namespace CumulusMX.Web.Controllers
 {
     public class EditController : ControllerBase
     {

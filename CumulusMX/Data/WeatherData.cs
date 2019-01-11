@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cumulus4.Data
+namespace CumulusMX.Data
 {
     public class WeatherData
     {

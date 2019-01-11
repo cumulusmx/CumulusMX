@@ -11,7 +11,7 @@ using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
-namespace Cumulus4
+namespace CumulusMX
 {
     class Program
     {

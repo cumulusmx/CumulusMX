@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
-namespace Cumulus4.Configuration
+namespace CumulusMX.Configuration
 {
     public class CalibrationSettings
     {

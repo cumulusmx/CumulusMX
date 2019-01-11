@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cumulus4.Extensions
+namespace CumulusMX.ExtensionMethods
 {
     public interface IDataReporter
     {

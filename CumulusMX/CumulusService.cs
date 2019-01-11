@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.ServiceProcess;
 using System.Text;
-using Cumulus4.Configuration;
-using Cumulus4.Web;
+using CumulusMX.Configuration;
+using CumulusMX.Web;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Constants;
 
-namespace Cumulus4
+namespace CumulusMX
 {
     public class CumulusService : ServiceBase
     {

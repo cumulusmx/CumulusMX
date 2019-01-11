@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cumulus4
+namespace CumulusMX
 {
     public static class StationTypes
     {
