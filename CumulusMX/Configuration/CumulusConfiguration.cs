@@ -1,31 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
+using CumulusMX.ExtensionMethods;
 
-namespace Cumulus4.Configuration
+namespace CumulusMX.Configuration
 {
     public class CumulusConfiguration
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-
-
-
-        private const int DefaultWebUpdateInterval = 15;
-        private const int DefaultWundInterval = 15;
-        private const int DefaultPWSInterval = 15;
-        private const int DefaultAPRSInterval = 9;
-        private const int DefaultAwekasInterval = 15;
-        private const int DefaultWCloudInterval = 10;
-
-        private const int VP2SERIALCONNECTION = 0;
-        private const int VP2USBCONNECTION = 1;
-        private const int VP2TCPIPCONNECTION = 2;
-
-
-
-
-
 
 
         private readonly IniFile ini;
@@ -39,6 +22,12 @@ namespace Cumulus4.Configuration
 
         #region System Configuration
 
+        public bool WarnMultiple { get; set; }
+        public string Platform { get; private set; }
+        public string Datapath { get; private set; }
+        public string ListSeparator { get; private set; }
+        public char DirectorySeparator { get; private set; }
+
         /// <summary>
         /// Temperature unit currently in use
         /// </summary>
@@ -50,751 +39,515 @@ namespace Cumulus4.Configuration
         public string TempTrendUnitText { get; set; }
 
         public string RainUnitText { get; set; }
-
-
         public string RainTrendUnitText { get; set; }
-
         public string PressUnitText { get; set; }
-
         public string PressTrendUnitText { get; set; }
-
         public string WindUnitText { get; set; }
-
         public string WindRunUnitText { get; set; }
 
 
-
-
-
-
-        public string Platform { get; private set; }
-
-        public string Datapath { get; private set; }
-
-        public string ListSeparator { get; private set; }
-        public char DirectorySeparator { get; private set; }
-
-
-
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public double Altitude { get; set; }
         #endregion
-
-
-
-
-
-
 
 
         #region Station Settings
 
+        public string RecordsBeganDate { get; set; }
+        public string LocationName { get; set; }
+        public string LocationDesc { get; set; }
+        public int StationType { get; set; }
+        public string StationModel { get; set; }
 
+        public bool FineOffsetStation { get; set; }
+        public bool DavisStation { get; set; }
 
-
-        #endregion
-
-
-
-
-        public double WindRoseAngle { get; set; }
-
-        public int NumWindRosePoints { get; set; }
-
-        public int[] WUnitFact = new[] { 1000, 2237, 3600, 1944 };
-        public int[] TUnitFact = new[] { 1000, 1800 };
-        public int[] TUnitAdd = new[] { 0, 32 };
-        public int[] PUnitFact = new[] { 1000, 1000, 2953 };
-        public int[] PressFact = new[] { 1, 1, 100 };
-        public int[] RUnitFact = new[] { 1000, 39 };
-
-        public int[] logints = new[] { 1, 5, 10, 15, 20, 30 };
-
-        public int UnitMult = 1000;
-
-        public int GraphDays = 31;
-
-        public string Newmoon = "New Moon",
-            WaxingCrescent = "Waxing Crescent",
-            FirstQuarter = "First Quarter",
-            WaxingGibbous = "Waxing Gibbous",
-            Fullmoon = "Full Moon",
-            WaningGibbous = "Waning Gibbous",
-            LastQuarter = "Last Quarter",
-            WaningCrescent = "Waning Crescent";
-
-        public String Calm = "Calm",
-            Lightair = "Light air",
-            Lightbreeze = "Light breeze",
-            Gentlebreeze = "Gentle breeze",
-            Moderatebreeze = "Moderate breeze",
-            Freshbreeze = "Fresh breeze",
-            Strongbreeze = "Strong breeze",
-            Neargale = "Near gale",
-            Gale = "Gale",
-            Stronggale = "Strong gale",
-            Storm = "Storm",
-            Violentstorm = "Violent storm",
-            Hurricane = "Hurricane";
-
-        public String Risingveryrapidly = "Rising very rapidly",
-            Risingquickly = "Rising quickly",
-            Rising = "Rising",
-            Risingslowly = "Rising slowly",
-            Steady = "Steady",
-            Fallingslowly = "Falling slowly",
-            Falling = "Falling",
-            Fallingquickly = "Falling quickly",
-            Fallingveryrapidly = "Falling very rapidly";
-
-        public string[] compassp = { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
-
-        public string[] z_forecast =
-        {
-            "Settled fine", "Fine weather", "Becoming fine", "Fine, becoming less settled", "Fine, possible showers", "Fairly fine, improving",
-            "Fairly fine, possible showers early", "Fairly fine, showery later", "Showery early, improving", "Changeable, mending",
-            "Fairly fine, showers likely", "Rather unsettled clearing later", "Unsettled, probably improving", "Showery, bright intervals",
-            "Showery, becoming less settled", "Changeable, some rain", "Unsettled, short fine intervals", "Unsettled, rain later", "Unsettled, some rain",
-            "Mostly very unsettled", "Occasional rain, worsening", "Rain at times, very unsettled", "Rain at frequent intervals", "Rain, very unsettled",
-            "Stormy, may improve", "Stormy, much rain"
-        };
-
-        public string[] DavisForecast1 =
-        {
-            "FORECAST REQUIRES 3 HRS. OF RECENT DATA", "Mostly cloudy with little temperature change. ", "Mostly cloudy and cooler. ",
-            "Clearing, cooler and windy. ", "Clearing and cooler. ", "Increasing clouds and cooler. ",
-            "Increasing clouds with little temperature change. ", "Increasing clouds and warmer. ",
-            "Mostly clear for 12 to 24 hours with little temperature change. ", "Mostly clear for 6 to 12 hours with little temperature change. ",
-            "Mostly clear and warmer. ", "Mostly clear for 12 to 24 hours and cooler. ", "Mostly clear for 12 hours with little temperature change. ",
-            "Mostly clear with little temperature change. ", "Mostly clear and cooler. ", "Partially cloudy, Rain and/or snow possible or continuing. ",
-            "Partially cloudy, Snow possible or continuing. ", "Partially cloudy, Rain possible or continuing. ",
-            "Mostly cloudy, Rain and/or snow possible or continuing. ", "Mostly cloudy, Snow possible or continuing. ",
-            "Mostly cloudy, Rain possible or continuing. ", "Mostly cloudy. ", "Partially cloudy. ", "Mostly clear. ",
-            "Partly cloudy with little temperature change. ", "Partly cloudy and cooler. ", "Unknown forecast rule."
-        };
-
-        public string[] DavisForecast2 =
-        {
-            "", "Precipitation possible within 48 hours. ", "Precipitation possible within 24 to 48 hours. ",
-            "Precipitation possible within 24 hours. ", "Precipitation possible within 12 to 24 hours. ",
-            "Precipitation possible within 12 hours, possibly heavy at times. ", "Precipitation possible within 12 hours. ",
-            "Precipitation possible within 6 to 12 hours. ", "Precipitation possible within 6 to 12 hours, possibly heavy at times. ",
-            "Precipitation possible and windy within 6 hours. ", "Precipitation possible within 6 hours. ", "Precipitation ending in 12 to 24 hours. ",
-            "Precipitation possibly heavy at times and ending within 12 hours. ", "Precipitation ending within 12 hours. ",
-            "Precipitation ending within 6 hours. ", "Precipitation likely, possibly heavy at times. ", "Precipitation likely. ",
-            "Precipitation continuing, possibly heavy at times. ", "Precipitation continuing. "
-        };
-
-        public string[] DavisForecast3 =
-        {
-            "", "Windy with possible wind shift to the W, SW, or S.", "Possible wind shift to the W, SW, or S.",
-            "Windy with possible wind shift to the W, NW, or N.", "Possible wind shift to the W, NW, or N.", "Windy.", "Increasing winds."
-        };
-
-
-
-        // equivalents of Zambretti "dial window" letters A - Z
-        public int[] rise_options = { 25, 25, 25, 24, 24, 19, 16, 12, 11, 9, 8, 6, 5, 2, 1, 1, 0, 0, 0, 0, 0, 0 };
-        public int[] steady_options = { 25, 25, 25, 25, 25, 25, 23, 23, 22, 18, 15, 13, 10, 4, 1, 1, 0, 0, 0, 0, 0, 0 };
-        public int[] fall_options = { 25, 25, 25, 25, 25, 25, 25, 25, 23, 23, 21, 20, 17, 14, 7, 3, 1, 1, 1, 0, 0, 0 };
-
-        internal int[] FactorsOf60 = { 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60 };
-
-        public bool UseWind10MinAve { get; set; }
-        public bool UseSpeedForAvgCalc { get; set; }
-        public bool UseZeroBearing { get; set; }
-        public TimeSpan AvgSpeedTime { get; set; }
-        public int AvgSpeedMinutes { get; set; }
-
-        public int PeakGustMinutes { get; set; }
-        public TimeSpan PeakGustTime { get; set; }
-        public TimeSpan AvgBearingTime { get; set; }
-
-        public bool UTF8encode { get; set; }
-
-        internal int TempDPlaces { get; set; }
-        public string TempFormat { get; set; }
-
-        internal int WindDPlaces { get; set; }
-        public string WindFormat { get; set; }
-
-        internal int HumDPlaces { get; set; }
-        public string HumFormat { get; set; }
-
-        private readonly int WindRunDPlaces = 1;
-        public string WindRunFormat;
-
-        public int RainDPlaces = 1;
-        public string RainFormat;
-
-        internal int PressDPlaces = 1;
-        internal bool DavisIncrementPressureDP;
-        public string PressFormat;
-
-        internal int UVDPlaces = 1;
-        public string UVFormat;
-
-        public string ETFormat;
-
-        public int VPrainGaugeType = -1;
 
         public string ComportName { get; set; }
-        public string DefaultComportName { get; set; }
         public int ImetBaudRate { get; set; }
-
         public int VendorID { get; set; }
         public int ProductID { get; set; }
 
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string LonTxt { get; set; }
+        public string LatTxt { get; set; }
+        public double Altitude { get; set; }
+        public bool AltitudeInFeet { get; set; }
+
+        public bool Humidity98Fix { get; set; }
+
+        public bool UseWind10MinAve { get; set; }
+        public bool UseSpeedForAvgCalc { get; set; }
+
+        private int _avgBearingMinutes;
+        public TimeSpan AvgBearingTime => new TimeSpan(_avgBearingMinutes / 60, _avgBearingMinutes % 60, 0);
+        private int _avgSpeedMinutes;
+        public TimeSpan AvgSpeedTime => new TimeSpan(_avgSpeedMinutes / 60, _avgSpeedMinutes % 60, 0);
+        private int _peakGustMinutes;
+        public TimeSpan PeakGustTime => new TimeSpan(_peakGustMinutes / 60, _peakGustMinutes % 60, 0);
 
 
+
+
+        public bool NoSensorCheck { get; set; }
+        public bool CalculatedDP { get; set; }
+        public bool CalculatedWC { get; set; }
 
         public int RolloverHour { get; set; }
+
         public bool Use10amInSummer { get; set; }
 
 
 
-        public double RStransfactor = 0.8;
-
+        public bool SyncTime { get; set; }
+        public int ClockSettingHour { get; set; }
+        public bool WS2300IgnoreStationClock { get; set; }
 
         public bool LogExtraSensors { get; set; }
 
-        public bool UseDavisLoop2 { get; set; }
-        public bool DavisReadReceptionStats { get; set; }
-        public int DavisReadTimeout { get; set; }
+
+        public bool ReportDataStoppedErrors { get; set; }
+        public bool ReportLostSensorContact { get; set; }
+        public bool NoFlashWetDryDayRecords { get; set; }
+        public bool ErrorLogSpikeRemoval { get; set; }
+        public int DataLogInterval { get; set; }
 
 
-
-        private string twitterKey = "lQiGNdtlYUJ4wS3d7souPw";
-        private string twitterSecret = "AoB7OqimfoaSfGQAd47Hgatqdv3YeTTiqpinkje6Xg";
-
+        public bool SyncFOReads { get; set; }
+        public int FOReadAvoidPeriod { get; set; }
         public int FineOffsetReadTime { get; set; }
 
-        private readonly string AlltimeFile;
-        public string AlltimeIniFile;
-        public string Alltimelogfile;
-        public string MonthlyAlltimeIniFile;
-        private readonly string LogFilePath;
-        public string DayFile;
-        public string YesterdayFile;
-        public string TodayIniFile;
-        public string MonthIniFile;
-        public string YearIniFile;
-        //private readonly string stringsFile;
-        private readonly string backuppath;
-        //private readonly string ExternaldataFile;
-        public string WebTagFile;
-        private readonly string Indexfile;
-        private readonly string Todayfile;
-        private readonly string Yesterfile;
-        private readonly string Recordfile;
-        private readonly string Trendsfile;
-        private readonly string Gaugesfile;
-        private readonly string ThisMonthfile;
-        private readonly string ThisYearfile;
-        private readonly string MonthlyRecordfile;
 
-        private readonly string[] localwebtextfiles;
-        private readonly string[] remotewebtextfiles;
-
-        public bool SynchronisedWebUpdate;
-        public bool SynchronisedWUUpdate;
-        public bool SynchronisedAwekasUpdate;
-        public bool SynchronisedWCloudUpdate;
-        public bool SynchronisedWOWUpdate;
-        public bool SynchronisedPWSUpdate;
-        public bool SynchronisedTwitterUpdate;
-        public bool SynchronisedWBUpdate;
-        public bool SynchronisedAPRSUpdate;
-
-        private List<string> WundList = new List<string>();
-        private List<string> PWSList = new List<string>();
-        private List<string> WeatherbugList = new List<string>();
-        private List<string> WOWList = new List<string>();
-
-        private List<string> MySqlList = new List<string>();
-
-        // Calibration settings
-        /// <summary>
-        /// User pressure calibration
-        /// </summary>
-        public double PressOffset { get; private set; }
-
-        public double TempOffset { get; private set; }
-        public int HumOffset { get; private set; }
-        public int WindDirOffset { get; private set; }
-        public double InTempoffset { get; private set; }
-        public double UVOffset { get; private set; }
-        public double WetBulbOffset { get; private set; }
-
-        public double WindSpeedMult = 1.0;
-        public double WindGustMult = 1.0;
-        public double TempMult = 1.0;
-        public double TempMult2 = 0.0;
-        public double HumMult = 1.0;
-        public double HumMult2 = 0.0;
-        public double RainMult = 1.0;
-        public double UVMult = 1.0;
-        public double WetBulbMult = 1.0;
-
-        //private int CurrentYear;
-        //private int CurrentMonth;
-        //private int CurrentDay;
-
-        public bool ListWebTags;
-
-        public bool RealtimeEnabled; // The timer is to be started
-        public bool RealtimeFTPEnabled; // The FTP connection is to be established
-        public bool RealtimeTxtFTP; // The realtime.txt file is to be uploaded
-        public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
-
-        // Twitter settings
-        public string Twitteruser = " ";
-        public string TwitterPW = " ";
-        public bool TwitterEnabled = false;
-        public int TwitterInterval = 10;
-        private string TwitterOauthToken = "unknown";
-        private string TwitterOauthTokenSecret = "unknown";
-
-        // Wunderground settings
-        public string WundID = " ";
-        public string WundPW = " ";
-        public bool WundEnabled = false;
-        public bool WundRapidFireEnabled = false;
-        public int WundInterval = 15;
-        private bool HTTPLogging = false;
-        public bool SendUVToWund = false;
-        public bool SendSRToWund = false;
-        public bool SendIndoorToWund = false;
-        public bool WundSendAverage = false;
-        public bool WundCatchUp = true;
-        public bool WundCatchingUp = false;
-
-        // PWS Weather settings
-        public string PWSID = " ";
-        public string PWSPW = " ";
-        public bool PWSEnabled = false;
-        public int PWSInterval = 15;
-        public bool SendUVToPWS = false;
-        public bool SendSRToPWS = false;
-        public bool PWSCatchUp = true;
-        public bool PWSCatchingUp = false;
-
-        // WOW settings
-        public string WOWID = " ";
-        public string WOWPW = " ";
-        public bool WOWEnabled = false;
-        public int WOWInterval = 15;
-        public bool SendUVToWOW = false;
-        public bool SendSRToWOW = false;
-        public bool WOWCatchUp = true;
-        public bool WOWCatchingUp = false;
-
-        // Weatherbug settings
-        public string WeatherbugID = " ";
-        public string WeatherbugNumber = " ";
-        public string WeatherbugPW = " ";
-        public bool WeatherbugEnabled = false;
-        public int WeatherbugInterval = 15;
-        public bool SendUVToWeatherbug = false;
-        public bool SendSRToWeatherbug = false;
-        public bool WeatherbugCatchUp = true;
-        public bool WeatherbugCatchingUp = false;
-
-        // APRS settings
-        public string APRSserver = "cwop.aprs.net";
-        public int APRSport = 14580;
-        public int APRSinterval = 9;
-        public bool APRSenabled = false;
-        public string APRSID = "";
-        public string APRSpass = "-1";
-        public bool SendSRToAPRS = false;
-
-        // Awekas settings
-        public string AwekasUser = " ";
-        public string AwekasPW = " ";
-        public bool AwekasEnabled = false;
-        public int AwekasInterval = 15;
-        public string AwekasLang = "en";
-        public bool SendUVToAwekas;
-        public bool SendSolarToAwekas;
-        public bool SendSoilTempToAwekas;
-
-        // WeatherCloud settings
-        public string WCloudWid = " ";
-        public string WCloudKey = " ";
-        public bool WCloudEnabled = false;
-        public int WCloudInterval = DefaultWCloudInterval;
-        public bool SendUVToWCloud;
-        public bool SendSolarToWCloud;
-
-        // NOAA report settings
-        public string NOAAname;
-        public string NOAAcity;
-        public string NOAAstate;
-        public double NOAAheatingthreshold;
-        public double NOAAcoolingthreshold;
-        public double NOAAmaxtempcomp1;
-        public double NOAAmaxtempcomp2;
-        public double NOAAmintempcomp1;
-        public double NOAAmintempcomp2;
-        public double NOAAraincomp1;
-        public double NOAAraincomp2;
-        public double NOAAraincomp3;
-        public bool NOAA12hourformat;
-        public bool NOAAAutoSave;
-        public bool NOAAAutoFTP;
-        public bool NOAANeedFTP = false;
-        public string NOAAMonthFileFormat;
-        public string NOAAYearFileFormat;
-        public string NOAAFTPDirectory;
-        public string NOAALatestMonthlyReport;
-        public string NOAALatestYearlyReport;
-        public bool NOAAUseUTF8;
-
-        public double NOAATempNormJan;
-        public double NOAATempNormFeb;
-        public double NOAATempNormMar;
-        public double NOAATempNormApr;
-        public double NOAATempNormMay;
-        public double NOAATempNormJun;
-        public double NOAATempNormJul;
-        public double NOAATempNormAug;
-        public double NOAATempNormSep;
-        public double NOAATempNormOct;
-        public double NOAATempNormNov;
-        public double NOAATempNormDec;
-
-        public double NOAARainNormJan;
-        public double NOAARainNormFeb;
-        public double NOAARainNormMar;
-        public double NOAARainNormApr;
-        public double NOAARainNormMay;
-        public double NOAARainNormJun;
-        public double NOAARainNormJul;
-        public double NOAARainNormAug;
-        public double NOAARainNormSep;
-        public double NOAARainNormOct;
-        public double NOAARainNormNov;
-        public double NOAARainNormDec;
-
-        public bool IsOSX;
-
-        private const double DEFAULTFCLOWPRESS = 950.0;
-        private const double DEFAULTFCHIGHPRESS = 1050.0;
-
-        private const string ForumDefault = "https://cumulus.hosiene.co.uk/";
-
-        private const string WebcamDefault = "";
-
-        private const string DefaultSoundFile = "alert.wav";
-
-        public int RealtimeInterval;
-
-        public string ForecastNotAvailable;
-
-        //// Custom HTTP - seconds
-        //private static HttpClientHandler customHttpSecondsHandler = new HttpClientHandler();
-        //private HttpClient customHttpSecondsClient = new HttpClient(customHttpSecondsHandler);
-        //private bool updatingCustomHttpSeconds = false;
-        //private TokenParser customHttpSecondsTokenParser = new TokenParser();
-        //internal Timer CustomHttpSecondsTimer;
-        internal bool CustomHttpSecondsEnabled;
-        internal string CustomHttpSecondsString;
-        internal int CustomHttpSecondsInterval;
-
-        //// Custom HTTP - minutes
-        //private static HttpClientHandler customHttpMinutesHandler = new HttpClientHandler();
-        //private HttpClient customHttpMinutesClient = new HttpClient(customHttpMinutesHandler);
-        //private bool updatingCustomHttpMinutes = false;
-        //private TokenParser customHttpMinutesTokenParser = new TokenParser();
-        internal bool CustomHttpMinutesEnabled;
-        internal string CustomHttpMinutesString;
-        internal int CustomHttpMinutesInterval;
-        internal int CustomHttpMinutesIntervalIndex;
-
-        //// Custom HTTP - rollover
-        //private static HttpClientHandler customHttpRolloverHandler = new HttpClientHandler();
-        //private HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
-        //private bool updatingCustomHttpRollover = false;
-        //private TokenParser customHttpRolloverTokenParser = new TokenParser();
-        internal bool CustomHttpRolloverEnabled;
-        internal string CustomHttpRolloverString;
-
-        public string xapHeartbeat;
-        public string xapsource;
-
-        //public MySqlConnection MonthlyMySqlConn = new MySqlConnection();
-        //public MySqlConnection RealtimeSqlConn = new MySqlConnection();
-        //public MySqlConnection CustomMysqlSecondsConn = new MySqlConnection();
-        //public MySqlCommand CustomMysqlSecondsCommand = new MySqlCommand();
-        //public MySqlConnection CustomMysqlMinutesConn = new MySqlConnection();
-        //public MySqlCommand CustomMysqlMinutesCommand = new MySqlCommand();
-        //public MySqlConnection CustomMysqlRolloverConn = new MySqlConnection();
-        //public MySqlCommand CustomMysqlRolloverCommand = new MySqlCommand();
-        public string MySqlHost;
-        public int MySqlPort;
-        public string MySqlUser;
-        public string MySqlPass;
-        public string MySqlDatabase;
-
-        public bool RealtimeMySqlEnabled;
-        public bool MonthlyMySqlEnabled;
-        public bool DayfileMySqlEnabled;
-
-        public string MySqlMonthlyTable;
-        public string MySqlDayfileTable;
-        public string MySqlRealtimeTable;
-        public string MySqlRealtimeRetention;
-        public string StartOfMonthlyInsertSQL;
-        public string StartOfDayfileInsertSQL;
-        public string StartOfRealtimeInsertSQL;
-        public string DeleteRealtimeSQL;
-
-        public string CreateMonthlySQL;
-        public string CreateDayfileSQL;
-        public string CreateRealtimeSQL;
-
-        public string CustomMySqlSecondsCommandString;
-        public string CustomMySqlMinutesCommandString;
-        public string CustomMySqlRolloverCommandString;
-
-        public bool CustomMySqlSecondsEnabled;
-        public bool CustomMySqlMinutesEnabled;
-        public bool CustomMySqlRolloverEnabled;
-
-        public int CustomMySqlSecondsInterval;
-        public int CustomMySqlMinutesInterval;
-        public int CustomMySqlMinutesIntervalIndex;
-
-        private bool customMySqlSecondsUpdateInProgress = false;
-        private bool customMySqlMinutesUpdateInProgress = false;
-        private bool customMySqlRolloverUpdateInProgress = false;
-
-
-        public string[] StationDesc =
-        {
-            "Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-            "LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet"
-        };
-
-        public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet" };
-
-
-
-
-
-        public bool UseBlakeLarsen { get; set; }
-
-        public double LuxToWM2 { get; set; }
-
-        public int SolarMinimum { get; set; }
-
-        public int SunThreshold { get; set; }
-
-        public int SolarCalc { get; set; }
-
-        public double BrasTurbidity { get; set; }
-
-        public int xapPort { get; set; }
-
-        public string xapUID { get; set; }
-
-        public bool xapEnabled { get; set; }
-
-        public bool APRSHumidityCutoff { get; set; }
-
+        public int WindUnit { get; set; }
+        public int PressUnit { get; set; }
+        public int RainUnit { get; set; }
+        public int TempUnit { get; set; }
+        public bool RoundWindSpeed { get; set; }
         public bool CloudBaseInFeet { get; set; }
 
-        public string WebcamURL { get; set; }
+        public int WindDPlaces { get; set; }
+        public int TempDPlaces { get; set; }
+        public int PressDPlaces { get; set; }
+        public int RainDPlaces { get; set; }
 
-        public string ForumURL { get; set; }
 
-        public string DailyParams { get; set; }
+        #region EasyWeather Settings
+        public double EWInterval { get; set; }
+        public string EWFile { get; set; }
+        public bool EWallowFF { get; set; }
+        public bool EWdisablecheckinit { get; set; }
+        public bool EWduplicatecheck { get; set; }
+        public double EWtempdiff { get; set; }
+        public double EWpressurediff { get; set; }
+        public double EWhumiditydiff { get; set; }
+        public double EWgustdiff { get; set; }
+        public double EWwinddiff { get; set; }
+        public double EWmaxRainRate { get; set; }
+        public double EWmaxHourlyRain { get; set; }
+        public int EWminpressureMB { get; set; }
+        public int EWmaxpressureMB { get; set; }
+        public int EWMaxRainTipDiff { get; set; }
+        public double EWpressureoffset { get; set; }
+        #endregion
 
-        public string RealtimeParams { get; set; }
 
-        public string ExternalParams { get; set; }
+        #region Lacrosse settings
+        public int LCMaxWind { get; set; }
+        #endregion
 
-        public string DailyProgram { get; set; }
 
-        public string RealtimeProgram { get; set; }
-
-        public string ExternalProgram { get; set; }
-
-        public TExtraFiles[] ExtraFiles = new TExtraFiles[numextrafiles];
-
-        public int MaxFTPconnectRetries { get; set; }
-
-        public bool DeleteBeforeUpload { get; set; }
-
-        public bool FTPRename { get; set; }
-
-        public int UpdateInterval { get; set; }
-
-        //public Timer RealtimeTimer = new Timer();
-
-        //internal Timer CustomMysqlSecondsTimer;
-
-        public bool ActiveFTPMode { get; set; }
-
-        public bool Sslftp { get; set; }
-        public bool DisableEPSV { get; set; }
-
-        public bool FTPlogging { get; set; }
-
-        public bool WebAutoUpdate { get; set; }
-
-        public string ftp_directory { get; set; }
-
-        public string ftp_password { get; set; }
-
-        public string ftp_user { get; set; }
-
-        public int ftp_port { get; set; }
-
-        public string ftp_host { get; set; }
-
-        public bool CreateWxnowTxt { get; set; }
-
-        public int WMR200TempChannel { get; set; }
-
-        public int WMR928TempChannel { get; set; }
-
-        public int RTdisconnectcount { get; set; }
-
+        #region Davis Station Settings
+        public bool UseDavisLoop2 { get; set; }
+        public bool DavisReadReceptionStats { get; set; }
+        public int DavisInitWaitTime { get; set; }
+        public int DavisIPResponseTime { get; set; }
+        public int DavisReadTimeout { get; set; }
+        public bool DavisIncrementPressureDP { get; set; }
+        public bool ForceVPBarUpdate { get; set; }
+        public bool DavisUseDLLBarCalData { get; set; }
+        public bool DavisCalcAltPress { get; set; }
+        public bool DavisConsoleHighGust { get; set; }
+        public int VPrainGaugeType { get; set; }
+        public bool UseDataLogger { get; set; }
+        public int VP2ConnectionType { get; set; }
+        public int VP2TCPPort { get; set; }
+        public string VP2IPAddr { get; set; }
         public int VP2PeriodicDisconnectInterval { get; set; }
 
-        public int VP2SleepInterval { get; set; }
+        #endregion
 
-        public int VPClosedownTime { get; set; }
 
-        public bool WarnMultiple { get; set; }
-
-        public string VP2IPAddr { get; set; }
-
-        public int VP2TCPPort { get; set; }
-
-        public int VP2ConnectionType { get; set; }
-
-        public bool logging { get; set; }
-        public bool DataLogging { get; set; }
-
-        public bool solar_logging { get; set; }
-
-        public bool special_logging { get; set; }
-
-        public bool RG11DTRmode2 { get; set; }
-
-        public bool RG11IgnoreFirst2 { get; set; }
-
-        public double RG11tipsize2 { get; set; }
-
-        public bool RG11TBRmode2 { get; set; }
-
-        public string RG11Port2 { get; set; }
-
-        public bool RG11DTRmode { get; set; }
-
-        public bool RG11IgnoreFirst { get; set; }
-
-        public double RG11tipsize { get; set; }
-
-        public bool RG11TBRmode { get; set; }
-
-        public string RG11Port { get; set; }
-
-        public double ChillHourThreshold { get; set; }
-
-        public int ChillHourSeasonStart { get; set; }
-
-        public int RainSeasonStart { get; set; }
-
-        public double FCPressureThreshold { get; set; }
-
-        public double FChighpress { get; set; }
-
-        public double FClowpress { get; set; }
-
-        public bool FCpressinMB { get; set; }
-
-        public double RainDayThreshold { get; set; }
-
-        public int SnowDepthHour { get; set; }
-
-        public bool UseWindChillCutoff { get; set; }
-
-        public bool UseCumulusPresstrendstr { get; set; }
-
-        public bool HourlyForecast { get; set; }
-
-        public bool UseCumulusForecast { get; set; }
-
-        public bool UseDataLogger { get; set; }
+        #region Imet settings
 
         public int ImetWaitTime { get; set; }
-
         public bool ImetUpdateLogPointer { get; set; }
+        #endregion
 
-        public bool DavisConsoleHighGust { get; set; }
 
-        public bool DavisCalcAltPress { get; set; }
+        #region WMR Settings
+        public int WMR928TempChannel { get; set; }
+        public int WMR200TempChannel { get; set; }
+        #endregion
 
-        public bool DavisUseDLLBarCalData { get; set; }
 
-        public bool ForceVPBarUpdate { get; set; }
+        public bool UseCumulusForecast { get; set; }
+        public bool HourlyForecast { get; set; }
+        public bool UseCumulusPresstrendstr { get; set; }
+        public int SnowDepthHour { get; set; }
+        public bool UseZeroBearing { get; set; }
+        public double RainDayThreshold { get; set; }
+        public bool FCpressinMB { get; set; }
+        public double FClowpress { get; set; }
+        public double FChighpress { get; set; }
+        public double FCPressureThreshold { get; set; }
+        public int RainSeasonStart { get; set; }
+        public int ChillHourSeasonStart { get; set; }
+        public double ChillHourThreshold { get; set; }
 
-        public int LCMaxWind { get; set; }
 
-        public double EWpressureoffset { get; set; }
 
-        public int EWMaxRainTipDiff { get; set; }
+        public string RG11Port { get; set; }
+        public bool RG11TBRmode { get; set; }
+        public double RG11tipsize { get; set; }
+        public bool RG11IgnoreFirst { get; set; }
+        public bool RG11DTRmode { get; set; }
+        public string RG11Port2 { get; set; }
+        public bool RG11TBRmode2 { get; set; }
+        public double RG11tipsize2 { get; set; }
+        public bool RG11IgnoreFirst2 { get; set; }
+        public bool RG11DTRmode2 { get; set; }
 
-        public int EWmaxpressureMB { get; set; }
 
-        public int EWminpressureMB { get; set; }
 
-        public double EWmaxHourlyRain { get; set; }
+        public bool CreateWxnowTxt { get; set; }
+        public bool ListWebTags { get; set; }
+        #endregion
 
-        public double EWmaxRainRate { get; set; }
 
-        public double EWwinddiff { get; set; }
+        #region Solar settings
+        public int SunThreshold { get; set; }
+        public double RStransfactor { get; set; }
+        public int SolarMinimum { get; set; }
+        public double LuxToWM2 { get; set; }
+        public bool UseBlakeLarsen { get; set; }
+        public int SolarCalc { get; set; }
+        public double BrasTurbidity { get; set; }
+        #endregion
 
-        public double EWgustdiff { get; set; }
 
-        public double EWhumiditydiff { get; set; }
+        #region Calibration settings
+        public double PressOffset { get; set; }
+        public double TempOffset { get; set; }
+        public int HumOffset { get; set; }
+        public int WindDirOffset { get; set; }
+        public double InTempoffset { get; set; }
+        public double UVOffset { get; set; }
+        public double WetBulbOffset { get; set; }
 
-        public double EWpressurediff { get; set; }
+        public double WindSpeedMult { get; set; }
+        public double WindGustMult { get; set; }
+        public double TempMult { get; set; }
+        public double TempMult2 { get; set; }
+        public double HumMult { get; set; }
+        public double HumMult2 { get; set; }
+        public double RainMult { get; set; }
+        public double UVMult { get; set; }
+        public double WetBulbMult { get; set; }
+        #endregion
 
-        public double EWtempdiff { get; set; }
 
-        public bool EWduplicatecheck { get; set; }
+        #region FTP Settings
 
-        public string RecordsBeganDate { get; set; }
+        public string ftp_host { get; set; }
+        public int ftp_port { get; set; }
+        public string ftp_user { get; set; }
+        public string ftp_password { get; set; }
+        public string ftp_directory { get; set; }
 
-        public bool EWdisablecheckinit { get; set; }
+        public bool WebAutoUpdate { get; set; }
+        public bool ActiveFTPMode { get; set; }
+        public bool Sslftp { get; set; }
+        public bool DisableEPSV { get; set; }
+        public bool FTPlogging { get; set; }
 
-        public bool EWallowFF { get; set; }
+        public bool RealtimeEnabled { get; set; } // The timer is to be started
+        public bool RealtimeFTPEnabled { get; set; } // The FTP connection is to be established
+        public bool RealtimeTxtFTP { get; set; } // The realtime.txt file is to be uploaded
+        public bool RealtimeGaugesTxtFTP { get; set; } // The realtimegauges.txt file is to be uploaded
+        public int RealtimeInterval { get; set; }
+        public int UpdateInterval { get; set; }
+        public bool SynchronisedWebUpdate { get; set; }
+        public bool IncludeStandardFiles { get; set; }
+        public bool IncludeGraphDataFiles { get; set; }
+        public bool FTPRename { get; set; }
+        public bool UTF8encode { get; set; }
+        public bool DeleteBeforeUpload { get; set; }
+        public TExtraFiles[] ExtraFiles = new TExtraFiles[numextrafiles];
+        public string ExternalProgram { get; set; }
+        public string RealtimeProgram { get; set; }
+        public string DailyProgram { get; set; }
+        public string ExternalParams { get; set; }
+        public string RealtimeParams { get; set; }
+        public string DailyParams { get; set; }
+        #endregion
 
-        public string EWFile { get; set; }
 
-        public double EWInterval { get; set; }
+        #region Web
+        public string ForumURL { get; set; }
+        public string WebcamURL { get; set; }
+        #endregion
 
-        public int YTDrainyear { get; set; }
 
-        public double YTDrain { get; set; }
+        #region Graphs
+        public int GraphDays { get; set; }
+        public int GraphHours { get; set; }
 
-        public string LocationDesc { get; set; }
+        #endregion
 
-        public string LocationName { get; set; }
 
-        public string HTTPProxyPassword { get; set; }
+        #region Wunderground settings
 
-        public string HTTPProxyUser { get; set; }
+        public string WundID { get; set; }
+        public string WundPW { get; set; }
+        public bool WundEnabled { get; set; }
+        public bool WundRapidFireEnabled { get; set; }
+        public int WundInterval { get; set; }
+        public bool SendUVToWund { get; set; }
+        public bool SendSRToWund { get; set; }
+        public bool SendIndoorToWund { get; set; }
+        public bool SendSoilTemp1ToWund { get; set; }
+        public bool SendSoilTemp2ToWund { get; set; }
+        public bool SendSoilTemp3ToWund { get; set; }
+        public bool SendSoilTemp4ToWund { get; set; }
+        public bool SendSoilMoisture1ToWund { get; set; }
+        public bool SendSoilMoisture2ToWund { get; set; }
+        public bool SendSoilMoisture3ToWund { get; set; }
+        public bool SendSoilMoisture4ToWund { get; set; }
+        public bool SendLeafWetness1ToWund { get; set; }
+        public bool SendLeafWetness2ToWund { get; set; }
+        public bool WundSendAverage { get; set; }
+        public bool WundCatchUp { get; set; }
+        public bool WundCatchingUp { get; set; }
+        public bool SynchronisedWUUpdate { get; set; }
+        #endregion
 
-        public int HTTPProxyPort { get; set; }
 
+        #region Awekas settings
+        public string AwekasUser { get; set; }
+        public string AwekasPW { get; set; }
+        public bool AwekasEnabled { get; set; }
+        public int AwekasInterval { get; set; }
+        public string AwekasLang { get; set; }
+        public bool SendUVToAwekas { get; set; }
+        public bool SendSolarToAwekas { get; set; }
+        public bool SendSoilTempToAwekas { get; set; }
+        public bool SynchronisedAwekasUpdate { get; set; }
+        #endregion
+
+
+        #region WeatherCloud settings
+        public string WCloudWid { get; set; }
+        public string WCloudKey { get; set; }
+        public bool WCloudEnabled { get; set; }
+        public int WCloudInterval { get; set; }
+        public bool SendUVToWCloud { get; set; }
+        public bool SendSolarToWCloud { get; set; }
+        public bool SynchronisedWCloudUpdate { get; set; }
+        #endregion 
+
+
+        #region Twitter settings
+        public string Twitteruser { get; set; }
+        public string TwitterPW { get; set; }
+        public bool TwitterEnabled { get; set; }
+        public int TwitterInterval { get; set; }
+        private string TwitterOauthToken { get; set; }
+        private string TwitterOauthTokenSecret { get; set; }
+        public bool TwitterSendLocation { get; set; }
+        public bool SynchronisedTwitterUpdate { get; set; }
+        #endregion
+
+
+        #region PWSWeather settings
+        public string PWSID { get; set; }
+        public string PWSPW { get; set; }
+        public bool PWSEnabled { get; set; }
+        public int PWSInterval { get; set; }
+        public bool SendUVToPWS { get; set; }
+        public bool SendSRToPWS { get; set; }
+        public bool PWSCatchUp { get; set; }
+        public bool SynchronisedPWSUpdate { get; set; }
+        #endregion
+
+
+        #region WOW settings
+        public string WOWID { get; set; }
+        public string WOWPW { get; set; }
+        public bool WOWEnabled { get; set; }
+        public int WOWInterval { get; set; }
+        public bool SendUVToWOW { get; set; }
+        public bool SendSRToWOW { get; set; }
+        public bool WOWCatchUp { get; set; }
+        public bool SynchronisedWOWUpdate { get; set; }
+        #endregion
+
+
+        #region Weatherbug settings
+        public string WeatherbugID { get; set; }
+        public string WeatherbugNumber { get; set; }
+        public string WeatherbugPW { get; set; }
+        public bool WeatherbugEnabled { get; set; }
+        public int WeatherbugInterval { get; set; }
+        public bool SendUVToWeatherbug { get; set; }
+        public bool SendSRToWeatherbug { get; set; }
+        public bool WeatherbugCatchUp { get; set; }
+        public bool SynchronisedWBUpdate { get; set; }
+        #endregion
+
+
+        #region APRS Settings
+        public string APRSserver { get; set; }
+        public string APRSID { get; set; }
+        public string APRSpass { get; set; }
+        public int APRSport { get; set; }
+        public int APRSinterval { get; set; }
+        public bool APRSenabled { get; set; }
+        public bool APRSHumidityCutoff { get; set; }
+        public bool SendSRToAPRS { get; set; }
+        public bool SynchronisedAPRSUpdate { get; set; }
+        #endregion
+
+
+        #region xAP Settings
+        public bool xapEnabled { get; set; }
+        public string xapUID { get; set; }
+        public int xapPort { get; set; }
+        #endregion
+
+
+        #region NOAA Settings
+        public string NOAAname { get; set; }
+        public string NOAAcity { get; set; }
+        public string NOAAstate { get; set; }
+        public bool NOAA12hourformat { get; set; }
+        public double NOAAheatingthreshold { get; set; }
+        public double NOAAcoolingthreshold { get; set; }
+        public double NOAAmaxtempcomp1 { get; set; }
+        public double NOAAmaxtempcomp2 { get; set; }
+        public double NOAAmintempcomp1 { get; set; }
+        public double NOAAmintempcomp2 { get; set; }
+        public double NOAAraincomp1 { get; set; }
+        public double NOAAraincomp2 { get; set; }
+        public double NOAAraincomp3 { get; set; }
+        public bool NOAAAutoSave { get; set; }
+        public bool NOAAAutoFTP { get; set; }
+        public bool NOAANeedFTP { get; set; }
+        public string NOAAMonthFileFormat { get; set; }
+        public string NOAAYearFileFormat { get; set; }
+        public string NOAAFTPDirectory { get; set; }
+        public string NOAALatestMonthlyReport { get; set; }
+        public string NOAALatestYearlyReport { get; set; }
+        public bool NOAAUseUTF8 { get; set; }
+
+        public double NOAATempNormJan { get; set; }
+        public double NOAATempNormFeb { get; set; }
+        public double NOAATempNormMar { get; set; }
+        public double NOAATempNormApr { get; set; }
+        public double NOAATempNormMay { get; set; }
+        public double NOAATempNormJun { get; set; }
+        public double NOAATempNormJul { get; set; }
+        public double NOAATempNormAug { get; set; }
+        public double NOAATempNormSep { get; set; }
+        public double NOAATempNormOct { get; set; }
+        public double NOAATempNormNov { get; set; }
+        public double NOAATempNormDec { get; set; }
+
+        public double NOAARainNormJan { get; set; }
+        public double NOAARainNormFeb { get; set; }
+        public double NOAARainNormMar { get; set; }
+        public double NOAARainNormApr { get; set; }
+        public double NOAARainNormMay { get; set; }
+        public double NOAARainNormJun { get; set; }
+        public double NOAARainNormJul { get; set; }
+        public double NOAARainNormAug { get; set; }
+        public double NOAARainNormSep { get; set; }
+        public double NOAARainNormOct { get; set; }
+        public double NOAARainNormNov { get; set; }
+        public double NOAARainNormDec { get; set; }
+        #endregion
+
+
+        #region Proxy Settings
         public string HTTPProxyName { get; set; }
+        public int HTTPProxyPort { get; set; }
+        public string HTTPProxyUser { get; set; }
+        public string HTTPProxyPassword { get; set; }
+        #endregion
+
+
+        #region Display settings
+        public int NumWindRosePoints { get; set; }
+        public double WindRoseAngle { get; set; }
+        #endregion
+
+
+        #region MySql settings
+        public string MySqlHost { get; set; }
+        public int MySqlPort { get; set; }
+        public string MySqlUser { get; set; }
+        public string MySqlPass { get; set; }
+        public string MySqlDatabase { get; set; }
+
+        public bool RealtimeMySqlEnabled { get; set; }
+        public string MySqlRealtimeTable { get; set; }
+        public string MySqlRealtimeRetention { get; set; }
+
+        public bool MonthlyMySqlEnabled { get; set; }
+        public string MySqlMonthlyTable { get; set; }
+
+        public bool DayfileMySqlEnabled { get; set; }
+        public string MySqlDayfileTable { get; set; }
+
+        public bool CustomMySqlSecondsEnabled { get; set; }
+        public string CustomMySqlSecondsCommandString { get; set; }
+        public int CustomMySqlSecondsInterval { get; set; }
+
+        public bool CustomMySqlMinutesEnabled { get; set; }
+        public string CustomMySqlMinutesCommandString { get; set; }
+        public int CustomMySqlMinutesInterval { get; set; }
+        public int CustomMySqlMinutesIntervalIndex { get; set; }
+
+        public bool CustomMySqlRolloverEnabled { get; set; }
+        public string CustomMySqlRolloverCommandString { get; set; }
+
+        public string StartOfMonthlyInsertSQL { get; set; }
+        public string StartOfDayfileInsertSQL { get; set; }
+        public string StartOfRealtimeInsertSQL { get; set; }
+        public string DeleteRealtimeSQL { get; set; }
+
+        public string CreateMonthlySQL { get; set; }
+        public string CreateDayfileSQL { get; set; }
+        public string CreateRealtimeSQL { get; set; }
+        #endregion
+
+
+        #region CustomHttp Settings
+        internal bool CustomHttpSecondsEnabled { get; set; }
+        internal string CustomHttpSecondsString { get; set; }
+        internal int CustomHttpSecondsInterval { get; set; }
+
+        internal bool CustomHttpMinutesEnabled { get; set; }
+        internal string CustomHttpMinutesString { get; set; }
+        internal int CustomHttpMinutesInterval { get; set; }
+        internal int CustomHttpMinutesIntervalIndex { get; set; }
+
+        internal bool CustomHttpRolloverEnabled { get; set; }
+        internal string CustomHttpRolloverString { get; set; }
+        #endregion
+
+
+        internal int[] FactorsOf60 = { 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60 };
+                
+
 
         public int[] WindDPlace = { 1, 1, 1, 1 };
         public int[] TempDPlace = { 1, 1 };
@@ -802,197 +555,27 @@ namespace Cumulus4.Configuration
         public int[] RainDPlace = { 1, 2 };
         public const int numextrafiles = 99;
 
-        public bool RoundWindSpeed { get; set; }
-
-        public int RainUnit { get; set; }
-
-        public int PressUnit { get; set; }
-
-        public int WindUnit { get; set; }
-
-        public bool WS2300Sync { get; set; }
-
-        public int FOReadAvoidPeriod { get; set; }
-
-        public bool SyncFOReads { get; set; }
-
-        public bool ErrorLogSpikeRemoval { get; set; }
-
-        public bool NoFlashWetDryDayRecords { get; set; }
-
-        public bool ReportLostSensorContact { get; set; }
-
-        public bool ReportDataStoppedErrors { get; set; }
-
-        public bool WS2300IgnoreStationClock { get; set; }
-
-        public bool SyncTime { get; set; }
-
-        public int ClockSettingHour { get; set; }
-
-        public bool RestartIfDataStops { get; set; }
-
-        public bool RestartIfUnplugged { get; set; }
-
-        public bool CloseOnSuspend { get; set; }
-
-        public bool ConfirmClose { get; set; }
-
-        public int DataLogInterval { get; set; }
-
-        public bool CalculatedWC { get; set; }
-
-        public bool CalculatedDP { get; set; }
-
-        public bool NoSensorCheck { get; set; }
-
-        public int serial_port { get; set; }
-
-        public int UVdecimals { get; set; }
-
-        public int UVdecimaldefault { get; set; }
-
-        public string LonTxt { get; set; }
-
-        public string LatTxt { get; set; }
-
-        public int AvgBearingMinutes { get; set; }
-
-        public bool Humidity98Fix { get; set; }
-
-        public int TempUnit { get; set; }
-
-        public bool AltitudeInFeet { get; set; }
-
-        public string StationModel { get; set; }
-
-        public int StationType { get; set; }
-
-
-        public string LatestImetReading { get; set; }
-
-        public bool FineOffsetStation { get; set; }
-
-        public bool DavisStation { get; set; }
-        public string TempTrendFormat { get; set; }
-        public string AppDir { get; set; }
-
-        public int Manufacturer { get; set; }
-        public int ImetLoggerInterval { get; set; }
-        public TimeSpan DayLength { get; set; }
-        public DateTime Dawn;
-        public DateTime Dusk;
-        public TimeSpan DaylightLength { get; set; }
-        public int DavisInitWaitTime { get; set; }
-        public int DavisIPResponseTime { get; set; }
-        public int GraphHours { get; set; }
-
-        //private WeatherStation Station
-        //{
-        //    set { station = value; }
-        //    get { return station; }
-
-        //}
-
-        //public Timer WundTimer = new Timer();
-        //public Timer PWSTimer = new Timer();
-        //public Timer WOWTimer = new Timer();
-        //public Timer WeatherbugTimer = new Timer();
-        //public Timer APRStimer = new Timer();
-        //public Timer WebTimer = new Timer();
-        //public Timer TwitterTimer = new Timer();
-        //public Timer AwekasTimer = new Timer();
-        //public Timer WCloudTimer = new Timer();
-
-        public int DAVIS = 0;
-        public int OREGON = 1;
-        public int EW = 2;
-        public int LACROSSE = 3;
-        public int OREGONUSB = 4;
-        public int INSTROMET = 5;
-        public bool startingup = true;
-        public bool StartOfDayBackupNeeded = false;
-        public string ReportPath = "Reports";
-        public string LatestError;
-        public DateTime LatestErrorTS = DateTime.MinValue;
-        public string wxnowfile = "wxnow.txt";
-        private readonly string IndexTFile;
-        private readonly string TodayTFile;
-        private readonly string YesterdayTFile;
-        private readonly string RecordTFile;
-        private readonly string MonthlyRecordTFile;
-        private readonly string TrendsTFile;
-        private readonly string ThisMonthTFile;
-        private readonly string ThisYearTFile;
-        private readonly string GaugesTFile;
-        private readonly string RealtimeFile = "realtime.txt";
-        private readonly string RealtimeGaugesTxtTFile;
-        private readonly string RealtimeGaugesTxtFile;
-        private readonly string TwitterTxtFile;
-        public bool IncludeStandardFiles = true;
-        public bool IncludeGraphDataFiles;
-        public bool TwitterSendLocation;
-        private const int numwebtextfiles = 9;
-        //private FtpClient RealtimeFTP = new FtpClient();
-        private bool RealtimeInProgress = false;
-        public bool SendSoilTemp1ToWund;
-        public bool SendSoilTemp2ToWund;
-        public bool SendSoilTemp3ToWund;
-        public bool SendSoilTemp4ToWund;
-        public bool SendSoilMoisture1ToWund;
-        public bool SendSoilMoisture2ToWund;
-        public bool SendSoilMoisture3ToWund;
-        public bool SendSoilMoisture4ToWund;
-        public bool SendLeafWetness1ToWund;
-        public bool SendLeafWetness2ToWund;
-        private string[] localgraphdatafiles;
-        private readonly string[] remotegraphdatafiles;
-        public string exceptional;
-        //		private WebSocketServer wsServer;
-        public string[] WMR200ExtraChannelCaptions = new string[11];
-        public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-        public string[] ExtraHumCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-        public string[] ExtraDPCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-        public string[] SoilTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
-        public string[] SoilMoistureCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
-        public string[] LeafCaptions = { "", "Temp 1", "Temp 2", "Wetness 1", "Wetness 2" };
-        private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
-        private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
-
-
-
-
-
-
-
-
-
 
 
 
         internal void ReadIniFile()
         {
-            StationType = ini.GetValue("Station", "Type", -1);
+            RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
 
+            WarnMultiple = ini.GetValue("Station", "WarnMultiple", false);
+
+            LocationName = ini.GetValue("Station", "LocName", "");
+            LocationDesc = ini.GetValue("Station", "LocDesc", "");
+            StationType = ini.GetValue("Station", "Type", -1);
             StationModel = ini.GetValue("Station", "Model", "");
 
             FineOffsetStation = (StationType == StationTypes.FineOffset || StationType == StationTypes.FineOffsetSolar);
             DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
 
-            UseDavisLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
-            DavisReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
-            DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 200);
-            DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 1000);
-            DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
-            DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
-            if (StationType == StationTypes.VantagePro)
-            {
-                UseDavisLoop2 = false;
-            }
 
-            serial_port = ini.GetValue("Station", "Port", 0);
+            string defaultComPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "COM1" : "/dev/ttyUSB0";
 
-            ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
+            ComportName = ini.GetValue("Station", "ComportName", defaultComPort);
             ImetBaudRate = ini.GetValue("Station", "ImetBaudRate", 19200);
 
             VendorID = ini.GetValue("Station", "VendorID", -1);
@@ -1015,55 +598,15 @@ namespace Cumulus4.Configuration
             UseWind10MinAve = ini.GetValue("Station", "Wind10MinAverage", false);
             UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 
-            AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
-            if (AvgBearingMinutes > 120)
-            {
-                AvgBearingMinutes = 120;
-            }
-            if (AvgBearingMinutes == 0)
-            {
-                AvgBearingMinutes = 1;
-            }
+            _avgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10).LimitToRange(1, 120);
 
-            AvgBearingTime = new TimeSpan(AvgBearingMinutes / 60, AvgBearingMinutes % 60, 0);
+            _avgSpeedMinutes = ini.GetValue("Station", "AvgSpeedMinutes", 10).LimitToRange(1, 120);
 
-            AvgSpeedMinutes = ini.GetValue("Station", "AvgSpeedMinutes", 10);
-            if (AvgSpeedMinutes > 120)
-            {
-                AvgSpeedMinutes = 120;
-            }
-            if (AvgSpeedMinutes == 0)
-            {
-                AvgSpeedMinutes = 1;
-            }
+            log.Debug("ASM=" + _avgSpeedMinutes + " AST=" + AvgSpeedTime.ToString());
 
-            AvgSpeedTime = new TimeSpan(AvgSpeedMinutes / 60, AvgSpeedMinutes % 60, 0);
+            _peakGustMinutes = ini.GetValue("Station", "PeakGustMinutes", 10).LimitToRange(1, 120);
 
-            log.Debug("ASM=" + AvgSpeedMinutes + " AST=" + AvgSpeedTime.ToString());
 
-            PeakGustMinutes = ini.GetValue("Station", "PeakGustMinutes", 10);
-            if (PeakGustMinutes > 120)
-            {
-                PeakGustMinutes = 120;
-            }
-
-            if (PeakGustMinutes == 0)
-            {
-                PeakGustMinutes = 1;
-            }
-
-            PeakGustTime = new TimeSpan(PeakGustMinutes / 60, PeakGustMinutes % 60, 0);
-
-            if ((StationType == StationTypes.VantagePro) || (StationType == StationTypes.VantagePro2))
-            {
-                UVdecimaldefault = 1;
-            }
-            else
-            {
-                UVdecimaldefault = 0;
-            }
-
-            UVdecimals = ini.GetValue("Station", "UVdecimals", UVdecimaldefault);
 
             NoSensorCheck = ini.GetValue("Station", "NoSensorCheck", false);
 
@@ -1071,10 +614,7 @@ namespace Cumulus4.Configuration
             CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
             RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
             Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
-            ConfirmClose = ini.GetValue("Station", "ConfirmClose", false);
-            CloseOnSuspend = ini.GetValue("Station", "CloseOnSuspend", false);
-            RestartIfUnplugged = ini.GetValue("Station", "RestartIfUnplugged", false);
-            RestartIfDataStops = ini.GetValue("Station", "RestartIfDataStops", false);
+
             SyncTime = ini.GetValue("Station", "SyncDavisClock", false);
             ClockSettingHour = ini.GetValue("Station", "ClockSettingHour", 4);
             WS2300IgnoreStationClock = ini.GetValue("Station", "WS2300IgnoreStationClock", false);
@@ -1094,14 +634,13 @@ namespace Cumulus4.Configuration
             FOReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
             FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
 
-            WS2300Sync = ini.GetValue("Station", "WS2300Sync", false);
             WindUnit = ini.GetValue("Station", "WindUnit", 0);
             PressUnit = ini.GetValue("Station", "PressureUnit", 0);
-
             RainUnit = ini.GetValue("Station", "RainUnit", 0);
             TempUnit = ini.GetValue("Station", "TempUnit", 0);
 
             RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
+            CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
 
             WindDPlaces = RoundWindSpeed ? 0 : WindDPlace[WindUnit];
 
@@ -1114,18 +653,15 @@ namespace Cumulus4.Configuration
             }
             RainDPlaces = RainDPlace[RainUnit];
 
-            LocationName = ini.GetValue("Station", "LocName", "");
-            LocationDesc = ini.GetValue("Station", "LocDesc", "");
 
-            YTDrain = ini.GetValue("Station", "YTDrain", 0.0);
-            YTDrainyear = ini.GetValue("Station", "YTDrainyear", 0);
+            //YTDrain = ini.GetValue("Station", "YTDrain", 0.0);
+            //YTDrainyear = ini.GetValue("Station", "YTDrainyear", 0);
 
             EWInterval = ini.GetValue("Station", "EWInterval", 1.0);
             EWFile = ini.GetValue("Station", "EWFile", "");
             EWallowFF = ini.GetValue("Station", "EWFF", false);
             EWdisablecheckinit = ini.GetValue("Station", "EWdisablecheckinit", false);
             EWduplicatecheck = ini.GetValue("Station", "EWduplicatecheck", true);
-
             EWtempdiff = ini.GetValue("Station", "EWtempdiff", 999.0);
             EWpressurediff = ini.GetValue("Station", "EWpressurediff", 999.0);
             EWhumiditydiff = ini.GetValue("Station", "EWhumiditydiff", 999.0);
@@ -1133,74 +669,61 @@ namespace Cumulus4.Configuration
             EWwinddiff = ini.GetValue("Station", "EWwinddiff", 999.0);
             EWmaxRainRate = ini.GetValue("Station", "EWmaxRainRate", 999.0);
             EWmaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
-
             EWminpressureMB = ini.GetValue("Station", "EWminpressureMB", 900);
             EWmaxpressureMB = ini.GetValue("Station", "EWmaxpressureMB", 1200);
-
             EWMaxRainTipDiff = ini.GetValue("Station", "EWMaxRainTipDiff", 30);
-
             EWpressureoffset = ini.GetValue("Station", "EWpressureoffset", 9999.0);
+
 
             LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
+            // Davis Station Settings
+            UseDavisLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
+            DavisReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
+            DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 200);
+            DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 1000);
+            DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
+            DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
+            if (StationType == StationTypes.VantagePro)
+            {
+                UseDavisLoop2 = false;
+            }
             ForceVPBarUpdate = ini.GetValue("Station", "ForceVPBarUpdate", false);
             DavisUseDLLBarCalData = ini.GetValue("Station", "DavisUseDLLBarCalData", false);
             DavisCalcAltPress = ini.GetValue("Station", "DavisCalcAltPress", true);
             DavisConsoleHighGust = ini.GetValue("Station", "DavisConsoleHighGust", false);
             VPrainGaugeType = ini.GetValue("Station", "VPrainGaugeType", -1);
+            UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
+            VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", 0);
+            VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
+            VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+            VP2PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
 
-            RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
 
-            log.Debug("Cumulus start date: " + RecordsBeganDate);
 
+            // Imet settings
             ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
             ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
 
-            UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
+
+            WMR928TempChannel = ini.GetValue("Station", "WMR928TempChannel", 0);
+            WMR200TempChannel = ini.GetValue("Station", "WMR200TempChannel", 1);
+
+
             UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
             HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
             UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
-            UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false);
-
             SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 0);
-
             UseZeroBearing = ini.GetValue("Station", "UseZeroBearing", false);
-
             RainDayThreshold = ini.GetValue("Station", "RainDayThreshold", -1.0);
 
+
+
+
             FCpressinMB = ini.GetValue("Station", "FCpressinMB", true);
-            FClowpress = ini.GetValue("Station", "FClowpress", DEFAULTFCLOWPRESS);
-            FChighpress = ini.GetValue("Station", "FChighpress", DEFAULTFCHIGHPRESS);
+            FClowpress = ini.GetValue("Station", "FClowpress", 950.0);
+            FChighpress = ini.GetValue("Station", "FChighpress", 1050.0);
             FCPressureThreshold = ini.GetValue("Station", "FCPressureThreshold", -1.0);
-
-            RainSeasonStart = ini.GetValue("Station", "RainSeasonStart", 1);
-            ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
-            ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
-
-            RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
-            RG11TBRmode = ini.GetValue("Station", "RG11TBRmode", false);
-            RG11tipsize = ini.GetValue("Station", "RG11tipsize", 0.0);
-            RG11IgnoreFirst = ini.GetValue("Station", "RG11IgnoreFirst", false);
-            RG11DTRmode = ini.GetValue("Station", "RG11DTRmode", true);
-
-            RG11Port2 = ini.GetValue("Station", "RG11port2Name", DefaultComportName);
-            RG11TBRmode2 = ini.GetValue("Station", "RG11TBRmode2", false);
-            RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0);
-            RG11IgnoreFirst2 = ini.GetValue("Station", "RG11IgnoreFirst2", false);
-            RG11DTRmode2 = ini.GetValue("Station", "RG11DTRmode2", true);
-
-            if (ChillHourThreshold < -998)
-            {
-                if (TempUnit == 0)
-                {
-                    ChillHourThreshold = 7; // C
-                }
-                else
-                {
-                    ChillHourThreshold = 45; // F
-                }
-            }
-
             if (FCPressureThreshold < 0)
             {
                 if (PressUnit == 2)
@@ -1213,33 +736,40 @@ namespace Cumulus4.Configuration
                 }
             }
 
-            special_logging = ini.GetValue("Station", "SpecialLog", false);
-            solar_logging = ini.GetValue("Station", "SolarLog", false);
-            logging = ini.GetValue("Station", "Logging", false);
-            DataLogging = ini.GetValue("Station", "DataLogging", false);
 
-            VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
-            VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
-            VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+            RainSeasonStart = ini.GetValue("Station", "RainSeasonStart", 1);
+            ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
+            ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
+            if (ChillHourThreshold < -998)
+            {
+                if (TempUnit == 0)
+                {
+                    ChillHourThreshold = 7; // C
+                }
+                else
+                {
+                    ChillHourThreshold = 45; // F
+                }
+            }
 
-            WarnMultiple = ini.GetValue("Station", "WarnMultiple", false);
+            RG11Port = ini.GetValue("Station", "RG11portName", defaultComPort);
+            RG11TBRmode = ini.GetValue("Station", "RG11TBRmode", false);
+            RG11tipsize = ini.GetValue("Station", "RG11tipsize", 0.0);
+            RG11IgnoreFirst = ini.GetValue("Station", "RG11IgnoreFirst", false);
+            RG11DTRmode = ini.GetValue("Station", "RG11DTRmode", true);
 
-            VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
+            RG11Port2 = ini.GetValue("Station", "RG11port2Name", defaultComPort);
+            RG11TBRmode2 = ini.GetValue("Station", "RG11TBRmode2", false);
+            RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0);
+            RG11IgnoreFirst2 = ini.GetValue("Station", "RG11IgnoreFirst2", false);
+            RG11DTRmode2 = ini.GetValue("Station", "RG11DTRmode2", true);
 
-            VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
-
-            VP2PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
-
-            RTdisconnectcount = ini.GetValue("Station", "RTdisconnectcount", 0);
-
-            WMR928TempChannel = ini.GetValue("Station", "WMR928TempChannel", 0);
-
-            WMR200TempChannel = ini.GetValue("Station", "WMR200TempChannel", 1);
 
             CreateWxnowTxt = ini.GetValue("Station", "CreateWxnowTxt", true);
-
             ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 
+
+            // FTP Settings
             ftp_host = ini.GetValue("FTP site", "Host", "");
             ftp_port = ini.GetValue("FTP site", "Port", 21);
             ftp_user = ini.GetValue("FTP site", "Username", "");
@@ -1251,15 +781,16 @@ namespace Cumulus4.Configuration
             Sslftp = ini.GetValue("FTP site", "Sslftp", false);
             DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
             FTPlogging = ini.GetValue("FTP site", "FTPlogging", false);
+
             RealtimeEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
             RealtimeFTPEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
             RealtimeTxtFTP = ini.GetValue("FTP site", "RealtimeTxtFTP", false);
             RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", false);
-            RealtimeInterval = ini.GetValue("FTP site", "RealtimeInterval", 30000);
-            if (RealtimeInterval < 1) { RealtimeInterval = 1; }
+            RealtimeInterval = ini.GetValue("FTP site", "RealtimeInterval", 30000).LimitToRange(1, int.MaxValue);
+
             //RealtimeTimer.Change(0,RealtimeInterval);
-            UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", DefaultWebUpdateInterval);
-            if (UpdateInterval < 1) { UpdateInterval = 1; }
+            UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", 15).LimitToRange(1, int.MaxValue);
+
             SynchronisedWebUpdate = (60 % UpdateInterval == 0);
             IncludeStandardFiles = ini.GetValue("FTP site", "IncludeSTD", true);
             IncludeGraphDataFiles = ini.GetValue("FTP site", "IncludeGraphDataFiles", true);
@@ -1268,9 +799,7 @@ namespace Cumulus4.Configuration
             UTF8encode = ini.GetValue("FTP site", "UTF8encode", true);
             DeleteBeforeUpload = ini.GetValue("FTP site", "DeleteBeforeUpload", false);
 
-            MaxFTPconnectRetries = ini.GetValue("FTP site", "MaxFTPconnectRetries", 3);
-
-            for (int i = 0; i < numextrafiles; i++)
+            for (int i = 0; i < ExtraFiles.Length; i++)
             {
                 ExtraFiles[i].local = ini.GetValue("FTP site", "ExtraLocal" + i, "");
                 ExtraFiles[i].remote = ini.GetValue("FTP site", "ExtraRemote" + i, "");
@@ -1288,21 +817,23 @@ namespace Cumulus4.Configuration
             RealtimeParams = ini.GetValue("FTP site", "RealtimeParams", "");
             DailyParams = ini.GetValue("FTP site", "DailyParams", "");
 
-            ForumURL = ini.GetValue("Web Site", "ForumURL", ForumDefault);
-            WebcamURL = ini.GetValue("Web Site", "WebcamURL", WebcamDefault);
+
+            // Web site settings
+            ForumURL = ini.GetValue("Web Site", "ForumURL", "https://cumulus.hosiene.co.uk/");
+            WebcamURL = ini.GetValue("Web Site", "WebcamURL", "");
 
 
-            CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
-
+            // Graph settings
             GraphDays = ini.GetValue("Graphs", "ChartMaxDays", 31);
             GraphHours = ini.GetValue("Graphs", "GraphHours", 24);
 
+
+            // Wunderground settings
             WundID = ini.GetValue("Wunderground", "ID", "");
             WundPW = ini.GetValue("Wunderground", "Password", "");
             WundEnabled = ini.GetValue("Wunderground", "Enabled", false);
             WundRapidFireEnabled = ini.GetValue("Wunderground", "RapidFire", false);
-            WundInterval = ini.GetValue("Wunderground", "Interval", DefaultWundInterval);
-            HTTPLogging = ini.GetValue("Wunderground", "Logging", false);
+            WundInterval = ini.GetValue("Wunderground", "Interval", 15);
             SendUVToWund = ini.GetValue("Wunderground", "SendUV", false);
             SendSRToWund = ini.GetValue("Wunderground", "SendSR", false);
             SendIndoorToWund = ini.GetValue("Wunderground", "SendIndoor", false);
@@ -1318,87 +849,79 @@ namespace Cumulus4.Configuration
             SendLeafWetness2ToWund = ini.GetValue("Wunderground", "SendLeafWetness2", false);
             WundSendAverage = ini.GetValue("Wunderground", "SendAverage", false);
             WundCatchUp = ini.GetValue("Wunderground", "CatchUp", true);
-
             SynchronisedWUUpdate = (!WundRapidFireEnabled) && (60 % WundInterval == 0);
 
+            // Awekas Settings
             AwekasUser = ini.GetValue("Awekas", "User", "");
             AwekasPW = ini.GetValue("Awekas", "Password", "");
             AwekasEnabled = ini.GetValue("Awekas", "Enabled", false);
-            AwekasInterval = ini.GetValue("Awekas", "Interval", DefaultAwekasInterval);
-            if (AwekasInterval < 1) { AwekasInterval = 1; }
+            AwekasInterval = ini.GetValue("Awekas", "Interval", 15).LimitToRange(1, int.MaxValue);
+            AwekasLang = ini.GetValue("Awekas", "Lang", "en");
             SendUVToAwekas = ini.GetValue("Awekas", "SendUV", false);
             SendSolarToAwekas = ini.GetValue("Awekas", "SendSR", false);
             SendSoilTempToAwekas = ini.GetValue("Awekas", "SendSoilTemp", false);
-
             SynchronisedAwekasUpdate = (60 % AwekasInterval == 0);
 
+            // WeatherCloud settings
             WCloudWid = ini.GetValue("WeatherCloud", "Wid", "");
             WCloudKey = ini.GetValue("WeatherCloud", "Key", "");
             WCloudEnabled = ini.GetValue("WeatherCloud", "Enabled", false);
-            //WCloudInterval = ini.GetValue("WeatherCloud", "Interval", DefaultWCloudInterval);
+            WCloudInterval = ini.GetValue("WeatherCloud", "Interval", 10);
             SendUVToWCloud = ini.GetValue("WeatherCloud", "SendUV", false);
             SendSolarToWCloud = ini.GetValue("WeatherCloud", "SendSR", false);
-
             SynchronisedWCloudUpdate = (60 % WCloudInterval == 0);
 
+            // Twitter settings
             Twitteruser = ini.GetValue("Twitter", "User", "");
             TwitterPW = ini.GetValue("Twitter", "Password", "");
             TwitterEnabled = ini.GetValue("Twitter", "Enabled", false);
-            TwitterInterval = ini.GetValue("Twitter", "Interval", 60);
-            if (TwitterInterval < 1) { TwitterInterval = 1; }
+            TwitterInterval = ini.GetValue("Twitter", "Interval", 60).LimitToRange(1, int.MaxValue);
             TwitterOauthToken = ini.GetValue("Twitter", "OauthToken", "unknown");
             TwitterOauthTokenSecret = ini.GetValue("Twitter", "OauthTokenSecret", "unknown");
             TwitterSendLocation = ini.GetValue("Twitter", "SendLocation", true);
-
             SynchronisedTwitterUpdate = (60 % TwitterInterval == 0);
 
-            //if HTTPLogging then
-            //  MainForm.WUHTTP.IcsLogger = MainForm.HTTPlogger;
 
+            // PWSWeather settings
             PWSID = ini.GetValue("PWSweather", "ID", "");
             PWSPW = ini.GetValue("PWSweather", "Password", "");
             PWSEnabled = ini.GetValue("PWSweather", "Enabled", false);
-            PWSInterval = ini.GetValue("PWSweather", "Interval", DefaultPWSInterval);
-            if (PWSInterval < 1) { PWSInterval = 1; }
+            PWSInterval = ini.GetValue("PWSweather", "Interval", 15).LimitToRange(1, int.MaxValue);
             SendUVToPWS = ini.GetValue("PWSweather", "SendUV", false);
             SendSRToPWS = ini.GetValue("PWSweather", "SendSR", false);
             PWSCatchUp = ini.GetValue("PWSweather", "CatchUp", true);
-
             SynchronisedPWSUpdate = (60 % PWSInterval == 0);
 
+            // WOW settings
             WOWID = ini.GetValue("WOW", "ID", "");
             WOWPW = ini.GetValue("WOW", "Password", "");
             WOWEnabled = ini.GetValue("WOW", "Enabled", false);
-            WOWInterval = ini.GetValue("WOW", "Interval", DefaultPWSInterval);
-            if (WOWInterval < 1) { WOWInterval = 1; }
+            WOWInterval = ini.GetValue("WOW", "Interval", 15).LimitToRange(1, int.MaxValue);
             SendUVToWOW = ini.GetValue("WOW", "SendUV", false);
             SendSRToWOW = ini.GetValue("WOW", "SendSR", false);
             WOWCatchUp = ini.GetValue("WOW", "CatchUp", true);
-
             SynchronisedWOWUpdate = (60 % WOWInterval == 0);
 
+            // Weatherbug settings
             WeatherbugID = ini.GetValue("Weatherbug", "ID", "");
             WeatherbugNumber = ini.GetValue("Weatherbug", "Number", "");
             WeatherbugPW = ini.GetValue("Weatherbug", "Password", "");
             WeatherbugEnabled = ini.GetValue("Weatherbug", "Enabled", false);
-            WeatherbugInterval = ini.GetValue("Weatherbug", "Interval", DefaultPWSInterval);
-            if (WeatherbugInterval < 1) { WeatherbugInterval = 1; }
+            WeatherbugInterval = ini.GetValue("Weatherbug", "Interval", 15).LimitToRange(1, int.MaxValue);
             SendUVToWeatherbug = ini.GetValue("Weatherbug", "SendUV", false);
             SendSRToWeatherbug = ini.GetValue("Weatherbug", "SendSR", false);
             WeatherbugCatchUp = ini.GetValue("Weatherbug", "CatchUp", true);
-
             SynchronisedWBUpdate = (60 % WeatherbugInterval == 0);
 
+            // APRS Settings
+            APRSserver = ini.GetValue("APRS", "server", "cwop.aprs.net");
             APRSID = ini.GetValue("APRS", "ID", "");
             APRSpass = ini.GetValue("APRS", "pass", "-1");
-            APRSserver = ini.GetValue("APRS", "server", "cwop.aprs.net");
             APRSport = ini.GetValue("APRS", "port", 14580);
+            APRSinterval = ini.GetValue("APRS", "Interval", 9).LimitToRange(1, int.MaxValue);
             APRSenabled = ini.GetValue("APRS", "Enabled", false);
-            APRSinterval = ini.GetValue("APRS", "Interval", DefaultAPRSInterval);
-            if (APRSinterval < 1) { APRSinterval = 1; }
             APRSHumidityCutoff = ini.GetValue("APRS", "APRSHumidityCutoff", false);
             SendSRToAPRS = ini.GetValue("APRS", "SendSR", false);
-
             SynchronisedAPRSUpdate = (60 % APRSinterval == 0);
 
 
@@ -1456,6 +979,8 @@ namespace Cumulus4.Configuration
             //SensorAlarmSound = ini.GetValue("Alarms", "SensorAlarmSound", false);
             //SensorAlarmSoundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
 
+
+            // Calibration settings
             PressOffset = ini.GetValue("Offsets", "PressOffset", 0.0);
             TempOffset = ini.GetValue("Offsets", "TempOffset", 0.0);
             HumOffset = ini.GetValue("Offsets", "HumOffset", 0);
@@ -1463,7 +988,6 @@ namespace Cumulus4.Configuration
             InTempoffset = ini.GetValue("Offsets", "InTempOffset", 0.0);
             UVOffset = ini.GetValue("Offsets", "UVOffset", 0.0);
             WetBulbOffset = ini.GetValue("Offsets", "WetBulbOffset", 0.0);
-
             WindSpeedMult = ini.GetValue("Offsets", "WindSpeedMult", 1.0);
             WindGustMult = ini.GetValue("Offsets", "WindGustMult", 1.0);
             TempMult = ini.GetValue("Offsets", "TempMult", 1.0);
@@ -1474,10 +998,12 @@ namespace Cumulus4.Configuration
             UVMult = ini.GetValue("Offsets", "UVMult", 1.0);
             WetBulbMult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
 
+            // xAP settings
             xapEnabled = ini.GetValue("xAP", "Enabled", false);
             xapUID = ini.GetValue("xAP", "UID", "4375");
             xapPort = ini.GetValue("xAP", "Port", 3639);
 
+            // Solar Settings
             SunThreshold = ini.GetValue("Solar", "SunThreshold", 75);
             RStransfactor = ini.GetValue("Solar", "RStransfactor", 0.8);
             SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 0);
@@ -1486,6 +1012,7 @@ namespace Cumulus4.Configuration
             SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
             BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
 
+            // NOAA Settings
             NOAAname = ini.GetValue("NOAA", "Name", " ");
             NOAAcity = ini.GetValue("NOAA", "City", " ");
             NOAAstate = ini.GetValue("NOAA", "State", " ");
@@ -1604,13 +1131,19 @@ namespace Cumulus4.Configuration
             NOAARainNormNov = ini.GetValue("NOAA", "NOAARainNormNov", -1000.0);
             NOAARainNormDec = ini.GetValue("NOAA", "NOAARainNormDec", -1000.0);
 
+
+            // Proxy settings
             HTTPProxyName = ini.GetValue("Proxies", "HTTPProxyName", "");
             HTTPProxyPort = ini.GetValue("Proxies", "HTTPProxyPort", 0);
             HTTPProxyUser = ini.GetValue("Proxies", "HTTPProxyUser", "");
             HTTPProxyPassword = ini.GetValue("Proxies", "HTTPProxyPassword", "");
 
+
+            // Display settings
             NumWindRosePoints = ini.GetValue("Display", "NumWindRosePoints", 16);
             WindRoseAngle = 360.0 / NumWindRosePoints;
+
+
 
             // MySQL - common
             MySqlHost = ini.GetValue("MySQL", "Host", "127.0.0.1");
@@ -1618,24 +1151,28 @@ namespace Cumulus4.Configuration
             MySqlUser = ini.GetValue("MySQL", "User", "");
             MySqlPass = ini.GetValue("MySQL", "Pass", "");
             MySqlDatabase = ini.GetValue("MySQL", "Database", "database");
-            // MySQL - monthly log file
-            MonthlyMySqlEnabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
-            MySqlMonthlyTable = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
+
             // MySQL - realtimne
             RealtimeMySqlEnabled = ini.GetValue("MySQL", "RealtimeMySqlEnabled", false);
             MySqlRealtimeTable = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
             MySqlRealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", "");
+
+            // MySQL - monthly log file
+            MonthlyMySqlEnabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
+            MySqlMonthlyTable = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
+
             // MySQL - dayfile
             DayfileMySqlEnabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
             MySqlDayfileTable = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
+
             // MySQL - custom seconds
-            CustomMySqlSecondsCommandString = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", "");
             CustomMySqlSecondsEnabled = ini.GetValue("MySQL", "CustomMySqlSecondsEnabled", false);
-            CustomMySqlSecondsInterval = ini.GetValue("MySQL", "CustomMySqlSecondsInterval", 10);
-            if (CustomMySqlSecondsInterval < 1) { CustomMySqlSecondsInterval = 1; }
+            CustomMySqlSecondsCommandString = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", "");
+            CustomMySqlSecondsInterval = ini.GetValue("MySQL", "CustomMySqlSecondsInterval", 10).LimitToRange(1, int.MaxValue);
+
             // MySQL - custom minutes
-            CustomMySqlMinutesCommandString = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
             CustomMySqlMinutesEnabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
+            CustomMySqlMinutesCommandString = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
             CustomMySqlMinutesIntervalIndex = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", -1);
             if (CustomMySqlMinutesIntervalIndex >= 0 && CustomMySqlMinutesIntervalIndex < FactorsOf60.Length)
             {
@@ -1646,18 +1183,20 @@ namespace Cumulus4.Configuration
                 CustomMySqlMinutesInterval = 10;
                 CustomMySqlMinutesIntervalIndex = 6;
             }
+
             // MySQL - custom rollover
             CustomMySqlRolloverCommandString = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
             CustomMySqlRolloverEnabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 
+
             // Custom HTTP - seconds
-            CustomHttpSecondsString = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
             CustomHttpSecondsEnabled = ini.GetValue("HTTP", "CustomHttpSecondsEnabled", false);
-            CustomHttpSecondsInterval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10);
-            if (CustomHttpSecondsInterval < 1) { CustomHttpSecondsInterval = 1; }
+            CustomHttpSecondsString = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
+            CustomHttpSecondsInterval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10).LimitToRange(1, int.MaxValue);
+
             // Custom HTTP - minutes
-            CustomHttpMinutesString = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
             CustomHttpMinutesEnabled = ini.GetValue("HTTP", "CustomHttpMinutesEnabled", false);
+            CustomHttpMinutesString = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
             CustomHttpMinutesIntervalIndex = ini.GetValue("HTTP", "CustomHttpMinutesIntervalIndex", -1);
             if (CustomHttpMinutesIntervalIndex >= 0 && CustomHttpMinutesIntervalIndex < FactorsOf60.Length)
             {
@@ -1669,8 +1208,8 @@ namespace Cumulus4.Configuration
                 CustomHttpMinutesIntervalIndex = 6;
             }
             // Http - custom rollover
-            CustomHttpRolloverString = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
             CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
+            CustomHttpRolloverString = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
         }
 
         internal void WriteIniFile()
@@ -1694,10 +1233,6 @@ namespace Cumulus4.Configuration
             ini.SetValue("Station", "CalculatedWC", CalculatedWC);
             ini.SetValue("Station", "RolloverHour", RolloverHour);
             ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
-            ini.SetValue("Station", "ConfirmClose", ConfirmClose);
-            ini.SetValue("Station", "CloseOnSuspend", CloseOnSuspend);
-            ini.SetValue("Station", "RestartIfUnplugged", RestartIfUnplugged);
-            ini.SetValue("Station", "RestartIfDataStops", RestartIfDataStops);
             ini.SetValue("Station", "SyncDavisClock", SyncTime);
             ini.SetValue("Station", "ClockSettingHour", ClockSettingHour);
             ini.SetValue("Station", "SyncFOReads", SyncFOReads);
@@ -1711,8 +1246,8 @@ namespace Cumulus4.Configuration
             ini.SetValue("Station", "LocName", LocationName);
             ini.SetValue("Station", "LocDesc", LocationDesc);
             ini.SetValue("Station", "StartDate", RecordsBeganDate);
-            ini.SetValue("Station", "YTDrain", YTDrain);
-            ini.SetValue("Station", "YTDrainyear", YTDrainyear);
+            //ini.SetValue("Station", "YTDrain", YTDrain);
+            //ini.SetValue("Station", "YTDrainyear", YTDrainyear);
             ini.SetValue("Station", "EWInterval", EWInterval);
             ini.SetValue("Station", "EWFile", EWFile);
             ini.SetValue("Station", "UseDataLogger", UseDataLogger);
