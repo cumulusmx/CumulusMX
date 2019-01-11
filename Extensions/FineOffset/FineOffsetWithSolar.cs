@@ -9,6 +9,12 @@ namespace FineOffset
 {
     public class FineOffsetWithSolar : IWeatherStation
     {
+        private const int FO_ENTRY_SIZE = 0x14;
+        private const int FO_MAX_ADDR = 0xFFEC;
+        private const int MAX_HISTORY_ENTRIES = 3264;
+        private const double RAIN_COUNT_PER_TIP = 0.3;
+
+
         private HidDevice hidDevice;
         private HidStream stream;
         private ILogger log;
@@ -65,8 +71,7 @@ namespace FineOffset
             }
             catch (Exception ex)
             {
-                log.Debug("Failed to open stream", ex);
-                log.Error("Unable to connect to station");
+                log.Error("Unable to connect to station", ex);
             }
         }
 
@@ -166,30 +171,29 @@ namespace FineOffset
 
 
 
-        public override void getAndProcessHistoryData()
+
+        private void GetAndProcessHistoryData()
         {
-            var data = new byte[32];
-            log.Debug("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
             DateTime now = DateTime.Now;
             log.Debug(DateTime.Now.ToString("G"));
             log.Debug("Start reading history data");
+            log.Debug("Last Update = " + settings.LastUpdateTime);
+
             DateTime timestamp = DateTime.Now;
-            //LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
-            log.Debug("Last Update = " + cumulus.LastUpdateTime);
+            var data = new byte[32];
             ReadAddress(0, data);
 
             // get address of current location
-            int addr = ((data[31]) * 256) + data[30];
+            int addr = (data[31] * 256) + data[30];
             int previousaddress = addr;
 
             log.Debug("Reading current address " + addr.ToString("X4"));
             ReadAddress(addr, data);
 
-            var datalist = new List<HistoryData>();
+            var histDataList = new List<HistoryData>();
             var interval = 0;
             var followingInterval = 0;
             bool moredata = true;
-
 
             while (moredata)
             {
@@ -199,28 +203,25 @@ namespace FineOffset
                 // calculate timestamp of previous history data
                 timestamp = timestamp.AddMinutes(-interval);
 
-                if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < maxHistoryEntries - 2))
+                if ((interval != 255) && (timestamp > settings.LastUpdateTime) && (histDataList.Count < MAX_HISTORY_ENTRIES - 2))
                 {
                     // Read previous data
-                    addr = addr - FOentrysize;
-                    if (addr == 0xF0) addr = FOMaxAddr; // wrap around
+                    addr = addr - FO_ENTRY_SIZE;
+                    if (addr == 0xF0)
+                        addr = FO_MAX_ADDR; // wrap around
 
                     ReadAddress(addr, data);
 
-
-                    // add history data to collection
-
                     var histData = new HistoryData();
-                    string msg = DateTime.Now.ToLongTimeString() + " Read logger entry for " + timestamp + " address " + addr.ToString("X4") + ": ";
-                    int numBytes = hasSolar ? 20 : 16;
+                    string msg = "Read logger entry for " + timestamp + " address " + addr.ToString("X4") + ": ";
+                    int numBytes = 20;
 
                     for (int i = 0; i < numBytes; i++)
                     {
                         msg += data[i].ToString("X2");
                         msg += " ";
                     }
-
-                    cumulus.LogMessage(msg);
+                    log.Debug(msg);
 
                     histData.timestamp = timestamp;
                     histData.interval = interval;
@@ -249,7 +250,6 @@ namespace FineOffset
                     histData.windGust = (data[10] + ((data[11] & 0xF0) * 16)) / 10.0f;
                     histData.windSpeed = (data[9] + ((data[11] & 0x0F) * 256)) / 10.0f;
                     histData.windBearing = (int)(data[12] * 22.5f);
-
                     histData.rainCounter = data[13] + (data[14] * 256);
 
                     double intemp = ((data[2]) + (data[3] & 0x7F) * 256) / 10.0f;
@@ -259,16 +259,9 @@ namespace FineOffset
                     // Get pressure and convert to sea level
                     histData.pressure = (data[7] + (data[8] * 256)) / 10.0f + pressureOffset;
                     histData.SensorContactLost = (data[15] & 0x40) == 0x40;
-                    if (hasSolar)
-                    {
-                        histData.uvVal = data[19];
-
-                        histData.solarVal = (data[16] + (data[17] * 256) + (data[18] * 65536)) / 10.0;
-                    }
-
-                    datalist.Add(histData);
-
-                    bw.ReportProgress(datalist.Count, "collecting");
+                    histData.uvVal = data[19];
+                    histData.solarVal = (data[16] + (data[17] * 256) + (data[18] * 65536)) / 10.0;
+                    histDataList.Add(histData);
                 }
                 else
                 {
@@ -276,17 +269,139 @@ namespace FineOffset
                 }
             }
 
-            cumulus.LogMessage("Number of history entries = " + datalist.Count);
+            log.Info("Number of history entries = " + histDataList.Count);
 
-            if (datalist.Count > 0)
+            if (histDataList.Count > 0)
             {
-                processHistoryData();
+                ProcessHistoryData(histDataList);
             }
 
-            //using (cumulusEntities dataContext = new cumulusEntities())
-            //{
-            //    UpdateHighsAndLows(dataContext);
-            //}
         }
+
+
+
+        private void ProcessHistoryData(List<HistoryData> datalist)
+        {
+            int totalentries = datalist.Count;
+            log.Info("Processing history data, number of entries = " + totalentries);
+
+            int prevraintotal = 0;
+            while (datalist.Count > 0)
+            {
+                HistoryData historydata = datalist[datalist.Count - 1];
+                WeatherDataModel model = new WeatherDataModel();
+
+                DateTime timestamp = historydata.timestamp;
+
+                log.Info("Processing data for " + timestamp);
+
+
+                // Indoor Humidity ======================================================
+                if ((historydata.inHum > 100) && (historydata.inHum != 255))
+                    log.Warn("Ignoring bad data: InsideHumidity = " + historydata.inHum);
+                else if ((historydata.inHum > 0) && (historydata.inHum != 255)) // 255 is the overflow value, when RH gets below 10% - ignore
+                    model.IndoorHumidity = historydata.inHum;
+
+
+                // Indoor Temperature ===================================================
+                if ((historydata.inTemp > -50) && (historydata.inTemp < 50))
+                    model.IndoorTemperature = historydata.inTemp;
+                else
+                    log.Warn($"Ignoring bad data: InsideTemp = {historydata.inTemp}");
+
+                // Pressure =============================================================
+                if ((historydata.pressure < settings.MinPressureThreshold) || (historydata.pressure > settings.MaxPressureThreshold))
+                {
+                    log.Warn("Ignoring bad data: pressure = " + historydata.pressure);
+                    log.Warn("                   offset = " + pressureOffset);
+                }
+                else
+                {
+                    model.AbsolutePressure = historydata.pressure;
+                }
+
+                if (historydata.SensorContactLost)
+                {
+                    log.Error("Sensor contact lost; ignoring outdoor data");
+                }
+                else
+                {
+                    // Outdoor Humidity =====================================================
+                    if ((historydata.outHum > 100) && (historydata.outHum != 255))
+                        log.Warn("Ignoring bad data: outhum = " + historydata.outHum);
+                    else if ((historydata.outHum > 0) && (historydata.outHum != 255)) // 255 is the overflow value, when RH gets below 10% - ignore
+                        model.OutdoorHumidity = historydata.outHum;
+
+
+                    // Wind =================================================================
+                    if ((historydata.windGust > 60) || (historydata.windGust < 0))
+                        log.Warn("Ignoring bad data: gust = " + historydata.windGust);
+                    else if ((historydata.windSpeed > 60) || (historydata.windSpeed < 0))
+                        log.Warn("Ignoring bad data: speed = " + historydata.windSpeed);
+                    else
+                    {
+                        model.WindBearing = historydata.windBearing;
+                        model.WindSpeed = historydata.windSpeed;
+                        model.WindGust = historydata.windGust;
+                    }
+
+
+                    // Outdoor Temperature ==================================================
+                    if ((historydata.outTemp < -50) || (historydata.outTemp > 70))
+                        log.Warn("Ignoring bad data: outtemp = " + historydata.outTemp);
+                    else
+                        model.OutdoorTemperature = historydata.outTemp;
+
+
+
+                    int raindiff;
+                    if (prevraintotal == -1)
+                    {
+                        raindiff = 0;
+                    }
+                    else
+                    {
+                        raindiff = historydata.rainCounter - prevraintotal;
+                    }
+
+
+                    double rainrate = 0;
+                    if (raindiff > 100)
+                    {
+                        log.Warn("Warning: large increase in rain gauge tip count: " + raindiff);
+                        rainrate = 0;
+                    }
+                    else if (historydata.interval > 0)
+                        rainrate = (raindiff * RAIN_COUNT_PER_TIP) * (60.0 / historydata.interval);
+
+
+                    model.RainRate = rainrate;
+                    model.RainCounter = historydata.rainCounter * RAIN_COUNT_PER_TIP;
+                    prevraintotal = historydata.rainCounter;
+
+                    if (historydata.uvVal == 255)
+                    {
+                        // ignore
+                    }
+                    else if (historydata.uvVal < 0)
+                        model.UV = 0;
+                    else if (historydata.uvVal > 16)
+                        model.UV = 16;
+                    else
+                        model.UV = historydata.uvVal;
+
+
+                    if ((historydata.solarVal >= 0) && (historydata.solarVal <= 300000))
+                    {
+                        model.LightValue = historydata.solarVal;
+                    }
+                }
+
+                datalist.RemoveAt(datalist.Count - 1);
+            }
+
+            log.Info("End processing history data");
+        }
+
     }
 }
