@@ -11,13 +11,13 @@ namespace CumulusMX.Extensions.Station
         string Model { get; }
         string Description { get; }
 
-        IEnumerable<ExtensionSetting> ConfigurationSettings { get; }
+        IStationSettings ConfigurationSettings { get; }
 
-        void Initialise(ILogger logger, ISettingsProvider settingsProvider);
+        void Initialise(ILogger logger, IStationSettings settings);
         void Start();
         void Stop();
         WeatherDataModel GetCurrentData();
+        IEnumerable<WeatherDataModel> GetHistoryData(DateTime fromTimestamp);
 
-        void ReadPendingData();
     }
 }

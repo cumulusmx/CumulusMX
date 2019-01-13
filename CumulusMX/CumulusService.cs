@@ -26,6 +26,7 @@ namespace CumulusMX
         private readonly CumulusConfiguration _config;
         private readonly CumulusWebService _webService;
         private readonly ExtensionLoader _extensionLoader;
+        private readonly IEnumerable<ExtensionDescriptor> _extensions;
 
         public CumulusService(int httpPort, string appDir, string contentRootDir)
         {
@@ -38,7 +39,7 @@ namespace CumulusMX
 
             var extensionLoaderSettings = new ExtensionLoaderSettings() { Path = Path.Combine(appDir, "Extensions") };
             this._extensionLoader = new ExtensionLoader(extensionLoaderSettings);
-            _extensionLoader.GetExtensions();
+            _extensions = _extensionLoader.GetExtensions();
         }
 
         protected override void OnStart(string[] args)

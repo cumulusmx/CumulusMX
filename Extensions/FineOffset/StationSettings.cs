@@ -2,31 +2,27 @@
 using System.Collections.Generic;
 using System.Text;
 using CumulusMX.Extensions;
+using CumulusMX.Extensions.Station;
 
 namespace FineOffset
 {
-    public class StationSettings
+    public class StationSettings : IStationSettings
     {
-        private ISettingsProvider settingsProvider;
-
-        public StationSettings(ISettingsProvider settingsProvider)
+        public StationSettings()
         {
-            this.settingsProvider = settingsProvider;
-
-
-            VendorId = settingsProvider.GetSetting<int>("VendorId");
-            ProductId = settingsProvider.GetSetting<int>("ProductId");
-            FineOffsetReadTime = settingsProvider.GetSetting<int>("FineOffsetReadTime");
-            IsOSX = settingsProvider.GetSetting<bool>("FineOffsetReadTime");
-            LastUpdateTime = settingsProvider.GetSetting<DateTime>("LastUpdateTime");
         }
 
-        public int VendorId { get; }
-        public int ProductId { get; }
-        public int FineOffsetReadTime { get; }
-        public bool IsOSX { get; }
-        public DateTime LastUpdateTime { get; }
-        public double MinPressureThreshold { get; internal set; }
-        public double MaxPressureThreshold { get; internal set; }
+        [ExtensionSetting("VendorId", "The USB device Vendor Id", "", 123)]
+        public int VendorId { get; set; }
+        [ExtensionSetting("ProductId", "The USB device Product Id", "", 123)]
+        public int ProductId { get; set; }
+        [ExtensionSetting("ProductId", "The USB device Product Id", "", 123)]
+        public int FineOffsetReadTime { get; set; }
+        public bool IsOSX { get; set; }
+        [ExtensionSetting("MinPressureThreshold", "Minimum pressure", "", 950)]
+        public double MinPressureThreshold { get; set; }
+        [ExtensionSetting("MaxPressureThreshold", "Minimum pressure", "", 1050)]
+        public double MaxPressureThreshold { get; set; }
+        public bool SyncFOReads { get; internal set; }
     }
 }
