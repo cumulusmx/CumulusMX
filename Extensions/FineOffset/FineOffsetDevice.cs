@@ -12,7 +12,6 @@ namespace FineOffset
         private const int READ_TIME = 150;
         private HidDevice hidDevice;
         private HidStream stream;
-        private double pressureOffset;
         private readonly ILogger _log;
         private readonly int _vendorId;
         private readonly int _productId;

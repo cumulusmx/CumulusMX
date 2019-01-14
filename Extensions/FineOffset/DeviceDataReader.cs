@@ -45,8 +45,8 @@ namespace FineOffset
         {
             var data = new byte[32];
             _device.ReadAddress(32, data);
-            double relpressure = ((data[1] * 256) + data[0]) / 10.0f;
-            double abspressure = ((data[3] * 256) + data[2]) / 10.0f;
+            double relpressure = (((data[1] & 0x3F) * 256) + data[0]) / 10.0f;
+            double abspressure = (((data[3] & 0x3F) * 256) + data[2]) / 10.0f;
             return relpressure - abspressure;
         }
 
@@ -147,7 +147,7 @@ namespace FineOffset
             if (sign == 0x80) intemp = -intemp;
             histData.InsideTemperature = intemp;
             // Get pressure and convert to sea level
-            histData.Pressure = (data[7] + (data[8] * 256)) / 10.0f + pressureOffset;
+            histData.Pressure = (data[7] + ((data[8] & 0x3F) * 256)) / 10.0f + pressureOffset;
             histData.SensorContactLost = (data[15] & 0x40) == 0x40;
 
             if (_hasSolar)
