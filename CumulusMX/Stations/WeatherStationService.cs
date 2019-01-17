@@ -6,5 +6,11 @@ namespace CumulusMX.Stations
 {
     public class WeatherStationService
     {
+        private readonly IStationSettingsService _settingsService;
+
+        public WeatherStationService(IStationSettingsService settingsService)
+        {
+            this._settingsService = settingsService;
+        }
     }
 }
