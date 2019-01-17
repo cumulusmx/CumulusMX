@@ -152,8 +152,8 @@ namespace FineOffset
 
             if (_hasSolar)
             {
-                histData.UVValue = data[19];
-                histData.SolarValue = (data[16] + (data[17] * 256) + (data[18] * 65536)) / 10.0;
+                histData.UVIndex = data[19];
+                histData.SolarRadiation = (data[16] + (data[17] * 256) + (data[18] * 65536)) / 10.0;
             }
             return histData;
         }

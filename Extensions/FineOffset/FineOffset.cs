@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using HidSharp;
+using UnitsNet;
 
 namespace FineOffset
 {
@@ -24,7 +25,6 @@ namespace FineOffset
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
         protected DeviceDataReader dataReader;
-        private int rainCounter;
 
         public FineOffset()
         {
@@ -93,6 +93,7 @@ namespace FineOffset
         /// </summary>
         private async Task PollForNewData(CancellationToken ct)
         {
+            int rainCounter = 0;
             while (!ct.IsCancellationRequested)
             {
                 var position = dataReader.GetCurrentDataPosition();
@@ -146,6 +147,7 @@ namespace FineOffset
             while (datalist.Count > 0)
             {
                 DataEntry historydata = datalist[datalist.Count - 1];
+                prevraintotal = historydata.RainCounter;
                 WeatherDataModel model = ProcessDataEntry(historydata, prevraintotal);
                 items.Add(model);
                 datalist.RemoveAt(datalist.Count - 1);
@@ -165,12 +167,12 @@ namespace FineOffset
             if ((dataEntry.InsideHumidity > 100) && (dataEntry.InsideHumidity != 255))
                 log.Warn("Ignoring bad data: InsideHumidity = " + dataEntry.InsideHumidity);
             else if ((dataEntry.InsideHumidity > 0) && (dataEntry.InsideHumidity != 255)) // 255 is the overflow value, when RH gets below 10% - ignore
-                model.IndoorHumidity = dataEntry.InsideHumidity;
+                model.IndoorHumidity = Ratio.FromPercent(dataEntry.InsideHumidity);
 
 
             // Indoor Temperature ===================================================
             if ((dataEntry.InsideTemperature > -50) && (dataEntry.InsideTemperature < 50))
-                model.IndoorTemperature = dataEntry.InsideTemperature;
+                model.IndoorTemperature = Temperature.FromDegreesCelsius(dataEntry.InsideTemperature);
             else
                 log.Warn($"Ignoring bad data: InsideTemp = {dataEntry.InsideTemperature}");
 
@@ -182,7 +184,7 @@ namespace FineOffset
             }
             else
             {
-                model.AbsolutePressure = dataEntry.Pressure;
+                model.AbsolutePressure = Pressure.FromMillibars(dataEntry.Pressure);
             }
 
             if (dataEntry.SensorContactLost)
@@ -195,7 +197,7 @@ namespace FineOffset
                 if ((dataEntry.OutsideHumidity > 100) && (dataEntry.OutsideHumidity != 255))
                     log.Warn("Ignoring bad data: outhum = " + dataEntry.OutsideHumidity);
                 else if ((dataEntry.OutsideHumidity > 0) && (dataEntry.OutsideHumidity != 255)) // 255 is the overflow value, when RH gets below 10% - ignore
-                    model.OutdoorHumidity = dataEntry.OutsideHumidity;
+                    model.OutdoorHumidity = Ratio.FromPercent(dataEntry.OutsideHumidity);
 
 
                 // Wind =================================================================
@@ -205,9 +207,9 @@ namespace FineOffset
                     log.Warn("Ignoring bad data: speed = " + dataEntry.WindSpeed);
                 else
                 {
-                    model.WindBearing = dataEntry.WindBearing;
-                    model.WindSpeed = dataEntry.WindSpeed;
-                    model.WindGust = dataEntry.WindGust;
+                    model.WindBearing = Angle.FromDegrees(dataEntry.WindBearing);
+                    model.WindSpeed = Speed.FromKilometersPerHour(dataEntry.WindSpeed);
+                    model.WindGust = Speed.FromKilometersPerHour(dataEntry.WindGust);
                 }
 
 
@@ -215,7 +217,7 @@ namespace FineOffset
                 if ((dataEntry.OutsideTemperature < -50) || (dataEntry.OutsideTemperature > 70))
                     log.Warn("Ignoring bad data: outtemp = " + dataEntry.OutsideTemperature);
                 else
-                    model.OutdoorTemperature = dataEntry.OutsideTemperature;
+                    model.OutdoorTemperature = Temperature.FromDegreesCelsius(dataEntry.OutsideTemperature);
 
 
 
@@ -240,9 +242,12 @@ namespace FineOffset
                     rainrate = (raindiff * RAIN_COUNT_PER_TIP) * (60.0 / dataEntry.Interval);
 
 
-                model.RainRate = rainrate;
-                model.RainCounter = dataEntry.RainCounter * RAIN_COUNT_PER_TIP;
-                prevraintotal = dataEntry.RainCounter;
+                model.RainRate = Speed.FromMillimetersPerHour(rainrate);
+                model.RainCounter = Length.FromMillimeters(dataEntry.RainCounter * RAIN_COUNT_PER_TIP);
+
+                model.SolarRadiation = Irradiance.FromWattsPerSquareMeter(dataEntry.SolarRadiation);
+                model.UVIndex = dataEntry.UVIndex;
+
             }
             return model;
         }

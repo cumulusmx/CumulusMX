@@ -17,8 +17,8 @@ namespace FineOffset
         public int WindBearing { get; set; }
         public double WindGust { get; set; }
         public double WindSpeed { get; set; }
-        public int UVValue { get; set; }
-        public double SolarValue { get; set; }
+        public int UVIndex { get; set; }
+        public double SolarRadiation { get; set; }
         public bool SensorContactLost { get; set; }
     }
 }
