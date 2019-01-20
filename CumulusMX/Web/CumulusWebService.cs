@@ -11,7 +11,7 @@ namespace CumulusMX.Web
 {
     public class CumulusWebService
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly WebServer _webServer;
 
         public CumulusWebService(int webPort, string contentRootDir)
@@ -27,13 +27,13 @@ namespace CumulusMX.Web
             _webServer.Module<StaticFilesModule>().UseRamCache = true;
 
             _webServer.RegisterModule(new WebApiModule());
-            _webServer.Module<WebApiModule>().RegisterController<GraphDataController>(x => new GraphDataController(x));
-            _webServer.Module<WebApiModule>().RegisterController<DataController>();
-            _webServer.Module<WebApiModule>().RegisterController<RecordsController>();
-            _webServer.Module<WebApiModule>().RegisterController<TodayYestDataController>();
-            _webServer.Module<WebApiModule>().RegisterController<ExtraDataController>();
-            _webServer.Module<WebApiModule>().RegisterController<SettingsController>();
-            _webServer.Module<WebApiModule>().RegisterController<EditController>();
+            //_webServer.Module<WebApiModule>().RegisterController<GraphDataController>(x => new GraphDataController(x));
+            //_webServer.Module<WebApiModule>().RegisterController<DataController>();
+            //_webServer.Module<WebApiModule>().RegisterController<RecordsController>();
+            //_webServer.Module<WebApiModule>().RegisterController<TodayYestDataController>();
+            //_webServer.Module<WebApiModule>().RegisterController<ExtraDataController>();
+            //_webServer.Module<WebApiModule>().RegisterController<SettingsController>();
+            //_webServer.Module<WebApiModule>().RegisterController<EditController>();
         }
 
         public void Start()

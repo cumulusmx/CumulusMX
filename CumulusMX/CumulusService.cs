@@ -15,7 +15,7 @@ namespace CumulusMX
 {
     public class CumulusService : ServiceBase
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
         private Mutex appMutex;

@@ -12,6 +12,7 @@
     <PackageReference Include="McMaster.NETCore.Plugins" Version="0.2.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.5.0" />
+    <PackageReference Include="UnitsNet" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>

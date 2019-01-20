@@ -10,9 +10,9 @@ namespace CumulusMX.Web.Controllers
 {
     public class EditController : ControllerBase
     {
-        private readonly DataEditor dataEditor;
+        private readonly IDataEditor dataEditor;
 
-        public EditController(DataEditor dataEditor, IHttpContext context) : base(context)
+        public EditController(IDataEditor dataEditor, IHttpContext context) : base(context)
         {
             this.dataEditor = dataEditor;
         }
@@ -69,5 +69,11 @@ namespace CumulusMX.Web.Controllers
 
         }
 
+    }
+
+    public interface IDataEditor
+    {
+        object EditRainToday(EditController editController);
+        object GetRainTodayEditData();
     }
 }

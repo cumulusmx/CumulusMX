@@ -15,7 +15,7 @@ namespace CumulusMX
 {
     class Program
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static void Main(string[] args)
         {
@@ -27,7 +27,8 @@ namespace CumulusMX
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
-            ConfigureLogging($"MXDiags{Path.DirectorySeparatorChar}/{DateTime.Now.ToString("yyyyMMdd-hhmmss")}.txt");
+            ConfigureLogging($"MXDiags{Path.DirectorySeparatorChar}{DateTime.Now.ToString("yyyyMMdd-hhmmss")}.txt");
+            log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
             var pathToApplicationBase = Path.GetDirectoryName(new System.Uri(Assembly.GetExecutingAssembly().GetName().CodeBase).LocalPath);
             var pathToContentRoot = Directory.GetCurrentDirectory();
@@ -112,7 +113,7 @@ namespace CumulusMX
 
         private static void ConfigureLogging(string logFilePath)
         {
-            Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository("");
+            Hierarchy hierarchy = (Hierarchy)LogManager.CreateRepository("cumulus");
 
             PatternLayout patternLayout = new PatternLayout();
             patternLayout.ConversionPattern = "%date [%thread] %-5level %logger - %message%newline";
@@ -127,15 +128,18 @@ namespace CumulusMX
             roller.RollingStyle = RollingFileAppender.RollingMode.Size;
             roller.StaticLogFileName = true;
             roller.ActivateOptions();
+            roller.Threshold = Level.Debug;
             hierarchy.Root.AddAppender(roller);
 
             ConsoleAppender console = new ConsoleAppender();
             console.Layout = patternLayout;
+            console.Threshold = Level.Debug;
             console.ActivateOptions();
             hierarchy.Root.AddAppender(console);
 
-            hierarchy.Root.Level = Level.Info;
+            hierarchy.Root.Level = Level.Debug;
             hierarchy.Configured = true;
+            
         }
     }
 }
