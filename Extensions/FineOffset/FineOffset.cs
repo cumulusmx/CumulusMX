@@ -184,7 +184,7 @@ namespace FineOffset
             }
             else
             {
-                model.AbsolutePressure = Pressure.FromMillibars(dataEntry.Pressure);
+                model.Pressure = Pressure.FromMillibars(dataEntry.Pressure);
             }
 
             if (dataEntry.SensorContactLost)

@@ -7,19 +7,19 @@ namespace CumulusMX.Extensions.Station
 {
     public class WeatherDataModel
     {
-        public Temperature IndoorTemperature { get; set; }
-        public Temperature OutdoorTemperature { get; set; }
-        public Ratio IndoorHumidity { get; set; }
-        public Ratio OutdoorHumidity { get; set; }
-        public Speed WindGust { get; set; }
-        public Speed WindSpeed { get; set; }
-        public Angle WindBearing { get; set; }
-        public Pressure AbsolutePressure { get; set; }
-        public Pressure StationPressure { get; set; }
-        public Temperature OutdoorDewpoint { get; set; }
-        public Speed RainRate { get; set; }
-        public Length RainCounter { get; set; }
-        public Irradiance SolarRadiation { get; set; }
+        public Temperature? IndoorTemperature { get; set; }
+        public Temperature? OutdoorTemperature { get; set; }
+        public Ratio? IndoorHumidity { get; set; }
+        public Ratio? OutdoorHumidity { get; set; }
+        public Speed? WindGust { get; set; }
+        public Speed? WindSpeed { get; set; }
+        public Angle? WindBearing { get; set; }
+        public Pressure? Pressure { get; set; }
+        public Pressure? AltimeterPressure { get; set; }
+        public Temperature? OutdoorDewpoint { get; set; }
+        public Speed? RainRate { get; set; }
+        public Length? RainCounter { get; set; }
+        public Irradiance? SolarRadiation { get; set; }
         public int? UVIndex { get; set; }
 
 
