@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using CumulusMX.Extensions.Station;
 
-namespace CumulusMX.Stations
+namespace CumulusMX.Stations.Calibration
 {
     public interface IWeatherDataCalibrationService
     {
