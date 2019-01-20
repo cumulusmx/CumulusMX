@@ -12,7 +12,7 @@ namespace CumulusMX.Extensions
 {
     public class ExtensionLoader
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly ExtensionLoaderSettings _settings;
 
 
@@ -27,8 +27,8 @@ namespace CumulusMX.Extensions
             log.Info($"Loading extensions from path '{_settings.Path}'");
             if (!Directory.Exists(_settings.Path))
             {
-                log.Error($"Extensions directory '{_settings.Path}' does not exist");
-                throw new Exception($"Extensions directory '{_settings.Path}' does not exist");
+                log.Info($"Creating missing extensions directory '{_settings.Path}'");
+                Directory.CreateDirectory(_settings.Path);
             }
             List<ExtensionDescriptor> foundExtensions = new List<ExtensionDescriptor>();
             var extensionDirectories = new DirectoryInfo(_settings.Path).EnumerateDirectories();
