@@ -80,14 +80,11 @@
     <Reference Include="Devart.Data.MySql">
       <HintPath>..\packages\Devart.Data.MySql.dll</HintPath>
     </Reference>
-    <Reference Include="fastJSON, Version=2.2.0.0, Culture=neutral, PublicKeyToken=6b75a806b86095cd, processorArchitecture=MSIL">
-      <HintPath>..\packages\fastJSON.2.2.0.1\lib\net40\fastJSON.dll</HintPath>
+    <Reference Include="FluentFTP, Version=19.2.3.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentFTP.19.2.3\lib\net45\FluentFTP.dll</HintPath>
     </Reference>
-    <Reference Include="FluentFTP, Version=19.2.2.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentFTP.19.2.2\lib\net45\FluentFTP.dll</HintPath>
-    </Reference>
-    <Reference Include="HidSharp, Version=2.0.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HidSharp.2.0.5\lib\net35\HidSharp.dll</HintPath>
+    <Reference Include="HidSharp, Version=2.0.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HidSharp.2.0.8\lib\net35\HidSharp.dll</HintPath>
     </Reference>
     <Reference Include="LinqToTwitter.AspNet, Version=3.1.1.15391, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

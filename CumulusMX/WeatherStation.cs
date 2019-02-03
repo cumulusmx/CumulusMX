@@ -1287,6 +1287,11 @@ namespace CumulusMX
 			{
 				lastMinute = minute;
 
+				if ((minute % 10) == 0)
+				{
+					TenMinuteChanged();
+				}
+
 				var hour = DateTime.Now.Hour;
 
 				if (hour != lastHour)
@@ -1379,7 +1384,6 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Hour changed:" + hour);
 			cumulus.DoSunriseAndSunset();
-			cumulus.DoMoonPhase();
 
 			if (cumulus.HourlyForecast)
 			{
@@ -1598,6 +1602,11 @@ namespace CumulusMX
 					}
 				}
 			}
+		}
+
+		private void TenMinuteChanged()
+		{
+			cumulus.DoMoonPhase();
 		}
 
 		private void CheckForDataStopped()
@@ -3988,7 +3997,7 @@ namespace CumulusMX
 			highrainyesterday = ini.GetValue("Rain", "High", 0.0);
 			highrainyesterdaytime = ini.GetValue("Rain", "HTime", DateTime.MinValue);
 			highhourlyrainyesterday = ini.GetValue("Rain", "HourlyHigh", 0.0);
-			highhourlyrainyesterdaytime = ini.GetValue("Rain", "HHourlyTime", DateTime.Now);
+			highhourlyrainyesterdaytime = ini.GetValue("Rain", "HHourlyTime", DateTime.MinValue);
 			RG11RainYesterday = ini.GetValue("Rain", "RG11Yesterday", 0.0);
 			// humidity
 			lowhumidityyesterday = ini.GetValue("Humidity", "Low", 0);
@@ -4672,6 +4681,13 @@ namespace CumulusMX
 					}
 				}
 
+				// Do the End of day Extra files
+				// This will set a flag to transfer on next FTP if required
+				cumulus.DoExtraEndOfDayFiles();
+				if (cumulus.EODfilesNeedFTP)
+				{
+					cumulus.LogMessage("Extra files will be uploaded at next web update");
+				}
 
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
@@ -6641,107 +6657,105 @@ namespace CumulusMX
 			cumulus.LogMessage(Path.GetFullPath(cumulus.AlltimeIniFile));
 			IniFile ini = new IniFile(cumulus.AlltimeIniFile);
 
-			var defaultTS = DateTime.Now;
-
 			alltimerecarray[WeatherStation.AT_hightemp].data_type = WeatherStation.AT_hightemp;
 			alltimerecarray[WeatherStation.AT_hightemp].value = ini.GetValue("Temperature", "hightempvalue", -999.0);
-			alltimerecarray[WeatherStation.AT_hightemp].timestamp = ini.GetValue("Temperature", "hightemptime", defaultTS);
+			alltimerecarray[WeatherStation.AT_hightemp].timestamp = ini.GetValue("Temperature", "hightemptime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowtemp].data_type = WeatherStation.AT_lowtemp;
 			alltimerecarray[WeatherStation.AT_lowtemp].value = ini.GetValue("Temperature", "lowtempvalue", 999.0);
-			alltimerecarray[WeatherStation.AT_lowtemp].timestamp = ini.GetValue("Temperature", "lowtemptime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowtemp].timestamp = ini.GetValue("Temperature", "lowtemptime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowchill].data_type = WeatherStation.AT_lowchill;
 			alltimerecarray[WeatherStation.AT_lowchill].value = ini.GetValue("Temperature", "lowchillvalue", 999.0);
-			alltimerecarray[WeatherStation.AT_lowchill].timestamp = ini.GetValue("Temperature", "lowchilltime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowchill].timestamp = ini.GetValue("Temperature", "lowchilltime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highmintemp].data_type = WeatherStation.AT_highmintemp;
 			alltimerecarray[WeatherStation.AT_highmintemp].value = ini.GetValue("Temperature", "highmintempvalue", -999.0);
-			alltimerecarray[WeatherStation.AT_highmintemp].timestamp = ini.GetValue("Temperature", "highmintemptime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highmintemp].timestamp = ini.GetValue("Temperature", "highmintemptime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowmaxtemp].data_type = WeatherStation.AT_lowmaxtemp;
 			alltimerecarray[WeatherStation.AT_lowmaxtemp].value = ini.GetValue("Temperature", "lowmaxtempvalue", 999.0);
-			alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp = ini.GetValue("Temperature", "lowmaxtemptime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp = ini.GetValue("Temperature", "lowmaxtemptime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highapptemp].data_type = WeatherStation.AT_highapptemp;
 			alltimerecarray[WeatherStation.AT_highapptemp].value = ini.GetValue("Temperature", "highapptempvalue", -999.0);
-			alltimerecarray[WeatherStation.AT_highapptemp].timestamp = ini.GetValue("Temperature", "highapptemptime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highapptemp].timestamp = ini.GetValue("Temperature", "highapptemptime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowapptemp].data_type = WeatherStation.AT_lowapptemp;
 			alltimerecarray[WeatherStation.AT_lowapptemp].value = ini.GetValue("Temperature", "lowapptempvalue", 999.0);
-			alltimerecarray[WeatherStation.AT_lowapptemp].timestamp = ini.GetValue("Temperature", "lowapptemptime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowapptemp].timestamp = ini.GetValue("Temperature", "lowapptemptime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highheatindex].data_type = WeatherStation.AT_highheatindex;
 			alltimerecarray[WeatherStation.AT_highheatindex].value = ini.GetValue("Temperature", "highheatindexvalue", -999.0);
-			alltimerecarray[WeatherStation.AT_highheatindex].timestamp = ini.GetValue("Temperature", "highheatindextime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highheatindex].timestamp = ini.GetValue("Temperature", "highheatindextime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highdewpoint].data_type = WeatherStation.AT_highdewpoint;
 			alltimerecarray[WeatherStation.AT_highdewpoint].value = ini.GetValue("Temperature", "highdewpointvalue", -999.0);
-			alltimerecarray[WeatherStation.AT_highdewpoint].timestamp = ini.GetValue("Temperature", "highdewpointtime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highdewpoint].timestamp = ini.GetValue("Temperature", "highdewpointtime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowdewpoint].data_type = WeatherStation.AT_lowdewpoint;
 			alltimerecarray[WeatherStation.AT_lowdewpoint].value = ini.GetValue("Temperature", "lowdewpointvalue", 999.0);
-			alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp = ini.GetValue("Temperature", "lowdewpointtime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp = ini.GetValue("Temperature", "lowdewpointtime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highdailytemprange].data_type = WeatherStation.AT_highdailytemprange;
 			alltimerecarray[WeatherStation.AT_highdailytemprange].value = ini.GetValue("Temperature", "hightemprangevalue", 0.0);
-			alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp = ini.GetValue("Temperature", "hightemprangetime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp = ini.GetValue("Temperature", "hightemprangetime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowdailytemprange].data_type = WeatherStation.AT_lowdailytemprange;
 			alltimerecarray[WeatherStation.AT_lowdailytemprange].value = ini.GetValue("Temperature", "lowtemprangevalue", 999.0);
-			alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp = ini.GetValue("Temperature", "lowtemprangetime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp = ini.GetValue("Temperature", "lowtemprangetime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highwind].data_type = WeatherStation.AT_highwind;
 			alltimerecarray[WeatherStation.AT_highwind].value = ini.GetValue("Wind", "highwindvalue", 0.0);
-			alltimerecarray[WeatherStation.AT_highwind].timestamp = ini.GetValue("Wind", "highwindtime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highwind].timestamp = ini.GetValue("Wind", "highwindtime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highgust].data_type = WeatherStation.AT_highgust;
 			alltimerecarray[WeatherStation.AT_highgust].value = ini.GetValue("Wind", "highgustvalue", 0.0);
-			alltimerecarray[WeatherStation.AT_highgust].timestamp = ini.GetValue("Wind", "highgusttime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highgust].timestamp = ini.GetValue("Wind", "highgusttime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highwindrun].data_type = WeatherStation.AT_highwindrun;
 			alltimerecarray[WeatherStation.AT_highwindrun].value = ini.GetValue("Wind", "highdailywindrunvalue", 0.0);
-			alltimerecarray[WeatherStation.AT_highwindrun].timestamp = ini.GetValue("Wind", "highdailywindruntime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highwindrun].timestamp = ini.GetValue("Wind", "highdailywindruntime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highrainrate].data_type = WeatherStation.AT_highrainrate;
 			alltimerecarray[WeatherStation.AT_highrainrate].value = ini.GetValue("Rain", "highrainratevalue", 0.0);
-			alltimerecarray[WeatherStation.AT_highrainrate].timestamp = ini.GetValue("Rain", "highrainratetime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highrainrate].timestamp = ini.GetValue("Rain", "highrainratetime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_dailyrain].data_type = WeatherStation.AT_dailyrain;
 			alltimerecarray[WeatherStation.AT_dailyrain].value = ini.GetValue("Rain", "highdailyrainvalue", 0.0);
-			alltimerecarray[WeatherStation.AT_dailyrain].timestamp = ini.GetValue("Rain", "highdailyraintime", defaultTS);
+			alltimerecarray[WeatherStation.AT_dailyrain].timestamp = ini.GetValue("Rain", "highdailyraintime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_hourlyrain].data_type = WeatherStation.AT_hourlyrain;
 			alltimerecarray[WeatherStation.AT_hourlyrain].value = ini.GetValue("Rain", "highhourlyrainvalue", 0.0);
-			alltimerecarray[WeatherStation.AT_hourlyrain].timestamp = ini.GetValue("Rain", "highhourlyraintime", defaultTS);
+			alltimerecarray[WeatherStation.AT_hourlyrain].timestamp = ini.GetValue("Rain", "highhourlyraintime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_wetmonth].data_type = WeatherStation.AT_wetmonth;
 			alltimerecarray[WeatherStation.AT_wetmonth].value = ini.GetValue("Rain", "highmonthlyrainvalue", 0.0);
-			alltimerecarray[WeatherStation.AT_wetmonth].timestamp = ini.GetValue("Rain", "highmonthlyraintime", defaultTS);
+			alltimerecarray[WeatherStation.AT_wetmonth].timestamp = ini.GetValue("Rain", "highmonthlyraintime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_longestdryperiod].data_type = WeatherStation.AT_longestdryperiod;
 			alltimerecarray[WeatherStation.AT_longestdryperiod].value = ini.GetValue("Rain", "longestdryperiodvalue", 0);
-			alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp = ini.GetValue("Rain", "longestdryperiodtime", defaultTS);
+			alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp = ini.GetValue("Rain", "longestdryperiodtime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_longestwetperiod].data_type = WeatherStation.AT_longestwetperiod;
 			alltimerecarray[WeatherStation.AT_longestwetperiod].value = ini.GetValue("Rain", "longestwetperiodvalue", 0);
-			alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp = ini.GetValue("Rain", "longestwetperiodtime", defaultTS);
+			alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp = ini.GetValue("Rain", "longestwetperiodtime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highpress].data_type = WeatherStation.AT_highpress;
 			alltimerecarray[WeatherStation.AT_highpress].value = ini.GetValue("Pressure", "highpressurevalue", 0.0);
-			alltimerecarray[WeatherStation.AT_highpress].timestamp = ini.GetValue("Pressure", "highpressuretime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highpress].timestamp = ini.GetValue("Pressure", "highpressuretime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowpress].data_type = WeatherStation.AT_lowpress;
 			alltimerecarray[WeatherStation.AT_lowpress].value = ini.GetValue("Pressure", "lowpressurevalue", 9999.0);
-			alltimerecarray[WeatherStation.AT_lowpress].timestamp = ini.GetValue("Pressure", "lowpressuretime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowpress].timestamp = ini.GetValue("Pressure", "lowpressuretime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_highhumidity].data_type = WeatherStation.AT_highhumidity;
 			alltimerecarray[WeatherStation.AT_highhumidity].value = ini.GetValue("Humidity", "highhumidityvalue", 0);
-			alltimerecarray[WeatherStation.AT_highhumidity].timestamp = ini.GetValue("Humidity", "highhumiditytime", defaultTS);
+			alltimerecarray[WeatherStation.AT_highhumidity].timestamp = ini.GetValue("Humidity", "highhumiditytime", cumulus.defaultRecordTS);
 
 			alltimerecarray[WeatherStation.AT_lowhumidity].data_type = WeatherStation.AT_lowhumidity;
 			alltimerecarray[WeatherStation.AT_lowhumidity].value = ini.GetValue("Humidity", "lowhumidityvalue", 999);
-			alltimerecarray[WeatherStation.AT_lowhumidity].timestamp = ini.GetValue("Humidity", "lowhumiditytime", defaultTS);
+			alltimerecarray[WeatherStation.AT_lowhumidity].timestamp = ini.GetValue("Humidity", "lowhumiditytime", cumulus.defaultRecordTS);
 
 			cumulus.LogMessage("Alltime.ini file read");
 		}
@@ -6818,107 +6832,105 @@ namespace CumulusMX
 			{
 				string monthstr = month.ToString("D2");
 
-				var defaultTS = DateTime.Now;
-
 				monthlyrecarray[WeatherStation.AT_hightemp, month].data_type = WeatherStation.AT_hightemp;
 				monthlyrecarray[WeatherStation.AT_hightemp, month].value = ini.GetValue("Temperature" + monthstr, "hightempvalue", -999.0);
-				monthlyrecarray[WeatherStation.AT_hightemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "hightemptime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_hightemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "hightemptime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowtemp, month].data_type = WeatherStation.AT_lowtemp;
 				monthlyrecarray[WeatherStation.AT_lowtemp, month].value = ini.GetValue("Temperature" + monthstr, "lowtempvalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowtemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowtemptime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowtemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowtemptime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowchill, month].data_type = WeatherStation.AT_lowchill;
 				monthlyrecarray[WeatherStation.AT_lowchill, month].value = ini.GetValue("Temperature" + monthstr, "lowchillvalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowchill, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowchilltime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowchill, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowchilltime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highmintemp, month].data_type = WeatherStation.AT_highmintemp;
 				monthlyrecarray[WeatherStation.AT_highmintemp, month].value = ini.GetValue("Temperature" + monthstr, "highmintempvalue", -999.0);
-				monthlyrecarray[WeatherStation.AT_highmintemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "highmintemptime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highmintemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "highmintemptime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].data_type = WeatherStation.AT_lowmaxtemp;
 				monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].value = ini.GetValue("Temperature" + monthstr, "lowmaxtempvalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowmaxtemptime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowmaxtemptime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highapptemp, month].data_type = WeatherStation.AT_highapptemp;
 				monthlyrecarray[WeatherStation.AT_highapptemp, month].value = ini.GetValue("Temperature" + monthstr, "highapptempvalue", -999.0);
-				monthlyrecarray[WeatherStation.AT_highapptemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "highapptemptime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highapptemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "highapptemptime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowapptemp, month].data_type = WeatherStation.AT_lowapptemp;
 				monthlyrecarray[WeatherStation.AT_lowapptemp, month].value = ini.GetValue("Temperature" + monthstr, "lowapptempvalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowapptemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowapptemptime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowapptemp, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowapptemptime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highheatindex, month].data_type = WeatherStation.AT_highheatindex;
 				monthlyrecarray[WeatherStation.AT_highheatindex, month].value = ini.GetValue("Temperature" + monthstr, "highheatindexvalue", -999.0);
-				monthlyrecarray[WeatherStation.AT_highheatindex, month].timestamp = ini.GetValue("Temperature" + monthstr, "highheatindextime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highheatindex, month].timestamp = ini.GetValue("Temperature" + monthstr, "highheatindextime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highdewpoint, month].data_type = WeatherStation.AT_highdewpoint;
 				monthlyrecarray[WeatherStation.AT_highdewpoint, month].value = ini.GetValue("Temperature" + monthstr, "highdewpointvalue", -999.0);
-				monthlyrecarray[WeatherStation.AT_highdewpoint, month].timestamp = ini.GetValue("Temperature" + monthstr, "highdewpointtime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highdewpoint, month].timestamp = ini.GetValue("Temperature" + monthstr, "highdewpointtime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowdewpoint, month].data_type = WeatherStation.AT_lowdewpoint;
 				monthlyrecarray[WeatherStation.AT_lowdewpoint, month].value = ini.GetValue("Temperature" + monthstr, "lowdewpointvalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowdewpoint, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowdewpointtime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowdewpoint, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowdewpointtime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highdailytemprange, month].data_type = WeatherStation.AT_highdailytemprange;
 				monthlyrecarray[WeatherStation.AT_highdailytemprange, month].value = ini.GetValue("Temperature" + monthstr, "hightemprangevalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highdailytemprange, month].timestamp = ini.GetValue("Temperature" + monthstr, "hightemprangetime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highdailytemprange, month].timestamp = ini.GetValue("Temperature" + monthstr, "hightemprangetime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].data_type = WeatherStation.AT_lowdailytemprange;
 				monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].value = ini.GetValue("Temperature" + monthstr, "lowtemprangevalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowtemprangetime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].timestamp = ini.GetValue("Temperature" + monthstr, "lowtemprangetime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highwind, month].data_type = WeatherStation.AT_highwind;
 				monthlyrecarray[WeatherStation.AT_highwind, month].value = ini.GetValue("Wind" + monthstr, "highwindvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highwind, month].timestamp = ini.GetValue("Wind" + monthstr, "highwindtime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highwind, month].timestamp = ini.GetValue("Wind" + monthstr, "highwindtime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highgust, month].data_type = WeatherStation.AT_highgust;
 				monthlyrecarray[WeatherStation.AT_highgust, month].value = ini.GetValue("Wind" + monthstr, "highgustvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highgust, month].timestamp = ini.GetValue("Wind" + monthstr, "highgusttime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highgust, month].timestamp = ini.GetValue("Wind" + monthstr, "highgusttime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highwindrun, month].data_type = WeatherStation.AT_highwindrun;
 				monthlyrecarray[WeatherStation.AT_highwindrun, month].value = ini.GetValue("Wind" + monthstr, "highdailywindrunvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highwindrun, month].timestamp = ini.GetValue("Wind" + monthstr, "highdailywindruntime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highwindrun, month].timestamp = ini.GetValue("Wind" + monthstr, "highdailywindruntime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highrainrate, month].data_type = WeatherStation.AT_highrainrate;
 				monthlyrecarray[WeatherStation.AT_highrainrate, month].value = ini.GetValue("Rain" + monthstr, "highrainratevalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highrainrate, month].timestamp = ini.GetValue("Rain" + monthstr, "highrainratetime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highrainrate, month].timestamp = ini.GetValue("Rain" + monthstr, "highrainratetime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_dailyrain, month].data_type = WeatherStation.AT_dailyrain;
 				monthlyrecarray[WeatherStation.AT_dailyrain, month].value = ini.GetValue("Rain" + monthstr, "highdailyrainvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_dailyrain, month].timestamp = ini.GetValue("Rain" + monthstr, "highdailyraintime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_dailyrain, month].timestamp = ini.GetValue("Rain" + monthstr, "highdailyraintime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_hourlyrain, month].data_type = WeatherStation.AT_hourlyrain;
 				monthlyrecarray[WeatherStation.AT_hourlyrain, month].value = ini.GetValue("Rain" + monthstr, "highhourlyrainvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_hourlyrain, month].timestamp = ini.GetValue("Rain" + monthstr, "highhourlyraintime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_hourlyrain, month].timestamp = ini.GetValue("Rain" + monthstr, "highhourlyraintime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_wetmonth, month].data_type = WeatherStation.AT_wetmonth;
 				monthlyrecarray[WeatherStation.AT_wetmonth, month].value = ini.GetValue("Rain" + monthstr, "highmonthlyrainvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_wetmonth, month].timestamp = ini.GetValue("Rain" + monthstr, "highmonthlyraintime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_wetmonth, month].timestamp = ini.GetValue("Rain" + monthstr, "highmonthlyraintime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_longestdryperiod, month].data_type = WeatherStation.AT_longestdryperiod;
 				monthlyrecarray[WeatherStation.AT_longestdryperiod, month].value = ini.GetValue("Rain" + monthstr, "longestdryperiodvalue", 0);
-				monthlyrecarray[WeatherStation.AT_longestdryperiod, month].timestamp = ini.GetValue("Rain" + monthstr, "longestdryperiodtime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_longestdryperiod, month].timestamp = ini.GetValue("Rain" + monthstr, "longestdryperiodtime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_longestwetperiod, month].data_type = WeatherStation.AT_longestwetperiod;
 				monthlyrecarray[WeatherStation.AT_longestwetperiod, month].value = ini.GetValue("Rain" + monthstr, "longestwetperiodvalue", 0);
-				monthlyrecarray[WeatherStation.AT_longestwetperiod, month].timestamp = ini.GetValue("Rain" + monthstr, "longestwetperiodtime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_longestwetperiod, month].timestamp = ini.GetValue("Rain" + monthstr, "longestwetperiodtime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highpress, month].data_type = WeatherStation.AT_highpress;
 				monthlyrecarray[WeatherStation.AT_highpress, month].value = ini.GetValue("Pressure" + monthstr, "highpressurevalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highpress, month].timestamp = ini.GetValue("Pressure" + monthstr, "highpressuretime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highpress, month].timestamp = ini.GetValue("Pressure" + monthstr, "highpressuretime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowpress, month].data_type = WeatherStation.AT_lowpress;
 				monthlyrecarray[WeatherStation.AT_lowpress, month].value = ini.GetValue("Pressure" + monthstr, "lowpressurevalue", 9999.0);
-				monthlyrecarray[WeatherStation.AT_lowpress, month].timestamp = ini.GetValue("Pressure" + monthstr, "lowpressuretime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowpress, month].timestamp = ini.GetValue("Pressure" + monthstr, "lowpressuretime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_highhumidity, month].data_type = WeatherStation.AT_highhumidity;
 				monthlyrecarray[WeatherStation.AT_highhumidity, month].value = ini.GetValue("Humidity" + monthstr, "highhumidityvalue", 0.0);
-				monthlyrecarray[WeatherStation.AT_highhumidity, month].timestamp = ini.GetValue("Humidity" + monthstr, "highhumiditytime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_highhumidity, month].timestamp = ini.GetValue("Humidity" + monthstr, "highhumiditytime", cumulus.defaultRecordTS);
 
 				monthlyrecarray[WeatherStation.AT_lowhumidity, month].data_type = WeatherStation.AT_lowhumidity;
 				monthlyrecarray[WeatherStation.AT_lowhumidity, month].value = ini.GetValue("Humidity" + monthstr, "lowhumidityvalue", 999.0);
-				monthlyrecarray[WeatherStation.AT_lowhumidity, month].timestamp = ini.GetValue("Humidity" + monthstr, "lowhumiditytime", defaultTS);
+				monthlyrecarray[WeatherStation.AT_lowhumidity, month].timestamp = ini.GetValue("Humidity" + monthstr, "lowhumiditytime", cumulus.defaultRecordTS);
 			}
 
 			cumulus.LogMessage("MonthlyAlltime.ini file read");
@@ -7019,28 +7031,28 @@ namespace CumulusMX
 			HighDailyTempRangeThisMonth = -999;
 
 			// this Month highs and lows - timestamps
-			HighGustThisMonthTS = DateTime.Now;
-			HighWindThisMonthTS = DateTime.Now;
-			HighTempThisMonthTS = DateTime.Now;
-			LowTempThisMonthTS = DateTime.Now;
-			HighAppTempThisMonthTS = DateTime.Now;
-			LowAppTempThisMonthTS = DateTime.Now;
-			HighDewpointThisMonthTS = DateTime.Now;
-			LowDewpointThisMonthTS = DateTime.Now;
-			HighPressThisMonthTS = DateTime.Now;
-			LowPressThisMonthTS = DateTime.Now;
-			HighRainThisMonthTS = DateTime.Now;
-			HighHourlyRainThisMonthTS = DateTime.Now;
-			HighDailyRainThisMonthTS = DateTime.Now;
-			HighHumidityThisMonthTS = DateTime.Now;
-			LowHumidityThisMonthTS = DateTime.Now;
-			HighHeatIndexThisMonthTS = DateTime.Now;
-			LowWindChillThisMonthTS = DateTime.Now;
-			HighMinTempThisMonthTS = DateTime.Now;
-			LowMaxTempThisMonthTS = DateTime.Now;
-			HighDailyRainThisMonthTS = DateTime.Now;
-			LowDailyTempRangeThisMonthTS = DateTime.Now;
-			HighDailyTempRangeThisMonthTS = DateTime.Now;
+			HighGustThisMonthTS = cumulus.defaultRecordTS;
+			HighWindThisMonthTS = cumulus.defaultRecordTS;
+			HighTempThisMonthTS = cumulus.defaultRecordTS;
+			LowTempThisMonthTS = cumulus.defaultRecordTS;
+			HighAppTempThisMonthTS = cumulus.defaultRecordTS;
+			LowAppTempThisMonthTS = cumulus.defaultRecordTS;
+			HighDewpointThisMonthTS = cumulus.defaultRecordTS;
+			LowDewpointThisMonthTS = cumulus.defaultRecordTS;
+			HighPressThisMonthTS = cumulus.defaultRecordTS;
+			LowPressThisMonthTS = cumulus.defaultRecordTS;
+			HighRainThisMonthTS = cumulus.defaultRecordTS;
+			HighHourlyRainThisMonthTS = cumulus.defaultRecordTS;
+			HighDailyRainThisMonthTS = cumulus.defaultRecordTS;
+			HighHumidityThisMonthTS = cumulus.defaultRecordTS;
+			LowHumidityThisMonthTS = cumulus.defaultRecordTS;
+			HighHeatIndexThisMonthTS = cumulus.defaultRecordTS;
+			LowWindChillThisMonthTS = cumulus.defaultRecordTS;
+			HighMinTempThisMonthTS = cumulus.defaultRecordTS;
+			LowMaxTempThisMonthTS = cumulus.defaultRecordTS;
+			HighDailyRainThisMonthTS = cumulus.defaultRecordTS;
+			LowDailyTempRangeThisMonthTS = cumulus.defaultRecordTS;
+			HighDailyTempRangeThisMonthTS = cumulus.defaultRecordTS;
 		}
 
 		public void ReadMonthIniFile()
@@ -7049,8 +7061,6 @@ namespace CumulusMX
 
 			SetDefaultMonthlyHighsAndLows();
 
-			DateTime defaultTS = new DateTime(2000, 1, 1, 0, 0, 0);
-
 			if (File.Exists(cumulus.MonthIniFile))
 			{
 				int hourInc = cumulus.GetHourInc();
@@ -7058,64 +7068,64 @@ namespace CumulusMX
 				IniFile ini = new IniFile(cumulus.MonthIniFile);
 
 				// Date
-				timestamp = ini.GetValue("General", "Date", defaultTS);
+				timestamp = ini.GetValue("General", "Date", cumulus.defaultRecordTS);
 
 				HighWindThisMonth = ini.GetValue("Wind", "Speed", 0.0);
-				HighWindThisMonthTS = ini.GetValue("Wind", "SpTime", defaultTS);
+				HighWindThisMonthTS = ini.GetValue("Wind", "SpTime", cumulus.defaultRecordTS);
 				HighGustThisMonth = ini.GetValue("Wind", "Gust", 0.0);
-				HighGustThisMonthTS = ini.GetValue("Wind", "Time", defaultTS);
+				HighGustThisMonthTS = ini.GetValue("Wind", "Time", cumulus.defaultRecordTS);
 				HighDailyWindrunThisMonth = ini.GetValue("Wind", "Windrun", 0.0);
-				HighDailyWindrunThisMonthTS = ini.GetValue("Wind", "WindrunTime", defaultTS);
+				HighDailyWindrunThisMonthTS = ini.GetValue("Wind", "WindrunTime", cumulus.defaultRecordTS);
 				// Temperature
 				LowTempThisMonth = ini.GetValue("Temp", "Low", 999.0);
-				LowTempThisMonthTS = ini.GetValue("Temp", "LTime", defaultTS);
+				LowTempThisMonthTS = ini.GetValue("Temp", "LTime", cumulus.defaultRecordTS);
 				HighTempThisMonth = ini.GetValue("Temp", "High", -999.0);
-				HighTempThisMonthTS = ini.GetValue("Temp", "HTime", defaultTS);
+				HighTempThisMonthTS = ini.GetValue("Temp", "HTime", cumulus.defaultRecordTS);
 				LowMaxTempThisMonth = ini.GetValue("Temp", "LowMax", 999.0);
-				LowMaxTempThisMonthTS = ini.GetValue("Temp", "LMTime", defaultTS);
+				LowMaxTempThisMonthTS = ini.GetValue("Temp", "LMTime", cumulus.defaultRecordTS);
 				HighMinTempThisMonth = ini.GetValue("Temp", "HighMin", -999.0);
-				HighMinTempThisMonthTS = ini.GetValue("Temp", "HMTime", defaultTS);
+				HighMinTempThisMonthTS = ini.GetValue("Temp", "HMTime", cumulus.defaultRecordTS);
 				LowDailyTempRangeThisMonth = ini.GetValue("Temp", "LowRange", 999.0);
-				LowDailyTempRangeThisMonthTS = ini.GetValue("Temp", "LowRangeTime", defaultTS);
+				LowDailyTempRangeThisMonthTS = ini.GetValue("Temp", "LowRangeTime", cumulus.defaultRecordTS);
 				HighDailyTempRangeThisMonth = ini.GetValue("Temp", "HighRange", -999.0);
-				HighDailyTempRangeThisMonthTS = ini.GetValue("Temp", "HighRangeTime", defaultTS);
+				HighDailyTempRangeThisMonthTS = ini.GetValue("Temp", "HighRangeTime", cumulus.defaultRecordTS);
 				// Pressure
 				LowPressThisMonth = ini.GetValue("Pressure", "Low", 9999.0);
-				LowPressThisMonthTS = ini.GetValue("Pressure", "LTime", defaultTS);
+				LowPressThisMonthTS = ini.GetValue("Pressure", "LTime", cumulus.defaultRecordTS);
 				HighPressThisMonth = ini.GetValue("Pressure", "High", -9999.0);
-				HighPressThisMonthTS = ini.GetValue("Pressure", "HTime", defaultTS);
+				HighPressThisMonthTS = ini.GetValue("Pressure", "HTime", cumulus.defaultRecordTS);
 				// rain rate
 				HighRainThisMonth = ini.GetValue("Rain", "High", 0.0);
-				HighRainThisMonthTS = ini.GetValue("Rain", "HTime", defaultTS);
+				HighRainThisMonthTS = ini.GetValue("Rain", "HTime", cumulus.defaultRecordTS);
 				HighHourlyRainThisMonth = ini.GetValue("Rain", "HourlyHigh", 0.0);
-				HighHourlyRainThisMonthTS = ini.GetValue("Rain", "HHourlyTime", defaultTS);
+				HighHourlyRainThisMonthTS = ini.GetValue("Rain", "HHourlyTime", cumulus.defaultRecordTS);
 				HighDailyRainThisMonth = ini.GetValue("Rain", "DailyHigh", 0.0);
-				HighDailyRainThisMonthTS = ini.GetValue("Rain", "HDailyTime", defaultTS);
+				HighDailyRainThisMonthTS = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
 				LongestDryPeriodThisMonth = ini.GetValue("Rain", "LongestDryPeriod", 0);
-				LongestDryPeriodThisMonthTS = ini.GetValue("Rain", "LongestDryPeriodTime", defaultTS);
+				LongestDryPeriodThisMonthTS = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
 				LongestWetPeriodThisMonth = ini.GetValue("Rain", "LongestWetPeriod", 0);
-				LongestWetPeriodThisMonthTS = ini.GetValue("Rain", "LongestWetPeriodTime", defaultTS);
+				LongestWetPeriodThisMonthTS = ini.GetValue("Rain", "LongestWetPeriodTime", cumulus.defaultRecordTS);
 				// humidity
 				LowHumidityThisMonth = ini.GetValue("Humidity", "Low", 999);
-				LowHumidityThisMonthTS = ini.GetValue("Humidity", "LTime", defaultTS);
+				LowHumidityThisMonthTS = ini.GetValue("Humidity", "LTime", cumulus.defaultRecordTS);
 				HighHumidityThisMonth = ini.GetValue("Humidity", "High", -999);
-				HighHumidityThisMonthTS = ini.GetValue("Humidity", "HTime", defaultTS);
+				HighHumidityThisMonthTS = ini.GetValue("Humidity", "HTime", cumulus.defaultRecordTS);
 				// heat index
 				HighHeatIndexThisMonth = ini.GetValue("HeatIndex", "High", -999.0);
-				HighHeatIndexThisMonthTS = ini.GetValue("HeatIndex", "HTime", defaultTS);
+				HighHeatIndexThisMonthTS = ini.GetValue("HeatIndex", "HTime", cumulus.defaultRecordTS);
 				// App temp
 				LowAppTempThisMonth = ini.GetValue("AppTemp", "Low", 999.0);
-				LowAppTempThisMonthTS = ini.GetValue("AppTemp", "LTime", defaultTS);
+				LowAppTempThisMonthTS = ini.GetValue("AppTemp", "LTime", cumulus.defaultRecordTS);
 				HighAppTempThisMonth = ini.GetValue("AppTemp", "High", -999.0);
-				HighAppTempThisMonthTS = ini.GetValue("AppTemp", "HTime", defaultTS);
+				HighAppTempThisMonthTS = ini.GetValue("AppTemp", "HTime", cumulus.defaultRecordTS);
 				// Dewpoint
 				LowDewpointThisMonth = ini.GetValue("Dewpoint", "Low", 999.0);
-				LowDewpointThisMonthTS = ini.GetValue("Dewpoint", "LTime", defaultTS);
+				LowDewpointThisMonthTS = ini.GetValue("Dewpoint", "LTime", cumulus.defaultRecordTS);
 				HighDewpointThisMonth = ini.GetValue("Dewpoint", "High", -999.0);
-				HighDewpointThisMonthTS = ini.GetValue("Dewpoint", "HTime", defaultTS);
+				HighDewpointThisMonthTS = ini.GetValue("Dewpoint", "HTime", cumulus.defaultRecordTS);
 				// wind chill
 				LowWindChillThisMonth = ini.GetValue("WindChill", "Low", 999.0);
-				LowWindChillThisMonthTS = ini.GetValue("WindChill", "LTime", defaultTS);
+				LowWindChillThisMonthTS = ini.GetValue("WindChill", "LTime", cumulus.defaultRecordTS);
 
 				cumulus.LogMessage("Month.ini file read");
 			}
@@ -7206,8 +7216,6 @@ namespace CumulusMX
 
 			SetDefaultYearlyHighsAndLows();
 
-			DateTime defaultTS = new DateTime(2000, 1, 1, 0, 0, 0);
-
 			if (File.Exists(cumulus.YearIniFile))
 			{
 				int hourInc = cumulus.GetHourInc();
@@ -7215,66 +7223,66 @@ namespace CumulusMX
 				IniFile ini = new IniFile(cumulus.YearIniFile);
 
 				// Date
-				timestamp = ini.GetValue("General", "Date", defaultTS);
+				timestamp = ini.GetValue("General", "Date", cumulus.defaultRecordTS);
 
 				HighWindThisYear = ini.GetValue("Wind", "Speed", 0.0);
-				HighWindThisYearTS = ini.GetValue("Wind", "SpTime", defaultTS);
+				HighWindThisYearTS = ini.GetValue("Wind", "SpTime", cumulus.defaultRecordTS);
 				HighGustThisYear = ini.GetValue("Wind", "Gust", 0.0);
-				HighGustThisYearTS = ini.GetValue("Wind", "Time", defaultTS);
+				HighGustThisYearTS = ini.GetValue("Wind", "Time", cumulus.defaultRecordTS);
 				HighDailyWindrunThisYear = ini.GetValue("Wind", "Windrun", 0.0);
-				HighDailyWindrunThisYearTS = ini.GetValue("Wind", "WindrunTime", defaultTS);
+				HighDailyWindrunThisYearTS = ini.GetValue("Wind", "WindrunTime", cumulus.defaultRecordTS);
 				// Temperature
 				LowTempThisYear = ini.GetValue("Temp", "Low", 999.0);
-				LowTempThisYearTS = ini.GetValue("Temp", "LTime", defaultTS);
+				LowTempThisYearTS = ini.GetValue("Temp", "LTime", cumulus.defaultRecordTS);
 				HighTempThisYear = ini.GetValue("Temp", "High", -999.0);
-				HighTempThisYearTS = ini.GetValue("Temp", "HTime", defaultTS);
+				HighTempThisYearTS = ini.GetValue("Temp", "HTime", cumulus.defaultRecordTS);
 				LowMaxTempThisYear = ini.GetValue("Temp", "LowMax", 999.0);
-				LowMaxTempThisYearTS = ini.GetValue("Temp", "LMTime", defaultTS);
+				LowMaxTempThisYearTS = ini.GetValue("Temp", "LMTime", cumulus.defaultRecordTS);
 				HighMinTempThisYear = ini.GetValue("Temp", "HighMin", -999.0);
-				HighMinTempThisYearTS = ini.GetValue("Temp", "HMTime", defaultTS);
+				HighMinTempThisYearTS = ini.GetValue("Temp", "HMTime", cumulus.defaultRecordTS);
 				LowDailyTempRangeThisYear = ini.GetValue("Temp", "LowRange", 999.0);
-				LowDailyTempRangeThisYearTS = ini.GetValue("Temp", "LowRangeTime", defaultTS);
+				LowDailyTempRangeThisYearTS = ini.GetValue("Temp", "LowRangeTime", cumulus.defaultRecordTS);
 				HighDailyTempRangeThisYear = ini.GetValue("Temp", "HighRange", -999.0);
-				HighDailyTempRangeThisYearTS = ini.GetValue("Temp", "HighRangeTime", defaultTS);
+				HighDailyTempRangeThisYearTS = ini.GetValue("Temp", "HighRangeTime", cumulus.defaultRecordTS);
 				// Pressure
 				LowPressThisYear = ini.GetValue("Pressure", "Low", 9999.0);
-				LowPressThisYearTS = ini.GetValue("Pressure", "LTime", defaultTS);
+				LowPressThisYearTS = ini.GetValue("Pressure", "LTime", cumulus.defaultRecordTS);
 				HighPressThisYear = ini.GetValue("Pressure", "High", -9999.0);
-				HighPressThisYearTS = ini.GetValue("Pressure", "HTime", defaultTS);
+				HighPressThisYearTS = ini.GetValue("Pressure", "HTime", cumulus.defaultRecordTS);
 				// rain rate
 				HighRainThisYear = ini.GetValue("Rain", "High", 0.0);
-				HighRainThisYearTS = ini.GetValue("Rain", "HTime", defaultTS);
+				HighRainThisYearTS = ini.GetValue("Rain", "HTime", cumulus.defaultRecordTS);
 				HighHourlyRainThisYear = ini.GetValue("Rain", "HourlyHigh", 0.0);
-				HighHourlyRainThisYearTS = ini.GetValue("Rain", "HHourlyTime", defaultTS);
+				HighHourlyRainThisYearTS = ini.GetValue("Rain", "HHourlyTime", cumulus.defaultRecordTS);
 				HighDailyRainThisYear = ini.GetValue("Rain", "DailyHigh", 0.0);
-				HighDailyRainThisYearTS = ini.GetValue("Rain", "HDailyTime", defaultTS);
+				HighDailyRainThisYearTS = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
 				HighMonthlyRainThisYear = ini.GetValue("Rain", "MonthlyHigh", 0.0);
-				HighMonthlyRainThisYearTS = ini.GetValue("Rain", "HMonthlyTime", defaultTS);
+				HighMonthlyRainThisYearTS = ini.GetValue("Rain", "HMonthlyTime", cumulus.defaultRecordTS);
 				LongestDryPeriodThisYear = ini.GetValue("Rain", "LongestDryPeriod", 0);
-				LongestDryPeriodThisYearTS = ini.GetValue("Rain", "LongestDryPeriodTime", defaultTS);
+				LongestDryPeriodThisYearTS = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
 				LongestWetPeriodThisYear = ini.GetValue("Rain", "LongestWetPeriod", 0);
-				LongestWetPeriodThisYearTS = ini.GetValue("Rain", "LongestWetPeriodTime", defaultTS);
+				LongestWetPeriodThisYearTS = ini.GetValue("Rain", "LongestWetPeriodTime", cumulus.defaultRecordTS);
 				// humidity
 				LowHumidityThisYear = ini.GetValue("Humidity", "Low", 999);
-				LowHumidityThisYearTS = ini.GetValue("Humidity", "LTime", defaultTS);
+				LowHumidityThisYearTS = ini.GetValue("Humidity", "LTime", cumulus.defaultRecordTS);
 				HighHumidityThisYear = ini.GetValue("Humidity", "High", -999);
-				HighHumidityThisYearTS = ini.GetValue("Humidity", "HTime", defaultTS);
+				HighHumidityThisYearTS = ini.GetValue("Humidity", "HTime", cumulus.defaultRecordTS);
 				// heat index
 				HighHeatIndexThisYear = ini.GetValue("HeatIndex", "High", -999.0);
-				HighHeatIndexThisYearTS = ini.GetValue("HeatIndex", "HTime", defaultTS);
+				HighHeatIndexThisYearTS = ini.GetValue("HeatIndex", "HTime", cumulus.defaultRecordTS);
 				// App temp
 				LowAppTempThisYear = ini.GetValue("AppTemp", "Low", 999.0);
-				LowAppTempThisYearTS = ini.GetValue("AppTemp", "LTime", defaultTS);
+				LowAppTempThisYearTS = ini.GetValue("AppTemp", "LTime", cumulus.defaultRecordTS);
 				HighAppTempThisYear = ini.GetValue("AppTemp", "High", -999.0);
-				HighAppTempThisYearTS = ini.GetValue("AppTemp", "HTime", defaultTS);
+				HighAppTempThisYearTS = ini.GetValue("AppTemp", "HTime", cumulus.defaultRecordTS);
 				// Dewpoint
 				LowDewpointThisYear = ini.GetValue("Dewpoint", "Low", 999.0);
-				LowDewpointThisYearTS = ini.GetValue("Dewpoint", "LTime", defaultTS);
+				LowDewpointThisYearTS = ini.GetValue("Dewpoint", "LTime", cumulus.defaultRecordTS);
 				HighDewpointThisYear = ini.GetValue("Dewpoint", "High", -999.0);
-				HighDewpointThisYearTS = ini.GetValue("Dewpoint", "HTime", defaultTS);
+				HighDewpointThisYearTS = ini.GetValue("Dewpoint", "HTime", cumulus.defaultRecordTS);
 				// wind chill
 				LowWindChillThisYear = ini.GetValue("WindChill", "Low", 999.0);
-				LowWindChillThisYearTS = ini.GetValue("WindChill", "LTime", defaultTS);
+				LowWindChillThisYearTS = ini.GetValue("WindChill", "LTime", cumulus.defaultRecordTS);
 
 				cumulus.LogMessage("Year.ini file read");
 			}
@@ -7389,29 +7397,29 @@ namespace CumulusMX
 			HighDailyTempRangeThisYear = -999;
 
 			// this Year highs and lows - timestamps
-			HighGustThisYearTS = DateTime.Now;
-			HighWindThisYearTS = DateTime.Now;
-			HighTempThisYearTS = DateTime.Now;
-			LowTempThisYearTS = DateTime.Now;
-			HighAppTempThisYearTS = DateTime.Now;
-			LowAppTempThisYearTS = DateTime.Now;
-			HighDewpointThisYearTS = DateTime.Now;
-			LowDewpointThisYearTS = DateTime.Now;
-			HighPressThisYearTS = DateTime.Now;
-			LowPressThisYearTS = DateTime.Now;
-			HighRainThisYearTS = DateTime.Now;
-			HighHourlyRainThisYearTS = DateTime.Now;
-			HighDailyRainThisYearTS = DateTime.Now;
-			HighMonthlyRainThisYearTS = DateTime.Now;
-			HighHumidityThisYearTS = DateTime.Now;
-			LowHumidityThisYearTS = DateTime.Now;
-			HighHeatIndexThisYearTS = DateTime.Now;
-			LowWindChillThisYearTS = DateTime.Now;
-			HighMinTempThisYearTS = DateTime.Now;
-			LowMaxTempThisYearTS = DateTime.Now;
-			HighDailyRainThisYearTS = DateTime.Now;
-			LowDailyTempRangeThisYearTS = DateTime.Now;
-			HighDailyTempRangeThisYearTS = DateTime.Now;
+			HighGustThisYearTS = cumulus.defaultRecordTS;
+			HighWindThisYearTS = cumulus.defaultRecordTS;
+			HighTempThisYearTS = cumulus.defaultRecordTS;
+			LowTempThisYearTS = cumulus.defaultRecordTS;
+			HighAppTempThisYearTS = cumulus.defaultRecordTS;
+			LowAppTempThisYearTS = cumulus.defaultRecordTS;
+			HighDewpointThisYearTS = cumulus.defaultRecordTS;
+			LowDewpointThisYearTS = cumulus.defaultRecordTS;
+			HighPressThisYearTS = cumulus.defaultRecordTS;
+			LowPressThisYearTS = cumulus.defaultRecordTS;
+			HighRainThisYearTS = cumulus.defaultRecordTS;
+			HighHourlyRainThisYearTS = cumulus.defaultRecordTS;
+			HighDailyRainThisYearTS = cumulus.defaultRecordTS;
+			HighMonthlyRainThisYearTS = cumulus.defaultRecordTS;
+			HighHumidityThisYearTS = cumulus.defaultRecordTS;
+			LowHumidityThisYearTS = cumulus.defaultRecordTS;
+			HighHeatIndexThisYearTS = cumulus.defaultRecordTS;
+			LowWindChillThisYearTS = cumulus.defaultRecordTS;
+			HighMinTempThisYearTS = cumulus.defaultRecordTS;
+			LowMaxTempThisYearTS = cumulus.defaultRecordTS;
+			HighDailyRainThisYearTS = cumulus.defaultRecordTS;
+			LowDailyTempRangeThisYearTS = cumulus.defaultRecordTS;
+			HighDailyTempRangeThisYearTS = cumulus.defaultRecordTS;
 		}
 
 		public string GetWCloudURL(out string pwstring, DateTime timestamp)

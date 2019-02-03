@@ -9,7 +9,7 @@
 - Updated HidSharp to ver 2.0.5
 	- Now uses libudev1 for Fine Offset and WMR200 stations
 
-- Fixed corrupt/missing MySQL port causing CumulusMX to crash on startup
+- Fixed corrupt/missing MySQL port causing CumulusMX to crash on start-up
 
 - Attempt to reconnect to Davis IP logger on connection failure (only a possible fix)
 
@@ -84,12 +84,12 @@
 - Web Tags
 	- Added <#snowdepth> tag processing
 
-- ET annual rollover fix
+- ET annual roll-over fix
 
 - Fix to TLS 1.2 FTPS of the 'periodic' files
 
-3047test
-========
+3047
+====
 - Web token parser updated to cope with html tag characters "<>" in the format string.
 	- You can now do things like...
 		<#TapptempH format="dd'&nbsp;'MMM'&nbsp;'yyyy'<span class=\'xx\'> at 'HH:mm'</span>'">
@@ -97,4 +97,51 @@
 		04&nbsp;Dec&nbsp;2018<span class='xx'> at 10:12</span>
 
 		Note: that you have to use single quotes for HTML entity names, and they have to be escaped "\'"
+
+- New Davis Baud Rate setting
+	- Allows you to alter the speed of the serial connection to Davis loggers
+	- Configured manually in Cumulus.ini [Station] section
+		DavisBaudRate=19200 (default) Permitted values are 1200, 2400, 4800, 9600, 14400, 19200
+
+- Added new option for the "Extra files" - End of Day
+	- Enabling this means that file will only be processed/copied/FTPed once a day during the end of day roll-over.
+	- There is a new Cumulus.ini file setting for each "extra" file associated with this setting
+		ExtraEOD[nn]
+	- Note there is currently no check between Realtime and End of Day settings, you could check both options and the file
+	  will be processed at both the realtime interval AND end of day - which would not make much sense!
+
+- Improvement to Instromet logger protocol handling
+
+- Change the Fine Offset Synchronised Reads option to default to enabled
+
+- Change VP2 automatic disabling of LOOP2 to an advisory message, as the firmware version is not always detected.
+
+- Consistency: All record Value tags should now return '---' and Date tags '----' until they are first set.
+
+- The following web tags now support the "dp=N" "rc=y" parameters for the number of decimal places, and replace decimal commas with points.
+	#MoonPercent
+	#MoonPercentAbs
+	#MoonAge
+
+- Fix for Fine Offset & WMR100/200 stations on Mac operating systems (introduced in b3044)
+
+- Fix for invalid (extremely high) pressure readings from Fine Offset stations (thanks to 79669weather)
+
+- Fix to not updating the Instromet loggers memory pointer correctly
+
+- Fixed Weather Diary Time Zone issues
+
+- Bug fixes and performance improvements to the FTP component
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.exe.config
+	\CumulusMX.pub
+	\FluentFTP.dll
+	\HidSharp.dll
+	\interface\js\diaryeditor.js
+	\interface\json\StationOptions.json
+
+- Removed files
+	\fastJSON.dll
 

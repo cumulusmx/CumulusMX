@@ -246,7 +246,7 @@ namespace CumulusMX
         private string GetFormattedDateTime(DateTime dt, string defaultFormat, Dictionary<string,string> TagParams)
         {
             string s;
-            if (dt <= DateTime.MinValue)
+            if (dt <= cumulus.defaultRecordTS)
             {
                 s = "----";
             }
@@ -283,7 +283,7 @@ namespace CumulusMX
 
         private string GetMonthlyAlltimeValueStr(int identifier, int month, string format)
         {
-            if (station.monthlyrecarray[identifier, month].timestamp <= DateTime.MinValue)
+            if (station.monthlyrecarray[identifier, month].timestamp <= cumulus.defaultRecordTS)
             {
                 return "---";
             }
@@ -295,7 +295,7 @@ namespace CumulusMX
 
         private string GetMonthlyAlltimeTSStr(int identifier, int month, string format)
         {
-            if (station.monthlyrecarray[identifier, month].timestamp <= DateTime.MinValue)
+            if (station.monthlyrecarray[identifier, month].timestamp <= cumulus.defaultRecordTS)
             {
                 return "----";
             }
@@ -2489,20 +2489,59 @@ namespace CumulusMX
 
         private string TagMoonPercent(Dictionary<string,string> TagParams)
         {
-            return ((int)cumulus.MoonPercent).ToString();
-        }
+			var dpstr = TagParams.Get("dp");
+			var rcstr = TagParams.Get("rc");
+			int i, dp = 0;
+			string res;
+
+			dp = Int32.TryParse(dpstr, out i) ? i : 0;
+
+			res = Math.Round(cumulus.MoonPercent, dp).ToString();
+
+			if (rcstr == "y")
+			{
+				res = ReplaceCommas(res);
+			}
+			return res;
+		}
 
         private string TagMoonPercentAbs(Dictionary<string,string> TagParams)
         {
-            return ((int)Math.Abs(cumulus.MoonPercent)).ToString();
-        }
+			var dpstr = TagParams.Get("dp");
+			var rcstr = TagParams.Get("rc");
+			int i, dp = 0;
+			string res;
 
-        private string TagMoonAge(Dictionary<string,string> TagParams)
+			dp = Int32.TryParse(dpstr, out i) ? i : 0;
+
+			res = Math.Round(Math.Abs(cumulus.MoonPercent), dp).ToString();
+
+			if (rcstr == "y")
+			{
+				res = ReplaceCommas(res);
+			}
+			return res;
+		}
+
+		private string TagMoonAge(Dictionary<string,string> TagParams)
         {
-            return ((int) cumulus.MoonAge).ToString();
-        }
+			var dpstr = TagParams.Get("dp");
+			var rcstr = TagParams.Get("rc");
+			int i, dp;
+			string res;
 
-        private string TagLastRainTipISO(Dictionary<string,string> TagParams)
+			dp = Int32.TryParse(dpstr, out i) ? i : 0;
+
+			res = Math.Round(cumulus.MoonAge, dp).ToString();
+
+			if (rcstr == "y")
+			{
+				res = ReplaceCommas(res);
+			}
+			return res;
+		}
+
+		private string TagLastRainTipISO(Dictionary<string,string> TagParams)
         {
             return GetFormattedDateTime(station.LastRainTip, TagParams);
         }
@@ -3703,7 +3742,7 @@ namespace CumulusMX
 
         private string TagYearHighDailyTempRangeD(Dictionary<string,string> TagParams)
         {
-            if (station.HighDailyTempRangeThisYear < 999)
+            if (station.HighDailyTempRangeThisYear > -999)
             {
                 return GetFormattedDateTime(station.HighDailyTempRangeThisYearTS, "dd MMMM", TagParams);
             }
@@ -3712,7 +3751,7 @@ namespace CumulusMX
 
         private string TagYearLowDailyTempRangeD(Dictionary<string,string> TagParams)
         {
-            if (station.LowDailyTempRangeThisYear > -999)
+            if (station.LowDailyTempRangeThisYear > 999)
             {
                 return GetFormattedDateTime(station.LowDailyTempRangeThisYearTS, "dd MMMM", TagParams);
             }

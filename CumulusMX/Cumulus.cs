@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3047test";
+		public string Build = "3047";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -147,6 +147,7 @@ namespace CumulusMX
 			public bool process;
 			public bool binary;
 			public bool realtime;
+			public bool endofday;
 			public bool FTP;
 			public bool UTF8;
 		}
@@ -367,6 +368,7 @@ namespace CumulusMX
         public string ComportName;
         public string DefaultComportName;
         public int ImetBaudRate;
+		public int DavisBaudRate;
 
 		public int VendorID;
 		public int ProductID;
@@ -642,6 +644,8 @@ namespace CumulusMX
 		public double NOAARainNormOct;
 		public double NOAARainNormNov;
 		public double NOAARainNormDec;
+
+		public bool EODfilesNeedFTP = false;
 
 		public bool IsOSX;
 
@@ -2652,6 +2656,9 @@ namespace CumulusMX
 
 		private void ReadIniFile()
 		{
+			var DavisBaudRates = new List<int> { 1200, 2400, 4800, 9600, 14400, 19200 };
+			var ImetBaudRates = new List<int> { 19200, 115200 };
+
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
 
@@ -2679,6 +2686,22 @@ namespace CumulusMX
 
 			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
 			ImetBaudRate = ini.GetValue("Station", "ImetBaudRate", 19200);
+			// Check we have a valid value
+			if (!ImetBaudRates.Contains(ImetBaudRate))
+			{
+				// nope, that isn't allowed, set the default
+				LogMessage("Error, the value for ImetBaudRate in the ini file " + ImetBaudRate + " is not valid, using default 19200.");
+				ImetBaudRate = 19200;
+			}
+
+			DavisBaudRate = ini.GetValue("Station", "DavisBaudRate", 19200);
+			// Check we have a valid value
+			if (!DavisBaudRates.Contains(DavisBaudRate))
+			{
+				// nope, that isn't allowed, set the default
+				LogMessage("Error, the value for DavisBaudRate in the ini file " + DavisBaudRate + " is not valid, using default 19200.");
+				DavisBaudRate = 19200;
+			}
 
 			VendorID = ini.GetValue("Station", "VendorID", -1);
 			ProductID = ini.GetValue("Station", "ProductID", -1);
@@ -2775,7 +2798,7 @@ namespace CumulusMX
 				DataLogInterval = 2;
 			}
 
-			SyncFOReads = ini.GetValue("Station", "SyncFOReads", false);
+			SyncFOReads = ini.GetValue("Station", "SyncFOReads", true);
 			FOReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
 			FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
 
@@ -2964,6 +2987,7 @@ namespace CumulusMX
 				ExtraFiles[i].realtime = ini.GetValue("FTP site", "ExtraRealtime" + i, false);
 				ExtraFiles[i].FTP = ini.GetValue("FTP site", "ExtraFTP" + i, true);
 				ExtraFiles[i].UTF8 = ini.GetValue("FTP site", "ExtraUTF" + i, false);
+				ExtraFiles[i].endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false);
 			}
 
 			ExternalProgram = ini.GetValue("FTP site", "ExternalProgram", "");
@@ -3434,6 +3458,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
 			//ini.SetValue("Station", "ImetBaudRate", ImetBaudRate);
+			//ini.SetValue("Station", "DavisBaudRate", DavisBaudRate);
 
 			ini.SetValue("Station", "RG11portName", RG11Port);
 			ini.SetValue("Station", "RG11TBRmode", RG11TBRmode);
@@ -3490,6 +3515,7 @@ namespace CumulusMX
 				ini.SetValue("FTP site", "ExtraRealtime" + i, ExtraFiles[i].realtime);
 				ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].FTP);
 				ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].UTF8);
+				ini.SetValue("FTP site", "ExtraEOD" + i, ExtraFiles[i].endofday);
 			}
 
 			ini.SetValue("FTP site", "ExternalProgram", ExternalProgram);
@@ -4418,6 +4444,8 @@ namespace CumulusMX
 		public string ReportPath = "Reports";
 		public string LatestError;
 		public DateTime LatestErrorTS = DateTime.MinValue;
+		//public DateTime defaultRecordTS = new DateTime(2000, 1, 1, 0, 0, 0);
+		public DateTime defaultRecordTS = DateTime.MinValue;
 		public string wxnowfile = "wxnow.txt";
 		private readonly string IndexTFile;
 		private readonly string TodayTFile;
@@ -5379,7 +5407,7 @@ namespace CumulusMX
 			// handle any extra files
 			for (int i = 0; i < numextrafiles; i++)
 			{
-				if (!ExtraFiles[i].realtime)
+				if (!ExtraFiles[i].realtime && !ExtraFiles[i].endofday)
 				{
 					var uploadfile = ExtraFiles[i].local;
 					if (uploadfile == "<currentlogfile>")
@@ -5509,20 +5537,26 @@ namespace CumulusMX
 					string remotePath = (ftp_directory.EndsWith("/") ? ftp_directory : ftp_directory + "/");
 					if (NOAANeedFTP)
 					{
-						// upload NOAA reports
-						LogMessage("Uploading NOAA reports");
-						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
+						try
+						{
+							// upload NOAA reports
+							LogMessage("Uploading NOAA reports");
+							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
 
-						var uploadfile = ReportPath + NOAALatestMonthlyReport;
-						var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
+							var uploadfile = ReportPath + NOAALatestMonthlyReport;
+							var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
 
-						UploadFile(conn, uploadfile, remotefile);
+							UploadFile(conn, uploadfile, remotefile);
 
-						uploadfile = ReportPath + NOAALatestYearlyReport;
-						remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
+							uploadfile = ReportPath + NOAALatestYearlyReport;
+							remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
 
-						UploadFile(conn, uploadfile, remotefile);
-
+							UploadFile(conn, uploadfile, remotefile);
+						}
+						catch (Exception e)
+						{
+							LogMessage(e.Message);
+						}
 						NOAANeedFTP = false;
 					}
 
@@ -5540,7 +5574,12 @@ namespace CumulusMX
 
 						remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
 
-						if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != "") && !ExtraFiles[i].realtime && ExtraFiles[i].FTP)
+						if ((uploadfile != "") &&
+							(File.Exists(uploadfile)) &&
+							(remotefile != "") &&
+							!ExtraFiles[i].realtime &&
+							EODfilesNeedFTP == ExtraFiles[i].endofday &&
+							ExtraFiles[i].FTP)
 						{
 							// all checks OK, file needs to be uploaded
 							if (ExtraFiles[i].process)
@@ -5548,9 +5587,20 @@ namespace CumulusMX
 								// we've already processed the file
 								uploadfile = uploadfile + "tmp";
 							}
+							try
+							{
+								UploadFile(conn, uploadfile, remotefile);
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
 
-							UploadFile(conn, uploadfile, remotefile);
 						}
+					}
+					if (EODfilesNeedFTP)
+					{
+						EODfilesNeedFTP = false;
 					}
 					//LogDebugMessage("Done uploading extra files");
 					// standard files
@@ -6163,6 +6213,77 @@ namespace CumulusMX
 			}
 		}
 
+		public void DoExtraEndOfDayFiles()
+		{
+			int i;
+
+			// handle any extra files that only require EOD processing
+			for (i = 0; i < numextrafiles; i++)
+			{
+				if (ExtraFiles[i].endofday)
+				{
+					var uploadfile = ExtraFiles[i].local;
+					if (uploadfile == "<currentlogfile>")
+					{
+						uploadfile = GetLogFileName(DateTime.Now);
+					}
+					var remotefile = ExtraFiles[i].remote;
+					remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+					if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+					{
+						if (ExtraFiles[i].process)
+						{
+							LogDebugMessage("Processing extra file "+uploadfile);
+							// process the file
+							var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+							var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+							tokenParser.encoding = encoding;
+							tokenParser.SourceFile = uploadfile;
+							var output = tokenParser.ToString();
+							uploadfile += "tmp";
+							try
+							{
+								using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+								{
+									file.Write(output);
+
+									file.Close();
+								}
+							}
+							catch (Exception ex)
+							{
+								LogDebugMessage("Error writing file " + uploadfile);
+								LogDebugMessage(ex.Message);
+							}
+							//LogDebugMessage("Finished processing extra file " + uploadfile);
+						}
+
+						if (ExtraFiles[i].FTP)
+						{
+							// FTP the file at the next interval
+							EODfilesNeedFTP = true;
+						}
+						else
+						{
+							// just copy the file
+							LogDebugMessage("Copying extra file " + uploadfile);
+							try
+							{
+								File.Copy(uploadfile, remotefile, true);
+							}
+							catch (Exception ex)
+							{
+								LogDebugMessage("Error copying extra file: " + ex.Message);
+							}
+							//LogDebugMessage("Finished copying extra file " + uploadfile);
+						}
+					}
+				}
+			}
+		}
+
+
 		private void MySqlCatchup()
 		{
 			var mySqlConn = new MySqlConnection();
@@ -6708,7 +6829,6 @@ namespace CumulusMX
 	{
 		[PrimaryKey]
 		public DateTime Timestamp { get; set; }
-
 		public string entry { get; set; }
 		public int snowFalling { get; set; }
 		public int snowLying { get; set; }

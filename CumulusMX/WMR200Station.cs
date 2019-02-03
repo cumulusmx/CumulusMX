@@ -173,18 +173,10 @@ namespace CumulusMX
             int startByte;
             int offset;
 
-            if (cumulus.IsOSX)
-            {
-                responseLength = 8;
-                startByte = 0;
-                offset = 1;
-            }
-            else
-            {
-                responseLength = 9;
-                startByte = 1;
-                offset = 0;
-            }
+			// Returns 9-byte usb packet, with report ID in first byte
+			responseLength = 9;
+            startByte = 1;
+            offset = 0;
 
             try
             {
@@ -313,7 +305,7 @@ namespace CumulusMX
                         cumulus.LogDebugMessage("Data read loop: " + ex.Message);
                     }
                 }
-                Thread.Sleep(100);
+                //Thread.Sleep(100);
             }
             
                 // Catch the ThreadAbortException
@@ -1406,7 +1398,7 @@ namespace CumulusMX
                 timestamp = new DateTime(2000 + y, mo, d, h, m, 0, 0);
                 cumulus.LogMessage("History data for: " + timestamp);
             }
-            catch (Exception ex)
+            catch
             {
                 cumulus.LogMessage("Invalid date, ignoring");
                 return;

@@ -211,7 +211,7 @@ namespace CumulusMX
             int i = 0;
             int len = InputText.Length;
 
-			Regex rx = new Regex("<#[^>]*?(?:(?:(\")[^\"]*?\\1)[^>]*?)*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+			Regex rx = new Regex("<#[^>]*?(?:(?:(\")[^\"]*?\\1)[^>]*?)*>", RegexOptions.Compiled);
 			// Find matches.
 			MatchCollection matches = rx.Matches(InputText);
 

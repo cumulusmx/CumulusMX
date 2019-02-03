@@ -1,4 +1,4 @@
-﻿using fastJSON;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,12 +15,12 @@ namespace CumulusMX
     {
         private WeatherStation station;
         private Cumulus cumulus;
-        
+
         internal DataEditor(Cumulus cumulus, WeatherStation station)
         {
             this.station = station;
             this.cumulus = cumulus;
-            
+
         }
 
 		//internal string EditRainToday(HttpListenerContext context)
@@ -37,7 +37,7 @@ namespace CumulusMX
             string[] kvPair = text.Split('=');
             string key = kvPair[0];
             string raintodaystring = kvPair[1];
-           
+
             if (!String.IsNullOrEmpty(raintodaystring))
             {
                 try
@@ -69,7 +69,7 @@ namespace CumulusMX
             var json = "{\"raintoday\":\"" + station.RainToday.ToString(cumulus.RainFormat, InvC) +
                 "\",\"raincounter\":\"" + station.Raincounter.ToString(cumulus.RainFormat, InvC) +
                 "\",\"startofdayrain\":\"" + station.raindaystart.ToString(cumulus.RainFormat, InvC) +
-                "\",\"rainmult\":\"" + cumulus.RainMult.ToString("F3", InvC) + 
+                "\",\"rainmult\":\"" + cumulus.RainMult.ToString("F3", InvC) +
                 "\",\"step\":\"" + step + "\"}";
 
             return json;
@@ -87,7 +87,7 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
-				var newData = JSON.ToObject<DiaryData>(text);
+				var newData = JsonConvert.DeserializeObject<DiaryData>(text);
 
 				// write new/updated entry to the database
 				var result = cumulus.DiaryDB.InsertOrReplace(newData);
@@ -114,7 +114,7 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
-				var record = JSON.ToObject<DiaryData>(text);
+				var record = JsonConvert.DeserializeObject<DiaryData>(text);
 
 				// Delete the corresponding entry from the database
 				var result = cumulus.DiaryDB.Delete(record);

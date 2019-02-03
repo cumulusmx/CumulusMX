@@ -45,8 +45,9 @@ namespace CumulusMX
 			if (IsSerial)
 			{
 				cumulus.LogMessage("Serial device = " + cumulus.ComportName);
+				cumulus.LogMessage("Serial speed = " + cumulus.DavisBaudRate);
 
-				comport = new SerialPort(cumulus.ComportName, 19200, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, DtrEnable = true};
+				comport = new SerialPort(cumulus.ComportName, cumulus.DavisBaudRate, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, DtrEnable = true};
 
 				//comport.DataReceived += new SerialDataReceivedEventHandler(portDataReceived);
 
@@ -101,9 +102,8 @@ namespace CumulusMX
 				cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
                 if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < 1.9) && cumulus.UseDavisLoop2)
                 {
-                    cumulus.UseDavisLoop2 = false;
-					cumulus.LogMessage("LOOP2 disabled. It is enabled in Cumulus.ini but this firmare version does not support it.");
-					Console.WriteLine("FW version does not support LOOP2, disabling it");
+					cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmare version does not support it. Consider disabling it in Cumulus.ini");
+					Console.WriteLine("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
                 }
 
 				if (cumulus.DavisReadReceptionStats)
@@ -1045,14 +1045,18 @@ namespace CumulusMX
 				double avgwind = ConvertWindMPHToUser(loopData.AvgWindSpeed);
 
 				// Check for sensible figures (spec says max for large cups is 175mph)
-				if (loopData.CurrentWindSpeed < 200 && loopData.AvgWindSpeed < 200)
+				if (loopData.CurrentWindSpeed < 175 && loopData.AvgWindSpeed < 175)
 				{
 				    int winddir = loopData.WindDirection;
 
-				    if (winddir > 360)
+					if (winddir == 0x7FFF) // no reading
+					{
+						cumulus.LogDebugMessage("Wind direction = 0x7FFF = no reading, using zero instead");
+						winddir = 0;
+					}
+				    else if (winddir > 360)
 				    {
-				        cumulus.LogMessage("Wind direction = "+winddir+", using zero instead");
-
+				        cumulus.LogDebugMessage("Wind direction = "+winddir+", using zero instead");
 				        winddir = 0;
 				    }
 
@@ -2211,9 +2215,8 @@ namespace CumulusMX
 			{
 				return null;
 			}
-			catch (Exception ex)
+			catch
 			{
-				//MessageBox.Show(ex.ToString());
 				return null;
 			}
 		}

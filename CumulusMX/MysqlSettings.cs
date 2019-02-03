@@ -2,7 +2,7 @@
 using System.IO;
 using System.Net;
 using Devart.Data.MySql;
-using fastJSON;
+using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -64,10 +64,10 @@ namespace CumulusMX
                            customrollover = customrollover
                        };
 
-            return JSON.ToJSON(data);
-        }
+			return JsonConvert.SerializeObject(data);
+		}
 
-        public string GetMySqAlpacaFormOptions()
+		public string GetMySqAlpacaFormOptions()
         {
             using (StreamReader sr = new StreamReader(mySqlOptionsFile))
             {
@@ -95,10 +95,10 @@ namespace CumulusMX
                 // Start at char 5 to skip the "json:" prefix
                 var json = WebUtility.UrlDecode(data.Substring(5));
 
-                // de-serialize it to the settings structure
-                var settings = JSON.ToObject<JsonMysqlSettings>(json);
-                // process the settings
-                cumulus.LogMessage("Updating MySQL settings");
+				// de-serialize it to the settings structure
+				var settings = JsonConvert.DeserializeObject<JsonMysqlSettings>(json);
+				// process the settings
+				cumulus.LogMessage("Updating MySQL settings");
 
                 // server
                 cumulus.MySqlHost = settings.server.host;

@@ -89,20 +89,10 @@ namespace CumulusMX
             int startByte;
             int offset;
 
-            if (cumulus.IsOSX)
-            {
-                // OS X returns 8-byte usb packet, without report ID in first byte
-                responseLength = 8;
-                startByte = 0;
-                offset = 1;
-            }
-            else
-            {
-                // Others return 9-byte usb packet, with report ID in first byte
-                responseLength = 9;
-                startByte = 1;
-                offset = 0;
-            }
+            // Returns 9-byte usb packet, with report ID in first byte
+            responseLength = 9;
+            startByte = 1;
+            offset = 0;
 
             try
             {
@@ -192,7 +182,7 @@ namespace CumulusMX
                         cumulus.LogDebugMessage("Data read loop: " + ex.Message);
                     }
                 }
-                Thread.Sleep(100);
+                //Thread.Sleep(100);
             }
 
             // Catch the ThreadAbortException

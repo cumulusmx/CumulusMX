@@ -85,8 +85,8 @@ namespace CumulusMX
             int VID = (cumulus.VendorID < 0 ? defaultVID : cumulus.VendorID);
             int PID = (cumulus.ProductID < 0 ? defaultPID : cumulus.ProductID);
 
-            cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+VID.ToString("X4")+" ProductID=0x"+PID.ToString("X4"));
-            Console.WriteLine("Looking for Fine Offset station, VendorID=0x" + VID.ToString("X4") + " ProductID=0x" + PID.ToString("X4"));
+			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+VID.ToString("X4")+" ProductID=0x"+PID.ToString("X4"));
+            Console.WriteLine("Looking for Fine Offset station");
 
             hidDevice = devicelist.GetHidDeviceOrNull(vendorID: VID, productID: PID);
 
@@ -102,8 +102,8 @@ namespace CumulusMX
                     // Get the block of data containing the abs and rel pressures
                     cumulus.LogMessage("Reading pressure offset");
                     ReadAddress(0x20, data);
-                    double relpressure = ((data[1]*256) + data[0])/10.0f;
-                    double abspressure = ((data[3]*256) + data[2])/10.0f;
+                    double relpressure = (((data[1] & 0x3f)*256) + data[0])/10.0f;
+                    double abspressure = (((data[3] & 0x3f)*256) + data[2])/10.0f;
                     pressureOffset = relpressure - abspressure;
                     cumulus.LogMessage("Rel pressure = " + relpressure);
                     cumulus.LogMessage("Abs pressure = " + abspressure);
@@ -211,16 +211,20 @@ namespace CumulusMX
                     // add history data to collection
 
                     var histData = new HistoryData();
-                    string msg = DateTime.Now.ToLongTimeString() + " Read logger entry for " + timestamp + " address " + addr.ToString("X4") + ": ";
+                    string msg = "Read logger entry for " + timestamp + " address " + addr.ToString("X4");
                     int numBytes = hasSolar ? 20 : 16;
 
-                    for (int i = 0; i < numBytes; i++)
+					cumulus.LogMessage(msg);
+
+					msg = "Data block: ";
+
+					for (int i = 0; i < numBytes; i++)
                     {
                         msg += data[i].ToString("X2");
                         msg += " ";
                     }
 
-                    cumulus.LogMessage(msg);
+                    cumulus.LogDataMessage(msg);
 
                     histData.timestamp = timestamp;
                     histData.interval = interval;
@@ -579,22 +583,12 @@ namespace CumulusMX
             var highbyte = (byte) (address >> 8);
 
             byte[] request;
-            var response = new byte[9];
-            int responseLength;
-            int startByte;
+			// Returns 9-byte usb packet, with report ID in first byte
+			var response = new byte[9];
+            int responseLength = 9;
+            int startByte = 1;
 
-            if (cumulus.IsOSX)
-            {
-                request = new byte[] {0xa1, highbyte, lowbyte, 0x20, 0xa1, highbyte, lowbyte, 0x20};
-                responseLength = 8;
-                startByte = 0;
-            }
-            else
-            {
-                request = new byte[] {0, 0xa1, highbyte, lowbyte, 0x20, 0xa1, highbyte, lowbyte, 0x20};
-                responseLength = 9;
-                startByte = 1;
-            }
+            request = new byte[] {0, 0xa1, highbyte, lowbyte, 0x20, 0xa1, highbyte, lowbyte, 0x20};
 
             int ptr = 0;
             String rec_data = "";
@@ -626,7 +620,7 @@ namespace CumulusMX
                         rec_data += " ";
                         buff[ptr++] = response[j];
                     }
-                    //cumulus.LogMessage(DateTime.Now.ToLongTimeString() + rec_data);
+                    cumulus.LogDataMessage(rec_data);
                 }
             }
         }
@@ -839,7 +833,7 @@ namespace CumulusMX
                     }
 
                     // Pressure =========================================================
-                    double pressure = (data[7] + (data[8]*256))/10.0f + pressureOffset;
+                    double pressure = (data[7] + ((data[8] & 0x3f)*256))/10.0f + pressureOffset;
 
                     if ((pressure < cumulus.EWminpressureMB) || (pressure > cumulus.EWmaxpressureMB))
                     {

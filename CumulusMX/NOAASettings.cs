@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using fastJSON;
+using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
 
@@ -86,10 +86,10 @@ namespace CumulusMX
                            normalrain = normalrain
                        };
 
-            return JSON.ToJSON(data);
-        }
+			return JsonConvert.SerializeObject(data);
+		}
 
-        public string GetNoaaAlpacaFormOptions()
+		public string GetNoaaAlpacaFormOptions()
         {
             using (StreamReader sr = new StreamReader(noaaOptionsFile))
             {
@@ -117,10 +117,10 @@ namespace CumulusMX
                 // Start at char 5 to skip the "json:" prefix
                 var json = WebUtility.UrlDecode(data.Substring(5));
 
-                // de-serialize it to the settings structure
-                var settings = JSON.ToObject<JsonNOAASettingsData>(json);
-                // process the settings
-                cumulus.LogMessage("Updating NOAA settings");
+				// de-serialize it to the settings structure
+				var settings = JsonConvert.DeserializeObject<JsonNOAASettingsData>(json);
+				// process the settings
+				cumulus.LogMessage("Updating NOAA settings");
                 var InvC = new CultureInfo("");
 
                 cumulus.NOAAname = settings.sitename;

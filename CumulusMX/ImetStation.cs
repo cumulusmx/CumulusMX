@@ -14,17 +14,19 @@ namespace CumulusMX
 {
 	internal class ImetStation : WeatherStation
 	{
-		private string sLineBreak = "\r\n";
+		private const string sLineBreak = "\r\n";
 		private bool midnightraindone;
 		private double prevraintotal = -1;
 		private int previousminute = 60;
+		private string currentWritePointer = "";
 
 
 		public ImetStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = cumulus.INSTROMET;
-			cumulus.LogMessage("ImetWaitTime="+cumulus.ImetWaitTime);
-			cumulus.LogMessage("ImetBaudRate="+cumulus.ImetBaudRate);
+			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetUpdateLogPointer);
+			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetWaitTime);
+			cumulus.LogMessage("ImetBaudRate=" + cumulus.ImetBaudRate);
 			cumulus.LogMessage("Instromet: Attempting to open " + cumulus.ComportName);
 
 			calculaterainrate = true;
@@ -61,10 +63,9 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Setting logger interval to " + interval + " minutes");
 
-			comport.Write("WRST,11," + interval*60 + sLineBreak);
-			Thread.Sleep(cumulus.ImetWaitTime);
+			SendCommand("WRST,11," + interval * 60);
 			// read the response
-			string response = getResponse("wrst");
+			string response = GetResponse("wrst");
 
 			string data = ExtractText(response, "wrst");
 			cumulus.LogMessage("Response: " + data);
@@ -78,10 +79,9 @@ namespace CumulusMX
 
 			cumulus.LogMessage("WRTM," + datestr + ',' + timestr);
 
-			comport.Write("WRTM," + datestr + ',' + timestr + sLineBreak);
-			Thread.Sleep(cumulus.ImetWaitTime);
+			SendCommand("WRTM," + datestr + ',' + timestr);
 			// read the response
-			string response = getResponse("wrtm");
+			string response = GetResponse("wrtm");
 
 			string data = ExtractText(response, "wrtm");
 			cumulus.LogMessage("Response: " + data);
@@ -89,8 +89,8 @@ namespace CumulusMX
 
 		private string ReadStationClock()
 		{
-			comport.Write("RDTM" + sLineBreak);
-			string response = getResponse("rdtm");
+			SendCommand("RDTM");
+			string response = GetResponse("rdtm");
 			string data = ExtractText(response, "rdtm");
 			return data;
 		}
@@ -99,12 +99,10 @@ namespace CumulusMX
 		{
 			// MainForm.LogMessage('Advance log pointer');
 			// advance the pointer
-			comport.Write("PRLG,1" + sLineBreak);
-			Thread.Sleep(cumulus.ImetWaitTime);
+			SendCommand("PRLG,1");
 			// read the response
-			getResponse("prlg");
+			GetResponse("prlg");
 		}
-
 
 		private void RegressLogs(DateTime ts) // Move the log pointer back until the archive record timestamp is earlier
 			// than the supplied ts, or the logs cannot be regressed any further
@@ -119,9 +117,9 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Regressing logs to before " + ts);
 			// regress the pointer
-			comport.Write("RGLG,1" + sLineBreak);
+			SendCommand("RGLG,1");
 			// read the response
-			string response = getResponse("rglg");
+			string response = GetResponse("rglg");
 			do
 			{
 				List<string> sl = GetArchiveRecord();
@@ -138,7 +136,7 @@ namespace CumulusMX
 					entryTS = new DateTime(year, month, day, hour, minute, sec, 0);
 					dataOK = true;
 				}
-				catch (Exception Ex)
+				catch
 				{
 					cumulus.LogMessage("Error in timestamp, unable to process logger data");
 					dataOK = false;
@@ -156,9 +154,9 @@ namespace CumulusMX
 					else
 					{
 						// regress the pointer
-						comport.Write("RGLG,1" + sLineBreak);
+						SendCommand("RGLG,1");
 						// read the response
-						response = getResponse("rglg");
+						response = GetResponse("rglg");
 						previousnumlogs = numlogs;
 						numlogs = GetNumberOfLogs();
 						cumulus.LogMessage("Number of logs = " + numlogs);
@@ -172,28 +170,112 @@ namespace CumulusMX
 			} while (!done);
 		}
 
-		private string getResponse(string expected)
+		private void UpdateReadPointer()
 		{
-		  string response = "";
+			string response1, response2;
+			List<string> sl;
+			string currPtr;
 
-		  int attempts = 0;
-
-		  try
-		  {
-			do
+			// If required, update the logger read pointer to match the current write pointer
+			// It means the read pointer will always point to the last live record we read.
+			SendCommand("RDST,14");
+			// read the response
+			response1 = GetResponse("rdst");
+			if (ValidChecksum(response1))
 			{
-			  attempts ++;
-			  cumulus.LogDataMessage("Reading response from station, attempt "+attempts);
-			  response = comport.ReadTo(sLineBreak);
-			  cumulus.LogDataMessage("Response from station: "+response);
-			  byte[] ba = Encoding.Default.GetBytes(response);
-			  cumulus.LogDataMessage(BitConverter.ToString(ba));
-			} while (!(response.Contains(expected))&&attempts<6);
-		  }
-		  catch (Exception e)
-		  {
-			// Probably a timeout, just exit
-		  }
+				try
+				{
+					// Response: rdst,adr,dat
+					// split the data
+					sl = new List<string>(Regex.Split(response1, ","));
+					currPtr = sl[2];
+					if (!currentWritePointer.Equals(currPtr))
+					{
+						// The write pointer does not equal the read pointer
+						// write it back to the logger memory
+						cumulus.LogDebugMessage("Updating logger read pointer");
+						SendCommand("WRST,13," + currPtr);
+						response2 = GetResponse("wrst");
+						if (ValidChecksum(response2))
+						{
+							// and if it all worked, update our pointer record
+							currentWritePointer = currPtr;
+						}
+					}
+				}
+				catch
+				{
+				}
+			}
+		}
+
+		private void SendCommand(string command)
+		{
+			string response = String.Empty;
+
+			// First flush the receive buffer
+			comport.DiscardInBuffer();
+			comport.BaseStream.Flush();
+
+			// Send the command
+			cumulus.LogDebugMessage("Sending: " + command);
+			comport.Write(command + sLineBreak);
+
+			// Flush the first response - should be the echo of the command
+			try
+			{
+				response = comport.ReadTo(sLineBreak);
+				cumulus.LogDebugMessage("Discarding input: " + response);
+			}
+			catch
+			{ 
+				// probably a timeout - do nothing.
+			}
+			finally
+			{
+				Thread.Sleep(cumulus.ImetWaitTime);
+			}
+		}
+
+		private string GetResponse(string expected)
+		{
+			string response = "";
+			string ready = "";
+			int attempts = 0;
+
+			// The Instromet is odd, in that the serial connection is configured for human interaction rather than machine.
+			// Command to logger...
+			//    RDLG,58<CR><LF>
+			// What is sent back...
+			//    RDLG,58<CR><LF>
+			//    rdlg,1,2,3,4,5,6,7,8,9,123<CR><LF>
+			//    <CR><LF>
+			//    >
+
+			try
+			{
+				do
+				{
+					attempts ++;
+					cumulus.LogDataMessage("Reading response from station, attempt " + attempts);
+					response = comport.ReadTo(sLineBreak);
+					byte[] ba = Encoding.Default.GetBytes(response);
+
+					cumulus.LogDataMessage("Response from station: '" + response + "'");
+					//cumulus.LogDebugMessage("Hex: '" + BitConverter.ToString(ba) + "'");
+				} while (!(response.Contains(expected)) && attempts < 6);
+
+				// If we got the response and didn't time out, then wait for the command prompt before
+				// returning so we know the logger is ready for the next command
+				if ((response.Contains(expected)) && attempts < 6)
+				{
+					ready = comport.ReadTo(">"); // just discard this
+				}
+			}
+			catch
+			{
+				// Probably a timeout, just exit
+			}
 
 			return response;
 		}
@@ -203,10 +285,9 @@ namespace CumulusMX
 			List<string> sl = new List<string>();
 			cumulus.LogMessage("Get next log - RDLG,1");
 			// request the archive data
-			comport.Write("RDLG,1" + sLineBreak);
-			Thread.Sleep(cumulus.ImetWaitTime);
+			SendCommand("RDLG,1");
 			// read the response
-			string response = getResponse("rdlg");
+			string response = GetResponse("rdlg");
 			// extract the bit we want from all the other crap (echo, newlines, prompt etc)
 			string data = ExtractText(response, "rdlg");
 			cumulus.LogMessage(data);
@@ -237,11 +318,10 @@ namespace CumulusMX
 				attempts++;
 
 				// read number of available archive entries
-				comport.Write("LGCT" + sLineBreak);
+				SendCommand("LGCT");
 				cumulus.LogMessage("Obtaining log count");
-				Thread.Sleep(cumulus.ImetWaitTime);
 				// read the response
-				string response = getResponse("lgct");
+				string response = GetResponse("lgct");
 				// extract the bit we want from all the other crap (echo, newlines, prompt etc)
 				data = ExtractText(response, "lgct");
 				cumulus.LogMessage("Response from LGCT=" + data);
@@ -386,11 +466,11 @@ namespace CumulusMX
 			const int INTERVALPOS = 3;
 			const int TIMEPOS = 4;
 			const int DATEPOS = 5;
-			const int TEMP1MINPOS = 6;
-			const int TEMP1MAXPOS = 7;
+			//const int TEMP1MINPOS = 6;
+			//const int TEMP1MAXPOS = 7;
 			const int TEMP1AVGPOS = 8;
-			const int TEMP2MINPOS = 9;
-			const int TEMP2MAXPOS = 10;
+			//const int TEMP2MINPOS = 9;
+			//const int TEMP2MAXPOS = 10;
 			const int TEMP2AVGPOS = 11;
 			//const int RELHUMMINPOS = 12;
 			//const int RELHUMMAXPOS = 13;
@@ -405,7 +485,7 @@ namespace CumulusMX
 			const int SUNPOS = 22;
 			const int RAINPOS = 23;
 
-			string response;
+			//string response;
 			bool rolloverdone;
 			bool dataOK = false;
 			DateTime timestamp = DateTime.MinValue;
@@ -431,13 +511,17 @@ namespace CumulusMX
 			{
 				// First time Cumulus has run, "delete" all the log entries as there may be
 				// vast numbers and they will take hours to download only to be discarded
-				cumulus.LogMessage("First run: PRLG,32760");
-				// regress the pointer
-				comport.Write("PRLG,32760" + sLineBreak);
-				// read the response
-				response = getResponse("prlg");
-			}
 
+				//cumulus.LogMessage("First run: PRLG,32760");
+				// regress the pointer
+				//comport.Write("PRLG,32760" + sLineBreak);
+				// read the response
+				//response = GetResponse("prlg");
+
+				// Do it by updating the read pointer to match the write pointer
+				// The recorded value for currentWritePointer will not have been set yet
+				UpdateReadPointer();
+			}
 
 			cumulus.LogMessage("Downloading history from " + startfrom);
 			Console.WriteLine("Reading archive data from " + startfrom + " - please wait");
@@ -747,7 +831,7 @@ namespace CumulusMX
 
 		public override void Start()
 		{
-			cumulus.LogMessage(DateTime.Now + "Starting Instromet data reading thread");
+			cumulus.LogMessage("Starting Instromet data reading thread");
 
 			try
 			{
@@ -803,13 +887,12 @@ namespace CumulusMX
 				}
 			}
 
-			comport.Write("RDLV" + sLineBreak);
+			SendCommand("RDLV");
 			// read the response
-			var response = getResponse("rdlv");
+			var response = GetResponse("rdlv");
 
 			if (ValidChecksum(response))
 			{
-				cumulus.LogDataMessage(response);
 				// split the data
 				var sl = new List<string>(Regex.Split(response, ","));
 
@@ -894,9 +977,10 @@ namespace CumulusMX
 
 		    if (cumulus.ImetUpdateLogPointer)
 		    {
-                // Keep the log pointer current, to avoid large numbers of logs
-                // being downloaded at next startup
-		        ProgressLogs();
+				// Keep the log pointer current, to avoid large numbers of logs
+				// being downloaded at next startup
+				//ProgressLogs();
+				UpdateReadPointer();
 		    }
 		}
 	}

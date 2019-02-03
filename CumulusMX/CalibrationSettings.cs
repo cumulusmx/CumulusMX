@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using fastJSON;
+using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -34,10 +34,10 @@ namespace CumulusMX
 
                 var json = WebUtility.UrlDecode(data.Substring(5));
 
-                // de-serialize it to the settings structure
-                var settings = JSON.ToObject<JsonCalibrationSettingsData>(json);
-                // process the settings
-                cumulus.LogMessage("Updating calibration settings");
+				// de-serialize it to the settings structure
+				var settings = JsonConvert.DeserializeObject<JsonCalibrationSettingsData>(json);
+				// process the settings
+				cumulus.LogMessage("Updating calibration settings");
 
                 // offsets
                 cumulus.PressOffset = Convert.ToDouble(settings.offsets.pressure,InvC);
@@ -124,10 +124,10 @@ namespace CumulusMX
                            spikeremoval = spikeremoval
                        };
 
-            return JSON.ToJSON(data);
-        }
+			return JsonConvert.SerializeObject(data);
+		}
 
-        public string GetCalibrationAlpacaFormOptions()
+		public string GetCalibrationAlpacaFormOptions()
         {
             using (StreamReader sr = new StreamReader(calibrationOptionsFile))
             {

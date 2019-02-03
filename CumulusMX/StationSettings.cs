@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using fastJSON;
+using Newtonsoft.Json;
 using System.Web.UI;
 using Unosquare.Labs.EmbedIO;
 
@@ -145,10 +145,10 @@ namespace CumulusMX
                            Graphs = graphs
                        };
 
-            return JSON.ToJSON(data);
-        }
+			return JsonConvert.SerializeObject(data);
+		}
 
-        public string GetStationAlpacaFormOptions()
+		public string GetStationAlpacaFormOptions()
         {
             using (StreamReader sr = new StreamReader(stationOptionsFile))
             {
@@ -225,12 +225,12 @@ namespace CumulusMX
 
                 // Start at char 5 to skip the "json:" prefix
                 var json = WebUtility.UrlDecode(data.Substring(5));
-                
-                // de-serialize it to the settings structure
-                var settings = JSON.ToObject<JsonStationSettingsData>(json);
-                // process the settings
-                
-                cumulus.GraphHours = settings.Graphs.graphhours;
+
+				// de-serialize it to the settings structure
+				var settings = JsonConvert.DeserializeObject<JsonStationSettingsData>(json);
+				// process the settings
+
+				cumulus.GraphHours = settings.Graphs.graphhours;
                 cumulus.GraphDays = settings.Graphs.graphdays;
 
                 // Annual Rainfall

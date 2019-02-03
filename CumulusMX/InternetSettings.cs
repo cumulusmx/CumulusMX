@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Web;
-using fastJSON;
+using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
 
@@ -13,8 +13,8 @@ namespace CumulusMX
 	public class InternetSettings
 	{
 		private Cumulus cumulus;
-		private string internetOptionsFile;
-		private string internetSchemaFile;
+		private readonly string internetOptionsFile;
+		private readonly string internetSchemaFile;
 
 		public InternetSettings(Cumulus cumulus)
 		{
@@ -34,8 +34,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				//JsonInternetSettingsData settings = new JavaScriptSerializer().Deserialize<JsonInternetSettingsData>(json);
-				var settings = JSON.ToObject<JsonInternetSettingsData>(json);
+				var settings = JsonConvert.DeserializeObject<JsonInternetSettingsData>(json);
 				// process the settings
 				cumulus.LogMessage("Updating internet settings");
 
@@ -393,7 +392,7 @@ namespace CumulusMX
 						   customhttp = customhttp
 					   };
 
-			return JSON.ToJSON(data);
+			return JsonConvert.SerializeObject(data);
 		}
 
 		public string GetInternetAlpacaFormOptions()
@@ -417,7 +416,7 @@ namespace CumulusMX
 		public string GetExtraWebFilesData()
 		{
 			string json =
-				"{\"metadata\":[{\"name\":\"local\",\"label\":\"LOCAL FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"REMOTE FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"PROCESS\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"REALTIME\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"BINARY\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[";
+				"{\"metadata\":[{\"name\":\"local\",\"label\":\"LOCAL FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"REMOTE FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"PROCESS\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"REALTIME\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"BINARY\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"END OF DAY\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[";
 
 			int numfiles = Cumulus.numextrafiles;
 
@@ -431,9 +430,9 @@ namespace CumulusMX
 				string ftp = cumulus.ExtraFiles[i].FTP ? "true" : "false";
 				string utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
 				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
-
+				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
 				json = json + "{\"id\":" + (i + 1) + ",\"values\":[\"" + local + "\",\"" + remote + "\",\"" + process + "\",\"" + realtime + "\",\"" + ftp + "\",\"" + utf8 + "\",\"" +
-					   binary + "\"]}";
+					   binary + "\",\"" + endofday + "\"]}";
 
 				if (i < numfiles - 1)
 				{
@@ -490,7 +489,10 @@ namespace CumulusMX
 						// binary
 						cumulus.ExtraFiles[entry].binary = value == "true";
 						break;
-
+					case 7:
+						// end of day
+						cumulus.ExtraFiles[entry].endofday = value == "true";
+						break;
 				}
 				// Save the settings
 				cumulus.WriteIniFile();
