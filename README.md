@@ -9,3 +9,5 @@ A note from Steve when he released the code:
 In order to function correctly the program needs the supporting distribution files and folders. These can be found in [this repo](https://github.com/mcrossley/CumulusMX-DistributionFiles)
 
 The orginal source was post build b3043 - it incorporated some changes that were being worked on by Steve before he retired.
+
+The support forum for this software can [be found here](https://cumulus.hosiene.co.uk/)
