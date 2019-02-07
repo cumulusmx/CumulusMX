@@ -3751,7 +3751,7 @@ namespace CumulusMX
 
         private string TagYearLowDailyTempRangeD(Dictionary<string,string> TagParams)
         {
-            if (station.LowDailyTempRangeThisYear > 999)
+            if (station.LowDailyTempRangeThisYear < 999)
             {
                 return GetFormattedDateTime(station.LowDailyTempRangeThisYearTS, "dd MMMM", TagParams);
             }

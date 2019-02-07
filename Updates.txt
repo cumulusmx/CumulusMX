@@ -1,92 +1,7 @@
-3044
-====
-- Added new solar calculation method "Bras"
-	- New Cumulus.ini entries...
-		SolarCalc=0    		(0=Ryan-Stolzenbach, 1=Bras, default=0)
-		BrasTurbidity=2   	(atmospheric turbidity factor (2=clear, 5=smoggy, default=2)
-	- Updated the Interface web files to reflect the new settings.
+3048beta
+========
+- Fix web tag <#YearLowDailyTempRangeD>
 
-- Updated HidSharp to ver 2.0.5
-	- Now uses libudev1 for Fine Offset and WMR200 stations
-
-- Fixed corrupt/missing MySQL port causing CumulusMX to crash on start-up
-
-- Attempt to reconnect to Davis IP logger on connection failure (only a possible fix)
-
-- Updated the default forum URL to it's new home
-
-- Updated included website files to new URL
-
-- URL encode Twitter messages (I know Twitter is largely broken)
-
-- Davis VP2 - (Steve Loft) Added sanity checks for invalid wind speed/direction values
-
-- Davis VP2 - Added automatic disabling of the use of LOOP2 packets on firmware versions < 1.90
-
-- Change RG11 devices to use a new Cumulus.ini file entry. The previous MX builds would not work on Linux.
-  For example:
-	RG11port=2   (depreciated)
-	RG11port2=3
-		now use
-	RG11portName=COM2   (for Windows or /dev/ttyUSB2 for Linux)
-	RG11portName2=COM3   (for Windows or /dev/ttyUSB3 for Linux)
-
-- The default Comm port values are now set to either COM1 or /dev/ttyUSB0 depending on the platform. Hopefully this will prevent some of the confusion of new users.
-
-
-3045
-====
-- Internal Stuff
-	- Update the targeted .Net version to 4.5.2 (4.5 and 4.5.1 are no longer supported by Microsoft)
-	- Upgrade System.Net.FtpClient to replacement FluentFTP package
-	- Update Microsoft.Net.Http package to latest stable version
-	- Update fastJSON package to latest stable version
-	- Update embedIO package to latest stable version
-	- Remove Alchemy WS package from build
-
-- Davis TCP connections.
-	- Added additional error handling, should now be much more robust and attempt to reconnect on failure.
-
-- Astro calcs for Solar
-	- Added refraction correction.
-	- updated to add some extra terms.
-
-- Removed URL encode Twitter messages added in b3044
-
-- Added second order humidity correction factor, works the same as the temperature. It has to be set manually in Cumulus.ini.
-	- Cumulus.ini
-		[Offsets]
-		HumMult2=0.0
-
-- FTP Updates
-	- Now supports FTPS over TLS1.1 and 1.2
-	- In Passive FTP, you can disable Enhanced Passive (EPSV) mode if it causes problems with your host. Some hosts are reporting they support it, but a firewall along the route cannot handle the connections.
-	  Requires manually adding a new Cumulus.ini entry...
-		[FTP site]
-		DisableEPSV=1
-	- RealtimeGaugesTxt is no longer automatically enabled for FTP.
-
-- Web Sockets are no longer on a separate port, it shares the same port as HTTP.
-	- The wsport command line switch is still recognised for backwards compatibility, but it is no longer used.
-
-- Fix Fine Offset with solar logger reading, now limited to the reduced number of logger entries available on solar stations.
-
-- Fix for Slovenian locale (and any other with a two character date separator)
-
-
-3046
-====
-- Weather Diary
-	- Added Weather Diary page to management interface
-	- Added diary.db file to daily backup files
-	- Removed diary.db from distribution (it is created on first use to avoid overwriting the file on CMX distro updates)
-
-- Web Tags
-	- Added <#snowdepth> tag processing
-
-- ET annual roll-over fix
-
-- Fix to TLS 1.2 FTPS of the 'periodic' files
 
 3047
 ====
@@ -145,3 +60,96 @@
 - Removed files
 	\fastJSON.dll
 
+
+
+3046
+====
+- Weather Diary
+	- Added Weather Diary page to management interface
+	- Added diary.db file to daily backup files
+	- Removed diary.db from distribution (it is created on first use to avoid overwriting the file on CMX distro updates)
+
+- Web Tags
+	- Added <#snowdepth> tag processing
+
+- ET annual roll-over fix
+
+- Fix to TLS 1.2 FTPS of the 'periodic' files
+
+
+
+3045
+====
+- Internal Stuff
+	- Update the targeted .Net version to 4.5.2 (4.5 and 4.5.1 are no longer supported by Microsoft)
+	- Upgrade System.Net.FtpClient to replacement FluentFTP package
+	- Update Microsoft.Net.Http package to latest stable version
+	- Update fastJSON package to latest stable version
+	- Update embedIO package to latest stable version
+	- Remove Alchemy WS package from build
+
+- Davis TCP connections.
+	- Added additional error handling, should now be much more robust and attempt to reconnect on failure.
+
+- Astro calcs for Solar
+	- Added refraction correction.
+	- updated to add some extra terms.
+
+- Removed URL encode Twitter messages added in b3044
+
+- Added second order humidity correction factor, works the same as the temperature. It has to be set manually in Cumulus.ini.
+	- Cumulus.ini
+		[Offsets]
+		HumMult2=0.0
+
+- FTP Updates
+	- Now supports FTPS over TLS1.1 and 1.2
+	- In Passive FTP, you can disable Enhanced Passive (EPSV) mode if it causes problems with your host. Some hosts are reporting they support it, but a firewall along the route cannot handle the connections.
+	  Requires manually adding a new Cumulus.ini entry...
+		[FTP site]
+		DisableEPSV=1
+	- RealtimeGaugesTxt is no longer automatically enabled for FTP.
+
+- Web Sockets are no longer on a separate port, it shares the same port as HTTP.
+	- The wsport command line switch is still recognised for backwards compatibility, but it is no longer used.
+
+- Fix Fine Offset with solar logger reading, now limited to the reduced number of logger entries available on solar stations.
+
+- Fix for Slovenian locale (and any other with a two character date separator)
+
+
+
+3044
+====
+- Added new solar calculation method "Bras"
+	- New Cumulus.ini entries...
+		SolarCalc=0    		(0=Ryan-Stolzenbach, 1=Bras, default=0)
+		BrasTurbidity=2   	(atmospheric turbidity factor (2=clear, 5=smoggy, default=2)
+	- Updated the Interface web files to reflect the new settings.
+
+- Updated HidSharp to ver 2.0.5
+	- Now uses libudev1 for Fine Offset and WMR200 stations
+
+- Fixed corrupt/missing MySQL port causing CumulusMX to crash on start-up
+
+- Attempt to reconnect to Davis IP logger on connection failure (only a possible fix)
+
+- Updated the default forum URL to it's new home
+
+- Updated included website files to new URL
+
+- URL encode Twitter messages (I know Twitter is largely broken)
+
+- Davis VP2 - (Steve Loft) Added sanity checks for invalid wind speed/direction values
+
+- Davis VP2 - Added automatic disabling of the use of LOOP2 packets on firmware versions < 1.90
+
+- Change RG11 devices to use a new Cumulus.ini file entry. The previous MX builds would not work on Linux.
+  For example:
+	RG11port=2   (depreciated)
+	RG11port2=3
+		now use
+	RG11portName=COM2   (for Windows or /dev/ttyUSB2 for Linux)
+	RG11portName2=COM3   (for Windows or /dev/ttyUSB3 for Linux)
+
+- The default Comm port values are now set to either COM1 or /dev/ttyUSB0 depending on the platform. Hopefully this will prevent some of the confusion of new users.
