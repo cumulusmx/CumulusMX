@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using CumulusMX.Configuration;
+using CumulusMX.Extensions.DataReporter;
 
 namespace CumulusMX.DataReporter
 {
-    internal class DataReporterSettings : IDataReporterSettings
+    internal class DataReporterSettings : DataReporterSettingsBase
     {
         private readonly IniFile _sourceFile;
         private readonly string _sectionName;
