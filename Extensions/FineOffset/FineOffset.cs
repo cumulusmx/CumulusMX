@@ -45,7 +45,7 @@ namespace FineOffset
         public virtual IStationSettings ConfigurationSettings { get; }
 
 
-        public virtual void Initialise(ILogger log, IStationSettings settings)
+        public virtual void Initialise(ILogger log, ISettings settings)
         {
             this.log = log;
             this._settings = (StationSettings)settings;

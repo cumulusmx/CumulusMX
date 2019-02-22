@@ -9,9 +9,6 @@ namespace CumulusMX.Extensions.DataReporter
 
         IDataReporterSettings Settings { get; }
 
-        void InitialiseReporter(ILogger logger, IDataReporterSettings settings);
-        void Start(IWeatherStation station);
         void DoReport(WeatherDataModel currentData);
-        void Stop();
     }
 }

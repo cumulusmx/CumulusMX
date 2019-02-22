@@ -21,13 +21,13 @@ namespace FtpDataReporter
             //TODO: Implement
         }
 
-        public void InitialiseReporter(ILogger logger, IDataReporterSettings settings)
+        public void Initialise(ILogger logger, ISettings settings)
         {
             _logger = logger;
-            Settings = settings;
+            Settings = settings as IDataReporterSettings;
         }
 
-        public void Start(IWeatherStation station)
+        public void Start()
         {
             throw new NotImplementedException();
         }

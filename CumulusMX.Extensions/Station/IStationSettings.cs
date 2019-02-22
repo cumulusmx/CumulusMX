@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CumulusMX.Extensions.Station
 {
-    public interface IStationSettings
+    public interface IStationSettings : ISettings
     {
     }
 }

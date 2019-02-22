@@ -23,7 +23,7 @@ namespace FineOffset
 
         public override IStationSettings ConfigurationSettings { get; }
 
-        public override void Initialise(ILogger log, IStationSettings settings)
+        public override void Initialise(ILogger log, ISettings settings)
         {
             this.log = log;
             this._settings = (StationSettings)settings;
