@@ -23,8 +23,7 @@ namespace CumulusMX
     //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available. 
     //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed 
     //                                                        to determine the bar trend. 
-    //    Packet Type                     4       1       Has the value zero. In the future we may define new LOOP packet formats and assign a different 
-    //                                                        value to this field. 
+    //    Packet Type                     4       1       Has the value zero. LOOP2 packets are set to 1.
     //    Next Record                     5       2       Location in the archive memory where the next data packet will be written. This can be 
     //                                                        monitored to detect when a new record is created. 
     //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches 
@@ -255,7 +254,14 @@ namespace CumulusMX
                 var srMonth = (stormRainStart & 0xF000) >> 12;
                 var srDay = (stormRainStart & 0x0F80) >> 7;
                 var srYear = (stormRainStart & 0x007F) + 2000;
-                StormRainStart = new DateTime(srYear, srMonth, srDay);
+                if (srMonth < 13 && srDay < 32)  // Exception suppression!
+                {
+                    StormRainStart = new DateTime(srYear, srMonth, srDay);
+                }
+                else
+                {
+                    StormRainStart = DateTime.MinValue;
+                }
             }
             catch (Exception)
             {

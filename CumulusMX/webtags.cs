@@ -836,10 +836,10 @@ namespace CumulusMX
         private string Tagwspddata(Dictionary<string,string> TagParams)
         {
             //String s = (station.windspeeds[0]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
-            var sb = new StringBuilder((station.windspeeds[0]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", "."));
+            var sb = new StringBuilder((station.windspeeds[0]*cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
             for (var i = 1; i < station.numwindvalues; i++)
             {
-                sb.Append("," + (station.windspeeds[i]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", "."));
+                sb.Append("," + (station.windspeeds[i]*cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
                 //s = s + "," + (station.windspeeds[i]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
             }
 
@@ -859,11 +859,11 @@ namespace CumulusMX
 
         private string TagWindRoseData(Dictionary<string,string> TagParams)
         {
-            String s = (station.windcounts[0]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+            String s = (station.windcounts[0]*cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture);
 
             for (var i = 1; i < cumulus.NumWindRosePoints; i++)
             {
-                s = s + "," + (station.windcounts[i]*cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+                s = s + "," + (station.windcounts[i]*cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture);
             }
 
             return s;
@@ -2684,7 +2684,7 @@ namespace CumulusMX
 
         private string TagSunshineHours(Dictionary<string,string> TagParams)
         {
-            return station.SunshineHours.ToString("F1");
+            return station.SunshineHours.ToString(cumulus.SunFormat);
         }
 
         private string TagTHWIndex(Dictionary<string,string> TagParams)
@@ -2704,7 +2704,7 @@ namespace CumulusMX
 
         private string TagYSunshineHours(Dictionary<string,string> TagParams)
         {
-            return station.YestSunshineHours.ToString("F1");
+            return station.YestSunshineHours.ToString(cumulus.SunFormat);
         }
 
         private string TagIsSunny(Dictionary<string,string> TagParams)

@@ -640,7 +640,7 @@ namespace CumulusMX
 		[DataMember(Name = "SunshineHours")]
 		public string SunshineHoursRounded
 		{
-			get { return SunshineHours.ToString("F1"); }
+			get { return SunshineHours.ToString(cumulus.SunFormat); }
 			set { }
 		}
 

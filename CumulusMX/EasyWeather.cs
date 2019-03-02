@@ -10,6 +10,47 @@ using System.Timers;
 
 namespace CumulusMX
 {
+    /*
+     * EasyWeather.dat file format (* indicates fields used by Cumulus)
+     * 1    Record number       int
+     * 2    Transfer Date       yyy-mmm-dd hh:mm:ss
+     * 3*   Reading Date        yyy-mmm-dd hh:mm:ss
+     * 4    Reading interval    int     (minutes since previous reading)
+     * 5*   Indoor humidity     int
+     * 6*   Indoor temp         float   Celcius
+     * 7*   Outdoor humidity    int
+     * 8*   Outdoor temp        float   Celcius
+     * 9*   Dew point           float   Celcius
+     * 10*  Wind chill          float   Celcius
+     * 11   Absolute press      float   mB/hPa
+     * 12*  Relative press      float   mB/hPa
+     * 13*  Wind average        float   m/s
+     * 14   Wind average        int     Beaufort
+     * 15*  Wind gust           float   m/s
+     * 16   Wind gust           int     Beaufort
+     * 17   Wind direction      int     0 - 15. 0 = North, 1 = NNE etc
+     * 18*  Wind direction      str     Oddly ENE appears as NEE, and ESE appears as SEE
+     * 19   Rain ticks          int
+     * 20   Rain total          float   mm
+     * 21   Rain since last     float   mm
+     * 22*  Rain in last hour   float   mm
+     * 23   Rain in last 24h    float   mm
+     * 24   Rain in last 7d     float   mm
+     * 25   Rain in last 30d    float   mm
+     * 26*  Rain total          float   mm
+     * 27*  Light reading       int     Lux
+     * 28*  UV Index            int
+     * 29   Status bit #0       int     0|1
+     * 30   Status bit #1       int     0|1
+     * 31   Status bit #2       int     0|1
+     * 32   Status bit #3       int     0|1
+     * 33   Status bit #4       int     0|1
+     * 34   Status bit #5       int     0|1
+     * 35   Status bit #6       int     0|1 - Outdoor readings invalid = 1
+     * 36   Status bit #7       int     0|1
+     * 37   Data address        6 digit hex
+     * 38   Raw data            16x 2-digit hex
+    */
     internal class EasyWeather : WeatherStation
     {
         private Timer tmrDataRead;

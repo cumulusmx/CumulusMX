@@ -80,8 +80,8 @@
     <Reference Include="Devart.Data.MySql">
       <HintPath>..\packages\Devart.Data.MySql.dll</HintPath>
     </Reference>
-    <Reference Include="FluentFTP, Version=19.2.3.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentFTP.19.2.3\lib\net45\FluentFTP.dll</HintPath>
+    <Reference Include="FluentFTP, Version=21.0.0.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentFTP.21.0.0\lib\net45\FluentFTP.dll</HintPath>
     </Reference>
     <Reference Include="HidSharp, Version=2.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\HidSharp.2.0.8\lib\net35\HidSharp.dll</HintPath>

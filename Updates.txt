@@ -1,6 +1,24 @@
-3048beta
-========
-- Fix web tag <#YearLowDailyTempRangeD>
+3048
+====
+- You can now first time enable/disable Realtime FTP without having to restart CMX
+
+- Instromet stations now record and report rainfall (mm) and sunshine hours to 2 decimal places
+
+- Improved realtime FTP error handling
+
+- Improved Davis protocol handling
+
+- Fix Davis protocol mixing up LOOP1 and LOOP2 packets and consequently providing invalid rain and wind data.
+
+- Fix web tag <#YearLowDailyTempRangeD> broken in b3047
+
+- Bug fixes to FTP Component, and internal changes to FTP transfer mechanism
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.exe.pdb
+	\FluentFTP.dll
+
 
 
 3047

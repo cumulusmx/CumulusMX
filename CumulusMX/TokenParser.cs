@@ -237,7 +237,8 @@ namespace CumulusMX
 						Trace.WriteLine(e.ToString());
 						//cumulus.LogMessage(InputText);
 						Console.WriteLine("*** web tag error - see MXdiags file ***");
-						outText += e.Message;
+                        //outText += e.Message;
+                        outText += "**Web tag error, tag starting: #" + token.Substring(0, token.Length > 40 ? 39 : token.Length - 1) + "**";
 					}
 					i = match.Index + match.Length;
 				}

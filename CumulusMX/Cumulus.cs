@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3048beta";
+		public string Build = "3048";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -76,11 +76,11 @@ namespace CumulusMX
 			IN
 		}
 
-        public enum solarcalcTypes
-        {
-            RyanStolzenbach = 0,
-            Bras = 1
-        }
+		public enum solarcalcTypes
+		{
+			RyanStolzenbach = 0,
+			Bras = 1
+		}
 
 		public struct Dataunits
 		{
@@ -201,7 +201,7 @@ namespace CumulusMX
 
 		public string WindRunUnitText;
 
-		public bool WebUpdating = false;
+		public volatile bool WebUpdating = false;
 
 		public double WindRoseAngle { get; set; }
 
@@ -355,8 +355,11 @@ namespace CumulusMX
 		public string RainFormat;
 
 		internal int PressDPlaces = 1;
-	    internal bool DavisIncrementPressureDP;
+		internal bool DavisIncrementPressureDP;
 		public string PressFormat;
+
+		internal int SunshineDPlaces = 1;
+		public string SunFormat;
 
 		internal int UVDPlaces = 1;
 		public string UVFormat;
@@ -365,9 +368,9 @@ namespace CumulusMX
 
 		public int VPrainGaugeType = -1;
 
-        public string ComportName;
-        public string DefaultComportName;
-        public int ImetBaudRate;
+		public string ComportName;
+		public string DefaultComportName;
+		public int ImetBaudRate;
 		public int DavisBaudRate;
 
 		public int VendorID;
@@ -513,7 +516,7 @@ namespace CumulusMX
 		public bool RealtimeEnabled; // The timer is to be started
 		public bool RealtimeFTPEnabled; // The FTP connection is to be established
 		public bool RealtimeTxtFTP; // The realtime.txt file is to be uploaded
-	    public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
+		public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
 
 		// Twitter settings
 		public string Twitteruser = " ";
@@ -782,7 +785,7 @@ namespace CumulusMX
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet" };
 
 
-        /*
+		/*
 		CryptoLicense lic = new CryptoLicense();
 
 
@@ -886,11 +889,11 @@ namespace CumulusMX
 		}
 		*/
 
-        public Cumulus(int HTTPport, int WSport)
-        {
-            //DoLicenseCheck();
+		public Cumulus(int HTTPport, int WSport)
+		{
+			//DoLicenseCheck();
 
-            /*lic.ValidationKey = "AMAAMACrfxYrYEOGd+D5ypZ32bnLCvviBrTlejReXNRdvgWzSgyvdfkLvNDvDX1WuMh2JIEDAAEAAQ==";
+			/*lic.ValidationKey = "AMAAMACrfxYrYEOGd+D5ypZ32bnLCvviBrTlejReXNRdvgWzSgyvdfkLvNDvDX1WuMh2JIEDAAEAAQ==";
 
 			// Load license from the file
 			lic.StorageMode = LicenseStorageMode.ToFile;
@@ -902,10 +905,10 @@ namespace CumulusMX
 				throw new Exception("license validation failed");
 			*/
 
-            string serial = CalculateMD5Hash(Environment.MachineName);
-            Console.WriteLine("Serial: " + serial);
-            File.WriteAllText("serial.txt", serial);
-            /*
+			string serial = CalculateMD5Hash(Environment.MachineName);
+			Console.WriteLine("Serial: " + serial);
+			File.WriteAllText("serial.txt", serial);
+			/*
 						try
 						{
 							using (TextReader reader = File.OpenText(@"licence.lic"))
@@ -954,71 +957,71 @@ namespace CumulusMX
 							Environment.Exit(0);
 						}
 			*/
-            DirectorySeparator = Path.DirectorySeparatorChar;
+			DirectorySeparator = Path.DirectorySeparatorChar;
 
-            AppDir = AppDomain.CurrentDomain.BaseDirectory;
+			AppDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            TwitterTxtFile = AppDir + "twitter.txt";
-            WebTagFile = AppDir + "WebTags.txt";
+			TwitterTxtFile = AppDir + "twitter.txt";
+			WebTagFile = AppDir + "WebTags.txt";
 
-            // interface port passed as param
-            HttpPort = HTTPport;
+			// interface port passed as param
+			HttpPort = HTTPport;
 
 			//b3045, use smae port for WS...  WS port = HTTPS port
 			//wsPort = WSport;
 			wsPort = HTTPport;
 
-            // Set up the diagnostic tracing
-            string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+			// Set up the diagnostic tracing
+			string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
 
-            TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
+			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
 
-            Trace.Listeners.Add(myTextListener);
-            Trace.AutoFlush = true;
-
-
-            // Read the configuration file
-
-            LogMessage(" ========================== Cumulus MX starting ==========================");
-
-            LogMessage("Command line: " + Environment.CommandLine);
+			Trace.Listeners.Add(myTextListener);
+			Trace.AutoFlush = true;
 
 
-            Assembly thisAssembly = this.GetType().Assembly;
-            //Version = thisAssembly.GetName().Version.ToString();
-            //VersionLabel.Content = "Cumulus v." + thisAssembly.GetName().Version;
-            LogMessage("Cumulus MX v." + Version + " build " + Build);
-            Console.WriteLine("Cumulus MX v." + Version + " build " + Build);
-            //Console.WriteLine("This is pre-release beta software");
+			// Read the configuration file
 
-            IsOSX = IsRunningOnMac();
+			LogMessage(" ========================== Cumulus MX starting ==========================");
 
-            Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
-
-            // Set the default comport name depending on platform
-            if (Platform.Substring(0, 3) == "Win")
-            {
-                DefaultComportName = "COM1";
-            }
-            else
-            {
-                DefaultComportName = "/dev/ttyUSB0";
-            }
+			LogMessage("Command line: " + Environment.CommandLine);
 
 
-            LogMessage("Platform: " + Platform);
+			Assembly thisAssembly = this.GetType().Assembly;
+			//Version = thisAssembly.GetName().Version.ToString();
+			//VersionLabel.Content = "Cumulus v." + thisAssembly.GetName().Version;
+			LogMessage("Cumulus MX v." + Version + " build " + Build);
+			Console.WriteLine("Cumulus MX v." + Version + " build " + Build);
+			//Console.WriteLine("This is pre-release beta software");
+
+			IsOSX = IsRunningOnMac();
+
+			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
+
+			// Set the default comport name depending on platform
+			if (Platform.Substring(0, 3) == "Win")
+			{
+				DefaultComportName = "COM1";
+			}
+			else
+			{
+				DefaultComportName = "/dev/ttyUSB0";
+			}
+
+
+			LogMessage("Platform: " + Platform);
 
 			LogMessage("OS version: " + Environment.OSVersion.ToString());
 
-            Type type = Type.GetType("Mono.Runtime");
-            if (type != null)
-            {
-                MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
-                if (displayName != null)
-                    LogMessage("Mono version: "+displayName.Invoke(null, null));
-            }
+			Type type = Type.GetType("Mono.Runtime");
+			if (type != null)
+			{
+				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
+				if (displayName != null)
+					LogMessage("Mono version: "+displayName.Invoke(null, null));
+			}
 
-            LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -1066,7 +1069,7 @@ namespace CumulusMX
 			ThisMonthTFile = "web" + DirectorySeparator + "thismonthT.htm";
 			ThisYearTFile = "web" + DirectorySeparator + "thisyearT.htm";
 			MonthlyRecordTFile = "web" + DirectorySeparator + "monthlyrecordT.htm";
-		    RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
+			RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
 
 			Indexfile = "web" + DirectorySeparator + "index.htm";
 			Todayfile = "web" + DirectorySeparator + "today.htm";
@@ -1077,9 +1080,9 @@ namespace CumulusMX
 			ThisMonthfile = "web" + DirectorySeparator + "thismonth.htm";
 			ThisYearfile = "web" + DirectorySeparator + "thisyear.htm";
 			MonthlyRecordfile = "web" + DirectorySeparator + "monthlyrecord.htm";
-            RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
+			RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
 
-            localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
+			localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
 			remotewebtextfiles = new[] { "index.htm", "today.htm", "yesterday.htm", "record.htm", "trends.htm", "gauges.htm", "thismonth.htm", "thisyear.htm", "monthlyrecord.htm" };
 
 			//localgraphdatafiles = new[] {"units.json","tempdatad3.json", "pressdatad3.json", "winddatad3.json", "wdirdatad3.json", "humdatad3.json", "raindatad3.json", "solardatad3.json"};
@@ -1101,10 +1104,10 @@ namespace CumulusMX
 				};
 
 			remotegraphdatafiles = new[]
-								   {
-									   "graphconfig.json", "tempdata.json", "pressdata.json", "winddata.json", "wdirdata.json", "humdata.json", "raindata.json", "solardata.json",
-									   "dailyrain.json", "sunhours.json", "dailytemp.json"
-								   };
+									{
+										"graphconfig.json", "tempdata.json", "pressdata.json", "winddata.json", "wdirdata.json", "humdata.json", "raindata.json", "solardata.json",
+										"dailyrain.json", "sunhours.json", "dailytemp.json"
+									};
 
 			LogMessage("Data path = " + Datapath);
 
@@ -1143,14 +1146,15 @@ namespace CumulusMX
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval]);
-            LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
+			LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
 
-            TempFormat = "F" + TempDPlaces;
+			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
 			RainFormat = "F" + RainDPlaces;
 			PressFormat = "F" + PressDPlaces;
 			HumFormat = "F" + HumDPlaces;
 			UVFormat = "F" + UVDPlaces;
+			SunFormat = "F" + SunshineDPlaces;
 			ETFormat = "F" + (RainDPlaces + 1);
 			WindRunFormat = "F" + WindRunDPlaces;
 			TempTrendFormat = "+0.0;-0.0;0";
@@ -1255,12 +1259,12 @@ namespace CumulusMX
 			LogMessage("RainDayThreshold=" + RainDayThreshold.ToString("F3"));
 			LogMessage("Offsets and Multipliers:");
 			LogMessage("PO=" + PressOffset.ToString("F3") + " TO=" + TempOffset.ToString("F3") + " HO=" + HumOffset + " WDO=" + WindDirOffset + " ITO=" +
-					   InTempoffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
+						InTempoffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
 			LogMessage("WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
-					   " HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
+						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
 			LogMessage("Spike removal:");
 			LogMessage("TD=" + EWtempdiff.ToString("F3") + " GD=" + EWgustdiff.ToString("F3") + " WD=" + EWwinddiff.ToString("F3") + " HD=" + EWhumiditydiff.ToString("F3") + " PD=" +
-					   EWpressurediff.ToString("F3"));
+						EWpressurediff.ToString("F3"));
 			LogMessage("MR=" + EWmaxRainRate.ToString("F3") + " MH=" + EWmaxHourlyRain.ToString("F3"));
 
 			LogMessage("Cumulus Starting");
@@ -1460,7 +1464,7 @@ namespace CumulusMX
 		internal void SetStartOfRealtimeInsertSQL()
 		{
 			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlRealtimeTable +
-									   " (LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press,currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit,windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend,tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM,pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex,UV,ET,SolarRad,avgbearing,rhour,forecastnumber,isdaylight,SensorContactLost,wdir,cloudbasevalue,cloudbaseunit,apptemp,SunshineHours,CurrentSolarMax,IsSunny)";
+										" (LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press,currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit,windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend,tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM,pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex,UV,ET,SolarRad,avgbearing,rhour,forecastnumber,isdaylight,SensorContactLost,wdir,cloudbasevalue,cloudbaseunit,apptemp,SunshineHours,CurrentSolarMax,IsSunny)";
 		}
 
 		internal void SetRealtimeSqlCreateString()
@@ -1481,19 +1485,19 @@ namespace CumulusMX
 								") NOT NULL,ET decimal(4," + RainDPlaces + ") NOT NULL,SolarRad decimal(5,1) NOT NULL,avgbearing varchar(3) NOT NULL,rhour decimal(4," + RainDPlaces +
 								") NOT NULL,forecastnumber varchar(2) NOT NULL,isdaylight varchar(1) NOT NULL,SensorContactLost varchar(1) NOT NULL,wdir varchar(3) NOT NULL,cloudbasevalue varchar(5) NOT NULL,cloudbaseunit varchar(2) NOT NULL,apptemp decimal(4," +
 								TempDPlaces +
-								") NOT NULL,SunshineHours decimal(3,1) NOT NULL,CurrentSolarMax decimal(5,1) NOT NULL,IsSunny varchar(1) NOT NULL,PRIMARY KEY (LogDateTime)) COMMENT = \"Realtime log\"";
+								") NOT NULL,SunshineHours decimal(3," + SunshineDPlaces + ") NOT NULL,CurrentSolarMax decimal(5,1) NOT NULL,IsSunny varchar(1) NOT NULL,PRIMARY KEY (LogDateTime)) COMMENT = \"Realtime log\"";
 		}
 
 		internal void SetStartOfDayfileInsertSQL()
 		{
 			StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable +
-									  " (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym)";
+										" (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym)";
 		}
 
 		internal void SetStartOfMonthlyInsertSQL()
 		{
 			StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable +
-									  " (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym)";
+										" (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym)";
 		}
 
 
@@ -1626,7 +1630,7 @@ namespace CumulusMX
 
 		private void OnConnected(UserContext context)
 		{
-            LogDebugMessage("Connected From : " + context.ClientAddress.ToString());
+			LogDebugMessage("Connected From : " + context.ClientAddress.ToString());
 		}
 
 		private void OnConnect(UserContext context)
@@ -1639,12 +1643,12 @@ namespace CumulusMX
 
 		private void OnSend(UserContext context)
 		{
-            LogDebugMessage("OnSend From : " + context.ClientAddress.ToString());
+			LogDebugMessage("OnSend From : " + context.ClientAddress.ToString());
 		}
 
 		private void OnReceive(UserContext context)
 		{
-            LogDebugMessage("WS receive : " + context.DataFrame.ToString());
+			LogDebugMessage("WS receive : " + context.DataFrame.ToString());
 		}
 */
 		private void InitialiseRG11()
@@ -1720,7 +1724,11 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!WebUpdating)
+			if (WebUpdating)
+			{
+				LogMessage("Warning, previous web update is still in progress, skipping this interval");
+			}
+			else
 			{
 				WebUpdating = true;
 				ftpThread = new Thread(DoHTMLFiles);
@@ -1739,8 +1747,7 @@ namespace CumulusMX
 			LogDebugMessage("Starting Twitter update");
 			var auth = new XAuthAuthorizer
 			{
-				CredentialStore =
-							   new XAuthCredentials { ConsumerKey = twitterKey, ConsumerSecret = twitterSecret, UserName = Twitteruser, Password = TwitterPW }
+				CredentialStore = new XAuthCredentials { ConsumerKey = twitterKey, ConsumerSecret = twitterSecret, UserName = Twitteruser, Password = TwitterPW }
 			};
 
 			if (TwitterOauthToken == "unknown")
@@ -1789,7 +1796,7 @@ namespace CumulusMX
 
 				LogDebugMessage("Updating Twitter: " + status);
 
-                Status tweet;
+				Status tweet;
 
 				try
 				{
@@ -1963,60 +1970,88 @@ namespace CumulusMX
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
-            if (!RealtimeInProgress)
-            {
-                try
-                {
-                    RealtimeInProgress = true;
-                    if (RealtimeFTPEnabled)
-                    {
-                        if (!RealtimeFTP.IsConnected)
-                        {
-                            try
-                            {
-                                LogDebugMessage("Realtime ftp not connected - reconnecting");
-                                RealtimeFTP.Connect();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage("Error connecting ftp - " + ex.Message);
-                            }
+			bool connectionFailed = false;
+			// We are not overly fussed about locking as the thread start times are sufficently far apart
+			if (RealtimeInProgress)
+			{
+				LogMessage("Warning, previous realtime ftp still in progress, skipping this period.");
+			}
+			else
+			{
+				RealtimeInProgress = true;
+				try
+				{
+					// Process any files
+					CreateRealtimeFile();
+					CreateRealtimeHTMLfiles();
 
-                            //RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-                        }
+					if (RealtimeFTPEnabled)
+					{
+						if (RealtimeFTP.Host == null)
+						{
+							// This only happens if the user enables realtime FTP after starting Cumulus
+							RealtimeFTPLogin();
+						}
+						// Force a test of the connection, IsConnected is not always reliable
+						try
+						{
+							string pwd = RealtimeFTP.GetWorkingDirectory();
+							if (pwd.Length == 0)
+							{
+								connectionFailed = true;
+							}
+						}
+						catch (Exception ex)
+						{
+							LogDebugMessage("Test of realtime FTP connection failed: " + ex.Message);
+							connectionFailed = true;
+						}
+						if (!(RealtimeFTP.IsConnected) || connectionFailed)
+						{
+							LogDebugMessage("Realtime ftp not connected - reconnecting");
+							try
+							{
+								RealtimeFTP.Disconnect();
+							}
+							catch
+							{
+								// do nothing on any disconnect error
+							}
+							try
+							{
+								RealtimeFTP.Connect();
+							}
+							catch (Exception ex)
+							{
+								LogMessage("Error connecting ftp - " + ex.Message);
+							}
+						}
 
-                        try
-                        {
-                            //LogDebugMessage("Create realtime file");
-                            CreateRealtimeFile();
-                            //LogDebugMessage("Create extra realtime files");
-                            CreateRealtimeHTMLfiles();
-                            //LogDebugMessage("Upload realtime files");
-                            RealtimeFTPUpload();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogMessage("Error during realtime update: " + ex.Message);
-                        }
-                    }
-                    else
-                    {
-                        // No FTP, just process files
-                        CreateRealtimeFile();
-                        CreateRealtimeHTMLfiles();
-                    }
+						try
+						{
+							RealtimeFTPUpload();
+						}
+						catch (Exception ex)
+						{
+							LogMessage("Error during realtime FTP update: " + ex.Message);
+						}
+					}
 
-                    if (!string.IsNullOrEmpty(RealtimeProgram))
-                    {
-                        //LogDebugMessage("Execute realtime program");
-                        ExecuteProgram(RealtimeProgram, RealtimeParams);
-                    }
-                }
-                finally
-                {
-                    RealtimeInProgress = false;
-                }
-            }
+					if (!string.IsNullOrEmpty(RealtimeProgram))
+					{
+						//LogDebugMessage("Execute realtime program");
+						ExecuteProgram(RealtimeProgram, RealtimeParams);
+					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage("Error during realtime update: " + ex.Message);
+				}
+				finally
+				{
+					RealtimeInProgress = false;
+				}
+			}
 		}
 
 		private void RealtimeFTPUpload()
@@ -2027,12 +2062,12 @@ namespace CumulusMX
 			if (ftp_directory == "")
 			{
 				filepath = "realtime.txt";
-			    gaugesfilepath = "realtimegauges.txt";
+				gaugesfilepath = "realtimegauges.txt";
 			}
 			else
 			{
 				filepath = ftp_directory + "/realtime.txt";
-			    gaugesfilepath = ftp_directory + "/realtimegauges.txt";
+				gaugesfilepath = ftp_directory + "/realtimegauges.txt";
 			}
 
 			if (RealtimeTxtFTP)
@@ -2040,11 +2075,11 @@ namespace CumulusMX
 				UploadFile(RealtimeFTP, RealtimeFile, filepath);
 			}
 
-		    if (RealtimeGaugesTxtFTP)
-		    {
-                ProcessTemplateFile(RealtimeGaugesTxtTFile,RealtimeGaugesTxtFile, realtimeTokenParser);
-		        UploadFile(RealtimeFTP, RealtimeGaugesTxtFile,gaugesfilepath);
-		    }
+			if (RealtimeGaugesTxtFTP)
+			{
+				ProcessTemplateFile(RealtimeGaugesTxtTFile, RealtimeGaugesTxtFile, realtimeTokenParser);
+				UploadFile(RealtimeFTP, RealtimeGaugesTxtFile, gaugesfilepath);
+			}
 
 			// Extra files
 			for (int i = 0; i < numextrafiles; i++)
@@ -2154,11 +2189,11 @@ namespace CumulusMX
 			{
 				if (Char.IsWhiteSpace(line[i]))
 				{
-				  if (!insideQuotes && start != -1)
-				  {
-					parts.Add(line.Substring(start, i - start));
-					start = -1;
-				  }
+					if (!insideQuotes && start != -1)
+					{
+						parts.Add(line.Substring(start, i - start));
+						start = -1;
+					}
 				}
 				else if (line[i] == '"')
 				{
@@ -2676,7 +2711,7 @@ namespace CumulusMX
 			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 200);
 			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 1000);
 			DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
-            DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
+			DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
 			if (StationType == StationTypes.VantagePro)
 			{
 				UseDavisLoop2 = false;
@@ -2862,7 +2897,7 @@ namespace CumulusMX
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
 			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
-		    ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
+			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
@@ -2962,7 +2997,7 @@ namespace CumulusMX
 			RealtimeEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
 			RealtimeFTPEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
 			RealtimeTxtFTP = ini.GetValue("FTP site", "RealtimeTxtFTP", false);
-		    RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", false);
+			RealtimeGaugesTxtFTP = ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", false);
 			RealtimeInterval = ini.GetValue("FTP site", "RealtimeInterval", 30000);
 			if (RealtimeInterval < 1) { RealtimeInterval = 1; }
 			//RealtimeTimer.Change(0,RealtimeInterval);
@@ -3192,8 +3227,8 @@ namespace CumulusMX
 			SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 0);
 			LuxToWM2 = ini.GetValue("Solar", "LuxToWM2", 0.0079);
 			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
-            SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
-            BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
+			BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
 
 			NOAAname = ini.GetValue("NOAA", "Name", " ");
 			NOAAcity = ini.GetValue("NOAA", "City", " ");
@@ -3489,7 +3524,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "EnableRealtime", RealtimeEnabled);
 			ini.SetValue("FTP site", "RealtimeFTPEnabled", RealtimeFTPEnabled);
 			ini.SetValue("FTP site", "RealtimeTxtFTP", RealtimeTxtFTP);
-            ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeGaugesTxtFTP);
+			ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeGaugesTxtFTP);
 			ini.SetValue("FTP site", "RealtimeInterval", RealtimeInterval);
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			ini.SetValue("FTP site", "IncludeSTD", IncludeStandardFiles);
@@ -3675,11 +3710,11 @@ namespace CumulusMX
 			ini.SetValue("Solar", "RStransfactor", RStransfactor);
 			ini.SetValue("Solar", "SolarMinimum", SolarMinimum);
 			ini.SetValue("Solar", "UseBlakeLarsen", UseBlakeLarsen);
-            ini.SetValue("Solar", "SolarCalc", SolarCalc);
-            ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
+			ini.SetValue("Solar", "SolarCalc", SolarCalc);
+			ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
 
 
-            ini.SetValue("NOAA", "Name", NOAAname);
+			ini.SetValue("NOAA", "Name", NOAAname);
 			ini.SetValue("NOAA", "City", NOAAcity);
 			ini.SetValue("NOAA", "State", NOAAstate);
 			ini.SetValue("NOAA", "12hourformat", NOAA12hourformat);
@@ -4121,11 +4156,11 @@ namespace CumulusMX
 
 		public int SunThreshold { get; set; }
 
-        public int SolarCalc { get; set; }
+		public int SolarCalc { get; set; }
 
-        public double BrasTurbidity { get; set; }
+		public double BrasTurbidity { get; set; }
 
-        public int xapPort { get; set; }
+		public int xapPort { get; set; }
 
 		public string xapUID { get; set; }
 
@@ -4263,7 +4298,7 @@ namespace CumulusMX
 
 		public int ImetWaitTime { get; set; }
 
-        public bool ImetUpdateLogPointer { get; set; }
+		public bool ImetUpdateLogPointer { get; set; }
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -4457,15 +4492,15 @@ namespace CumulusMX
 		private readonly string ThisYearTFile;
 		private readonly string GaugesTFile;
 		private readonly string RealtimeFile = "realtime.txt";
-	    private readonly string RealtimeGaugesTxtTFile;
-        private readonly string RealtimeGaugesTxtFile;
-        private readonly string TwitterTxtFile;
+		private readonly string RealtimeGaugesTxtTFile;
+		private readonly string RealtimeGaugesTxtFile;
+		private readonly string TwitterTxtFile;
 		public bool IncludeStandardFiles = true;
 		public bool IncludeGraphDataFiles;
 		public bool TwitterSendLocation;
 		private const int numwebtextfiles = 9;
 		private FtpClient RealtimeFTP = new FtpClient();
-		private bool RealtimeInProgress = false;
+		private volatile bool RealtimeInProgress = false;
 		public bool SendSoilTemp1ToWund;
 		public bool SendSoilTemp2ToWund;
 		public bool SendSoilTemp3ToWund;
@@ -4682,7 +4717,7 @@ namespace CumulusMX
 				file.Write(station.AnnualETTotal.ToString(ETFormat) + ListSeparator);
 				file.Write(station.ApparentTemperature.ToString(TempFormat) + ListSeparator);
 				file.Write((Math.Round(station.CurrentSolarMax)) + ListSeparator);
-				file.Write(station.SunshineHours.ToString("N1") + ListSeparator);
+				file.Write(station.SunshineHours.ToString(SunFormat) + ListSeparator);
 				file.Write(station.Bearing + ListSeparator);
 				file.Write(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
 				file.WriteLine(station.RainSinceMidnight.ToString(RainFormat));
@@ -4713,7 +4748,7 @@ namespace CumulusMX
 								station.HeatIndex.ToString(TempFormat, InvC) + "," + station.UV.ToString(UVFormat, InvC) + "," + station.SolarRad + "," +
 								station.ET.ToString(ETFormat, InvC) + "," + station.AnnualETTotal.ToString(ETFormat, InvC) + "," +
 								station.ApparentTemperature.ToString(TempFormat, InvC) + "," + (Math.Round(station.CurrentSolarMax)) + "," +
-								station.SunshineHours.ToString("N1", InvC) + "," + station.Bearing + "," + station.RG11RainToday.ToString(RainFormat, InvC) + "," +
+								station.SunshineHours.ToString(SunFormat, InvC) + "," + station.Bearing + "," + station.RG11RainToday.ToString(RainFormat, InvC) + "," +
 								station.RainSinceMidnight.ToString(RainFormat, InvC) + ",'" + station.CompassPoint(station.AvgBearing) + "','" +
 								station.CompassPoint(station.Bearing) + "')";
 
@@ -5381,111 +5416,116 @@ namespace CumulusMX
 
 		public void DoHTMLFiles()
 		{
-			if (!RealtimeEnabled)
+			try
 			{
-				CreateRealtimeFile();
-			}
-
-			//LogDebugMessage("Creating standard HTML files");
-			ProcessTemplateFile(IndexTFile, Indexfile,tokenParser);
-			ProcessTemplateFile(TodayTFile, Todayfile,tokenParser);
-			ProcessTemplateFile(YesterdayTFile, Yesterfile,tokenParser);
-			ProcessTemplateFile(RecordTFile, Recordfile, tokenParser);
-			ProcessTemplateFile(MonthlyRecordTFile, MonthlyRecordfile,tokenParser);
-			ProcessTemplateFile(TrendsTFile, Trendsfile, tokenParser);
-			ProcessTemplateFile(ThisMonthTFile, ThisMonthfile, tokenParser);
-			ProcessTemplateFile(ThisYearTFile, ThisYearfile, tokenParser);
-			ProcessTemplateFile(GaugesTFile, Gaugesfile,tokenParser);
-			//LogDebugMessage("Done creating standard HTML files");
-			if (IncludeGraphDataFiles)
-			{
-				//LogDebugMessage("Creating graph data files");
-				station.CreateGraphDataFiles();
-				//LogDebugMessage("Done creating graph data files");
-			}
-			//LogDebugMessage("Creating extra files");
-			// handle any extra files
-			for (int i = 0; i < numextrafiles; i++)
-			{
-				if (!ExtraFiles[i].realtime && !ExtraFiles[i].endofday)
+				if (!RealtimeEnabled)
 				{
-					var uploadfile = ExtraFiles[i].local;
-					if (uploadfile == "<currentlogfile>")
-					{
-						uploadfile = GetLogFileName(DateTime.Now);
-					}
-					var remotefile = ExtraFiles[i].remote;
-					remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+					CreateRealtimeFile();
+				}
 
-					if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+				//LogDebugMessage("Creating standard HTML files");
+				ProcessTemplateFile(IndexTFile, Indexfile, tokenParser);
+				ProcessTemplateFile(TodayTFile, Todayfile, tokenParser);
+				ProcessTemplateFile(YesterdayTFile, Yesterfile, tokenParser);
+				ProcessTemplateFile(RecordTFile, Recordfile, tokenParser);
+				ProcessTemplateFile(MonthlyRecordTFile, MonthlyRecordfile, tokenParser);
+				ProcessTemplateFile(TrendsTFile, Trendsfile, tokenParser);
+				ProcessTemplateFile(ThisMonthTFile, ThisMonthfile, tokenParser);
+				ProcessTemplateFile(ThisYearTFile, ThisYearfile, tokenParser);
+				ProcessTemplateFile(GaugesTFile, Gaugesfile, tokenParser);
+				//LogDebugMessage("Done creating standard HTML files");
+				if (IncludeGraphDataFiles)
+				{
+					//LogDebugMessage("Creating graph data files");
+					station.CreateGraphDataFiles();
+					//LogDebugMessage("Done creating graph data files");
+				}
+				//LogDebugMessage("Creating extra files");
+				// handle any extra files
+				for (int i = 0; i < numextrafiles; i++)
+				{
+					if (!ExtraFiles[i].realtime && !ExtraFiles[i].endofday)
 					{
-						if (ExtraFiles[i].process)
+						var uploadfile = ExtraFiles[i].local;
+						if (uploadfile == "<currentlogfile>")
 						{
-							//LogDebugMessage("Processing extra file "+uploadfile);
-							// process the file
-							var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-							var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-							tokenParser.encoding = encoding;
-							tokenParser.SourceFile = uploadfile;
-							var output = tokenParser.ToString();
-							uploadfile += "tmp";
-							try
+							uploadfile = GetLogFileName(DateTime.Now);
+						}
+						var remotefile = ExtraFiles[i].remote;
+						remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+						if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+						{
+							if (ExtraFiles[i].process)
 							{
-								using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+								//LogDebugMessage("Processing extra file "+uploadfile);
+								// process the file
+								var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+								var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+								tokenParser.encoding = encoding;
+								tokenParser.SourceFile = uploadfile;
+								var output = tokenParser.ToString();
+								uploadfile += "tmp";
+								try
 								{
-									file.Write(output);
+									using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+									{
+										file.Write(output);
 
-									file.Close();
+										file.Close();
+									}
 								}
+								catch (Exception ex)
+								{
+									LogDebugMessage("Error writing file " + uploadfile);
+									LogDebugMessage(ex.Message);
+								}
+								//LogDebugMessage("Finished processing extra file " + uploadfile);
 							}
-							catch (Exception ex)
-							{
-								LogDebugMessage("Error writing file " + uploadfile);
-								LogDebugMessage(ex.Message);
-							}
-							//LogDebugMessage("Finished processing extra file " + uploadfile);
-						}
 
-						if (!ExtraFiles[i].FTP)
-						{
-							// just copy the file
-							//LogDebugMessage("Copying extra file " + uploadfile);
-							try
+							if (!ExtraFiles[i].FTP)
 							{
-								File.Copy(uploadfile, remotefile, true);
+								// just copy the file
+								//LogDebugMessage("Copying extra file " + uploadfile);
+								try
+								{
+									File.Copy(uploadfile, remotefile, true);
+								}
+								catch (Exception ex)
+								{
+									LogDebugMessage("Error copying extra file: " + ex.Message);
+								}
+								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
-							catch (Exception ex)
-							{
-								LogDebugMessage("Error copying extra file: " + ex.Message);
-							}
-							//LogDebugMessage("Finished copying extra file " + uploadfile);
 						}
 					}
 				}
-			}
 
-			if (!string.IsNullOrEmpty(ExternalProgram))
-			{
-				LogDebugMessage("Executing program " + ExternalProgram + " " + ExternalParams);
-				try
+				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
-					ExecuteProgram(ExternalProgram, ExternalParams);
-					LogDebugMessage("External program started");
+					LogDebugMessage("Executing program " + ExternalProgram + " " + ExternalParams);
+					try
+					{
+						ExecuteProgram(ExternalProgram, ExternalParams);
+						LogDebugMessage("External program started");
+					}
+					catch (Exception ex)
+					{
+						LogMessage("Error starting external program: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
+
+				//LogDebugMessage("Done creating extra files");
+
+				if (!String.IsNullOrEmpty(ftp_host))
 				{
-					LogMessage("Error starting external program: " + ex.Message);
+					DoFTPLogin();
 				}
 			}
-
-			//LogDebugMessage("Done creating extra files");
-
-			if (!String.IsNullOrEmpty(ftp_host))
+			finally
 			{
-				DoFTPLogin();
+				WebUpdating = false;
 			}
-
-			WebUpdating = false;
 		}
 
 		void Client_ValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
@@ -5508,11 +5548,11 @@ namespace CumulusMX
 					conn.EncryptionMode = FtpEncryptionMode.Explicit;
 					conn.DataConnectionEncryption = true;
 					conn.ValidateCertificate += Client_ValidateCertificate;
-                    // b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
-                    conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-                }
+					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+					conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+				}
 
-                if (ActiveFTPMode)
+				if (ActiveFTPMode)
 				{
 					conn.DataConnectionType = FtpDataConnectionType.PORT;
 				}
@@ -5562,6 +5602,7 @@ namespace CumulusMX
 
 					//LogDebugMessage("Uploading extra files");
 					// Extra files
+					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading Extra files");
 					for (int i = 0; i < numextrafiles; i++)
 					{
 						var uploadfile = ExtraFiles[i].local;
@@ -5647,8 +5688,8 @@ namespace CumulusMX
 					}
 				}
 
-                // b3045 - dispose of connection
-                conn.Disconnect();
+				// b3045 - dispose of connection
+				conn.Disconnect();
 				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Disconnected from " + ftp_host);
 			}
 		}
@@ -5664,15 +5705,15 @@ namespace CumulusMX
 			{
 				if (DeleteBeforeUpload)
 				{
-                    // delete the existing file
-                    try
-                    {
-                        conn.DeleteFile(remotefile);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
-                    }
+					// delete the existing file
+					try
+					{
+						conn.DeleteFile(remotefile);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
+					}
 				}
 
 				using (Stream ostream = conn.OpenWrite(remotefilename))
@@ -5699,11 +5740,17 @@ namespace CumulusMX
 					}
 				}
 
-
 				if (FTPRename)
 				{
 					// rename the file
-					conn.Rename(remotefilename, remotefile);
+					try
+					{
+						conn.Rename(remotefilename, remotefile);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("FTP error renaming " + remotefilename + " to " + remotefile + " : " + ex.Message);
+					}
 				}
 
 				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Completed uploading " + localfile + " to " + remotefile);
@@ -5867,7 +5914,7 @@ namespace CumulusMX
 				file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
 				file.Write(CloudBaseInFeet ? "ft " : "m ");
 				file.Write(ReplaceCommas(station.ApparentTemperature.ToString(TempFormat)) + ' '); // 55
-				file.Write(ReplaceCommas(station.SunshineHours.ToString("F1")) + ' '); // 56
+				file.Write(ReplaceCommas(station.SunshineHours.ToString(SunFormat)) + ' '); // 56
 				file.Write((Convert.ToInt32(station.CurrentSolarMax)).ToString() + ' '); // 57
 				file.WriteLine(station.IsSunny ? "1 " : "0 ");
 
@@ -5899,7 +5946,7 @@ namespace CumulusMX
 								((int)station.SolarRad).ToString() + ',' + station.AvgBearing.ToString() + ',' + station.RainLastHour.ToString(RainFormat, InvC) + ',' +
 								station.Forecastnumber.ToString() + ",'" + (IsDaylight() ? "1" : "0") + "','" + (station.SensorContactLost ? "1" : "0") + "','" +
 								station.CompassPoint(station.AvgBearing) + "'," + ((int)station.CloudBase).ToString() + ",'" + (CloudBaseInFeet ? "ft" : "m") + "'," +
-								station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString("F1", InvC) + ',' +
+								station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString(SunFormat, InvC) + ',' +
 								((int) Math.Round(station.CurrentSolarMax)).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";
 
 
@@ -5931,8 +5978,7 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 				{
 					// delete old entries
-					cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " +
-									  MySqlRealtimeRetention + ")";
+					cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " + MySqlRealtimeRetention + ")";
 					//LogMessage(queryString);
 
 					try
@@ -6329,9 +6375,9 @@ namespace CumulusMX
 			RealtimeFTP.Host = ftp_host;
 			RealtimeFTP.Port = ftp_port;
 			RealtimeFTP.Credentials = new NetworkCredential(ftp_user, ftp_password);
-            // b3045 - Reduce the default polling interval to try and keep the session alive
-            RealtimeFTP.SocketKeepAlive = true;
-            //RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
+			// b3045 - Reduce the default polling interval to try and keep the session alive
+			RealtimeFTP.SocketKeepAlive = true;
+			//RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
 
 
 			if (Sslftp)
@@ -6339,10 +6385,10 @@ namespace CumulusMX
 				RealtimeFTP.EncryptionMode = FtpEncryptionMode.Explicit;
 				RealtimeFTP.DataConnectionEncryption = true;
 				RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
-                // b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
-                RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+				RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 
-            }
+			}
 
 
 			if (ftp_host != "" && ftp_host != " ")
@@ -6355,6 +6401,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage("Error connecting ftp - " + ex.Message);
+					RealtimeFTP.Disconnect();
 				}
 
 				RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
@@ -6466,7 +6513,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-                    LogMessage("Wbug update: " + ex.Message);
+					LogMessage("Wbug update: " + ex.Message);
 				}
 			}
 
@@ -6758,33 +6805,33 @@ namespace CumulusMX
 		public void SetMonthlySqlCreateString()
 		{
 			CreateMonthlySQL = "CREATE TABLE " + MySqlMonthlyTable + " (LogDateTime DATETIME NOT NULL,Temp decimal(4," + TempDPlaces + ") NOT NULL,Humidity decimal(4," + HumDPlaces +
-							   ") NOT NULL,Dewpoint decimal(4," + TempDPlaces + ") NOT NULL,Windspeed decimal(4," + WindDPlaces + ") NOT NULL,Windgust decimal(4," + WindDPlaces +
-							   ") NOT NULL,Windbearing VARCHAR(3) NOT NULL,RainRate decimal(4," + RainDPlaces + ") NOT NULL,TodayRainSoFar decimal(4," + RainDPlaces +
-							   ") NOT NULL,Pressure decimal(6," + PressDPlaces + ") NOT NULL,Raincounter decimal(6," + RainDPlaces + ") NOT NULL,InsideTemp decimal(4," +
-							   TempDPlaces + ") NOT NULL,InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL,LatestWindGust decimal(5," + WindDPlaces +
-							   ") NOT NULL,WindChill decimal(4," + TempDPlaces + ") NOT NULL,HeatIndex decimal(4," + TempDPlaces + ") NOT NULL,UVindex decimal(4," + UVDPlaces +
-							   "),SolarRad decimal(5,1),Evapotrans decimal(4," + RainDPlaces + "),AnnualEvapTran decimal(5," + RainDPlaces + "),ApparentTemp decimal(4," +
-							   TempDPlaces + "),MaxSolarRad decimal(5,1),HrsSunShine decimal(3,1),CurrWindBearing varchar(3),RG11rain decimal(4," + RainDPlaces +
-							   "),RainSinceMidnight decimal(4," + RainDPlaces +
-							   "), WindbearingSym varchar(3),CurrWindBearingSym varchar(3),PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"";
+								") NOT NULL,Dewpoint decimal(4," + TempDPlaces + ") NOT NULL,Windspeed decimal(4," + WindDPlaces + ") NOT NULL,Windgust decimal(4," + WindDPlaces +
+								") NOT NULL,Windbearing VARCHAR(3) NOT NULL,RainRate decimal(4," + RainDPlaces + ") NOT NULL,TodayRainSoFar decimal(4," + RainDPlaces +
+								") NOT NULL,Pressure decimal(6," + PressDPlaces + ") NOT NULL,Raincounter decimal(6," + RainDPlaces + ") NOT NULL,InsideTemp decimal(4," +
+								TempDPlaces + ") NOT NULL,InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL,LatestWindGust decimal(5," + WindDPlaces +
+								") NOT NULL,WindChill decimal(4," + TempDPlaces + ") NOT NULL,HeatIndex decimal(4," + TempDPlaces + ") NOT NULL,UVindex decimal(4," + UVDPlaces +
+								"),SolarRad decimal(5,1),Evapotrans decimal(4," + RainDPlaces + "),AnnualEvapTran decimal(5," + RainDPlaces + "),ApparentTemp decimal(4," +
+								TempDPlaces + "),MaxSolarRad decimal(5,1),HrsSunShine decimal(3," + SunshineDPlaces + "),CurrWindBearing varchar(3),RG11rain decimal(4," + RainDPlaces +
+								"),RainSinceMidnight decimal(4," + RainDPlaces +
+								"), WindbearingSym varchar(3),CurrWindBearingSym varchar(3),PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"";
 		}
 
 		internal void SetDayfileSqlCreateString()
 		{
 			CreateDayfileSQL = "CREATE TABLE " + MySqlDayfileTable + " (LogDate date NOT NULL ,HighWindGust decimal(4," + WindDPlaces +
-							   ") NOT NULL,HWindGBear varchar(3) NOT NULL,THWindG varchar(5) NOT NULL,MinTemp decimal(5," + TempDPlaces +
-							   ") NOT NULL,TMinTemp varchar(5) NOT NULL,MaxTemp decimal(5," + TempDPlaces + ") NOT NULL,TMaxTemp varchar(5) NOT NULL,MinPress decimal(6," +
-							   PressDPlaces + ") NOT NULL,TMinPress varchar(5) NOT NULL,MaxPress decimal(6," + PressDPlaces +
-							   ") NOT NULL,TMaxPress varchar(5) NOT NULL,MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL,TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," +
-							   RainDPlaces + ") NOT NULL,AvgTemp decimal(4," + TempDPlaces + ") NOT NULL,TotWindRun decimal(5," + WindRunDPlaces +
-							   ") NOT NULL,HighAvgWSpeed decimal(3," + WindDPlaces + "),THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces +
-							   "),TLowHum varchar(5),HighHum decimal(4," + HumDPlaces + "),THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces +
-							   "),HoursSun decimal(3,1),HighHeatInd decimal(4," + TempDPlaces + "),THighHeatInd varchar(5),HighAppTemp decimal(4," + TempDPlaces +
-							   "),THighAppTemp varchar(5),LowAppTemp decimal(4," + TempDPlaces + "),TLowAppTemp varchar(5),HighHourRain decimal(4," + RainDPlaces +
-							   "),THighHourRain varchar(5),LowWindChill decimal(4," + TempDPlaces + "),TLowWindChill varchar(5),HighDewPoint decimal(4," + TempDPlaces +
-							   "),THighDewPoint varchar(5),LowDewPoint decimal(4," + TempDPlaces +
-							   "),TLowDewPoint varchar(5),DomWindDir varchar(3),HeatDegDays decimal(4,1),CoolDegDays decimal(4,1),HighSolarRad decimal(5,1),THighSolarRad varchar(5),HighUV decimal(3," +
-							   UVDPlaces + "),THighUV varchar(5),HWindGBearSym varchar(3),DomWindDirSym varchar(3),PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"";
+								") NOT NULL,HWindGBear varchar(3) NOT NULL,THWindG varchar(5) NOT NULL,MinTemp decimal(5," + TempDPlaces +
+								") NOT NULL,TMinTemp varchar(5) NOT NULL,MaxTemp decimal(5," + TempDPlaces + ") NOT NULL,TMaxTemp varchar(5) NOT NULL,MinPress decimal(6," +
+								PressDPlaces + ") NOT NULL,TMinPress varchar(5) NOT NULL,MaxPress decimal(6," + PressDPlaces +
+								") NOT NULL,TMaxPress varchar(5) NOT NULL,MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL,TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," +
+								RainDPlaces + ") NOT NULL,AvgTemp decimal(4," + TempDPlaces + ") NOT NULL,TotWindRun decimal(5," + WindRunDPlaces +
+								") NOT NULL,HighAvgWSpeed decimal(3," + WindDPlaces + "),THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces +
+								"),TLowHum varchar(5),HighHum decimal(4," + HumDPlaces + "),THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces +
+								"),HoursSun decimal(3," + SunshineDPlaces + "),HighHeatInd decimal(4," + TempDPlaces + "),THighHeatInd varchar(5),HighAppTemp decimal(4," + TempDPlaces +
+								"),THighAppTemp varchar(5),LowAppTemp decimal(4," + TempDPlaces + "),TLowAppTemp varchar(5),HighHourRain decimal(4," + RainDPlaces +
+								"),THighHourRain varchar(5),LowWindChill decimal(4," + TempDPlaces + "),TLowWindChill varchar(5),HighDewPoint decimal(4," + TempDPlaces +
+								"),THighDewPoint varchar(5),LowDewPoint decimal(4," + TempDPlaces +
+								"),TLowDewPoint varchar(5),DomWindDir varchar(3),HeatDegDays decimal(4,1),CoolDegDays decimal(4,1),HighSolarRad decimal(5,1),THighSolarRad varchar(5),HighUV decimal(3," +
+								UVDPlaces + "),THighUV varchar(5),HWindGBearSym varchar(3),DomWindDirSym varchar(3),PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"";
 		}
 	}
 

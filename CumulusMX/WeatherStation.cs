@@ -1220,11 +1220,12 @@ namespace CumulusMX
 		public double SunshineHours { get; set; }
 
 		public double YestSunshineHours { get; set; }
+
 		public double SunshineToMidnight { get; set; }
-		public double SunHourCounter { get; set; }
+
+        public double SunHourCounter { get; set; }
 
 		public double StartOfDaySunHourCounter { get; set; }
-
 
 		public double CurrentSolarMax { get; set; }
 
@@ -1309,11 +1310,11 @@ namespace CumulusMX
 				// send current data to websocket every 3 seconds for now
 				try
 				{
-					String windRoseData = (windcounts[0] * cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+					String windRoseData = (windcounts[0] * cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture);
 
 					for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 					{
-						windRoseData = windRoseData + "," + (windcounts[i] * cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+						windRoseData = windRoseData + "," + (windcounts[i] * cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture);
 					}
 
 					string stormRainStart = StartOfStorm == DateTime.MinValue ? "-----" : StartOfStorm.ToString("d");
@@ -4823,12 +4824,12 @@ namespace CumulusMX
 			if (cumulus.RolloverHour == 0)
 			{
 				// use existing current sunshinehour count
-				str += SunshineHours.ToString("F1") + cumulus.ListSeparator;
+				str += SunshineHours.ToString(cumulus.SunFormat) + cumulus.ListSeparator;
 			}
 			else
 			{
 				// for non-midnight rollover, use new item
-				str += SunshineToMidnight.ToString("F1") + cumulus.ListSeparator;
+				str += SunshineToMidnight.ToString(cumulus.SunFormat) + cumulus.ListSeparator;
 			}
 			str += HighHeatIndexToday.ToString(cumulus.TempFormat) + cumulus.ListSeparator;
 			str += highheatindextodaytime.ToString("HH:mm") + cumulus.ListSeparator;
@@ -4899,12 +4900,12 @@ namespace CumulusMX
 						if (cumulus.RolloverHour == 0)
 						{
 							// use existing current sunshinehour count to minimise risk
-							file.Write(SunshineHours.ToString("F1") + cumulus.ListSeparator);
+							file.Write(SunshineHours.ToString(cumulus.SunFormat) + cumulus.ListSeparator);
 						}
 						else
 						{
 							// for non-midnight rollover, use new item
-							file.Write(SunshineToMidnight.ToString("F1") + cumulus.ListSeparator);
+							file.Write(SunshineToMidnight.ToString(cumulus.SunFormat) + cumulus.ListSeparator);
 						}
 						file.Write(HighHeatIndexToday.ToString(cumulus.TempFormat) + cumulus.ListSeparator);
 						file.Write(highheatindextodaytime.ToString("HH:mm") + cumulus.ListSeparator);
@@ -4972,7 +4973,7 @@ namespace CumulusMX
 				highhumiditytoday + "," +
 				highhumiditytodaytime.ToString("\\'HH:mm\\'") + "," +
 				ET.ToString(cumulus.ETFormat, InvC) + "," +
-				(cumulus.RolloverHour == 0 ? SunshineHours.ToString("F1", InvC) : SunshineToMidnight.ToString("F1", InvC)) + "," +
+				(cumulus.RolloverHour == 0 ? SunshineHours.ToString(cumulus.SunFormat, InvC) : SunshineToMidnight.ToString(cumulus.SunFormat, InvC)) + "," +
 				HighHeatIndexToday.ToString(cumulus.TempFormat, InvC) + "," +
 				highheatindextodaytime.ToString("\\'HH:mm\\'") + "," +
 				HighAppTempToday.ToString(cumulus.TempFormat, InvC) + "," +
@@ -8537,7 +8538,7 @@ namespace CumulusMX
 
 			json += "[\"" + "High Solar Radiation" + "\",\"" + HighSolarToday.ToString("F0") + "&nbsp" + "W/m2" + "\",\"" + highsolartodaytime.ToShortTimeString() + "\",\"" +
 					HighSolarYesterday.ToString("F0") + "&nbsp;" + "W/m2" + "\",\"" + highsolaryesterdaytime.ToShortTimeString() + "\"],";
-			json += "[\"" + "Hours of Sunshine" + "\",\"" + SunshineHours.ToString("F1") + "&nbsp;hrs" + "\",\"" + "&nbsp;" + "\",\"" + YestSunshineHours.ToString("F1") +
+			json += "[\"" + "Hours of Sunshine" + "\",\"" + SunshineHours.ToString(cumulus.SunFormat) + "&nbsp;hrs" + "\",\"" + "&nbsp;" + "\",\"" + YestSunshineHours.ToString(cumulus.SunFormat) +
 					"&nbsp;hrs" + "\",\"" + "&nbsp;" + "\"]";
 
 			json += "]}";
@@ -8757,7 +8758,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < RecentDailyDataList.Count; i++)
 			{
-				sb.Append("[" + DateTimeToUnix(RecentDailyDataList[i].timestamp) * 1000 + "," + RecentDailyDataList[i].sunhours.ToString("F1", InvC) + "]");
+				sb.Append("[" + DateTimeToUnix(RecentDailyDataList[i].timestamp) * 1000 + "," + RecentDailyDataList[i].sunhours.ToString(cumulus.SunFormat, InvC) + "]");
 
 				if (i < RecentDailyDataList.Count - 1)
 					sb.Append(",");
@@ -8801,11 +8802,11 @@ namespace CumulusMX
 
 		internal string GetCurrentData()
 		{
-			String windRoseData = (windcounts[0] * cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+			String windRoseData = (windcounts[0] * cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture);
 
 			for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 			{
-				windRoseData = windRoseData + "," + (windcounts[i] * cumulus.WindGustMult).ToString(cumulus.WindFormat).Replace(",", ".");
+				windRoseData = windRoseData + "," + (windcounts[i] * cumulus.WindGustMult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture);
 			}
 
 			string stormRainStart = StartOfStorm == DateTime.MinValue ? "-----" : StartOfStorm.ToString("d");

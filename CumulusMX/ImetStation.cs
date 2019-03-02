@@ -31,6 +31,12 @@ namespace CumulusMX
 
 			calculaterainrate = true;
 
+			// Change the default dps for rain and sunshine from 1 to 2 for IMet stations
+			cumulus.RainDPlaces = cumulus.SunshineDPlaces = 2;
+			cumulus.RainDPlace[0] = 2;  // mm
+			cumulus.RainDPlace[1] = 3;  // in
+			cumulus.RainFormat = cumulus.SunFormat = "F2";
+
 			comport = new SerialPort(cumulus.ComportName, cumulus.ImetBaudRate, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
 
 			try
