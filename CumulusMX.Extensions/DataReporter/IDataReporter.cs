@@ -5,10 +5,9 @@ namespace CumulusMX.Extensions.DataReporter
     public interface IDataReporter : IExtension
     {
         string ServiceName { get; }
-        string UserId { get; }
 
         IDataReporterSettings Settings { get; }
 
-        void DoReport(WeatherDataModel currentData);
+        void DoReport(IWeatherDataStatistics currentData);
     }
 }
