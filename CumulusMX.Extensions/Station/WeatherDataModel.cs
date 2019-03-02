@@ -7,6 +7,7 @@ namespace CumulusMX.Extensions.Station
 {
     public class WeatherDataModel
     {
+        public DateTime Timestamp { get; set; } = DateTime.Now;
         public Temperature? IndoorTemperature { get; set; }
         public Temperature? OutdoorTemperature { get; set; }
         public Ratio? IndoorHumidity { get; set; }
@@ -20,7 +21,7 @@ namespace CumulusMX.Extensions.Station
         public Speed? RainRate { get; set; }
         public Length? RainCounter { get; set; }
         public Irradiance? SolarRadiation { get; set; }
-        public int? UVIndex { get; set; }
+        public int? UvIndex { get; set; }
 
 
 
