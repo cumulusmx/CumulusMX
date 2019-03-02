@@ -20,7 +20,7 @@ namespace CumulusMX.Extensions.Station
         IStatistic<Speed> RainRate { get; set; }
         IStatistic<Length> Rain { get; set; }
         IStatistic<Irradiance> SolarRadiation { get; set; }
-        IStatistic<int> UvIndex { get; set; }
+        IStatistic<double> UvIndex { get; set; }
         Dictionary<string,IStatistic<IQuantity>> Extra { get; set; }
 
 

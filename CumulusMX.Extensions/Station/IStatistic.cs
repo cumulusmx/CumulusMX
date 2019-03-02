@@ -7,7 +7,7 @@ namespace CumulusMX.Extensions.Station
 {
     public interface IStatistic<TBase>
     {
-        void Add(TBase sample);
+        void Add(DateTime timestamp, TBase sample);
         TBase Latest { get; }
         TBase OneHourMaximum { get; }
         TBase ThreeHourMaximum { get; }
