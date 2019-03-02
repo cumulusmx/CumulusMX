@@ -8,8 +8,6 @@ namespace CumulusMX.Extensions
     {
         string Identifier { get; }
         void Initialise(ILogger logger, ISettings settings);
-        void Start();
-        void Stop();
         
     }
 }
