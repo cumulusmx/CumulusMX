@@ -2,32 +2,17 @@
 
 namespace CumulusMX.Extensions.DataReporter
 {
-    public class DataReporterSettingsBase : IDataReporterSettings
+    public abstract class DataReporterSettingsBase : IDataReporterSettings
     {
-        public int GetValue(string key, int defaultValue)
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract int GetValue(string key, int defaultValue);
 
-        public string GetValue(string key, string defaultValue)
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract string GetValue(string key, string defaultValue);
 
-        public double GetValue(string key, double defaultValue)
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract double GetValue(string key, double defaultValue);
 
-        public byte[] GetValue(string key, byte[] defaultValue)
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract byte[] GetValue(string key, byte[] defaultValue);
 
-        public bool GetValue(string key, bool defaultValue)
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract bool GetValue(string key, bool defaultValue);
 
         public Setting this[string key] => new Setting(GetValue(key,string.Empty));
     }
