@@ -5,7 +5,7 @@ using UnitsNet;
 
 namespace CumulusMX.Data
 {
-    internal class MaxMinAverageUnit<TBase, TUnitType>
+    public class MaxMinAverageUnit<TBase, TUnitType>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
     {
         private int _count = 0;
