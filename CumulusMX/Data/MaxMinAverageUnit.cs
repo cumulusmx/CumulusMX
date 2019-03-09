@@ -18,7 +18,7 @@ namespace CumulusMX.Data
             get
             {
                 if (_count == 0)
-                    throw new InvalidOperationException("An empty set has no minimum.");
+                    return _zeroQuantity;
                 return _minimum;
             }
             private set
@@ -33,7 +33,7 @@ namespace CumulusMX.Data
             get
             {
                 if (_count == 0)
-                    throw new InvalidOperationException("An empty set has no maximum.");
+                    return _zeroQuantity;
                 return _maximum;
             }
             private set
@@ -47,8 +47,8 @@ namespace CumulusMX.Data
         {
             get
             {
-                if (_count == 0) 
-                    throw new DivideByZeroException("Cannot get the average of 0 values.");
+                if (_count == 0)
+                    return _zeroQuantity;
                 if (!_averageValid) CalculateAverage();
                 return _average;
             }

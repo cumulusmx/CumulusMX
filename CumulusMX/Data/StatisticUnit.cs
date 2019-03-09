@@ -10,14 +10,20 @@ namespace CumulusMX.Data
 {
     public class StatisticUnit<TBase,TUnitType> : IStatistic<TBase> where TBase : IComparable, IQuantity<TUnitType> where TUnitType : Enum
     {
-        private Dictionary<DateTime, TBase> _sampleHistory = new Dictionary<DateTime, TBase>();
-        private DateTime _lastSampleTime = DateTime.Now;
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private readonly DateTime EARLY_DATE;
+        private readonly TUnitType FIRST_UNIT_TYPE;
+        private readonly TBase ZERO_QUANTITY;
+
+        private readonly Dictionary<DateTime, TBase> _sampleHistory = new Dictionary<DateTime, TBase>();
+        private DateTime _lastSampleTime;
         private TBase _lastValue;
-        private MaxMinAverageUnit<TBase, TUnitType> _day;
+        private readonly MaxMinAverageUnit<TBase, TUnitType> _day;
         private MaxMinAverageUnit<TBase, TUnitType> _yesterday;
-        private MaxMinAverageUnit<TBase, TUnitType> _month;
+        private readonly MaxMinAverageUnit<TBase, TUnitType> _month;
         private MaxMinAverageUnit<TBase, TUnitType> _lastMonth;
-        private MaxMinAverageUnit<TBase, TUnitType> _year;
+        private readonly MaxMinAverageUnit<TBase, TUnitType> _year;
         private MaxMinAverageUnit<TBase, TUnitType> _lastYear;
         private double _oneHourChange;
         private double _threeHourChange;
@@ -29,14 +35,16 @@ namespace CumulusMX.Data
         private TimeSpan _monthNonZero = TimeSpan.Zero;
         private TimeSpan _yearNonZero = TimeSpan.Zero;
 
-        private readonly TUnitType _itemOne;
-        private readonly TBase _zeroQuantity;
-
         public StatisticUnit()
         {
-            _itemOne = (TUnitType)Enum.ToObject(typeof(TUnitType), 1);
-            _zeroQuantity = (TBase)Activator.CreateInstance(typeof(TBase), 0, _itemOne);
-
+            // Initialise runtime constants
+            EARLY_DATE = DateTime.MinValue.AddYears(1);
+            FIRST_UNIT_TYPE = (TUnitType)Enum.ToObject(typeof(TUnitType), 1);
+            ZERO_QUANTITY = (TBase)Activator.CreateInstance(typeof(TBase), 0, FIRST_UNIT_TYPE);
+            _day = new MaxMinAverageUnit<TBase, TUnitType>();
+            _month = new MaxMinAverageUnit<TBase, TUnitType>();
+            _year = new MaxMinAverageUnit<TBase, TUnitType>();
+            _lastSampleTime = EARLY_DATE; // A very old date we can still look earlier than
         }
 
         /// <summary>
@@ -46,6 +54,11 @@ namespace CumulusMX.Data
         /// <param name="sample">The observed value.</param>
         public void Add(DateTime timestamp,TBase sample)
         {
+            if (timestamp < _lastSampleTime)
+            {
+                log.Warn($"Invalid attempt to load data timestamped {timestamp} when latest data is already {_lastSampleTime}");
+                return;
+            }
             if (timestamp.Year > _lastSampleTime.Year)
                 ResetYearValues();
             if (timestamp.Year * 12 + timestamp.Month > _lastSampleTime.Year * 12 + _lastSampleTime.Month)
@@ -66,34 +79,53 @@ namespace CumulusMX.Data
 
             foreach (var oldValue in rolledOff)
             {
-                _24HourTotal -= oldValue.Value.As(_itemOne);
+                _24HourTotal -= oldValue.Value.As(FIRST_UNIT_TYPE);
             }
-            _24HourTotal += sample.As(_itemOne);
+            _24HourTotal += sample.As(FIRST_UNIT_TYPE);
 
             UpdateMaximumAndChange(3, sample, _lastSampleTime, timestamp, ref _threeHourChange, ref _threeHourMaximum);
             UpdateMaximumAndChange(1, sample, _lastSampleTime, timestamp, ref _oneHourChange, ref _oneHourMaximum);
 
-            if (sample.CompareTo(_zeroQuantity) != 0)
+            if (sample.CompareTo(ZERO_QUANTITY) != 0 && _lastSampleTime > EARLY_DATE)
             {
                 var newSpan = timestamp - _lastSampleTime;
-                _dayNonZero += newSpan;
-                _monthNonZero += newSpan;
-                _yearNonZero += newSpan;
+                if (timestamp.DayOfYear == _lastSampleTime.DayOfYear)
+                { 
+                    _dayNonZero += newSpan;
+                    _monthNonZero += newSpan;
+                    _yearNonZero += newSpan;
+                }
+                else
+                {
+                    _dayNonZero += timestamp.TimeOfDay;
+                    if (timestamp.Month == _lastSampleTime.Month)
+                    {
+                        _monthNonZero += newSpan;
+                        _yearNonZero += newSpan;
+                    }
+                    else
+                    {
+                        var sinceStartOfMonth = timestamp.TimeOfDay.Add(TimeSpan.FromDays(timestamp.Day - 1));
+                        _monthNonZero += sinceStartOfMonth;
+                        _yearNonZero += sinceStartOfMonth; // Ignore the case where year is reset after January
+                    }
+                }
+
             }
 
             _lastSampleTime = timestamp;
         }
 
-        private void UpdateMaximumAndChange(int months, TBase sample, DateTime lastSample, DateTime thisSample, ref double change, ref TBase maximum)
+        private void UpdateMaximumAndChange(int hours, TBase sample, DateTime lastSample, DateTime thisSample, ref double change, ref TBase maximum)
         {
-            var oldSamples = _sampleHistory.Where(x => x.Key >= lastSample.AddHours(-1 * months)).OrderBy(x => x.Key);
+            var oldSamples = _sampleHistory.Where(x => x.Key >= thisSample.AddHours(-1 * hours)).OrderBy(x => x.Key);
             if (!oldSamples.Any())
                 return;
 
-            change = sample.As(_itemOne) - oldSamples.First().Value.As(_itemOne);
+            change = sample.As(FIRST_UNIT_TYPE) - oldSamples.First().Value.As(FIRST_UNIT_TYPE);
 
             var rolledOff = _sampleHistory
-                .Where(x => x.Key >= lastSample.AddHours(-1*months) && x.Key < thisSample.AddHours(-1*months));
+                .Where(x => x.Key > lastSample.AddHours(-1 * hours) && x.Key <= thisSample.AddHours(-1 * hours));
 
             if (sample.CompareTo(maximum) > 0)
                 maximum = sample;
@@ -109,7 +141,7 @@ namespace CumulusMX.Data
                 if (!maxInvalid) return;
 
                 var historyWindow = _sampleHistory
-                    .Where(x => x.Key > thisSample.AddHours(-1 * months) && x.Key <= thisSample);
+                    .Where(x => x.Key > thisSample.AddHours(-1 * hours) && x.Key <= thisSample);
                 maximum = sample;
                 foreach (var oldSample in historyWindow)
                 {
@@ -146,9 +178,11 @@ namespace CumulusMX.Data
 
         public TBase ThreeHourMaximum => _threeHourMaximum;
 
-        public TBase OneHourChange => (TBase)Activator.CreateInstance(typeof(TBase), _oneHourChange, _itemOne);
+        public TBase OneHourChange => 
+            (TBase)Activator.CreateInstance(typeof(TBase), _oneHourChange, FIRST_UNIT_TYPE);
 
-        public TBase ThreeHourChange => (TBase)Activator.CreateInstance(typeof(TBase), _threeHourChange, _itemOne);
+        public TBase ThreeHourChange => 
+            (TBase)Activator.CreateInstance(typeof(TBase), _threeHourChange, FIRST_UNIT_TYPE);
 
         public TBase DayMaximum => _day.Maximum;
 
@@ -168,7 +202,8 @@ namespace CumulusMX.Data
 
         public TBase YearAverage => _year.Average;
 
-        public TBase Last24hTotal => (TBase)Activator.CreateInstance(typeof(TBase), _24HourTotal, _itemOne);
+        public TBase Last24hTotal => 
+            (TBase)Activator.CreateInstance(typeof(TBase), _24HourTotal, FIRST_UNIT_TYPE);
 
         public TBase DayTotal => _day.Total;
 
