@@ -59,12 +59,16 @@ namespace CumulusMX.Data
                 log.Warn($"Invalid attempt to load data timestamped {timestamp} when latest data is already {_lastSampleTime}");
                 return;
             }
+
             if (timestamp.Year > _lastSampleTime.Year)
                 ResetYearValues();
             if (timestamp.Year * 12 + timestamp.Month > _lastSampleTime.Year * 12 + _lastSampleTime.Month)
                 ResetMonthValues();
             if (timestamp.DayOfYear != _lastSampleTime.DayOfYear)
+            {
                 ResetDayValues();
+                RemoveOldSamples(timestamp);
+            }
 
             _sampleHistory.Add(timestamp,sample);
             _lastValue = sample;
@@ -73,6 +77,47 @@ namespace CumulusMX.Data
             _month.AddValue(sample);
             _year.AddValue(sample);
 
+            Updating24HourTotal(timestamp, sample);
+
+            UpdateMaximumAndChange(3, sample, _lastSampleTime, timestamp, ref _threeHourChange, ref _threeHourMaximum);
+            UpdateMaximumAndChange(1, sample, _lastSampleTime, timestamp, ref _oneHourChange, ref _oneHourMaximum);
+
+            if (sample.CompareTo(ZERO_QUANTITY) != 0 && _lastSampleTime > EARLY_DATE)
+            {
+                UpdateNonZeroTimes(timestamp);
+            }
+
+            _lastSampleTime = timestamp;
+        }
+
+        private void UpdateNonZeroTimes(DateTime timestamp)
+        {
+            var newSpan = timestamp - _lastSampleTime;
+            if (timestamp.DayOfYear == _lastSampleTime.DayOfYear)
+            {
+                _dayNonZero += newSpan;
+                _monthNonZero += newSpan;
+                _yearNonZero += newSpan;
+            }
+            else
+            {
+                _dayNonZero += timestamp.TimeOfDay;
+                if (timestamp.Month == _lastSampleTime.Month)
+                {
+                    _monthNonZero += newSpan;
+                    _yearNonZero += newSpan;
+                }
+                else
+                {
+                    var sinceStartOfMonth = timestamp.TimeOfDay.Add(TimeSpan.FromDays(timestamp.Day - 1));
+                    _monthNonZero += sinceStartOfMonth;
+                    _yearNonZero += sinceStartOfMonth; // Ignore the case where year is reset after January
+                }
+            }
+        }
+
+        private void Updating24HourTotal(DateTime timestamp, TBase sample)
+        {
             // Update rolling 24 hour total
             var rolledOff = _sampleHistory
                 .Where(x => x.Key >= _lastSampleTime.AddHours(-24) && x.Key < timestamp.AddHours(-24));
@@ -81,39 +126,19 @@ namespace CumulusMX.Data
             {
                 _24HourTotal -= oldValue.Value.As(FIRST_UNIT_TYPE);
             }
+
             _24HourTotal += sample.As(FIRST_UNIT_TYPE);
+        }
 
-            UpdateMaximumAndChange(3, sample, _lastSampleTime, timestamp, ref _threeHourChange, ref _threeHourMaximum);
-            UpdateMaximumAndChange(1, sample, _lastSampleTime, timestamp, ref _oneHourChange, ref _oneHourMaximum);
+        private void RemoveOldSamples(DateTime timestamp)
+        {
+            var cleanupHistory = _sampleHistory
+                .Where(x => x.Key < timestamp.AddDays(-2))
+                .Select(x => x.Key)
+                .ToArray();
 
-            if (sample.CompareTo(ZERO_QUANTITY) != 0 && _lastSampleTime > EARLY_DATE)
-            {
-                var newSpan = timestamp - _lastSampleTime;
-                if (timestamp.DayOfYear == _lastSampleTime.DayOfYear)
-                { 
-                    _dayNonZero += newSpan;
-                    _monthNonZero += newSpan;
-                    _yearNonZero += newSpan;
-                }
-                else
-                {
-                    _dayNonZero += timestamp.TimeOfDay;
-                    if (timestamp.Month == _lastSampleTime.Month)
-                    {
-                        _monthNonZero += newSpan;
-                        _yearNonZero += newSpan;
-                    }
-                    else
-                    {
-                        var sinceStartOfMonth = timestamp.TimeOfDay.Add(TimeSpan.FromDays(timestamp.Day - 1));
-                        _monthNonZero += sinceStartOfMonth;
-                        _yearNonZero += sinceStartOfMonth; // Ignore the case where year is reset after January
-                    }
-                }
-
-            }
-
-            _lastSampleTime = timestamp;
+            foreach (var oldSample in cleanupHistory)
+                _sampleHistory.Remove(oldSample);
         }
 
         private void UpdateMaximumAndChange(int hours, TBase sample, DateTime lastSample, DateTime thisSample, ref double change, ref TBase maximum)
@@ -216,5 +241,6 @@ namespace CumulusMX.Data
         public TimeSpan MonthNonZero => _monthNonZero;
 
         public TimeSpan YearNonZero => _yearNonZero;
+
     }
 }
