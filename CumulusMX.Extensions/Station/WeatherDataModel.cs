@@ -23,7 +23,7 @@ namespace CumulusMX.Extensions.Station
         public Irradiance? SolarRadiation { get; set; }
         public int? UvIndex { get; set; }
 
-
+        public Dictionary<string,IQuantity> Extra { get; set; }
 
 
 
