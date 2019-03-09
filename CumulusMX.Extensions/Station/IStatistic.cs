@@ -29,5 +29,6 @@ namespace CumulusMX.Extensions.Station
         TimeSpan DayNonZero { get; }
         TimeSpan MonthNonZero { get; }
         TimeSpan YearNonZero { get; }
+        Dictionary<DateTime,TBase> ValueHistory { get; }
     }
 }

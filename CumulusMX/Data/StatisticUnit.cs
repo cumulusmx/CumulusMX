@@ -8,7 +8,9 @@ using Unosquare.Swan;
 
 namespace CumulusMX.Data
 {
-    public class StatisticUnit<TBase,TUnitType> : IStatistic<TBase> where TBase : IComparable, IQuantity<TUnitType> where TUnitType : Enum
+    public class StatisticUnit<TBase, TUnitType> : IStatistic<TBase> 
+        where TBase : IComparable, IQuantity<TUnitType>
+        where TUnitType : Enum
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -242,5 +244,11 @@ namespace CumulusMX.Data
 
         public TimeSpan YearNonZero => _yearNonZero;
 
+        public Dictionary<DateTime, TBase> ValueHistory => _sampleHistory;
+
+        public Dictionary<DateTime, double> ValueHistoryAs(TUnitType unit)
+        {
+            return _sampleHistory.ToDictionary(x => x.Key, x => x.Value.As(unit));
+        }
     }
 }
