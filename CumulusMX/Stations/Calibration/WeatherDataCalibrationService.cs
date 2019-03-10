@@ -35,7 +35,7 @@ namespace CumulusMX.Stations.Calibration
 
             model.RainRate = CalibrateRainRate(currentData.RainRate, previousData.RainRate);
             model.SolarRadiation = CalibrateSolarRadiation(currentData.SolarRadiation, previousData.SolarRadiation);
-            model.UVIndex = CalibrateUVIndex(currentData.UVIndex, previousData.UVIndex);
+            model.UvIndex = CalibrateUVIndex(currentData.UvIndex, previousData.UvIndex);
 
             model.WindBearing = CalibrateWindBearing(currentData.WindBearing, previousData.WindBearing);
             model.WindGust = CalibrateWindGust(currentData.WindGust, previousData.WindGust);

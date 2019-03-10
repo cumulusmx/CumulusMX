@@ -17,22 +17,27 @@ namespace CumulusMX.DataReporter
             _sectionName = sectionName;
         }
 
-        public int GetValue(string key, int defaultValue)
+        public override int GetValue(string key, int defaultValue)
         {
             return _sourceFile.GetValue(_sectionName, key, defaultValue);
         }
 
-        public string GetValue(string key, string defaultValue)
+        public override string GetValue(string key, string defaultValue)
         {
             return _sourceFile.GetValue(_sectionName, key, defaultValue);
         }
 
-        public double GetValue(string key, double defaultValue)
+        public override double GetValue(string key, double defaultValue)
         {
             return _sourceFile.GetValue(_sectionName, key, defaultValue);
         }
 
-        public byte[] GetValue(string key, byte[] defaultValue)
+        public override byte[] GetValue(string key, byte[] defaultValue)
+        {
+            return _sourceFile.GetValue(_sectionName, key, defaultValue);
+        }
+
+        public override bool GetValue(string key, bool defaultValue)
         {
             return _sourceFile.GetValue(_sectionName, key, defaultValue);
         }

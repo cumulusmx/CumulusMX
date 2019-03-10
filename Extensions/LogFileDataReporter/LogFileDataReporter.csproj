@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
+    <ProjectReference Include="..\..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
   </ItemGroup>
 
 </Project>
