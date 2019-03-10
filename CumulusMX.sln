@@ -9,7 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CumulusMX.Extensions", "Cum
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stations", "Stations", "{822A9949-1C06-4421-8AFF-C25D98384710}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineOffset", "Extensions\FineOffset\FineOffset.csproj", "{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FineOffset", "Extensions\FineOffset\FineOffset.csproj", "{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataReporters", "DataReporters", "{32AB2F53-BAAF-4598-8F94-94C59D747969}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FtpDataReporter", "FtpDataReporter\FtpDataReporter.csproj", "{42212D6E-0333-470F-B636-BE472E55E558}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherUndergroundDataReporter", "WeatherUndergroundDataReporter\WeatherUndergroundDataReporter.csproj", "{0A76A8DB-AA52-4A13-94E6-14EEA38A007E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,12 +35,22 @@ Global
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42212D6E-0333-470F-B636-BE472E55E558}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42212D6E-0333-470F-B636-BE472E55E558}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42212D6E-0333-470F-B636-BE472E55E558}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42212D6E-0333-470F-B636-BE472E55E558}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A76A8DB-AA52-4A13-94E6-14EEA38A007E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A76A8DB-AA52-4A13-94E6-14EEA38A007E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A76A8DB-AA52-4A13-94E6-14EEA38A007E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A76A8DB-AA52-4A13-94E6-14EEA38A007E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159} = {822A9949-1C06-4421-8AFF-C25D98384710}
+		{42212D6E-0333-470F-B636-BE472E55E558} = {32AB2F53-BAAF-4598-8F94-94C59D747969}
+		{0A76A8DB-AA52-4A13-94E6-14EEA38A007E} = {32AB2F53-BAAF-4598-8F94-94C59D747969}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2966F59C-7EB0-4D1F-A40E-7B1C35A231E8}
