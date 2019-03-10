@@ -45,7 +45,7 @@ namespace FineOffset
         public virtual IStationSettings ConfigurationSettings { get; }
 
 
-        public virtual void Initialise(ILogger log, IStationSettings settings)
+        public virtual void Initialise(ILogger log, ISettings settings)
         {
             this.log = log;
             this._settings = (StationSettings)settings;
@@ -246,7 +246,7 @@ namespace FineOffset
                 model.RainCounter = Length.FromMillimeters(dataEntry.RainCounter * RAIN_COUNT_PER_TIP);
 
                 model.SolarRadiation = Irradiance.FromWattsPerSquareMeter(dataEntry.SolarRadiation);
-                model.UVIndex = dataEntry.UVIndex;
+                model.UvIndex = dataEntry.UVIndex;
 
             }
             return model;

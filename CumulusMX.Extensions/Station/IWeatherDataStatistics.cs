@@ -5,25 +5,24 @@ using UnitsNet;
 
 namespace CumulusMX.Extensions.Station
 {
-    public class WeatherDataModel
+    public interface IWeatherDataStatistics
     {
-        public DateTime Timestamp { get; set; } = DateTime.Now;
-        public Temperature? IndoorTemperature { get; set; }
-        public Temperature? OutdoorTemperature { get; set; }
-        public Ratio? IndoorHumidity { get; set; }
-        public Ratio? OutdoorHumidity { get; set; }
-        public Speed? WindGust { get; set; }
-        public Speed? WindSpeed { get; set; }
-        public Angle? WindBearing { get; set; }
-        public Pressure? Pressure { get; set; }
-        public Pressure? AltimeterPressure { get; set; }
-        public Temperature? OutdoorDewpoint { get; set; }
-        public Speed? RainRate { get; set; }
-        public Length? RainCounter { get; set; }
-        public Irradiance? SolarRadiation { get; set; }
-        public int? UvIndex { get; set; }
+        IStatistic<Temperature> IndoorTemperature { get; set; }
+        IStatistic<Temperature> OutdoorTemperature { get; set; }
+        IStatistic<Ratio> IndoorHumidity { get; set; }
+        IStatistic<Ratio> OutdoorHumidity { get; set; }
+        IStatistic<Speed> WindGust { get; set; }
+        IStatistic<Speed> WindSpeed { get; set; }
+        IStatistic<Angle> WindBearing { get; set; }
+        IStatistic<Pressure> Pressure { get; set; }
+        IStatistic<Pressure> AltimeterPressure { get; set; }
+        IStatistic<Temperature> OutdoorDewpoint { get; set; }
+        IStatistic<Speed> RainRate { get; set; }
+        IStatistic<Length> Rain { get; set; }
+        IStatistic<Irradiance> SolarRadiation { get; set; }
+        IStatistic<double> UvIndex { get; set; }
+        Dictionary<string,IStatistic<IQuantity>> Extra { get; set; }
 
-        public Dictionary<string,IQuantity> Extra { get; set; }
 
 
 

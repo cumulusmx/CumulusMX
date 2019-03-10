@@ -20,7 +20,7 @@ namespace CumulusMX
         private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
         private Mutex appMutex;
 
-        private readonly int _httpport;
+        private readonly int _httpPort;
         private readonly string _appDir;
         private readonly string _contentRootDir;
         private readonly CumulusConfiguration _config;
@@ -30,7 +30,7 @@ namespace CumulusMX
 
         public CumulusService(int httpPort, string appDir, string contentRootDir)
         {
-            this._httpport = httpPort;
+            this._httpPort = httpPort;
             this._appDir = appDir;
             this._contentRootDir = contentRootDir;
             var iniFile = new IniFile("Cumulus.ini");
