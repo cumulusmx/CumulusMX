@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CumulusMX.Extensions", "Cum
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stations", "Stations", "{822A9949-1C06-4421-8AFF-C25D98384710}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineOffset", "Extensions\FineOffset\FineOffset.csproj", "{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FineOffset", "Extensions\FineOffset\FineOffset.csproj", "{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DavisStation", "DavisStation\DavisStation.csproj", "{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,12 +31,17 @@ Global
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4386BD51-D9E6-4BF5-8193-A1B6EF4F6159} = {822A9949-1C06-4421-8AFF-C25D98384710}
+		{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62} = {822A9949-1C06-4421-8AFF-C25D98384710}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2966F59C-7EB0-4D1F-A40E-7B1C35A231E8}
