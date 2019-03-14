@@ -219,7 +219,7 @@ namespace DavisStation
 
         #endregion
 
-        public override void Start()
+        public override void Start(IWeatherDataStatistics weatherStatistics)
         {
             _log.Info("Start normal reading loop");
             var loopCount = _configurationSettings.ForceVPBarUpdate ? 20 : 50;
@@ -232,14 +232,12 @@ namespace DavisStation
                 {
                     _interface.SetTimeIfNeeded();
 
-                    var data = new WeatherDataModel();
                     if (_interface.SendLoopCommand("LOOP " + loopCount))
-                        GetAndProcessLoopData(loopCount);
+                        GetAndProcessLoopData(loopCount,weatherStatistics);
 
                     if (_configurationSettings.UseLoop2)
                         if (_interface.SendLoopCommand("LPS 2 " + loop2Count))
-                            GetAndProcessLoop2Data(loop2Count);
-
+                            GetAndProcessLoop2Data(loop2Count,weatherStatistics);
 
                     if (_configurationSettings.ForceVPBarUpdate)
                         _interface.SendBarRead();
@@ -274,7 +272,7 @@ namespace DavisStation
             }
         }
 
-        private void GetAndProcessLoopData(int number)
+        private void GetAndProcessLoopData(int number, IWeatherDataStatistics weatherStatistics)
         {
 
             for (var i = 0; i < number; i++)
@@ -314,8 +312,8 @@ namespace DavisStation
                 //Trace.Flush();
 
                 var dataModel = loopData.GetDataModel();
-                
-                //TODO: Do something with data model
+
+                weatherStatistics.Add(dataModel);
             }
 
             _log.Debug("end processing loop data");
@@ -334,7 +332,7 @@ namespace DavisStation
             return response.Trim();
         }
 
-        private void GetAndProcessLoop2Data(int number)
+        private void GetAndProcessLoop2Data(int number, IWeatherDataStatistics weatherStatistics)
         {
             _log.Debug("Processing loop2 data");
 
@@ -369,8 +367,8 @@ namespace DavisStation
                 loopData.Calibrations = _calibrationDictionary;
 
                 var dataModel = loopData.GetDataModel();
-                
 
+                weatherStatistics.Add(dataModel);
             }
 
             _log.Debug("End processing loop2 data");

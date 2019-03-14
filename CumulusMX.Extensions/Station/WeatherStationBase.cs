@@ -19,7 +19,7 @@ namespace CumulusMX.Extensions.Station
         public abstract IStationSettings ConfigurationSettings { get; }
         public abstract WeatherDataModel GetCurrentData();
         public abstract IEnumerable<WeatherDataModel> GetHistoryData(DateTime fromTimestamp);
-        public abstract void Start();
+        public abstract void Start(IWeatherDataStatistics weatherStatistics);
         public abstract void Stop();
 
         protected Dictionary<string, ICalibration> GetCalibrationDictionary(IStationSettings settings)

@@ -16,7 +16,7 @@ namespace CumulusMX.Extensions.Station
         WeatherDataModel GetCurrentData();
         IEnumerable<WeatherDataModel> GetHistoryData(DateTime fromTimestamp);
 
-        void Start();
+        void Start(IWeatherDataStatistics weatherStatistics);
         void Stop();
     }
 }
