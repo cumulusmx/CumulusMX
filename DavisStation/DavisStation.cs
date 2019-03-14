@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using Force.Crc32;
@@ -31,6 +32,9 @@ namespace DavisStation
         private double _firmwareVersion;
         public override IStationSettings ConfigurationSettings => _configurationSettings;
         private Dictionary<string, ICalibration> _calibrationDictionary;
+
+        protected Task _backgroundTask;
+        protected CancellationTokenSource _cts;
 
         public override void Initialise(ILogger logger, ISettings settings)
         {
@@ -221,14 +225,21 @@ namespace DavisStation
 
         public override void Start(IWeatherDataStatistics weatherStatistics)
         {
+            _log.Info("Starting station background task");
+            _backgroundTask = Task.Factory.StartNew(() =>
+                    PollForNewData(_cts.Token, weatherStatistics)
+                , _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+        }
+
+        private async Task PollForNewData(CancellationToken ct, IWeatherDataStatistics weatherStatistics)
+        {
             _log.Info("Start normal reading loop");
             var loopCount = _configurationSettings.ForceVPBarUpdate ? 20 : 50;
             const int loop2Count = 1;
-
             
             try
             {
-                while (true)
+                while (!ct.IsCancellationRequested)
                 {
                     _interface.SetTimeIfNeeded();
 
