@@ -23,14 +23,8 @@ namespace CumulusMX.Extensions.Station
         IStatistic<double> UvIndex { get; set; }
         Dictionary<string,IStatistic<IQuantity>> Extra { get; set; }
 
-
-
-
-
-
-
-
-
+        void Add(WeatherDataModel data);
+        
         //public string Forecast { get; set; }
 
 

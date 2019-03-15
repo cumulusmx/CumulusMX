@@ -12,6 +12,10 @@ namespace DavisStation
         protected readonly log4net.ILog _dataLog = log4net.LogManager.GetLogger("cumulusData", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected const int ACK = 6;
+        protected const int LOOP_DATA_LENGTH = 99;
+        protected const int LOOP_2_DATA_LENGTH = 99;
+
+        protected DateTime _lastReceptionStatsTime;
 
         internal DavisStationInterface(ILogger log)
         {
@@ -25,6 +29,14 @@ namespace DavisStation
         internal abstract void GetReceptionStats();
         internal abstract void SetTime();
         internal abstract DateTime GetTime();
+        internal abstract void CloseConnection();
+        internal abstract bool SendLoopCommand(string command);
+
+        internal void GetReceptionStatsIfDue()
+        {
+            if (_lastReceptionStatsTime.AddMinutes(15) < DateTime.Now )
+                GetReceptionStats();
+        }
 
         protected void DecodeReceptionStats(string response)
         {
@@ -64,5 +76,21 @@ Total Packets Missed  : {TotalPacketsMissed:######}
 Number of Resyncs     : {NumberOfResyncs:######}
 Maximum in a Row      : {MaxInARow:######}
 Number of CRC Errors  : {NumberCrcErrors:######}";
+
+        protected internal bool TimeSetNeeded { get; set; } = false;
+
+        internal void SetTimeIfNeeded()
+        {
+            if (TimeSetNeeded)
+            {
+                SetTime();
+                TimeSetNeeded = false;
+            }
+        }
+
+        internal abstract void SendBarRead();
+        internal abstract byte[] GetLoop2Data();
+        internal abstract byte[] GetLoopData();
+        public abstract void Clear();
     }
 }

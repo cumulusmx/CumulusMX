@@ -11,7 +11,6 @@ namespace DavisStation
     public class DavisStationInterfaceSerial : DavisStationInterface
     {
         private SerialPort _comPort;
-        private DateTime _lastReceptionStatsTime;
         public string ComPortName { get; private set; }
 
         internal DavisStationInterfaceSerial(ILogger log,string comPortName) : base(log)
@@ -57,7 +56,7 @@ namespace DavisStation
         //      4. If the console has not woken up after 3 attempts, then signal a connection error
         // After the console has woken up, it will remain awake for 2 minutes. Every time the VP
         // receives another character, the 2 minute timer will be reset.
-        private bool Wake(SerialPort serialPort)
+        private bool Wake()
         {
             int passCount = 1, maxPasses = 4;
 
@@ -66,12 +65,12 @@ namespace DavisStation
             {
                 // Clear out both input and output buffers just in case something is in there already
                 //_log.Info("bytes to read: "+serialPort.BytesToRead);
-                serialPort.DiscardInBuffer();
-                serialPort.DiscardOutBuffer();
+                _comPort.DiscardInBuffer();
+                _comPort.DiscardOutBuffer();
 
                 //_log.Info("Waking VP");
                 // Put a newline character ('\n') out the serial port - the Writeline method terminates with a '\n' of its own
-                serialPort.WriteLine("");
+                _comPort.WriteLine("");
                 //Thread.Sleep(1200);
                 //serialPort.WriteLine("");
                 // Wait for 1.2 seconds 
@@ -81,7 +80,7 @@ namespace DavisStation
 
                 for (var i = 0; i < 5; i++)
                 {
-                    if (serialPort.BytesToRead != 0)
+                    if (_comPort.BytesToRead != 0)
                     {
                         woken = true;
                         //_log.Info("Woken: i="+i);
@@ -95,10 +94,10 @@ namespace DavisStation
                 while (!woken && passCount < maxPasses)
                 {
                     //_log.Info("No response, retry wake");
-                    serialPort.WriteLine("");
+                    _comPort.WriteLine("");
                     for (var i = 0; i < 12; i++)
                     {
-                        if (serialPort.BytesToRead != 0)
+                        if (_comPort.BytesToRead != 0)
                         {
                             woken = true;
                             //_log.Info("Woken: i=" + i);
@@ -125,7 +124,7 @@ namespace DavisStation
                     //    str = str + data[i].ToString("X2") + " ";
                     //}
                     //_log.Info(str);
-                    serialPort.DiscardInBuffer();
+                    _comPort.DiscardInBuffer();
                     //_log.Info("Woken");
                     return true;
                 }
@@ -147,7 +146,7 @@ namespace DavisStation
             var response = "";
 
                 var commandString = "NVER";
-                if (Wake(_comPort))
+                if (Wake())
                 {
                     _comPort.WriteLine(commandString);
 
@@ -191,7 +190,7 @@ namespace DavisStation
             var response = "";
 
                 var commandString = "RXCHECK";
-                if (Wake(_comPort))
+                if (Wake())
                 {
                     _comPort.WriteLine(commandString);
 
@@ -230,7 +229,7 @@ namespace DavisStation
             _log.Info("Reading console time");
 
                 var commandString = "GETTIME";
-                if (Wake(_comPort))
+                if (Wake())
                 {
                     _comPort.WriteLine(commandString);
 
@@ -272,7 +271,7 @@ namespace DavisStation
             _log.Info("Setting console time");
 
                 var commandString = "SETTIME";
-                if (Wake(_comPort))
+                if (Wake())
                 {
                     _comPort.WriteLine(commandString);
 
@@ -325,6 +324,175 @@ namespace DavisStation
                 }
         }
 
+        internal override bool SendLoopCommand(string commandString)
+        {
+            if (_comPort.IsOpen)
+            {
+                Wake();
+                //_log.Info("Sending command: " + commandString);
+                var Found_ACK = false;
 
+                var passCount = 1;
+                const int maxPasses = 4;
+
+                // Clear the input buffer 
+                _comPort.DiscardInBuffer();
+                // Clear the output buffer
+                _comPort.DiscardOutBuffer();
+
+                // Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
+                // a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
+                // we get nothing back, we assume that the connection is broken
+                while (!Found_ACK && passCount < maxPasses)
+                {
+                    // send the LOOP n command
+                    _log.Debug("Sending command " + commandString + " - pass " + passCount);
+                    _comPort.WriteLine(commandString);
+
+                    Thread.Sleep(500);
+
+                    // Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+                    // in the buffer first or no response is given.  If all else fails, try again.
+                    _log.Debug("Wait for ACK");
+                    while (_comPort.BytesToRead > 0 && !Found_ACK)
+                        // Read the current character
+                        if (_comPort.ReadChar() == ACK)
+                        {
+                            Found_ACK = true;
+                            _log.Debug("ACK received");
+                        }
+
+                    passCount++;
+                }
+
+                // return result to indicate success or otherwise
+                if (!Found_ACK) _log.Info("!!! No ack received in response to " + commandString);
+                return passCount < maxPasses;
+            }
+
+            _log.Debug("!!! Serial port closed");
+            return false;
+        }
+
+        internal override void SendBarRead()
+        {
+            _log.Debug("Sending BARREAD");
+
+            var response = "";
+
+                var commandString = "BARREAD";
+                if (Wake())
+                {
+                    _comPort.WriteLine(commandString);
+
+                    Thread.Sleep(200);
+
+                    // Read the response
+                    var bytesRead = 0;
+                    var buffer = new byte[64];
+                    try
+                    {
+                        while (_comPort.BytesToRead > 0)
+                        {
+                            // Read the current character
+                            var ch = _comPort.ReadChar();
+                            response += Convert.ToChar(ch);
+                            buffer[bytesRead] = (byte)ch;
+                            bytesRead++;
+                            //_log.Info("Received " + ch.ToString("X2"));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Info(ex.Message);
+                    }
+
+                    _log.Debug(BitConverter.ToString(buffer));
+                }
+        }
+
+        internal override byte[] GetLoop2Data()
+        {
+            var loopString = new byte[LOOP_2_DATA_LENGTH];
+            try
+            {
+                var loopCount = 1;
+                while (loopCount < 100 && _comPort.BytesToRead < LOOP_2_DATA_LENGTH)
+                {
+                    // Wait a short period to allow more data into the buffer
+                    Thread.Sleep(200);
+                    loopCount++;
+                }
+
+                if (loopCount == 100)
+                {
+                    // all data not received
+                    _log.Warn("!!! loop2 data not received");
+                    return new byte[]{};
+                }
+
+                // Read the data from the buffer into the array
+                _comPort.Read(loopString, 0, LOOP_2_DATA_LENGTH);
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Get Loop 2 Data: Error - " + ex);
+            }
+
+            return loopString;
+        }
+
+        internal override byte[] GetLoopData()
+        {
+            var loopString = new byte[LOOP_DATA_LENGTH];
+
+            // Wait until the buffer is full - we've received all the characters from the LOOP response, 
+            // including the final '\n' 
+
+            try
+            {
+                    var loopcount = 1;
+                    while (loopcount < 20 && _comPort.BytesToRead < LOOP_DATA_LENGTH)
+                    {
+                        // Wait a short period to allow more data into the buffer
+                        Thread.Sleep(250);
+                        loopcount++;
+                    }
+
+                    if (_comPort.BytesToRead < LOOP_DATA_LENGTH)
+                    {
+                        // all data not received
+                        _log.Info("!!! loop data not received, bytes received = " + _comPort.BytesToRead);
+
+                        return new byte[]{};
+                    }
+
+                // Read the data from the buffer into the array
+                _comPort.Read(loopString, 0, LOOP_DATA_LENGTH);
+                }
+                catch (Exception ex)
+                {
+                    _log.Info(ex.ToString());
+                    return new byte[]{};
+                }
+
+            return loopString;
+        }
+
+        public override void Clear()
+        {
+            _comPort.WriteLine("");
+                Thread.Sleep(3000);
+                // read off all data in the pipeline
+
+                _log.Debug("Discarding bytes from pipeline: " + _comPort.BytesToRead);
+                while (_comPort.BytesToRead > 0) _comPort.ReadByte();
+        }
+
+        internal override void CloseConnection()
+        {
+            _comPort.WriteLine("");
+            _comPort.Close();
+        }
     }
 }

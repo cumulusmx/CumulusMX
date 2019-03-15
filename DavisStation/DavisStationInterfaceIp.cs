@@ -15,7 +15,6 @@ namespace DavisStation
         private readonly int _port;
         private readonly int _disconnectInterval;
         private TcpClient _socket;
-        private DateTime _lastReceptionStatsTime;
         private readonly int _responseTime;
         private readonly int _initWaitTime;
 
@@ -440,6 +439,225 @@ namespace DavisStation
                     }
         }
 
+        internal override bool SendLoopCommand(string commandString)
+        {
+            var Found_ACK = false;
+            const int ACK = 6; // ASCII 6
+            var passCount = 1;
+            const int maxPasses = 4;
 
+            commandString += "\n";
+
+            try
+            {
+                var stream = _socket.GetStream();
+
+                // Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
+                // a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
+                // we get nothing back, we assume that the connection is broken
+                while (!Found_ACK && passCount < maxPasses)
+                {
+                    // send the LOOP n command
+                    _log.Debug("Sending command: " + commandString.Replace("\n", "") + ", attempt " +
+                                            passCount);
+                    stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+                    Thread.Sleep(_responseTime);
+                    _log.Debug("Wait for ACK");
+                    // Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+                    // in the buffer first or no response is given.  If all else fails, try again.
+                    while (stream.DataAvailable && !Found_ACK)
+                    {
+                        // Read the current character
+                        var data = stream.ReadByte();
+                        _dataLog.Info("Received 0x" + data.ToString("X2"));
+                        if (data == ACK)
+                        {
+                            _log.Debug("Received ACK");
+                            Found_ACK = true;
+                        }
+                    }
+
+                    passCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                _dataLog.Info("Error sending LOOP command: " + ex.Message);
+            }
+
+            // return result to indicate success or otherwise
+            return Found_ACK;
+        }
+
+        internal override void SendBarRead()
+        {
+            _log.Debug("Sending BARREAD");
+
+            var response = "";
+
+                var commandString = "BARREAD\n";
+                if (Wake(_socket))
+                    try
+                    {
+                        var stream = _socket.GetStream();
+                        stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+
+                        Thread.Sleep(_responseTime);
+
+                        var bytesRead = 0;
+                        var buffer = new byte[64];
+
+                        while (stream.DataAvailable)
+                        {
+                            // Read the current character
+                            var ch = stream.ReadByte();
+                            response += Convert.ToChar(ch);
+                            buffer[bytesRead] = (byte)ch;
+                            bytesRead++;
+                            //_log.Info("Received " + ch.ToString("X2"));
+                        }
+
+                        _dataLog.Info("Received 0x" + BitConverter.ToString(buffer));
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Debug("SendBarRead: Error - " + ex.Message);
+                    }
+            
+        }
+
+        internal override byte[] GetLoop2Data()
+        {
+            var loopString = new byte[LOOP_2_DATA_LENGTH];
+
+            try
+            {
+                    // Wait until the buffer is full
+                    var loopCount = 1;
+                    while (loopCount < 100 && _socket.Available < LOOP_2_DATA_LENGTH)
+                    {
+                        // Wait a short period to let more data load into the buffer
+                        Thread.Sleep(200);
+                        loopCount++;
+                    }
+
+                    if (loopCount == 100)
+                    {
+                        // all data not received
+                        _log.Info("!!! loop2 data not received");
+                        return new byte[]{};
+                    }
+
+                    // Read the first 99 bytes of the buffer into the array
+                    _socket.GetStream().Read(loopString, 0, LOOP_2_DATA_LENGTH);
+                }
+                catch (Exception ex)
+                {
+                    _log.Debug("Loop2 data: Error - " + ex.Message);
+                }
+
+                return loopString;
+        }
+
+        internal override byte[] GetLoopData()
+        {
+            var loopString = new byte[LOOP_DATA_LENGTH];
+
+            try
+            {
+                DoPeriodicDisconnect();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Error during periodic disconnect. Error: "+ex);
+                return new byte[] { };
+            }
+
+            // Wait until the buffer is full - we've received returnLength characters from the command response
+                var loopcount = 1;
+                while (loopcount < 100 && _socket.Available < LOOP_DATA_LENGTH)
+                {
+                    // Wait a short period to let more data load into the buffer
+                    Thread.Sleep(200);
+                    loopcount++;
+                }
+
+                if (loopcount == 100)
+                {
+                    // all data not received
+                    _log.Info("!!! loop data not received");
+                    return new byte[]{};
+                }
+
+                // Read the first 99 bytes of the buffer into the array
+                _socket.GetStream().Read(loopString, 0, LOOP_DATA_LENGTH);
+
+                return loopString;
+        }
+
+        public override void Clear()
+        {
+                _socket.GetStream().WriteByte(10);
+                Thread.Sleep(3000);
+                // read off all data in the pipeline
+                var avail = _socket.Available;
+                _log.Debug("Discarding bytes from pipeline: " + avail);
+                for (var b = 0; b < avail; b++)
+                    _socket.GetStream().ReadByte();
+            
+
+        }
+
+        private void DoPeriodicDisconnect()
+        {
+            int previousMinuteDisconnect = -1;
+            int min;
+            // See if we need to disconnect to allow Weatherlink IP to upload
+            if (_disconnectInterval > 0)
+            {
+                min = DateTime.Now.Minute;
+
+                if (min != previousMinuteDisconnect)
+                {
+                    try
+                    {
+                        previousMinuteDisconnect = min;
+
+                        _log.Debug("Periodic disconnect from logger");
+                        // time to disconnect - first stop the loop data by sending a newline
+                        _socket.GetStream().WriteByte(10);
+                        //socket.Client.Shutdown(SocketShutdown.Both);
+                        //socket.Client.Disconnect(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Info("Periodic disconnect: " + ex.Message);
+                    }
+                    finally
+                    {
+                        _socket.Client.Close(0);
+                    }
+
+                    // Wait
+                    Thread.Sleep(_disconnectInterval * 1000);
+
+                    _log.Debug("Attempting reconnect to logger");
+                    // open a new connection
+                    _socket = OpenTcpPort();
+                    if (_socket == null)
+                    {
+                        _log.Error("Unable to reconnect to logger");
+                        throw new Exception("Unable to reconnect to logger.");
+                    }
+                }
+            }
+        }
+
+
+        internal override void CloseConnection()
+        {
+            _socket.GetStream().WriteByte(10);
+            _socket.Close();
+        }
     }
 }

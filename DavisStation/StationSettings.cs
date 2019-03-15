@@ -1,5 +1,6 @@
 ﻿using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
+using UnitsNet;
 
 namespace DavisStation
 {
@@ -24,5 +25,8 @@ namespace DavisStation
         public int DisconnectInterval { get; set; }
         public int ResponseTime { get; set; }
         public int InitWaitTime { get; set; }
+        public bool ForceVPBarUpdate { get; set; }
+        public Length Altitude { get; set; }
+        public int ClockSettingHour { get; set; }
     }
 }

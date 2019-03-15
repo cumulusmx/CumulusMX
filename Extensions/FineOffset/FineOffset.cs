@@ -70,11 +70,11 @@ namespace FineOffset
         }
 
 
-        public void Start()
+        public void Start(IWeatherDataStatistics data)
         {
             log.Info("Starting station background task");
             this._backgroundTask = Task.Factory.StartNew(() =>
-                PollForNewData(_cts.Token)
+                PollForNewData(_cts.Token, data)
             , _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
@@ -91,7 +91,7 @@ namespace FineOffset
         /// <summary>
         /// Read current data and process it
         /// </summary>
-        private async Task PollForNewData(CancellationToken ct)
+        private async Task PollForNewData(CancellationToken ct, IWeatherDataStatistics weatherDataStatistics)
         {
             int rainCounter = 0;
             while (!ct.IsCancellationRequested)
@@ -101,6 +101,7 @@ namespace FineOffset
 
                 var newData = ProcessDataEntry(data, rainCounter);
                 currentData = newData;
+                weatherDataStatistics.Add(newData);
                 rainCounter = data.RainCounter;
                 await Task.Delay(3000);
             }
