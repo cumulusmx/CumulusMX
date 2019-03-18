@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Antlr4.StringTemplate;
+﻿using Antlr4.StringTemplate;
 using CultureInfo = System.Globalization.CultureInfo;
 
-namespace AwekasDataReporter
+namespace CumulusMX.Common.StringTemplate
 {
         /** Based on StringTemplate4 NumberRendered class, this takes any valid format string for string.Format
          *  for formatting. Also takes a default value on construction - which will be used if no format parameter
