@@ -4,15 +4,12 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Source\mcrossley\CumulusMX\CumulusMX\bin\Debug\netcoreapp2.2\Extensions\FineOffset\</OutputPath>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="HidSharp" Version="2.0.5" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\CumulusMX.Common\CumulusMX.Common.csproj" />
     <ProjectReference Include="..\..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
   </ItemGroup>
 
