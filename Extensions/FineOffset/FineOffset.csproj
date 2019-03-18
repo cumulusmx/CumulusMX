@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -12,5 +12,9 @@
     <ProjectReference Include="..\..\CumulusMX.Common\CumulusMX.Common.csproj" />
     <ProjectReference Include="..\..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)CumulusMX\bin\$(ConfigurationName)&quot; /D /Y" />
+  </Target>
 
 </Project>
