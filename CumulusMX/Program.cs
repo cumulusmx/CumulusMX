@@ -15,7 +15,7 @@ namespace CumulusMX
 {
     class Program
     {
-        private static log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static log4net.ILog log = LogManager.GetLogger("cumulus", MethodBase.GetCurrentMethod().DeclaringType);
 
         static void Main(string[] args)
         {

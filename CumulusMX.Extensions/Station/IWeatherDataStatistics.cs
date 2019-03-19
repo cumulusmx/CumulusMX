@@ -24,7 +24,10 @@ namespace CumulusMX.Extensions.Station
         Dictionary<string,IStatistic<IQuantity>> Extra { get; set; }
 
         void Add(WeatherDataModel data);
-        
+
+        void GetReadLock();
+
+        void ReleaseReadLock();
         //public string Forecast { get; set; }
 
 

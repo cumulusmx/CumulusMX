@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Globalization;
-using System.IO;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Antlr.Runtime;
-using Antlr4.StringTemplate;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
-using CumulusMX.Common.StringTemplate;
-using UnitsNet;
 
 namespace AwekasDataReporter
 {
@@ -51,16 +46,16 @@ namespace AwekasDataReporter
 
             _updating = true;
 
-            string url = GetUrl(currentData, timestamp, out var passwordString);
-
-            string starredPasswordString = "<password>";
-
-            string LogURL = url.Replace(passwordString, starredPasswordString);
-
-            _logger.Debug(LogURL);
-
             try
             {
+                string url = GetUrl(currentData, timestamp, out var passwordString);
+
+                string starredPasswordString = "<password>";
+
+                string LogURL = url.Replace(passwordString, starredPasswordString);
+
+                _logger.Debug(LogURL);
+
                 var response = await _httpClient.GetAsync(url);
                 var responseBodyAsText = await response.Content.ReadAsStringAsync();
                 _logger.Info("Awekas Response: " + response.StatusCode + ": " + responseBodyAsText);
@@ -75,49 +70,51 @@ namespace AwekasDataReporter
             }
         }
 
-        private string GetUrl(IWeatherDataStatistics data, DateTime timestamp, out string passwordString)
-        {
-            byte[] hashPassword;
+         private string GetUrl(IWeatherDataStatistics data, DateTime timestamp, out string passwordString)
+         {
+             byte[] hashPassword;
 
-            // password is sent as MD5 hash
-            using (MD5 md5 = MD5.Create())
-            {
-                hashPassword = md5.ComputeHash(Encoding.ASCII.GetBytes(Settings.GetValue("AwekasPW",string.Empty)));
-            }
+             // password is sent as MD5 hash
+             using (MD5 md5 = MD5.Create())
+             {
+                 hashPassword = md5.ComputeHash(Encoding.ASCII.GetBytes(Settings.GetValue("AwekasPW", string.Empty)));
+             }
 
-            passwordString = hashPassword.ToHexadecimalString();
+             passwordString = hashPassword.ToHexadecimalString();
 
-            int pressureTrend;
+             int pressureTrend;
 
-            double threeHourlyPressureChangeMb = 0;
+             double threeHourlyPressureChangeMb = 0;
 
-            threeHourlyPressureChangeMb = data.Pressure.ThreeHourChange.Millibars;
+             threeHourlyPressureChangeMb = data.Pressure.ThreeHourChange.Millibars;
 
-            if (threeHourlyPressureChangeMb > 6) pressureTrend = 2;
-            else if (threeHourlyPressureChangeMb > 3.5) pressureTrend = 2;
-            else if (threeHourlyPressureChangeMb > 1.5) pressureTrend = 1;
-            else if (threeHourlyPressureChangeMb > 0.1) pressureTrend = 1;
-            else if (threeHourlyPressureChangeMb > -0.1) pressureTrend = 0;
-            else if (threeHourlyPressureChangeMb > -1.5) pressureTrend = -1;
-            else if (threeHourlyPressureChangeMb > -3.5) pressureTrend = -1;
-            else if (threeHourlyPressureChangeMb > -6) pressureTrend = -2;
-            else
-                pressureTrend = -2;
+             if (threeHourlyPressureChangeMb > 6) pressureTrend = 2;
+             else if (threeHourlyPressureChangeMb > 3.5) pressureTrend = 2;
+             else if (threeHourlyPressureChangeMb > 1.5) pressureTrend = 1;
+             else if (threeHourlyPressureChangeMb > 0.1) pressureTrend = 1;
+             else if (threeHourlyPressureChangeMb > -0.1) pressureTrend = 0;
+             else if (threeHourlyPressureChangeMb > -1.5) pressureTrend = -1;
+             else if (threeHourlyPressureChangeMb > -3.5) pressureTrend = -1;
+             else if (threeHourlyPressureChangeMb > -6) pressureTrend = -2;
+             else
+                 pressureTrend = -2;
 
-            var templateGroup = new TemplateGroup();
-            templateGroup.RegisterRenderer(typeof(double),new DefaultNumberRenderer("{0:F1}"));
-            templateGroup.RegisterRenderer(typeof(DateTime),new DateRenderer());
-            var templateString = File.ReadAllText("AwekasUrl.StringTemplate");
-            var template = new Template(templateGroup,templateString);
-            template.Add("Settings", Settings);
-            template.Add("passwordString", passwordString);
-            template.Add("data", data);
-            template.Add("timestamp", DateTime.Now);
-            template.Add("pressureTrend", pressureTrend);
-            template.Add("IsFineOffset", false); //TODO: fill value
-            template.Add("Version","4"); //TODO: Lookup version
+             var extraRenderParameters = new Dictionary<string, object>()
+             {
+                 {"passwordString", passwordString},
+                 {"pressureTrend", pressureTrend},
+                 {"IsFineOffset", false} //TODO: fill value
+             };
 
-            return template.Render(CultureInfo.InvariantCulture);
+             var renderer = new TemplateRenderer
+             (
+                 "AwekasUrl.StringTemplate",
+                 data,
+                 Settings,
+                 extraRenderParameters,
+                 _logger
+             ) {Timestamp = timestamp};
+             return renderer.Render();
         }
 
 
