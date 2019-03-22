@@ -10,6 +10,7 @@ using Antlr4.StringTemplate;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using CumulusMX.Common.StringTemplate;
 using UnitsNet;
 
 namespace AwekasDataReporter

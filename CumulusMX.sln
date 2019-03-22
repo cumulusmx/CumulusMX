@@ -41,7 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataReporters", "DataReport
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CumulusMXTest", "CumulusMXTest\CumulusMXTest.csproj", "{8E0E72BE-2EE5-45F6-8DF1-B8D7196D4769}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DavisStation", "DavisStation\DavisStation.csproj", "{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DavisStation", "Extensions\DavisStation\DavisStation.csproj", "{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CumulusMX.Common", "CumulusMX.Common\CumulusMX.Common.csproj", "{28A809EB-CCC9-4930-BA19-589D41252E5A}"
 EndProject
