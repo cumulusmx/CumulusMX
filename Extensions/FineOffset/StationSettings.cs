@@ -8,9 +8,12 @@ namespace FineOffset
 {
     public class StationSettings : IStationSettings
     {
-        public StationSettings()
-        {
-        }
+        //private CumulusConfiguration _baseConfiguration;
+
+        //public StationSettings(CumulusConfiguration baseConfiguration)
+        //{
+        //    _baseConfiguration = baseConfiguration;
+        //}
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
         public int VendorId { get; set; }
@@ -24,5 +27,6 @@ namespace FineOffset
         [ExtensionSetting("Maximum pressure", "", 1050)]
         public double MaxPressureThreshold { get; set; }
         public bool SyncFOReads { get; internal set; }
+        public bool IsEnabled { get; set; }
     }
 }

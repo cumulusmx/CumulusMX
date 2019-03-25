@@ -19,6 +19,7 @@ namespace DavisStation
     public class DavisStation : WeatherStationBase
     {
         private ILogger _log;
+        private readonly IWeatherDataStatistics _weatherStatistics;
         private WeatherDataModel _currentData = new WeatherDataModel();
         private object _dataUpdateLock = new object();
 
@@ -29,22 +30,30 @@ namespace DavisStation
         private StationSettings _configurationSettings;
         private DavisStationInterface _interface;
         private bool _useLoop2;
+        private bool _enabled;
         private double _firmwareVersion;
         public override IStationSettings ConfigurationSettings => _configurationSettings;
+        public override bool Enabled => _enabled;
         private Dictionary<string, ICalibration> _calibrationDictionary;
 
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
 
-        public override void Initialise(ILogger logger, ISettings settings)
+        public DavisStation(ILogger logger, StationSettings settings, IWeatherDataStatistics weatherStatistics)
         {
-            _configurationSettings = settings as StationSettings;
+            _configurationSettings = settings;
             if (_configurationSettings == null)
             {
                 throw new ArgumentException($"Invalid configuration settings passed to Davis Station.");
             }
 
+            _enabled = settings.Enabled ?? false;
             _log = logger;
+            _weatherStatistics = weatherStatistics;
+        }
+
+        public override void Initialise()
+        {
 
             _log.Info("Station type = Davis");
 
@@ -52,7 +61,7 @@ namespace DavisStation
             if (useSerial)
             {
                 string comPortName = _configurationSettings.ComPort;
-                _interface = new DavisStationInterfaceSerial(logger, comPortName);
+                _interface = new DavisStationInterfaceSerial(_log, comPortName);
             }
             else
             {
@@ -62,7 +71,7 @@ namespace DavisStation
                 IPAddress address = IPAddress.Parse("127.0.0.1");
                 int port = 80;
 
-                _interface = new DavisStationInterfaceIp(logger,address,port,disconnectInterval,responseTime,initWait);
+                _interface = new DavisStationInterfaceIp(_log, address,port,disconnectInterval,responseTime,initWait);
             }
 
             _interface.Connect();
@@ -223,11 +232,11 @@ namespace DavisStation
 
         #endregion
 
-        public override void Start(IWeatherDataStatistics weatherStatistics)
+        public override void Start()
         {
             _log.Info("Starting station background task");
             _backgroundTask = Task.Factory.StartNew(() =>
-                    PollForNewData(_cts.Token, weatherStatistics)
+                    PollForNewData(_cts.Token, _weatherStatistics)
                 , _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
@@ -274,13 +283,12 @@ namespace DavisStation
         public override void Stop()
         {
             _log.Info("Closing connection");
-            try
-            {
-                _interface.CloseConnection();
-            }
-            catch
-            {
-            }
+
+            _log.Info("Stopping station background task");
+            if (_cts != null)
+                _cts.Cancel();
+            _log.Info("Waiting for background task to complete");
+            _backgroundTask.Wait();
         }
 
         private void GetAndProcessLoopData(int number, IWeatherDataStatistics weatherStatistics)

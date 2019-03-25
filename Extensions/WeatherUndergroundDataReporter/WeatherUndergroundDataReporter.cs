@@ -5,32 +5,27 @@ using CumulusMX.Extensions.Station;
 
 namespace WeatherUndergroundDataReporter
 {
-    public class WeatherUndergroundDataReporter : IDataReporter
+    public class WeatherUndergroundDataReporter : DataReporterBase
     {
-        public string ServiceName => "Weather Underground";
+        public override string ServiceName => "Weather Underground";
 
         public IDataReporterSettings Settings { get; private set; }
 
-        public void DoReport(IWeatherDataStatistics currentData)
+        public override void DoReport(IWeatherDataStatistics currentData)
         {
             throw new NotImplementedException();
         }
 
-        public string Identifier => throw new NotImplementedException();
+        public override string Identifier => throw new NotImplementedException();
 
-        private ILogger _logger;
-
-        public WeatherUndergroundDataReporter()
+        public WeatherUndergroundDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
-            //TODO: Implement
-        }
-
-        public void Initialise(ILogger logger, ISettings settings)
-        {
-            _logger = logger;
             Settings = settings as IDataReporterSettings;
         }
 
+        public override void Initialise()
+        {
+        }
 
         /*
         internal async void UpdateWunderground(DateTime timestamp)

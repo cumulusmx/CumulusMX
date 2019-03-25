@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CumulusMX.Extensions.DataReporter
+﻿namespace CumulusMX.Extensions.DataReporter
 {
     public abstract class DataReporterSettingsBase : IDataReporterSettings
     {
@@ -15,5 +13,8 @@ namespace CumulusMX.Extensions.DataReporter
         public abstract bool GetValue(string key, bool defaultValue);
 
         public Setting this[string key] => new Setting(GetValue(key,string.Empty));
+
+        public bool IsEnabled { get; set; }
+        public int ReportTime { get; set; }
     }
 }

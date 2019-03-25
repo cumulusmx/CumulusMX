@@ -5,29 +5,26 @@ using CumulusMX.Extensions.Station;
 
 namespace WCloudDataReporter
 {
-    public class WCloudDataReporter : IDataReporter
+    public class WCloudDataReporter : DataReporterBase
     {
-        private ILogger _logger;
-        public string ServiceName => "WCloud Data Reporter Service";
+        public override string ServiceName => "WCloud Data Reporter Service";
 
         public IDataReporterSettings Settings { get; private set; }
 
-        public void DoReport(IWeatherDataStatistics currentData)
+        public override void DoReport(IWeatherDataStatistics currentData)
         {
             throw new NotImplementedException();
         }
 
-        public string Identifier => "TBC"; //TODO
+        public override string Identifier => "TBC"; //TODO
 
-        public WCloudDataReporter()
+        public WCloudDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
-            //TODO: Implement
-        }
-
-        public void Initialise(ILogger logger, ISettings settings)
-        {
-            _logger = logger;
             Settings = settings as IDataReporterSettings;
+        }
+        
+        public override void Initialise()
+        {
         }
 
         /*

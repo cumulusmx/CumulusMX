@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)CumulusMX\bin\$(ConfigurationName)&quot; /D /Y" />
+    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)CumulusMX\bin\$(ConfigurationName)\netcoreapp2.2\Extensions\$(TargetName)\&quot; /D /Y" />
   </Target>
 
 </Project>

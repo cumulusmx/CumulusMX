@@ -5,27 +5,24 @@ using CumulusMX.Extensions.Station;
 
 namespace FtpDataReporter
 {
-    public class FtpDataReporter : IDataReporter
+    public class FtpDataReporter : DataReporterBase
     {
-        private ILogger _logger;
-        public string ServiceName => "FTP Reporter Service";
+        public override string ServiceName => "FTP Reporter Service";
 
         public IDataReporterSettings Settings { get; private set; }
 
-        public string Identifier => "TBC"; //TODO
+        public override string Identifier => "TBC"; //TODO
 
-        public FtpDataReporter()
+        public FtpDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
-            //TODO: Implement
-        }
-
-        public void Initialise(ILogger logger, ISettings settings)
-        {
-            _logger = logger;
             Settings = settings as IDataReporterSettings;
         }
 
-        public void DoReport(IWeatherDataStatistics currentData)
+        public override void Initialise()
+        {
+        }
+
+        public override void DoReport(IWeatherDataStatistics currentData)
         {
             throw new NotImplementedException();
         }

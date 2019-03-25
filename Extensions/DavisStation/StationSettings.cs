@@ -6,9 +6,12 @@ namespace DavisStation
 {
     public class StationSettings : IStationSettings
     {
-        public StationSettings()
-        {
-        }
+        //private readonly ICumulusConfiguration _baseConfiguration;
+
+        //public StationSettings(ICumulusConfiguration baseConfiguration)
+        //{
+        //    _baseConfiguration = baseConfiguration;
+        //}
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
         public int VendorId { get; set; }
@@ -28,5 +31,6 @@ namespace DavisStation
         public bool ForceVPBarUpdate { get; set; }
         public Length Altitude { get; set; }
         public int ClockSettingHour { get; set; }
+        public bool? Enabled { get; set; }
     }
 }

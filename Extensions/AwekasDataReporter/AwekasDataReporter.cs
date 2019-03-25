@@ -10,37 +10,37 @@ using CumulusMX.Extensions.Station;
 
 namespace AwekasDataReporter
 {
-    public class AwekasDataReporter : IDataReporter
+    public class AwekasDataReporter : DataReporterBase
     {
-        private ILogger _logger;
         private bool _updating;
 
-        public string ServiceName => "Awekas Data Reporter Service";
+        public override string ServiceName => "Awekas Data Reporter Service";
 
-         public IDataReporterSettings Settings { get; private set; }
-
-        public string Identifier => "TBC"; //TODO
+        private DataReporterSettingsGeneric _localSettings;
+        
+        public override string Identifier => "TBC"; //TODO
 
         private readonly HttpClient _httpClient;
 
-        public AwekasDataReporter()
+        public AwekasDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger,settings,data)
         {
             var awekasHttpHandler = new HttpClientHandler();
             _httpClient = new HttpClient(awekasHttpHandler);
+
+            _localSettings = settings;
         }
 
-        public void Initialise(ILogger logger, ISettings settings)
+        public override void Initialise()
         {
-            _logger = logger;
-            Settings = settings as IDataReporterSettings;
+
         }
 
-        public async void DoReport(IWeatherDataStatistics currentData)
+        public override async void DoReport(IWeatherDataStatistics currentData)
         {
             await UpdateAwekas(currentData, DateTime.Now);
         }
 
-         private async Task UpdateAwekas(IWeatherDataStatistics currentData, DateTime timestamp)
+        private async Task UpdateAwekas(IWeatherDataStatistics currentData, DateTime timestamp)
         {
             if (_updating) return;
 
@@ -54,15 +54,15 @@ namespace AwekasDataReporter
 
                 string LogURL = url.Replace(passwordString, starredPasswordString);
 
-                _logger.Debug(LogURL);
+                _log.Debug(LogURL);
 
                 var response = await _httpClient.GetAsync(url);
                 var responseBodyAsText = await response.Content.ReadAsStringAsync();
-                _logger.Info("Awekas Response: " + response.StatusCode + ": " + responseBodyAsText);
+                _log.Info("Awekas Response: " + response.StatusCode + ": " + responseBodyAsText);
             }
             catch (Exception ex)
             {
-                _logger.Info("Awekas update: " + ex.Message);
+                _log.Info("Awekas update: " + ex.Message);
             }
             finally
             {
@@ -112,7 +112,7 @@ namespace AwekasDataReporter
                  data,
                  Settings,
                  extraRenderParameters,
-                 _logger
+                 _log
              ) {Timestamp = timestamp};
              return renderer.Render();
         }

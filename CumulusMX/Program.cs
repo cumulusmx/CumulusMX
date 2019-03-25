@@ -30,7 +30,7 @@ namespace CumulusMX
             ConfigureLogging($"MXDiags{Path.DirectorySeparatorChar}{DateTime.Now.ToString("yyyyMMdd-hhmmss")}.txt");
             log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-            var pathToApplicationBase = Path.GetDirectoryName(new System.Uri(Assembly.GetExecutingAssembly().GetName().CodeBase).LocalPath);
+            var pathToApplicationBase = Path.GetDirectoryName(new System.Uri(Assembly.GetEntryAssembly().GetName().CodeBase).LocalPath);
             var pathToContentRoot = Directory.GetCurrentDirectory();
 
             for (int i = 0; i < args.Length; i++)

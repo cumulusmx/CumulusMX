@@ -17,7 +17,8 @@ namespace FineOffset
 
         private const double RAIN_COUNT_PER_TIP = 0.3;
 
-        protected ILogger log;
+        protected ILogger _log;
+        private readonly IWeatherDataStatistics _data;
         protected double pressureOffset;
         protected int readPeriod;
         protected StationSettings _settings;
@@ -26,7 +27,7 @@ namespace FineOffset
         protected CancellationTokenSource _cts;
         protected DeviceDataReader dataReader;
 
-        public FineOffset()
+        public FineOffset(ILogger log,StationSettings settings, IWeatherDataStatistics data)
         {
             currentData = new WeatherDataModel();
             FO_ENTRY_SIZE = 0x10;
@@ -35,6 +36,12 @@ namespace FineOffset
             ConfigurationSettings = new StationSettings();
 
             _cts = new CancellationTokenSource();
+
+            _log = log;
+            _data = data;
+            _settings = settings;
+
+            Enabled = _settings?.IsEnabled ?? false;
         }
 
         public virtual string Identifier => "FineOffset";
@@ -43,15 +50,14 @@ namespace FineOffset
         public virtual string Description => "Supports FineOffset compatible stations";
 
         public virtual IStationSettings ConfigurationSettings { get; }
+        public bool Enabled { get; }
 
 
-        public virtual void Initialise(ILogger log, ISettings settings)
+        public virtual void Initialise()
         {
-            this.log = log;
-            this._settings = (StationSettings)settings;
-            var device = new FineOffsetDevice(log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
+            var device = new FineOffsetDevice(_log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
             device.OpenDevice();
-            dataReader = new DeviceDataReader(log, device, false);
+            dataReader = new DeviceDataReader(_log, device, false);
             pressureOffset = dataReader.GetPressureOffset();
             readPeriod = dataReader.GetReadPeriod();
         }
@@ -70,20 +76,20 @@ namespace FineOffset
         }
 
 
-        public void Start(IWeatherDataStatistics data)
+        public void Start()
         {
-            log.Info("Starting station background task");
+            _log.Info("Starting station background task");
             this._backgroundTask = Task.Factory.StartNew(() =>
-                PollForNewData(_cts.Token, data)
+                PollForNewData(_cts.Token, _data)
             , _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         public void Stop()
         {
-            log.Info("Stopping station background task");
+            _log.Info("Stopping station background task");
             if (_cts != null)
                 _cts.Cancel();
-            log.Info("Waiting for background task to complete");
+            _log.Info("Waiting for background task to complete");
             _backgroundTask.Wait();
         }
 
@@ -142,7 +148,7 @@ namespace FineOffset
         private List<WeatherDataModel> ProcessDataEntries(List<DataEntry> datalist)
         {
             int totalentries = datalist.Count;
-            log.Info("Processing history data, number of entries = " + totalentries);
+            _log.Info("Processing history data, number of entries = " + totalentries);
             var items = new List<WeatherDataModel>();
             int prevraintotal = 0;
             while (datalist.Count > 0)
@@ -154,7 +160,7 @@ namespace FineOffset
                 datalist.RemoveAt(datalist.Count - 1);
             }
 
-            log.Info("End processing history data");
+            _log.Info("End processing history data");
             return items;
         }
 
@@ -162,11 +168,11 @@ namespace FineOffset
         {
             WeatherDataModel model = new WeatherDataModel();
             DateTime timestamp = dataEntry.Timestamp;
-            log.Info("Processing data for " + timestamp);
+            _log.Info("Processing data for " + timestamp);
 
             // Indoor Humidity ======================================================
             if ((dataEntry.InsideHumidity > 100) && (dataEntry.InsideHumidity != 255))
-                log.Warn("Ignoring bad data: InsideHumidity = " + dataEntry.InsideHumidity);
+                _log.Warn("Ignoring bad data: InsideHumidity = " + dataEntry.InsideHumidity);
             else if ((dataEntry.InsideHumidity > 0) && (dataEntry.InsideHumidity != 255)) // 255 is the overflow value, when RH gets below 10% - ignore
                 model.IndoorHumidity = Ratio.FromPercent(dataEntry.InsideHumidity);
 
@@ -175,13 +181,13 @@ namespace FineOffset
             if ((dataEntry.InsideTemperature > -50) && (dataEntry.InsideTemperature < 50))
                 model.IndoorTemperature = Temperature.FromDegreesCelsius(dataEntry.InsideTemperature);
             else
-                log.Warn($"Ignoring bad data: InsideTemp = {dataEntry.InsideTemperature}");
+                _log.Warn($"Ignoring bad data: InsideTemp = {dataEntry.InsideTemperature}");
 
             // Pressure =============================================================
             if ((dataEntry.Pressure < _settings.MinPressureThreshold) || (dataEntry.Pressure > _settings.MaxPressureThreshold))
             {
-                log.Warn("Ignoring bad data: pressure = " + dataEntry.Pressure);
-                log.Warn("                   offset = " + pressureOffset);
+                _log.Warn("Ignoring bad data: pressure = " + dataEntry.Pressure);
+                _log.Warn("                   offset = " + pressureOffset);
             }
             else
             {
@@ -190,22 +196,22 @@ namespace FineOffset
 
             if (dataEntry.SensorContactLost)
             {
-                log.Error("Sensor contact lost; ignoring outdoor data");
+                _log.Error("Sensor contact lost; ignoring outdoor data");
             }
             else
             {
                 // Outdoor Humidity =====================================================
                 if ((dataEntry.OutsideHumidity > 100) && (dataEntry.OutsideHumidity != 255))
-                    log.Warn("Ignoring bad data: outhum = " + dataEntry.OutsideHumidity);
+                    _log.Warn("Ignoring bad data: outhum = " + dataEntry.OutsideHumidity);
                 else if ((dataEntry.OutsideHumidity > 0) && (dataEntry.OutsideHumidity != 255)) // 255 is the overflow value, when RH gets below 10% - ignore
                     model.OutdoorHumidity = Ratio.FromPercent(dataEntry.OutsideHumidity);
 
 
                 // Wind =================================================================
                 if ((dataEntry.WindGust > 60) || (dataEntry.WindGust < 0))
-                    log.Warn("Ignoring bad data: gust = " + dataEntry.WindGust);
+                    _log.Warn("Ignoring bad data: gust = " + dataEntry.WindGust);
                 else if ((dataEntry.WindSpeed > 60) || (dataEntry.WindSpeed < 0))
-                    log.Warn("Ignoring bad data: speed = " + dataEntry.WindSpeed);
+                    _log.Warn("Ignoring bad data: speed = " + dataEntry.WindSpeed);
                 else
                 {
                     model.WindBearing = Angle.FromDegrees(dataEntry.WindBearing);
@@ -216,7 +222,7 @@ namespace FineOffset
 
                 // Outdoor Temperature ==================================================
                 if ((dataEntry.OutsideTemperature < -50) || (dataEntry.OutsideTemperature > 70))
-                    log.Warn("Ignoring bad data: outtemp = " + dataEntry.OutsideTemperature);
+                    _log.Warn("Ignoring bad data: outtemp = " + dataEntry.OutsideTemperature);
                 else
                     model.OutdoorTemperature = Temperature.FromDegreesCelsius(dataEntry.OutsideTemperature);
 
@@ -236,7 +242,7 @@ namespace FineOffset
                 double rainrate = 0;
                 if (raindiff > 100)
                 {
-                    log.Warn("Warning: large increase in rain gauge tip count: " + raindiff);
+                    _log.Warn("Warning: large increase in rain gauge tip count: " + raindiff);
                     rainrate = 0;
                 }
                 else if (dataEntry.Interval > 0)

@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
+using Autofac;
 using CumulusMX.Configuration;
+using CumulusMX.Data;
 using CumulusMX.Extensions;
+using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
 using CumulusMX.Stations;
 using CumulusMX.Web;
@@ -30,7 +34,9 @@ namespace CumulusMX
         private readonly CumulusConfiguration _config;
         private readonly CumulusWebService _webService;
         private readonly ExtensionLoader _extensionLoader;
-        private readonly IEnumerable<ExtensionDescriptor> _extensions;
+        private readonly Dictionary<Type,Type[]> _extensions;
+        private readonly List<IWeatherStation> _stations;
+        private readonly List<IDataReporter> _reporters;
 
         public CumulusService(int httpPort, string appDir, string contentRootDir)
         {
@@ -44,6 +50,9 @@ namespace CumulusMX
             var extensionLoaderSettings = new ExtensionLoaderSettings() { Path = Path.Combine(appDir, "Extensions") };
             this._extensionLoader = new ExtensionLoader(extensionLoaderSettings);
             _extensions = _extensionLoader.GetExtensions();
+
+            _stations = new List<IWeatherStation>();
+            _reporters = new List<IDataReporter>();
         }
 
         protected override void OnStart(string[] args)
@@ -67,18 +76,55 @@ namespace CumulusMX
             }
 
             var wrappedLogger = new LogWrapper(log);
+            AutofacWrapper.Instance.Builder.RegisterInstance(wrappedLogger).As<ILogger>();
+            var dataStatistics = new WeatherDataStatistics();
+            AutofacWrapper.Instance.Builder.RegisterInstance(dataStatistics).As<IWeatherDataStatistics>();
+            AutofacWrapper.Instance.Builder.RegisterInstance(_config).As<CumulusConfiguration>();
+            AutofacWrapper.Instance.Builder.RegisterType(typeof(DataReporterSettingsGeneric));
+
             foreach (var service in _extensions)
             {
-                if (service.Extension is IWeatherStation)
+                if (service.Value.Contains(typeof(IWeatherStation)))
                 {
-                    //var settingService = new StationSettingsService(service.Extension as IWeatherStation, _iniFile);
-                    //var settings = StationSettingsService;
-                    //service.Extension.Initialise(wrappedLogger, _iniFile);
+                    IWeatherStation theStation = (IWeatherStation) AutofacWrapper.Instance.Scope.Resolve(service.Key);
+                    if (theStation.Enabled)
+                    {
+                        _stations.Add(theStation);
+                        log.Info($"Initialising weather station {theStation.Identifier}.");
+                        theStation.Initialise();
+                    }
+                    else
+                    {
+                        log.Debug($"Weather station {theStation.Identifier} found - but disabled.");
+                    }
+                }
+
+                if (service.Value.Contains(typeof(IDataReporter)))
+                {
+                    IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.Resolve(service.Key);
+                    if (theReporter.Enabled)
+                    {
+                        _reporters.Add(theReporter);
+                        log.Info($"Initialising reporter {theReporter.Identifier}.");
+                        theReporter.Initialise();
+                    }
+                    else
+                    {
+                        log.Debug($"Reporter {theReporter.Identifier} found - but disabled.");
+                    }
                 }
             }
 
-            _webService.Start();
+//            _webService.Start();
+            foreach (var weatherStation in _stations)
+            {
+                weatherStation.Start();
+            }
 
+            foreach (var dataReporter in _reporters)
+            {
+                dataReporter.Start();
+            }
         }
 
         protected override void OnStop()
