@@ -8,12 +8,13 @@ namespace FineOffset
 {
     public class StationSettings : IStationSettings
     {
-        //private CumulusConfiguration _baseConfiguration;
+        private IConfigurationProvider _baseConfiguration;
 
-        //public StationSettings(CumulusConfiguration baseConfiguration)
-        //{
-        //    _baseConfiguration = baseConfiguration;
-        //}
+        public StationSettings(IConfigurationProvider baseConfiguration)
+        {
+            _baseConfiguration = baseConfiguration;
+            
+        }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
         public int VendorId { get; set; }

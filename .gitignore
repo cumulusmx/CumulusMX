@@ -187,3 +187,4 @@ UpgradeLog*.htm
 FakesAssemblies/
 
 /.vscode
+/CumulusMX/Cumulus.ini

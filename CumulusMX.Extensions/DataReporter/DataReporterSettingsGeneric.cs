@@ -4,38 +4,24 @@ namespace CumulusMX.Extensions.DataReporter
 {
     public class DataReporterSettingsGeneric : DataReporterSettingsBase
     {
-        //private CumulusConfiguration _baseConfiguration;
+        private readonly IConfigurationProvider _baseConfiguration;
 
-        //public DataReporterSettingsGeneric(CumulusConfiguration baseConfiguration)
-        //{
-        //    _baseConfiguration = baseConfiguration;
-        //}
-
-    
-
-        public override int GetValue(string key, int defaultValue)
+        public DataReporterSettingsGeneric(IConfigurationProvider baseConfiguration)
         {
-            throw new NotImplementedException();
+            _baseConfiguration = baseConfiguration;
+        }
+
+        public string SectionName { get; set; } = "";
+
+        public new Setting this[string key]
+        {
+            get => _baseConfiguration.GetValue(SectionName, key);
+            set => _baseConfiguration.SetValue(SectionName,key,value);
         }
 
         public override string GetValue(string key, string defaultValue)
         {
-            throw new NotImplementedException();
-        }
-
-        public override double GetValue(string key, double defaultValue)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override byte[] GetValue(string key, byte[] defaultValue)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool GetValue(string key, bool defaultValue)
-        {
-            throw new NotImplementedException();
+            return _baseConfiguration.GetValue(SectionName, key).ToString();
         }
     }
 }

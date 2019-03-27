@@ -16,7 +16,7 @@ namespace CumulusMX.Extensions.DataReporter
             _weatherStatistics = weatherStatistics;
             Settings = settings;
             Enabled = settings.IsEnabled;
-            ReportTime = settings.ReportTime;
+            ReportInterval = settings.ReportInterval;
         }
 
         public abstract string Identifier { get; }
@@ -25,7 +25,7 @@ namespace CumulusMX.Extensions.DataReporter
         public abstract string ServiceName { get; }
         public IDataReporterSettings Settings { get; }
         public bool Enabled { get; }
-        public int ReportTime { get; }
+        public int ReportInterval { get; }
         public abstract void DoReport(IWeatherDataStatistics currentData);
 
         protected Task _backgroundTask;
@@ -48,7 +48,7 @@ namespace CumulusMX.Extensions.DataReporter
                 while (!ct.IsCancellationRequested)
                 {
                     DoReport(weatherStatistics);
-                    Thread.Sleep(ReportTime);
+                    Thread.Sleep(ReportInterval);
                 }
             }
             // Catch the ThreadAbortException

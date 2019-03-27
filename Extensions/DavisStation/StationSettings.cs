@@ -6,12 +6,12 @@ namespace DavisStation
 {
     public class StationSettings : IStationSettings
     {
-        //private readonly ICumulusConfiguration _baseConfiguration;
+        private readonly IConfigurationProvider _baseConfiguration;
 
-        //public StationSettings(ICumulusConfiguration baseConfiguration)
-        //{
-        //    _baseConfiguration = baseConfiguration;
-        //}
+        public StationSettings(IConfigurationProvider baseConfiguration)
+        {
+            _baseConfiguration = baseConfiguration;
+        }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
         public int VendorId { get; set; }

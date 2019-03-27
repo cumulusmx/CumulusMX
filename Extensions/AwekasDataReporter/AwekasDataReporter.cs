@@ -22,7 +22,7 @@ namespace AwekasDataReporter
 
         private readonly HttpClient _httpClient;
 
-        public AwekasDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger,settings,data)
+        public AwekasDataReporter(ILogger logger, AwekasSettings settings, IWeatherDataStatistics data) : base(logger,settings,data)
         {
             var awekasHttpHandler = new HttpClientHandler();
             _httpClient = new HttpClient(awekasHttpHandler);

@@ -8,13 +8,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using CumulusMX.Extensions;
 
 namespace CumulusMX.Configuration
 
 {
 
-    public class IniFile
+    public class IniFile : IConfigurationProvider
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         #region "Declarations"
 
@@ -81,6 +83,7 @@ namespace CumulusMX.Configuration
                     }
                     catch (FileNotFoundException)
                     {
+                        log.Error($"Error reading ini fiile {m_FileName}. File not found.");
                         return;
                     }
 
@@ -130,6 +133,10 @@ namespace CumulusMX.Configuration
                             }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Error reading ini file {m_FileName}.",ex);
                 }
                 finally
                 {
@@ -342,8 +349,29 @@ namespace CumulusMX.Configuration
             // write datetimes in ISO 8601 ("sortable")
             SetValue(SectionName, Key, Value.ToString("s"));
         }
-
         #endregion
-    }
 
+        public Setting GetValue(string sectionName, string key)
+        {
+            return new Setting(GetValue(sectionName,key,string.Empty));
+        }
+
+
+        public void SetValue(string sectionName, string key, Setting inSetting)
+        {
+            SetValue(sectionName,key,inSetting.AsString);
+        }
+
+        public Dictionary<string, Setting> GetSection(string sectionName)
+        {
+            var result = new Dictionary<string, Setting>();
+            if (!m_Sections.TryGetValue(sectionName, out var section)) return result;
+            foreach (var (key, value) in section)
+            {
+                result.Add(key, new Setting(value));
+            }
+
+            return result;
+        }
+    }
 }

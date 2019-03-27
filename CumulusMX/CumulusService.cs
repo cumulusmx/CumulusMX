@@ -79,8 +79,7 @@ namespace CumulusMX
             AutofacWrapper.Instance.Builder.RegisterInstance(wrappedLogger).As<ILogger>();
             var dataStatistics = new WeatherDataStatistics();
             AutofacWrapper.Instance.Builder.RegisterInstance(dataStatistics).As<IWeatherDataStatistics>();
-            AutofacWrapper.Instance.Builder.RegisterInstance(_config).As<CumulusConfiguration>();
-            AutofacWrapper.Instance.Builder.RegisterType(typeof(DataReporterSettingsGeneric));
+            AutofacWrapper.Instance.Builder.RegisterInstance(_iniFile).As<IConfigurationProvider>();
 
             foreach (var service in _extensions)
             {

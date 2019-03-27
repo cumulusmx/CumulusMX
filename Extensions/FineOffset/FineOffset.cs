@@ -33,7 +33,7 @@ namespace FineOffset
             FO_ENTRY_SIZE = 0x10;
             FO_MAX_ADDR = 0xFFF0;
             MAX_HISTORY_ENTRIES = 4080;
-            ConfigurationSettings = new StationSettings();
+            ConfigurationSettings = settings;
 
             _cts = new CancellationTokenSource();
 
