@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AwekasDataReporter": {
+      "commandName": "Executable",
+      "executablePath": "dotnet ..\\..\\..\\..\\..\\..\\..\\CumulusMX\\bin\\Debug\\netcoreapp2.2\\CumulusMX.dll"
+    }
+  }
+}

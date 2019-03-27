@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CumulusMX.Extensions.Station;
@@ -14,6 +16,8 @@ namespace CumulusMX.Extensions.DataReporter
         {
             _log = logger;
             _weatherStatistics = weatherStatistics;
+            _cts = new CancellationTokenSource();
+
             Settings = settings;
             Enabled = settings.IsEnabled;
             ReportInterval = settings.ReportInterval;

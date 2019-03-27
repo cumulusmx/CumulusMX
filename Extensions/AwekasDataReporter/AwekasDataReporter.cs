@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +23,7 @@ namespace AwekasDataReporter
         public override string Identifier => "TBC"; //TODO
 
         private readonly HttpClient _httpClient;
+        protected string _extensionPath;
 
         public AwekasDataReporter(ILogger logger, AwekasSettings settings, IWeatherDataStatistics data) : base(logger,settings,data)
         {
@@ -28,6 +31,8 @@ namespace AwekasDataReporter
             _httpClient = new HttpClient(awekasHttpHandler);
 
             _localSettings = settings;
+
+            _extensionPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
         public override void Initialise()
@@ -108,7 +113,7 @@ namespace AwekasDataReporter
 
              var renderer = new TemplateRenderer
              (
-                 "AwekasUrl.StringTemplate",
+                 Path.Combine(_extensionPath, "AwekasUrl.StringTemplate"),
                  data,
                  Settings,
                  extraRenderParameters,
