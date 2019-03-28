@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 
@@ -13,7 +14,7 @@ namespace FineOffset
         public StationSettings(IConfigurationProvider baseConfiguration)
         {
             _baseConfiguration = baseConfiguration;
-            
+            SettingsFactory.PopulateProperties(this,_baseConfiguration.GetSection("FineOffsetStation"));
         }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]

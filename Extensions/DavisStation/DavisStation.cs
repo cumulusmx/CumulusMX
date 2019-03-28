@@ -379,7 +379,7 @@ namespace DavisStation
                 }
 
                 // Allocate a structure for the data
-                var loopData = new Loop2Data(_configurationSettings.Altitude);
+                var loopData = new Loop2Data(Length.FromMeters(_configurationSettings.Altitude));
 
                 // ...and load the data into it
                 loopData.Load(loopBytes);

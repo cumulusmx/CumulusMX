@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using CumulusMX.Configuration;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 
@@ -21,42 +22,13 @@ namespace CumulusMX.Stations
         }
 
 
-        public IEnumerable<ExtensionSettingDescriptor> GetExtensionOptions()
-        {
-            List<ExtensionSettingDescriptor> descriptors = new List<ExtensionSettingDescriptor>();
-            var instance = _station.ConfigurationSettings;
-            var properties = GetWritableProperties(instance);
-
-            foreach (var prop in properties)
-            {
-                var attribute = prop.GetCustomAttributes(false).FirstOrDefault(att => att.GetType() == typeof(ExtensionSettingAttribute)) as ExtensionSettingAttribute;
-                if (attribute != null) {
-                    descriptors.Add(new ExtensionSettingDescriptor(prop.Name, attribute.Description, attribute.Group, attribute.DefaultValue));
-                }
-            }
-            return descriptors;
-
-
-            //Dictionary<string, ExtensionSettingAttribute> attributes = new Dictionary<string, ExtensionSettingAttribute>();
-            //var instance = _station.ConfigurationSettings;
-            //var properties = GetWritableProperties(instance);
-            //foreach (var prop in properties)
-            //{
-            //    var attribute = prop.GetCustomAttributes(false).FirstOrDefault(att => att.GetType() == typeof(ExtensionSettingAttribute));
-            //    if (attribute != null)
-            //        attributes.Add(prop.Name, (ExtensionSettingAttribute)attribute);
-            //}
-            //return attributes;
-        }
-
-
         public IEnumerable<ExtensionSetting> GetCurrentSettings()
         {
             List<ExtensionSetting> list = new List<ExtensionSetting>();
             var instance = _station.ConfigurationSettings;
 
-            var options = GetExtensionOptions();
-            var properties = GetWritableProperties(instance);
+            var options = SettingsFactory.GetExtensionOptions(instance);
+            var properties = SettingsFactory.GetWritableProperties(instance);
             foreach (var setting in options)
             {
                 string configValue = _iniFile.GetValue(_station.Identifier, setting.Name, (string)null);
@@ -72,30 +44,18 @@ namespace CumulusMX.Stations
             return list;
         }
 
+        public IEnumerable<ExtensionSettingDescriptor> GetExtensionOptions()
+        {
+            var instance = _station.ConfigurationSettings;
+            return SettingsFactory.GetExtensionOptions(instance);
+        }
 
 
         public IStationSettings PopulateExtensionSettings(Dictionary<string, object> values)
         {
-            var options = GetExtensionOptions();
-
             var instance = _station.ConfigurationSettings;
-            var properties = GetWritableProperties(instance);
-            foreach (var option in options)
-            {
-                if (values.ContainsKey(option.Name) && values[option.Name] != null)
-                {
-                    var property = properties.First(prop => prop.Name == option.Name);
-                    property.SetValue(instance, values[option.Name]);
-                }
-            }
+            SettingsFactory.PopulateProperties(instance, values);
             return instance;
-        }
-
-
-        private IEnumerable<PropertyInfo> GetWritableProperties(object instance)
-        {
-            var properties = instance.GetType().GetProperties(System.Reflection.BindingFlags.Public).Where(prop => prop.CanWrite);
-            return properties;
         }
     }
 }
