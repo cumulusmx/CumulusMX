@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Antlr.Runtime.Misc;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using Force.Crc32;
@@ -50,6 +51,7 @@ namespace DavisStation
             _enabled = settings.Enabled ?? false;
             _log = logger;
             _weatherStatistics = weatherStatistics;
+            _cts = new CancellationTokenSource();
         }
 
         public override void Initialise()
@@ -61,7 +63,15 @@ namespace DavisStation
             if (useSerial)
             {
                 string comPortName = _configurationSettings.ComPort;
-                _interface = new DavisStationInterfaceSerial(_log, comPortName);
+                try
+                {
+                    _interface = new DavisStationInterfaceSerial(_log, comPortName);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Error creating serial interface. Station disabled.");
+                    _enabled = false;
+                }
             }
             else
             {
@@ -70,11 +80,26 @@ namespace DavisStation
                 int initWait = _configurationSettings.InitWaitTime;
                 IPAddress address = IPAddress.Parse("127.0.0.1");
                 int port = 80;
-
-                _interface = new DavisStationInterfaceIp(_log, address,port,disconnectInterval,responseTime,initWait);
+                try
+                { 
+                    _interface = new DavisStationInterfaceIp(_log, address,port,disconnectInterval,responseTime,initWait);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Error creating IP interface. Station disabled.");
+                    _enabled = false;
+                }
             }
 
-            _interface.Connect();
+            try
+            {
+                _interface.Connect();
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Error initialising interface. Station disabled.",ex);
+                _enabled = false;
+            }
 
             if (_interface.Connected)
             {
@@ -83,6 +108,7 @@ namespace DavisStation
             else
             {
                 _log.Error("Unable to connect to station");
+                _enabled = false;
                 return;
             }
 

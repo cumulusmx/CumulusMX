@@ -28,11 +28,19 @@ namespace FineOffset
 
         public override void Initialise()
         {
-            var device = new FineOffsetDevice(_log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
-            device.OpenDevice();
-            dataReader = new DeviceDataReader(_log, device, false);
-            pressureOffset = dataReader.GetPressureOffset();
-            readPeriod = dataReader.GetReadPeriod();
+            try
+            {
+                var device = new FineOffsetDevice(_log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
+                device.OpenDevice();
+                dataReader = new DeviceDataReader(_log, device, false);
+                pressureOffset = dataReader.GetPressureOffset();
+                readPeriod = dataReader.GetReadPeriod();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Error initialising station. Station disabled.", ex);
+                _enabled = false;
+            }
         }
 
     }

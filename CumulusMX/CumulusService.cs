@@ -87,10 +87,11 @@ namespace CumulusMX
                 {
                     IWeatherStation theStation = (IWeatherStation) AutofacWrapper.Instance.Scope.Resolve(service.Key);
                     if (theStation.Enabled)
-                    {
-                        _stations.Add(theStation);
+                    {   
                         log.Info($"Initialising weather station {theStation.Identifier}.");
                         theStation.Initialise();
+                        if (theStation.Enabled)
+                            _stations.Add(theStation);
                     }
                     else
                     {
@@ -103,9 +104,11 @@ namespace CumulusMX
                     IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.Resolve(service.Key);
                     if (theReporter.Enabled)
                     {
-                        _reporters.Add(theReporter);
                         log.Info($"Initialising reporter {theReporter.Identifier}.");
                         theReporter.Initialise();
+
+                        if (theReporter.Enabled)
+                            _reporters.Add(theReporter);
                     }
                     else
                     {
@@ -114,7 +117,14 @@ namespace CumulusMX
                 }
             }
 
-//            _webService.Start();
+            if (!_stations.Any())
+            {
+                log.Error("No weather stations enabled. Aborting.");
+                return;
+            }
+
+            //_webService.Start();
+
             foreach (var weatherStation in _stations)
             {
                 weatherStation.Start();

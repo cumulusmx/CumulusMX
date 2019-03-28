@@ -26,6 +26,7 @@ namespace FineOffset
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
         protected DeviceDataReader dataReader;
+        protected bool _enabled;
 
         public FineOffset(ILogger log,StationSettings settings, IWeatherDataStatistics data)
         {
@@ -41,7 +42,7 @@ namespace FineOffset
             _data = data;
             _settings = settings;
 
-            Enabled = _settings?.IsEnabled ?? false;
+            _enabled = _settings?.IsEnabled ?? false;
         }
 
         public virtual string Identifier => "FineOffset";
@@ -50,16 +51,25 @@ namespace FineOffset
         public virtual string Description => "Supports FineOffset compatible stations";
 
         public virtual IStationSettings ConfigurationSettings { get; }
-        public bool Enabled { get; }
+
+        public bool Enabled => _enabled;
 
 
         public virtual void Initialise()
         {
-            var device = new FineOffsetDevice(_log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
-            device.OpenDevice();
-            dataReader = new DeviceDataReader(_log, device, false);
-            pressureOffset = dataReader.GetPressureOffset();
-            readPeriod = dataReader.GetReadPeriod();
+            try
+            {
+                var device = new FineOffsetDevice(_log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
+                device.OpenDevice();
+                dataReader = new DeviceDataReader(_log, device, false);
+                pressureOffset = dataReader.GetPressureOffset();
+                readPeriod = dataReader.GetReadPeriod();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Error initialising station. Station disabled.",ex);
+                _enabled = false;
+            }
         }
 
 
