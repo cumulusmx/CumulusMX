@@ -1,7 +1,7 @@
 ﻿using System;
 using CumulusMX.Extensions.Station;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Double
 {
     public class MaxMinAverageDouble : IRecords<double>
     {

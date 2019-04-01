@@ -1,12 +1,11 @@
 ﻿using System;
-using Antlr4.StringTemplate.Debug;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
 using UnitsNet.Units;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics
 {
-    public class DayBooleanStatistic<TBase> : IDayStatistic
+    public class DayBooleanStatistic<TBase> : IDayBooleanStatistic
     {
         private readonly IStatistic<TBase> _statistics;
         private readonly Func<IStatistic<TBase>, bool> _theFunction;

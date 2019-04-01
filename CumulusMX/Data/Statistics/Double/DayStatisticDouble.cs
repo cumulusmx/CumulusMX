@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Double
 {
     internal class DayStatisticDouble
     {

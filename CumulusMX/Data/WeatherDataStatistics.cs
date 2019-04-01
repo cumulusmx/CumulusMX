@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using CumulusMX.Data.Statistics;
+using CumulusMX.Data.Statistics.Double;
+using CumulusMX.Data.Statistics.Unit;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
 using UnitsNet.Units;
@@ -31,10 +34,10 @@ namespace CumulusMX.Data
         public IStatistic<Irradiance> SolarRadiation { get; set; } = new StatisticUnit<Irradiance, IrradianceUnit>();
         public IStatistic<double> UvIndex { get; set; } = new StatisticDouble();
         public Dictionary<string, IStatistic<IQuantity>> Extra { get; set; } = new Dictionary<string, IStatistic<IQuantity>>();
-        public IDayStatistic HeatingDegreeDays { get; }
-        public IDayStatistic CoolingDegreeDays { get; }
-        public IDayStatistic DryDays { get; }
-        public IDayStatistic RainDays { get; }
+        public IDayBooleanStatistic HeatingDegreeDays { get; }
+        public IDayBooleanStatistic CoolingDegreeDays { get; }
+        public IDayBooleanStatistic DryDays { get; }
+        public IDayBooleanStatistic RainDays { get; }
         // ? Forecast
 
         public DateTime Time { get; private set; } = DateTime.MinValue;
@@ -46,8 +49,13 @@ namespace CumulusMX.Data
         {
             HeatingDegreeDays = new DayBooleanStatistic<Temperature>(OutdoorTemperature, (x) => x.DayAverage < Temperature.FromDegreesFahrenheit(65));
             CoolingDegreeDays = new DayBooleanStatistic<Temperature>(OutdoorTemperature, (x) => x.DayAverage > Temperature.FromDegreesFahrenheit(65));
+            OutdoorTemperature.AddBooleanStatistics(HeatingDegreeDays);
+            OutdoorTemperature.AddBooleanStatistics(CoolingDegreeDays);
+
             DryDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal == Length.Zero);
             RainDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal != Length.Zero);
+            Rain.AddBooleanStatistics(DryDays);
+            Rain.AddBooleanStatistics(RainDays);
         }
 
         public void Add(WeatherDataModel data)
@@ -60,7 +68,6 @@ namespace CumulusMX.Data
 
             try
             {
-                //TODO - update day statistics
                 if (data.IndoorTemperature.HasValue)
                     IndoorTemperature.Add(data.Timestamp, data.IndoorTemperature.Value);
                 if (data.OutdoorTemperature.HasValue)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CumulusMX.Data;
+using CumulusMX.Data.Statistics.Unit;
 using UnitsNet;
 using UnitsNet.Units;
 using Xunit;

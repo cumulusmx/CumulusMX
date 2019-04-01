@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using CumulusMX.Extensions.Station;
 using Unosquare.Swan;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Double
 {
     public class StatisticDouble : IStatistic<double>
     {
@@ -35,9 +34,11 @@ namespace CumulusMX.Data
         private readonly RollingStatisticDouble _threeHours;
         private readonly RollingStatisticDouble _24Hours;
 
+        private readonly List<IDayBooleanStatistic> _booleanStatistics;
 
         public StatisticDouble()
         {
+            _booleanStatistics = new List<IDayBooleanStatistic>();
             // Initialise runtime constants
             EARLY_DATE = DateTime.MinValue.AddYears(1);
             _day = new MaxMinAverageDouble();
@@ -81,6 +82,8 @@ namespace CumulusMX.Data
                 _monthByDay.Add(_day);
                 _yearByDay.Add(_day);
                 _allTimeByDay.Add(_day);
+                foreach (var booleanStatistic in _booleanStatistics)
+                    booleanStatistic.Add();
 
                 ResetDayValues();
                 RemoveOldSamples(timestamp);
@@ -270,5 +273,11 @@ namespace CumulusMX.Data
         public IRecords<double> CurrentMonth => _monthRecords[LastSample.Month - 1];
 
         public Dictionary<DateTime, double> ValueHistory => _sampleHistory;
+
+        public void AddBooleanStatistics(IDayBooleanStatistic statistic)
+        {
+            _booleanStatistics.Add(statistic);
+        }
+
     }
 }

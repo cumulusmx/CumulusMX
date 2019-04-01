@@ -1,8 +1,7 @@
-﻿using CumulusMX.Extensions.Station;
-using System;
+﻿using System;
 using UnitsNet;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Unit
 {
     internal class DayStatisticUnit<TBase, TUnitType>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>

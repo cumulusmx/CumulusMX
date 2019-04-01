@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using CumulusMX.Data.Statistics.Unit;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
 using UnitsNet.Units;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics
 {
     public static class StatisticFactory
     {

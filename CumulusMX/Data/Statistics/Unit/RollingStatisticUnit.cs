@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CumulusMX.Extensions.Station;
 using UnitsNet;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Unit
 {
     public class RollingStatisticUnit<TBase, TUnitType>
         where TBase : IComparable, IQuantity<TUnitType>

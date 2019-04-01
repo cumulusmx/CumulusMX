@@ -1,10 +1,11 @@
 ﻿using System;
 using UnitsNet;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics
 {
-    public interface IDayStatistic
+    public interface IDayBooleanStatistic
     {
+        void Add();
         int Consecutive { get; }
         int MonthMaximumConsecutive { get; }
         DateTime MonthMaximumConsecutiveDay { get; }
@@ -18,6 +19,5 @@ namespace CumulusMX.Data
         Ratio MonthRatio { get; }
         Ratio YearRatio { get; }
         Ratio AllTimeRatio { get; }
-
     }
 }

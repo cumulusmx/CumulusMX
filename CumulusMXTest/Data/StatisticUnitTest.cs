@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CumulusMX.Data;
+using CumulusMX.Data.Statistics.Unit;
 using UnitsNet;
 using UnitsNet.Units;
 using Xunit;

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CumulusMX.Extensions.Station;
-using Remotion.Linq.Clauses;
 using UnitsNet;
-using UnitsNet.Units;
 using Unosquare.Swan;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Unit
 {
     public class StatisticUnit<TBase, TUnitType> : IStatistic<TBase> 
         where TBase : IComparable, IQuantity<TUnitType>
@@ -43,8 +40,11 @@ namespace CumulusMX.Data
         private readonly RollingStatisticUnit<TBase, TUnitType> _threeHours;
         private readonly RollingStatisticUnit<TBase, TUnitType> _24Hours;
 
+        private readonly List<IDayBooleanStatistic> _booleanStatistics;
+
         public StatisticUnit()
         {
+            _booleanStatistics = new List<IDayBooleanStatistic>();
             // Initialise runtime constants
             EARLY_DATE = DateTime.MinValue.AddYears(1);
             FIRST_UNIT_TYPE = UnitTools.FirstUnit<TUnitType>();
@@ -90,6 +90,8 @@ namespace CumulusMX.Data
                 _monthByDay.Add(_day);
                 _yearByDay.Add(_day);
                 _allTimeByDay.Add(_day);
+                foreach(var booleanStatistic in _booleanStatistics)
+                    booleanStatistic.Add();
 
                 ResetDayValues();
                 RemoveOldSamples(timestamp);
@@ -279,6 +281,11 @@ namespace CumulusMX.Data
         public IRecords<TBase> CurrentMonth => _monthRecords[LastSample.Month - 1];
 
         public Dictionary<DateTime, TBase> ValueHistory => _sampleHistory;
+
+        public void AddBooleanStatistics(IDayBooleanStatistic statistic)
+        {
+            _booleanStatistics.Add(statistic);
+        }
 
         public Dictionary<DateTime, double> ValueHistoryAs(TUnitType unit)
         {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Text;
+using CumulusMX.Data.Statistics;
 
 namespace CumulusMX.Extensions.Station
 {
@@ -80,5 +81,7 @@ namespace CumulusMX.Extensions.Station
         IRecords<TBase> CurrentMonth { get; }
 
         Dictionary<DateTime,TBase> ValueHistory { get; }
+
+        void AddBooleanStatistics(IDayBooleanStatistic heatingDegreeDays);
     }
 }

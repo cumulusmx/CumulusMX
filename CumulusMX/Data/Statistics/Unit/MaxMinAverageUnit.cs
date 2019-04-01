@@ -2,7 +2,7 @@
 using CumulusMX.Extensions.Station;
 using UnitsNet;
 
-namespace CumulusMX.Data
+namespace CumulusMX.Data.Statistics.Unit
 {
     public class MaxMinAverageUnit<TBase, TUnitType> : IRecords<TBase>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
