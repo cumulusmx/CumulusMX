@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
+using CumulusMX.Common;
 using CumulusMX.Data.Statistics;
 using CumulusMX.Data.Statistics.Double;
 using CumulusMX.Data.Statistics.Unit;
@@ -96,6 +96,38 @@ namespace CumulusMX.Data
                     SolarRadiation.Add(data.Timestamp, data.SolarRadiation.Value);
                 if (data.UvIndex.HasValue)
                     UvIndex.Add(data.Timestamp, data.UvIndex.Value);
+
+                if (data.ApparentTemperature.HasValue)
+                    ApparentTemperature.Add(data.Timestamp, data.ApparentTemperature.Value);
+                else
+                {
+                    if (data.OutdoorTemperature.HasValue && data.OutdoorHumidity.HasValue && data.WindSpeed.HasValue)
+                        ApparentTemperature.Add(data.Timestamp, MeteoLib.ApparentTemperature(data.OutdoorTemperature.Value,data.WindSpeed.Value,data.OutdoorHumidity.Value));
+                }
+
+                if (data.WindChill.HasValue)
+                    WindChill.Add(data.Timestamp, data.WindChill.Value);
+                else
+                {
+                    if (data.OutdoorTemperature.HasValue && data.WindSpeed.HasValue)
+                        WindChill.Add(data.Timestamp, MeteoLib.WindChill(data.OutdoorTemperature.Value, data.WindSpeed.Value));
+                }
+
+                if (data.HeatIndex.HasValue)
+                    HeatIndex.Add(data.Timestamp, data.HeatIndex.Value);
+                else
+                {
+                    if (data.OutdoorTemperature.HasValue && data.OutdoorHumidity.HasValue)
+                        HeatIndex.Add(data.Timestamp, MeteoLib.HeatIndex(data.OutdoorTemperature.Value, data.OutdoorHumidity.Value));
+                }
+
+                if (data.Humidex.HasValue)
+                    Humidex.Add(data.Timestamp, data.Humidex.Value);
+                else
+                {
+                    if (data.OutdoorTemperature.HasValue && data.OutdoorHumidity.HasValue)
+                        Humidex.Add(data.Timestamp, MeteoLib.Humidex(data.OutdoorTemperature.Value, data.OutdoorHumidity.Value));
+                }
 
                 foreach (var extraReading in data.Extra)
                 {
