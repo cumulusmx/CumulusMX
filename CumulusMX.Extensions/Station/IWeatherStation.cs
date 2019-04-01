@@ -12,11 +12,12 @@ namespace CumulusMX.Extensions.Station
         string Description { get; }
 
         IStationSettings ConfigurationSettings { get; }
+        bool Enabled { get; }
 
         WeatherDataModel GetCurrentData();
         IEnumerable<WeatherDataModel> GetHistoryData(DateTime fromTimestamp);
 
-        void Start(IWeatherDataStatistics weatherStatistics);
+        void Start();
         void Stop();
     }
 }

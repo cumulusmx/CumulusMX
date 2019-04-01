@@ -1,9 +1,4 @@
-﻿using System;
-using System.Dynamic;
-using Autofac.Core.Activators.Reflection;
-using UnitsNet;
-
-namespace CumulusMX.Data
+﻿namespace CumulusMX.Data
 {
     public class MaxMinAverageDouble
     {

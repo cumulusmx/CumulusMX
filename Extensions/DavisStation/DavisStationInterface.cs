@@ -9,7 +9,8 @@ namespace DavisStation
     public abstract class DavisStationInterface
     {
         protected readonly ILogger _log;
-        protected readonly log4net.ILog _dataLog = log4net.LogManager.GetLogger("cumulusData", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        protected readonly log4net.ILog _dataLog = 
+            log4net.LogManager.GetLogger("cumulusData", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected const int ACK = 6;
         protected const int LOOP_DATA_LENGTH = 99;

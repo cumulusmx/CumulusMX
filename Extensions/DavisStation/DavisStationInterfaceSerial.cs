@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using CumulusMX.Extensions;
@@ -22,16 +23,21 @@ namespace DavisStation
         {
             _log.Info("Serial device = " + ComPortName);
 
-            _comPort = new SerialPort(ComPortName, 19200, Parity.None, 8, StopBits.One)
-                { Handshake = Handshake.None, DtrEnable = true };
-
             //comport.DataReceived += new SerialDataReceivedEventHandler(portDataReceived);
 
             try
             {
+                _comPort = new SerialPort(ComPortName, 19200, Parity.None, 8, StopBits.One)
+                    {Handshake = Handshake.None, DtrEnable = true};
+
                 //comport.ReadTimeout = cumulus.DavisReadTimeout;
                 _comPort.Open();
                 _comPort.NewLine = "\n";
+            }
+            catch (IOException ex)
+            {
+                _log.Error("Error opening communications port",ex);
+                throw new IOException("Failed to initialise COM port", ex);
             }
             catch (Exception ex)
             {

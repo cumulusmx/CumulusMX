@@ -29,8 +29,8 @@ namespace CumulusMX.Extensions
         {
             get
             {
-                int value;
-                if (int.TryParse(_value, out value)) return (value != 0);
+                if (bool.TryParse(_value, out bool value)) return (value);
+                if (int.TryParse(_value, out int valueInt)) return (valueInt != 0);
                 return default(bool);
             }
         }
@@ -64,6 +64,28 @@ namespace CumulusMX.Extensions
                 if (DateTime.TryParse(_value, out value)) return value;
                 return default(DateTime);
             }
+        }
+
+        public object AsType(Type outputType)
+        {
+            outputType = Nullable.GetUnderlyingType(outputType) ?? outputType;
+
+            if (outputType == typeof(string))
+                return AsString;
+
+            if (outputType == typeof(bool))
+                return AsBool;
+
+            if (outputType == typeof(double))
+                return AsDouble;
+
+            if (outputType == typeof(int))
+                return AsInt;
+
+            if (outputType == typeof(DateTime))
+                return AsDateTime;
+
+            return null;
         }
     }
 }

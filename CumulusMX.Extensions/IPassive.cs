@@ -4,10 +4,7 @@ using System.Text;
 
 namespace CumulusMX.Extensions
 {
-    public interface IExtension
+    public interface IPassive
     {
-        string Identifier { get; }
-        void Initialise();
-        
     }
 }

@@ -17,7 +17,7 @@ http://data.awekas.at/eingabe_pruefung.php?val=<Settings.AwekasUser>;<\\>
 <if(Settings.SendUVToAwekas.AsBool)><data.UvIndex.Latest><endif>;<\\>
 <if(Settings.SendSolarToAwekas.AsBool&&IsFineOffset)><data.SolarRadiation.Latest.WattsPerSquareMeter;format="{0:F0}">;<data.SolarRadiation.NonZeroTime.TotalHours><else>;<endif><\\>
 <\\>
-<if(Settings.SendSoilTempToAwekas.AsBool><data.Extra.SoilTemp1.Latest.DegreesCelsius><endif>;<!21!><\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)><data.Extra.SoilTemp1.Latest.DegreesCelsius><endif>;<!21!><\\>
 <data.RainRate.Latest.MillimetersPerHour>;<!22!><\\>
 Cum_<Version>;<!23!><\\>
 ;<\\>
@@ -99,12 +99,12 @@ Cum_<Version>;<!23!><\\>
 ;<! 95/96/97/98/99/100 avg/max lux today/month/year !><\\>
 <data.SolarRadiation.MonthNonZero.Hours>;<\\>
 <data.SolarRadiation.YearNonZero.Hours>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.DayMinimum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.DayAverage.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.DayMaximum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.MonthMinimum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.MonthAverage.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.MonthMaximum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.YearMinimum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.YearAverage.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool>data.Extra.SoilTemp1.YearMaximum.DegreesCelsius<endif><!103-111 min/avg/max Soil temp today/month/year!>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.DayMinimum.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.DayAverage.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.DayMaximum.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.MonthMinimum.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.MonthAverage.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.MonthMaximum.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.YearMinimum.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.YearAverage.DegreesCelsius<endif>;<\\>
+<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.YearMaximum.DegreesCelsius<endif><!103-111 min/avg/max Soil temp today/month/year!>

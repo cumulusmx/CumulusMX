@@ -9,12 +9,15 @@ namespace FineOffset
 {
     public class FineOffsetWithSolar : FineOffset, IWeatherStation
     {
-        public FineOffsetWithSolar() : base()
+        public FineOffsetWithSolar(ILogger log, WithSolarSettings settings, IWeatherDataStatistics data) : base(log, settings, data)
         {
+            this._log = log;
+            this._settings = (StationSettings)settings;
+
             FO_ENTRY_SIZE = 0x10;
             FO_MAX_ADDR = 0xFFF0;
             MAX_HISTORY_ENTRIES = 4080;
-            ConfigurationSettings = new WithSolarSettings();
+            ConfigurationSettings = settings;
         }
         public override string Identifier => "FineOffset_Solar";
         public override string Manufacturer => "Fine Offset";
@@ -23,15 +26,21 @@ namespace FineOffset
 
         public override IStationSettings ConfigurationSettings { get; }
 
-        public override void Initialise(ILogger log, ISettings settings)
+        public override void Initialise()
         {
-            this.log = log;
-            this._settings = (StationSettings)settings;
-            var device = new FineOffsetDevice(log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
-            device.OpenDevice();
-            dataReader = new DeviceDataReader(log, device, false);
-            pressureOffset = dataReader.GetPressureOffset();
-            readPeriod = dataReader.GetReadPeriod();
+            try
+            {
+                var device = new FineOffsetDevice(_log, _settings.VendorId, _settings.ProductId, _settings.IsOSX);
+                device.OpenDevice();
+                dataReader = new DeviceDataReader(_log, device, false);
+                pressureOffset = dataReader.GetPressureOffset();
+                readPeriod = dataReader.GetReadPeriod();
+            }
+            catch (Exception ex)
+            {
+                _log.Error("Error initialising station. Station disabled.", ex);
+                _enabled = false;
+            }
         }
 
     }
@@ -39,6 +48,9 @@ namespace FineOffset
 
     public class WithSolarSettings : StationSettings
     {
+        public WithSolarSettings(IConfigurationProvider _config) : base(_config)
+        {
 
+        }
     }
 }

@@ -6,29 +6,26 @@ using CumulusMX.Extensions.Station;
 
 namespace WeatherBugDataReporter
 {
-    public class WeatherBugDataReporter : IDataReporter
+    public class WeatherBugDataReporter : DataReporterBase
     {
-        private ILogger _logger;
-        public string ServiceName => "Weatherbug Data Reporter Service";
+        public override string ServiceName => "Weatherbug Data Reporter Service";
 
         public IDataReporterSettings Settings { get; private set; }
 
-        public void DoReport(IWeatherDataStatistics currentData)
+        public override void DoReport(IWeatherDataStatistics currentData)
         {
             throw new NotImplementedException();
         }
 
-        public string Identifier => "TBC"; //TODO
+        public override string Identifier => "TBC"; //TODO
 
-        public WeatherBugDataReporter()
+        public WeatherBugDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
-            //TODO: Implement
+            Settings = settings as IDataReporterSettings;
         }
 
-        public void Initialise(ILogger logger, ISettings settings)
+        public override void Initialise()
         {
-            _logger = logger;
-            Settings = settings as IDataReporterSettings;
         }
 
 

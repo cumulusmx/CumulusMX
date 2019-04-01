@@ -19,7 +19,7 @@ namespace CumulusMX.Web
             Unosquare.Swan.Terminal.Settings.DisplayLoggingMessageType = Unosquare.Swan.LogMessageType.None;
 
             _webServer = new WebServer(webPort, RoutingStrategy.Wildcard);
-            var htmlRootPath = Path.Combine(contentRootDir, "interface");
+            var htmlRootPath = Path.Combine(contentRootDir); //, "interface");
 
             log.Debug("HTML root path = " + htmlRootPath);
 

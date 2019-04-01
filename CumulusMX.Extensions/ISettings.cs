@@ -1,6 +1,6 @@
 ﻿namespace CumulusMX.Extensions
 {
-    public interface ISettings
+    public interface ISettings : IPassive
     {
     }
 }

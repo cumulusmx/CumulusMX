@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
+using Autofac;
 using CumulusMX.Extensions.Station;
 using McMaster.NETCore.Plugins;
 
@@ -22,7 +23,7 @@ namespace CumulusMX.Extensions
         }
 
 
-        public IEnumerable<ExtensionDescriptor> GetExtensions()
+        public Dictionary<Type, Type[]> GetExtensions()
         {
             log.Info($"Loading extensions from path '{_settings.Path}'");
             if (!Directory.Exists(_settings.Path))
@@ -30,8 +31,13 @@ namespace CumulusMX.Extensions
                 log.Info($"Creating missing extensions directory '{_settings.Path}'");
                 Directory.CreateDirectory(_settings.Path);
             }
-            List<ExtensionDescriptor> foundExtensions = new List<ExtensionDescriptor>();
-            var extensionDirectories = new DirectoryInfo(_settings.Path).EnumerateDirectories();
+
+            Dictionary<Type,Type[]> foundExtensions = new Dictionary<Type, Type[]>();
+            var directoryInfo = new DirectoryInfo(_settings.Path);
+            var extensionDirectories = directoryInfo.EnumerateDirectories();
+            var extensionInterfaceType = typeof(IExtension);
+            var passiveInterfaceType = typeof(IPassive);
+
             foreach (var directory in extensionDirectories)
             {
                 string filePath = Path.Combine(directory.FullName, directory.Name + ".dll");
@@ -42,14 +48,22 @@ namespace CumulusMX.Extensions
                         log.Debug($"Found possible extension at '{filePath}'");
                         var loader = PluginLoader.CreateFromAssemblyFile(filePath, PluginLoaderOptions.PreferSharedTypes);
                         var assembly = loader.LoadDefaultAssembly();
-                        var interfaceType = typeof(IExtension);
-                        var types = assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.FullName.Equals(interfaceType.FullName)));
+
+                        // Register all extension types (those that implement IExtension)
+                        var types = assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.FullName.Equals(extensionInterfaceType.FullName)));
+
                         foreach (var type in types)
                         {
-                            var extension = (IExtension)Activator.CreateInstance(type);
-                            var extensionDescriptor = new ExtensionDescriptor(extension.Identifier, extension);
+                            AutofacWrapper.Instance.Builder.RegisterType(type);
+                            foundExtensions.Add(type,type.GetInterfaces());
+                        }
 
-                            foundExtensions.Add(extensionDescriptor);
+                        // Register all types that implement IPassive - these are needed for dependency injection
+                        var passiveTypes = assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.FullName.Equals(passiveInterfaceType.FullName)));
+
+                        foreach (var type in passiveTypes)
+                        {
+                            AutofacWrapper.Instance.Builder.RegisterType(type);
                         }
                     }
                     catch (ReflectionTypeLoadException ex)

@@ -19,7 +19,7 @@ namespace CumulusMX.Common.StringTemplate
 
             public virtual string ToString(object o, string formatString, CultureInfo culture)
             {
-                // o will be instanceof Number
+                // o will be instance of Number
                 if (formatString == null)
                     return string.Format(culture, _defaultFormat, o);
 

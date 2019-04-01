@@ -7,7 +7,11 @@ namespace CumulusMX.Extensions.DataReporter
         string ServiceName { get; }
 
         IDataReporterSettings Settings { get; }
+        bool Enabled { get; }
 
         void DoReport(IWeatherDataStatistics currentData);
+
+        void Start();
+        void Stop();
     }
 }

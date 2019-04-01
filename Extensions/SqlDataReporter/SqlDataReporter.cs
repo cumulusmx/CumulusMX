@@ -5,29 +5,26 @@ using CumulusMX.Extensions.Station;
 
 namespace SqlDataReporter
 {
-    public class SqlDataReporter : IDataReporter
+    public class SqlDataReporter : DataReporterBase
     {
-        private ILogger _logger;
-        public string ServiceName => "SQL Data Reporter Service";
+        public override string ServiceName => "SQL Data Reporter Service";
 
         public IDataReporterSettings Settings { get; private set; }
 
-        public void DoReport(IWeatherDataStatistics currentData)
+        public override void DoReport(IWeatherDataStatistics currentData)
         {
             throw new NotImplementedException();
         }
 
-        public string Identifier => "TBC"; //TODO
+        public override string Identifier => "TBC"; //TODO
 
-        public SqlDataReporter()
+        public SqlDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
-            //TODO: Implement
+            Settings = settings as IDataReporterSettings;
         }
 
-        public void Initialise(ILogger logger, ISettings settings)
+        public override void Initialise()
         {
-            _logger = logger;
-            Settings = settings as IDataReporterSettings;
         }
 
 

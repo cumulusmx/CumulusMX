@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 
@@ -8,8 +9,12 @@ namespace FineOffset
 {
     public class StationSettings : IStationSettings
     {
-        public StationSettings()
+        private IConfigurationProvider _baseConfiguration;
+
+        public StationSettings(IConfigurationProvider baseConfiguration)
         {
+            _baseConfiguration = baseConfiguration;
+            SettingsFactory.PopulateProperties(this,_baseConfiguration.GetSection("FineOffsetStation"));
         }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
@@ -24,5 +29,6 @@ namespace FineOffset
         [ExtensionSetting("Maximum pressure", "", 1050)]
         public double MaxPressureThreshold { get; set; }
         public bool SyncFOReads { get; internal set; }
+        public bool IsEnabled { get; set; }
     }
 }
