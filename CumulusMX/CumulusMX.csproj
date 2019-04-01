@@ -27,4 +27,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Statistics\Double\" />
+    <Folder Include="Data\Statistics\Unit\" />
+  </ItemGroup>
+
 </Project>

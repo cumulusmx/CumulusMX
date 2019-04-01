@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using CumulusMX.Extensions.Station;
 using Unosquare.Swan;
 
@@ -13,22 +14,27 @@ namespace CumulusMX.Data
         private readonly DateTime EARLY_DATE;
 
         private readonly Dictionary<DateTime, double> _sampleHistory = new Dictionary<DateTime, double>();
-        private DateTime _lastSampleTime;
         private readonly MaxMinAverageDouble _day;
         private MaxMinAverageDouble _yesterday;
         private readonly MaxMinAverageDouble _month;
         private MaxMinAverageDouble _lastMonth;
+        private readonly DayStatisticDouble _monthByDay;
+        private DayStatisticDouble _lastMonthByDay;
         private readonly MaxMinAverageDouble _year;
         private MaxMinAverageDouble _lastYear;
-        private double _oneHourChange;
-        private double _threeHourChange;
-        private double _24HourTotal;
-        private double _oneHourMaximum;
-        private double _threeHourMaximum;
+        private readonly DayStatisticDouble _yearByDay;
+        private DayStatisticDouble _lastYearByDay;
+        private readonly MaxMinAverageDouble _allTime;
+        private readonly DayStatisticDouble _allTimeByDay;
+        private readonly IRecords<double>[] _monthRecords;
 
         private TimeSpan _dayNonZero = TimeSpan.Zero;
         private TimeSpan _monthNonZero = TimeSpan.Zero;
         private TimeSpan _yearNonZero = TimeSpan.Zero;
+        private readonly RollingStatisticDouble _oneHour;
+        private readonly RollingStatisticDouble _threeHours;
+        private readonly RollingStatisticDouble _24Hours;
+
 
         public StatisticDouble()
         {
@@ -37,7 +43,20 @@ namespace CumulusMX.Data
             _day = new MaxMinAverageDouble();
             _month = new MaxMinAverageDouble();
             _year = new MaxMinAverageDouble();
-            _lastSampleTime = EARLY_DATE; // A very old date we can still look earlier than
+            _allTime = new MaxMinAverageDouble();
+            _monthByDay = new DayStatisticDouble();
+            _yearByDay = new DayStatisticDouble();
+            _allTimeByDay = new DayStatisticDouble();
+
+            _oneHour = new RollingStatisticDouble(1, _sampleHistory);
+            _threeHours = new RollingStatisticDouble(3, _sampleHistory);
+            _24Hours = new RollingStatisticDouble(24, _sampleHistory);
+
+            _monthRecords = new IRecords<double>[12];
+            for (int i=0;i<12;i++)
+                _monthRecords[i]=new MaxMinAverageDouble();
+
+            LastSample = EARLY_DATE; // A very old date we can still look earlier than
         }
 
         /// <summary>
@@ -47,18 +66,22 @@ namespace CumulusMX.Data
         /// <param name="sample">The observed value.</param>
         public void Add(DateTime timestamp,double sample)
         {
-            if (timestamp < _lastSampleTime)
+            if (timestamp < LastSample)
             {
-                log.Warn($"Invalid attempt to load data timestamped {timestamp} when latest data is already {_lastSampleTime}");
+                log.Warn($"Invalid attempt to load data timestamped {timestamp} when latest data is already {LastSample}");
                 return;
             }
 
-            if (timestamp.Year > _lastSampleTime.Year)
+            if (timestamp.Year > LastSample.Year)
                 ResetYearValues();
-            if (timestamp.Year * 12 + timestamp.Month > _lastSampleTime.Year * 12 + _lastSampleTime.Month)
+            if (timestamp.Year * 12 + timestamp.Month > LastSample.Year * 12 + LastSample.Month)
                 ResetMonthValues();
-            if (timestamp.DayOfYear != _lastSampleTime.DayOfYear)
+            if (timestamp.DayOfYear != LastSample.DayOfYear)
             {
+                _monthByDay.Add(_day);
+                _yearByDay.Add(_day);
+                _allTimeByDay.Add(_day);
+
                 ResetDayValues();
                 RemoveOldSamples(timestamp);
             }
@@ -66,27 +89,30 @@ namespace CumulusMX.Data
             _sampleHistory.Add(timestamp,sample);
             Latest = sample;
 
-            _day.AddValue(sample);
-            _month.AddValue(sample);
-            _year.AddValue(sample);
+            _day.AddValue(timestamp, sample);
+            _month.AddValue(timestamp, sample);
+            _year.AddValue(timestamp, sample);
+            _allTime.AddValue(timestamp, sample);
+            _monthRecords[timestamp.Month - 1].AddValue(timestamp,sample);
 
-            Updating24HourTotal(timestamp, sample);
+            _oneHour.AddValue(timestamp, sample);
+            _threeHours.AddValue(timestamp, sample);
+            _24Hours.AddValue(timestamp, sample);
 
-            UpdateMaximumAndChange(3, sample, _lastSampleTime, timestamp, ref _threeHourChange, ref _threeHourMaximum);
-            UpdateMaximumAndChange(1, sample, _lastSampleTime, timestamp, ref _oneHourChange, ref _oneHourMaximum);
-
-            if (sample != 0 && _lastSampleTime > EARLY_DATE)
+            if (Math.Abs(sample) > 0.000001 && LastSample > EARLY_DATE)
             {
                 UpdateNonZeroTimes(timestamp);
             }
 
-            _lastSampleTime = timestamp;
+            LastSample = timestamp;
         }
+
+        public DateTime LastSample { get; private set; }
 
         private void UpdateNonZeroTimes(DateTime timestamp)
         {
-            var newSpan = timestamp - _lastSampleTime;
-            if (timestamp.DayOfYear == _lastSampleTime.DayOfYear)
+            var newSpan = timestamp - LastSample;
+            if (timestamp.DayOfYear == LastSample.DayOfYear)
             {
                 _dayNonZero += newSpan;
                 _monthNonZero += newSpan;
@@ -95,7 +121,7 @@ namespace CumulusMX.Data
             else
             {
                 _dayNonZero += timestamp.TimeOfDay;
-                if (timestamp.Month == _lastSampleTime.Month)
+                if (timestamp.Month == LastSample.Month)
                 {
                     _monthNonZero += newSpan;
                     _yearNonZero += newSpan;
@@ -109,20 +135,6 @@ namespace CumulusMX.Data
             }
         }
 
-        private void Updating24HourTotal(DateTime timestamp, double sample)
-        {
-            // Update rolling 24 hour total
-            var rolledOff = _sampleHistory
-                .Where(x => x.Key >= _lastSampleTime.AddHours(-24) && x.Key < timestamp.AddHours(-24));
-
-            foreach (var oldValue in rolledOff)
-            {
-                _24HourTotal -= oldValue.Value;
-            }
-
-            _24HourTotal += sample;
-        }
-
         private void RemoveOldSamples(DateTime timestamp)
         {
             var cleanupHistory = _sampleHistory
@@ -132,41 +144,6 @@ namespace CumulusMX.Data
 
             foreach (var oldSample in cleanupHistory)
                 _sampleHistory.Remove(oldSample);
-        }
-
-        private void UpdateMaximumAndChange(int hours, double sample, DateTime lastSample, DateTime thisSample, ref double change, ref double maximum)
-        {
-            var oldSamples = _sampleHistory.Where(x => x.Key >= thisSample.AddHours(-1 * hours)).OrderBy(x => x.Key);
-            if (!oldSamples.Any())
-                return;
-
-            change = sample - oldSamples.First().Value;
-
-            var rolledOff = _sampleHistory
-                .Where(x => x.Key > lastSample.AddHours(-1 * hours) && x.Key <= thisSample.AddHours(-1 * hours));
-
-            if (sample.CompareTo(maximum) > 0)
-                maximum = sample;
-            else
-            {
-                bool maxInvalid = false;
-                foreach (var oldValue in rolledOff)
-                {
-                    if (oldValue.Value.Equals(maximum))
-                        maxInvalid = true;
-                }
-
-                if (!maxInvalid) return;
-
-                var historyWindow = _sampleHistory
-                    .Where(x => x.Key > thisSample.AddHours(-1 * hours) && x.Key <= thisSample);
-                maximum = sample;
-                foreach (var oldSample in historyWindow)
-                {
-                    if (oldSample.Value.CompareTo(maximum) > 0)
-                        maximum = oldSample.Value;
-                }
-            }
         }
 
         private void ResetDayValues()
@@ -179,58 +156,118 @@ namespace CumulusMX.Data
         private void ResetMonthValues()
         {
             _lastMonth = _month.DeepClone();
+            _lastMonthByDay = _monthByDay.DeepClone();
             _month.Reset();
+            _monthByDay.Reset();
             _monthNonZero = TimeSpan.Zero;
         }
 
         private void ResetYearValues()
         {
             _lastYear = _year.DeepClone();
+            _lastYearByDay = _yearByDay.DeepClone();
             _year.Reset();
+            _yearByDay.Reset();
             _yearNonZero = TimeSpan.Zero;
         }
 
         public double Latest { get; private set; }
 
-        public double OneHourMaximum => _oneHourMaximum;
+        public double OneHourMaximum => _oneHour.Maximum;
+        public double ThreeHourMaximum => _threeHours.Maximum;
+        public DateTime OneHourMaximumTime => _oneHour.MaximumTime;
+        public DateTime ThreeHourMaximumTime => _threeHours.MaximumTime;
 
-        public double ThreeHourMaximum => _threeHourMaximum;
+        public double OneHourMinimum => _oneHour.Minimum;
+        public double ThreeHourMinimum => _threeHours.Minimum;
+        public DateTime OneHourMinimumTime => _oneHour.MinimumTime;
+        public DateTime ThreeHourMinimumTime => _threeHours.MinimumTime;
 
-        public double OneHourChange => _oneHourChange;
-
-        public double ThreeHourChange => _threeHourChange;
+        public double OneHourChange => _oneHour.Change;
+        public double ThreeHourChange => _threeHours.Change;
+        public double OneHourTotal => _oneHour.Total;
+        public double ThreeHourTotal => _threeHours.Total;
 
         public double DayMaximum => _day.Maximum;
-
         public double DayMinimum => _day.Minimum;
+        public DateTime DayMaximumTime => _day.MaximumTime;
+        public DateTime DayMinimumTime => _day.MinimumTime;
 
         public double DayAverage => _day.Average;
+        public double DayRange => _day.Maximum - _day.Minimum;
 
         public double MonthMaximum => _month.Maximum;
-
         public double MonthMinimum => _month.Minimum;
+        public DateTime MonthMaximumTime => _month.MaximumTime;
+        public DateTime MonthMinimumTime => _month.MinimumTime;
+        public double MonthLowestMaximum => _monthByDay.LowestMaximum;
+        public double MonthHighestMinimum => _monthByDay.HighestMinimum;
+        public DateTime MonthLowestMaximumDay => _monthByDay.LowestMaximumDay;
+        public DateTime MonthHighestMinimumDay => _monthByDay.HighestMinimumDay;
 
         public double MonthAverage => _month.Average;
+        public double MonthRange => _month.Maximum - _month.Minimum;
 
         public double YearMaximum => _year.Maximum;
-
         public double YearMinimum => _year.Minimum;
-
+        public DateTime YearMaximumTime => _year.MaximumTime;
+        public DateTime YearMinimumTime => _year.MinimumTime;
+        public double YearRange => _year.Maximum - _year.Minimum;
         public double YearAverage => _year.Average;
 
-        public double Last24hTotal => _24HourTotal;
+        public double YearLowestMaximum => _yearByDay.LowestMaximum;
+        public double YearHighestMinimum => _yearByDay.HighestMinimum;
+        public DateTime YearLowestMaximumDay => _yearByDay.LowestMaximumDay;
+        public DateTime YearHighestMinimumDay => _yearByDay.HighestMinimumDay; 
+
+        public double RecordMaximum => _allTime.Maximum;
+        public double RecordMinimum => _allTime.Minimum;
+        public DateTime RecordMaximumTime => _allTime.MaximumTime;
+        public DateTime RecordMinimumTime => _allTime.MinimumTime;
+        public bool RecordNow => (Math.Abs(_allTime.Maximum - Latest) < Latest * 0.001) ||
+                                 (Math.Abs(_allTime.Minimum - Latest) < Latest * 0.001);
+        public bool RecordLastHour => ((LastSample - _allTime.MaximumTime) < TimeSpan.FromHours(1)) || 
+                                      ((LastSample - _allTime.MinimumTime) < TimeSpan.FromHours(1));
+
+        public double RecordLowestMaximum => _allTimeByDay.LowestMaximum;
+        public double RecordHighestMinimum => _allTimeByDay.HighestMinimum;
+        public DateTime RecordLowestMaximumDay => _allTimeByDay.LowestMaximumDay;
+        public DateTime RecordHighestMinimumDay => _allTimeByDay.HighestMinimumDay;
+
+        public double Last24hMaximum => _24Hours.Maximum;
+        public DateTime Last24hMaximumTime => _24Hours.MaximumTime;
+        public double Last24hMinimum => _24Hours.Minimum;
+        public DateTime Last24hMinimumTime => _24Hours.MinimumTime;
+        public double Last24hTotal => _24Hours.Total;
+        public double Last24hChange => _24Hours.Change;
+
+        public double YearMaximumDayTotal => _yearByDay.HighestTotal;
+        public double YearMinimumDayTotal => _yearByDay.LowestTotal;
+        public double RecordMaximumDayTotal => _allTimeByDay.HighestTotal;
+        public double RecordMinimumDayTotal => _allTimeByDay.LowestTotal;
+        public DateTime YearMaximumDay => _yearByDay.HighestTotalDay;
+        public DateTime YearMinimumDay => _yearByDay.LowestTotalDay;
+        public DateTime RecordMaximumDay => _allTimeByDay.HighestTotalDay;
+        public DateTime RecordMinimumDay => _allTimeByDay.LowestTotalDay;
+        public double YearMaximumDayRange => _yearByDay.HighestRange;
+        public double YearMinimumDayRange => _yearByDay.LowestRange;
+        public double RecordMaximumDayRange => _allTimeByDay.HighestRange;
+        public double RecordMinimumDayRange => _allTimeByDay.LowestRange;
+        public DateTime YearMaximumDayRangeDay => _yearByDay.HighestRangeDay;
+        public DateTime YearMinimumDayRangeDay => _yearByDay.LowestRangeDay;
+        public DateTime RecordMaximumDayRangeDay => _allTimeByDay.HighestRangeDay;
+        public DateTime RecordMinimumDayRangeDay => _allTimeByDay.LowestRangeDay;
 
         public double DayTotal => _day.Total;
-
         public double MonthTotal => _month.Total;
-
         public double YearTotal => _year.Total;
 
         public TimeSpan DayNonZero => _dayNonZero;
-
         public TimeSpan MonthNonZero => _monthNonZero;
-
         public TimeSpan YearNonZero => _yearNonZero;
+
+        public IRecords<double>[] ByMonth => _monthRecords;
+        public IRecords<double> CurrentMonth => _monthRecords[LastSample.Month - 1];
 
         public Dictionary<DateTime, double> ValueHistory => _sampleHistory;
     }

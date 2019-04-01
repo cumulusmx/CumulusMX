@@ -14,6 +14,10 @@ namespace CumulusMX.Data
 
         public IStatistic<Temperature> IndoorTemperature { get; set; } = new StatisticUnit<Temperature,TemperatureUnit>();
         public IStatistic<Temperature> OutdoorTemperature { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
+        public IStatistic<Temperature> ApparentTemperature { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
+        public IStatistic<Temperature> WindChill { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
+        public IStatistic<Temperature> HeatIndex { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
+        public IStatistic<double> Humidex { get; set; } = new StatisticDouble();
         public IStatistic<Ratio> IndoorHumidity { get; set; } = new StatisticUnit<Ratio, RatioUnit>();
         public IStatistic<Ratio> OutdoorHumidity { get; set; } = new StatisticUnit<Ratio, RatioUnit>();
         public IStatistic<Speed> WindGust { get; set; } = new StatisticUnit<Speed, SpeedUnit>();
@@ -27,12 +31,36 @@ namespace CumulusMX.Data
         public IStatistic<Irradiance> SolarRadiation { get; set; } = new StatisticUnit<Irradiance, IrradianceUnit>();
         public IStatistic<double> UvIndex { get; set; } = new StatisticDouble();
         public Dictionary<string, IStatistic<IQuantity>> Extra { get; set; } = new Dictionary<string, IStatistic<IQuantity>>();
+        public IDayStatistic HeatingDegreeDays { get; }
+        public IDayStatistic CoolingDegreeDays { get; }
+        public IDayStatistic DryDays { get; }
+        public IDayStatistic RainDays { get; }
+        // ? Forecast
+
+        public DateTime Time { get; private set; } = DateTime.MinValue;
+        public DateTime Yesterday => Time.AddDays(-1);
+        public DateTime FirstRecord { get; private set; } = DateTime.MinValue;
+        public TimeSpan SinceFirstRecord => Time - FirstRecord;
+
+        public WeatherDataStatistics()
+        {
+            HeatingDegreeDays = new DayBooleanStatistic<Temperature>(OutdoorTemperature, (x) => x.DayAverage < Temperature.FromDegreesFahrenheit(65));
+            CoolingDegreeDays = new DayBooleanStatistic<Temperature>(OutdoorTemperature, (x) => x.DayAverage > Temperature.FromDegreesFahrenheit(65));
+            DryDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal == Length.Zero);
+            RainDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal != Length.Zero);
+        }
 
         public void Add(WeatherDataModel data)
         {
             _lock.EnterWriteLock();
+
+            if (FirstRecord == DateTime.MinValue)
+                FirstRecord = data.Timestamp;
+            Time = data.Timestamp;
+
             try
             {
+                //TODO - update day statistics
                 if (data.IndoorTemperature.HasValue)
                     IndoorTemperature.Add(data.Timestamp, data.IndoorTemperature.Value);
                 if (data.OutdoorTemperature.HasValue)
@@ -89,5 +117,4 @@ namespace CumulusMX.Data
             _lock.ExitReadLock();
         }
     }
-
 }

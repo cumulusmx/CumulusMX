@@ -1,9 +1,10 @@
 ﻿using System;
+using CumulusMX.Extensions.Station;
 using UnitsNet;
 
 namespace CumulusMX.Data
 {
-    public class MaxMinAverageUnit<TBase, TUnitType>
+    public class MaxMinAverageUnit<TBase, TUnitType> : IRecords<TBase>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
     {
         private int _count = 0;
@@ -13,33 +14,18 @@ namespace CumulusMX.Data
 
         public TBase Minimum
         {
-            get
-            {
-                if (_count == 0)
-                    return _zeroQuantity;
-                return _minimum;
-            }
-            private set
-            {
-                _minimum = value;
-            }
-
+            get => _count == 0 ? _zeroQuantity : _minimum;
+            private set => _minimum = value;
         }
 
         public TBase Maximum
         {
-            get
-            {
-                if (_count == 0)
-                    return _zeroQuantity;
-                return _maximum;
-            }
-            private set
-            {
-                _maximum = value;
-            }
-
+            get => _count == 0 ? _zeroQuantity : _maximum;
+            private set => _maximum = value;
         }
+
+        public DateTime MinimumTime { get; private set; }
+        public DateTime MaximumTime { get; private set; }
 
         public TBase Average
         {
@@ -87,14 +73,24 @@ namespace CumulusMX.Data
             _unitTotal = _zeroQuantity;
             _unitTotalValid = true;
             _nonZero = 0;
+            MaximumTime = DateTime.Now;
+            MinimumTime = DateTime.Now;
         }
 
-        public void AddValue(TBase newValue)
+        public void AddValue(DateTime newTime, TBase newValue)
         {
             _count++;
             _total += newValue.As(_itemOne);
-            if (newValue.CompareTo(Maximum) > 0 || _count == 1) Maximum = newValue;
-            if (newValue.CompareTo(Minimum) < 0 || _count == 1) Minimum = newValue;
+            if (newValue.CompareTo(Maximum) > 0 || _count == 1)
+            {
+                Maximum = newValue;
+                MaximumTime = newTime;
+            }
+            if (newValue.CompareTo(Minimum) < 0 || _count == 1)
+            {
+                Minimum = newValue;
+                MinimumTime = newTime;
+            }
             _averageValid = false;
             _unitTotalValid = false;
             if (newValue.CompareTo(_zeroQuantity) != 0)
