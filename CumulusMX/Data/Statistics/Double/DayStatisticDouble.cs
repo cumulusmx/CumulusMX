@@ -1,12 +1,18 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace CumulusMX.Data.Statistics.Double
 {
+    [JsonObject(MemberSerialization.OptIn)]
     internal class DayStatisticDouble
     {
+        [JsonProperty]
         public double HighestMinimum { get; private set; }
+        [JsonProperty]
         public double LowestMaximum { get; private set; }
+        [JsonProperty]
         public DateTime LowestMaximumDay { get; private set; }
+        [JsonProperty]
         public DateTime HighestMinimumDay { get; private set; }
 
         public double HighestTotal => _total.Maximum;
@@ -14,8 +20,11 @@ namespace CumulusMX.Data.Statistics.Double
         public DateTime HighestTotalDay => _total.MaximumTime;
         public DateTime LowestTotalDay => _total.MinimumTime;
 
+        [JsonProperty]
         private readonly MaxMinAverageDouble _range;
+        [JsonProperty]
         private readonly MaxMinAverageDouble _total;
+        [JsonProperty]
         private int _count;
 
         public double HighestRange => _range.Maximum;

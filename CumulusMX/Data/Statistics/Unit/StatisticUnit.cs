@@ -2,45 +2,73 @@
 using System.Collections.Generic;
 using System.Linq;
 using CumulusMX.Extensions.Station;
+using Newtonsoft.Json;
 using UnitsNet;
 using Unosquare.Swan;
 
 namespace CumulusMX.Data.Statistics.Unit
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class StatisticUnit<TBase, TUnitType> : IStatistic<TBase> 
         where TBase : IComparable, IQuantity<TUnitType>
         where TUnitType : Enum
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log;
 
         private readonly DateTime EARLY_DATE;
         private readonly TUnitType FIRST_UNIT_TYPE;
         private readonly TBase ZERO_QUANTITY;
 
+        [JsonProperty]
         private readonly Dictionary<DateTime, TBase> _sampleHistory = new Dictionary<DateTime, TBase>();
+        [JsonProperty]
         private DateTime _lastSampleTime;
+        [JsonProperty]
         private readonly MaxMinAverageUnit<TBase, TUnitType> _day;
+        [JsonProperty]
         private MaxMinAverageUnit<TBase, TUnitType> _yesterday;
+        [JsonProperty]
         private readonly MaxMinAverageUnit<TBase, TUnitType> _month;
+        [JsonProperty]
         private MaxMinAverageUnit<TBase, TUnitType> _lastMonth;
+        [JsonProperty]
         private readonly DayStatisticUnit<TBase, TUnitType> _monthByDay;
+        [JsonProperty]
         private DayStatisticUnit<TBase, TUnitType> _lastMonthByDay;
+        [JsonProperty]
         private readonly MaxMinAverageUnit<TBase, TUnitType> _year;
+        [JsonProperty]
         private MaxMinAverageUnit<TBase, TUnitType> _lastYear;
+        [JsonProperty]
         private readonly DayStatisticUnit<TBase, TUnitType> _yearByDay;
+        [JsonProperty]
         private DayStatisticUnit<TBase, TUnitType> _lastYearByDay;
+        [JsonProperty]
         private readonly MaxMinAverageUnit<TBase, TUnitType> _allTime;
+        [JsonProperty]
         private readonly DayStatisticUnit<TBase, TUnitType> _allTimeByDay;
+        [JsonProperty]
         private readonly IRecords<TBase>[] _monthRecords;
 
+        [JsonProperty]
         private TimeSpan _dayNonZero = TimeSpan.Zero;
+        [JsonProperty]
         private TimeSpan _monthNonZero = TimeSpan.Zero;
+        [JsonProperty]
         private TimeSpan _yearNonZero = TimeSpan.Zero;
+        [JsonProperty]
         private readonly RollingStatisticUnit<TBase, TUnitType> _oneHour;
+        [JsonProperty]
         private readonly RollingStatisticUnit<TBase, TUnitType> _threeHours;
+        [JsonProperty]
         private readonly RollingStatisticUnit<TBase, TUnitType> _24Hours;
 
         private readonly List<IDayBooleanStatistic> _booleanStatistics;
+
+        static StatisticUnit()
+        {
+            //log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        }
 
         public StatisticUnit()
         {
@@ -118,6 +146,7 @@ namespace CumulusMX.Data.Statistics.Unit
             _lastSampleTime = timestamp;
         }
 
+        [JsonProperty]
         public DateTime LastSample => _lastSampleTime;
 
         private void UpdateNonZeroTimes(DateTime timestamp)
@@ -182,6 +211,7 @@ namespace CumulusMX.Data.Statistics.Unit
             _yearNonZero = TimeSpan.Zero;
         }
 
+        [JsonProperty]
         public TBase Latest { get; private set; }
 
         public TBase OneHourMaximum => _oneHour.Maximum;

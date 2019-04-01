@@ -6,13 +6,16 @@ using CumulusMX.Data.Statistics;
 using CumulusMX.Data.Statistics.Double;
 using CumulusMX.Data.Statistics.Unit;
 using CumulusMX.Extensions.Station;
+using Newtonsoft.Json;
 using UnitsNet;
 using UnitsNet.Units;
 
 namespace CumulusMX.Data
 {
+    [JsonObject]
     public class WeatherDataStatistics : IWeatherDataStatistics
     {
+        [JsonIgnore]
         private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public IStatistic<Temperature> IndoorTemperature { get; set; } = new StatisticUnit<Temperature,TemperatureUnit>();
@@ -34,6 +37,7 @@ namespace CumulusMX.Data
         public IStatistic<Irradiance> SolarRadiation { get; set; } = new StatisticUnit<Irradiance, IrradianceUnit>();
         public IStatistic<double> UvIndex { get; set; } = new StatisticDouble();
         public Dictionary<string, IStatistic<IQuantity>> Extra { get; set; } = new Dictionary<string, IStatistic<IQuantity>>();
+
         public IDayBooleanStatistic HeatingDegreeDays { get; }
         public IDayBooleanStatistic CoolingDegreeDays { get; }
         public IDayBooleanStatistic DryDays { get; }
@@ -41,8 +45,10 @@ namespace CumulusMX.Data
         // ? Forecast
 
         public DateTime Time { get; private set; } = DateTime.MinValue;
+        [JsonIgnore]
         public DateTime Yesterday => Time.AddDays(-1);
         public DateTime FirstRecord { get; private set; } = DateTime.MinValue;
+        [JsonIgnore]
         public TimeSpan SinceFirstRecord => Time - FirstRecord;
 
         public WeatherDataStatistics()

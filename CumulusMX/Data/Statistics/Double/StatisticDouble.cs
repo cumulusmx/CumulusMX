@@ -2,39 +2,65 @@
 using System.Collections.Generic;
 using System.Linq;
 using CumulusMX.Extensions.Station;
+using Newtonsoft.Json;
 using Unosquare.Swan;
 
 namespace CumulusMX.Data.Statistics.Double
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class StatisticDouble : IStatistic<double>
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log;
 
         private readonly DateTime EARLY_DATE;
-
+        [JsonProperty]
         private readonly Dictionary<DateTime, double> _sampleHistory = new Dictionary<DateTime, double>();
+        [JsonProperty]
         private readonly MaxMinAverageDouble _day;
+        [JsonProperty]
         private MaxMinAverageDouble _yesterday;
+        [JsonProperty]
         private readonly MaxMinAverageDouble _month;
+        [JsonProperty]
         private MaxMinAverageDouble _lastMonth;
+        [JsonProperty]
         private readonly DayStatisticDouble _monthByDay;
+        [JsonProperty]
         private DayStatisticDouble _lastMonthByDay;
+        [JsonProperty]
         private readonly MaxMinAverageDouble _year;
+        [JsonProperty]
         private MaxMinAverageDouble _lastYear;
+        [JsonProperty]
         private readonly DayStatisticDouble _yearByDay;
+        [JsonProperty]
         private DayStatisticDouble _lastYearByDay;
+        [JsonProperty]
         private readonly MaxMinAverageDouble _allTime;
+        [JsonProperty]
         private readonly DayStatisticDouble _allTimeByDay;
+        [JsonProperty]
         private readonly IRecords<double>[] _monthRecords;
 
+        [JsonProperty]
         private TimeSpan _dayNonZero = TimeSpan.Zero;
+        [JsonProperty]
         private TimeSpan _monthNonZero = TimeSpan.Zero;
+        [JsonProperty]
         private TimeSpan _yearNonZero = TimeSpan.Zero;
+        [JsonProperty]
         private readonly RollingStatisticDouble _oneHour;
+        [JsonProperty]
         private readonly RollingStatisticDouble _threeHours;
+        [JsonProperty]
         private readonly RollingStatisticDouble _24Hours;
 
         private readonly List<IDayBooleanStatistic> _booleanStatistics;
+
+        static StatisticDouble()
+        {
+            //log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        }
 
         public StatisticDouble()
         {
@@ -110,6 +136,7 @@ namespace CumulusMX.Data.Statistics.Double
             LastSample = timestamp;
         }
 
+        [JsonProperty]
         public DateTime LastSample { get; private set; }
 
         private void UpdateNonZeroTimes(DateTime timestamp)
@@ -174,6 +201,7 @@ namespace CumulusMX.Data.Statistics.Double
             _yearNonZero = TimeSpan.Zero;
         }
 
+        [JsonProperty]
         public double Latest { get; private set; }
 
         public double OneHourMaximum => _oneHour.Maximum;

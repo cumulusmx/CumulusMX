@@ -1,21 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnitsNet;
 
 namespace CumulusMX.Data.Statistics.Unit
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class RollingStatisticUnit<TBase, TUnitType>
         where TBase : IComparable, IQuantity<TUnitType>
         where TUnitType : Enum
     {
+        [JsonProperty]
         private readonly int _rollingPeriod;
         private readonly Dictionary<DateTime, TBase> _sampleHistory;
         private TBase _zeroValue;
+        [JsonProperty]
         private double _total;
         private TBase _unitTotal;
         private TUnitType _firstUnit;
-        private bool _totalValid;
+        private bool _totalValid = false;
 
         public TBase Total
         {
@@ -35,12 +39,18 @@ namespace CumulusMX.Data.Statistics.Unit
             }
         }
 
+        [JsonProperty]
         public TBase Minimum { get; private set; }
+        [JsonProperty]
         public DateTime MinimumTime { get; private set; }
+        [JsonProperty]
         public TBase Maximum { get; private set; }
+        [JsonProperty]
         public DateTime MaximumTime { get; private set; }
+        [JsonProperty]
         public TBase Change { get; private set; }
 
+        [JsonProperty]
         public DateTime LastSample { get; private set; }
 
         public RollingStatisticUnit(int rollingPeriod, Dictionary<DateTime, TBase> sampleHistory)

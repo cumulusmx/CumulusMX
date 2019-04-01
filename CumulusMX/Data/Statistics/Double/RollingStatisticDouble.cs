@@ -1,20 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace CumulusMX.Data.Statistics.Double
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class RollingStatisticDouble
     {
+        [JsonProperty]
         private readonly int _rollingPeriod;
         private readonly Dictionary<DateTime, double> _sampleHistory;
+        [JsonProperty]
         public double Total { get; private set; }
+        [JsonProperty]
         public double Minimum { get; private set; }
+        [JsonProperty]
         public DateTime MinimumTime { get; private set; }
+        [JsonProperty]
         public double Maximum { get; private set; }
+        [JsonProperty]
         public DateTime MaximumTime { get; private set; }
+        [JsonProperty]
         public double Change { get; private set; }
 
+        [JsonProperty]
         public DateTime LastSample { get; private set; }
 
         public RollingStatisticDouble(int rollingPeriod, Dictionary<DateTime, double> sampleHistory)

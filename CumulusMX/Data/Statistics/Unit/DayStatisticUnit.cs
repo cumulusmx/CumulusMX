@@ -1,16 +1,20 @@
 ﻿using System;
+using Newtonsoft.Json;
 using UnitsNet;
 
 namespace CumulusMX.Data.Statistics.Unit
 {
+    [JsonObject(MemberSerialization.OptIn)]
     internal class DayStatisticUnit<TBase, TUnitType>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
     {
+        [JsonProperty]
         public TBase HighestMinimum { get; private set; }
-
+        [JsonProperty]
         public TBase LowestMaximum { get; private set; }
-
+        [JsonProperty]
         public DateTime LowestMaximumDay { get; private set; }
+        [JsonProperty]
         public DateTime HighestMinimumDay { get; private set; }
 
         public TBase HighestTotal => _total.Maximum;
@@ -18,9 +22,12 @@ namespace CumulusMX.Data.Statistics.Unit
         public DateTime HighestTotalDay => _total.MaximumTime;
         public DateTime LowestTotalDay => _total.MinimumTime;
 
+        [JsonProperty]
         private readonly MaxMinAverageUnit<TBase,TUnitType> _range;
+        [JsonProperty]
         private readonly MaxMinAverageUnit<TBase,TUnitType> _total;
         private readonly TBase _zeroQuantity;
+        [JsonProperty]
         private int _count;
         private TUnitType _itemOne;
 

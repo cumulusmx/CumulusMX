@@ -1,15 +1,22 @@
 ﻿using System;
 using CumulusMX.Extensions.Station;
+using Newtonsoft.Json;
 using UnitsNet;
+using Unosquare.Swan.Formatters;
 
 namespace CumulusMX.Data.Statistics.Unit
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class MaxMinAverageUnit<TBase, TUnitType> : IRecords<TBase>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
     {
+        [JsonProperty]
         private int _count = 0;
+        [JsonProperty]
         private int _nonZero = 0;
+        [JsonProperty]
         private TBase _minimum;
+        [JsonProperty]
         private TBase _maximum;
 
         public TBase Minimum
@@ -24,7 +31,9 @@ namespace CumulusMX.Data.Statistics.Unit
             private set => _maximum = value;
         }
 
+        [JsonProperty]
         public DateTime MinimumTime { get; private set; }
+        [JsonProperty]
         public DateTime MaximumTime { get; private set; }
 
         public TBase Average
@@ -51,6 +60,7 @@ namespace CumulusMX.Data.Statistics.Unit
 
         private TBase _average;
         private bool _averageValid = false;
+        [JsonProperty]
         private double _total;
         private TBase _unitTotal;
         private bool _unitTotalValid = false;

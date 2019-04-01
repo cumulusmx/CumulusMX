@@ -30,7 +30,10 @@ namespace CumulusMX.Extensions.Station
 
         public Dictionary<string,IQuantity> Extra { get; set; }
 
-
+        public WeatherDataModel()
+        {
+            Extra = new Dictionary<string, IQuantity>();
+        }
 
 
 

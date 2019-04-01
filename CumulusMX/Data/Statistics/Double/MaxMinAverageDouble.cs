@@ -1,13 +1,19 @@
 ﻿using System;
 using CumulusMX.Extensions.Station;
+using Newtonsoft.Json;
 
 namespace CumulusMX.Data.Statistics.Double
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class MaxMinAverageDouble : IRecords<double>
     {
+        [JsonProperty]
         private int _count = 0;
+        [JsonProperty]
         private int _nonZero = 0;
+        [JsonProperty]
         private double _minimum;
+        [JsonProperty]
         private double _maximum;
 
         public double Minimum
@@ -22,12 +28,16 @@ namespace CumulusMX.Data.Statistics.Double
             private set => _maximum = value;
         }
 
+        [JsonProperty]
         public DateTime MinimumTime { get; private set; }
+        [JsonProperty]
         public DateTime MaximumTime { get; private set; }
-        public double Average { get; private set; }
-
+        
+        public double Average => _count == 0 ? 0.0 : Total / _count;
+        [JsonProperty]
         public double Total { get; private set; }
 
+        [JsonProperty]
         public int NonZero => _nonZero;
 
         public MaxMinAverageDouble()
@@ -38,8 +48,6 @@ namespace CumulusMX.Data.Statistics.Double
         public void Reset()
         {
             _count = 0;
-            Total = 0;
-            Average = 0;
             Total = 0;
             _nonZero = 0;
             MaximumTime = DateTime.Now;
@@ -60,7 +68,7 @@ namespace CumulusMX.Data.Statistics.Double
                 Minimum = newValue;
                 MinimumTime = newTime;
             }
-            Average = Total / _count;
+
             if (Math.Abs(newValue) > 0.00001)
                 _nonZero++;
         }

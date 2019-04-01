@@ -1,41 +1,58 @@
 ﻿using System;
 using CumulusMX.Extensions.Station;
+using Newtonsoft.Json;
 using UnitsNet;
 using UnitsNet.Units;
 
 namespace CumulusMX.Data.Statistics
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class DayBooleanStatistic<TBase> : IDayBooleanStatistic
     {
         private readonly IStatistic<TBase> _statistics;
-        private readonly Func<IStatistic<TBase>, bool> _theFunction;
+        private Func<IStatistic<TBase>, bool> TheFunction { get; }
+        [JsonProperty]
         private int _consecutive = 0;
+        [JsonProperty]
         private int _monthMaximumConsecutive;
+        [JsonProperty]
         private DateTime _monthMaximumConsecutiveDay;
+        [JsonProperty]
         private int _yearMaximumConsecutive;
+        [JsonProperty]
         private DateTime _yearMaximumConsecutiveDay;
+        [JsonProperty]
         private int _recordMaximumConsecutive;
+        [JsonProperty]
         private DateTime _recordMaximumConsecutiveDay = DateTime.MinValue;
+        [JsonProperty]
         private int _monthCount;
+        [JsonProperty]
         private int _yearCount;
+        [JsonProperty]
         private int _allTimeCount;
+        [JsonProperty]
         private int _yearTotalCount;
+        [JsonProperty]
         private int _lastYear;
+        [JsonProperty]
         private int _monthTotalCount;
+        [JsonProperty]
         private int _lastMonth;
+        [JsonProperty]
         private int _allTimeTotalCount;
 
         public DayBooleanStatistic(IStatistic<TBase> statistics, Func<IStatistic<TBase>, bool> theFunction)
         {
             _statistics = statistics;
-            _theFunction = theFunction;
+            TheFunction = theFunction;
         }
 
         public void Add()
         {
             var year = _statistics.LastSample.Year;
             var month = year * 12 + _statistics.LastSample.Month;
-            var isTrue = _theFunction(_statistics);
+            var isTrue = TheFunction(_statistics);
             if (year != _lastYear)
             {
                 _lastYear = year;
