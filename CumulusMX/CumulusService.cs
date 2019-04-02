@@ -50,6 +50,8 @@ namespace CumulusMX
             var extensionLoaderSettings = new ExtensionLoaderSettings() { Path = Path.Combine(appDir, "Extensions") };
             this._extensionLoader = new ExtensionLoader(extensionLoaderSettings);
             _extensions = _extensionLoader.GetExtensions();
+            AutofacWrapper.Instance.Builder.RegisterType(typeof(AutoSaveDataReporter));
+            AutofacWrapper.Instance.Builder.RegisterType(typeof(AutoSaveSettings));
 
             _stations = new List<IWeatherStation>();
             _reporters = new List<IDataReporter>();
@@ -77,7 +79,8 @@ namespace CumulusMX
 
             var wrappedLogger = new LogWrapper(log);
             AutofacWrapper.Instance.Builder.RegisterInstance(wrappedLogger).As<ILogger>();
-            var dataStatistics = new WeatherDataStatistics();
+            var dataFile = _iniFile.GetValue("System", "DataFile", "WeatherData.json");
+            WeatherDataStatistics dataStatistics = WeatherDataStatistics.TryLoad(dataFile);
             AutofacWrapper.Instance.Builder.RegisterInstance(dataStatistics).As<IWeatherDataStatistics>();
             AutofacWrapper.Instance.Builder.RegisterInstance(_iniFile).As<IConfigurationProvider>();
 
@@ -116,6 +119,9 @@ namespace CumulusMX
                     }
                 }
             }
+
+            var autoSave = (IDataReporter)AutofacWrapper.Instance.Scope.Resolve(typeof(AutoSaveDataReporter));
+            _reporters.Add(autoSave);
 
             if (!_stations.Any())
             {
