@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
@@ -27,12 +28,16 @@ namespace CumulusMX
 
         public override void Initialise()
         {
-
+            ReportInterval = 30000;
         }
 
         public override async void DoReport(IWeatherDataStatistics currentData)
         {
+            var timer = new Stopwatch();
+            timer.Start();
             currentData.Save();
+            timer.Stop();
+            _log.Debug($"Updating saved data took {timer.ElapsedMilliseconds}ms.");
         }
 
     }

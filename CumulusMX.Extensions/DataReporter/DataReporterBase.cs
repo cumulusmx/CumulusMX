@@ -29,7 +29,7 @@ namespace CumulusMX.Extensions.DataReporter
         public abstract string ServiceName { get; }
         public IDataReporterSettings Settings { get; }
         public bool Enabled { get; }
-        public int ReportInterval { get; }
+        public int ReportInterval { get; protected set; }
         public abstract void DoReport(IWeatherDataStatistics currentData);
 
         protected Task _backgroundTask;

@@ -207,8 +207,11 @@ namespace CumulusMX.Data
                 serialiser.TypeNameHandling = TypeNameHandling.Auto;
                 using (var fileWriter = File.Create(filename))
                 {
-                    var writer = new JsonTextWriter(new StreamWriter(fileWriter));
-                    serialiser.Serialize(writer, this);
+                    using (var streamW = new StreamWriter(fileWriter))
+                    {
+                        using (var writer = new JsonTextWriter(streamW))
+                            serialiser.Serialize(writer, this);
+                    }
                 }
             }
             finally
