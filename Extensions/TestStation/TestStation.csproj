@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CumulusMX.Common\CumulusMX.Common.csproj" />
+    <ProjectReference Include="..\..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)CumulusMX\bin\$(ConfigurationName)\netcoreapp2.2\Extensions\$(TargetName)\&quot; /D /Y" />
+  </Target>
+
+</Project>
