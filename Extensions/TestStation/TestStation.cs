@@ -32,6 +32,8 @@ namespace TestStation
         private MeanRevertingRandomWalk _outsideWindSpeed;
         private MeanRevertingRandomWalk _outsideWindDirection;
         private MeanRevertingRandomWalk _insideTemp;
+        private MeanRevertingRandomWalk _pressure;
+        private MeanRevertingRandomWalk _rainRate;
 
         public TestStation(ILogger logger, TestStationSettings settings, IWeatherDataStatistics weatherStatistics)
         {
@@ -51,11 +53,14 @@ namespace TestStation
         {
             _log.Info("Station type = Test Data");
 
-            _outsideTemp = new MeanRevertingRandomWalk((x) => 20, (x) => 1, .01, -10, 50);
-            _outsideHumidity = new MeanRevertingRandomWalk((x) => 20, (x) => 1, .01, -10, 50);
-            _outsideWindSpeed = new MeanRevertingRandomWalk((x) => 20, (x) => 1, .01, -10, 50);
-            _outsideWindDirection = new MeanRevertingRandomWalk((x) => 20, (x) => 1, .01, -10, 50);
-            _insideTemp = new MeanRevertingRandomWalk((x) => 20, (x) => 1, .01, -10, 50);
+            var tempMean = new Func<DateTime, double>((x) => 15 + 10 * Math.Cos(x.DayOfYear / 365.0 * 2 * Math.PI) - 10 * Math.Cos(x.TimeOfDay.TotalSeconds/(24*60*60)*2*Math.PI));
+            _outsideTemp = new MeanRevertingRandomWalk(tempMean, (x) => 0.1, 0.01, -10, 50);
+            _outsideHumidity = new MeanRevertingRandomWalk((x) => 50, (x) => 1, 0.01, 0, 100);
+            _outsideWindSpeed = new MeanRevertingRandomWalk((x) => 25, (x) => 1, 0.01, 0, 50);
+            _outsideWindDirection = new MeanRevertingRandomWalk((x) => 180000, (x) => 1000, 0.01, 0, 360000);
+            _pressure = new MeanRevertingRandomWalk((x)=>1000,(x)=>.1,0.01,900,1100);
+            _rainRate = new MeanRevertingRandomWalk((x)=>-10,(x)=>1,0.1,0,30);
+            _insideTemp = new MeanRevertingRandomWalk((x) => 20, (x) => 0.1, 0.1, 15, 25);
         }
 
 
@@ -96,9 +101,11 @@ namespace TestStation
                     _currentData.OutdoorHumidity = Ratio.FromPercent(_outsideHumidity.GetValue(readTime));
                     _currentData.WindSpeed = Speed.FromKilometersPerHour(_outsideWindSpeed.GetValue(readTime));
                     _currentData.WindBearing = Angle.FromMillidegrees(_outsideWindDirection.GetValue(readTime));
-
+                    _currentData.RainRate = Speed.FromMillimetersPerHour(_rainRate.GetValue(readTime));
+                    _currentData.Pressure = Pressure.FromMillibars(_pressure.GetValue(readTime));
                     weatherStatistics.Add(_currentData);
 
+                    _log.Debug($"Generated weather data - Temp:{_currentData.OutdoorTemperature.Value.DegreesCelsius:#.0} Press:{_currentData.Pressure.Value.Millibars:#.0} Wind:{_currentData.WindSpeed.Value.MetersPerSecond:#.0}");
                     await Task.Delay(10000,ct);
                 }
             }
