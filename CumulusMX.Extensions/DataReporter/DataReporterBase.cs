@@ -37,13 +37,13 @@ namespace CumulusMX.Extensions.DataReporter
 
         public void Start()
         {
-            _log.Info($"Starting {Identifier} station background task");
+            _log.Info($"Starting {Identifier} data reporter background task");
             _backgroundTask = Task.Factory.StartNew(() =>
                     PostUpdates(_cts.Token, _weatherStatistics)
                 , _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
-        private void PostUpdates(CancellationToken ct, IWeatherDataStatistics weatherStatistics)
+        private async void PostUpdates(CancellationToken ct, IWeatherDataStatistics weatherStatistics)
         {
             _log.Info($"Starting publication loop for {Identifier}.");
 
@@ -52,7 +52,7 @@ namespace CumulusMX.Extensions.DataReporter
                 while (!ct.IsCancellationRequested)
                 {
                     DoReport(weatherStatistics);
-                    Thread.Sleep(ReportInterval);
+                    await Task.Delay(ReportInterval);
                 }
             }
             // Catch the ThreadAbortException
