@@ -283,22 +283,22 @@ namespace CumulusMX.Common
     //        WebTagDictionary.Add("THighDailyTempRange", TagTHighDailyTempRange);
     //        WebTagDictionary.Add("graphperiod", Taggraphperiod); //TODO
     //        WebTagDictionary.Add("stationtype", Tagstationtype); //TODO
-    //        WebTagDictionary.Add("latitude", Taglatitude); //TODO
-    //        WebTagDictionary.Add("longitude", Taglongitude); //TODO
+    //        WebTagDictionary.Add("latitude", Taglatitude); 
+    //        WebTagDictionary.Add("longitude", Taglongitude); 
     //        WebTagDictionary.Add("location", Taglocation); //TODO
     //        WebTagDictionary.Add("longlocation", Taglonglocation); //TODO
-    //        WebTagDictionary.Add("sunrise", Tagsunrise); //TODO
-    //        WebTagDictionary.Add("sunset", Tagsunset); //TODO
-    //        WebTagDictionary.Add("daylength", Tagdaylength); //TODO
+    //        WebTagDictionary.Add("sunrise", Tagsunrise); 
+    //        WebTagDictionary.Add("sunset", Tagsunset); 
+    //        WebTagDictionary.Add("daylength", Tagdaylength);
     //        WebTagDictionary.Add("dawn", Tagdawn); //TODO
     //        WebTagDictionary.Add("dusk", Tagdusk); //TODO
-    //        WebTagDictionary.Add("daylightlength", Tagdaylightlength); //TODO
-    //        WebTagDictionary.Add("isdaylight", Tagisdaylight); //TODO
-    //        WebTagDictionary.Add("IsSunUp", TagIsSunUp); //TODO
+    //        WebTagDictionary.Add("daylightlength", Tagdaylightlength);
+    //        WebTagDictionary.Add("isdaylight", Tagisdaylight); 
+    //        WebTagDictionary.Add("IsSunUp", TagIsSunUp); 
     //        WebTagDictionary.Add("SensorContactLost", TagSensorContactLost); //TODO
-    //        WebTagDictionary.Add("moonrise", Tagmoonrise); //TODO
-    //        WebTagDictionary.Add("moonset", Tagmoonset); //TODO
-    //        WebTagDictionary.Add("moonphase", Tagmoonphase); //TODO
+    //        WebTagDictionary.Add("moonrise", Tagmoonrise); 
+    //        WebTagDictionary.Add("moonset", Tagmoonset); 
+    //        WebTagDictionary.Add("moonphase", Tagmoonphase);
     //        WebTagDictionary.Add("chillhours", TagChillHours); //TODO
     //        WebTagDictionary.Add("altitude", Tagaltitude); //TODO
     //        WebTagDictionary.Add("forum", Tagforum); //TODO
@@ -311,9 +311,9 @@ namespace CumulusMX.Common
     //        WebTagDictionary.Add("rainunit", Tagrainunit); //TODO
     //        WebTagDictionary.Add("interval", Taginterval); //TODO
     //        WebTagDictionary.Add("realtimeinterval", Tagrealtimeinterval); //TODO
-    //        WebTagDictionary.Add("version", Tagversion); //TODO
-    //        WebTagDictionary.Add("build", Tagbuild); //TODO
-    //        WebTagDictionary.Add("update", Tagupdate); //TODO
+    //        WebTagDictionary.Add("version", Tagversion); 
+    //        WebTagDictionary.Add("build", Tagbuild); 
+    //        WebTagDictionary.Add("update", Tagupdate); 
     //        WebTagDictionary.Add("LastRainTipISO", TagLastRainTipISO);
     //        WebTagDictionary.Add("MinutesSinceLastRainTip", TagMinutesSinceLastRainTip);
     //        WebTagDictionary.Add("LastDataReadT", TagLastDataReadT);
@@ -554,24 +554,24 @@ namespace CumulusMX.Common
     //        WebTagDictionary.Add("YearHighDailyTempRangeD", TagYearHighDailyTempRangeD);
     //        WebTagDictionary.Add("YearLowDailyTempRangeD", TagYearLowDailyTempRangeD);
     //        // misc
-    //        WebTagDictionary.Add("LatestError", TagLatestError); //TODO
-    //        WebTagDictionary.Add("LatestErrorDate", TagLatestErrorDate); //TODO
-    //        WebTagDictionary.Add("LatestErrorTime", TagLatestErrorTime); //TODO
+    //        WebTagDictionary.Add("LatestError", TagLatestError);
+    //        WebTagDictionary.Add("LatestErrorDate", TagLatestErrorDate); 
+    //        WebTagDictionary.Add("LatestErrorTime", TagLatestErrorTime); 
     //        WebTagDictionary.Add("ErrorLight", Tagerrorlight);
-    //        WebTagDictionary.Add("MoonPercent", TagMoonPercent); //TODO
-    //        WebTagDictionary.Add("MoonPercentAbs", TagMoonPercentAbs); //TODO
-    //        WebTagDictionary.Add("MoonAge", TagMoonAge); //TODO
-    //        WebTagDictionary.Add("OsVersion", TagOsVersion); //TODO
-    //        WebTagDictionary.Add("OsLanguage", TagOsLanguage); //TODO
-    //        WebTagDictionary.Add("SystemUpTime", TagSystemUpTime); //TODO
-    //        WebTagDictionary.Add("ProgramUpTime", TagProgramUpTime); //TODO
-    //        WebTagDictionary.Add("CpuName", TagCpuName); //TODO
-    //        WebTagDictionary.Add("CpuCount", TagCpuCount); //TODO
-    //        WebTagDictionary.Add("MemoryStatus", TagMemoryStatus); //TODO
-    //        WebTagDictionary.Add("DisplayMode", TagDisplayModeString); //TODO
-    //        WebTagDictionary.Add("AllocatedMemory", TagAllocatedMemory); //TODO
-    //        WebTagDictionary.Add("DiskSize", TagDiskSize); //TODO
-    //        WebTagDictionary.Add("DiskFree", TagDiskFree); //TODO
+    //        WebTagDictionary.Add("MoonPercent", TagMoonPercent);
+    //        WebTagDictionary.Add("MoonPercentAbs", TagMoonPercentAbs);
+    //        WebTagDictionary.Add("MoonAge", TagMoonAge); 
+    //        WebTagDictionary.Add("OsVersion", TagOsVersion); 
+    //        WebTagDictionary.Add("OsLanguage", TagOsLanguage); 
+    //        WebTagDictionary.Add("SystemUpTime", TagSystemUpTime); 
+    //        WebTagDictionary.Add("ProgramUpTime", TagProgramUpTime); 
+    //        WebTagDictionary.Add("CpuName", TagCpuName); 
+    //        WebTagDictionary.Add("CpuCount", TagCpuCount); 
+    //        WebTagDictionary.Add("MemoryStatus", TagMemoryStatus); 
+    //        WebTagDictionary.Add("DisplayMode", TagDisplayModeString); 
+    //        WebTagDictionary.Add("AllocatedMemory", TagAllocatedMemory); 
+    //        WebTagDictionary.Add("DiskSize", TagDiskSize); 
+    //        WebTagDictionary.Add("DiskFree", TagDiskFree); 
     //        WebTagDictionary.Add("DavisTotalPacketsReceived", TagDavisTotalPacketsReceived); //TODO
     //        WebTagDictionary.Add("DavisTotalPacketsMissed", TagDavisTotalPacketsMissed); //TODO
     //        WebTagDictionary.Add("DavisNumberOfResynchs", TagDavisNumberOfResynchs); //TODO
