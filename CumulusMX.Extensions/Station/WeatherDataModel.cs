@@ -23,9 +23,17 @@ namespace CumulusMX.Extensions.Station
         public Irradiance? SolarRadiation { get; set; }
         public int? UvIndex { get; set; }
 
+        public Temperature? ApparentTemperature { get; set; }
+        public Temperature? WindChill { get; set; }
+        public Temperature? HeatIndex { get; set; }
+        public double? Humidex { get; set; }
+
         public Dictionary<string,IQuantity> Extra { get; set; }
 
-
+        public WeatherDataModel()
+        {
+            Extra = new Dictionary<string, IQuantity>();
+        }
 
 
 
