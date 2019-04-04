@@ -24,11 +24,12 @@ namespace CumulusMX
 
         public AutoSaveDataReporter(ILogger logger, AutoSaveSettings settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
+            ReportInterval = 30000;
         }
 
         public override void Initialise()
         {
-            ReportInterval = 30000;
+            //Note: Never called for this reporter
         }
 
         public override async void DoReport(IWeatherDataStatistics currentData)

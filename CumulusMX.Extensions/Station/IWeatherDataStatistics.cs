@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CumulusMX.Data.Statistics;
 using UnitsNet;
 
 namespace CumulusMX.Extensions.Station
@@ -10,6 +11,10 @@ namespace CumulusMX.Extensions.Station
     {
         IStatistic<Temperature> IndoorTemperature { get; set; }
         IStatistic<Temperature> OutdoorTemperature { get; set; }
+        IStatistic<Temperature> ApparentTemperature { get; set; }
+        IStatistic<Temperature> WindChill { get; set; }
+        IStatistic<Temperature> HeatIndex { get; set; }
+        IStatistic<double> Humidex { get; set; }
         IStatistic<Ratio> IndoorHumidity { get; set; }
         IStatistic<Ratio> OutdoorHumidity { get; set; }
         IStatistic<Speed> WindGust { get; set; }
@@ -23,6 +28,16 @@ namespace CumulusMX.Extensions.Station
         IStatistic<Irradiance> SolarRadiation { get; set; }
         IStatistic<double> UvIndex { get; set; }
         Dictionary<string,IStatistic<IQuantity>> Extra { get; set; }
+
+        IDayBooleanStatistic HeatingDegreeDays { get; }
+        IDayBooleanStatistic CoolingDegreeDays { get; }
+        IDayBooleanStatistic DryDays { get; }
+        IDayBooleanStatistic RainDays { get; }
+        
+        DateTime Time { get; }
+        DateTime Yesterday { get; }
+        DateTime FirstRecord { get; }
+        TimeSpan SinceFirstRecord { get; }
 
         void Add(WeatherDataModel data);
 

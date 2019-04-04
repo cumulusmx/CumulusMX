@@ -20,6 +20,9 @@ namespace CumulusMX.Data
     public class WeatherDataStatistics : IWeatherDataStatistics
     {
         [JsonIgnore]
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        [JsonIgnore]
         private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public IStatistic<Temperature> IndoorTemperature { get; set; } = new StatisticUnit<Temperature,TemperatureUnit>();
@@ -48,10 +51,10 @@ namespace CumulusMX.Data
         public IDayBooleanStatistic RainDays { get; }
         // ? Forecast
 
-        public DateTime Time { get; private set; } = DateTime.MinValue;
+        public DateTime Time { get; private set; }
         [JsonIgnore]
         public DateTime Yesterday => Time.AddDays(-1);
-        public DateTime FirstRecord { get; private set; } = DateTime.MinValue;
+        public DateTime FirstRecord { get; private set; }
         [JsonIgnore]
         public TimeSpan SinceFirstRecord => Time - FirstRecord;
 
@@ -66,6 +69,8 @@ namespace CumulusMX.Data
             RainDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal != Length.Zero);
             Rain.AddBooleanStatistics(DryDays);
             Rain.AddBooleanStatistics(RainDays);
+            Time = DateTime.MinValue;
+            FirstRecord = DateTime.MinValue;
         }
 
         public void Add(WeatherDataModel data)
@@ -179,12 +184,13 @@ namespace CumulusMX.Data
                     var reader = new JsonTextReader(fileReader);
                     var newWds = serialiser.Deserialize<WeatherDataStatistics>(reader);
                     newWds.Filename = dataFile;
+                    log.Info($"Loaded existing weather data from {dataFile} up to {newWds.Time}.");
                     return newWds;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                //TODO: Log a warning
+                log.Warn($"Failed to load existing weather data from {dataFile}. Creating new data.",ex);
                 return new WeatherDataStatistics() {Filename = dataFile};
             }
         }

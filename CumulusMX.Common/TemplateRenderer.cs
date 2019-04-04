@@ -18,6 +18,7 @@ namespace AwekasDataReporter
         private readonly Dictionary<string, object> _extraRenderParameters;
         private readonly ILogger _logger;
         public DateTime Timestamp { get; set; } = DateTime.Now;
+        public List<ITagDetails> ExtraTags { get; set; } = new List<ITagDetails>();
 
         public TemplateRenderer(string templatePath, IWeatherDataStatistics data, IDataReporterSettings settings, Dictionary<string, object> extraRenderParameters, ILogger logger)
         {
@@ -40,10 +41,15 @@ namespace AwekasDataReporter
             template.Add("Settings", _settings);
             template.Add("data", _data);
             template.Add("timestamp", Timestamp);
-            template.Add("Version", "4"); //TODO: Lookup version
+
             foreach (var extraParameter in _extraRenderParameters)
             {
                 template.Add(extraParameter.Key, extraParameter.Value);
+            }
+
+            foreach (var tagDetails in ExtraTags)
+            {
+                template.Add(tagDetails.RegistrationName, tagDetails);
             }
 
             _data.GetReadLock();
