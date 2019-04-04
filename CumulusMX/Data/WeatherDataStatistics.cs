@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using CumulusMX.Common;
+using CumulusMX.Configuration;
 using CumulusMX.Data.Statistics;
 using CumulusMX.Data.Statistics.Double;
 using CumulusMX.Data.Statistics.Unit;
 using CumulusMX.Extensions.Station;
 using Newtonsoft.Json;
 using UnitsNet;
+using UnitsNet.Serialization.JsonNet;
 using UnitsNet.Units;
 
 namespace CumulusMX.Data
@@ -160,6 +164,60 @@ namespace CumulusMX.Data
         public void ReleaseReadLock()
         {
             _lock.ExitReadLock();
+        }
+
+        public static WeatherDataStatistics TryLoad(string dataFile)
+        {
+            try
+            {
+                
+                using (var fileReader = File.OpenText(dataFile))
+                {
+                    var serialiser = new JsonSerializer();
+                    serialiser.Converters.Add(new UnitsNetJsonConverter());
+                    serialiser.TypeNameHandling = TypeNameHandling.Auto;
+                    var reader = new JsonTextReader(fileReader);
+                    var newWds = serialiser.Deserialize<WeatherDataStatistics>(reader);
+                    newWds.Filename = dataFile;
+                    return newWds;
+                }
+            }
+            catch (Exception e)
+            {
+                //TODO: Log a warning
+                return new WeatherDataStatistics() {Filename = dataFile};
+            }
+        }
+
+        [JsonIgnore]
+        public string Filename { get; set; }
+
+        public void Save()
+        {
+            SaveAs(Filename);
+        }
+
+        public void SaveAs(string filename)
+        { 
+            GetReadLock();
+            try
+            {
+                var serialiser = new JsonSerializer();
+                serialiser.Converters.Add(new UnitsNetJsonConverter());
+                serialiser.TypeNameHandling = TypeNameHandling.Auto;
+                using (var fileWriter = File.Create(filename))
+                {
+                    using (var streamW = new StreamWriter(fileWriter))
+                    {
+                        using (var writer = new JsonTextWriter(streamW))
+                            serialiser.Serialize(writer, this);
+                    }
+                }
+            }
+            finally
+            {
+                ReleaseReadLock();
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ namespace AwekasDataReporter
 
         private DataReporterSettingsGeneric _localSettings;
         
-        public override string Identifier => "TBC"; //TODO
+        public override string Identifier => "Awekas"; //TODO
 
         private readonly HttpClient _httpClient;
         protected string _extensionPath;

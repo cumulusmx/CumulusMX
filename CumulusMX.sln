@@ -43,7 +43,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CumulusMXTest", "CumulusMXT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DavisStation", "Extensions\DavisStation\DavisStation.csproj", "{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CumulusMX.Common", "CumulusMX.Common\CumulusMX.Common.csproj", "{28A809EB-CCC9-4930-BA19-589D41252E5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CumulusMX.Common", "CumulusMX.Common\CumulusMX.Common.csproj", "{28A809EB-CCC9-4930-BA19-589D41252E5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestStation", "Extensions\TestStation\TestStation.csproj", "{C17C7725-00CE-4B02-B68A-60F9E097CB07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +117,10 @@ Global
 		{28A809EB-CCC9-4930-BA19-589D41252E5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28A809EB-CCC9-4930-BA19-589D41252E5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28A809EB-CCC9-4930-BA19-589D41252E5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C17C7725-00CE-4B02-B68A-60F9E097CB07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C17C7725-00CE-4B02-B68A-60F9E097CB07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C17C7725-00CE-4B02-B68A-60F9E097CB07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C17C7725-00CE-4B02-B68A-60F9E097CB07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -135,6 +141,7 @@ Global
 		{356C17CF-1B10-4E18-BC48-0BD0E09D3236} = {755EE77D-97DC-4FCE-8CD4-1B0D64C380B8}
 		{8E0E72BE-2EE5-45F6-8DF1-B8D7196D4769} = {755EE77D-97DC-4FCE-8CD4-1B0D64C380B8}
 		{9281C9F1-5CC5-4B8D-B41E-817F5F4A0D62} = {822A9949-1C06-4421-8AFF-C25D98384710}
+		{C17C7725-00CE-4B02-B68A-60F9E097CB07} = {822A9949-1C06-4421-8AFF-C25D98384710}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2966F59C-7EB0-4D1F-A40E-7B1C35A231E8}
