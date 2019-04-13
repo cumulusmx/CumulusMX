@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using Antlr.Runtime;
 using Antlr4.StringTemplate;
 using CumulusMX.Common.StringTemplate;
 using CumulusMX.Extensions;
@@ -31,11 +32,13 @@ namespace AwekasDataReporter
 
         public string DoubleFormat { get; set; } = "{0:F1}";
 
+        public string DateFormat { get; set; } = "{0:d}";
+
         public string Render()
         {
-            var templateGroup = new TemplateGroup();
+            var templateGroup = new TemplateGroup('[',']');
             templateGroup.RegisterRenderer(typeof(double), new DefaultNumberRenderer(DoubleFormat));
-            templateGroup.RegisterRenderer(typeof(DateTime), new DateRenderer());
+            templateGroup.RegisterRenderer(typeof(DateTime), new DefaultDateRenderer(DateFormat));
             var templateString = File.ReadAllText(_templatePath);
             var template = new Template(templateGroup, templateString);
             template.Add("Settings", _settings);

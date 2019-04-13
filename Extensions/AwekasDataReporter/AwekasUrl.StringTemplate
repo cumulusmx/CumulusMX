@@ -1,110 +1,110 @@
-http://data.awekas.at/eingabe_pruefung.php?val=<Settings.AwekasUser>;<\\>
-<passwordString>;<\\>
-<timestamp;format="{0:dd'.'MM'.'yyyy';'HH':'mm}">;<\\>
-<data.OutdoorTemperature.Latest.DegreesCelsius>;<\\>
-<data.OutdoorHumidity.Latest.Value>;<\\>
-<data.Pressure.Latest.Millibars>;<\\>
-<data.Rain.DayTotal.Millimeters>;<\\>
-<data.WindSpeed.DayAverage.KilometersPerHour>;<\\>
-<data.WindBearing.DayAverage.Degrees;format="{0:F0}">;<\\>
-;<\\>
-;<\\>
-;<\\>
-<Settings.AwekasLang>;<\\>
-<pressureTrend>;<\\>
-<data.WindGust.OneHourMaximum.KilometersPerHour>;<\\>
-<if(Settings.SendSolarToAwekas.AsBool)><data.SolarRadiation.Latest.WattsPerSquareMeter><endif>;<\\>
-<if(Settings.SendUVToAwekas.AsBool)><data.UvIndex.Latest><endif>;<\\>
-<if(Settings.SendSolarToAwekas.AsBool&&IsFineOffset)><data.SolarRadiation.Latest.WattsPerSquareMeter;format="{0:F0}">;<data.SolarRadiation.NonZeroTime.TotalHours><else>;<endif><\\>
-<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)><data.Extra.SoilTemp1.Latest.DegreesCelsius><endif>;<!21!><\\>
-<data.RainRate.Latest.MillimetersPerHour>;<!22!><\\>
-Cum_<Version>;<!23!><\\>
-;<\\>
-;<! 24/25 location for mobile!><\\>
-<data.OutdoorTemperature.DayMinimum.DegreesCelsius>;<! 26 !><\\>
-<data.OutdoorTemperature.DayAverage.DegreesCelsius>;<! 27 !><\\>
-<data.OutdoorTemperature.DayMaximum.DegreesCelsius>;<! 28 !><\\>
-<data.OutdoorTemperature.MonthMinimum.DegreesCelsius>;<! 29 !><\\>
-<data.OutdoorTemperature.MonthAverage.DegreesCelsius>;<! 30 avg temp this month !><\\>
-<data.OutdoorTemperature.MonthMaximum.DegreesCelsius>;<! 31 !><\\>
-<data.OutdoorTemperature.YearMinimum.DegreesCelsius>;<! 32 !><\\>
-<data.OutdoorTemperature.YearAverage.DegreesCelsius>;<! 33 avg temp this year !><\\>
-<data.OutdoorTemperature.YearMaximum.DegreesCelsius>;<! 34 !><\\>
-<data.OutdoorHumidity.DayMinimum.Percent>;<! 35 !><\\>
-<data.OutdoorHumidity.DayAverage.Percent>;<! 36 avg hum today !><\\>
-<data.OutdoorHumidity.DayMaximum.Percent>;<\\>
-<data.OutdoorHumidity.MonthMinimum.Percent>;<! 35 !><\\>
-<data.OutdoorHumidity.MonthAverage.Percent>;<! 36 avg hum today !><\\>
-<data.OutdoorHumidity.MonthMaximum.Percent>;<\\>
-<data.OutdoorHumidity.YearMinimum.Percent>;<! 35 !><\\>
-<data.OutdoorHumidity.YearAverage.Percent>;<! 36 avg hum today !><\\>
-<data.OutdoorHumidity.YearMaximum.Percent>;<\\>
-<data.Pressure.DayMinimum.Millibars>;<! 44 !><\\>
-<data.Pressure.DayAverage.Millibars>;<! 45 !><\\>
-<data.Pressure.DayMaximum.Millibars>;<! 46 !><\\>
-<data.Pressure.MonthMinimum.Millibars>;<! 47 !><\\>
-<data.Pressure.MonthAverage.Millibars>;<! 48 avg press this month !><\\>
-<data.Pressure.MonthMaximum.Millibars>;<! 49 !><\\>
-<data.Pressure.YearMinimum.Millibars>;<\\>
-<data.Pressure.YearAverage.Millibars>;<! 51 avg press this year !><\\>
-<data.Pressure.YearMaximum.Millibars>;<! 52 !><\\>
-<data.WindSpeed.DayMinimum.KilometersPerHour>;<\\>
-<data.WindSpeed.DayAverage.KilometersPerHour>;<\\>
-<data.WindSpeed.DayMaximum.KilometersPerHour>;<\\>
-<data.WindSpeed.MonthMinimum.KilometersPerHour>;<\\>
-<data.WindSpeed.MonthAverage.KilometersPerHour>;<\\>
-<data.WindSpeed.MonthMaximum.KilometersPerHour>;<\\>
-<data.WindSpeed.YearMinimum.KilometersPerHour>;<\\>
-<data.WindSpeed.YearAverage.KilometersPerHour>;<\\>
-<data.WindSpeed.YearMaximum.KilometersPerHour>;<\\>
-<data.WindGust.DayMinimum.KilometersPerHour>;<\\>
-<data.WindGust.DayAverage.KilometersPerHour>;<\\>
-<data.WindGust.DayMaximum.KilometersPerHour>;<\\>
-<data.WindGust.MonthMinimum.KilometersPerHour>;<\\>
-<data.WindGust.MonthAverage.KilometersPerHour>;<\\>
-<data.WindGust.MonthMaximum.KilometersPerHour>;<\\>
-<data.WindGust.YearMinimum.KilometersPerHour>;<\\>
-<data.WindGust.YearAverage.KilometersPerHour>;<\\>
-<data.WindGust.YearMaximum.KilometersPerHour>;<\\>
-<data.WindBearing.DayAverage.Degrees>;<\\>
-<data.WindBearing.MonthAverage.Degrees>;<\\>
-<data.WindBearing.YearAverage.Degrees>;<\\>
-<data.Rain.Last24hTotal.Millimeters>;<\\>
-<data.Rain.MonthTotal.Millimeters>;<\\>
-<data.Rain.YearTotal.Millimeters>;<\\>
-<data.Rain.DayAverage.Millimeters>;<\\>
-<data.Rain.DayMaximum.Millimeters>;<\\>
-<data.Rain.MonthAverage.Millimeters>;<\\>
-<data.Rain.MonthMaximum.Millimeters>;<\\>
-<data.Rain.YearAverage.Millimeters>;<\\>
-<data.Rain.YearMaximum.Millimeters>;<\\>
-<data.SolarRadiation.DayAverage.Millimeters>;<\\>
-<data.SolarRadiation.DayMaximum.Millimeters>;<\\>
-<data.SolarRadiation.MonthAverage.Millimeters>;<\\>
-<data.SolarRadiation.MonthMaximum.Millimeters>;<\\>
-<data.SolarRadiation.YearAverage.Millimeters>;<\\>
-<data.SolarRadiation.YearMaximum.Millimeters>;<\\>
-<data.UvIndex.DayAverage.Millimeters>;<\\>
-<data.UvIndex.DayMaximum.Millimeters>;<\\>
-<data.UvIndex.MonthAverage.Millimeters>;<\\>
-<data.UvIndex.MonthMaximum.Millimeters>;<\\>
-<data.UvIndex.YearAverage.Millimeters>;<\\>
-<data.UvIndex.YearMaximum.Millimeters>;<\\>
-;<\\>
-;<\\>
-;<\\>
-;<\\>
-;<\\>
-;<! 95/96/97/98/99/100 avg/max lux today/month/year !><\\>
-<data.SolarRadiation.MonthNonZero.Hours>;<\\>
-<data.SolarRadiation.YearNonZero.Hours>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.DayMinimum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.DayAverage.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.DayMaximum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.MonthMinimum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.MonthAverage.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.MonthMaximum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.YearMinimum.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.YearAverage.DegreesCelsius<endif>;<\\>
-<if(Settings.SendSoilTempToAwekas.AsBool)>data.Extra.SoilTemp1.YearMaximum.DegreesCelsius<endif><!103-111 min/avg/max Soil temp today/month/year!>
+http://data.awekas.at/eingabe_pruefung.php?val=[Settings.AwekasUser];[\\]
+[passwordString];[\\]
+[timestamp;format="{0:dd'.'MM'.'yyyy';'HH':'mm}"];[\\]
+[data.OutdoorTemperature.Latest.DegreesCelsius];[\\]
+[data.OutdoorHumidity.Latest.Value];[\\]
+[data.Pressure.Latest.Millibars];[\\]
+[data.Rain.DayTotal.Millimeters];[\\]
+[data.WindSpeed.DayAverage.KilometersPerHour];[\\]
+[data.WindBearing.DayAverage.Degrees;format="{0:F0}"];[\\]
+;[\\]
+;[\\]
+;[\\]
+[Settings.AwekasLang];[\\]
+[pressureTrend];[\\]
+[data.WindGust.OneHourMaximum.KilometersPerHour];[\\]
+[if(Settings.SendSolarToAwekas.AsBool)][data.SolarRadiation.Latest.WattsPerSquareMeter][endif];[\\]
+[if(Settings.SendUVToAwekas.AsBool)][data.UvIndex.Latest][endif];[\\]
+[if(Settings.SendSolarToAwekas.AsBool&&IsFineOffset)][data.SolarRadiation.Latest.WattsPerSquareMeter;format="{0:F0}"];[data.SolarRadiation.NonZeroTime.TotalHours][else];[endif][\\]
+[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)][data.Extra.SoilTemp1.Latest.DegreesCelsius][endif];[!21!][\\]
+[data.RainRate.Latest.MillimetersPerHour];[!22!][\\]
+Cum_[Version];[!23!][\\]
+;[\\]
+;[! 24/25 location for mobile!][\\]
+[data.OutdoorTemperature.DayMinimum.DegreesCelsius];[! 26 !][\\]
+[data.OutdoorTemperature.DayAverage.DegreesCelsius];[! 27 !][\\]
+[data.OutdoorTemperature.DayMaximum.DegreesCelsius];[! 28 !][\\]
+[data.OutdoorTemperature.MonthMinimum.DegreesCelsius];[! 29 !][\\]
+[data.OutdoorTemperature.MonthAverage.DegreesCelsius];[! 30 avg temp this month !][\\]
+[data.OutdoorTemperature.MonthMaximum.DegreesCelsius];[! 31 !][\\]
+[data.OutdoorTemperature.YearMinimum.DegreesCelsius];[! 32 !][\\]
+[data.OutdoorTemperature.YearAverage.DegreesCelsius];[! 33 avg temp this year !][\\]
+[data.OutdoorTemperature.YearMaximum.DegreesCelsius];[! 34 !][\\]
+[data.OutdoorHumidity.DayMinimum.Percent];[! 35 !][\\]
+[data.OutdoorHumidity.DayAverage.Percent];[! 36 avg hum today !][\\]
+[data.OutdoorHumidity.DayMaximum.Percent];[\\]
+[data.OutdoorHumidity.MonthMinimum.Percent];[! 35 !][\\]
+[data.OutdoorHumidity.MonthAverage.Percent];[! 36 avg hum today !][\\]
+[data.OutdoorHumidity.MonthMaximum.Percent];[\\]
+[data.OutdoorHumidity.YearMinimum.Percent];[! 35 !][\\]
+[data.OutdoorHumidity.YearAverage.Percent];[! 36 avg hum today !][\\]
+[data.OutdoorHumidity.YearMaximum.Percent];[\\]
+[data.Pressure.DayMinimum.Millibars];[! 44 !][\\]
+[data.Pressure.DayAverage.Millibars];[! 45 !][\\]
+[data.Pressure.DayMaximum.Millibars];[! 46 !][\\]
+[data.Pressure.MonthMinimum.Millibars];[! 47 !][\\]
+[data.Pressure.MonthAverage.Millibars];[! 48 avg press this month !][\\]
+[data.Pressure.MonthMaximum.Millibars];[! 49 !][\\]
+[data.Pressure.YearMinimum.Millibars];[\\]
+[data.Pressure.YearAverage.Millibars];[! 51 avg press this year !][\\]
+[data.Pressure.YearMaximum.Millibars];[! 52 !][\\]
+[data.WindSpeed.DayMinimum.KilometersPerHour];[\\]
+[data.WindSpeed.DayAverage.KilometersPerHour];[\\]
+[data.WindSpeed.DayMaximum.KilometersPerHour];[\\]
+[data.WindSpeed.MonthMinimum.KilometersPerHour];[\\]
+[data.WindSpeed.MonthAverage.KilometersPerHour];[\\]
+[data.WindSpeed.MonthMaximum.KilometersPerHour];[\\]
+[data.WindSpeed.YearMinimum.KilometersPerHour];[\\]
+[data.WindSpeed.YearAverage.KilometersPerHour];[\\]
+[data.WindSpeed.YearMaximum.KilometersPerHour];[\\]
+[data.WindGust.DayMinimum.KilometersPerHour];[\\]
+[data.WindGust.DayAverage.KilometersPerHour];[\\]
+[data.WindGust.DayMaximum.KilometersPerHour];[\\]
+[data.WindGust.MonthMinimum.KilometersPerHour];[\\]
+[data.WindGust.MonthAverage.KilometersPerHour];[\\]
+[data.WindGust.MonthMaximum.KilometersPerHour];[\\]
+[data.WindGust.YearMinimum.KilometersPerHour];[\\]
+[data.WindGust.YearAverage.KilometersPerHour];[\\]
+[data.WindGust.YearMaximum.KilometersPerHour];[\\]
+[data.WindBearing.DayAverage.Degrees];[\\]
+[data.WindBearing.MonthAverage.Degrees];[\\]
+[data.WindBearing.YearAverage.Degrees];[\\]
+[data.Rain.Last24hTotal.Millimeters];[\\]
+[data.Rain.MonthTotal.Millimeters];[\\]
+[data.Rain.YearTotal.Millimeters];[\\]
+[data.Rain.DayAverage.Millimeters];[\\]
+[data.Rain.DayMaximum.Millimeters];[\\]
+[data.Rain.MonthAverage.Millimeters];[\\]
+[data.Rain.MonthMaximum.Millimeters];[\\]
+[data.Rain.YearAverage.Millimeters];[\\]
+[data.Rain.YearMaximum.Millimeters];[\\]
+[data.SolarRadiation.DayAverage.Millimeters];[\\]
+[data.SolarRadiation.DayMaximum.Millimeters];[\\]
+[data.SolarRadiation.MonthAverage.Millimeters];[\\]
+[data.SolarRadiation.MonthMaximum.Millimeters];[\\]
+[data.SolarRadiation.YearAverage.Millimeters];[\\]
+[data.SolarRadiation.YearMaximum.Millimeters];[\\]
+[data.UvIndex.DayAverage.Millimeters];[\\]
+[data.UvIndex.DayMaximum.Millimeters];[\\]
+[data.UvIndex.MonthAverage.Millimeters];[\\]
+[data.UvIndex.MonthMaximum.Millimeters];[\\]
+[data.UvIndex.YearAverage.Millimeters];[\\]
+[data.UvIndex.YearMaximum.Millimeters];[\\]
+;[\\]
+;[\\]
+;[\\]
+;[\\]
+;[\\]
+;[! 95/96/97/98/99/100 avg/max lux today/month/year !][\\]
+[data.SolarRadiation.MonthNonZero.Hours];[\\]
+[data.SolarRadiation.YearNonZero.Hours];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.DayMinimum.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.DayAverage.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.DayMaximum.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.MonthMinimum.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.MonthAverage.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.MonthMaximum.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.YearMinimum.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.YearAverage.DegreesCelsius[endif];[\\]
+[if(Settings.SendSoilTempToAwekas.AsBool)]data.Extra.SoilTemp1.YearMaximum.DegreesCelsius[endif][!103-111 min/avg/max Soil temp today/month/year!]
