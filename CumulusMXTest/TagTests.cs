@@ -26,7 +26,6 @@ namespace CumulusMXTest
             var diskSize = tags.DiskSize;
             var diskFree = tags.DiskFree;
             var programUpTime = tags.ProgramUpTime;
-            
         }
     }
 }

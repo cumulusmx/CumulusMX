@@ -8,6 +8,7 @@ using CumulusMX.Common.StringTemplate;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using UnitsNet;
 
 namespace AwekasDataReporter
 {
@@ -39,8 +40,16 @@ namespace AwekasDataReporter
             var templateGroup = new TemplateGroup('[',']');
             templateGroup.RegisterRenderer(typeof(double), new DefaultNumberRenderer(DoubleFormat));
             templateGroup.RegisterRenderer(typeof(DateTime), new DefaultDateRenderer(DateFormat));
+            templateGroup.RegisterRenderer(typeof(Length), new DefaultLengthRenderer());
+            templateGroup.RegisterRenderer(typeof(Pressure), new DefaultPressureRenderer());
+            templateGroup.RegisterRenderer(typeof(Speed), new DefaultSpeedRenderer());
+            templateGroup.RegisterRenderer(typeof(Temperature), new DefaultTemperatureRenderer());
+            templateGroup.RegisterRenderer(typeof(Ratio), new DefaultRatioRenderer());
+            templateGroup.RegisterModelAdaptor(typeof(object),new ExtendedObjectModelAdapter());
+
             var templateString = File.ReadAllText(_templatePath);
             var template = new Template(templateGroup, templateString);
+            
             template.Add("Settings", _settings);
             template.Add("data", _data);
             template.Add("timestamp", Timestamp);
