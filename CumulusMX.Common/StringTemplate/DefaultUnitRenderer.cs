@@ -17,6 +17,7 @@ namespace CumulusMX.Common.StringTemplate
     {
         private readonly string _defaultFormat;
         private readonly TUnitType _defaultUnit;
+        private ILogger _log;
 
         protected static ValueTuple<string,TUnitType> GetDefaults(string globalDefaultFormat,TUnitType globalDefaultUnit, string formatSetting, string unitSetting)
         {
@@ -42,12 +43,14 @@ namespace CumulusMX.Common.StringTemplate
         {
             _defaultFormat = defaultFormat;
             _defaultUnit = defaultUnit;
+
+            _log = AutofacWrapper.Instance.Scope.Resolve<ILogger>();
         }
 
         public virtual string ToString(object o, string formatString, CultureInfo culture)
         {
             string[] tags;
-            // o will be instance of Temperature
+            // o will be instance of TBase
             var unitValue = (TBase)o;
 
             if (formatString == null)
@@ -68,7 +71,7 @@ namespace CumulusMX.Common.StringTemplate
                 else
                 {
                     value = unitValue.As(_defaultUnit);
-                    //_log.Warning($"Unable to parse Temperature unit {tags[1]}.");
+                    _log.Warn($"Unable to parse {typeof(TBase).Name} unit {tags[1]}.");
                 }
             }
 
