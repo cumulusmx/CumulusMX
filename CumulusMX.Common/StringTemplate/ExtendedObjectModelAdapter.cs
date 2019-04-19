@@ -18,17 +18,23 @@ namespace CumulusMX.Common.StringTemplate
             {typeof(Speed),typeof(SpeedExtensions)}
         };
 
-        public new object GetProperty(Interpreter interpreter, TemplateFrame frame, object o, object property,
-            string propertyName)
+        private static readonly Dictionary<Tuple<Type,string>,MethodInfo> _cache = new Dictionary<Tuple<Type, string>, MethodInfo>();
+
+        public new object GetProperty(Interpreter interpreter, TemplateFrame frame, object o, object property, string propertyName)
         {
             if (o == null)
                 throw new ArgumentNullException("o");
+
+            var tuple = new Tuple<Type, string>(o.GetType(), property.ToString());
+            if (_cache.ContainsKey(tuple))
+                return _cache[tuple].Invoke(null, new[] { o });
 
             if (ExtensionTypes.ContainsKey(o.GetType()) && property != null)
             {
                 var method = o.GetType().GetMethod(property.ToString(),BindingFlags.Static);
                 if (method != null)
                 {
+                    _cache.Add(tuple,method);
                     return method.Invoke(null, new[]{o});
                 }
             }
