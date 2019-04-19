@@ -4,7 +4,7 @@ using System.Text;
 using Autofac;
 using Autofac.Core.Lifetime;
 
-namespace CumulusMX
+namespace CumulusMX.Common
 {
     public class AutofacWrapper
     {

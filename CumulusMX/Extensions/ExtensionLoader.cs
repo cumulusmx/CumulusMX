@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
 using Autofac;
-using CumulusMX.Extensions.Station;
+using CumulusMX.Common;
 using McMaster.NETCore.Plugins;
 
 namespace CumulusMX.Extensions

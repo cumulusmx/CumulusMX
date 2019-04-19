@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace CumulusMX.Data.Statistics.Double
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class MaxMinAverageDouble : IRecords<double>
+    public class MaxMinAverageDouble : IRecordsAndAverage<double>
     {
         [JsonProperty]
         private int _count = 0;

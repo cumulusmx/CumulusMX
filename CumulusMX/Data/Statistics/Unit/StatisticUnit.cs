@@ -63,6 +63,11 @@ namespace CumulusMX.Data.Statistics.Unit
         [JsonProperty]
         private readonly RollingStatisticUnit<TBase, TUnitType> _24Hours;
 
+        public IRecordsAndAverage<TBase> Yesterday => _yesterday;
+        public IRecordsAndAverage<TBase> LastMonth => _lastMonth;
+        public IRecordsAndAverage<TBase> LastYear => _lastYear;
+
+
         private readonly List<IDayBooleanStatistic> _booleanStatistics;
 
         static StatisticUnit()
@@ -228,6 +233,8 @@ namespace CumulusMX.Data.Statistics.Unit
         public TBase ThreeHourChange => _threeHours.Change;
         public TBase OneHourTotal => _oneHour.Total;
         public TBase ThreeHourTotal => _threeHours.Total;
+        public TBase OneHourAverage => _oneHour.Average;
+        public TBase ThreeHourAverage => _threeHours.Average;
 
         public TBase DayMaximum => _day.Maximum;
         public TBase DayMinimum => _day.Minimum;

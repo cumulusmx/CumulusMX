@@ -12,7 +12,7 @@ using CumulusMX.Data;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
-using CumulusMX.Stations;
+using CumulusMX.Common;
 using CumulusMX.Web;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Constants;

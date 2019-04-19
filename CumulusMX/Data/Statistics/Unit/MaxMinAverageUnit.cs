@@ -7,7 +7,7 @@ using Unosquare.Swan.Formatters;
 namespace CumulusMX.Data.Statistics.Unit
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class MaxMinAverageUnit<TBase, TUnitType> : IRecords<TBase>
+    public class MaxMinAverageUnit<TBase, TUnitType> : IRecordsAndAverage<TBase>
         where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
     {
         [JsonProperty]
