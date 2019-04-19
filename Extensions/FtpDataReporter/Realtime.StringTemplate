@@ -1,0 +1,61 @@
+﻿[data.Time] [\\]
+[data.OutdoorTemperature.Latest] [\\]
+[data.OutdoorHumidity.Latest] [\\]
+[data.OutdoorDewpoint.Latest] [\\]
+[data.WindSpeed.OneHourAverage] [\\]
+[data.WindSpeed.Latest] [\\]
+[data.WindBearing.Latest] [\\]
+[data.RainRate.Latest] [\\]
+[data.Rain.DayTotal] [\\]
+[data.Pressure.Latest] [\\]
+[data.WindBearing.Latest.CompassPoint] [\\]
+[data.WindSpeed.OneHourAverage.Beaufort] [\\]
+                file.Write(WindUnitText + ' '); // 14
+                file.Write(TempUnitText[1].ToString() + ' '); // 15
+                file.Write(PressUnitText + ' '); // 16
+                file.Write(RainUnitText + ' '); // 17
+[data.WindSpeed.DayTotal] [\\]
+                if (station.presstrendval > 0)
+                    file.Write(ReplaceCommas('+' + station.presstrendval.ToString(PressFormat)) + ' '); // 19
+                else
+                    file.Write(ReplaceCommas(station.presstrendval.ToString(PressFormat)) + ' ');
+[data.Rain.MonthTotal] [\\]
+[data.Rain.YearTotal] [\\]
+[data.Rain.Yesterday.Total] [\\]
+[data.IndoorTemperature] [\\]
+[data.IndoorHumidity] [\\]
+[data.IndoorHumidity] [\\]
+                file.Write(ReplaceCommas(station.WindChill.ToString(TempFormat)) + ' '); // 25
+                file.Write(ReplaceCommas(station.temptrendval.ToString(TempTrendFormat)) + ' '); // 26
+                file.Write(ReplaceCommas(station.HighTempToday.ToString(TempFormat)) + ' '); // 27
+                file.Write(station.hightemptodaytime.ToString("HH:mm") + ' '); // 28
+                file.Write(ReplaceCommas(station.LowTempToday.ToString(TempFormat)) + ' '); // 29
+                file.Write(station.lowtemptodaytime.ToString("HH:mm") + ' '); // 30
+                file.Write(ReplaceCommas(station.highwindtoday.ToString(WindFormat)) + ' '); // 31
+                file.Write(station.highwindtodaytime.ToString("HH:mm") + ' '); // 32
+                file.Write(ReplaceCommas(station.highgusttoday.ToString(WindFormat)) + ' '); // 33
+                file.Write(station.highgusttodaytime.ToString("HH:mm") + ' '); // 34
+                file.Write(ReplaceCommas(station.highpresstoday.ToString(PressFormat)) + ' '); // 35
+                file.Write(station.highpresstodaytime.ToString("HH:mm") + ' '); // 36
+                file.Write(ReplaceCommas(station.lowpresstoday.ToString(PressFormat)) + ' '); // 37
+                file.Write(station.lowpresstodaytime.ToString("HH:mm") + ' '); // 38
+                file.Write(Version + ' '); // 39
+                file.Write(Build + ' '); // 40
+                file.Write(ReplaceCommas(station.RecentMaxGust.ToString(WindFormat)) + ' '); // 41
+                file.Write(ReplaceCommas(station.HeatIndex.ToString(TempFormat)) + ' '); // 42
+                file.Write(ReplaceCommas(station.Humidex.ToString(TempFormat)) + ' '); // 43
+                file.Write(ReplaceCommas(station.UV.ToString(UVFormat)) + ' '); // 44
+                file.Write(ReplaceCommas(station.ET.ToString(ETFormat)) + ' '); // 45
+                file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' '); // 46
+                file.Write(station.AvgBearing.ToString() + ' '); // 47
+                file.Write(ReplaceCommas(station.RainLastHour.ToString(RainFormat)) + ' '); // 48
+                file.Write(station.Forecastnumber.ToString() + ' '); // 49
+                file.Write(IsDaylight() ? "1 " : "0 ");
+                file.Write(station.SensorContactLost ? "1 " : "0 ");
+                file.Write(station.CompassPoint(station.AvgBearing) + ' '); // 52
+                file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
+                file.Write(CloudBaseInFeet ? "ft " : "m ");
+                file.Write(ReplaceCommas(station.ApparentTemperature.ToString(TempFormat)) + ' '); // 55
+                file.Write(ReplaceCommas(station.SunshineHours.ToString("F1")) + ' '); // 56
+                file.Write((Convert.ToInt32(station.CurrentSolarMax)).ToString() + ' '); // 57
+                file.WriteLine(station.IsSunny ? "1 " : "0 ");
