@@ -408,12 +408,12 @@ namespace FtpDataReporter
             //var filename = Path.Combine(AppDir, RealtimeFile);
             //DateTime timestamp = DateTime.Now;
 
-            var renderer = new TemplateRenderer("Realtime.StringTemplate",statistics, Settings, new Dictionary<string, object>(), _log);
+            var renderer = new TemplateRenderer(File.OpenText("Realtime.StringTemplate"),statistics, Settings, new Dictionary<string, object>(), _log);
             var realtimeFileContent = renderer.Render();
             var realtimeFileRemote = Path.Combine(Settings.FtpDirectory, "realtime.txt");
             UploadString(connection,realtimeFileContent, realtimeFileRemote);
 
-            var gaugesRenderer = new TemplateRenderer("RealtimeGauges.StringTemplate", statistics, Settings, new Dictionary<string, object>(), _log);
+            var gaugesRenderer = new TemplateRenderer(File.OpenText("RealtimeGauges.StringTemplate"), statistics, Settings, new Dictionary<string, object>(), _log);
             var gaugesRealtimeFileContent = renderer.Render();
             var gaugesRealtimeFileRemote = Path.Combine(Settings.FtpDirectory, "realtimegauges.txt");
             UploadString(connection, realtimeFileContent, realtimeFileRemote);
@@ -433,7 +433,7 @@ namespace FtpDataReporter
                 string content;
                 if (extraFile.process)
                 {
-                    var parser = new TemplateRenderer(uploadfile, statistics, Settings,
+                    var parser = new TemplateRenderer(File.OpenText(uploadfile), statistics, Settings,
                         new Dictionary<string, object>(), _log);
                     content = parser.Render();
                 }
@@ -523,7 +523,7 @@ namespace FtpDataReporter
                 string content;
                 if (ftpFile.process)
                 {
-                    var parser = new TemplateRenderer(ftpFile.local, statistics, Settings,
+                    var parser = new TemplateRenderer(File.OpenText(ftpFile.local), statistics, Settings,
                         new Dictionary<string, object>(), _log);
                     content = parser.Render();
                 }
@@ -548,7 +548,7 @@ namespace FtpDataReporter
             {
                 foreach (var graphFile in GraphDataFiles)
                 {
-                    var parser = new TemplateRenderer(graphFile.local, statistics, Settings, new Dictionary<string, object>(), _log);
+                    var parser = new TemplateRenderer(File.OpenText(graphFile.local), statistics, Settings, new Dictionary<string, object>(), _log);
                     string content = parser.Render();
                     if (connection != null)
                     {
@@ -578,7 +578,7 @@ namespace FtpDataReporter
                 string content;
                 if (extraFile.process)
                 {
-                    var parser = new TemplateRenderer(uploadfile, statistics, Settings,
+                    var parser = new TemplateRenderer(File.OpenText(uploadfile), statistics, Settings,
                         new Dictionary<string, object>(), _log);
                     content = parser.Render();
                 }

@@ -14,7 +14,7 @@ namespace AwekasDataReporter
 {
     public class TemplateRenderer
     {
-        private readonly string _templatePath;
+        private readonly TextReader _templateStream;
         private readonly IWeatherDataStatistics _data;
         private readonly IDataReporterSettings _settings;
         private readonly Dictionary<string, object> _extraRenderParameters;
@@ -22,9 +22,9 @@ namespace AwekasDataReporter
         public DateTime Timestamp { get; set; } = DateTime.Now;
         public List<ITagDetails> ExtraTags { get; set; } = new List<ITagDetails>();
 
-        public TemplateRenderer(string templatePath, IWeatherDataStatistics data, IDataReporterSettings settings, Dictionary<string, object> extraRenderParameters, ILogger logger)
+        public TemplateRenderer(TextReader templateStream, IWeatherDataStatistics data, IDataReporterSettings settings, Dictionary<string, object> extraRenderParameters, ILogger logger)
         {
-            _templatePath = templatePath;
+            _templateStream = templateStream;
             _data = data;
             _settings = settings;
             _extraRenderParameters = extraRenderParameters;
@@ -47,7 +47,7 @@ namespace AwekasDataReporter
             templateGroup.RegisterRenderer(typeof(Ratio), new DefaultRatioRenderer());
             templateGroup.RegisterModelAdaptor(typeof(object),new ExtendedObjectModelAdapter());
 
-            var templateString = File.ReadAllText(_templatePath);
+            var templateString = _templateStream.ReadToEnd();
             var template = new Template(templateGroup, templateString);
             
             template.Add("Settings", _settings);
