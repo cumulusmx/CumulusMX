@@ -45,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DavisStation", "Extensions\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CumulusMX.Common", "CumulusMX.Common\CumulusMX.Common.csproj", "{28A809EB-CCC9-4930-BA19-589D41252E5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestStation", "Extensions\TestStation\TestStation.csproj", "{C17C7725-00CE-4B02-B68A-60F9E097CB07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestStation", "Extensions\TestStation\TestStation.csproj", "{C17C7725-00CE-4B02-B68A-60F9E097CB07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

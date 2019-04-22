@@ -33,12 +33,12 @@ namespace CumulusMX.Common.ExtensionMethods
 
         public static int Beaufort(this Speed value)
         {
-            return BeaufortLevels.First(x => x.Key < value.MetersPerSecond).Value.Number;
+            return BeaufortLevels.Last(x => x.Key < value.MetersPerSecond).Value.Number;
         }
 
         public static string BeaufortDescription(this Speed value)
         {
-            return BeaufortLevels.First(x => x.Key < value.MetersPerSecond).Value.Description;
+            return BeaufortLevels.Last(x => x.Key < value.MetersPerSecond).Value.Description;
         }
     }
 }

@@ -37,7 +37,7 @@ namespace AwekasDataReporter
 
         public string Render()
         {
-            var templateGroup = new TemplateGroup('[',']');
+            var templateGroup = new TemplateGroup('«', '}');
             templateGroup.RegisterRenderer(typeof(double), new DefaultNumberRenderer(DoubleFormat));
             templateGroup.RegisterRenderer(typeof(DateTime), new DefaultDateRenderer(DateFormat));
             templateGroup.RegisterRenderer(typeof(Length), new DefaultLengthRenderer());
@@ -45,9 +45,10 @@ namespace AwekasDataReporter
             templateGroup.RegisterRenderer(typeof(Speed), new DefaultSpeedRenderer());
             templateGroup.RegisterRenderer(typeof(Temperature), new DefaultTemperatureRenderer());
             templateGroup.RegisterRenderer(typeof(Ratio), new DefaultRatioRenderer());
-            templateGroup.RegisterModelAdaptor(typeof(object),new ExtendedObjectModelAdapter());
+            templateGroup.RegisterModelAdaptor(typeof(object),new ExtendedObjectModelAdaptor());
 
             var templateString = _templateStream.ReadToEnd();
+            templateString = templateString.Replace("${", "«");
             var template = new Template(templateGroup, templateString);
             
             template.Add("Settings", _settings);

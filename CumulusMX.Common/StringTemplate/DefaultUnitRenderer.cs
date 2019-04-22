@@ -3,6 +3,7 @@ using Antlr4.StringTemplate;
 using Autofac;
 using CumulusMX.Extensions;
 using UnitsNet;
+using UnitsNet.Units;
 using CultureInfo = System.Globalization.CultureInfo;
 
 namespace CumulusMX.Common.StringTemplate
@@ -32,7 +33,7 @@ namespace CumulusMX.Common.StringTemplate
             TUnitType unitType;
             if (!Enum.TryParse(TUnitTypeString, true, out unitType))
                 unitType = globalDefaultUnit;
-
+            
             return (temperatureFormat,unitType);
         }
 
@@ -54,7 +55,7 @@ namespace CumulusMX.Common.StringTemplate
             var unitValue = (TBase)o;
 
             if (formatString == null)
-                return string.Format(culture, _defaultFormat, unitValue.As(_defaultUnit));
+                return unitValue.As(_defaultUnit).ToString(_defaultFormat);
 
             if (formatString.Contains("|"))
                 tags = formatString.Split('|');
@@ -76,9 +77,9 @@ namespace CumulusMX.Common.StringTemplate
             }
 
             if (string.IsNullOrWhiteSpace(tags[0]))
-                return string.Format(culture, _defaultFormat, value);
+                return value.ToString(_defaultFormat);
             else
-                return string.Format(culture, formatString, value);
+                return value.ToString(formatString);
         }
     }
 }

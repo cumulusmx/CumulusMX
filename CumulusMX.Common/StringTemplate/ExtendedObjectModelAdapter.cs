@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -10,8 +11,12 @@ using UnitsNet;
 
 namespace CumulusMX.Common.StringTemplate
 {
-    public class ExtendedObjectModelAdapter : ObjectModelAdaptor
+    public class ExtendedObjectModelAdaptor : IModelAdaptor
     {
+        public ExtendedObjectModelAdaptor()
+        {
+            _standardAdapter = new ObjectModelAdaptor();
+        }
         private static readonly Dictionary<Type, Type> ExtensionTypes = new Dictionary<Type, Type>()
         {
             {typeof(Angle),typeof(AngleExtensions)},
@@ -19,8 +24,9 @@ namespace CumulusMX.Common.StringTemplate
         };
 
         private static readonly Dictionary<Tuple<Type,string>,MethodInfo> _cache = new Dictionary<Tuple<Type, string>, MethodInfo>();
+        private ObjectModelAdaptor _standardAdapter;
 
-        public new object GetProperty(Interpreter interpreter, TemplateFrame frame, object o, object property, string propertyName)
+        public virtual object GetProperty(Interpreter interpreter, TemplateFrame frame, object o, object property, string propertyName)
         {
             if (o == null)
                 throw new ArgumentNullException("o");
@@ -29,9 +35,10 @@ namespace CumulusMX.Common.StringTemplate
             if (_cache.ContainsKey(tuple))
                 return _cache[tuple].Invoke(null, new[] { o });
 
-            if (ExtensionTypes.ContainsKey(o.GetType()) && property != null)
+            if (ExtensionTypes.ContainsKey(o.GetType()) && !string.IsNullOrWhiteSpace(propertyName))
             {
-                var method = o.GetType().GetMethod(property.ToString(),BindingFlags.Static);
+                var methods = ExtensionTypes[o.GetType()].GetMethods();
+                var method = methods.FirstOrDefault(x => x.Name == propertyName && x.IsStatic);
                 if (method != null)
                 {
                     _cache.Add(tuple,method);
@@ -39,7 +46,7 @@ namespace CumulusMX.Common.StringTemplate
                 }
             }
 
-            return base.GetProperty(interpreter, frame, o, property, propertyName);
+            return _standardAdapter.GetProperty(interpreter, frame, o, property, propertyName);
         }
 
     }
