@@ -24,8 +24,13 @@ namespace CumulusMX.Data.Statistics.Double
         [JsonProperty]
         public double Change { get; private set; }
 
+        public double Average => Total / _sampleCount;
+
         [JsonProperty]
         public DateTime LastSample { get; private set; }
+
+        [JsonProperty]
+        private int _sampleCount;
 
         public RollingStatisticDouble(int rollingPeriod, Dictionary<DateTime, double> sampleHistory)
         {
@@ -36,6 +41,7 @@ namespace CumulusMX.Data.Statistics.Double
             MaximumTime = DateTime.Now;
             Minimum = double.MaxValue;
             MinimumTime = DateTime.Now;
+            _sampleCount = 0;
         }
 
         public void AddValue(in DateTime timestamp, double sample)
@@ -54,9 +60,11 @@ namespace CumulusMX.Data.Statistics.Double
             foreach (var oldValue in rolledOff)
             {
                 Total -= oldValue.Value;
+                _sampleCount--;
             }
 
             Total += sample;
+            _sampleCount++;
         }
 
 

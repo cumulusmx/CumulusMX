@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CumulusMX.ExtensionMethods
+namespace CumulusMX.Common.ExtensionMethods
 {
     public static class InputExtensions
     {

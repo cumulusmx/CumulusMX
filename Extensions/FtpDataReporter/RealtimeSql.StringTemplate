@@ -1,0 +1,26 @@
+﻿			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlRealtimeTable +
+									   " (LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press,currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit,windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend,tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM,pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex,UV,ET,SolarRad,avgbearing,rhour,forecastnumber,isdaylight,SensorContactLost,wdir,cloudbasevalue,cloudbaseunit,apptemp,SunshineHours,CurrentSolarMax,IsSunny)";
+
+                string values = " Values('" + timestamp.ToString("yy-MM-dd HH:mm:ss") + "'," + station.OutdoorTemperature.ToString(TempFormat, InvC) + ',' +
+                                station.OutdoorHumidity.ToString() + ',' + station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',' + station.WindAverage.ToString(WindFormat, InvC) +
+                                ',' + station.WindLatest.ToString(WindFormat, InvC) + ',' + station.Bearing.ToString() + ',' + station.RainRate.ToString(RainFormat, InvC) + ',' +
+                                station.RainToday.ToString(RainFormat, InvC) + ',' + station.Pressure.ToString(PressFormat, InvC) + ",'" + station.CompassPoint(station.Bearing) +
+                                "','" + Beaufort(station.WindAverage) + "','" + WindUnitText + "','" + TempUnitText[1].ToString() + "','" + PressUnitText + "','" + RainUnitText +
+                                "'," + station.WindRunToday.ToString(WindRunFormat, InvC) + ",'" +
+                                (station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'," +
+                                station.RainMonth.ToString(RainFormat, InvC) + ',' + station.RainYear.ToString(RainFormat, InvC) + ',' +
+                                station.RainYesterday.ToString(RainFormat, InvC) + ',' + station.IndoorTemperature.ToString(TempFormat, InvC) + ',' +
+                                station.IndoorHumidity.ToString() + ',' + station.WindChill.ToString(TempFormat, InvC) + ',' + station.temptrendval.ToString(TempTrendFormat, InvC) +
+                                ',' + station.HighTempToday.ToString(TempFormat, InvC) + ",'" + station.hightemptodaytime.ToString("HH:mm") + "'," +
+                                station.LowTempToday.ToString(TempFormat, InvC) + ",'" + station.lowtemptodaytime.ToString("HH:mm") + "'," +
+                                station.highwindtoday.ToString(WindFormat, InvC) + ",'" + station.highwindtodaytime.ToString("HH:mm") + "'," +
+                                station.highgusttoday.ToString(WindFormat, InvC) + ",'" + station.highgusttodaytime.ToString("HH:mm") + "'," +
+                                station.highpresstoday.ToString(PressFormat, InvC) + ",'" + station.highpresstodaytime.ToString("HH:mm") + "'," +
+                                station.lowpresstoday.ToString(PressFormat, InvC) + ",'" + station.lowpresstodaytime.ToString("HH:mm") + "','" + Version + "','" + Build + "'," +
+                                station.RecentMaxGust.ToString(WindFormat, InvC) + ',' + station.HeatIndex.ToString(TempFormat, InvC) + ',' +
+                                station.Humidex.ToString(TempFormat, InvC) + ',' + station.UV.ToString(UVFormat, InvC) + ',' + station.ET.ToString(ETFormat, InvC) + ',' +
+                                ((int)station.SolarRad).ToString() + ',' + station.AvgBearing.ToString() + ',' + station.RainLastHour.ToString(RainFormat, InvC) + ',' +
+                                station.Forecastnumber.ToString() + ",'" + (IsDaylight() ? "1" : "0") + "','" + (station.SensorContactLost ? "1" : "0") + "','" +
+                                station.CompassPoint(station.AvgBearing) + "'," + ((int)station.CloudBase).ToString() + ",'" + (CloudBaseInFeet ? "ft" : "m") + "'," +
+                                station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString("F1", InvC) + ',' +
+                                ((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";

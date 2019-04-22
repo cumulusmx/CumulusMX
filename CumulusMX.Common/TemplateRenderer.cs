@@ -8,12 +8,13 @@ using CumulusMX.Common.StringTemplate;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using UnitsNet;
 
 namespace AwekasDataReporter
 {
     public class TemplateRenderer
     {
-        private readonly string _templatePath;
+        private readonly TextReader _templateStream;
         private readonly IWeatherDataStatistics _data;
         private readonly IDataReporterSettings _settings;
         private readonly Dictionary<string, object> _extraRenderParameters;
@@ -21,9 +22,9 @@ namespace AwekasDataReporter
         public DateTime Timestamp { get; set; } = DateTime.Now;
         public List<ITagDetails> ExtraTags { get; set; } = new List<ITagDetails>();
 
-        public TemplateRenderer(string templatePath, IWeatherDataStatistics data, IDataReporterSettings settings, Dictionary<string, object> extraRenderParameters, ILogger logger)
+        public TemplateRenderer(TextReader templateStream, IWeatherDataStatistics data, IDataReporterSettings settings, Dictionary<string, object> extraRenderParameters, ILogger logger)
         {
-            _templatePath = templatePath;
+            _templateStream = templateStream;
             _data = data;
             _settings = settings;
             _extraRenderParameters = extraRenderParameters;
@@ -36,11 +37,20 @@ namespace AwekasDataReporter
 
         public string Render()
         {
-            var templateGroup = new TemplateGroup('[',']');
+            var templateGroup = new TemplateGroup('«', '}');
             templateGroup.RegisterRenderer(typeof(double), new DefaultNumberRenderer(DoubleFormat));
             templateGroup.RegisterRenderer(typeof(DateTime), new DefaultDateRenderer(DateFormat));
-            var templateString = File.ReadAllText(_templatePath);
+            templateGroup.RegisterRenderer(typeof(Length), new DefaultLengthRenderer());
+            templateGroup.RegisterRenderer(typeof(Pressure), new DefaultPressureRenderer());
+            templateGroup.RegisterRenderer(typeof(Speed), new DefaultSpeedRenderer());
+            templateGroup.RegisterRenderer(typeof(Temperature), new DefaultTemperatureRenderer());
+            templateGroup.RegisterRenderer(typeof(Ratio), new DefaultRatioRenderer());
+            templateGroup.RegisterModelAdaptor(typeof(object),new ExtendedObjectModelAdaptor());
+
+            var templateString = _templateStream.ReadToEnd();
+            templateString = templateString.Replace("${", "«");
             var template = new Template(templateGroup, templateString);
+            
             template.Add("Settings", _settings);
             template.Add("data", _data);
             template.Add("timestamp", Timestamp);

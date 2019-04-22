@@ -1,182 +1,181 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Authentication;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
+using AwekasDataReporter;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using FluentFTP;
 
 namespace FtpDataReporter
 {
     public class FtpDataReporter : DataReporterBase
     {
+        private FtpClient RealtimeFTP;
         public override string ServiceName => "FTP Reporter Service";
 
-        public IDataReporterSettings Settings { get; private set; }
+        public FtpDataReporterSettings Settings { get; private set; }
 
-        public override string Identifier => "TBC"; //TODO
+        public override string Identifier => "FtpReporter";
+        #region Contsants
+        private const string LOG_FILE_TAG = "<currentlogfile>";
 
-        public FtpDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
+        private static string DirectorySeparator = "/";
+        string IndexTFile = "web" + DirectorySeparator + "indexT.htm";
+        string TodayTFile = "web" + DirectorySeparator + "todayT.htm";
+        string YesterdayTFile = "web" + DirectorySeparator + "yesterdayT.htm";
+        string RecordTFile = "web" + DirectorySeparator + "recordT.htm";
+        string TrendsTFile = "web" + DirectorySeparator + "trendsT.htm";
+        string GaugesTFile = "web" + DirectorySeparator + "gaugesT.htm";
+        string ThisMonthTFile = "web" + DirectorySeparator + "thismonthT.htm";
+        string ThisYearTFile = "web" + DirectorySeparator + "thisyearT.htm";
+        string MonthlyRecordTFile = "web" + DirectorySeparator + "monthlyrecordT.htm";
+        string RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
+
+        static string Indexfile = "web" + DirectorySeparator + "index.htm";
+        static string Todayfile = "web" + DirectorySeparator + "today.htm";
+        static string Yesterfile = "web" + DirectorySeparator + "yesterday.htm";
+        static string Recordfile = "web" + DirectorySeparator + "record.htm";
+        static string Trendsfile = "web" + DirectorySeparator + "trends.htm";
+        static string Gaugesfile = "web" + DirectorySeparator + "gauges.htm";
+        static string ThisMonthfile = "web" + DirectorySeparator + "thismonth.htm";
+        static string ThisYearfile = "web" + DirectorySeparator + "thisyear.htm";
+        static string MonthlyRecordfile = "web" + DirectorySeparator + "monthlyrecord.htm";
+        string RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
+
+        private List<UploadFileDetails> WebTextFiles = new List<UploadFileDetails>()
         {
-            Settings = settings as IDataReporterSettings;
+            new UploadFileDetails() { local = Indexfile, remote = "index.htm"},
+            new UploadFileDetails() { local = Todayfile, remote = "today.htm"},
+            new UploadFileDetails() { local = Yesterfile, remote = "yesterday.htm"},
+            new UploadFileDetails() { local = Recordfile, remote = "record.htm"},
+            new UploadFileDetails() { local = Trendsfile, remote = "trends.htm"},
+            new UploadFileDetails() { local = Gaugesfile, remote = "gauges.htm"},
+            new UploadFileDetails() { local = ThisMonthfile, remote = "thismonth.htm"},
+            new UploadFileDetails() { local = ThisYearfile, remote = "thisyear.htm"},
+            new UploadFileDetails() { local = MonthlyRecordfile, remote = "monthlyrecord.htm"}
+        };
+
+        private List<UploadFileDetails> GraphDataFiles = new List<UploadFileDetails>()
+        {
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "graphconfig.json", remote = "graphconfig.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "tempdata.json", remote = "tempdata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "pressdata.json", remote = "pressdata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "winddata.json", remote = "winddata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "wdirdata.json", remote = "wdirdata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "humdata.json", remote = "humdata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "raindata.json", remote = "raindata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "solardata.json", remote = "solardata.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "dailyrain.json", remote = "dailyrain.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "sunhours.json", remote = "sunhours.json"},
+            new UploadFileDetails() { local = "web" + DirectorySeparator + "dailytemp.json", remote = "dailytemp.json"}
+        };
+        #endregion
+
+        private List<UploadFileDetails> ExtraFiles;
+
+        public FtpDataReporter(ILogger logger, FtpDataReporterSettings settings, IWeatherDataStatistics data) : base(logger, settings, data)
+        {
+            Settings = settings;
+            ExtraFiles = Settings.ExtraFiles;
         }
 
+        protected Task _realtimeTask;
+        protected CancellationTokenSource _realtimeCts;
+        private int RealtimeInterval;
         public override void Initialise()
         {
+            if (Settings.RealtimeEnabled)
+            {
+                RealtimeFTP = new FtpClient();
+                RealtimeInterval = Settings.RealtimeInterval;
+                RealtimeFTPLogin();
+
+                _realtimeCts = new CancellationTokenSource();
+                _log.Info($"Starting realtime FTP data reporter background task");
+                _backgroundTask = Task.Factory.StartNew(() =>
+                        RealtimeWorker(this, null)
+                    , _realtimeCts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+
+            }
         }
 
         public override void DoReport(IWeatherDataStatistics currentData)
         {
-            throw new NotImplementedException();
+            var connection = CreateConnection();
+            if (_dataObject == null)
+                _dataObject = currentData;  // Cache the data object - for realtime use
+            
+            UploadRegularFiles(currentData,connection);
+            connection.Dispose();
         }
 
-        /* private void DoFTPLogin()
+        private FtpClient CreateConnection()
         {
-            using (FtpClient conn = new FtpClient())
+            FtpClient conn = new FtpClient();
+
+            _log.Info("CumulusMX Connecting to " + Settings.Host);
+            conn.Host = Settings.Host;
+            conn.Port = Settings.Port;
+            conn.Credentials = new NetworkCredential(Settings.User, Settings.Password);
+
+            if (Settings.UseSsl)
             {
-                FtpTrace.WriteLine(""); // insert a blank line
-                FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " CumulusMX Connecting to " + ftp_host);
-                conn.Host = ftp_host;
-                conn.Port = ftp_port;
-                conn.Credentials = new NetworkCredential(ftp_user, ftp_password);
-
-                if (Sslftp)
-                {
-                    conn.EncryptionMode = FtpEncryptionMode.Explicit;
-                    conn.DataConnectionEncryption = true;
-                    conn.ValidateCertificate += Client_ValidateCertificate;
-                    // b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
-                    conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-                }
-
-                if (ActiveFTPMode)
-                {
-                    conn.DataConnectionType = FtpDataConnectionType.PORT;
-                }
-                else if (DisableEPSV)
-                {
-                    conn.DataConnectionType = FtpDataConnectionType.PASV;
-                }
-
-                try
-                {
-                    conn.Connect();
-                }
-                catch (Exception ex)
-                {
-                    LogMessage("Error connecting ftp - " + ex.Message);
-                }
-
-                conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-
-                if (conn.IsConnected)
-                {
-                    string remotePath = (ftp_directory.EndsWith("/") ? ftp_directory : ftp_directory + "/");
-                    if (NOAANeedFTP)
-                    {
-                        // upload NOAA reports
-                        LogMessage("Uploading NOAA reports");
-                        FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
-
-                        var uploadfile = ReportPath + NOAALatestMonthlyReport;
-                        var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
-
-                        UploadFile(conn, uploadfile, remotefile);
-
-                        uploadfile = ReportPath + NOAALatestYearlyReport;
-                        remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
-
-                        UploadFile(conn, uploadfile, remotefile);
-
-                        NOAANeedFTP = false;
-                    }
-
-                    //LogDebugMessage("Uploading extra files");
-                    // Extra files
-                    for (int i = 0; i < numextrafiles; i++)
-                    {
-                        var uploadfile = ExtraFiles[i].local;
-                        var remotefile = ExtraFiles[i].remote;
-
-                        if (uploadfile == "<currentlogfile>")
-                        {
-                            uploadfile = GetLogFileName(DateTime.Now);
-                        }
-
-                        remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
-
-                        if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != "") && !ExtraFiles[i].realtime && ExtraFiles[i].FTP)
-                        {
-                            // all checks OK, file needs to be uploaded
-                            if (ExtraFiles[i].process)
-                            {
-                                // we've already processed the file
-                                uploadfile = uploadfile + "tmp";
-                            }
-
-                            UploadFile(conn, uploadfile, remotefile);
-                        }
-                    }
-                    //LogDebugMessage("Done uploading extra files");
-                    // standard files
-                    if (IncludeStandardFiles)
-                    {
-                        //LogDebugMessage("Uploading standard files");
-                        FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading standard files");
-                        try
-                        {
-                            for (int i = 0; i < numwebtextfiles; i++)
-                            {
-                                var uploadfile = localwebtextfiles[i];
-                                var remotefile = remotePath + remotewebtextfiles[i];
-
-                                UploadFile(conn, uploadfile, remotefile);
-                            }
-                            //LogDebugMessage("Done uploading standard files");
-                        }
-                        catch (Exception e)
-                        {
-                            LogMessage(e.Message);
-                        }
-                    }
-
-                    if (IncludeGraphDataFiles)
-                    {
-                        try
-                        {
-                            //LogDebugMessage("Uploading graph data files");
-                            FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading graph data files");
-                            for (int i = 0; i < localgraphdatafiles.Length; i++)
-                            {
-                                var uploadfile = localgraphdatafiles[i];
-                                var remotefile = remotePath + remotegraphdatafiles[i];
-
-                                UploadFile(conn, uploadfile, remotefile);
-                            }
-                            //LogDebugMessage("Done uploading graph data files");
-                        }
-                        catch (Exception e)
-                        {
-                            LogMessage(e.Message);
-                        }
-                    }
-                }
-
-                // b3045 - dispose of connection
-                conn.Disconnect();
-                FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Disconnected from " + ftp_host);
+                conn.EncryptionMode = FtpEncryptionMode.Explicit;
+                conn.DataConnectionEncryption = true;
+                conn.ValidateCertificate += Client_ValidateCertificate;
+                
+                conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
             }
+
+            if (Settings.ActiveFtp)
+            {
+                conn.DataConnectionType = FtpDataConnectionType.PORT;
+            }
+            else if (Settings.DisableEpsv)
+            {
+                conn.DataConnectionType = FtpDataConnectionType.PASV;
+            }
+
+            try
+            {
+                conn.Connect();
+            }
+            catch (Exception ex)
+            {
+                _log.Info("Error connecting ftp - " + ex.Message);
+            }
+
+            conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+            return conn;
         }
+
+        void Client_ValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
+        {
+            e.Accept = true; // Allow all
+        }
+
+        //public bool NoaaNeedFtp { get; set; }
 
         private void RealtimeFTPLogin()
         {
             //RealtimeTimer.Enabled = false;
-            RealtimeFTP.Host = ftp_host;
-            RealtimeFTP.Port = ftp_port;
-            RealtimeFTP.Credentials = new NetworkCredential(ftp_user, ftp_password);
+            RealtimeFTP.Host = Settings.Host;
+            RealtimeFTP.Port = Settings.Port;
+            RealtimeFTP.Credentials = new NetworkCredential(Settings.User, Settings.Password);
             // b3045 - Reduce the default polling interval to try and keep the session alive
             RealtimeFTP.SocketKeepAlive = true;
             //RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
 
-
-            if (Sslftp)
+            if (Settings.UseSsl)
             {
                 RealtimeFTP.EncryptionMode = FtpEncryptionMode.Explicit;
                 RealtimeFTP.DataConnectionEncryption = true;
@@ -186,17 +185,16 @@ namespace FtpDataReporter
 
             }
 
-
-            if (ftp_host != "" && ftp_host != " ")
+            if (Settings.Host != "" && Settings.Host != " ")
             {
-                LogMessage("Attempting realtime FTP connect");
+                _log.Info("Attempting realtime FTP connect");
                 try
                 {
                     RealtimeFTP.Connect();
                 }
                 catch (Exception ex)
                 {
-                    LogMessage("Error connecting ftp - " + ex.Message);
+                    _log.Info("Error connecting ftp - " + ex.Message);
                 }
 
                 RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
@@ -204,231 +202,143 @@ namespace FtpDataReporter
             //RealtimeTimer.Enabled = true;
         }
 
-        private void UploadFile(FtpClient conn, string localfile, string remotefile)
+        private void UploadFile(FtpClient conn, string localFile, string remoteFile)
         {
-            string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
+            
+            _log.Info(" Uploading " + localFile + " to " + remoteFile);
 
-            FtpTrace.WriteLine("");
-            FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading " + localfile + " to " + remotefile);
+            Stream inputStream = Stream.Null;
+            inputStream = new FileStream(localFile, FileMode.Open);
+            UploadStream(conn, remoteFile, inputStream, localFile);
 
+            inputStream.Dispose();
+        }
+
+        private void UploadString(FtpClient connection, string content, string remoteFile)
+        {
+
+            _log.Info(" Uploading to " + remoteFile);
+
+            UploadStream(connection, remoteFile,
+                new MemoryStream(Encoding.UTF8.GetBytes(content)), remoteFile);
+        }
+
+        private void UploadStream(FtpClient conn, string remoteFile, Stream inputStream, string description)
+        {
             try
             {
-                if (DeleteBeforeUpload)
+                string uploadFilename = Settings.RenameFiles ? remoteFile + "tmp" : remoteFile;
+
+                if (Settings.DeleteBeforeUpload)
                 {
                     // delete the existing file
                     try
                     {
-                        conn.DeleteFile(remotefile);
+                        conn.DeleteFile(remoteFile);
                     }
                     catch (Exception ex)
                     {
-                        LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
+                        _log.Info("FTP error deleting " + remoteFile + " : " + ex.Message);
                     }
                 }
 
-                using (Stream ostream = conn.OpenWrite(remotefilename))
-                using (Stream istream = new FileStream(localfile, FileMode.Open))
+                using (Stream outputStream = conn.OpenWrite(uploadFilename))
                 {
                     try
                     {
                         var buffer = new byte[4096];
                         int read;
-                        while ((read = istream.Read(buffer, 0, buffer.Length)) > 0)
+                        while ((read = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
-                            ostream.Write(buffer, 0, read);
+                            outputStream.Write(buffer, 0, read);
                         }
                     }
                     catch (Exception ex)
                     {
-                        LogMessage("Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+                        _log.Info("Error uploading " + description + " to " + remoteFile + " : " + ex.Message);
                     }
                     finally
                     {
-                        ostream.Close();
-                        istream.Close();
+                        outputStream.Close();
+                        inputStream.Close();
                         conn.GetReply(); // required FluentFTP 19.2
                     }
                 }
 
-
-                if (FTPRename)
+                if (Settings.RenameFiles)
                 {
                     // rename the file
-                    conn.Rename(remotefilename, remotefile);
+                    conn.Rename(uploadFilename, remoteFile);
                 }
 
-                FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Completed uploading " + localfile + " to " + remotefile);
+                _log.Info( "Completed uploading " + description + " to " + remoteFile);
             }
             catch (Exception ex)
             {
-                LogMessage("Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+                _log.Info("Error uploading " + description + " to " + remoteFile + " : " + ex.Message);
             }
         }
 
-
-        internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
+        internal async void RealtimeWorker(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            if (!RealtimeInProgress)
+            try
             {
-                try
+                while (!_cts.IsCancellationRequested)
                 {
-                    RealtimeInProgress = true;
-                    if (RealtimeFTPEnabled)
+                    if (!RealtimeInProgress && _dataObject != null)
                     {
-                        if (!RealtimeFTP.IsConnected)
-                        {
-                            try
-                            {
-                                LogDebugMessage("Realtime ftp not connected - reconnecting");
-                                RealtimeFTP.Connect();
-                            }
-                            catch (Exception ex)
-                            {
-                                LogMessage("Error connecting ftp - " + ex.Message);
-                            }
-
-                            //RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-                        }
-
                         try
                         {
-                            //LogDebugMessage("Create realtime file");
-                            CreateRealtimeFile();
-                            //LogDebugMessage("Create extra realtime files");
-                            CreateRealtimeHTMLfiles();
-                            //LogDebugMessage("Upload realtime files");
-                            RealtimeFTPUpload();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogMessage("Error during realtime update: " + ex.Message);
-                        }
-                    }
-                    else
-                    {
-                        // No FTP, just process files
-                        CreateRealtimeFile();
-                        CreateRealtimeHTMLfiles();
-                    }
-
-                    if (!string.IsNullOrEmpty(RealtimeProgram))
-                    {
-                        //LogDebugMessage("Execute realtime program");
-                        ExecuteProgram(RealtimeProgram, RealtimeParams);
-                    }
-                }
-                finally
-                {
-                    RealtimeInProgress = false;
-                }
-            }
-        }
-
-        private void RealtimeFTPUpload()
-        {
-            // realtime.txt
-            string filepath, gaugesfilepath;
-
-            if (ftp_directory == "")
-            {
-                filepath = "realtime.txt";
-                gaugesfilepath = "realtimegauges.txt";
-            }
-            else
-            {
-                filepath = ftp_directory + "/realtime.txt";
-                gaugesfilepath = ftp_directory + "/realtimegauges.txt";
-            }
-
-            if (RealtimeTxtFTP)
-            {
-                UploadFile(RealtimeFTP, RealtimeFile, filepath);
-            }
-
-            if (RealtimeGaugesTxtFTP)
-            {
-                ProcessTemplateFile(RealtimeGaugesTxtTFile, RealtimeGaugesTxtFile, realtimeTokenParser);
-                UploadFile(RealtimeFTP, RealtimeGaugesTxtFile, gaugesfilepath);
-            }
-
-            // Extra files
-            for (int i = 0; i < numextrafiles; i++)
-            {
-                var uploadfile = ExtraFiles[i].local;
-                var remotefile = ExtraFiles[i].remote;
-
-                if (uploadfile == "<currentlogfile>")
-                {
-                    uploadfile = GetLogFileName(DateTime.Now);
-                }
-
-                remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
-
-                if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != "") && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
-                {
-                    // all checks OK, file needs to be uploaded
-                    if (ExtraFiles[i].process)
-                    {
-                        // we've already processed the file
-                        uploadfile = uploadfile + "tmp";
-                    }
-
-                    UploadFile(RealtimeFTP, uploadfile, remotefile);
-                }
-            }
-        }
-
-        private void CreateRealtimeHTMLfiles()
-        {
-            for (int i = 0; i < numextrafiles; i++)
-            {
-                if (ExtraFiles[i].realtime)
-                {
-                    var uploadfile = ExtraFiles[i].local;
-                    if (uploadfile == "<currentlogfile>")
-                    {
-                        uploadfile = GetLogFileName(DateTime.Now);
-                    }
-                    var remotefile = ExtraFiles[i].remote;
-                    remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
-
-                    if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
-                    {
-                        if (ExtraFiles[i].process)
-                        {
-                            // process the file
-                            var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-                            var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-                            realtimeTokenParser.encoding = encoding;
-                            realtimeTokenParser.SourceFile = uploadfile;
-                            var output = realtimeTokenParser.ToString();
-                            uploadfile += "tmp";
-                            using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+                            if (!RealtimeFTP.IsConnected)
                             {
-                                file.Write(output);
+                                try
+                                {
+                                    _log.Debug("Realtime ftp not connected - reconnecting");
+                                    RealtimeFTP.Connect();
+                                }
+                                catch (Exception ex)
+                                {
+                                    _log.Info("Error connecting ftp - " + ex.Message);
+                                }
 
-                                file.Close();
+                                //RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
                             }
-                        }
 
-                        if (!ExtraFiles[i].FTP)
-                        {
-                            // just copy the file
                             try
                             {
-                                File.Copy(uploadfile, remotefile, true);
+                                _log.Debug("Uploading realtime files");
+                                UploadRealtimeFiles(_dataObject, RealtimeFTP); //TODO: Pass data file
                             }
                             catch (Exception ex)
                             {
-                                LogDebugMessage("Copying extra realtime file: " + ex.Message);
+                                _log.Info("Error during realtime update: " + ex.Message);
+                            }
+
+                            if (!string.IsNullOrEmpty(Settings.RealtimeProgram))
+                            {
+                                //_log.Debug("Execute realtime program");
+                                ExecuteProgram(Settings.RealtimeProgram, Settings.RealtimeParams);
                             }
                         }
+                        finally
+                        {
+                            RealtimeInProgress = false;
+                        }
                     }
+
+                    await Task.Delay(RealtimeInterval);
                 }
+            }
+            catch (ThreadAbortException)
+            {
             }
         }
 
-        private void CreateRealtimeFile()
+        private bool RealtimeInProgress;
+        private bool WebUpdating;
+        private IWeatherDataStatistics _dataObject;
+
+        private void UploadRealtimeFiles(IWeatherDataStatistics statistics, FtpClient connection)
         {
             /*
 			Example: 18/10/08 16:03:45 8.4 84 5.8 24.2 33.0 261 0.0 1.0 999.7 W 6 mph C mb mm 146.6 +0.1 85.2 588.4 11.6 20.3 57 3.6 -0.7 10.9 12:00 7.8 14:41 37.4 14:38 44.0 14:28 999.8 16:01 998.4 12:06 1.8.2 448 36.0 10.3 10.5 0
@@ -493,125 +403,80 @@ namespace FtpDataReporter
 			57     420        Current theoretical max solar radiation
 			58     1          Is sunny?
 		  */ 
-		      /*
 		      
-            var filename = AppDir + RealtimeFile;
-            DateTime timestamp = DateTime.Now;
+		      
+            //var filename = Path.Combine(AppDir, RealtimeFile);
+            //DateTime timestamp = DateTime.Now;
 
-            using (StreamWriter file = new StreamWriter(filename, false))
+            var renderer = new TemplateRenderer(File.OpenText("Realtime.StringTemplate"),statistics, Settings, new Dictionary<string, object>(), _log);
+            var realtimeFileContent = renderer.Render();
+            var realtimeFileRemote = Path.Combine(Settings.FtpDirectory, "realtime.txt");
+            UploadString(connection,realtimeFileContent, realtimeFileRemote);
+
+            var gaugesRenderer = new TemplateRenderer(File.OpenText("RealtimeGauges.StringTemplate"), statistics, Settings, new Dictionary<string, object>(), _log);
+            var gaugesRealtimeFileContent = renderer.Render();
+            var gaugesRealtimeFileRemote = Path.Combine(Settings.FtpDirectory, "realtimegauges.txt");
+            UploadString(connection, realtimeFileContent, realtimeFileRemote);
+
+            foreach (var extraFile in ExtraFiles)
             {
-                file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss "));
-                file.Write(ReplaceCommas(station.OutdoorTemperature.ToString(TempFormat)) + ' '); // 3
-                file.Write(station.OutdoorHumidity.ToString() + ' '); // 4
-                file.Write(ReplaceCommas(station.OutdoorDewpoint.ToString(TempFormat)) + ' '); // 5
-                file.Write(ReplaceCommas(station.WindAverage.ToString(WindFormat)) + ' '); // 6
-                file.Write(ReplaceCommas(station.WindLatest.ToString(WindFormat)) + ' '); // 7
-                file.Write(station.Bearing.ToString() + ' '); // 8
-                file.Write(ReplaceCommas(station.RainRate.ToString(RainFormat)) + ' '); // 9
-                file.Write(ReplaceCommas(station.RainToday.ToString(RainFormat)) + ' '); // 10
-                file.Write(ReplaceCommas(station.Pressure.ToString(PressFormat)) + ' '); // 11
-                file.Write(station.CompassPoint(station.Bearing) + ' '); // 12
-                file.Write(Beaufort(station.WindAverage) + ' '); // 13
-                file.Write(WindUnitText + ' '); // 14
-                file.Write(TempUnitText[1].ToString() + ' '); // 15
-                file.Write(PressUnitText + ' '); // 16
-                file.Write(RainUnitText + ' '); // 17
-                file.Write(ReplaceCommas(station.WindRunToday.ToString(WindRunFormat)) + ' '); // 18
-                if (station.presstrendval > 0)
-                    file.Write(ReplaceCommas('+' + station.presstrendval.ToString(PressFormat)) + ' '); // 19
-                else
-                    file.Write(ReplaceCommas(station.presstrendval.ToString(PressFormat)) + ' ');
-                file.Write(ReplaceCommas(station.RainMonth.ToString(RainFormat)) + ' '); // 20
-                file.Write(ReplaceCommas(station.RainYear.ToString(RainFormat)) + ' '); // 21
-                file.Write(ReplaceCommas(station.RainYesterday.ToString(RainFormat)) + ' '); // 22
-                file.Write(ReplaceCommas(station.IndoorTemperature.ToString(TempFormat)) + ' '); // 23
-                file.Write(station.IndoorHumidity.ToString() + ' '); // 24
-                file.Write(ReplaceCommas(station.WindChill.ToString(TempFormat)) + ' '); // 25
-                file.Write(ReplaceCommas(station.temptrendval.ToString(TempTrendFormat)) + ' '); // 26
-                file.Write(ReplaceCommas(station.HighTempToday.ToString(TempFormat)) + ' '); // 27
-                file.Write(station.hightemptodaytime.ToString("HH:mm") + ' '); // 28
-                file.Write(ReplaceCommas(station.LowTempToday.ToString(TempFormat)) + ' '); // 29
-                file.Write(station.lowtemptodaytime.ToString("HH:mm") + ' '); // 30
-                file.Write(ReplaceCommas(station.highwindtoday.ToString(WindFormat)) + ' '); // 31
-                file.Write(station.highwindtodaytime.ToString("HH:mm") + ' '); // 32
-                file.Write(ReplaceCommas(station.highgusttoday.ToString(WindFormat)) + ' '); // 33
-                file.Write(station.highgusttodaytime.ToString("HH:mm") + ' '); // 34
-                file.Write(ReplaceCommas(station.highpresstoday.ToString(PressFormat)) + ' '); // 35
-                file.Write(station.highpresstodaytime.ToString("HH:mm") + ' '); // 36
-                file.Write(ReplaceCommas(station.lowpresstoday.ToString(PressFormat)) + ' '); // 37
-                file.Write(station.lowpresstodaytime.ToString("HH:mm") + ' '); // 38
-                file.Write(Version + ' '); // 39
-                file.Write(Build + ' '); // 40
-                file.Write(ReplaceCommas(station.RecentMaxGust.ToString(WindFormat)) + ' '); // 41
-                file.Write(ReplaceCommas(station.HeatIndex.ToString(TempFormat)) + ' '); // 42
-                file.Write(ReplaceCommas(station.Humidex.ToString(TempFormat)) + ' '); // 43
-                file.Write(ReplaceCommas(station.UV.ToString(UVFormat)) + ' '); // 44
-                file.Write(ReplaceCommas(station.ET.ToString(ETFormat)) + ' '); // 45
-                file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' '); // 46
-                file.Write(station.AvgBearing.ToString() + ' '); // 47
-                file.Write(ReplaceCommas(station.RainLastHour.ToString(RainFormat)) + ' '); // 48
-                file.Write(station.Forecastnumber.ToString() + ' '); // 49
-                file.Write(IsDaylight() ? "1 " : "0 ");
-                file.Write(station.SensorContactLost ? "1 " : "0 ");
-                file.Write(station.CompassPoint(station.AvgBearing) + ' '); // 52
-                file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
-                file.Write(CloudBaseInFeet ? "ft " : "m ");
-                file.Write(ReplaceCommas(station.ApparentTemperature.ToString(TempFormat)) + ' '); // 55
-                file.Write(ReplaceCommas(station.SunshineHours.ToString("F1")) + ' '); // 56
-                file.Write((Convert.ToInt32(station.CurrentSolarMax)).ToString() + ' '); // 57
-                file.WriteLine(station.IsSunny ? "1 " : "0 ");
+                if (!extraFile.realtime) continue;
 
-                file.Close();
+                var uploadfile = extraFile.local;
+                var remotefile = extraFile.remote;
+                if (uploadfile == LOG_FILE_TAG)
+                {
+                    uploadfile = _log.GetFileName();
+                    remotefile = remotefile.Replace(LOG_FILE_TAG, Path.GetFileName(uploadfile));
+                }
+
+                string content;
+                if (extraFile.process)
+                {
+                    var parser = new TemplateRenderer(File.OpenText(uploadfile), statistics, Settings,
+                        new Dictionary<string, object>(), _log);
+                    content = parser.Render();
+                }
+                else
+                {
+                    content = File.ReadAllText(uploadfile);
+                }
+
+                if (extraFile.FTP && connection != null)
+                {
+                    UploadString(connection, content, remotefile);
+                }
+
+                if (Settings.SaveLocal)
+                {
+                    File.WriteAllText(Path.Combine(Settings.LocalSavePath, Path.GetFileName(remotefile)), content);
+                }
             }
 
-            if (RealtimeMySqlEnabled)
+            //TODO: This should be in the SQL Reporter - not the FTP reporter
+            /*if (Settings.RealtimeEnabled)
             {
-                var InvC = new CultureInfo("");
+                var sqlRenderer = new TemplateRenderer("RealtimeSql.StringTemplate", statistics, Settings, new Dictionary<string, object>(), _log);
 
-                string values = " Values('" + timestamp.ToString("yy-MM-dd HH:mm:ss") + "'," + station.OutdoorTemperature.ToString(TempFormat, InvC) + ',' +
-                                station.OutdoorHumidity.ToString() + ',' + station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',' + station.WindAverage.ToString(WindFormat, InvC) +
-                                ',' + station.WindLatest.ToString(WindFormat, InvC) + ',' + station.Bearing.ToString() + ',' + station.RainRate.ToString(RainFormat, InvC) + ',' +
-                                station.RainToday.ToString(RainFormat, InvC) + ',' + station.Pressure.ToString(PressFormat, InvC) + ",'" + station.CompassPoint(station.Bearing) +
-                                "','" + Beaufort(station.WindAverage) + "','" + WindUnitText + "','" + TempUnitText[1].ToString() + "','" + PressUnitText + "','" + RainUnitText +
-                                "'," + station.WindRunToday.ToString(WindRunFormat, InvC) + ",'" +
-                                (station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'," +
-                                station.RainMonth.ToString(RainFormat, InvC) + ',' + station.RainYear.ToString(RainFormat, InvC) + ',' +
-                                station.RainYesterday.ToString(RainFormat, InvC) + ',' + station.IndoorTemperature.ToString(TempFormat, InvC) + ',' +
-                                station.IndoorHumidity.ToString() + ',' + station.WindChill.ToString(TempFormat, InvC) + ',' + station.temptrendval.ToString(TempTrendFormat, InvC) +
-                                ',' + station.HighTempToday.ToString(TempFormat, InvC) + ",'" + station.hightemptodaytime.ToString("HH:mm") + "'," +
-                                station.LowTempToday.ToString(TempFormat, InvC) + ",'" + station.lowtemptodaytime.ToString("HH:mm") + "'," +
-                                station.highwindtoday.ToString(WindFormat, InvC) + ",'" + station.highwindtodaytime.ToString("HH:mm") + "'," +
-                                station.highgusttoday.ToString(WindFormat, InvC) + ",'" + station.highgusttodaytime.ToString("HH:mm") + "'," +
-                                station.highpresstoday.ToString(PressFormat, InvC) + ",'" + station.highpresstodaytime.ToString("HH:mm") + "'," +
-                                station.lowpresstoday.ToString(PressFormat, InvC) + ",'" + station.lowpresstodaytime.ToString("HH:mm") + "','" + Version + "','" + Build + "'," +
-                                station.RecentMaxGust.ToString(WindFormat, InvC) + ',' + station.HeatIndex.ToString(TempFormat, InvC) + ',' +
-                                station.Humidex.ToString(TempFormat, InvC) + ',' + station.UV.ToString(UVFormat, InvC) + ',' + station.ET.ToString(ETFormat, InvC) + ',' +
-                                ((int)station.SolarRad).ToString() + ',' + station.AvgBearing.ToString() + ',' + station.RainLastHour.ToString(RainFormat, InvC) + ',' +
-                                station.Forecastnumber.ToString() + ",'" + (IsDaylight() ? "1" : "0") + "','" + (station.SensorContactLost ? "1" : "0") + "','" +
-                                station.CompassPoint(station.AvgBearing) + "'," + ((int)station.CloudBase).ToString() + ",'" + (CloudBaseInFeet ? "ft" : "m") + "'," +
-                                station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString("F1", InvC) + ',' +
-                                ((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";
-
-
-                string queryString = StartOfRealtimeInsertSQL + values;
+                string queryString = sqlRenderer.Render();
 
 
                 // do the update
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.CommandText = queryString;
                 cmd.Connection = RealtimeSqlConn;
-                //LogMessage(queryString);
+                //_log.Info(queryString);
 
                 try
                 {
                     RealtimeSqlConn.Open();
                     int aff = cmd.ExecuteNonQuery();
-                    //LogMessage("MySQL: " + aff + " rows were affected.");
+                    //_log.Info("MySQL: " + aff + " rows were affected.");
                 }
                 catch (Exception ex)
                 {
-                    LogMessage("Error encountered during Realtime MySQL operation.");
-                    LogMessage(ex.Message);
+                    _log.Info("Error encountered during Realtime MySQL operation.");
+                    _log.Info(ex.Message);
                 }
                 finally
                 {
@@ -623,136 +488,137 @@ namespace FtpDataReporter
                     // delete old entries
                     cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " +
                                       MySqlRealtimeRetention + ")";
-                    //LogMessage(queryString);
+                    //_log.Info(queryString);
 
                     try
                     {
                         RealtimeSqlConn.Open();
                         int aff = cmd.ExecuteNonQuery();
-                        //LogMessage("MySQL: " + aff + " rows were affected.");
+                        //_log.Info("MySQL: " + aff + " rows were affected.");
                     }
                     catch (Exception ex)
                     {
-                        LogMessage("Error encountered during Realtime delete MySQL operation.");
-                        LogMessage(ex.Message);
+                        _log.Info("Error encountered during Realtime delete MySQL operation.");
+                        _log.Info(ex.Message);
                     }
                     finally
                     {
                         RealtimeSqlConn.Close();
                     }
                 }
-            }
+            }*/
         }
 
-        public void DoHTMLFiles()
+        public void UploadRegularFiles(IWeatherDataStatistics statistics,FtpClient connection)
         {
-            if (!RealtimeEnabled)
+            WebUpdating = true;
+
+            if (!Settings.RealtimeEnabled)
             {
-                CreateRealtimeFile();
+                UploadRealtimeFiles(statistics,connection);
             }
 
-            //LogDebugMessage("Creating standard HTML files");
-            ProcessTemplateFile(IndexTFile, Indexfile, tokenParser);
-            ProcessTemplateFile(TodayTFile, Todayfile, tokenParser);
-            ProcessTemplateFile(YesterdayTFile, Yesterfile, tokenParser);
-            ProcessTemplateFile(RecordTFile, Recordfile, tokenParser);
-            ProcessTemplateFile(MonthlyRecordTFile, MonthlyRecordfile, tokenParser);
-            ProcessTemplateFile(TrendsTFile, Trendsfile, tokenParser);
-            ProcessTemplateFile(ThisMonthTFile, ThisMonthfile, tokenParser);
-            ProcessTemplateFile(ThisYearTFile, ThisYearfile, tokenParser);
-            ProcessTemplateFile(GaugesTFile, Gaugesfile, tokenParser);
-            //LogDebugMessage("Done creating standard HTML files");
-            if (IncludeGraphDataFiles)
+            foreach (var ftpFile in WebTextFiles)
             {
-                //LogDebugMessage("Creating graph data files");
-                station.CreateGraphDataFiles();
-                //LogDebugMessage("Done creating graph data files");
-            }
-            //LogDebugMessage("Creating extra files");
-            // handle any extra files
-            for (int i = 0; i < numextrafiles; i++)
-            {
-                if (!ExtraFiles[i].realtime)
+                string content;
+                if (ftpFile.process)
                 {
-                    var uploadfile = ExtraFiles[i].local;
-                    if (uploadfile == "<currentlogfile>")
+                    var parser = new TemplateRenderer(File.OpenText(ftpFile.local), statistics, Settings,
+                        new Dictionary<string, object>(), _log);
+                    content = parser.Render();
+                }
+                else
+                {
+                    content = File.ReadAllText(ftpFile.local);
+                }
+
+                if (connection != null)
+                {
+                    UploadString(connection, ftpFile.remote,content);
+                }
+
+                if (Settings.SaveLocal)
+                {
+                    File.WriteAllText(Path.Combine(Settings.LocalSavePath, Path.GetFileName(ftpFile.remote)), content);
+                }
+            }
+            _log.Debug("Done creating standard HTML files");
+
+            if (Settings.IncludeGraphDataFiles)
+            {
+                foreach (var graphFile in GraphDataFiles)
+                {
+                    var parser = new TemplateRenderer(File.OpenText(graphFile.local), statistics, Settings, new Dictionary<string, object>(), _log);
+                    string content = parser.Render();
+                    if (connection != null)
                     {
-                        uploadfile = GetLogFileName(DateTime.Now);
+                        UploadString(connection, graphFile.remote, content);
                     }
-                    var remotefile = ExtraFiles[i].remote;
-                    remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
 
-                    if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+                    if (Settings.SaveLocal)
                     {
-                        if (ExtraFiles[i].process)
-                        {
-                            //LogDebugMessage("Processing extra file "+uploadfile);
-                            // process the file
-                            var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-                            var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-                            tokenParser.encoding = encoding;
-                            tokenParser.SourceFile = uploadfile;
-                            var output = tokenParser.ToString();
-                            uploadfile += "tmp";
-                            try
-                            {
-                                using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
-                                {
-                                    file.Write(output);
-
-                                    file.Close();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                LogDebugMessage("Error writing file " + uploadfile);
-                                LogDebugMessage(ex.Message);
-                            }
-                            //LogDebugMessage("Finished processing extra file " + uploadfile);
-                        }
-
-                        if (!ExtraFiles[i].FTP)
-                        {
-                            // just copy the file
-                            //LogDebugMessage("Copying extra file " + uploadfile);
-                            try
-                            {
-                                File.Copy(uploadfile, remotefile, true);
-                            }
-                            catch (Exception ex)
-                            {
-                                LogDebugMessage("Error copying extra file: " + ex.Message);
-                            }
-                            //LogDebugMessage("Finished copying extra file " + uploadfile);
-                        }
+                        File.WriteAllText(Path.Combine(Settings.LocalSavePath, Path.GetFileName(graphFile.remote)), content);
                     }
                 }
             }
-
-            if (!string.IsNullOrEmpty(ExternalProgram))
+            _log.Debug("Done creating graph data files.");
+            
+            foreach (var extraFile in ExtraFiles)
             {
-                LogDebugMessage("Executing program " + ExternalProgram + " " + ExternalParams);
+                if (extraFile.realtime) continue;
+
+                var uploadfile = extraFile.local;
+                var remotefile = extraFile.remote;
+                if (uploadfile == LOG_FILE_TAG)
+                {
+                    uploadfile = _log.GetFileName();
+                    remotefile = remotefile.Replace(LOG_FILE_TAG, Path.GetFileName(uploadfile));
+                }
+
+                string content;
+                if (extraFile.process)
+                {
+                    var parser = new TemplateRenderer(File.OpenText(uploadfile), statistics, Settings,
+                        new Dictionary<string, object>(), _log);
+                    content = parser.Render();
+                }
+                else
+                {
+                    content = File.ReadAllText(uploadfile);
+                }
+
+                if (extraFile.FTP && connection != null)
+                {
+                    UploadString(connection,content,remotefile);
+                }
+
+                if (Settings.SaveLocal)
+                {
+                    File.WriteAllText(Path.Combine(Settings.LocalSavePath, Path.GetFileName(remotefile)),content);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(Settings.ExternalProgram))
+            {
+                _log.Debug("Executing program " + Settings.ExternalProgram + " " + Settings.ExternalParams);
                 try
                 {
-                    ExecuteProgram(ExternalProgram, ExternalParams);
-                    LogDebugMessage("External program started");
+                    
+                    ExecuteProgram(Settings.ExternalProgram, Settings.ExternalParams);
+                    _log.Debug("External program started");
                 }
                 catch (Exception ex)
                 {
-                    LogMessage("Error starting external program: " + ex.Message);
+                    _log.Info("Error starting external program: " + ex.Message);
                 }
             }
-
-            //LogDebugMessage("Done creating extra files");
-
-            if (!String.IsNullOrEmpty(ftp_host))
-            {
-                DoFTPLogin();
-            }
-
+            
             WebUpdating = false;
         }
 
-    */
+        private void ExecuteProgram(string externalProgram, string externalParams)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

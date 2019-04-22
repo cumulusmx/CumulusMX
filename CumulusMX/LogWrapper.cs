@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CumulusMX.Extensions;
 using log4net;
+using log4net.Appender;
 
 namespace CumulusMX
 {
@@ -63,6 +65,13 @@ namespace CumulusMX
         public void Warn(string message, Exception ex)
         {
             _log.Warn(message,ex);
+        }
+
+        public string GetFileName()
+        {
+           
+            return _log.Logger.Repository.GetAppenders().OfType<FileAppender>()
+                .FirstOrDefault().File;
         }
     }
 }

@@ -18,8 +18,11 @@ namespace CumulusMX.Data.Statistics.Unit
         [JsonProperty]
         private double _total;
         private TBase _unitTotal;
+        private TBase _unitAverage;
         private TUnitType _firstUnit;
         private bool _totalValid = false;
+        private bool _averageValid = false;
+        private int _sampleCount = 0;
 
         public TBase Total
         {
@@ -36,6 +39,27 @@ namespace CumulusMX.Data.Statistics.Unit
                 }
 
                 return _unitTotal;
+            }
+        }
+
+        public TBase Average
+        {
+            get
+            {
+                if (!_averageValid)
+                {
+                    if (_sampleCount == 0)
+                        _unitAverage = _zeroValue;
+                    else
+                        _unitAverage = (TBase)Activator.CreateInstance(
+                            typeof(TBase),
+                            _total / _sampleCount,
+                            _firstUnit
+                        );
+                    _averageValid = true;
+                }
+
+                return _unitAverage;
             }
         }
 
@@ -65,8 +89,11 @@ namespace CumulusMX.Data.Statistics.Unit
             Minimum = _zeroValue;
             MinimumTime = DateTime.Now;
             _unitTotal = _zeroValue;
+            _unitAverage = _zeroValue;
             _total = 0;
             _totalValid = true;
+            _averageValid = true;
+            _sampleCount = 0;
         }
 
         public void AddValue(in DateTime timestamp, TBase sample)
@@ -85,10 +112,13 @@ namespace CumulusMX.Data.Statistics.Unit
             foreach (var oldValue in rolledOff)
             {
                 _total -= oldValue.Value.As(_firstUnit);
+                _sampleCount--;
             }
 
             _total += sample.As(_firstUnit);
+            _sampleCount++;
             _totalValid = false;
+            _averageValid = false;
         }
 
         private void UpdateExtremaAndChange(DateTime thisSample, TBase sample)

@@ -113,7 +113,7 @@ namespace AwekasDataReporter
 
              var renderer = new TemplateRenderer
              (
-                 Path.Combine(_extensionPath, "AwekasUrl.StringTemplate"),
+                 File.OpenText(Path.Combine( _extensionPath, "AwekasUrl.StringTemplate")),
                  data,
                  Settings,
                  extraRenderParameters,

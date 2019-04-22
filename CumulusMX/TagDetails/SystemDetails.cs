@@ -32,6 +32,6 @@ namespace CumulusMX.TagDetails
         public string Version => Assembly.GetEntryAssembly().GetName().Version.ToString();
         public string Build => Assembly.GetEntryAssembly().GetName().Version.Build.ToString();
         public DateTime BuildDate => new FileInfo(Assembly.GetExecutingAssembly().Location).LastWriteTime;
-        public int DaysSince30Dec1899 => (int)(DateTime.Today - new DateTime(1899,12,30)).TotalDays);
+        public int DaysSince30Dec1899 => (int)(DateTime.Today - new DateTime(1899,12,30)).TotalDays;
     }
 }

@@ -16,6 +16,8 @@ namespace CumulusMX.Extensions.Station
         TBase ThreeHourMaximum { get; }
         DateTime OneHourMaximumTime { get; }
         DateTime ThreeHourMaximumTime { get; }
+        TBase OneHourAverage { get; }
+        TBase ThreeHourAverage { get; }
         TBase DayMaximum { get; }
         TBase DayMinimum { get; }
         DateTime DayMaximumTime { get; }
@@ -79,6 +81,10 @@ namespace CumulusMX.Extensions.Station
         TimeSpan YearNonZero { get; }
         IRecords<TBase>[] ByMonth { get; }
         IRecords<TBase> CurrentMonth { get; }
+
+        IRecordsAndAverage<TBase> Yesterday { get; }
+        IRecordsAndAverage<TBase> LastMonth { get; }
+        IRecordsAndAverage<TBase> LastYear { get; }
 
         Dictionary<DateTime,TBase> ValueHistory { get; }
 

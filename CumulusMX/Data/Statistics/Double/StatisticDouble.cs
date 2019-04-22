@@ -55,6 +55,13 @@ namespace CumulusMX.Data.Statistics.Double
         [JsonProperty]
         private readonly RollingStatisticDouble _24Hours;
 
+        [JsonProperty]
+        public IRecordsAndAverage<double> Yesterday => _yesterday;
+        [JsonProperty]
+        public IRecordsAndAverage<double> LastMonth => _lastMonth;
+        [JsonProperty]
+        public IRecordsAndAverage<double> LastYear => _lastYear;
+
         private readonly List<IDayBooleanStatistic> _booleanStatistics;
 
         static StatisticDouble()
@@ -218,6 +225,8 @@ namespace CumulusMX.Data.Statistics.Double
         public double ThreeHourChange => _threeHours.Change;
         public double OneHourTotal => _oneHour.Total;
         public double ThreeHourTotal => _threeHours.Total;
+        public double OneHourAverage => _oneHour.Average;
+        public double ThreeHourAverage => _threeHours.Average;
 
         public double DayMaximum => _day.Maximum;
         public double DayMinimum => _day.Minimum;
