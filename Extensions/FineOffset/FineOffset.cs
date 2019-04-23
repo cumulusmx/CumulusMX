@@ -9,6 +9,7 @@ using UnitsNet;
 
 namespace FineOffset
 {
+    [ExtensionIdentifier("FineOffset")]
     public class FineOffset : IWeatherStation
     {
         protected int FO_ENTRY_SIZE;

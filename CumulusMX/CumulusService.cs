@@ -88,7 +88,7 @@ namespace CumulusMX
             {
                 if (service.Value.Contains(typeof(IWeatherStation)))
                 {
-                    IWeatherStation theStation = (IWeatherStation) AutofacWrapper.Instance.Scope.Resolve(service.Key);
+                    IWeatherStation theStation = (IWeatherStation)AutofacWrapper.Instance.Scope.Resolve(service.Key);
                     if (theStation.Enabled)
                     {   
                         log.Info($"Initialising weather station {theStation.Identifier}.");

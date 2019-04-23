@@ -54,6 +54,12 @@ namespace CumulusMX.Extensions
 
                         foreach (var type in types)
                         {
+                            var identifier = (ExtensionIdentifierAttribute)type.GetCustomAttributes()
+                                .FirstOrDefault(x => x.GetType() == typeof(ExtensionIdentifierAttribute));
+
+                            if (identifier != null)
+                                AutofacWrapper.Instance.Builder.RegisterType(type).Named(identifier.Identifier,type);
+                            
                             AutofacWrapper.Instance.Builder.RegisterType(type);
                             foundExtensions.Add(type,type.GetInterfaces());
                         }

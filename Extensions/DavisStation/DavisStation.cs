@@ -17,6 +17,7 @@ using UnitsNet;
 
 namespace DavisStation
 {
+    [ExtensionIdentifier("DavisStation")]
     public class DavisStation : WeatherStationBase
     {
         private ILogger _log;
