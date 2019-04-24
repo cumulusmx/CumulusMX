@@ -44,7 +44,7 @@ namespace CumulusMX
             this._appDir = appDir;
             this._contentRootDir = contentRootDir;
             _iniFile = new IniFile("Cumulus.ini");
-            this._config = new CumulusConfiguration(_iniFile);
+            //this._config = new CumulusConfiguration(_iniFile);
             this._webService = new CumulusWebService(httpPort, contentRootDir);
 
             var extensionLoaderSettings = new ExtensionLoaderSettings() { Path = Path.Combine(appDir, "Extensions") };
@@ -84,39 +84,47 @@ namespace CumulusMX
             AutofacWrapper.Instance.Builder.RegisterInstance(dataStatistics).As<IWeatherDataStatistics>();
             AutofacWrapper.Instance.Builder.RegisterInstance(_iniFile).As<IConfigurationProvider>();
 
-            foreach (var service in _extensions)
+            var stations = _iniFile.GetSection("Stations");
+            foreach (var station in stations)
             {
-                if (service.Value.Contains(typeof(IWeatherStation)))
+                IWeatherStation theStation = AutofacWrapper.Instance.Scope.ResolveNamed<IWeatherStation>
+                    (
+                    station.Value.AsString, 
+                    new NamedParameter("configurationSectionName", "Station:{station.Key}")
+                    );
+
+                if (theStation.Enabled)
                 {
-                    IWeatherStation theStation = (IWeatherStation)AutofacWrapper.Instance.Scope.Resolve(service.Key);
+                    log.Info($"Initialising weather station {theStation.Identifier}.");
+                    theStation.Initialise();
                     if (theStation.Enabled)
-                    {   
-                        log.Info($"Initialising weather station {theStation.Identifier}.");
-                        theStation.Initialise();
-                        if (theStation.Enabled)
-                            _stations.Add(theStation);
-                    }
-                    else
-                    {
-                        log.Debug($"Weather station {theStation.Identifier} found - but disabled.");
-                    }
+                        _stations.Add(theStation);
                 }
-
-                if (service.Value.Contains(typeof(IDataReporter)))
+                else
                 {
-                    IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.Resolve(service.Key);
-                    if (theReporter.Enabled)
-                    {
-                        log.Info($"Initialising reporter {theReporter.Identifier}.");
-                        theReporter.Initialise();
+                    log.Debug($"Configuraton for weather station {station.Key} found - but disabled.");
+                }
+            }
 
-                        if (theReporter.Enabled)
-                            _reporters.Add(theReporter);
-                    }
-                    else
-                    {
-                        log.Debug($"Reporter {theReporter.Identifier} found - but disabled.");
-                    }
+            var reporters = _iniFile.GetSection("Reporters");
+            foreach (var reporter in reporters)
+            {
+                IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.ResolveNamed<IDataReporter>
+                    (
+                    reporter.Value.AsString, 
+                    new NamedParameter("configurationSectionName", "Reporters:{station.Key}")
+                    );
+                if (theReporter.Enabled)
+                {
+                    log.Info($"Initialising reporter {reporter.Key}.");
+                    theReporter.Initialise();
+
+                    if (theReporter.Enabled)
+                        _reporters.Add(theReporter);
+                }
+                else
+                {
+                    log.Debug($"Configuration for reporter {theReporter.Identifier} found - but disabled.");
                 }
             }
 

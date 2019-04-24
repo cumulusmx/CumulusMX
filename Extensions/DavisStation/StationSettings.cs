@@ -10,10 +10,10 @@ namespace DavisStation
     {
         private readonly IConfigurationProvider _baseConfiguration;
 
-        public StationSettings(IConfigurationProvider baseConfiguration)
+        public StationSettings(IConfigurationProvider baseConfiguration,string configurationSectionName)
         {
             _baseConfiguration = baseConfiguration;
-            SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection("DavisStation"));
+            SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(configurationSectionName));
         }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
@@ -29,7 +29,7 @@ namespace DavisStation
         public bool UseLoop2 { get; set; }
         [ExtensionSetting("Should details on the reception quality be read", "General", true)]
         public bool ReadReceptionStats { get; set; }
-        [ExtensionSetting("Should Culumus update the stations time", "General", false)]
+        [ExtensionSetting("Should Cumulus update the stations time", "General", false)]
         public bool SyncTime { get; set; }
         [ExtensionSetting("Which com port should be used for the serial interface", "SerialInterface", "COM1")]
         public string ComPort { get; set; }

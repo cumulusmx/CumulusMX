@@ -226,8 +226,7 @@ namespace CumulusMX.Configuration
                 m_CacheModified = true;
 
                 // *** Check if the section exists ***
-                Dictionary<string, string> Section;
-                if (!m_Sections.TryGetValue(SectionName, out Section))
+                if (!m_Sections.TryGetValue(SectionName, out var Section))
                 {
                     // *** If it doesn't, add it ***
                     Section = new Dictionary<string, string>();

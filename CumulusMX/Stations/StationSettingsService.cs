@@ -13,9 +13,9 @@ namespace CumulusMX.Stations
     public class StationSettingsService : IStationSettingsService
     {
         private readonly IWeatherStation _station;
-        private readonly IniFile _iniFile;
+        private readonly IniConfigurationFile _iniFile;
 
-        public StationSettingsService(IWeatherStation station, IniFile iniFile)
+        public StationSettingsService(IWeatherStation station, IniConfigurationFile iniFile)
         {
             this._station = station;
             this._iniFile = iniFile;

@@ -9,6 +9,7 @@ using UnitsNet;
 
 namespace TestStation
 {
+    [ExtensionIdentifier("TestStation")]
     public class TestStation : WeatherStationBase
     {
         private ILogger _log;

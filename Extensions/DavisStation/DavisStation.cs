@@ -46,7 +46,7 @@ namespace DavisStation
             _configurationSettings = settings;
             if (_configurationSettings == null)
             {
-                throw new ArgumentException($"Invalid configuration settings passed to Davis Station.");
+                throw new ArgumentException("Invalid configuration settings passed to Davis Station.");
             }
 
             _enabled = settings.Enabled ?? false;
@@ -57,7 +57,6 @@ namespace DavisStation
 
         public override void Initialise()
         {
-
             _log.Info("Station type = Davis");
 
             var useSerial = _configurationSettings.UseSerialInterface;
