@@ -516,7 +516,7 @@ namespace CumulusMX
 
 		public bool ListWebTags;
 
-		public bool RealtimeEnabled; // The timer is to be startedWundHTTPLogging
+		public bool RealtimeEnabled; // The timer is to be started
 		public bool RealtimeFTPEnabled; // The FTP connection is to be established
 		public bool RealtimeTxtFTP; // The realtime.txt file is to be uploaded
 		public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
