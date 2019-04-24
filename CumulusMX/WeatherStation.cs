@@ -1528,6 +1528,12 @@ namespace CumulusMX
 						cumulus.UpdateWunderground(now);
 					}
 
+					if (!String.IsNullOrEmpty(cumulus.WindyApiKey) && (cumulus.WindyApiKey != " ") && cumulus.WindyEnabled && cumulus.SynchronisedWindyUpdate &&
+						(now.Minute % cumulus.WindyInterval == 0))
+					{
+						cumulus.UpdateWindy(now);
+					}
+
 					if (!String.IsNullOrEmpty(cumulus.AwekasUser) && (cumulus.AwekasUser != " ") && cumulus.AwekasEnabled && cumulus.SynchronisedAwekasUpdate &&
 						(now.Minute % cumulus.AwekasInterval == 0))
 					{
@@ -7811,6 +7817,36 @@ namespace CumulusMX
 			if (cumulus.WundRapidFireEnabled && !catchup)
 				Data = Data + "&realtime=1&rtfreq=5";
 			//MainForm.SystemLog.WriteLogString(TimeToStr(Now) + " Updating Wunderground");
+			Data = cumulus.ReplaceCommas(Data);
+			URL = URL + Data;
+
+			return URL;
+		}
+
+		public string GetWindyURL(out string apistring, DateTime timestamp, bool catchup)
+		{
+			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH':'mm':'ss");
+			string URL;
+
+			apistring = cumulus.WindyApiKey;
+
+			URL = "https://stations.windy.com/pws/update/";
+
+			URL = URL + cumulus.WindyApiKey + "?station=" + cumulus.WindyStationIdx + "&dateutc=" + dateUTC;
+			string Data = "";
+			Data = Data + "&winddir=" + AvgBearing + "&windspeedmph=" + WindMPHStr(WindAverage);
+			Data = Data + "&windgustmph=" + WindMPHStr(RecentMaxGust);
+			Data = Data + "&tempf=" + TempFstr(OutdoorTemperature);
+			Data = Data + "&rainin=" + RainINstr(RainLastHour);
+			Data = Data + "&baromin=" + PressINstr(Pressure);
+			Data = Data + "&dewptf=" + TempFstr(OutdoorDewpoint);
+			Data = Data + "&humidity=" + OutdoorHumidity;
+
+			if (cumulus.WindySendUV)
+				Data = Data + "&uv=" + UV.ToString(cumulus.UVFormat);
+			if (cumulus.WindySendSolar)
+				Data = Data + "&solarradiation=" + SolarRad.ToString("F0");
+
 			Data = cumulus.ReplaceCommas(Data);
 			URL = URL + Data;
 
