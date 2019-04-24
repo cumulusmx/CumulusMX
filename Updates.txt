@@ -1,3 +1,13 @@
+3049
+====
+- Adds the ability to upload data to Windy.com
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.pdb
+	\interface\json\InternetOptions.json
+	\interface\json\InternetSchema.json
+
 3048
 ====
 - You can now first time enable/disable Realtime FTP without having to restart CMX
@@ -16,7 +26,7 @@
 
 - Updated files
 	\CumulusMX.exe
-	\CumulusMX.exe.pdb
+	\CumulusMX.pdb
 	\FluentFTP.dll
 
 

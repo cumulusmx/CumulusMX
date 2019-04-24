@@ -99,6 +99,17 @@ namespace CumulusMX
 
 				cumulus.SynchronisedWUUpdate = (!cumulus.WundRapidFireEnabled) && (60 % cumulus.WundInterval == 0);
 
+				// Windy
+				cumulus.WindyCatchUp = settings.windy.catchup;
+				cumulus.WindyEnabled = settings.windy.enabled;
+				//cumulus.WindySendSolar = settings.windy.includesolar;
+				cumulus.WindySendUV = settings.windy.includeuv;
+				cumulus.WindyInterval = settings.windy.interval;
+				cumulus.WindyApiKey = settings.windy.apikey;
+				cumulus.WindyStationIdx = settings.windy.stationidx;
+
+				cumulus.SynchronisedWindyUpdate = (60 % cumulus.WindyInterval == 0);
+
 				// Awekas
 				cumulus.AwekasEnabled = settings.awekas.enabled;
 				cumulus.AwekasInterval = settings.awekas.interval;
@@ -277,6 +288,16 @@ namespace CumulusMX
 								 stationid = cumulus.WundID
 							 };
 
+			var windysettings = new JsonInternetSettingsWindy()
+							{
+								catchup = cumulus.WindyCatchUp,
+								enabled = cumulus.WindyEnabled,
+								includeuv = cumulus.WindySendUV,
+								interval = cumulus.WindyInterval,
+								apikey = cumulus.WindyApiKey,
+								stationidx = cumulus.WindyStationIdx
+							};
+
 			var awekassettings = new JsonInternetSettingsAwekas()
 								 {
 									 enabled = cumulus.AwekasEnabled,
@@ -382,6 +403,7 @@ namespace CumulusMX
 						   externalprograms = externalprograms,
 						   twitter = twittersettings,
 						   wunderground = wusettings,
+						   windy = windysettings,
 						   awekas = awekassettings,
 						   weathercloud = wcloudsettings,
 						   pwsweather = pwssettings,
@@ -516,6 +538,7 @@ namespace CumulusMX
 		public JsonInternetSettingsExternalPrograms externalprograms { get; set; }
 		public JsonInternetSettingsTwitterSettings twitter { get; set; }
 		public JsonInternetSettingsWunderground wunderground { get; set; }
+		public JsonInternetSettingsWindy windy { get; set; }
 		public JsonInternetSettingsPWSweather pwsweather { get; set; }
 		public JsonInternetSettingsWOW wow { get; set; }
 		public JsonInternetSettingsWeatherbug weatherbug { get; set; }
@@ -587,6 +610,17 @@ namespace CumulusMX
 		public string stationid { get; set; }
 		public string password { get; set; }
 		public int interval { get; set; }
+	}
+
+	public class JsonInternetSettingsWindy
+	{
+		public bool enabled { get; set; }
+		public bool includeuv { get; set; }
+		//public bool includesolar { get; set; }
+		public bool catchup { get; set; }
+		public int interval { get; set; }
+		public string apikey { get; set; }
+		public int stationidx { get; set; }
 	}
 
 	public class JsonInternetSettingsAwekas

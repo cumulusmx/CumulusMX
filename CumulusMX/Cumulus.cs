@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3048";
+		public string Build = "3049";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -426,6 +426,7 @@ namespace CumulusMX
 
 		private const int DefaultWebUpdateInterval = 15;
 		private const int DefaultWundInterval = 15;
+		private const int DefaultWindyInterval = 15;
 		private const int DefaultPWSInterval = 15;
 		private const int DefaultAPRSInterval = 9;
 		private const int DefaultAwekasInterval = 15;
@@ -469,6 +470,7 @@ namespace CumulusMX
 
 		public bool SynchronisedWebUpdate;
 		public bool SynchronisedWUUpdate;
+		public bool SynchronisedWindyUpdate;
 		public bool SynchronisedAwekasUpdate;
 		public bool SynchronisedWCloudUpdate;
 		public bool SynchronisedWOWUpdate;
@@ -478,6 +480,7 @@ namespace CumulusMX
 		public bool SynchronisedAPRSUpdate;
 
 		private List<string> WundList = new List<string>();
+		private List<string> WindyList = new List<string>();
 		private List<string> PWSList = new List<string>();
 		private List<string> WeatherbugList = new List<string>();
 		private List<string> WOWList = new List<string>();
@@ -532,13 +535,24 @@ namespace CumulusMX
 		public bool WundEnabled = false;
 		public bool WundRapidFireEnabled = false;
 		public int WundInterval = 15;
-		private bool HTTPLogging = false;
+		private bool WundHTTPLogging = false;
 		public bool SendUVToWund = false;
 		public bool SendSRToWund = false;
 		public bool SendIndoorToWund = false;
 		public bool WundSendAverage = false;
 		public bool WundCatchUp = true;
 		public bool WundCatchingUp = false;
+
+		// Windy.com settings
+		public string WindyApiKey = " ";
+		public int WindyStationIdx = 0;
+		public bool WindyEnabled = false;
+		public int WindyInterval = 15;
+		private bool WindyHTTPLogging = false;
+		public bool WindySendUV = false;
+		public bool WindySendSolar = false;
+		public bool WindyCatchUp = true;
+		public bool WindyCatchingUp = false;
 
 		// PWS Weather settings
 		public string PWSID = " ";
@@ -673,6 +687,10 @@ namespace CumulusMX
 		private static HttpClientHandler WUhttpHandler = new HttpClientHandler();
 		private HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
 		private bool UpdatingWU = false;
+
+		private static HttpClientHandler WindyhttpHandler = new HttpClientHandler();
+		private HttpClient WindyhttpClient = new HttpClient(WindyhttpHandler);
+		private bool UpdatingWindy = false;
 
 		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler();
 		private HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
@@ -1379,6 +1397,7 @@ namespace CumulusMX
 			TwitterTimer.Elapsed += TwitterTimerTick;
 
 			WundTimer.Elapsed += WundTimerTick;
+			WindyTimer.Elapsed += WindyTimerTick;
 			PWSTimer.Elapsed += PWSTimerTick;
 			WOWTimer.Elapsed += WowTimerTick;
 			WeatherbugTimer.Elapsed += WBTimerTick;
@@ -1834,6 +1853,12 @@ namespace CumulusMX
 				UpdateWunderground(DateTime.Now);
 		}
 
+		private void WindyTimerTick(object sender, ElapsedEventArgs e)
+		{
+			if (!String.IsNullOrEmpty(WindyApiKey) && (WindyApiKey != " "))
+				UpdateWindy(DateTime.Now);
+		}
+
 		private void AwekasTimerTick(object sender, ElapsedEventArgs e)
 		{
 			if (!String.IsNullOrEmpty(AwekasUser) && (AwekasUser != " "))
@@ -1901,6 +1926,37 @@ namespace CumulusMX
 				}
 			}
 		}
+
+		internal async void UpdateWindy(DateTime timestamp)
+		{
+			if (!UpdatingWindy)
+			{
+				UpdatingWindy = true;
+
+				string apistring;
+
+				string URL = station.GetWindyURL(out apistring, timestamp, false);
+				string LogURL = URL.Replace(apistring, "<<API_KEY>>");
+
+				LogDebugMessage("Windy URL: " + LogURL);
+
+				try
+				{
+					HttpResponseMessage response = await WindyhttpClient.GetAsync(URL);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					LogMessage("Windy Response: " + response.StatusCode + ": " + responseBodyAsText);
+				}
+				catch (Exception ex)
+				{
+					LogMessage("Windy update: " + ex.Message);
+				}
+				finally
+				{
+					UpdatingWindy = false;
+				}
+			}
+		}
+
 
 		internal async void UpdateAwekas(DateTime timestamp)
 		{
@@ -3046,7 +3102,7 @@ namespace CumulusMX
 			WundEnabled = ini.GetValue("Wunderground", "Enabled", false);
 			WundRapidFireEnabled = ini.GetValue("Wunderground", "RapidFire", false);
 			WundInterval = ini.GetValue("Wunderground", "Interval", DefaultWundInterval);
-			HTTPLogging = ini.GetValue("Wunderground", "Logging", false);
+			WundHTTPLogging = ini.GetValue("Wunderground", "Logging", false);
 			SendUVToWund = ini.GetValue("Wunderground", "SendUV", false);
 			SendSRToWund = ini.GetValue("Wunderground", "SendSR", false);
 			SendIndoorToWund = ini.GetValue("Wunderground", "SendIndoor", false);
@@ -3064,6 +3120,18 @@ namespace CumulusMX
 			WundCatchUp = ini.GetValue("Wunderground", "CatchUp", true);
 
 			SynchronisedWUUpdate = (!WundRapidFireEnabled) && (60 % WundInterval == 0);
+
+			WindyApiKey = ini.GetValue("Windy", "APIkey", "");
+			WindyStationIdx = ini.GetValue("Windy", "StationIdx", 0);
+			WindyEnabled = ini.GetValue("Windy", "Enabled", false);
+			WindyInterval = ini.GetValue("Windy", "Interval", DefaultWindyInterval);
+			if (WindyInterval < 5) { WindyInterval = 5; }
+			WindyHTTPLogging = ini.GetValue("Windy", "Logging", false);
+			WindySendUV = ini.GetValue("Windy", "SendUV", false);
+			WindySendSolar = ini.GetValue("Windy", "SendSolar", false);
+			WindyCatchUp = ini.GetValue("Windy", "CatchUp", true);
+
+			SynchronisedWindyUpdate = (60 % WindyInterval == 0);
 
 			AwekasUser = ini.GetValue("Awekas", "User", "");
 			AwekasPW = ini.GetValue("Awekas", "Password", "");
@@ -3573,6 +3641,13 @@ namespace CumulusMX
 			ini.SetValue("Wunderground", "SendIndoor", SendIndoorToWund);
 			ini.SetValue("Wunderground", "SendAverage", WundSendAverage);
 			ini.SetValue("Wunderground", "CatchUp", WundCatchUp);
+
+			ini.SetValue("Windy", "APIkey", WindyApiKey);
+			ini.SetValue("Windy", "StationIdx", WindyStationIdx);
+			ini.SetValue("Windy", "Enabled", WindyEnabled);
+			ini.SetValue("Windy", "Interval", WindyInterval);
+			ini.SetValue("Windy", "SendUV", WindySendUV);
+			ini.SetValue("Windy", "CatchUp", WindyCatchUp);
 
 			ini.SetValue("Awekas", "User", AwekasUser);
 			ini.SetValue("Awekas", "Password", AwekasPW);
@@ -4459,6 +4534,7 @@ namespace CumulusMX
 		}
 
 		public Timer WundTimer = new Timer();
+		public Timer WindyTimer = new Timer();
 		public Timer PWSTimer = new Timer();
 		public Timer WOWTimer = new Timer();
 		public Timer WeatherbugTimer = new Timer();
@@ -6057,6 +6133,8 @@ namespace CumulusMX
 				WundTimer.Interval = WundInterval * 60 * 1000; // mins to millisecs
 			}
 
+			WindyTimer.Interval = WindyInterval * 60 * 1000; // mins to millisecs
+
 			PWSTimer.Interval = PWSInterval * 60 * 1000; // mins to millisecs
 
 			WOWTimer.Interval = WOWInterval * 60 * 1000; // mins to millisecs
@@ -6085,6 +6163,26 @@ namespace CumulusMX
 				// start the archive upload thread
 				WundCatchingUp = true;
 				WundCatchup();
+			}
+
+			if (WindyList == null)
+			{
+				// we've already been through here
+				// do nothing
+				LogDebugMessage("Windylist is null");
+			}
+			else if (WindyList.Count == 0)
+			{
+				// No archived entries to upload
+				WindyList = null;
+				LogDebugMessage("Windylist count is zero");
+				WindyTimer.Enabled = WindyEnabled && !SynchronisedWindyUpdate;
+			}
+			else
+			{
+				// start the archive upload thread
+				WindyCatchingUp = true;
+				WindyCatchup();
 			}
 
 			if (PWSList == null)
@@ -6437,6 +6535,31 @@ namespace CumulusMX
 			UpdatingWU = false;
 		}
 
+		private async void WindyCatchup()
+		{
+			UpdatingWindy = true;
+			for (int i = 0; i < WindyList.Count; i++)
+			{
+				LogMessage("Uploading Windy archive #" + (i + 1));
+				try
+				{
+					HttpResponseMessage response = await WindyhttpClient.GetAsync(WindyList[i]);
+					LogMessage("Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+				}
+				catch (Exception ex)
+				{
+					LogMessage("Windy update: " + ex.Message);
+				}
+			}
+
+
+			LogMessage("End of Windy archive upload");
+			WindyList.Clear();
+			WindyCatchingUp = false;
+			WindyTimer.Enabled = WindyEnabled && !SynchronisedWindyUpdate;
+			UpdatingWindy = false;
+		}
+
 		/// <summary>
 		/// Process the list of PWS Weather updates created at startup from logger entries
 		/// </summary>
@@ -6713,6 +6836,7 @@ namespace CumulusMX
 		public void AddToWebServiceLists(DateTime timestamp)
 		{
 			AddToWundList(timestamp);
+			AddToWindyList(timestamp);
 			AddToPWSList(timestamp);
 			AddToWOWList(timestamp);
 			AddToWeatherbugList(timestamp);
@@ -6737,6 +6861,24 @@ namespace CumulusMX
 				string LogURL = URL.Replace(pwstring, starredpwstring);
 
 				LogMessage("Creating WU URL #" + WundList.Count);
+
+				LogMessage(LogURL);
+			}
+		}
+
+		private void AddToWindyList(DateTime timestamp)
+		{
+			if (WindyEnabled && WindyCatchUp)
+			{
+				string apistring;
+
+				string URL = station.GetWindyURL(out apistring, timestamp, true);
+
+				WindyList.Add(URL);
+
+				string LogURL = URL.Replace(apistring, "<<API_KEY>>");
+
+				LogMessage("Creating Windy URL #" + WindyList.Count);
 
 				LogMessage(LogURL);
 			}

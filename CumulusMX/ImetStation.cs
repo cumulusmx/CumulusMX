@@ -137,7 +137,7 @@ namespace CumulusMX
 					int day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
 					int month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 					int year = Convert.ToInt32(sl[DATEPOS].Substring(6, 2));
-					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", H = " + hour + ", M = " + minute + ", S = " + sec);
+					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
 
 					entryTS = new DateTime(year, month, day, hour, minute, sec, 0);
 					dataOK = true;
@@ -548,7 +548,7 @@ namespace CumulusMX
 					day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
 					month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 					year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
-					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", H = " + hour + ", M = " + minute + ", S = " + sec);
+					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
 
 					timestamp = new DateTime(year, month, day, hour, minute, sec, 0);
 					dataOK = true;
@@ -582,13 +582,12 @@ namespace CumulusMX
 								day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
 								month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 								year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
-								cumulus.LogMessage("Logger entry zero: Y = " + year + ", M = " + month + ", D = " + day + ", H = " + hour + ", M = " + minute + ", S = " + sec);
+								cumulus.LogMessage("Logger entry zero: Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
 
 								timestamp = new DateTime(year, month, day, hour, minute, sec, 0);
 								cumulus.LogMessage("New earliest timestamp " + timestamp);
 							}
 							catch (Exception E)
-
 							{
 								cumulus.LogMessage("Error in timestamp, skipping entry. Error = " + E.Message);
 								timestamp = DateTime.MinValue;
