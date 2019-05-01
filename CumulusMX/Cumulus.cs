@@ -30,7 +30,7 @@ namespace CumulusMX
 	{
 		/////////////////////////////////
 		public string Version = "3.0.0";
-		public string Build = "3049";
+		public string Build = "3050";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -1044,8 +1044,8 @@ namespace CumulusMX
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
 
-			LogMessage("Directory separator=" + DirectorySeparator + " Decimal separator=" + DecimalSeparator + " List separator=" + ListSeparator);
-			LogMessage("Date separator=" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + " Time separator=" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator);
+			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
+			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
 
 			TimeZone localZone = TimeZone.CurrentTimeZone;
 			DateTime now = DateTime.Now;

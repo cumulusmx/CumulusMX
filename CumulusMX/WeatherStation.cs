@@ -452,14 +452,16 @@ namespace CumulusMX
 			}
 		}
 
-		private DateTime ddmmyyStrToDate(string s)
+		private DateTime ddmmyyStrToDate(string d)
 		{
 			// Converts a date string in UK order to a DateTime
+			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
+			string[] date = d.Split(new string[] { CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator }, StringSplitOptions.None);
 
-			int d = Convert.ToInt32(s.Substring(0, 2));
-			int M = Convert.ToInt32(s.Substring(3, 2));
-			int Y = Convert.ToInt32(s.Substring(6, 2));
-			if (Y > 50)
+			int D = Convert.ToInt32(date[0]);
+			int M = Convert.ToInt32(date[1]);
+			int Y = Convert.ToInt32(date[2]);
+			if (Y > 70)
 			{
 				Y += 1900;
 			}
@@ -468,7 +470,31 @@ namespace CumulusMX
 				Y += 2000;
 			}
 
-			return new DateTime(Y, M, d);
+			return new DateTime(Y, M, D);
+		}
+
+		private DateTime ddmmyyhhmmStrToDate(string d, string t)
+		{
+			// Converts a date string in UK order to a DateTime
+			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
+			string[] date = d.Split(new string[] { CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator }, StringSplitOptions.None);
+			string[] time = t.Split(new string[] { CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator }, StringSplitOptions.None);
+
+			int D = Convert.ToInt32(date[0]);
+			int M = Convert.ToInt32(date[1]);
+			int Y = Convert.ToInt32(date[2]);
+			if (Y > 70)
+			{
+				Y += 1900;
+			}
+			else
+			{
+				Y += 2000;
+			}
+			int h = Convert.ToInt32(time[0]);
+			int m = Convert.ToInt32(time[1]);
+
+			return new DateTime(Y, M, D, h, m, 0);
 		}
 
 		public void GetRainFallTotals()
@@ -5942,13 +5968,7 @@ namespace CumulusMX
 								string Line = sr.ReadLine();
 								linenum++;
 								var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-								int entryday = Convert.ToInt32(st[0].Substring(0, 2));
-								int entrymonth = Convert.ToInt32(st[0].Substring(3, 2));
-								int entryyear = Convert.ToInt32(st[0].Substring(6, 2));
-								int entryhour = Convert.ToInt32(st[1].Substring(0, 2));
-								int entryminute = Convert.ToInt32(st[1].Substring(3, 2));
-
-								entrydate = new DateTime(entryyear + 2000, entrymonth, entryday, entryhour, entryminute, 0);
+								entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -6020,13 +6040,7 @@ namespace CumulusMX
 								string Line = sr.ReadLine();
 								linenum++;
 								var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-								int entryday = Convert.ToInt32(st[0].Substring(0, 2));
-								int entrymonth = Convert.ToInt32(st[0].Substring(3, 2));
-								int entryyear = Convert.ToInt32(st[0].Substring(6, 2));
-								int entryhour = Convert.ToInt32(st[1].Substring(0, 2));
-								int entryminute = Convert.ToInt32(st[1].Substring(3, 2));
-
-								entrydate = new DateTime(entryyear + 2000, entrymonth, entryday, entryhour, entryminute, 0);
+								entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -6102,13 +6116,7 @@ namespace CumulusMX
 								string Line = sr.ReadLine();
 								linenum++;
 								var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-								int entryday = Convert.ToInt32(st[0].Substring(0, 2));
-								int entrymonth = Convert.ToInt32(st[0].Substring(3, 2));
-								int entryyear = Convert.ToInt32(st[0].Substring(6, 2));
-								int entryhour = Convert.ToInt32(st[1].Substring(0, 2));
-								int entryminute = Convert.ToInt32(st[1].Substring(3, 2));
-
-								entrydate = new DateTime(entryyear + 2000, entrymonth, entryday, entryhour, entryminute, 0);
+								entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -6181,13 +6189,7 @@ namespace CumulusMX
 								string Line = sr.ReadLine();
 								linenum++;
 								var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-								int entryday = Convert.ToInt32(st[0].Substring(0, 2));
-								int entrymonth = Convert.ToInt32(st[0].Substring(3, 2));
-								int entryyear = Convert.ToInt32(st[0].Substring(6, 2));
-								int entryhour = Convert.ToInt32(st[1].Substring(0, 2));
-								int entryminute = Convert.ToInt32(st[1].Substring(3, 2));
-
-								entrydate = new DateTime(entryyear + 2000, entrymonth, entryday, entryhour, entryminute, 0);
+								entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -6238,11 +6240,8 @@ namespace CumulusMX
 							string Line = sr.ReadLine();
 							linenum++;
 							var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-							int entryday = Convert.ToInt32(st[0].Substring(0, 2));
-							int entrymonth = Convert.ToInt32(st[0].Substring(3, 2));
-							int entryyear = Convert.ToInt32(st[0].Substring(6, 2));
 
-							var entrydate = new DateTime(entryyear + 2000, entrymonth, entryday);
+							var entrydate = ddmmyyStrToDate(st[0]);
 
 							if (entrydate >= datefrom)
 							{

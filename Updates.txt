@@ -1,3 +1,12 @@
+3050
+====
+- Fixes MX not working with locales that use two character date separators
+  Eg. Crotia "29. 04. 19"
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.pdb
+
 3049
 ====
 - Adds the ability to upload data to Windy.com
