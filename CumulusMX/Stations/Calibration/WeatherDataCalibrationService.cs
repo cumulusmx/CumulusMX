@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CumulusMX.Data;
+using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
 
@@ -61,7 +62,7 @@ namespace CumulusMX.Stations.Calibration
             throw new NotImplementedException();
         }
 
-        private int? CalibrateUVIndex(int? uVIndex1, int? uVIndex2)
+        private Number? CalibrateUVIndex(Number? uVIndex1, Number? uVIndex2)
         {
             throw new NotImplementedException();
         }

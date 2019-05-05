@@ -1,13 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnitsNet;
 
 namespace CumulusMX.Extensions.Station
 {
     public abstract class WeatherStationBase : IWeatherStation
     {
-        public WeatherStationBase()
+        protected Dictionary<string, string> _mapping;
+        protected ILogger _log;
+        protected IWeatherDataStatistics _weatherStatistics;
+
+        public Dictionary<string, Type> _allOutputs;
+
+        public WeatherStationBase(IWeatherDataStatistics weatherStatistics)
         {
+            _mapping = new Dictionary<string, string>();
+            _weatherStatistics = weatherStatistics;
         }
 
 
@@ -28,6 +37,19 @@ namespace CumulusMX.Extensions.Station
             // TODO: Build dictionary of calibrations from settings
             // Should this be in the Common library?
             return new Dictionary<string, ICalibration>();
+        }
+
+        protected Dictionary<string, string> RegisterOutputs(Dictionary<string, string> baseMap)
+        {
+            var result = new Dictionary<string,string>();
+            foreach (var output in _allOutputs)
+            {
+                var targetName = (baseMap.ContainsKey(output.Key)) ? baseMap[output.Key] : output.Key;
+                if (_weatherStatistics.DefineStatistic(targetName,output.Value))
+                    result.Add(output.Key,targetName);
+            }
+
+            return result;
         }
     }
 }

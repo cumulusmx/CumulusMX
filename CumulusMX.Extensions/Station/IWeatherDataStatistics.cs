@@ -9,26 +9,6 @@ namespace CumulusMX.Extensions.Station
 {
     public interface IWeatherDataStatistics
     {
-        IStatistic<Temperature> IndoorTemperature { get; set; }
-        IStatistic<Temperature> OutdoorTemperature { get; set; }
-        IStatistic<Temperature> ApparentTemperature { get; set; }
-        IStatistic<Temperature> WindChill { get; set; }
-        IStatistic<Temperature> HeatIndex { get; set; }
-        IStatistic<double> Humidex { get; set; }
-        IStatistic<Ratio> IndoorHumidity { get; set; }
-        IStatistic<Ratio> OutdoorHumidity { get; set; }
-        IStatistic<Speed> WindGust { get; set; }
-        IStatistic<Speed> WindSpeed { get; set; }
-        IStatistic<Angle> WindBearing { get; set; }
-        IStatistic<Pressure> Pressure { get; set; }
-        IStatistic<Pressure> AltimeterPressure { get; set; }
-        IStatistic<Temperature> OutdoorDewpoint { get; set; }
-        IStatistic<Speed> RainRate { get; set; }
-        IStatistic<Length> Rain { get; set; }
-        IStatistic<Irradiance> SolarRadiation { get; set; }
-        IStatistic<double> UvIndex { get; set; }
-        Dictionary<string,IStatistic<IQuantity>> Extra { get; set; }
-
         IDayBooleanStatistic HeatingDegreeDays { get; }
         IDayBooleanStatistic CoolingDegreeDays { get; }
         IDayBooleanStatistic DryDays { get; }
@@ -46,5 +26,8 @@ namespace CumulusMX.Extensions.Station
         void ReleaseReadLock();
         
         void Save();
+        IStatistic this[string key] { get; }
+
+        bool DefineStatistic(string statisticName, Type statisticType);
     }
 }

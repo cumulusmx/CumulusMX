@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CumulusMX.Common;
@@ -8,7 +11,10 @@ using CumulusMX.Configuration;
 using CumulusMX.Data.Statistics;
 using CumulusMX.Data.Statistics.Double;
 using CumulusMX.Data.Statistics.Unit;
+using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
 using UnitsNet;
 using UnitsNet.Serialization.JsonNet;
@@ -20,30 +26,49 @@ namespace CumulusMX.Data
     public class WeatherDataStatistics : IWeatherDataStatistics
     {
         [JsonIgnore]
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog _log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        [JsonIgnore]
+        private static readonly List<string> RESERVED_NAMES = new List<string> {"Timestamp"};
 
         [JsonIgnore]
         private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public IStatistic<Temperature> IndoorTemperature { get; set; } = new StatisticUnit<Temperature,TemperatureUnit>();
-        public IStatistic<Temperature> OutdoorTemperature { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
-        public IStatistic<Temperature> ApparentTemperature { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
-        public IStatistic<Temperature> WindChill { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
-        public IStatistic<Temperature> HeatIndex { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
-        public IStatistic<double> Humidex { get; set; } = new StatisticDouble();
-        public IStatistic<Ratio> IndoorHumidity { get; set; } = new StatisticUnit<Ratio, RatioUnit>();
-        public IStatistic<Ratio> OutdoorHumidity { get; set; } = new StatisticUnit<Ratio, RatioUnit>();
-        public IStatistic<Speed> WindGust { get; set; } = new StatisticUnit<Speed, SpeedUnit>();
-        public IStatistic<Speed> WindSpeed { get; set; } = new StatisticUnit<Speed, SpeedUnit>();
-        public IStatistic<Angle> WindBearing { get; set; } = new StatisticUnit<Angle, AngleUnit>();
-        public IStatistic<Pressure> Pressure { get; set; } = new StatisticUnit<Pressure, PressureUnit>();
-        public IStatistic<Pressure> AltimeterPressure { get; set; } = new StatisticUnit<Pressure, PressureUnit>();
-        public IStatistic<Temperature> OutdoorDewpoint { get; set; } = new StatisticUnit<Temperature, TemperatureUnit>();
-        public IStatistic<Speed> RainRate { get; set; } = new StatisticUnit<Speed, SpeedUnit>();
-        public IStatistic<Length> Rain { get; set; } = new StatisticUnit<Length, LengthUnit>();
-        public IStatistic<Irradiance> SolarRadiation { get; set; } = new StatisticUnit<Irradiance, IrradianceUnit>();
-        public IStatistic<double> UvIndex { get; set; } = new StatisticDouble();
-        public Dictionary<string, IStatistic<IQuantity>> Extra { get; set; } = new Dictionary<string, IStatistic<IQuantity>>();
+        [JsonIgnore]
+        public Dictionary<Type, Type> UNIT_TYPES = new Dictionary<Type, Type>
+        {
+            {typeof(Speed), typeof(SpeedUnit)},
+            {typeof(Angle),typeof(AngleUnit) },
+            {typeof(Length),typeof(LengthUnit) },
+            {typeof(Irradiance),typeof(IrradianceUnit) },
+            {typeof(Temperature),typeof(TemperatureUnit) },
+            {typeof(Ratio),typeof(RatioUnit) },
+            {typeof(Pressure),typeof(PressureUnit) },
+            {typeof(Number),typeof(NumberUnit) }
+        };
+
+        [JsonProperty]
+        private Dictionary<string, object> _measures = new Dictionary<string,object>();
+        [JsonIgnore]
+        private List<CalculationDetails> _calculations;
+        [JsonProperty]
+        private List<DayStatisticDetails> _dayStatistics;
+
+        [JsonIgnore]
+        public IStatistic this[string key]
+        {
+            get
+            {
+                if (!_measures.ContainsKey(key))
+                {
+                    _log.Warn($"No weather statistic named {key} defined.");
+
+                    return null;
+                }
+
+                return (IStatistic)_measures[key];
+            }
+        }
 
         public IDayBooleanStatistic HeatingDegreeDays { get; }
         public IDayBooleanStatistic CoolingDegreeDays { get; }
@@ -60,97 +85,144 @@ namespace CumulusMX.Data
 
         public WeatherDataStatistics()
         {
-            HeatingDegreeDays = new DayBooleanStatistic<Temperature>(OutdoorTemperature, (x) => x.DayAverage < Temperature.FromDegreesFahrenheit(65));
-            CoolingDegreeDays = new DayBooleanStatistic<Temperature>(OutdoorTemperature, (x) => x.DayAverage > Temperature.FromDegreesFahrenheit(65));
-            OutdoorTemperature.AddBooleanStatistics(HeatingDegreeDays);
-            OutdoorTemperature.AddBooleanStatistics(CoolingDegreeDays);
 
-            DryDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal == Length.Zero);
-            RainDays = new DayBooleanStatistic<Length>(Rain, (x) => x.DayTotal != Length.Zero);
-            Rain.AddBooleanStatistics(DryDays);
-            Rain.AddBooleanStatistics(RainDays);
             Time = DateTime.MinValue;
             FirstRecord = DateTime.MinValue;
+            _calculations = new List<CalculationDetails>();
+            _dayStatistics = new List<DayStatisticDetails>();
+        }
+
+        public bool DefineStatistic(string statisticName, Type statisticType)
+        {
+            if (RESERVED_NAMES.Contains(statisticName))
+            {
+                _log.Warn($"The statistic name {statisticName} is reserved.");
+                return false;
+            }
+
+            if (_measures.ContainsKey(statisticName))
+            {
+                _log.Warn($"A weather statistic named {statisticName} is already defined. Ignoring the new one.");
+                return false;
+            }
+
+            if (statisticType == typeof(double))
+            {
+                var typeInfo =
+                    typeof(StatisticUnit<,>).MakeGenericType(typeof(Number), typeof(NumberUnit));
+                _measures[statisticName] = Activator.CreateInstance(typeInfo);
+            }
+            else
+            {
+                var typeInfo =
+                    typeof(StatisticUnit<,>).MakeGenericType(statisticType, UNIT_TYPES[statisticType]);
+                _measures[statisticName] = Activator.CreateInstance(typeInfo);
+            }
+
+            return true;
+        }
+
+        public bool DefineCalculation(string measureName, IEnumerable<string> inputs, MethodInfo method)
+        {
+            if (!_measures.ContainsKey(measureName))
+            {
+                _log.Error($"Please define measure {measureName} before defining calculation for it.");
+                return false;
+            }
+
+            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.Any(x => x.Measure == measureName))
+            {
+                _log.Error($"Existing calculation defined for measure {measureName}.");
+                return false;
+            }
+
+            var missingInputs = inputs.Where(x => !_measures.ContainsKey(x));
+            if (missingInputs.Any())
+            {
+                _log.Error($"Please define input measure{(missingInputs.Count() > 1 ? "s" : string.Empty)} for calculation {measureName} before the calculation.  Missing inputs are {string.Join(',',missingInputs)}.");
+                return false;
+            }
+
+            //TODO: This could do with more checks - particularly around types.
+
+            _calculations.Add(new CalculationDetails() {Measure = measureName, Inputs = inputs, Method = method});
+            return true;
+        }
+
+        public bool DefineDayStatistic(string measureName, string input, string lambda)
+        {
+            if (!_measures.TryGetValue(measureName,out object targetMeasureObj))
+            {
+                _log.Error($"Please define measure {measureName} before defining calculation for it.");
+                return false;
+            }
+
+            var targetMeasure = targetMeasureObj as StatisticUnit<IQuantity<Enum>, Enum>;
+
+            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.Any(x => x.Measure == measureName))
+            {
+                _log.Error($"Existing calculation defined for measure {measureName}.");
+                return false;
+            }
+
+            if (!_measures.ContainsKey(input))
+            {
+                _log.Error($"Please define input measure {input} for calculation {measureName} before the calculation.");
+                return false;
+            }
+
+            var underlyingType = targetMeasure.GetType().GetGenericArguments()[0];
+
+            var options = ScriptOptions.Default.AddReferences(underlyingType.Assembly);
+
+            var funcType = typeof(Func<>).MakeGenericType(underlyingType, typeof(bool));
+
+            var methodInf = typeof(CSharpScript).GetMethod("EvaluateAsync<>").MakeGenericMethod(funcType);
+
+            var lambdaExpression = methodInf.Invoke(null, new object[] {underlyingType, options});
+
+            var genericType = typeof(DayBooleanStatistic<>).MakeGenericType(underlyingType);
+            var booleanStat = (IDayBooleanStatistic)Activator.CreateInstance(genericType,targetMeasure, lambdaExpression);
+            targetMeasure.AddBooleanStatistics(booleanStat);
+            return true;
+
         }
 
         public void Add(WeatherDataModel data)
         {
             _lock.EnterWriteLock();
 
+            var mappings = data.Mappings;
+
+            var timestamp = data.Timestamp;
             if (FirstRecord == DateTime.MinValue)
-                FirstRecord = data.Timestamp;
-            Time = data.Timestamp;
+                FirstRecord = timestamp;
 
             try
             {
-                if (data.IndoorTemperature.HasValue)
-                    IndoorTemperature.Add(data.Timestamp, data.IndoorTemperature.Value);
-                if (data.OutdoorTemperature.HasValue)
-                    OutdoorTemperature.Add(data.Timestamp, data.OutdoorTemperature.Value);
-                if (data.IndoorHumidity.HasValue)
-                    IndoorHumidity.Add(data.Timestamp, data.IndoorHumidity.Value);
-                if (data.OutdoorHumidity.HasValue)
-                    OutdoorHumidity.Add(data.Timestamp, data.OutdoorHumidity.Value);
-                if (data.WindGust.HasValue)
-                    WindGust.Add(data.Timestamp, data.WindGust.Value);
-                if (data.WindSpeed.HasValue)
-                    WindSpeed.Add(data.Timestamp, data.WindSpeed.Value);
-                if (data.WindBearing.HasValue)
-                    WindBearing.Add(data.Timestamp, data.WindBearing.Value);
-                if (data.Pressure.HasValue)
-                    Pressure.Add(data.Timestamp, data.Pressure.Value);
-                if (data.AltimeterPressure.HasValue)
-                    AltimeterPressure.Add(data.Timestamp, data.AltimeterPressure.Value);
-                if (data.OutdoorDewpoint.HasValue)
-                    OutdoorDewpoint.Add(data.Timestamp, data.OutdoorDewpoint.Value);
-                if (data.RainRate.HasValue)
-                    RainRate.Add(data.Timestamp, data.RainRate.Value);
-                if (data.RainCounter.HasValue)
-                    Rain.Add(data.Timestamp, data.RainCounter.Value);
-                if (data.SolarRadiation.HasValue)
-                    SolarRadiation.Add(data.Timestamp, data.SolarRadiation.Value);
-                if (data.UvIndex.HasValue)
-                    UvIndex.Add(data.Timestamp, data.UvIndex.Value);
-
-                if (data.ApparentTemperature.HasValue)
-                    ApparentTemperature.Add(data.Timestamp, data.ApparentTemperature.Value);
-                else
+                foreach (var observation in data.Keys)
                 {
-                    if (data.OutdoorTemperature.HasValue && data.OutdoorHumidity.HasValue && data.WindSpeed.HasValue)
-                        ApparentTemperature.Add(data.Timestamp, MeteoLib.ApparentTemperature(data.OutdoorTemperature.Value,data.WindSpeed.Value,data.OutdoorHumidity.Value));
+                    if (mappings.ContainsKey(observation) && _measures.ContainsKey(mappings[observation]))
+                        ((IAddable)_measures[mappings[observation]]).Add(timestamp,data[observation]);
                 }
 
-                if (data.WindChill.HasValue)
-                    WindChill.Add(data.Timestamp, data.WindChill.Value);
-                else
+                foreach (var calc in _calculations)
                 {
-                    if (data.OutdoorTemperature.HasValue && data.WindSpeed.HasValue)
-                        WindChill.Add(data.Timestamp, MeteoLib.WindChill(data.OutdoorTemperature.Value, data.WindSpeed.Value));
-                }
-
-                if (data.HeatIndex.HasValue)
-                    HeatIndex.Add(data.Timestamp, data.HeatIndex.Value);
-                else
-                {
-                    if (data.OutdoorTemperature.HasValue && data.OutdoorHumidity.HasValue)
-                        HeatIndex.Add(data.Timestamp, MeteoLib.HeatIndex(data.OutdoorTemperature.Value, data.OutdoorHumidity.Value));
-                }
-
-                if (data.Humidex.HasValue)
-                    Humidex.Add(data.Timestamp, data.Humidex.Value);
-                else
-                {
-                    if (data.OutdoorTemperature.HasValue && data.OutdoorHumidity.HasValue)
-                        Humidex.Add(data.Timestamp, MeteoLib.Humidex(data.OutdoorTemperature.Value, data.OutdoorHumidity.Value));
-                }
-
-                foreach (var extraReading in data.Extra)
-                {
-                    if (Extra.ContainsKey(extraReading.Key))
-                        Extra[extraReading.Key].Add(data.Timestamp, extraReading.Value);
-                    else
+                    try
                     {
-                        Extra.Add(extraReading.Key, StatisticFactory.Build(extraReading.Value.GetType()));
+                        if (data.Keys.Intersect(calc.Inputs).Any())
+                        {
+                            var parameters = calc.Inputs.Select(x => ((IStatistic) _measures[x]).LatestObject)
+                                .ToArray();
+                            if (parameters.Any(x => x == null)) continue;
+
+                            var value = (IQuantity) calc.Method.Invoke(null, parameters);
+                            ((IAddable) _measures[calc.Measure]).Add(timestamp, value);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"Error applying calculation {calc.Measure}.  Error is {ex}.");
                     }
                 }
             }
@@ -184,13 +256,13 @@ namespace CumulusMX.Data
                     var reader = new JsonTextReader(fileReader);
                     var newWds = serialiser.Deserialize<WeatherDataStatistics>(reader);
                     newWds.Filename = dataFile;
-                    log.Info($"Loaded existing weather data from {dataFile} up to {newWds.Time}.");
+                    _log.Info($"Loaded existing weather data from {dataFile} up to {newWds.Time}.");
                     return newWds;
                 }
             }
             catch (Exception ex)
             {
-                log.Warn($"Failed to load existing weather data from {dataFile}. Creating new data.",ex);
+                _log.Warn($"Failed to load existing weather data from {dataFile}. Creating new data.",ex);
                 return new WeatherDataStatistics() {Filename = dataFile};
             }
         }

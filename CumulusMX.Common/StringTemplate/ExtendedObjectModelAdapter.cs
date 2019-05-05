@@ -24,7 +24,7 @@ namespace CumulusMX.Common.StringTemplate
         };
 
         private static readonly Dictionary<Tuple<Type,string>,MethodInfo> _cache = new Dictionary<Tuple<Type, string>, MethodInfo>();
-        private ObjectModelAdaptor _standardAdapter;
+        private readonly ObjectModelAdaptor _standardAdapter;
 
         public virtual object GetProperty(Interpreter interpreter, TemplateFrame frame, object o, object property, string propertyName)
         {
@@ -46,7 +46,8 @@ namespace CumulusMX.Common.StringTemplate
                 }
             }
 
-            return _standardAdapter.GetProperty(interpreter, frame, o, property, propertyName);
+            var result = _standardAdapter.GetProperty(interpreter, frame, o, property, propertyName);
+            return result;
         }
 
     }

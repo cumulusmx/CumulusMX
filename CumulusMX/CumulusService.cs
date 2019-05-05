@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
-using System.Text;
 using System.Threading;
 using Autofac;
 using CumulusMX.Configuration;
@@ -14,8 +13,6 @@ using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
 using CumulusMX.Common;
 using CumulusMX.Web;
-using Unosquare.Labs.EmbedIO;
-using Unosquare.Labs.EmbedIO.Constants;
 
 namespace CumulusMX
 {
@@ -83,40 +80,69 @@ namespace CumulusMX
             WeatherDataStatistics dataStatistics = WeatherDataStatistics.TryLoad(dataFile);
             AutofacWrapper.Instance.Builder.RegisterInstance(dataStatistics).As<IWeatherDataStatistics>();
             AutofacWrapper.Instance.Builder.RegisterInstance(_iniFile).As<IConfigurationProvider>();
+            AutofacWrapper.Instance.Builder.RegisterType<MeteoLib>().Named<object>("MeteoLib");
 
-            foreach (var service in _extensions)
+            var stations = _iniFile.GetSection("Stations");
+            
+            foreach (var station in stations)
             {
-                if (service.Value.Contains(typeof(IWeatherStation)))
+                IWeatherStation theStation = AutofacWrapper.Instance.Scope.ResolveKeyed<IWeatherStation>
+                    (
+                    station.Value.AsString
+                    );
+                theStation.ConfigurationSettings.ConfigurationSectionName = $"Stations:{station.Key}";
+                if (theStation.Enabled)
                 {
-                    IWeatherStation theStation = (IWeatherStation) AutofacWrapper.Instance.Scope.Resolve(service.Key);
+                    log.Info($"Initialising weather station {theStation.Identifier}.");
+                    theStation.Initialise();
                     if (theStation.Enabled)
-                    {   
-                        log.Info($"Initialising weather station {theStation.Identifier}.");
-                        theStation.Initialise();
-                        if (theStation.Enabled)
-                            _stations.Add(theStation);
-                    }
-                    else
-                    {
-                        log.Debug($"Weather station {theStation.Identifier} found - but disabled.");
-                    }
+                        _stations.Add(theStation);
                 }
-
-                if (service.Value.Contains(typeof(IDataReporter)))
+                else
                 {
-                    IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.Resolve(service.Key);
-                    if (theReporter.Enabled)
-                    {
-                        log.Info($"Initialising reporter {theReporter.Identifier}.");
-                        theReporter.Initialise();
+                    log.Debug($"Configuraton for weather station {station.Key} found - but disabled.");
+                }
+            }
 
-                        if (theReporter.Enabled)
-                            _reporters.Add(theReporter);
-                    }
-                    else
-                    {
-                        log.Debug($"Reporter {theReporter.Identifier} found - but disabled.");
-                    }
+            var calculations = _iniFile.GetSection("Calculations");
+            foreach (var calculation in calculations)
+            {
+                Dictionary<string,Setting> calcDetails = calculation.Value.AsSection;
+                object methodClass = AutofacWrapper.Instance.Scope.ResolveKeyed<object>(calcDetails["Class"].AsString);
+                var method = methodClass.GetType().GetMethod(calcDetails["Method"].AsString);
+                var returnType = method.ReturnType;
+                dataStatistics.DefineStatistic(calcDetails["Name"].AsString, returnType);
+                dataStatistics.DefineCalculation(calcDetails["Name"].AsString, calcDetails["Inputs"].AsList,
+                    method);
+            }
+
+            var dayStatistics = _iniFile.GetSection("DayStatistics");
+            foreach (var dayStat in dayStatistics)
+            {
+                Dictionary<string, Setting> calcDetails = dayStat.Value.AsSection;
+                var dayStatLambda = calcDetails["Lambda"].AsString;
+                dataStatistics.DefineDayStatistic(calcDetails["Name"].AsString, calcDetails["Input"].AsString, dayStatLambda);
+            }
+
+            var reporters = _iniFile.GetSection("Reporters");
+            foreach (var reporter in reporters)
+            {
+                IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.ResolveNamed<IDataReporter>
+                    (
+                    reporter.Value.AsString, 
+                    new NamedParameter("configurationSectionName", "Reporters:{station.Key}")
+                    );
+                if (theReporter.Enabled)
+                {
+                    log.Info($"Initialising reporter {reporter.Key}.");
+                    theReporter.Initialise();
+
+                    if (theReporter.Enabled)
+                        _reporters.Add(theReporter);
+                }
+                else
+                {
+                    log.Debug($"Configuration for reporter {theReporter.Identifier} found - but disabled.");
                 }
             }
 

@@ -226,8 +226,7 @@ namespace CumulusMX.Configuration
                 m_CacheModified = true;
 
                 // *** Check if the section exists ***
-                Dictionary<string, string> Section;
-                if (!m_Sections.TryGetValue(SectionName, out Section))
+                if (!m_Sections.TryGetValue(SectionName, out var Section))
                 {
                     // *** If it doesn't, add it ***
                     Section = new Dictionary<string, string>();
@@ -353,7 +352,7 @@ namespace CumulusMX.Configuration
 
         public Setting GetValue(string sectionName, string key)
         {
-            return new Setting(GetValue(sectionName,key,string.Empty));
+            return new Setting(GetValue(sectionName,key,string.Empty)) {IniFile = this, Section = sectionName};
         }
 
 
@@ -368,7 +367,7 @@ namespace CumulusMX.Configuration
             if (!m_Sections.TryGetValue(sectionName, out var section)) return result;
             foreach (var (key, value) in section)
             {
-                result.Add(key, new Setting(value));
+                result.Add(key, new Setting(value) {IniFile = this, Section = sectionName});
             }
 
             return result;

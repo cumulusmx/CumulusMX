@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using UnitsNet;
 
 namespace AwekasDataReporter
 {
@@ -91,7 +92,9 @@ namespace AwekasDataReporter
 
              double threeHourlyPressureChangeMb = 0;
 
-             threeHourlyPressureChangeMb = data.Pressure.ThreeHourChange.Millibars;
+             var threeHourChange = ((IStatistic<Pressure>)data["Pressure"]).ThreeHourChange;
+
+             threeHourlyPressureChangeMb = threeHourChange is Pressure pressure ? pressure.Millibars : 0;
 
              if (threeHourlyPressureChangeMb > 6) pressureTrend = 2;
              else if (threeHourlyPressureChangeMb > 3.5) pressureTrend = 2;

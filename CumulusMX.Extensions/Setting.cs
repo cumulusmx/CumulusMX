@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace CumulusMX.Extensions
 {
@@ -31,7 +33,9 @@ namespace CumulusMX.Extensions
             {
                 if (bool.TryParse(_value, out bool value)) return (value);
                 if (int.TryParse(_value, out int valueInt)) return (valueInt != 0);
-                return default(bool);
+                if (_value.ToUpper() == "Y" || _value.ToUpper() == "YES") return true;
+                if (_value.ToUpper() == "N" || _value.ToUpper() == "NO") return false;
+                return default;
             }
         }
 
@@ -41,7 +45,7 @@ namespace CumulusMX.Extensions
             {
                 int value;
                 if (int.TryParse(_value, NumberStyles.Any, CultureInfo.InvariantCulture, out value)) return value;
-                return default(int);
+                return default;
             }
         }
 
@@ -52,7 +56,7 @@ namespace CumulusMX.Extensions
                 double value;
                 if (double.TryParse(_value, NumberStyles.Any, CultureInfo.InvariantCulture, out value))
                     return value;
-                return default(double);
+                return default;
             }
         }
 
@@ -62,9 +66,40 @@ namespace CumulusMX.Extensions
             {
                 DateTime value;
                 if (DateTime.TryParse(_value, out value)) return value;
-                return default(DateTime);
+                return default;
             }
         }
+
+        public Dictionary<string, Setting> AsSection
+        {
+            get
+            {
+                if (IniFile != null)
+                {
+                    return IniFile.GetSection($"{Section}:{_value}");
+                }
+
+                var temp = JsonConvert.DeserializeObject<Dictionary<string, string>>(_value);
+                return temp.ToDictionary(x => x.Key, x => new Setting(x.Value));
+            }
+        }
+
+        public List<string> AsList
+        {
+            get
+            {
+                if (IniFile != null)
+                {
+                    return _value.Split(':').ToList();
+                }
+
+                return JsonConvert.DeserializeObject<List<string>>(_value);
+            }
+
+        }
+
+        public string Section { get; set; }
+        public IConfigurationProvider IniFile { get; set; }
 
         public object AsType(Type outputType)
         {

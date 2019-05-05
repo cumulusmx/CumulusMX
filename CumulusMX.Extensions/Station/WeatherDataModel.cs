@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnitsNet;
 
@@ -7,63 +8,143 @@ namespace CumulusMX.Extensions.Station
 {
     public class WeatherDataModel
     {
+        private Dictionary<string, string> _mappings;
         public DateTime Timestamp { get; set; } = DateTime.Now;
-        public Temperature? IndoorTemperature { get; set; }
-        public Temperature? OutdoorTemperature { get; set; }
-        public Ratio? IndoorHumidity { get; set; }
-        public Ratio? OutdoorHumidity { get; set; }
-        public Speed? WindGust { get; set; }
-        public Speed? WindSpeed { get; set; }
-        public Angle? WindBearing { get; set; }
-        public Pressure? Pressure { get; set; }
-        public Pressure? AltimeterPressure { get; set; }
-        public Temperature? OutdoorDewpoint { get; set; }
-        public Speed? RainRate { get; set; }
-        public Length? RainCounter { get; set; }
-        public Irradiance? SolarRadiation { get; set; }
-        public int? UvIndex { get; set; }
 
-        public Temperature? ApparentTemperature { get; set; }
-        public Temperature? WindChill { get; set; }
-        public Temperature? HeatIndex { get; set; }
-        public double? Humidex { get; set; }
+        public Temperature? IndoorTemperature
+        {
+            get => (Temperature?)(Values.ContainsKey("IndoorTemperature") ? Values["IndoorTemperature"] : null);
+            set => Values["IndoorTemperature"] = value;
+        }
 
-        public Dictionary<string,IQuantity> Extra { get; set; }
+        public Temperature? OutdoorTemperature
+        {
+            get => (Temperature?)(Values.ContainsKey("OutdoorTemperature") ? Values["OutdoorTemperature"] : null);
+            set => Values["OutdoorTemperature"] = value;
+        }
+
+        public Ratio? IndoorHumidity
+        {
+            get => (Ratio?)(Values.ContainsKey("IndoorHumidity") ? Values["IndoorHumidity"] : null);
+            set => Values["IndoorHumidity"] = value;
+        }
+
+        public Ratio? OutdoorHumidity
+        {
+            get => (Ratio?)(Values.ContainsKey("OutdoorHumidity") ? Values["OutdoorHumidity"] : null);
+            set => Values["OutdoorHumidity"] = value;
+        }
+
+        public Speed? WindGust
+        {
+            get => (Speed?)(Values.ContainsKey("WindGust") ? Values["WindGust"] : null);
+            set => Values["WindGust"] = value;
+        }
+
+        public Speed? WindSpeed
+        {
+            get => (Speed?)(Values.ContainsKey("WindSpeed") ? Values["WindSpeed"] : null);
+            set => Values["WindSpeed"] = value;
+        }
+
+        public Angle? WindBearing
+        {
+            get => (Angle?)(Values.ContainsKey("WindBearing") ? Values["WindBearing"] : null);
+            set => Values["WindBearing"] = value;
+        }
+
+        public Pressure? Pressure
+        {
+            get => (Pressure?)(Values.ContainsKey("Pressure") ? Values["Pressure"] : null);
+            set => Values["Pressure"] = value;
+        }
+
+        public Pressure? AltimeterPressure
+        {
+            get => (Pressure?)(Values.ContainsKey("AltimeterPressure") ? Values["AltimeterPressure"] : null);
+            set => Values["AltimeterPressure"] = value;
+        }
+
+        public Temperature? OutdoorDewpoint
+        {
+            get => (Temperature?)(Values.ContainsKey("OutdoorDewpoint") ? Values["OutdoorDewpoint"] : null);
+            set => Values["OutdoorDewpoint"] = value;
+        }
+
+        public Speed? RainRate
+        {
+            get => (Speed?)(Values.ContainsKey("RainRate") ? Values["RainRate"] : null);
+            set => Values["RainRate"] = value;
+        }
+
+        public Length? RainCounter
+        {
+            get => (Length?)(Values.ContainsKey("RainCounter") ? Values["RainCounter"] : null);
+            set => Values["RainCounter"] = value;
+        }
+
+        public Irradiance? SolarRadiation
+        {
+            get => (Irradiance?)(Values.ContainsKey("SolarRadiation") ? Values["SolarRadiation"] : null);
+            set => Values["SolarRadiation"] = value;
+        }
+
+        public Number? UvIndex
+        {
+            get => GetTyped<Number>("UvIndex");
+            set => Values["UvIndex"] = value;
+        }
+
+        public Temperature? ApparentTemperature
+        {
+            get => GetTyped<Temperature>("ApparentTemperature");
+            set => Values["ApparentTemperature"] = value;
+        }
+
+        public Temperature? WindChill
+        {
+            get => GetTyped<Temperature>("WindChill");
+            set => Values["WindChill"] = value;
+        }
+
+        public Temperature? HeatIndex
+        {
+            get => GetTyped<Temperature>("HeatIndex");
+            set => Values["HeatIndex"] = value;
+        }
+
+        public Number? Humidex
+        {
+            get => GetTyped<Number>("Humidex");
+            set => Values["Humidex"] = value;
+        }
+
+        public Dictionary<string,IQuantity> Values { get; set; }
+
+        public Dictionary<string, string> Mappings
+        {
+            get
+            {
+                if (_mappings != null) return _mappings;
+                return Values.Keys.ToDictionary(x => x, x => x);
+            }
+            set => _mappings = value;
+        }
+
+        public IEnumerable<string> Keys => Values.Keys;
+
+        private TBase GetTyped<TBase>(string key) => (TBase)(Values.ContainsKey(key) ? Values[key] : null);
 
         public WeatherDataModel()
         {
-            Extra = new Dictionary<string, IQuantity>();
+            Values = new Dictionary<string, IQuantity>();
         }
 
+        public IQuantity this[string observation] => GetTyped<IQuantity>(observation);
 
 
-
-
-
+        #region OldContent
         //public string Forecast { get; set; }
-
-
-
-        ///// <summary>
-        ///// Wind chill
-        ///// </summary>
-        //public double? WindChill { get; set; }
-
-
-        ///// <summary>
-        ///// Apparent temperature
-        ///// </summary>
-        //public Temperature ApparentTemperature { get; set; }
-
-        ///// <summary>
-        ///// Heat index
-        ///// </summary>
-        //public double? HeatIndex { get; set; }
-
-        ///// <summary>
-        ///// Humidex
-        ///// </summary>
-        //public double? Humidex { get; set; }
 
 
 
@@ -74,35 +155,9 @@ namespace CumulusMX.Extensions.Station
 
 
 
-        ///// <summary>
-        ///// Wind direction as compass points
-        ///// </summary>
-        //public string BearingText { get; set; }
-
-        ///// <summary>
-        ///// Wind direction in degrees
-        ///// </summary>
-        //public int? AvgBearing { get; set; }
-
-        ///// <summary>
-        ///// Wind direction as compass points
-        ///// </summary>
-        //public string AvgBearingText { get; set; }
-
-
-
-
         //public double? ET { get; set; }
 
         //public double? LightValue { get; set; }
-
-        //public double? HeatingDegreeDays { get; set; }
-
-        //public double? CoolingDegreeDays { get; set; }
-
-        //public int? tempsamplestoday { get; set; }
-
-        //public double? TempTotalToday { get; set; }
 
         //public double? ChillHours { get; set; }
 
@@ -116,69 +171,6 @@ namespace CumulusMX.Extensions.Station
         ///// </summary>
         //public double? WindRunToday { get; set; }
 
-        ///// <summary>
-        ///// Extra Temps
-        ///// </summary>
-        //public double?[] ExtraTemp { get; set; }
-
-        ///// <summary>
-        ///// Extra Humidity
-        ///// </summary>
-        //public double?[] ExtraHum { get; set; }
-
-        ///// <summary>
-        ///// Extra dewpoint
-        ///// </summary>
-        //public double?[] ExtraDewPoint { get; set; }
-
-        ///// <summary>
-        ///// Soil Temp 1 in C
-        ///// </summary>
-        //public double? SoilTemp1 { get; set; }
-
-        ///// <summary>
-        ///// Soil Temp 2 in C
-        ///// </summary>
-        //public double? SoilTemp2 { get; set; }
-
-        ///// <summary>
-        ///// Soil Temp 3 in C
-        ///// </summary>
-        //public double? SoilTemp3 { get; set; }
-
-        ///// <summary>
-        ///// Soil Temp 4 in C
-        ///// </summary>
-        //public double? SoilTemp4 { get; set; }
-
-
-        //public int? SoilMoisture1 { get; set; }
-
-        //public int? SoilMoisture2 { get; set; }
-
-        //public int? SoilMoisture3 { get; set; }
-
-        //public int? SoilMoisture4 { get; set; }
-
-        //public double? LeafTemp1 { get; set; }
-
-        //public double? LeafTemp2 { get; set; }
-
-        //public double? LeafTemp3 { get; set; }
-
-        //public double? LeafTemp4 { get; set; }
-
-        //public int? LeafWetness1 { get; set; }
-
-        //public int? LeafWetness2 { get; set; }
-
-        //public int? LeafWetness3 { get; set; }
-
-        //public int? LeafWetness4 { get; set; }
-
-        //public double? SunshineHours { get; set; }
-
-        //public double? SunshineToMidnight { get; set; }
         //public double? SunHourCounter { get; set; }
 
         //public double? StartOfDaySunHourCounter { get; set; }
@@ -189,6 +181,7 @@ namespace CumulusMX.Extensions.Station
         //public double? RG11RainToday { get; set; }
 
         //public double? RainSinceMidnight { get; set; }
+        #endregion
 
     }
 }

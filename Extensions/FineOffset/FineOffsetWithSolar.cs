@@ -7,6 +7,7 @@ using HidSharp;
 
 namespace FineOffset
 {
+    [ExtensionIdentifier("FineOffset_Solar")]
     public class FineOffsetWithSolar : FineOffset, IWeatherStation
     {
         public FineOffsetWithSolar(ILogger log, WithSolarSettings settings, IWeatherDataStatistics data) : base(log, settings, data)
@@ -48,7 +49,7 @@ namespace FineOffset
 
     public class WithSolarSettings : StationSettings
     {
-        public WithSolarSettings(IConfigurationProvider _config) : base(_config)
+        public WithSolarSettings(IConfigurationProvider _config,string ConfigurationSectionName) : base(_config, ConfigurationSectionName)
         {
 
         }

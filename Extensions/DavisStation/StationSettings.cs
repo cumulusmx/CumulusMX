@@ -1,4 +1,5 @@
-﻿using CumulusMX.Common;
+﻿using System.Collections.Generic;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
@@ -13,7 +14,24 @@ namespace DavisStation
         public StationSettings(IConfigurationProvider baseConfiguration)
         {
             _baseConfiguration = baseConfiguration;
-            SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection("DavisStation"));
+        }
+
+        public StationSettings(IConfigurationProvider baseConfiguration,string configurationSectionName)
+        {
+            _baseConfiguration = baseConfiguration;
+            _configurationSectionName = configurationSectionName;
+            SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(configurationSectionName));
+        }
+
+       private string _configurationSectionName;
+       public string ConfigurationSectionName
+        {
+            get => _configurationSectionName;
+            set
+            {
+                _configurationSectionName = value;
+                SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(_configurationSectionName));
+            }
         }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
@@ -29,7 +47,7 @@ namespace DavisStation
         public bool UseLoop2 { get; set; }
         [ExtensionSetting("Should details on the reception quality be read", "General", true)]
         public bool ReadReceptionStats { get; set; }
-        [ExtensionSetting("Should Culumus update the stations time", "General", false)]
+        [ExtensionSetting("Should Cumulus update the stations time", "General", false)]
         public bool SyncTime { get; set; }
         [ExtensionSetting("Which com port should be used for the serial interface", "SerialInterface", "COM1")]
         public string ComPort { get; set; }
@@ -47,5 +65,7 @@ namespace DavisStation
         public int ClockSettingHour { get; set; }
         [ExtensionSetting("Is the station enabled", "General", false)]
         public bool? Enabled { get; set; }
+
+        public Dictionary<string, string> Mappings { get; set; }
     }
 }

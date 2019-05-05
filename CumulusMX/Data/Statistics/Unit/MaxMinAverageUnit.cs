@@ -8,7 +8,7 @@ namespace CumulusMX.Data.Statistics.Unit
 {
     [JsonObject(MemberSerialization.OptIn)]
     public class MaxMinAverageUnit<TBase, TUnitType> : IRecordsAndAverage<TBase>
-        where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
+        where TUnitType : Enum where TBase : IQuantity<TUnitType>
     {
         [JsonProperty]
         private int _count = 0;
@@ -87,23 +87,29 @@ namespace CumulusMX.Data.Statistics.Unit
             MinimumTime = DateTime.Now;
         }
 
-        public void AddValue(DateTime newTime, TBase newValue)
+        public void AddValue(DateTime newTime, object inValue)
         {
+            if (!(inValue is TBase newValue))
+            {
+                //TODO: Log
+                throw new ArgumentException("Invalid input type.", "inSample");
+            }
+
             _count++;
             _total += newValue.As(_itemOne);
-            if (newValue.CompareTo(Maximum) > 0 || _count == 1)
+            if ((newValue as IComparable).CompareTo(Maximum) > 0 || _count == 1)
             {
                 Maximum = newValue;
                 MaximumTime = newTime;
             }
-            if (newValue.CompareTo(Minimum) < 0 || _count == 1)
+            if ((newValue as IComparable).CompareTo(Minimum) < 0 || _count == 1)
             {
                 Minimum = newValue;
                 MinimumTime = newTime;
             }
             _averageValid = false;
             _unitTotalValid = false;
-            if (newValue.CompareTo(_zeroQuantity) != 0)
+            if ((newValue as IComparable).CompareTo(_zeroQuantity) != 0)
                 _nonZero++;
         }
 

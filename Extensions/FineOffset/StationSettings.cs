@@ -11,10 +11,21 @@ namespace FineOffset
     {
         private IConfigurationProvider _baseConfiguration;
 
-        public StationSettings(IConfigurationProvider baseConfiguration)
+        public StationSettings(IConfigurationProvider baseConfiguration,string ConfigurationSectionName)
         {
             _baseConfiguration = baseConfiguration;
-            SettingsFactory.PopulateProperties(this,_baseConfiguration.GetSection("FineOffsetStation"));
+            _configurationSectionName = ConfigurationSectionName;
+            SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(_configurationSectionName));
+        }
+
+        private string _configurationSectionName;
+        public string ConfigurationSectionName
+        {
+            get => _configurationSectionName;
+            set
+            {
+
+            }
         }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
@@ -29,6 +40,7 @@ namespace FineOffset
         [ExtensionSetting("Maximum pressure", "", 1050)]
         public double MaxPressureThreshold { get; set; }
         public bool SyncFOReads { get; internal set; }
-        public bool IsEnabled { get; set; }
+        [ExtensionSetting("Is the station enabled?", "", true)]
+        public bool Enabled { get; set; }
     }
 }
