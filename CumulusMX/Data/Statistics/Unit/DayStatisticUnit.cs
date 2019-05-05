@@ -6,7 +6,7 @@ namespace CumulusMX.Data.Statistics.Unit
 {
     [JsonObject(MemberSerialization.OptIn)]
     internal class DayStatisticUnit<TBase, TUnitType>
-        where TUnitType : Enum where TBase : IComparable, IQuantity<TUnitType>
+        where TUnitType : Enum where TBase : IQuantity<TUnitType>
     {
         [JsonProperty]
         public TBase HighestMinimum { get; private set; }
@@ -56,12 +56,12 @@ namespace CumulusMX.Data.Statistics.Unit
             _total.AddValue(day, dayStatistics.Total);
             _count++;
 
-            if (dayStatistics.Maximum.CompareTo(LowestMaximum) < 0 || _count == 0)
+            if ((dayStatistics.Maximum as IComparable).CompareTo(LowestMaximum) < 0 || _count == 0)
             {
                 LowestMaximum = dayStatistics.Maximum;
                 LowestMaximumDay = day;
             }
-            if (dayStatistics.Minimum.CompareTo(HighestMinimum) > 0 || _count == 0)
+            if ((dayStatistics.Minimum as IComparable).CompareTo(HighestMinimum) > 0 || _count == 0)
             {
                 HighestMinimum = dayStatistics.Minimum;
                 HighestMinimumDay = day;

@@ -25,11 +25,19 @@ namespace CumulusMXTest
 
         public TemplateTests()
         {
+            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
+            {
+                try
+                {
+                    log4net.LogManager.CreateRepository("cumulus");
+                }
+                catch
+                {
+                }
+            }
+
             BuildTestStatistics();
 
-            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
-                log4net.LogManager.CreateRepository("cumulus");
-            
             _log = new LogWrapper(log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType));
             AutofacWrapper.Instance.Builder.RegisterInstance(_log).As<ILogger>();
 
@@ -42,6 +50,12 @@ namespace CumulusMXTest
         private void BuildTestStatistics()
         {
             _statistics = new WeatherDataStatistics();
+            _statistics.DefineStatistic("OutdoorTemperature", typeof(Temperature));
+            _statistics.DefineStatistic("OutdoorHumidity", typeof(Ratio));
+            _statistics.DefineStatistic("WindSpeed", typeof(Speed));
+            _statistics.DefineStatistic("WindBearing", typeof(Angle));
+            _statistics.DefineStatistic("SolarRadiation", typeof(Irradiance));
+
             var wdm = new WeatherDataModel()
             {
                 Timestamp = DateTime.Parse("2019-04-01 18:45"),

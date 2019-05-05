@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CumulusMX.Data;
 using CumulusMX.Data.Statistics.Unit;
@@ -11,6 +12,21 @@ namespace CumulusMXTest.Data
 {
     public class StatisticUnitTest
     {
+        public StatisticUnitTest()
+        {
+            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
+            {
+                try
+                {
+                    log4net.LogManager.CreateRepository("cumulus");
+                }
+                catch
+                {
+                }
+                
+            }
+        }
+
         [Fact]
         public void SimpleStatsTest()
         {

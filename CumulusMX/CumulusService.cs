@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
-using System.Text;
 using System.Threading;
 using Autofac;
 using CumulusMX.Configuration;
@@ -14,8 +13,6 @@ using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
 using CumulusMX.Common;
 using CumulusMX.Web;
-using Unosquare.Labs.EmbedIO;
-using Unosquare.Labs.EmbedIO.Constants;
 
 namespace CumulusMX
 {
@@ -44,7 +41,7 @@ namespace CumulusMX
             this._appDir = appDir;
             this._contentRootDir = contentRootDir;
             _iniFile = new IniFile("Cumulus.ini");
-            //this._config = new CumulusConfiguration(_iniFile);
+            this._config = new CumulusConfiguration(_iniFile);
             this._webService = new CumulusWebService(httpPort, contentRootDir);
 
             var extensionLoaderSettings = new ExtensionLoaderSettings() { Path = Path.Combine(appDir, "Extensions") };
@@ -83,16 +80,17 @@ namespace CumulusMX
             WeatherDataStatistics dataStatistics = WeatherDataStatistics.TryLoad(dataFile);
             AutofacWrapper.Instance.Builder.RegisterInstance(dataStatistics).As<IWeatherDataStatistics>();
             AutofacWrapper.Instance.Builder.RegisterInstance(_iniFile).As<IConfigurationProvider>();
+            AutofacWrapper.Instance.Builder.RegisterType<MeteoLib>().Named<object>("MeteoLib");
 
             var stations = _iniFile.GetSection("Stations");
+            
             foreach (var station in stations)
             {
-                IWeatherStation theStation = AutofacWrapper.Instance.Scope.ResolveNamed<IWeatherStation>
+                IWeatherStation theStation = AutofacWrapper.Instance.Scope.ResolveKeyed<IWeatherStation>
                     (
-                    station.Value.AsString, 
-                    new NamedParameter("configurationSectionName", "Station:{station.Key}")
+                    station.Value.AsString
                     );
-
+                theStation.ConfigurationSettings.ConfigurationSectionName = $"Stations:{station.Key}";
                 if (theStation.Enabled)
                 {
                     log.Info($"Initialising weather station {theStation.Identifier}.");
@@ -104,6 +102,26 @@ namespace CumulusMX
                 {
                     log.Debug($"Configuraton for weather station {station.Key} found - but disabled.");
                 }
+            }
+
+            var calculations = _iniFile.GetSection("Calculations");
+            foreach (var calculation in calculations)
+            {
+                Dictionary<string,Setting> calcDetails = calculation.Value.AsSection;
+                object methodClass = AutofacWrapper.Instance.Scope.ResolveKeyed<object>(calcDetails["Class"].AsString);
+                var method = methodClass.GetType().GetMethod(calcDetails["Method"].AsString);
+                var returnType = method.ReturnType;
+                dataStatistics.DefineStatistic(calcDetails["Name"].AsString, returnType);
+                dataStatistics.DefineCalculation(calcDetails["Name"].AsString, calcDetails["Inputs"].AsList,
+                    method);
+            }
+
+            var dayStatistics = _iniFile.GetSection("DayStatistics");
+            foreach (var dayStat in dayStatistics)
+            {
+                Dictionary<string, Setting> calcDetails = dayStat.Value.AsSection;
+                var dayStatLambda = calcDetails["Lambda"].AsString;
+                dataStatistics.DefineDayStatistic(calcDetails["Name"].AsString, calcDetails["Input"].AsString, dayStatLambda);
             }
 
             var reporters = _iniFile.GetSection("Reporters");

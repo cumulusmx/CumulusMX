@@ -1,4 +1,5 @@
-﻿using CumulusMX.Common;
+﻿using System.Collections.Generic;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
@@ -10,10 +11,27 @@ namespace DavisStation
     {
         private readonly IConfigurationProvider _baseConfiguration;
 
+        public StationSettings(IConfigurationProvider baseConfiguration)
+        {
+            _baseConfiguration = baseConfiguration;
+        }
+
         public StationSettings(IConfigurationProvider baseConfiguration,string configurationSectionName)
         {
             _baseConfiguration = baseConfiguration;
+            _configurationSectionName = configurationSectionName;
             SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(configurationSectionName));
+        }
+
+       private string _configurationSectionName;
+       public string ConfigurationSectionName
+        {
+            get => _configurationSectionName;
+            set
+            {
+                _configurationSectionName = value;
+                SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(_configurationSectionName));
+            }
         }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
@@ -47,5 +65,7 @@ namespace DavisStation
         public int ClockSettingHour { get; set; }
         [ExtensionSetting("Is the station enabled", "General", false)]
         public bool? Enabled { get; set; }
+
+        public Dictionary<string, string> Mappings { get; set; }
     }
 }

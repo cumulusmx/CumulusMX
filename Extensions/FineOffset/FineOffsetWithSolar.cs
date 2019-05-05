@@ -49,7 +49,7 @@ namespace FineOffset
 
     public class WithSolarSettings : StationSettings
     {
-        public WithSolarSettings(IConfigurationProvider _config) : base(_config)
+        public WithSolarSettings(IConfigurationProvider _config,string ConfigurationSectionName) : base(_config, ConfigurationSectionName)
         {
 
         }

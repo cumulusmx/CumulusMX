@@ -6,5 +6,6 @@ namespace CumulusMX.Extensions.Station
 {
     public interface IStationSettings : ISettings
     {
+        string ConfigurationSectionName { get; set; }
     }
 }

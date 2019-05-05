@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -20,8 +21,6 @@ namespace DavisStation
     [ExtensionIdentifier("DavisStation")]
     public class DavisStation : WeatherStationBase
     {
-        private ILogger _log;
-        private readonly IWeatherDataStatistics _weatherStatistics;
         private WeatherDataModel _currentData = new WeatherDataModel();
         private object _dataUpdateLock = new object();
 
@@ -32,16 +31,16 @@ namespace DavisStation
         private StationSettings _configurationSettings;
         private DavisStationInterface _interface;
         private bool _useLoop2;
-        private bool _enabled;
+        private bool _enabled = true;
         private double _firmwareVersion;
         public override IStationSettings ConfigurationSettings => _configurationSettings;
-        public override bool Enabled => _enabled;
+        public override bool Enabled => _enabled && (_configurationSettings?.Enabled ?? false);
         private Dictionary<string, ICalibration> _calibrationDictionary;
 
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
 
-        public DavisStation(ILogger logger, StationSettings settings, IWeatherDataStatistics weatherStatistics)
+        public DavisStation(ILogger logger, StationSettings settings, IWeatherDataStatistics weatherStatistics) : base(weatherStatistics)
         {
             _configurationSettings = settings;
             if (_configurationSettings == null)
@@ -49,15 +48,39 @@ namespace DavisStation
                 throw new ArgumentException("Invalid configuration settings passed to Davis Station.");
             }
 
-            _enabled = settings.Enabled ?? false;
+            _allOutputs = new Dictionary<string, Type>()
+            {
+                {"Pressure",typeof(Pressure)},
+                {"IndoorHumidity",typeof(Ratio)},
+                {"IndoorTemperature",typeof(Temperature)},
+                {"OutdoorHumidity",typeof(Ratio)},
+                {"OutdoorTemperature",typeof(Temperature)},
+                {"RainCounter",typeof(Length)},
+                {"RainRate",typeof(Speed)},
+                {"SolarRadiation",typeof(Irradiance)},
+                {"UvIndex",typeof(int)},
+                {"WindBearing",typeof(Angle)},
+                {"WindSpeed",typeof(Speed)},
+                {"WindGust",typeof(Speed)},
+                {"AltimeterPressure",typeof(Pressure)},
+                {"OutdoorDewpoint",typeof(Temperature)}
+            };
+
             _log = logger;
-            _weatherStatistics = weatherStatistics;
             _cts = new CancellationTokenSource();
         }
 
         public override void Initialise()
         {
-            _log.Info("Station type = Davis");
+            var baseMap = _configurationSettings.Mappings;
+            _mapping = RegisterOutputs(baseMap);
+            if (_mapping.Count == 0)
+            {
+                _enabled = false;
+                return;
+            }
+
+            _log.Info("Initialising a station with type Davis");
 
             var useSerial = _configurationSettings.UseSerialInterface;
             if (useSerial)
@@ -357,6 +380,7 @@ namespace DavisStation
                 //Trace.Flush();
 
                 var dataModel = loopData.GetDataModel();
+                dataModel.Mappings = _mapping;
 
                 weatherStatistics.Add(dataModel);
             }
@@ -412,7 +436,7 @@ namespace DavisStation
                 loopData.Calibrations = _calibrationDictionary;
 
                 var dataModel = loopData.GetDataModel();
-
+                dataModel.Mappings = _mapping;
                 weatherStatistics.Add(dataModel);
             }
 

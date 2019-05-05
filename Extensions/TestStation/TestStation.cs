@@ -22,10 +22,9 @@ namespace TestStation
         public override string Model => "Test Data";
         public override string Description => "Provides dummy data to test functionality.";
         private TestStationSettings _configurationSettings;
-        private bool _enabled;
         public override IStationSettings ConfigurationSettings => _configurationSettings;
-        public override bool Enabled => _enabled;
-        
+        public override bool Enabled => _configurationSettings?.Enabled ?? false;
+
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
         private MeanRevertingRandomWalk _outsideTemp;
@@ -36,7 +35,7 @@ namespace TestStation
         private MeanRevertingRandomWalk _pressure;
         private MeanRevertingRandomWalk _rainRate;
 
-        public TestStation(ILogger logger, TestStationSettings settings, IWeatherDataStatistics weatherStatistics)
+        public TestStation(ILogger logger, TestStationSettings settings, IWeatherDataStatistics weatherStatistics) : base(weatherStatistics)
         {
             _configurationSettings = settings;
             if (_configurationSettings == null)
@@ -44,7 +43,17 @@ namespace TestStation
                 throw new ArgumentException($"Invalid configuration settings passed to Test Station.");
             }
 
-            _enabled = settings.Enabled ?? false;
+            _allOutputs = new Dictionary<string, Type>()
+            {
+                {"Pressure",typeof(Pressure)},
+                {"IndoorTemperature",typeof(Temperature)},
+                {"OutdoorHumidity",typeof(Ratio)},
+                {"OutdoorTemperature",typeof(Temperature)},
+                {"RainRate",typeof(Speed)},
+                {"WindBearing",typeof(Angle)},
+                {"WindSpeed",typeof(Speed)},
+            };
+
             _log = logger;
             _weatherStatistics = weatherStatistics;
             _cts = new CancellationTokenSource();
@@ -52,6 +61,9 @@ namespace TestStation
 
         public override void Initialise()
         {
+            var baseMap = _configurationSettings.Mappings ?? new Dictionary<string, string>();
+            _mapping = RegisterOutputs(baseMap);
+
             _log.Info("Station type = Test Data");
 
             var tempMean = new Func<DateTime, double>((x) => 15 + 10 * Math.Cos(x.DayOfYear / 365.0 * 2 * Math.PI) - 10 * Math.Cos(x.TimeOfDay.TotalSeconds/(24*60*60)*2*Math.PI));

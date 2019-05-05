@@ -4,7 +4,7 @@ using UnitsNet.Units;
 
 namespace CumulusMX.Common
 {
-    public static class MeteoLib
+    public class MeteoLib
     {
         public static Temperature CalculateDewpoint(Temperature temperature,Ratio humidity)
         {
@@ -88,17 +88,17 @@ namespace CumulusMX.Common
             return wc > temp.DegreesCelsius ? temp : Temperature.FromDegreesCelsius(wc);
         }
 
-        public static double Humidex(Temperature temp, Ratio humidity)
+        public static Number Humidex(Temperature temp, Ratio humidity)
         {
             return temp.DegreesCelsius + ((5.0 / 9.0) * (ActualVapourPressure(temp, humidity) - 10.0));
         }
 
-        public static double SaturationVapourPressure(Temperature temp)
+        private static double SaturationVapourPressure(Temperature temp)
         {
             return 6.112 * Math.Exp((17.62 * temp.DegreesCelsius) / (243.12 + temp.DegreesCelsius));
         }
 
-        public static double ActualVapourPressure(Temperature temp, Ratio humidity)
+        private static double ActualVapourPressure(Temperature temp, Ratio humidity)
         {
             return (humidity.Percent * SaturationVapourPressure(temp)) / 100.0;
         }

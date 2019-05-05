@@ -335,32 +335,32 @@ namespace DavisStation
             result.WindGust = new Speed(ApplyCalibration("WindSpeed", CurrentWindSpeed), SpeedUnit.MilePerHour);
             result.Timestamp = DateTime.Now;
             result.AltimeterPressure = result.Pressure;
-            if (result.OutdoorHumidity.HasValue && result.OutdoorTemperature.HasValue)
-                result.OutdoorDewpoint = MeteoLib.CalculateDewpoint(result.OutdoorTemperature.Value, result.OutdoorHumidity.Value);
+
+            result.OutdoorDewpoint = MeteoLib.CalculateDewpoint(result.OutdoorTemperature.Value, result.OutdoorHumidity.Value);
 
             for (int i = 1; i <= 7; i++)
             {
                 if (ExtraTemp[i].HasValue && ExtraTemp[i] != 255)
-                    result.Extra[$"ExtraTemp{i}"] =
+                    result.Values[$"ExtraTemp{i}"] =
                         new Temperature(ApplyCalibration("ExtraTemp", ExtraTemp[i].Value - 90.0), TemperatureUnit.DegreeFahrenheit);
                 if (ExtraHum[i].HasValue && ExtraHum[i] <= 100)
-                    result.Extra[$"ExtraHum{i}"] = new Ratio(ApplyCalibration("ExtraHum", ExtraHum[i].Value), RatioUnit.Percent);
+                    result.Values[$"ExtraHum{i}"] = new Ratio(ApplyCalibration("ExtraHum", ExtraHum[i].Value), RatioUnit.Percent);
 
-                if (result.Extra.ContainsKey($"ExtraHum{i}") && result.Extra.ContainsKey($"ExtraTemp{i}"))
-                    result.Extra[$"ExtraDewpoint{i}"] = MeteoLib.CalculateDewpoint((Temperature)result.Extra[$"ExtraTemp{i}"], (Ratio)result.Extra[$"ExtraHum{i}"]);
+                if (result.Values.ContainsKey($"ExtraHum{i}") && result.Values.ContainsKey($"ExtraTemp{i}"))
+                    result.Values[$"ExtraDewpoint{i}"] = MeteoLib.CalculateDewpoint((Temperature)result.Values[$"ExtraTemp{i}"], (Ratio)result.Values[$"ExtraHum{i}"]);
             }
 
             for (int i = 1; i<=4;i++)
             {
                 if (SoilTemp[i].HasValue && SoilTemp[i] != 255)
-                    result.Extra[$"SoilTemp{i}"] =
+                    result.Values[$"SoilTemp{i}"] =
                         new Temperature(ApplyCalibration("SoilTemp",SoilTemp[i].Value - 90.0), TemperatureUnit.DegreeFahrenheit);
                 if (LeafTemp[i].HasValue && LeafTemp[i] != 255)
-                    result.Extra[$"LeafTemp{i}"] = new Temperature(ApplyCalibration("LeafTemp", LeafTemp[i].Value - 90.0), TemperatureUnit.DegreeFahrenheit);
+                    result.Values[$"LeafTemp{i}"] = new Temperature(ApplyCalibration("LeafTemp", LeafTemp[i].Value - 90.0), TemperatureUnit.DegreeFahrenheit);
                 if (SoilMoisture[i].HasValue && SoilMoisture[i] <= 250)
-                    result.Extra[$"SoilMoisture{i}"] = new Pressure(ApplyCalibration("SoilMoisture", SoilMoisture[i].Value), PressureUnit.Centibar);
+                    result.Values[$"SoilMoisture{i}"] = new Pressure(ApplyCalibration("SoilMoisture", SoilMoisture[i].Value), PressureUnit.Centibar);
                 if (LeafWetness[i].HasValue && LeafWetness[i] <= 16)
-                    result.Extra[$"LeafWetness{i}"] = new Ratio(ApplyCalibration("LeafWetness", LeafWetness[i].Value), RatioUnit.Percent);
+                    result.Values[$"LeafWetness{i}"] = new Ratio(ApplyCalibration("LeafWetness", LeafWetness[i].Value), RatioUnit.Percent);
             }
             
             return result;

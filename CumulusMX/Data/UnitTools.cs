@@ -48,7 +48,7 @@ namespace CumulusMX.Data
             return (TUnitType)Enum.ToObject(typeof(TUnitType), 1);
         }
 
-        public static TBase ZeroQuantity<TBase, TUnitType>() where TBase : IComparable, IQuantity where TUnitType : Enum
+        public static TBase ZeroQuantity<TBase, TUnitType>() where TBase : IQuantity where TUnitType : Enum
         {
             var unitType = FirstUnit<TUnitType>();
             return (TBase)Activator.CreateInstance(typeof(TBase), 0, unitType);

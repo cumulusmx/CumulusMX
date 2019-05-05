@@ -27,23 +27,22 @@ namespace FineOffset
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
         protected DeviceDataReader dataReader;
-        protected bool _enabled;
+        protected bool _enabled = true;
+        private StationSettings _configurationSettings;
 
-        public FineOffset(ILogger log,StationSettings settings, IWeatherDataStatistics data)
+        public FineOffset(ILogger log,StationSettings settings, IWeatherDataStatistics data) 
         {
             currentData = new WeatherDataModel();
             FO_ENTRY_SIZE = 0x10;
             FO_MAX_ADDR = 0xFFF0;
             MAX_HISTORY_ENTRIES = 4080;
-            ConfigurationSettings = settings;
+            _configurationSettings = settings;
 
             _cts = new CancellationTokenSource();
 
             _log = log;
             _data = data;
             _settings = settings;
-
-            _enabled = _settings?.IsEnabled ?? false;
         }
 
         public virtual string Identifier => "FineOffset";
@@ -51,10 +50,9 @@ namespace FineOffset
         public virtual string Model => "Fine Offset Compatible";
         public virtual string Description => "Supports FineOffset compatible stations";
 
-        public virtual IStationSettings ConfigurationSettings { get; }
+        public virtual IStationSettings ConfigurationSettings => _configurationSettings;
 
-        public bool Enabled => _enabled;
-
+        public bool Enabled => _enabled && (_configurationSettings?.Enabled ?? false);
 
         public virtual void Initialise()
         {

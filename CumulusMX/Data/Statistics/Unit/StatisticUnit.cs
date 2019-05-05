@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CumulusMX.Common;
+using CumulusMX.Data.Statistics.Double;
+using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
 using Newtonsoft.Json;
 using UnitsNet;
+using UnitsNet.Units;
 using Unosquare.Swan;
 
 namespace CumulusMX.Data.Statistics.Unit
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class StatisticUnit<TBase, TUnitType> : IStatistic<TBase> 
-        where TBase : IComparable, IQuantity<TUnitType>
+    public class StatisticUnit<TBase, TUnitType> : IAddable, IStatistic<TBase>
+        where TBase : IQuantity<TUnitType>
         where TUnitType : Enum
     {
         private static readonly log4net.ILog log;
@@ -20,7 +24,7 @@ namespace CumulusMX.Data.Statistics.Unit
         private readonly TBase ZERO_QUANTITY;
 
         [JsonProperty]
-        private readonly Dictionary<DateTime, TBase> _sampleHistory = new Dictionary<DateTime, TBase>();
+        private readonly Dictionary<DateTime, double> _sampleHistory = new Dictionary<DateTime, double>();
         [JsonProperty]
         private DateTime _lastSampleTime;
         [JsonProperty]
@@ -57,11 +61,11 @@ namespace CumulusMX.Data.Statistics.Unit
         [JsonProperty]
         private TimeSpan _yearNonZero = TimeSpan.Zero;
         [JsonProperty]
-        private readonly RollingStatisticUnit<TBase, TUnitType> _oneHour;
+        private readonly RollingStatisticDouble _oneHour;
         [JsonProperty]
-        private readonly RollingStatisticUnit<TBase, TUnitType> _threeHours;
+        private readonly RollingStatisticDouble _threeHours;
         [JsonProperty]
-        private readonly RollingStatisticUnit<TBase, TUnitType> _24Hours;
+        private readonly RollingStatisticDouble _24Hours;
 
         public IRecordsAndAverage<TBase> Yesterday => _yesterday;
         public IRecordsAndAverage<TBase> LastMonth => _lastMonth;
@@ -72,7 +76,7 @@ namespace CumulusMX.Data.Statistics.Unit
 
         static StatisticUnit()
         {
-            //log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public StatisticUnit()
@@ -90,9 +94,9 @@ namespace CumulusMX.Data.Statistics.Unit
             _yearByDay = new DayStatisticUnit<TBase, TUnitType>();
             _allTimeByDay = new DayStatisticUnit<TBase, TUnitType>();
 
-            _oneHour = new RollingStatisticUnit<TBase, TUnitType>(1, _sampleHistory);
-            _threeHours = new RollingStatisticUnit<TBase, TUnitType>(3, _sampleHistory);
-            _24Hours = new RollingStatisticUnit<TBase, TUnitType>(24, _sampleHistory);
+            _oneHour = new RollingStatisticDouble(1, _sampleHistory);
+            _threeHours = new RollingStatisticDouble(3, _sampleHistory);
+            _24Hours = new RollingStatisticDouble(24, _sampleHistory);
 
             _monthRecords = new IRecords<TBase>[12];
             for (int i = 0; i < 12; i++)
@@ -105,9 +109,18 @@ namespace CumulusMX.Data.Statistics.Unit
         /// Adds a new sample to the statistics set, and updates aggregates. This will be called a lot, it needs to be fast.
         /// </summary>
         /// <param name="timestamp">The DateTime when the observation was taken.</param>
-        /// <param name="sample">The observed value.</param>
-        public void Add(DateTime timestamp,TBase sample)
+        /// <param name="inSample">The observed value.</param>
+        public void Add(DateTime timestamp,object inSample)
         {
+            if (inSample is double doubleSample && typeof(TBase) == typeof(Number))
+                inSample = (Number)doubleSample;
+
+            if (!(inSample is TBase sample))
+            {
+                log.Warn($"Incorrect type adding data to a statistics set. Expected type is {typeof(TBase).Name} but type received was incompatible.");
+                throw new ArgumentException("Invalid input type.","inSample");
+            }
+
             if (timestamp < _lastSampleTime)
             {
                 log.Warn($"Invalid attempt to load data timestamped {timestamp} when latest data is already {_lastSampleTime}");
@@ -130,7 +143,8 @@ namespace CumulusMX.Data.Statistics.Unit
                 RemoveOldSamples(timestamp);
             }
 
-            _sampleHistory.Add(timestamp,sample);
+            var sampleValue = sample.As(FIRST_UNIT_TYPE);
+            _sampleHistory.Add(timestamp,sampleValue);
             Latest = sample;
 
             _day.AddValue(timestamp, sample);
@@ -139,11 +153,11 @@ namespace CumulusMX.Data.Statistics.Unit
             _allTime.AddValue(timestamp, sample);
             _monthRecords[timestamp.Month - 1].AddValue(timestamp, sample);
 
-            _oneHour.AddValue(timestamp, sample);
-            _threeHours.AddValue(timestamp, sample);
-            _24Hours.AddValue(timestamp, sample);
+            _oneHour.AddValue(timestamp, sampleValue);
+            _threeHours.AddValue(timestamp, sampleValue);
+            _24Hours.AddValue(timestamp, sampleValue);
 
-            if (sample.CompareTo(ZERO_QUANTITY) != 0 && _lastSampleTime > EARLY_DATE)
+            if ((sample as IComparable).CompareTo(ZERO_QUANTITY) != 0 && _lastSampleTime > EARLY_DATE)
             {
                 UpdateNonZeroTimes(timestamp);
             }
@@ -219,22 +233,22 @@ namespace CumulusMX.Data.Statistics.Unit
         [JsonProperty]
         public TBase Latest { get; private set; }
 
-        public TBase OneHourMaximum => _oneHour.Maximum;
-        public TBase ThreeHourMaximum => _threeHours.Maximum;
+        public TBase OneHourMaximum => ToUnit(_oneHour.Maximum);
+        public TBase ThreeHourMaximum => ToUnit(_threeHours.Maximum);
         public DateTime OneHourMaximumTime => _oneHour.MaximumTime;
         public DateTime ThreeHourMaximumTime => _threeHours.MaximumTime;
 
-        public TBase OneHourMinimum => _oneHour.Minimum;
-        public TBase ThreeHourMinimum => _threeHours.Minimum;
+        public TBase OneHourMinimum => ToUnit(_oneHour.Minimum);
+        public TBase ThreeHourMinimum => ToUnit(_threeHours.Minimum);
         public DateTime OneHourMinimumTime => _oneHour.MaximumTime;
         public DateTime ThreeHourMinimumTime => _threeHours.MaximumTime;
 
-        public TBase OneHourChange => _oneHour.Change;
-        public TBase ThreeHourChange => _threeHours.Change;
-        public TBase OneHourTotal => _oneHour.Total;
-        public TBase ThreeHourTotal => _threeHours.Total;
-        public TBase OneHourAverage => _oneHour.Average;
-        public TBase ThreeHourAverage => _threeHours.Average;
+        public TBase OneHourChange => ToUnit(_oneHour.Change);
+        public TBase ThreeHourChange => ToUnit(_threeHours.Change);
+        public TBase OneHourTotal => ToUnit(_oneHour.Total);
+        public TBase ThreeHourTotal => ToUnit(_threeHours.Total);
+        public TBase OneHourAverage => ToUnit(_oneHour.Average);
+        public TBase ThreeHourAverage => ToUnit(_threeHours.Average);
 
         public TBase DayMaximum => _day.Maximum;
         public TBase DayMinimum => _day.Minimum;
@@ -272,8 +286,8 @@ namespace CumulusMX.Data.Statistics.Unit
         public TBase RecordMinimum => _allTime.Minimum;
         public DateTime RecordMaximumTime => _allTime.MaximumTime;
         public DateTime RecordMinimumTime => _allTime.MinimumTime;
-        public bool RecordNow => _allTime.Maximum.CompareTo(Latest) == 0 ||
-                                 _allTime.Minimum.CompareTo(Latest) == 0;
+        public bool RecordNow => (_allTime.Maximum as IComparable).CompareTo(Latest) == 0 ||
+                                 (_allTime.Minimum as IComparable).CompareTo(Latest) == 0;
         public bool RecordLastHour => ((LastSample - _allTime.MaximumTime) < TimeSpan.FromHours(1)) ||
                                       ((LastSample - _allTime.MinimumTime) < TimeSpan.FromHours(1));
 
@@ -282,12 +296,12 @@ namespace CumulusMX.Data.Statistics.Unit
         public DateTime RecordLowestMaximumDay => _allTimeByDay.LowestMaximumDay;
         public DateTime RecordHighestMinimumDay => _allTimeByDay.HighestMinimumDay;
 
-        public TBase Last24hMaximum => _24Hours.Maximum;
+        public TBase Last24hMaximum => ToUnit(_24Hours.Maximum);
         public DateTime Last24hMaximumTime => _24Hours.MaximumTime;
-        public TBase Last24hMinimum => _24Hours.Minimum;
+        public TBase Last24hMinimum => ToUnit(_24Hours.Minimum);
         public DateTime Last24hMinimumTime => _24Hours.MinimumTime;
-        public TBase Last24hTotal => _24Hours.Total;
-        public TBase Last24hChange => _24Hours.Change;
+        public TBase Last24hTotal => ToUnit(_24Hours.Total);
+        public TBase Last24hChange => ToUnit(_24Hours.Change);
 
         public TBase YearMaximumDayTotal => _yearByDay.HighestTotal;
         public TBase YearMinimumDayTotal => _yearByDay.LowestTotal;
@@ -317,7 +331,7 @@ namespace CumulusMX.Data.Statistics.Unit
         public IRecords<TBase>[] ByMonth => _monthRecords;
         public IRecords<TBase> CurrentMonth => _monthRecords[LastSample.Month - 1];
 
-        public Dictionary<DateTime, TBase> ValueHistory => _sampleHistory;
+        public Dictionary<DateTime, double> ValueHistory => _sampleHistory;
 
         public void AddBooleanStatistics(IDayBooleanStatistic statistic)
         {
@@ -326,8 +340,14 @@ namespace CumulusMX.Data.Statistics.Unit
 
         public Dictionary<DateTime, double> ValueHistoryAs(TUnitType unit)
         {
-            return _sampleHistory.ToDictionary(x => x.Key, x => x.Value.As(unit));
+            return _sampleHistory.ToDictionary(x => x.Key, x => ToUnit(x.Value).As(unit));
         }
 
+        private TBase ToUnit(double value)
+        {
+            return (TBase)Activator.CreateInstance(typeof(TBase), value, FIRST_UNIT_TYPE); //TODO: Performance issue here
+        }
+
+        public object LatestObject => Latest;
     }
 }

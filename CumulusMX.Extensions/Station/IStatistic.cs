@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Text;
 using CumulusMX.Data.Statistics;
 
 namespace CumulusMX.Extensions.Station
 {
-    public interface IStatistic<TBase>
+    public interface IStatistic<out TBase> : IStatistic
     {
-        void Add(DateTime timestamp, TBase sample);
-
         DateTime LastSample { get; }
         TBase Latest { get; }
         TBase OneHourMaximum { get; }
@@ -86,8 +82,13 @@ namespace CumulusMX.Extensions.Station
         IRecordsAndAverage<TBase> LastMonth { get; }
         IRecordsAndAverage<TBase> LastYear { get; }
 
-        Dictionary<DateTime,TBase> ValueHistory { get; }
+        Dictionary<DateTime, double> ValueHistory { get; }
 
         void AddBooleanStatistics(IDayBooleanStatistic heatingDegreeDays);
+    }
+
+    public interface IStatistic
+    {
+        object LatestObject { get; }
     }
 }

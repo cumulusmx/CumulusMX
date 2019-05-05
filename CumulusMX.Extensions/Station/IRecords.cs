@@ -2,13 +2,13 @@
 
 namespace CumulusMX.Extensions.Station
 {
-    public interface IRecords<TBase>
+    public interface IRecords<out TBase>
     {
         TBase Maximum { get; }
         DateTime MaximumTime { get; }
         TBase Minimum { get; }
         DateTime MinimumTime { get; }
 
-        void AddValue(DateTime timestamp, TBase sample);
+        void AddValue(DateTime timestamp, object sample);
     }
 }

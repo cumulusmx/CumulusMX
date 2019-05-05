@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CumulusMX.Data;
 using CumulusMX.Data.Statistics.Unit;
 using UnitsNet;
@@ -16,6 +17,11 @@ namespace CumulusMXTest.Data
             var baseTime = DateTime.Parse("2019-04-01 12:00");
             for (int i = 0; i < 4; i++)
                 Times.Add(baseTime.AddMinutes(i));
+
+            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
+                log4net.LogManager.CreateRepository("cumulus");
+
+
         }
 
         public List<DateTime> Times;
