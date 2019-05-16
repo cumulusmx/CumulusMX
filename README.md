@@ -1,4 +1,4 @@
-# CumulusMX
+# CumulusMX - redmeteo.cl version
 **The CumulusMX weather program**
 
 This is the source code for the CumuluMX weather program written by Steve Loft.
@@ -11,3 +11,5 @@ In order to function correctly the program needs the supporting distribution fil
 The orginal source was post build b3043 - it incorporated some changes that were being worked on by Steve before he retired.
 
 The support forum for this software can [be found here](https://cumulus.hosiene.co.uk/)
+
+This fork is intended for use with [Redmeteo.cl](https://redmeteo.cl/) website, an open chilean weather station network mantained by weather enthusiasts and professionals.
