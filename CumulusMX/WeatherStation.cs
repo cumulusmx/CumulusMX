@@ -7873,7 +7873,7 @@ namespace CumulusMX
             apistring = cumulus.RedMeteoID;
 
             // llamada a la URL
-            URL = "https://redmeteo.cl/telemetry.php?ID=";
+            URL = "http://redmeteo.cl/telemetry.php?ID=";
 
             URL = URL + cumulus.RedMeteoID + "&format=realtime&date=" + fecha + "&time=" + hora;
             string Data = "";
