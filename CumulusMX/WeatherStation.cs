@@ -1560,7 +1560,12 @@ namespace CumulusMX
 						cumulus.UpdateWindy(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.AwekasUser) && (cumulus.AwekasUser != " ") && cumulus.AwekasEnabled && cumulus.SynchronisedAwekasUpdate &&
+                    if (!String.IsNullOrEmpty(cumulus.RedMeteoID) && (cumulus.RedMeteoID != " ") && cumulus.RedMeteoEnabled && cumulus.SynchronisedRedMeteoUpdate && (now.Minute % cumulus.RedMeteoInterval == 0))
+                    {
+                        cumulus.UpdateRedMeteo(now);   //redmeteo.cl
+                    }
+
+                    if (!String.IsNullOrEmpty(cumulus.AwekasUser) && (cumulus.AwekasUser != " ") && cumulus.AwekasEnabled && cumulus.SynchronisedAwekasUpdate &&
 						(now.Minute % cumulus.AwekasInterval == 0))
 					{
 						cumulus.UpdateAwekas(now);
@@ -7852,7 +7857,98 @@ namespace CumulusMX
 			return URL;
 		}
 
-		private string PressINstr(double pressure)
+        public string ReplaceCommas(string AStr)
+        {
+            return AStr.Replace(',', '.');
+        }
+
+        public string GetRedMeteoURL(out string apistring, DateTime timestamp)
+        {
+            // CODIGO DE REDMETEO.CL
+
+            string fecha = timestamp.ToLocalTime().ToString("dd'/'MM'/'yy");
+            string hora = timestamp.ToLocalTime().ToString("HH':'mm");
+            string URL;
+
+            apistring = cumulus.RedMeteoID;
+
+            // llamada a la URL
+            URL = "https://redmeteo.cl/telemetry.php?ID=";
+
+            URL = URL + cumulus.RedMeteoID + "&format=realtime&date=" + fecha + "&time=" + hora;
+            string Data = "";
+
+            Data = Data + "temp=" + (ReplaceCommas(OutdoorTemperature.ToString(cumulus.TempFormat)) + "&"); // 3
+            Data = Data + "rh=" + (OutdoorHumidity.ToString() + "&"); // 4
+            Data = Data + "dewpoint=" + (ReplaceCommas(OutdoorDewpoint.ToString(cumulus.TempFormat)) + "&"); // 5
+            Data = Data + "wsavg=" + (ReplaceCommas(WindAverage.ToString(cumulus.WindFormat)) + "&"); // 6
+            Data = Data + "ws=" + (ReplaceCommas(WindLatest.ToString(cumulus.WindFormat)) + "&"); // 7
+            Data = Data + "wdirangle=" + (Bearing.ToString() + "&"); // 8
+            Data = Data + "rainrate=" + (ReplaceCommas(RainRate.ToString(cumulus.RainFormat)) + "&"); // 9
+            Data = Data + "rain=" + (ReplaceCommas(RainToday.ToString(cumulus.RainFormat)) + "&"); // 10
+            Data = Data + "baro=" + (ReplaceCommas(Pressure.ToString(cumulus.PressFormat)) + "&"); // 11
+            Data = Data + "wdir=" + (CompassPoint(Bearing) + "&"); // 12
+            Data = Data + "bf=" + (Beaufort(WindAverage) + "&"); // 13
+            Data = Data + "wsunit=" + (cumulus.WindUnitText + "&"); // 14
+            Data = Data + "tempunit=" + (cumulus.TempUnitText[1].ToString() + "&"); // 15
+            Data = Data + "presunit=" + (cumulus.PressUnitText + "&"); // 16
+            Data = Data + "rainunit=" + (cumulus.RainUnitText + "&"); // 17
+            Data = Data + "windrun=" + (ReplaceCommas(WindRunToday.ToString(cumulus.WindRunFormat)) + "&"); // 18
+            Data = Data + "prestrend=" + (ReplaceCommas(presstrendval.ToString(cumulus.PressFormat)) + "&");
+            Data = Data + "monthrain=" + (ReplaceCommas(RainMonth.ToString(cumulus.RainFormat)) + "&"); // 20
+            Data = Data + "yearrain=" + (ReplaceCommas(RainYear.ToString(cumulus.RainFormat)) + "&"); // 21
+            Data = Data + "yesterdayrain=" + (ReplaceCommas(RainYesterday.ToString(cumulus.RainFormat)) + "&"); // 22
+            Data = Data + "insidetemp=" + (ReplaceCommas(IndoorTemperature.ToString(cumulus.TempFormat)) + "&"); // 23
+            Data = Data + "insiderh=" + (IndoorHumidity.ToString() + "&"); // 24
+            Data = Data + "windchill=" + (ReplaceCommas(WindChill.ToString(cumulus.TempFormat)) + "&"); // 25
+            Data = Data + "temptrend="+(ReplaceCommas(temptrendval.ToString(cumulus.TempTrendFormat)) + "&"); // 26
+            Data = Data + "tempmax="+(ReplaceCommas(HighTempToday.ToString(cumulus.TempFormat)) + "&"); // 27
+            Data = Data + "htempmax=" + (hightemptodaytime.ToString("HH:mm") + "&"); // 28
+            Data = Data + "tempmin=" + (ReplaceCommas(LowTempToday.ToString(cumulus.TempFormat)) + "&"); // 29
+            Data = Data + "htempmin=" + (lowtemptodaytime.ToString("HH:mm") + "&"); // 30
+            Data = Data + "wsavgmax=" + (ReplaceCommas(highwindtoday.ToString(cumulus.WindFormat)) + "&"); // 31
+            Data = Data + "hwsavgmax=" + (highwindtodaytime.ToString("HH:mm") + "&"); // 32
+            Data = Data + "wsgustmax=" + (ReplaceCommas(highgusttoday.ToString(cumulus.WindFormat)) + "&"); // 33
+            Data = Data + "hwsgustmax=" + (highgusttodaytime.ToString("HH:mm") + "&"); // 34
+            Data = Data + "presmax=" + (ReplaceCommas(highpresstoday.ToString(cumulus.PressFormat)) + "&"); // 35
+            Data = Data + "hpresmax=" + (highpresstodaytime.ToString("HH:mm") + "&"); // 36
+            Data = Data + "presmin=" + (ReplaceCommas(lowpresstoday.ToString(cumulus.PressFormat)) + "&"); // 37
+            Data = Data + "hpresmin=" + (lowpresstodaytime.ToString("HH:mm") + "&"); // 38
+            Data = Data + "version="+(cumulus.Version + "&"); // 39
+            Data = Data + "build=" + (cumulus.Build + "&"); // 40
+            Data = Data + "tenmingust=" + (ReplaceCommas(RecentMaxGust.ToString(cumulus.WindFormat)) + "&"); // 41
+            Data = Data + "heatindex=" + (ReplaceCommas(HeatIndex.ToString(cumulus.TempFormat)) + "&"); // 42
+            Data = Data + "humidex=" + (ReplaceCommas(Humidex.ToString(cumulus.TempFormat)) + "&"); // 43
+            Data = Data + "uv=" + (ReplaceCommas(UV.ToString(cumulus.UVFormat)) + "&"); // 44
+            Data = Data + "et=" + (ReplaceCommas(ET.ToString(cumulus.ETFormat)) + "&"); // 45
+            Data = Data + "sw=" + ((Convert.ToInt32(SolarRad)).ToString() + "&"); // 46
+            Data = Data + "tenmindir=" + (AvgBearing.ToString() + "&"); // 47
+            Data = Data + "rainlasthr=" + (ReplaceCommas(RainLastHour.ToString(cumulus.RainFormat)) + "&"); // 48
+            Data = Data + "zambretti=" + (Forecastnumber.ToString() + "&"); // 49
+            Data = Data + "isday=" + (cumulus.IsDaylight() ? "1 " : "0 ");
+            Data = Data + "scl=" + (SensorContactLost ? "1 " : "0 ");
+            Data = Data + "avgwdir=" + (CompassPoint(AvgBearing) + "&"); // 52
+            Data = Data + "cloudbase=" + ((Convert.ToInt32(CloudBase)).ToString() + "&"); // 53
+            Data = Data + "cloudunit=" + (cumulus.CloudBaseInFeet ? "ft " : "m ");
+            Data = Data + "apptemp=" + (ReplaceCommas(ApparentTemperature.ToString(cumulus.TempFormat)) + "&"); // 55
+            Data = Data + "sunhrs=" + (ReplaceCommas(SunshineHours.ToString(cumulus.SunFormat)) + "&"); // 56
+            Data = Data + "sunmax=" + ((Convert.ToInt32(CurrentSolarMax)).ToString() + "&"); // 57
+            Data = Data + "issunny=" + (IsSunny ? "1" : "0");
+
+            //http://redmeteo.cl/telemetria.php?ID=IDUSUARIO&format=realtime&date=<#date format=dd/MM/yy>&time=<#timehhmmss>&temp=<#temp>&rh=<#hum>&dewpoint=<#dew>&wsavg=<#wspeed>&ws=<#wlatest>&wdirangle=<#bearing>&rainrate=<#rrate>&rain=<#rfall>&baro=<#press>&wdir=<#currentwdir>&bf=<#beaufortnumber>&wsunit=<#windunit>&tempunit=<#tempunitnodeg>&presunit=<#pressunit>&rainunit=<#rainunit>&windrun=<#windrun>&prestrend=<#presstrendval>&monthrain=<#rmonth>&yearrain=<#ryear>&yesterdayrain=<#rfallY>&insidetemp=<#intemp>&insiderh=<#inhum>&windchill=<#wchill>&temptrend=<#temptrend>&tempmax=<#tempTH>&htempmax=<#TtempTH>&tempmin=<#tempTL>&htempmin=<#TtempTL>&wsavgmax=<#windTM>&hwsavgmax=<#TwindTM>&wsgustmax=<#wgustTM>&hwsgustmax=<#TwgustTM>&presmax=<#pressTH>&hpresmax=<#TpressTH>&presmin=<#pressTL>&hpresmin=<#TpressTL>&version=<#version>&build=<#build>&tenmingust=<#wgust>&heatindex=<#heatindex>&humidex=<#humidex>&uv=<#UV>&et=<#ET>&sw=<#SolarRad>&tenmindir=<#avgbearing>&rainlasthr=<#rhour>&zambretti=<#forecastnumber>&isday=<#isdaylight>&scl=<#SensorContactLost>&avgwdir=<#wdir>&cloudbase=<#cloudbasevalue>&cloudunit=<#cloudbaseunit>&apptemp=<#apptemp>&sunhrs=<#SunshineHours>&sunmax=<#CurrentSolarMax>&issunny=<#IsSunny>
+
+            //  if (cumulus.SendSolarToRedMeteo)
+            //      Data = Data + "&uv=" + UV.ToString(cumulus.UVFormat);
+            //  if (cumulus.WindySendSolar)
+            //      Data = Data + "&solarradiation=" + SolarRad.ToString("F0");
+
+            Data = ReplaceCommas(Data);
+            URL = URL + Data;
+
+            return URL;
+        }
+
+        private string PressINstr(double pressure)
 		{
 			var pressIN = ConvertUserPressToIN(pressure);
 

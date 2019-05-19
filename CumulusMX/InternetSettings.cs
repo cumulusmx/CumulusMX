@@ -99,8 +99,13 @@ namespace CumulusMX
 
 				cumulus.SynchronisedWUUpdate = (!cumulus.WundRapidFireEnabled) && (60 % cumulus.WundInterval == 0);
 
-				// Windy
-				cumulus.WindyCatchUp = settings.windy.catchup;
+                // REDMETEO.CL
+                cumulus.RedMeteoEnabled = settings.redmeteo.enabled;
+                cumulus.RedMeteoInterval = settings.redmeteo.interval;
+                cumulus.RedMeteoID = settings.redmeteo.redmeteoid;
+
+                // Windy
+                cumulus.WindyCatchUp = settings.windy.catchup;
 				cumulus.WindyEnabled = settings.windy.enabled;
 				//cumulus.WindySendSolar = settings.windy.includesolar;
 				cumulus.WindySendUV = settings.windy.includeuv;
@@ -287,6 +292,12 @@ namespace CumulusMX
 								 sendavgwind = cumulus.WundSendAverage,
 								 stationid = cumulus.WundID
 							 };
+            var redmeteosettings = new JsonInternetSettingsRedMeteo()
+                            {
+                                enabled = cumulus.RedMeteoEnabled,
+                                interval = cumulus.RedMeteoInterval,
+                                redmeteoid = cumulus.RedMeteoID
+                            };
 
 			var windysettings = new JsonInternetSettingsWindy()
 							{
@@ -403,7 +414,8 @@ namespace CumulusMX
 						   externalprograms = externalprograms,
 						   twitter = twittersettings,
 						   wunderground = wusettings,
-						   windy = windysettings,
+                           redmeteo = redmeteosettings,
+                           windy = windysettings,
 						   awekas = awekassettings,
 						   weathercloud = wcloudsettings,
 						   pwsweather = pwssettings,
@@ -539,6 +551,7 @@ namespace CumulusMX
 		public JsonInternetSettingsTwitterSettings twitter { get; set; }
 		public JsonInternetSettingsWunderground wunderground { get; set; }
 		public JsonInternetSettingsWindy windy { get; set; }
+        public JsonInternetSettingsRedMeteo redmeteo { get; set; }
 		public JsonInternetSettingsPWSweather pwsweather { get; set; }
 		public JsonInternetSettingsWOW wow { get; set; }
 		public JsonInternetSettingsWeatherbug weatherbug { get; set; }
@@ -623,7 +636,14 @@ namespace CumulusMX
 		public int stationidx { get; set; }
 	}
 
-	public class JsonInternetSettingsAwekas
+    public class JsonInternetSettingsRedMeteo   // redmeteo.cl
+    {
+        public bool enabled { get; set; }
+        public int interval { get; set; }
+        public string redmeteoid { get; set; }
+    }
+
+    public class JsonInternetSettingsAwekas
 	{
 		public bool enabled { get; set; }
 		public bool includeuv { get; set; }

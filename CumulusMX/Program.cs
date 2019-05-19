@@ -96,7 +96,7 @@ namespace CumulusMX
 
             //System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo("en-GB");
             //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo("en-GB");
-            Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+            Console.WriteLine("Localizacion actual: " + CultureInfo.CurrentCulture.DisplayName);
 
             cumulus = new Cumulus(httpport, wsport);
 
@@ -105,7 +105,7 @@ namespace CumulusMX
             Console.WriteLine(DateTime.Now.ToString("G"));
 
 
-            Console.WriteLine("Type Ctrl-C to terminate");
+            Console.WriteLine("Teclea Ctrl-C para terminar");
             while (!exitSystem)
             {
                 Thread.Sleep(500);
@@ -113,9 +113,9 @@ namespace CumulusMX
 
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
-                Console.WriteLine("\nCumulus terminating");
+                Console.WriteLine("\nTerminando Cumulus-MX");
                 cumulus.Stop();
-                Console.WriteLine("Program exit");
+                Console.WriteLine("Cierre del programa");
                 Environment.Exit(0);
             }
         }
@@ -127,8 +127,8 @@ namespace CumulusMX
                 cumulus.LogMessage(e.ExceptionObject.ToString());
                 Trace.Flush();
                 Console.WriteLine(e.ExceptionObject.ToString());
-                Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
-                Console.WriteLine("Press Enter to terminate");
+                Console.WriteLine("**** Ha ocurrido un error - enviar los registros de la carpeta MXdiags a redmeteoaficionadachile@gmail.com ****");
+                Console.WriteLine("Presiona Enter para terminar");
                 Console.ReadLine();
                 Environment.Exit(1);
             }
@@ -170,7 +170,7 @@ namespace CumulusMX
 
         private static bool Handler(CtrlType sig)
         {
-            Console.WriteLine("Cumulus terminating");
+            Console.WriteLine("Terminando Cumulus-MX");
             Trace.WriteLine("Exiting system due to external CTRL-C, or process kill, or shutdown");
 
             //allow main to run off
