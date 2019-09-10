@@ -182,12 +182,12 @@ namespace CumulusMX
             {
                 while (true)
                 {
-                    cumulus.LogDataMessage(DateTime.Now.ToLongTimeString() + " Calling Read");
+                    cumulus.LogDataMessage("Calling Read");
                     
                     try
                     {
                         numBytes = stream.Read(usbbuffer, offset, responseLength);
-                        cumulus.LogDataMessage(DateTime.Now.ToLongTimeString() + " numBytes = " + numBytes);
+                        cumulus.LogDataMessage("numBytes = " + numBytes);
                         
                         String Str = "";
 
