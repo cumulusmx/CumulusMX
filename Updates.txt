@@ -1,3 +1,18 @@
+
+3.0.1 - b3051
+=============
+- Increases Davis DMPAFT Date/Time command timeout
+- Much improved Davis serial port throughput (for USB and Serial loggers), should decrease the historic logger download time
+- Adds Davis archive data processing progress indication
+- Fixes firmware check for LOOP2 support
+- Fixes a race condition on start-up of Davis VP2 stations without a logger. This could cause a crash in AstroLib.SolarMax()
+- Fixes reading the Davis console clock after setting the time
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.pdb
+
+
 3050
 ====
 - Fixes MX not working with locales that use two character date separators

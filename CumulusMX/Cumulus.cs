@@ -29,13 +29,15 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.0.0";
-		public string Build = "3050";
+		public string Version = "3.0.1";
+		public string Build = "3051";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
 		private Mutex appMutex;
+
+		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
 
 		public enum VPRainGaugeTypes
 		{
@@ -1287,10 +1289,12 @@ namespace CumulusMX
 
 			LogMessage("Cumulus Starting");
 			Trace.Flush();
-			LogMessage("Opening station");
 
-			//if (File.Exists(datapath + dbfile))
-			//{
+			LogDebugMessage("Lock: Cumulus waiting for the lock");
+			syncInit.Wait();
+			LogDebugMessage("Lock: Cumulus has lock");
+
+			LogMessage("Opening station");
 
 			Trace.Flush();
 			switch (StationType)
@@ -1435,6 +1439,8 @@ namespace CumulusMX
 			{
 				station.StartLoop();
 			}
+			LogDebugMessage("Lock: Cumulus releasing the lock");
+			syncInit.Release();
 		}
 
 		internal void SetUpHttpProxy()
@@ -3014,7 +3020,11 @@ namespace CumulusMX
 
 			special_logging = ini.GetValue("Station", "SpecialLog", false);
 			solar_logging = ini.GetValue("Station", "SolarLog", false);
+#if DEBUG
+			logging = true;
+#else
 			logging = ini.GetValue("Station", "Logging", false);
+#endif
 			DataLogging = ini.GetValue("Station", "DataLogging", false);
 
 			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
