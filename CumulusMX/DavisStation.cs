@@ -30,6 +30,7 @@ namespace CumulusMX
 		private const string newline = "\n";
 		private DateTime lastRecepStatsTime;
         private int commWaitTimeMs = 1000;
+		private int MaxArchiveRuns = 2;
 
 		private TcpClient socket;
 
@@ -554,6 +555,7 @@ namespace CumulusMX
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
+			int archiveRun = 0;
 			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
 			cumulus.LogDebugMessage("Lock: Station has the lock");
@@ -562,9 +564,11 @@ namespace CumulusMX
                 // set this temporarily, so speed is done from average and not peak gust from logger
                 savedUseSpeedForAvgCalc = cumulus.UseSpeedForAvgCalc;
                 cumulus.UseSpeedForAvgCalc = true;
-                GetArchiveData();
-                // and again, in case it took a long time and there are new entries
-                GetArchiveData();
+				do
+				{
+					GetArchiveData();
+					archiveRun++;
+				} while (archiveRun < MaxArchiveRuns);
             }
             catch (Exception ex)
             {
@@ -1824,7 +1828,8 @@ namespace CumulusMX
 
 						if (tmrComm.timedout)
 						{
-							cumulus.LogMessage("The station has stopped sending archive data");
+							cumulus.LogMessage("The station has stopped sending archive data, ending attempts");
+							Console.WriteLine(""); // flush the progress line
 							return;
 						}
 						// Read the response
@@ -1858,6 +1863,7 @@ namespace CumulusMX
 						if (responsePasses == 20)
 						{
 							cumulus.LogMessage("The station has stopped sending archive data");
+							Console.WriteLine(""); // flush the progress line
 							return;
 						}
 
@@ -2186,8 +2192,18 @@ namespace CumulusMX
 						{
 							// do rollover
 							cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
+							// If the rollover processing takes more that ~10 seconds the station times out sending the archive data
+							// If this happens, add aonther run to the archive processing, so we start it again to pick up records for the next day
+							var watch = new System.Diagnostics.Stopwatch();
+							watch.Start();
 							DayReset(timestamp);
-
+							watch.Stop();
+							if (watch.ElapsedMilliseconds > 10000)
+							{
+								// EOD processing took longer than 10 seconds, add another run
+								cumulus.LogDebugMessage("End of day processing took more than 10 seconds, adding another archive data run");
+								MaxArchiveRuns++;
+							}
 							rolloverdone = true;
 						}
 

@@ -1,3 +1,14 @@
+3.0.2 - b3052
+=============
+- Fixes Davis archive downloads from the the logger when the day rollover processing takes longer than 10 seconds.
+  This can happen on slow processors - Pi Zero for example - or if lengthy procedures are included
+  An extra archive processing run is scheduled for each day rollover that takes longer than 10 seconds
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.exe.config
+	\CumulusMX.pdb
+
 
 3.0.1 - b3051
 =============

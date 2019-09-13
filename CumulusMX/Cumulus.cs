@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.0.1";
-		public string Build = "3051";
+		public string Version = "3.0.2";
+		public string Build = "3052";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -3022,10 +3022,11 @@ namespace CumulusMX
 			solar_logging = ini.GetValue("Station", "SolarLog", false);
 #if DEBUG
 			logging = true;
+			DataLogging = true;
 #else
 			logging = ini.GetValue("Station", "Logging", false);
-#endif
 			DataLogging = ini.GetValue("Station", "DataLogging", false);
+#endif
 
 			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
