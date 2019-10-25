@@ -19,6 +19,7 @@ namespace CumulusMX
 		private double prevraintotal = -1;
 		private int previousminute = 60;
 		private string currentWritePointer = "";
+		private int readCounter = 30;
 
 
 		public ImetStation(Cumulus cumulus) : base(cumulus)
@@ -850,7 +851,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						Thread.Sleep(2000);
+						Thread.Sleep(500);
 					}
 				}
 			}
@@ -984,8 +985,16 @@ namespace CumulusMX
 		    {
 				// Keep the log pointer current, to avoid large numbers of logs
 				// being downloaded at next startup
-				//ProgressLogs();
-				UpdateReadPointer();
+				// Only do this every 30 read intervals
+				if (readCounter > 0)
+				{
+					readCounter--;
+				}
+				else
+				{
+					UpdateReadPointer();
+					readCounter = 30;
+				}
 		    }
 		}
 	}

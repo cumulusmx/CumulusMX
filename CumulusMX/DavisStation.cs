@@ -342,7 +342,7 @@ namespace CumulusMX
 						cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message);
 					}
 
-					cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
+					cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
 				}
 			}
 			else
@@ -376,7 +376,7 @@ namespace CumulusMX
 						cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message);
 					}
 
-					cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
+					cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
 				}
 			}
 
@@ -790,7 +790,7 @@ namespace CumulusMX
 						cumulus.LogDebugMessage("SendBarRead: Error - " + ex.Message);
 					}
 
-                    cumulus.LogDataMessage("BARREAD Recieved 0x" + BitConverter.ToString(buffer));
+                    cumulus.LogDataMessage("BARREAD Received 0x" + BitConverter.ToString(buffer));
                 }
             }
             else
@@ -818,7 +818,7 @@ namespace CumulusMX
                             //cumulus.LogMessage("Received " + ch.ToString("X2"));
                         }
 
-						cumulus.LogDataMessage("BARREAD Recieved 0x" + BitConverter.ToString(buffer));
+						cumulus.LogDataMessage("BARREAD Received 0x" + BitConverter.ToString(buffer));
 					}
 					catch (Exception ex)
 					{
@@ -1954,6 +1954,19 @@ namespace CumulusMX
 							DoOutdoorHumidity(archiveData.OutsideHumidity, timestamp);
 						}
 
+						// Check if the archive hi/lo temps break any records
+						if ((archiveData.HiOutsideTemp > -200) && (archiveData.HiOutsideTemp < 300))
+						{
+							DoOutdoorTemp(ConvertTempFToUser(archiveData.HiOutsideTemp), timestamp);
+						}
+
+						// Check if the archive hi/lo temps break any records
+						if ((archiveData.LoOutsideTemp > -200) && (archiveData.LoOutsideTemp < 300))
+						{
+							DoOutdoorTemp(ConvertTempFToUser(archiveData.LoOutsideTemp), timestamp);
+						}
+
+						// Now process the "average" interval temperature - use this as our
 						if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
 						{
 							DoOutdoorTemp(ConvertTempFToUser(archiveData.OutsideTemperature), timestamp);
@@ -2770,7 +2783,7 @@ namespace CumulusMX
                 }
             }
 
-            cumulus.LogDataMessage("Recieved 0x" + BitConverter.ToString(buffer));
+            cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
 
 			if (bytesRead != 8)
 			{

@@ -369,7 +369,8 @@ namespace CumulusMX
 		{
 			// Find today's rain so far from last record in log file
 			bool midnightrainfound = false;
-			string LogFile = cumulus.Datapath + cumulus.LastUpdateTime.ToString("MMMyy") + "log.txt";
+			//string LogFile = cumulus.Datapath + cumulus.LastUpdateTime.ToString("MMMyy") + "log.txt";
+			string LogFile = cumulus.GetLogFileName(cumulus.LastUpdateTime);
 			double raincount = 0;
 			string logdate = "00/00/00";
 			string prevlogdate = "00/00/00";
@@ -4654,7 +4655,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NOAA noaa = new NOAA(cumulus, this);
+						NOAA noaa = new NOAA(cumulus);
 						var utf8WithoutBom = new System.Text.UTF8Encoding(false);
 						var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 						
