@@ -1,3 +1,26 @@
+3.1.0 - b3053
+=============
+- Adds support for Davis WeatherLink Live device
+	- Supports Zero-Config, it should discover your WLL on the network (router support required)
+- Adds support for Cumulus.ini file setting EWpressureoffset for Fine Offset stations as used in Cumulus1.
+	- This provides a manual override for the calculated absolute to relative pressure offset
+- Adds reading of the interval Hi/Lo temperature readings when processing Davis logger archive records during catch-up
+- Adds display and generation of NOAA Monthly and Yearly reports
+- Reduces the Instromet live data read intervals to 1 second
+- Applies "fix" for Mono 5.x generating short month names ending with "." as used for log file names
+
+
+- Updated files
+	\CumulusMX.exe
+	\CumulusMX.exe.config
+	\interface\<allfiles>.html
+	\interface\json\StationOptions.json
+	\interface\json\StationSchema.json
+
+- New files
+	\Tmds.MDns.dll
+
+
 3.0.2 - b3052
 =============
 - Fixes Davis archive downloads from the the logger when the day rollover processing takes longer than 10 seconds.
@@ -7,7 +30,6 @@
 - Updated files
 	\CumulusMX.exe
 	\CumulusMX.exe.config
-	\CumulusMX.pdb
 
 
 3.0.1 - b3051
@@ -21,7 +43,6 @@
 
 - Updated files
 	\CumulusMX.exe
-	\CumulusMX.pdb
 
 
 3050
@@ -31,7 +52,6 @@
 
 - Updated files
 	\CumulusMX.exe
-	\CumulusMX.pdb
 
 3049
 ====
@@ -39,7 +59,6 @@
 
 - Updated files
 	\CumulusMX.exe
-	\CumulusMX.pdb
 	\interface\json\InternetOptions.json
 	\interface\json\InternetSchema.json
 
@@ -61,7 +80,6 @@
 
 - Updated files
 	\CumulusMX.exe
-	\CumulusMX.pdb
 	\FluentFTP.dll
 
 
@@ -114,7 +132,6 @@
 - Updated files
 	\CumulusMX.exe
 	\CumulusMX.exe.config
-	\CumulusMX.pub
 	\FluentFTP.dll
 	\HidSharp.dll
 	\interface\js\diaryeditor.js

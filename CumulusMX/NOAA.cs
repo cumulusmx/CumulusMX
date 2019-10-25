@@ -66,12 +66,10 @@ namespace CumulusMX
         } // end Tmonthsummary
 
         private Cumulus cumulus;
-        private WeatherStation station;
 
-        public NOAA(Cumulus cumulus, WeatherStation station)
-        {
-            this.cumulus = cumulus;
-            this.station = station;
+		public NOAA(Cumulus cumulus)
+		{
+			this.cumulus = cumulus;
         }
 
         /// <summary>
@@ -105,7 +103,13 @@ namespace CumulusMX
             return degrees*(Math.PI/180.0);
         }
 
-        private double RadToDeg(double radians)
+		private  string CompassPoint(int bearing)
+		{
+			return cumulus.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
+		}
+
+
+		private double RadToDeg(double radians)
         {
             return radians*(180.0/Math.PI);
         }
@@ -428,7 +432,7 @@ namespace CumulusMX
 
 
             // Calculate average wind speed from log file
-            string LogFile = cumulus.Datapath + thedate.ToString("MMMyy") + "log.txt";
+            string LogFile = cumulus.Datapath + thedate.ToString("MMMyy").Replace(".", "") + "log.txt";
 
             if (File.Exists(LogFile))
                 try
@@ -671,7 +675,7 @@ namespace CumulusMX
                         timestr = DayList[i].highwindtimestamp.ToString("HH:mm");
                     }
                     Line += String.Format("{0,8}", timestr);
-                    Line += String.Format("{0,6}", station.CompassPoint(DayList[i].winddomdir));
+                    Line += String.Format("{0,6}", CompassPoint(DayList[i].winddomdir));
                     output.Add(Line);
                 }
             }
@@ -725,7 +729,7 @@ namespace CumulusMX
             Line += String.Format("{0,6:F1}", highwind);
             Line += String.Format("{0,6:D}", highwindday);
 
-            Line += String.Format("{0,8}", station.CompassPoint(overalldomdir));
+            Line += String.Format("{0,8}", CompassPoint(overalldomdir));
 
             output.Add(Line);
 
@@ -1237,7 +1241,7 @@ namespace CumulusMX
 
                     // String.Format the high wind speed and dominant direction into the display line
                     Line += String.Format("{0,6:F1}{1,5:D}", MonthList[m].highwindspeed, MonthList[m].highwindday);
-                    Line += String.Format("{0,6}", station.CompassPoint(MonthList[m].winddomdir));
+                    Line += String.Format("{0,6}", CompassPoint(MonthList[m].winddomdir));
 
                     // check for highest annual wind speed
                     if (MonthList[m].highwindspeed > highwind)
@@ -1287,7 +1291,7 @@ namespace CumulusMX
                     domdir = 0;
                 }
 
-                Line += String.Format("{0,6}", station.CompassPoint(domdir));
+                Line += String.Format("{0,6}", CompassPoint(domdir));
 
                 output.Add(Line);
             }

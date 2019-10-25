@@ -97,6 +97,7 @@ namespace CumulusMX
 			server.Module<WebApiModule>().RegisterController<SetSettingsController>();
 			server.Module<WebApiModule>().RegisterController<EditControllerGet>();
 			server.Module<WebApiModule>().RegisterController<EditControllerPost>();
+			server.Module<WebApiModule>().RegisterController<ReportsController>();
 		}
 
 		public class EditControllerGet : WebApiController
@@ -723,6 +724,92 @@ namespace CumulusMX
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
+				{
+					return HandleError(ex, 404);
+				}
+			}
+
+			private bool HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
+				{
+					Title = "Unexpected Error",
+					ErrorCode = ex.GetType().Name,
+					Description = ex.Message,
+				};
+
+				this.Response.StatusCode = statusCode;
+				return this.JsonResponse(errorResponse);
+			}
+		}
+
+		public class ReportsController : WebApiController
+		{
+			public ReportsController(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "reports/*")]
+			public bool GetData()
+			{
+				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					var lastSegment = Request.Url.Segments.Last();
+
+					var query = HttpUtility.ParseQueryString(Request.Url.Query);
+					int month, year;
+
+					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+						return this.JsonResponse("Invalid year supplied: " + year);
+
+					switch (lastSegment)
+					{
+						case "noaayear":
+							return this.JsonResponse(noaarpts.GetNoaaYearReport(year));
+						case "noaamonth":
+							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
+								return this.JsonResponse("Invalid month supplied: " + month);
+							return this.JsonResponse(noaarpts.GetNoaaMonthReport(year, month));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return HandleError(ex, 404);
+				}
+			}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "genreports/*")]
+			public bool GenReports()
+			{
+				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					var lastSegment = Request.Url.Segments.Last();
+
+					var query = HttpUtility.ParseQueryString(Request.Url.Query);
+					int month, year;
+
+					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+						return this.JsonResponse("Invalid year supplied: " + year);
+
+					switch (lastSegment)
+					{
+						case "noaayear":
+							return this.JsonResponse(noaarpts.GenerateNoaaYearReport(year));
+						case "noaamonth":
+							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
+								return this.JsonResponse("Invalid month supplied: " + month);
+							return this.JsonResponse(noaarpts.GenerateNoaaMonthReport(year, month));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch(Exception ex)
 				{
 					return HandleError(ex, 404);
 				}

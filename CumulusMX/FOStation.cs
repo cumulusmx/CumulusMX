@@ -79,7 +79,7 @@ namespace CumulusMX
                 FOMaxAddr = 0xFFF0;
 				maxHistoryEntries = 4080;
             }
-                        
+
             devicelist = DeviceList.Local;
 
             int VID = (cumulus.VendorID < 0 ? defaultVID : cumulus.VendorID);
@@ -105,9 +105,15 @@ namespace CumulusMX
                     double relpressure = (((data[1] & 0x3f)*256) + data[0])/10.0f;
                     double abspressure = (((data[3] & 0x3f)*256) + data[2])/10.0f;
                     pressureOffset = relpressure - abspressure;
-                    cumulus.LogMessage("Rel pressure = " + relpressure);
-                    cumulus.LogMessage("Abs pressure = " + abspressure);
-                    cumulus.LogMessage("Offset       = " + pressureOffset);
+                    cumulus.LogMessage("Rel pressure      = " + relpressure);
+                    cumulus.LogMessage("Abs pressure      = " + abspressure);
+                    cumulus.LogMessage("Calculated Offset = " + pressureOffset);
+                    if (cumulus.EWpressureoffset < 9999.0)
+                    {
+                        cumulus.LogMessage("Ignoring calculated offset, using offset value from cumulus.ini file");
+                        cumulus.LogMessage("EWpressureoffset = " + cumulus.EWpressureoffset);
+                        pressureOffset = cumulus.EWpressureoffset;
+                    }
 
                     // Read the data from the logger
                     startReadingHistoryData();
@@ -163,19 +169,32 @@ namespace CumulusMX
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            //var ci = new CultureInfo("en-GB");
-            //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
-            getAndProcessHistoryData();
-        }
+			//var ci = new CultureInfo("en-GB");
+			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
+			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			Cumulus.syncInit.Wait();
+			cumulus.LogDebugMessage("Lock: Station has the lock");
+			try
+			{
+				getAndProcessHistoryData();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+			}
+			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			Cumulus.syncInit.Release();
+		}
 
-        public override void getAndProcessHistoryData()
+		public override void getAndProcessHistoryData()
         {
             var data = new byte[32];
             cumulus.LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
             DateTime now = DateTime.Now;
             cumulus.LogMessage(DateTime.Now.ToString("G"));
             cumulus.LogMessage("Start reading history data");
-            DateTime timestamp = DateTime.Now;
+			Console.WriteLine("Downloading Archive Data");
+			DateTime timestamp = DateTime.Now;
             //LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
             cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
             ReadAddress(0, data);
@@ -839,7 +858,7 @@ namespace CumulusMX
                     {
                         // bad value
                         cumulus.LogMessage("Ignoring bad data: pressure = " + pressure.ToString());
-                        cumulus.LogMessage("                   offset = " + EWpressureoffset.ToString());
+                        cumulus.LogMessage("                   offset = " + pressureOffset.ToString());
                     }
                     else
                     {
@@ -1082,7 +1101,7 @@ namespace CumulusMX
                 secsdiff = (int) Math.Floor((FOSensorClockTime - PreviousSensorClock).TotalSeconds)%48;
                 if (secsdiff > 24)
                 {
-                    secsdiff = 48 - secsdiff;    
+                    secsdiff = 48 - secsdiff;
                 }
                 cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString() + " drift = " + secsdiff + " seconds");
             }
@@ -1111,7 +1130,7 @@ namespace CumulusMX
             cumulus.LogMessage("Stop Synchronising");
         }
 
-        public double EWpressureoffset { get; set; }
+        //public double EWpressureoffset { get; set; }
 
         private void LogSpikeRemoval(string message)
         {

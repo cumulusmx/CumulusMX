@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.0.2";
-		public string Build = "3052";
+		public string Version = "3.1.0";
+		public string Build = "3053";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -799,10 +799,10 @@ namespace CumulusMX
 		public string[] StationDesc =
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet"
+			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP" };
 
 
 		/*
@@ -1337,6 +1337,10 @@ namespace CumulusMX
 					Manufacturer = EW;
 					station = new EasyWeather(this);
 					station.LoadLastHoursFromDataLogs(DateTime.Now);
+					break;
+				case StationTypes.WLL:
+					Manufacturer = DAVIS;
+					station = new DavisWllStation(this);
 					break;
 				default:
 					Console.WriteLine("Station type not set");
@@ -2149,23 +2153,30 @@ namespace CumulusMX
 				var uploadfile = ExtraFiles[i].local;
 				var remotefile = ExtraFiles[i].remote;
 
-				if (uploadfile == "<currentlogfile>")
+				if ((uploadfile != "") && (remotefile != "") && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
 				{
-					uploadfile = GetLogFileName(DateTime.Now);
-				}
-
-				remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
-
-				if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != "") && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
-				{
-					// all checks OK, file needs to be uploaded
-					if (ExtraFiles[i].process)
+					if (uploadfile == "<currentlogfile>")
 					{
-						// we've already processed the file
-						uploadfile = uploadfile + "tmp";
+						uploadfile = GetLogFileName(DateTime.Now);
 					}
 
-					UploadFile(RealtimeFTP, uploadfile, remotefile);
+					if (File.Exists(uploadfile))
+					{
+						remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+						// all checks OK, file needs to be uploaded
+						if (ExtraFiles[i].process)
+						{
+							// we've already processed the file
+							uploadfile = uploadfile + "tmp";
+						}
+
+						UploadFile(RealtimeFTP, uploadfile, remotefile);
+					}
+					else
+					{
+						LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+					}
 				}
 			}
 		}
@@ -2177,44 +2188,54 @@ namespace CumulusMX
 				if (ExtraFiles[i].realtime)
 				{
 					var uploadfile = ExtraFiles[i].local;
-					if (uploadfile == "<currentlogfile>")
-					{
-						uploadfile = GetLogFileName(DateTime.Now);
-					}
 					var remotefile = ExtraFiles[i].remote;
-					remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
 
-					if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+					if ((uploadfile != "") && (remotefile != ""))
 					{
-						if (ExtraFiles[i].process)
+						if (uploadfile == "<currentlogfile>")
 						{
-							// process the file
-							var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-							var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-							realtimeTokenParser.encoding = encoding;
-							realtimeTokenParser.SourceFile = uploadfile;
-							var output = realtimeTokenParser.ToString();
-							uploadfile += "tmp";
-							using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
-							{
-								file.Write(output);
-
-								file.Close();
-							}
+							uploadfile = GetLogFileName(DateTime.Now);
 						}
 
-						if (!ExtraFiles[i].FTP)
+						if (File.Exists(uploadfile))
 						{
-							// just copy the file
-							try
+							remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+							if (ExtraFiles[i].process)
 							{
-								File.Copy(uploadfile, remotefile, true);
+								// process the file
+								var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+								var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+								realtimeTokenParser.encoding = encoding;
+								realtimeTokenParser.SourceFile = uploadfile;
+								var output = realtimeTokenParser.ToString();
+								uploadfile += "tmp";
+								using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+								{
+									file.Write(output);
+
+									file.Close();
+								}
 							}
-							catch (Exception ex)
+
+							if (!ExtraFiles[i].FTP)
 							{
-								LogDebugMessage("Copying extra realtime file: " + ex.Message);
+								// just copy the file
+								try
+								{
+									File.Copy(uploadfile, remotefile, true);
+								}
+								catch (Exception ex)
+								{
+									LogDebugMessage("Copying extra realtime file: " + ex.Message);
+								}
 							}
 						}
+						else
+						{
+							LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+						}
+
 					}
 				}
 			}
@@ -3050,6 +3071,42 @@ namespace CumulusMX
 
 			ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 
+			// WeatherLink Live device settings
+			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 300);  // Readonly setting, default 5 minutes
+			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);        // Readonly setting, default 22222
+			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
+			WllPrimaryTempHum = ini.GetValue("WLL", "PrimaryTempHumTxId", 1);
+			WllPrimaryWind = ini.GetValue("WLL", "PrimaryWindTxId", 1);
+			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
+			WllPrimarySolar = ini.GetValue("WLL", "PrimarySolarTxId", 0);
+			WllPrimaryUV = ini.GetValue("WLL", "PrimaryUvTxId", 0);
+			WllExtraSoilTempTx1 = ini.GetValue("WLL", "ExtraSoilTempTxId1", 0);
+			WllExtraSoilTempIdx1 = ini.GetValue("WLL", "ExtraSoilTempIdx1", 1);
+			WllExtraSoilTempTx2 = ini.GetValue("WLL", "ExtraSoilTempTxId2", 0);
+			WllExtraSoilTempIdx2 = ini.GetValue("WLL", "ExtraSoilTempIdx2", 2);
+			WllExtraSoilTempTx3 = ini.GetValue("WLL", "ExtraSoilTempTxId3", 0);
+			WllExtraSoilTempIdx3 = ini.GetValue("WLL", "ExtraSoilTempIdx3", 3);
+			WllExtraSoilTempTx4 = ini.GetValue("WLL", "ExtraSoilTempTxId4", 0);
+			WllExtraSoilTempIdx4 = ini.GetValue("WLL", "ExtraSoilTempIdx4", 4);
+			WllExtraSoilMoistureTx1 = ini.GetValue("WLL", "ExtraSoilMoistureTxId1", 0);
+			WllExtraSoilMoistureIdx1 = ini.GetValue("WLL", "ExtraSoilMoistureIdx1", 1);
+			WllExtraSoilMoistureTx2 = ini.GetValue("WLL", "ExtraSoilMoistureTxId2", 0);
+			WllExtraSoilMoistureIdx2 = ini.GetValue("WLL", "ExtraSoilMoistureIdx2", 2);
+			WllExtraSoilMoistureTx3 = ini.GetValue("WLL", "ExtraSoilMoistureTxId3", 0);
+			WllExtraSoilMoistureIdx3 = ini.GetValue("WLL", "ExtraSoilMoistureIdx3", 3);
+			WllExtraSoilMoistureTx4 = ini.GetValue("WLL", "ExtraSoilMoistureTxId4", 0);
+			WllExtraSoilMoistureIdx4 = ini.GetValue("WLL", "ExtraSoilMoistureIdx4", 4);
+			WllExtraLeafTx1 = ini.GetValue("WLL", "ExtraLeafTxId1", 0);
+			WllExtraLeafIdx1 = ini.GetValue("WLL", "ExtraLeafIdx1", 1);
+			WllExtraLeafTx2 = ini.GetValue("WLL", "ExtraLeafTxId2", 0);
+			WllExtraLeafIdx2 = ini.GetValue("WLL", "ExtraLeafIdx2", 2);
+			for (int i = 1; i <=8; i++)
+			{
+				WllExtraTempTx[i - 1] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0);
+				WllExtraHumTx[i - 1] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
+			}
+
+
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
 			ftp_user = ini.GetValue("FTP site", "Username", "");
@@ -3585,6 +3642,39 @@ namespace CumulusMX
 			ini.SetValue("Station", "RG11tipsize2", RG11tipsize2);
 			ini.SetValue("Station", "RG11IgnoreFirst2", RG11IgnoreFirst2);
 			ini.SetValue("Station", "RG11DTRmode2", RG11DTRmode2);
+
+			// WeatherLink Live device settings
+			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
+			ini.SetValue("WLL", "PrimaryTempHumTxId", WllPrimaryTempHum);
+			ini.SetValue("WLL", "PrimaryWindTxId", WllPrimaryWind);
+			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
+			ini.SetValue("WLL", "PrimarySolarTxId", WllPrimarySolar);
+			ini.SetValue("WLL", "PrimaryUvTxId", WllPrimaryUV);
+			ini.SetValue("WLL", "ExtraSoilTempTxId1", WllExtraSoilTempTx1);
+			ini.SetValue("WLL", "ExtraSoilTempIdx1", WllExtraSoilTempIdx1);
+			ini.SetValue("WLL", "ExtraSoilTempTxId2", WllExtraSoilTempTx2);
+			ini.SetValue("WLL", "ExtraSoilTempIdx2", WllExtraSoilTempIdx2);
+			ini.SetValue("WLL", "ExtraSoilTempTxId3", WllExtraSoilTempTx3);
+			ini.SetValue("WLL", "ExtraSoilTempIdx3", WllExtraSoilTempIdx3);
+			ini.SetValue("WLL", "ExtraSoilTempTxId4", WllExtraSoilTempTx4);
+			ini.SetValue("WLL", "ExtraSoilTempIdx4", WllExtraSoilTempIdx4);
+			ini.SetValue("WLL", "ExtraSoilMoistureTxId1", WllExtraSoilMoistureTx1);
+			ini.SetValue("WLL", "ExtraSoilMoistureIdx1", WllExtraSoilMoistureIdx1);
+			ini.SetValue("WLL", "ExtraSoilMoistureTxId2", WllExtraSoilMoistureTx2);
+			ini.SetValue("WLL", "ExtraSoilMoistureIdx2", WllExtraSoilMoistureIdx2);
+			ini.SetValue("WLL", "ExtraSoilMoistureTxId3", WllExtraSoilMoistureTx3);
+			ini.SetValue("WLL", "ExtraSoilMoistureIdx3", WllExtraSoilMoistureIdx3);
+			ini.SetValue("WLL", "ExtraSoilMoistureTxId4", WllExtraSoilMoistureTx4);
+			ini.SetValue("WLL", "ExtraSoilMoistureIdx4", WllExtraSoilMoistureIdx4);
+			ini.SetValue("WLL", "ExtraLeafTxId1", WllExtraLeafTx1);
+			ini.SetValue("WLL", "ExtraLeafIdx1", WllExtraLeafIdx1);
+			ini.SetValue("WLL", "ExtraLeafTxId2", WllExtraLeafTx2);
+			ini.SetValue("WLL", "ExtraLeafIdx2", WllExtraLeafIdx2);
+			for (int i = 1; i <= 8; i++)
+			{
+				ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i - 1]);
+				ini.SetValue("WLL", "ExtraHumOnTxId" + i, WllExtraHumTx[i - 1]);
+			}
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
@@ -4544,6 +4634,42 @@ namespace CumulusMX
 
 		}
 
+		// WeatherLink Live transmitter Ids and indexes
+		public int WllBroadcastDuration = 300;
+		public int WllBroadcastPort = 22222;
+		public int WllPrimaryWind = 1;
+		public int WllPrimaryTempHum = 1;
+		public int WllPrimaryRain = 1;
+		public int WllPrimarySolar = 0;
+		public int WllPrimaryUV = 0;
+
+		public int WllExtraSoilTempTx1 = 0;
+		public int WllExtraSoilTempIdx1 = 1;
+		public int WllExtraSoilTempTx2 = 0;
+		public int WllExtraSoilTempIdx2 = 2;
+		public int WllExtraSoilTempTx3 = 0;
+		public int WllExtraSoilTempIdx3 = 3;
+		public int WllExtraSoilTempTx4 = 0;
+		public int WllExtraSoilTempIdx4 = 4;
+
+		public int WllExtraSoilMoistureTx1 = 0;
+		public int WllExtraSoilMoistureIdx1 = 1;
+		public int WllExtraSoilMoistureTx2 = 0;
+		public int WllExtraSoilMoistureIdx2 = 2;
+		public int WllExtraSoilMoistureTx3 = 0;
+		public int WllExtraSoilMoistureIdx3 = 3;
+		public int WllExtraSoilMoistureTx4 = 0;
+		public int WllExtraSoilMoistureIdx4 = 4;
+
+		public int WllExtraLeafTx1 = 0;
+		public int WllExtraLeafIdx1 = 1;
+		public int WllExtraLeafTx2 = 0;
+		public int WllExtraLeafIdx2 = 2;
+
+		public int[] WllExtraTempTx = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false };
+
 		public Timer WundTimer = new Timer();
 		public Timer WindyTimer = new Timer();
 		public Timer PWSTimer = new Timer();
@@ -4704,7 +4830,7 @@ namespace CumulusMX
 				}
 			}
 
-			var datestring = logfiledate.ToString("MMMyy");
+			var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
 
 			return Datapath + datestring + "log.txt";
 		}
@@ -4966,7 +5092,7 @@ namespace CumulusMX
 				// if (we"re using 9am rollover, the date should be 9 hours (10 in summer)
 				// before "Now"
 				DateTime logfiledate = timestamp.AddHours(GetHourInc());
-				var datestring = logfiledate.ToString("MMMyy");
+				var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
 
 				var LogFile = LogFilePath + datestring + "log.txt";
 				var logbackup = foldername + datestring + "log.txt";
@@ -5534,55 +5660,64 @@ namespace CumulusMX
 					if (!ExtraFiles[i].realtime && !ExtraFiles[i].endofday)
 					{
 						var uploadfile = ExtraFiles[i].local;
-						if (uploadfile == "<currentlogfile>")
-						{
-							uploadfile = GetLogFileName(DateTime.Now);
-						}
 						var remotefile = ExtraFiles[i].remote;
-						remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
 
-						if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+						if ((uploadfile != "") && (remotefile != ""))
 						{
-							if (ExtraFiles[i].process)
+							if (uploadfile == "<currentlogfile>")
 							{
-								//LogDebugMessage("Processing extra file "+uploadfile);
-								// process the file
-								var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-								var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-								tokenParser.encoding = encoding;
-								tokenParser.SourceFile = uploadfile;
-								var output = tokenParser.ToString();
-								uploadfile += "tmp";
-								try
-								{
-									using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
-									{
-										file.Write(output);
-
-										file.Close();
-									}
-								}
-								catch (Exception ex)
-								{
-									LogDebugMessage("Error writing file " + uploadfile);
-									LogDebugMessage(ex.Message);
-								}
-								//LogDebugMessage("Finished processing extra file " + uploadfile);
+								uploadfile = GetLogFileName(DateTime.Now);
 							}
 
-							if (!ExtraFiles[i].FTP)
+							if (File.Exists(uploadfile))
 							{
-								// just copy the file
-								//LogDebugMessage("Copying extra file " + uploadfile);
-								try
+								remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+								if (ExtraFiles[i].process)
 								{
-									File.Copy(uploadfile, remotefile, true);
+									//LogDebugMessage("Processing extra file "+uploadfile);
+									// process the file
+									var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+									var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+									tokenParser.encoding = encoding;
+									tokenParser.SourceFile = uploadfile;
+									var output = tokenParser.ToString();
+									uploadfile += "tmp";
+									try
+									{
+										using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+										{
+											file.Write(output);
+
+											file.Close();
+										}
+									}
+									catch (Exception ex)
+									{
+										LogDebugMessage("Error writing file " + uploadfile);
+										LogDebugMessage(ex.Message);
+									}
+									//LogDebugMessage("Finished processing extra file " + uploadfile);
 								}
-								catch (Exception ex)
+
+								if (!ExtraFiles[i].FTP)
 								{
-									LogDebugMessage("Error copying extra file: " + ex.Message);
+									// just copy the file
+									//LogDebugMessage("Copying extra file " + uploadfile);
+									try
+									{
+										File.Copy(uploadfile, remotefile, true);
+									}
+									catch (Exception ex)
+									{
+										LogDebugMessage("Error copying extra file: " + ex.Message);
+									}
+									//LogDebugMessage("Finished copying extra file " + uploadfile);
 								}
-								//LogDebugMessage("Finished copying extra file " + uploadfile);
+							}
+							else
+							{
+								LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
 							}
 						}
 					}
@@ -5695,35 +5830,40 @@ namespace CumulusMX
 						var uploadfile = ExtraFiles[i].local;
 						var remotefile = ExtraFiles[i].remote;
 
-						if (uploadfile == "<currentlogfile>")
-						{
-							uploadfile = GetLogFileName(DateTime.Now);
-						}
-
-						remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
-
 						if ((uploadfile != "") &&
-							(File.Exists(uploadfile)) &&
 							(remotefile != "") &&
 							!ExtraFiles[i].realtime &&
 							EODfilesNeedFTP == ExtraFiles[i].endofday &&
 							ExtraFiles[i].FTP)
 						{
-							// all checks OK, file needs to be uploaded
-							if (ExtraFiles[i].process)
+							if (uploadfile == "<currentlogfile>")
 							{
-								// we've already processed the file
-								uploadfile = uploadfile + "tmp";
-							}
-							try
-							{
-								UploadFile(conn, uploadfile, remotefile);
-							}
-							catch (Exception e)
-							{
-								LogMessage(e.Message);
+								uploadfile = GetLogFileName(DateTime.Now);
 							}
 
+							if (File.Exists(uploadfile))
+							{
+								remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+								// all checks OK, file needs to be uploaded
+								if (ExtraFiles[i].process)
+								{
+									// we've already processed the file
+									uploadfile = uploadfile + "tmp";
+								}
+								try
+								{
+									UploadFile(conn, uploadfile, remotefile);
+								}
+								catch (Exception e)
+								{
+									LogMessage(e.Message);
+								}
+							}
+							else
+							{
+								LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+							}
 						}
 					}
 					if (EODfilesNeedFTP)
@@ -6378,60 +6518,65 @@ namespace CumulusMX
 				if (ExtraFiles[i].endofday)
 				{
 					var uploadfile = ExtraFiles[i].local;
-					if (uploadfile == "<currentlogfile>")
-					{
-						uploadfile = GetLogFileName(DateTime.Now);
-					}
 					var remotefile = ExtraFiles[i].remote;
-					remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
 
-					if ((uploadfile != "") && (File.Exists(uploadfile)) && (remotefile != ""))
+					if ((uploadfile != "") && (remotefile != ""))
 					{
-						if (ExtraFiles[i].process)
+						if (uploadfile == "<currentlogfile>")
 						{
-							LogDebugMessage("Processing extra file "+uploadfile);
-							// process the file
-							var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-							var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-							tokenParser.encoding = encoding;
-							tokenParser.SourceFile = uploadfile;
-							var output = tokenParser.ToString();
-							uploadfile += "tmp";
-							try
+							uploadfile = GetLogFileName(DateTime.Now);
+						}
+
+						if (File.Exists(uploadfile))
+						{
+							remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+							if (ExtraFiles[i].process)
 							{
-								using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+								LogDebugMessage("Processing extra file " + uploadfile);
+								// process the file
+								var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+								var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+								tokenParser.encoding = encoding;
+								tokenParser.SourceFile = uploadfile;
+								var output = tokenParser.ToString();
+								uploadfile += "tmp";
+								try
 								{
-									file.Write(output);
+									using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+									{
+										file.Write(output);
 
-									file.Close();
+										file.Close();
+									}
 								}
+								catch (Exception ex)
+								{
+									LogDebugMessage("Error writing file " + uploadfile);
+									LogDebugMessage(ex.Message);
+								}
+								//LogDebugMessage("Finished processing extra file " + uploadfile);
 							}
-							catch (Exception ex)
-							{
-								LogDebugMessage("Error writing file " + uploadfile);
-								LogDebugMessage(ex.Message);
-							}
-							//LogDebugMessage("Finished processing extra file " + uploadfile);
-						}
 
-						if (ExtraFiles[i].FTP)
-						{
-							// FTP the file at the next interval
-							EODfilesNeedFTP = true;
-						}
-						else
-						{
-							// just copy the file
-							LogDebugMessage("Copying extra file " + uploadfile);
-							try
+							if (ExtraFiles[i].FTP)
 							{
-								File.Copy(uploadfile, remotefile, true);
+								// FTP the file at the next interval
+								EODfilesNeedFTP = true;
 							}
-							catch (Exception ex)
+							else
 							{
-								LogDebugMessage("Error copying extra file: " + ex.Message);
+								// just copy the file
+								LogDebugMessage("Copying extra file " + uploadfile);
+								try
+								{
+									File.Copy(uploadfile, remotefile, true);
+								}
+								catch (Exception ex)
+								{
+									LogDebugMessage("Error copying extra file: " + ex.Message);
+								}
+								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
-							//LogDebugMessage("Finished copying extra file " + uploadfile);
 						}
 					}
 				}
@@ -7015,6 +7160,7 @@ namespace CumulusMX
 		public const int WMR100 = 8;
 		public const int WMR200 = 9;
 		public const int Instromet = 10;
+		public const int WLL = 11;
 	}
 
 	public static class DoubleExtensions

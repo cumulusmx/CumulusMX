@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Web.UI;
 using Unosquare.Labs.EmbedIO;
-
+using System.Reflection;
 
 namespace CumulusMX
 {
@@ -128,22 +128,89 @@ namespace CumulusMX
             var annualrainfall = new JsonStationSettingsAnnualRainfall() {rainseasonstart = cumulus.RainSeasonStart, ytdamount = cumulus.YTDrain, ytdyear = cumulus.YTDrainyear};
 
             var graphs = new JsonStationSettingsGraphs() {graphdays = cumulus.GraphDays, graphhours = cumulus.GraphHours};
-            
-            var data = new JsonStationSettingsData()
-                       {
-                           stationtype = cumulus.StationType, 
-                           units = units, 
-                           davisconn = davisconn, 
-                           comportname = cumulus.ComportName,
-                           loginterval = cumulus.DataLogInterval,
-                           logrollover = logrollover,
-                           Location = Location,
-                           Options = options,
-                           Forecast = forecast,
-                           Solar = solar,
-                           AnnualRainfall = annualrainfall,
-                           Graphs = graphs
-                       };
+
+			var wllPrimary = new JsonStationSettingsWllPrimary()
+			{
+				wind = cumulus.WllPrimaryWind,
+				temphum = cumulus.WllPrimaryTempHum,
+				rain = cumulus.WllPrimaryRain,
+				solar = cumulus.WllPrimarySolar,
+				uv = cumulus.WllPrimaryUV,
+			};
+
+			var wllExtraSoilTemp = new JsonStationSettingsWllSoilTemp()
+			{
+
+				soilTempTx1 = cumulus.WllExtraSoilTempTx1,
+				soilTempIdx1 = cumulus.WllExtraSoilTempIdx1,
+				soilTempTx2 = cumulus.WllExtraSoilTempTx2,
+				soilTempIdx2 = cumulus.WllExtraSoilTempIdx2,
+				soilTempTx3 = cumulus.WllExtraSoilTempTx3,
+				soilTempIdx3 = cumulus.WllExtraSoilTempIdx3,
+				soilTempTx4 = cumulus.WllExtraSoilTempTx4,
+				soilTempIdx4 = cumulus.WllExtraSoilTempIdx4,
+			};
+
+			var wllExtraSoilMoist = new JsonStationSettingsWllSoilMoist()
+			{
+				soilMoistTx1 = cumulus.WllExtraSoilMoistureTx1,
+				soilMoistIdx1 = cumulus.WllExtraSoilMoistureIdx1,
+				soilMoistTx2 = cumulus.WllExtraSoilMoistureTx2,
+				soilMoistIdx2 = cumulus.WllExtraSoilMoistureIdx2,
+				soilMoistTx3 = cumulus.WllExtraSoilMoistureTx3,
+				soilMoistIdx3 = cumulus.WllExtraSoilMoistureIdx3,
+				soilMoistTx4 = cumulus.WllExtraSoilMoistureTx4,
+				soilMoistIdx4 = cumulus.WllExtraSoilMoistureIdx4,
+			};
+
+			var wllExtraLeaf = new JsonStationSettingsWllExtraLeaf()
+			{
+				leafTx1 = cumulus.WllExtraLeafTx1,
+				leafIdx1 = cumulus.WllExtraLeafIdx1,
+				leafTx2 = cumulus.WllExtraLeafTx2,
+				leafIdx2 = cumulus.WllExtraLeafIdx2
+			};
+
+			var wllSoilLeaf = new JsonStationSettingsWllSoilLeaf()
+			{
+				extraSoilTemp = wllExtraSoilTemp,
+				extraSoilMoist = wllExtraSoilMoist,
+				extraLeaf = wllExtraLeaf
+			};
+
+			var wllExtraTemp = new JsonStationSettingsWllExtraTemp();
+			for (int i = 1; i <= 8; i++)
+			{
+				PropertyInfo propInfo = wllExtraTemp.GetType().GetProperty("extraTempTx" + i);
+				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraTempTx[i - 1], propInfo.PropertyType), null);
+
+				propInfo = wllExtraTemp.GetType().GetProperty("extraHumTx" + i);
+				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraHumTx[i - 1], propInfo.PropertyType), null);
+			};
+
+			var wll = new JsonStationSettingsWLL()
+			{
+				primary = wllPrimary,
+				soilLeaf = wllSoilLeaf,
+				extraTemp = wllExtraTemp
+			};
+
+			var data = new JsonStationSettingsData()
+				{
+				stationtype = cumulus.StationType,
+				units = units,
+				davisconn = davisconn,
+				daviswll = wll,
+				comportname = cumulus.ComportName,
+				loginterval = cumulus.DataLogInterval,
+				logrollover = logrollover,
+				Location = Location,
+				Options = options,
+				Forecast = forecast,
+				Solar = solar,
+				AnnualRainfall = annualrainfall,
+				Graphs = graphs
+			};
 
 			return JsonConvert.SerializeObject(data);
 		}
@@ -308,9 +375,56 @@ namespace CumulusMX
 
                 cumulus.Use10amInSummer = settings.logrollover.summer10am;
 
+				// WLL
+				cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
+				cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
+				cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
+				cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
+				cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
 
-                // log interval
-                cumulus.DataLogInterval = settings.loginterval;
+				cumulus.WllExtraLeafTx1 = settings.daviswll.soilLeaf.extraLeaf.leafTx1;
+				cumulus.WllExtraLeafTx2 = settings.daviswll.soilLeaf.extraLeaf.leafTx2;
+				cumulus.WllExtraLeafIdx1 = settings.daviswll.soilLeaf.extraLeaf.leafIdx1;
+				cumulus.WllExtraLeafIdx2 = settings.daviswll.soilLeaf.extraLeaf.leafIdx2;
+
+				cumulus.WllExtraSoilMoistureIdx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx1;
+				cumulus.WllExtraSoilMoistureIdx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx2;
+				cumulus.WllExtraSoilMoistureIdx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx3;
+				cumulus.WllExtraSoilMoistureIdx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx4;
+				cumulus.WllExtraSoilMoistureTx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx1;
+				cumulus.WllExtraSoilMoistureTx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx2;
+				cumulus.WllExtraSoilMoistureTx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx3;
+				cumulus.WllExtraSoilMoistureTx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx4;
+
+				cumulus.WllExtraSoilTempIdx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx1;
+				cumulus.WllExtraSoilTempIdx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx2;
+				cumulus.WllExtraSoilTempIdx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx3;
+				cumulus.WllExtraSoilTempIdx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx4;
+				cumulus.WllExtraSoilTempTx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx1;
+				cumulus.WllExtraSoilTempTx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx2;
+				cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
+				cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
+
+				cumulus.WllExtraTempTx[0] = settings.daviswll.extraTemp.extraTempTx1;
+				cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx2;
+				cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx3;
+				cumulus.WllExtraTempTx[3]= settings.daviswll.extraTemp.extraTempTx4;
+				cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx5;
+				cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx6;
+				cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx7;
+				cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx8;
+
+				cumulus.WllExtraHumTx[0] = settings.daviswll.extraTemp.extraHumTx1;
+				cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx2;
+				cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx3;
+				cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx4;
+				cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx5;
+				cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx6;
+				cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx7;
+				cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx8;
+
+				// log interval
+				cumulus.DataLogInterval = settings.loginterval;
 
                 // com port
                 cumulus.ComportName = settings.comportname ?? string.Empty; ;
@@ -369,6 +483,7 @@ namespace CumulusMX
         public int stationtype { get; set; }
         public JsonStationSettingsUnits units { get; set; }
         public JsonStationSettingsDavisConn davisconn { set; get; }
+		public JsonStationSettingsWLL daviswll { get; set; }
         public string comportname { get; set; }
         public int loginterval { get; set; }
         public JsonStationSettingsLogRollover logrollover { get; set; }
@@ -466,7 +581,85 @@ namespace CumulusMX
         public double turbidity { get; set; }
     }
 
-    public class JsonStationSettingsAnnualRainfall
+	public class JsonStationSettingsWLL
+	{
+		public JsonStationSettingsWllPrimary primary { get; set; }
+		public JsonStationSettingsWllSoilLeaf soilLeaf { get; set; }
+		public JsonStationSettingsWllExtraTemp extraTemp { get; set; }
+	}
+
+	public class JsonStationSettingsWllPrimary
+	{
+		public int wind { get; set; }
+		public int temphum { get; set; }
+		public int rain { get; set; }
+		public int solar { get; set; }
+		public int uv { get; set; }
+	}
+
+	public class JsonStationSettingsWllSoilLeaf
+	{
+		public JsonStationSettingsWllSoilTemp extraSoilTemp { get; set; }
+		public JsonStationSettingsWllSoilMoist extraSoilMoist { get; set; }
+		public JsonStationSettingsWllExtraLeaf extraLeaf { get; set; }
+	}
+
+
+	public class JsonStationSettingsWllSoilTemp
+	{
+		public int soilTempTx1 { get; set; }
+		public int soilTempIdx1 { get; set; }
+		public int soilTempTx2 { get; set; }
+		public int soilTempIdx2 { get; set; }
+		public int soilTempTx3 { get; set; }
+		public int soilTempIdx3 { get; set; }
+		public int soilTempTx4 { get; set; }
+		public int soilTempIdx4 { get; set; }
+	}
+
+	public class JsonStationSettingsWllSoilMoist
+	{
+		public int soilMoistTx1 { get; set; }
+		public int soilMoistIdx1 { get; set; }
+		public int soilMoistTx2 { get; set; }
+		public int soilMoistIdx2 { get; set; }
+		public int soilMoistTx3 { get; set; }
+		public int soilMoistIdx3 { get; set; }
+		public int soilMoistTx4 { get; set; }
+		public int soilMoistIdx4 { get; set; }
+	}
+
+	public class JsonStationSettingsWllExtraLeaf
+	{
+		public int leafTx1 { get; set; }
+		public int leafIdx1 { get; set; }
+		public int leafTx2 { get; set; }
+		public int leafIdx2 { get; set; }
+	}
+
+
+	public class JsonStationSettingsWllExtraTemp
+	{
+		public int extraTempTx1 { get; set; }
+		public int extraTempTx2 { get; set; }
+		public int extraTempTx3 { get; set; }
+		public int extraTempTx4 { get; set; }
+		public int extraTempTx5 { get; set; }
+		public int extraTempTx6 { get; set; }
+		public int extraTempTx7 { get; set; }
+		public int extraTempTx8 { get; set; }
+
+		public bool extraHumTx1 { get; set; }
+		public bool extraHumTx2 { get; set; }
+		public bool extraHumTx3 { get; set; }
+		public bool extraHumTx4 { get; set; }
+		public bool extraHumTx5 { get; set; }
+		public bool extraHumTx6 { get; set; }
+		public bool extraHumTx7 { get; set; }
+		public bool extraHumTx8 { get; set; }
+	}
+
+	public class JsonStationSettingsAnnualRainfall
     {
         public double ytdamount { get; set; }
         public int ytdyear { get; set; }
