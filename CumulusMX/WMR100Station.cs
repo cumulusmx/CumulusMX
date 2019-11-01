@@ -99,11 +99,11 @@ namespace CumulusMX
                 while (true)
                 {
                     cumulus.LogDebugMessage("Calling Read, current packet length = "+CurrentPacketLength);
-                    
+
                     try
                     {
                         numBytes = stream.Read(usbbuffer, offset, responseLength);
-                        
+
                         String Str = "";
 
                         for (int I = startByte; I < responseLength; I++)
@@ -112,12 +112,11 @@ namespace CumulusMX
                         }
 
                         cumulus.LogDataMessage(Str);
-                        
 
                         // Number of valid bytes is in first byte
                         int dataLength = usbbuffer[1];
                         cumulus.LogDebugMessage("data length = " + dataLength);
-                        
+
                         for (int i = 1; i <= dataLength; i++)
                         {
                             byte C = usbbuffer[i + 1];
@@ -628,7 +627,6 @@ namespace CumulusMX
 
         public override void Stop()
         {
-            
         }
     }
 }

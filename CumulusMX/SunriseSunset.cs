@@ -680,6 +680,6 @@ namespace CumulusMX
                 EventTime = sOut.Substring(0, 2) + "h " + sOut.Substring(2, 2) + "m";
             }
             return EventTime;
-        }	
+        }
     }
 }

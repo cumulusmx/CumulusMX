@@ -126,7 +126,7 @@ namespace CumulusMX
 		public List<Last10MinWind> Last10MinWindList = new List<Last10MinWind>();
 		public List<RecentDailyData> RecentDailyDataList = new List<RecentDailyData>();
 
-		public WeatherDataCollection weatherDataCollection = new WeatherDataCollection();        
+		public WeatherDataCollection weatherDataCollection = new WeatherDataCollection();
 
 		// Current values
 
@@ -224,7 +224,7 @@ namespace CumulusMX
 		public DateTime highhourlyraintodaytime;
 		public DateTime lowwindchilltodaytime;
 		public DateTime HighDewpointTodayTime;
-		public DateTime LowDewpointTodayTime;        
+		public DateTime LowDewpointTodayTime;
 
 		public DateTime highraintodaytime;
 		public DateTime highpresstodaytime;
@@ -236,7 +236,7 @@ namespace CumulusMX
 		public DateTime highgustyesterdaytime;
 		public DateTime highwindyesterdaytime;
 		public DateTime highrainyesterdaytime;
-		public DateTime lowtempyesterdaytime;        
+		public DateTime lowtempyesterdaytime;
 
 		public DateTime hightempyesterdaytime;
 		public DateTime highpressyesterdaytime;
@@ -364,7 +364,7 @@ namespace CumulusMX
 			RecentDataDb = new SQLiteConnection(":memory:");
 			RecentDataDb.CreateTable<RecentData>();
 		}
-		
+
 		private void GetRainCounter()
 		{
 			// Find today's rain so far from last record in log file
@@ -453,7 +453,7 @@ namespace CumulusMX
 			}
 		}
 
-		private DateTime ddmmyyStrToDate(string d)
+		public DateTime ddmmyyStrToDate(string d)
 		{
 			// Converts a date string in UK order to a DateTime
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
@@ -474,7 +474,7 @@ namespace CumulusMX
 			return new DateTime(Y, M, D);
 		}
 
-		private DateTime ddmmyyhhmmStrToDate(string d, string t)
+		public DateTime ddmmyyhhmmStrToDate(string d, string t)
 		{
 			// Converts a date string in UK order to a DateTime
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
@@ -514,7 +514,7 @@ namespace CumulusMX
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 
 
-            if (File.Exists(cumulus.DayFile))
+			if (File.Exists(cumulus.DayFile))
 			{
 				try
 				{
@@ -530,9 +530,9 @@ namespace CumulusMX
 							{
 								string datestr = st[0];
 								DateTime loggedDate = ddmmyyStrToDate(datestr);
-                                int offsetLoggedYear = loggedDate.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
-                                // This year?
-                                if (offsetLoggedYear == offsetYearToday)
+								int offsetLoggedYear = loggedDate.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
+								// This year?
+								if (offsetLoggedYear == offsetYearToday)
 								{
 									rainthisyear += Double.Parse(st[14]);
 								}
@@ -970,7 +970,7 @@ namespace CumulusMX
 				{
 					TimeZone tz = TimeZone.CurrentTimeZone;
 					DateTime adjustedTS;
-					
+
 					if (cumulus.Use10amInSummer && tz.IsDaylightSavingTime(timestamp))
 					{
 						// Locale is currently on Daylight (summer) time
@@ -1026,7 +1026,7 @@ namespace CumulusMX
 						monthlyrecarray[index, month].timestamp = timestamp;
 					}
 					WriteMonthlyAlltimeIniFile();
-				} 
+				}
 			}
 		}
 
@@ -1250,7 +1250,7 @@ namespace CumulusMX
 
 		public double SunshineToMidnight { get; set; }
 
-        public double SunHourCounter { get; set; }
+		public double SunHourCounter { get; set; }
 
 		public double StartOfDaySunHourCounter { get; set; }
 
@@ -1280,7 +1280,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="later"></param>
 		/// <param name="earlier"></param>
@@ -1645,7 +1645,7 @@ namespace CumulusMX
 
 		private void CheckForDataStopped()
 		{
-			// Check whether we have read data since the last clock minute. 
+			// Check whether we have read data since the last clock minute.
 			if ((LastDataReadTimestamp != DateTime.MinValue) && (LastDataReadTimestamp == SavedLastDataReadTimestamp) && (LastDataReadTimestamp < DateTime.Now))
 			{
 				// Data input appears to have has stopped
@@ -1709,13 +1709,13 @@ namespace CumulusMX
 				raininterval = Raincounter - prevraincounter;
 			}
 
-			
 
 
-			
-			
-			
-			
+
+
+
+
+
 
 			//using (cumulusEntities dataContext = new cumulusEntities())
 			//{
@@ -1757,7 +1757,7 @@ namespace CumulusMX
 			loWindChill = WindChill;
 			hiApparentTemperature = ApparentTemperature;
 			loApparentTemperature = ApparentTemperature;
-			
+
 		}
 
 		private long DateTimeToUnix(DateTime timestamp)
@@ -2200,15 +2200,15 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{\"press\":[");
-			
+
 			for (var i = 0; i < GraphDataList.Count; i++)
 			{
 				sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp)*1000 + "," + GraphDataList[i].pressure.ToString(cumulus.PressFormat, InvC) + "]");
-				
+
 				if (i < GraphDataList.Count - 1)
 					sb.Append(",");
 			}
-			
+
 			sb.Append("]}");
 			return sb.ToString();
 		}
@@ -2687,7 +2687,7 @@ namespace CumulusMX
 
 			if ((cumulus.CalculatedDP || cumulus.DavisStation) && (OutdoorHumidity != 0) && (!cumulus.FineOffsetStation))
 			{
-				// Calculate DewPoint. 
+				// Calculate DewPoint.
 				tempinC = ConvertUserTempToC(OutdoorTemperature);
 				// dewpoint = TempinC + ((0.13 * TempinC) + 13.6) * Ln(humidity / 100);
 				OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(tempinC, OutdoorHumidity));
@@ -3064,7 +3064,7 @@ namespace CumulusMX
 
 				return;
 			}
-			
+
 			var previoustotal = Raincounter;
 
 			double raintipthreshold;
@@ -3178,7 +3178,7 @@ namespace CumulusMX
 					double trendval = Raincounter - midnightraincount;
 
 					// Round value as some values may have been read from log file and already rounded
-					trendval = Math.Round(trendval, cumulus.RainDPlaces);                
+					trendval = Math.Round(trendval, cumulus.RainDPlaces);
 
 					if (trendval < 0)
 					{
@@ -3736,7 +3736,7 @@ namespace CumulusMX
 						   FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts) + String.Format("{0,7:0.000}", oldvalue) +
 						   Environment.NewLine;
 
-				File.AppendAllText(cumulus.Alltimelogfile, s); 
+				File.AppendAllText(cumulus.Alltimelogfile, s);
 			}
 		}
 
@@ -4095,7 +4095,7 @@ namespace CumulusMX
 				// raintotal && raindaystart are not calibrated
 				RainYesterday = (Raincounter - raindaystart)*cumulus.RainMult;
 				cumulus.LogMessage("Rainyesterday (calibrated) set to " + RainYesterday);
-				
+
 				AddRecentDailyData(timestamp.AddDays(-1),RainYesterday,(cumulus.RolloverHour == 0?SunshineHours:SunshineToMidnight), LowTempToday,HighTempToday,YestAvgTemp);
 				RemoveOldRecentDailyData();
 
@@ -4658,7 +4658,7 @@ namespace CumulusMX
 						NOAA noaa = new NOAA(cumulus);
 						var utf8WithoutBom = new System.Text.UTF8Encoding(false);
 						var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-						
+
 						List<string> report;
 
 						DateTime noaats = timestamp.AddDays(-1);
@@ -4706,7 +4706,7 @@ namespace CumulusMX
 						start.FileName = cumulus.DailyProgram;
 						// Don"t show a console window
 						start.CreateNoWindow = true;
-						// Run the external process 
+						// Run the external process
 						Process.Start(start);
 					}
 					catch (Exception ex)
@@ -4895,7 +4895,7 @@ namespace CumulusMX
 				using (StreamWriter file = new StreamWriter(fs))
 				{
 					cumulus.LogMessage("Dayfile.txt opened for writing");
-					
+
 
 					if ((HighTempToday < -400) || (LowTempToday > 900))
 					{
@@ -4905,7 +4905,7 @@ namespace CumulusMX
 					else
 					{
 						cumulus.LogMessage("Writing entry to dayfile.txt");
-						
+
 						file.Write(datestring + cumulus.ListSeparator);
 						file.Write(highgusttoday.ToString(cumulus.WindFormat) + cumulus.ListSeparator);
 						file.Write(highgustbearing + cumulus.ListSeparator);
@@ -5534,7 +5534,7 @@ namespace CumulusMX
 
 		public double getStartOfDayRainCounter(DateTime timestamp)
 		{
-			// TODO: 
+			// TODO:
 			return -1;
 		}
 
@@ -5719,7 +5719,7 @@ namespace CumulusMX
 
 				// Convert for display
 				trendval = ConvertPressMBToUser(presstrendval);
-				
+
 
 				if (calculaterainrate)
 				{
@@ -5821,7 +5821,7 @@ namespace CumulusMX
 					{
 						trendval = 0;
 					}
-				}                
+				}
 
 				RainLast24Hour = trendval*cumulus.RainMult;
 			}
@@ -5920,7 +5920,7 @@ namespace CumulusMX
 		public double RainLast24Hour { get; set; }
 		public string ConBatText { get; set; }
 		public string TxBatText { get; set; }
-		
+
 		public double YestHeatingDegreeDays { get; set; }
 		public double YestCoolingDegreeDays { get; set; }
 		public double TempChangeLastHour { get; set; }
@@ -6422,7 +6422,7 @@ namespace CumulusMX
 				}
 				else if (z_wind == "NE")
 				{
-					//			z_hpa += 4 ;  
+					//			z_hpa += 4 ;
 					z_hpa += 5F/100F*z_range;
 				}
 				else if (z_wind == "ENE")
@@ -6435,7 +6435,7 @@ namespace CumulusMX
 				}
 				else if (z_wind == "ESE")
 				{
-					//			z_hpa -= 3 ;  
+					//			z_hpa -= 3 ;
 					z_hpa -= 2F/100F*z_range;
 				}
 				else if (z_wind == "SE")
@@ -6448,7 +6448,7 @@ namespace CumulusMX
 				}
 				else if (z_wind == "S")
 				{
-					//			z_hpa -= 11 ;  
+					//			z_hpa -= 11 ;
 					z_hpa -= 12F/100F*z_range;
 				}
 				else if (z_wind == "SSW")
@@ -6507,7 +6507,7 @@ namespace CumulusMX
 				}
 				else if (z_wind == "SW")
 				{
-					//			z_hpa += 4 ;  
+					//			z_hpa += 4 ;
 					z_hpa += 5F/100F*z_range;
 				}
 				else if (z_wind == "WSW")
@@ -6520,7 +6520,7 @@ namespace CumulusMX
 				}
 				else if (z_wind == "WNW")
 				{
-					//			z_hpa -= 3 ;  
+					//			z_hpa -= 3 ;
 					z_hpa -= 2F/100F*z_range;
 				}
 				else if (z_wind == "NW")
@@ -6533,7 +6533,7 @@ namespace CumulusMX
 				}
 				else if (z_wind == "N")
 				{
-					//			z_hpa -= 11 ;  
+					//			z_hpa -= 11 ;
 					z_hpa -= 12F/100F*z_range;
 				}
 				else if (z_wind == "NNE")
@@ -7441,7 +7441,7 @@ namespace CumulusMX
 			sb.Append("&chill=" + (int)Math.Round(ConvertUserTempToC(WindChill) * 10));
 			sb.Append("&dew=" + (int)Math.Round(ConvertUserTempToC(OutdoorDewpoint) * 10));
 			sb.Append("&heat=" + (int)Math.Round(ConvertUserTempToC(HeatIndex) * 10));
-			
+
 			// Humidity
 			sb.Append("&humin=" + IndoorHumidity);
 			sb.Append("&hum=" + OutdoorHumidity);
@@ -7503,7 +7503,7 @@ namespace CumulusMX
 		public string GetAwekasURL(out string pwstring, DateTime timestamp)
 		{
 			var InvC = new CultureInfo("");
-			byte[] hashPW; 
+			byte[] hashPW;
 			string sep = ";";
 
 			// password is sent as MD5 hash
@@ -8638,7 +8638,7 @@ namespace CumulusMX
 
 		internal string GetDiaryData(string date)
 		{
-		  
+
 			string json;
 
 			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Timestamp) = ? order by Timestamp limit 1", date);
@@ -9188,7 +9188,7 @@ namespace CumulusMX
 		public double mintemp;
 		public double maxtemp;
 		public double avgtemp;
-		
+
 		public RecentDailyData(DateTime ts, double dailyrain, double sunhrs, double mint, double maxt, double avgt)
 		{
 			timestamp = ts;

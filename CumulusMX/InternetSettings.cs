@@ -40,12 +40,12 @@ namespace CumulusMX
 
 				// website settings
 				cumulus.ftp_directory = settings.website.directory ?? string.Empty;
-				cumulus.ForumURL = settings.website.forumurl ?? string.Empty; 
+				cumulus.ForumURL = settings.website.forumurl ?? string.Empty;
 				cumulus.ftp_port = settings.website.ftpport;
-				cumulus.ftp_host = settings.website.hostname ?? string.Empty; 
-				cumulus.ftp_password = settings.website.password ?? string.Empty; 
-				cumulus.ftp_user = settings.website.username ?? string.Empty; 
-				cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty; 
+				cumulus.ftp_host = settings.website.hostname ?? string.Empty;
+				cumulus.ftp_password = settings.website.password ?? string.Empty;
+				cumulus.ftp_user = settings.website.username ?? string.Empty;
+				cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty;
 
 				// web settings
 				cumulus.ActiveFTPMode = settings.websettings.activeftp;
@@ -54,7 +54,7 @@ namespace CumulusMX
 				cumulus.RealtimeEnabled = settings.websettings.enablerealtime;
 				cumulus.RealtimeFTPEnabled = settings.websettings.enablerealtimeftp;
 				cumulus.RealtimeTxtFTP = settings.websettings.realtimetxtftp;
-			    cumulus.RealtimeGaugesTxtFTP = settings.websettings.realtimegaugestxtftp;
+				cumulus.RealtimeGaugesTxtFTP = settings.websettings.realtimegaugestxtftp;
 				cumulus.RealtimeInterval = settings.websettings.realtimeinterval*1000;
 				cumulus.DeleteBeforeUpload = settings.websettings.ftpdelete;
 				cumulus.UpdateInterval = settings.websettings.ftpinterval;
@@ -69,19 +69,19 @@ namespace CumulusMX
 				}
 
 				// external programs
-				cumulus.DailyProgram = settings.externalprograms.dailyprogram ?? string.Empty; 
-				cumulus.DailyParams = settings.externalprograms.dailyprogramparams ?? string.Empty; 
-				cumulus.ExternalProgram = settings.externalprograms.program ?? string.Empty; 
-				cumulus.ExternalParams = settings.externalprograms.programparams ?? string.Empty; 
-				cumulus.RealtimeProgram = settings.externalprograms.realtimeprogram ?? string.Empty; 
-				cumulus.RealtimeParams = settings.externalprograms.realtimeprogramparams ?? string.Empty; 
+				cumulus.DailyProgram = settings.externalprograms.dailyprogram ?? string.Empty;
+				cumulus.DailyParams = settings.externalprograms.dailyprogramparams ?? string.Empty;
+				cumulus.ExternalProgram = settings.externalprograms.program ?? string.Empty;
+				cumulus.ExternalParams = settings.externalprograms.programparams ?? string.Empty;
+				cumulus.RealtimeProgram = settings.externalprograms.realtimeprogram ?? string.Empty;
+				cumulus.RealtimeParams = settings.externalprograms.realtimeprogramparams ?? string.Empty;
 
 				// twitter
 				cumulus.TwitterEnabled = settings.twitter.enabled;
 				cumulus.TwitterInterval = settings.twitter.interval;
-				cumulus.TwitterPW = settings.twitter.password ?? string.Empty; 
+				cumulus.TwitterPW = settings.twitter.password ?? string.Empty;
 				cumulus.TwitterSendLocation = settings.twitter.sendlocation;
-				cumulus.Twitteruser = settings.twitter.user ?? string.Empty; 
+				cumulus.Twitteruser = settings.twitter.user ?? string.Empty;
 
 				cumulus.SynchronisedTwitterUpdate = (60 % cumulus.TwitterInterval == 0);
 
@@ -92,10 +92,10 @@ namespace CumulusMX
 				cumulus.SendSRToWund = settings.wunderground.includesolar;
 				cumulus.SendUVToWund = settings.wunderground.includeuv;
 				cumulus.WundInterval = settings.wunderground.interval;
-				cumulus.WundPW = settings.wunderground.password ?? string.Empty; 
+				cumulus.WundPW = settings.wunderground.password ?? string.Empty;
 				cumulus.WundRapidFireEnabled = settings.wunderground.rapidfire;
 				cumulus.WundSendAverage = settings.wunderground.sendavgwind;
-				cumulus.WundID = settings.wunderground.stationid ?? string.Empty; 
+				cumulus.WundID = settings.wunderground.stationid ?? string.Empty;
 
 				cumulus.SynchronisedWUUpdate = (!cumulus.WundRapidFireEnabled) && (60 % cumulus.WundInterval == 0);
 
@@ -114,8 +114,8 @@ namespace CumulusMX
 				cumulus.AwekasEnabled = settings.awekas.enabled;
 				cumulus.AwekasInterval = settings.awekas.interval;
 				cumulus.AwekasLang = settings.awekas.lang;
-				cumulus.AwekasPW = settings.awekas.password ?? string.Empty; 
-				cumulus.AwekasUser = settings.awekas.user ?? string.Empty; 
+				cumulus.AwekasPW = settings.awekas.password ?? string.Empty;
+				cumulus.AwekasUser = settings.awekas.user ?? string.Empty;
 				cumulus.SendSolarToAwekas = settings.awekas.includesolar;
 				cumulus.SendUVToAwekas = settings.awekas.includeuv;
 				cumulus.SendSoilTempToAwekas = settings.awekas.includesoiltemp;
@@ -123,8 +123,8 @@ namespace CumulusMX
 				cumulus.SynchronisedAwekasUpdate = (60 % cumulus.AwekasInterval == 0);
 
 				// WeatherCloud
-				cumulus.WCloudWid = settings.weathercloud.wid ?? string.Empty; 
-				cumulus.WCloudKey = settings.weathercloud.key ?? string.Empty; 
+				cumulus.WCloudWid = settings.weathercloud.wid ?? string.Empty;
+				cumulus.WCloudKey = settings.weathercloud.key ?? string.Empty;
 				cumulus.WCloudEnabled = settings.weathercloud.enabled;
 				cumulus.SendSolarToWCloud = settings.weathercloud.includesolar;
 				cumulus.SendUVToWCloud = settings.weathercloud.includeuv;
@@ -137,8 +137,8 @@ namespace CumulusMX
 				cumulus.PWSInterval = settings.pwsweather.interval;
 				cumulus.SendSRToPWS = settings.pwsweather.includesolar;
 				cumulus.SendUVToPWS = settings.pwsweather.includeuv;
-				cumulus.PWSPW = settings.pwsweather.password ?? string.Empty; 
-				cumulus.PWSID = settings.pwsweather.stationid ?? string.Empty; 
+				cumulus.PWSPW = settings.pwsweather.password ?? string.Empty;
+				cumulus.PWSID = settings.pwsweather.stationid ?? string.Empty;
 
 				cumulus.SynchronisedPWSUpdate = (60 % cumulus.PWSInterval == 0);
 
@@ -177,20 +177,20 @@ namespace CumulusMX
 				cumulus.SynchronisedAPRSUpdate = (60 % cumulus.APRSinterval == 0);
 
 				// HTTP proxy
-				cumulus.HTTPProxyPassword = settings.proxies.httpproxy.password ?? string.Empty; 
+				cumulus.HTTPProxyPassword = settings.proxies.httpproxy.password ?? string.Empty;
 				cumulus.HTTPProxyPort = settings.proxies.httpproxy.port;
-				cumulus.HTTPProxyName = settings.proxies.httpproxy.proxy ?? string.Empty; 
-				cumulus.HTTPProxyUser = settings.proxies.httpproxy.user ?? string.Empty; 
-				
+				cumulus.HTTPProxyName = settings.proxies.httpproxy.proxy ?? string.Empty;
+				cumulus.HTTPProxyUser = settings.proxies.httpproxy.user ?? string.Empty;
+
 				// Custom HTTP
 				// custom seconds
-				cumulus.CustomHttpSecondsString = settings.customhttp.customseconds.url ?? string.Empty; 
+				cumulus.CustomHttpSecondsString = settings.customhttp.customseconds.url ?? string.Empty;
 				cumulus.CustomHttpSecondsEnabled = settings.customhttp.customseconds.enabled;
 				cumulus.CustomHttpSecondsInterval = settings.customhttp.customseconds.interval;
 				cumulus.CustomHttpSecondsTimer.Interval = cumulus.CustomHttpSecondsInterval * 1000;
 				cumulus.CustomHttpSecondsTimer.Enabled = cumulus.CustomHttpSecondsEnabled;
 				// custom minutes
-				cumulus.CustomHttpMinutesString = settings.customhttp.customminutes.url ?? string.Empty; 
+				cumulus.CustomHttpMinutesString = settings.customhttp.customminutes.url ?? string.Empty;
 				cumulus.CustomHttpMinutesEnabled = settings.customhttp.customminutes.enabled;
 				cumulus.CustomHttpMinutesIntervalIndex = settings.customhttp.customminutes.intervalindex;
 				if (cumulus.CustomHttpMinutesIntervalIndex >= 0 && cumulus.CustomHttpMinutesIntervalIndex < cumulus.FactorsOf60.Length)
@@ -202,7 +202,7 @@ namespace CumulusMX
 					cumulus.CustomHttpMinutesInterval = 10;
 				}
 				// custom rollover
-				cumulus.CustomHttpRolloverString = settings.customhttp.customrollover.url ?? string.Empty; 
+				cumulus.CustomHttpRolloverString = settings.customhttp.customrollover.url ?? string.Empty;
 				cumulus.CustomHttpRolloverEnabled = settings.customhttp.customrollover.enabled;
 
 				// Save the settings
@@ -244,7 +244,7 @@ namespace CumulusMX
 								  enablerealtime = cumulus.RealtimeEnabled,
 								  enablerealtimeftp = cumulus.RealtimeFTPEnabled,
 								  realtimetxtftp = cumulus.RealtimeTxtFTP,
-                                  realtimegaugestxtftp = cumulus.RealtimeGaugesTxtFTP,
+								  realtimegaugestxtftp = cumulus.RealtimeGaugesTxtFTP,
 								  realtimeinterval = cumulus.RealtimeInterval/1000,
 								  ftpdelete = cumulus.DeleteBeforeUpload,
 								  ftpinterval = cumulus.UpdateInterval,
@@ -575,8 +575,8 @@ namespace CumulusMX
 		public bool enablerealtime { get; set; }
 		public bool enablerealtimeftp { get; set; }
 		public bool realtimetxtftp { get; set; }
-        public bool realtimegaugestxtftp { get; set; }
-        public int realtimeinterval { get; set; }
+		public bool realtimegaugestxtftp { get; set; }
+		public int realtimeinterval { get; set; }
 	}
 
 	public class JsonInternetSettingsExternalPrograms
@@ -691,7 +691,7 @@ namespace CumulusMX
 
 	public class JsonInternetSettingsProxySettings
 	{
-		public JsonInternetSettingsHTTPproxySettings httpproxy { get; set; }   
+		public JsonInternetSettingsHTTPproxySettings httpproxy { get; set; }
 	}
 
 	public class JsonInternetSettingsHTTPproxySettings

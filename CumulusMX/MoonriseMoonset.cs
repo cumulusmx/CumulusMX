@@ -16,7 +16,7 @@ namespace CumulusMX
 // The calculations are approximate but should be good enough for general use,
 // I accept no responsibility for errors in astronomy or coding.
 
-// WARNING moonrise code changed on 6 May 2003 to correct a systematic error 
+// WARNING moonrise code changed on 6 May 2003 to correct a systematic error
 // these are now local times NOT UTC as the original code did.
 
 // Meeus first edition table 45.A Longitude and distance of the moon
@@ -383,13 +383,13 @@ namespace CumulusMX
 
         private double[] MoonQuarters(int year , int month , int day )
         {
-            // returns an array of Julian Ephemeris Days (JDE) for 
+            // returns an array of Julian Ephemeris Days (JDE) for
             // new moon, first quarter, full moon and last quarter
             // Meeus first edition chapter 47 with only the most larger additional corrections
             // Meeus code calculate Terrestrial Dynamic Time
             // TDT = UTC + (number of leap seconds) + 32.184
             // At the end of June 2012 the 25th leap second was added
-            // 
+            //
             var quarters = new double[4];
             // k is an integer for new moon incremented by 0.25 for first quarter 0.5 for new etc.
             var k = Math.Floor((year + ((month - 1) + day/30)/12 - 2000)*12.3685);
@@ -449,7 +449,7 @@ namespace CumulusMX
             quarters[1] = JDE + 0.000325*sind(A[1]) + 0.000165*sind(A[2]) + 0.000164*sind(A[3]) + 0.000126*sind(A[4]) + 0.000110*sind(A[5]) + 0.000062*sind(A[6]) +
                           0.000060*sind(A[7]);
 
-            // Full moon k=k+0.5 
+            // Full moon k=k+0.5
             JDE = JDE0 + 29.530588853*0.5;
             // Already added 0.25 for first quarter
             M = rev(M + 29.10535669*0.25);

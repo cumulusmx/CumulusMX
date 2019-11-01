@@ -23,7 +23,7 @@ namespace CumulusMX
 			this.cumulus = cumulus;
 			//this.station = station;
 		}
-		
+
 		public List<string> GenerateNoaaYearReport(int year)
 		{
 			NOAA noaa = new NOAA(cumulus);

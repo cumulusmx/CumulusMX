@@ -35,7 +35,7 @@ namespace CumulusMX
 		private bool m_Lazy = false;
 
 		// *** Local cache ***
-		private Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string,Dictionary<string, string>>(); 
+		private Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string,Dictionary<string, string>>();
 
 		// *** Local cache modified flag ***
 		private bool m_CacheModified = false;
@@ -90,14 +90,14 @@ namespace CumulusMX
 					while ((s = sr.ReadLine()) != null)
 					{
 						s = s.Trim();
-						
+
 						// *** Check for section names ***
 						if (s.StartsWith("[") && s.EndsWith("]"))
 						{
 							if (s.Length > 2)
 							{
 								string SectionName = s.Substring(1,s.Length-2);
-								
+
 								// *** Only first occurrence of a section is loaded ***
 								if (m_Sections.ContainsKey(SectionName))
 								{
@@ -139,14 +139,14 @@ namespace CumulusMX
 				}
 			}
 		}
-		
+
 		// *** Flush local cache content ***
 		internal void Flush()
 		{
 			lock(m_Lock)
 			{
 				// *** If local cache was not modified, exit ***
-				if (!m_CacheModified) return;				
+				if (!m_CacheModified) return;
 				m_CacheModified=false;
 
 				// *** Open the file ***
@@ -164,7 +164,7 @@ namespace CumulusMX
 						sw.Write('[');
 						sw.Write(SectionPair.Key);
 						sw.WriteLine(']');
-					
+
 						// *** Cycle on all key+value pairs in the section ***
 						foreach (KeyValuePair<string, string> ValuePair in Section)
 						{
@@ -177,7 +177,7 @@ namespace CumulusMX
 				}
 			}
 		}
-		
+
 		// *** Read a value from local cache ***
 		internal string GetValue(string SectionName, string Key, string DefaultValue)
 		{
@@ -197,7 +197,7 @@ namespace CumulusMX
 				// *** Check if the key exists ***
 				string Value;
 				if (!Section.TryGetValue(Key, out Value)) return DefaultValue;
-			
+
 				// *** Return the found value ***
 				return Value;
 			}
@@ -263,7 +263,7 @@ namespace CumulusMX
 
 			int l = Value.Length;
 			if (l < 2) return new byte[] { };
-			
+
 			l /= 2;
 			byte[] Result = new byte[l];
 			for (int i=0; i<l; i++) Result[i] = Convert.ToByte(Value.Substring(i*2,2),16);

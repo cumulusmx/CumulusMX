@@ -10,9 +10,9 @@ namespace CumulusMX
 		private static MySocketServer socketServer;
 
 		/// <summary>
-        /// Setups the specified server.
-        /// </summary>
-        /// <param name="server">The server.</param>
+		/// Setups the specified server.
+		/// </summary>
+		/// <param name="server">The server.</param>
 		public static void Setup(WebServer server, Cumulus cumulus)
 		{
 			WebSocket.cumulus = cumulus;
@@ -68,7 +68,7 @@ namespace CumulusMX
 				//cumulus.LogDebugMessage("WS receive : " + buffer.ToString());
 			}
 
-	
+
 			public void SendMessage(string message)
 			{
 				this.Broadcast(message);

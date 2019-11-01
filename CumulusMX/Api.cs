@@ -105,7 +105,7 @@ namespace CumulusMX
 			public EditControllerGet(IHttpContext context) : base(context)
 			{
 			}
-	
+
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "edit/*")]
 			public bool EditData()
 			{
@@ -121,6 +121,18 @@ namespace CumulusMX
 
 						case "raintoday":
 							return this.JsonResponse(dataEditor.EditRainToday(this));
+
+						case "currentcond.json":
+							return this.JsonResponse(dataEditor.GetCurrentCond());
+
+						case "alltimerecords.json":
+							return this.JsonResponse(dataEditor.GetAllTimeRecData());
+
+						case "alltimerecordsdayfile.json":
+							return this.JsonResponse(dataEditor.GetAllTimeRecDayFile());
+
+						case "alltimerecordslogfile.json":
+							return this.JsonResponse(dataEditor.GetAllTimeRecLogFile());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -173,6 +185,12 @@ namespace CumulusMX
 
 						case "diarydelete":
 							return this.JsonResponse(dataEditor.DeleteDiary(this));
+
+						case "currcond":
+							return this.JsonResponse(dataEditor.EditCurrentCond(this));
+
+						case "alltime":
+							return this.JsonResponse(dataEditor.EditAllTimeRecs(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

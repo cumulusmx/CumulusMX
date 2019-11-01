@@ -93,7 +93,7 @@ namespace CumulusMX
 
             DoDayResetIfNeeded();
             DoTrendValues(DateTime.Now);
-            
+
             if (File.Exists(cumulus.EWFile))
             {
                 EWGetData(null, null);

@@ -235,7 +235,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Discarding input: " + response);
 			}
 			catch
-			{ 
+			{
 				// probably a timeout - do nothing.
 			}
 			finally

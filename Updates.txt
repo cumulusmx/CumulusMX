@@ -1,3 +1,23 @@
+3.1.1 - b3054
+=============
+- Fixes WLL timestamps always being in UTC, now uses local time
+- Adds web tags <#snowlying>, <#snowfalling>, both provide 1|0 responses
+- Adds Current Conditions editor to admin interface
+- Adds All Time Records editor to admin interface
+
+
+- Updated files
+	\CumulusMX.exe
+	\interface\<allexistingfiles>.html
+
+-New files
+	\interface\currentcondeditor.html
+	\interface\alltimerecseditor.html
+	\interface\js\alltimerecseditor.html
+	\interface\lib\x-editable <all files>
+	\interface\img\loading.gif
+
+
 3.1.0 - b3053
 =============
 - Adds support for Davis WeatherLink Live device
