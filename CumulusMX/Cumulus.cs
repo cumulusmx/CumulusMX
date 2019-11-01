@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.1.0";
-		public string Build = "3053";
+		public string Version = "3.1.1";
+		public string Build = "3054";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -1361,7 +1361,7 @@ namespace CumulusMX
 			calibrationSettings = new CalibrationSettings(this);
 			noaaSettings = new NOAASettings(this);
 			mySqlSettings = new MysqlSettings(this);
-			dataEditor = new DataEditor(this, station);
+			dataEditor = new DataEditor(this, station, webtags);
 
 			//ILog Log = Logger.For<Program>();
 

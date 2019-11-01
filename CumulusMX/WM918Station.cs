@@ -8,419 +8,419 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
-    class WM918Station : WeatherStation
-    {
-        private const int  WM918HumidData = 0x8F;
-        private const int  WM918TempData  = 0x9F;
-        private const int  WM918BaroData  = 0xAF;
-        private const int  WM918RainData  = 0xBF;
-        private const int  WM918WindData  = 0xCF;
+	class WM918Station : WeatherStation
+	{
+		private const int  WM918HumidData = 0x8F;
+		private const int  WM918TempData  = 0x9F;
+		private const int  WM918BaroData  = 0xAF;
+		private const int  WM918RainData  = 0xBF;
+		private const int  WM918WindData  = 0xCF;
 
-        private readonly int[] WM918PacketLength = { 0, 0, 0, 0, 0, 0, 0, 0, 35, 34, 31, 14, 27, 0, 0, 0, 255 };
+		private readonly int[] WM918PacketLength = { 0, 0, 0, 0, 0, 0, 0, 0, 35, 34, 31, 14, 27, 0, 0, 0, 255 };
 
-        private int currentPacketLength;
-        private int currentPacketType;
+		private int currentPacketLength;
+		private int currentPacketType;
 
-        public WM918Station(Cumulus cumulus)
-            : base(cumulus)
-        {
-            cumulus.Manufacturer = cumulus.OREGON;
-            // station supplies rain rate
-            calculaterainrate = false;
+		public WM918Station(Cumulus cumulus)
+			: base(cumulus)
+		{
+			cumulus.Manufacturer = cumulus.OREGON;
+			// station supplies rain rate
+			calculaterainrate = false;
 
-            cumulus.LogMessage("Station type = WM918");
-            
-            startReadingHistoryData();
-            
-        }
+			cumulus.LogMessage("Station type = WM918");
 
-        // Not used - now uses polling in Start() because Mono doesn't support data received events
-        public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            SerialPort port = sender as SerialPort;
+			startReadingHistoryData();
 
-            // Obtain the number of bytes waiting in the port's buffer
-            int bytes = port.BytesToRead;
+		}
 
-            int nextByte;
+		// Not used - now uses polling in Start() because Mono doesn't support data received events
+		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
+		{
+			SerialPort port = sender as SerialPort;
 
-            // Create a byte array buffer to hold the incoming data
-            //byte[] buffer = new byte[bytes];
+			// Obtain the number of bytes waiting in the port's buffer
+			int bytes = port.BytesToRead;
 
-            
-            for (int i = 0; i < bytes; i++)
-            {
-                // Read a byte from the port
-                nextByte = port.ReadByte();
-                
+			int nextByte;
 
-                switch (currentPacketLength)
-                {
-                    case 0: // We're looking for the start of a packet
-                       if (nextByte>=0x8F && nextByte<=0xCF)
-                       {
-                           // Possible start of packet
-                           currentPacketLength = 1;
-                           currentPacketType = nextByte>>4;
-                           buffer.Add(nextByte);
-                       }
-                        break;
-                    
-                    default: // We've had the packet header, continue collecting the packet
-                        buffer.Add(nextByte);
-                        currentPacketLength++;
-
-                        if (currentPacketLength == WM918PacketLength[currentPacketType])
-                        {
-                            // We've collected a complete packet, process it
-                            /* if
-                                    debug then
-                                    begin
-                                    transbuff :=
-                                    DisplayHex(@buff[1], length(buff));
-                                    DebugForm.Memo1.Lines.Add(transbuff);
-                            end; */
-
-                            Parse(buffer);
-                            // Get ready for the next packet
-                            buffer.Clear();
-                            currentPacketLength = 0;
-                            currentPacketType = 16;
-                        }
-                        break;
-                } // end of switch for current packet length
-            } // end of for loop for available chars
-            
-        }
-
-        public override void Start()
-        {
-            cumulus.LogMessage("Start normal reading loop");
-
-            int nextByte;
-
-            try
-            {
-                while (true)
-                {
-                    Thread.Sleep(1000);
-                    if (comport.BytesToRead > 0)
-                    {
-                        // wait a little to let more data in
-                        Thread.Sleep(200);
-                        // Obtain the number of bytes waiting in the port's buffer
-                        int bytes = comport.BytesToRead;
-
-                        string datastr = "Data: ";
-
-                        cumulus.LogDebugMessage("Data received, number of bytes = " + bytes);
-
-                        // Create a byte array buffer to hold the incoming data
-                        //byte[] buffer = new byte[bytes];
-
-                        for (int i = 0; i < bytes; i++)
-                        {
-                            // Read a byte from the port
-                            nextByte = comport.ReadByte();
+			// Create a byte array buffer to hold the incoming data
+			//byte[] buffer = new byte[bytes];
 
 
-                            switch (currentPacketLength)
-                            {
-                                case 0: // We're looking for the start of a packet
-                                    if (nextByte >= 0x8F && nextByte <= 0xCF)
-                                    {
-                                        // Possible start of packet
-                                        currentPacketLength = 1;
-                                        currentPacketType = nextByte >> 4;
-                                        buffer.Add(nextByte);
-                                    }
-                                    break;
+			for (int i = 0; i < bytes; i++)
+			{
+				// Read a byte from the port
+				nextByte = port.ReadByte();
 
-                                default: // We've had the packet header, continue collecting the packet
-                                    buffer.Add(nextByte);
-                                    currentPacketLength++;
 
-                                    if (currentPacketLength == WM918PacketLength[currentPacketType])
-                                    {
-                                        // We've collected a complete packet, process it
-                                        
-                                        Parse(buffer);
-                                        // Get ready for the next packet
-                                        buffer.Clear();
-                                        currentPacketLength = 0;
-                                        currentPacketType = 16;
-                                    }
-                                    break;
-                            } // end of switch for current packet length
-                        } // end of for loop for available chars
+				switch (currentPacketLength)
+				{
+					case 0: // We're looking for the start of a packet
+					   if (nextByte>=0x8F && nextByte<=0xCF)
+					   {
+						   // Possible start of packet
+						   currentPacketLength = 1;
+						   currentPacketType = nextByte>>4;
+						   buffer.Add(nextByte);
+					   }
+						break;
 
-                        cumulus.LogDebugMessage(datastr);
-                    }
-                }
-            }
-            // Catch the ThreadAbortException
-            catch (ThreadAbortException)
-            {
-            }
-            finally
-            {
-                cumulus.LogMessage("Closing serial port");
-                comport.Close();
-            }
-        }
+					default: // We've had the packet header, continue collecting the packet
+						buffer.Add(nextByte);
+						currentPacketLength++;
 
-        public override void startReadingHistoryData()
-        {
-            cumulus.LogMessage("Opening com port " + cumulus.ComportName);
+						if (currentPacketLength == WM918PacketLength[currentPacketType])
+						{
+							// We've collected a complete packet, process it
+							/* if
+									debug then
+									begin
+									transbuff :=
+									DisplayHex(@buff[1], length(buff));
+									DebugForm.Memo1.Lines.Add(transbuff);
+							end; */
 
-            comport = new SerialPort(cumulus.ComportName, 9600, Parity.None, 8, StopBits.One)
-            {
-                Handshake = Handshake.None,
-                RtsEnable = true,
-                DtrEnable = true
-                
-            };
+							Parse(buffer);
+							// Get ready for the next packet
+							buffer.Clear();
+							currentPacketLength = 0;
+							currentPacketType = 16;
+						}
+						break;
+				} // end of switch for current packet length
+			} // end of for loop for available chars
 
-            //comport.DataReceived += new SerialDataReceivedEventHandler(portDataReceived);
+		}
 
-            try
-            {
-                comport.Open();
-                cumulus.CurrentActivity = "Normal running";
+		public override void Start()
+		{
+			cumulus.LogMessage("Start normal reading loop");
 
-                LoadLastHoursFromDataLogs(DateTime.Now);
-                
-                DoDayResetIfNeeded();
-                DoTrendValues(DateTime.Now);
-                timerStartNeeded = true;
+			int nextByte;
+
+			try
+			{
+				while (true)
+				{
+					Thread.Sleep(1000);
+					if (comport.BytesToRead > 0)
+					{
+						// wait a little to let more data in
+						Thread.Sleep(200);
+						// Obtain the number of bytes waiting in the port's buffer
+						int bytes = comport.BytesToRead;
+
+						string datastr = "Data: ";
+
+						cumulus.LogDebugMessage("Data received, number of bytes = " + bytes);
+
+						// Create a byte array buffer to hold the incoming data
+						//byte[] buffer = new byte[bytes];
+
+						for (int i = 0; i < bytes; i++)
+						{
+							// Read a byte from the port
+							nextByte = comport.ReadByte();
+
+
+							switch (currentPacketLength)
+							{
+								case 0: // We're looking for the start of a packet
+									if (nextByte >= 0x8F && nextByte <= 0xCF)
+									{
+										// Possible start of packet
+										currentPacketLength = 1;
+										currentPacketType = nextByte >> 4;
+										buffer.Add(nextByte);
+									}
+									break;
+
+								default: // We've had the packet header, continue collecting the packet
+									buffer.Add(nextByte);
+									currentPacketLength++;
+
+									if (currentPacketLength == WM918PacketLength[currentPacketType])
+									{
+										// We've collected a complete packet, process it
+
+										Parse(buffer);
+										// Get ready for the next packet
+										buffer.Clear();
+										currentPacketLength = 0;
+										currentPacketType = 16;
+									}
+									break;
+							} // end of switch for current packet length
+						} // end of for loop for available chars
+
+						cumulus.LogDebugMessage(datastr);
+					}
+				}
+			}
+			// Catch the ThreadAbortException
+			catch (ThreadAbortException)
+			{
+			}
+			finally
+			{
+				cumulus.LogMessage("Closing serial port");
+				comport.Close();
+			}
+		}
+
+		public override void startReadingHistoryData()
+		{
+			cumulus.LogMessage("Opening com port " + cumulus.ComportName);
+
+			comport = new SerialPort(cumulus.ComportName, 9600, Parity.None, 8, StopBits.One)
+			{
+				Handshake = Handshake.None,
+				RtsEnable = true,
+				DtrEnable = true
+
+			};
+
+			//comport.DataReceived += new SerialDataReceivedEventHandler(portDataReceived);
+
+			try
+			{
+				comport.Open();
+				cumulus.CurrentActivity = "Normal running";
+
+				LoadLastHoursFromDataLogs(DateTime.Now);
+
+				DoDayResetIfNeeded();
+				DoTrendValues(DateTime.Now);
+				timerStartNeeded = true;
 			}
 			catch (Exception ex)
-            {
-                cumulus.LogMessage(ex.Message);
-                //MessageBox.Show(ex.Message);
-            }
-        }
+			{
+				cumulus.LogMessage(ex.Message);
+				//MessageBox.Show(ex.Message);
+			}
+		}
 
-        public override void Stop()
-        {
-            
-        }
+		public override void Stop()
+		{
 
-        /// <summary>
-        /// Validates a WM918 packet
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="csum"></param>
-        /// <returns></returns>
-        private bool WM918valid(List<int> s, out int csum)
-        {
-            bool result;
+		}
 
-            csum = -1;
+		/// <summary>
+		/// Validates a WM918 packet
+		/// </summary>
+		/// <param name="s"></param>
+		/// <param name="csum"></param>
+		/// <returns></returns>
+		private bool WM918valid(List<int> s, out int csum)
+		{
+			bool result;
 
-            if (s.Count < 14)
-            {
-                cumulus.LogMessage("WM918 packet too short. Length = " + s.Count);
-                result = false;
-            }
-            else
-            {
-                csum = checksum(s);
+			csum = -1;
 
-                if (csum != s[s.Count - 1])
-                {
-                    cumulus.LogMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1]);
-                    result = false;
-                }
-                else
-                    result = true;
-            }
+			if (s.Count < 14)
+			{
+				cumulus.LogMessage("WM918 packet too short. Length = " + s.Count);
+				result = false;
+			}
+			else
+			{
+				csum = checksum(s);
 
-            return result;
-        }
+				if (csum != s[s.Count - 1])
+				{
+					cumulus.LogMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1]);
+					result = false;
+				}
+				else
+					result = true;
+			}
 
-        /// <summary>
-        /// Determines the type of packet received
-        /// </summary>
-        /// <param name="buff"></param>
-        private void Parse(List<int> buff)
-        {
-            int csum;
+			return result;
+		}
 
-            if (WM918valid(buff, out csum))
-            {
-                DateTime now = DateTime.Now;
+		/// <summary>
+		/// Determines the type of packet received
+		/// </summary>
+		/// <param name="buff"></param>
+		private void Parse(List<int> buff)
+		{
+			int csum;
 
-                switch (buff[0])
-                {
-                    case WM918HumidData:
-                        WM918Humid(buff);
-                        UpdateStatusPanel(now);
-                        break;
-                    case WM918RainData:
-                        WM918Rain(buff);
-                        UpdateStatusPanel(now);
-                        break;
-                    case WM918TempData:
-                        WM918Temp(buff);
-                        UpdateStatusPanel(now);
-                        break;
-                    case WM918BaroData:
-                        WM918Baro(buff);
-                        UpdateStatusPanel(now);
-                        break;
-                    case WM918WindData:
-                        WM918Wind(buff);
-                        UpdateStatusPanel(now);
-                        break;
-                    default:
-                        Trace.Write("Unrecognised packet:");
-                        for (int i = 0; i < buff.Count; i++)
-                        {
-                            Trace.Write(" " + buff[i].ToString("X2"));
-                        }
-                        cumulus.LogMessage(" ");
-                        break;
-                }
-            }
-            else
-            {
-                cumulus.LogMessage("Invalid packet:");
-                for (int i = 0; i < buff.Count; i++)
-                {
-                    Trace.Write(" " + buff[i].ToString("X2"));
-                }
-                cumulus.LogMessage(" ");
+			if (WM918valid(buff, out csum))
+			{
+				DateTime now = DateTime.Now;
 
-            }
-        }
+				switch (buff[0])
+				{
+					case WM918HumidData:
+						WM918Humid(buff);
+						UpdateStatusPanel(now);
+						break;
+					case WM918RainData:
+						WM918Rain(buff);
+						UpdateStatusPanel(now);
+						break;
+					case WM918TempData:
+						WM918Temp(buff);
+						UpdateStatusPanel(now);
+						break;
+					case WM918BaroData:
+						WM918Baro(buff);
+						UpdateStatusPanel(now);
+						break;
+					case WM918WindData:
+						WM918Wind(buff);
+						UpdateStatusPanel(now);
+						break;
+					default:
+						Trace.Write("Unrecognised packet:");
+						for (int i = 0; i < buff.Count; i++)
+						{
+							Trace.Write(" " + buff[i].ToString("X2"));
+						}
+						cumulus.LogMessage(" ");
+						break;
+				}
+			}
+			else
+			{
+				cumulus.LogMessage("Invalid packet:");
+				for (int i = 0; i < buff.Count; i++)
+				{
+					Trace.Write(" " + buff[i].ToString("X2"));
+				}
+				cumulus.LogMessage(" ");
 
-        private void WM918Wind(List<int> buff)
-        {
-            // CF S2S3 B3S1 B1B2 A2A3 xxA1     W1W2     WS      C1C2
-            // 0  1    2    3    4    5    ... 16   ... 21  ... 26
-            // Battery status b
-            // Wind Bearing B1B2B3
-            // Wind Gust   S1S2.S3
-            // Wind Speed Average A1A2.A3
-            // Wind Chill W1W2 (WS bit 1 gives sign)
-            // Checksum C1C2
+			}
+		}
 
-            double current =  ConvertWindMSToUser((double)(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100)) / 10);
-            double average = ConvertWindMSToUser((double)(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100)) / 10);
-            int bearing = BCDchartoint(buff[2]) / 10 + (BCDchartoint(buff[3]) * 10);
+		private void WM918Wind(List<int> buff)
+		{
+			// CF S2S3 B3S1 B1B2 A2A3 xxA1     W1W2     WS      C1C2
+			// 0  1    2    3    4    5    ... 16   ... 21  ... 26
+			// Battery status b
+			// Wind Bearing B1B2B3
+			// Wind Gust   S1S2.S3
+			// Wind Speed Average A1A2.A3
+			// Wind Chill W1W2 (WS bit 1 gives sign)
+			// Checksum C1C2
 
-            DoWind(current,bearing,average,DateTime.Now);
-            
-            // Extract windchill
-            int wc = BCDchartoint(buff[16]);
+			double current =  ConvertWindMSToUser((double)(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100)) / 10);
+			double average = ConvertWindMSToUser((double)(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100)) / 10);
+			int bearing = BCDchartoint(buff[2]) / 10 + (BCDchartoint(buff[3]) * 10);
 
-            if ((buff[21] / 16 & 2) == 2) wc = -wc;
+			DoWind(current,bearing,average,DateTime.Now);
 
-            if (wc > -70)
-            {
-                DoWindChill(ConvertTempCToUser(wc),DateTime.Now);
-            }
-        }
+			// Extract windchill
+			int wc = BCDchartoint(buff[16]);
 
-        private void WM918Baro(List<int> buff)
-        {
-            // Pressure/DewPoint etc
-            // AF P3P4 P1P2 S4SD S2S3 xxS1 xxF1 I1I2     O1O2    C1C2
-            // 0  1    2    3    4    5    6    7    ... 18   ...30
-            // Indoor Dewpoint I1I2
-            // Outdoor Dewpoint O1O2
-            // Ambient Pressure P1P2P3P4
-            // Forecast F1 1=Sunny, 2=Cloudy, 4=Partly, 8=Rain
-            // Sea-Level pressure S1S2S3S4.SD
-            // Checksum C1C2
+			if ((buff[21] / 16 & 2) == 2) wc = -wc;
 
-            DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[18])),DateTime.Now);
+			if (wc > -70)
+			{
+				DoWindChill(ConvertTempCToUser(wc),DateTime.Now);
+			}
+		}
 
-            double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2])*100);
-            StationPressure = ConvertPressMBToUser(locPress);
+		private void WM918Baro(List<int> buff)
+		{
+			// Pressure/DewPoint etc
+			// AF P3P4 P1P2 S4SD S2S3 xxS1 xxF1 I1I2     O1O2    C1C2
+			// 0  1    2    3    4    5    6    7    ... 18   ...30
+			// Indoor Dewpoint I1I2
+			// Outdoor Dewpoint O1O2
+			// Ambient Pressure P1P2P3P4
+			// Forecast F1 1=Sunny, 2=Cloudy, 4=Partly, 8=Rain
+			// Sea-Level pressure S1S2S3S4.SD
+			// Checksum C1C2
 
-            double pressure =  ConvertPressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
-                ((BCDchartoint(buff[5]) % 10) * 1000));
+			DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[18])),DateTime.Now);
 
-            DoPressure(pressure,DateTime.Now);
+			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2])*100);
+			StationPressure = ConvertPressMBToUser(locPress);
 
-            UpdatePressureTrendString();
+			double pressure =  ConvertPressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
+				((BCDchartoint(buff[5]) % 10) * 1000));
 
-            string forecast=String.Empty;
+			DoPressure(pressure,DateTime.Now);
 
-            // Forecast
-            int num = buff[6] & 0xF;
-            switch (num)
-            {
-                case 1: forecast = "Sunny";
-                    break;
-                case 2: forecast = "Cloudy";
-                    break;
-                case 4: forecast = "Partly Cloudy";
-                    break;
-                case 8: forecast = "Rain";
-                    break;
-            }
+			UpdatePressureTrendString();
 
-            DoForecast(forecast,false);
-        }
+			string forecast=String.Empty;
 
-        private void WM918Temp(List<int> buff)
-        {
-            // 9F I2I3 xxI1    O2O3 xxO1
-            // 0  1    2   ... 16   17
-            // Indoor Temp I1I2I3 but top bit of I1 gives sign
-            // Outdoor Temp O1O2O3 but top bit of O1 gives sign
+			// Forecast
+			int num = buff[6] & 0xF;
+			switch (num)
+			{
+				case 1: forecast = "Sunny";
+					break;
+				case 2: forecast = "Cloudy";
+					break;
+				case 4: forecast = "Partly Cloudy";
+					break;
+				case 8: forecast = "Rain";
+					break;
+			}
 
-            // Outdoor temp
-            double temp10 = BCDchartoint(buff[16]) + (((buff[17]) & 0x7) * 100);
-  
-            if ((buff[17] & 0x08) == 8)  temp10 = -temp10;
+			DoForecast(forecast,false);
+		}
 
-            if (temp10 > -500)
-            {
-                DoOutdoorTemp(ConvertTempCToUser(temp10 / 10), DateTime.Now);
-            }
-    
-            // Indoor temp
-            temp10 = BCDchartoint(buff[1]) + (((buff[2]) & 0x7) * 100);
-  
-            if ((buff[2] & 0x08) == 8)  temp10 = -temp10;
+		private void WM918Temp(List<int> buff)
+		{
+			// 9F I2I3 xxI1    O2O3 xxO1
+			// 0  1    2   ... 16   17
+			// Indoor Temp I1I2I3 but top bit of I1 gives sign
+			// Outdoor Temp O1O2O3 but top bit of O1 gives sign
 
-            DoIndoorTemp(ConvertTempCToUser(temp10 / 10));
+			// Outdoor temp
+			double temp10 = BCDchartoint(buff[16]) + (((buff[17]) & 0x7) * 100);
 
-            DoApparentTemp(DateTime.Now);
-        }
+			if ((buff[17] & 0x08) == 8)  temp10 = -temp10;
 
-        private void WM918Rain(List<int> buff)
-        {
-            // BF R1R2    Y3Y4 Y1Y2 T3T4 T1T2 M1M2 H1H2 D1D2 M1M2           C1C2
-            // 0  1    2  3    4    5    6    7    8    9    10   11   12   13 
-            // Rainfall Rate R1R2
-            // Rainfall Total T1T2T3T4
-            // Rainfall Yesterday Y1Y2Y3Y4
-            // Rainfall Totalling Start (Minute M1M2,
-            //                           Hour H1H2,
-            //                           Day D1D2,
-            //                           Month M1M2)
-            // Checksum C1C2
+			if (temp10 > -500)
+			{
+				DoOutdoorTemp(ConvertTempCToUser(temp10 / 10), DateTime.Now);
+			}
 
-            double raincounter = ConvertRainMMToUser(BCDchartoint(buff[5]) + (BCDchartoint(buff[6]) * 100));
-            double rainrate = ConvertRainMMToUser(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100));
-            
-            DoRain(raincounter,rainrate,DateTime.Now);
-        }
+			// Indoor temp
+			temp10 = BCDchartoint(buff[1]) + (((buff[2]) & 0x7) * 100);
 
-        private void WM918Humid(List<int> buff)
-        {
-            // 8F ...
-            // Indoor humidity is BCD in byte 8
-            // Outdoor humidity is BCD in byte 20
+			if ((buff[2] & 0x08) == 8)  temp10 = -temp10;
 
-            DoIndoorHumidity(BCDchartoint(buff[8]));
+			DoIndoorTemp(ConvertTempCToUser(temp10 / 10));
 
-            DoOutdoorHumidity(BCDchartoint(buff[20]),DateTime.Now);
-        }
-    }
+			DoApparentTemp(DateTime.Now);
+		}
+
+		private void WM918Rain(List<int> buff)
+		{
+			// BF R1R2    Y3Y4 Y1Y2 T3T4 T1T2 M1M2 H1H2 D1D2 M1M2           C1C2
+			// 0  1    2  3    4    5    6    7    8    9    10   11   12   13
+			// Rainfall Rate R1R2
+			// Rainfall Total T1T2T3T4
+			// Rainfall Yesterday Y1Y2Y3Y4
+			// Rainfall Totalling Start (Minute M1M2,
+			//                           Hour H1H2,
+			//                           Day D1D2,
+			//                           Month M1M2)
+			// Checksum C1C2
+
+			double raincounter = ConvertRainMMToUser(BCDchartoint(buff[5]) + (BCDchartoint(buff[6]) * 100));
+			double rainrate = ConvertRainMMToUser(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100));
+
+			DoRain(raincounter,rainrate,DateTime.Now);
+		}
+
+		private void WM918Humid(List<int> buff)
+		{
+			// 8F ...
+			// Indoor humidity is BCD in byte 8
+			// Outdoor humidity is BCD in byte 20
+
+			DoIndoorHumidity(BCDchartoint(buff[8]));
+
+			DoOutdoorHumidity(BCDchartoint(buff[20]),DateTime.Now);
+		}
+	}
 }

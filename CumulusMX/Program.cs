@@ -12,12 +12,11 @@ namespace CumulusMX
         public static Cumulus cumulus;
         public static bool exitSystem = false;
         //private exitHandler ctrlchandler;
-        
+
         private static void Main(string[] args)
         {
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
-            
 
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
@@ -30,19 +29,19 @@ namespace CumulusMX
                 _unixSignalType = _posixAsm.GetType("Mono.Unix.UnixSignal");
                 _unixSignalWaitAny = _unixSignalType.GetMethod("WaitAny", new[] { _unixSignalType.MakeArrayType() });
                 _signumType = _posixAsm.GetType("Mono.Unix.Native.Signum");
-               
+
                 Array _signals = Array.CreateInstance(_unixSignalType, 2);
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGINT").GetValue(null)), 0);
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 1);
-                
-                
+
+
                 Thread signal_thread = new Thread(delegate()
                                                   {
                                                       while (true)
                                                       {
                                                           // Wait for a signal to be delivered
                                                           var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
-                                                          
+
                                                           // Notify the main thread that a signal was received,
                                                           // you can use things like:
                                                           //    Application.Invoke () for Gtk#
@@ -50,13 +49,13 @@ namespace CumulusMX
                                                           //    Write to a pipe created with UnixPipes for server apps.
                                                           //    Use an AutoResetEvent
 
-                                                          
+
 
                                                           exitSystem = true;
 
                                                           //AppDomain.CurrentDomain.UnhandledException -= UnhandledExceptionTrapper;
 
-                                                          
+
 
                                                       }
                                                   });
@@ -134,12 +133,12 @@ namespace CumulusMX
             }
             catch (Exception)
             {
-                
-                
+
+
             }
         }
 
-        
+
     }
 
     public class exitHandler
@@ -181,6 +180,6 @@ namespace CumulusMX
 
             return true;
         }
-        
+
     }
 }

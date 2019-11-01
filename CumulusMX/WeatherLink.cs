@@ -10,72 +10,72 @@ namespace CumulusMX
     //
     // Contents of the character array (LOOP packet from Vantage):
     //
-    //    Field                           Offset  Size    Explanation 
-    //    "L"                             0       1 
-    //    "O"                             1       1 
-    //    "O"                             2       1       Spells out "LOO" for Rev B packets and "LOOP" for Rev A packets. Identifies a LOOP packet 
-    //    "P" (Rev A), Bar Trend (Rev B)  3       1       Signed byte that indicates the current 3-hour barometer trend. It is one of these values: 
-    //                                                    -60 = Falling Rapidly  = 196 (as an unsigned byte) 
-    //                                                    -20 = Falling Slowly   = 236 (as an unsigned byte)   
-    //                                                    0 = Steady  
-    //                                                    20 = Rising Slowly  
-    //                                                    60 = Rising Rapidly  
-    //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available. 
-    //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed 
-    //                                                        to determine the bar trend. 
+    //    Field                           Offset  Size    Explanation
+    //    "L"                             0       1
+    //    "O"                             1       1
+    //    "O"                             2       1       Spells out "LOO" for Rev B packets and "LOOP" for Rev A packets. Identifies a LOOP packet
+    //    "P" (Rev A), Bar Trend (Rev B)  3       1       Signed byte that indicates the current 3-hour barometer trend. It is one of these values:
+    //                                                    -60 = Falling Rapidly  = 196 (as an unsigned byte)
+    //                                                    -20 = Falling Slowly   = 236 (as an unsigned byte)
+    //                                                    0 = Steady
+    //                                                    20 = Rising Slowly
+    //                                                    60 = Rising Rapidly
+    //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available.
+    //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed
+    //                                                        to determine the bar trend.
     //    Packet Type                     4       1       Has the value zero. LOOP2 packets are set to 1.
-    //    Next Record                     5       2       Location in the archive memory where the next data packet will be written. This can be 
-    //                                                        monitored to detect when a new record is created. 
-    //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches 
-    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro 
-    //                                                        Vantage Pro2.  Values outside these ranges will not be logged. 
-    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F. 
-    //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%. 
-    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F. 
-    //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization 
-    //                                                        with the radio or due to some other reason, the wind speed is forced to be 0. 
-    //    10 Min Avg Wind Speed           15      1       It is a byte unsigned value in mph. 
-    //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.  
-    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.) 
-    //    Extra Temperatures              18      7       This field supports seven extra temperature stations. Each byte is one extra temperature value 
-    //                                                        in whole degrees F with an offset of 90 degrees.  For example, a value of 0 = -90°F ; 
+    //    Next Record                     5       2       Location in the archive memory where the next data packet will be written. This can be
+    //                                                        monitored to detect when a new record is created.
+    //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
+    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
+    //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
+    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
+    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization
+    //                                                        with the radio or due to some other reason, the wind speed is forced to be 0.
+    //    10 Min Avg Wind Speed           15      1       It is a byte unsigned value in mph.
+    //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.
+    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.)
+    //    Extra Temperatures              18      7       This field supports seven extra temperature stations. Each byte is one extra temperature value
+    //                                                        in whole degrees F with an offset of 90 degrees.  For example, a value of 0 = -90°F ;
     //                                                        a value of 100 = 10°F ; and a value of 169 = 79°F.
-    //    Soil Temperatures               25      4       This field supports four soil temperature sensors, in the same format as the Extra Temperature 
-    //                                                        field above 
-    //    Leaf Temperatures               29      4       This field supports four leaf temperature sensors, in the same format as the Extra Temperature 
-    //                                                        field above 
-    //    Outside Humidity                33      1       This is the relative humitiy in %.  
-    //    Extra Humidities                34      7       Relative humidity in % for extra seven humidity stations.  
-    //    Rain Rate                       41      2       This value is sent as 100th of a inch per hour.  For example, 256 represent 2.56 inches/hour. 
-    //    UV                              43      1       The unit is in UV index. 
-    //    Solar Radiation                 44      2       The unit is in watt/meter2. 
-    //    Storm Rain                      46      2       The storm is stored as 100th of an inch. 
-    //    Start Date of current Storm     48      2       Bit 15 to bit 12 is the month, bit 11 to bit 7 is the day and bit 6 to bit 0 is the year offseted 
-    //                                                        by 2000. 
-    //    Day Rain                        50      2       This value is sent as the 100th of an inch. 
-    //    Month Rain                      52      2       This value is sent as the 100th of an inch. 
-    //    Year Rain                       54      2       This value is sent as the 100th of an inch. 
-    //    Day ET                          56      2       This value is sent as the 100th of an inch. 
-    //    Month ET                        58      2       This value is sent as the 100th of an inch. 
-    //    Year ET                         60      2       This value is sent as the 100th of an inch. 
-    //    Soil Moistures                  62      4       The unit is in centibar.  It supports four soil sensors. 
-    //    Leaf Wetnesses                  66      4       This is a scale number from 0 to 15 with 0 meaning very dry and 15 meaning very wet.  It supports 
-    //                                                        four leaf sensors. 
-    //    Inside Alarms                   70      1       Currently active inside alarms. See the table below 
-    //    Rain Alarms                     71      1       Currently active rain alarms. See the table below 
-    //    Outside Alarms                  72      2       Currently active outside alarms. See the table below 
-    //    Extra Temp/Hum Alarms           74      8       Currently active extra temp/hum alarms. See the table below 
-    //    Soil & Leaf Alarms              82      4       Currently active soil/leaf alarms. See the table below 
-    //    Transmitter Battery Status      86      1       
-    //    Console Battery Voltage         87      2       Voltage = ((Data * 300)/512)/100.0 
-    //    Forecast Icons                  89      1       
-    //    Forecast Rule number            90      1  
-    //    Time of Sunrise                 91      2       The time is stored as hour * 100 + min. 
-    //    Time of Sunset                  93      2       The time is stored as hour * 100 + min. 
-    //    "\n" <LF> = 0x0A                95      1  
-    //    "\r" <CR> = 0x0D                96      1   
-    //    CRC                             97      2  
-    //    Total Length                    99  
+    //    Soil Temperatures               25      4       This field supports four soil temperature sensors, in the same format as the Extra Temperature
+    //                                                        field above
+    //    Leaf Temperatures               29      4       This field supports four leaf temperature sensors, in the same format as the Extra Temperature
+    //                                                        field above
+    //    Outside Humidity                33      1       This is the relative humitiy in %.
+    //    Extra Humidities                34      7       Relative humidity in % for extra seven humidity stations.
+    //    Rain Rate                       41      2       This value is sent as 100th of a inch per hour.  For example, 256 represent 2.56 inches/hour.
+    //    UV                              43      1       The unit is in UV index.
+    //    Solar Radiation                 44      2       The unit is in watt/meter2.
+    //    Storm Rain                      46      2       The storm is stored as 100th of an inch.
+    //    Start Date of current Storm     48      2       Bit 15 to bit 12 is the month, bit 11 to bit 7 is the day and bit 6 to bit 0 is the year offseted
+    //                                                        by 2000.
+    //    Day Rain                        50      2       This value is sent as the 100th of an inch.
+    //    Month Rain                      52      2       This value is sent as the 100th of an inch.
+    //    Year Rain                       54      2       This value is sent as the 100th of an inch.
+    //    Day ET                          56      2       This value is sent as the 100th of an inch.
+    //    Month ET                        58      2       This value is sent as the 100th of an inch.
+    //    Year ET                         60      2       This value is sent as the 100th of an inch.
+    //    Soil Moistures                  62      4       The unit is in centibar.  It supports four soil sensors.
+    //    Leaf Wetnesses                  66      4       This is a scale number from 0 to 15 with 0 meaning very dry and 15 meaning very wet.  It supports
+    //                                                        four leaf sensors.
+    //    Inside Alarms                   70      1       Currently active inside alarms. See the table below
+    //    Rain Alarms                     71      1       Currently active rain alarms. See the table below
+    //    Outside Alarms                  72      2       Currently active outside alarms. See the table below
+    //    Extra Temp/Hum Alarms           74      8       Currently active extra temp/hum alarms. See the table below
+    //    Soil & Leaf Alarms              82      4       Currently active soil/leaf alarms. See the table below
+    //    Transmitter Battery Status      86      1
+    //    Console Battery Voltage         87      2       Voltage = ((Data * 300)/512)/100.0
+    //    Forecast Icons                  89      1
+    //    Forecast Rule number            90      1
+    //    Time of Sunrise                 91      2       The time is stored as hour * 100 + min.
+    //    Time of Sunset                  93      2       The time is stored as hour * 100 + min.
+    //    "\n" <LF> = 0x0A                95      1
+    //    "\r" <CR> = 0x0D                96      1
+    //    CRC                             97      2
+    //    Total Length                    99
     public class VPLoopData
     {
         public int PressureTrend { get; private set; }
@@ -186,10 +186,10 @@ namespace CumulusMX
 
         public double ConBatVoltage { get; private set; }
 
-       
+
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
         // Actual data is in the format to the right of the assignments - I convert it to make it easier to use
-        // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into 
+        // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into
         // an Int16 (16-bit integer).  When a single byte is all that's needed, I just convert it to an Int32.
         // In the end, all integers are cast to Int32 for return.
         public void Load(Byte[] byteArray)
@@ -374,15 +374,15 @@ namespace CumulusMX
     // The WeatherCalibrationData class extracts and stores the weather data from the array of bytes returned from the Vantage weather station
     // The array is generated from the return of the CALED command.
     //
-    //    Field                           Offset  Size    Explanation 
-    //    Inside Temperature              0       2  
-    //    Outside Temperature             2       2       
-    //    Extra Temperature               4       14      (7 * 2) 
-    //    Soil Temperatures               18      8       (4 * 2) 
-    //    Leaf Temperatures               26      8       (4 * 2) 
-    //    Inside Humidity                 34      1       
-    //    Outside Humidity                35      1  
-    //    Extra Humidities                36      7  
+    //    Field                           Offset  Size    Explanation
+    //    Inside Temperature              0       2
+    //    Outside Temperature             2       2
+    //    Extra Temperature               4       14      (7 * 2)
+    //    Soil Temperatures               18      8       (4 * 2)
+    //    Leaf Temperatures               26      8       (4 * 2)
+    //    Inside Humidity                 34      1
+    //    Outside Humidity                35      1
+    //    Extra Humidities                36      7
     //    Total Length                    43
     public class WeatherCalibrationData
     {
@@ -415,21 +415,21 @@ namespace CumulusMX
         //  Number of Wind Samples      18      2       0           Number of packets containing wind speed data
         //                                                          received from the ISS or wireless anemometer.
         //  Inside Temperature          20      2       32767       Either the Average Inside Temperature, or the Final
-        //                                                          Inside Temperature over the archive period. 
+        //                                                          Inside Temperature over the archive period.
         //                                                          Units are (°F / 10)
         //  Inside Humidity             22      1       255         Inside Humidity at the end of the archive period
         //  Outside Humidity            23      1       255         Outside Humidity at the end of the archive period
-        //  Average Wind Speed          24      1       255         Average Wind Speed over the archive interval. 
+        //  Average Wind Speed          24      1       255         Average Wind Speed over the archive interval.
         //                                                          Units are (MPH)
-        //  High Wind Speed             25      1       0           Highest Wind Speed over the archive interval. 
+        //  High Wind Speed             25      1       0           Highest Wind Speed over the archive interval.
         //                                                          Units are (MPH)
-        //  Direction of Hi Wind Speed  26      1       32767       Direction code of the High Wind speed. 
+        //  Direction of Hi Wind Speed  26      1       32767       Direction code of the High Wind speed.
         //                                                          0=N, 1=NNE, 2=NE, … 14=NW, 15=NNW, 255=Dashed
-        //  Prevailing Wind Direction   27      1       32767       Prevailing or Dominant Wind Direction code. 
+        //  Prevailing Wind Direction   27      1       32767       Prevailing or Dominant Wind Direction code.
         //                                                          0=N, 1=NNE, 2=NE, … 14=NW, 15=NNW, 255=Dashed
         //  Average UV Index            28      1       255         Average UV Index. Units are (UV Index / 10)
         //  ET                          29      1       0           ET accumulated over the last hour. Only records "on
-        //                                                          the hour" will have a non-zero value. 
+        //                                                          the hour" will have a non-zero value.
         //                                                          Units are (in / 1000)
         //  High Solar Radiation        30      2       0           Highest Solar Rad value over the archive period.
         //                                                          Units are (Watts / m2)
@@ -693,7 +693,7 @@ namespace CumulusMX
                 }
             }
 
-            
+
             station.haveReadData = true;
 
             station.RainToday = station.Raincounter - station.raindaystart;
@@ -705,7 +705,7 @@ namespace CumulusMX
             //    conn.Open();
 
             //    insertcmd.CommandText = "INSERT OR IGNORE INTO [weather] ([timestamp], [outsideTemp], [hiOutsideTemp], [loOutsideTemp], [insideTemp], [barometer], [outsideHum], [insideHum], [rainfall], [hiRainRate], [avgWindSpeed], [hiWindSpeed], [windDirection], [hiWindDirection], [solarRad], [hiSolarRad], [avgUVIndex], [hiUVIndex], [ET], [leafTemp1], [leafTemp2], [soilTemp1], [soilTemp2], [soilTemp3], [soilTemp4], [leafWetness1], [leafWetness2], [extraHum1], [extraHum2], [extraTemp1], [extraTemp2], [extraTemp3], [soilMoisture1], [soilMoisture2], [soilMoisture3], [soilMoisture4]) VALUES (@timestamp, @outsideTemp, @hiOutsideTemp, @loOutsideTemp, @insideTemp, @barometer, @outsideHum, @insideHum, @rainfall, @hiRainRate, @avgWindSpeed, @hiWindSpeed, @windDirection, @hiWindDirection, @solarRad, @hiSolarRad, @avgUVIndex, @hiUVIndex, @ET, @leafTemp1, @leafTemp2, @soilTemp1, @soilTemp2, @soilTemp3, @soilTemp4, @leafWetness1, @leafWetness2, @extraHum1, @extraHum2, @extraTemp1, @extraTemp2, @extraTemp3, @soilMoisture1, @soilMoisture2, @soilMoisture3, @soilMoisture4)";
-                
+
             //    // set all the parameters
             //    insertcmd.Parameters.AddWithValue("@timestamp", Timestamp);
             //    insertcmd.Parameters.AddWithValue("@outsideTemp", OutsideTemperature);
@@ -749,12 +749,12 @@ namespace CumulusMX
             //    }
             //    catch (Exception ex)
             //    {
-                    
+
             //        cumulus.LogMessage(ex.ToString());
             //        Trace.Flush();
             //    }
 
-                
+
             //}
         } */
         }
@@ -765,32 +765,32 @@ namespace CumulusMX
     //
     // Contents of the character array (LOOP2 packet from Vantage):
     //
-    //    Field                           Offset  Size    Explanation 
-    //    "L"                             0       1 
-    //    "O"                             1       1 
-    //    "O"                             2       1       Spells out "LOO"  Identifies a LOOP packet 
-    //    "Bar Trend                      3       1       Signed byte that indicates the current 3-hour barometer trend. It is one of these values: 
-    //                                                    -60 = Falling Rapidly  = 196 (as an unsigned byte) 
-    //                                                    -20 = Falling Slowly   = 236 (as an unsigned byte)   
-    //                                                    0 = Steady  
-    //                                                    20 = Rising Slowly  
-    //                                                    60 = Rising Rapidly  
-    //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available. 
-    //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed 
-    //                                                        to determine the bar trend. 
-    //    Packet Type                     4       1       Has the value 1, indicating a LOOP2 packet 
+    //    Field                           Offset  Size    Explanation
+    //    "L"                             0       1
+    //    "O"                             1       1
+    //    "O"                             2       1       Spells out "LOO"  Identifies a LOOP packet
+    //    "Bar Trend                      3       1       Signed byte that indicates the current 3-hour barometer trend. It is one of these values:
+    //                                                    -60 = Falling Rapidly  = 196 (as an unsigned byte)
+    //                                                    -20 = Falling Slowly   = 236 (as an unsigned byte)
+    //                                                    0 = Steady
+    //                                                    20 = Rising Slowly
+    //                                                    60 = Rising Rapidly
+    //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available.
+    //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed
+    //                                                        to determine the bar trend.
+    //    Packet Type                     4       1       Has the value 1, indicating a LOOP2 packet
     //    Unused                          5       2       Unused, contains 0x7FFF
-    //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches 
-    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro 
-    //                                                        Vantage Pro2.  Values outside these ranges will not be logged. 
-    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F. 
-    //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%. 
-    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F. 
-    //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization 
-    //                                                        with the radio or due to some other reason, the wind speed is forced to be 0. 
+    //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
+    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
+    //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
+    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
+    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization
+    //                                                        with the radio or due to some other reason, the wind speed is forced to be 0.
     //    Unused                          15      1       Unused, contains 0xFF
-    //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.  
-    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.) 
+    //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.
+    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.)
     //    10-Min Avg Wind Speed           18      2       It is a two-byte unsigned value.
     //    2-Min Avg Wind Speed            20      2       It is a two-byte unsigned value.
     //    10-Min Wind Gust                22      2       It is a two-byte unsigned value.
@@ -823,30 +823,30 @@ namespace CumulusMX
     //    Altimeter Setting               69      2       In 1000th of an inch
     //    Unused                          71      1       Unused field, filled with 0xFF
     //    Unused                          72      1       Undefined
-    //    Next 10-min Wind Speed Graph 
-    //      Pointer                       73      1       Points to the next 10-minute wind speed graph point. For current graph point, 
+    //    Next 10-min Wind Speed Graph
+    //      Pointer                       73      1       Points to the next 10-minute wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next 15-min Wind Speed Graph 
-    //      Pointer                       74      1       Points to the next 15-minute wind speed graph point. For current graph point, 
+    //    Next 15-min Wind Speed Graph
+    //      Pointer                       74      1       Points to the next 15-minute wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Hourly Wind Speed Graph 
-    //      Pointer                       75      1       Points to the next hour wind speed graph point. For current graph point, 
+    //    Next Hourly Wind Speed Graph
+    //      Pointer                       75      1       Points to the next hour wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Daily Wind Speed Graph 
-    //      Pointer                       76      1       Points to the next daily wind speed graph point. For current graph point, 
+    //    Next Daily Wind Speed Graph
+    //      Pointer                       76      1       Points to the next daily wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Minute Rain Graph Pointer  77      1       Points to the next minute rain graph point. For current graph point, 
+    //    Next Minute Rain Graph Pointer  77      1       Points to the next minute rain graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Rain Storm Graph Pointer   78      1       Points to the next rain storm graph point. For current graph point, 
+    //    Next Rain Storm Graph Pointer   78      1       Points to the next rain storm graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 254on Vantage Vue console)
-    //    Index to the Minute within 
+    //    Index to the Minute within
     //      an Hour                       79      1       It keeps track of the minute within an hour for the rain calculation. (range from 0 to 59)
-    //    Next Monthly Rain               80      1       Points to the next monthly rain graph point. For current graph point, 
+    //    Next Monthly Rain               80      1       Points to the next monthly rain graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Yearly Rain                81      1       Points to the next yearly rain graph point. For current graph point, 
+    //    Next Yearly Rain                81      1       Points to the next yearly rain graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Seasonal Rain              82      1       Points to the next seasonal rain graph point. Yearly rain always resets at the beginning of the calendar, 
-    //                                                      but seasonal rain resets when rain season begins. For current graph point, 
+    //    Next Seasonal Rain              82      1       Points to the next seasonal rain graph point. Yearly rain always resets at the beginning of the calendar,
+    //                                                      but seasonal rain resets when rain season begins. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
     //    Unused                          83      2       Unused field, filled with 0x7FFF
     //    Unused                          85      2       Unused field, filled with 0x7FFF
@@ -854,10 +854,10 @@ namespace CumulusMX
     //    Unused                          89      2       Unused field, filled with 0x7FFF
     //    Unused                          91      2       Unused field, filled with 0x7FFF
     //    Unused                          93      2       Unused field, filled with 0x7FFF
-    //    "\n" <LF> = 0x0A                95      1  
-    //    "\r" <CR> = 0x0D                96      1   
-    //    CRC                             97      2  
-    //    Total Length                    99  
+    //    "\n" <LF> = 0x0A                95      1
+    //    "\r" <CR> = 0x0D                96      1
+    //    CRC                             97      2
+    //    Total Length                    99
     public class VPLoop2Data
     {
         public int WindGust10Min { get; private set; }
@@ -874,10 +874,10 @@ namespace CumulusMX
 
         public int WindAverage { get; private set; }
 
-        
+
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
         // Actual data is in the format to the right of the assignments - I convert it to make it easier to use
-        // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into 
+        // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into
         // an Int16 (16-bit integer).  When a single byte is all that's needed, I just convert it to an Int32.
         // In the end, all integers are cast to Int32 for return.
         public void Load(Byte[] byteArray)

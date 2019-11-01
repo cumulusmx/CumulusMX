@@ -7,7 +7,7 @@ namespace CumulusMX
 	public class DataStruct // The annotations on this class are so it can be serialised as JSON
 	{
 		private Cumulus cumulus;
-		
+
 		public DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double indoorTemp, double outdoorDewpoint, double windChill, int indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing, double rainToday, double rainYesterday, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex, double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday, string windUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday, string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday, string highRainRateTodayTime, int highHumToday, int lowHumToday, string highHumTodayTime, string lowHumTodayTime, string pressUnit, string tempUnit, string rainUnit, double highDewpointToday, double lowDewpointToday, string highDewpointTodayTime, string lowDewpointTodayTime, double lowWindChillToday, string lowWindChillTodayTime, int solarRad, int highSolarRadToday, string highSolarRadTodayTime, double uvindex, double highUVindexToday, string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday, string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime, int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO, double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead, bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain)
 		{
 			this.cumulus = cumulus;
@@ -47,10 +47,10 @@ namespace CumulusMX
 			RainLastHour = rainLastHour;
 			RainLast24Hour = last24hourRain;
 			HeatIndex = heatIndex;
-			HighHeatIndexToday = highHeatIndexToday; 
+			HighHeatIndexToday = highHeatIndexToday;
 			HighHeatIndexTodayTime = highHeatIndexTodayTime;
 			Humidex = humidex;
-			AppTemp = appTemp; 
+			AppTemp = appTemp;
 			HighAppTempToday = highAppTempToday;
 			LowAppTempToday = lowAppTempToday;
 			HighAppTempTodayTime = highAppTempTodayTime;
@@ -116,7 +116,7 @@ namespace CumulusMX
 
 		[DataMember]
 		public string StormRainStart { get; set; }
-		
+
 		[DataMember]
 		public int CurrentSolarMax { get; set; }
 
@@ -156,7 +156,7 @@ namespace CumulusMX
 		public string UVindexRounded
 		{
 			get { return UVindex.ToString(cumulus.UVFormat); }
-			set { }   
+			set { }
 		}
 
 		[IgnoreDataMember]
@@ -294,7 +294,7 @@ namespace CumulusMX
 			set { }
 		}
 
-		[DataMember] 
+		[DataMember]
 		public string HighHourlyRainTodayTime { get; set; }
 
 		[IgnoreDataMember]
@@ -663,7 +663,7 @@ namespace CumulusMX
 
 		[DataMember]
 		public string LastRainTipISO { get; set; }
-		
+
 		[DataMember]
 		public string HighBeaufortToday { get; set; }
 
