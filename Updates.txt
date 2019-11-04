@@ -1,3 +1,13 @@
+3.1.2 - b3055
+=============
+- Fix for the All Time Records editor monthly rain total from the monthly log file month
+- Fix for some long timeouts in All Time Records editor
+
+- Updated files
+	\CumulusMX.exe
+
+
+
 3.1.1 - b3054
 =============
 - Fixes WLL timestamps always being in UTC, now uses local time
@@ -13,8 +23,8 @@
 -New files
 	\interface\currentcondeditor.html
 	\interface\alltimerecseditor.html
-	\interface\js\alltimerecseditor.html
-	\interface\lib\x-editable <all files>
+	\interface\js\alltimerecseditor.js
+	\interface\lib\x-editable\ <all files>
 	\interface\img\loading.gif
 
 

@@ -29,7 +29,7 @@ namespace CumulusMX
 		private int previousMinuteSetClock = 60;
 		private const string newline = "\n";
 		private DateTime lastRecepStatsTime;
-		private int commWaitTimeMs = 1000;
+		private const int commWaitTimeMs = 1000;
 		private int MaxArchiveRuns = 2;
 
 		private TcpClient socket;

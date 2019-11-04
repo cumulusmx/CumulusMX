@@ -6308,13 +6308,13 @@ namespace CumulusMX
 			if (Math.Round(value, 3) < Math.Round(StartofdayET,3)) // change b3046
 			{
 				// ET reset
-				cumulus.LogMessage(String.Format("*** ET Reset *** AnnualET: {0:0.000}, StartofdayET: {0:0.000}, StationET: {0:0.000}, CurrentET: {0:0.000}", AnnualETTotal, StartofdayET, value, ET));
+				cumulus.LogMessage(String.Format("*** ET Reset *** AnnualET: {0:0.000}, StartofdayET: {1:0.000}, StationET: {2:0.000}, CurrentET: {3:0.000}", AnnualETTotal, StartofdayET, value, ET));
 				AnnualETTotal = value; // add b3046
 				// set the start of day figure so it reflects the ET
 				// so far today
 				StartofdayET = AnnualETTotal - ET;
 				WriteTodayFile(timestamp, false);
-				cumulus.LogMessage(String.Format("New ET values. AnnualET: {0:0.000}, StartofdayET: {0:0.000}, StationET: {0:0.000}, CurrentET: {0:0.000}", AnnualETTotal, StartofdayET, value, ET));
+				cumulus.LogMessage(String.Format("New ET values. AnnualET: {0:0.000}, StartofdayET: {1:0.000}, StationET: {2:0.000}, CurrentET: {3:0.000}", AnnualETTotal, StartofdayET, value, ET));
 			}
 			else
 			{
