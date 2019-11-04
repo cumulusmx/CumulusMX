@@ -548,6 +548,7 @@ namespace CumulusMX
 
 			return json;
 		}
+
 		internal string GetAllTimeRecLogFile()
 		{
 			var timeStampFormat = "dd/MM/yy HH:mm";
@@ -639,6 +640,9 @@ namespace CumulusMX
 			Double rainMidnight = 0;
 			Double totalRainfall = 0;
 
+			Double outsidetemp, dewpoint, speed, gust, rainrate, raintoday, pressure, chill, heat, apptemp;
+			int hum;
+
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
 			while (!finished)
@@ -647,6 +651,7 @@ namespace CumulusMX
 
 				if (File.Exists(logFile))
 				{
+					cumulus.LogDebugMessage($"GetAllTimeRecLogFile: Processing log file - {logFile}");
 					int linenum = 0;
 					try
 					{
@@ -656,9 +661,11 @@ namespace CumulusMX
 						{
 							// process each record in the file
 							linenum++;
-							var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+							//var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+							// Regex is very expensive, let's assume the separator is always a single character
+							var st = new List<string>(line.Split((CultureInfo.CurrentCulture.TextInfo.ListSeparator)[0]));
 							entrydate = station.ddmmyyhhmmStrToDate(st[0], st[1]);
-							// TODO: We need to work in meto dates not clock dates for hi/lows
+							// We need to work in meto dates not clock dates for day hi/lows
 							metoDate = entrydate.AddHours(cumulus.GetHourInc());
 
 							if (!started)
@@ -668,30 +675,51 @@ namespace CumulusMX
 								started = true;
 							}
 
-							var outsidetemp = Convert.ToDouble(st[2]);
-							var hum = Convert.ToInt32(st[3]);
-							var dewpoint = Convert.ToDouble(st[4]);
-							var speed = Convert.ToDouble(st[5]);
-							var gust = Convert.ToDouble(st[6]);
-							var rainrate = Convert.ToDouble(st[8]);
-							var raintoday = Convert.ToDouble(st[9]);
-							var pressure = Convert.ToDouble(st[10]);
-							var chill = 999.0;
+							outsidetemp = Convert.ToDouble(st[2]);
+							hum = Convert.ToInt32(st[3]);
+							dewpoint = Convert.ToDouble(st[4]);
+							speed = Convert.ToDouble(st[5]);
+							gust = Convert.ToDouble(st[6]);
+							rainrate = Convert.ToDouble(st[8]);
+							raintoday = Convert.ToDouble(st[9]);
+							pressure = Convert.ToDouble(st[10]);
 							if (st.Count >= 16)
 							{
 								chill = Convert.ToDouble(st[15]);
+								// low chill
+								if (chill < lowWindChillVal)
+								{
+									lowWindChillVal = chill;
+									lowWindChillTime = entrydate;
+								}
+
 							}
-							var heat = -999.0;
 							if (st.Count >= 17)
 							{
 								heat = Convert.ToDouble(st[16]);
+								// hi heat
+								if (heat > highHeatIndVal)
+								{
+									highHeatIndVal = heat;
+									highHeatIndTime = entrydate;
+								}
 							}
-							double apptemp = -999.0;
 							if (st.Count >= 22)
 							{
 								apptemp = Convert.ToDouble(st[21]);
+								// hi appt
+								if (apptemp > highAppTempVal)
+								{
+									highAppTempVal = apptemp;
+									highAppTempTime = entrydate;
+								}
+								// lo appt
+								if (apptemp < lowAppTempVal)
+								{
+									lowAppTempVal = apptemp;
+									lowAppTempTime = entrydate;
+								}
 							}
-
 							// hi temp
 							if (outsidetemp > highTempVal)
 							{
@@ -716,33 +744,69 @@ namespace CumulusMX
 								lowDewPtVal = dewpoint;
 								lowDewPtTime = entrydate;
 							}
-							if (apptemp > -999)
+							// hi hum
+							if (hum > highHumVal)
 							{
-								// hi appt
-								if (apptemp > highAppTempVal)
-								{
-									highAppTempVal = apptemp;
-									highAppTempTime = entrydate;
-								}
-								// lo appt
-								if (apptemp < lowAppTempVal)
-								{
-									lowAppTempVal = apptemp;
-									lowAppTempTime = entrydate;
-								}
+								highHumVal = hum;
+								highHumTime = entrydate;
 							}
-							// low chill
-							if (chill < lowWindChillVal)
+							// lo hum
+							if (hum < lowHumVal)
 							{
-								lowWindChillVal = chill;
-								lowWindChillTime = entrydate;
+								lowHumVal = hum;
+								lowHumTime = entrydate;
 							}
-							// hi heat
-							if (heat > highHeatIndVal)
+							// hi baro
+							if (pressure > highBaroVal)
 							{
-								highHeatIndVal = heat;
-								highHeatIndTime = entrydate;
+								highBaroVal = pressure;
+								highBaroTime = entrydate;
 							}
+							// lo hum
+							if (pressure < lowBaroVal)
+							{
+								lowBaroVal = pressure;
+								lowBaroTime = entrydate;
+							}
+							// hi gust
+							if (gust > highGustVal)
+							{
+								highGustVal = gust;
+								highGustTime = entrydate;
+							}
+							// hi wind
+							if (speed > highWindVal)
+							{
+								highWindVal = speed;
+								highWindTime = entrydate;
+							}
+							// hi rain rate
+							if (rainrate > highRainRateVal)
+							{
+								highRainRateVal = rainrate;
+								highRainRateTime = entrydate;
+							}
+							// hourly rain
+							/*
+							 * need to track what the rainfall has been in the last rolling hour
+							 * across day rollovers where the count resets
+							 */
+							AddLastHourRainEntry(entrydate, totalRainfall + raintoday);
+							RemoveOldRainData(entrydate);
+
+							var rainThisHour = HourRainLog.First().raincounter - HourRainLog.Last().raincounter;
+							if (rainThisHour > highRainHourVal)
+							{
+								highRainHourVal = rainThisHour;
+								highRainHourTime = entrydate;
+							}
+
+							if (monthlyRain > highRainMonthVal)
+							{
+								highRainMonthVal = monthlyRain;
+								highRainMonthTime = entrydate;
+							}
+
 							// same meto day
 							if (currentDay.Day == metoDate.Day && currentDay.Month == metoDate.Month && currentDay.Year == metoDate.Year)
 							{
@@ -752,8 +816,10 @@ namespace CumulusMX
 								if (outsidetemp < dayLowTemp)
 									dayLowTemp = outsidetemp;
 
+								if (dayRain < raintoday)
+									dayRain = raintoday;
+
 								dayWindRun += entrydate.Subtract(lastentrydate).TotalHours * speed;
-								dayRain = raintoday;
 							}
 							else // new meto day
 							{
@@ -836,69 +902,6 @@ namespace CumulusMX
 								dayRain = 0;
 								totalRainfall += raintoday;
 							}
-							// hi hum
-							if (hum > highHumVal)
-							{
-								highHumVal = hum;
-								highHumTime = entrydate;
-							}
-							// lo hum
-							if (hum < lowHumVal)
-							{
-								lowHumVal = hum;
-								lowHumTime = entrydate;
-							}
-							// hi baro
-							if (pressure > highBaroVal)
-							{
-								highBaroVal = pressure;
-								highBaroTime = entrydate;
-							}
-							// lo hum
-							if (pressure < lowBaroVal)
-							{
-								lowBaroVal = pressure;
-								lowBaroTime = entrydate;
-							}
-							// hi gust
-							if (gust > highGustVal)
-							{
-								highGustVal = gust;
-								highGustTime = entrydate;
-							}
-							// hi wind
-							if (speed > highWindVal)
-							{
-								highWindVal = speed;
-								highWindTime = entrydate;
-							}
-							// hi rain rate
-							if (rainrate > highRainRateVal)
-							{
-								highRainRateVal = rainrate;
-								highRainRateTime = entrydate;
-							}
-							// hourly rain
-							/*
-							 * need to track what the rainfall has been in the last rolling hour
-							 * across day rollovers where the count resets
-							 */
-							AddLastHourRainEntry(entrydate, totalRainfall + raintoday);
-							RemoveOldRainData(entrydate);
-
-							var rainThisHour = HourRainLog.First().raincounter - HourRainLog.Last().raincounter;
-							if (rainThisHour > highRainHourVal)
-							{
-								highRainHourVal = rainThisHour;
-								highRainHourTime = entrydate;
-							}
-
-							monthlyRain += dayRain;
-							if (monthlyRain > highRainMonthVal)
-							{
-								highRainMonthVal = monthlyRain;
-								highRainMonthTime = entrydate;
-							}
 
 							lastentrydate = entrydate;
 							lastRainMidnight = rainMidnight;
@@ -906,24 +909,25 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage("Error at line " + linenum + " of " + logFile + " : " + e.Message);
+						cumulus.LogMessage($"Error at line {linenum} of {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
-				if (entrydate >= dateto || filedate > dateto.AddMonths(1))
+				else
+				{
+					cumulus.LogDebugMessage($"GetAllTimeRecLogFile: Log file  not found - {logFile}");
+				}
+				if (filedate.Year >= dateto.Year && filedate.Month >= dateto.Month)
 				{
 					finished = true;
+					cumulus.LogDebugMessage("GetAllTimeRecLogFile: Finished processing the log files");
 				}
 				else
 				{
 					filedate = filedate.AddMonths(1);
 					logFile = cumulus.GetLogFileName(filedate);
 				}
-
 			}
-
-			// convert Hourly rain counter to user units.
-			//highRainDayVal *= cumulus.RainMult ;
 
 			json += "\"highTempValLogfile\":\"" + highTempVal.ToString(cumulus.TempFormat) + "\",";
 			json += "\"highTempTimeLogfile\":\"" + highTempTime.ToString(timeStampFormat) + "\",";
@@ -967,8 +971,6 @@ namespace CumulusMX
 			json += "\"highRainRateTimeLogfile\":\"" + highRainRateTime.ToString(timeStampFormat) + "\",";
 			json += "\"highHourlyRainValLogfile\":\"" + highRainHourVal.ToString(cumulus.RainFormat) + "\",";
 			json += "\"highHourlyRainTimeLogfile\":\"" + highRainHourTime.ToString(timeStampFormat) + "\",";
-			//json += "\"highHourlyRainValLogfile\":\"n/a\",";
-			//json += "\"highHourlyRainTimeLogfile\":\"n/a\",";
 			json += "\"highDailyRainValLogfile\":\"" + highRainDayVal.ToString(cumulus.RainFormat) + "\",";
 			json += "\"highDailyRainTimeLogfile\":\"" + highRainDayTime.ToString(dateStampFormat) + "\",";
 			json += "\"highMonthlyRainValLogfile\":\"" + highRainMonthVal.ToString(cumulus.RainFormat) + "\",";

@@ -24,8 +24,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>3054</ApplicationRevision>
-    <ApplicationVersion>3.1.1.3054</ApplicationVersion>
+    <ApplicationRevision>3055</ApplicationRevision>
+    <ApplicationVersion>3.1.2.3055</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
