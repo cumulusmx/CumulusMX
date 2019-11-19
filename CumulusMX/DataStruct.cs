@@ -8,7 +8,22 @@ namespace CumulusMX
 	{
 		private Cumulus cumulus;
 
-		public DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double indoorTemp, double outdoorDewpoint, double windChill, int indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing, double rainToday, double rainYesterday, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex, double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday, string windUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday, string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday, string highRainRateTodayTime, int highHumToday, int lowHumToday, string highHumTodayTime, string lowHumTodayTime, string pressUnit, string tempUnit, string rainUnit, double highDewpointToday, double lowDewpointToday, string highDewpointTodayTime, string lowDewpointTodayTime, double lowWindChillToday, string lowWindChillTodayTime, int solarRad, int highSolarRadToday, string highSolarRadTodayTime, double uvindex, double highUVindexToday, string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday, string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime, int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO, double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead, bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain)
+		public DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double indoorTemp, double outdoorDewpoint, double windChill,
+							int indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
+							double rainToday, double rainYesterday, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
+							double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday,
+							string windUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday,
+							string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday,
+							string highRainRateTodayTime, int highHumToday, int lowHumToday, string highHumTodayTime, string lowHumTodayTime, string pressUnit, string tempUnit,
+							string rainUnit, double highDewpointToday, double lowDewpointToday, string highDewpointTodayTime, string lowDewpointTodayTime, double lowWindChillToday,
+							string lowWindChillTodayTime, int solarRad, int highSolarRadToday, string highSolarRadTodayTime, double uvindex, double highUVindexToday,
+							string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday,
+							string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime,
+							int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO,
+							double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead,
+							bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain, bool alarmLowTemp,
+							bool alarmHighTemp, bool alarmTempUp, bool alarmTempDown, bool alarmRain, bool alarmRainRate, bool alarmLowPress, bool alarmHighPress,
+							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor)
 		{
 			this.cumulus = cumulus;
 			OutdoorTemp = outdoorTemp;
@@ -102,6 +117,19 @@ namespace CumulusMX
 			StormRainStart = stormRainStart;
 			Cloudbase = cloudbase;
 			CloudbaseUnit = cloudbaseUnit;
+			AlarmLowTemp = alarmLowTemp;
+			AlarmHighTemp = alarmHighTemp;
+			AlarmTempUp = alarmTempUp;
+			AlarmTempDn = alarmTempDown;
+			AlarmRain = alarmRain;
+			AlarmRainRate = alarmRainRate;
+			AlarmLowPress = alarmLowPress;
+			AlarmHighPress = alarmHighPress;
+			AlarmPressUp = alarmPressUp;
+			AlarmPressDn = alarmPressDown;
+			AlarmGust = alarmGust;
+			AlarmWind = alarmWind;
+			AlarmSensor = alarmSensor;
 		}
 
 		[IgnoreDataMember]
@@ -678,5 +706,45 @@ namespace CumulusMX
 
 		[DataMember]
 		public bool DataStopped { get; set; }
+
+		[DataMember]
+		public bool AlarmLowTemp { get; set; }
+
+		[DataMember]
+		public bool AlarmHighTemp { get; set; }
+
+		[DataMember]
+		public bool AlarmTempUp { get; set; }
+
+		[DataMember]
+		public bool AlarmTempDn { get; set; }
+
+		[DataMember]
+		public bool AlarmRain { get; set; }
+
+		[DataMember]
+		public bool AlarmRainRate { get; set; }
+
+		[DataMember]
+		public bool AlarmLowPress { get; set; }
+
+		[DataMember]
+		public bool AlarmHighPress { get; set; }
+
+		[DataMember]
+		public bool AlarmPressUp { get; set; }
+
+		[DataMember]
+		public bool AlarmPressDn { get; set; }
+
+		[DataMember]
+		public bool AlarmGust { get; set; }
+
+		[DataMember]
+		public bool AlarmWind { get; set; }
+
+		[DataMember]
+		public bool AlarmSensor { get; set; }
+
 	}
 }

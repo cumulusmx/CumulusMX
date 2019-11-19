@@ -1,3 +1,61 @@
+3.2.0 - b3056
+=============
+- Adds support for Ecowitt GW1000 WiFi gateway
+- New web tag <#GW1000FirmwareVersion>
+- Added extra soil temp sensors 5-16 for GW1000 stations
+	- New web tags <#SoilTemp5-16>
+	- Value are logged to extra log file
+	- Added custom captions available in Cumulus.ini [SoilTempCaptions] : Sensor5-16
+- Added extra soil moisture sensors 5-16 for GW1000 stations
+	- New web tags <#SoilMoisture5-16>
+	- Values are logged to extra log file
+	- Added custom captions available in Cumulus.ini [SoilMoistureCaptions] : Sensors5-16
+	- Units now change between cb for Davis and % for GW1000 sensors
+- Added extra air quality sensors 1-4 for GW1000 stations
+	- New weg tags <#AirQuality1-4> and <#AirQualityAvg1-4>
+	- Values are logged to extra log file
+	- Added custom captions available in Cumulus.ini [AirQualityCaptions] : Sensor1-4 and SensorAvg1-4
+- Added new web tags for <#LeakSensor1-4> to support GW1000 leak sensors
+	- No display or logging of these values is done
+- Added new web tags for Lightning sensors on GW1000 stations
+	- <#LightningDistance> Distance to last strike (same units as wind run - miles/km/nm)
+	- <#LightningTime> Time of last strike (format customisable)
+	- <#LightningStrikesToday> Number of strikes since midnight
+	- Currently there is no logging or display of these values
+- Enables alarms as per Cumulus 1
+	- New Alarm page under Settings
+	- Alarms are shown visually on the dashboard
+	- Due to browser restrictions, alarm sounds on the browser page may require you to click a button on the first alarm in order to hear it.
+           - You can add the MX admin site to your browsers list of sites alloed to play sound automatically
+	   - Your browser should "learn" that you want to allow sounds to play automatically
+	- Alarm sound files should be placed in the /interface/sounds folder, they must be a browser compatible format (mp3 are good)
+	- The alarm settings for the sound file should be just the filename without any path
+- Add pressure multiplier calibration
+	- New ini file setting [Offsets] PressMult = 1.0 (default)
+- Fix for the All Time Records editor hourly rain total from the monthly log file month
+- Fixes missing Cumulus multipliers for Wind and Rain values on Davis WLL stations
+- Changes All Time Records editor to only load data from the Day File by default. Monthly log file
+  processing is now optional as it can take a very long time on a slow machine e.g. Raspberry Pi
+- Fix to catch badly formed Davis WLL broadcast messages
+- Fix for Davis WLL edge cases producing an intial zero value wind chill on startup
+
+- Updated files
+	\CumulusMX.exe
+	\interface\json\StationOptions.json
+	\interface\json\StationSchema.json
+	\interface\<AllFiles>.html
+	\interface\js\extrasensors.js
+	\interface\js\alltimerecseditor.js
+	\interface\js\dashboard.js
+	\interface\css\main.css
+	\interface\json\CalibrationSchema.json
+
+- New files
+	\interface\alarmsettings.html
+	\interface\js\alarmsettings.js
+	\interface\sounds\alarm.mp3
+
+
 3.1.2 - b3055
 =============
 - Fix for the All Time Records editor monthly rain total from the monthly log file month

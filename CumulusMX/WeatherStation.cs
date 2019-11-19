@@ -1214,7 +1214,18 @@ namespace CumulusMX
 		/// Soil Temp 4 in C
 		/// </summary>
 		public double SoilTemp4 { get; set; }
-
+		public double SoilTemp5 { get; set; }
+		public double SoilTemp6 { get; set; }
+		public double SoilTemp7 { get; set; }
+		public double SoilTemp8 { get; set; }
+		public double SoilTemp9 { get; set; }
+		public double SoilTemp10 { get; set; }
+		public double SoilTemp11 { get; set; }
+		public double SoilTemp12 { get; set; }
+		public double SoilTemp13 { get; set; }
+		public double SoilTemp14 { get; set; }
+		public double SoilTemp15 { get; set; }
+		public double SoilTemp16 { get; set; }
 
 		public double RainYesterday { get; set; }
 
@@ -1227,6 +1238,48 @@ namespace CumulusMX
 		public int SoilMoisture3 { get; set; }
 
 		public int SoilMoisture4 { get; set; }
+
+		public int SoilMoisture5 { get; set; }
+
+		public int SoilMoisture6 { get; set; }
+
+		public int SoilMoisture7 { get; set; }
+
+		public int SoilMoisture8 { get; set; }
+
+		public int SoilMoisture9 { get; set; }
+
+		public int SoilMoisture10 { get; set; }
+
+		public int SoilMoisture11 { get; set; }
+
+		public int SoilMoisture12 { get; set; }
+
+		public int SoilMoisture13 { get; set; }
+
+		public int SoilMoisture14 { get; set; }
+
+		public int SoilMoisture15 { get; set; }
+
+		public int SoilMoisture16 { get; set; }
+
+		public double AirQuality1 { get; set; }
+		public double AirQuality2 { get; set; }
+		public double AirQuality3 { get; set; }
+		public double AirQuality4 { get; set; }
+		public double AirQualityAvg1 { get; set; }
+		public double AirQualityAvg2 { get; set; }
+		public double AirQualityAvg3 { get; set; }
+		public double AirQualityAvg4 { get; set; }
+
+		public int LeakSensor1 { get; set; }
+		public int LeakSensor2 { get; set; }
+		public int LeakSensor3 { get; set; }
+		public int LeakSensor4 { get; set; }
+
+		public double LightningDistance { get; set; }
+		public DateTime LightningTime { get; set; }
+		public int LightningStrikesToday { get; set; }
 
 		public double LeafTemp1 { get; set; }
 
@@ -1360,7 +1413,9 @@ namespace CumulusMX
 						LowAppTempToday, highapptemptodaytime.ToString("HH:mm"), lowapptemptodaytime.ToString("HH:mm"), (int)CurrentSolarMax,
 						alltimerecarray[AT_highpress].value, alltimerecarray[AT_lowpress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 						highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage), cumulus.BeaufortDesc(WindAverage),
-						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour);
+						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
+						cumulus.LowTempAlarmState, cumulus.HighTempAlarmState, cumulus.TempChangeUpAlarmState, cumulus.TempChangeDownAlarmState, cumulus.HighRainTodayAlarmState, cumulus.HighRainRateAlarmState,
+						cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState, cumulus.SensorAlarmState);
 
 					//var json = jss.Serialize(data);
 
@@ -1397,12 +1452,18 @@ namespace CumulusMX
 		{
 			try
 			{
+				if (timespan.TotalSeconds < 0)
+				{
+					return "-----";
+				}
+
 				DateTime dt = DateTime.MinValue.Add(timespan);
 
 				return getTimeString(dt);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
+				cumulus.LogMessage($"getTimeString: Exception caught - {e.Message}");
 				return "-----";
 			}
 		}
@@ -2625,15 +2686,12 @@ namespace CumulusMX
 			if (OutdoorTemperature > alltimerecarray[AT_hightemp].value)
 				SetAlltime(AT_hightemp, OutdoorTemperature, timestamp);
 
-			//DoAlarm(outsidetemp, alarmhightemp, HighTempAlarmSet, true,
-			//  HighTempAlarmState, MainForm.TempLabel, HighTempAlarmSound,
-			//  HighTempAlarmSoundFile);
+			DoAlarm(OutdoorTemperature, cumulus.HighTempAlarmValue, cumulus.HighTempAlarmEnabled, true, ref cumulus.HighTempAlarmState);
 
 			if (OutdoorTemperature < alltimerecarray[AT_lowtemp].value)
 				SetAlltime(AT_lowtemp, OutdoorTemperature, timestamp);
 
-			//DoAlarm(outsidetemp, alarmlowtemp, LowTempAlarmSet, false, LowTempAlarmState,
-			//  MainForm.TempLabel, LowTempAlarmSound, LowTempAlarmSoundFile);
+			DoAlarm(OutdoorTemperature, cumulus.LowTempAlarmValue, cumulus.LowTempAlarmEnabled, false, ref cumulus.LowTempAlarmState);
 
 			CheckMonthlyAlltime(AT_hightemp, OutdoorTemperature, true, timestamp);
 			CheckMonthlyAlltime(AT_lowtemp, OutdoorTemperature, false, timestamp);
@@ -2761,60 +2819,64 @@ namespace CumulusMX
 			// Calculates Apparent Temperature
 			// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
 
-			ApparentTemperature =
-				ConvertTempCToUser(ConvertUserTempToC(OutdoorTemperature) + (0.33*MeteoLib.ActualVapourPressure(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity)) -
-								   (0.7*ConvertUserWindToMS(WindAverage)) - 4);
+			// don"t try to calculate windchill if we haven"t yet had wind and temp readings
+			//if (TempReadyToPlot && WindReadyToPlot)
+			//{
+				ApparentTemperature =
+				ConvertTempCToUser(ConvertUserTempToC(OutdoorTemperature) + (0.33 * MeteoLib.ActualVapourPressure(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity)) -
+								   (0.7 * ConvertUserWindToMS(WindAverage)) - 4);
 
-			if (ApparentTemperature > HighAppTempToday)
-			{
-				HighAppTempToday = ApparentTemperature;
-				highapptemptodaytime = timestamp;
-				WriteTodayFile(timestamp, false);
-			}
+				if (ApparentTemperature > HighAppTempToday)
+				{
+					HighAppTempToday = ApparentTemperature;
+					highapptemptodaytime = timestamp;
+					WriteTodayFile(timestamp, false);
+				}
 
-			if (ApparentTemperature < LowAppTempToday)
-			{
-				LowAppTempToday = ApparentTemperature;
-				lowapptemptodaytime = timestamp;
-				WriteTodayFile(timestamp, false);
-			}
+				if (ApparentTemperature < LowAppTempToday)
+				{
+					LowAppTempToday = ApparentTemperature;
+					lowapptemptodaytime = timestamp;
+					WriteTodayFile(timestamp, false);
+				}
 
-			if (ApparentTemperature > HighAppTempThisMonth)
-			{
-				HighAppTempThisMonth = ApparentTemperature;
-				HighAppTempThisMonthTS = timestamp;
-				WriteMonthIniFile();
-			}
+				if (ApparentTemperature > HighAppTempThisMonth)
+				{
+					HighAppTempThisMonth = ApparentTemperature;
+					HighAppTempThisMonthTS = timestamp;
+					WriteMonthIniFile();
+				}
 
-			if (ApparentTemperature < LowAppTempThisMonth)
-			{
-				LowAppTempThisMonth = ApparentTemperature;
-				LowAppTempThisMonthTS = timestamp;
-				WriteMonthIniFile();
-			}
+				if (ApparentTemperature < LowAppTempThisMonth)
+				{
+					LowAppTempThisMonth = ApparentTemperature;
+					LowAppTempThisMonthTS = timestamp;
+					WriteMonthIniFile();
+				}
 
-			if (ApparentTemperature > HighAppTempThisYear)
-			{
-				HighAppTempThisYear = ApparentTemperature;
-				HighAppTempThisYearTS = timestamp;
-				WriteYearIniFile();
-			}
+				if (ApparentTemperature > HighAppTempThisYear)
+				{
+					HighAppTempThisYear = ApparentTemperature;
+					HighAppTempThisYearTS = timestamp;
+					WriteYearIniFile();
+				}
 
-			if (ApparentTemperature < LowAppTempThisYear)
-			{
-				LowAppTempThisYear = ApparentTemperature;
-				LowAppTempThisYearTS = timestamp;
-				WriteYearIniFile();
-			}
+				if (ApparentTemperature < LowAppTempThisYear)
+				{
+					LowAppTempThisYear = ApparentTemperature;
+					LowAppTempThisYearTS = timestamp;
+					WriteYearIniFile();
+				}
 
-			if (ApparentTemperature > alltimerecarray[AT_highapptemp].value)
-				SetAlltime(AT_highapptemp, ApparentTemperature, timestamp);
+				if (ApparentTemperature > alltimerecarray[AT_highapptemp].value)
+					SetAlltime(AT_highapptemp, ApparentTemperature, timestamp);
 
-			if (ApparentTemperature < alltimerecarray[AT_lowapptemp].value)
-				SetAlltime(AT_lowapptemp, ApparentTemperature, timestamp);
+				if (ApparentTemperature < alltimerecarray[AT_lowapptemp].value)
+					SetAlltime(AT_lowapptemp, ApparentTemperature, timestamp);
 
-			CheckMonthlyAlltime(AT_highapptemp, ApparentTemperature, true, timestamp);
-			CheckMonthlyAlltime(AT_lowapptemp, ApparentTemperature, false, timestamp);
+				CheckMonthlyAlltime(AT_highapptemp, ApparentTemperature, true, timestamp);
+				CheckMonthlyAlltime(AT_lowapptemp, ApparentTemperature, false, timestamp);
+			//}
 		}
 
 		public void DoWindChill(double chillpar, DateTime timestamp)
@@ -2954,7 +3016,7 @@ namespace CumulusMX
 
 		public void DoPressure(double sl, DateTime timestamp)
 		{
-			Pressure = sl + cumulus.PressOffset;
+			Pressure = sl * cumulus.PressMult + cumulus.PressOffset;
 			if (cumulus.Manufacturer == cumulus.DAVIS)
 			{
 				if (!cumulus.UseDavisLoop2)
@@ -2983,14 +3045,14 @@ namespace CumulusMX
 				SetAlltime(AT_highpress, Pressure, timestamp);
 			}
 
-			//DoAlarm(slpress , alarmhighpress , HighPressAlarmSet , true, HighPressAlarmState , MainForm.PressLabel , HighPressAlarmSound , HighPressAlarmSoundFile );
+			DoAlarm(Pressure, cumulus.HighPressAlarmValue , cumulus.HighPressAlarmEnabled , true, ref cumulus.HighPressAlarmState);
 
 			if (Pressure < alltimerecarray[AT_lowpress].value)
 			{
 				SetAlltime(AT_lowpress, Pressure, timestamp);
 			}
 
-			//DoAlarm(slpress , alarmlowpress , LowPressAlarmSet , false, LowPressAlarmState , MainForm.PressLabel , LowPressAlarmSound , LowPressAlarmSoundFile );
+			DoAlarm(Pressure, cumulus.LowPressAlarmValue , cumulus.LowPressAlarmEnabled , false, ref cumulus.LowPressAlarmState);
 			CheckMonthlyAlltime(AT_lowpress, Pressure, false, timestamp);
 			CheckMonthlyAlltime(AT_highpress, Pressure, true, timestamp);
 
@@ -3140,9 +3202,7 @@ namespace CumulusMX
 
 					CheckMonthlyAlltime(AT_highrainrate, RainRate, true, timestamp);
 
-					//DoAlarm(RainRate, alarmhighrainrate, HighRainRateAlarmSet, true,
-					//  HighRainRateAlarmState, MainForm.RainRateLabel, HighRainRateAlarmSound,
-					//  HighRainRateAlarmSoundFile);
+					DoAlarm(RainRate, cumulus.HighRainRateAlarmValue, cumulus.HighRainRateAlarmEnabled, true, ref cumulus.HighRainRateAlarmState);
 
 					if (RainRate > highraintoday)
 					{
@@ -3232,9 +3292,7 @@ namespace CumulusMX
 
 					CheckMonthlyAlltime(AT_wetmonth, RainMonth, true, timestamp);
 
-					//DoAlarm(raintoday, alarmhighraintoday, HighRainTodayAlarmSet, true,
-					//  HighRainTodayAlarmState, MainForm.RainTodayLabel,
-					//  HighRainTodayAlarmSound, HighRainTodayAlarmSoundFile);
+					DoAlarm(RainToday, cumulus.HighRainTodayAlarmValue, cumulus.HighRainTodayAlarmEnabled, true, ref cumulus.HighRainTodayAlarmState);
 
 					// Yesterday"s rain - Scale for units
 					// rainyest = rainyesterday * RainMult;
@@ -3394,6 +3452,20 @@ namespace CumulusMX
 			return timestamp.ToString("HHmm");
 		}
 
+		public void DoAlarm(double value, double threshold, bool enabled, bool testAbove, ref bool alarmState)
+		{
+			if (enabled)
+			{
+				if (testAbove)
+				{
+					alarmState = value > threshold;
+				}
+				else
+				{
+					alarmState = value < threshold;
+				}
+			}
+		}
 
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
@@ -3499,6 +3571,8 @@ namespace CumulusMX
 
 			WindAverage *= cumulus.WindSpeedMult;
 
+			DoAlarm(WindAverage, cumulus.HighWindAlarmValue, cumulus.HighWindAlarmEnabled, true, ref cumulus.HighWindAlarmState);
+
 			if (CalcRecentMaxGust)
 			{
 				// Find recent max gust
@@ -3515,6 +3589,8 @@ namespace CumulusMX
 				}
 				RecentMaxGust = maxgust*cumulus.WindGustMult;
 			}
+
+			DoAlarm(RecentMaxGust, cumulus.HighGustAlarmValue, cumulus.HighGustAlarmEnabled, true, ref cumulus.HighGustAlarmState);
 
 			if (WindAverage > highwindtoday)
 			{
@@ -3923,7 +3999,8 @@ namespace CumulusMX
 		public int DavisNumberOfResynchs = 0;
 		public int DavisMaxInARow = 0;
 		public int DavisNumCRCerrors = 0;
-		public string DavisFirmwareVersion;
+		public string DavisFirmwareVersion = "???";
+		public string GW1000FirmwareVersion = "???";
 
 		//private bool manualftp;
 
@@ -5646,6 +5723,9 @@ namespace CumulusMX
 
 				temptrendval = trendval;
 
+				DoAlarm(temptrendval, cumulus.TempChangeAlarmValue, cumulus.TempChangeAlarmEnabled, true, ref cumulus.TempChangeUpAlarmState);
+				DoAlarm(temptrendval, cumulus.TempChangeAlarmValue * -1, cumulus.TempChangeAlarmEnabled, false, ref cumulus.TempChangeDownAlarmState);
+
 				if (LastHourDataList.Count > 0)
 				{
 					firstval = LastHourDataList.First().temperature;
@@ -5717,6 +5797,9 @@ namespace CumulusMX
 				// save pressure trend in internal units
 				presstrendval = (lastval - firstval)/3.0;
 
+				DoAlarm(presstrendval, cumulus.PressChangeAlarmValue, cumulus.PressChangeAlarmEnabled, true, ref cumulus.PressChangeUpAlarmState);
+				DoAlarm(presstrendval, cumulus.PressChangeAlarmValue * -1, cumulus.PressChangeAlarmEnabled, false, ref cumulus.PressChangeDownAlarmState);
+
 				// Convert for display
 				trendval = ConvertPressMBToUser(presstrendval);
 
@@ -5771,9 +5854,7 @@ namespace CumulusMX
 
 							CheckMonthlyAlltime(AT_highrainrate, RainRate, true, ts);
 
-							//DoAlarm(RainRate, alarmhighrainrate, HighRainRateAlarmSet, true,
-							//  HighRainRateAlarmState, MainForm.RainRateLabel, HighRainRateAlarmSound,
-							//  HighRainRateAlarmSoundFile);
+							DoAlarm(RainRate, cumulus.HighRainRateAlarmValue, cumulus.HighRainRateAlarmEnabled, true, ref cumulus.HighRainRateAlarmState);
 
 							if (RainRate > highraintoday)
 							{
@@ -6331,16 +6412,52 @@ namespace CumulusMX
 			switch (index)
 			{
 				case 1:
-					SoilMoisture1 = (int) value;
+					SoilMoisture1 = (int)value;
 					break;
 				case 2:
-					SoilMoisture2 = (int) value;
+					SoilMoisture2 = (int)value;
 					break;
 				case 3:
-					SoilMoisture3 = (int) value;
+					SoilMoisture3 = (int)value;
 					break;
 				case 4:
-					SoilMoisture4 = (int) value;
+					SoilMoisture4 = (int)value;
+					break;
+				case 5:
+					SoilMoisture5 = (int)value;
+					break;
+				case 6:
+					SoilMoisture6 = (int)value;
+					break;
+				case 7:
+					SoilMoisture7 = (int)value;
+					break;
+				case 8:
+					SoilMoisture8 = (int)value;
+					break;
+				case 9:
+					SoilMoisture9 = (int)value;
+					break;
+				case 10:
+					SoilMoisture10 = (int)value;
+					break;
+				case 11:
+					SoilMoisture11 = (int)value;
+					break;
+				case 12:
+					SoilMoisture12 = (int)value;
+					break;
+				case 13:
+					SoilMoisture13 = (int)value;
+					break;
+				case 14:
+					SoilMoisture14 = (int)value;
+					break;
+				case 15:
+					SoilMoisture15 = (int)value;
+					break;
+				case 16:
+					SoilMoisture16 = (int)value;
 					break;
 			}
 		}
@@ -6361,8 +6478,103 @@ namespace CumulusMX
 				case 4:
 					SoilTemp4 = value;
 					break;
+				case 5:
+					SoilTemp5 = value;
+					break;
+				case 6:
+					SoilTemp6 = value;
+					break;
+				case 7:
+					SoilTemp7 = value;
+					break;
+				case 8:
+					SoilTemp8 = value;
+					break;
+				case 9:
+					SoilTemp9 = value;
+					break;
+				case 10:
+					SoilTemp10 = value;
+					break;
+				case 11:
+					SoilTemp11 = value;
+					break;
+				case 12:
+					SoilTemp12 = value;
+					break;
+				case 13:
+					SoilTemp13 = value;
+					break;
+				case 14:
+					SoilTemp14 = value;
+					break;
+				case 15:
+					SoilTemp15 = value;
+					break;
+				case 16:
+					SoilTemp16 = value;
+					break;
 			}
 		}
+
+		public void DoAirQuality(double value, int index)
+		{
+			switch (index)
+			{
+				case 1:
+					AirQuality1 = value;
+					break;
+				case 2:
+					AirQuality2 = value;
+					break;
+				case 3:
+					AirQuality3 = value;
+					break;
+				case 4:
+					AirQuality4 = value;
+					break;
+			}
+		}
+
+		public void DoAirQualityAvg(double value, int index)
+		{
+			switch (index)
+			{
+				case 1:
+					AirQualityAvg1 = value;
+					break;
+				case 2:
+					AirQualityAvg2 = value;
+					break;
+				case 3:
+					AirQualityAvg3 = value;
+					break;
+				case 4:
+					AirQualityAvg4 = value;
+					break;
+			}
+		}
+
+		public void DoLeakSensor(int value, int index)
+		{
+			switch (index)
+			{
+				case 1:
+					LeakSensor1 = value;
+					break;
+				case 2:
+					LeakSensor2 = value;
+					break;
+				case 3:
+					LeakSensor3 = value;
+					break;
+				case 4:
+					LeakSensor4 = value;
+					break;
+			}
+		}
+
+
 
 		public void DoLeafWetness(double value, int index)
 		{
@@ -8413,7 +8625,19 @@ namespace CumulusMX
 			json += "[\"" + cumulus.SoilTempCaptions[1] + "\",\"" + SoilTemp1.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
 			json += "[\"" + cumulus.SoilTempCaptions[2] + "\",\"" + SoilTemp2.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
 			json += "[\"" + cumulus.SoilTempCaptions[3] + "\",\"" + SoilTemp3.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
-			json += "[\"" + cumulus.SoilTempCaptions[4] + "\",\"" + SoilTemp4.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"]";
+			json += "[\"" + cumulus.SoilTempCaptions[4] + "\",\"" + SoilTemp4.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[5] + "\",\"" + SoilTemp5.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[6] + "\",\"" + SoilTemp6.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[7] + "\",\"" + SoilTemp7.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[8] + "\",\"" + SoilTemp8.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[9] + "\",\"" + SoilTemp9.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[10] + "\",\"" + SoilTemp10.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[11] + "\",\"" + SoilTemp11.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[12] + "\",\"" + SoilTemp12.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[13] + "\",\"" + SoilTemp13.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[14] + "\",\"" + SoilTemp14.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[15] + "\",\"" + SoilTemp15.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"],";
+			json += "[\"" + cumulus.SoilTempCaptions[16] + "\",\"" + SoilTemp16.ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() + "\"]";
 
 			json += "]}";
 			return json;
@@ -8423,14 +8647,56 @@ namespace CumulusMX
 		{
 			var json = "{\"data\":[";
 
-			json += "[\"" + cumulus.SoilMoistureCaptions[1] + "\",\"" + SoilMoisture1.ToString("F0") + "\",\"cb" + "\"],";
-			json += "[\"" + cumulus.SoilMoistureCaptions[2] + "\",\"" + SoilMoisture2.ToString("F0") + "\",\"cb" + "\"],";
-			json += "[\"" + cumulus.SoilMoistureCaptions[3] + "\",\"" + SoilMoisture3.ToString("F0") + "\",\"cb" + "\"],";
-			json += "[\"" + cumulus.SoilMoistureCaptions[4] + "\",\"" + SoilMoisture4.ToString("F0") + "\",\"cb" + "\"]";
+			json += "[\"" + cumulus.SoilMoistureCaptions[1] + "\",\"" + SoilMoisture1.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[2] + "\",\"" + SoilMoisture2.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[3] + "\",\"" + SoilMoisture3.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[4] + "\",\"" + SoilMoisture4.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[5] + "\",\"" + SoilMoisture5.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[6] + "\",\"" + SoilMoisture6.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[7] + "\",\"" + SoilMoisture7.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[8] + "\",\"" + SoilMoisture8.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[9] + "\",\"" + SoilMoisture9.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[10] + "\",\"" + SoilMoisture10.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[11] + "\",\"" + SoilMoisture11.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[12] + "\",\"" + SoilMoisture12.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[13] + "\",\"" + SoilMoisture13.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[14] + "\",\"" + SoilMoisture14.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[15] + "\",\"" + SoilMoisture15.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"],";
+			json += "[\"" + cumulus.SoilMoistureCaptions[16] + "\",\"" + SoilMoisture16.ToString("F0") + "\",\"" + cumulus.SoilMoistureUnitText + "\"]";
 
 			json += "]}";
 			return json;
 		}
+
+		public string GetAirQuality()
+		{
+			var json = "{\"data\":[";
+
+			json += "[\"" + cumulus.AirQualityCaptions[1] + "\",\"" + AirQuality1.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityCaptions[2] + "\",\"" + AirQuality2.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityCaptions[3] + "\",\"" + AirQuality3.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityCaptions[4] + "\",\"" + AirQuality4.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityAvgCaptions[1] + "\",\"" + AirQualityAvg1.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityAvgCaptions[2] + "\",\"" + AirQualityAvg2.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityAvgCaptions[3] + "\",\"" + AirQualityAvg3.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"],";
+			json += "[\"" + cumulus.AirQualityAvgCaptions[4] + "\",\"" + AirQualityAvg4.ToString(cumulus.TempFormat) + "\",\"" + cumulus.AirQualityUnitText + "\"]";
+
+			json += "]}";
+			return json;
+		}
+
+		public string GetLightning()
+		{
+			var json = "{\"data\":[";
+
+			json += "[\"Distance to last strike\",\"" + LightningDistance.ToString(cumulus.WindRunFormat) + "\",\"" + cumulus.WindRunUnitText + "\"],";
+			json += "[\"Time of last strike\",\"" + LightningTime.ToString() + "\",\"\"],";
+			json += "[\"Number of strikes today\",\"" + LightningStrikesToday.ToString() + "\",\"\"]";
+
+			json += "]}";
+			return json;
+		}
+
 
 		public string GetLeaf()
 		{
@@ -8861,7 +9127,9 @@ namespace CumulusMX
 				LowAppTempToday, highapptemptodaytime.ToString("HH:mm"), lowapptemptodaytime.ToString("HH:mm"), (int)Math.Round(CurrentSolarMax),
 				alltimerecarray[AT_highpress].value, alltimerecarray[AT_lowpress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage),
-				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour);
+				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
+				cumulus.LowTempAlarmState, cumulus.HighTempAlarmState, cumulus.TempChangeUpAlarmState, cumulus.TempChangeDownAlarmState, cumulus.HighRainTodayAlarmState, cumulus.HighRainRateAlarmState,
+				cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState, cumulus.SensorAlarmState);
 
 			try
 			{
@@ -9076,6 +9344,47 @@ namespace CumulusMX
 			var rain100IN = Convert.ToInt32(ConvertUserRainToIN(rain) * 100);
 			return rain100IN.ToString("D3");
 		}
+
+
+		public class CommTimer : IDisposable
+		{
+			public Timer tmrComm = new Timer();
+			public bool timedout = false;
+			public CommTimer()
+			{
+				timedout = false;
+				tmrComm.AutoReset = false;
+				tmrComm.Enabled = false;
+				tmrComm.Interval = 1000; //default to 1 second
+				tmrComm.Elapsed += new ElapsedEventHandler(OnTimedCommEvent);
+			}
+
+			public void OnTimedCommEvent(object source, ElapsedEventArgs e)
+			{
+				timedout = true;
+				tmrComm.Stop();
+			}
+
+			public void Start(double timeoutperiod)
+			{
+				tmrComm.Interval = timeoutperiod;             //time to time out in milliseconds
+				tmrComm.Stop();
+				timedout = false;
+				tmrComm.Start();
+			}
+
+			public void Stop()
+			{
+				tmrComm.Stop();
+				timedout = true;
+			}
+
+			public void Dispose()
+			{
+				tmrComm.Close();
+			}
+		}
+
 	}
 
 	//public partial class CumulusData : DataContext

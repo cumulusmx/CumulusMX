@@ -440,6 +440,7 @@ namespace CumulusMX
 		public static int cEndAstroTwilight = 4;
 
 
+		/*
 		private static double mjd(int year, int month, int day)
 		{
 			//
@@ -459,8 +460,9 @@ namespace CumulusMX
 			a = 365.0 * year - 679004.0;
 			return a + b + (int)Math.Floor(30.6001 * (month + 1)) + day;
 		}
+		*/
 
-
+		/*
 		private static double frac(double x)
 		{
 			//
@@ -470,7 +472,9 @@ namespace CumulusMX
 			a = x - (int)Math.Floor(x);
 			return a;
 		}
+		*/
 
+		/*
 		private static double range(double x)
 		{
 			//
@@ -488,7 +492,9 @@ namespace CumulusMX
 			}
 			return a;
 		}
+		*/
 
+		/*
 		private static string hrsmin(double t)
 		{
 			//
@@ -503,8 +509,9 @@ namespace CumulusMX
 			return (hour.ToString("00") + min.ToString("00"));
 			//return "0000";
 		}
+		*/
 
-
+		/*
 		private static double lmst(double mjd, double glong)
 		{
 			//
@@ -520,7 +527,9 @@ namespace CumulusMX
 			lst = range(280.46061837 + 360.98564736629 * d + 0.000387933 * t * t - t * t * t / 38710000.0);
 			return lst / 15.0 + glong / 15.0;
 		}
+		*/
 
+		/*
 		private static void minisun(double t, ref double ra, ref double dec)
 		{
 			//
@@ -559,8 +568,9 @@ namespace CumulusMX
 				ra = ra + 24;
 			}
 		}
+		*/
 
-
+		/*
 		private static void quad(double ym, double yz, double yp, ref int nz, ref double z1, ref double z2, ref double xe, ref double ye)
 		{
 			//
@@ -601,7 +611,9 @@ namespace CumulusMX
 				}
 			}
 		}
+		*/
 
+		/*
 		private static double SinAltSun(double mjd0, double hour, double glong, double cglat, double sglat)
 		{
 			//
@@ -656,11 +668,13 @@ namespace CumulusMX
 			}
 			return Math.Sin(degToRad(alt + refrac));
 		}
+		*/
 
 		//
 		//   Worksheet functions below....
 		//
 
+		/*
 		public static string sunevent(int year, int month, int day, double tz, double glong, double glat, int EventType)
 		{
 			//
@@ -836,7 +850,9 @@ namespace CumulusMX
 			}
 			return OutString;
 		}
+		*/
 
+		/*
 		public static string sunrise(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -866,7 +882,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string sunset(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -896,7 +914,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string CivilTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -926,7 +946,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string CivilTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -951,7 +973,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string NauticalTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -976,7 +1000,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string NauticalTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -1001,7 +1027,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string AstroTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -1026,7 +1054,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static string AstroTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
 			//
@@ -1051,7 +1081,9 @@ namespace CumulusMX
 			}
 			return EventTime;
 		}
+		*/
 
+		/*
 		public static void CalcMoonPos(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, ref double fMRA, ref double fMDecl)
 		{
 			double fN, fSM, fSE, fSLambda;
@@ -1105,7 +1137,9 @@ namespace CumulusMX
 			fMBeta = Trig.Asin(Trig.Sin(fL2 - fN1) * Trig.Sin(fMIncl));
 			ConvEclToEqu(23.441884, fMLambda, fMBeta, ref fMRA, ref fMDecl);
 		}
+		*/
 
+		/*
 		public static void ConvEclToEqu(double fOblique, double fELong, double fELat, ref double fRA, ref double fDecl)
 		{
 			double fX;
@@ -1125,7 +1159,9 @@ namespace CumulusMX
 			fRA = Trig.TanQuadrant(fX, fY, fRA);
 			fRA = fRA / 15.0;
 		}
+		*/
 
+		/*
 		public static void CalcMoonPhase(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, ref double fMPhase)
 		{
 			double fN, fSM, fSE, fSLambda;
@@ -1169,9 +1205,8 @@ namespace CumulusMX
 
 			fMD = fL2 - fSLambda;
 			fMPhase = 0.5 * (1.0 - Trig.Cos(fMD));
-
-
 		}
+		*/
 
 		public static void CalcMoonDistance(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, double fMSMA, ref double fMDistance)
 		{
@@ -1212,6 +1247,7 @@ namespace CumulusMX
 			fMDistance = fMSMA * ((1.0 - (fMEcc * fMEcc)) / (1.0 + (fMEcc * Trig.Cos(fMM1 + fMEC))));
 		}
 
+		/*
 		public static void CalcMoonDiam(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, double fMSMA, double fVAngDiam, ref double fMAngDiam)
 		{
 			double fRho;
@@ -1221,7 +1257,9 @@ namespace CumulusMX
 
 			fMAngDiam = fVAngDiam / (fRho / fMSMA);
 		}
+		*/
 
+		/*
 		public static void CalcMoonParallax(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, double fMSMA, double fVParallax, ref double fMParallax)
 		{
 			double fRho;
@@ -1231,7 +1269,9 @@ namespace CumulusMX
 
 			fMParallax = fVParallax / (fRho / fMSMA);
 		}
+		*/
 
+		/*
 		public static double CalcMoonBrightLimb(double fSunRA, double fSunDecl, double fMRA, double fMDecl)
 		{
 			double fX, fY, fT, fDeltaRA;
@@ -1245,6 +1285,8 @@ namespace CumulusMX
 			fT = Trig.Atan(fY / fX);
 			return Trig.TanQuadrant(fX, fY, fT);
 		}
+		*/
+
 		public static double CalcMoonAge(DateTime dDate, int iZone)
 		{
 			double fJD, fIP, fAge;
@@ -1255,6 +1297,7 @@ namespace CumulusMX
 			return fAge;
 		}
 
+		/*
 		public static string GetMoonStage(double fAge)
 		{
 			string sStage;
@@ -1298,6 +1341,7 @@ namespace CumulusMX
 
 			return sStage;
 		}
+		*/
 
 		private static double Normalize(double fN)
 		{

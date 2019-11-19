@@ -778,9 +778,7 @@ namespace CumulusMX
 
 		private string Tagpresstrend(Dictionary<string,string> TagParams)
 		{
-
-				return station.Presstrendstr;
-
+			return station.Presstrendstr;
 		}
 
 		private string Tagpresstrendenglish(Dictionary<string,string> TagParams)
@@ -2983,6 +2981,68 @@ namespace CumulusMX
 			return station.SoilTemp4.ToString(cumulus.TempFormat);
 		}
 
+		private string TagSoilTemp5(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp5.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp6(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp6.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp7(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp7.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp8(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp8.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp9(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp9.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp10(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp10.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp11(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp11.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp12(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp12.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp13(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp13.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp14(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp14.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp15(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp15.ToString(cumulus.TempFormat);
+		}
+
+		private string TagSoilTemp16(Dictionary<string, string> TagParams)
+		{
+			return station.SoilTemp16.ToString(cumulus.TempFormat);
+		}
+
+
+
 		private string TagSoilMoisture1(Dictionary<string,string> TagParams)
 		{
 			return station.SoilMoisture1.ToString();
@@ -3003,6 +3063,106 @@ namespace CumulusMX
 			return station.SoilMoisture4.ToString();
 		}
 
+		private string TagSoilMoisture5(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture5.ToString();
+		}
+
+		private string TagSoilMoisture6(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture6.ToString();
+		}
+
+		private string TagSoilMoisture7(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture7.ToString();
+		}
+
+		private string TagSoilMoisture8(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture8.ToString();
+		}
+
+		private string TagSoilMoisture9(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture9.ToString();
+		}
+
+		private string TagSoilMoisture10(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture10.ToString();
+		}
+
+		private string TagSoilMoisture11(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture12.ToString();
+		}
+
+		private string TagSoilMoisture12(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture12.ToString();
+		}
+
+		private string TagSoilMoisture13(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture13.ToString();
+		}
+
+		private string TagSoilMoisture14(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture14.ToString();
+		}
+
+		private string TagSoilMoisture15(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture15.ToString();
+		}
+
+		private string TagSoilMoisture16(Dictionary<string, string> TagParams)
+		{
+			return station.SoilMoisture16.ToString();
+		}
+
+		private string TagAirQuality1(Dictionary<string, string> TagParams)
+		{
+			return station.AirQuality1.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQuality2(Dictionary<string, string> TagParams)
+		{
+			return station.AirQuality2.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQuality3(Dictionary<string, string> TagParams)
+		{
+			return station.AirQuality3.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQuality4(Dictionary<string, string> TagParams)
+		{
+			return station.AirQuality4.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQualityAvg1(Dictionary<string, string> TagParams)
+		{
+			return station.AirQualityAvg1.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQualityAvg2(Dictionary<string, string> TagParams)
+		{
+			return station.AirQualityAvg2.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQualityAvg3(Dictionary<string, string> TagParams)
+		{
+			return station.AirQuality3.ToString(cumulus.TempFormat);
+		}
+
+		private string TagAirQualityAvg4(Dictionary<string, string> TagParams)
+		{
+			return station.AirQualityAvg4.ToString(cumulus.TempFormat);
+		}
+
 		private string TagLeafTemp1(Dictionary<string,string> TagParams)
 		{
 			return station.LeafTemp1.ToString(cumulus.TempFormat);
@@ -3021,6 +3181,41 @@ namespace CumulusMX
 		private string TagLeafTemp4(Dictionary<string, string> TagParams)
 		{
 			return station.LeafTemp4.ToString(cumulus.TempFormat);
+		}
+
+		private string TagLeakSensor1(Dictionary<string, string> TagParams)
+		{
+			return station.LeakSensor1.ToString();
+		}
+
+		private string TagLeakSensor2(Dictionary<string, string> TagParams)
+		{
+			return station.LeakSensor2.ToString();
+		}
+
+		private string TagLeakSensor3(Dictionary<string, string> TagParams)
+		{
+			return station.LeakSensor3.ToString();
+		}
+
+		private string TagLeakSensor4(Dictionary<string, string> TagParams)
+		{
+			return station.LeakSensor4.ToString();
+		}
+
+		private string TagLightningDistance(Dictionary<string, string> TagParams)
+		{
+			return station.LightningDistance.ToString(cumulus.WindRunFormat);
+		}
+
+		private string TagLightningTime(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.LightningTime, "t", TagParams);
+		}
+
+		private string TagLightningStrikesToday(Dictionary<string, string> TagParams)
+		{
+			return station.LightningStrikesToday.ToString();
 		}
 
 		private string TagLeafWetness1(Dictionary<string,string> TagParams)
@@ -3044,64 +3239,148 @@ namespace CumulusMX
 		}
 
 		// Alarms
-		private string TagLowTempAlarm(Dictionary<string,string> TagParams)
+		private string TagLowTempAlarm(Dictionary<string, string> TagParams)
 		{
-		   return String.Empty;
+			if (cumulus.LowTempAlarmEnabled)
+			{
+				return cumulus.LowTempAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
-
+		
 		private string TagHighTempAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.HighTempAlarmEnabled)
+			{
+				return cumulus.HighTempAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagTempChangeUpAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.TempChangeAlarmEnabled)
+			{
+				return cumulus.TempChangeUpAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagTempChangeDownAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.TempChangeAlarmEnabled)
+			{
+				return cumulus.TempChangeDownAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagLowPressAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.LowPressAlarmEnabled)
+			{
+				return cumulus.LowPressAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagHighPressAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.HighPressAlarmEnabled)
+			{
+				return cumulus.HighPressAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagPressChangeUpAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.PressChangeAlarmEnabled)
+			{
+				return cumulus.PressChangeUpAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagPressChangeDownAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.PressChangeAlarmEnabled)
+			{
+				return cumulus.PressChangeDownAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagHighRainTodayAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.HighRainTodayAlarmEnabled)
+			{
+				return cumulus.HighRainTodayAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagHighRainRateAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.HighRainRateAlarmEnabled)
+			{
+				return cumulus.HighRainRateAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagHighWindGustAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.HighGustAlarmEnabled)
+			{
+				return cumulus.HighGustAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string TagHighWindSpeedAlarm(Dictionary<string,string> TagParams)
 		{
-			return String.Empty;
+			if (cumulus.HighWindAlarmEnabled)
+			{
+				return cumulus.HighWindAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		// Monthly highs and lows - values
@@ -3996,6 +4275,11 @@ namespace CumulusMX
 		{
 			return station.DavisFirmwareVersion;
 		}
+		private string TagGW1000FirmwareVersion(Dictionary<string, string> TagParams)
+		{
+			return station.GW1000FirmwareVersion;
+		}
+
 
 		private string Tagdailygraphperiod(Dictionary<string, string> tagparams)
 		{
@@ -4674,10 +4958,49 @@ namespace CumulusMX
 				{ "SoilTemp2", TagSoilTemp2 },
 				{ "SoilTemp3", TagSoilTemp3 },
 				{ "SoilTemp4", TagSoilTemp4 },
+				{ "SoilTemp5", TagSoilTemp5 },
+				{ "SoilTemp6", TagSoilTemp6 },
+				{ "SoilTemp7", TagSoilTemp7 },
+				{ "SoilTemp8", TagSoilTemp8 },
+				{ "SoilTemp9", TagSoilTemp9 },
+				{ "SoilTemp10", TagSoilTemp10 },
+				{ "SoilTemp11", TagSoilTemp11 },
+				{ "SoilTemp12", TagSoilTemp12 },
+				{ "SoilTemp13", TagSoilTemp13 },
+				{ "SoilTemp14", TagSoilTemp14 },
+				{ "SoilTemp15", TagSoilTemp15 },
+				{ "SoilTemp16", TagSoilTemp16 },
 				{ "SoilMoisture1", TagSoilMoisture1 },
 				{ "SoilMoisture2", TagSoilMoisture2 },
 				{ "SoilMoisture3", TagSoilMoisture3 },
 				{ "SoilMoisture4", TagSoilMoisture4 },
+				{ "SoilMoisture5", TagSoilMoisture5 },
+				{ "SoilMoisture6", TagSoilMoisture6 },
+				{ "SoilMoisture7", TagSoilMoisture7 },
+				{ "SoilMoisture8", TagSoilMoisture8 },
+				{ "SoilMoisture9", TagSoilMoisture9 },
+				{ "SoilMoisture10", TagSoilMoisture10 },
+				{ "SoilMoisture11", TagSoilMoisture11 },
+				{ "SoilMoisture12", TagSoilMoisture12 },
+				{ "SoilMoisture13", TagSoilMoisture13 },
+				{ "SoilMoisture14", TagSoilMoisture14 },
+				{ "SoilMoisture15", TagSoilMoisture15 },
+				{ "SoilMoisture16", TagSoilMoisture16 },
+				{ "AirQuality1", TagAirQuality1 },
+				{ "AirQuality2", TagAirQuality2 },
+				{ "AirQuality3", TagAirQuality3 },
+				{ "AirQuality4", TagAirQuality4 },
+				{ "AirQualityAvg1", TagAirQualityAvg1 },
+				{ "AirQualityAvg2", TagAirQualityAvg2 },
+				{ "AirQualityAvg3", TagAirQualityAvg3 },
+				{ "AirQualityAvg4", TagAirQualityAvg4 },
+				{ "LeakSensor1", TagLeakSensor1 },
+				{ "LeakSensor2", TagLeakSensor2 },
+				{ "LeakSensor3", TagLeakSensor3 },
+				{ "LeakSensor4", TagLeakSensor4 },
+				{ "LightningDistance", TagLightningDistance },
+				{ "LightningTime", TagLightningTime },
+				{ "LightningStrikesToday", TagLightningStrikesToday },
 				{ "LeafTemp1", TagLeafTemp1 },
 				{ "LeafTemp2", TagLeafTemp2 },
 				{ "LeafTemp3", TagLeafTemp3 },
@@ -4861,6 +5184,7 @@ namespace CumulusMX
 				{ "DavisMaxInARow", TagDavisMaxInARow },
 				{ "DavisNumCRCerrors", TagDavisNumCRCerrors },
 				{ "DavisFirmwareVersion", TagDavisFirmwareVersion },
+				{ "GW1000FirmwareVersion", TagGW1000FirmwareVersion },
 				{ "DataStopped", TagDataStopped },
 				// Recent history
 				{ "RecentOutsideTemp", TagRecentOutsideTemp },

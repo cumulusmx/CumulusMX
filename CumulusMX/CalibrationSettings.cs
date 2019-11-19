@@ -49,6 +49,7 @@ namespace CumulusMX
 				cumulus.WetBulbOffset = Convert.ToDouble(settings.offsets.wetbulb, InvC);
 
 				// multipliers
+				cumulus.PressMult = Convert.ToDouble(settings.multipliers.pressure, InvC);
 				cumulus.WindSpeedMult = Convert.ToDouble(settings.multipliers.windspeed, InvC);
 				cumulus.WindGustMult = Convert.ToDouble(settings.multipliers.windgust, InvC);
 				cumulus.TempMult = Convert.ToDouble(settings.multipliers.outdoortemp, InvC);
@@ -85,25 +86,26 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			var offsets = new JsonCalibrationSettingsOffsets()
-						  {
-							  pressure = cumulus.PressOffset,
-							  temperature = cumulus.TempOffset,
-							  indoortemp = cumulus.InTempoffset,
-							  humidity = cumulus.HumOffset,
-							  winddir = cumulus.WindDirOffset,
-							  uv = cumulus.UVOffset,
-							  wetbulb = cumulus.WetBulbOffset
-						  };
+					{
+						pressure = cumulus.PressOffset,
+						temperature = cumulus.TempOffset,
+						indoortemp = cumulus.InTempoffset,
+						humidity = cumulus.HumOffset,
+						winddir = cumulus.WindDirOffset,
+						uv = cumulus.UVOffset,
+						wetbulb = cumulus.WetBulbOffset
+					};
 			var multipliers = new JsonCalibrationSettingsMultipliers()
-							  {
-								  windspeed = cumulus.WindSpeedMult,
-								  windgust = cumulus.WindGustMult,
-								  humidity = cumulus.HumMult,
-								  outdoortemp = cumulus.TempMult,
-								  rainfall = cumulus.RainMult,
-								  uv = cumulus.UVMult,
-								  wetbulb = cumulus.WetBulbMult
-							  };
+					{
+						pressure = cumulus.PressMult,
+						windspeed = cumulus.WindSpeedMult,
+						windgust = cumulus.WindGustMult,
+						humidity = cumulus.HumMult,
+						outdoortemp = cumulus.TempMult,
+						rainfall = cumulus.RainMult,
+						uv = cumulus.UVMult,
+						wetbulb = cumulus.WetBulbMult
+					};
 
 			var spikeremoval = new JsonCalibrationSettingsSpikeRemoval()
 								{
@@ -166,6 +168,7 @@ namespace CumulusMX
 
 	public class JsonCalibrationSettingsMultipliers
 	{
+		public double pressure { get; set; }
 		public double windspeed { get; set; }
 		public double windgust { get; set; }
 		public double outdoortemp { get; set; }

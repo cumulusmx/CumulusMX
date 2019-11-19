@@ -24,9 +24,10 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>3055</ApplicationRevision>
-    <ApplicationVersion>3.1.2.3055</ApplicationVersion>
+    <ApplicationRevision>3056</ApplicationRevision>
+    <ApplicationVersion>3.2.0.3056</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <ExcludeDeploymentUrl>true</ExcludeDeploymentUrl>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -39,6 +40,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -158,6 +160,7 @@
     <Compile Include="EasyWeather.cs" />
     <Compile Include="FOStation.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="GW1000Station.cs" />
     <Compile Include="ImetStation.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="InternetSettings.cs" />
@@ -166,6 +169,7 @@
     <Compile Include="MysqlSettings.cs" />
     <Compile Include="NOAA.cs" />
     <Compile Include="NOAAReports.cs" />
+    <Compile Include="AlarmSettings.cs" />
     <Compile Include="NOAASettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

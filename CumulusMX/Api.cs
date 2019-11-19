@@ -23,6 +23,7 @@ namespace CumulusMX
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
+		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 
 		public static string Utf16ToUtf8(string utf16String)
@@ -575,6 +576,10 @@ namespace CumulusMX
 							return this.JsonResponse(Station.GetLeaf());
 						case "leaf4.json":
 							return this.JsonResponse(Station.GetLeaf4());
+						case "airqual.json":
+							return this.JsonResponse(Station.GetAirQuality());
+						case "lightning.json":
+							return this.JsonResponse(Station.GetLightning());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -631,6 +636,8 @@ namespace CumulusMX
 							return this.JsonResponse(mySqlSettings.CreateDayfileSQL(this));
 						case "createrealtimesql.json":
 							return this.JsonResponse(mySqlSettings.CreateRealtimeSQL(this));
+						case "updatealarmconfig.json":
+							return this.JsonResponse(alarmSettings.UpdateAlarmSettings(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -737,6 +744,9 @@ namespace CumulusMX
 							return this.JsonResponse(mySqlSettings.GetMySqAlpacaFormOptions());
 						case "mysqlschema.json":
 							return this.JsonResponse(mySqlSettings.GetMySqAlpacaFormSchema());
+
+						case "alarms.json":
+							return this.JsonResponse(alarmSettings.GetAlarmSettings());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
