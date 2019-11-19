@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Unosquare.Labs.EmbedIO;
+using SQLite;
 
 namespace CumulusMX
 {
@@ -556,7 +557,9 @@ namespace CumulusMX
 
 			var json = "{";
 			var datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
 			var dateto = DateTime.Now;
+			dateto = new DateTime(dateto.Year, dateto.Month, 1, 0, 0, 0);
 			var filedate = datefrom;
 
 			string logFile = cumulus.GetLogFileName(filedate);
@@ -786,20 +789,6 @@ namespace CumulusMX
 								highRainRateVal = rainrate;
 								highRainRateTime = entrydate;
 							}
-							// hourly rain
-							/*
-							 * need to track what the rainfall has been in the last rolling hour
-							 * across day rollovers where the count resets
-							 */
-							AddLastHourRainEntry(entrydate, totalRainfall + raintoday);
-							RemoveOldRainData(entrydate);
-
-							var rainThisHour = HourRainLog.First().raincounter - HourRainLog.Last().raincounter;
-							if (rainThisHour > highRainHourVal)
-							{
-								highRainHourVal = rainThisHour;
-								highRainHourTime = entrydate;
-							}
 
 							if (monthlyRain > highRainMonthVal)
 							{
@@ -899,8 +888,23 @@ namespace CumulusMX
 								dayHighTemp = outsidetemp;
 								dayLowTemp = outsidetemp;
 								dayWindRun = 0;
+								totalRainfall += dayRain;
 								dayRain = 0;
-								totalRainfall += raintoday;
+							}
+
+							// hourly rain
+							/*
+							 * need to track what the rainfall has been in the last rolling hour
+							 * across day rollovers where the count resets
+							 */
+							AddLastHourRainEntry(entrydate, totalRainfall + raintoday);
+							RemoveOldRainData(entrydate);
+
+							var rainThisHour = HourRainLog.Last().raincounter - HourRainLog.First().raincounter;
+							if (rainThisHour > highRainHourVal)
+							{
+								highRainHourVal = rainThisHour;
+								highRainHourTime = entrydate;
 							}
 
 							lastentrydate = entrydate;
@@ -917,13 +921,14 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetAllTimeRecLogFile: Log file  not found - {logFile}");
 				}
-				if (filedate.Year >= dateto.Year && filedate.Month >= dateto.Month)
+				if (filedate >= dateto)
 				{
 					finished = true;
 					cumulus.LogDebugMessage("GetAllTimeRecLogFile: Finished processing the log files");
 				}
 				else
 				{
+					cumulus.LogDebugMessage($"GetAllTimeRecLogFile: Finished processing log file - {logFile}");
 					filedate = filedate.AddMonths(1);
 					logFile = cumulus.GetLogFileName(filedate);
 				}

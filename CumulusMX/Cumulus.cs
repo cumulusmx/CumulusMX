@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.1.2";
-		public string Build = "3055";
+		public string Version = "3.2.0";
+		public string Build = "3056";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -164,6 +164,7 @@ namespace CumulusMX
 		private readonly InternetSettings internetSettings;
 		private readonly CalibrationSettings calibrationSettings;
 		private readonly NOAASettings noaaSettings;
+		private readonly AlarmSettings alarmSettings;
 		private readonly MysqlSettings mySqlSettings;
 		private readonly DataEditor dataEditor;
 
@@ -202,6 +203,9 @@ namespace CumulusMX
 		public string WindUnitText;
 
 		public string WindRunUnitText;
+
+		public string AirQualityUnitText = "µg/m³";
+		public string SoilMoistureUnitText = "cb";
 
 		public volatile bool WebUpdating = false;
 
@@ -350,6 +354,9 @@ namespace CumulusMX
 		internal int HumDPlaces = 0;
 		public string HumFormat;
 
+		internal int AirQualityDPlaces = 1;
+		public string AirQualityFormat;
+
 		private readonly int WindRunDPlaces = 1;
 		public string WindRunFormat;
 
@@ -494,7 +501,6 @@ namespace CumulusMX
 		/// User pressure calibration
 		/// </summary>
 		public double PressOffset = 0.0;
-
 		public double TempOffset = 0.0;
 		public int HumOffset = 0;
 		public int WindDirOffset = 0;
@@ -502,6 +508,7 @@ namespace CumulusMX
 		public double UVOffset = 0.0;
 		public double WetBulbOffset = 0.0;
 
+		public double PressMult = 1.0;
 		public double WindSpeedMult = 1.0;
 		public double WindGustMult = 1.0;
 		public double TempMult = 1.0;
@@ -675,7 +682,8 @@ namespace CumulusMX
 
 		private const string WebcamDefault = "";
 
-		private const string DefaultSoundFile = "alert.wav";
+		private const string DefaultSoundFile = "alarm.mp3";
+		private const string DefaultSoundFileOld = "alert.wav";
 
 		public int RealtimeInterval;
 
@@ -799,7 +807,7 @@ namespace CumulusMX
 		public string[] StationDesc =
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL"
+			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000"
 		};
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP" };
@@ -987,7 +995,7 @@ namespace CumulusMX
 			// interface port passed as param
 			HttpPort = HTTPport;
 
-			//b3045, use smae port for WS...  WS port = HTTPS port
+			//b3045>, use same port for WS...  WS port = HTTPS port
 			//wsPort = WSport;
 			wsPort = HTTPport;
 
@@ -1178,6 +1186,8 @@ namespace CumulusMX
 			ETFormat = "F" + (RainDPlaces + 1);
 			WindRunFormat = "F" + WindRunDPlaces;
 			TempTrendFormat = "+0.0;-0.0;0";
+			AirQualityFormat = "F" + AirQualityDPlaces;
+
 
 			SetMonthlySqlCreateString();
 
@@ -1280,7 +1290,7 @@ namespace CumulusMX
 			LogMessage("Offsets and Multipliers:");
 			LogMessage("PO=" + PressOffset.ToString("F3") + " TO=" + TempOffset.ToString("F3") + " HO=" + HumOffset + " WDO=" + WindDirOffset + " ITO=" +
 						InTempoffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
-			LogMessage("WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
+			LogMessage("PM=" + PressMult.ToString("F3") + " WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
 						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
 			LogMessage("Spike removal:");
 			LogMessage("TD=" + EWtempdiff.ToString("F3") + " GD=" + EWgustdiff.ToString("F3") + " WD=" + EWwinddiff.ToString("F3") + " HD=" + EWhumiditydiff.ToString("F3") + " PD=" +
@@ -1342,6 +1352,10 @@ namespace CumulusMX
 					Manufacturer = DAVIS;
 					station = new DavisWllStation(this);
 					break;
+				case StationTypes.GW1000:
+					Manufacturer = ECOWITT;
+					station = new GW1000Station(this);
+					break;
 				default:
 					Console.WriteLine("Station type not set");
 					break;
@@ -1360,6 +1374,7 @@ namespace CumulusMX
 			internetSettings = new InternetSettings(this);
 			calibrationSettings = new CalibrationSettings(this);
 			noaaSettings = new NOAASettings(this);
+			alarmSettings = new AlarmSettings(this);
 			mySqlSettings = new MysqlSettings(this);
 			dataEditor = new DataEditor(this, station, webtags);
 
@@ -1386,6 +1401,7 @@ namespace CumulusMX
 			Api.internetSettings = internetSettings;
 			Api.calibrationSettings = calibrationSettings;
 			Api.noaaSettings = noaaSettings;
+			Api.alarmSettings = alarmSettings;
 			Api.mySqlSettings = mySqlSettings;
 			Api.dataEditor = dataEditor;
 
@@ -2377,6 +2393,7 @@ namespace CumulusMX
 			//MoonPhaseString = GetMoonStage(MoonAge);
 		}
 
+		/*
 		private string GetMoonStage(double fAge)
 		{
 			string sStage;
@@ -2420,6 +2437,7 @@ namespace CumulusMX
 
 			return sStage;
 		}
+		*/
 
 		public double MoonAge { get; set; }
 
@@ -2479,6 +2497,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		private DateTime getSunriseTime(DateTime time)
 		{
 			string rise = SunriseSunset.sunrise(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
@@ -2488,7 +2507,9 @@ namespace CumulusMX
 			int s = Convert.ToInt32(rise.Substring(4, 2));
 			return DateTime.Now.Date.Add(new TimeSpan(h, m, s));
 		}
+		*/
 
+		/*
 		private DateTime getSunsetTime(DateTime time)
 		{
 			string rise = SunriseSunset.sunset(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
@@ -2498,6 +2519,7 @@ namespace CumulusMX
 			int s = Convert.ToInt32(rise.Substring(4, 2));
 			return DateTime.Now.Date.Add(new TimeSpan(h, m, s));
 		}
+		*/
 
 		private void getDawnDusk(DateTime time, out DateTime dawn, out DateTime dusk, out bool alwaysUp, out bool alwaysDown)
 		{
@@ -2547,6 +2569,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		private DateTime getDawnTime(DateTime time)
 		{
 			string rise = SunriseSunset.CivilTwilightEnds(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
@@ -2563,7 +2586,9 @@ namespace CumulusMX
 				return DateTime.Now.Date;
 			}
 		}
+		*/
 
+		/*
 		private DateTime getDuskTime(DateTime time)
 		{
 			string rise = SunriseSunset.CivilTwilightStarts(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
@@ -2580,6 +2605,7 @@ namespace CumulusMX
 				return DateTime.Now.Date;
 			}
 		}
+		*/
 
 		internal void DoSunriseAndSunset()
 		{
@@ -3107,6 +3133,10 @@ namespace CumulusMX
 			}
 
 
+			// GW1000 setiings
+			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
+
+
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
 			ftp_user = ini.GetValue("FTP site", "Username", "");
@@ -3282,59 +3312,70 @@ namespace CumulusMX
 			SynchronisedAPRSUpdate = (60 % APRSinterval == 0);
 
 
-			alarmlowtemp = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
-			LowTempAlarmSet = ini.GetValue("Alarms", "LowTempAlarmSet", false);
+			LowTempAlarmValue = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
+			LowTempAlarmEnabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
 			LowTempAlarmSound = ini.GetValue("Alarms", "LowTempAlarmSound", false);
 			LowTempAlarmSoundFile = ini.GetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile);
+			if (LowTempAlarmSoundFile.Contains(DefaultSoundFileOld)) LowTempAlarmSoundFile = DefaultSoundFile;
 
-			alarmhightemp = ini.GetValue("Alarms", "alarmhightemp", 0.0);
-			HighTempAlarmSet = ini.GetValue("Alarms", "HighTempAlarmSet", false);
+			HighTempAlarmValue = ini.GetValue("Alarms", "alarmhightemp", 0.0);
+			HighTempAlarmEnabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
 			HighTempAlarmSound = ini.GetValue("Alarms", "HighTempAlarmSound", false);
 			HighTempAlarmSoundFile = ini.GetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile);
+			if (HighTempAlarmSoundFile.Contains(DefaultSoundFileOld)) HighTempAlarmSoundFile = DefaultSoundFile;
 
-			alarmtempchange = ini.GetValue("Alarms", "alarmtempchange", 0.0);
-			TempChangeAlarmSet = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
+			TempChangeAlarmValue = ini.GetValue("Alarms", "alarmtempchange", 0.0);
+			TempChangeAlarmEnabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
 			TempChangeAlarmSound = ini.GetValue("Alarms", "TempChangeAlarmSound", false);
 			TempChangeAlarmSoundFile = ini.GetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile);
+			if (TempChangeAlarmSoundFile.Contains(DefaultSoundFileOld)) TempChangeAlarmSoundFile = DefaultSoundFile;
 
-			alarmlowpress = ini.GetValue("Alarms", "alarmlowpress", 0.0);
-			LowPressAlarmSet = ini.GetValue("Alarms", "LowPressAlarmSet", false);
+			LowPressAlarmValue = ini.GetValue("Alarms", "alarmlowpress", 0.0);
+			LowPressAlarmEnabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
 			LowPressAlarmSound = ini.GetValue("Alarms", "LowPressAlarmSound", false);
 			LowPressAlarmSoundFile = ini.GetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile);
+			if (LowPressAlarmSoundFile.Contains(DefaultSoundFileOld)) LowPressAlarmSoundFile = DefaultSoundFile;
 
-			alarmhighpress = ini.GetValue("Alarms", "alarmhighpress", 0.0);
-			HighPressAlarmSet = ini.GetValue("Alarms", "HighPressAlarmSet", false);
+			HighPressAlarmValue = ini.GetValue("Alarms", "alarmhighpress", 0.0);
+			HighPressAlarmEnabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
 			HighPressAlarmSound = ini.GetValue("Alarms", "HighPressAlarmSound", false);
 			HighPressAlarmSoundFile = ini.GetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile);
+			if (HighPressAlarmSoundFile.Contains(DefaultSoundFileOld)) HighPressAlarmSoundFile = DefaultSoundFile;
 
-			alarmpresschange = ini.GetValue("Alarms", "alarmpresschange", 0.0);
-			PressChangeAlarmSet = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
+			PressChangeAlarmValue = ini.GetValue("Alarms", "alarmpresschange", 0.0);
+			PressChangeAlarmEnabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
 			PressChangeAlarmSound = ini.GetValue("Alarms", "PressChangeAlarmSound", false);
 			PressChangeAlarmSoundFile = ini.GetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile);
+			if (PressChangeAlarmSoundFile.Contains(DefaultSoundFileOld)) PressChangeAlarmSoundFile = DefaultSoundFile;
 
-			alarmhighraintoday = ini.GetValue("Alarms", "alarmhighraintoday", 0.0);
-			HighRainTodayAlarmSet = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
+			HighRainTodayAlarmValue = ini.GetValue("Alarms", "alarmhighraintoday", 0.0);
+			HighRainTodayAlarmEnabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
 			HighRainTodayAlarmSound = ini.GetValue("Alarms", "HighRainTodayAlarmSound", false);
 			HighRainTodayAlarmSoundFile = ini.GetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile);
+			if (HighRainTodayAlarmSoundFile.Contains(DefaultSoundFileOld)) HighRainTodayAlarmSoundFile = DefaultSoundFile;
 
-			alarmhighrainrate = ini.GetValue("Alarms", "alarmhighrainrate", 0.0);
-			HighRainRateAlarmSet = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
+			HighRainRateAlarmValue = ini.GetValue("Alarms", "alarmhighrainrate", 0.0);
+			HighRainRateAlarmEnabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
 			HighRainRateAlarmSound = ini.GetValue("Alarms", "HighRainRateAlarmSound", false);
 			HighRainRateAlarmSoundFile = ini.GetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile);
+			if (HighRainRateAlarmSoundFile.Contains(DefaultSoundFileOld)) HighRainRateAlarmSoundFile = DefaultSoundFile;
 
-			alarmhighgust = ini.GetValue("Alarms", "alarmhighgust", 0.0);
-			HighGustAlarmSet = ini.GetValue("Alarms", "HighGustAlarmSet", false);
+			HighGustAlarmValue = ini.GetValue("Alarms", "alarmhighgust", 0.0);
+			HighGustAlarmEnabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
 			HighGustAlarmSound = ini.GetValue("Alarms", "HighGustAlarmSound", false);
 			HighGustAlarmSoundFile = ini.GetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile);
+			if (HighGustAlarmSoundFile.Contains(DefaultSoundFileOld)) HighGustAlarmSoundFile = DefaultSoundFile;
 
-			alarmhighwind = ini.GetValue("Alarms", "alarmhighwind", 0.0);
-			HighWindAlarmSet = ini.GetValue("Alarms", "HighWindAlarmSet", false);
+			HighWindAlarmValue = ini.GetValue("Alarms", "alarmhighwind", 0.0);
+			HighWindAlarmEnabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
 			HighWindAlarmSound = ini.GetValue("Alarms", "HighWindAlarmSound", false);
 			HighWindAlarmSoundFile = ini.GetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile);
+			if (HighWindAlarmSoundFile.Contains(DefaultSoundFileOld)) HighWindAlarmSoundFile = DefaultSoundFile;
 
-			SensorAlarmSet = ini.GetValue("Alarms", "SensorAlarmSet", false);
+			SensorAlarmEnabled = ini.GetValue("Alarms", "SensorAlarmSet", false);
 			SensorAlarmSound = ini.GetValue("Alarms", "SensorAlarmSound", false);
 			SensorAlarmSoundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
+			if (SensorAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
 
 			PressOffset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			TempOffset = ini.GetValue("Offsets", "TempOffset", 0.0);
@@ -3344,6 +3385,7 @@ namespace CumulusMX
 			UVOffset = ini.GetValue("Offsets", "UVOffset", 0.0);
 			WetBulbOffset = ini.GetValue("Offsets", "WetBulbOffset", 0.0);
 
+			PressMult = ini.GetValue("Offsets", "PressMult", 1.0);
 			WindSpeedMult = ini.GetValue("Offsets", "WindSpeedMult", 1.0);
 			WindGustMult = ini.GetValue("Offsets", "WindGustMult", 1.0);
 			TempMult = ini.GetValue("Offsets", "TempMult", 1.0);
@@ -3676,6 +3718,8 @@ namespace CumulusMX
 				ini.SetValue("WLL", "ExtraHumOnTxId" + i, WllExtraHumTx[i - 1]);
 			}
 
+			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
+
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
 
@@ -3807,57 +3851,57 @@ namespace CumulusMX
 			ini.SetValue("APRS", "SendSR", SendSRToAPRS);
 
 
-			ini.SetValue("Alarms", "alarmlowtemp", alarmlowtemp);
-			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmSet);
+			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarmValue);
+			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmEnabled);
 			ini.SetValue("Alarms", "LowTempAlarmSound", LowTempAlarmSound);
 			ini.SetValue("Alarms", "LowTempAlarmSoundFile", LowTempAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmhightemp", alarmhightemp);
-			ini.SetValue("Alarms", "HighTempAlarmSet", HighTempAlarmSet);
+			ini.SetValue("Alarms", "alarmhightemp", HighTempAlarmValue);
+			ini.SetValue("Alarms", "HighTempAlarmSet", HighTempAlarmEnabled);
 			ini.SetValue("Alarms", "HighTempAlarmSound", HighTempAlarmSound);
 			ini.SetValue("Alarms", "HighTempAlarmSoundFile", HighTempAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmtempchange", alarmtempchange);
-			ini.SetValue("Alarms", "TempChangeAlarmSet", TempChangeAlarmSet);
+			ini.SetValue("Alarms", "alarmtempchange", TempChangeAlarmValue);
+			ini.SetValue("Alarms", "TempChangeAlarmSet", TempChangeAlarmEnabled);
 			ini.SetValue("Alarms", "TempChangeAlarmSound", TempChangeAlarmSound);
 			ini.SetValue("Alarms", "TempChangeAlarmSoundFile", TempChangeAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmlowpress", alarmlowpress);
-			ini.SetValue("Alarms", "LowPressAlarmSet", LowPressAlarmSet);
+			ini.SetValue("Alarms", "alarmlowpress", LowPressAlarmValue);
+			ini.SetValue("Alarms", "LowPressAlarmSet", LowPressAlarmEnabled);
 			ini.SetValue("Alarms", "LowPressAlarmSound", LowPressAlarmSound);
 			ini.SetValue("Alarms", "LowPressAlarmSoundFile", LowPressAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmhighpress", alarmhighpress);
-			ini.SetValue("Alarms", "HighPressAlarmSet", HighPressAlarmSet);
+			ini.SetValue("Alarms", "alarmhighpress", HighPressAlarmValue);
+			ini.SetValue("Alarms", "HighPressAlarmSet", HighPressAlarmEnabled);
 			ini.SetValue("Alarms", "HighPressAlarmSound", HighPressAlarmSound);
 			ini.SetValue("Alarms", "HighPressAlarmSoundFile", HighPressAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmpresschange", alarmpresschange);
-			ini.SetValue("Alarms", "PressChangeAlarmSet", PressChangeAlarmSet);
+			ini.SetValue("Alarms", "alarmpresschange", PressChangeAlarmValue);
+			ini.SetValue("Alarms", "PressChangeAlarmSet", PressChangeAlarmEnabled);
 			ini.SetValue("Alarms", "PressChangeAlarmSound", PressChangeAlarmSound);
 			ini.SetValue("Alarms", "PressChangeAlarmSoundFile", PressChangeAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmhighraintoday", alarmhighraintoday);
-			ini.SetValue("Alarms", "HighRainTodayAlarmSet", HighRainTodayAlarmSet);
+			ini.SetValue("Alarms", "alarmhighraintoday", HighRainTodayAlarmValue);
+			ini.SetValue("Alarms", "HighRainTodayAlarmSet", HighRainTodayAlarmEnabled);
 			ini.SetValue("Alarms", "HighRainTodayAlarmSound", HighRainTodayAlarmSound);
 			ini.SetValue("Alarms", "HighRainTodayAlarmSoundFile", HighRainTodayAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmhighrainrate", alarmhighrainrate);
-			ini.SetValue("Alarms", "HighRainRateAlarmSet", HighRainRateAlarmSet);
+			ini.SetValue("Alarms", "alarmhighrainrate", HighRainRateAlarmValue);
+			ini.SetValue("Alarms", "HighRainRateAlarmSet", HighRainRateAlarmEnabled);
 			ini.SetValue("Alarms", "HighRainRateAlarmSound", HighRainRateAlarmSound);
 			ini.SetValue("Alarms", "HighRainRateAlarmSoundFile", HighRainRateAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmhighgust", alarmhighgust);
-			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarmSet);
+			ini.SetValue("Alarms", "alarmhighgust", HighGustAlarmValue);
+			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarmEnabled);
 			ini.SetValue("Alarms", "HighGustAlarmSound", HighGustAlarmSound);
 			ini.SetValue("Alarms", "HighGustAlarmSoundFile", HighGustAlarmSoundFile);
 
-			ini.SetValue("Alarms", "alarmhighwind", alarmhighwind);
-			ini.SetValue("Alarms", "HighWindAlarmSet", HighWindAlarmSet);
+			ini.SetValue("Alarms", "alarmhighwind", HighWindAlarmValue);
+			ini.SetValue("Alarms", "HighWindAlarmSet", HighWindAlarmEnabled);
 			ini.SetValue("Alarms", "HighWindAlarmSound", HighWindAlarmSound);
 			ini.SetValue("Alarms", "HighWindAlarmSoundFile", HighWindAlarmSoundFile);
 
-			ini.SetValue("Alarms", "SensorAlarmSet", SensorAlarmSet);
+			ini.SetValue("Alarms", "SensorAlarmSet", SensorAlarmEnabled);
 			ini.SetValue("Alarms", "SensorAlarmSound", SensorAlarmSound);
 			ini.SetValue("Alarms", "SensorAlarmSoundFile", SensorAlarmSoundFile);
 
@@ -3870,6 +3914,8 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "WetBulbOffset", WetBulbOffset);
 			//ini.SetValue("Offsets", "DavisCalcAltPressOffset", DavisCalcAltPressOffset);
 
+
+			ini.SetValue("Offsets", "PressMult", PressMult);
 			ini.SetValue("Offsets", "WindSpeedMult", WindSpeedMult);
 			ini.SetValue("Offsets", "WindGustMult", WindGustMult);
 			ini.SetValue("Offsets", "TempMult", TempMult);
@@ -4163,18 +4209,53 @@ namespace CumulusMX
 				SoilTempCaptions[2] = ini.GetValue("SoilTempCaptions", "Sensor2", "Sensor 2");
 				SoilTempCaptions[3] = ini.GetValue("SoilTempCaptions", "Sensor3", "Sensor 3");
 				SoilTempCaptions[4] = ini.GetValue("SoilTempCaptions", "Sensor4", "Sensor 4");
+				SoilTempCaptions[5] = ini.GetValue("SoilTempCaptions", "Sensor5", "Sensor 5");
+				SoilTempCaptions[6] = ini.GetValue("SoilTempCaptions", "Sensor6", "Sensor 6");
+				SoilTempCaptions[7] = ini.GetValue("SoilTempCaptions", "Sensor7", "Sensor 7");
+				SoilTempCaptions[8] = ini.GetValue("SoilTempCaptions", "Sensor8", "Sensor 8");
+				SoilTempCaptions[9] = ini.GetValue("SoilTempCaptions", "Sensor9", "Sensor 9");
+				SoilTempCaptions[10] = ini.GetValue("SoilTempCaptions", "Sensor10", "Sensor 10");
+				SoilTempCaptions[11] = ini.GetValue("SoilTempCaptions", "Sensor11", "Sensor 11");
+				SoilTempCaptions[12] = ini.GetValue("SoilTempCaptions", "Sensor12", "Sensor 12");
+				SoilTempCaptions[13] = ini.GetValue("SoilTempCaptions", "Sensor13", "Sensor 13");
+				SoilTempCaptions[14] = ini.GetValue("SoilTempCaptions", "Sensor14", "Sensor 14");
+				SoilTempCaptions[15] = ini.GetValue("SoilTempCaptions", "Sensor15", "Sensor 15");
+				SoilTempCaptions[16] = ini.GetValue("SoilTempCaptions", "Sensor16", "Sensor 16");
 
 				// soil moisture captions (for Extra Sensor Data screen)
 				SoilMoistureCaptions[1] = ini.GetValue("SoilMoistureCaptions", "Sensor1", "Sensor 1");
 				SoilMoistureCaptions[2] = ini.GetValue("SoilMoistureCaptions", "Sensor2", "Sensor 2");
 				SoilMoistureCaptions[3] = ini.GetValue("SoilMoistureCaptions", "Sensor3", "Sensor 3");
 				SoilMoistureCaptions[4] = ini.GetValue("SoilMoistureCaptions", "Sensor4", "Sensor 4");
+				SoilMoistureCaptions[5] = ini.GetValue("SoilMoistureCaptions", "Sensor5", "Sensor 5");
+				SoilMoistureCaptions[6] = ini.GetValue("SoilMoistureCaptions", "Sensor6", "Sensor 6");
+				SoilMoistureCaptions[7] = ini.GetValue("SoilMoistureCaptions", "Sensor7", "Sensor 7");
+				SoilMoistureCaptions[8] = ini.GetValue("SoilMoistureCaptions", "Sensor8", "Sensor 8");
+				SoilMoistureCaptions[9] = ini.GetValue("SoilMoistureCaptions", "Sensor9", "Sensor 9");
+				SoilMoistureCaptions[10] = ini.GetValue("SoilMoistureCaptions", "Sensor10", "Sensor 10");
+				SoilMoistureCaptions[11] = ini.GetValue("SoilMoistureCaptions", "Sensor11", "Sensor 11");
+				SoilMoistureCaptions[12] = ini.GetValue("SoilMoistureCaptions", "Sensor12", "Sensor 12");
+				SoilMoistureCaptions[13] = ini.GetValue("SoilMoistureCaptions", "Sensor13", "Sensor 13");
+				SoilMoistureCaptions[14] = ini.GetValue("SoilMoistureCaptions", "Sensor14", "Sensor 14");
+				SoilMoistureCaptions[15] = ini.GetValue("SoilMoistureCaptions", "Sensor15", "Sensor 15");
+				SoilMoistureCaptions[16] = ini.GetValue("SoilMoistureCaptions", "Sensor16", "Sensor 16");
 
 				// leaf temp/wetness captions (for Extra Sensor Data screen)
 				LeafCaptions[1] = ini.GetValue("LeafTempCaptions", "Sensor1", "Sensor 1");
 				LeafCaptions[2] = ini.GetValue("LeafTempCaptions", "Sensor2", "Sensor 2");
 				LeafCaptions[3] = ini.GetValue("LeafWetnessCaptions", "Sensor1", "Sensor 1");
 				LeafCaptions[4] = ini.GetValue("LeafWetnessCaptions", "Sensor2", "Sensor 2");
+
+				// air quality captions (for Extra Sensor Data screen)
+				AirQualityCaptions[1] = ini.GetValue("AirQualityCaptions", "Sensor1", "Sensor 1");
+				AirQualityCaptions[2] = ini.GetValue("AirQualityCaptions", "Sensor2", "Sensor 2");
+				AirQualityCaptions[3] = ini.GetValue("AirQualityCaptions", "Sensor3", "Sensor 3");
+				AirQualityCaptions[4] = ini.GetValue("AirQualityCaptions", "Sensor4", "Sensor 4");
+				AirQualityAvgCaptions[1] = ini.GetValue("AirQualityCaptions", "SensorAvg1", "Sensor Avg 1");
+				AirQualityAvgCaptions[2] = ini.GetValue("AirQualityCaptions", "SensorAvg2", "Sensor Avg 2");
+				AirQualityAvgCaptions[3] = ini.GetValue("AirQualityCaptions", "SensorAvg3", "Sensor Avg 3");
+				AirQualityAvgCaptions[4] = ini.GetValue("AirQualityCaptions", "SensorAvg4", "Sensor Avg 4");
+
 
 				thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
 				thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
@@ -4242,87 +4323,111 @@ namespace CumulusMX
 
 		public bool SensorAlarmSound { get; set; }
 
-		public bool SensorAlarmSet { get; set; }
+		public bool SensorAlarmEnabled { get; set; }
+
+		public bool SensorAlarmState = false;
 
 		public bool HighWindAlarmSound { get; set; }
 
 		public string HighWindAlarmSoundFile { get; set; }
 
-		public bool HighWindAlarmSet { get; set; }
+		public bool HighWindAlarmEnabled { get; set; }
 
-		public double alarmhighwind { get; set; }
+		public double HighWindAlarmValue { get; set; }
+
+		public bool HighWindAlarmState = false;
 
 		public string HighGustAlarmSoundFile { get; set; }
 
 		public bool HighGustAlarmSound { get; set; }
 
-		public bool HighGustAlarmSet { get; set; }
+		public bool HighGustAlarmEnabled { get; set; }
 
-		public double alarmhighgust { get; set; }
+		public double HighGustAlarmValue { get; set; }
+
+		public bool HighGustAlarmState = false;
 
 		public string HighRainRateAlarmSoundFile { get; set; }
 
 		public bool HighRainRateAlarmSound { get; set; }
 
-		public bool HighRainRateAlarmSet { get; set; }
+		public bool HighRainRateAlarmEnabled { get; set; }
 
-		public double alarmhighrainrate { get; set; }
+		public double HighRainRateAlarmValue { get; set; }
+
+		public bool HighRainRateAlarmState = false;
 
 		public string HighRainTodayAlarmSoundFile { get; set; }
 
 		public bool HighRainTodayAlarmSound { get; set; }
 
-		public bool HighRainTodayAlarmSet { get; set; }
+		public bool HighRainTodayAlarmEnabled { get; set; }
 
-		public double alarmhighraintoday { get; set; }
+		public double HighRainTodayAlarmValue { get; set; }
+
+		public bool HighRainTodayAlarmState = false;
 
 		public string PressChangeAlarmSoundFile { get; set; }
 
 		public bool PressChangeAlarmSound { get; set; }
 
-		public bool PressChangeAlarmSet { get; set; }
+		public bool PressChangeAlarmEnabled { get; set; }
 
-		public double alarmpresschange { get; set; }
+		public double PressChangeAlarmValue { get; set; }
+
+		public bool PressChangeUpAlarmState = false;
+		public bool PressChangeDownAlarmState = false;
 
 		public string HighPressAlarmSoundFile { get; set; }
 
 		public bool HighPressAlarmSound { get; set; }
 
-		public bool HighPressAlarmSet { get; set; }
+		public bool HighPressAlarmEnabled { get; set; }
 
-		public double alarmhighpress { get; set; }
+		public double HighPressAlarmValue { get; set; }
+
+		public bool HighPressAlarmState = false;
 
 		public string LowPressAlarmSoundFile { get; set; }
 
 		public bool LowPressAlarmSound { get; set; }
 
-		public bool LowPressAlarmSet { get; set; }
+		public bool LowPressAlarmEnabled { get; set; }
 
-		public double alarmlowpress { get; set; }
+		public double LowPressAlarmValue { get; set; }
+
+		public bool LowPressAlarmState = false;
 
 		public string TempChangeAlarmSoundFile { get; set; }
 
 		public bool TempChangeAlarmSound { get; set; }
 
-		public bool TempChangeAlarmSet { get; set; }
+		public bool TempChangeAlarmEnabled { get; set; }
 
-		public double alarmtempchange { get; set; }
+		public double TempChangeAlarmValue { get; set; }
+
+		public bool TempChangeUpAlarmState = false;
+		public bool TempChangeDownAlarmState = false;
 
 		public string HighTempAlarmSoundFile { get; set; }
 
 		public bool HighTempAlarmSound { get; set; }
 
-		public bool HighTempAlarmSet { get; set; }
+		public bool HighTempAlarmEnabled { get; set; }
 
-		public double alarmhightemp { get; set; }
+		public double HighTempAlarmValue { get; set; }
+
+		public bool HighTempAlarmState = false;
 
 		public string LowTempAlarmSoundFile { get; set; }
 
 		public bool LowTempAlarmSound { get; set; }
 
-		public bool LowTempAlarmSet { get; set; }
+		public bool LowTempAlarmEnabled { get; set; }
 
-		public double alarmlowtemp { get; set; }
+		public bool LowTempAlarmState = false;
+
+		public double LowTempAlarmValue { get; set; }
 
 		public bool UseBlakeLarsen { get; set; }
 
@@ -4670,6 +4775,9 @@ namespace CumulusMX
 
 		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false };
 
+		public string Gw1000IpAddress;
+
+
 		public Timer WundTimer = new Timer();
 		public Timer WindyTimer = new Timer();
 		public Timer PWSTimer = new Timer();
@@ -4687,6 +4795,7 @@ namespace CumulusMX
 		public int LACROSSE = 3;
 		public int OREGONUSB = 4;
 		public int INSTROMET = 5;
+		public int ECOWITT = 6;
 		public bool startingup = true;
 		public bool StartOfDayBackupNeeded = false;
 		public string ReportPath = "Reports";
@@ -4732,8 +4841,10 @@ namespace CumulusMX
 		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
 		public string[] ExtraHumCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
 		public string[] ExtraDPCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-		public string[] SoilTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
-		public string[] SoilMoistureCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
+		public string[] SoilTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
+		public string[] SoilMoistureCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
+		public string[] AirQualityCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
+		public string[] AirQualityAvgCaptions = { "", "Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4" };
 		public string[] LeafCaptions = { "", "Temp 1", "Temp 2", "Wetness 1", "Wetness 2" };
 		private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
 		private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
@@ -4999,7 +5110,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 44;
+		public const int NumExtraLogFileFields = 76;
 
 		public void DoExtraLogFile(DateTime timestamp)
 		{
@@ -5037,10 +5148,45 @@ namespace CumulusMX
 				file.Write(station.LeafTemp1.ToString(TempFormat) + ListSeparator);
 				file.Write(station.LeafTemp2.ToString(TempFormat) + ListSeparator);
 
-
 				file.Write(station.LeafWetness1 + ListSeparator);
-				file.WriteLine(station.LeafWetness2 + ListSeparator);
+				file.Write(station.LeafWetness2 + ListSeparator);
 
+				file.Write(station.SoilTemp5.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp6.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp7.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp8.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp9.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp10.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp11.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp12.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp13.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp14.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp15.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp16.ToString(TempFormat) + ListSeparator);
+
+				file.Write(station.SoilMoisture5 + ListSeparator);
+				file.Write(station.SoilMoisture6 + ListSeparator);
+				file.Write(station.SoilMoisture7 + ListSeparator);
+				file.Write(station.SoilMoisture8 + ListSeparator);
+				file.Write(station.SoilMoisture9 + ListSeparator);
+				file.Write(station.SoilMoisture10 + ListSeparator);
+				file.Write(station.SoilMoisture11 + ListSeparator);
+				file.Write(station.SoilMoisture12 + ListSeparator);
+				file.Write(station.SoilMoisture13 + ListSeparator);
+				file.Write(station.SoilMoisture14 + ListSeparator);
+				file.Write(station.SoilMoisture15 + ListSeparator);
+				file.Write(station.SoilMoisture16 + ListSeparator);
+
+				file.Write(station.AirQuality1.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQuality2.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQuality3.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQuality4.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQualityAvg1.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQualityAvg2.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQualityAvg3.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQualityAvg4.ToString(AirQualityFormat));
+
+				file.WriteLine();
 				file.Close();
 			}
 		}
@@ -7161,6 +7307,7 @@ namespace CumulusMX
 		public const int WMR200 = 9;
 		public const int Instromet = 10;
 		public const int WLL = 11;
+		public const int GW1000 = 12;
 	}
 
 	public static class DoubleExtensions

@@ -870,7 +870,7 @@ namespace CumulusMX
 							// Get station pressure in hPa by subtracting offset and calibrating
 							// EWpressure offset is difference between rel and abs in hPa
 							// PressOffset is user calibration in user units.
-							pressure = pressure - pressureOffset + PressureHPa(cumulus.PressOffset);
+							pressure = (pressure - pressureOffset) * PressureHPa(cumulus.PressMult) + PressureHPa(cumulus.PressOffset);
 							StationPressure = ConvertPressMBToUser(pressure);
 						}
 						else
@@ -893,6 +893,7 @@ namespace CumulusMX
 					else
 					{
 						SensorContactLost = false;
+
 						// Outdoor Humidity ===================================================
 						int outhum = data[4];
 						if ((outhum > 100) && (outhum != 255))
@@ -1066,6 +1067,10 @@ namespace CumulusMX
 								DoUV(UVreading, now);
 							}
 						}
+					}
+					if (cumulus.SensorAlarmEnabled)
+					{
+						cumulus.SensorAlarmState = SensorContactLost;
 					}
 				}
 			}

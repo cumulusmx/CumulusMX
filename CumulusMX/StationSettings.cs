@@ -68,6 +68,8 @@ namespace CumulusMX
 
 			var davisconn = new JsonStationSettingsDavisConn() {conntype = cumulus.VP2ConnectionType, tcpsettings = tcpsettings};
 
+			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress};
+
 			var logrollover = new JsonStationSettingsLogRollover() {time = "midnight",summer10am = cumulus.Use10amInSummer};
 
 			if (cumulus.RolloverHour == 9)
@@ -87,14 +89,14 @@ namespace CumulusMX
 			var Longitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
 			var Location = new JsonStationSettingsLocation()
-						   {
-							   altitude = (int) cumulus.Altitude,
-							   altitudeunit = "metres",
-							   description = cumulus.LocationDesc,
-							   Latitude = Latitude,
-							   Longitude = Longitude,
-							   sitename = cumulus.LocationName
-						   };
+							{
+								altitude = (int) cumulus.Altitude,
+								altitudeunit = "metres",
+								description = cumulus.LocationDesc,
+								Latitude = Latitude,
+								Longitude = Longitude,
+								sitename = cumulus.LocationName
+							};
 
 			if (cumulus.AltitudeInFeet)
 			{
@@ -102,13 +104,13 @@ namespace CumulusMX
 			}
 
 			var forecast = new JsonStationSettingsForecast()
-						   {
-							   highpressureextreme = cumulus.FChighpress,
-							   lowpressureextreme = cumulus.FClowpress,
-							   pressureunit = "mb/hPa",
-							   updatehourly = cumulus.HourlyForecast,
-							   usecumulusforecast = cumulus.UseCumulusForecast
-						   };
+							{
+								highpressureextreme = cumulus.FChighpress,
+								lowpressureextreme = cumulus.FClowpress,
+								pressureunit = "mb/hPa",
+								updatehourly = cumulus.HourlyForecast,
+								usecumulusforecast = cumulus.UseCumulusForecast
+							};
 
 			if (!cumulus.FCpressinMB)
 			{
@@ -201,6 +203,7 @@ namespace CumulusMX
 				units = units,
 				davisconn = davisconn,
 				daviswll = wll,
+				gw1000 = gw1000,
 				comportname = cumulus.ComportName,
 				loginterval = cumulus.DataLogInterval,
 				logrollover = logrollover,
@@ -435,6 +438,9 @@ namespace CumulusMX
 				cumulus.VP2TCPPort = settings.davisconn.tcpsettings.tcpport;
 				cumulus.VP2PeriodicDisconnectInterval = settings.davisconn.tcpsettings.disconperiod;
 
+				// GW1000 connection details
+				cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
+
 				// Units
 				cumulus.WindUnit = settings.units.wind;
 				cumulus.PressUnit = settings.units.pressure;
@@ -483,6 +489,7 @@ namespace CumulusMX
 		public int stationtype { get; set; }
 		public JsonStationSettingsUnits units { get; set; }
 		public JsonStationSettingsDavisConn davisconn { set; get; }
+		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
 		public string comportname { get; set; }
 		public int loginterval { get; set; }
@@ -535,6 +542,11 @@ namespace CumulusMX
 	{
 		public int conntype { get; set; }
 		public JsonStationSettingsTCPsettings tcpsettings { get; set; }
+	}
+
+	public class JSonStationSettingsGw1000Conn
+	{
+		public string ipaddress { get; set; }
 	}
 
 	public class JsonStationSettingsLogRollover
