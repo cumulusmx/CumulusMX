@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.0";
-		public string Build = "3056";
+		public string Version = "3.2.1";
+		public string Build = "3057";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -505,6 +505,7 @@ namespace CumulusMX
 		public int HumOffset = 0;
 		public int WindDirOffset = 0;
 		public double InTempoffset = 0.0;
+		public double SolarOffset = 0.0;
 		public double UVOffset = 0.0;
 		public double WetBulbOffset = 0.0;
 
@@ -516,6 +517,7 @@ namespace CumulusMX
 		public double HumMult = 1.0;
 		public double HumMult2 = 0.0;
 		public double RainMult = 1.0;
+		public double SolarMult = 1.0;
 		public double UVMult = 1.0;
 		public double WetBulbMult = 1.0;
 
@@ -1289,9 +1291,9 @@ namespace CumulusMX
 			LogMessage("RainDayThreshold=" + RainDayThreshold.ToString("F3"));
 			LogMessage("Offsets and Multipliers:");
 			LogMessage("PO=" + PressOffset.ToString("F3") + " TO=" + TempOffset.ToString("F3") + " HO=" + HumOffset + " WDO=" + WindDirOffset + " ITO=" +
-						InTempoffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
+						InTempoffset.ToString("F3") + "SO=" + SolarOffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
 			LogMessage("PM=" + PressMult.ToString("F3") + " WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
-						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
+						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + "SM=" + SolarMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
 			LogMessage("Spike removal:");
 			LogMessage("TD=" + EWtempdiff.ToString("F3") + " GD=" + EWgustdiff.ToString("F3") + " WD=" + EWwinddiff.ToString("F3") + " HD=" + EWhumiditydiff.ToString("F3") + " PD=" +
 						EWpressurediff.ToString("F3"));
@@ -3382,6 +3384,7 @@ namespace CumulusMX
 			HumOffset = ini.GetValue("Offsets", "HumOffset", 0);
 			WindDirOffset = ini.GetValue("Offsets", "WindDirOffset", 0);
 			InTempoffset = ini.GetValue("Offsets", "InTempOffset", 0.0);
+			SolarOffset = ini.GetValue("Offsers", "SolarOffset", 0.0);
 			UVOffset = ini.GetValue("Offsets", "UVOffset", 0.0);
 			WetBulbOffset = ini.GetValue("Offsets", "WetBulbOffset", 0.0);
 
@@ -3393,6 +3396,7 @@ namespace CumulusMX
 			HumMult = ini.GetValue("Offsets", "HumMult", 1.0);
 			HumMult2 = ini.GetValue("Offsets", "HumMult2", 0.0);
 			RainMult = ini.GetValue("Offsets", "RainMult", 1.0);
+			SolarMult = ini.GetValue("Offsets", "SolarMult", 1.0);
 			UVMult = ini.GetValue("Offsets", "UVMult", 1.0);
 			WetBulbMult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
 
@@ -3911,6 +3915,7 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "WindDirOffset", WindDirOffset);
 			ini.SetValue("Offsets", "InTempOffset", InTempoffset);
 			ini.SetValue("Offsets", "UVOffset", UVOffset);
+			ini.SetValue("Offsets", "SolarOffset", SolarOffset);
 			ini.SetValue("Offsets", "WetBulbOffset", WetBulbOffset);
 			//ini.SetValue("Offsets", "DavisCalcAltPressOffset", DavisCalcAltPressOffset);
 
@@ -3921,6 +3926,7 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "TempMult", TempMult);
 			ini.SetValue("Offsets", "HumMult", HumMult);
 			ini.SetValue("Offsets", "RainMult", RainMult);
+			ini.SetValue("Offsets", "SolarMult", SolarMult);
 			ini.SetValue("Offsets", "UVMult", UVMult);
 			ini.SetValue("Offsets", "WetBulbMult", WetBulbMult);
 

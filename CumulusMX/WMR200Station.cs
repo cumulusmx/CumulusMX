@@ -1628,14 +1628,14 @@ namespace CumulusMX
 			// just to calculate theoretical max for consistency
 			DoSolarRad(0, timestamp);
 
+			DoApparentTemp(timestamp);
+
 			cumulus.DoLogFile(timestamp,false);
 
 			if (cumulus.LogExtraSensors)
 			{
 				cumulus.DoExtraLogFile(timestamp);
 			}
-
-			DoApparentTemp(timestamp);
 
 			AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 			AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);

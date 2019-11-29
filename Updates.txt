@@ -1,3 +1,21 @@
+3.2.1 - b3057
+=============
+- Fix for WMR200 stations writing a zero value Apparent Temperature to the log files when retrieving logger data
+- Fix the dashboard for Internet Explorer
+- Fix default website index page header not wrapping on small screens
+- Fix for Davis stations connected via TCP/IP to detect failures and reopen the connection more quickly during loop data processing
+- Adds Solar calibration settings offset and multiplier
+- Updates the SampleStrings.ini file with the extra captions added in b3056
+
+- Updated files
+	\CumulusMX.exe
+	\SampleStrings.ini
+	\HidSharp.dll
+	\interface\js\dashboard.js
+	\interface\json\CalibrationSchema.json
+	\web\indexT.htm
+
+
 3.2.0 - b3056
 =============
 - Adds support for Ecowitt GW1000 WiFi gateway
@@ -37,7 +55,7 @@
 - Changes All Time Records editor to only load data from the Day File by default. Monthly log file
   processing is now optional as it can take a very long time on a slow machine e.g. Raspberry Pi
 - Fix to catch badly formed Davis WLL broadcast messages
-- Fix for Davis WLL edge cases producing an intial zero value wind chill on startup
+- Fix for Davis WLL edge cases producing an initial zero value wind chill on startup
 
 - Updated files
 	\CumulusMX.exe
