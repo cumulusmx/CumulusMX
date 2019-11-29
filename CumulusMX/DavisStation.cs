@@ -905,7 +905,8 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDataMessage("Error sending LOOP command: " + ex.Message);
+				cumulus.LogMessage("Error sending LOOP command [" + commandString.Replace("\n", "") + "]: " + ex.Message);
+				WakeVP(tcpPort);
 			}
 
 			// return result to indicate success or otherwise
@@ -2476,10 +2477,7 @@ namespace CumulusMX
 			int passCount = 1, maxPasses = 4;
 			NetworkStream theStream;
 
-			if (cumulus.DataLogging)
-			{
-				cumulus.LogMessage("Wake VP");
-			}
+			cumulus.LogDataMessage("Wake VP");
 
 			try
 			{

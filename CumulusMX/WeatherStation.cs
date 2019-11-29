@@ -3727,7 +3727,7 @@ namespace CumulusMX
 
 		protected void DoSolarRad(int value, DateTime timestamp)
 		{
-			SolarRad = value;
+			SolarRad = (value * cumulus.SolarMult) + cumulus.SolarOffset;
 			// Update display
 
 			if (SolarRad > HighSolarToday)

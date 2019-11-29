@@ -45,6 +45,7 @@ namespace CumulusMX
 				cumulus.InTempoffset = Convert.ToDouble(settings.offsets.indoortemp, InvC);
 				cumulus.HumOffset = settings.offsets.humidity;
 				cumulus.WindDirOffset = settings.offsets.winddir;
+				cumulus.SolarOffset = Convert.ToDouble(settings.offsets.solar);
 				cumulus.UVOffset = Convert.ToDouble(settings.offsets.uv, InvC);
 				cumulus.WetBulbOffset = Convert.ToDouble(settings.offsets.wetbulb, InvC);
 
@@ -55,6 +56,7 @@ namespace CumulusMX
 				cumulus.TempMult = Convert.ToDouble(settings.multipliers.outdoortemp, InvC);
 				cumulus.HumMult = Convert.ToDouble(settings.multipliers.humidity, InvC);
 				cumulus.RainMult = Convert.ToDouble(settings.multipliers.rainfall, InvC);
+				cumulus.SolarMult = Convert.ToDouble(settings.multipliers.solar, InvC);
 				cumulus.UVMult = Convert.ToDouble(settings.multipliers.uv, InvC);
 				cumulus.WetBulbMult = Convert.ToDouble(settings.multipliers.wetbulb, InvC);
 
@@ -92,6 +94,7 @@ namespace CumulusMX
 						indoortemp = cumulus.InTempoffset,
 						humidity = cumulus.HumOffset,
 						winddir = cumulus.WindDirOffset,
+						solar = cumulus.SolarOffset,
 						uv = cumulus.UVOffset,
 						wetbulb = cumulus.WetBulbOffset
 					};
@@ -103,6 +106,7 @@ namespace CumulusMX
 						humidity = cumulus.HumMult,
 						outdoortemp = cumulus.TempMult,
 						rainfall = cumulus.RainMult,
+						solar = cumulus.SolarMult,
 						uv = cumulus.UVMult,
 						wetbulb = cumulus.WetBulbMult
 					};
@@ -162,6 +166,7 @@ namespace CumulusMX
 		public double indoortemp { get; set; }
 		public int humidity { get; set; }
 		public int winddir { get; set; }
+		public double solar { get; set; }
 		public double uv { get; set; }
 		public double wetbulb { get; set; }
 	}
@@ -174,6 +179,7 @@ namespace CumulusMX
 		public double outdoortemp { get; set; }
 		public double humidity { get; set; }
 		public double rainfall { get; set; }
+		public double solar { get; set; }
 		public double uv { get; set; }
 		public double wetbulb { get; set; }
 	}
