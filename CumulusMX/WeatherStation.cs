@@ -3816,6 +3816,31 @@ namespace CumulusMX
 			}
 		}
 
+		public void SetMonthlyAlltime(int index, double value, DateTime timestamp)
+		{
+			lock (monthlyalltimeIniThreadLock)
+			{
+				var month = timestamp.Month;
+
+				double oldvalue = monthlyrecarray[index, month].value;
+				DateTime oldts = monthlyrecarray[index, month].timestamp;
+
+				string s = "Changed monthly record, month = " + month + ": ";
+				s = s + timestamp.ToString("yyyy-MM-dd") + FormatDateTime(" HH", timestamp) + ":" + FormatDateTime("mm ", timestamp);
+				s = s + value.ToString("F3") + " \"" + alltimedescs[index] + "\" ";
+				s = s + FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts);
+				s = s + oldvalue.ToString("F3");
+
+				cumulus.LogMessage(s);
+
+				monthlyrecarray[index, month].data_type = index;
+				monthlyrecarray[index, month].value = value;
+
+				WriteMonthlyAlltimeIniFile();
+			}
+		}
+
+
 
 		/// <summary>
 		/// Returns the angle from bearing2 to bearing1, in the range -180 to +180 degrees

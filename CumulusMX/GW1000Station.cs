@@ -1,12 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO.Ports;
-using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 
 
 namespace CumulusMX
@@ -14,9 +12,9 @@ namespace CumulusMX
 	internal class GW1000Station : WeatherStation
 	{
 		private readonly string ipaddr;
-		private static int port = 45000;
+		private const int AT_port = 45000;
 		private int lastMinute;
-		bool tenMinuteChanged = true;
+		private bool tenMinuteChanged = true;
 
 		private TcpClient socket;
 		private bool connectedOK = false;
@@ -120,6 +118,7 @@ namespace CumulusMX
 			ch8 = 1 << 7
 		}
 
+		/*
 		private enum _wh41_ch : UInt16
 		{
 			ch1 = 15 << 0,
@@ -127,8 +126,9 @@ namespace CumulusMX
 			ch3 = 15 << 8,
 			ch4 = 15 << 12
 		}
+		*/
 
-		[Flags] private enum _wh51_ch : UInt16
+		[Flags] private enum _wh51_ch : UInt32
 		{
 			ch1 = 1 << 0,
 			ch2 = 1 << 1,
@@ -203,7 +203,7 @@ namespace CumulusMX
 
 			ipaddr = cumulus.Gw1000IpAddress;
 
-			cumulus.LogMessage("IP address = " + ipaddr + " Port = " + port);
+			cumulus.LogMessage("IP address = " + ipaddr + " Port = " + AT_port);
 			socket = OpenTcpPort();
 
 			connectedOK = socket != null;
@@ -222,10 +222,10 @@ namespace CumulusMX
 			if (connectedOK)
 			{
 				// Get the firmware version as check we are communicating
-				GW1000FirmwareVersion = getFirmwareVersion();
+				GW1000FirmwareVersion = GetFirmwareVersion();
 				cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
 
-				getSensorIds();
+				GetSensorIds();
 			}
 
 			timerStartNeeded = true;
@@ -255,7 +255,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("GW1000 Connect attempt " + attempt);
 				try
 				{
-					client = new TcpClient(ipaddr, port);
+					client = new TcpClient(ipaddr, AT_port);
 
 					if (!client.Connected)
 					{
@@ -271,7 +271,7 @@ namespace CumulusMX
 			}
 
 			// Set the timeout of the underlying stream
-			if (!(client == null))
+			if (client != null)
 			{
 				client.GetStream().ReadTimeout = 2500;
 				cumulus.LogDebugMessage("GW1000 reconnected");
@@ -327,8 +327,11 @@ namespace CumulusMX
 			}
 			finally
 			{
-				socket.GetStream().WriteByte(10);
-				socket.Close();
+				if (socket != null)
+				{
+					socket.GetStream().WriteByte(10);
+					socket.Close();
+				}
 			}
 		}
 
@@ -361,9 +364,9 @@ namespace CumulusMX
 		}
 
 
-		private string getFirmwareVersion()
+		private string GetFirmwareVersion()
 		{
-			string response = "???";
+			var response = "???";
 			cumulus.LogMessage("Reading firmware version");
 
 			var data = DoCommand((byte)Commands.CMD_READ_FIRMWARE_VERSION);
@@ -374,7 +377,7 @@ namespace CumulusMX
 			return response;
 		}
 
-		private bool getSensorIds()
+		private bool GetSensorIds()
 		{
 
 			cumulus.LogMessage("Reading sensor ids");
@@ -398,7 +401,7 @@ namespace CumulusMX
 			{
 				for (int i = 4; i < data[3]; i += 7)
 				{
-					printSensorInfo(data, i);
+					PrintSensorInfo(data, i);
 				}
 
 				return true;
@@ -409,26 +412,26 @@ namespace CumulusMX
 			}
 		}
 
-		private void printSensorInfo(byte[] data, int idx)
+		private void PrintSensorInfo(byte[] data, int idx)
 		{
-			var id = convertBigEndianUInt32(data, idx + 1);
+			var id = ConvertBigEndianUInt32(data, idx + 1);
+			var type = Enum.GetName(typeof(SensorIds), data[idx]);
 
-			string type = Enum.GetName(typeof(SensorIds), data[idx]);
 			if (string.IsNullOrEmpty(type))
 			{
 				type = $"unknown type = {id}";
 			}
-			if (id == 0xFFFFFFFE)
+			switch (id)
 			{
-				cumulus.LogDebugMessage($" - {type} sensor = disabled");
-			}
-			else if (id == 0xFFFFFFFF)
-			{
-				cumulus.LogDebugMessage($" - {type} sensor = registering");
-			}
-			else
-			{
-				cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[idx+5]} battery = {data[idx+6]}");
+				case 0xFFFFFFFE:
+					cumulus.LogDebugMessage($" - {type} sensor = disabled");
+					break;
+				case 0xFFFFFFFF:
+					cumulus.LogDebugMessage($" - {type} sensor = registering");
+					break;
+				default:
+					cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[idx+5]} battery = {data[idx+6]}");
+					break;
 			}
 		}
 
@@ -467,38 +470,38 @@ namespace CumulusMX
 					Int16 tempInt16;
 					UInt16 tempUint16;
 					UInt32 tempUint32;
-					int idx = 5;
+					var idx = 5;
 					var dateTime = DateTime.Now;
-					ushort size = convertBigEndianUInt16(data, 3);
-					int chan = 0;
+					var size = ConvertBigEndianUInt16(data, 3);
+					int chan;
 
-					double windSpeedLast, rainRateLast, rainLast, gustLast;
-					windSpeedLast = rainRateLast = rainLast = gustLast = 0;
-					int windDirLast = 0;
+					double rainRateLast, rainLast, gustLast;
+					var windSpeedLast = rainRateLast = rainLast = gustLast = 0;
+					var windDirLast = 0;
 
 					do
 					{
 						switch (data[idx++])
 						{
 							case 0x01:  //Indoor Temperature (℃)
-								tempInt16 = convertBigEndianInt16(data, idx);
+								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoIndoorTemp(ConvertTempCToUser(tempInt16 / 10.0));
 								idx += 2;
 								break;
 							case 0x02: //Outdoor Temperature (℃)
-								tempInt16 = convertBigEndianInt16(data, idx);
+								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoOutdoorTemp(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
 								idx += 2;
 								break;
 							case 0x03: //Dew point (℃)
-								tempInt16 = convertBigEndianInt16(data, idx);
+								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoOutdoorDewpoint(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
 								idx += 2;
 								break;
 							case 0x04: //Wind chill (℃)
 								if (!cumulus.CalculatedWC)
 								{
-									tempInt16 = convertBigEndianInt16(data, idx);
+									tempInt16 = ConvertBigEndianInt16(data, idx);
 									DoWindChill(ConvertTempFToUser(tempInt16 / 10.0), dateTime);
 								}
 								idx += 2;
@@ -519,28 +522,28 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x09: //Relative Barometric (hpa)
-								tempUint16 = convertBigEndianUInt16(data, idx);
+								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoPressure(ConvertPressMBToUser(tempUint16 / 10.0), dateTime);
 								DoPressTrend("Pressure trend");
 								idx += 2;
 								break;
 							case 0x0A: //Wind Direction (360°)
-								windDirLast = convertBigEndianUInt16(data, idx);
+								windDirLast = ConvertBigEndianUInt16(data, idx);
 								idx += 2;
 								break;
 							case 0x0B: //Wind Speed (m/s)
-								windSpeedLast = ConvertWindMSToUser(convertBigEndianUInt16(data, idx) / 10.0);
+								windSpeedLast = ConvertWindMSToUser(ConvertBigEndianUInt16(data, idx) / 10.0);
 								idx += 2;
 								break;
 							case 0x0C: // Gust speed (m/s)
-								gustLast = ConvertWindMSToUser(convertBigEndianUInt16(data, idx) / 10.0);
+								gustLast = ConvertWindMSToUser(ConvertBigEndianUInt16(data, idx) / 10.0);
 								idx += 2;
 								break;
 							case 0x0D: //Rain Event (mm)
 								idx += 2;
 								break;
 							case 0x0E: //Rain Rate (mm/h)
-								rainRateLast = ConvertRainMMToUser(convertBigEndianUInt16(data, idx) / 10.0);
+								rainRateLast = ConvertRainMMToUser(ConvertBigEndianUInt16(data, idx) / 10.0);
 								idx += 2;
 								break;
 							case 0x0F: //Rain hour (mm)
@@ -556,7 +559,7 @@ namespace CumulusMX
 								idx += 4;
 								break;
 							case 0x13: //Rain Year (mm)
-								rainLast = ConvertRainMMToUser(convertBigEndianUInt32(data, idx) / 10.0);
+								rainLast = ConvertRainMMToUser(ConvertBigEndianUInt32(data, idx) / 10.0);
 								idx += 4;
 								break;
 							case 0x14: //Rain Totals (mm)
@@ -564,7 +567,7 @@ namespace CumulusMX
 								break;
 							case 0x15: //Light (lux)
 								// convert LUX to W/m2 - approximately!
-								tempUint32 = (UInt32)(convertBigEndianUInt32(data, idx) * cumulus.LuxToWM2 / 10.0);
+								tempUint32 = (UInt32)(ConvertBigEndianUInt32(data, idx) * cumulus.LuxToWM2 / 10.0);
 								DoSolarRad((int)tempUint32, dateTime);
 								idx += 4;
 								break;
@@ -590,7 +593,7 @@ namespace CumulusMX
 							case 0x20: //Temperature 7(℃)
 							case 0x21: //Temperature 8(℃)
 								chan = data[idx - 1] - 0x1A + 1;
-								tempInt16 = convertBigEndianInt16(data, idx);
+								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoExtraTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
 								idx += 2;
 								break;
@@ -624,7 +627,7 @@ namespace CumulusMX
 							case 0x49: //Soil Temperature16 (℃)
 								chan = data[idx - 1] - 0x2B + 1;
 								chan += (chan - 1);
-								tempInt16 = convertBigEndianInt16(data, idx);
+								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoSoilTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
 								idx += 2;
 								break;
@@ -647,7 +650,7 @@ namespace CumulusMX
 								// figure out the channel number
 								chan = data[idx - 1] - 0x2C + 1;
 								chan += (chan - 1);
-								DoSoilMoisture((double)data[idx], chan);
+								DoSoilMoisture(data[idx], chan);
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
@@ -660,7 +663,7 @@ namespace CumulusMX
 								idx += 16;
 								break;
 							case 0x2A: //PM2.5 Air Quality Sensor(μg/m3)
-								tempUint16 = convertBigEndianUInt16(data, idx);
+								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoAirQuality(tempUint16 / 10.0, 1);
 								idx += 2;
 								break;
@@ -669,7 +672,7 @@ namespace CumulusMX
 							case 0x4F: //for pm25_ch3
 							case 0x50: //for pm25_ch4
 								chan = data[idx - 1] - 0x4D + 1;
-								tempUint16 = convertBigEndianUInt16(data, idx);
+								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoAirQualityAvg(tempUint16 / 10.0, chan);
 								idx += 2;
 								break;
@@ -677,7 +680,7 @@ namespace CumulusMX
 							case 0x52: //PM2.5 ch_3 Air Quality Sensor(μg/m3)
 							case 0x53: //PM2.5 ch_4 Air Quality Sensor(μg/m3)
 								chan = data[idx - 1] - 0x51 + 2;
-								tempUint16 = convertBigEndianUInt16(data, idx);
+								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoAirQuality(tempUint16 / 10.0, chan);
 								idx += 2;
 								break;
@@ -695,15 +698,15 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x62: //Lightning time (UTC)
-								tempUint32 = convertBigEndianUInt32(data, idx);
-								System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+								tempUint32 = ConvertBigEndianUInt32(data, idx);
+								var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 								dtDateTime = dtDateTime.AddSeconds(tempUint32).ToLocalTime();
 								//cumulus.LogDebugMessage($"Lightning time={dtDateTime}");
 								LightningTime = dtDateTime;
 								idx += 4;
 								break;
 							case 0x63: //Lightning strikes today
-								tempUint32 = convertBigEndianUInt32(data, idx);
+								tempUint32 = ConvertBigEndianUInt32(data, idx);
 								cumulus.LogDebugMessage($"Lightning power={tempUint32}");
 								LightningStrikesToday = (int)tempUint32;
 								idx += 4;
@@ -769,22 +772,22 @@ namespace CumulusMX
 		{
 		}
 
-		private byte[] DoCommand(byte Command)
+		private byte[] DoCommand(byte command)
 		{
-			byte[] buffer = new byte[2028];
+			var buffer = new byte[2028];
 			byte[] data;
 			var bytesRead = 0;
 
-			var cmdName = Enum.GetName(typeof(Commands), Command);
+			var cmdName = Enum.GetName(typeof(Commands), command);
 
-			CommandPayload payload = new CommandPayload(Command);
-			CommTimer tmrComm = new CommTimer();
+			var payload = new CommandPayload(command);
+			var tmrComm = new CommTimer();
 
-			byte[] bytes = payload.Serialise();
+			var bytes = payload.Serialise();
 
 			try
 			{
-				NetworkStream stream = socket.GetStream();
+				var stream = socket.GetStream();
 				stream.Write(bytes, 0, bytes.Length);
 
 				tmrComm.Start(1000);
@@ -809,7 +812,7 @@ namespace CumulusMX
 					}
 				}
 				// Check the response is to our command and checksum is OK
-				if (buffer[2] != Command || !ChecksumOK(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
+				if (buffer[2] != command || !ChecksumOK(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
 				{
 					cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
 					cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer, 0, bytesRead - 1));
@@ -844,58 +847,58 @@ namespace CumulusMX
 			BatteryStatus status = (BatteryStatus)RawDeserialize(data, index, typeof(BatteryStatus));
 			cumulus.LogDebugMessage("battery status...");
 			
-			var str = "singles> wh24=" + testBattery1(status.single, (byte)_sig_sen.wh24);
-			str += " wh25=" + testBattery1(status.single, (byte)_sig_sen.wh25);
-			str += " wh26=" + testBattery1(status.single, (byte)_sig_sen.wh26);
-			str += " wh40=" + testBattery1(status.single, (byte)_sig_sen.wh40);
+			var str = "singles> wh24=" + TestBattery1(status.single, (byte)_sig_sen.wh24);
+			str += " wh25=" + TestBattery1(status.single, (byte)_sig_sen.wh25);
+			str += " wh26=" + TestBattery1(status.single, (byte)_sig_sen.wh26);
+			str += " wh40=" + TestBattery1(status.single, (byte)_sig_sen.wh40);
 			cumulus.LogDebugMessage(str); 
 
-			str = "wh31> ch1=" + testBattery1(status.wh31, (byte)_wh31_ch.ch1);
-			str += " ch2=" + testBattery1(status.wh31, (byte)_wh31_ch.ch2);
-			str += " ch3=" + testBattery1(status.wh31, (byte)_wh31_ch.ch3);
-			str += " ch4=" + testBattery1(status.wh31, (byte)_wh31_ch.ch4);
-			str += " ch5=" + testBattery1(status.wh31, (byte)_wh31_ch.ch5);
-			str += " ch6=" + testBattery1(status.wh31, (byte)_wh31_ch.ch6);
-			str += " ch7=" + testBattery1(status.wh31, (byte)_wh31_ch.ch7);
-			str += " ch8=" + testBattery1(status.wh31, (byte)_wh31_ch.ch8);
+			str = "wh31> ch1=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch1);
+			str += " ch2=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch2);
+			str += " ch3=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch3);
+			str += " ch4=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch4);
+			str += " ch5=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch5);
+			str += " ch6=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch6);
+			str += " ch7=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch7);
+			str += " ch8=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch8);
 			cumulus.LogDebugMessage(str);
 
-			str = "wh41> ch1=" + testBattery2(status.wh41, 0x0F);
-			str += " ch2=" + testBattery2((UInt16)(status.wh41 >> 4), 0x0F);
-			str += " ch3=" + testBattery2((UInt16)(status.wh41 >> 8), 0x0F);
-			str += " ch4=" + testBattery2((UInt16)(status.wh41 >> 12), 0x0F);
+			str = "wh41> ch1=" + TestBattery2(status.wh41, 0x0F);
+			str += " ch2=" + TestBattery2((UInt16)(status.wh41 >> 4), 0x0F);
+			str += " ch3=" + TestBattery2((UInt16)(status.wh41 >> 8), 0x0F);
+			str += " ch4=" + TestBattery2((UInt16)(status.wh41 >> 12), 0x0F);
 			cumulus.LogDebugMessage(str);
 
-			str = "wh51> ch1=" + testBattery1(status.wh51, (byte)_wh51_ch.ch1);
-			str += " ch2=" + testBattery1(status.wh31, (byte)_wh51_ch.ch2);
-			str += " ch3=" + testBattery1(status.wh31, (byte)_wh51_ch.ch3);
-			str += " ch4=" + testBattery1(status.wh31, (byte)_wh51_ch.ch4);
-			str += " ch5=" + testBattery1(status.wh31, (byte)_wh51_ch.ch5);
-			str += " ch6=" + testBattery1(status.wh31, (byte)_wh51_ch.ch6);
-			str += " ch7=" + testBattery1(status.wh31, (byte)_wh51_ch.ch7);
-			str += " ch8=" + testBattery1(status.wh31, (byte)_wh51_ch.ch8);
+			str = "wh51> ch1=" + TestBattery1(status.wh51, (byte)_wh51_ch.ch1);
+			str += " ch2=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch2);
+			str += " ch3=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch3);
+			str += " ch4=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch4);
+			str += " ch5=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch5);
+			str += " ch6=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch6);
+			str += " ch7=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch7);
+			str += " ch8=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch8);
 			cumulus.LogDebugMessage(str);
 
-			cumulus.LogDebugMessage("wh57> " + testBattery3(status.wh57));
+			cumulus.LogDebugMessage("wh57> " + TestBattery3(status.wh57));
 
 			cumulus.LogDebugMessage("wh68> " + (0.02 * status.wh68) + "V");
 			cumulus.LogDebugMessage("wh80> " + (0.02 * status.wh80) + "V");
 
-			str = "wh55> ch1=" + testBattery3(status.wh55_ch1);
-			str += " ch2=" + testBattery3(status.wh55_ch2);
-			str += " ch3=" + testBattery3(status.wh55_ch2);
-			str += " ch4=" + testBattery3(status.wh55_ch2);
+			str = "wh55> ch1=" + TestBattery3(status.wh55_ch1);
+			str += " ch2=" + TestBattery3(status.wh55_ch2);
+			str += " ch3=" + TestBattery3(status.wh55_ch2);
+			str += " ch4=" + TestBattery3(status.wh55_ch2);
 			cumulus.LogDebugMessage(str);
 		}
 
-		private string testBattery1(byte value, byte mask)
+		private string TestBattery1(byte value, byte mask)
 		{
 			if ((value & mask) == 0)
 				return "OK";
 			else
 				return "Low";
 		}
-		private string testBattery1(UInt16 value, UInt16 mask)
+		private string TestBattery1(UInt16 value, UInt16 mask)
 		{
 			if ((value & mask) == 0)
 				return "OK";
@@ -903,7 +906,7 @@ namespace CumulusMX
 				return "Low";
 		}
 
-		private string testBattery2(UInt16 value, UInt16 mask)
+		private string TestBattery2(UInt16 value, UInt16 mask)
 		{
 			if ((value & mask) > 1)
 				return "OK";
@@ -911,7 +914,7 @@ namespace CumulusMX
 				return "Low";
 		}
 
-		private string testBattery3(byte value)
+		private string TestBattery3(byte value)
 		{
 			if (value > 1)
 				return "OK";
@@ -935,7 +938,7 @@ namespace CumulusMX
 		private struct CommandPayload
 		{
 			private readonly ushort Header;
-			public byte Command;
+			private readonly byte Command;
 			private readonly byte Size;
 			//public byte[] Data;
 			private readonly byte Checksum;
@@ -943,6 +946,7 @@ namespace CumulusMX
 			//public CommandPayload(byte command, byte[] data) : this()
 			public CommandPayload(byte command) : this()
 			{
+				//ushort header;
 				this.Header = 0xffff;
 				this.Command = command;
 				this.Size = (byte) (Marshal.SizeOf(typeof(CommandPayload)) - 3);
@@ -1033,7 +1037,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					size = convertBigEndianUInt16(data, 3);
+					size = ConvertBigEndianUInt16(data, 3);
 				}
 
 				byte checksum = (byte)(data[2] + data[3]);
@@ -1053,53 +1057,52 @@ namespace CumulusMX
 				}
 			}
 
-		private UInt16 convertBigEndianUInt16(byte[] array, int start)
+		private static UInt16 ConvertBigEndianUInt16(byte[] array, int start)
 		{
 			return (UInt16)(array[start] << 8 | array[start+1]);
 		}
 
-		private Int16 convertBigEndianInt16(byte[] array, int start)
+		private static Int16 ConvertBigEndianInt16(byte[] array, int start)
 		{
 			return (Int16)((array[start] << 8) + array[start + 1]);
 		}
 
-		private UInt32 convertBigEndianUInt32(byte[] array, int start)
+		private static UInt32 ConvertBigEndianUInt32(byte[] array, int start)
 		{
 			return (UInt32)(array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
 		}
 
 		private void CheckHighGust(double gust, int gustdir, DateTime timestamp)
 		{
-			if (gust > RecentMaxGust)
-			{
-				if (gust > highgusttoday)
-				{
-					highgusttoday = gust;
-					highgusttodaytime = timestamp;
-					highgustbearing = gustdir;
-					WriteTodayFile(timestamp, false);
-				}
-				if (gust > HighGustThisMonth)
-				{
-					HighGustThisMonth = gust;
-					HighGustThisMonthTS = timestamp;
-					WriteMonthIniFile();
-				}
-				if (gust > HighGustThisYear)
-				{
-					HighGustThisYear = gust;
-					HighGustThisYearTS = timestamp;
-					WriteYearIniFile();
-				}
-				// All time high gust?
-				if (gust > alltimerecarray[AT_highgust].value)
-				{
-					SetAlltime(AT_highgust, gust, timestamp);
-				}
+			if (!(gust > RecentMaxGust)) return;
 
-				// check for monthly all time records (and set)
-				CheckMonthlyAlltime(AT_highgust, gust, true, timestamp);
+			if (gust > highgusttoday)
+			{
+				highgusttoday = gust;
+				highgusttodaytime = timestamp;
+				highgustbearing = gustdir;
+				WriteTodayFile(timestamp, false);
 			}
+			if (gust > HighGustThisMonth)
+			{
+				HighGustThisMonth = gust;
+				HighGustThisMonthTS = timestamp;
+				WriteMonthIniFile();
+			}
+			if (gust > HighGustThisYear)
+			{
+				HighGustThisYear = gust;
+				HighGustThisYearTS = timestamp;
+				WriteYearIniFile();
+			}
+			// All time high gust?
+			if (gust > alltimerecarray[AT_highgust].value)
+			{
+				SetAlltime(AT_highgust, gust, timestamp);
+			}
+
+			// check for monthly all time records (and set)
+			CheckMonthlyAlltime(AT_highgust, gust, true, timestamp);
 		}
 
 
