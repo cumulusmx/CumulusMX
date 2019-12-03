@@ -134,6 +134,16 @@ namespace CumulusMX
 
 						case "alltimerecordslogfile.json":
 							return this.JsonResponse(dataEditor.GetAllTimeRecLogFile());
+
+						case "monthlyrecords.json":
+							return this.JsonResponse(dataEditor.GetMonthlyRecData());
+
+						case "monthlyrecordsdayfile.json":
+							return this.JsonResponse(dataEditor.GetMonthlyRecDayFile());
+
+						case "monthlyrecordslogfile.json":
+							return this.JsonResponse(dataEditor.GetMonthlyRecLogFile());
+
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -192,6 +202,10 @@ namespace CumulusMX
 
 						case "alltime":
 							return this.JsonResponse(dataEditor.EditAllTimeRecs(this));
+
+						case "monthly":
+							return this.JsonResponse(dataEditor.EditMonthlyRecs(this));
+
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

@@ -1,3 +1,20 @@
+3.2.2 - b3058
+=============
+- Implements the missing <#txbattery> web tag for WLL devices
+- Fix default website pages header not wrapping on small screens
+- Adds Monthly Records editor
+- Fixes and improvements to the All Time Records editor
+
+- Updated files
+	\CumulusMX.exe
+	\interface\<allfiles>.html
+	\web\<allfiles>T.htm
+
+- New files
+	\interface\monthlyrecseditor.html
+	\interface\js\monthlyrecseditor.js
+
+
 3.2.1 - b3057
 =============
 - Fix for WMR200 stations writing a zero value Apparent Temperature to the log files when retrieving logger data

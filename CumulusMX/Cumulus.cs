@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.1";
-		public string Build = "3057";
+		public string Version = "3.2.2";
+		public string Build = "3058";
 		/////////////////////////////////
 
 		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -1291,9 +1291,9 @@ namespace CumulusMX
 			LogMessage("RainDayThreshold=" + RainDayThreshold.ToString("F3"));
 			LogMessage("Offsets and Multipliers:");
 			LogMessage("PO=" + PressOffset.ToString("F3") + " TO=" + TempOffset.ToString("F3") + " HO=" + HumOffset + " WDO=" + WindDirOffset + " ITO=" +
-						InTempoffset.ToString("F3") + "SO=" + SolarOffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
+						InTempoffset.ToString("F3") + " SO=" + SolarOffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
 			LogMessage("PM=" + PressMult.ToString("F3") + " WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
-						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + "SM=" + SolarMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
+						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " SM=" + SolarMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
 			LogMessage("Spike removal:");
 			LogMessage("TD=" + EWtempdiff.ToString("F3") + " GD=" + EWgustdiff.ToString("F3") + " WD=" + EWwinddiff.ToString("F3") + " HD=" + EWhumiditydiff.ToString("F3") + " PD=" +
 						EWpressurediff.ToString("F3"));
