@@ -68,7 +68,6 @@ namespace CumulusMX
             }
 
             int httpport = 8998;
-            int wsport = 8002;
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
@@ -78,18 +77,13 @@ namespace CumulusMX
                 {
                     var lang = args[i + 1];
 
-                    System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo(lang);
-                    System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo(lang);
+                    CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
                 }
 
                 if (args[i] == "-port" && args.Length >= i)
                 {
                     httpport = Convert.ToInt32(args[i + 1]);
-                }
-
-                if (args[i] == "-wsport" && args.Length >= i)
-                {
-                    wsport = Convert.ToInt32(args[i + 1]);
                 }
             }
 
@@ -97,7 +91,7 @@ namespace CumulusMX
             //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo("en-GB");
             Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 
-            cumulus = new Cumulus(httpport, wsport);
+            cumulus = new Cumulus(httpport);
 
             DateTime now = DateTime.Now;
 
