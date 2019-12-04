@@ -1536,6 +1536,7 @@ namespace CumulusMX
 			var isDryNow = false;
 			var thisDateDry = thisDate;
 			var thisDateWet = thisDate;
+			var firstEntry = true;
 			var json = "{";
 
 			var rainThreshold = 0.0;
@@ -1563,14 +1564,22 @@ namespace CumulusMX
 						var monthOffset = loggedDate.Month - 1;
 						double valDbl, valDbl2;
 
+						// for the very first record we need to record the date
+						if (firstEntry)
+						{
+							thisDate = loggedDate;
+							firstEntry = false;
+						}
+
 						// This assumes the day file is in date order!
 						if (thisDate.Month != loggedDate.Month)
 						{
+							var offset = thisDate.Month - 1;
 							// monthly rain
-							if (rainThisMonth > highRainMonthVal[monthOffset])
+							if (rainThisMonth > highRainMonthVal[offset])
 							{
-								highRainMonthVal[monthOffset] = rainThisMonth;
-								highRainMonthTime[monthOffset] = thisDate;
+								highRainMonthVal[offset] = rainThisMonth;
+								highRainMonthTime[offset] = thisDate;
 							}
 							// reset the date and counter for a new month
 							thisDate = loggedDate;
@@ -1921,6 +1930,8 @@ namespace CumulusMX
 			var thisDateDry = thisDate;
 			var thisDateWet = thisDate;
 
+			var monthlyRain = 0.0;
+
 			var totalRainfall = 0.0;
 
 			hourRainLog.Clear();
@@ -1929,8 +1940,6 @@ namespace CumulusMX
 
 			while (!finished)
 			{
-				double monthlyRain = 0;
-
 				if (File.Exists(logFile))
 				{
 					cumulus.LogDebugMessage($"GetMonthlyTimeRecLogFile: Processing log file - {logFile}");
@@ -2067,12 +2076,6 @@ namespace CumulusMX
 								highRainRateTime[monthOffset] = entrydate;
 							}
 
-							if (monthlyRain > highRainMonthVal[monthOffset])
-							{
-								highRainMonthVal[monthOffset] = monthlyRain;
-								highRainMonthTime[monthOffset] = entrydate;
-							}
-
 							// same meto day
 							if (currentDay.Day == metoDate.Day && currentDay.Month == metoDate.Month && currentDay.Year == metoDate.Year)
 							{
@@ -2120,7 +2123,6 @@ namespace CumulusMX
 									highRainDayVal[lastEntryMonthOffset] = dayRain;
 									highRainDayTime[lastEntryMonthOffset] = currentDay;
 								}
-								monthlyRain += dayRain;
 
 								// dry/wet period
 								if (dayRain > rainThreshold)
@@ -2162,12 +2164,30 @@ namespace CumulusMX
 									}
 								}
 
+								// new month ?
+								if (currentDay.Month != metoDate.Month)
+								{
+									monthlyRain += dayRain;
+									var offset = currentDay.Month - 1;
+									if (monthlyRain > highRainMonthVal[offset])
+									{
+										highRainMonthVal[offset] = monthlyRain;
+										highRainMonthTime[offset] = currentDay;
+									}
+									monthlyRain = 0.0;
+								}
+								else
+								{
+									monthlyRain += dayRain;
+								}
+
+
 								currentDay = metoDate;
 								dayHighTemp = outsidetemp;
 								dayLowTemp = outsidetemp;
-								dayWindRun = 0;
+								dayWindRun = 0.0;
 								totalRainfall += dayRain;
-								dayRain = 0;
+								dayRain = 0.0;
 							}
 
 							// hourly rain

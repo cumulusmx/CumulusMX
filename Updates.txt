@@ -1,3 +1,16 @@
+3.2.3 - b3059
+=============
+- Adds the Cumulus.ini file to the files automatically backed up each day/program start
+- Fixes to the Monthly Records editor monthly rainfall figures
+
+- Updated files
+	\CumulusMX.exe
+	\interface\alltimerecseditor.html
+	\interface\monthlyrecseditor.html
+	\interface\js\alltimerecseditor.js
+	\interface\js\monthlyrecseditor.js
+
+
 3.2.2 - b3058
 =============
 - Implements the missing <#txbattery> web tag for WLL devices

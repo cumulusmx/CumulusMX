@@ -29,11 +29,11 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.2";
-		public string Build = "3058";
+		public string Version = "3.2.3";
+		public string Build = "3059";
 		/////////////////////////////////
 
-		private static string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
+		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
 		private Mutex appMutex;
 
@@ -207,22 +207,22 @@ namespace CumulusMX
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
 
-		public volatile bool WebUpdating = false;
+		public volatile bool WebUpdating;
 
 		public double WindRoseAngle { get; set; }
 
 		public int NumWindRosePoints { get; set; }
 
-		public int[] WUnitFact = new[] { 1000, 2237, 3600, 1944 };
-		public int[] TUnitFact = new[] { 1000, 1800 };
-		public int[] TUnitAdd = new[] { 0, 32 };
-		public int[] PUnitFact = new[] { 1000, 1000, 2953 };
-		public int[] PressFact = new[] { 1, 1, 100 };
-		public int[] RUnitFact = new[] { 1000, 39 };
+		//public int[] WUnitFact = new[] { 1000, 2237, 3600, 1944 };
+		//public int[] TUnitFact = new[] { 1000, 1800 };
+		//public int[] TUnitAdd = new[] { 0, 32 };
+		//public int[] PUnitFact = new[] { 1000, 1000, 2953 };
+		//public int[] PressFact = new[] { 1, 1, 100 };
+		//public int[] RUnitFact = new[] { 1000, 39 };
 
 		public int[] logints = new[] { 1, 5, 10, 15, 20, 30 };
 
-		public int UnitMult = 1000;
+		//public int UnitMult = 1000;
 
 		public int GraphDays = 31;
 
@@ -235,7 +235,7 @@ namespace CumulusMX
 			LastQuarter = "Last Quarter",
 			WaningCrescent = "Waning Crescent";
 
-		public String Calm = "Calm",
+		public string Calm = "Calm",
 			Lightair = "Light air",
 			Lightbreeze = "Light breeze",
 			Gentlebreeze = "Gentle breeze",
@@ -249,7 +249,7 @@ namespace CumulusMX
 			Violentstorm = "Violent storm",
 			Hurricane = "Hurricane";
 
-		public String Risingveryrapidly = "Rising very rapidly",
+		public string Risingveryrapidly = "Rising very rapidly",
 			Risingquickly = "Rising quickly",
 			Rising = "Rising",
 			Risingslowly = "Rising slowly",
@@ -442,8 +442,8 @@ namespace CumulusMX
 		private const int DefaultWCloudInterval = 10;
 
 		private const int VP2SERIALCONNECTION = 0;
-		private const int VP2USBCONNECTION = 1;
-		private const int VP2TCPIPCONNECTION = 2;
+		//private const int VP2USBCONNECTION = 1;
+		//private const int VP2TCPIPCONNECTION = 2;
 
 		private string twitterKey = "lQiGNdtlYUJ4wS3d7souPw";
 		private string twitterSecret = "AoB7OqimfoaSfGQAd47Hgatqdv3YeTTiqpinkje6Xg";
@@ -919,7 +919,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public Cumulus(int HTTPport, int WSport)
+		public Cumulus(int HTTPport)
 		{
 			//DoLicenseCheck();
 
@@ -1029,14 +1029,7 @@ namespace CumulusMX
 			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
 
 			// Set the default comport name depending on platform
-			if (Platform.Substring(0, 3) == "Win")
-			{
-				DefaultComportName = "COM1";
-			}
-			else
-			{
-				DefaultComportName = "/dev/ttyUSB0";
-			}
+			DefaultComportName = Platform.Substring(0, 3) == "Win" ? "COM1" : "/dev/ttyUSB0";
 
 
 			LogMessage("Platform: " + Platform);
@@ -1236,7 +1229,7 @@ namespace CumulusMX
 
 				SetStartOfRealtimeInsertSQL();
 
-				if (!String.IsNullOrEmpty(MySqlRealtimeRetention))
+				if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 				{
 					DeleteRealtimeSQL = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL " + MySqlRealtimeRetention + ")";
 				}
@@ -1467,7 +1460,7 @@ namespace CumulusMX
 
 		internal void SetUpHttpProxy()
 		{
-			if (!String.IsNullOrEmpty(HTTPProxyName))
+			if (!string.IsNullOrEmpty(HTTPProxyName))
 			{
 				WUhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				WUhttpHandler.UseProxy = true;
@@ -1490,7 +1483,7 @@ namespace CumulusMX
 				customHttpRolloverHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				customHttpRolloverHandler.UseProxy = true;
 
-				if (!String.IsNullOrEmpty(HTTPProxyUser))
+				if (!string.IsNullOrEmpty(HTTPProxyUser))
 				{
 					WUhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					PWShttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
@@ -1638,9 +1631,9 @@ namespace CumulusMX
 
 			// step 2, convert byte array to hex string
 			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < hash.Length; i++)
+			foreach (var t in hash)
 			{
-				sb.Append(hash[i].ToString("X2"));
+				sb.Append(t.ToString("X2"));
 			}
 			return sb.ToString();
 		}
@@ -1763,7 +1756,7 @@ namespace CumulusMX
 
 		private void APRSTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(APRSID))
+			if (!string.IsNullOrEmpty(APRSID))
 			{
 				station.UpdateAPRS();
 			}
@@ -1778,8 +1771,7 @@ namespace CumulusMX
 			else
 			{
 				WebUpdating = true;
-				ftpThread = new Thread(DoHTMLFiles);
-				ftpThread.IsBackground = true;
+				ftpThread = new Thread(DoHTMLFiles) {IsBackground = true};
 				ftpThread.Start();
 			}
 		}
@@ -1877,43 +1869,43 @@ namespace CumulusMX
 
 		private void WundTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(WundID) && (WundID != " "))
+			if (!string.IsNullOrEmpty(WundID) && (WundID != " "))
 				UpdateWunderground(DateTime.Now);
 		}
 
 		private void WindyTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(WindyApiKey) && (WindyApiKey != " "))
+			if (!string.IsNullOrEmpty(WindyApiKey) && (WindyApiKey != " "))
 				UpdateWindy(DateTime.Now);
 		}
 
 		private void AwekasTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(AwekasUser) && (AwekasUser != " "))
+			if (!string.IsNullOrEmpty(AwekasUser) && (AwekasUser != " "))
 				UpdateAwekas(DateTime.Now);
 		}
 
 		private void WCloudTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(WCloudWid) && (WCloudWid != " "))
+			if (!string.IsNullOrEmpty(WCloudWid) && (WCloudWid != " "))
 				UpdateWCloud(DateTime.Now);
 		}
 
 		private void PWSTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(PWSID) && (PWSID != " "))
+			if (!string.IsNullOrEmpty(PWSID) && (PWSID != " "))
 				UpdatePWSweather(DateTime.Now);
 		}
 
 		private void WowTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(WOWID) && (WOWID != " "))
+			if (!string.IsNullOrEmpty(WOWID) && (WOWID != " "))
 				UpdateWOW(DateTime.Now);
 		}
 
 		private void WBTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!String.IsNullOrEmpty(WeatherbugID) && (WeatherbugID != " "))
+			if (!string.IsNullOrEmpty(WeatherbugID) && (WeatherbugID != " "))
 				UpdateWeatherbug(DateTime.Now);
 		}
 
@@ -1923,9 +1915,7 @@ namespace CumulusMX
 			{
 				UpdatingWU = true;
 
-				string pwstring;
-
-				string URL = station.GetWundergroundURL(out pwstring, timestamp, false);
+				string URL = station.GetWundergroundURL(out var pwstring, timestamp, false);
 
 				string starredpwstring = "&PASSWORD=" + new string('*', WundPW.Length);
 
@@ -1961,9 +1951,7 @@ namespace CumulusMX
 			{
 				UpdatingWindy = true;
 
-				string apistring;
-
-				string URL = station.GetWindyURL(out apistring, timestamp, false);
+				string URL = station.GetWindyURL(out var apistring, timestamp, false);
 				string LogURL = URL.Replace(apistring, "<<API_KEY>>");
 
 				LogDebugMessage("Windy URL: " + LogURL);
@@ -1992,9 +1980,7 @@ namespace CumulusMX
 			{
 				UpdatingAwekas = true;
 
-				string pwstring;
-
-				string URL = station.GetAwekasURL(out pwstring, timestamp);
+				string URL = station.GetAwekasURL(out var pwstring, timestamp);
 
 				string starredpwstring = "<password>";
 
@@ -2025,9 +2011,7 @@ namespace CumulusMX
 			{
 				UpdatingWCloud = true;
 
-				string pwstring;
-
-				string URL = station.GetWCloudURL(out pwstring, timestamp);
+				string URL = station.GetWCloudURL(out var pwstring, timestamp);
 
 				string starredpwstring = "<key>";
 
@@ -2261,7 +2245,7 @@ namespace CumulusMX
 
 		private void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
-			string webTag = "";
+			var webTag = "";
 			var tagParams = new Dictionary<string, string>();
 			var paramList = ParseParams(strToken);
 
@@ -2288,7 +2272,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < line.Length; i++)
 			{
-				if (Char.IsWhiteSpace(line[i]))
+				if (char.IsWhiteSpace(line[i]))
 				{
 					if (!insideQuotes && start != -1)
 					{
@@ -2687,7 +2671,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					TomorrowDayLengthText = String.Format(thereWillBeMinSLessDaylightTomorrow, tomorrowmins, tomorrowsecs);
+					TomorrowDayLengthText = string.Format(thereWillBeMinSLessDaylightTomorrow, tomorrowmins, tomorrowsecs);
 				}
 				catch (Exception)
 				{
@@ -2698,7 +2682,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					TomorrowDayLengthText = String.Format(thereWillBeMinSMoreDaylightTomorrow, tomorrowmins, tomorrowsecs);
+					TomorrowDayLengthText = string.Format(thereWillBeMinSMoreDaylightTomorrow, tomorrowmins, tomorrowsecs);
 				}
 				catch (Exception)
 				{
@@ -2797,7 +2781,7 @@ namespace CumulusMX
 				fileEntries.RemoveAt(0);
 			}
 
-			return String.Format("{0}{1}.txt", directory, DateTime.Now.ToString("yyyyMMdd-HHmmss"));
+			return $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
 		}
 
 		private void ReadIniFile()
@@ -3045,26 +3029,12 @@ namespace CumulusMX
 
 			if (ChillHourThreshold < -998)
 			{
-				if (TempUnit == 0)
-				{
-					ChillHourThreshold = 7; // C
-				}
-				else
-				{
-					ChillHourThreshold = 45; // F
-				}
+				ChillHourThreshold = TempUnit == 0 ? 7 : 45;
 			}
 
 			if (FCPressureThreshold < 0)
 			{
-				if (PressUnit == 2)
-				{
-					FCPressureThreshold = 0.00295333727; // 0.1 mb in inHg
-				}
-				else
-				{
-					FCPressureThreshold = 0.1;
-				}
+				FCPressureThreshold = PressUnit == 2 ? 0.00295333727 : 0.1;
 			}
 
 			special_logging = ini.GetValue("Station", "SpecialLog", false);
@@ -3419,82 +3389,47 @@ namespace CumulusMX
 			NOAAheatingthreshold = ini.GetValue("NOAA", "HeatingThreshold", -1000.0);
 			if (NOAAheatingthreshold < -999)
 			{
-				if (TempUnit == 0)
-				{
-					NOAAheatingthreshold = 18.3;
-				}
-				else
-				{
-					NOAAheatingthreshold = 65;
-				}
+				NOAAheatingthreshold = TempUnit == 0 ? 18.3 : 65;
 			}
 			NOAAcoolingthreshold = ini.GetValue("NOAA", "CoolingThreshold", -1000.0);
 			if (NOAAcoolingthreshold < -999)
 			{
-				if (TempUnit == 0)
-				{
-					NOAAcoolingthreshold = 18.3;
-				}
-				else
-				{
-					NOAAcoolingthreshold = 65;
-				}
+				NOAAcoolingthreshold = TempUnit == 0 ? 18.3 : 65;
 			}
 			NOAAmaxtempcomp1 = ini.GetValue("NOAA", "MaxTempComp1", -1000.0);
 			if (NOAAmaxtempcomp1 < -999)
 			{
-				if (TempUnit == 0)
-					NOAAmaxtempcomp1 = 27;
-				else
-					NOAAmaxtempcomp1 = 80;
+				NOAAmaxtempcomp1 = TempUnit == 0 ? 27 : 80;
 			}
 			NOAAmaxtempcomp2 = ini.GetValue("NOAA", "MaxTempComp2", -1000.0);
 			if (NOAAmaxtempcomp2 < -999)
 			{
-				if (TempUnit == 0)
-					NOAAmaxtempcomp2 = 0;
-				else
-					NOAAmaxtempcomp2 = 32;
+				NOAAmaxtempcomp2 = TempUnit == 0 ? 0 : 32;
 			}
 			NOAAmintempcomp1 = ini.GetValue("NOAA", "MinTempComp1", -1000.0);
 			if (NOAAmintempcomp1 < -999)
 			{
-				if (TempUnit == 0)
-					NOAAmintempcomp1 = 0;
-				else
-					NOAAmintempcomp1 = 32;
+				NOAAmintempcomp1 = TempUnit == 0 ? 0 : 32;
 			}
 			NOAAmintempcomp2 = ini.GetValue("NOAA", "MinTempComp2", -1000.0);
 			if (NOAAmintempcomp2 < -999)
 			{
-				if (TempUnit == 0)
-					NOAAmintempcomp2 = -18;
-				else
-					NOAAmintempcomp2 = 0;
+				NOAAmintempcomp2 = TempUnit == 0 ? -18 : 0;
 			}
 			NOAAraincomp1 = ini.GetValue("NOAA", "RainComp1", -1000.0);
 			if (NOAAraincomp1 < -999)
 			{
-				if (RainUnit == 0)
-					NOAAraincomp1 = 0.2;
-				else
-					NOAAraincomp1 = 0.01;
+				NOAAraincomp1 = RainUnit == 0 ? 0.2 : 0.01;
 			}
 			NOAAraincomp2 = ini.GetValue("NOAA", "RainComp2", -1000.0);
 			if (NOAAraincomp2 < -999)
 			{
-				if (RainUnit == 0)
-					NOAAraincomp2 = 2;
-				else
-					NOAAraincomp2 = 0.1;
+				NOAAraincomp2 = RainUnit == 0 ? 2 : 0.1;
 			}
 			NOAAraincomp3 = ini.GetValue("NOAA", "RainComp3", -1000.0);
 			if (NOAAraincomp3 < -999)
 			{
-				if (RainUnit == 0)
-					NOAAraincomp3 = 20;
-				else
-					NOAAraincomp3 = 1;
+				NOAAraincomp3 = RainUnit == 0 ? 20 : 1;
 			}
 
 			NOAAAutoSave = ini.GetValue("NOAA", "AutoSave", false);
@@ -4855,6 +4790,7 @@ namespace CumulusMX
 		private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
 		private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
 
+		/*
 		public string Getversion()
 		{
 			return Version;
@@ -4919,8 +4855,9 @@ namespace CumulusMX
 		{
 			return TCPport;
 		}
+		*/
 
-		public String GetLogFileName(DateTime thedate)
+		public string GetLogFileName(DateTime thedate)
 		{
 			// First determine the date for the logfile.
 			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
@@ -4952,7 +4889,7 @@ namespace CumulusMX
 			return Datapath + datestring + "log.txt";
 		}
 
-		public String GetExtraLogFileName(DateTime thedate)
+		public string GetExtraLogFileName(DateTime thedate)
 		{
 			// First determine the date for the logfile.
 			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
@@ -5239,6 +5176,7 @@ namespace CumulusMX
 				var monthbackup = foldername + "month.ini";
 				var yearbackup = foldername + "year.ini";
 				var diarybackup = foldername + "diary.db";
+				var configbackup = foldername + "Cumulus.ini";
 
 				// First determine the date for the logfile.
 				// if (we"re using 9am rollover, the date should be 9 hours (10 in summer)
@@ -5287,6 +5225,10 @@ namespace CumulusMX
 					if (File.Exists(diaryfile))
 					{
 						File.Copy(diaryfile, diarybackup);
+					}
+					if (File.Exists("Cumulus.ini"))
+					{
+						File.Copy("Cumulus.ini", configbackup);
 					}
 
 					LogMessage("Created backup folder " + foldername);
@@ -5525,6 +5467,7 @@ namespace CumulusMX
 			return data;
 		}*/
 
+		/*
 		public string GetForecast()
 		{
 			return station.Forecast;
@@ -5574,6 +5517,7 @@ namespace CumulusMX
 		{
 			LogInterval = interval;
 		}
+		*/
 
 		public int GetHourInc(DateTime timestamp)
 		{
@@ -5609,13 +5553,14 @@ namespace CumulusMX
 			return GetHourInc(DateTime.Now);
 		}
 
+		/*
 		private bool IsDaylightSavings()
 		{
 			return TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now);
 		}
+		*/
 
-
-		public String Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
+		public string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
 		{
 			// Convert to m/s * 10
 			int ms10 = Convert.ToInt32(station.ConvertUserWindToMS(Bspeed) * 10);
@@ -5675,7 +5620,7 @@ namespace CumulusMX
 		}
 
 
-		public String BeaufortDesc(double Bspeed)
+		public string BeaufortDesc(double Bspeed)
 		{
 			// Takes speed in current units, returns Bft description
 
@@ -5891,7 +5836,7 @@ namespace CumulusMX
 
 				//LogDebugMessage("Done creating extra files");
 
-				if (!String.IsNullOrEmpty(ftp_host))
+				if (!string.IsNullOrEmpty(ftp_host))
 				{
 					DoFTPLogin();
 				}
@@ -6961,9 +6906,7 @@ namespace CumulusMX
 			{
 				UpdatingPWS = true;
 
-				string pwstring;
-
-				string URL = station.GetPWSURL(out pwstring, timestamp, false);
+				string URL = station.GetPWSURL(out var pwstring, timestamp, false);
 
 				string starredpwstring = "&PASSWORD=" + new string('*', PWSPW.Length);
 
@@ -6992,9 +6935,8 @@ namespace CumulusMX
 			if (!UpdatingWOW)
 			{
 				UpdatingWOW = true;
-				string pwstring;
 
-				string URL = station.GetWOWURL(out pwstring, timestamp, false);
+				string URL = station.GetWOWURL(out var pwstring, timestamp, false);
 
 				string starredpwstring = "&siteAuthenticationKey=" + new string('*', WOWPW.Length);
 
@@ -7024,9 +6966,7 @@ namespace CumulusMX
 			{
 				UpdatingWB = true;
 
-				string pwstring;
-
-				string URL = station.GetWeatherbugURL(out pwstring, timestamp, false);
+				string URL = station.GetWeatherbugURL(out var pwstring, timestamp, false);
 
 				string starredpwstring = "&Key=" + new string('*', WeatherbugPW.Length);
 
@@ -7158,9 +7098,7 @@ namespace CumulusMX
 		{
 			if (WundEnabled && WundCatchUp)
 			{
-				string pwstring;
-
-				string URL = station.GetWundergroundURL(out pwstring, timestamp, true);
+				string URL = station.GetWundergroundURL(out var pwstring, timestamp, true);
 
 				WundList.Add(URL);
 
@@ -7178,9 +7116,7 @@ namespace CumulusMX
 		{
 			if (WindyEnabled && WindyCatchUp)
 			{
-				string apistring;
-
-				string URL = station.GetWindyURL(out apistring, timestamp, true);
+				string URL = station.GetWindyURL(out var apistring, timestamp, true);
 
 				WindyList.Add(URL);
 
@@ -7196,9 +7132,7 @@ namespace CumulusMX
 		{
 			if (PWSEnabled && PWSCatchUp)
 			{
-				string pwstring;
-
-				string URL = station.GetPWSURL(out pwstring, timestamp, true);
+				string URL = station.GetPWSURL(out var pwstring, timestamp, true);
 
 				PWSList.Add(URL);
 
@@ -7216,9 +7150,7 @@ namespace CumulusMX
 		{
 			if (WOWEnabled && WOWCatchUp)
 			{
-				string pwstring;
-
-				string URL = station.GetWOWURL(out pwstring, timestamp, true);
+				string URL = station.GetWOWURL(out var pwstring, timestamp, true);
 
 				WOWList.Add(URL);
 
@@ -7236,9 +7168,7 @@ namespace CumulusMX
 		{
 			if (WeatherbugEnabled && WeatherbugCatchUp)
 			{
-				string pwstring;
-
-				string URL = station.GetWeatherbugURL(out pwstring, timestamp, true);
+				string URL = station.GetWeatherbugURL(out var pwstring, timestamp, true);
 
 				WeatherbugList.Add(URL);
 
