@@ -2,7 +2,7 @@
 =============
 - Fix uncaught Web exceptions in Davis WLL
 - Fix Monthly Records editor not saving updated date/time stamps
-- Adds a log file for MonthlyAlltimeIni.txt file changes
+- Adds a log file for MonthlyAlltime.ini file changes
 
 - Updated files
 	\CumulusMX.exe
