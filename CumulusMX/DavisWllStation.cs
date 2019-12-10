@@ -204,7 +204,7 @@ namespace CumulusMX
 						}
 						retry = 0;
 					}
-					catch (HttpRequestException exp)
+					catch (Exception exp)
 					{
 						retry--;
 						cumulus.LogDebugMessage("GetRealtime(): Exception Caught!");
@@ -244,7 +244,7 @@ namespace CumulusMX
 				// The WLL will error if already responding to a request from another device, so add a retry
 				do
 				{
-					cumulus.LogMessage($"Sending GET current conditions request to WLL: {urlCurrent} ...");
+					cumulus.LogDebugMessage($"Sending GET current conditions request to WLL: {urlCurrent} ...");
 					// First time run it synchronously
 					using (HttpClient client = new HttpClient())
 					{
@@ -275,7 +275,7 @@ namespace CumulusMX
 							}
 							retry = 0;
 						}
-						catch (HttpRequestException exp)
+						catch (Exception exp)
 						{
 							retry--;
 							cumulus.LogDebugMessage("GetWllCurrent(): Exception Caught!");

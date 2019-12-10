@@ -1,3 +1,13 @@
+3.2.4 - b3060
+=============
+- Fix uncaught Web exceptions in Davis WLL
+- Fix Monthly Records editor not saving updated date/time stamps
+- Adds a log file for MonthlyAlltime.ini file changes
+
+- Updated files
+	\CumulusMX.exe
+
+
 3.2.3 - b3059
 =============
 - Adds the Cumulus.ini file to the files automatically backed up each day/program start
