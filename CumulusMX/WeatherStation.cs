@@ -46,9 +46,9 @@ namespace CumulusMX
 		}
 
 		private readonly Object monthIniThreadLock = new Object();
-		private readonly Object yearIniThreadLock = new Object();
-		private readonly Object alltimeIniThreadLock = new Object();
-		private readonly Object monthlyalltimeIniThreadLock = new Object();
+		public readonly Object yearIniThreadLock = new Object();
+		public readonly Object alltimeIniThreadLock = new Object();
+		public readonly Object monthlyalltimeIniThreadLock = new Object();
 
 		// holds all time highs and lows
 		public TAlltime[] alltimerecarray = new TAlltime[alltimerecbound + 1];
@@ -1003,29 +1003,16 @@ namespace CumulusMX
 
 				if (recordbroken)
 				{
-					string s = "New monthly record, month = " + month + ": ";
-					s = s + timestamp.ToString("yyyy-MM-dd") + FormatDateTime(" HH", timestamp) + ":" + FormatDateTime("mm ", timestamp);
-					s = s + value.ToString("F3") + " \"" + alltimedescs[index] + "\" ";
-					s = s + FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts);
-					s = s + oldvalue.ToString("F3");
-
-					cumulus.LogMessage(s);
-
-					monthlyrecarray[index, month].data_type = index;
-					monthlyrecarray[index, month].value = value;
-
-					DateTime CurrentMonthTS = new DateTime(year, month, day);
-
 					// records which apply to whole days or months need their timestamps adjusting
 					if ((index == AT_wetmonth) || (index == AT_dailyrain))
 					{
-						monthlyrecarray[index, month].timestamp = CurrentMonthTS;
+						DateTime CurrentMonthTS = new DateTime(year, month, day);
+						SetMonthlyAlltime(index, value, CurrentMonthTS);
 					}
 					else
 					{
-						monthlyrecarray[index, month].timestamp = timestamp;
+						SetMonthlyAlltime(index, value, timestamp);
 					}
-					WriteMonthlyAlltimeIniFile();
 				}
 			}
 		}
@@ -3812,34 +3799,32 @@ namespace CumulusMX
 						   FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts) + String.Format("{0,7:0.000}", oldvalue) +
 						   Environment.NewLine;
 
+				cumulus.LogMessage(s);
 				File.AppendAllText(cumulus.Alltimelogfile, s);
 			}
 		}
 
 		public void SetMonthlyAlltime(int index, double value, DateTime timestamp)
 		{
-			lock (monthlyalltimeIniThreadLock)
-			{
-				var month = timestamp.Month;
+			var month = timestamp.Month;
 
-				double oldvalue = monthlyrecarray[index, month].value;
-				DateTime oldts = monthlyrecarray[index, month].timestamp;
+			double oldvalue = monthlyrecarray[index, month].value;
+			DateTime oldts = monthlyrecarray[index, month].timestamp;
 
-				string s = "Changed monthly record, month = " + month + ": ";
-				s = s + timestamp.ToString("yyyy-MM-dd") + FormatDateTime(" HH", timestamp) + ":" + FormatDateTime("mm ", timestamp);
-				s = s + value.ToString("F3") + " \"" + alltimedescs[index] + "\" ";
-				s = s + FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts);
-				s = s + oldvalue.ToString("F3");
+			monthlyrecarray[index, month].data_type = index;
+			monthlyrecarray[index, month].value = value;
+			monthlyrecarray[index, month].timestamp = timestamp;
 
-				cumulus.LogMessage(s);
+			WriteMonthlyAlltimeIniFile();
 
-				monthlyrecarray[index, month].data_type = index;
-				monthlyrecarray[index, month].value = value;
+			string s = "month = " + month.ToString("D2") + ": ";
+			s = s + timestamp.ToString("yyyy-MM-dd") + FormatDateTime(" HH", timestamp) + ":" + FormatDateTime("mm ", timestamp);
+			s = s + value.ToString("F3") + " \"" + alltimedescs[index] + "\" ";
+			s = s + FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts);
+			s = s + oldvalue.ToString("F3");
 
-				WriteMonthlyAlltimeIniFile();
-			}
+			File.AppendAllText(cumulus.MonthlyAlltimeLogFile, s);
 		}
-
 
 
 		/// <summary>
