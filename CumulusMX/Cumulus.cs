@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.3";
-		public string Build = "3059";
+		public string Version = "3.2.4";
+		public string Build = "3060";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -450,10 +450,11 @@ namespace CumulusMX
 
 		public int FineOffsetReadTime;
 
-		private readonly string AlltimeFile;
+		//private readonly string AlltimeFile;
 		public string AlltimeIniFile;
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
+		public string MonthlyAlltimeLogFile;
 		private readonly string LogFilePath;
 		public string DayFile;
 		public string YesterdayFile;
@@ -1071,10 +1072,11 @@ namespace CumulusMX
 			dbfile = Datapath + "cumulusmx.db";
 			diaryfile = Datapath + "diary.db";
 
-			AlltimeFile = Datapath + "alltime.rec";
+			//AlltimeFile = Datapath + "alltime.rec";
 			AlltimeIniFile = Datapath + "alltime.ini";
 			Alltimelogfile = Datapath + "alltimelog.txt";
 			MonthlyAlltimeIniFile = Datapath + "monthlyalltime.ini";
+			MonthlyAlltimeLogFile = Datapath + "monthlyalltimelog.txt";
 			LogFilePath = Datapath;
 			DayFile = Datapath + "dayfile.txt";
 			YesterdayFile = Datapath + "yesterday.ini";
