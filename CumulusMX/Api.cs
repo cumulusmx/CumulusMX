@@ -130,10 +130,10 @@ namespace CumulusMX
 							return this.JsonResponse(dataEditor.GetAllTimeRecData());
 
 						case "alltimerecordsdayfile.json":
-							return this.JsonResponse(dataEditor.GetAllTimeRecDayFile());
+							return this.JsonResponse(dataEditor.GetRecordsDayFile("alltime"));
 
 						case "alltimerecordslogfile.json":
-							return this.JsonResponse(dataEditor.GetAllTimeRecLogFile());
+							return this.JsonResponse(dataEditor.GetRecordsLogFile("alltime"));
 
 						case "monthlyrecords.json":
 							return this.JsonResponse(dataEditor.GetMonthlyRecData());
@@ -144,6 +144,23 @@ namespace CumulusMX
 						case "monthlyrecordslogfile.json":
 							return this.JsonResponse(dataEditor.GetMonthlyRecLogFile());
 
+						case "thismonthrecords.json":
+							return this.JsonResponse(dataEditor.GetThisMonthRecData());
+
+						case "thismonthrecordsdayfile.json":
+							return this.JsonResponse(dataEditor.GetRecordsDayFile("thismonth"));
+
+						case "thismonthrecordslogfile.json":
+							return this.JsonResponse(dataEditor.GetRecordsLogFile("thismonth"));
+
+						case "thisyearrecords.json":
+							return this.JsonResponse(dataEditor.GetThisYearRecData());
+
+						case "thisyearrecordsdayfile.json":
+							return this.JsonResponse(dataEditor.GetRecordsDayFile("thisyear"));
+
+						case "thisyearrecordslogfile.json":
+							return this.JsonResponse(dataEditor.GetRecordsLogFile("thisyear"));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -206,6 +223,11 @@ namespace CumulusMX
 						case "monthly":
 							return this.JsonResponse(dataEditor.EditMonthlyRecs(this));
 
+						case "thismonth":
+							return this.JsonResponse(dataEditor.EditThisMonthRecs(this));
+
+						case "thisyear":
+							return this.JsonResponse(dataEditor.EditThisYearRecs(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -652,6 +674,8 @@ namespace CumulusMX
 							return this.JsonResponse(mySqlSettings.CreateRealtimeSQL(this));
 						case "updatealarmconfig.json":
 							return this.JsonResponse(alarmSettings.UpdateAlarmSettings(this));
+						case "ftpnow.json":
+							return this.JsonResponse(stationSettings.FtpNow(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

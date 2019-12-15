@@ -197,7 +197,7 @@ namespace CumulusMX
 			return json;
 		}
 
-		internal string GetAllTimeRecDayFile()
+		internal string GetRecordsDayFile(string recordType)
 		{
 			const string timeStampFormat = "dd/MM/yy HH:mm";
 			const string dateStampFormat = "dd/MM/yy";
@@ -255,6 +255,25 @@ namespace CumulusMX
 			var wetPeriodTime = highTempTime;
 
 			var thisDate = highTempTime;
+			DateTime startDate;
+			switch (recordType)
+			{
+				case "alltime":
+					startDate = highTempTime;
+					break;
+				case "thisyear":
+					var now = DateTime.Now;
+					startDate = new DateTime(now.Year, 1, 1);
+					break;
+				case "thismonth":
+					now = DateTime.Now;
+					startDate = new DateTime(now.Year, now.Month, 1);
+					break;
+				default:
+					startDate = highTempTime;
+					break;
+			}
+
 			var rainThisMonth = 0.0;
 			var currentDryPeriod = 0;
 			var currentWetPeriod = 0;
@@ -285,6 +304,11 @@ namespace CumulusMX
 
 						var datestr = st[0];
 						var loggedDate = station.ddmmyyStrToDate(datestr);
+						if (loggedDate < startDate)
+						{
+							continue;
+						}
+
 						double valDbl, valDbl2;
 
 						// This assumes the day file is in date order!
@@ -484,6 +508,19 @@ namespace CumulusMX
 						}
 					}
 
+					// We need to check if the run or wet/dry days at the end of logs exceeds any records
+					if (currentWetPeriod > wetPeriodVal)
+					{
+						wetPeriodVal = currentWetPeriod;
+						wetPeriodTime = thisDateWet;
+					}
+					if (currentDryPeriod > dryPeriodVal)
+					{
+						dryPeriodVal = currentDryPeriod;
+						dryPeriodTime = thisDateDry;
+					}
+
+
 					json += "\"highTempValDayfile\":\"" + highTempVal.ToString(cumulus.TempFormat) + "\",";
 					json += "\"highTempTimeDayfile\":\"" + highTempTime.ToString(timeStampFormat) + "\",";
 					json += "\"lowTempValDayfile\":\"" + lowTempVal.ToString(cumulus.TempFormat) + "\",";
@@ -528,8 +565,11 @@ namespace CumulusMX
 					json += "\"highHourlyRainTimeDayfile\":\"" + highRainHourTime.ToString(timeStampFormat) + "\",";
 					json += "\"highDailyRainValDayfile\":\"" + highRainDayVal.ToString(cumulus.RainFormat) + "\",";
 					json += "\"highDailyRainTimeDayfile\":\"" + highRainDayTime.ToString(dateStampFormat) + "\",";
-					json += "\"highMonthlyRainValDayfile\":\"" + highRainMonthVal.ToString(cumulus.RainFormat) + "\",";
-					json += "\"highMonthlyRainTimeDayfile\":\"" + highRainMonthTime.ToString("yyyy/MM") + "\",";
+					if (recordType != "thismonth")
+					{
+						json += "\"highMonthlyRainValDayfile\":\"" + highRainMonthVal.ToString(cumulus.RainFormat) + "\",";
+						json += "\"highMonthlyRainTimeDayfile\":\"" + highRainMonthTime.ToString("yyyy/MM") + "\",";
+					}
 					json += "\"longestDryPeriodValDayfile\":\"" + dryPeriodVal.ToString() + "\",";
 					json += "\"longestDryPeriodTimeDayfile\":\"" + dryPeriodTime.ToString(dateStampFormat) + "\",";
 					json += "\"longestWetPeriodValDayfile\":\"" + wetPeriodVal.ToString() + "\",";
@@ -552,13 +592,30 @@ namespace CumulusMX
 			return json;
 		}
 
-		internal string GetAllTimeRecLogFile()
+		internal string GetRecordsLogFile(string recordType)
 		{
 			const string timeStampFormat = "dd/MM/yy HH:mm";
 			const string dateStampFormat = "dd/MM/yy";
 
 			var json = "{";
-			var datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+			DateTime datefrom;
+			switch (recordType)
+			{
+				case "alltime":
+					datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+					break;
+				case "thisyear":
+					var now = DateTime.Now;
+					datefrom = new DateTime(now.Year, 1, 2);
+					break;
+				case "thismonth":
+					now = DateTime.Now;
+					datefrom = new DateTime(now.Year, now.Month, 2);
+					break;
+				default:
+					datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+					break;
+			}
 			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
 			var dateto = DateTime.Now;
 			dateto = new DateTime(dateto.Year, dateto.Month, 1, 0, 0, 0);
@@ -928,6 +985,19 @@ namespace CumulusMX
 				}
 			}
 
+			// We need to check if the run or wet/dry days at the end of logs exceeds any records
+			if (currentWetPeriod > wetPeriodVal)
+			{
+				wetPeriodVal = currentWetPeriod;
+				wetPeriodTime = thisDateWet;
+			}
+			if (currentDryPeriod > dryPeriodVal)
+			{
+				dryPeriodVal = currentDryPeriod;
+				dryPeriodTime = thisDateDry;
+			}
+
+
 			json += "\"highTempValLogfile\":\"" + highTempVal.ToString(cumulus.TempFormat) + "\",";
 			json += "\"highTempTimeLogfile\":\"" + highTempTime.ToString(timeStampFormat) + "\",";
 			json += "\"lowTempValLogfile\":\"" + lowTempVal.ToString(cumulus.TempFormat) + "\",";
@@ -974,10 +1044,20 @@ namespace CumulusMX
 			json += "\"highDailyRainTimeLogfile\":\"" + highRainDayTime.ToString(dateStampFormat) + "\",";
 			json += "\"highMonthlyRainValLogfile\":\"" + highRainMonthVal.ToString(cumulus.RainFormat) + "\",";
 			json += "\"highMonthlyRainTimeLogfile\":\"" + highRainMonthTime.ToString("yyyy/MM") + "\",";
-			json += "\"longestDryPeriodValLogfile\":\"" + dryPeriodVal.ToString() + "\",";
-			json += "\"longestDryPeriodTimeLogfile\":\"" + dryPeriodTime.ToString(dateStampFormat) + "\",";
-			json += "\"longestWetPeriodValLogfile\":\"" + wetPeriodVal.ToString() + "\",";
-			json += "\"longestWetPeriodTimeLogfile\":\"" + wetPeriodTime.ToString(dateStampFormat) + "\"}";
+			if (recordType == "alltime")
+			{
+				json += "\"longestDryPeriodValLogfile\":\"" + dryPeriodVal.ToString() + "\",";
+				json += "\"longestDryPeriodTimeLogfile\":\"" + dryPeriodTime.ToString(dateStampFormat) + "\",";
+				json += "\"longestWetPeriodValLogfile\":\"" + wetPeriodVal.ToString() + "\",";
+				json += "\"longestWetPeriodTimeLogfile\":\"" + wetPeriodTime.ToString(dateStampFormat) + "\"}";
+			}
+			else
+			{
+				json += "\"longestDryPeriodValLogfile\":\"" + dryPeriodVal.ToString() + "*\",";
+				json += "\"longestDryPeriodTimeLogfile\":\"" + dryPeriodTime.ToString(dateStampFormat) + "*\",";
+				json += "\"longestWetPeriodValLogfile\":\"" + wetPeriodVal.ToString() + "*\",";
+				json += "\"longestWetPeriodTimeLogfile\":\"" + wetPeriodTime.ToString(dateStampFormat) + "*\"}";
+			}
 
 			watch.Stop();
 			var elapsed = watch.ElapsedMilliseconds;
@@ -1217,172 +1297,172 @@ namespace CumulusMX
 					switch (field)
 					{
 						case "highTempVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_hightemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_hightemp, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_hightemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_hightemp, month].timestamp, month);
 							break;
 						case "highTempTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_hightemp, station.monthlyrecarray[WeatherStation.AT_hightemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_hightemp, station.monthlyrecarray[WeatherStation.AT_hightemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "lowTempVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowtemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowtemp, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowtemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowtemp, month].timestamp, month);
 							break;
 						case "lowTempTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_lowtemp, station.monthlyrecarray[WeatherStation.AT_lowtemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowtemp, station.monthlyrecarray[WeatherStation.AT_lowtemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highDewPointVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highdewpoint, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highdewpoint, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highdewpoint, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highdewpoint, month].timestamp, month);
 							break;
 						case "highDewPointTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highdewpoint, station.monthlyrecarray[WeatherStation.AT_highdewpoint, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highdewpoint, station.monthlyrecarray[WeatherStation.AT_highdewpoint, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "lowDewPointVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowdewpoint, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowdewpoint, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowdewpoint, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowdewpoint, month].timestamp, month);
 							break;
 						case "lowDewPointTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_lowdewpoint, station.monthlyrecarray[WeatherStation.AT_lowdewpoint, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowdewpoint, station.monthlyrecarray[WeatherStation.AT_lowdewpoint, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highApparentTempVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highapptemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highapptemp, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highapptemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highapptemp, month].timestamp, month);
 							break;
 						case "highApparentTempTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highapptemp, station.monthlyrecarray[WeatherStation.AT_highapptemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highapptemp, station.monthlyrecarray[WeatherStation.AT_highapptemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "lowApparentTempVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowapptemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowapptemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].timestamp, month);
 							break;
 						case "lowApparentTempTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_lowapptemp, station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowapptemp, station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "lowWindChillVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowchill, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowchill, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowchill, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowchill, month].timestamp, month);
 							break;
 						case "lowWindChillTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_lowchill, station.monthlyrecarray[WeatherStation.AT_lowchill, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowchill, station.monthlyrecarray[WeatherStation.AT_lowchill, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highHeatIndexVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highheatindex, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highheatindex, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highheatindex, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highheatindex, month].timestamp, month);
 							break;
 						case "highHeatIndexTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highheatindex, station.monthlyrecarray[WeatherStation.AT_highheatindex, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highheatindex, station.monthlyrecarray[WeatherStation.AT_highheatindex, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highMinTempVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highmintemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highmintemp, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highmintemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highmintemp, month].timestamp, month);
 							break;
 						case "highMinTempTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_highmintemp, station.monthlyrecarray[WeatherStation.AT_highmintemp, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_highmintemp, station.monthlyrecarray[WeatherStation.AT_highmintemp, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "lowMaxTempVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowmaxtemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowmaxtemp, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].timestamp, month);
 							break;
 						case "lowMaxTempTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowmaxtemp, station.monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowmaxtemp, station.monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "highDailyTempRangeVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highdailytemprange, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highdailytemprange, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highdailytemprange, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highdailytemprange, month].timestamp, month);
 							break;
 						case "highDailyTempRangeTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_highdailytemprange, station.monthlyrecarray[WeatherStation.AT_highdailytemprange, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_highdailytemprange, station.monthlyrecarray[WeatherStation.AT_highdailytemprange, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "lowDailyTempRangeVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowdailytemprange, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowdailytemprange, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].timestamp, month);
 							break;
 						case "lowDailyTempRangeTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowdailytemprange, station.monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowdailytemprange, station.monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "highHumidityVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highhumidity, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highhumidity, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highhumidity, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highhumidity, month].timestamp, month);
 							break;
 						case "highHumidityTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highhumidity, station.monthlyrecarray[WeatherStation.AT_highhumidity, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highhumidity, station.monthlyrecarray[WeatherStation.AT_highhumidity, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "lowHumidityVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowhumidity, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowhumidity, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowhumidity, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowhumidity, month].timestamp, month);
 							break;
 						case "lowHumidityTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_lowhumidity, station.monthlyrecarray[WeatherStation.AT_lowhumidity, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowhumidity, station.monthlyrecarray[WeatherStation.AT_lowhumidity, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highBarometerVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highpress, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highpress, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highpress, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highpress, month].timestamp, month);
 							break;
 						case "highBarometerTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highpress, station.monthlyrecarray[WeatherStation.AT_highpress, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highpress, station.monthlyrecarray[WeatherStation.AT_highpress, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "lowBarometerVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_lowpress, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowpress, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_lowpress, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowpress, month].timestamp, month);
 							break;
 						case "lowBarometerTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_lowpress, station.monthlyrecarray[WeatherStation.AT_lowpress, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_lowpress, station.monthlyrecarray[WeatherStation.AT_lowpress, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highGustVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highgust, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highgust, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highgust, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highgust, month].timestamp, month);
 							break;
 						case "highGustTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highgust, station.monthlyrecarray[WeatherStation.AT_highgust, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highgust, station.monthlyrecarray[WeatherStation.AT_highgust, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highWindVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highwind, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highwind, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highwind, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highwind, month].timestamp, month);
 							break;
 						case "highWindTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highwind, station.monthlyrecarray[WeatherStation.AT_highwind, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highwind, station.monthlyrecarray[WeatherStation.AT_highwind, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highWindRunVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highwindrun, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highwindrun, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highwindrun, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highwindrun, month].timestamp, month);
 							break;
 						case "highWindRunTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_highwindrun, station.monthlyrecarray[WeatherStation.AT_highwindrun, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_highwindrun, station.monthlyrecarray[WeatherStation.AT_highwindrun, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "highRainRateVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_highrainrate, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highrainrate, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_highrainrate, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highrainrate, month].timestamp, month);
 							break;
 						case "highRainRateTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_highrainrate, station.monthlyrecarray[WeatherStation.AT_highrainrate, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_highrainrate, station.monthlyrecarray[WeatherStation.AT_highrainrate, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highHourlyRainVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_hourlyrain, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_hourlyrain, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_hourlyrain, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_hourlyrain, month].timestamp, month);
 							break;
 						case "highHourlyRainTime":
 							dt = value.Split('+');
-							station.SetMonthlyAlltime(WeatherStation.AT_hourlyrain, station.monthlyrecarray[WeatherStation.AT_hourlyrain, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							station.SetMonthlyAlltime(WeatherStation.AT_hourlyrain, station.monthlyrecarray[WeatherStation.AT_hourlyrain, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
 						case "highDailyRainVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_dailyrain, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_dailyrain, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_dailyrain, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_dailyrain, month].timestamp, month);
 							break;
 						case "highDailyRainTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_dailyrain, station.monthlyrecarray[WeatherStation.AT_dailyrain, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_dailyrain, station.monthlyrecarray[WeatherStation.AT_dailyrain, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "highMonthlyRainVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_wetmonth, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_wetmonth, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_wetmonth, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_wetmonth, month].timestamp, month);
 							break;
 						case "highMonthlyRainTime":
 							dt = value.Split('/');
 							var datstr = "01/" + dt[1] + "/" + dt[0].Substring(2, 2);
-							station.SetMonthlyAlltime(WeatherStation.AT_wetmonth, station.monthlyrecarray[WeatherStation.AT_wetmonth, month].value, station.ddmmyyStrToDate(datstr));
+							station.SetMonthlyAlltime(WeatherStation.AT_wetmonth, station.monthlyrecarray[WeatherStation.AT_wetmonth, month].value, station.ddmmyyStrToDate(datstr), month);
 							break;
 						case "longestDryPeriodVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_longestdryperiod, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_longestdryperiod, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_longestdryperiod, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_longestdryperiod, month].timestamp, month);
 							break;
 						case "longestDryPeriodTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_longestdryperiod, station.monthlyrecarray[WeatherStation.AT_longestdryperiod, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_longestdryperiod, station.monthlyrecarray[WeatherStation.AT_longestdryperiod, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						case "longestWetPeriodVal":
-							station.SetMonthlyAlltime(WeatherStation.AT_longestwetperiod, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_longestwetperiod, month].timestamp);
+							station.SetMonthlyAlltime(WeatherStation.AT_longestwetperiod, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_longestwetperiod, month].timestamp, month);
 							break;
 						case "longestWetPeriodTime":
-							station.SetMonthlyAlltime(WeatherStation.AT_longestwetperiod, station.monthlyrecarray[WeatherStation.AT_longestwetperiod, month].value, station.ddmmyyStrToDate(value));
+							station.SetMonthlyAlltime(WeatherStation.AT_longestwetperiod, station.monthlyrecarray[WeatherStation.AT_longestwetperiod, month].value, station.ddmmyyStrToDate(value), month);
 							break;
 						default:
 							result = 0;
@@ -2298,6 +2378,534 @@ namespace CumulusMX
 
 			return json;
 		}
+
+
+		internal string GetThisMonthRecData()
+		{
+			const string timeStampFormat = "dd/MM/yy HH:mm";
+			const string dateStampFormat = "dd/MM/yy";
+
+			var json = "{";
+			// Records - Temperature
+			json += $"\"highTempVal\": \"{station.HighTempThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highTempTime\": \"{station.HighTempThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowTempVal\": \"{station.LowTempThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowTempTime\": \"{station.LowTempThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highDewPointVal\": \"{station.HighDewpointThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highDewPointTime\": \"{station.HighDewpointThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowDewPointVal\": \"{station.LowDewpointThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowDewPointTime\": \"{station.LowDewpointThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highApparentTempVal\": \"{station.HighAppTempThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highApparentTempTime\": \"{station.HighAppTempThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowApparentTempVal\": \"{station.LowAppTempThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowApparentTempTime\": \"{station.LowAppTempThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowWindChillVal\": \"{station.LowWindChillThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowWindChillTime\": \"{station.LowWindChillThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highHeatIndexVal\": \"{station.HighHeatIndexThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highHeatIndexTime\": \"{station.HighHeatIndexThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highMinTempVal\": \"{station.HighMinTempThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highMinTempTime\": \"{station.HighMinTempThisMonthTS.ToString(dateStampFormat)}\",";
+			json += $"\"lowMaxTempVal\": \"{station.LowMaxTempThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowMaxTempTime\": \"{station.LowMaxTempThisMonthTS.ToString(dateStampFormat)}\",";
+			json += $"\"highDailyTempRangeVal\": \"{station.HighDailyTempRangeThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highDailyTempRangeTime\": \"{station.HighDailyTempRangeThisMonthTS.ToString(dateStampFormat)}\",";
+			json += $"\"lowDailyTempRangeVal\": \"{station.LowDailyTempRangeThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowDailyTempRangeTime\": \"{station.LowDailyTempRangeThisMonthTS.ToString(dateStampFormat)}\",";
+			// Records - Humidty
+			json += $"\"highHumidityVal\": \"{station.HighHumidityThisMonth.ToString(cumulus.HumFormat)}\",";
+			json += $"\"highHumidityTime\": \"{station.HighHumidityThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowHumidityVal\": \"{station.LowHumidityThisMonth.ToString(cumulus.HumFormat)}\",";
+			json += $"\"lowHumidityTime\": \"{station.LowHumidityThisMonthTS.ToString(timeStampFormat)}\",";
+			// Records - Pressure
+			json += $"\"highBarometerVal\": \"{station.HighPressThisMonth.ToString(cumulus.PressFormat)}\",";
+			json += $"\"highBarometerTime\": \"{station.HighPressThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowBarometerVal\": \"{station.LowPressThisMonth.ToString(cumulus.PressFormat)}\",";
+			json += $"\"lowBarometerTime\": \"{station.LowPressThisMonthTS.ToString(timeStampFormat)}\",";
+			// Records - Wind
+			json += $"\"highGustVal\": \"{station.HighGustThisMonth.ToString(cumulus.WindFormat)}\",";
+			json += $"\"highGustTime\": \"{station.HighGustThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highWindVal\": \"{station.HighWindThisMonth.ToString(cumulus.WindFormat)}\",";
+			json += $"\"highWindTime\": \"{station.HighWindThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highWindRunVal\": \"{station.HighDailyWindrunThisMonth.ToString(cumulus.WindRunFormat)}\",";
+			json += $"\"highWindRunTime\": \"{station.HighDailyWindrunThisMonthTS.ToString(dateStampFormat)}\",";
+			// Records - Rain
+			json += $"\"highRainRateVal\": \"{station.HighRainThisMonth.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highRainRateTime\": \"{station.HighRainThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highHourlyRainVal\": \"{station.HighHourlyRainThisMonth.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highHourlyRainTime\": \"{station.HighHourlyRainThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highDailyRainVal\": \"{station.HighDailyRainThisMonth.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highDailyRainTime\": \"{station.HighDailyRainThisMonthTS.ToString(dateStampFormat)}\",";
+			json += $"\"longestDryPeriodVal\": \"{station.LongestDryPeriodThisMonth.ToString("D")}\",";
+			json += $"\"longestDryPeriodTime\": \"{station.LongestDryPeriodThisMonthTS.ToString(dateStampFormat)}\",";
+			json += $"\"longestWetPeriodVal\": \"{station.LongestWetPeriodThisMonth.ToString("D")}\",";
+			json += $"\"longestWetPeriodTime\": \"{station.LongestWetPeriodThisMonthTS.ToString(dateStampFormat)}\"";
+
+			json += "}";
+
+			return json;
+		}
+
+		internal string EditThisMonthRecs(IHttpContext context)
+		{
+			var request = context.Request;
+			string text;
+
+
+			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+			{
+				text = Uri.UnescapeDataString(reader.ReadToEnd());
+			}
+			// Eg "name=highTempValvalue=134.6&pk=1"
+			var newData = text.Split('&');
+			var field = newData[0].Split('=')[1];
+			var value = newData[1].Split('=')[1];
+			var result = 1;
+			try
+			{
+				string[] dt;
+				switch (field)
+				{
+					case "highTempVal":
+						station.HighTempThisMonth = double.Parse(value);
+						break;
+					case "highTempTime":
+						dt = value.Split('+');
+						station.HighTempThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowTempVal":
+						station.LowTempThisMonth = double.Parse(value);
+						break;
+					case "lowTempTime":
+						dt = value.Split('+');
+						station.LowTempThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highDewPointVal":
+						station.HighDewpointThisMonth = double.Parse(value);
+						break;
+					case "highDewPointTime":
+						dt = value.Split('+');
+						station.HighDewpointThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowDewPointVal":
+						station.LowDewpointThisMonth = double.Parse(value);
+						break;
+					case "lowDewPointTime":
+						dt = value.Split('+');
+						station.LowDewpointThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highApparentTempVal":
+						station.HighAppTempThisMonth = double.Parse(value);
+						break;
+					case "highApparentTempTime":
+						dt = value.Split('+');
+						station.HighAppTempThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowApparentTempVal":
+						station.LowAppTempThisMonth =double.Parse(value);
+						break;
+					case "lowApparentTempTime":
+						dt = value.Split('+');
+						station.LowAppTempThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowWindChillVal":
+						station.LowWindChillThisMonth = double.Parse(value);
+						break;
+					case "lowWindChillTime":
+						dt = value.Split('+');
+						station.LowWindChillThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highHeatIndexVal":
+						station.HighHeatIndexThisMonth = double.Parse(value);
+						break;
+					case "highHeatIndexTime":
+						dt = value.Split('+');
+						station.HighHeatIndexThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highMinTempVal":
+						station.HighMinTempThisMonth = double.Parse(value);
+						break;
+					case "highMinTempTime":
+						station.HighMinTempThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "lowMaxTempVal":
+						station.LowMaxTempThisMonth = double.Parse(value);
+						break;
+					case "lowMaxTempTime":
+						station.LowMaxTempThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highDailyTempRangeVal":
+						station.HighDailyTempRangeThisMonth = double.Parse(value);
+						break;
+					case "highDailyTempRangeTime":
+						station.HighDailyTempRangeThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "lowDailyTempRangeVal":
+						station.LowDailyTempRangeThisMonth = double.Parse(value);
+						break;
+					case "lowDailyTempRangeTime":
+						station.LowDailyTempRangeThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highHumidityVal":
+						station.HighHumidityThisMonth = int.Parse(value);
+						break;
+					case "highHumidityTime":
+						dt = value.Split('+');
+						station.HighHumidityThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowHumidityVal":
+						station.LowHumidityThisMonth = int.Parse(value);
+						break;
+					case "lowHumidityTime":
+						dt = value.Split('+');
+						station.LowHumidityThisMonthTS =  station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highBarometerVal":
+						station.HighPressThisMonth = double.Parse(value);
+						break;
+					case "highBarometerTime":
+						dt = value.Split('+');
+						station.HighPressThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowBarometerVal":
+						station.LowPressThisMonth = double.Parse(value);
+						break;
+					case "lowBarometerTime":
+						dt = value.Split('+');
+						station.LowPressThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highGustVal":
+						station.HighGustThisMonth = double.Parse(value);
+						break;
+					case "highGustTime":
+						dt = value.Split('+');
+						station.HighGustThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highWindVal":
+						station.HighWindThisMonth = double.Parse(value);
+						break;
+					case "highWindTime":
+						dt = value.Split('+');
+						station.HighWindThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highWindRunVal":
+						station.HighDailyWindrunThisMonth = double.Parse(value);
+						break;
+					case "highWindRunTime":
+						station.HighDailyWindrunThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highRainRateVal":
+						station.HighRainThisMonth = double.Parse(value);
+						break;
+					case "highRainRateTime":
+						dt = value.Split('+');
+						station.HighRainThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highHourlyRainVal":
+						station.HighHourlyRainThisMonth = double.Parse(value);
+						break;
+					case "highHourlyRainTime":
+						dt = value.Split('+');
+						station.HighHourlyRainThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highDailyRainVal":
+						station.HighDailyRainThisMonth = double.Parse(value);
+						break;
+					case "highDailyRainTime":
+						station.HighDailyRainThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "longestDryPeriodVal":
+						station.LongestDryPeriodThisMonth = int.Parse(value);
+						break;
+					case "longestDryPeriodTime":
+						station.LongestDryPeriodThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					case "longestWetPeriodVal":
+						station.LongestWetPeriodThisMonth = int.Parse(value);
+						break;
+					case "longestWetPeriodTime":
+						station.LongestWetPeriodThisMonthTS = station.ddmmyyStrToDate(value);
+						break;
+					default:
+						result = 0;
+						break;
+				}
+				station.WriteMonthIniFile();
+			}
+			catch
+			{
+				result = 0;
+			}
+			return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
+		}
+
+
+		internal string GetThisYearRecData()
+		{
+			const string timeStampFormat = "dd/MM/yy HH:mm";
+			const string dateStampFormat = "dd/MM/yy";
+
+			var json = "{";
+			// Records - Temperature
+			json += $"\"highTempVal\": \"{station.HighTempThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highTempTime\": \"{station.HighTempThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowTempVal\": \"{station.LowTempThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowTempTime\": \"{station.LowTempThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highDewPointVal\": \"{station.HighDewpointThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highDewPointTime\": \"{station.HighDewpointThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowDewPointVal\": \"{station.LowDewpointThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowDewPointTime\": \"{station.LowDewpointThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highApparentTempVal\": \"{station.HighAppTempThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highApparentTempTime\": \"{station.HighAppTempThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowApparentTempVal\": \"{station.LowAppTempThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowApparentTempTime\": \"{station.LowAppTempThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowWindChillVal\": \"{station.LowWindChillThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowWindChillTime\": \"{station.LowWindChillThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highHeatIndexVal\": \"{station.HighHeatIndexThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highHeatIndexTime\": \"{station.HighHeatIndexThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highMinTempVal\": \"{station.HighMinTempThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highMinTempTime\": \"{station.HighMinTempThisYearTS.ToString(dateStampFormat)}\",";
+			json += $"\"lowMaxTempVal\": \"{station.LowMaxTempThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowMaxTempTime\": \"{station.LowMaxTempThisYearTS.ToString(dateStampFormat)}\",";
+			json += $"\"highDailyTempRangeVal\": \"{station.HighDailyTempRangeThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highDailyTempRangeTime\": \"{station.HighDailyTempRangeThisYearTS.ToString(dateStampFormat)}\",";
+			json += $"\"lowDailyTempRangeVal\": \"{station.LowDailyTempRangeThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowDailyTempRangeTime\": \"{station.LowDailyTempRangeThisYearTS.ToString(dateStampFormat)}\",";
+			// Records - Humidty
+			json += $"\"highHumidityVal\": \"{station.HighHumidityThisYear.ToString(cumulus.HumFormat)}\",";
+			json += $"\"highHumidityTime\": \"{station.HighHumidityThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowHumidityVal\": \"{station.LowHumidityThisYear.ToString(cumulus.HumFormat)}\",";
+			json += $"\"lowHumidityTime\": \"{station.LowHumidityThisYearTS.ToString(timeStampFormat)}\",";
+			// Records - Pressure
+			json += $"\"highBarometerVal\": \"{station.HighPressThisYear.ToString(cumulus.PressFormat)}\",";
+			json += $"\"highBarometerTime\": \"{station.HighPressThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowBarometerVal\": \"{station.LowPressThisYear.ToString(cumulus.PressFormat)}\",";
+			json += $"\"lowBarometerTime\": \"{station.LowPressThisYearTS.ToString(timeStampFormat)}\",";
+			// Records - Wind
+			json += $"\"highGustVal\": \"{station.HighGustThisYear.ToString(cumulus.WindFormat)}\",";
+			json += $"\"highGustTime\": \"{station.HighGustThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highWindVal\": \"{station.HighWindThisYear.ToString(cumulus.WindFormat)}\",";
+			json += $"\"highWindTime\": \"{station.HighWindThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highWindRunVal\": \"{station.HighDailyWindrunThisYear.ToString(cumulus.WindRunFormat)}\",";
+			json += $"\"highWindRunTime\": \"{station.HighDailyWindrunThisYearTS.ToString(dateStampFormat)}\",";
+			// Records - Rain
+			json += $"\"highRainRateVal\": \"{station.HighRainThisYear.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highRainRateTime\": \"{station.HighRainThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highHourlyRainVal\": \"{station.HighHourlyRainThisYear.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highHourlyRainTime\": \"{station.HighHourlyRainThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highDailyRainVal\": \"{station.HighDailyRainThisYear.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highDailyRainTime\": \"{station.HighDailyRainThisYearTS.ToString(dateStampFormat)}\",";
+			json += $"\"highMonthlyRainVal\": \"{station.HighMonthlyRainThisYear.ToString(cumulus.RainFormat)}\",";
+			json += $"\"highMonthlyRainTime\": \"{station.HighMonthlyRainThisYearTS.ToString("yyyy/MM")}\",";
+			json += $"\"longestDryPeriodVal\": \"{station.LongestDryPeriodThisYear.ToString("D")}\",";
+			json += $"\"longestDryPeriodTime\": \"{station.LongestDryPeriodThisYearTS.ToString(dateStampFormat)}\",";
+			json += $"\"longestWetPeriodVal\": \"{station.LongestWetPeriodThisYear.ToString("D")}\",";
+			json += $"\"longestWetPeriodTime\": \"{station.LongestWetPeriodThisYearTS.ToString(dateStampFormat)}\"";
+
+			json += "}";
+
+			return json;
+		}
+
+		internal string EditThisYearRecs(IHttpContext context)
+		{
+			var request = context.Request;
+			string text;
+
+
+			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+			{
+				text = Uri.UnescapeDataString(reader.ReadToEnd());
+			}
+			// Eg "name=highTempValvalue=134.6&pk=1"
+			var newData = text.Split('&');
+			var field = newData[0].Split('=')[1];
+			var value = newData[1].Split('=')[1];
+			var result = 1;
+			try
+			{
+				string[] dt;
+				switch (field)
+				{
+					case "highTempVal":
+						station.HighTempThisYear = double.Parse(value);
+						break;
+					case "highTempTime":
+						dt = value.Split('+');
+						station.HighTempThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowTempVal":
+						station.LowTempThisYear = double.Parse(value);
+						break;
+					case "lowTempTime":
+						dt = value.Split('+');
+						station.LowTempThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highDewPointVal":
+						station.HighDewpointThisYear = double.Parse(value);
+						break;
+					case "highDewPointTime":
+						dt = value.Split('+');
+						station.HighDewpointThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowDewPointVal":
+						station.LowDewpointThisYear = double.Parse(value);
+						break;
+					case "lowDewPointTime":
+						dt = value.Split('+');
+						station.LowDewpointThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highApparentTempVal":
+						station.HighAppTempThisYear = double.Parse(value);
+						break;
+					case "highApparentTempTime":
+						dt = value.Split('+');
+						station.HighAppTempThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowApparentTempVal":
+						station.LowAppTempThisYear = double.Parse(value);
+						break;
+					case "lowApparentTempTime":
+						dt = value.Split('+');
+						station.LowAppTempThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowWindChillVal":
+						station.LowWindChillThisYear = double.Parse(value);
+						break;
+					case "lowWindChillTime":
+						dt = value.Split('+');
+						station.LowWindChillThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highHeatIndexVal":
+						station.HighHeatIndexThisYear = double.Parse(value);
+						break;
+					case "highHeatIndexTime":
+						dt = value.Split('+');
+						station.HighHeatIndexThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highMinTempVal":
+						station.HighMinTempThisYear = double.Parse(value);
+						break;
+					case "highMinTempTime":
+						station.HighMinTempThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "lowMaxTempVal":
+						station.LowMaxTempThisYear = double.Parse(value);
+						break;
+					case "lowMaxTempTime":
+						station.LowMaxTempThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highDailyTempRangeVal":
+						station.HighDailyTempRangeThisYear = double.Parse(value);
+						break;
+					case "highDailyTempRangeTime":
+						station.HighDailyTempRangeThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "lowDailyTempRangeVal":
+						station.LowDailyTempRangeThisYear = double.Parse(value);
+						break;
+					case "lowDailyTempRangeTime":
+						station.LowDailyTempRangeThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highHumidityVal":
+						station.HighHumidityThisYear = int.Parse(value);
+						break;
+					case "highHumidityTime":
+						dt = value.Split('+');
+						station.HighHumidityThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowHumidityVal":
+						station.LowHumidityThisYear = int.Parse(value);
+						break;
+					case "lowHumidityTime":
+						dt = value.Split('+');
+						station.LowHumidityThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highBarometerVal":
+						station.HighPressThisYear = double.Parse(value);
+						break;
+					case "highBarometerTime":
+						dt = value.Split('+');
+						station.HighPressThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowBarometerVal":
+						station.LowPressThisYear = double.Parse(value);
+						break;
+					case "lowBarometerTime":
+						dt = value.Split('+');
+						station.LowPressThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highGustVal":
+						station.HighGustThisYear = double.Parse(value);
+						break;
+					case "highGustTime":
+						dt = value.Split('+');
+						station.HighGustThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highWindVal":
+						station.HighWindThisYear = double.Parse(value);
+						break;
+					case "highWindTime":
+						dt = value.Split('+');
+						station.HighWindThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highWindRunVal":
+						station.HighDailyWindrunThisYear = double.Parse(value);
+						break;
+					case "highWindRunTime":
+						station.HighDailyWindrunThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highRainRateVal":
+						station.HighRainThisYear = double.Parse(value);
+						break;
+					case "highRainRateTime":
+						dt = value.Split('+');
+						station.HighRainThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highHourlyRainVal":
+						station.HighHourlyRainThisYear = double.Parse(value);
+						break;
+					case "highHourlyRainTime":
+						dt = value.Split('+');
+						station.HighHourlyRainThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highDailyRainVal":
+						station.HighDailyRainThisYear = double.Parse(value);
+						break;
+					case "highDailyRainTime":
+						station.HighDailyRainThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "highMonthlyRainVal":
+						station.HighMonthlyRainThisYear = double.Parse(value);
+						break;
+					case "highMonthlyRainTime":
+						var dat = value.Split('/');  // yyyy/MM
+						station.HighMonthlyRainThisYearTS = new DateTime(int.Parse(dat[0]), int.Parse(dat[1]), 1);
+						break;
+					case "longestDryPeriodVal":
+						station.LongestDryPeriodThisYear = int.Parse(value);
+						break;
+					case "longestDryPeriodTime":
+						station.LongestDryPeriodThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					case "longestWetPeriodVal":
+						station.LongestWetPeriodThisYear = int.Parse(value);
+						break;
+					case "longestWetPeriodTime":
+						station.LongestWetPeriodThisYearTS = station.ddmmyyStrToDate(value);
+						break;
+					default:
+						result = 0;
+						break;
+				}
+				station.WriteYearIniFile();
+			}
+			catch
+			{
+				result = 0;
+			}
+			return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
+		}
+
 
 
 		internal string GetCurrentCond()

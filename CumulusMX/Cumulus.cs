@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.4";
-		public string Build = "3060";
+		public string Version = "3.2.5";
+		public string Build = "3061";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -813,7 +813,7 @@ namespace CumulusMX
 			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
 
 
 		/*
@@ -5854,7 +5854,7 @@ namespace CumulusMX
 			e.Accept = true; // Allow all
 		}
 
-		private void DoFTPLogin()
+		public void DoFTPLogin()
 		{
 			using (FtpClient conn = new FtpClient())
 			{

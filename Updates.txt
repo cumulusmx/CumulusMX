@@ -1,3 +1,22 @@
+3.2.5 - b3061
+=============
+- Adds This Month and This Year records editors
+- Adds FTP Now function
+- Fix to MonthlyAlltimeLog.txt to add line feeds
+- Fix missing WLL station description from APRS data
+
+- Updated files
+	\CumulusMX.exe
+	\interface\<allfiles>.html
+
+- New files
+	\interface\ftpnow.html
+	\interface\thismonthrecseditor.html
+	\interface\thisyearrecseditor.html
+	\interface\js\thismonthrecseditor.js
+	\interface\js\thisyearrecseditor.js
+
+
 3.2.4 - b3060
 =============
 - Fix uncaught Web exceptions in Davis WLL
