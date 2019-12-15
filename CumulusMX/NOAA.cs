@@ -128,7 +128,7 @@ namespace CumulusMX
 			sec = (int) Math.Round(latLong);
 		}
 
-		public double GetAverageWindSpeed(int month, string yearstr, out int domdir)
+		public double GetAverageWindSpeed(int month, int year, out int domdir)
 		{
 			string Line;
 			string Date;
@@ -144,7 +144,8 @@ namespace CumulusMX
 			totalwinddirY = 0;
 			totalwindspeed = 0;
 
-			string LogFile = cumulus.Datapath + CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(month) + yearstr + "log.txt";
+			// Use the second of the month to allow for 9am rollover
+			var LogFile = cumulus.GetLogFileName(new DateTime(year, month, 2));
 			if (File.Exists(LogFile))
 			{
 				try
@@ -432,7 +433,8 @@ namespace CumulusMX
 
 
 			// Calculate average wind speed from log file
-			string LogFile = cumulus.Datapath + thedate.ToString("MMMyy").Replace(".", "") + "log.txt";
+			// Use the second of the month in case of 9am rollover
+			var LogFile = cumulus.GetLogFileName(new DateTime(thedate.Year, thedate.Month, 2));
 
 			if (File.Exists(LogFile))
 				try
@@ -1224,7 +1226,7 @@ namespace CumulusMX
 				if (MonthList[m].valid)
 				{
 					// calculate average wind speed
-					MonthList[m].avgwindspeed = GetAverageWindSpeed(m, twodigityear, out domdir);
+					MonthList[m].avgwindspeed = GetAverageWindSpeed(m, year, out domdir);
 					MonthList[m].winddomdir = domdir;
 					if (MonthList[m].avgwindspeed < 0)
 					{

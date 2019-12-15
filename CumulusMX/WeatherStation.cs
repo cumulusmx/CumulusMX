@@ -1007,11 +1007,11 @@ namespace CumulusMX
 					if ((index == AT_wetmonth) || (index == AT_dailyrain))
 					{
 						DateTime CurrentMonthTS = new DateTime(year, month, day);
-						SetMonthlyAlltime(index, value, CurrentMonthTS);
+						SetMonthlyAlltime(index, value, CurrentMonthTS, CurrentMonthTS.Month);
 					}
 					else
 					{
-						SetMonthlyAlltime(index, value, timestamp);
+						SetMonthlyAlltime(index, value, timestamp, timestamp.Month);
 					}
 				}
 			}
@@ -3804,10 +3804,8 @@ namespace CumulusMX
 			}
 		}
 
-		public void SetMonthlyAlltime(int index, double value, DateTime timestamp)
+		public void SetMonthlyAlltime(int index, double value, DateTime timestamp, int month)
 		{
-			var month = timestamp.Month;
-
 			double oldvalue = monthlyrecarray[index, month].value;
 			DateTime oldts = monthlyrecarray[index, month].timestamp;
 
@@ -3821,7 +3819,7 @@ namespace CumulusMX
 			s = s + timestamp.ToString("yyyy-MM-dd") + FormatDateTime(" HH", timestamp) + ":" + FormatDateTime("mm ", timestamp);
 			s = s + value.ToString("F3") + " \"" + alltimedescs[index] + "\" ";
 			s = s + FormatDateTime("yyyy-MM-dd", oldts) + FormatDateTime(" HH", oldts) + ":" + FormatDateTime("mm ", oldts);
-			s = s + oldvalue.ToString("F3");
+			s = s + oldvalue.ToString("F3") + Environment.NewLine;
 
 			File.AppendAllText(cumulus.MonthlyAlltimeLogFile, s);
 		}

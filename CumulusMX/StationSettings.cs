@@ -473,6 +473,19 @@ namespace CumulusMX
 			return "success";
 		}
 
+		public string FtpNow(IHttpContext context)
+		{
+			if (!string.IsNullOrEmpty(cumulus.ftp_host))
+			{
+				cumulus.DoFTPLogin();
+				return "{\"result\":\"FTP process run\"}";
+			}
+			else
+			{
+				return "{\"result\":\"No FTP host defined\"}";
+			}
+		}
+
 		public string GetWSport()
 		{
 			return "{\"wsport\":\"" + cumulus.wsPort + "\"}";
