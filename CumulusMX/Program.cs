@@ -34,7 +34,6 @@ namespace CumulusMX
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGINT").GetValue(null)), 0);
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 1);
 
-
                 Thread signal_thread = new Thread(delegate()
                                                   {
                                                       while (true)
@@ -49,14 +48,9 @@ namespace CumulusMX
                                                           //    Write to a pipe created with UnixPipes for server apps.
                                                           //    Use an AutoResetEvent
 
-
-
                                                           exitSystem = true;
 
                                                           //AppDomain.CurrentDomain.UnhandledException -= UnhandledExceptionTrapper;
-
-
-
                                                       }
                                                   });
 
@@ -97,7 +91,6 @@ namespace CumulusMX
 
             Console.WriteLine(DateTime.Now.ToString("G"));
 
-
             Console.WriteLine("Type Ctrl-C to terminate");
             while (!exitSystem)
             {
@@ -127,8 +120,6 @@ namespace CumulusMX
             }
             catch (Exception)
             {
-
-
             }
         }
 
@@ -174,6 +165,5 @@ namespace CumulusMX
 
             return true;
         }
-
     }
 }
