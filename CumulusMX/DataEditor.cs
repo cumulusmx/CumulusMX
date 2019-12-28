@@ -616,9 +616,9 @@ namespace CumulusMX
 					datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
 					break;
 			}
-			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
+			datefrom = new DateTime(datefrom.Year, datefrom.Month, datefrom.Day, 0, 0, 0);
 			var dateto = DateTime.Now;
-			dateto = new DateTime(dateto.Year, dateto.Month, 1, 0, 0, 0);
+			dateto = new DateTime(dateto.Year, dateto.Month, 2, 0, 0, 0);
 			var filedate = datefrom;
 
 			var logFile = cumulus.GetLogFileName(filedate);

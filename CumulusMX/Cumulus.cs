@@ -29,8 +29,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.5";
-		public string Build = "3061";
+		public string Version = "3.2.6";
+		public string Build = "3062";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -2839,7 +2839,17 @@ namespace CumulusMX
 			ProductID = ini.GetValue("Station", "ProductID", -1);
 
 			Latitude = ini.GetValue("Station", "Latitude", 0.0);
+			if (Latitude > 90 || Latitude < -90)
+			{
+				Latitude = 0;
+				LogMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.");
+			}
 			Longitude = ini.GetValue("Station", "Longitude", 0.0);
+			if (Longitude > 180 || Longitude < -180)
+			{
+				Longitude = 0;
+				LogMessage($"Error, invalid longitude value in Cumulus.ini [{Longitude}], defaulting to zero.");
+			}
 
 			LatTxt = ini.GetValue("Station", "LatTxt", "");
 			LatTxt = LatTxt.Replace(" ", "&nbsp;");

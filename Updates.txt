@@ -1,3 +1,12 @@
+3.2.6 - b3062
+=============
+- Fixes monthly records editor for stations witha a met day starting at 9am
+- Adds range checks for latitude and longitude values
+
+- Updated files
+	\CumulusMX.exe
+
+
 3.2.5 - b3061
 =============
 - Adds This Month and This Year records editors
