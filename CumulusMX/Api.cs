@@ -675,7 +675,7 @@ namespace CumulusMX
 						case "updatealarmconfig.json":
 							return this.JsonResponse(alarmSettings.UpdateAlarmSettings(this));
 						case "ftpnow.json":
-							return this.JsonResponse(stationSettings.FtpNow(this));
+							return this.JsonResponse(stationSettings.FtpNow());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

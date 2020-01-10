@@ -37,19 +37,19 @@ namespace CumulusMX
 		private DateTime PreviousSensorClock;
 		private DateTime PreviousStationClock;
 		private bool Synchronising = false;
-		private DateTime lastraintip;
-		private int raininlasttip = 0;
+		//private DateTime lastraintip;
+		//private int raininlasttip = 0;
 		private int interval = 0;
 		private int followinginterval = 0;
 		//private readonly double[] WindRunHourMult = {3.6, 1.0, 1.0, 1.0};
-		private Timer tmrDataRead;
+		private readonly Timer tmrDataRead;
 		private int ReadCounter;
 		private bool hadfirstsyncdata;
-		private byte[] prevdata = new byte[16];
-		private int FOentrysize;
-		private int FOMaxAddr;
+		private readonly byte[] prevdata = new byte[16];
+		private readonly int FOentrysize;
+		private readonly int FOMaxAddr;
 		//private int FOmaxhistoryentries;
-		private bool hasSolar;
+		private readonly bool hasSolar;
 		private bool readingData = false;
 
 		const int defaultVID = 0x1941;
@@ -190,7 +190,7 @@ namespace CumulusMX
 		{
 			var data = new byte[32];
 			cumulus.LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
-			DateTime now = DateTime.Now;
+			//DateTime now = DateTime.Now;
 			cumulus.LogMessage(DateTime.Now.ToString("G"));
 			cumulus.LogMessage("Start reading history data");
 			Console.WriteLine("Downloading Archive Data");
@@ -201,7 +201,7 @@ namespace CumulusMX
 
 			// get address of current location
 			int addr = ((data[31])*256) + data[30];
-			int previousaddress = addr;
+			//int previousaddress = addr;
 
 			cumulus.LogMessage("Reading current address " + addr.ToString("X4"));
 			ReadAddress(addr, data);
@@ -221,7 +221,7 @@ namespace CumulusMX
 				if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < maxHistoryEntries - 2))
 				{
 					// Read previous data
-					addr = addr - FOentrysize;
+					addr -= FOentrysize;
 					if (addr == 0xF0) addr = FOMaxAddr; // wrap around
 
 					ReadAddress(addr, data);
@@ -434,14 +434,14 @@ namespace CumulusMX
 					{
 						DoOutdoorTemp(ConvertTempCToUser(historydata.outTemp), timestamp);
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
-						tempsamplestoday = tempsamplestoday + historydata.interval;
-						TempTotalToday = TempTotalToday + (OutdoorTemperature*historydata.interval);
+						tempsamplestoday += historydata.interval;
+						TempTotalToday += (OutdoorTemperature*historydata.interval);
 					}
 
 					// update chill hours
 					if (OutdoorTemperature < cumulus.ChillHourThreshold)
 						// add 1 minute to chill hours
-						ChillHours = ChillHours + (historydata.interval/60);
+						ChillHours += (historydata.interval/60);
 
 					int raindiff;
 					if (prevraintotal == -1)
@@ -455,6 +455,7 @@ namespace CumulusMX
 
 					// record time of last rain tip, to use in
 					// normal running rain rate calc NB rain rate calc not currently used
+					/*
 					if (raindiff > 0)
 					{
 						lastraintip = timestamp;
@@ -467,7 +468,7 @@ namespace CumulusMX
 
 						raininlasttip = 0;
 					}
-
+					*/
 					double rainrate;
 
 					if (raindiff > 100)
@@ -525,7 +526,7 @@ namespace CumulusMX
 
 							// add in archive period worth of sunshine, if sunny
 							if ((SolarRad > CurrentSolarMax*cumulus.SunThreshold/100) && (SolarRad >= cumulus.SolarMinimum))
-								SunshineHours = SunshineHours + (historydata.interval/60.0);
+								SunshineHours += (historydata.interval/60.0);
 
 							LightValue = historydata.solarVal;
 						}
@@ -610,7 +611,7 @@ namespace CumulusMX
 			request = new byte[] {0, 0xa1, highbyte, lowbyte, 0x20, 0xa1, highbyte, lowbyte, 0x20};
 
 			int ptr = 0;
-			String rec_data = "";
+			String rec_data;
 
 
 			if (hidDevice != null)
@@ -1028,9 +1029,9 @@ namespace CumulusMX
 							if (ignoreraincount == 6)
 							{
 								cumulus.LogMessage("Six consecutive readings; accepting value. Adjusting start of day figure to compensate");
-								raindaystart = raindaystart + (raindiff*0.3);
+								raindaystart += (raindiff*0.3);
 								// adjust current rain total counter
-								Raincounter = Raincounter + (raindiff*0.3);
+								Raincounter += (raindiff*0.3);
 								cumulus.LogMessage("Setting raindaystart to " + raindaystart);
 								ignoreraincount = 0;
 							}

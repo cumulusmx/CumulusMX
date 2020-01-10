@@ -207,7 +207,7 @@ namespace CumulusMX
 				azimuth += 2 * Math.PI;
 			}
 
-			azimuth = azimuth * Rad2Deg;
+			azimuth *= Rad2Deg;
 			//altitude = altitude * Rad2Deg;
 		}
 
@@ -243,7 +243,7 @@ namespace CumulusMX
 			double fSolarMEL = GetSolarMEL(dEpoch, true);
 			double fSolarPL = GetSolarPerigeeLong(dEpoch, true);
 			double fSunEarthEcc = GetSunEarthEcc(dEpoch, true);
-			double fOblique = GetEarthObliquity(dEpoch, true);
+			//double fOblique = GetEarthObliquity(dEpoch, true);
 			const double fSMA = 149598500.0;
 
 			double fN = (360.0/365.242191)*fD;
@@ -267,7 +267,7 @@ namespace CumulusMX
 			double fJD = GetJulianDay(dDate, 0);
 			if (b0Epoch)
 			{
-				fJD = fJD - 1.0;
+				fJD -= 1.0;
 			}
 			double fT = (fJD - 2415020.0)/36525.0;
 			double fEcc = 0.01675104 - (0.0000418*fT) - (0.000000126*fT*fT);
@@ -281,7 +281,7 @@ namespace CumulusMX
 			double fJD = GetJulianDay(dDate, 0);
 			if (b0Epoch)
 			{
-				fJD = fJD - 1.0;
+				fJD -= 1.0;
 			}
 
 			double fT = (fJD - 2415020.0)/36525.0;
@@ -352,8 +352,8 @@ namespace CumulusMX
 			}
 			if ((iMonth == 1) || (iMonth == 2))
 			{
-				iYear = iYear - 1;
-				iMonth = iMonth + 12;
+				iYear -= 1;
+				iMonth += 12;
 			}
 
 			double fA = (long) Math.Floor(iYear/100);
@@ -368,7 +368,7 @@ namespace CumulusMX
 			}
 			double fD = (int) Math.Floor(30.6001*(iMonth + 1));
 			double fJD = fB + fC + fD + 1720994.5;
-			fJD = fJD + fFrac;
+			fJD += fFrac;
 			return fJD;
 		}
 
@@ -391,7 +391,7 @@ namespace CumulusMX
 			double fJD = GetJulianDay(dDate, 0);
 			if (b0Epoch)
 			{
-				fJD = fJD - 1.0;
+				fJD -= 1.0;
 			}
 
 			double fT = (fJD - 2415020.0)/36525.0;
@@ -408,7 +408,7 @@ namespace CumulusMX
 
 			if (b0Epoch)
 			{
-				fJD = fJD - 1.0;
+				fJD -= 1.0;
 			}
 
 			double fT = (fJD - 2415020.0)/36525.0;
@@ -421,11 +421,11 @@ namespace CumulusMX
 		{
 			while (pfDeg >= 360)
 			{
-				pfDeg = pfDeg - 360;
+				pfDeg -= 360;
 			}
 			while (pfDeg < 0)
 			{
-				pfDeg = pfDeg + 360;
+				pfDeg += 360;
 			}
 			return pfDeg;
 		}
@@ -1211,7 +1211,7 @@ namespace CumulusMX
 		public static void CalcMoonDistance(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, double fMSMA, ref double fMDistance)
 		{
 			double fN, fSM, fSE, fSLambda;
-			double fL, fMM, fMN, fME, fAE, fMEC, fA3, fMM1;
+			double fL, fMM, fME, fAE, fMEC, fA3, fMM1;
 			double fJD1, fJD2, fDays;
 
 			fJD1 = GetJulianDay(dDate, 0);
@@ -1233,8 +1233,8 @@ namespace CumulusMX
 			fMM = fL - (0.111404 * fDays) - fMPeriLong;
 			fMM = Trig.PutIn360Deg(fMM);
 
-			fMN = fMAscNode - (0.0529539 * fDays);
-			fMN = Trig.PutIn360Deg(fMN);
+			//fMN = fMAscNode - (0.0529539 * fDays);
+			//fMN = Trig.PutIn360Deg(fMN);
 
 			fME = 1.2739 * Trig.Sin((2.0 * (fL - fSLambda)) - fMM);
 			fAE = 0.1858 * Trig.Sin(fSM);
@@ -1345,10 +1345,10 @@ namespace CumulusMX
 
 		private static double Normalize(double fN)
 		{
-			fN = fN - Math.Floor(fN);
+			fN -= Math.Floor(fN);
 			if (fN < 0)
 			{
-				fN = fN + 1;
+				fN += 1;
 			}
 			return fN;
 		}

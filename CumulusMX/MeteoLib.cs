@@ -60,11 +60,11 @@ namespace CumulusMX
               // Rothfusz adjustments
               if ((humidity < 13) && (tempF >= 80) && (tempF <= 112))
               {
-                result = result - ((13 - humidity) / 4.0) * Math.Sqrt((17 - Math.Abs(tempF - 95)) / 17.0);
+                result -= ((13 - humidity) / 4.0) * Math.Sqrt((17 - Math.Abs(tempF - 95)) / 17.0);
               }
               else if ((humidity > 85) && (tempF >= 80) && (tempF <= 87))
               {
-                result = result + ((humidity - 85) / 10.0) * ((87 - tempF) / 5.0);
+                result += ((humidity - 85) / 10.0) * ((87 - tempF) / 5.0);
               }
 
               return result;

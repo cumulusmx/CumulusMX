@@ -23,19 +23,20 @@ using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
 using Timer = System.Timers.Timer;
 using SQLite;
+using Renci.SshNet;
 
 namespace CumulusMX
 {
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.2.6";
-		public string Build = "3062";
+		public string Version = "3.3.0";
+		public string Build = "3063";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
-		private Mutex appMutex;
+		private readonly Mutex appMutex;
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
 
@@ -83,6 +84,14 @@ namespace CumulusMX
 			RyanStolzenbach = 0,
 			Bras = 1
 		}
+
+		public enum FtpProtocols
+		{
+			FTP = 0,
+			FTPS = 1,
+			SFTP = 2
+		}
+
 
 		public struct Dataunits
 		{
@@ -170,12 +179,12 @@ namespace CumulusMX
 
 		public DateTime LastUpdateTime;
 
-		private WebTags webtags;
-		private TokenParser tokenParser;
-		private TokenParser realtimeTokenParser;
-		private TokenParser customMysqlSecondsTokenParser = new TokenParser();
-		private TokenParser customMysqlMinutesTokenParser = new TokenParser();
-		private TokenParser customMysqlRolloverTokenParser = new TokenParser();
+		private readonly WebTags webtags;
+		private readonly TokenParser tokenParser;
+		private readonly TokenParser realtimeTokenParser;
+		private readonly TokenParser customMysqlSecondsTokenParser = new TokenParser();
+		private readonly TokenParser customMysqlMinutesTokenParser = new TokenParser();
+		private readonly TokenParser customMysqlRolloverTokenParser = new TokenParser();
 
 		public string CurrentActivity = "Stopped";
 
@@ -445,8 +454,8 @@ namespace CumulusMX
 		//private const int VP2USBCONNECTION = 1;
 		//private const int VP2TCPIPCONNECTION = 2;
 
-		private string twitterKey = "lQiGNdtlYUJ4wS3d7souPw";
-		private string twitterSecret = "AoB7OqimfoaSfGQAd47Hgatqdv3YeTTiqpinkje6Xg";
+		private readonly string twitterKey = "lQiGNdtlYUJ4wS3d7souPw";
+		private readonly string twitterSecret = "AoB7OqimfoaSfGQAd47Hgatqdv3YeTTiqpinkje6Xg";
 
 		public int FineOffsetReadTime;
 
@@ -697,59 +706,59 @@ namespace CumulusMX
 
 		//private Thread httpThread;
 
-		private static HttpClientHandler WUhttpHandler = new HttpClientHandler();
-		private HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
+		private static readonly HttpClientHandler WUhttpHandler = new HttpClientHandler();
+		private readonly HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
 		private bool UpdatingWU = false;
 
-		private static HttpClientHandler WindyhttpHandler = new HttpClientHandler();
-		private HttpClient WindyhttpClient = new HttpClient(WindyhttpHandler);
+		private static readonly HttpClientHandler WindyhttpHandler = new HttpClientHandler();
+		private readonly HttpClient WindyhttpClient = new HttpClient(WindyhttpHandler);
 		private bool UpdatingWindy = false;
 
 		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler();
-		private HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
+		private readonly HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
 		private bool UpdatingAwekas = false;
 
 		private static readonly HttpClientHandler WCloudhttpHandler = new HttpClientHandler();
-		private HttpClient WCloudhttpClient = new HttpClient(WCloudhttpHandler);
+		private readonly HttpClient WCloudhttpClient = new HttpClient(WCloudhttpHandler);
 		private bool UpdatingWCloud = false;
 
-		private static HttpClientHandler PWShttpHandler = new HttpClientHandler();
-		private HttpClient PWShttpClient = new HttpClient(PWShttpHandler);
+		private static readonly HttpClientHandler PWShttpHandler = new HttpClientHandler();
+		private readonly HttpClient PWShttpClient = new HttpClient(PWShttpHandler);
 		private bool UpdatingPWS = false;
 
-		private static HttpClientHandler WBhttpHandler = new HttpClientHandler();
-		private HttpClient WBhttpClient = new HttpClient(WBhttpHandler);
+		private static readonly HttpClientHandler WBhttpHandler = new HttpClientHandler();
+		private readonly HttpClient WBhttpClient = new HttpClient(WBhttpHandler);
 		private bool UpdatingWB = false;
 
-		private static HttpClientHandler WOWhttpHandler = new HttpClientHandler();
-		private HttpClient WOWhttpClient = new HttpClient(WOWhttpHandler);
+		private static readonly HttpClientHandler WOWhttpHandler = new HttpClientHandler();
+		private readonly HttpClient WOWhttpClient = new HttpClient(WOWhttpHandler);
 		private bool UpdatingWOW = false;
 
 		// Custom HTTP - seconds
-		private static HttpClientHandler customHttpSecondsHandler = new HttpClientHandler();
-		private HttpClient customHttpSecondsClient = new HttpClient(customHttpSecondsHandler);
+		private static readonly HttpClientHandler customHttpSecondsHandler = new HttpClientHandler();
+		private readonly HttpClient customHttpSecondsClient = new HttpClient(customHttpSecondsHandler);
 		private bool updatingCustomHttpSeconds = false;
-		private TokenParser customHttpSecondsTokenParser = new TokenParser();
+		private readonly TokenParser customHttpSecondsTokenParser = new TokenParser();
 		internal Timer CustomHttpSecondsTimer;
 		internal bool CustomHttpSecondsEnabled;
 		internal string CustomHttpSecondsString;
 		internal int CustomHttpSecondsInterval;
 
 		// Custom HTTP - minutes
-		private static HttpClientHandler customHttpMinutesHandler = new HttpClientHandler();
-		private HttpClient customHttpMinutesClient = new HttpClient(customHttpMinutesHandler);
+		private static readonly HttpClientHandler customHttpMinutesHandler = new HttpClientHandler();
+		private readonly HttpClient customHttpMinutesClient = new HttpClient(customHttpMinutesHandler);
 		private bool updatingCustomHttpMinutes = false;
-		private TokenParser customHttpMinutesTokenParser = new TokenParser();
+		private readonly TokenParser customHttpMinutesTokenParser = new TokenParser();
 		internal bool CustomHttpMinutesEnabled;
 		internal string CustomHttpMinutesString;
 		internal int CustomHttpMinutesInterval;
 		internal int CustomHttpMinutesIntervalIndex;
 
 		// Custom HTTP - rollover
-		private static HttpClientHandler customHttpRolloverHandler = new HttpClientHandler();
-		private HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
+		private static readonly HttpClientHandler customHttpRolloverHandler = new HttpClientHandler();
+		private readonly HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
 		private bool updatingCustomHttpRollover = false;
-		private TokenParser customHttpRolloverTokenParser = new TokenParser();
+		private readonly TokenParser customHttpRolloverTokenParser = new TokenParser();
 		internal bool CustomHttpRolloverEnabled;
 		internal string CustomHttpRolloverString;
 
@@ -1192,13 +1201,16 @@ namespace CumulusMX
 
 			SetRealtimeSqlCreateString();
 
-			if (ActiveFTPMode)
+			if (Sslftp == FtpProtocols.FTP || Sslftp == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
-			}
-			else if (DisableEPSV)
-			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+				if (ActiveFTPMode)
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+				}
+				else if (DisableEPSV)
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+				}
 			}
 
 			ReadStringsFile();
@@ -1640,6 +1652,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		private string LocalIPAddress()
 		{
 			IPHostEntry host;
@@ -1655,6 +1668,7 @@ namespace CumulusMX
 			}
 			return localIP;
 		}
+		*/
 
 		/*
 		private void OnDisconnect(UserContext context)
@@ -1953,7 +1967,7 @@ namespace CumulusMX
 			{
 				UpdatingWindy = true;
 
-				string URL = station.GetWindyURL(out var apistring, timestamp, false);
+				string URL = station.GetWindyURL(out var apistring, timestamp);
 				string LogURL = URL.Replace(apistring, "<<API_KEY>>");
 
 				LogDebugMessage("Windy URL: " + LogURL);
@@ -2057,15 +2071,33 @@ namespace CumulusMX
 
 					if (RealtimeFTPEnabled)
 					{
-						if (RealtimeFTP.Host == null)
+						// This only happens if the user enables realtime FTP after starting Cumulus
+						if (Sslftp == FtpProtocols.SFTP)
 						{
-							// This only happens if the user enables realtime FTP after starting Cumulus
-							RealtimeFTPLogin();
+							if (RealtimeSSH.ConnectionInfo.Host == null)
+							{
+								RealtimeSSHLogin();
+							}
+						}
+						else
+						{
+							if (RealtimeFTP.Host == null)
+							{
+								RealtimeFTPLogin();
+							}
 						}
 						// Force a test of the connection, IsConnected is not always reliable
 						try
 						{
-							string pwd = RealtimeFTP.GetWorkingDirectory();
+							string pwd;
+							if (Sslftp == FtpProtocols.SFTP)
+							{
+								pwd = RealtimeSSH.WorkingDirectory;
+							}
+							else
+							{
+								pwd = RealtimeFTP.GetWorkingDirectory();
+							}
 							if (pwd.Length == 0)
 							{
 								connectionFailed = true;
@@ -2076,12 +2108,20 @@ namespace CumulusMX
 							LogDebugMessage("Test of realtime FTP connection failed: " + ex.Message);
 							connectionFailed = true;
 						}
-						if (!(RealtimeFTP.IsConnected) || connectionFailed)
+						if (((Sslftp == FtpProtocols.FTP || Sslftp == FtpProtocols.FTPS) && !(RealtimeFTP.IsConnected)) ||
+							(Sslftp == FtpProtocols.SFTP && !(RealtimeSSH.IsConnected)) || connectionFailed)
 						{
 							LogDebugMessage("Realtime ftp not connected - reconnecting");
 							try
 							{
-								RealtimeFTP.Disconnect();
+								if (Sslftp == FtpProtocols.SFTP)
+								{
+									RealtimeSSH.Disconnect();
+								}
+								else
+								{
+									RealtimeFTP.Disconnect();
+								}
 							}
 							catch
 							{
@@ -2089,7 +2129,14 @@ namespace CumulusMX
 							}
 							try
 							{
-								RealtimeFTP.Connect();
+								if (Sslftp == FtpProtocols.SFTP)
+								{
+									RealtimeSSH.Connect();
+								}
+								else
+								{
+									RealtimeFTP.Connect();
+								}
 							}
 							catch (Exception ex)
 							{
@@ -2142,13 +2189,27 @@ namespace CumulusMX
 
 			if (RealtimeTxtFTP)
 			{
-				UploadFile(RealtimeFTP, RealtimeFile, filepath);
+				if (Sslftp == FtpProtocols.SFTP)
+				{
+					UploadFile(RealtimeSSH, RealtimeFile, filepath);
+				}
+				else
+				{
+					UploadFile(RealtimeFTP, RealtimeFile, filepath);
+				}
 			}
 
 			if (RealtimeGaugesTxtFTP)
 			{
 				ProcessTemplateFile(RealtimeGaugesTxtTFile, RealtimeGaugesTxtFile, realtimeTokenParser);
-				UploadFile(RealtimeFTP, RealtimeGaugesTxtFile, gaugesfilepath);
+				if (Sslftp == FtpProtocols.SFTP)
+				{
+					UploadFile(RealtimeSSH, RealtimeGaugesTxtFile, gaugesfilepath);
+				}
+				else
+				{
+					UploadFile(RealtimeFTP, RealtimeGaugesTxtFile, gaugesfilepath);
+				}
 			}
 
 			// Extra files
@@ -2172,10 +2233,16 @@ namespace CumulusMX
 						if (ExtraFiles[i].process)
 						{
 							// we've already processed the file
-							uploadfile = uploadfile + "tmp";
+							uploadfile += "tmp";
 						}
-
-						UploadFile(RealtimeFTP, uploadfile, remotefile);
+						if (Sslftp == FtpProtocols.SFTP)
+						{
+							UploadFile(RealtimeSSH, uploadfile, remotefile);
+						}
+						else
+						{
+							UploadFile(RealtimeFTP, uploadfile, remotefile);
+						}
 					}
 					else
 					{
@@ -2247,11 +2314,9 @@ namespace CumulusMX
 
 		private void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
-			var webTag = "";
 			var tagParams = new Dictionary<string, string>();
 			var paramList = ParseParams(strToken);
-
-			webTag = paramList[0];
+			var webTag = paramList[0];
 
 			for (int i = 1; i < paramList.Count; i += 2)
 			{
@@ -2794,7 +2859,20 @@ namespace CumulusMX
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
 
+
 			IniFile ini = new IniFile("Cumulus.ini");
+
+			// check for Cumulus 1 [FTP Site] and correct it
+			if (ini.GetValue("FTP Site", "Port", -999) != -999)
+			{
+				if (File.Exists("Cumulus.ini"))
+				{
+					var contents = File.ReadAllText("Cumulus.ini");
+					contents = contents.Replace("[FTP Site]", "[FTP site]");
+					File.WriteAllText("Cumulus.ini", contents);
+					ini.Refresh();
+				}
+			}
 
 			StationType = ini.GetValue("Station", "Type", -1);
 
@@ -3129,7 +3207,7 @@ namespace CumulusMX
 
 			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);
 			ActiveFTPMode = ini.GetValue("FTP site", "ActiveFTP", false);
-			Sslftp = ini.GetValue("FTP site", "Sslftp", false);
+			Sslftp = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
 			DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
 			FTPlogging = ini.GetValue("FTP site", "FTPlogging", false);
 			RealtimeEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
@@ -3447,6 +3525,11 @@ namespace CumulusMX
 			NOAAAutoSave = ini.GetValue("NOAA", "AutoSave", false);
 			NOAAAutoFTP = ini.GetValue("NOAA", "AutoFTP", false);
 			NOAAMonthFileFormat = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
+			// Check for Cumulus 1 default format - and update
+			if (NOAAMonthFileFormat == "'NOAAMO'mmyy'.txt'")
+			{
+				NOAAMonthFileFormat = "'NOAAMO'MMyy'.txt'";
+			}
 			NOAAYearFileFormat = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAFTPDirectory = ini.GetValue("NOAA", "FTPDirectory", "");
 			NOAAUseUTF8 = ini.GetValue("NOAA", "NOAAUseUTF8", false);
@@ -3682,7 +3765,7 @@ namespace CumulusMX
 
 			ini.SetValue("FTP site", "AutoUpdate", WebAutoUpdate);
 			ini.SetValue("FTP site", "ActiveFTP", ActiveFTPMode);
-			ini.SetValue("FTP site", "Sslftp", Sslftp);
+			ini.SetValue("FTP site", "Sslftp", (int)Sslftp);
 			ini.SetValue("FTP site", "FTPlogging", FTPlogging);
 			ini.SetValue("FTP site", "UTF8encode", UTF8encode);
 			ini.SetValue("FTP site", "EnableRealtime", RealtimeEnabled);
@@ -4436,7 +4519,8 @@ namespace CumulusMX
 
 		public bool ActiveFTPMode { get; set; }
 
-		public bool Sslftp { get; set; }
+		public FtpProtocols Sslftp { get; set; }
+
 		public bool DisableEPSV { get; set; }
 
 		public bool FTPlogging { get; set; }
@@ -4774,7 +4858,8 @@ namespace CumulusMX
 		public bool IncludeGraphDataFiles;
 		public bool TwitterSendLocation;
 		private const int numwebtextfiles = 9;
-		private FtpClient RealtimeFTP = new FtpClient();
+		private readonly FtpClient RealtimeFTP = new FtpClient();
+		private SftpClient RealtimeSSH;
 		private volatile bool RealtimeInProgress = false;
 		public bool SendSoilTemp1ToWund;
 		public bool SendSoilTemp2ToWund;
@@ -4786,7 +4871,7 @@ namespace CumulusMX
 		public bool SendSoilMoisture4ToWund;
 		public bool SendLeafWetness1ToWund;
 		public bool SendLeafWetness2ToWund;
-		private string[] localgraphdatafiles;
+		private readonly string[] localgraphdatafiles;
 		private readonly string[] remotegraphdatafiles;
 		public string exceptional;
 //		private WebSocketServer wsServer;
@@ -5697,6 +5782,7 @@ namespace CumulusMX
 		{
 			LatestError = message;
 			LatestErrorTS = DateTime.Now;
+			LogMessage(message);
 		}
 
 		public void Stop()
@@ -5866,167 +5952,307 @@ namespace CumulusMX
 
 		public void DoFTPLogin()
 		{
-			using (FtpClient conn = new FtpClient())
+			if (Sslftp == FtpProtocols.SFTP)
 			{
-				FtpTrace.WriteLine(""); // insert a blank line
-				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " CumulusMX Connecting to " + ftp_host);
-				conn.Host = ftp_host;
-				conn.Port = ftp_port;
-				conn.Credentials = new NetworkCredential(ftp_user, ftp_password);
-
-				if (Sslftp)
+				using (SftpClient conn = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password))
 				{
-					conn.EncryptionMode = FtpEncryptionMode.Explicit;
-					conn.DataConnectionEncryption = true;
-					conn.ValidateCertificate += Client_ValidateCertificate;
-					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
-					conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-				}
-
-				if (ActiveFTPMode)
-				{
-					conn.DataConnectionType = FtpDataConnectionType.PORT;
-				}
-				else if (DisableEPSV)
-				{
-					conn.DataConnectionType = FtpDataConnectionType.PASV;
-				}
-
-				try
-				{
-					conn.Connect();
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Error connecting ftp - " + ex.Message);
-				}
-
-				conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-
-				if (conn.IsConnected)
-				{
-					string remotePath = (ftp_directory.EndsWith("/") ? ftp_directory : ftp_directory + "/");
-					if (NOAANeedFTP)
+					try
 					{
-						try
-						{
-							// upload NOAA reports
-							LogMessage("Uploading NOAA reports");
-							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
-
-							var uploadfile = ReportPath + NOAALatestMonthlyReport;
-							var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
-
-							UploadFile(conn, uploadfile, remotefile);
-
-							uploadfile = ReportPath + NOAALatestYearlyReport;
-							remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
-
-							UploadFile(conn, uploadfile, remotefile);
-						}
-						catch (Exception e)
-						{
-							LogMessage(e.Message);
-						}
-						NOAANeedFTP = false;
+						LogFtpMessage($"SFTP: CumulusMX Connecting to {ftp_host} on port {ftp_port}");
+						conn.Connect();
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"SFTP: Error connecting sftp - {ex.Message}");
 					}
 
-					//LogDebugMessage("Uploading extra files");
-					// Extra files
-					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading Extra files");
-					for (int i = 0; i < numextrafiles; i++)
+					if (conn.IsConnected)
 					{
-						var uploadfile = ExtraFiles[i].local;
-						var remotefile = ExtraFiles[i].remote;
-
-						if ((uploadfile != "") &&
-							(remotefile != "") &&
-							!ExtraFiles[i].realtime &&
-							EODfilesNeedFTP == ExtraFiles[i].endofday &&
-							ExtraFiles[i].FTP)
+						string remotePath = (ftp_directory.EndsWith("/") ? ftp_directory : ftp_directory + "/");
+						if (NOAANeedFTP)
 						{
-							if (uploadfile == "<currentlogfile>")
+							try
 							{
-								uploadfile = GetLogFileName(DateTime.Now);
+								// upload NOAA reports
+								LogFtpMessage("SFTP: Uploading NOAA reports");
+
+								var uploadfile = ReportPath + NOAALatestMonthlyReport;
+								var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
+
+								UploadFile(conn, uploadfile, remotefile);
+
+								uploadfile = ReportPath + NOAALatestYearlyReport;
+								remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
+
+								UploadFile(conn, uploadfile, remotefile);
+
+								LogFtpMessage("SFTP: Done uploading NOAA reports");
 							}
-
-							if (File.Exists(uploadfile))
+							catch (Exception e)
 							{
-								remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+								LogMessage(e.Message);
+							}
+							NOAANeedFTP = false;
+						}
 
-								// all checks OK, file needs to be uploaded
-								if (ExtraFiles[i].process)
+						LogFtpMessage("SFTP: Uploading extra files");
+						// Extra files
+						for (int i = 0; i < numextrafiles; i++)
+						{
+							var uploadfile = ExtraFiles[i].local;
+							var remotefile = ExtraFiles[i].remote;
+
+							if ((uploadfile != "") &&
+								(remotefile != "") &&
+								!ExtraFiles[i].realtime &&
+								EODfilesNeedFTP == ExtraFiles[i].endofday &&
+								ExtraFiles[i].FTP)
+							{
+								if (uploadfile == "<currentlogfile>")
 								{
-									// we've already processed the file
-									uploadfile = uploadfile + "tmp";
+									uploadfile = GetLogFileName(DateTime.Now);
 								}
-								try
+
+								if (File.Exists(uploadfile))
 								{
+									remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+									// all checks OK, file needs to be uploaded
+									if (ExtraFiles[i].process)
+									{
+										// we've already processed the file
+										uploadfile += "tmp";
+									}
+									try
+									{
+										UploadFile(conn, uploadfile, remotefile);
+									}
+									catch (Exception e)
+									{
+										LogMessage(e.Message);
+									}
+								}
+								else
+								{
+									LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+								}
+							}
+						}
+						if (EODfilesNeedFTP)
+						{
+							EODfilesNeedFTP = false;
+						}
+						LogFtpMessage("SFTP: Done uploading extra files");
+
+						// standard files
+						if (IncludeStandardFiles)
+						{
+							LogFtpMessage("SFTP: Uploading standard files");
+							try
+							{
+								for (int i = 0; i < numwebtextfiles; i++)
+								{
+									var uploadfile = localwebtextfiles[i];
+									var remotefile = remotePath + remotewebtextfiles[i];
+
 									UploadFile(conn, uploadfile, remotefile);
 								}
-								catch (Exception e)
+								LogFtpMessage("SFTP: Done uploading standard files");
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
+						}
+
+						if (IncludeGraphDataFiles)
+						{
+							try
+							{
+								LogFtpMessage("SFTP: Uploading graph data files");
+								for (int i = 0; i < localgraphdatafiles.Length; i++)
 								{
-									LogMessage(e.Message);
+									var uploadfile = localgraphdatafiles[i];
+									var remotefile = remotePath + remotegraphdatafiles[i];
+
+									UploadFile(conn, uploadfile, remotefile);
+								}
+								LogFtpMessage("SFTP: Done uploading graph data files");
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
+						}
+					}
+
+					conn.Disconnect();
+				}
+			}
+			else
+			{
+				using (FtpClient conn = new FtpClient())
+				{
+					FtpTrace.WriteLine(""); // insert a blank line
+					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " CumulusMX Connecting to " + ftp_host);
+					conn.Host = ftp_host;
+					conn.Port = ftp_port;
+					conn.Credentials = new NetworkCredential(ftp_user, ftp_password);
+
+					if (Sslftp == FtpProtocols.FTPS)
+					{
+						conn.EncryptionMode = FtpEncryptionMode.Explicit;
+						conn.DataConnectionEncryption = true;
+						conn.ValidateCertificate += Client_ValidateCertificate;
+						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+						conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+					}
+
+					if (ActiveFTPMode)
+					{
+						conn.DataConnectionType = FtpDataConnectionType.PORT;
+					}
+					else if (DisableEPSV)
+					{
+						conn.DataConnectionType = FtpDataConnectionType.PASV;
+					}
+
+					try
+					{
+						conn.Connect();
+					}
+					catch (Exception ex)
+					{
+						LogMessage("Error connecting ftp - " + ex.Message);
+					}
+
+					conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+
+					if (conn.IsConnected)
+					{
+						string remotePath = (ftp_directory.EndsWith("/") ? ftp_directory : ftp_directory + "/");
+						if (NOAANeedFTP)
+						{
+							try
+							{
+								// upload NOAA reports
+								LogMessage("FTP: Uploading NOAA reports");
+								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
+
+								var uploadfile = ReportPath + NOAALatestMonthlyReport;
+								var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
+
+								UploadFile(conn, uploadfile, remotefile);
+
+								uploadfile = ReportPath + NOAALatestYearlyReport;
+								remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
+
+								UploadFile(conn, uploadfile, remotefile);
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
+							NOAANeedFTP = false;
+						}
+
+						//LogDebugMessage("Uploading extra files");
+						// Extra files
+						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading Extra files");
+						for (int i = 0; i < numextrafiles; i++)
+						{
+							var uploadfile = ExtraFiles[i].local;
+							var remotefile = ExtraFiles[i].remote;
+
+							if ((uploadfile != "") &&
+								(remotefile != "") &&
+								!ExtraFiles[i].realtime &&
+								EODfilesNeedFTP == ExtraFiles[i].endofday &&
+								ExtraFiles[i].FTP)
+							{
+								if (uploadfile == "<currentlogfile>")
+								{
+									uploadfile = GetLogFileName(DateTime.Now);
+								}
+
+								if (File.Exists(uploadfile))
+								{
+									remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+
+									// all checks OK, file needs to be uploaded
+									if (ExtraFiles[i].process)
+									{
+										// we've already processed the file
+										uploadfile += "tmp";
+									}
+									try
+									{
+										UploadFile(conn, uploadfile, remotefile);
+									}
+									catch (Exception e)
+									{
+										LogMessage(e.Message);
+									}
+								}
+								else
+								{
+									LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
 								}
 							}
-							else
+						}
+						if (EODfilesNeedFTP)
+						{
+							EODfilesNeedFTP = false;
+						}
+						//LogDebugMessage("Done uploading extra files");
+						// standard files
+						if (IncludeStandardFiles)
+						{
+							//LogDebugMessage("Uploading standard files");
+							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading standard files");
+							try
 							{
-								LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+								for (int i = 0; i < numwebtextfiles; i++)
+								{
+									var uploadfile = localwebtextfiles[i];
+									var remotefile = remotePath + remotewebtextfiles[i];
+
+									UploadFile(conn, uploadfile, remotefile);
+								}
+								//LogDebugMessage("Done uploading standard files");
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
+						}
+
+						if (IncludeGraphDataFiles)
+						{
+							try
+							{
+								//LogDebugMessage("Uploading graph data files");
+								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading graph data files");
+								for (int i = 0; i < localgraphdatafiles.Length; i++)
+								{
+									var uploadfile = localgraphdatafiles[i];
+									var remotefile = remotePath + remotegraphdatafiles[i];
+
+									UploadFile(conn, uploadfile, remotefile);
+								}
+								//LogDebugMessage("Done uploading graph data files");
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
 							}
 						}
 					}
-					if (EODfilesNeedFTP)
-					{
-						EODfilesNeedFTP = false;
-					}
-					//LogDebugMessage("Done uploading extra files");
-					// standard files
-					if (IncludeStandardFiles)
-					{
-						//LogDebugMessage("Uploading standard files");
-						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading standard files");
-						try
-						{
-							for (int i = 0; i < numwebtextfiles; i++)
-							{
-								var uploadfile = localwebtextfiles[i];
-								var remotefile = remotePath + remotewebtextfiles[i];
 
-								UploadFile(conn, uploadfile, remotefile);
-							}
-							//LogDebugMessage("Done uploading standard files");
-						}
-						catch (Exception e)
-						{
-							LogMessage(e.Message);
-						}
-					}
-
-					if (IncludeGraphDataFiles)
-					{
-						try
-						{
-							//LogDebugMessage("Uploading graph data files");
-							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading graph data files");
-							for (int i = 0; i < localgraphdatafiles.Length; i++)
-							{
-								var uploadfile = localgraphdatafiles[i];
-								var remotefile = remotePath + remotegraphdatafiles[i];
-
-								UploadFile(conn, uploadfile, remotefile);
-							}
-							//LogDebugMessage("Done uploading graph data files");
-						}
-						catch (Exception e)
-						{
-							LogMessage(e.Message);
-						}
-					}
+					// b3045 - dispose of connection
+					conn.Disconnect();
+					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Disconnected from " + ftp_host);
 				}
-
-				// b3045 - dispose of connection
-				conn.Disconnect();
-				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Disconnected from " + ftp_host);
 			}
 		}
 
@@ -6097,6 +6323,70 @@ namespace CumulusMX
 			}
 		}
 
+		private void UploadFile(SftpClient conn, string localfile, string remotefile)
+		{
+			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
+
+			LogFtpMessage($"SFTP: Starting Upload of {localfile} to {remotefile}");
+
+			try
+			{
+				/*
+				if (DeleteBeforeUpload)
+				{
+					// delete the existing file
+					// Not required for SFTP - we use the flag to always overwrite any existing file
+					try
+					{
+						LogFtpMessage($"SFTP: Deleting {remotefile}");
+						conn.DeleteFile(remotefile);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("SFTP: Error deleting " + remotefile + " : " + ex.Message);
+					}
+				}
+				*/
+
+				LogFtpMessage($"SFTP: Uploading {remotefilename}");
+				using (Stream istream = new FileStream(localfile, FileMode.Open))
+				{
+					try
+					{
+						conn.UploadFile(istream, remotefilename, true);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("SFTP: Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+					}
+					finally
+					{
+						istream.Close();
+					}
+				}
+
+				if (FTPRename)
+				{
+					// rename the file
+					try
+					{
+						LogFtpMessage($"SFTP: Renaming {remotefilename} to {remotefile}");
+						conn.RenameFile(remotefilename, remotefile, true);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("SFTP: Error renaming " + remotefilename + " to " + remotefile + " : " + ex.Message);
+					}
+				}
+				LogFtpMessage("SFTP: Completed uploading " + localfile + " to " + remotefile);
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"SFTP: Error uploading {localfile} to {remotefile} - {ex.Message}");
+			}
+		}
+
+
 		public void LogMessage(string message)
 		{
 			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
@@ -6113,6 +6403,14 @@ namespace CumulusMX
 		public void LogDataMessage(string message)
 		{
 			if (DataLogging)
+			{
+				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			}
+		}
+
+		public void LogFtpMessage(string message)
+		{
+			if (FTPlogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -6363,10 +6661,18 @@ namespace CumulusMX
 			// start the general one-minute timer
 			LogMessage("Starting 1-minute timer");
 			station.StartMinuteTimer();
+			LogMessage("Data logging intverval = " + DataLogInterval);
 
 			if (RealtimeFTPEnabled)
 			{
-				RealtimeFTPLogin();
+				if (Sslftp == FtpProtocols.SFTP)
+				{
+					RealtimeSSHLogin();
+				}
+				else
+				{
+					RealtimeFTPLogin();
+				}
 			}
 
 			if (RealtimeEnabled)
@@ -6743,7 +7049,7 @@ namespace CumulusMX
 			//RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
 
 
-			if (Sslftp)
+			if (Sslftp == FtpProtocols.FTPS)
 			{
 				RealtimeFTP.EncryptionMode = FtpEncryptionMode.Explicit;
 				RealtimeFTP.DataConnectionEncryption = true;
@@ -6756,10 +7062,11 @@ namespace CumulusMX
 
 			if (ftp_host != "" && ftp_host != " ")
 			{
-				LogMessage("Attempting realtime FTP connect");
+				LogMessage($"Attempting realtime SFTP connect to host {ftp_host} on port {ftp_port}");
 				try
 				{
 					RealtimeFTP.Connect();
+					LogMessage("Realtime FTP connected");
 				}
 				catch (Exception ex)
 				{
@@ -6771,6 +7078,28 @@ namespace CumulusMX
 			}
 			//RealtimeTimer.Enabled = true;
 		}
+
+		private void RealtimeSSHLogin()
+		{
+
+			if (ftp_host != "" && ftp_host != " ")
+			{
+				LogMessage($"Attempting realtime SFTP connect to host {ftp_host} on port {ftp_port}");
+				try
+				{
+					RealtimeSSH = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password);
+					RealtimeSSH.Connect();
+					LogMessage("Realtime SFTP connected");
+				}
+				catch (Exception ex)
+				{
+					LogMessage("Error connecting sftp - " + ex.Message);
+					RealtimeSSH.Disconnect();
+					RealtimeSSH.Dispose();
+				}
+			}
+		}
+
 
 		/// <summary>
 		/// Process the list of WU updates created at startup from logger entries
@@ -6918,7 +7247,7 @@ namespace CumulusMX
 			{
 				UpdatingPWS = true;
 
-				string URL = station.GetPWSURL(out var pwstring, timestamp, false);
+				string URL = station.GetPWSURL(out var pwstring, timestamp);
 
 				string starredpwstring = "&PASSWORD=" + new string('*', PWSPW.Length);
 
@@ -6948,7 +7277,7 @@ namespace CumulusMX
 			{
 				UpdatingWOW = true;
 
-				string URL = station.GetWOWURL(out var pwstring, timestamp, false);
+				string URL = station.GetWOWURL(out var pwstring, timestamp);
 
 				string starredpwstring = "&siteAuthenticationKey=" + new string('*', WOWPW.Length);
 
@@ -6978,7 +7307,7 @@ namespace CumulusMX
 			{
 				UpdatingWB = true;
 
-				string URL = station.GetWeatherbugURL(out var pwstring, timestamp, false);
+				string URL = station.GetWeatherbugURL(out var pwstring, timestamp);
 
 				string starredpwstring = "&Key=" + new string('*', WeatherbugPW.Length);
 
@@ -7128,7 +7457,7 @@ namespace CumulusMX
 		{
 			if (WindyEnabled && WindyCatchUp)
 			{
-				string URL = station.GetWindyURL(out var apistring, timestamp, true);
+				string URL = station.GetWindyURL(out var apistring, timestamp);
 
 				WindyList.Add(URL);
 
@@ -7144,7 +7473,7 @@ namespace CumulusMX
 		{
 			if (PWSEnabled && PWSCatchUp)
 			{
-				string URL = station.GetPWSURL(out var pwstring, timestamp, true);
+				string URL = station.GetPWSURL(out var pwstring, timestamp);
 
 				PWSList.Add(URL);
 
@@ -7162,7 +7491,7 @@ namespace CumulusMX
 		{
 			if (WOWEnabled && WOWCatchUp)
 			{
-				string URL = station.GetWOWURL(out var pwstring, timestamp, true);
+				string URL = station.GetWOWURL(out var pwstring, timestamp);
 
 				WOWList.Add(URL);
 
@@ -7180,7 +7509,7 @@ namespace CumulusMX
 		{
 			if (WeatherbugEnabled && WeatherbugCatchUp)
 			{
-				string URL = station.GetWeatherbugURL(out var pwstring, timestamp, true);
+				string URL = station.GetWeatherbugURL(out var pwstring, timestamp);
 
 				WeatherbugList.Add(URL);
 

@@ -11,13 +11,13 @@ namespace CumulusMX
 {
 	internal class WS2300Station : WeatherStation
 	{
-		private const int MAXWINDRETRIES = 20;
+		//private const int MAXWINDRETRIES = 20;
 		private const int ERROR = -1000;
-		private const byte WRITEACK = 0x10;
-		private const byte SETBIT = 0x12;
-		private const byte SETACK = 0x04;
-		private const byte UNSETBIT = 0x32;
-		private const byte UNSETACK = 0x0C;
+		//private const byte WRITEACK = 0x10;
+		//private const byte SETBIT = 0x12;
+		//private const byte SETACK = 0x04;
+		//private const byte UNSETBIT = 0x32;
+		//private const byte UNSETACK = 0x0C;
 		private const int MAXRETRIES = 50;
 
 		private List<historyData> datalist;
@@ -121,6 +121,7 @@ namespace CumulusMX
 				cumulus.LogMessage("History info obtained");
 				datalist = new List<historyData>();
 
+				/*
 				double pressureoffset = ws2300PressureOffset();
 
 				if (pressureoffset > -1000)
@@ -130,6 +131,8 @@ namespace CumulusMX
 					pressureoffset = 0;
 					cumulus.LogMessage("Failed to read pressure offset, using zero");
 				}
+				*/
+
 				cumulus.LogMessage("Downloading history data");
 
 				datalist.Clear();
@@ -276,8 +279,8 @@ namespace CumulusMX
 				{
 					DoOutdoorTemp(historydata.outTemp, timestamp);
 
-					tempsamplestoday = tempsamplestoday + historydata.interval;
-					TempTotalToday = TempTotalToday + (OutdoorTemperature * historydata.interval);
+					tempsamplestoday += historydata.interval;
+					TempTotalToday += (OutdoorTemperature * historydata.interval);
 
 					if (OutdoorTemperature < cumulus.ChillHourThreshold)
 					// add 1 minute to chill hours
@@ -563,7 +566,7 @@ namespace CumulusMX
 			pressure = 1000 + (tempint % 10000) / 10.0;
 
 			if (pressure >= 1502.2)
-				pressure = pressure - 1000;
+				pressure -= 1000;
 
 			pressure = ConvertPressMBToUser(pressure);
 
@@ -722,7 +725,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10.0F + (data[0] & 0xF) / 100.0F) - 30.0;
+			var val = ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10.0F + (data[0] & 0xF) / 100.0F) - 30.0;
+			cumulus.LogDataMessage("Indoor temp = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -739,7 +744,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10.0F + (data[0] & 0xF) / 100.0F) - 30.0;
+			var val = ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10.0F + (data[0] & 0xF) / 100.0F) - 30.0;
+			cumulus.LogDataMessage("Outdoor temp = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -757,7 +764,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10.0F + (data[0] & 0xF) / 100.0F) - 30.0;
+			var val = ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10.0F + (data[0] & 0xF) / 100.0F) - 30.0;
+			cumulus.LogDataMessage("Dewpoint = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -775,7 +784,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return ((data[0] >> 4) * 10 + (data[0] & 0xF));
+			var val = (data[0] >> 4) * 10 + (data[0] & 0xF);
+			cumulus.LogDataMessage("Indoor humidity = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -793,7 +804,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return ((data[0] >> 4) * 10 + (data[0] & 0xF));
+			var val = (data[0] >> 4) * 10 + (data[0] & 0xF);
+			cumulus.LogDataMessage("Outdoor humidty = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -830,7 +843,9 @@ namespace CumulusMX
 			direction = (data[2] >> 4) * 22.5;
 
 			//Calculate wind speed
-			return (((data[2] & 0xF) << 8) + (data[1])) / 10.0;
+			var val = (((data[2] & 0xF) << 8) + (data[1])) / 10.0;
+			cumulus.LogDataMessage($"Wind data: Speed = {val}, Direction = {direction}");
+			return val;
 		}
 
 
@@ -849,7 +864,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10F + (data[0] & 0xF) / 100F) - 30;
+			var val = ((data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10F + (data[0] & 0xF) / 100F) - 30;
+			cumulus.LogDataMessage("Wind chill = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -868,7 +885,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return (data[2] >> 4) * 1000 + (data[2] & 0xF) * 100 + (data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10F + (data[0] & 0xF) / 100.0;
+			var val = (data[2] >> 4) * 1000 + (data[2] & 0xF) * 100 + (data[1] >> 4) * 10 + (data[1] & 0xF) + (data[0] >> 4) / 10F + (data[0] & 0xF) / 100.0;
+			cumulus.LogDataMessage("Rain total = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -886,7 +905,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0;
+			var val = (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0;
+			cumulus.LogDataMessage("Rel pressure = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -904,7 +925,9 @@ namespace CumulusMX
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
 
-			return (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0;
+			var val = (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0;
+			cumulus.LogDataMessage("Abs pressure = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -924,7 +947,9 @@ namespace CumulusMX
 				return ERROR;
 
 
-			return (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0 - 1000;
+			var val = (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0 - 1000;
+			cumulus.LogDataMessage("Pressure offset = " + val);
+			return val;
 		}
 
 		/// <summary>
@@ -954,6 +979,7 @@ namespace CumulusMX
 			pressuretrend = presstrendstrings[data[0] >> 4];
 			forecast = forecaststrings[data[0] & 0xF];
 
+			cumulus.LogDataMessage($"Pressure trend = {pressuretrend}, forecast = {forecast}");
 			return 0;
 		}
 
@@ -966,6 +992,8 @@ namespace CumulusMX
 		/// <param name="writedata"></param>
 		/// <param name="commanddata"></param>
 		/// <returns></returns>
+		///
+		/*
 		private int ws2300WriteWithRetries(int address, int number, byte encode_constant, byte[] writedata, byte[] commanddata)
 		{
 			int i;
@@ -990,6 +1018,7 @@ namespace CumulusMX
 
 			return number;
 		}
+		*/
 
 		/// <summary>
 		/// Writes data to the station
@@ -1000,6 +1029,7 @@ namespace CumulusMX
 		/// <param name="writeData"></param>
 		/// <param name="commandData"></param>
 		/// <returns></returns>
+		/*
 		private int ws2300WriteData(int address, int number, byte encodeConstant, byte[] writeData, byte[] commandData)
 		{
 			byte answer;
@@ -1049,6 +1079,7 @@ namespace CumulusMX
 
 			return i;
 		}
+		*/
 
 		/// <summary>
 		/// Read data, retry until success or maxretries
@@ -1209,6 +1240,7 @@ namespace CumulusMX
 		/// <param name="encodeConstant"></param>
 		/// <param name="dataIn"></param>
 		/// <param name="dataOut"></param>
+		/*
 		private void ws2300DataEncoder(int number, byte encodeConstant, byte[] dataIn, byte[] dataOut)
 		{
 			for (int i = 0; i < number; i++)
@@ -1216,6 +1248,7 @@ namespace CumulusMX
 				dataOut[i] = (byte)(encodeConstant + (dataIn[i] * 4));
 			}
 		}
+		*/
 
 		/// <summary>
 		/// Converts addresses to the form required by the station when sending commands

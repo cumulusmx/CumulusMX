@@ -15,9 +15,9 @@ namespace CumulusMX
 {
 	public class StationSettings
 	{
-		private Cumulus cumulus;
-		private string stationOptionsFile;
-		private string stationSchemaFile;
+		private readonly Cumulus cumulus;
+		private readonly string stationOptionsFile;
+		private readonly string stationSchemaFile;
 
 		public StationSettings(Cumulus cumulus)
 		{
@@ -473,7 +473,7 @@ namespace CumulusMX
 			return "success";
 		}
 
-		public string FtpNow(IHttpContext context)
+		public string FtpNow()
 		{
 			if (!string.IsNullOrEmpty(cumulus.ftp_host))
 			{

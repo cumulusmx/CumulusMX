@@ -10,7 +10,7 @@ namespace CumulusMX
 {
 	public class NOAAReports
 	{
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 		//private WeatherStation station;
 		private List<string> report;
 		//private string[] report;

@@ -10,7 +10,6 @@ using System.IO;
 using System.Text;
 
 namespace CumulusMX
-
 {
 
 	internal class IniFile
@@ -19,7 +18,7 @@ namespace CumulusMX
 #region "Declarations"
 
 		// *** Lock for thread-safe access to file and local cache ***
-		private object m_Lock = new object();
+		private readonly object m_Lock = new object();
 
 		// *** File name ***
 		private string m_FileName = null;
@@ -35,7 +34,7 @@ namespace CumulusMX
 		private bool m_Lazy = false;
 
 		// *** Local cache ***
-		private Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string,Dictionary<string, string>>();
+		private readonly Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string,Dictionary<string, string>>();
 
 		// *** Local cache modified flag ***
 		private bool m_CacheModified = false;

@@ -16,9 +16,9 @@ namespace CumulusMX
 {
 	internal class DavisStation : WeatherStation
 	{
-		private bool IsSerial;
-		private string ipaddr;
-		private int port;
+		private readonly bool IsSerial;
+		private readonly string ipaddr;
+		private readonly int port;
 		private bool savedUseSpeedForAvgCalc;
 		//private int min;
 		private int previousMinuteDisconnect = 60;
@@ -433,6 +433,7 @@ namespace CumulusMX
 		}
 
 		// Re-open a TCP socket.
+		/*
 		private bool ReOpenTcpPort(TcpClient client)
 		{
 			try
@@ -467,6 +468,7 @@ namespace CumulusMX
 				}
 			}
 		}
+		*/
 
 		public override void startReadingHistoryData()
 		{
@@ -641,20 +643,24 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="value">Wind in mph</param>
 		/// <returns>Wind in m/s</returns>
+		/*
 		private double ConvertWindToInternal(double value)
 		{
 			return value*0.44704F;
 		}
+		*/
 
 		/// <summary>
 		/// Convert pressure in inches to mb
 		/// </summary>
 		/// <param name="value">pressure in inHg</param>
 		/// <returns>pressure in mb</returns>
+		/*
 		private double ConvertPressToInternal(double value)
 		{
 			return value*33.86389F;
 		}
+		*/
 
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -1626,7 +1632,7 @@ namespace CumulusMX
 
 			Console.WriteLine("Downloading Archive Data");
 
-			bool badCRC = false;
+			bool badCRC;
 			const int ACK = 6;
 			const int NAK = 0x21;
 			const int ESC = 0x1b;
@@ -1778,8 +1784,8 @@ namespace CumulusMX
 			// extract number of pages and offset into first page
 			int numPages = (data[1]*256) + data[0];
 			int offset = (data[3]*256) + data[2];
-			int bytesToRead = numPages*pageSize;
-			int dataOffset = (offset*recordSize) + 1;
+			//int bytesToRead = numPages*pageSize;
+			//int dataOffset = (offset*recordSize) + 1;
 			byte[] buff = new byte[pageSize];
 
 			cumulus.LogMessage("Reading data: " + numPages + " pages , offset = " + offset);
@@ -1972,8 +1978,8 @@ namespace CumulusMX
 						{
 							DoOutdoorTemp(ConvertTempFToUser(archiveData.OutsideTemperature), timestamp);
 							// add in 'archivePeriod' minutes worth of temperature to the temp samples
-							tempsamplestoday = tempsamplestoday + interval;
-							TempTotalToday = TempTotalToday + (OutdoorTemperature*interval);
+							tempsamplestoday += interval;
+							TempTotalToday += (OutdoorTemperature*interval);
 
 							// update chill hours
 							if (OutdoorTemperature < cumulus.ChillHourThreshold)
@@ -2057,7 +2063,7 @@ namespace CumulusMX
 
 							// add in archive period worth of sunshine, if sunny
 							if ((SolarRad > CurrentSolarMax * cumulus.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarMinimum))
-								SunshineHours = SunshineHours + (interval / 60.0);
+								SunshineHours += (interval / 60.0);
 						}
 
 						if ((archiveData.ET >= 0) && (archiveData.ET < 32000))
@@ -2566,6 +2572,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		private bool WakeVP()
 		{
 			if (IsSerial)
@@ -2577,6 +2584,7 @@ namespace CumulusMX
 				return WakeVP(socket);
 			}
 		}
+		*/
 
 		private bool WaitForACK(SerialPort serialPort, int timeoutMs = -1)
 		{

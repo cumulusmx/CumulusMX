@@ -33,11 +33,11 @@ namespace CumulusMX
         private const int DATE_PACKET_LENGTH = 12;
         private const int POND_PACKET_LENGTH = 7;
 
-        private byte[] PacketBuffer;
+        private readonly byte[] PacketBuffer;
         private int CurrentPacketLength;
         private int CurrentPacketType = 255;
         private const int PacketBufferBound = 255;
-        private byte[] usbbuffer = new byte[9];
+        private readonly byte[] usbbuffer = new byte[9];
 
 
         public WMR100Station(Cumulus cumulus) : base(cumulus)
@@ -84,7 +84,7 @@ namespace CumulusMX
             cumulus.LogMessage("Sending reset");
             SendReset();
             cumulus.LogMessage("Start loop");
-            int numBytes = 0;
+            int numBytes;
             int responseLength;
             int startByte;
             int offset;
@@ -213,6 +213,7 @@ namespace CumulusMX
             }
         }
 
+        /*
         private void ClearPacketBuffer()
         {
             for (int I = 0; I < PacketBufferBound; I++)
@@ -221,7 +222,9 @@ namespace CumulusMX
             }
             CurrentPacketLength = 0;
         }
+        */
 
+        /*
         private void RemovePacketFromBuffer()
         {
             // removes packet from start of buffer
@@ -244,11 +247,12 @@ namespace CumulusMX
                 string Str = " ";
                 for (int I = 0; I < CurrentPacketLength; I++)
                 {
-                    Str = Str + PacketBuffer[I].ToString("X2");
+                    Str += PacketBuffer[I].ToString("X2");
                 }
                 cumulus.LogDebugMessage(Str);
             }
         }
+        */
 
         private void ProcessWMR100Packet()
         {
@@ -594,7 +598,7 @@ namespace CumulusMX
                 // CRC is calulated by summing all but the last two bytes
                 for (int i = 0; i <= packetLen - 3; i++)
                 {
-                    calculatedCRC = calculatedCRC + PacketBuffer[i];
+                    calculatedCRC += PacketBuffer[i];
                 }
 
                 cumulus.LogDebugMessage("Packet CRC = " + packetCRC);
