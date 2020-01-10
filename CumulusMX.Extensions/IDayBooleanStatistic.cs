@@ -1,9 +1,10 @@
 ﻿using System;
+using CumulusMX.Extensions.Station;
 using UnitsNet;
 
 namespace CumulusMX.Data.Statistics
 {
-    public interface IDayBooleanStatistic
+    public interface IDayBooleanStatistic : IStatistic
     {
         void Add();
         int Consecutive { get; }

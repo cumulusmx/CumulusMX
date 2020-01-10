@@ -43,6 +43,8 @@ namespace CumulusMX.Data.Statistics
         [JsonProperty]
         private int _allTimeTotalCount;
 
+        [JsonProperty]
+        private TBase _latestObject;
         public DayBooleanStatistic(IStatistic<TBase> statistics, Func<IStatistic<TBase>, bool> theFunction)
         {
             _statistics = statistics;
@@ -64,6 +66,7 @@ namespace CumulusMX.Data.Statistics
 
         public void Add()
         {
+            _latestObject = _statistics.Latest;
             var year = _statistics.LastSample.Year;
             var month = year * 12 + _statistics.LastSample.Month;
             var isTrue = TheFunction(_statistics);
@@ -130,5 +133,6 @@ namespace CumulusMX.Data.Statistics
         public Ratio MonthRatio => new Ratio((double)_monthCount/(double)_monthTotalCount,RatioUnit.DecimalFraction);
         public Ratio YearRatio => new Ratio((double)_yearCount / (double)_yearTotalCount, RatioUnit.DecimalFraction);
         public Ratio AllTimeRatio => new Ratio((double)_allTimeCount / (double)_allTimeTotalCount, RatioUnit.DecimalFraction);
+        public object LatestObject => _latestObject;
     }
 }

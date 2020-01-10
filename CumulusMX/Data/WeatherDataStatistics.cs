@@ -53,21 +53,21 @@ namespace CumulusMX.Data
         [JsonIgnore]
         private List<CalculationDetails> _calculations;
         [JsonProperty]
-        private List<DayStatisticDetails> _dayStatistics;
+        private Dictionary<string,IDayBooleanStatistic> _dayStatistics;
 
         [JsonIgnore]
         public IStatistic this[string key]
         {
             get
             {
-                if (!_measures.ContainsKey(key))
-                {
-                    _log.Warn($"No weather statistic named {key} defined.");
+                if (_measures.ContainsKey(key)) return (IStatistic)_measures[key];
 
-                    return null;
-                }
+                if (_dayStatistics.ContainsKey(key)) return (IStatistic) _dayStatistics[key];
+                    
+                _log.Warn($"No weather statistic named {key} defined.");
 
-                return (IStatistic)_measures[key];
+                return null;
+                
             }
         }
 
@@ -90,7 +90,7 @@ namespace CumulusMX.Data
             Time = DateTime.MinValue;
             FirstRecord = DateTime.MinValue;
             _calculations = new List<CalculationDetails>();
-            _dayStatistics = new List<DayStatisticDetails>();
+            _dayStatistics = new Dictionary<string, IDayBooleanStatistic>();
         }
 
         public bool DefineStatistic(string statisticName, Type statisticType)
@@ -131,7 +131,7 @@ namespace CumulusMX.Data
                 return false;
             }
 
-            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.Any(x => x.Measure == measureName))
+            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.ContainsKey(measureName))
             {
                 _log.Error($"Existing calculation defined for measure {measureName}.");
                 return false;
@@ -152,15 +152,15 @@ namespace CumulusMX.Data
 
         public bool DefineDayStatistic(string measureName, string input, string lambda)
         {
-            if (!_measures.TryGetValue(measureName,out object targetMeasureObj))
+            if (_measures.ContainsKey(measureName))
             {
-                _log.Error($"Please define measure {measureName} before defining calculation for it.");
+                _log.Error($"Measure named {measureName} already defined when defining a day statistic.");
                 return false;
             }
 
             //var targetMeasure = targetMeasureObj as StatisticUnit<IQuantity<Enum>, Enum>;
 
-            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.Any(x => x.Measure == measureName))
+            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.ContainsKey(measureName))
             {
                 _log.Error($"Existing calculation defined for measure {measureName}.");
                 return false;
@@ -190,6 +190,7 @@ namespace CumulusMX.Data
 
             var booleanStat = (IDayBooleanStatistic)Activator.CreateInstance(genericType, inputMeasure, lambdaExpression);
             inputMeasure.AddBooleanStatistics(booleanStat);
+            _dayStatistics.Add(measureName,booleanStat);
             return true;
 
         }
