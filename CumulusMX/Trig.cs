@@ -103,11 +103,11 @@ namespace CumulusMX
         {
             while (pfDeg >= 360)
             {
-                pfDeg = pfDeg - 360;
+                pfDeg -= 360;
             }
             while (pfDeg < 0)
             {
-                pfDeg = pfDeg + 360;
+                pfDeg += 360;
             }
             return pfDeg;
         }
@@ -116,11 +116,11 @@ namespace CumulusMX
         {
             while (pfHour >= 24)
             {
-                pfHour = pfHour - 24;
+                pfHour -= 24;
             }
             while (pfHour < 0)
             {
-                pfHour = pfHour + 24;
+                pfHour += 24;
             }
             return pfHour;
         }
@@ -131,44 +131,44 @@ namespace CumulusMX
             {
                 while (pfTanVal >= 90)
                 {
-                    pfTanVal = pfTanVal - 90;
+                    pfTanVal -= 90;
                 }
                 while (pfTanVal < 0)
                 {
-                    pfTanVal = pfTanVal + 90;
+                    pfTanVal += 90;
                 }
             }
             else if ((pfY < 0) && (pfX >= 0))
             {
                 while (pfTanVal >= 360)
                 {
-                    pfTanVal = pfTanVal - 90;
+                    pfTanVal -= 90;
                 }
                 while (pfTanVal < 270)
                 {
-                    pfTanVal = pfTanVal + 90;
+                    pfTanVal += 90;
                 }
             }
             else if ((pfY >= 0) && (pfX < 0))
             {
                 while (pfTanVal >= 180)
                 {
-                    pfTanVal = pfTanVal - 90;
+                    pfTanVal -= 90;
                 }
                 while (pfTanVal < 90)
                 {
-                    pfTanVal = pfTanVal + 90;
+                    pfTanVal += 90;
                 }
             }
             else if ((pfY < 0) && (pfX < 0))
             {
                 while (pfTanVal >= 270)
                 {
-                    pfTanVal = pfTanVal - 90;
+                    pfTanVal -= 90;
                 }
                 while (pfTanVal < 180)
                 {
-                    pfTanVal = pfTanVal + 90;
+                    pfTanVal += 90;
                 }
             }
             return pfTanVal;

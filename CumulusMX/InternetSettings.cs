@@ -12,7 +12,7 @@ namespace CumulusMX
 {
 	public class InternetSettings
 	{
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 		private readonly string internetOptionsFile;
 		private readonly string internetSchemaFile;
 
@@ -43,13 +43,13 @@ namespace CumulusMX
 				cumulus.ForumURL = settings.website.forumurl ?? string.Empty;
 				cumulus.ftp_port = settings.website.ftpport;
 				cumulus.ftp_host = settings.website.hostname ?? string.Empty;
+				cumulus.Sslftp = (Cumulus.FtpProtocols)settings.website.sslftp;
 				cumulus.ftp_password = settings.website.password ?? string.Empty;
 				cumulus.ftp_user = settings.website.username ?? string.Empty;
 				cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty;
 
 				// web settings
 				cumulus.ActiveFTPMode = settings.websettings.activeftp;
-				cumulus.Sslftp = settings.websettings.sslftp;
 				cumulus.WebAutoUpdate = settings.websettings.autoupdate;
 				cumulus.RealtimeEnabled = settings.websettings.enablerealtime;
 				cumulus.RealtimeFTPEnabled = settings.websettings.enablerealtimeftp;
@@ -230,6 +230,7 @@ namespace CumulusMX
 									  directory = cumulus.ftp_directory,
 									  forumurl = cumulus.ForumURL,
 									  ftpport = cumulus.ftp_port,
+									  sslftp = (int)cumulus.Sslftp,
 									  hostname = cumulus.ftp_host,
 									  password = cumulus.ftp_password,
 									  username = cumulus.ftp_user,
@@ -239,7 +240,6 @@ namespace CumulusMX
 			var websettings = new JsonInternetSettingsWebSettings()
 							  {
 								  activeftp = cumulus.ActiveFTPMode,
-								  sslftp = cumulus.Sslftp,
 								  autoupdate = cumulus.WebAutoUpdate,
 								  enablerealtime = cumulus.RealtimeEnabled,
 								  enablerealtimeftp = cumulus.RealtimeFTPEnabled,
@@ -553,6 +553,7 @@ namespace CumulusMX
 	{
 		public string hostname { get; set; }
 		public int ftpport { get; set; }
+		public int sslftp { get; set; }
 		public string directory { get; set; }
 		public string username { get; set; }
 		public string password { get; set; }
@@ -566,7 +567,6 @@ namespace CumulusMX
 		public bool includestdfiles { get; set; }
 		public bool includegraphdatafiles { get; set; }
 		public bool activeftp { get; set; }
-		public bool sslftp { get; set; }
 		public bool ftprename { get; set; }
 		public bool ftpdelete { get; set; }
 		public bool utf8encode { get; set; }

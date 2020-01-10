@@ -53,7 +53,7 @@ namespace CumulusMX
     */
     internal class EasyWeather : WeatherStation
     {
-        private Timer tmrDataRead;
+        private readonly Timer tmrDataRead;
 
         private const int EW_READING_DATE = 3;
         private const int EW_READING_TIME = 4;

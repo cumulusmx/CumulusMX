@@ -94,7 +94,7 @@ namespace CumulusMX
 
             if (month <= 2)
             {
-                month = month + 12;
+                month += 12;
                 year--;
             }
 
@@ -127,11 +127,12 @@ namespace CumulusMX
             a = 360 * (b - (int)Math.Floor(b));
             if (a < 0)
             {
-                a = a + 360;
+                a += 360;
             }
             return a;
         }
 
+        /*
         private static string hrsmin(double t)
         {
             //
@@ -146,6 +147,7 @@ namespace CumulusMX
             return (hour.ToString("00") + min.ToString("00"));
             //return "0000";
         }
+        */
 
         private static string hrsminsec(double t)
         {
@@ -216,7 +218,7 @@ namespace CumulusMX
             ra = (48.0 / p2) * System.Math.Atan(y / (x + rho));
             if (ra < 0)
             {
-                ra = ra + 24;
+                ra += 24;
             }
         }
 
@@ -306,7 +308,6 @@ namespace CumulusMX
             double utrise = 0;
             double utset = 0;
             // 			int above;
-            utrise = 0;
             // 			double utset;
             // 			int above;
             // 			double utrise;
@@ -413,7 +414,7 @@ namespace CumulusMX
                 //   set up the next search interval
                 //
                 ym = yp;
-                hour = hour + 2.0;
+                hour += 2.0;
 
             } // end of while loop
             //

@@ -64,36 +64,36 @@ namespace CumulusMX
 			CMD_WRITE_SSID = 1,
 			CMD_BROADCAST = 2,
 			CMD_READ_ECOWITT = 1,
-			CMD_WRITE_ECOWITT = 1, 
+			CMD_WRITE_ECOWITT = 1,
 			CMD_READ_WUNDERGROUND = 1,
-			CMD_WRITE_WUNDERGROUND = 1, 
-			CMD_READ_WOW = 1, 
-			CMD_WRITE_WOW = 1, 
+			CMD_WRITE_WUNDERGROUND = 1,
+			CMD_READ_WOW = 1,
+			CMD_WRITE_WOW = 1,
 			CMD_READ_WEATHERCLOUD = 1,
 			CMD_WRITE_WEATHERCLOUD = 1,
 			CMD_READ_SATION_MAC = 1,
 			CMD_READ_CUSTOMIZED = 1,
-			CMD_WRITE_CUSTOMIZED = 1, 
+			CMD_WRITE_CUSTOMIZED = 1,
 			CMD_WRITE_UPDATE = 1,
 			CMD_READ_FIRMWARE_VERSION = 1,
 			// the following command is only valid for GW1000 and WH2650：
 			CMD_GW1000_LIVEDATA = 2,
 			CMD_GET_SOILHUMIAD = 1,
-			CMD_SET_SOILHUMIAD = 1, 
-			CMD_GET_MulCH_OFFSET = 1, 
-			CMD_SET_MulCH_OFFSET = 1, 
-			CMD_GET_PM25_OFFSET = 1, 
-			CMD_SET_PM25_OFFSET = 1, 
+			CMD_SET_SOILHUMIAD = 1,
+			CMD_GET_MulCH_OFFSET = 1,
+			CMD_SET_MulCH_OFFSET = 1,
+			CMD_GET_PM25_OFFSET = 1,
+			CMD_SET_PM25_OFFSET = 1,
 			CMD_READ_SSSS = 1,
 			CMD_WRITE_SSSS = 1,
 			CMD_READ_RAINDATA = 1,
 			CMD_WRITE_RAINDATA = 1,
-			CMD_READ_GAIN = 1, 
+			CMD_READ_GAIN = 1,
 			CMD_WRITE_GAIN = 1,
 			CMD_READ_CALIBRATION = 1,
 			CMD_WRITE_CALIBRATION = 1,
 			CMD_READ_SENSOR_ID = 1,
-			CMD_WRITE_SENSOR_ID = 1, 
+			CMD_WRITE_SENSOR_ID = 1,
 			CMD_WRITE_REBOOT = 1,
 			CMD_WRITE_RESET = 1,
 		}
@@ -625,8 +625,9 @@ namespace CumulusMX
 							case 0x45: //Soil Temperature14 (℃)
 							case 0x47: //Soil Temperature15 (℃)
 							case 0x49: //Soil Temperature16 (℃)
-								chan = data[idx - 1] - 0x2B + 1;
-								chan += (chan - 1);
+								// figure out the channel number
+								chan = data[idx - 1] - 0x2B + 2; // -> 2,4,6,8...
+								chan /= 2; // -> 1,2,3,4...
 								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoSoilTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
 								idx += 2;
@@ -648,8 +649,8 @@ namespace CumulusMX
 							case 0x48: //Soil Moisture15 (%)
 							case 0x4A: //Soil Moisture16 (%)
 								// figure out the channel number
-								chan = data[idx - 1] - 0x2C + 1;
-								chan += (chan - 1);
+								chan = data[idx - 1] - 0x2C + 2; // -> 2,4,6,8...
+								chan /= 2; // -> 1,2,3,4...
 								DoSoilMoisture(data[idx], chan);
 								idx += 1;
 								break;
@@ -688,7 +689,7 @@ namespace CumulusMX
 							case 0x59: //Leak ch2
 							case 0x5A: //Leak ch3
 							case 0x5B: //Leak ch4
-								chan = data[idx - 1];
+								chan = data[idx - 1] - 0x58 + 1;
 								DoLeakSensor(data[idx], chan);
 								idx += 1;
 								break;
@@ -697,7 +698,7 @@ namespace CumulusMX
 								LightningDistance = ConvertKmtoUserUnits(data[idx]);
 								idx += 1;
 								break;
-							case 0x62: //Lightning time (UTC)
+							case 0x61: //Lightning time (UTC)
 								tempUint32 = ConvertBigEndianUInt32(data, idx);
 								var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 								dtDateTime = dtDateTime.AddSeconds(tempUint32).ToLocalTime();
@@ -705,7 +706,7 @@ namespace CumulusMX
 								LightningTime = dtDateTime;
 								idx += 4;
 								break;
-							case 0x63: //Lightning strikes today
+							case 0x62: //Lightning strikes today
 								tempUint32 = ConvertBigEndianUInt32(data, idx);
 								cumulus.LogDebugMessage($"Lightning power={tempUint32}");
 								LightningStrikesToday = (int)tempUint32;
@@ -713,7 +714,9 @@ namespace CumulusMX
 								break;
 
 							default:
-								cumulus.LogDebugMessage($"Error: Unknown sensor id found = {data[idx - 1]}");
+								cumulus.LogDebugMessage($"Error: Unknown sensor id found = {data[idx - 1]}, at position = {idx - 1}");
+								// We will have lost our place now, so bail out
+								idx = size;
 								break;
 						}
 					} while (idx < size);
@@ -846,12 +849,12 @@ namespace CumulusMX
 
 			BatteryStatus status = (BatteryStatus)RawDeserialize(data, index, typeof(BatteryStatus));
 			cumulus.LogDebugMessage("battery status...");
-			
+
 			var str = "singles> wh24=" + TestBattery1(status.single, (byte)_sig_sen.wh24);
 			str += " wh25=" + TestBattery1(status.single, (byte)_sig_sen.wh25);
 			str += " wh26=" + TestBattery1(status.single, (byte)_sig_sen.wh26);
 			str += " wh40=" + TestBattery1(status.single, (byte)_sig_sen.wh40);
-			cumulus.LogDebugMessage(str); 
+			cumulus.LogDebugMessage(str);
 
 			str = "wh31> ch1=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch1);
 			str += " ch2=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch2);
@@ -1012,50 +1015,49 @@ namespace CumulusMX
 			SensorInfo wh80;
 			public Sensors()
 			{
-			
 			}
 		}
 		*/
 
 		private bool ChecksumOK(byte[] data, int lengthBytes)
+		{
+			ushort size;
+
+			// general response 1 byte size         2 byte size
+			// 0   - 0xff - header                  0   - 0xff - header
+			// 1   - 0xff                           1   - 0xff
+			// 2   - command                        2   - command
+			// 3   - total size of response         3   - size1
+			// 4-X - data                           4   - size2
+			// X+1 - checksum                       5-X - data
+			//                                      X+1 - checksum
+
+
+			if (lengthBytes == 1)
 			{
-				ushort size = 0;
-
-				// general response 1 byte size         2 byte size
-				// 0   - 0xff - header                  0   - 0xff - header
-				// 1   - 0xff                           1   - 0xff
-				// 2   - command                        2   - command
-				// 3   - total size of response         3   - size1
-				// 4-X - data                           4   - size2
-				// X+1 - checksum                       5-X - data
-				//                                      X+1 - checksum
-
-
-				if (lengthBytes == 1)
-				{
-					size = (ushort)data[3];
-				}
-				else
-				{
-					size = ConvertBigEndianUInt16(data, 3);
-				}
-
-				byte checksum = (byte)(data[2] + data[3]);
-				for (var i = 4; i <= size; i++)
-				{
-					checksum += data[i];
-				}
-
-				if (checksum != data[size + 1])
-				{
-					cumulus.LogMessage("Bad checksum");
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+				size = (ushort)data[3];
 			}
+			else
+			{
+				size = ConvertBigEndianUInt16(data, 3);
+			}
+
+			byte checksum = (byte)(data[2] + data[3]);
+			for (var i = 4; i <= size; i++)
+			{
+				checksum += data[i];
+			}
+
+			if (checksum != data[size + 1])
+			{
+				cumulus.LogMessage("Bad checksum");
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
 
 		private static UInt16 ConvertBigEndianUInt16(byte[] array, int start)
 		{

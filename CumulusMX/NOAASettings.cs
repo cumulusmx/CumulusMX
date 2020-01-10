@@ -15,9 +15,9 @@ namespace CumulusMX
 {
 	public class NOAASettings
 	{
-		private Cumulus cumulus;
-		private string noaaOptionsFile;
-		private string noaaSchemaFile;
+		private readonly Cumulus cumulus;
+		private readonly string noaaOptionsFile;
+		private readonly string noaaSchemaFile;
 
 		public NOAASettings(Cumulus cumulus)
 		{
@@ -28,7 +28,7 @@ namespace CumulusMX
 
 		public string GetNoaaAlpacaFormData()
 		{
-			var InvC = new CultureInfo("");
+			//var InvC = new CultureInfo("");
 			var normalmeantemps = new JsonNOAASettingsNormalMeanTemps()
 								  {
 									  jan = Math.Round(cumulus.NOAATempNormJan,cumulus.TempDPlaces),

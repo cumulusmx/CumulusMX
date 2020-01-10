@@ -30,12 +30,12 @@ namespace CumulusMX
 		private const int CLEAR_LOGGER_PACKET_TYPE = 0xDB;
 		private const int STOP_COMMS_PACKET_TYPE = 0xDF;
 
-		private byte[] PacketBuffer;
+		private readonly byte[] PacketBuffer;
 		private int CurrentPacketLength;
 		private const int PacketBufferBound = 255;
 		//private bool ArchiveDataAvailable = false;
 		//private bool ArchiveDataDownloaded = false;
-		private int ArchiveDataCount = 0;
+		//private int ArchiveDataCount = 0;
 		private bool FirstArchiveData = true;
 		private bool midnightraindone;
 		private double HourInc;
@@ -44,9 +44,9 @@ namespace CumulusMX
 		private DateTime PreviousHistoryTimeStamp;
 		private bool GettingHistory;
 		private int LivePacketCount;
-		private byte[] usbbuffer = new byte[9];
+		private readonly byte[] usbbuffer = new byte[9];
 
-		private Timer HearbeatTimer;
+		private readonly Timer HearbeatTimer;
 
 		public WMR200Station(Cumulus cumulus)
 			: base(cumulus)
@@ -122,10 +122,9 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			var data = new byte[32];
 			cumulus.LogMessage("Start reading history data");
 			Console.WriteLine("Start reading history data...");
-			DateTime timestamp = DateTime.Now;
+			//DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
 
@@ -168,7 +167,7 @@ namespace CumulusMX
 		public override void Start()
 		{
 			cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Start loop");
-			int numBytes = 0;
+			int numBytes;
 			int responseLength;
 			int startByte;
 			int offset;
@@ -395,7 +394,7 @@ namespace CumulusMX
 				// CRC is calulated by summing all but the last two bytes
 				for (int i = 0; i < packetLen - 2; i++)
 				{
-					calculatedCRC = calculatedCRC + PacketBuffer[i];
+					calculatedCRC += PacketBuffer[i];
 				}
 
 				return (packetCRC == calculatedCRC);
@@ -433,7 +432,7 @@ namespace CumulusMX
 				string Str = " ";
 				for (int I = 0; I < CurrentPacketLength; I++)
 				{
-					Str = Str + PacketBuffer[I].ToString("X2");
+					Str += PacketBuffer[I].ToString("X2");
 				}
 				if (cumulus.logging)
 				{
@@ -1408,7 +1407,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Timestamp is earlier than latest data, ignoring");
 				return;
 			}
-			ArchiveDataCount++;
+			//ArchiveDataCount++;
 			if (FirstArchiveData)
 			{
 				FirstArchiveData = false;
@@ -1418,9 +1417,9 @@ namespace CumulusMX
 					cumulus.LogMessage("LastUpdateTime = " + (cumulus.LastUpdateTime).ToString());
 					cumulus.LogMessage("Earliest timestamp = " + (timestamp).ToString());
 					int luh = cumulus.LastUpdateTime.Hour;
-					int lum = cumulus.LastUpdateTime.Minute;
-					int lus = cumulus.LastUpdateTime.Second;
-					int lums = cumulus.LastUpdateTime.Millisecond;
+					//int lum = cumulus.LastUpdateTime.Minute;
+					//int lus = cumulus.LastUpdateTime.Second;
+					//int lums = cumulus.LastUpdateTime.Millisecond;
 					if (luh == rollHour)
 					{
 						rolloverdone = true;

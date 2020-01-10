@@ -9,9 +9,9 @@ namespace CumulusMX
 {
 	public class MysqlSettings
 	{
-		private Cumulus cumulus;
-		private string mySqlOptionsFile;
-		private string mySqlSchemaFile;
+		private readonly Cumulus cumulus;
+		private readonly string mySqlOptionsFile;
+		private readonly string mySqlSchemaFile;
 
 		public MysqlSettings(Cumulus cumulus)
 		{

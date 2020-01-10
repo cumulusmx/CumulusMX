@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.IO.Ports;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -94,6 +91,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Response: " + data);
 		}
 
+		/*
 		private string ReadStationClock()
 		{
 			SendCommand("RDTM");
@@ -101,6 +99,7 @@ namespace CumulusMX
 			string data = ExtractText(response, "rdtm");
 			return data;
 		}
+		*/
 
 		private void ProgressLogs()
 		{
@@ -111,6 +110,7 @@ namespace CumulusMX
 			GetResponse("prlg");
 		}
 
+		/*
 		private void RegressLogs(DateTime ts) // Move the log pointer back until the archive record timestamp is earlier
 			// than the supplied ts, or the logs cannot be regressed any further
 		{
@@ -118,7 +118,7 @@ namespace CumulusMX
 			const int DATEPOS = 5;
 			bool done = false;
 			int numlogs = GetNumberOfLogs();
-			int previousnumlogs = 0;
+			int previousnumlogs;
 			bool dataOK;
 			DateTime entryTS;
 
@@ -126,7 +126,8 @@ namespace CumulusMX
 			// regress the pointer
 			SendCommand("RGLG,1");
 			// read the response
-			string response = GetResponse("rglg");
+			//string response = GetResponse("rglg");
+			GetResponse("rglg");
 			do
 			{
 				List<string> sl = GetArchiveRecord();
@@ -163,7 +164,8 @@ namespace CumulusMX
 						// regress the pointer
 						SendCommand("RGLG,1");
 						// read the response
-						response = GetResponse("rglg");
+						//response = GetResponse("rglg");
+						GetResponse("rglg");
 						previousnumlogs = numlogs;
 						numlogs = GetNumberOfLogs();
 						cumulus.LogMessage("Number of logs = " + numlogs);
@@ -176,6 +178,7 @@ namespace CumulusMX
 				}
 			} while (!done);
 		}
+		*/
 
 		private void UpdateReadPointer()
 		{
@@ -218,7 +221,7 @@ namespace CumulusMX
 
 		private void SendCommand(string command)
 		{
-			string response = String.Empty;
+			string response;
 
 			// First flush the receive buffer
 			comport.DiscardInBuffer();
@@ -247,7 +250,7 @@ namespace CumulusMX
 		private string GetResponse(string expected)
 		{
 			string response = "";
-			string ready = "";
+			string ready;
 			int attempts = 0;
 
 			// The Instromet is odd, in that the serial connection is configured for human interaction rather than machine.
@@ -318,7 +321,7 @@ namespace CumulusMX
 		{
 			int attempts = 0;
 			int num = 0;
-			bool valid = false;
+			bool valid;
 			string data;
 			do
 			{
@@ -494,7 +497,7 @@ namespace CumulusMX
 
 			//string response;
 			bool rolloverdone;
-			bool dataOK = false;
+			bool dataOK;
 			DateTime timestamp = DateTime.MinValue;
 
 			NumberFormatInfo provider = new NumberFormatInfo();
@@ -510,7 +513,7 @@ namespace CumulusMX
 			int sec = startfrom.Second;
 
 
-			cumulus.LogMessage("Last update time = " + hour + ":" + minute);
+			cumulus.LogMessage($"Last update time = {year}/{month}/{day} {hour}:{minute}:{sec}");
 
 			int recordsdone = 0;
 
@@ -605,7 +608,7 @@ namespace CumulusMX
 					cumulus.LogMessage("-----Actual number of valid history records = " + (numrecs - startindex));
 					// Compare earliest timestamp with the update time of the today file
 					// and see if (they are on the same day
-					int hourInc = cumulus.GetHourInc();
+					//int hourInc = cumulus.GetHourInc();
 
 
 					// set up controls for end of day rollover
@@ -704,14 +707,14 @@ namespace CumulusMX
 								DoOutdoorTemp(ConvertTempCToUser(Convert.ToDouble(sl[TEMP1AVGPOS], provider)), timestamp);
 
 								// add in "archivePeriod" minutes worth of temperature to the temp samples
-								tempsamplestoday = tempsamplestoday + interval;
-								TempTotalToday = TempTotalToday + (OutdoorTemperature*interval);
+								tempsamplestoday += interval;
+								TempTotalToday += (OutdoorTemperature*interval);
 
 								// update chill hours
 								if (OutdoorTemperature < cumulus.ChillHourThreshold)
 								{
 									// add 1 minute to chill hours
-									ChillHours = ChillHours + (interval/60);
+									ChillHours += (interval/60);
 								}
 
 								// update heating/cooling degree days
@@ -776,7 +779,7 @@ namespace CumulusMX
 							// sunshine hours
 							if (sl[SUNPOS] != "")
 							{
-								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider), timestamp);
+								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider));
 							}
 
 							cumulus.DoLogFile(timestamp, false);
@@ -958,7 +961,7 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(sl[SUNPOS]))
 				{
 					double sunhours = Convert.ToDouble(sl[SUNPOS], provider);
-					DoSunHours(sunhours, now);
+					DoSunHours(sunhours);
 				}
 
 				if (!string.IsNullOrEmpty(sl[TEMP1POS]))

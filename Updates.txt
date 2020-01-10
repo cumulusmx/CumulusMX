@@ -1,6 +1,30 @@
+3.3.0 - b3063
+=============
+- Adds support for SFTP (SSH FTP)
+	- Moves the FTP SSL option to the web server settings
+	- Adds SFTP to existing FTP, FTPS options
+- Fixes Ecowitt Soil Temperature/Moisture/Leak detector channel numbering
+- Fix for an occasional error in station logger data handling of today's rainfall during CMX start-up
+- Fix for Ecowitt GW1000 Lightning data decode
+- Fix for incorrect date on <#Snow*> web tags
+- Now automatically fixes two Cumulus.ini changes from Cumulus 1 generated files
+	- Changes the [FTP Site] section name to [FTP site]
+	- Changes NOAA default monthly name (if still set) from "NOAAMO'mmyy'.txt" to "NOAAMO'MMyy'.txt"
+- Additional diagnostic logging info for Lacrosse WS2300 stations
+
+- Updated files
+	\CumulusMX.exe
+	\FluentFTP.dll
+	\interface\json\InternetOptions.json
+	\interface\json\InternetSchema.json
+
+- New files
+	\Renci.SshNet.dll
+
+
 3.2.6 - b3062
 =============
-- Fixes monthly records editor for stations witha a met day starting at 9am
+- Fixes monthly records editor for stations with a met day starting at 9am
 - Adds range checks for latitude and longitude values
 
 - Updated files

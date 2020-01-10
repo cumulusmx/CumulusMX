@@ -6,7 +6,7 @@ namespace CumulusMX
 	[DataContract]
 	public class DataStruct // The annotations on this class are so it can be serialised as JSON
 	{
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 
 		public DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double indoorTemp, double outdoorDewpoint, double windChill,
 							int indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,

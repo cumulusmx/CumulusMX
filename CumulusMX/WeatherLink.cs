@@ -620,8 +620,8 @@ namespace CumulusMX
         }
 
 
-        internal void Process(DavisStation station) // Processes the archive data once it's been loaded
-        {
+//        internal void Process(DavisStation station) // Processes the archive data once it's been loaded
+//        {
             /*  station.IndoorTemperature = station.ConvertTempFToUser(InsideTemperature);
             station.OutdoorTemperature = station.ConvertTempFToUser(OutsideTemperature);
             station.IndoorHumidity = InsideHumidity;
@@ -757,7 +757,7 @@ namespace CumulusMX
 
             //}
         } */
-        }
+ //       }
     }
 
     // The VPLoop2Data class extracts and stores the weather data from the array of bytes returned from the Vantage weather station

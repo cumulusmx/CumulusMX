@@ -13,9 +13,9 @@ namespace CumulusMX
 {
 	public class CalibrationSettings
 	{
-		private Cumulus cumulus;
-		private string calibrationOptionsFile;
-		private string calibrationSchemaFile;
+		private readonly Cumulus cumulus;
+		private readonly string calibrationOptionsFile;
+		private readonly string calibrationSchemaFile;
 
 		public CalibrationSettings(Cumulus cumulus)
 		{
@@ -86,7 +86,7 @@ namespace CumulusMX
 
 		public string GetCalibrationAlpacaFormData()
 		{
-			var InvC = new CultureInfo("");
+			//var InvC = new CultureInfo("");
 			var offsets = new JsonCalibrationSettingsOffsets()
 					{
 						pressure = cumulus.PressOffset,
