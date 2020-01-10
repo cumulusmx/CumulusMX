@@ -1,5 +1,6 @@
 ﻿using System;
 using CumulusMX.Extensions.Station;
+using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
 using UnitsNet;
 using UnitsNet.Units;
@@ -46,6 +47,19 @@ namespace CumulusMX.Data.Statistics
         {
             _statistics = statistics;
             TheFunction = theFunction;
+        }
+
+        public DayBooleanStatistic(IStatistic<TBase> statistics, Script<bool> theScript)
+        {
+            _statistics = statistics;
+            var runner = theScript.CreateDelegate();
+
+            TheFunction = (x) =>
+            {
+                var result = runner(new InputGlobals() {Input = x}).Result;
+                return result;
+            };
+
         }
 
         public void Add()

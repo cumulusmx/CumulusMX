@@ -121,6 +121,7 @@ namespace CumulusMX
             {
                 Dictionary<string, Setting> calcDetails = dayStat.Value.AsSection;
                 var dayStatLambda = calcDetails["Lambda"].AsString;
+                dataStatistics.DefineStatistic(calcDetails["Name"].AsString, typeof(double));
                 dataStatistics.DefineDayStatistic(calcDetails["Name"].AsString, calcDetails["Input"].AsString, dayStatLambda);
             }
 

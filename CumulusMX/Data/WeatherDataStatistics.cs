@@ -13,6 +13,7 @@ using CumulusMX.Data.Statistics.Double;
 using CumulusMX.Data.Statistics.Unit;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.Station;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
@@ -157,7 +158,7 @@ namespace CumulusMX.Data
                 return false;
             }
 
-            var targetMeasure = targetMeasureObj as StatisticUnit<IQuantity<Enum>, Enum>;
+            //var targetMeasure = targetMeasureObj as StatisticUnit<IQuantity<Enum>, Enum>;
 
             if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.Any(x => x.Measure == measureName))
             {
@@ -171,19 +172,24 @@ namespace CumulusMX.Data
                 return false;
             }
 
-            var underlyingType = targetMeasure.GetType().GetGenericArguments()[0];
+            dynamic inputMeasure = _measures[input];
+            if (inputMeasure == null)
+            {
+                _log.Error($"Input measure {input} for calculation {measureName} has an unsupported type.");
+                return false;
+            }
 
-            var options = ScriptOptions.Default.AddReferences(underlyingType.Assembly);
+            var statisticsType = inputMeasure.GetType();
+            var underlyingType = statisticsType.GetGenericArguments()[0];
 
-            var funcType = typeof(Func<>).MakeGenericType(underlyingType, typeof(bool));
-
-            var methodInf = typeof(CSharpScript).GetMethod("EvaluateAsync<>").MakeGenericMethod(funcType);
-
-            var lambdaExpression = methodInf.Invoke(null, new object[] {underlyingType, options});
+            var options = ScriptOptions.Default.WithImports("UnitsNet").WithReferences("Microsoft.CSharp")
+                .AddReferences(underlyingType.Assembly,typeof(Temperature).Assembly);
 
             var genericType = typeof(DayBooleanStatistic<>).MakeGenericType(underlyingType);
-            var booleanStat = (IDayBooleanStatistic)Activator.CreateInstance(genericType,targetMeasure, lambdaExpression);
-            targetMeasure.AddBooleanStatistics(booleanStat);
+            var lambdaExpression = CSharpScript.Create<bool>(lambda, options, typeof(InputGlobals));
+
+            var booleanStat = (IDayBooleanStatistic)Activator.CreateInstance(genericType, inputMeasure, lambdaExpression);
+            inputMeasure.AddBooleanStatistics(booleanStat);
             return true;
 
         }
@@ -203,7 +209,7 @@ namespace CumulusMX.Data
                 foreach (var observation in data.Keys)
                 {
                     if (mappings.ContainsKey(observation) && _measures.ContainsKey(mappings[observation]))
-                        ((IAddable)_measures[mappings[observation]]).Add(timestamp,data[observation]);
+                        ((IAddable) _measures[mappings[observation]]).Add(timestamp, data[observation]);
                 }
 
                 foreach (var calc in _calculations)
@@ -225,6 +231,10 @@ namespace CumulusMX.Data
                         _log.Error($"Error applying calculation {calc.Measure}.  Error is {ex}.");
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Error while updating weather data.  Error is {ex}.");
             }
             finally
             {

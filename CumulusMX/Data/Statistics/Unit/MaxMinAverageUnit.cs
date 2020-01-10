@@ -92,24 +92,24 @@ namespace CumulusMX.Data.Statistics.Unit
             if (!(inValue is TBase newValue))
             {
                 //TODO: Log
-                throw new ArgumentException("Invalid input type.", "inSample");
+                throw new ArgumentException("Invalid input type.", nameof(inValue));
             }
 
             _count++;
             _total += newValue.As(_itemOne);
-            if ((newValue as IComparable).CompareTo(Maximum) > 0 || _count == 1)
+            if ((newValue as IComparable)?.CompareTo(Maximum) > 0 || _count == 1)
             {
                 Maximum = newValue;
                 MaximumTime = newTime;
             }
-            if ((newValue as IComparable).CompareTo(Minimum) < 0 || _count == 1)
+            if ((newValue as IComparable)?.CompareTo(Minimum) < 0 || _count == 1)
             {
                 Minimum = newValue;
                 MinimumTime = newTime;
             }
             _averageValid = false;
             _unitTotalValid = false;
-            if ((newValue as IComparable).CompareTo(_zeroQuantity) != 0)
+            if ((newValue as IComparable)?.CompareTo(_zeroQuantity) != 0)
                 _nonZero++;
         }
 
