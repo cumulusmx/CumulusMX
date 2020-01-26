@@ -22,12 +22,13 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.5.0" />
     <PackageReference Include="UnitsNet" Version="4.4.0" />
-    <PackageReference Include="UnitsNet.Serialization.JsonNet" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CumulusMX.Common\CumulusMX.Common.csproj" />
     <ProjectReference Include="..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
+    <ProjectReference Include="..\UnitsNet\UnitsNet.Serialization.JsonNet\UnitsNet.Serialization.JsonNet.csproj" />
+    <ProjectReference Include="..\UnitsNet\UnitsNet\UnitsNet.csproj" />
   </ItemGroup>
 
   <ItemGroup>

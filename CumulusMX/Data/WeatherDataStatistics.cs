@@ -262,6 +262,8 @@ namespace CumulusMX.Data
                 using (var fileReader = File.OpenText(dataFile))
                 {
                     var serialiser = new JsonSerializer();
+                    //var unitsNetJson = new UnitsNetJsonConverter();
+                    //unitsNetJson.AddUnit(typeof(Number), typeof(NumberUnit));
                     serialiser.Converters.Add(new UnitsNetJsonConverter());
                     serialiser.TypeNameHandling = TypeNameHandling.Auto;
                     var reader = new JsonTextReader(fileReader);
