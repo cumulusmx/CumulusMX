@@ -8,11 +8,11 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="StringTemplate4" Version="4.0.8" />
-    <PackageReference Include="UnitsNet" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
+    <ProjectReference Include="..\UnitsNet\UnitsNet\UnitsNet.csproj" />
   </ItemGroup>
 
 </Project>

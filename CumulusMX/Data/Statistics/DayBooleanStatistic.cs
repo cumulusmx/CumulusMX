@@ -64,6 +64,14 @@ namespace CumulusMX.Data.Statistics
 
         }
 
+        /// <summary>
+        /// Constructor for use in JSON deserialisation.
+        /// </summary>
+        public DayBooleanStatistic()
+        {
+
+        }
+
         public void Add()
         {
             _latestObject = _statistics.Latest;

@@ -23,19 +23,15 @@ using UnitsNet.Units;
 
 namespace CumulusMX.Data
 {
-    [JsonObject]
+    [JsonObject(MemberSerialization.OptIn)]
     public class WeatherDataStatistics : IWeatherDataStatistics
     {
-        [JsonIgnore]
         private static readonly log4net.ILog _log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        [JsonIgnore]
         private static readonly List<string> RESERVED_NAMES = new List<string> {"Timestamp"};
 
-        [JsonIgnore]
         private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        [JsonIgnore]
         public Dictionary<Type, Type> UNIT_TYPES = new Dictionary<Type, Type>
         {
             {typeof(Speed), typeof(SpeedUnit)},
@@ -50,12 +46,10 @@ namespace CumulusMX.Data
 
         [JsonProperty]
         private Dictionary<string, object> _measures = new Dictionary<string,object>();
-        [JsonIgnore]
         private List<CalculationDetails> _calculations;
         [JsonProperty]
         private Dictionary<string,IDayBooleanStatistic> _dayStatistics;
 
-        [JsonIgnore]
         public IStatistic this[string key]
         {
             get
@@ -77,11 +71,11 @@ namespace CumulusMX.Data
         public IDayBooleanStatistic RainDays { get; }
         // ? Forecast
 
+        [JsonProperty]
         public DateTime Time { get; private set; }
-        [JsonIgnore]
         public DateTime Yesterday => Time.AddDays(-1);
+        [JsonProperty]
         public DateTime FirstRecord { get; private set; }
-        [JsonIgnore]
         public TimeSpan SinceFirstRecord => Time - FirstRecord;
 
         public WeatherDataStatistics()
@@ -232,6 +226,8 @@ namespace CumulusMX.Data
                         _log.Error($"Error applying calculation {calc.Measure}.  Error is {ex}.");
                     }
                 }
+
+                Time = timestamp;
             }
             catch (Exception ex)
             {
@@ -262,6 +258,8 @@ namespace CumulusMX.Data
                 using (var fileReader = File.OpenText(dataFile))
                 {
                     var serialiser = new JsonSerializer();
+                    //var unitsNetJson = new UnitsNetJsonConverter();
+                    //unitsNetJson.AddUnit(typeof(Number), typeof(NumberUnit));
                     serialiser.Converters.Add(new UnitsNetJsonConverter());
                     serialiser.TypeNameHandling = TypeNameHandling.Auto;
                     var reader = new JsonTextReader(fileReader);
