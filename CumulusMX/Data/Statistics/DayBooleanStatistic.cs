@@ -142,5 +142,7 @@ namespace CumulusMX.Data.Statistics
         public Ratio YearRatio => new Ratio((double)_yearCount / (double)_yearTotalCount, RatioUnit.DecimalFraction);
         public Ratio AllTimeRatio => new Ratio((double)_allTimeCount / (double)_allTimeTotalCount, RatioUnit.DecimalFraction);
         public object LatestObject => _latestObject;
+        [JsonIgnore]
+        public bool Linked { get; set; } = false;
     }
 }

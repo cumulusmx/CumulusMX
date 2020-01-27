@@ -90,5 +90,7 @@ namespace CumulusMX.Extensions.Station
     public interface IStatistic
     {
         object LatestObject { get; }
+
+        bool Linked { get; set; }
     }
 }

@@ -45,7 +45,7 @@ namespace CumulusMX.Data
         };
 
         [JsonProperty]
-        private Dictionary<string, object> _measures = new Dictionary<string,object>();
+        private Dictionary<string, IStatistic> _measures = new Dictionary<string,IStatistic>();
         private List<CalculationDetails> _calculations;
         [JsonProperty]
         private Dictionary<string,IDayBooleanStatistic> _dayStatistics;
@@ -97,22 +97,33 @@ namespace CumulusMX.Data
 
             if (_measures.ContainsKey(statisticName))
             {
-                _log.Warn($"A weather statistic named {statisticName} is already defined. Ignoring the new one.");
-                return false;
+                if (!_measures[statisticName].Linked)
+                {
+                    _measures[statisticName].Linked = true;
+                    return true;
+                }
+                else
+                {
+                    _log.Warn($"A weather statistic named {statisticName} is already defined. Ignoring the new one.");
+                    return false;
+                }
+                
             }
 
+            Type typeInfo;
             if (statisticType == typeof(double))
             {
-                var typeInfo =
-                    typeof(StatisticUnit<,>).MakeGenericType(typeof(Number), typeof(NumberUnit));
-                _measures[statisticName] = Activator.CreateInstance(typeInfo);
+                typeInfo = typeof(StatisticUnit<,>).MakeGenericType(typeof(Number), typeof(NumberUnit));
             }
             else
             {
-                var typeInfo =
+                typeInfo =
                     typeof(StatisticUnit<,>).MakeGenericType(statisticType, UNIT_TYPES[statisticType]);
-                _measures[statisticName] = Activator.CreateInstance(typeInfo);
             }
+
+            var statistic = (IStatistic)Activator.CreateInstance(typeInfo);
+            statistic.Linked = true;
+            _measures[statisticName] = statistic;
 
             return true;
         }
@@ -148,16 +159,32 @@ namespace CumulusMX.Data
         {
             if (_measures.ContainsKey(measureName))
             {
-                _log.Error($"Measure named {measureName} already defined when defining a day statistic.");
-                return false;
+                if (!_measures[measureName].Linked)
+                {
+                    _measures[measureName].Linked = true;
+                    return true;
+                }
+                else
+                {
+                    _log.Error($"Measure named {measureName} already defined when defining a day statistic.");
+                    return false;
+                }
             }
 
             //var targetMeasure = targetMeasureObj as StatisticUnit<IQuantity<Enum>, Enum>;
 
-            if (_calculations.Any(x => x.Measure == measureName) || _dayStatistics.ContainsKey(measureName))
+            if (_dayStatistics.ContainsKey(measureName))
             {
-                _log.Error($"Existing calculation defined for measure {measureName}.");
-                return false;
+                if (!_dayStatistics[measureName].Linked)
+                {
+                    _dayStatistics[measureName].Linked = true;
+                    return true;
+                }
+                else
+                {
+                    _log.Error($"Existing day statistic defined named {measureName}.");
+                    return false;
+                }
             }
 
             if (!_measures.ContainsKey(input))
@@ -183,10 +210,10 @@ namespace CumulusMX.Data
             var lambdaExpression = CSharpScript.Create<bool>(lambda, options, typeof(InputGlobals));
 
             var booleanStat = (IDayBooleanStatistic)Activator.CreateInstance(genericType, inputMeasure, lambdaExpression);
+            booleanStat.Linked = true;
             inputMeasure.AddBooleanStatistics(booleanStat);
             _dayStatistics.Add(measureName,booleanStat);
             return true;
-
         }
 
         public void Add(WeatherDataModel data)

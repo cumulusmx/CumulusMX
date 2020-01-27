@@ -349,5 +349,7 @@ namespace CumulusMX.Data.Statistics.Unit
         }
 
         public object LatestObject => Latest;
+        [JsonIgnore]
+        public bool Linked { get; set; } = false;
     }
 }
