@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
@@ -19,12 +20,11 @@ namespace AwekasDataReporter
 
         public override string ServiceName => "Awekas Data Reporter Service";
 
-        private DataReporterSettingsGeneric _localSettings;
+        private AwekasSettings _localSettings;
         
-        public override string Identifier => "Awekas"; //TODO
+        public override string Identifier => "Awekas";
 
         private readonly HttpClient _httpClient;
-        protected string _extensionPath;
 
         public AwekasDataReporter(ILogger logger, AwekasSettings settings, IWeatherDataStatistics data) : base(logger,settings,data)
         {
@@ -32,8 +32,6 @@ namespace AwekasDataReporter
             _httpClient = new HttpClient(awekasHttpHandler);
 
             _localSettings = settings;
-
-            _extensionPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
         public override void Initialise()
@@ -111,7 +109,7 @@ namespace AwekasDataReporter
              {
                  {"passwordString", passwordString},
                  {"pressureTrend", pressureTrend},
-                 {"IsFineOffset", false} //TODO: fill value
+                 {"IsFineOffset", _localSettings.IsFineOffset}
              };
 
              var renderer = new TemplateRenderer

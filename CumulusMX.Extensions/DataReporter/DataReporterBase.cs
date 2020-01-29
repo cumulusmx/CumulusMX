@@ -21,6 +21,8 @@ namespace CumulusMX.Extensions.DataReporter
             Settings = settings;
             Enabled = settings.IsEnabled;
             ReportInterval = settings.ReportInterval;
+
+            _extensionPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
         public abstract string Identifier { get; }
@@ -34,6 +36,7 @@ namespace CumulusMX.Extensions.DataReporter
 
         protected Task _backgroundTask;
         protected CancellationTokenSource _cts;
+        protected string _extensionPath;
 
         public void Start()
         {

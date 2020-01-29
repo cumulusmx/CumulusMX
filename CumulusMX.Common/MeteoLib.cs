@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using CumulusMX.Extensions.Station;
 using UnitsNet;
 using UnitsNet.Units;
 
@@ -103,5 +105,34 @@ namespace CumulusMX.Common
             return (humidity.Percent * SaturationVapourPressure(temp)) / 100.0;
         }
 
+        public static Tuple<int, string> PressureTrend(IStatistic<Pressure> pressure)
+        {
+            Dictionary<int, string> PressureTrendName = new Dictionary<int, string>()
+            {
+                {-2, "Falling quickly"}, {-1, "Falling slowly"}, {0, "Steady"}, {1, "Rising Slowly"},
+                {2, "Rising Quickly"}
+            };  //TODO: Need to load this from somewhere.
+
+            int pressureTrend;
+
+            double threeHourlyPressureChangeMb = 0;
+
+            var threeHourChange = pressure.ThreeHourChange;
+
+            threeHourlyPressureChangeMb = threeHourChange is Pressure thcPressure ? thcPressure.Millibars : 0;
+
+            if (threeHourlyPressureChangeMb > 6) pressureTrend = 2;
+            else if (threeHourlyPressureChangeMb > 3.5) pressureTrend = 2;
+            else if (threeHourlyPressureChangeMb > 1.5) pressureTrend = 1;
+            else if (threeHourlyPressureChangeMb > 0.1) pressureTrend = 1;
+            else if (threeHourlyPressureChangeMb > -0.1) pressureTrend = 0;
+            else if (threeHourlyPressureChangeMb > -1.5) pressureTrend = -1;
+            else if (threeHourlyPressureChangeMb > -3.5) pressureTrend = -1;
+            else if (threeHourlyPressureChangeMb > -6) pressureTrend = -2;
+            else
+                pressureTrend = -2;
+
+            return Tuple.Create(pressureTrend, PressureTrendName[pressureTrend]);
+        }
     }
 }

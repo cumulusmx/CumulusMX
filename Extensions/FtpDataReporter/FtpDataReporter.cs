@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using AwekasDataReporter;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
@@ -88,7 +88,6 @@ namespace FtpDataReporter
             ExtraFiles = Settings.ExtraFiles;
         }
 
-        protected Task _realtimeTask;
         protected CancellationTokenSource _realtimeCts;
         private int RealtimeInterval;
         public override void Initialise()
@@ -97,7 +96,7 @@ namespace FtpDataReporter
             {
                 RealtimeFTP = new FtpClient();
                 RealtimeInterval = Settings.RealtimeInterval;
-                RealtimeFTPLogin();
+                RealtimeFtpLogin();
 
                 _realtimeCts = new CancellationTokenSource();
                 _log.Info($"Starting realtime FTP data reporter background task");
@@ -163,9 +162,7 @@ namespace FtpDataReporter
             e.Accept = true; // Allow all
         }
 
-        //public bool NoaaNeedFtp { get; set; }
-
-        private void RealtimeFTPLogin()
+        private void RealtimeFtpLogin()
         {
             //RealtimeTimer.Enabled = false;
             RealtimeFTP.Host = Settings.Host;
@@ -185,7 +182,7 @@ namespace FtpDataReporter
 
             }
 
-            if (Settings.Host != "" && Settings.Host != " ")
+            if (!string.IsNullOrWhiteSpace(Settings.Host))
             {
                 _log.Info("Attempting realtime FTP connect");
                 try

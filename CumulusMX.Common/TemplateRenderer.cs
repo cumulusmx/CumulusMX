@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Antlr.Runtime;
 using Antlr4.StringTemplate;
 using CumulusMX.Common.StringTemplate;
 using CumulusMX.Extensions;
@@ -10,7 +9,7 @@ using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
 using UnitsNet;
 
-namespace AwekasDataReporter
+namespace CumulusMX.Common
 {
     public class TemplateRenderer
     {

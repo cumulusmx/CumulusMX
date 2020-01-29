@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using LinqToTwitter;
 
 namespace TwitterDataReporter
 {
@@ -9,87 +14,97 @@ namespace TwitterDataReporter
     {
         public override string ServiceName => "Twitter Data Reporter Service";
 
-        public IDataReporterSettings Settings { get; private set; }
-        public override void DoReport(IWeatherDataStatistics currentData)
+        public override string Identifier => "Twitter"; //TODO
+
+        public TwitterDataReporter(ILogger logger, TwitterReporterSettings settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
-            throw new NotImplementedException();
+            ReportInterval = TwitterSettings.ReportInterval;
         }
 
-        public override string Identifier => "TBC"; //TODO
+        private TwitterReporterSettings TwitterSettings => (TwitterReporterSettings)Settings;
 
-        public TwitterDataReporter(ILogger logger, DataReporterSettingsGeneric settings, IWeatherDataStatistics data) : base(logger, settings, data)
-        {
-            Settings = settings as IDataReporterSettings;
-        }
+        private const string UNKNOWN_STRING = "Unknwon";
 
-        
+        private XAuthAuthorizer _auth;
+        private string _oauthToken = UNKNOWN_STRING;
+        private string _oauthTokenSecret;
+        private Task _getTokenTask;
+        private Dictionary<string, object> _extraRenderParameters;
+        private string _template;
+
         public override void Initialise()
         {
-        }
-
-        /*
-        internal async void UpdateTwitter()
-        {
-            LogDebugMessage("Starting Twitter update");
-            var auth = new XAuthAuthorizer
+            _auth = new XAuthAuthorizer
             {
                 CredentialStore =
-                               new XAuthCredentials { ConsumerKey = twitterKey, ConsumerSecret = twitterSecret, UserName = Twitteruser, Password = TwitterPW }
+                    new XAuthCredentials
+                    {
+                        ConsumerKey = TwitterSettings.ConsumerKey,
+                        ConsumerSecret = TwitterSettings.ConsumerSecret,
+                        UserName = TwitterSettings.Username,
+                        Password = TwitterSettings.Password
+                    }
             };
 
-            if (TwitterOauthToken == "unknown")
-            {
-                // need to get tokens using xauth
-                LogDebugMessage("Obtaining Twitter tokens");
-                await auth.AuthorizeAsync();
+            _getTokenTask = GetToken();
 
-                TwitterOauthToken = auth.CredentialStore.OAuthToken;
-                TwitterOauthTokenSecret = auth.CredentialStore.OAuthTokenSecret;
-                //LogDebugMessage("Token=" + TwitterOauthToken);
-                //LogDebugMessage("TokenSecret=" + TwitterOauthTokenSecret);
-                LogDebugMessage("Tokens obtained");
+            var filename = Path.Combine(_extensionPath, TwitterSettings.TemplateFilename);
+            if (File.Exists(filename))
+            {
+                _template = File.ReadAllText(filename);
             }
             else
             {
-                auth.CredentialStore.OAuthToken = TwitterOauthToken;
-                auth.CredentialStore.OAuthTokenSecret = TwitterOauthTokenSecret;
+                _template =
+                    @"Wind [data.WindSpeed.DayAverage;format=""{ 0:F0}""] [data.WindBearing.DayAverage.Degrees;format=""{ 0:F0}""]. Barometer [data.Pressure.Latest] [data.PressureTrend.Latest]";
+                //, " + station.Presstrendstr;
+                //status += ". Temperature " + station.OutdoorTemperature.ToString(TempFormat) + " " + TempUnitText;
+                //status += ". Rain today " + station.RainToday.ToString(RainFormat) + RainUnitText;
+                //status += ". Humidity " + station.OutdoorHumidity + "%";
+
             }
 
-            using (var twitterCtx = new TwitterContext(auth))
+            _extraRenderParameters = new Dictionary<string, object>();
+
+        }
+
+        public override async void DoReport(IWeatherDataStatistics currentData)
+        {
+            _log.Debug("Starting Twitter update");
+
+            var data = currentData;
+
+            if (_oauthToken == UNKNOWN_STRING)
             {
-                string status;
+                if (_getTokenTask.IsCompleted)
+                    _getTokenTask = GetToken();
 
-                if (File.Exists(TwitterTxtFile))
-                {
-                    // use twitter.txt file
-                    LogDebugMessage("Using twitter.txt file");
-                    var twitterTokenParser = new TokenParser();
-                    var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-                    var encoding = utf8WithoutBom;
-                    twitterTokenParser.encoding = encoding;
-                    twitterTokenParser.SourceFile = TwitterTxtFile;
-                    twitterTokenParser.OnToken += TokenParserOnToken;
-                    status = twitterTokenParser.ToString();
-                }
-                else
-                {
-                    // default message
-                    status = "Wind " + station.WindAverage.ToString(WindFormat) + " " + WindUnitText + " " + station.AvgBearingText;
-                    status += ". Barometer " + station.Pressure.ToString(PressFormat) + " " + PressUnitText + ", " + station.Presstrendstr;
-                    status += ". Temperature " + station.OutdoorTemperature.ToString(TempFormat) + " " + TempUnitText;
-                    status += ". Rain today " + station.RainToday.ToString(RainFormat) + RainUnitText;
-                    status += ". Humidity " + station.OutdoorHumidity + "%";
-                }
+                _getTokenTask.Wait();
+            }
 
-                LogDebugMessage("Updating Twitter: " + status);
+            using (var twitterCtx = new TwitterContext(_auth))
+            {
+                var renderer = new TemplateRenderer
+                    (
+                        new StringReader(_template),
+                        data,
+                        Settings,
+                        _extraRenderParameters,
+                        _log
+                    )
+                    { Timestamp = data.Time };
+
+                string status = renderer.Render();
+
+                _log.Debug("Updating Twitter: " + status);
 
                 Status tweet;
 
                 try
                 {
-                    if (TwitterSendLocation)
+                    if (TwitterSettings.SendLocation)
                     {
-                        tweet = await twitterCtx.TweetAsync(status, (decimal)Latitude, (decimal)Longitude);
+                        tweet = await twitterCtx.TweetAsync(status, decimal.Parse(Settings.GetValue("Latitude","0")), decimal.Parse(Settings.GetValue("Longitude","0")));
                     }
                     else
                     {
@@ -98,23 +113,31 @@ namespace TwitterDataReporter
 
                     if (tweet == null)
                     {
-                        LogDebugMessage("Null Twitter response");
+                        _log.Warn("Null Twitter response");
                     }
                     else
                     {
-                        LogDebugMessage("Status returned: " + "(" + tweet.StatusID + ")" + "[" + tweet.User.Name + "]" + tweet.User.Name + ", " + tweet.Text + ", " +
-                                        tweet.CreatedAt + "\n");
+                        _log.Debug($"Status returned: ({tweet.StatusID})[{tweet.User.Name}]  {tweet.Text}, {tweet.CreatedAt}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage("UpdateTwitter: " + ex.Message);
+                    _log.Error("UpdateTwitter: " + ex.Message);
                 }
                 //if (tweet != null)
                 //    Console.WriteLine("Status returned: " + "(" + tweet.StatusID + ")" + tweet.User.Name + ", " + tweet.Text + "\n");
             }
         }
-        */
 
+        private async Task GetToken()
+        {
+            _log.Debug("Obtaining Twitter tokens");
+            await _auth.AuthorizeAsync();
+
+            _oauthToken = _auth.CredentialStore.OAuthToken;
+            _oauthTokenSecret = _auth.CredentialStore.OAuthTokenSecret;
+
+            _log.Debug("Tokens obtained");
+        }
     }
 }

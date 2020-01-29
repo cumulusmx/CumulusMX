@@ -12,5 +12,7 @@ namespace AwekasDataReporter
         {
             SectionName = "Awekas";
         }
+
+        public bool IsFineOffset { get; set; }
     }
 }
