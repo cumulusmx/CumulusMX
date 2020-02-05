@@ -69,7 +69,9 @@ namespace CumulusMX.Extensions
                         }
 
                         // Register all types that implement IPassive - these are needed for dependency injection
-                        var passiveTypes = assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.FullName.Equals(passiveInterfaceType.FullName)));
+                        var passiveTypes = assembly
+                            .GetTypes()
+                            .Where(t => t.GetInterfaces().Any(i => i.FullName.Equals(passiveInterfaceType.FullName)));
 
                         foreach (var type in passiveTypes)
                         {

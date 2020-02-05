@@ -55,6 +55,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitsNet", "UnitsNet\UnitsN
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitsNet.Serialization.JsonNet", "UnitsNet\UnitsNet.Serialization.JsonNet\UnitsNet.Serialization.JsonNet.csproj", "{3429235A-4479-45E0-937B-BA9E0227A525}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitterDataReporterTest", "TwitterDataReporterTest\TwitterDataReporterTest.csproj", "{92DC8FB3-CB45-416F-A4C4-477F0CF86383}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CumulusMXTest.Common", "CumulusMXTest.Common\CumulusMXTest.Common.csproj", "{6BC4B6E1-7671-4F5C-A4D2-E32A1BAA0C23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +145,14 @@ Global
 		{3429235A-4479-45E0-937B-BA9E0227A525}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3429235A-4479-45E0-937B-BA9E0227A525}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3429235A-4479-45E0-937B-BA9E0227A525}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92DC8FB3-CB45-416F-A4C4-477F0CF86383}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92DC8FB3-CB45-416F-A4C4-477F0CF86383}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92DC8FB3-CB45-416F-A4C4-477F0CF86383}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92DC8FB3-CB45-416F-A4C4-477F0CF86383}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BC4B6E1-7671-4F5C-A4D2-E32A1BAA0C23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BC4B6E1-7671-4F5C-A4D2-E32A1BAA0C23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BC4B6E1-7671-4F5C-A4D2-E32A1BAA0C23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BC4B6E1-7671-4F5C-A4D2-E32A1BAA0C23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -165,6 +177,8 @@ Global
 		{9D175F1D-58FC-4934-9932-D1804A51AAD6} = {724DE698-6348-41E0-A19E-C355821D8697}
 		{E89B5D74-05FC-4C25-825E-7CA121EF9061} = {870C7AB0-3DB2-4C1E-8F80-A0ED6139E808}
 		{3429235A-4479-45E0-937B-BA9E0227A525} = {870C7AB0-3DB2-4C1E-8F80-A0ED6139E808}
+		{92DC8FB3-CB45-416F-A4C4-477F0CF86383} = {356C17CF-1B10-4E18-BC48-0BD0E09D3236}
+		{6BC4B6E1-7671-4F5C-A4D2-E32A1BAA0C23} = {755EE77D-97DC-4FCE-8CD4-1B0D64C380B8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2966F59C-7EB0-4D1F-A40E-7B1C35A231E8}

@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using CumulusMX.Data;
 using CumulusMX.Data.Statistics.Unit;
+using CumulusMXTest.Common;
 using UnitsNet;
 using UnitsNet.Units;
 using Xunit;
 
 namespace CumulusMXTest.Data
 {
-    public class MaxMinAverageUnitTest
+    public class MaxMinAverageUnitTest : TestBase
     {
-        static MaxMinAverageUnitTest()
-        {
-            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
-                log4net.LogManager.CreateRepository("cumulus");
-        }
 
         public MaxMinAverageUnitTest()
         {

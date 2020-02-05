@@ -11,6 +11,7 @@ using CumulusMX.Data;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
+using CumulusMXTest.Common;
 using UnitsNet;
 using Xunit;
 

@@ -7,6 +7,7 @@ using CumulusMX.Data;
 using CumulusMX.Common;
 using CumulusMX.Data.Statistics;
 using CumulusMX.Extensions.Station;
+using CumulusMXTest.Common;
 using UnitsNet;
 using Xunit;
 

@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CumulusMXTest.Common\CumulusMXTest.Common.csproj" />
     <ProjectReference Include="..\CumulusMX\CumulusMX.csproj" />
     <ProjectReference Include="..\UnitsNet\UnitsNet.Serialization.JsonNet\UnitsNet.Serialization.JsonNet.csproj" />
     <ProjectReference Include="..\UnitsNet\UnitsNet\UnitsNet.csproj" />

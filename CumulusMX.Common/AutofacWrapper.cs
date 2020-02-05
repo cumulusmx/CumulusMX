@@ -53,5 +53,10 @@ namespace CumulusMX.Common
         private AutofacWrapper()
         {
         }
+
+        public static AutofacWrapper GetLocalInstance()
+        {
+            return new AutofacWrapper();
+        }
     }
 }

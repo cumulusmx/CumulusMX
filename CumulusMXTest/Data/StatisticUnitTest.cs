@@ -4,28 +4,15 @@ using System.Linq;
 using System.Text;
 using CumulusMX.Data;
 using CumulusMX.Data.Statistics.Unit;
+using CumulusMXTest.Common;
 using UnitsNet;
 using UnitsNet.Units;
 using Xunit;
 
 namespace CumulusMXTest.Data
 {
-    public class StatisticUnitTest
+    public class StatisticUnitTest : TestBase
     {
-        public StatisticUnitTest()
-        {
-            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
-            {
-                try
-                {
-                    log4net.LogManager.CreateRepository("cumulus");
-                }
-                catch
-                {
-                }
-                
-            }
-        }
 
         [Fact]
         public void SimpleStatsTest()

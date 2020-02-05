@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Autofac;
 using CumulusMX.Common;
 using CumulusMX.Extensions;
 using CumulusMX.Extensions.DataReporter;
@@ -14,7 +15,7 @@ namespace TwitterDataReporter
     {
         public override string ServiceName => "Twitter Data Reporter Service";
 
-        public override string Identifier => "Twitter"; //TODO
+        public override string Identifier => "Twitter";
 
         public TwitterDataReporter(ILogger logger, TwitterReporterSettings settings, IWeatherDataStatistics data) : base(logger, settings, data)
         {
@@ -22,10 +23,11 @@ namespace TwitterDataReporter
         }
 
         private TwitterReporterSettings TwitterSettings => (TwitterReporterSettings)Settings;
+        public AutofacWrapper DependencyInjection { private get; set; } = AutofacWrapper.Instance;
 
-        private const string UNKNOWN_STRING = "Unknwon";
+        private const string UNKNOWN_STRING = "Unknown";
 
-        private XAuthAuthorizer _auth;
+        private IAuthorizer _auth;
         private string _oauthToken = UNKNOWN_STRING;
         private string _oauthTokenSecret;
         private Task _getTokenTask;
@@ -34,21 +36,21 @@ namespace TwitterDataReporter
 
         public override void Initialise()
         {
-            _auth = new XAuthAuthorizer
+            _auth = DependencyInjection.Scope.Resolve<IAuthorizer>();
+            var credentials = DependencyInjection.Scope.Resolve<ICredentialStore>();
+            credentials.ConsumerKey = TwitterSettings.ConsumerKey;
+            credentials.ConsumerSecret = TwitterSettings.ConsumerSecret;
+            if (credentials is XAuthCredentials xac)
             {
-                CredentialStore =
-                    new XAuthCredentials
-                    {
-                        ConsumerKey = TwitterSettings.ConsumerKey,
-                        ConsumerSecret = TwitterSettings.ConsumerSecret,
-                        UserName = TwitterSettings.Username,
-                        Password = TwitterSettings.Password
-                    }
-            };
+                xac.UserName = TwitterSettings.Username;
+                xac.Password = TwitterSettings.Password;
+            }
 
-            _getTokenTask = GetToken();
+            _auth.CredentialStore = credentials;
 
-            var filename = Path.Combine(_extensionPath, TwitterSettings.TemplateFilename);
+            _getTokenTask = Task.Run(new Action(GetToken));
+
+            var filename = Path.Combine(_extensionPath, TwitterSettings.TemplateFilename ?? string.Empty);
             if (File.Exists(filename))
             {
                 _template = File.ReadAllText(filename);
@@ -76,13 +78,14 @@ namespace TwitterDataReporter
 
             if (_oauthToken == UNKNOWN_STRING)
             {
-                if (_getTokenTask.IsCompleted)
-                    _getTokenTask = GetToken();
-
-                _getTokenTask.Wait();
+                if (_getTokenTask == null || _getTokenTask.IsCompleted)
+                {
+                    _getTokenTask = Task.Run(new Action(GetToken)); 
+                }
+                _getTokenTask?.Wait();
             }
 
-            using (var twitterCtx = new TwitterContext(_auth))
+            using (ITwitterContext twitterCtx = DependencyInjection.Scope.Resolve<ITwitterContext>())
             {
                 var renderer = new TemplateRenderer
                     (
@@ -129,7 +132,7 @@ namespace TwitterDataReporter
             }
         }
 
-        private async Task GetToken()
+        private async void GetToken()
         {
             _log.Debug("Obtaining Twitter tokens");
             await _auth.AuthorizeAsync();

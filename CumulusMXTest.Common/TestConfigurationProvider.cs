@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Antlr4.StringTemplate.Debug;
 using CumulusMX.Extensions;
 
-namespace CumulusMXTest
+namespace CumulusMXTest.Common
 {
     public class TestConfigurationProvider : IConfigurationProvider, IEnumerable
     {

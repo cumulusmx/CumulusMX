@@ -8,6 +8,5 @@ namespace CumulusMX.Extensions
     {
         string Identifier { get; }
         void Initialise();
-        
     }
 }

@@ -24,7 +24,7 @@ namespace CumulusMX.Extensions.DataReporter
 
             _extensionPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
-
+        
         public abstract string Identifier { get; }
         public abstract void Initialise();
 

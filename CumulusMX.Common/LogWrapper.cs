@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CumulusMX.Extensions;
 using log4net;
 using log4net.Appender;
 
-namespace CumulusMX
+namespace CumulusMX.Common
 {
     public class LogWrapper : ILogger
     {

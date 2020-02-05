@@ -21,7 +21,7 @@ namespace CumulusMX.Extensions.DataReporter
 
         public override string GetValue(string key, string defaultValue)
         {
-            return _baseConfiguration.GetValue(SectionName, key).ToString();
+            return _baseConfiguration.GetValue(SectionName, key)?.ToString();
         }
     }
 }

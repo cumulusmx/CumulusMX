@@ -1,19 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="StringTemplate4" Version="4.0.8" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CumulusMX.Common\CumulusMX.Common.csproj" />
     <ProjectReference Include="..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
-    <ProjectReference Include="..\UnitsNet\UnitsNet\UnitsNet.csproj" />
   </ItemGroup>
 
 </Project>

@@ -19,9 +19,10 @@ namespace CumulusMX.Extensions.Station
             _weatherStatistics = weatherStatistics;
         }
 
-
         public abstract string Identifier { get; }
         public abstract void Initialise();
+
+
         public abstract string Manufacturer { get; }
         public abstract string Model { get; }
         public abstract string Description { get; }

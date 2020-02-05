@@ -6,6 +6,7 @@ using System.Text;
 using CumulusMX.Data;
 using CumulusMX.Data.Statistics.Unit;
 using CumulusMX.Extensions.Station;
+using CumulusMXTest.Common;
 using Newtonsoft.Json;
 using UnitsNet;
 using UnitsNet.Serialization.JsonNet;
@@ -14,22 +15,8 @@ using Xunit;
 
 namespace CumulusMXTest.Data
 {
-    public class WeatherDataStatisticsTest
+    public class WeatherDataStatisticsTest : TestBase
     {
-        public WeatherDataStatisticsTest()
-        {
-            if (!log4net.LogManager.GetAllRepositories().Any(x => x.Name == "cumulus"))
-            {
-                try
-                {
-                    log4net.LogManager.CreateRepository("cumulus");
-                }
-                catch
-                {
-                }
-            }
-        }
-
         [Fact]
         public void SimpleCreationTest()
         {
