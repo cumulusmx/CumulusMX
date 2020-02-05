@@ -36,6 +36,7 @@ namespace TwitterDataReporter
 
         public override void Initialise()
         {
+            //TODO: Need to register the standard IAuthorizer and ICredentialStore implementation.  Not currently anywhere to do this.
             _auth = DependencyInjection.Scope.Resolve<IAuthorizer>();
             var credentials = DependencyInjection.Scope.Resolve<ICredentialStore>();
             credentials.ConsumerKey = TwitterSettings.ConsumerKey;
