@@ -1032,8 +1032,9 @@ namespace CumulusMX
 			if (arrOctets.Length != 4)
 				return false;
 
-			//Check each substring checking that parses to byte
-			return arrOctets.All(strOctet => byte.TryParse(strOctet, out _));
+            //Check each substring checking that parses to byte
+            byte result;
+			return arrOctets.All(strOctet => byte.TryParse(strOctet, out result));
 		}
 
 		private void SetTxBatteryStatus(int txId, uint status)
