@@ -462,7 +462,7 @@ namespace CumulusMX
 								highRainDayVal = valDbl;
 								highRainDayTime = loggedDate;
 							}
-							
+
 							// monthly rain
 							rainThisMonth += valDbl;
 
@@ -1817,10 +1817,11 @@ namespace CumulusMX
 								{
 									currentWetPeriod = 1;
 									isDryNow = false;
-									if (currentDryPeriod > dryPeriodVal[monthOffset])
+									var dryMonthOffset = thisDateWet.Month - 1;
+									if (currentDryPeriod > dryPeriodVal[dryMonthOffset])
 									{
-										dryPeriodVal[monthOffset] = currentDryPeriod;
-										dryPeriodTime[monthOffset] = thisDateDry;
+										dryPeriodVal[dryMonthOffset] = currentDryPeriod;
+										dryPeriodTime[dryMonthOffset] = thisDateDry;
 									}
 									currentDryPeriod = 0;
 								}
@@ -1841,10 +1842,11 @@ namespace CumulusMX
 								{
 									currentDryPeriod = 1;
 									isDryNow = true;
-									if (currentWetPeriod > wetPeriodVal[monthOffset])
+									var wetMonthOffset = thisDateWet.Month - 1;
+									if (currentWetPeriod > wetPeriodVal[wetMonthOffset])
 									{
-										wetPeriodVal[monthOffset] = currentWetPeriod;
-										wetPeriodTime[monthOffset] = thisDateWet;
+										wetPeriodVal[wetMonthOffset] = currentWetPeriod;
+										wetPeriodTime[wetMonthOffset] = thisDateWet;
 									}
 									currentWetPeriod = 0;
 								}

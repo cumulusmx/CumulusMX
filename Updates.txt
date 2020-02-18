@@ -1,3 +1,27 @@
+3.4.0 - b3064
+=============
+- Adds the option for WLL user who have a WL.com Pro subscription to use WL.com as a "logger" to catch up
+  missing data on Cumulus MX start-up.
+- Adds to option to truncate the <#MoonAge> tag value to an integer value instead of rounding it.
+  Use <#MoonAge tc=y> - ideal if you use the tag for image selection
+- Updates FTP Now so that it does a full file process and FTP cycle, previously it just ran the FTP process
+- Adds a Cumulus MX version check at startup - if online - and logs a message in the console and diags when a newer
+  build is available
+- Fixes the Monthly Records editor for dry/wet periods that end on the last day of a month being incorrectly recorded
+  against the following month.
+- Fixes the Beaufort calcuations - there were some rounding errors in edge cases.
+- Fixes Davis VP2 and WLL that were not using peak speeds from LOOP2 (VP2) and live/historic data (WLL) when the Cumulus logging
+  interval is set to 10 minutes or more.
+- Fix for FTPS on realtime FTP updates
+- Adds new ini file only option to disable Explicit FTPS - ie use Implicit mode
+	DisableFtpsExplicit=1
+
+- Updated files
+	\CumulusMX.exe
+	\interface\json\StationOptions.json
+	\interface\json\StationSchema.json
+
+
 3.3.0 - b3063
 =============
 - Adds support for SFTP (SSH FTP)

@@ -708,7 +708,7 @@ namespace CumulusMX
 								break;
 							case 0x62: //Lightning strikes today
 								tempUint32 = ConvertBigEndianUInt32(data, idx);
-								cumulus.LogDebugMessage($"Lightning power={tempUint32}");
+								//cumulus.LogDebugMessage($"Lightning count={tempUint32}");
 								LightningStrikesToday = (int)tempUint32;
 								idx += 4;
 								break;

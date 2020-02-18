@@ -1287,13 +1287,14 @@ namespace CumulusMX
 		}
 		*/
 
+
 		public static double CalcMoonAge(DateTime dDate, int iZone)
 		{
 			double fJD, fIP, fAge;
 
 			fJD = GetJulianDay(dDate, iZone);
 			fIP = Normalize((fJD - 2451550.1) / 29.530588853);
-			fAge = fIP * 29.53; ;
+			fAge = fIP * 29.530588853;
 			return fAge;
 		}
 

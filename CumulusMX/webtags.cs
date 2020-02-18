@@ -2611,16 +2611,24 @@ namespace CumulusMX
 		{
 			var dpstr = TagParams.Get("dp");
 			var rcstr = TagParams.Get("rc");
+			var tcstr = TagParams.Get("tc");
 			int i, dp;
 			string res;
 
 			dp = Int32.TryParse(dpstr, out i) ? i : 0;
 
-			res = Math.Round(cumulus.MoonAge, dp).ToString();
-
-			if (rcstr == "y")
+			if (tcstr == "y")
 			{
-				res = ReplaceCommas(res);
+				res = Math.Truncate(cumulus.MoonAge).ToString();
+			}
+			else
+			{
+				res = Math.Round(cumulus.MoonAge, dp).ToString();
+
+				if (rcstr == "y")
+				{
+					res = ReplaceCommas(res);
+				}
 			}
 			return res;
 		}

@@ -1714,6 +1714,10 @@ namespace CumulusMX
 						CreateWxnowFile();
 					}
 				}
+				else
+				{
+					cumulus.LogMessage("Minimum data set of pressure, temperature, and wind is not available and NoSensorCheck is not enabled. Skip processing");
+				}
 			}
 		}
 
