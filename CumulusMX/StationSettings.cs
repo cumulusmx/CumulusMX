@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using Newtonsoft.Json;
 using System.Web.UI;
 using Unosquare.Labs.EmbedIO;
@@ -131,13 +131,20 @@ namespace CumulusMX
 
 			var graphs = new JsonStationSettingsGraphs() {graphdays = cumulus.GraphDays, graphhours = cumulus.GraphHours};
 
+			var wllApi = new JsonStationSettingsWLLApi()
+			{
+				apiKey = cumulus.WllApiKey,
+				apiSecret = cumulus.WllApiSecret,
+				apiStationId = cumulus.WllStationId
+			};
+
 			var wllPrimary = new JsonStationSettingsWllPrimary()
 			{
 				wind = cumulus.WllPrimaryWind,
 				temphum = cumulus.WllPrimaryTempHum,
 				rain = cumulus.WllPrimaryRain,
 				solar = cumulus.WllPrimarySolar,
-				uv = cumulus.WllPrimaryUV,
+				uv = cumulus.WllPrimaryUV
 			};
 
 			var wllExtraSoilTemp = new JsonStationSettingsWllSoilTemp()
@@ -150,7 +157,7 @@ namespace CumulusMX
 				soilTempTx3 = cumulus.WllExtraSoilTempTx3,
 				soilTempIdx3 = cumulus.WllExtraSoilTempIdx3,
 				soilTempTx4 = cumulus.WllExtraSoilTempTx4,
-				soilTempIdx4 = cumulus.WllExtraSoilTempIdx4,
+				soilTempIdx4 = cumulus.WllExtraSoilTempIdx4
 			};
 
 			var wllExtraSoilMoist = new JsonStationSettingsWllSoilMoist()
@@ -162,7 +169,7 @@ namespace CumulusMX
 				soilMoistTx3 = cumulus.WllExtraSoilMoistureTx3,
 				soilMoistIdx3 = cumulus.WllExtraSoilMoistureIdx3,
 				soilMoistTx4 = cumulus.WllExtraSoilMoistureTx4,
-				soilMoistIdx4 = cumulus.WllExtraSoilMoistureIdx4,
+				soilMoistIdx4 = cumulus.WllExtraSoilMoistureIdx4
 			};
 
 			var wllExtraLeaf = new JsonStationSettingsWllExtraLeaf()
@@ -192,6 +199,7 @@ namespace CumulusMX
 
 			var wll = new JsonStationSettingsWLL()
 			{
+				api = wllApi,
 				primary = wllPrimary,
 				soilLeaf = wllSoilLeaf,
 				extraTemp = wllExtraTemp
@@ -379,6 +387,10 @@ namespace CumulusMX
 				cumulus.Use10amInSummer = settings.logrollover.summer10am;
 
 				// WLL
+				cumulus.WllApiKey = settings.daviswll.api.apiKey;
+				cumulus.WllApiSecret = settings.daviswll.api.apiSecret;
+				cumulus.WllStationId = settings.daviswll.api.apiStationId == "-1" ? "" : settings.daviswll.api.apiStationId;
+
 				cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
 				cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
 				cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
@@ -477,8 +489,17 @@ namespace CumulusMX
 		{
 			if (!string.IsNullOrEmpty(cumulus.ftp_host))
 			{
-				cumulus.DoFTPLogin();
-				return "{\"result\":\"FTP process run\"}";
+				if (cumulus.WebUpdating)
+				{
+					return "{\"result\":\"A web update is already in progress\"}";
+				}
+				else
+				{
+					cumulus.WebUpdating = true;
+					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
+					cumulus.ftpThread.Start();
+					return "{\"result\":\"FTP process invoked\"}";
+				}
 			}
 			else
 			{
@@ -608,11 +629,18 @@ namespace CumulusMX
 
 	public class JsonStationSettingsWLL
 	{
+		public JsonStationSettingsWLLApi api { get; set; }
 		public JsonStationSettingsWllPrimary primary { get; set; }
 		public JsonStationSettingsWllSoilLeaf soilLeaf { get; set; }
 		public JsonStationSettingsWllExtraTemp extraTemp { get; set; }
 	}
 
+	public class JsonStationSettingsWLLApi
+	{
+		public string apiKey { get; set; }
+		public string apiSecret { get; set; }
+		public string apiStationId { get; set; }
+	}
 	public class JsonStationSettingsWllPrimary
 	{
 		public int wind { get; set; }

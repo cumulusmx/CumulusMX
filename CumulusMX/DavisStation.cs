@@ -150,10 +150,10 @@ namespace CumulusMX
 					// there's nothing in the database, so we haven't got a rain counter
 					// we can't load the history data, so we'll just have to go live
 
-					//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes == 10)
-					//{
-					//    CalcRecentMaxGust = false;
-					//}
+					if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
+					{
+					    CalcRecentMaxGust = false;
+					}
 					timerStartNeeded = true;
 					LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 					//StartLoop();
@@ -528,10 +528,10 @@ namespace CumulusMX
 			//    UpdateHighsAndLows(dataContext);
 			//}
 			cumulus.CurrentActivity = "Normal running";
-			//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes == 10)
-			//{
-			//    CalcRecentMaxGust = false;
-			//}
+			if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
+			{
+			    CalcRecentMaxGust = false;
+			}
 			// restore this setting
 			cumulus.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
 			StartLoop();
@@ -665,10 +665,10 @@ namespace CumulusMX
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
-			SerialPort port = sender as SerialPort;
+			//SerialPort port = sender as SerialPort;
 
 			// Obtain the number of bytes waiting in the port's buffer
-			int bytes = port.BytesToRead;
+			//int bytes = port.BytesToRead;
 		}
 
 		public override void Start()
@@ -1795,6 +1795,12 @@ namespace CumulusMX
 			// but there may be some old entries in the last page
 			int numtodo = (numPages*5) - offset;
 			int numdone = 0;
+
+			if (numtodo == 0)
+			{
+				cumulus.LogMessage("No historic data available");
+				Console.WriteLine(" - No historic data available");
+			}
 
 			for (int p = 0; p < numPages; p++)
 			{

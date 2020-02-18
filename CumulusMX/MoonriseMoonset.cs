@@ -137,38 +137,39 @@ namespace CumulusMX
         }
 
         static double julian(int year, int month,int day,double hours)
-    {
-        return dayno(year, month, day, hours) + 2451543.5;
-    }
+        {
+            return dayno(year, month, day, hours) + 2451543.5;
+        }
 
-        static double local_sidereal(int year,int month,int day,double hours,double lon) {
-  // Compute local siderial time in degrees
-  // year, month, day and hours are the Greenwich date and time
-  // lon is the observers longitude
-  var d=dayno(year,month,day,hours);
-  var lst=(98.9818+0.985647352*d+hours*15+lon);
-  return rev(lst)/15;
-}
+        static double local_sidereal(int year,int month,int day,double hours,double lon)
+        {
+            // Compute local siderial time in degrees
+            // year, month, day and hours are the Greenwich date and time
+            // lon is the observers longitude
+            var d=dayno(year,month,day,hours);
+            var lst=(98.9818+0.985647352*d+hours*15+lon);
+            return rev(lst)/15;
+        }
 
-        private static double[] radtoaa(double ra,double dec,int year,int month,int day,double hours,double lat,double lon) {
-  // convert ra and dec to altitude and azimuth
-  // year, month, day and hours are the Greenwich date and time
-  // lat and lon are the observers latitude and longitude
-  var lst=local_sidereal(year,month,day,hours,lon);
-  var x=cosd(15.0*(lst-ra))*cosd(dec);
-  var y=sind(15.0*(lst-ra))*cosd(dec);
-  var z=sind(dec);
-  // rotate so z is the local zenith
-  var xhor=x*sind(lat)-z*cosd(lat);
-  var yhor=y;
-  var zhor=x*cosd(lat)+z*sind(lat);
-  var azimuth=rev(atan2d(yhor,xhor)+180.0); // so 0 degrees is north
-  var altitude=atan2d(zhor,Math.Sqrt(xhor*xhor+yhor*yhor));
-  return new double[]{altitude,azimuth};
-}
+        private static double[] radtoaa(double ra,double dec,int year,int month,int day,double hours,double lat,double lon)
+        {
+            // convert ra and dec to altitude and azimuth
+            // year, month, day and hours are the Greenwich date and time
+            // lat and lon are the observers latitude and longitude
+            var lst=local_sidereal(year,month,day,hours,lon);
+            var x=cosd(15.0*(lst-ra))*cosd(dec);
+            var y=sind(15.0*(lst-ra))*cosd(dec);
+            var z=sind(dec);
+            // rotate so z is the local zenith
+            var xhor=x*sind(lat)-z*cosd(lat);
+            var yhor=y;
+            var zhor=x*cosd(lat)+z*sind(lat);
+            var azimuth=rev(atan2d(yhor,xhor)+180.0); // so 0 degrees is north
+            var altitude=atan2d(zhor,Math.Sqrt(xhor*xhor+yhor*yhor));
+            return new double[]{altitude,azimuth};
+        }
 
-// MoonPos calculates the Moon position, based on Meeus chapter 45
-
+        // MoonPos calculates the Moon position, based on Meeus chapter 45
         public static double[] MoonPos(int year, int month, int day, double hours)
         {
             // julian date

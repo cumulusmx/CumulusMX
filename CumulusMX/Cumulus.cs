@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.3.0";
-		public string Build = "3063";
+		public string Version = "3.4.0";
+		public string Build = "3064";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -1046,6 +1046,8 @@ namespace CumulusMX
 
 			LogMessage("OS version: " + Environment.OSVersion.ToString());
 
+			GetLatestVersion();
+
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
@@ -1207,9 +1209,18 @@ namespace CumulusMX
 				{
 					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
 				}
-				else if (DisableEPSV)
+				else if (DisableFtpsEPSV)
 				{
 					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+				}
+
+				if (Sslftp == FtpProtocols.FTPS)
+				{
+					RealtimeFTP.EncryptionMode = DisableFtpsExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+					RealtimeFTP.DataConnectionEncryption = true;
+					RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
+					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+					RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				}
 			}
 
@@ -1420,7 +1431,8 @@ namespace CumulusMX
 			httpServer.RunAsync();
 
 			Console.WriteLine("Cumulus running at: " + httpServer.Listener.Prefixes.First());
-			Console.WriteLine("(Replace * with any IP address on this machine, or localhost)");
+			Console.WriteLine("  (Replace * with any IP address on this machine, or localhost)");
+			Console.WriteLine("  Open the admin interface by entering this URL in a browser.");
 			RealtimeTimer.Interval = RealtimeInterval;
 			RealtimeTimer.Elapsed += RealtimeTimerTick;
 			RealtimeTimer.AutoReset = true;
@@ -3160,6 +3172,10 @@ namespace CumulusMX
 			ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 
 			// WeatherLink Live device settings
+			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", "");
+			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
+			WllStationId = ini.GetValue("WLL", "WLStationId", "");
+			if (WllStationId == "-1") WllStationId = "";
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 300);  // Readonly setting, default 5 minutes
 			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);        // Readonly setting, default 22222
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
@@ -3208,7 +3224,8 @@ namespace CumulusMX
 			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);
 			ActiveFTPMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			Sslftp = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
-			DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
+			DisableFtpsEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
+			DisableFtpsExplicit = ini.GetValue("FTP site", "DisableFtpsExplicit", false);
 			FTPlogging = ini.GetValue("FTP site", "FTPlogging", false);
 			RealtimeEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
 			RealtimeFTPEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
@@ -3720,6 +3737,9 @@ namespace CumulusMX
 			ini.SetValue("Station", "RG11DTRmode2", RG11DTRmode2);
 
 			// WeatherLink Live device settings
+			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
+			ini.SetValue("WLL", "WLv2ApiSecret", WllApiSecret);
+			ini.SetValue("WLL", "WLStationId", WllStationId);
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimaryTempHumTxId", WllPrimaryTempHum);
 			ini.SetValue("WLL", "PrimaryWindTxId", WllPrimaryWind);
@@ -4521,7 +4541,9 @@ namespace CumulusMX
 
 		public FtpProtocols Sslftp { get; set; }
 
-		public bool DisableEPSV { get; set; }
+		public bool DisableFtpsEPSV { get; set; }
+
+		public bool DisableFtpsExplicit { get; set; }
 
 		public bool FTPlogging { get; set; }
 
@@ -4777,6 +4799,10 @@ namespace CumulusMX
 		}
 
 		// WeatherLink Live transmitter Ids and indexes
+		public string WllApiKey;
+		public string WllApiSecret;
+		public string WllStationId;
+
 		public int WllBroadcastDuration = 300;
 		public int WllBroadcastPort = 22222;
 		public int WllPrimaryWind = 1;
@@ -5659,61 +5685,7 @@ namespace CumulusMX
 
 		public string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
 		{
-			// Convert to m/s * 10
-			int ms10 = Convert.ToInt32(station.ConvertUserWindToMS(Bspeed) * 10);
-
-			if (ms10 < 3)
-			{
-				return "0";
-			}
-			else if (ms10 < 16)
-			{
-				return "1";
-			}
-			else if (ms10 < 34)
-			{
-				return "2";
-			}
-			else if (ms10 < 55)
-			{
-				return "3";
-			}
-			else if (ms10 < 80)
-			{
-				return "4";
-			}
-			else if (ms10 < 108)
-			{
-				return "5";
-			}
-			else if (ms10 < 139)
-			{
-				return "6";
-			}
-			else if (ms10 < 172)
-			{
-				return "7";
-			}
-			else if (ms10 < 208)
-			{
-				return "8";
-			}
-			else if (ms10 < 245)
-			{
-				return "9";
-			}
-			else if (ms10 < 285)
-			{
-				return "10";
-			}
-			else if (ms10 < 327)
-			{
-				return "11";
-			}
-			else
-			{
-				return "12";
-			}
+			return station.Beaufort(Bspeed).ToString();
 		}
 
 
@@ -5721,60 +5693,38 @@ namespace CumulusMX
 		{
 			// Takes speed in current units, returns Bft description
 
-			// Convert to m/s * 10
-			int ms10 = Convert.ToInt32(station.ConvertUserWindToMS(Bspeed) * 10);
-
-			if (ms10 < 3)
+			// Convert to Force
+			var force = station.Beaufort(Bspeed);
+			switch (force)
 			{
-				return Calm;
-			}
-			else if (ms10 < 16)
-			{
-				return Lightair;
-			}
-			else if (ms10 < 34)
-			{
-				return Lightbreeze;
-			}
-			else if (ms10 < 55)
-			{
-				return Gentlebreeze;
-			}
-			else if (ms10 < 80)
-			{
-				return Moderatebreeze;
-			}
-			else if (ms10 < 108)
-			{
-				return Freshbreeze;
-			}
-			else if (ms10 < 139)
-			{
-				return Strongbreeze;
-			}
-			else if (ms10 < 172)
-			{
-				return Neargale;
-			}
-			else if (ms10 < 208)
-			{
-				return Gale;
-			}
-			else if (ms10 < 245)
-			{
-				return Stronggale;
-			}
-			else if (ms10 < 285)
-			{
-				return Storm;
-			}
-			else if (ms10 < 327)
-			{
-				return Violentstorm;
-			}
-			else
-			{
-				return Hurricane;
+				case 0:
+					return Calm;
+				case 1:
+					return Lightair;
+				case 2:
+					return Lightbreeze;
+				case 3:
+					return Gentlebreeze;
+				case 4:
+					return Moderatebreeze;
+				case 5:
+					return Freshbreeze;
+				case 6:
+					return Strongbreeze;
+				case 7:
+					return Neargale;
+				case 8:
+					return Gale;
+				case 9:
+					return Stronggale;
+				case 10:
+					return Storm;
+				case 11:
+					return Violentstorm;
+				case 12:
+					return Hurricane;
+				default:
+					return "UNKNOWN";
 			}
 		}
 
@@ -6101,10 +6051,12 @@ namespace CumulusMX
 
 					if (Sslftp == FtpProtocols.FTPS)
 					{
-						conn.EncryptionMode = FtpEncryptionMode.Explicit;
+						// Explicit = Current protocol - connects using FTP and switches to TLS
+						// Implicit = Old depreciated protcol - connects using TLS
+						conn.EncryptionMode = DisableFtpsExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 						conn.DataConnectionEncryption = true;
 						conn.ValidateCertificate += Client_ValidateCertificate;
-						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 						conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 					}
 
@@ -6112,7 +6064,7 @@ namespace CumulusMX
 					{
 						conn.DataConnectionType = FtpDataConnectionType.PORT;
 					}
-					else if (DisableEPSV)
+					else if (DisableFtpsEPSV)
 					{
 						conn.DataConnectionType = FtpDataConnectionType.PASV;
 					}
@@ -7051,7 +7003,7 @@ namespace CumulusMX
 
 			if (Sslftp == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.EncryptionMode = FtpEncryptionMode.Explicit;
+				RealtimeFTP.EncryptionMode = DisableFtpsExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 				RealtimeFTP.DataConnectionEncryption = true;
 				RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
 				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
@@ -7059,10 +7011,19 @@ namespace CumulusMX
 
 			}
 
+			if (ActiveFTPMode)
+			{
+				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+			}
+			else if (DisableFtpsEPSV)
+			{
+				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+			}
+
 
 			if (ftp_host != "" && ftp_host != " ")
 			{
-				LogMessage($"Attempting realtime SFTP connect to host {ftp_host} on port {ftp_port}");
+				LogMessage($"Attempting realtime FTP connect to host {ftp_host} on port {ftp_port}");
 				try
 				{
 					RealtimeFTP.Connect();
@@ -7298,6 +7259,28 @@ namespace CumulusMX
 				{
 					UpdatingWOW = false;
 				}
+			}
+		}
+
+		private async void GetLatestVersion()
+		{
+			var http = new HttpClient();
+			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			try
+			{
+				var retVal = await http.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");
+				var latestUri = retVal.RequestMessage.RequestUri.AbsolutePath;
+				var latestBuild = new String(latestUri.Split('/').Last().Where(Char.IsDigit).ToArray());
+				if (int.Parse(Build) < int.Parse(latestBuild))
+				{
+					var msg = $"You are not running the latest version of CumulusMX, build {latestBuild} is available.";
+					Console.WriteLine(msg);
+					LogMessage(msg);
+				}
+			}
+			catch
+			{
+				// Do nothing, probably no internet connection?
 			}
 		}
 
