@@ -1083,8 +1083,8 @@ namespace CumulusMX
 			if (arrOctets.Length != 4)
 				return false;
 
-            //Check each substring checking that parses to byte
-            byte result;
+			//Check each substring checking that parses to byte
+			byte result;
 			return arrOctets.All(strOctet => byte.TryParse(strOctet, out result));
 		}
 
@@ -1162,7 +1162,7 @@ namespace CumulusMX
 			cumulus.CurrentActivity = "Normal running";
 			if (cumulus.PeakGustMinutes >= 10)
 			{
-			    CalcRecentMaxGust = false;
+				CalcRecentMaxGust = false;
 			}
 			// restore this setting
 			cumulus.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
