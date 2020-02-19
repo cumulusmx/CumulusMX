@@ -1,6 +1,6 @@
 3.4.0 - b3064
 =============
-- Adds the option for WLL user who have a WL.com Pro subscription to use WL.com as a "logger" to catch up
+- Adds the option for Davis WLL users who have a WL.com Pro subscription to use WL.com as a "logger" to catch up
   missing data on Cumulus MX start-up.
 - Adds to option to truncate the <#MoonAge> tag value to an integer value instead of rounding it.
   Use <#MoonAge tc=y> - ideal if you use the tag for image selection

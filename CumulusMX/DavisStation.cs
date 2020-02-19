@@ -150,10 +150,10 @@ namespace CumulusMX
 					// there's nothing in the database, so we haven't got a rain counter
 					// we can't load the history data, so we'll just have to go live
 
-					if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
-					{
-					    CalcRecentMaxGust = false;
-					}
+					//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
+					//{
+					//    CalcRecentMaxGust = false;
+					//}
 					timerStartNeeded = true;
 					LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 					//StartLoop();
@@ -528,10 +528,10 @@ namespace CumulusMX
 			//    UpdateHighsAndLows(dataContext);
 			//}
 			cumulus.CurrentActivity = "Normal running";
-			if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
-			{
-			    CalcRecentMaxGust = false;
-			}
+			//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
+			//{
+			//    CalcRecentMaxGust = false;
+			//}
 			// restore this setting
 			cumulus.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
 			StartLoop();
@@ -1048,10 +1048,7 @@ namespace CumulusMX
 					socket.GetStream().Read(loopString, 0, loopDataLength);
 				}
 
-				if (cumulus.DataLogging)
-				{
-					cumulus.LogMessage("Data " + (i + 1) + ": " + BitConverter.ToString(loopString));
-				}
+				cumulus.LogDataMessage("Data " + (i + 1) + ": " + BitConverter.ToString(loopString));
 
 				// Check it is a LOOP packet, starts with "LOO" and 5th byte == 0: LOOP1
 				if (!(loopString[0] == 'L' && loopString[1] == 'O' && loopString[2] == 'O' && Convert.ToByte(loopString[4]) == 0))
@@ -1555,7 +1552,8 @@ namespace CumulusMX
 					cumulus.LogDebugMessage("Ignoring LOOP2 wind speed: " + loopData.CurrentWindSpeed + " mph");
 				}
 
-				if (loopData.WindGust10Min < 200)
+				// Check if the station 10 minute gust value is greater than ours - only if our gust period is 10 minutes or more though
+				if (loopData.WindGust10Min < 200 && cumulus.PeakGustMinutes >= 10)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
 					var gust10min = ConvertWindMPHToUser(loopData.WindGust10Min)*cumulus.WindGustMult;
