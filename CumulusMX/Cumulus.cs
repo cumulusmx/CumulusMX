@@ -1943,7 +1943,8 @@ namespace CumulusMX
 			{
 				UpdatingWU = true;
 
-				string URL = station.GetWundergroundURL(out var pwstring, timestamp, false);
+                string pwstring;
+				string URL = station.GetWundergroundURL(out pwstring, timestamp, false);
 
 				string starredpwstring = "&PASSWORD=" + new string('*', WundPW.Length);
 
@@ -1979,7 +1980,8 @@ namespace CumulusMX
 			{
 				UpdatingWindy = true;
 
-				string URL = station.GetWindyURL(out var apistring, timestamp);
+                string apistring;
+                string URL = station.GetWindyURL(out apistring, timestamp);
 				string LogURL = URL.Replace(apistring, "<<API_KEY>>");
 
 				LogDebugMessage("Windy URL: " + LogURL);
@@ -2008,7 +2010,8 @@ namespace CumulusMX
 			{
 				UpdatingAwekas = true;
 
-				string URL = station.GetAwekasURL(out var pwstring, timestamp);
+                string pwstring;
+				string URL = station.GetAwekasURL(out pwstring, timestamp);
 
 				string starredpwstring = "<password>";
 
@@ -2039,7 +2042,8 @@ namespace CumulusMX
 			{
 				UpdatingWCloud = true;
 
-				string URL = station.GetWCloudURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetWCloudURL(out pwstring, timestamp);
 
 				string starredpwstring = "<key>";
 
@@ -7208,7 +7212,8 @@ namespace CumulusMX
 			{
 				UpdatingPWS = true;
 
-				string URL = station.GetPWSURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetPWSURL(out pwstring, timestamp);
 
 				string starredpwstring = "&PASSWORD=" + new string('*', PWSPW.Length);
 
@@ -7238,7 +7243,8 @@ namespace CumulusMX
 			{
 				UpdatingWOW = true;
 
-				string URL = station.GetWOWURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetWOWURL(out pwstring, timestamp);
 
 				string starredpwstring = "&siteAuthenticationKey=" + new string('*', WOWPW.Length);
 
@@ -7290,7 +7296,8 @@ namespace CumulusMX
 			{
 				UpdatingWB = true;
 
-				string URL = station.GetWeatherbugURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetWeatherbugURL(out pwstring, timestamp);
 
 				string starredpwstring = "&Key=" + new string('*', WeatherbugPW.Length);
 
@@ -7422,7 +7429,8 @@ namespace CumulusMX
 		{
 			if (WundEnabled && WundCatchUp)
 			{
-				string URL = station.GetWundergroundURL(out var pwstring, timestamp, true);
+                string pwstring;
+                string URL = station.GetWundergroundURL(out pwstring, timestamp, true);
 
 				WundList.Add(URL);
 
@@ -7440,7 +7448,8 @@ namespace CumulusMX
 		{
 			if (WindyEnabled && WindyCatchUp)
 			{
-				string URL = station.GetWindyURL(out var apistring, timestamp);
+                string apistring;
+                string URL = station.GetWindyURL(out apistring, timestamp);
 
 				WindyList.Add(URL);
 
@@ -7456,7 +7465,8 @@ namespace CumulusMX
 		{
 			if (PWSEnabled && PWSCatchUp)
 			{
-				string URL = station.GetPWSURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetPWSURL(out pwstring, timestamp);
 
 				PWSList.Add(URL);
 
@@ -7474,7 +7484,8 @@ namespace CumulusMX
 		{
 			if (WOWEnabled && WOWCatchUp)
 			{
-				string URL = station.GetWOWURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetWOWURL(out pwstring, timestamp);
 
 				WOWList.Add(URL);
 
@@ -7492,7 +7503,8 @@ namespace CumulusMX
 		{
 			if (WeatherbugEnabled && WeatherbugCatchUp)
 			{
-				string URL = station.GetWeatherbugURL(out var pwstring, timestamp);
+                string pwstring;
+                string URL = station.GetWeatherbugURL(out pwstring, timestamp);
 
 				WeatherbugList.Add(URL);
 
