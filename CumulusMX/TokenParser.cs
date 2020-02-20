@@ -8,9 +8,7 @@
 //     Author      :  StrayVision Software
 //     Date        :  7/20/2008
 // ********************************************************************************
-
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;

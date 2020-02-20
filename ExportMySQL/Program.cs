@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using CumulusMX;
 using Devart.Data.MySql;
 
@@ -233,7 +229,7 @@ namespace ExportMySQL
                 using (var sr = new StreamReader(filename))
                 {
                     Console.WriteLine("Dayfile opened");
-                    
+
                     do
                     {
                         // now process each record in the file
@@ -295,7 +291,7 @@ namespace ExportMySQL
                 Console.WriteLine();
                 Console.WriteLine(linenum+" entries processed");
 
-                mySqlConn.Close(); 
+                mySqlConn.Close();
             }
         }
 

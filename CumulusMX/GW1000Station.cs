@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
 
-
 namespace CumulusMX
 {
 	internal class GW1000Station : WeatherStation

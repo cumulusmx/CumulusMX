@@ -2,15 +2,10 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Ports;
-using System.Linq;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using LinqToTwitter;
 using System.Globalization;
-using Timer = System.Timers.Timer;
-using System.Timers;
 
 namespace CumulusMX
 {
