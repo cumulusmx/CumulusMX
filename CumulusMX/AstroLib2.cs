@@ -10,7 +10,7 @@ namespace CumulusMX
             // el      solar elevation deg from horizon
             // r       distance from earth to sun in AU
             // nfac    atmospheric turbidity parameter (2=clear, 4-5=smoggy)
- 
+
             double sinal = Math.Sin(degToRad(el)); // Sine of the solar elevation angle
 
             if (sinal < 0)
@@ -33,7 +33,7 @@ namespace CumulusMX
 
             }
         }
-   
+
         public static double RyanStolzSolar(double el, double erv, double atc, double z)
         {
             // el      solar elevation deg from horizon
@@ -60,178 +60,177 @@ namespace CumulusMX
             }
         }
 
-		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
-							  out double solarelevation, double transfactor, double turbidity)
-		{
-			double az;
+        public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
+                              out double solarelevation, double transfactor, double turbidity)
+        {
+            double az;
 
-			DateTime utctime = timestamp.ToUniversalTime();
+            DateTime utctime = timestamp.ToUniversalTime();
 
-			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out az);
-			var dEpoch = new DateTime(1990, 1, 1, 0, 0, 0);
+            CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out az);
+            var dEpoch = new DateTime(1990, 1, 1, 0, 0, 0);
 
-			double erv = calcSunRadVector(t);
+            double erv = calcSunRadVector(t);
 
-			//cumulus.LogMessage(utctime+" lat="+latitude+" lon="+longitude+" sun elev="+solarelevation);
-			if (Program.cumulus.SolarCalc == 0)
-			{
-				return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
-			}
-			else if (Program.cumulus.SolarCalc == 1)
-			{
-				return BrasSolar(solarelevation, erv, turbidity);
-			}
-			else
-			{
-				return 0;
-			}
-		}
+            //cumulus.LogMessage(utctime+" lat="+latitude+" lon="+longitude+" sun elev="+solarelevation);
+            if (Program.cumulus.SolarCalc == 0)
+            {
+                return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
+            }
+            else if (Program.cumulus.SolarCalc == 1)
+            {
+                return BrasSolar(solarelevation, erv, turbidity);
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
-		public static void CalculateSunPosition(
-			DateTime dateTime, double lat, double lon, out double solarelevation, out double solarazimuth)
-		{
-			double longitude, Latitude;
-			double zone, daySavings;
-			double hh, mm, SS, timenow;
-			double jd, t, r;
-			double aplha, theta, Etime, eqtime;
-			double SolarDec, solarTimeFix;
-			double trueSolarTime, hourangle, harad;
-			double csz, zenith, azDenom, azRad;
-			double azimuth, exoatmElevation;
-			double step1, ste2, step3;
-			double refractionCorrection;
+        public static void CalculateSunPosition(
+            DateTime dateTime, double lat, double lon, out double solarelevation, out double solarazimuth)
+        {
+            double longitude, Latitude;
+            double zone, daySavings;
+            double hh, mm, SS, timenow;
+            double jd, t, r;
+            double aplha, theta, Etime, eqtime;
+            double SolarDec, solarTimeFix;
+            double trueSolarTime, hourangle, harad;
+            double csz, zenith, azDenom, azRad;
+            double azimuth, exoatmElevation;
+            double step1, ste2, step3;
+            double refractionCorrection;
 
-			// change sign convention for longitude from negative to positive in western hemisphere
-			longitude = lon * -1.0;
-			Latitude = lat > 89.8 ? 89.8 : (lat < 89.8 ? -89.8 : lat);
+            // change sign convention for longitude from negative to positive in western hemisphere
+            longitude = lon * -1.0;
+            Latitude = lat > 89.8 ? 89.8 : (lat < 89.8 ? -89.8 : lat);
 
-			// change time zone to ppositive hours in western hemisphere
-			zone = timezone * -1.0;
-			daySavings = dlstime * 60.0;
-			hh = dateTime.Hour - (daySavings / 60.0);
-			mm = dateTime.Minute;
-			SS = dateTime.Second;
+            // change time zone to ppositive hours in western hemisphere
+            zone = timezone * -1.0;
+            daySavings = dlstime * 60.0;
+            hh = dateTime.Hour - (daySavings / 60.0);
+            mm = dateTime.Minute;
+            SS = dateTime.Second;
 
-			// timenow is GMT time for calculation in hours since 0Z
-			timenow = hh + mm / 60.0 + SS / 3600.0 + zone;
+            // timenow is GMT time for calculation in hours since 0Z
+            timenow = hh + mm / 60.0 + SS / 3600.0 + zone;
 
-			jd = calcJD(year, month, day);
-			t = calcTimeJulianCent(jd + timenow / 24.0);
-			r = calcSunRadVector(t);
+            jd = calcJD(year, month, day);
+            t = calcTimeJulianCent(jd + timenow / 24.0);
+            r = calcSunRadVector(t);
 
-			alpha = calcSunRtAscension(t);
-			theta = calcSunDeclination(t);
-			Etime = calcEquationOfTime(t);
+            alpha = calcSunRtAscension(t);
+            theta = calcSunDeclination(t);
+            Etime = calcEquationOfTime(t);
 
-			eqtime = Etime;
-			SolarDec = theta;  // in degrees
+            eqtime = Etime;
+            SolarDec = theta;  // in degrees
 
-			earthRadVec = r;
+            earthRadVec = r;
 
-			solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
-			trueSolarTime = hh * 60.0 + mm + SS / 60.0 + solarTimeFix; // in minutes
+            solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
+            trueSolarTime = hh * 60.0 + mm + SS / 60.0 + solarTimeFix; // in minutes
 
-			while (trueSolarTime > 1440.0)
-			{
-				trueSolarTime = trueSolarTime - 1440.0;
-			}
-
-			hourangle = trueSolarTime / 4.0 - 180.0;
-			if (hourangle < -180.0)
-			{
-				hourangle += 360.0;
-			}
-
-			harad = degToRad(hourangle);
-
-			csz = Math.Sin(degToRad(Latitude)) * Math.Sin(degToRad(SolarDec)) + Math.Cos(degToRad(Latitude)) * Math.Cos(degToRad(SolarDec)) * Math.Cos(harad);
-			if (csz > 1.0)
-			{
-				csz = 1.0;
-			}
-			else if (csz < -1.0)
-			{
-				csz = -1.0;
-			}
-
-			zenith = radToDeg(Math.Acos(csz));
-
-			azDenom = (Math.Cos(degToRad(Latitude)) * Math.Sin(degToRad(zenith)));
-			if (Math.Abs(azDenom) > 0.001)
-			{
-				azRad = ((Math.Sin(degToRad(Latitude)) * Math.Cos(degToRad(zenith))) - Math.Sin(degToRad(SolarDec))) / azDenom;
-				if (Math.Abs(azRad) > 1.0)
-				{
-					if (azRad < 0.0)
-					{
-						azRad = -1.0;
-					}
-					else
-					{
-						azRad = 1.0;
-					}
-				}
-
-				azimuth = 180.0 - radToDeg(Math.Acos(azRad));
-
-				if (hourangle > 0.0)
-				{
-					azimuth = -azimuth;
-				}
-			}
-			else
-			{
-				if (Latitude > 0.0)
-				{
-					azimuth = 180.0;
-				}
-				else
-				{
-					azimuth = 0.0;
-				}
-			}
-
-			if (azimuth < 0.0)
-			{
-				azimuth += 360.0;
+            while (trueSolarTime > 1440.0)
+            {
+                trueSolarTime = trueSolarTime - 1440.0;
             }
 
-			exoatmElevation = 90.0 - zenith;
-			if (exoatmElevation > 85.0)
-			{
-				refractionCorrection = 0.0;
-			}
-			else
-			{
-				te = Math.Tan(degToRad(exoatmElevation));
+            hourangle = trueSolarTime / 4.0 - 180.0;
+            if (hourangle < -180.0)
+            {
+                hourangle += 360.0;
+            }
 
-				if (exoatmElevation > 5.0)
-				{
-					refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
-				}
-				else if (exoatmElevation > -0.575)
-				{
-					step1 = (-12.79 + exoatmElevation * 0.711);
-					step2 = (103.4 + exoatmElevation * (step1));
-					step3 = (-518.2 + exoatmElevation * (step2));
-					refractionCorrection = 1735.0 + exoatmElevation * (step3);
-				}
-				else
-				{
-					refractionCorrection = -20.774 / te;
-				}
+            harad = degToRad(hourangle);
 
-				refractionCorrection /= 3600.0;
-			}
+            csz = Math.Sin(degToRad(Latitude)) * Math.Sin(degToRad(SolarDec)) + Math.Cos(degToRad(Latitude)) * Math.Cos(degToRad(SolarDec)) * Math.Cos(harad);
+            if (csz > 1.0)
+            {
+                csz = 1.0;
+            }
+            else if (csz < -1.0)
+            {
+                csz = -1.0;
+            }
 
-			solarzen = zenith - refractionCorrection;
-			solarazimuth = azimuth;
-			solarelevation = 90.0 - solarzen;
-		}
+            zenith = radToDeg(Math.Acos(csz));
 
+            azDenom = (Math.Cos(degToRad(Latitude)) * Math.Sin(degToRad(zenith)));
+            if (Math.Abs(azDenom) > 0.001)
+            {
+                azRad = ((Math.Sin(degToRad(Latitude)) * Math.Cos(degToRad(zenith))) - Math.Sin(degToRad(SolarDec))) / azDenom;
+                if (Math.Abs(azRad) > 1.0)
+                {
+                    if (azRad < 0.0)
+                    {
+                        azRad = -1.0;
+                    }
+                    else
+                    {
+                        azRad = 1.0;
+                    }
+                }
 
-		private static double degToRad(double angle)
+                azimuth = 180.0 - radToDeg(Math.Acos(azRad));
+
+                if (hourangle > 0.0)
+                {
+                    azimuth = -azimuth;
+                }
+            }
+            else
+            {
+                if (Latitude > 0.0)
+                {
+                    azimuth = 180.0;
+                }
+                else
+                {
+                    azimuth = 0.0;
+                }
+            }
+
+            if (azimuth < 0.0)
+            {
+                azimuth += 360.0;
+            }
+
+            exoatmElevation = 90.0 - zenith;
+            if (exoatmElevation > 85.0)
+            {
+                refractionCorrection = 0.0;
+            }
+            else
+            {
+                te = Math.Tan(degToRad(exoatmElevation));
+
+                if (exoatmElevation > 5.0)
+                {
+                    refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
+                }
+                else if (exoatmElevation > -0.575)
+                {
+                    step1 = (-12.79 + exoatmElevation * 0.711);
+                    step2 = (103.4 + exoatmElevation * (step1));
+                    step3 = (-518.2 + exoatmElevation * (step2));
+                    refractionCorrection = 1735.0 + exoatmElevation * (step3);
+                }
+                else
+                {
+                    refractionCorrection = -20.774 / te;
+                }
+
+                refractionCorrection /= 3600.0;
+            }
+
+            solarzen = zenith - refractionCorrection;
+            solarazimuth = azimuth;
+            solarelevation = 90.0 - solarzen;
+        }
+
+        private static double degToRad(double angle)
         {
             return Math.PI*angle/180.0;
         }
@@ -241,549 +240,547 @@ namespace CumulusMX
             return angle*(180.0/Math.PI);
         }
 
-		private static double calcJD(int year, int month, int day)
-		{
-			double A, B, jd;
+        private static double calcJD(int year, int month, int day)
+        {
+            double A, B, jd;
 
-			if (month <= 2)
-			{
-				year++;
-				month += 12;
-			}
-			A = Math.Floor(year / 100, 1);
-			B = 2 - A + Math.Floor(A / 4, 1);
-			return Math.Floor(365.25 * (year + 4716), 1) + Math.Floor(30.6001 * (month + 1), 1) + day + B - 1524.5;
-		}
+            if (month <= 2)
+            {
+                year++;
+                month += 12;
+            }
+            A = Math.Floor(year / 100, 1);
+            B = 2 - A + Math.Floor(A / 4, 1);
+            return Math.Floor(365.25 * (year + 4716), 1) + Math.Floor(30.6001 * (month + 1), 1) + day + B - 1524.5;
+        }
 
-		private static double calcTimeJulianCent(double jd)
-		{
-			return (jd - 2451545.0) / 36525.0;
-		}
+        private static double calcTimeJulianCent(double jd)
+        {
+            return (jd - 2451545.0) / 36525.0;
+        }
 
-		private static double calcJDFromJulianCent(double t)
-		{
-			return t * 36525.0 + 2451545.0;
-		}
+        private static double calcJDFromJulianCent(double t)
+        {
+            return t * 36525.0 + 2451545.0;
+        }
 
-		private static double calcGeomMeanLongSun(double t)
-		{
-			// Purpose: calculate the Geometric Mean Longitude of the Sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   the Geometric Mean Longitude of the Sun in degrees
+        private static double calcGeomMeanLongSun(double t)
+        {
+            // Purpose: calculate the Geometric Mean Longitude of the Sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   the Geometric Mean Longitude of the Sun in degrees
 
-			double l0 = 280.46646 + t * (36000.76983 + 0.0003032 * t);
-			return PutIn360Deg(l0);
-		}
+            double l0 = 280.46646 + t * (36000.76983 + 0.0003032 * t);
+            return PutIn360Deg(l0);
+        }
 
-		private static double calcGeomMeanAnomalySun(double t)
-		{
-			// Purpose: calculate the Geometric Mean Anomaly of the Sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   the Geometric Mean Anomaly of the Sun in degrees
+        private static double calcGeomMeanAnomalySun(double t)
+        {
+            // Purpose: calculate the Geometric Mean Anomaly of the Sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   the Geometric Mean Anomaly of the Sun in degrees
 
-			return 357.52911 + t * (35999.05029 - 0.0001537 * t);
-		}
+            return 357.52911 + t * (35999.05029 - 0.0001537 * t);
+        }
 
-		private static double calcEccentricityEarthOrbit(double t)
-		{
-			// Purpose: calculate the eccentricity of earth's orbit
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   the unitless eccentricity
+        private static double calcEccentricityEarthOrbit(double t)
+        {
+            // Purpose: calculate the eccentricity of earth's orbit
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   the unitless eccentricity
 
-			return 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
-		}
+            return 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
+        }
 
-		private static double calcSunEqOfCenter(double t)
-		{
-			// Purpose: calculate the equation of center for the sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   in degrees
+        private static double calcSunEqOfCenter(double t)
+        {
+            // Purpose: calculate the equation of center for the sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   in degrees
 
-			double m, mrad, sinm, sin2m, sin3m, c;
-			m = calcGeomMeanAnomalySun(t);
-			mrad = degToRad(m);
-			sinm = Math.Sin(mrad);
-			sin2m = Math.Sin(mrad + mrad);
-			sin3m = Math.Sin(mrad + mrad + mrad);
-			return sinm * (1.914602 - t * (0.004817 + 0.000014 * t)) + sin2m * (0.019993 - 0.000101 * t) + sin3m * 0.000289;
-		}
+            double m, mrad, sinm, sin2m, sin3m, c;
+            m = calcGeomMeanAnomalySun(t);
+            mrad = degToRad(m);
+            sinm = Math.Sin(mrad);
+            sin2m = Math.Sin(mrad + mrad);
+            sin3m = Math.Sin(mrad + mrad + mrad);
+            return sinm * (1.914602 - t * (0.004817 + 0.000014 * t)) + sin2m * (0.019993 - 0.000101 * t) + sin3m * 0.000289;
+        }
 
-		private static double calcSunTrueLong(double t)
-		{
-			// Purpose: calculate the true longitude of the sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   sun's true longitude in degrees
+        private static double calcSunTrueLong(double t)
+        {
+            // Purpose: calculate the true longitude of the sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   sun's true longitude in degrees
 
-			double l0, c;
-			l0 = calcGeomMeanLongSun(t);
-			c = calcSunEqOfCenter(t);
-			return l0 + c;
-		}
+            double l0, c;
+            l0 = calcGeomMeanLongSun(t);
+            c = calcSunEqOfCenter(t);
+            return l0 + c;
+        }
 
-		private static double calcSunTrueAnomaly(double t)
-		{
-			// Purpose: calculate the true anamoly of the sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   sun's true anamoly in degrees
+        private static double calcSunTrueAnomaly(double t)
+        {
+            // Purpose: calculate the true anamoly of the sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   sun's true anamoly in degrees
 
-			double m, c;
-			m = calcGeomMeanAnomalySun(t);
-			c = calcSunEqOfCenter(t);
-			return m + c;
-		}
+            double m, c;
+            m = calcGeomMeanAnomalySun(t);
+            c = calcSunEqOfCenter(t);
+            return m + c;
+        }
 
-		private static double calcSunRadVector(double t)
-		{
-			// Purpose: calculate the distance to the sun in AU
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   sun radius vector in AUs
+        private static double calcSunRadVector(double t)
+        {
+            // Purpose: calculate the distance to the sun in AU
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   sun radius vector in AUs
 
-			double v, e;
-			v = calcSunTrueAnomaly(t);
-			e = calcEccentricityEarthOrbit(t);
-			return (1.000001018 * (1.0 - e * e)) / (1.0 + e * Math.Cos(degToRad(v)));
-		}
+            double v, e;
+            v = calcSunTrueAnomaly(t);
+            e = calcEccentricityEarthOrbit(t);
+            return (1.000001018 * (1.0 - e * e)) / (1.0 + e * Math.Cos(degToRad(v)));
+        }
 
-		private static double calcSunApparentLong(double t)
-		{
-			// Purpose: calculate the apparent longitude of the sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   sun's apparent longitude in degrees
+        private static double calcSunApparentLong(double t)
+        {
+            // Purpose: calculate the apparent longitude of the sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   sun's apparent longitude in degrees
 
-			double O, omega;
-			O = calcSunTrueLong(t);
-			omega = 125.04 - 1934.136 * t;
-			return O - 0.00569 - 0.00478 * Math.Sin(degToRad(omega));
-		}
+            double O, omega;
+            O = calcSunTrueLong(t);
+            omega = 125.04 - 1934.136 * t;
+            return O - 0.00569 - 0.00478 * Math.Sin(degToRad(omega));
+        }
 
-		private static double calcMeanObliquityOfEcliptic(double t)
-		{
-			// Purpose: calculate the mean obliquity of the ecliptic
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   mean obliquity in degrees
+        private static double calcMeanObliquityOfEcliptic(double t)
+        {
+            // Purpose: calculate the mean obliquity of the ecliptic
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   mean obliquity in degrees
 
-			double seconds = 21.448 - t * (46.815 + t * (0.00059 - t * (0.001813)));
-			return 23.0 + (26.0 + (seconds / 60.0)) / 60.0;
-		}
+            double seconds = 21.448 - t * (46.815 + t * (0.00059 - t * (0.001813)));
+            return 23.0 + (26.0 + (seconds / 60.0)) / 60.0;
+        }
 
-		private static double calcObliquityCorrection(double t)
-		{
-			// Purpose: calculate the corrected obliquity of the ecliptic
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   corrected obliquity in degrees
+        private static double calcObliquityCorrection(double t)
+        {
+            // Purpose: calculate the corrected obliquity of the ecliptic
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   corrected obliquity in degrees
 
-			double e0, omega;
-			e0 = calcMeanObliquityOfEcliptic(t);
-			omega = 125.04 - 1934.136 * t;
-			return e0 + 0.00256 * Math.Cos(degToRad(omega));
-		}
+            double e0, omega;
+            e0 = calcMeanObliquityOfEcliptic(t);
+            omega = 125.04 - 1934.136 * t;
+            return e0 + 0.00256 * Math.Cos(degToRad(omega));
+        }
 
-		private static double calcSunRtAscension(double t)
-		{
-			// Purpose: calculate the right ascension of the sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   sun's right ascension in degrees
+        private static double calcSunRtAscension(double t)
+        {
+            // Purpose: calculate the right ascension of the sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   sun's right ascension in degrees
 
-			double e, lambda, tananum, tanadenom;
-			e = calcObliquityCorrection(t);
-			lambda = calcSunApparentLong(t);
-			tananum = (Math.Cos(degToRad(e)) * Math.Sin(degToRad(lambda)));
-			tanadenom = (Math.Cos(degToRad(lambda)));
-			return radToDeg(Math.Atan2(tanadenom, tananum));
-		}
+            double e, lambda, tananum, tanadenom;
+            e = calcObliquityCorrection(t);
+            lambda = calcSunApparentLong(t);
+            tananum = (Math.Cos(degToRad(e)) * Math.Sin(degToRad(lambda)));
+            tanadenom = (Math.Cos(degToRad(lambda)));
+            return radToDeg(Math.Atan2(tanadenom, tananum));
+        }
 
-		private static double calcSunDeclination(double t)
-		{
-			// Purpose: calculate the declination of the sun
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   sun's declination in degrees
+        private static double calcSunDeclination(double t)
+        {
+            // Purpose: calculate the declination of the sun
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   sun's declination in degrees
 
-			double e, lambda, sint;
-			e = calcObliquityCorrection(t);
-			lambda = calcSunApparentLong(t);
-			sint = Math.Sin(degToRad(e)) * Math.Sin(degToRad(lambda));
-			return radToDeg(Math.Asin(sint));
-		}
+            double e, lambda, sint;
+            e = calcObliquityCorrection(t);
+            lambda = calcSunApparentLong(t);
+            sint = Math.Sin(degToRad(e)) * Math.Sin(degToRad(lambda));
+            return radToDeg(Math.Asin(sint));
+        }
 
-		private static double calcEquationOfTime(double t)
-		{
-			// Purpose: calculate the difference between true solar time and mean solar time
-			// Arguments:
-			//   t : number of Julian centuries since J2000.0
-			// Return value:
-			//   equation of time in minutes of time
+        private static double calcEquationOfTime(double t)
+        {
+            // Purpose: calculate the difference between true solar time and mean solar time
+            // Arguments:
+            //   t : number of Julian centuries since J2000.0
+            // Return value:
+            //   equation of time in minutes of time
 
-			double epsilon, l0, e, m, y, sin2l0, sinm, cos2l0, sin4l0, sin2m, Etime;
-			epsilon = calcObliquityCorrection(t);
-			l0 = calcGeomMeanLongSun(t);
-			e = calcEccentricityEarthOrbit(t);
-			m = calcGeomMeanAnomalySun(t);
+            double epsilon, l0, e, m, y, sin2l0, sinm, cos2l0, sin4l0, sin2m, Etime;
+            epsilon = calcObliquityCorrection(t);
+            l0 = calcGeomMeanLongSun(t);
+            e = calcEccentricityEarthOrbit(t);
+            m = calcGeomMeanAnomalySun(t);
 
-			y = Math.Tan(degToRad(epsilon) / 2.0);
-			y = y * y;
+            y = Math.Tan(degToRad(epsilon) / 2.0);
+            y = y * y;
 
-			sin2l0 = Math.Sin(2.0 * degToRad(l0));
-			sinm = Math.Sin(degToRad(m));
-			cos2l0 = Math.Cos(2.0 * degToRad(l0));
-			sin4l0 = Math.Sin(4.0 * degToRad(l0));
-			sin2m = Math.Sin(2.0 * degToRad(m));
+            sin2l0 = Math.Sin(2.0 * degToRad(l0));
+            sinm = Math.Sin(degToRad(m));
+            cos2l0 = Math.Cos(2.0 * degToRad(l0));
+            sin4l0 = Math.Sin(4.0 * degToRad(l0));
+            sin2m = Math.Sin(2.0 * degToRad(m));
 
-			Etime = y * sin2l0 - 2.0 * e * sinm + 4.0 * e * y * sinm * cos2l0 - 0.5 * y * y * sin4l0 - 1.25 * e * e * sin2m;
-			return radToDeg(Etime) * 4.0;
-		}
+            Etime = y * sin2l0 - 2.0 * e * sinm + 4.0 * e * y * sinm * cos2l0 - 0.5 * y * y * sin4l0 - 1.25 * e * e * sin2m;
+            return radToDeg(Etime) * 4.0;
+        }
 
-		public static double solarazimuth(
-			double lat, double lon, int year, int month, int day, double hours, double minutes, double seconds, double timezone, double dlstime)
-		{
-			//  Purpose: calculate solar azimuth (deg from north) for the entered
-			//          date, time and location. Returns -999999 if darker than twilight
-			//
-			// Arguments:
-			//   latitude, longitude, year, month, day, hour, minute, second,
-			//   timezone, daylightsavingstime
-			// Return value:
-			//   solar azimuth in degrees from north
-			//
-			// Note: solarelevation and solarazimuth functions are identical
-			//       and could be converted to a VBA subroutine that would return
-			//       both values.
+        public static double solarazimuth(
+            double lat, double lon, int year, int month, int day, double hours, double minutes, double seconds, double timezone, double dlstime)
+        {
+            //  Purpose: calculate solar azimuth (deg from north) for the entered
+            //          date, time and location. Returns -999999 if darker than twilight
+            //
+            // Arguments:
+            //   latitude, longitude, year, month, day, hour, minute, second,
+            //   timezone, daylightsavingstime
+            // Return value:
+            //   solar azimuth in degrees from north
+            //
+            // Note: solarelevation and solarazimuth functions are identical
+            //       and could be converted to a VBA subroutine that would return
+            //       both values.
 
-			double longitude, latitude;
-			double zone, daySavings;
-			double hh, mm, SS, timenow;
-			double jd, t, r;
-			double aplha, theta, Etime, eqtime;
-			double SolarDec, earthRadVec, solarTimeFix;
-			double trueSolarTime, hourangle, harad;
-			double csv, zenith, azDenom, azRad;
-			double azimuth, exoatmElevation;
-			double step1, step2, step3;
-			double refractionCorrection, te, solarzen;
+            double longitude, latitude;
+            double zone, daySavings;
+            double hh, mm, SS, timenow;
+            double jd, t, r;
+            double aplha, theta, Etime, eqtime;
+            double SolarDec, earthRadVec, solarTimeFix;
+            double trueSolarTime, hourangle, harad;
+            double csv, zenith, azDenom, azRad;
+            double azimuth, exoatmElevation;
+            double step1, step2, step3;
+            double refractionCorrection, te, solarzen;
 
-			// change sign convention for longitude from negative to positive in western hemisphere
-			longitude = lon * -1.0;
-			Latitude = lat > 89.8 ? 89.8 : (lat < 89.8 ? -89.8 : lat);
+            // change sign convention for longitude from negative to positive in western hemisphere
+            longitude = lon * -1.0;
+            Latitude = lat > 89.8 ? 89.8 : (lat < 89.8 ? -89.8 : lat);
 
-			// change time zone to ppositive hours in western hemisphere
-			zone = timezone * -1.0;
+            // change time zone to ppositive hours in western hemisphere
+            zone = timezone * -1.0;
 
-			daySavings = dlstime * 60.0;
+            daySavings = dlstime * 60.0;
 
-			hh = hours - (daySavings / 60.0);
-			mm = minutes;
-			SS = seconds;
+            hh = hours - (daySavings / 60.0);
+            mm = minutes;
+            SS = seconds;
 
-			// timenow is GMT time for calculation in hours since 0Z
-			timenow = hh + mm / 60.0 + SS / 3600.0 + zone;
+            // timenow is GMT time for calculation in hours since 0Z
+            timenow = hh + mm / 60.0 + SS / 3600.0 + zone;
 
-			jd = calcJD(year, month, day);
-			t = calcTimeJulianCent(jd + timenow / 24.0);
-			r = calcSunRadVector(t);
-			alpha = calcSunRtAscension(t);
-			theta = calcSunDeclination(t);
-			Etime = calcEquationOfTime(t);
+            jd = calcJD(year, month, day);
+            t = calcTimeJulianCent(jd + timenow / 24.0);
+            r = calcSunRadVector(t);
+            alpha = calcSunRtAscension(t);
+            theta = calcSunDeclination(t);
+            Etime = calcEquationOfTime(t);
 
-			eqtime = Etime;
-			SolarDec = theta; // in degrees
-			earthRadVec = r;
+            eqtime = Etime;
+            SolarDec = theta; // in degrees
+            earthRadVec = r;
 
-			solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
-			trueSolarTime = hh * 60.0 + mm + SS / 60.0 + solarTimeFix; // in minutes
+            solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
+            trueSolarTime = hh * 60.0 + mm + SS / 60.0 + solarTimeFix; // in minutes
 
-			while (trueSolarTime > 1440.0)
-			{
-				trueSolarTime -= 1440.0;
-			}
+            while (trueSolarTime > 1440.0)
+            {
+                trueSolarTime -= 1440.0;
+            }
 
-			hourangle = trueSolarTime / 4.0 - 180.0;
-			if (hourangle < -180)
-			{
-				hourangle += 360.0;
-			}
+            hourangle = trueSolarTime / 4.0 - 180.0;
+            if (hourangle < -180)
+            {
+                hourangle += 360.0;
+            }
 
-			harad = degToRad(hourangle);
+            harad = degToRad(hourangle);
 
-			csz = Math.Sin(degToRad(Latitude)) * Math.Sin(degToRad(SolarDec)) + Math.Cos(degToRad(Latitude)) * Math.Cos(degToRad(SolarDec)) * Math.Cos(harad);
-			if (csz > 1.0)
-			{
-				csz = 1.0;
-			}
-			else if (csz < -1.0)
-			{
-				csz = -1.0;
-			}
+            csz = Math.Sin(degToRad(Latitude)) * Math.Sin(degToRad(SolarDec)) + Math.Cos(degToRad(Latitude)) * Math.Cos(degToRad(SolarDec)) * Math.Cos(harad);
+            if (csz > 1.0)
+            {
+                csz = 1.0;
+            }
+            else if (csz < -1.0)
+            {
+                csz = -1.0;
+            }
 
-			zenith = radToDeg(Math.Acos(csz));
+            zenith = radToDeg(Math.Acos(csz));
 
-			azDenom = (Math.Cos(degToRad(Latitude)) * Math.Sin(degToRad(zenith)));
-			if (Math.Abs(azDenom) > 0.001)
-			{
-				azRad = ((Math.Sin(degToRad(Latitude)) * Math.Cos(degToRad(zenith))) - Math.Sin(degToRad(SolarDec))) / azDenom;
-				if (Math.Abs(azRad) > 1.0)
-				{
-					if (azRad < 0)
-					{
-						azRad = -1.0;
-					}
-					else
-					{
-						azRad = 1.0;
-					}
-				}
+            azDenom = (Math.Cos(degToRad(Latitude)) * Math.Sin(degToRad(zenith)));
+            if (Math.Abs(azDenom) > 0.001)
+            {
+                azRad = ((Math.Sin(degToRad(Latitude)) * Math.Cos(degToRad(zenith))) - Math.Sin(degToRad(SolarDec))) / azDenom;
+                if (Math.Abs(azRad) > 1.0)
+                {
+                    if (azRad < 0)
+                    {
+                        azRad = -1.0;
+                    }
+                    else
+                    {
+                        azRad = 1.0;
+                    }
+                }
 
-				azimuth = 180.0 - radToDeg(Math.Acos(azRad));
+                azimuth = 180.0 - radToDeg(Math.Acos(azRad));
 
-				if (hourangle > 0.0)
-				{
-					azimuth = -azimuth;
-				}
-			}
-			else
-			{
-				if (Latitude > 0.0)
-				{
-					azimuth = 180.0;
-				}
-				else
-				{
-					azimuth = 0.0;
-				}
-
-			}
-
-			if (azimuth < 0.0)
-			{
-				azimuth += 360.0;
-			}
-
-			exoatmElevation = 90.0 - zenith;
-			if (exoatmElevation > 85.0)
-			{
-				refractionCorrection = 0.0;
-			}
+                if (hourangle > 0.0)
+                {
+                    azimuth = -azimuth;
+                }
+            }
             else
-			{
-				te = Math.Tan(degToRad(exoatmElevation));
-				if (exoatmElevation > 5.0)
-				{
-					refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
-				}
-				else if (exoatmElevation > -0.575)
-				{
-					step1 = (-12.79 + exoatmElevation * 0.711);
-					step2 = (103.4 + exoatmElevation * (step1));
-					step3 = (-518.2 + exoatmElevation * (step2));
-					refractionCorrection = 1735.0 + exoatmElevation * (step3);
-				}
-				else
-				{
-					refractionCorrection = -20.774 / te;
-				}
-				refractionCorrection /= 3600.0;
-			}
-			solarzen = zenith - refractionCorrection;
+            {
+                if (Latitude > 0.0)
+                {
+                    azimuth = 180.0;
+                }
+                else
+                {
+                    azimuth = 0.0;
+                }
 
-			//return 90.0 - solarzen;
-			return azimuth;
-		}
+            }
 
-		public static double solarelevation(
-			double lat, double lon, int year, int month, int day, double hours, double minutes, double seconds, double timezone, double dlstime)
-		{
-			//  Purpose: calculate solar elevation (deg from horizon) for the entered
-			//          date, time and location. Returns -999999 if darker than twilight
-			//
-			// Arguments:
-			//   latitude, longitude, year, month, day, hour, minute, second,
-			//   timezone, daylightsavingstime
-			// Return value:
-			//   solar elevation in degrees from horizon
-			//
-			// Note: solarelevation and solarazimuth functions are identical
-			//       and could be converted to a VBA subroutine that would return
-			//       both values.
+            if (azimuth < 0.0)
+            {
+                azimuth += 360.0;
+            }
 
-			double longitude, latitude;
-			double zone, daySavings;
-			double hh, mm, SS, timenow;
-			double jd, t, r;
-			double aplha, theta, Etime, eqtime;
-			double SolarDec, earthRadVec, solarTimeFix;
-			double trueSolarTime, hourangle, harad;
-			double csv, zenith, azDenom, azRad;
-			double azimuth, exoatmElevation;
-			double step1, step2, step3;
-			double refractionCorrection, te, solarzen;
+            exoatmElevation = 90.0 - zenith;
+            if (exoatmElevation > 85.0)
+            {
+                refractionCorrection = 0.0;
+            }
+            else
+            {
+                te = Math.Tan(degToRad(exoatmElevation));
+                if (exoatmElevation > 5.0)
+                {
+                    refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
+                }
+                else if (exoatmElevation > -0.575)
+                {
+                    step1 = (-12.79 + exoatmElevation * 0.711);
+                    step2 = (103.4 + exoatmElevation * (step1));
+                    step3 = (-518.2 + exoatmElevation * (step2));
+                    refractionCorrection = 1735.0 + exoatmElevation * (step3);
+                }
+                else
+                {
+                    refractionCorrection = -20.774 / te;
+                }
+                refractionCorrection /= 3600.0;
+            }
+            solarzen = zenith - refractionCorrection;
 
-			// change sign convention for longitude from negative to positive in western hemisphere
-			longitude = lon * -1.0;
-			Latitude = lat > 89.8 ? 89.8 : (lat < 89.8 ? -89.8 : lat);
+            //return 90.0 - solarzen;
+            return azimuth;
+        }
 
-			// change time zone to ppositive hours in western hemisphere
-			zone = timezone * -1.0;
+        public static double solarelevation(
+            double lat, double lon, int year, int month, int day, double hours, double minutes, double seconds, double timezone, double dlstime)
+        {
+            //  Purpose: calculate solar elevation (deg from horizon) for the entered
+            //          date, time and location. Returns -999999 if darker than twilight
+            //
+            // Arguments:
+            //   latitude, longitude, year, month, day, hour, minute, second,
+            //   timezone, daylightsavingstime
+            // Return value:
+            //   solar elevation in degrees from horizon
+            //
+            // Note: solarelevation and solarazimuth functions are identical
+            //       and could be converted to a VBA subroutine that would return
+            //       both values.
 
-			daySavings = dlstime * 60.0;
+            double longitude, latitude;
+            double zone, daySavings;
+            double hh, mm, SS, timenow;
+            double jd, t, r;
+            double aplha, theta, Etime, eqtime;
+            double SolarDec, earthRadVec, solarTimeFix;
+            double trueSolarTime, hourangle, harad;
+            double csv, zenith, azDenom, azRad;
+            double azimuth, exoatmElevation;
+            double step1, step2, step3;
+            double refractionCorrection, te, solarzen;
 
-			hh = hours - (daySavings / 60.0);
-			mm = minutes;
-			SS = seconds;
+            // change sign convention for longitude from negative to positive in western hemisphere
+            longitude = lon * -1.0;
+            Latitude = lat > 89.8 ? 89.8 : (lat < 89.8 ? -89.8 : lat);
 
-			// timenow is GMT time for calculation in hours since 0Z
-			timenow = hh + mm / 60.0 + SS / 3600.0 + zone;
+            // change time zone to ppositive hours in western hemisphere
+            zone = timezone * -1.0;
 
-			jd = calcJD(year, month, day);
-			t = calcTimeJulianCent(jd + timenow / 24.0);
-			r = calcSunRadVector(t);
-			alpha = calcSunRtAscension(t);
-			theta = calcSunDeclination(t);
-			Etime = calcEquationOfTime(t);
+            daySavings = dlstime * 60.0;
 
-			eqtime = Etime;
-			SolarDec = theta; // in degrees
-			earthRadVec = r;
+            hh = hours - (daySavings / 60.0);
+            mm = minutes;
+            SS = seconds;
 
-			solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
-			trueSolarTime = hh * 60.0 + mm + SS / 60.0 + solarTimeFix; // in minutes
+            // timenow is GMT time for calculation in hours since 0Z
+            timenow = hh + mm / 60.0 + SS / 3600.0 + zone;
 
-			while (trueSolarTime > 1440.0)
-			{
-				trueSolarTime -= 1440.0;
-			}
+            jd = calcJD(year, month, day);
+            t = calcTimeJulianCent(jd + timenow / 24.0);
+            r = calcSunRadVector(t);
+            alpha = calcSunRtAscension(t);
+            theta = calcSunDeclination(t);
+            Etime = calcEquationOfTime(t);
 
-			hourangle = trueSolarTime / 4.0 - 180.0;
-			if (hourangle < -180)
-			{
-				hourangle += 360.0;
-			}
+            eqtime = Etime;
+            SolarDec = theta; // in degrees
+            earthRadVec = r;
 
-			harad = degToRad(hourangle);
+            solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
+            trueSolarTime = hh * 60.0 + mm + SS / 60.0 + solarTimeFix; // in minutes
 
-			csz = Math.Sin(degToRad(Latitude)) * Math.Sin(degToRad(SolarDec)) + Math.Cos(degToRad(Latitude)) * Math.Cos(degToRad(SolarDec)) * Math.Cos(harad);
-			if (csz > 1.0)
-			{
-				csz = 1.0;
-			}
-			else if (csz < -1.0)
-			{
-				csz = -1.0;
-			}
+            while (trueSolarTime > 1440.0)
+            {
+                trueSolarTime -= 1440.0;
+            }
 
-			zenith = radToDeg(Math.Acos(csz));
+            hourangle = trueSolarTime / 4.0 - 180.0;
+            if (hourangle < -180)
+            {
+                hourangle += 360.0;
+            }
 
-			azDenom = (Math.Cos(degToRad(Latitude)) * Math.Sin(degToRad(zenith)));
-			if (Math.Abs(azDenom) > 0.001)
-			{
-				azRad = ((Math.Sin(degToRad(Latitude)) * Math.Cos(degToRad(zenith))) - Math.Sin(degToRad(SolarDec))) / azDenom;
-				if (Math.Abs(azRad) > 1.0)
-				{
-					if (azRad < 0)
-					{
-						azRad = -1.0;
-					}
-					else
-					{
-						azRad = 1.0;
-					}
-				}
+            harad = degToRad(hourangle);
 
-				azimuth = 180.0 - radToDeg(Math.Acos(azRad));
+            csz = Math.Sin(degToRad(Latitude)) * Math.Sin(degToRad(SolarDec)) + Math.Cos(degToRad(Latitude)) * Math.Cos(degToRad(SolarDec)) * Math.Cos(harad);
+            if (csz > 1.0)
+            {
+                csz = 1.0;
+            }
+            else if (csz < -1.0)
+            {
+                csz = -1.0;
+            }
 
-				if (hourangle > 0.0)
-				{
-					azimuth = -azimuth;
-				}
-			}
-			else
-			{
-				if (Latitude > 0.0)
-				{
-					azimuth = 180.0;
-				}
-				else
-				{
-					azimuth = 0.0;
-				}
+            zenith = radToDeg(Math.Acos(csz));
 
-			}
+            azDenom = (Math.Cos(degToRad(Latitude)) * Math.Sin(degToRad(zenith)));
+            if (Math.Abs(azDenom) > 0.001)
+            {
+                azRad = ((Math.Sin(degToRad(Latitude)) * Math.Cos(degToRad(zenith))) - Math.Sin(degToRad(SolarDec))) / azDenom;
+                if (Math.Abs(azRad) > 1.0)
+                {
+                    if (azRad < 0)
+                    {
+                        azRad = -1.0;
+                    }
+                    else
+                    {
+                        azRad = 1.0;
+                    }
+                }
 
-			if (azimuth < 0.0)
-			{
-				azimuth += 360.0;
-			}
+                azimuth = 180.0 - radToDeg(Math.Acos(azRad));
 
-			exoatmElevation = 90.0 - zenith;
-			if (exoatmElevation > 85.0)
-			{
-				refractionCorrection = 0.0;
-			}
-			else
-			{
-				te = Math.Tan(degToRad(exoatmElevation));
-				if (exoatmElevation > 5.0)
-				{
-					refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
-				}
-				else if (exoatmElevation > -0.575)
-				{
-					step1 = (-12.79 + exoatmElevation * 0.711);
-					step2 = (103.4 + exoatmElevation * (step1));
-					step3 = (-518.2 + exoatmElevation * (step2));
-					refractionCorrection = 1735.0 + exoatmElevation * (step3);
-				}
-				else
-				{
-					refractionCorrection = -20.774 / te;
-				}
-				refractionCorrection /= 3600.0;
-			}
-			solarzen = zenith - refractionCorrection;
+                if (hourangle > 0.0)
+                {
+                    azimuth = -azimuth;
+                }
+            }
+            else
+            {
+                if (Latitude > 0.0)
+                {
+                    azimuth = 180.0;
+                }
+                else
+                {
+                    azimuth = 0.0;
+                }
 
-			return 90.0 - solarzen;
-			//return  azimuth;
-		}
+            }
 
+            if (azimuth < 0.0)
+            {
+                azimuth += 360.0;
+            }
 
-		public static double PutIn360Deg(double pfDeg)
-		{
-			while (pfDeg >= 360)
-			{
-				pfDeg = pfDeg - 360;
-			}
-			while (pfDeg < 0)
-			{
-				pfDeg = pfDeg + 360;
-			}
-			return pfDeg;
-		}
+            exoatmElevation = 90.0 - zenith;
+            if (exoatmElevation > 85.0)
+            {
+                refractionCorrection = 0.0;
+            }
+            else
+            {
+                te = Math.Tan(degToRad(exoatmElevation));
+                if (exoatmElevation > 5.0)
+                {
+                    refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
+                }
+                else if (exoatmElevation > -0.575)
+                {
+                    step1 = (-12.79 + exoatmElevation * 0.711);
+                    step2 = (103.4 + exoatmElevation * (step1));
+                    step3 = (-518.2 + exoatmElevation * (step2));
+                    refractionCorrection = 1735.0 + exoatmElevation * (step3);
+                }
+                else
+                {
+                    refractionCorrection = -20.774 / te;
+                }
+                refractionCorrection /= 3600.0;
+            }
+            solarzen = zenith - refractionCorrection;
 
-		// ###############################################################
+            return 90.0 - solarzen;
+            //return  azimuth;
+        }
 
+        public static double PutIn360Deg(double pfDeg)
+        {
+            while (pfDeg >= 360)
+            {
+                pfDeg = pfDeg - 360;
+            }
+            while (pfDeg < 0)
+            {
+                pfDeg = pfDeg + 360;
+            }
+            return pfDeg;
+        }
 
-		public static int cSunrise = 1;
+        // ###############################################################
+
+        public static int cSunrise = 1;
         public static int cBeginCivilTwilight = -2;
         public static int cBeginNautTwilight = -3;
         public static int cBeginAstroTwilight = -4;
@@ -791,7 +788,6 @@ namespace CumulusMX
         public static int cEndCivilTwilight = 2;
         public static int cEndNautTwilight = 3;
         public static int cEndAstroTwilight = 4;
-
 
         private static double mjd(int year, int month, int day)
         {
@@ -812,7 +808,6 @@ namespace CumulusMX
             a = 365.0 * year - 679004.0;
             return a + b + (int)Math.Floor(30.6001 * (month + 1)) + day;
         }
-
 
         private static double frac(double x)
         {
@@ -856,7 +851,6 @@ namespace CumulusMX
             return (hour.ToString("00") + min.ToString("00"));
             //return "0000";
         }
-
 
         private static double lmst(double mjd, double glong)
         {
@@ -912,7 +906,6 @@ namespace CumulusMX
                 ra = ra + 24;
             }
         }
-
 
         private static void quad(double ym, double yz, double yp, ref int nz, ref double z1, ref double z2, ref double xe, ref double ye)
         {
@@ -1019,7 +1012,7 @@ namespace CumulusMX
             //
             //   This is the function that does most of the work
             //
-            //			double sglong;
+            //            double sglong;
             double sglat;
             double cglat;
             double ddate;
@@ -1028,12 +1021,12 @@ namespace CumulusMX
             int above;
             double utrise = 0;
             double utset = 0;
-            // 			int above;
+            //             int above;
             utrise = 0;
-            // 			double utset;
-            // 			int above;
-            // 			double utrise;
-            // 			double utset;
+            //             double utset;
+            //             int above;
+            //             double utrise;
+            //             double utset;
             double yp;
             int nz;
             int rise;
@@ -1049,9 +1042,9 @@ namespace CumulusMX
             string AlwaysDown;
             string OutString = "";
             string NoEvent;
-            // 			string AlwaysDown;
-            // 			string OutString;
-            // 			string NoEvent;
+            //             string AlwaysDown;
+            //             string OutString;
+            //             string NoEvent;
             double[] sinho = new double[6];
             rads = 0.0174532925;
             AlwaysUp = "****";
@@ -1522,7 +1515,6 @@ namespace CumulusMX
 
             fMD = fL2 - fSLambda;
             fMPhase = 0.5 * (1.0 - Trig.Cos(fMD));
-
 
         }
 

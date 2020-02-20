@@ -158,7 +158,6 @@ namespace ExportMySQL
 
                         //Console.WriteLine();
 
-
                     }
                     catch (Exception ex)
                     {
@@ -277,7 +276,6 @@ namespace ExportMySQL
                             int aff = cmd.ExecuteNonQuery();
 
                             //Console.WriteLine();
-
 
                         }
                         catch (Exception ex)

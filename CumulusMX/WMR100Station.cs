@@ -35,7 +35,6 @@ namespace CumulusMX
         private const int PacketBufferBound = 255;
         private readonly byte[] usbbuffer = new byte[9];
 
-
         public WMR100Station(Cumulus cumulus) : base(cumulus)
         {
             cumulus.Manufacturer = cumulus.OREGONUSB;
@@ -539,7 +538,6 @@ namespace CumulusMX
 
             int forecast = PacketBuffer[3]/16;
             string fcstr;
-
 
             switch (forecast)
             {

@@ -27,17 +27,17 @@ namespace CumulusMX
     //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
     //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
     //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
-    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5Â°F.
     //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
-    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5Â°F.
     //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization
     //                                                        with the radio or due to some other reason, the wind speed is forced to be 0.
     //    10 Min Avg Wind Speed           15      1       It is a byte unsigned value in mph.
     //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.
-    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.)
+    //                                                        (0Â° is North, 90Â° is East, 180Â° is South and 270Â° is West.)
     //    Extra Temperatures              18      7       This field supports seven extra temperature stations. Each byte is one extra temperature value
-    //                                                        in whole degrees F with an offset of 90 degrees.  For example, a value of 0 = -90°F ;
-    //                                                        a value of 100 = 10°F ; and a value of 169 = 79°F.
+    //                                                        in whole degrees F with an offset of 90 degrees.  For example, a value of 0 = -90Â°F ;
+    //                                                        a value of 100 = 10Â°F ; and a value of 169 = 79Â°F.
     //    Soil Temperatures               25      4       This field supports four soil temperature sensors, in the same format as the Extra Temperature
     //                                                        field above
     //    Leaf Temperatures               29      4       This field supports four leaf temperature sensors, in the same format as the Extra Temperature
@@ -183,7 +183,6 @@ namespace CumulusMX
         public byte TXbattStatus { get; private set; }
 
         public double ConBatVoltage { get; private set; }
-
 
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
         // Actual data is in the format to the right of the assignments - I convert it to make it easier to use
@@ -399,7 +398,7 @@ namespace CumulusMX
         //                                                              (Hour * 100) + minute.
         //  Outside Temperature         4       2       32767       Either the Average Outside Temperature, or the
         //                                                          Final Outside Temperature over the archive period.
-        //                                                          Units are (°F / 10)
+        //                                                          Units are (Â°F / 10)
         //  High Out Temperature        6       2       -32768      Highest Outside Temp over the archive period.
         //  Low Out Temperature         8       2       32767       Lowest Outside Temp over the archive period.
         //  Rainfall                    10      2       0           Number of rain clicks over the archive period
@@ -414,7 +413,7 @@ namespace CumulusMX
         //                                                          received from the ISS or wireless anemometer.
         //  Inside Temperature          20      2       32767       Either the Average Inside Temperature, or the Final
         //                                                          Inside Temperature over the archive period.
-        //                                                          Units are (°F / 10)
+        //                                                          Units are (Â°F / 10)
         //  Inside Humidity             22      1       255         Inside Humidity at the end of the archive period
         //  Outside Humidity            23      1       255         Outside Humidity at the end of the archive period
         //  Average Wind Speed          24      1       255         Average Wind Speed over the archive interval.
@@ -422,9 +421,9 @@ namespace CumulusMX
         //  High Wind Speed             25      1       0           Highest Wind Speed over the archive interval.
         //                                                          Units are (MPH)
         //  Direction of Hi Wind Speed  26      1       32767       Direction code of the High Wind speed.
-        //                                                          0=N, 1=NNE, 2=NE, … 14=NW, 15=NNW, 255=Dashed
+        //                                                          0=N, 1=NNE, 2=NE, â€¦ 14=NW, 15=NNW, 255=Dashed
         //  Prevailing Wind Direction   27      1       32767       Prevailing or Dominant Wind Direction code.
-        //                                                          0=N, 1=NNE, 2=NE, … 14=NW, 15=NNW, 255=Dashed
+        //                                                          0=N, 1=NNE, 2=NE, â€¦ 14=NW, 15=NNW, 255=Dashed
         //  Average UV Index            28      1       255         Average UV Index. Units are (UV Index / 10)
         //  ET                          29      1       0           ET accumulated over the last hour. Only records "on
         //                                                          the hour" will have a non-zero value.
@@ -434,12 +433,12 @@ namespace CumulusMX
         //  High UV Index               32      1       0           Highest UV Index value over the archive period.
         //                                                          Units are (Watts / m2)
         //  Forecast Rule               33      1       193         Weather forecast rule at the end of the archive period.
-        //  Leaf Temperature            34      2       255         2 Leaf Temperature values. Units are (°F + 90)
-        //  Leaf Wetnesses              36      2       255         2 Leaf Wetness values. Range is 0 – 15
-        //  Soil Temperatures           38      4       255         4 Soil Temperatures. Units are (°F + 90)
+        //  Leaf Temperature            34      2       255         2 Leaf Temperature values. Units are (Â°F + 90)
+        //  Leaf Wetnesses              36      2       255         2 Leaf Wetness values. Range is 0 â€“ 15
+        //  Soil Temperatures           38      4       255         4 Soil Temperatures. Units are (Â°F + 90)
         //  Download Record Type        42      1       N/A         0xFF = Rev A, 0x00 = Rev B archive record
         //  Extra Humidities            43      2       255         2 Extra Humidity values
-        //  Extra Temperatures          45      3       32767       3 Extra Temperature values. Units are (°F + 90)
+        //  Extra Temperatures          45      3       32767       3 Extra Temperature values. Units are (Â°F + 90)
         //  Soil Moistures              48      4       255         4 Soil Moisture values. Units are (cb)
 
         public int SoilMoisture1 { get; private set; }
@@ -617,7 +616,6 @@ namespace CumulusMX
             Rainfall = 0.0F;
         }
 
-
 //        internal void Process(DavisStation station) // Processes the archive data once it's been loaded
 //        {
             /*  station.IndoorTemperature = station.ConvertTempFToUser(InsideTemperature);
@@ -691,7 +689,6 @@ namespace CumulusMX
                 }
             }
 
-
             station.haveReadData = true;
 
             station.RainToday = station.Raincounter - station.raindaystart;
@@ -752,7 +749,6 @@ namespace CumulusMX
             //        Trace.Flush();
             //    }
 
-
             //}
         } */
  //       }
@@ -781,19 +777,19 @@ namespace CumulusMX
     //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
     //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
     //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
-    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5Â°F.
     //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
-    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5Â°F.
     //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization
     //                                                        with the radio or due to some other reason, the wind speed is forced to be 0.
     //    Unused                          15      1       Unused, contains 0xFF
     //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.
-    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.)
+    //                                                        (0Â° is North, 90Â° is East, 180Â° is South and 270Â° is West.)
     //    10-Min Avg Wind Speed           18      2       It is a two-byte unsigned value.
     //    2-Min Avg Wind Speed            20      2       It is a two-byte unsigned value.
     //    10-Min Wind Gust                22      2       It is a two-byte unsigned value.
     //    Wind Direction for the          24      2       It is a two-byte unsigned value from 1 to 360 degrees.
-    //    10-Min Wind Gust                                    (0° is no wind data, 90° is East, 180° is South, 270° is West and 360° is north)
+    //    10-Min Wind Gust                                    (0Â° is no wind data, 90Â° is East, 180Â° is South, 270Â° is West and 360Â° is north)
     //    Unused                          26      2       Unused field, filled with 0x7FFF
     //    Unused                          28      2       Unused field, filled with 0x7FFF
     //    Dew Point                       30      2       The value is a signed two byte value in whole degrees F. 255 = dashed data
@@ -871,7 +867,6 @@ namespace CumulusMX
         public int THSWindex { get; private set; }
 
         public int WindAverage { get; private set; }
-
 
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
         // Actual data is in the format to the right of the assignments - I convert it to make it easier to use

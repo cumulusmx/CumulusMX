@@ -100,7 +100,6 @@ namespace CumulusMX
             return a + b + (int)Math.Floor(30.6001 * (month + 1)) + day;
         }
 
-
         private static double frac(double x)
         {
             //
@@ -163,7 +162,6 @@ namespace CumulusMX
             //return "0000";
         }
 
-
         private static double lmst(double mjd, double glong)
         {
             //
@@ -218,7 +216,6 @@ namespace CumulusMX
                 ra += 24;
             }
         }
-
 
         private static void quad(double ym, double yz, double yp, ref int nz, ref double z1, ref double z2, ref double xe, ref double ye)
         {
@@ -295,7 +292,7 @@ namespace CumulusMX
             //
             //   This is the function that does most of the work
             //
-            //			double sglong;
+            //            double sglong;
             double sglat;
             double cglat;
             double ddate;
@@ -304,11 +301,11 @@ namespace CumulusMX
             int above;
             double utrise = 0;
             double utset = 0;
-            // 			int above;
-            // 			double utset;
-            // 			int above;
-            // 			double utrise;
-            // 			double utset;
+            //             int above;
+            //             double utset;
+            //             int above;
+            //             double utrise;
+            //             double utset;
             double yp;
             int nz;
             int rise;
@@ -324,9 +321,9 @@ namespace CumulusMX
             string AlwaysDown;
             string OutString = "";
             string NoEvent;
-            // 			string AlwaysDown;
-            // 			string OutString;
-            // 			string NoEvent;
+            //             string AlwaysDown;
+            //             string OutString;
+            //             string NoEvent;
             double[] sinho = new double[6];
             rads = 0.0174532925;
             AlwaysUp = "****";
