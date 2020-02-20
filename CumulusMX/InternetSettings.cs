@@ -6,8 +6,6 @@ using System.Web;
 using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
-
-
 namespace CumulusMX
 {
 	public class InternetSettings

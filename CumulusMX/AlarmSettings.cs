@@ -5,7 +5,6 @@ using System.Net;
 using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 
-
 namespace CumulusMX
 {
 	public class AlarmSettings
