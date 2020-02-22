@@ -169,7 +169,6 @@ namespace CumulusMX
 			return result;
 		}
 
-
 		private DateTime GetRecentTS(Dictionary<string,string> TagParams)
 		{
 			DateTime result;
@@ -492,7 +491,6 @@ namespace CumulusMX
 			{
 				return "m";
 			}
-
 		}
 
 		private string Tagcloudbasevalue(Dictionary<string,string> TagParams)
@@ -733,9 +731,7 @@ namespace CumulusMX
 			{
 				text = cumulus.Falling;
 			}
-
 			return text;
-
 		}
 
 		private string Tagtemptrendenglish(Dictionary<string,string> TagParams)
@@ -862,9 +858,7 @@ namespace CumulusMX
 
 		private string Tagbeaudesc(Dictionary<string, string> TagParams)
 		{
-
-				return cumulus.BeaufortDesc(station.WindAverage);
-
+			return cumulus.BeaufortDesc(station.WindAverage);
 		}
 
 		private string Tagwdirdata(Dictionary<string,string> TagParams)
@@ -2434,7 +2428,6 @@ namespace CumulusMX
 			}
 			catch (Exception)
 			{
-
 				return "-----";
 			}
 		}
@@ -2453,9 +2446,7 @@ namespace CumulusMX
 
 		private string Tagmoonphase(Dictionary<string,string> TagParams)
 		{
-
-				return cumulus.MoonPhaseString;
-
+			return cumulus.MoonPhaseString;
 		}
 
 		private string Tagaltitude(Dictionary<string,string> TagParams)
@@ -3051,8 +3042,6 @@ namespace CumulusMX
 		{
 			return station.SoilTemp16.ToString(cumulus.TempFormat);
 		}
-
-
 
 		private string TagSoilMoisture1(Dictionary<string,string> TagParams)
 		{
@@ -3733,7 +3722,6 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.HighHourlyRainThisMonthTS, "dd MMMM", TagParams);
 		}
 
-
 		private string TagMonthHighDailyTempRangeD(Dictionary<string,string> TagParams)
 		{
 			if (station.HighDailyTempRangeThisMonth < 999)
@@ -3913,7 +3901,6 @@ namespace CumulusMX
 		{
 			return station.HighMonthlyRainThisYear.ToString(cumulus.RainFormat);
 		}
-
 
 		// Yearly highs and lows - times
 		private string TagYearTempHT(Dictionary<string,string> TagParams)
@@ -4117,7 +4104,6 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.HighHourlyRainThisYearTS, "dd MMMM", TagParams);
 		}
 
-
 		private string TagYearHighDailyTempRangeD(Dictionary<string,string> TagParams)
 		{
 			if (station.HighDailyTempRangeThisYear > -999)
@@ -4298,7 +4284,6 @@ namespace CumulusMX
 		{
 			return station.GW1000FirmwareVersion;
 		}
-
 
 		private string Tagdailygraphperiod(Dictionary<string, string> tagparams)
 		{

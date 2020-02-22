@@ -438,7 +438,6 @@ namespace CumulusMX
 		public static int cEndNautTwilight = 3;
 		public static int cEndAstroTwilight = 4;
 
-
 		/*
 		private static double mjd(int year, int month, int day)
 		{
@@ -1285,7 +1284,6 @@ namespace CumulusMX
 			return Trig.TanQuadrant(fX, fY, fT);
 		}
 		*/
-
 
 		public static double CalcMoonAge(DateTime dDate, int iZone)
 		{

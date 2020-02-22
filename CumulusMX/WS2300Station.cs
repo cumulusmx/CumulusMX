@@ -95,7 +95,6 @@ namespace CumulusMX
 			cumulus.StartTimers();
 		}
 
-
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
 			getAndProcessHistoryData();
@@ -151,7 +150,6 @@ namespace CumulusMX
 				{
 					int address, inhum, outhum;
 					double intemp, outtemp, press, raincount, windspeed, bearing, dewpoint, windchill;
-
 
 					if (
 						ws2300ReadHistoryRecord(rec, out address, out intemp, out outtemp, out press, out inhum, out outhum, out raincount, out windspeed, out bearing, out dewpoint,
@@ -438,7 +436,6 @@ namespace CumulusMX
 			public int year;
 		};
 
-
 		/// <summary>
 		/// Read history info - interval, countdown etc
 		/// </summary>
@@ -596,10 +593,8 @@ namespace CumulusMX
 			windspeed = ConvertWindMSToUser(windspeed);
 			winddir = (data[9] & 0xF) * 22.5;
 
-
 			return (++record) % 0xAF;
 		}
-
 
 		private void GetAndProcessData()
 		{
@@ -845,7 +840,6 @@ namespace CumulusMX
 			return val;
 		}
 
-
 		/// <summary>
 		/// Read wind chill
 		/// </summary>
@@ -942,7 +936,6 @@ namespace CumulusMX
 			cumulus.LogDataMessage("Reading pressure offset");
 			if (ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 				return ERROR;
-
 
 			var val = (data[2] & 0xF) * 1000 + (data[1] >> 4) * 100 + (data[1] & 0xF) * 10 + (data[0] >> 4) + (data[0] & 0xF) / 10.0 - 1000;
 			cumulus.LogDataMessage("Pressure offset = " + val);

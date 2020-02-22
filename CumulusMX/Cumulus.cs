@@ -92,7 +92,6 @@ namespace CumulusMX
 			SFTP = 2
 		}
 
-
 		public struct Dataunits
 		{
 			public pressunits pressunit;
@@ -129,7 +128,6 @@ namespace CumulusMX
 			public double TempTrend;
 			public double PressTrend;
 		}
-
 
 		public struct HighLowData
 		{
@@ -201,7 +199,6 @@ namespace CumulusMX
 		public string TempTrendUnitText;
 
 		public string RainUnitText;
-
 
 		public string RainTrendUnitText;
 
@@ -419,7 +416,6 @@ namespace CumulusMX
 		public int LogInterval = 5;
 
 		public bool LogExtraData;
-
 
 		public int RolloverHour;
 		public bool Use10amInSummer;
@@ -815,7 +811,6 @@ namespace CumulusMX
 		private bool customMySqlMinutesUpdateInProgress = false;
 		private bool customMySqlRolloverUpdateInProgress = false;
 
-
 		public string[] StationDesc =
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
@@ -824,10 +819,8 @@ namespace CumulusMX
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
 
-
 		/*
 		CryptoLicense lic = new CryptoLicense();
-
 
 		//create code for applicationsecret
 		byte[] applicationSecret = Convert.FromBase64String("QpJGpsqWfkKu+yM8Ljp6+A==");
@@ -839,7 +832,6 @@ namespace CumulusMX
 			{
 				//this version is for file system - Isolated storage is anther option
 				return new Habanero.Licensing.Validation.LicenseValidator(Habanero.Licensing.Validation.LicenseLocation.File, "licence.lic", "Cumulus MX", publicKey, applicationSecret, ThisVersion);
-
 			}
 		}
 
@@ -924,7 +916,6 @@ namespace CumulusMX
 				}
 
 				Console.WriteLine("Licence is valid");
-
 			}
 		}
 		*/
@@ -974,7 +965,6 @@ namespace CumulusMX
 										messageBuilder.AppendLine(" ");
 									}
 
-
 									Console.WriteLine(messageBuilder);
 									Environment.Exit(0);
 								}
@@ -1019,13 +1009,11 @@ namespace CumulusMX
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
 
-
 			// Read the configuration file
 
 			LogMessage(" ========================== Cumulus MX starting ==========================");
 
 			LogMessage("Command line: " + Environment.CommandLine);
-
 
 			Assembly thisAssembly = this.GetType().Assembly;
 			//Version = thisAssembly.GetName().Version.ToString();
@@ -1040,7 +1028,6 @@ namespace CumulusMX
 
 			// Set the default comport name depending on platform
 			DefaultComportName = Platform.Substring(0, 3) == "Win" ? "COM1" : "/dev/ttyUSB0";
-
 
 			LogMessage("Platform: " + Platform);
 
@@ -1196,7 +1183,6 @@ namespace CumulusMX
 			TempTrendFormat = "+0.0;-0.0;0";
 			AirQualityFormat = "F" + AirQualityDPlaces;
 
-
 			SetMonthlySqlCreateString();
 
 			SetDayfileSqlCreateString();
@@ -1260,7 +1246,6 @@ namespace CumulusMX
 				}
 			}
 
-
 			CustomMysqlSecondsConn.Host = MySqlHost;
 			CustomMysqlSecondsConn.Port = MySqlPort;
 			CustomMysqlSecondsConn.UserId = MySqlUser;
@@ -1279,7 +1264,6 @@ namespace CumulusMX
 			CustomMysqlMinutesConn.Database = MySqlDatabase;
 			customMysqlMinutesTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlMinutesCommand.Connection = CustomMysqlMinutesConn;
-
 
 			CustomMysqlRolloverConn.Host = MySqlHost;
 			CustomMysqlRolloverConn.Port = MySqlPort;
@@ -1404,7 +1388,6 @@ namespace CumulusMX
 			Unosquare.Swan.Terminal.Settings.DisplayLoggingMessageType = Unosquare.Swan.LogMessageType.None;
 
 			WebServer httpServer = new WebServer(HttpPort, RoutingStrategy.Wildcard);
-
 
 			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 			var htmlRootPath = Path.Combine(assemblyPath, "interface");
@@ -1565,7 +1548,6 @@ namespace CumulusMX
 			StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable +
 										" (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym)";
 		}
-
 
 		internal void SetupUnitText()
 		{
@@ -2002,7 +1984,6 @@ namespace CumulusMX
 				}
 			}
 		}
-
 
 		internal async void UpdateAwekas(DateTime timestamp)
 		{
@@ -2875,7 +2856,6 @@ namespace CumulusMX
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
 
-
 			IniFile ini = new IniFile("Cumulus.ini");
 
 			// check for Cumulus 1 [FTP Site] and correct it
@@ -3214,10 +3194,8 @@ namespace CumulusMX
 				WllExtraHumTx[i - 1] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
 			}
 
-
 			// GW1000 setiings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
-
 
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
@@ -3271,7 +3249,6 @@ namespace CumulusMX
 
 			ForumURL = ini.GetValue("Web Site", "ForumURL", ForumDefault);
 			WebcamURL = ini.GetValue("Web Site", "WebcamURL", WebcamDefault);
-
 
 			CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
 
@@ -3393,7 +3370,6 @@ namespace CumulusMX
 			SendSRToAPRS = ini.GetValue("APRS", "SendSR", false);
 
 			SynchronisedAPRSUpdate = (60 % APRSinterval == 0);
-
 
 			LowTempAlarmValue = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
 			LowTempAlarmEnabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
@@ -3831,7 +3807,6 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "RealtimeParams", RealtimeParams);
 			ini.SetValue("FTP site", "DailyParams", DailyParams);
 
-
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);
 
 			ini.SetValue("Wunderground", "ID", WundID);
@@ -3908,7 +3883,6 @@ namespace CumulusMX
 			ini.SetValue("APRS", "Interval", APRSinterval);
 			ini.SetValue("APRS", "SendSR", SendSRToAPRS);
 
-
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarmValue);
 			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmEnabled);
 			ini.SetValue("Alarms", "LowTempAlarmSound", LowTempAlarmSound);
@@ -3973,7 +3947,6 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "WetBulbOffset", WetBulbOffset);
 			//ini.SetValue("Offsets", "DavisCalcAltPressOffset", DavisCalcAltPressOffset);
 
-
 			ini.SetValue("Offsets", "PressMult", PressMult);
 			ini.SetValue("Offsets", "WindSpeedMult", WindSpeedMult);
 			ini.SetValue("Offsets", "WindGustMult", WindGustMult);
@@ -3994,7 +3967,6 @@ namespace CumulusMX
 			ini.SetValue("Solar", "UseBlakeLarsen", UseBlakeLarsen);
 			ini.SetValue("Solar", "SolarCalc", SolarCalc);
 			ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
-
 
 			ini.SetValue("NOAA", "Name", NOAAname);
 			ini.SetValue("NOAA", "City", NOAAcity);
@@ -4316,7 +4288,6 @@ namespace CumulusMX
 				AirQualityAvgCaptions[3] = ini.GetValue("AirQualityCaptions", "SensorAvg3", "Sensor Avg 3");
 				AirQualityAvgCaptions[4] = ini.GetValue("AirQualityCaptions", "SensorAvg4", "Sensor Avg 4");
 
-
 				thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
 				thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
 
@@ -4377,7 +4348,6 @@ namespace CumulusMX
 				DavisForecast3[6] = ini.GetValue("DavisForecast3", "forecast7", "Increasing winds.");
 			}
 		}
-
 
 		public string SensorAlarmSoundFile { get; set; }
 
@@ -4776,7 +4746,6 @@ namespace CumulusMX
 
 		public int StationType { get; set; }
 
-
 		public string LatestImetReading { get; set; }
 
 		public bool FineOffsetStation { get; set; }
@@ -4843,7 +4812,6 @@ namespace CumulusMX
 		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false };
 
 		public string Gw1000IpAddress;
-
 
 		public Timer WundTimer = new Timer();
 		public Timer WindyTimer = new Timer();
@@ -5692,7 +5660,6 @@ namespace CumulusMX
 			return station.Beaufort(Bspeed).ToString();
 		}
 
-
 		public string BeaufortDesc(double Bspeed)
 		{
 			// Takes speed in current units, returns Bft description
@@ -6342,7 +6309,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		public void LogMessage(string message)
 		{
 			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
@@ -6539,9 +6505,7 @@ namespace CumulusMX
 								station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString(SunFormat, InvC) + ',' +
 								((int) Math.Round(station.CurrentSolarMax)).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";
 
-
 				string queryString = StartOfRealtimeInsertSQL + values;
-
 
 				// do the update
 				MySqlCommand cmd = new MySqlCommand();
@@ -6600,7 +6564,6 @@ namespace CumulusMX
 				parser.encoding = encoding;
 				parser.SourceFile = template;
 				var output = parser.ToString();
-
 
 				using (StreamWriter file = new StreamWriter(outputfile, false, encoding))
 				{
@@ -6785,7 +6748,6 @@ namespace CumulusMX
 			TwitterTimer.Interval = TwitterInterval * 60 * 1000; // mins to millisecs
 			TwitterTimer.Enabled = TwitterEnabled && !SynchronisedTwitterUpdate;
 
-
 			APRStimer.Interval = APRSinterval * 60 * 1000; // mins to millisecs
 			APRStimer.Enabled = APRSenabled && !SynchronisedAPRSUpdate;
 
@@ -6954,7 +6916,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		private void MySqlCatchup()
 		{
 			var mySqlConn = new MySqlConnection();
@@ -6989,7 +6950,6 @@ namespace CumulusMX
 				}
 			}
 
-
 			LogMessage("End of MySQL archive upload");
 			MySqlList.Clear();
 		}
@@ -7003,7 +6963,6 @@ namespace CumulusMX
 			// b3045 - Reduce the default polling interval to try and keep the session alive
 			RealtimeFTP.SocketKeepAlive = true;
 			//RealtimeFTP.SocketPollInterval = 2000; // 2 seconds, defaults to 15 seconds
-
 
 			if (Sslftp == FtpProtocols.FTPS)
 			{
@@ -7023,7 +6982,6 @@ namespace CumulusMX
 			{
 				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
 			}
-
 
 			if (ftp_host != "" && ftp_host != " ")
 			{
@@ -7065,7 +7023,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		/// <summary>
 		/// Process the list of WU updates created at startup from logger entries
 		/// </summary>
@@ -7085,7 +7042,6 @@ namespace CumulusMX
 					LogMessage("WU update: " + ex.Message);
 				}
 			}
-
 
 			LogMessage("End of WU archive upload");
 			WundList.Clear();
@@ -7110,7 +7066,6 @@ namespace CumulusMX
 					LogMessage("Windy update: " + ex.Message);
 				}
 			}
-
 
 			LogMessage("End of Windy archive upload");
 			WindyList.Clear();
@@ -7550,7 +7505,6 @@ namespace CumulusMX
 								UVDPlaces + "),THighUV varchar(5),HWindGBearSym varchar(3),DomWindDirSym varchar(3),PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"";
 		}
 	}
-
 
 	internal class Raintotaldata
 	{

@@ -10,7 +10,7 @@ namespace CumulusMX
             // el      solar elevation deg from horizon
             // r       distance from earth to sun in AU
             // nfac    atmospheric turbidity parameter (2=clear, 4-5=smoggy)
- 
+
             double sinal = Math.Sin(degToRad(el)); // Sine of the solar elevation angle
 
             if (sinal < 0)
@@ -33,7 +33,7 @@ namespace CumulusMX
 
             }
         }
-   
+
         public static double RyanStolzSolar(double el, double erv, double atc, double z)
         {
             // el      solar elevation deg from horizon
@@ -229,7 +229,6 @@ namespace CumulusMX
 			solarazimuth = azimuth;
 			solarelevation = 90.0 - solarzen;
 		}
-
 
 		private static double degToRad(double angle)
         {
@@ -766,7 +765,6 @@ namespace CumulusMX
 			//return  azimuth;
 		}
 
-
 		public static double PutIn360Deg(double pfDeg)
 		{
 			while (pfDeg >= 360)
@@ -782,7 +780,6 @@ namespace CumulusMX
 
 		// ###############################################################
 
-
 		public static int cSunrise = 1;
         public static int cBeginCivilTwilight = -2;
         public static int cBeginNautTwilight = -3;
@@ -791,7 +788,6 @@ namespace CumulusMX
         public static int cEndCivilTwilight = 2;
         public static int cEndNautTwilight = 3;
         public static int cEndAstroTwilight = 4;
-
 
         private static double mjd(int year, int month, int day)
         {
@@ -812,7 +808,6 @@ namespace CumulusMX
             a = 365.0 * year - 679004.0;
             return a + b + (int)Math.Floor(30.6001 * (month + 1)) + day;
         }
-
 
         private static double frac(double x)
         {
@@ -856,7 +851,6 @@ namespace CumulusMX
             return (hour.ToString("00") + min.ToString("00"));
             //return "0000";
         }
-
 
         private static double lmst(double mjd, double glong)
         {
@@ -912,7 +906,6 @@ namespace CumulusMX
                 ra = ra + 24;
             }
         }
-
 
         private static void quad(double ym, double yz, double yp, ref int nz, ref double z1, ref double z2, ref double xe, ref double ye)
         {
@@ -1522,7 +1515,6 @@ namespace CumulusMX
 
             fMD = fL2 - fSLambda;
             fMPhase = 0.5 * (1.0 - Trig.Cos(fMD));
-
 
         }
 

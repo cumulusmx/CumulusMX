@@ -1230,7 +1230,6 @@ namespace SQLite
 				return 0;
 			}
 
-
 			var map = GetMapping (objType);
 
 #if NETFX_CORE
@@ -1264,7 +1263,6 @@ namespace SQLite
 				}
 			}
 #endif
-
 
 			var replacing = string.Compare (extra, "OR REPLACE", StringComparison.OrdinalIgnoreCase) == 0;
 
@@ -2953,7 +2951,6 @@ namespace SQLite
 			NoticeRecoverWAL = (Result.Notice | (1 << 8)),
 			NoticeRecoverRollback = (Result.Notice | (2 << 8))
 		}
-
 
 		public enum ConfigOption : int
 		{

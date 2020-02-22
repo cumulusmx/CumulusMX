@@ -79,7 +79,6 @@ namespace CumulusMX
 		public double[] WMR928ExtraDPValues = new[] {0.0, 0.0, 0.0, 0.0};
 		public int[] WMR928ExtraHumValues = new[] {0, 0, 0, 0};
 
-
 		public const int AT_hightemp = 0;
 		public const int AT_lowtemp = 1;
 		public const int AT_highgust = 2;
@@ -131,7 +130,6 @@ namespace CumulusMX
 
 		public double THWIndex = 0;
 		public double THSWIndex = 0;
-
 
 		public double raindaystart = 0.0;
 		public double Raincounter = 0.0;
@@ -210,7 +208,6 @@ namespace CumulusMX
 		public double TempRangeYesterday = 0;
 		public double HighSolarYesterday = 0;
 		public double HighUVYesterday = 0;
-
 
 		// today high and low times
 		internal DateTime highgusttodaytime;
@@ -336,7 +333,6 @@ namespace CumulusMX
 			CumulusForecast = cumulus.ForecastNotAvailable;
 			wsforecast = cumulus.ForecastNotAvailable;
 
-
 			ExtraTemp = new double[11];
 			ExtraHum = new double[11];
 			ExtraDewPoint = new double[11];
@@ -446,7 +442,6 @@ namespace CumulusMX
 
 			if (cumulus.RolloverHour == 0)
 			{
-
 				Raincounter = midnightraincount + (RainToday / cumulus.RainMult);
 			}
 			else
@@ -526,7 +521,6 @@ namespace CumulusMX
 			// get today's date offset by rain season start for year check
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 
-
 			if (File.Exists(cumulus.DayFile))
 			{
 				try
@@ -562,7 +556,6 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("GetRainfallTotals: Error on line " + linenum + " of dayfile.txt: " + ex.Message);
 				}
-
 
 				cumulus.LogMessage("Rainthismonth from dayfile.txt: " + rainthismonth);
 				cumulus.LogMessage("Rainthisyear from dayfile.txt: " + rainthisyear);
@@ -719,7 +712,6 @@ namespace CumulusMX
 
 				IniFile ini = new IniFile(cumulus.TodayIniFile);
 
-
 				// Date
 				ini.SetValue("General", "Date", timestamp.AddHours(hourInc).ToShortDateString());
 				// Timestamp
@@ -826,7 +818,6 @@ namespace CumulusMX
 					}
 				}
 
-
 				ini.Flush();
 			}
 			catch (Exception ex)
@@ -834,7 +825,6 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Error writing today.ini: " + ex.Message);
 			}
 		}
-
 
 		/// <summary>
 		/// calculate the start of today in UTC
@@ -1325,7 +1315,6 @@ namespace CumulusMX
 
 		public double RainSinceMidnight { get; set; }
 
-
 		/// <summary>
 		/// Checks whether a new day has started and does a rollover if necessary
 		/// </summary>
@@ -1375,7 +1364,6 @@ namespace CumulusMX
 		{
 			if (secondTimer != null) secondTimer.Stop();
 		}
-
 
 		public void SecondTimer(object sender, ElapsedEventArgs e)
 		{
@@ -1485,7 +1473,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		private void HourChanged(int hour)
 		{
 			cumulus.LogMessage("Hour changed:" + hour);
@@ -1583,7 +1570,6 @@ namespace CumulusMX
 						tempsamplestoday++;
 						TempTotalToday += OutdoorTemperature;
 					}
-
 
 					AddLastHourDataEntry(now, Raincounter, OutdoorTemperature);
 					RemoveOldLHData(now);
@@ -1792,7 +1778,6 @@ namespace CumulusMX
 				raininterval = Raincounter - prevraincounter;
 			}
 
-
 			//using (cumulusEntities dataContext = new cumulusEntities())
 			//{
 			//    dataContext.AddToStandardData(newdata);
@@ -1832,7 +1817,6 @@ namespace CumulusMX
 			loWindChill = WindChill;
 			hiApparentTemperature = ApparentTemperature;
 			loApparentTemperature = ApparentTemperature;
-
 		}
 		*/
 
@@ -2433,7 +2417,6 @@ namespace CumulusMX
 			// Jun 01 2003 08:07
 			// 272/000g006t069r010p030P020h61b10150
 
-
 			// 272 - wind direction - 272 degrees
 			// 010 - wind speed - 10 mph
 
@@ -2942,7 +2925,6 @@ namespace CumulusMX
 					WriteYearIniFile();
 				}
 
-
 				// All time wind chill
 				if (WindChill < alltimerecarray[AT_lowchill].value)
 				{
@@ -3129,7 +3111,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		public void DoRain(double total, double rate, DateTime timestamp)
 		{
 			DateTime readingTS = timestamp.AddHours(cumulus.GetHourInc());
@@ -3138,7 +3119,6 @@ namespace CumulusMX
 			{
 				// A reading has apparently arrived at the start of a new day, but before we have done the rollover
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
-
 				return;
 			}
 
@@ -3156,9 +3136,7 @@ namespace CumulusMX
 				// rain has occurred
 				LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
 
-
 			Raincounter = total;
-
 
 			//first_rain = false;
 			if (notraininit)
@@ -3284,7 +3262,6 @@ namespace CumulusMX
 						HighDailyRainThisMonthTS = offsetdate;
 						WriteMonthIniFile();
 					}
-					;
 
 					if (RainToday > HighDailyRainThisYear)
 					{
@@ -3292,7 +3269,6 @@ namespace CumulusMX
 						HighDailyRainThisYearTS = offsetdate;
 						WriteYearIniFile();
 					}
-					;
 
 					if (RainMonth > HighMonthlyRainThisYear)
 					{
@@ -3300,7 +3276,6 @@ namespace CumulusMX
 						HighMonthlyRainThisYearTS = offsetdate;
 						WriteYearIniFile();
 					}
-					;
 
 					if (RainMonth > alltimerecarray[AT_wetmonth].value)
 						SetAlltime(AT_wetmonth, RainMonth, offsetdate);
@@ -3853,7 +3828,6 @@ namespace CumulusMX
 			File.AppendAllText(cumulus.MonthlyAlltimeLogFile, s);
 		}
 
-
 		/// <summary>
 		/// Returns the angle from bearing2 to bearing1, in the range -180 to +180 degrees
 		/// </summary>
@@ -3880,7 +3854,6 @@ namespace CumulusMX
 			return diff;
 		}
 
-
 		public int BearingRangeTo10 { get; set; }
 
 		public int BearingRangeFrom10 { get; set; }
@@ -3902,7 +3875,6 @@ namespace CumulusMX
 		public int nextwindvalue { get; set; }
 
 		public double calibratedgust { get; set; }
-
 
 		public int nextwind { get; set; }
 
@@ -4041,7 +4013,6 @@ namespace CumulusMX
 
 		//private bool manualftp;
 
-
 		public void WriteYesterdayFile()
 		{
 			cumulus.LogMessage("Writing yesterday.ini");
@@ -4176,7 +4147,6 @@ namespace CumulusMX
 			HighUVYesterday = ini.GetValue("Solar", "HighUV", 0.0);
 			highuvyesterdaytime = ini.GetValue("Solar", "HighUVTime", DateTime.MinValue);
 		}
-
 
 		public void DayReset(DateTime timestamp)
 		{
@@ -4341,7 +4311,6 @@ namespace CumulusMX
 
 					WriteMonthIniFile();
 				}
-
 
 				if (HighTempToday < LowMaxTempThisYear)
 				{
@@ -4654,7 +4623,6 @@ namespace CumulusMX
 				// Reset today"s low temp settings
 				LowTempToday = OutdoorTemperature;
 				lowtemptodaytime = timestamp;
-
 
 				TempRangeYesterday = TempRangeToday;
 				TempRangeToday = 0;
@@ -5008,7 +4976,6 @@ namespace CumulusMX
 				using (StreamWriter file = new StreamWriter(fs))
 				{
 					cumulus.LogMessage("Dayfile.txt opened for writing");
-
 
 					if ((HighTempToday < -400) || (LowTempToday > 900))
 					{
@@ -5555,7 +5522,6 @@ namespace CumulusMX
 
 			int avgbear = calcavgbear(totalwindX, totalwindY);
 
-
 			if (avgbear == 0)
 			{
 				avgbear = 360;
@@ -5838,7 +5804,6 @@ namespace CumulusMX
 
 				// Convert for display
 				trendval = ConvertPressMBToUser(presstrendval);
-
 
 				if (calculaterainrate)
 				{
@@ -6612,8 +6577,6 @@ namespace CumulusMX
 					break;
 			}
 		}
-
-
 
 		public void DoLeafWetness(double value, int index)
 		{
@@ -7458,7 +7421,6 @@ namespace CumulusMX
 					ini.SetValue("WindChill", "Low", LowWindChillThisMonth);
 					ini.SetValue("WindChill", "LTime", LowWindChillThisMonthTS);
 
-
 					ini.Flush();
 				}
 				catch (Exception ex)
@@ -7616,7 +7578,6 @@ namespace CumulusMX
 					// wind chill
 					ini.SetValue("WindChill", "Low", LowWindChillThisYear);
 					ini.SetValue("WindChill", "LTime", LowWindChillThisYearTS);
-
 
 					ini.Flush();
 				}
@@ -8736,7 +8697,6 @@ namespace CumulusMX
 			return json;
 		}
 
-
 		public string GetLeaf()
 		{
 			var json = "{\"data\":[";
@@ -8818,7 +8778,6 @@ namespace CumulusMX
 			json += "[\"" + "Low Humidity" + "\",\"" + lowhumiditytoday.ToString(cumulus.HumFormat) + "&nbsp;%" + "\",\"" + lowhumiditytodaytime.ToShortTimeString() + "\",\"" +
 					lowhumidityyesterday.ToString(cumulus.HumFormat) + "&nbsp;%" + "\",\"" + lowhumidityyesterdaytime.ToShortTimeString() + "\"]";
 
-
 			json += "]}";
 			return json;
 		}
@@ -8854,7 +8813,6 @@ namespace CumulusMX
 					YesterdayWindRun.ToString(cumulus.WindRunFormat) + "&nbsp;" + cumulus.WindRunUnitText + "\",\"" + "&nbsp;" + "\"],";
 			json += "[\"" + "Dominant Direction" + "\",\"" + DominantWindBearing.ToString("F0") + "&nbsp;&deg;&nbsp;" + CompassPoint(DominantWindBearing) + "\",\"" + "&nbsp;" +
 					"\",\"" + YestDominantWindBearing.ToString("F0") + "&nbsp;&deg;&nbsp;" + CompassPoint(YestDominantWindBearing) + "\",\"" + "&nbsp;" + "\"]";
-
 
 			json += "]}";
 			return json;
@@ -9064,7 +9022,6 @@ namespace CumulusMX
 		{
 			var json = "{\"temp\":\"" + cumulus.TempUnitText[1] + "\",\"wind\":\"" + cumulus.WindUnitText + "\",\"rain\":\"" + cumulus.RainUnitText + "\",\"press\":\"" +
 					   cumulus.PressUnitText + "\"}";
-
 			return json;
 		}
 
@@ -9073,7 +9030,6 @@ namespace CumulusMX
 			string json = "{\"temp\":{\"units\":\"" + cumulus.TempUnitText[1] + "\",\"decimals\":" + cumulus.TempDPlaces + "},\"wind\":{\"units\":\"" + cumulus.WindUnitText +
 						  "\",\"decimals\":" + cumulus.WindDPlaces + "},\"rain\":{\"units\":\"" + cumulus.RainUnitText + "\",\"decimals\":" + cumulus.RainDPlaces +
 						  "},\"press\":{\"units\":\"" + cumulus.PressUnitText + "\",\"decimals\":" + cumulus.PressDPlaces + "},\"hum\":{\"decimals\":" + cumulus.HumDPlaces + "},\"uv\":{\"decimals\":" + cumulus.UVDPlaces + "}}";
-
 			return json;
 		}
 
@@ -9386,7 +9342,6 @@ namespace CumulusMX
 			return rain100IN.ToString("D3");
 		}
 
-
 		public class CommTimer : IDisposable
 		{
 			public Timer tmrComm = new Timer();
@@ -9598,7 +9553,5 @@ namespace CumulusMX
 		public double Pressure { get; set; }
 		public double LoPressure { get; set; }
 		public double HiPressure { get; set; }
-
-
 	}
 }
