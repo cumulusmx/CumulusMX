@@ -18,7 +18,6 @@ namespace CumulusMX
 		private TcpClient socket;
 		private bool connectedOK = false;
 
-
 		private enum Commands : byte {
 			// General order
 			CMD_WRITE_SSID = 0x11,// send router SSID and Password to wifi module
@@ -238,9 +237,7 @@ namespace CumulusMX
 
 			StartLoop();
 			bw = new BackgroundWorker();
-
 		}
-
 
 		private TcpClient OpenTcpPort()
 		{
@@ -282,7 +279,6 @@ namespace CumulusMX
 
 			return client;
 		}
-
 
 		public override void Start()
 		{
@@ -334,7 +330,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		public override void Stop()
 		{
 			cumulus.LogMessage("Closing connection");
@@ -362,7 +357,6 @@ namespace CumulusMX
 			Cumulus.syncInit.Release();
 		}
 
-
 		private string GetFirmwareVersion()
 		{
 			var response = "???";
@@ -378,7 +372,6 @@ namespace CumulusMX
 
 		private bool GetSensorIds()
 		{
-
 			cumulus.LogMessage("Reading sensor ids");
 
 			var data = DoCommand((byte)Commands.CMD_READ_SENSOR_ID);
@@ -402,7 +395,6 @@ namespace CumulusMX
 				{
 					PrintSensorInfo(data, i);
 				}
-
 				return true;
 			}
 			else
@@ -740,7 +732,6 @@ namespace CumulusMX
 						RecentMaxGust = gustLast;
 					}
 
-
 					DoRain(rainLast, rainRateLast, dateTime);
 
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
@@ -1031,7 +1022,6 @@ namespace CumulusMX
 			// X+1 - checksum                       5-X - data
 			//                                      X+1 - checksum
 
-
 			if (lengthBytes == 1)
 			{
 				size = (ushort)data[3];
@@ -1105,7 +1095,6 @@ namespace CumulusMX
 			// check for monthly all time records (and set)
 			CheckMonthlyAlltime(AT_highgust, gust, true, timestamp);
 		}
-
 
 		/// <summary>
 		/// Converts value in kilometres to distance unit based on users configured wind units

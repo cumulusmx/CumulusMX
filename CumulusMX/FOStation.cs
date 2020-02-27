@@ -52,7 +52,6 @@ namespace CumulusMX
 		const int defaultVID = 0x1941;
 		const int defaultPID = 0x8021;
 
-
 		internal FOStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = cumulus.EW;
@@ -163,7 +162,6 @@ namespace CumulusMX
 			cumulus.StartTimers();
 		}
 
-
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
 			//var ci = new CultureInfo("en-GB");
@@ -222,7 +220,6 @@ namespace CumulusMX
 					if (addr == 0xF0) addr = FOMaxAddr; // wrap around
 
 					ReadAddress(addr, data);
-
 
 					// add history data to collection
 
@@ -489,7 +486,6 @@ namespace CumulusMX
 
 					CheckForDewpointHighLow(timestamp);
 
-
 					// calculate wind chill
 
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
@@ -542,7 +538,6 @@ namespace CumulusMX
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
 
 				CheckForWindrunHighLow(timestamp);
-
 
 				bw.ReportProgress((totalentries - datalist.Count)*100/totalentries, "processing");
 
@@ -609,7 +604,6 @@ namespace CumulusMX
 
 			int ptr = 0;
 			String rec_data;
-
 
 			if (hidDevice != null)
 			{
@@ -682,7 +676,6 @@ namespace CumulusMX
 
 			//var ci = new CultureInfo("en-GB");
 			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
-
 
 			var data = new byte[32];
 

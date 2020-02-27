@@ -173,7 +173,6 @@ namespace CumulusMX
 		[DataMember]
 		public string Moonset { get; set; }
 
-
 		[DataMember]
 		public string Forecast { get; set; }
 
@@ -254,7 +253,6 @@ namespace CumulusMX
 
 		[DataMember]
 		public string HighDewpointTodayTime { get; set; }
-
 
 		[IgnoreDataMember]
 		public double WindChill;
@@ -745,6 +743,5 @@ namespace CumulusMX
 
 		[DataMember]
 		public bool AlarmSensor { get; set; }
-
 	}
 }

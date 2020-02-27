@@ -636,6 +636,7 @@ namespace CumulusMX
 		public string apiSecret { get; set; }
 		public string apiStationId { get; set; }
 	}
+
 	public class JsonStationSettingsWllPrimary
 	{
 		public int wind { get; set; }
@@ -651,7 +652,6 @@ namespace CumulusMX
 		public JsonStationSettingsWllSoilMoist extraSoilMoist { get; set; }
 		public JsonStationSettingsWllExtraLeaf extraLeaf { get; set; }
 	}
-
 
 	public class JsonStationSettingsWllSoilTemp
 	{
@@ -684,7 +684,6 @@ namespace CumulusMX
 		public int leafTx2 { get; set; }
 		public int leafIdx2 { get; set; }
 	}
-
 
 	public class JsonStationSettingsWllExtraTemp
 	{

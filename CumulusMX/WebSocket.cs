@@ -68,12 +68,10 @@ namespace CumulusMX
 				//cumulus.LogDebugMessage("WS receive : " + buffer.ToString());
 			}
 
-
 			public void SendMessage(string message)
 			{
 				this.Broadcast(message);
 			}
-
 		}
 	}
 }

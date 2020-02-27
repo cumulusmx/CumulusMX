@@ -535,7 +535,6 @@ namespace CumulusMX
 			cumulus.StartTimers();
 		}
 
-
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
 		{
 			cumulus.LogDebugMessage("Lock: Station waiting for lock");
@@ -574,7 +573,6 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
 		}
-
 
 		// destructor
 		~DavisStation()
@@ -656,7 +654,6 @@ namespace CumulusMX
 			return value*33.86389F;
 		}
 		*/
-
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
@@ -1210,7 +1207,6 @@ namespace CumulusMX
 
 				DoApparentTemp(now);
 
-
 				var forecastRule = loopData.ForecastRule < cumulus.DavisForecastLookup.Length ? loopData.ForecastRule : cumulus.DavisForecastLookup.Length - 1;
 
 				var key1 = cumulus.DavisForecastLookup[forecastRule, 0];
@@ -1432,7 +1428,6 @@ namespace CumulusMX
 
 			const int loopDataLength = 99;
 
-
 			for (int i = 0; i < number; i++)
 			{
 				// Allocate a byte array to hold the loop data
@@ -1577,7 +1572,6 @@ namespace CumulusMX
 				{
 					THSWIndex = ConvertTempFToUser(loopData.THSWindex);
 				}
-
 
 				//UpdateStatusPanel(DateTime.Now);
 			}
@@ -1942,7 +1936,6 @@ namespace CumulusMX
 
 						// ..and then process it
 
-
 						int interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
 
 						if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
@@ -2168,7 +2161,6 @@ namespace CumulusMX
 
 						cumulus.LogMessage("Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
 						Trace.Flush();
-
 
 						Humidex = ConvertTempCToUser(MeteoLib.Humidex(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
 
@@ -2404,7 +2396,6 @@ namespace CumulusMX
 					i++;
 				}
 
-
 				// VP found and awakened
 				if (woken)
 				{
@@ -2473,7 +2464,6 @@ namespace CumulusMX
 				cumulus.LogMessage("init: Error - " + ex.Message);
 			}
 		}
-
 
 		private bool WakeVP(TcpClient thePort)
 		{
@@ -2670,7 +2660,6 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("WaitForAck timed out");
 			return false;
 		}
-
 
 		private DateTime getTime()
 		{

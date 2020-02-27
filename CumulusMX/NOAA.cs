@@ -107,7 +107,6 @@ namespace CumulusMX
 			return cumulus.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
 		}
 
-
 		private double RadToDeg(double radians)
 		{
 			return radians*(180.0/Math.PI);
@@ -430,7 +429,6 @@ namespace CumulusMX
 				cumulus.LogMessage("Please edit the file to correct the error");
 			}
 
-
 			// Calculate average wind speed from log file
 			// Use the second of the month in case of 9am rollover
 			var LogFile = cumulus.GetLogFileName(new DateTime(thedate.Year, thedate.Month, 2));
@@ -490,7 +488,6 @@ namespace CumulusMX
 					cumulus.LogMessage("Please edit the file to correct the error");
 				}
 
-
 			double avgwindspeed;
 			if (windsamples > 0)
 			{
@@ -541,7 +538,6 @@ namespace CumulusMX
 				}
 			}
 
-
 			int overalldomdir;
 			try
 			{
@@ -570,7 +566,6 @@ namespace CumulusMX
 			{
 				elev = cumulus.Altitude + " m";
 			}
-
 
 			int latdeg;
 			int latmin;
@@ -612,7 +607,6 @@ namespace CumulusMX
 			output.Add("    Mean                              Deg   Deg         Wind                 Dom");
 			output.Add("Day Temp  High   Time   Low    Time   Days  Days  Rain  Speed High   Time    Dir");
 			output.Add("----------------------------------------------------------------------------------");
-
 
 			for (int i = 1; i <= DateTime.DaysInMonth(year, month); i++)
 			{

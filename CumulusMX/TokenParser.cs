@@ -16,7 +16,6 @@ using System.Text.RegularExpressions;
 
 namespace CumulusMX
 {
-
 	/// <summary>
 	///     TokenParser is a class which implements a simple token replacement parser.
 	/// </summary>
@@ -36,9 +35,7 @@ namespace CumulusMX
 
 		public TokenParser()
 		{
-
 		}
-
 
 		/// <summary>
 		///     ExtractToken parses a token in the format "<#TOKENNAME>".
@@ -59,7 +56,6 @@ namespace CumulusMX
 
 			return result.Trim();
 		}*/
-
 
 		/// <summary>
 		///     Parse() iterates through each character of the class variable "inputText"
@@ -178,7 +174,6 @@ namespace CumulusMX
 							OnToken(token, ref replacement);
 							outText += replacement;
 
-
 						}
 						catch (Exception e)
 						{
@@ -249,7 +244,6 @@ namespace CumulusMX
 
 			return outText;
 		}
-
 
 		//private static string Utf16ToUtf8(string utf16String)
 		//{
@@ -322,7 +316,6 @@ namespace CumulusMX
 			return result;
 		}
 
-
 		/// <summary>
 		///     This is called to return the parsed text file.
 		/// </summary>
@@ -363,8 +356,5 @@ namespace CumulusMX
 			}
 			return result;
 		}
-
-
-
 	}
 }

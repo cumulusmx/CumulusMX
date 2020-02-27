@@ -66,7 +66,6 @@ namespace CumulusMX
 		{
 		}
 
-
 		public override void Start()
 		{
 			cumulus.LogMessage("Start normal reading loop");
@@ -342,7 +341,6 @@ namespace CumulusMX
 			// Dewpoint D1D2
 			// Checksum C1C2
 
-
 			int channel = buff[3] & 0xF;
 			if (channel == 4)
 				channel = 3;
@@ -407,7 +405,6 @@ namespace CumulusMX
 
 			DoWind(ConvertWindMSToUser(current), bearing, ConvertWindMSToUser(average), DateTime.Now);
 
-
 			// Extract windchill
 			double wc = BCDchartoint(buff[9]);
 
@@ -432,7 +429,6 @@ namespace CumulusMX
 			//                           Year Y1Y2)
 			// Checksum C1C2
 			// the unknown byte has values such as 0x80 or 0x90
-
 
 			RainBattStatus = buff[3]/16;
 			// MainForm.Rainbatt.Position := (15-rain_batt_status)*100 DIV 15;
@@ -493,7 +489,6 @@ namespace CumulusMX
 
 			IndoorBattStatus = buff[3]/16;
 
-
 			// Extract temp (tenths of deg C) in BCD; bytes 4 (LSB) and 5 (MSB)
 			double temp10 = BCDchartoint(buff[4]) + (BCDchartoint(buff[5])*100);
 
@@ -550,7 +545,6 @@ namespace CumulusMX
 			// Checksum C1C2
 			// the unknown byte seems to be fixed at 00
 
-
 			IndoorBattStatus = buff[3]/16;
 			//MainForm.Indoorbatt.Position := (15-indoor_batt_status)*100 DIV 15;
 
@@ -562,7 +556,6 @@ namespace CumulusMX
 
 			// humidity in BCD; byte 6
 			DoIndoorHumidity(BCDchartoint(buff[6]));
-
 
 			// local pressure (not BCD); byte 8, with 795mb offset
 			double loc = buff[8] + 795;

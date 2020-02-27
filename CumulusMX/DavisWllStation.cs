@@ -36,7 +36,6 @@ namespace CumulusMX
 		private bool checkWllGustValues;
 		private bool broadcastReceived = false;
 
-
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = cumulus.DAVIS;
@@ -118,7 +117,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		public override void Start()
 		{
 			try
@@ -127,7 +125,6 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Lock: Station waiting for lock");
 				Cumulus.syncInit.Wait();
 				cumulus.LogDebugMessage("Lock: Station has the lock");
-
 
 				// Create a realtime thread to periodically restart broadcasts
 				GetWllRealtime(null, null);
@@ -293,7 +290,6 @@ namespace CumulusMX
 			{
 
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
-
 
 				cumulus.LogDebugMessage("Lock: GetWllCurrent waiting for lock");
 				WebReq.Wait();
@@ -1229,7 +1225,6 @@ namespace CumulusMX
 			cumulus.StartTimers();
 		}
 
-
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
 		{
 			cumulus.LogDebugMessage("Lock: Station waiting for lock");
@@ -1350,7 +1345,6 @@ namespace CumulusMX
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
-
 
 			StringBuilder historicUrl = new StringBuilder();
 			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId + "?");
@@ -2171,7 +2165,6 @@ namespace CumulusMX
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
-
 
 			StringBuilder currentUrl = new StringBuilder();
 			currentUrl.Append("https://api.weatherlink.com/v2/current/" + cumulus.WllStationId + "?");

@@ -18,7 +18,6 @@ namespace CumulusMX
 		private string currentWritePointer = "";
 		private int readCounter = 30;
 
-
 		public ImetStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = cumulus.INSTROMET;
@@ -512,7 +511,6 @@ namespace CumulusMX
 			int minute = startfrom.Minute;
 			int sec = startfrom.Second;
 
-
 			cumulus.LogMessage($"Last update time = {year}/{month}/{day} {hour}:{minute}:{sec}");
 
 			int recordsdone = 0;
@@ -563,7 +561,6 @@ namespace CumulusMX
 					dataOK = false;
 				}
 
-
 				if (dataOK)
 				{
 					cumulus.LogMessage("Earliest timestamp " + timestamp);
@@ -597,7 +594,7 @@ namespace CumulusMX
 								timestamp = DateTime.MinValue;
 							}
 
-						  startindex++;
+						    startindex++;
 						}
 					}
 				}
@@ -610,7 +607,6 @@ namespace CumulusMX
 					// and see if (they are on the same day
 					//int hourInc = cumulus.GetHourInc();
 
-
 					// set up controls for end of day rollover
 					int rollHour;
 					if (cumulus.RolloverHour == 0)
@@ -622,7 +618,6 @@ namespace CumulusMX
 						// Locale is currently on Daylight time
 						rollHour = cumulus.RolloverHour + 1;
 					}
-
 					else
 					{
 						// Locale is currently on Standard time or unknown
@@ -833,7 +828,6 @@ namespace CumulusMX
 			}
 		}
 
-
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
 		}
@@ -858,7 +852,7 @@ namespace CumulusMX
 					}
 				}
 			}
-				// Catch the ThreadAbortException
+			// Catch the ThreadAbortException
 			catch (ThreadAbortException)
 			{
 			}
