@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.0";
-		public string Build = "3064";
+		public string Version = "3.4.1";
+		public string Build = "3065";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -3180,8 +3180,9 @@ namespace CumulusMX
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
 			WllStationId = ini.GetValue("WLL", "WLStationId", "");
 			if (WllStationId == "-1") WllStationId = "";
-			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 300);  // Readonly setting, default 5 minutes
-			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);        // Readonly setting, default 22222
+			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true); // Readonly setting, default to True
+			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 300);      // Readonly setting, default 5 minutes
+			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);            // Readonly setting, default 22222
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
 			WllPrimaryTempHum = ini.GetValue("WLL", "PrimaryTempHumTxId", 1);
 			WllPrimaryWind = ini.GetValue("WLL", "PrimaryWindTxId", 1);
@@ -4809,6 +4810,7 @@ namespace CumulusMX
 
 		public int WllBroadcastDuration = 300;
 		public int WllBroadcastPort = 22222;
+		public bool WLLAutoUpdateIpAddress = true;
 		public int WllPrimaryWind = 1;
 		public int WllPrimaryTempHum = 1;
 		public int WllPrimaryRain = 1;

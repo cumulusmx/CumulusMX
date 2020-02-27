@@ -24,13 +24,17 @@ namespace CumulusMX
 		private int duration;
 		private readonly System.Timers.Timer tmrRealtime;
 		private readonly System.Timers.Timer tmrCurrent;
+		private readonly System.Timers.Timer tmrBroadcastWatchdog;
 		private readonly object threadSafer = new object();
 		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1);
 		private bool startupDayResetIfRequired = true;
 		private bool savedUseSpeedForAvgCalc;
+		private bool savedCalculatePeakGust;
 		private int MaxArchiveRuns = 1;
 		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
 		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
+		private bool checkWllGustValues;
+		private bool broadcastReceived = false;
 
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
@@ -47,9 +51,31 @@ namespace CumulusMX
 
 			tmrRealtime = new System.Timers.Timer();
 			tmrCurrent = new System.Timers.Timer();
+			tmrBroadcastWatchdog = new System.Timers.Timer();
 
 			// Get the firmware version from WL.com API
 			GetWlCurrentData();
+
+			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
+			if (cumulus.PeakGustMinutes == 10)
+			{
+				CalcRecentMaxGust = false;
+				checkWllGustValues = false;
+			}
+			else if (cumulus.PeakGustMinutes > 10)
+			{
+				// If the user period is greater that 10 minutes, then Cumulus must calculate Gust values
+				// but we can check the WLL 10 min gust value in case we missed a gust
+				CalcRecentMaxGust = true;
+				checkWllGustValues = true;
+			}
+			else
+			{
+				// User period is less than 10 minutes, so we cannot use the station 10 min gust values
+				CalcRecentMaxGust = true;
+				checkWllGustValues = false;
+			}
+
 
 			// Perform zero-config
 			// If it works - check IP address in config file and set/update if required
@@ -140,6 +166,13 @@ namespace CumulusMX
 				});
 
 				cumulus.LogMessage($"WLL Now listening on broadcast port {port}");
+
+				// Start a broadcast watchdog to warn if WLL broadcast messages are not being received
+				tmrBroadcastWatchdog.Elapsed += BroadcastTimeout;
+				tmrBroadcastWatchdog.Interval = 1000 * 30; // timeout after 30 seconds
+				tmrBroadcastWatchdog.AutoReset = true;
+				tmrBroadcastWatchdog.Start();
+
 			}
 			catch (ThreadAbortException)
 			{
@@ -188,7 +221,7 @@ namespace CumulusMX
 
 						lock (threadSafer)
 						{
-							ip = ipaddr;
+							ip = cumulus.VP2IPAddr;
 						}
 
 						if (CheckIpValid(ip))
@@ -253,7 +286,7 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				ip = ipaddr;
+				ip = cumulus.VP2IPAddr;
 			}
 
 			if (CheckIpValid(ip))
@@ -357,15 +390,30 @@ namespace CumulusMX
 							// No average in the broadcast data, so use last value from current - allow for calibration
 							DoWind((double)rec["wind_speed_last"], (int)rec["wind_dir_last"], WindAverage / cumulus.WindSpeedMult, dateTime);
 
-							if (!CalcRecentMaxGust)
+							if (checkWllGustValues)
 							{
-								// See if the station 10 min high speed is higher than our current 10-min max
-								// ie we missed the high gust
 								var gust = ConvertWindMPHToUser((double)rec["wind_speed_hi_last_10_min"]) * cumulus.WindGustMult;
-								CheckHighGust(gust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
 
-								RecentMaxGust = gust;
-								cumulus.LogDebugMessage("Setting max gust from broadcast value: " + RecentMaxGust.ToString(cumulus.WindFormat));
+								if (gust > RecentMaxGust)
+								{
+									// See if the station 10 min high speed is higher than our current 10-min max
+									// ie we missed the high gust
+									cumulus.LogDebugMessage("Setting max gust from broadcast 10 min high value: " + gust.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+
+									CheckHighGust(gust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
+									// add to recent values so normal calculation includes this value
+									WindRecent[nextwind].Gust = gust / cumulus.WindGustMult;
+									WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
+									WindRecent[nextwind].Timestamp = dateTime;
+									nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+
+									RecentMaxGust = gust;
+								}
+							}
+							else if (!CalcRecentMaxGust)
+							{
+								RecentMaxGust = ConvertWindMPHToUser((double) rec["wind_speed_hi_last_10_min"]) *cumulus.WindGustMult;
+								CheckHighGust(RecentMaxGust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
 							}
 						}
 					}
@@ -405,6 +453,9 @@ namespace CumulusMX
 					}
 				}
 				UpdateStatusPanel(DateTime.Now);
+
+				broadcastReceived = true;
+				DataStopped = false;
 			}
 			catch (Exception exp)
 			{
@@ -575,7 +626,7 @@ namespace CumulusMX
 										WindAverage = ConvertWindMPHToUser((double)rec["wind_speed_avg_last_10_min"]) * cumulus.WindSpeedMult;
 									}
 
-									if (!CalcRecentMaxGust)
+									if (checkWllGustValues)
 									{
 										// See if the current speed is higher than the current 10-min max
 										// We can then update the figure before the next LOOP2 packet is read
@@ -593,18 +644,23 @@ namespace CumulusMX
 
 											if (gust > RecentMaxGust)
 											{
-												RecentMaxGust = gust;
-												cumulus.LogDebugMessage("Setting max gust from current value: " + RecentMaxGust.ToString(cumulus.WindFormat));
+												cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + RecentMaxGust.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 												CheckHighGust(gust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
 
 												// add to recent values so normal calculation includes this value
-												WindRecent[nextwind].Gust = gust;
+												WindRecent[nextwind].Gust = gust / cumulus.WindGustMult;
 												WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
 												WindRecent[nextwind].Timestamp = dateTime;
 												nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
 
+												RecentMaxGust = gust;
 											}
 										}
+									}
+									else if (!CalcRecentMaxGust)
+									{
+										RecentMaxGust = ConvertWindMPHToUser((double)rec["wind_speed_hi_last_10_min"]) * cumulus.WindGustMult;
+										CheckHighGust(RecentMaxGust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
 									}
 								}
 							}
@@ -1014,20 +1070,26 @@ namespace CumulusMX
 
 		private void PrintService(char startChar, ServiceAnnouncement service)
 		{
-			cumulus.LogDebugMessage("ZeroConf Service: " + startChar + " '" + service.Instance + "' on " + service.NetworkInterface.Name);
-			cumulus.LogDebugMessage("\tHost: " + service.Hostname + " (" + string.Join(", ", service.Addresses) + ")");
+			cumulus.LogDebugMessage($"ZeroConf Service: {startChar} '{service.Instance}' on {service.NetworkInterface.Name}");
+			cumulus.LogDebugMessage($"\tHost: {service.Hostname} ({string.Join(", ", service.Addresses)})");
 
 			lock (threadSafer)
 			{
 				ipaddr = service.Addresses[0].ToString();
+				cumulus.LogMessage($"WLL found, reporting its IP address as: {ipaddr}");
 				if (cumulus.VP2IPAddr != ipaddr)
 				{
-					cumulus.LogMessage("WLL IP address changed from " + cumulus.VP2IPAddr + " to " + ipaddr);
-					cumulus.VP2IPAddr = ipaddr;
-				}
-				else
-				{
-					cumulus.LogMessage("WLL found at IP address " + ipaddr);
+					cumulus.LogMessage($"WLL IP address has changed from {cumulus.VP2IPAddr} to {ipaddr}");
+					if (cumulus.WLLAutoUpdateIpAddress)
+					{
+						cumulus.LogMessage($"WLL changing Cumulus config to the new IP address {ipaddr}");
+						cumulus.VP2IPAddr = ipaddr;
+						cumulus.WriteIniFile();
+					}
+					else
+					{
+						cumulus.LogMessage($"WLL ignoring new IP address {ipaddr} due to setting WLLAutoUpdateIpAddress");
+					}
 				}
 			}
 		}
@@ -1145,10 +1207,6 @@ namespace CumulusMX
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			//histprog.histprogTB.Text = "Processed 100%";
-			//histprog.histprogPB.Value = 100;
-			//histprog.Close();
-			//mainWindow.FillLastHourGraphData();
 			cumulus.LogMessage("WeatherLink API archive reading thread completed");
 			if (e.Error != null)
 			{
@@ -1160,12 +1218,11 @@ namespace CumulusMX
 			//    UpdateHighsAndLows(dataContext);
 			//}
 			cumulus.CurrentActivity = "Normal running";
-			if (cumulus.PeakGustMinutes >= 10)
-			{
-				CalcRecentMaxGust = false;
-			}
-			// restore this setting
+
+			// restore settings
 			cumulus.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
+			CalcRecentMaxGust = savedCalculatePeakGust;
+
 			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
@@ -1193,11 +1250,16 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
 			cumulus.LogDebugMessage("Lock: Station has the lock");
+
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
 				savedUseSpeedForAvgCalc = cumulus.UseSpeedForAvgCalc;
 				cumulus.UseSpeedForAvgCalc = true;
+
+				// same for gust values
+				savedCalculatePeakGust = CalcRecentMaxGust;
+				CalcRecentMaxGust = true;
 
 				// Configure a web proxy if required
 				if (!string.IsNullOrEmpty(cumulus.HTTPProxyName))
@@ -1365,15 +1427,17 @@ namespace CumulusMX
 			{
 				try
 				{
+					DateTime timestamp = new DateTime();
 					foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
 					{
 						if ((int)sensor["sensor_type"] != 504)
 						{
 							DecodeHistoric((int)sensor["data_structure_type"], (int)sensor["sensor_type"], sensor["data"][dataIndex]);
+							// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor
+							timestamp = FromUnixTime((long)sensor["data"][dataIndex]["ts"]);
 						}
 					}
 
-					var timestamp = FromUnixTime((long)sensorData[0]["data"][dataIndex]["ts"]);
 					var h = timestamp.Hour;
 
 					if (cumulus.LogExtraSensors)
@@ -1626,40 +1690,6 @@ namespace CumulusMX
 								// add in 'archivePeriod' minutes worth of wind speed to windrun
 								int interval = (int)data["arch_int"] / 60;
 								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.WindUnit] * interval) / 60.0);
-
-								if (!CalcRecentMaxGust)
-								{
-									// See if the current speed is higher than the current 10-min max
-									// We can then update the figure before the next LOOP2 packet is read
-									if (string.IsNullOrEmpty((string)data["wind_speed_hi"]) ||
-										string.IsNullOrEmpty((string)data["wind_speed_hi_dir"]))
-									{
-										cumulus.LogDebugMessage("WL.com historic: no wind speed 10 min high values found [speed=" +
-											(string)data["wind_speed_hi"] +
-											", dir=" + (string)data["wind_speed_hi_dir"] +
-											"] on TxId " + txid);
-									}
-									else
-									{
-										var gust = (double)data["wind_speed_hi"] * cumulus.WindGustMult;
-
-										if (gust > RecentMaxGust)
-										{
-											RecentMaxGust = WindLatest;
-											cumulus.LogDebugMessage("Setting max gust from current value: " + RecentMaxGust.ToString(cumulus.WindFormat));
-											var ts = FromUnixTime((long)data["wind_speed_hi_at"]);
-											CheckHighGust(gust, (int)data["wind_speed_hi"], ts);
-
-											// add to recent values so normal calculation includes this value
-											WindRecent[nextwind].Gust = ConvertWindMPHToUser(gust);
-											WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
-											WindRecent[nextwind].Timestamp = recordTs;
-											nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
-
-											RecentMaxGust = gust;
-										}
-									}
-								}
 							}
 						}
 
@@ -2272,6 +2302,19 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("WeatherLink API exception: " + ex.Message);
 			}
 			return false;
+		}
+
+		private void BroadcastTimeout(object source, ElapsedEventArgs e)
+		{
+			if (broadcastReceived)
+			{
+				broadcastReceived = false;
+			}
+			else
+			{
+				cumulus.LogMessage("ERROR: No broadcast data received from the WLL for 30 seconds");
+				DataStopped = true;
+			}
 		}
 	}
 }
