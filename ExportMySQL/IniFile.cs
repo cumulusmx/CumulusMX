@@ -149,31 +149,31 @@ namespace CumulusMX
 				m_CacheModified=false;
 
 				// *** Open the file ***
-			    using (StreamWriter sw = new StreamWriter(m_FileName))
-			    {
-			        // *** Cycle on all sections ***
-			        bool First = false;
-			        foreach (KeyValuePair<string, Dictionary<string, string>> SectionPair in m_Sections)
-			        {
-			            Dictionary<string, string> Section = SectionPair.Value;
-			            if (First) sw.WriteLine();
-			            First = true;
+				using (StreamWriter sw = new StreamWriter(m_FileName))
+				{
+					// *** Cycle on all sections ***
+					bool First = false;
+					foreach (KeyValuePair<string, Dictionary<string, string>> SectionPair in m_Sections)
+					{
+						Dictionary<string, string> Section = SectionPair.Value;
+						if (First) sw.WriteLine();
+						First = true;
 
-			            // *** Write the section name ***
-			            sw.Write('[');
-			            sw.Write(SectionPair.Key);
-			            sw.WriteLine(']');
+						// *** Write the section name ***
+						sw.Write('[');
+						sw.Write(SectionPair.Key);
+						sw.WriteLine(']');
 
-			            // *** Cycle on all key+value pairs in the section ***
-			            foreach (KeyValuePair<string, string> ValuePair in Section)
-			            {
-			                // *** Write the key+value pair ***
-			                sw.Write(ValuePair.Key);
-			                sw.Write('=');
-			                sw.WriteLine(ValuePair.Value);
-			            }
-			        }
-			    }
+						// *** Cycle on all key+value pairs in the section ***
+						foreach (KeyValuePair<string, string> ValuePair in Section)
+						{
+							// *** Write the key+value pair ***
+							sw.Write(ValuePair.Key);
+							sw.Write('=');
+							sw.WriteLine(ValuePair.Value);
+						}
+					}
+				}
 			}
 		}
 
@@ -248,7 +248,7 @@ namespace CumulusMX
 				}
 				else
 				{
-				    if (l < 2) sb.Append("0");
+					if (l < 2) sb.Append("0");
 					sb.Append(hex);
 				}
 			}
@@ -307,13 +307,13 @@ namespace CumulusMX
 			}
 		}
 
-        internal DateTime GetValue(string SectionName, string Key, DateTime DefaultValue)
-        {
-            string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
-            DateTime Value;
-            if (DateTime.TryParse(StringValue, out Value)) return Value;
-            return DefaultValue;
-        }
+		internal DateTime GetValue(string SectionName, string Key, DateTime DefaultValue)
+		{
+			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
+			DateTime Value;
+			if (DateTime.TryParse(StringValue, out Value)) return Value;
+			return DefaultValue;
+		}
 
 		// *** Setters for various types ***
 		internal void SetValue(string SectionName, string Key, bool Value)
@@ -336,11 +336,11 @@ namespace CumulusMX
 			SetValue(SectionName, Key, EncodeByteArray(Value));
 		}
 
-	    internal void SetValue(string SectionName, string Key, DateTime Value)
-	    {
-	        SetValue(SectionName, Key, Value.ToString());
-	    }
+		internal void SetValue(string SectionName, string Key, DateTime Value)
+		{
+			SetValue(SectionName, Key, Value.ToString());
+		}
 
-	    #endregion
+		#endregion
 	}
 }
