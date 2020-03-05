@@ -1,3 +1,20 @@
+3.4.2 - b3066
+=============
+- Improved error handing for invalid Davis WLL Station Ids
+- Improved error handling when the network connection to a Davis WLL is lost (and restored)
+- Adds missing Data Stopped alarm to the Dashboard and Alarm Settings screens
+- Adds auto-discovery for Ecowitt GW1000 devices IP addresses
+- Adds DataStopped handling to Ecowitt GW1000 devices
+
+- Updated files
+	\CumulusMX.exe
+	\interface\alarmsettings.html
+	\interface\index.html
+	\interface\js\alarmsettings.js
+	\interface\js\dashboard.js
+
+
+
 3.4.1 - b3065
 =============
 - Fix for WLL if you change the WL.com logging interval around a catch-up period

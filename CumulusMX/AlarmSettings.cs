@@ -82,7 +82,11 @@ namespace CumulusMX
 
 				contactLostEnabled = cumulus.SensorAlarmEnabled,
 				contactLostSoundEnabled = cumulus.SensorAlarmSound,
-				contactLostSound = cumulus.SensorAlarmSoundFile
+				contactLostSound = cumulus.SensorAlarmSoundFile,
+
+				dataStoppedEnabled = cumulus.DataStoppedAlarmEnabled,
+				dataStoppedSoundEnabled = cumulus.DataStoppedAlarmSound,
+				dataStoppedSound = cumulus.DataStoppedAlarmSoundFile
 			};
 
 			var retObject = new JsonAlarmSettings()
@@ -164,6 +168,10 @@ namespace CumulusMX
 				cumulus.SensorAlarmSound = settings.contactLostSoundEnabled;
 				cumulus.SensorAlarmSoundFile = settings.contactLostSound;
 
+				cumulus.DataStoppedAlarmEnabled = settings.dataStoppedEnabled;
+				cumulus.DataStoppedAlarmSound = settings.dataStoppedSoundEnabled;
+				cumulus.DataStoppedAlarmSoundFile = settings.dataStoppedSound;
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -234,6 +242,11 @@ namespace CumulusMX
 		public bool contactLostEnabled;
 		public bool contactLostSoundEnabled;
 		public string contactLostSound;
+
+		public bool dataStoppedEnabled;
+		public bool dataStoppedSoundEnabled;
+		public string dataStoppedSound;
+
 	}
 
 	public class JsonAlarmUnits

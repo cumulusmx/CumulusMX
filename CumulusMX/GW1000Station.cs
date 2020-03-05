@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Timers;
 
 namespace CumulusMX
 {
@@ -17,6 +19,10 @@ namespace CumulusMX
 
 		private TcpClient socket;
 		private bool connectedOK = false;
+		private bool dataReceived = false;
+
+		private readonly System.Timers.Timer tmrDataWatchdog;
+
 
 		private enum Commands : byte {
 			// General order
@@ -199,9 +205,24 @@ namespace CumulusMX
 			cumulus.UseWind10MinAve = true;
 			cumulus.UseSpeedForAvgCalc = false;
 
+			tmrDataWatchdog = new System.Timers.Timer();
+
+
 			ipaddr = cumulus.Gw1000IpAddress;
 
-			cumulus.LogMessage("IP address = " + ipaddr + " Port = " + AT_port);
+			var discoveredIP = DiscoverGW1000();
+
+			if (discoveredIP != "0" && discoveredIP != ipaddr)
+			{
+				cumulus.LogMessage($"Discovered a new IP address for the GW1000: {discoveredIP}");
+				cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredIP}");
+				ipaddr = discoveredIP;
+				cumulus.Gw1000IpAddress = ipaddr;
+				cumulus.WriteIniFile();
+			}
+
+
+			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AT_port);
 			socket = OpenTcpPort();
 
 			connectedOK = socket != null;
@@ -295,6 +316,12 @@ namespace CumulusMX
 			tenMinuteChanged = true;
 			lastMinute = DateTime.Now.Minute;
 
+			// Start a broadcast watchdog to warn if WLL broadcast messages are not being received
+			tmrDataWatchdog.Elapsed += DataTimeout;
+			tmrDataWatchdog.Interval = 1000 * 30; // timeout after 30 seconds
+			tmrDataWatchdog.AutoReset = true;
+			tmrDataWatchdog.Start();
+
 			try
 			{
 				while (!Program.exitSystem)
@@ -355,6 +382,53 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage("Lock: Station releasing lock");
 			Cumulus.syncInit.Release();
+		}
+
+		private string DiscoverGW1000()
+		{
+			var udp = new UdpClient();
+			var BroadcastPort = 46000;
+			var ClientPort = 59387;
+
+			var receiveEp = new IPEndPoint(IPAddress.Any, ClientPort);
+			//var client = new UdpClient(ClientPort);
+
+			var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+			socket.ReceiveTimeout = 2000;
+			socket.Bind(receiveEp);
+			//socket.Listen(1);
+
+			var groupEp = new IPEndPoint(IPAddress.Broadcast, BroadcastPort);
+			var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
+
+			udp.EnableBroadcast = true;
+			udp.Send(sendBytes, sendBytes.Length, groupEp);
+
+			var receivedBytes = new byte[35];
+			socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
+
+			string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
+
+			udp.Close();
+			socket.Close();
+
+			if (ipAddr.Split(new char[] {'.'}, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+			{
+				IPAddress ipAddr2;
+				if (IPAddress.TryParse(ipAddr, out ipAddr2))
+				{
+					cumulus.LogDebugMessage($"debug: Discovered GW1000 at address {ipaddr}");
+					return ipAddr;
+				}
+				else
+				{
+					return "0";
+				}
+			}
+			else
+			{
+				return "0";
+			}
 		}
 
 		private string GetFirmwareVersion()
@@ -749,6 +823,9 @@ namespace CumulusMX
 					DoForecast("", false);
 
 					UpdateStatusPanel(dateTime);
+
+					dataReceived = true;
+					DataStopped = false;
 				}
 				else
 				{
@@ -891,6 +968,7 @@ namespace CumulusMX
 			else
 				return "Low";
 		}
+
 		private string TestBattery1(UInt16 value, UInt16 mask)
 		{
 			if ((value & mask) == 0)
@@ -1115,5 +1193,21 @@ namespace CumulusMX
 			}
 			return val;
 		}
+
+		private void DataTimeout(object source, ElapsedEventArgs e)
+		{
+			if (dataReceived)
+			{
+				dataReceived = false;
+				DataStopped = false;
+			}
+			else
+			{
+				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
+				DataStopped = true;
+				UpdateStatusPanel(DateTime.Now);
+			}
+		}
+
 	}
 }

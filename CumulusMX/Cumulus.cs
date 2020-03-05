@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.1";
-		public string Build = "3065";
+		public string Version = "3.4.2";
+		public string Build = "3066";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -3437,6 +3437,11 @@ namespace CumulusMX
 			SensorAlarmSoundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
 			if (SensorAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
 
+			DataStoppedAlarmEnabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", false);
+			DataStoppedAlarmSound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
+			DataStoppedAlarmSoundFile = ini.GetValue("Alarms", "DataStoppedlarmSoundFile", DefaultSoundFile);
+			if (DataStoppedAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
+
 			PressOffset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			TempOffset = ini.GetValue("Offsets", "TempOffset", 0.0);
 			HumOffset = ini.GetValue("Offsets", "HumOffset", 0);
@@ -3938,6 +3943,10 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "SensorAlarmSound", SensorAlarmSound);
 			ini.SetValue("Alarms", "SensorAlarmSoundFile", SensorAlarmSoundFile);
 
+			ini.SetValue("Alarms", "DataStoppedAlarmSet", DataStoppedAlarmEnabled);
+			ini.SetValue("Alarms", "DataStoppedAlarmSound", DataStoppedAlarmSound);
+			ini.SetValue("Alarms", "DataStoppedAlarmSoundFile", DataStoppedAlarmSoundFile);
+
 			ini.SetValue("Offsets", "PressOffset", PressOffset);
 			ini.SetValue("Offsets", "TempOffset", TempOffset);
 			ini.SetValue("Offsets", "HumOffset", HumOffset);
@@ -4349,6 +4358,14 @@ namespace CumulusMX
 				DavisForecast3[6] = ini.GetValue("DavisForecast3", "forecast7", "Increasing winds.");
 			}
 		}
+
+		public string DataStoppedAlarmSoundFile { get; set; }
+
+		public bool DataStoppedAlarmSound { get; set; }
+
+		public bool DataStoppedAlarmEnabled { get; set; }
+
+		//public bool DataStoppedAlarmState { get; set; }
 
 		public string SensorAlarmSoundFile { get; set; }
 
@@ -6582,7 +6599,7 @@ namespace CumulusMX
 			// start the general one-minute timer
 			LogMessage("Starting 1-minute timer");
 			station.StartMinuteTimer();
-			LogMessage("Data logging intverval = " + DataLogInterval);
+			LogMessage("Data logging interval = " + DataLogInterval);
 
 			if (RealtimeFTPEnabled)
 			{
