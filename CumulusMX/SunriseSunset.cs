@@ -100,7 +100,6 @@ namespace CumulusMX
             return a + b + (int)Math.Floor(30.6001 * (month + 1)) + day;
         }
 
-
         private static double frac(double x)
         {
             //
@@ -163,7 +162,6 @@ namespace CumulusMX
             //return "0000";
         }
 
-
         private static double lmst(double mjd, double glong)
         {
             //
@@ -218,7 +216,6 @@ namespace CumulusMX
                 ra += 24;
             }
         }
-
 
         private static void quad(double ym, double yz, double yp, ref int nz, ref double z1, ref double z2, ref double xe, ref double ye)
         {

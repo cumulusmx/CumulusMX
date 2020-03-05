@@ -520,7 +520,6 @@ namespace CumulusMX
 						dryPeriodTime = thisDateDry;
 					}
 
-
 					json += "\"highTempValDayfile\":\"" + highTempVal.ToString(cumulus.TempFormat) + "\",";
 					json += "\"highTempTimeDayfile\":\"" + highTempTime.ToString(timeStampFormat) + "\",";
 					json += "\"lowTempValDayfile\":\"" + lowTempVal.ToString(cumulus.TempFormat) + "\",";
@@ -997,7 +996,6 @@ namespace CumulusMX
 				dryPeriodTime = thisDateDry;
 			}
 
-
 			json += "\"highTempValLogfile\":\"" + highTempVal.ToString(cumulus.TempFormat) + "\",";
 			json += "\"highTempTimeLogfile\":\"" + highTempTime.ToString(timeStampFormat) + "\",";
 			json += "\"lowTempValLogfile\":\"" + lowTempVal.ToString(cumulus.TempFormat) + "\",";
@@ -1076,7 +1074,6 @@ namespace CumulusMX
 		{
 			var request = context.Request;
 			string text;
-
 
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
@@ -1277,7 +1274,6 @@ namespace CumulusMX
 			var request = context.Request;
 			string text;
 
-
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
 				text = Uri.UnescapeDataString(reader.ReadToEnd());
@@ -1477,7 +1473,6 @@ namespace CumulusMX
 			return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 		}
 
-
 		internal string GetMonthlyRecData()
 		{
 			const string timeStampFormat = "dd/MM/yy HH:mm";
@@ -1546,7 +1541,6 @@ namespace CumulusMX
 				json += $"\"{m}-highMonthlyRainTime\":\"" + station.monthlyrecarray[WeatherStation.AT_wetmonth, m].timestamp.ToString("yyyy/MM") + "\",";
 				json += $"\"{m}-longestDryPeriodTime\":\"" + station.monthlyrecarray[WeatherStation.AT_longestdryperiod, m].timestamp.ToString(dateStampFormat) + "\",";
 				json += $"\"{m}-longestWetPeriodTime\":\"" + station.monthlyrecarray[WeatherStation.AT_longestwetperiod, m].timestamp.ToString(dateStampFormat) + "\",";
-
 			}
 			json = json.Remove(json.Length - 1);
 			json += "}";
@@ -2266,7 +2260,6 @@ namespace CumulusMX
 									monthlyRain += dayRain;
 								}
 
-
 								currentDay = metoDate;
 								dayHighTemp = outsidetemp;
 								dayLowTemp = outsidetemp;
@@ -2381,7 +2374,6 @@ namespace CumulusMX
 			return json;
 		}
 
-
 		internal string GetThisMonthRecData()
 		{
 			const string timeStampFormat = "dd/MM/yy HH:mm";
@@ -2451,7 +2443,6 @@ namespace CumulusMX
 		{
 			var request = context.Request;
 			string text;
-
 
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
@@ -2640,7 +2631,6 @@ namespace CumulusMX
 			return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 		}
 
-
 		internal string GetThisYearRecData()
 		{
 			const string timeStampFormat = "dd/MM/yy HH:mm";
@@ -2712,7 +2702,6 @@ namespace CumulusMX
 		{
 			var request = context.Request;
 			string text;
-
 
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
@@ -2907,8 +2896,6 @@ namespace CumulusMX
 			}
 			return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 		}
-
-
 
 		internal string GetCurrentCond()
 		{

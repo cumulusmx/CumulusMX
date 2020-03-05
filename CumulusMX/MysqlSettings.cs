@@ -192,8 +192,6 @@ namespace CumulusMX
 				cumulus.CustomMysqlRolloverConn.Password = cumulus.MySqlPass;
 				cumulus.CustomMysqlRolloverConn.Database = cumulus.MySqlDatabase;
 
-
-
 				context.Response.StatusCode = 200;
 			}
 			catch (Exception ex)

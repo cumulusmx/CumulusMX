@@ -12,7 +12,6 @@ namespace CumulusMX
 		//private string[] report;
 		private string noaafile;
 
-
 		public NOAAReports(Cumulus cumulus)
 		//public NOAAReports()
 		{
@@ -53,7 +52,6 @@ namespace CumulusMX
 
 			return report;
 		}
-
 
 		public List<string> GetNoaaYearReport(int year)
 		{
@@ -102,7 +100,5 @@ namespace CumulusMX
 			}
 			return report;
 		}
-
-
 	}
 }

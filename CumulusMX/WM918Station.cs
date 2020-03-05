@@ -29,7 +29,6 @@ namespace CumulusMX
 			cumulus.LogMessage("Station type = WM918");
 
 			startReadingHistoryData();
-
 		}
 
 		// Not used - now uses polling in Start() because Mono doesn't support data received events
@@ -45,12 +44,10 @@ namespace CumulusMX
 			// Create a byte array buffer to hold the incoming data
 			//byte[] buffer = new byte[bytes];
 
-
 			for (int i = 0; i < bytes; i++)
 			{
 				// Read a byte from the port
 				nextByte = port.ReadByte();
-
 
 				switch (currentPacketLength)
 				{
@@ -88,7 +85,6 @@ namespace CumulusMX
 						break;
 				} // end of switch for current packet length
 			} // end of for loop for available chars
-
 		}
 
 		public override void Start()
@@ -120,7 +116,6 @@ namespace CumulusMX
 						{
 							// Read a byte from the port
 							nextByte = comport.ReadByte();
-
 
 							switch (currentPacketLength)
 							{
@@ -176,7 +171,6 @@ namespace CumulusMX
 				Handshake = Handshake.None,
 				RtsEnable = true,
 				DtrEnable = true
-
 			};
 
 			//comport.DataReceived += new SerialDataReceivedEventHandler(portDataReceived);
@@ -201,7 +195,6 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
-
 		}
 
 		/// <summary>
@@ -233,7 +226,6 @@ namespace CumulusMX
 				else
 					result = true;
 			}
-
 			return result;
 		}
 
@@ -289,7 +281,6 @@ namespace CumulusMX
 					Trace.Write(" " + buff[i].ToString("X2"));
 				}
 				cumulus.LogMessage(" ");
-
 			}
 		}
 

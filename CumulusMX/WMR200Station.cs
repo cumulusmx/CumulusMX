@@ -109,7 +109,6 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
-
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -136,7 +135,6 @@ namespace CumulusMX
 				rollHour = cumulus.RolloverHour + 1;
 				HourInc = -10;
 			}
-
 			else
 			{
 				// Locale is currently on Standard time or unknown
@@ -303,12 +301,11 @@ namespace CumulusMX
 				//Thread.Sleep(100);
 			}
 
-				// Catch the ThreadAbortException
+			// Catch the ThreadAbortException
 			catch (ThreadAbortException)
 			{
 			}
 		}
-
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
@@ -667,7 +664,6 @@ namespace CumulusMX
 				DoExtraDP(WMR200ExtraDPValues[sensor],sensor);
 				ExtraSensorsDetected = true;
 			}
-
 		}
 
 		private void ProcessRainPacket()
@@ -1051,7 +1047,6 @@ namespace CumulusMX
 			//CHECKSUM ---- Add up the bytes 00 to 07 == ((256*cH) + cL)
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
-
 
 			var num = PacketBuffer[7] & 0xF;
 
@@ -1523,7 +1518,6 @@ namespace CumulusMX
 						tempsamplestoday += interval;
 						TempTotalToday += (OutdoorTemperature*interval);
 
-
 						// update chill hours
 						if (OutdoorTemperature < cumulus.ChillHourThreshold)
 						{
@@ -1799,7 +1793,6 @@ namespace CumulusMX
 		{
 			return endTime.Subtract(startTime).Minutes;
 		}
-
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{

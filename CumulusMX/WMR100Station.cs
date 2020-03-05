@@ -35,7 +35,6 @@ namespace CumulusMX
         private const int PacketBufferBound = 255;
         private readonly byte[] usbbuffer = new byte[9];
 
-
         public WMR100Station(Cumulus cumulus) : base(cumulus)
         {
             cumulus.Manufacturer = cumulus.OREGONUSB;
@@ -119,17 +118,13 @@ namespace CumulusMX
                             switch (CurrentPacketLength)
                             {
                                 case 0: // We're looking for the start of a packet
-
                                     if (C == 0xFF)
                                     {
                                         // Possible start of packet
                                         CurrentPacketLength = 1;
                                     }
-
                                     break;
-
                                 case 1: // We're looking for the second start-of-packet character
-
                                     if (C == 0xFF)
                                     {
                                         // Possible continuation
@@ -140,17 +135,12 @@ namespace CumulusMX
                                         // Incorrect sequence, start again
                                         CurrentPacketLength = 0;
                                     }
-
                                     break;
-
                                 case 2: // This is typically a flags byte, and will be the first byte of our actual data packet
-
                                     PacketBuffer[0] = C;
                                     CurrentPacketLength = 3;
-
                                     break;
                                 default: // We've had the packet header and the flags byte, continue collecting the packet
-
                                     PacketBuffer[CurrentPacketLength - 2] = C;
                                     CurrentPacketLength++;
                                     if (CurrentPacketLength == 4)
@@ -166,7 +156,6 @@ namespace CumulusMX
                                         CurrentPacketLength = 0;
                                         CurrentPacketType = 255;
                                     }
-
                                     break;
                             } // end of case for current packet length
                         }
@@ -539,7 +528,6 @@ namespace CumulusMX
 
             int forecast = PacketBuffer[3]/16;
             string fcstr;
-
 
             switch (forecast)
             {
