@@ -33,7 +33,7 @@ namespace CumulusMX
 		private int MaxArchiveRuns = 1;
 		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
 		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
-		private bool checkWllGustValues;
+		private readonly bool checkWllGustValues;
 		private bool broadcastReceived = false;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
@@ -358,100 +358,108 @@ namespace CumulusMX
 			{
 				cumulus.LogDataMessage("WLL Broadcast: " + broadcastJson);
 
-				var data = Newtonsoft.Json.Linq.JObject.Parse(broadcastJson);
-
-				// The WLL sends the timestamp in Unix ticks, and in UTC
-				// rather than rely on the WLL clock being correct, we will use our local time
-				//var dateTime = FromUnixTime((int)data["ts"]);
-				var dateTime = DateTime.Now;
-				foreach (var rec in data["conditions"])
+				// sanity check
+				if (broadcastJson.StartsWith("{\"did\":"))
 				{
-					var txid = (int)rec["txid"];
+					var data = Newtonsoft.Json.Linq.JObject.Parse(broadcastJson);
 
-					// Wind
-					/* Available fields:
-					 * rec["wind_speed_last"]
-					 * rec["wind_dir_last"]
-					 * rec["wind_speed_hi_last_10_min"]
-					 * rec["wind_dir_at_hi_speed_last_10_min"]
-					 */
-					if (cumulus.WllPrimaryWind == txid)
+					// The WLL sends the timestamp in Unix ticks, and in UTC
+					// rather than rely on the WLL clock being correct, we will use our local time
+					//var dateTime = FromUnixTime((int)data["ts"]);
+					var dateTime = DateTime.Now;
+					foreach (var rec in data["conditions"])
 					{
-						if (string.IsNullOrEmpty((string)rec["wind_speed_last"]) || string.IsNullOrEmpty((string)rec["wind_dir_last"]))
+						var txid = (int)rec["txid"];
+
+						// Wind
+						/* Available fields:
+						 * rec["wind_speed_last"]
+						 * rec["wind_dir_last"]
+						 * rec["wind_speed_hi_last_10_min"]
+						 * rec["wind_dir_at_hi_speed_last_10_min"]
+						 */
+						if (cumulus.WllPrimaryWind == txid)
 						{
-							cumulus.LogDebugMessage($"WLL broadcast: no valid wind speed found [speed={(string)rec["wind_speed_last"]}, dir= {(string)rec["wind_dir_last"]}] on TxId {txid}");
+							if (string.IsNullOrEmpty((string)rec["wind_speed_last"]) || string.IsNullOrEmpty((string)rec["wind_dir_last"]))
+							{
+								cumulus.LogDebugMessage($"WLL broadcast: no valid wind speed found [speed={(string)rec["wind_speed_last"]}, dir= {(string)rec["wind_dir_last"]}] on TxId {txid}");
+							}
+							else
+							{
+								// No average in the broadcast data, so use last value from current - allow for calibration
+								DoWind((double)rec["wind_speed_last"], (int)rec["wind_dir_last"], WindAverage / cumulus.WindSpeedMult, dateTime);
+
+								if (checkWllGustValues)
+								{
+									var gust = ConvertWindMPHToUser((double)rec["wind_speed_hi_last_10_min"]) * cumulus.WindGustMult;
+
+									if (gust > RecentMaxGust)
+									{
+										// See if the station 10 min high speed is higher than our current 10-min max
+										// ie we missed the high gust
+										cumulus.LogDebugMessage("Setting max gust from broadcast 10 min high value: " + gust.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+
+										CheckHighGust(gust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
+										// add to recent values so normal calculation includes this value
+										WindRecent[nextwind].Gust = gust / cumulus.WindGustMult;
+										WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
+										WindRecent[nextwind].Timestamp = dateTime;
+										nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+
+										RecentMaxGust = gust;
+									}
+								}
+								else if (!CalcRecentMaxGust)
+								{
+									RecentMaxGust = ConvertWindMPHToUser((double)rec["wind_speed_hi_last_10_min"]) * cumulus.WindGustMult;
+									CheckHighGust(RecentMaxGust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
+								}
+							}
+						}
+
+						// Rain
+						/*
+						 * All fields are *tip counts*
+						 * Available fields:
+						 * rec["rain_size"] - 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
+						 * rec["rain_rate_last"]
+						 * rec["rain_15_min"]
+						 * rec["rain_60_min"]
+						 * rec["rain_24_hr"]
+						 * rec["rain_storm"]
+						 * rec["rain_storm_start_at"]
+						 * rec["rainfall_daily"]
+						 * rec["rainfall_monthly"]
+						 * rec["rainfall_year"])
+						 */
+						if (cumulus.WllPrimaryRain != txid) continue;
+
+						if (string.IsNullOrEmpty((string)rec["rainfall_year"]) || string.IsNullOrEmpty((string)rec["rain_rate_last"]) || string.IsNullOrEmpty((string)rec["rain_size"]))
+						{
+							cumulus.LogDebugMessage($"WLL broadcast: no valid rainfall found [total={(string)rec["rainfall_year"]}, rate= {(string)rec["rain_rate_last"]}] on TxId {txid}");
 						}
 						else
 						{
-							// No average in the broadcast data, so use last value from current - allow for calibration
-							DoWind((double)rec["wind_speed_last"], (int)rec["wind_dir_last"], WindAverage / cumulus.WindSpeedMult, dateTime);
+							var rain = ConvertRainClicksToUser((double)rec["rainfall_year"], (int)rec["rain_size"]);
+							var rainrate = ConvertRainClicksToUser((double)rec["rain_rate_last"], (int)rec["rain_size"]);
 
-							if (checkWllGustValues)
+							if (rainrate < 0)
 							{
-								var gust = ConvertWindMPHToUser((double)rec["wind_speed_hi_last_10_min"]) * cumulus.WindGustMult;
-
-								if (gust > RecentMaxGust)
-								{
-									// See if the station 10 min high speed is higher than our current 10-min max
-									// ie we missed the high gust
-									cumulus.LogDebugMessage("Setting max gust from broadcast 10 min high value: " + gust.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-
-									CheckHighGust(gust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
-									// add to recent values so normal calculation includes this value
-									WindRecent[nextwind].Gust = gust / cumulus.WindGustMult;
-									WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
-									WindRecent[nextwind].Timestamp = dateTime;
-									nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
-
-									RecentMaxGust = gust;
-								}
+								rainrate = 0;
 							}
-							else if (!CalcRecentMaxGust)
-							{
-								RecentMaxGust = ConvertWindMPHToUser((double) rec["wind_speed_hi_last_10_min"]) *cumulus.WindGustMult;
-								CheckHighGust(RecentMaxGust, (int)rec["wind_dir_at_hi_speed_last_10_min"], dateTime);
-							}
+
+							DoRain(rain, rainrate, dateTime);
 						}
 					}
+					UpdateStatusPanel(DateTime.Now);
 
-					// Rain
-					/*
-					 * All fields are *tip counts*
-					 * Available fields:
-					 * rec["rain_size"] - 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
-					 * rec["rain_rate_last"]
-					 * rec["rain_15_min"]
-					 * rec["rain_60_min"]
-					 * rec["rain_24_hr"]
-					 * rec["rain_storm"]
-					 * rec["rain_storm_start_at"]
-					 * rec["rainfall_daily"]
-					 * rec["rainfall_monthly"]
-					 * rec["rainfall_year"])
-					 */
-					if (cumulus.WllPrimaryRain != txid) continue;
-
-					if (string.IsNullOrEmpty((string)rec["rainfall_year"]) || string.IsNullOrEmpty((string)rec["rain_rate_last"]) || string.IsNullOrEmpty((string)rec["rain_size"]))
-					{
-						cumulus.LogDebugMessage($"WLL broadcast: no valid rainfall found [total={(string)rec["rainfall_year"]}, rate= {(string)rec["rain_rate_last"]}] on TxId {txid}");
-					}
-					else
-					{
-						var rain = ConvertRainClicksToUser((double)rec["rainfall_year"], (int)rec["rain_size"]);
-						var rainrate = ConvertRainClicksToUser((double)rec["rain_rate_last"], (int)rec["rain_size"]);
-
-						if (rainrate < 0)
-						{
-							rainrate = 0;
-						}
-
-						DoRain(rain, rainrate, dateTime);
-					}
+					broadcastReceived = true;
+					DataStopped = false;
 				}
-				UpdateStatusPanel(DateTime.Now);
-
-				broadcastReceived = true;
-				DataStopped = false;
+				else
+				{
+					cumulus.LogMessage("WLL broadcast: Invalid payload in message");
+				}
 			}
 			catch (Exception exp)
 			{
@@ -1056,7 +1064,7 @@ namespace CumulusMX
 
 		private void OnServiceRemoved(object sender, ServiceAnnouncementEventArgs e)
 		{
-			PrintService('-', e.Announcement);
+			cumulus.LogMessage("ZeroConfig Service: WLL service has been removed!");
 		}
 
 		private void OnServiceAdded(object sender, ServiceAnnouncementEventArgs e)
@@ -1296,7 +1304,7 @@ namespace CumulusMX
 				return;
 			}
 
-			if (cumulus.WllStationId == String.Empty)
+			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
 			{
 				var msg = "No WeatherLink API station ID in the cumulus.ini file";
 				cumulus.LogMessage(msg);
@@ -1306,8 +1314,6 @@ namespace CumulusMX
 					return;
 				}
 			}
-
-			Console.WriteLine("Downloading Historic Data from WL.com");
 
 			//int passCount;
 			//const int maxPasses = 4;
@@ -1324,6 +1330,9 @@ namespace CumulusMX
 				endTime = startTime + unix24hrs;
 				MaxArchiveRuns++;
 			}
+
+			Console.WriteLine($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
+			cumulus.LogMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>();
 			parameters.Add("api-key", cumulus.WllApiKey);
@@ -1388,33 +1397,49 @@ namespace CumulusMX
 					cumulus.LogMessage("WeatherLink API Historic Error: " + (string)jObject["code"] + ", " + (string)jObject["message"]);
 					return;
 				}
-				// get the sensor data
-				sensorData = jObject["sensors"];
 
-				foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+				if (responseBody == "{}")
 				{
-					if ((int)sensor["sensor_type"] != 504)
-					{
-						var recs = sensor["data"].Count();
-						if (recs > noOfRecs)
-							noOfRecs = recs;
-					}
-				}
-
-				if (noOfRecs == 0)
-				{
-					cumulus.LogMessage("No historic data available");
+					cumulus.LogMessage("WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Console.WriteLine(" - No historic data available");
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
 					return;
 				}
-				else
+				else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
 				{
-					cumulus.LogMessage($"Found {noOfRecs} historic records to process");
+					// get the sensor data
+					sensorData = jObject["sensors"];
+
+					foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+					{
+						if ((int)sensor["sensor_type"] != 504)
+						{
+							var recs = sensor["data"].Count();
+							if (recs > noOfRecs)
+								noOfRecs = recs;
+						}
+					}
+
+					if (noOfRecs == 0)
+					{
+						cumulus.LogMessage("No historic data available");
+						Console.WriteLine(" - No historic data available");
+						return;
+					}
+					else
+					{
+						cumulus.LogMessage($"Found {noOfRecs} historic records to process");
+					}
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogMessage("Invalid historic message received");
+					cumulus.LogDataMessage("Received: " + responseBody);
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("GetWlHistoricData exception: " + ex.Message);
+				cumulus.LogMessage("GetWlHistoricData exception: " + ex.Message);
 			}
 
 			for (int dataIndex = 0; dataIndex < noOfRecs; dataIndex++)
@@ -1499,7 +1524,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogDebugMessage("GetWlHistoricData exception: " + ex.Message);
+					cumulus.LogMessage("GetWlHistoricData exception: " + ex.Message);
 				}
 			}
 
@@ -2136,7 +2161,7 @@ namespace CumulusMX
 				return;
 			}
 
-			if (cumulus.WllStationId == String.Empty)
+			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
 			{
 				cumulus.LogMessage("No WeatherLink API station ID in the cumulus.ini file");
 				if (!GetAvailableStationIds())
@@ -2191,6 +2216,12 @@ namespace CumulusMX
 				if ((int)response.StatusCode != 200)
 				{
 					cumulus.LogMessage("WeatherLink API Current Error: " + (string)jObject["code"] + ", " + (string)jObject["message"]);
+					return;
+				}
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("WeatherLink API Current: No data was returned. Check your Device Id.");
 					return;
 				}
 
@@ -2302,11 +2333,15 @@ namespace CumulusMX
 			if (broadcastReceived)
 			{
 				broadcastReceived = false;
+				DataStopped = false;
 			}
 			else
 			{
-				cumulus.LogMessage("ERROR: No broadcast data received from the WLL for 30 seconds");
+				cumulus.LogMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
+				UpdateStatusPanel(DateTime.Now);
+				// Try and give the broadcasts a kick in case the last command did not get through
+				GetWllRealtime(null, null);
 			}
 		}
 	}
