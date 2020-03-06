@@ -1,3 +1,15 @@
+3.4.3 - b3067
+=============
+- Adds a new option to Davis WLL and Ecowitt GW1000 station settings to disable IP address auto-discovery. Use this option
+  if you have more than one of these devices on your network, then enter the IP address manually.
+
+- Updated files
+	\CumulusMX.exe
+	\interface\json\StationOptions.json
+	\interface\json\StationSchema.json
+
+
+
 3.4.2 - b3066
 =============
 - Improved error handing for invalid Davis WLL Station Ids
