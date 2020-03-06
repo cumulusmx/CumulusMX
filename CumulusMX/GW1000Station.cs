@@ -212,15 +212,14 @@ namespace CumulusMX
 
 			var discoveredIP = DiscoverGW1000();
 
-			if (discoveredIP != "0" && discoveredIP != ipaddr)
+			if (cumulus.Gw1000AutoUpdateIpAddress && discoveredIP != "0" && discoveredIP != ipaddr)
 			{
-				cumulus.LogMessage($"Discovered a new IP address for the GW1000: {discoveredIP}");
+				cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
 				cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredIP}");
 				ipaddr = discoveredIP;
 				cumulus.Gw1000IpAddress = ipaddr;
 				cumulus.WriteIniFile();
 			}
-
 
 			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AT_port);
 			socket = OpenTcpPort();
@@ -417,7 +416,7 @@ namespace CumulusMX
 				IPAddress ipAddr2;
 				if (IPAddress.TryParse(ipAddr, out ipAddr2))
 				{
-					cumulus.LogDebugMessage($"debug: Discovered GW1000 at address {ipaddr}");
+					cumulus.LogMessage($"Discovered a GW1000 at address {ipaddr}");
 					return ipAddr;
 				}
 				else

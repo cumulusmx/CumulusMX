@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.2";
-		public string Build = "3066";
+		public string Version = "3.4.3";
+		public string Build = "3067";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -3160,7 +3160,7 @@ namespace CumulusMX
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
 			WllStationId = ini.GetValue("WLL", "WLStationId", "");
 			if (WllStationId == "-1") WllStationId = "";
-			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true); // Readonly setting, default to True
+			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 300);      // Readonly setting, default 5 minutes
 			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);            // Readonly setting, default 22222
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
@@ -3197,6 +3197,7 @@ namespace CumulusMX
 
 			// GW1000 setiings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
+			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
@@ -3723,6 +3724,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "RG11DTRmode2", RG11DTRmode2);
 
 			// WeatherLink Live device settings
+			ini.SetValue("WLL", "AutoUpdateIpAddress", WLLAutoUpdateIpAddress);
 			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
 			ini.SetValue("WLL", "WLv2ApiSecret", WllApiSecret);
 			ini.SetValue("WLL", "WLStationId", WllStationId);
@@ -3758,7 +3760,9 @@ namespace CumulusMX
 				ini.SetValue("WLL", "ExtraHumOnTxId" + i, WllExtraHumTx[i - 1]);
 			}
 
+			// GW1000 settings
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
+			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
@@ -4831,6 +4835,7 @@ namespace CumulusMX
 		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false };
 
 		public string Gw1000IpAddress;
+		public bool Gw1000AutoUpdateIpAddress = true;
 
 		public Timer WundTimer = new Timer();
 		public Timer WindyTimer = new Timer();

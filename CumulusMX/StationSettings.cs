@@ -63,7 +63,7 @@ namespace CumulusMX
 
 			var davisconn = new JsonStationSettingsDavisConn() {conntype = cumulus.VP2ConnectionType, tcpsettings = tcpsettings};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress};
+			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress };
 
 			var logrollover = new JsonStationSettingsLogRollover() {time = "midnight",summer10am = cumulus.Use10amInSummer};
 
@@ -125,6 +125,11 @@ namespace CumulusMX
 			var annualrainfall = new JsonStationSettingsAnnualRainfall() {rainseasonstart = cumulus.RainSeasonStart, ytdamount = cumulus.YTDrain, ytdyear = cumulus.YTDrainyear};
 
 			var graphs = new JsonStationSettingsGraphs() {graphdays = cumulus.GraphDays, graphhours = cumulus.GraphHours};
+
+			var wllNetwork = new JsonStationSettingsWLLNetwork()
+			{
+				autoDiscover = cumulus.WLLAutoUpdateIpAddress
+			};
 
 			var wllApi = new JsonStationSettingsWLLApi()
 			{
@@ -194,6 +199,7 @@ namespace CumulusMX
 
 			var wll = new JsonStationSettingsWLL()
 			{
+				network = wllNetwork,
 				api = wllApi,
 				primary = wllPrimary,
 				soilLeaf = wllSoilLeaf,
@@ -382,6 +388,7 @@ namespace CumulusMX
 				cumulus.Use10amInSummer = settings.logrollover.summer10am;
 
 				// WLL
+				cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
 				cumulus.WllApiKey = settings.daviswll.api.apiKey;
 				cumulus.WllApiSecret = settings.daviswll.api.apiSecret;
 				cumulus.WllStationId = settings.daviswll.api.apiStationId == "-1" ? "" : settings.daviswll.api.apiStationId;
@@ -447,6 +454,7 @@ namespace CumulusMX
 
 				// GW1000 connection details
 				cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
+				cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
 
 				// Units
 				cumulus.WindUnit = settings.units.wind;
@@ -576,6 +584,7 @@ namespace CumulusMX
 	public class JSonStationSettingsGw1000Conn
 	{
 		public string ipaddress { get; set; }
+		public bool autoDiscover { get; set; }
 	}
 
 	public class JsonStationSettingsLogRollover
@@ -624,10 +633,16 @@ namespace CumulusMX
 
 	public class JsonStationSettingsWLL
 	{
+		public JsonStationSettingsWLLNetwork network { get; set; }
 		public JsonStationSettingsWLLApi api { get; set; }
 		public JsonStationSettingsWllPrimary primary { get; set; }
 		public JsonStationSettingsWllSoilLeaf soilLeaf { get; set; }
 		public JsonStationSettingsWllExtraTemp extraTemp { get; set; }
+	}
+
+	public class JsonStationSettingsWLLNetwork
+	{
+		public bool autoDiscover { get; set; }
 	}
 
 	public class JsonStationSettingsWLLApi
