@@ -1,3 +1,15 @@
+3.4.4 - b3068
+=============
+- Fix for incorrect NOAA yearly report, annual averages for tempertaure and wind were calculated incorrectly
+- Now detects invalid CumulusMX.exe command line parameters
+- Adds a new command line parameter -debug. This switches on debug and data logging from the start-up of Cumulus MX. You no
+  longer have to edit Cumulus.ini to gather these diagnostics.
+
+- Updated files
+	\CumulusMX.exe
+
+
+
 3.4.3 - b3067
 =============
 - Adds a new option to Davis WLL and Ecowitt GW1000 station settings to disable IP address auto-discovery. Use this option

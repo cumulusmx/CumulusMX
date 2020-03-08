@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.3";
-		public string Build = "3067";
+		public string Version = "3.4.4";
+		public string Build = "3068";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -428,6 +428,7 @@ namespace CumulusMX
 
 		private readonly int HttpPort = 8998;
 		internal int wsPort = 8998;
+		private readonly bool DebuggingEnabled = false;
 
 		public bool LogExtraSensors = false;
 
@@ -920,7 +921,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public Cumulus(int HTTPport)
+		public Cumulus(int HTTPport, bool DebugEnabled)
 		{
 			//DoLicenseCheck();
 
@@ -936,9 +937,11 @@ namespace CumulusMX
 				throw new Exception("license validation failed");
 			*/
 
-			string serial = CalculateMD5Hash(Environment.MachineName);
-			Console.WriteLine("Serial: " + serial);
-			File.WriteAllText("serial.txt", serial);
+
+
+			//string serial = CalculateMD5Hash(Environment.MachineName);
+			//Console.WriteLine("Serial: " + serial);
+			//File.WriteAllText("serial.txt", serial);
 			/*
 						try
 						{
@@ -987,6 +990,9 @@ namespace CumulusMX
 							Environment.Exit(0);
 						}
 			*/
+
+
+
 			DirectorySeparator = Path.DirectorySeparatorChar;
 
 			AppDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -1000,6 +1006,8 @@ namespace CumulusMX
 			//b3045>, use same port for WS...  WS port = HTTPS port
 			//wsPort = WSport;
 			wsPort = HTTPport;
+
+			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
 			string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
@@ -3125,13 +3133,17 @@ namespace CumulusMX
 
 			special_logging = ini.GetValue("Station", "SpecialLog", false);
 			solar_logging = ini.GetValue("Station", "SolarLog", false);
-#if DEBUG
-			logging = true;
-			DataLogging = true;
-#else
-			logging = ini.GetValue("Station", "Logging", false);
-			DataLogging = ini.GetValue("Station", "DataLogging", false);
-#endif
+
+			if (DebuggingEnabled)
+			{
+				logging = true;
+				DataLogging = true;
+			}
+			else
+			{
+				logging = ini.GetValue("Station", "Logging", false);
+				DataLogging = ini.GetValue("Station", "DataLogging", false);
+			}
 
 			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
