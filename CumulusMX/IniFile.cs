@@ -197,6 +197,9 @@ namespace CumulusMX
 				string Value;
 				if (!Section.TryGetValue(Key, out Value)) return DefaultValue;
 
+				// *** Check if the value is blank ***
+				if (string.IsNullOrWhiteSpace(Value)) return DefaultValue;
+
 				// *** Return the found value ***
 				return Value;
 			}

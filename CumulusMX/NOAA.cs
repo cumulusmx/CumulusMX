@@ -1060,10 +1060,10 @@ namespace CumulusMX
 			{
 				if (MonthList[m].valid)
 				{
-					samples++;
-					totalmeanmaxtemp += MonthList[m].meanmaxtemp;
-					totalmeanmintemp += MonthList[m].meanmintemp;
-					totalmeantemp += MonthList[m].meantemp;
+					samples += MonthList[m].samples;
+					totalmeanmaxtemp += MonthList[m].meanmaxtemp * MonthList[m].samples;
+					totalmeanmintemp += MonthList[m].meanmintemp * MonthList[m].samples;
+					totalmeantemp += MonthList[m].meantemp * MonthList[m].samples;
 
 					if (MonthList[m].maxtemp > maxtemp)
 					{
@@ -1230,8 +1230,8 @@ namespace CumulusMX
 					{
 						// String.Format the average into the display line
 						Line += String.Format("{0,6:F1}", MonthList[m].avgwindspeed);
-						totalavgwind += MonthList[m].avgwindspeed;
-						avgwindcount++;
+						totalavgwind += MonthList[m].avgwindspeed * MonthList[m].samples;
+						avgwindcount += MonthList[m].samples;
 					}
 
 					// String.Format the high wind speed and dominant direction into the display line
@@ -1246,8 +1246,8 @@ namespace CumulusMX
 					}
 
 					// increment the total wind vectors for the annual calculation
-					totalwinddirX += (MonthList[m].avgwindspeed*Math.Sin(DegToRad(domdir)));
-					totalwinddirY += (MonthList[m].avgwindspeed*Math.Cos(DegToRad(domdir)));
+					totalwinddirX += (MonthList[m].avgwindspeed*Math.Sin(DegToRad(domdir))) * MonthList[m].samples;
+					totalwinddirY += (MonthList[m].avgwindspeed*Math.Cos(DegToRad(domdir))) * MonthList[m].samples;
 				}
 				output.Add(Line);
 			}
@@ -1260,7 +1260,7 @@ namespace CumulusMX
 				if (avgwindcount == 0)
 					Line = "        ----";
 				else
-					Line = String.Format("{0,12:F1}", totalavgwind/avgwindcount);
+					Line = String.Format("{0,12:F1}", totalavgwind / avgwindcount);
 
 				Line += String.Format("{0,6:F1}", highwind);
 				if (highwindmonth == 0)

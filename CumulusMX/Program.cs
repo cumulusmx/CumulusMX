@@ -62,6 +62,7 @@ namespace CumulusMX
             }
 
             int httpport = 8998;
+            bool debug = false;
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
@@ -69,23 +70,45 @@ namespace CumulusMX
             {
                 if (args[i] == "-lang" && args.Length >= i)
                 {
-                    var lang = args[i + 1];
+                    var lang = args[++i];
 
                     CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
                     CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
                 }
-
-                if (args[i] == "-port" && args.Length >= i)
+                else if (args[i] == "-port" && args.Length >= i)
                 {
-                    httpport = Convert.ToInt32(args[i + 1]);
+                    httpport = Convert.ToInt32(args[++i]);
+                }
+                else if (args[i] == "-debug")
+                {
+                    // Switch on debug and and data logging from the start
+                    debug = true;
+                }
+                else if (args[i] == "-wsport")
+                {
+                    i++;
+                    Console.WriteLine("The use of the -wsport command line parameter is deprecated");
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid command line argument \"{args[i]}\"");
+                    Console.WriteLine("Valid arugments are:");
+                    Console.WriteLine(" -port <http_portnum> - Sets the HTTP port Cumulus will use (default 8998)");
+                    Console.WriteLine(" -lang <culture_name> - Sets the Language Cumulus will use (defaults to current user language)");
+                    Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");
+                    Console.WriteLine("\nCumulus terminating");
+                    Environment.Exit(1);
                 }
             }
 
+#if DEBUG
+            debug = true;
+#endif
             //System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo("en-GB");
             //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo("en-GB");
             Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 
-            cumulus = new Cumulus(httpport);
+            cumulus = new Cumulus(httpport, debug);
 
             DateTime now = DateTime.Now;
 
