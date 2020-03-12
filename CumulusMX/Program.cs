@@ -68,36 +68,38 @@ namespace CumulusMX
 
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i] == "-lang" && args.Length >= i)
+                try
                 {
-                    var lang = args[++i];
+                    if (args[i] == "-lang" && args.Length >= i)
+                    {
+                        var lang = args[++i];
 
-                    CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
+                        CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+                        CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
+                    }
+                    else if (args[i] == "-port" && args.Length >= i)
+                    {
+                        httpport = Convert.ToInt32(args[++i]);
+                    }
+                    else if (args[i] == "-debug")
+                    {
+                        // Switch on debug and and data logging from the start
+                        debug = true;
+                    }
+                    else if (args[i] == "-wsport")
+                    {
+                        i++;
+                        Console.WriteLine("The use of the -wsport command line parameter is deprecated");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Invalid command line argument \"{args[i]}\"");
+                        usage();
+                    }
                 }
-                else if (args[i] == "-port" && args.Length >= i)
+                catch
                 {
-                    httpport = Convert.ToInt32(args[++i]);
-                }
-                else if (args[i] == "-debug")
-                {
-                    // Switch on debug and and data logging from the start
-                    debug = true;
-                }
-                else if (args[i] == "-wsport")
-                {
-                    i++;
-                    Console.WriteLine("The use of the -wsport command line parameter is deprecated");
-                }
-                else
-                {
-                    Console.WriteLine($"Invalid command line argument \"{args[i]}\"");
-                    Console.WriteLine("Valid arugments are:");
-                    Console.WriteLine(" -port <http_portnum> - Sets the HTTP port Cumulus will use (default 8998)");
-                    Console.WriteLine(" -lang <culture_name> - Sets the Language Cumulus will use (defaults to current user language)");
-                    Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");
-                    Console.WriteLine("\nCumulus terminating");
-                    Environment.Exit(1);
+                    usage();
                 }
             }
 
@@ -127,6 +129,17 @@ namespace CumulusMX
                 Console.WriteLine("Program exit");
                 Environment.Exit(0);
             }
+        }
+
+        private static void usage()
+        {
+            Console.WriteLine();
+            Console.WriteLine("Valid arugments are:");
+            Console.WriteLine(" -port <http_portnum> - Sets the HTTP port Cumulus will use (default 8998)");
+            Console.WriteLine(" -lang <culture_name> - Sets the Language Cumulus will use (defaults to current user language)");
+            Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");
+            Console.WriteLine("\nCumulus terminating");
+            Environment.Exit(1);
         }
 
         private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)

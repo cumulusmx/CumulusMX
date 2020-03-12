@@ -1,3 +1,17 @@
+3.5.0 - b3069
+=============
+- Adds Editors for: Dayfile, Monthly Logs, Extra Logs
+- Adds line numbers to the log file viewer/editors
+- Widens the time windows for the Moons phase names
+- Fix for <#MoonPercent> and <#MoonPercentAbs> always showing integer values even with the dp=n option
+
+
+- Updated files
+	\CumulusMX.exe
+	\interface\<too much to list>
+
+
+
 3.4.4 - b3068
 =============
 - Fix for incorrect NOAA yearly report, annual averages for tempertaure and wind were calculated incorrectly
