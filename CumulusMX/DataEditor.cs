@@ -2916,6 +2916,148 @@ namespace CumulusMX
 			return "{\"result\":\"" + (result ? "Success" : "Failed") + "\"}";
 		}
 
+		internal string EditDayFile(IHttpContext context)
+		{
+			var request = context.Request;
+			string text;
+			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+			{
+				text = reader.ReadToEnd();
+			}
+
+			var newData = JsonConvert.DeserializeObject<DayFileEditor>(text);
+
+			// read dayfile into a List
+			var lines = File.ReadAllLines(cumulus.DayFile).ToList();
+
+			var lineNum = newData.LineNum - 1; // our List is zero relative
+
+			if (newData.Action == "Edit")
+			{
+				// replace the edited line
+				var newLine = String.Join(cumulus.ListSeparator, newData.Data);
+
+				lines[lineNum] = newLine;
+			}
+			else if (newData.Action == "Delete")
+			{
+				// Just double check we are deleting the correct line - see if the dates match
+				var lineData = lines[lineNum].Split(cumulus.ListSeparator.ToCharArray()[0]);
+				if (lineData[0] == newData.Data[0])
+				{
+					lines.RemoveAt(lineNum);
+				}
+				else
+				{
+					//throw("Failed, line to delete does not match the file contents");
+					return "{\"result\":\"Failed, line to delete does not match the file contents\"}";
+				}
+			}
+			else
+			{
+				//throw("Failed, unrecognised action");
+				return "{\"result\":\"Failed, unrecognised action\"}";
+			}
+			// write dayfile back again
+			File.WriteAllLines(cumulus.DayFile, lines);
+
+			// return the updated record
+			var rec = new List<string>(newData.Data);
+			rec.Insert(0, newData.LineNum.ToString());
+			return JsonConvert.SerializeObject(rec);
+		}
+
+		private class DayFileEditor
+		{
+			public readonly string Action;
+			public readonly int LineNum;
+			public readonly string[] Data;
+
+			public DayFileEditor(string action, int line, string[] data)
+			{
+				Action = action;
+				LineNum = line;
+				Data = data;
+			}
+		}
+
+		internal string EditDatalog(IHttpContext context)
+		{
+			var request = context.Request;
+			string text;
+			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+			{
+				text = reader.ReadToEnd();
+			}
+
+			var newData = JsonConvert.DeserializeObject<DatalogEditor>(text);
+
+			// date will (hopefully) be in format "m-yyyy" or "mm-yyyy"
+			int month = Convert.ToInt32(newData.Month.Split('-')[0]);
+			int year = Convert.ToInt32(newData.Month.Split('-')[1]);
+
+			// Get a timestamp, use 15th day to avoid wrap issues
+			var ts = new DateTime(year, month, 15);
+
+			var logfile = (newData.Extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
+			var numFields = (newData.Extra ? Cumulus.NumExtraLogFileFields : Cumulus.NumLogFileFields);
+
+			// read the log file into a List
+			var lines = File.ReadAllLines(logfile).ToList();
+
+			var lineNum = newData.LineNum - 1; // our List is zero relative
+
+			if (newData.Action == "Edit")
+			{
+				// replace the edited line
+				var newLine = String.Join(cumulus.ListSeparator, newData.Data);
+
+				lines[lineNum] = newLine;
+			}
+			else if (newData.Action == "Delete")
+			{
+				// Just double check we are deleting the correct line - see if the dates match
+				var lineData = lines[lineNum].Split(cumulus.ListSeparator.ToCharArray()[0]);
+				if (lineData[0] == newData.Data[0])
+				{
+					lines.RemoveAt(lineNum);
+				}
+				else
+				{
+					//throw("Failed, line to delete does not match the file contents");
+					return "{\"result\":\"Failed, line to delete does not match the file contents\"}";
+				}
+			}
+
+
+			// write logfile back again
+			File.WriteAllLines(logfile, lines);
+
+			// return the updated record
+			var rec = new List<string>(newData.Data);
+			rec.Insert(0, newData.LineNum.ToString());
+			return JsonConvert.SerializeObject(rec);
+		}
+
+		private class DatalogEditor
+		{
+			public readonly string Action;
+			public readonly int LineNum;
+			public readonly string Month;
+			public readonly bool Extra;
+			public readonly string[] Data;
+
+			public DatalogEditor(string action, int line, string month, bool extra, string[] data)
+			{
+				Action = action;
+				LineNum = line;
+				Month = month;
+				Extra = extra;
+				Data = data;
+			}
+		}
+
+
 		private bool SetCurrCondText(string currCondText)
 		{
 			var fileName = cumulus.AppDir + "currentconditions.txt";

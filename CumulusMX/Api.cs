@@ -223,6 +223,12 @@ namespace CumulusMX
 
 						case "thisyear":
 							return this.JsonResponse(dataEditor.EditThisYearRecs(this));
+
+						case "dayfile":
+							return this.JsonResponse(dataEditor.EditDayFile(this));
+
+						case "datalogs":
+							return this.JsonResponse(dataEditor.EditDatalog(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

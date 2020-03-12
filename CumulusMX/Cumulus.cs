@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.4";
-		public string Build = "3068";
+		public string Version = "3.4.5";
+		public string Build = "3069";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -2425,24 +2425,26 @@ namespace CumulusMX
 			DateTime utcNow = DateTime.UtcNow;
 			double moonAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour);
 			MoonPercent = (100.0 * (1.0 + Math.Cos(moonAngle * Math.PI / 180)) / 2.0);
+			var phasePercent = Math.Round(MoonPercent);
 			// If between full moon and new moon, angle is between 180 and 360, make percent negative to indicate waning
 			if (moonAngle > 180)
 			{
 				MoonPercent = -MoonPercent;
+				phasePercent = -phasePercent;
 			}
-			if ((MoonPercent > 1) && (MoonPercent < 49))
+			if ((phasePercent > 2) && (phasePercent < 48))
 				MoonPhaseString = WaxingCrescent;
-			else if ((MoonPercent >= 49) && (MoonPercent <= 51))
+			else if ((phasePercent >= 48) && (phasePercent <= 52))
 				MoonPhaseString = FirstQuarter;
-			else if ((MoonPercent > 51) && (MoonPercent < 99))
+			else if ((phasePercent > 52) && (phasePercent < 98))
 				MoonPhaseString = WaxingGibbous;
-			else if ((MoonPercent >= 99) || (MoonPercent <= -99))
+			else if ((phasePercent >= 98) || (phasePercent <= -98))
 				MoonPhaseString = Fullmoon;
-			else if ((MoonPercent < -51) && (MoonPercent > -99))
+			else if ((phasePercent < -52) && (phasePercent > -98))
 				MoonPhaseString = WaningGibbous;
-			else if ((MoonPercent <= -49) && (MoonPercent >= -51))
+			else if ((phasePercent <= -48) && (phasePercent >= -52))
 				MoonPhaseString = LastQuarter;
-			else if ((MoonPercent > -49) && (MoonPercent < -1))
+			else if ((phasePercent > -48) && (phasePercent < -2))
 				MoonPhaseString = WaningCrescent;
 			else
 				MoonPhaseString = Newmoon;

@@ -8863,11 +8863,13 @@ namespace CumulusMX
 
 				var lines = File.ReadLines(cumulus.DayFile).Skip(start).Take(length);
 
+				var lineNum = start + 1; // Start is zero relative
+
 				foreach (var line in lines)
 				{
 					var fields = line.Split(Convert.ToChar(cumulus.ListSeparator));
 					var numFields = fields.Length;
-					json += "[";
+					json += $"[{lineNum++},";
 					for (var i = 0; i < numFields; i++)
 					{
 						json = json + "\"" + fields[i] + "\"";
@@ -8980,10 +8982,12 @@ namespace CumulusMX
 
 				var lines = File.ReadLines(logfile).Skip(start).Take(length);
 
+				var lineNum = start + 1; // Start is zero relative
+
 				foreach (var line in lines)
 				{
 					var fields = line.Split(Convert.ToChar(cumulus.ListSeparator));
-					json += "[";
+					json += $"[{lineNum++},";
 					for (var i = 0; i < numFields; i++)
 					{
 						if (i < fields.Length)
