@@ -2317,13 +2317,15 @@ namespace CumulusMX
 				}
 				if (stations.Count() > 1)
 				{
-					Console.WriteLine(" - Enter the required station id above into your WLL configuration to enable history downloads.");
+					Console.WriteLine(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
 				}
 
 				if (stations.Count() == 1)
 				{
 					cumulus.LogMessage($"Only found 1 WeatherLink station, using id = {stations[0]["station_id"]}");
 					cumulus.WllStationId = stations[0]["station_id"].ToString();
+					// And save it to the config file
+					cumulus.WriteIniFile();
 					return true;
 				}
 			}
