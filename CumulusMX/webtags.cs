@@ -188,6 +188,7 @@ namespace CumulusMX
 				}
 				catch
 				{
+					cumulus.LogMessage($"Error: Webtag <#{TagParams.Get("webtag")}>, expecting an integer value for parameter 'm=n', found 'm={minsagostr}'");
 				}
 			}
 			if (hoursagostr != null)
@@ -198,6 +199,7 @@ namespace CumulusMX
 				}
 				catch
 				{
+					cumulus.LogMessage($"Error: Webtag <#{TagParams.Get("webtag")}>, expecting an integer value for parameter 'h=n', found 'h={hoursagostr}'");
 				}
 			}
 			if (daysagostr != null)
@@ -208,6 +210,7 @@ namespace CumulusMX
 				}
 				catch
 				{
+					cumulus.LogMessage($"Error: Webtag <#{TagParams.Get("webtag")}>, expecting an integer value for parameter 'd=n', found 'd={daysagostr}'");
 				}
 			}
 			if (minsago < 0)
@@ -235,6 +238,7 @@ namespace CumulusMX
 				{
 					// problem converting parameter, use current month instead
 					month = DateTime.Now.Month;
+					cumulus.LogMessage($"Error: Webtag <#{TagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n', found 'mon={monthstr}'");
 				}
 			}
 			else

@@ -30,8 +30,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.5";
-		public string Build = "3069";
+		public string Version = "3.4.6";
+		public string Build = "3070";
 		/////////////////////////////////
 
 		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -2113,40 +2113,10 @@ namespace CumulusMX
 							LogDebugMessage("Test of realtime FTP connection failed: " + ex.Message);
 							connectionFailed = true;
 						}
-						if (((Sslftp == FtpProtocols.FTP || Sslftp == FtpProtocols.FTPS) && !(RealtimeFTP.IsConnected)) ||
-							(Sslftp == FtpProtocols.SFTP && !(RealtimeSSH.IsConnected)) || connectionFailed)
+
+						if (connectionFailed)
 						{
-							LogDebugMessage("Realtime ftp not connected - reconnecting");
-							try
-							{
-								if (Sslftp == FtpProtocols.SFTP)
-								{
-									RealtimeSSH.Disconnect();
-								}
-								else
-								{
-									RealtimeFTP.Disconnect();
-								}
-							}
-							catch
-							{
-								// do nothing on any disconnect error
-							}
-							try
-							{
-								if (Sslftp == FtpProtocols.SFTP)
-								{
-									RealtimeSSH.Connect();
-								}
-								else
-								{
-									RealtimeFTP.Connect();
-								}
-							}
-							catch (Exception ex)
-							{
-								LogMessage("Error connecting ftp - " + ex.Message);
-							}
+							RealtimeFTPConnectionTest();
 						}
 
 						try
@@ -2156,6 +2126,7 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogMessage("Error during realtime FTP update: " + ex.Message);
+							RealtimeFTPConnectionTest();
 						}
 					}
 
@@ -2168,11 +2139,63 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage("Error during realtime update: " + ex.Message);
+					if (ex is NullReferenceException)
+					{
+						// If we haven't initialised the object (eg. user enables realtime FTP after starting Cumulus)
+						// then start from the beginning
+						if (Sslftp == FtpProtocols.SFTP)
+						{
+							RealtimeSSHLogin();
+						}
+						else
+						{
+							RealtimeFTPLogin();
+						}
+					}
+					else
+					{
+						RealtimeFTPConnectionTest();
+					}
 				}
 				finally
 				{
 					RealtimeInProgress = false;
 				}
+			}
+		}
+
+		private void RealtimeFTPConnectionTest()
+		{
+			LogDebugMessage("Realtime ftp attempting reconnection");
+			try
+			{
+				if (Sslftp == FtpProtocols.SFTP)
+				{
+					RealtimeSSH.Disconnect();
+				}
+				else
+				{
+					RealtimeFTP.Disconnect();
+				}
+			}
+			catch
+			{
+				// do nothing on any disconnect error
+			}
+			try
+			{
+				if (Sslftp == FtpProtocols.SFTP)
+				{
+					RealtimeSSH.Connect();
+				}
+				else
+				{
+					RealtimeFTP.Connect();
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Error connecting ftp - " + ex.Message);
 			}
 		}
 
@@ -2323,6 +2346,7 @@ namespace CumulusMX
 			var paramList = ParseParams(strToken);
 			var webTag = paramList[0];
 
+			tagParams.Add("webtag", webTag);
 			for (int i = 1; i < paramList.Count; i += 2)
 			{
 				// odd numbered entries are keys with "=" on the end - remove that
@@ -6319,6 +6343,8 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogMessage("SFTP: Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+						RealtimeFTPConnectionTest();
+						return;
 					}
 					finally
 					{
@@ -6337,6 +6363,8 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogMessage("SFTP: Error renaming " + remotefilename + " to " + remotefile + " : " + ex.Message);
+						RealtimeFTPConnectionTest();
+						return;
 					}
 				}
 				LogFtpMessage("SFTP: Completed uploading " + localfile + " to " + remotefile);
@@ -6344,6 +6372,8 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage($"SFTP: Error uploading {localfile} to {remotefile} - {ex.Message}");
+				RealtimeFTPConnectionTest();
+				return;
 			}
 		}
 
