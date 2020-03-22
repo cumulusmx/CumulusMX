@@ -161,7 +161,7 @@ ClientBin/
 node_modules/
 sqlite3/
 *.sqlite
-.vs/
+/.vs
 
 # RIA/Silverlight projects
 Generated_Code/
