@@ -223,15 +223,17 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						Trace.WriteLine("Web tag error");
+						Trace.WriteLine($"Web tag error in file: {SourceFile}");
+						Trace.WriteLine("token=" + match.Value);
+						Trace.WriteLine($"Position in file (character)={match.Index}");
 						Trace.WriteLine("Exception: i=" + i + " len=" + len);
 						Trace.WriteLine("inputText.Length=" + InputText.Length);
-						Trace.WriteLine("token=" + match.Value);
 						Trace.WriteLine(e.ToString());
+						Trace.WriteLine("** The output file will contain an error message starting \"**Web tag error\"");
 						//cumulus.LogMessage(InputText);
-						Console.WriteLine("*** web tag error - see MXdiags file ***");
+						Console.WriteLine($"*** web tag error in file '{SourceFile}' - see MXdiags file ***");
 						//outText += e.Message;
-						outText += "**Web tag error, tag starting: #" + token.Substring(0, token.Length > 40 ? 39 : token.Length - 1) + "**";
+						outText += "**Web tag error, tag starting: <#" + token.Substring(0, token.Length > 40 ? 39 : token.Length - 1) + "**";
 					}
 					i = match.Index + match.Length;
 				}

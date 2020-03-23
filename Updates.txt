@@ -1,4 +1,16 @@
-3.5.0 - b3069
+3.4.6 - b3070
+=============
+- Fix for station wind chill on Davis WLL devices
+- Fix for auto-discovered Davis WLL Station-Ids not being saved to the config file
+- More robust failure handling for realtime FTP connections
+- Additional diagnostics output in the console and log file for badly formed web tags
+
+- Updated files
+	\CumulusMX.exe
+
+
+
+3.4.5 - b3069
 =============
 - Adds Editors for: Dayfile, Monthly Logs, Extra Logs
 - Adds line numbers to the log file viewer/editors

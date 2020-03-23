@@ -115,14 +115,14 @@ namespace CumulusMX
 				cumulus.MySqlPass = settings.server.pass;
 				//monthly
 				cumulus.MonthlyMySqlEnabled = settings.monthly.enabled;
-				cumulus.MySqlMonthlyTable = settings.monthly.table;
+				cumulus.MySqlMonthlyTable = String.IsNullOrWhiteSpace(settings.monthly.table) ? "Monthly" : settings.monthly.table;
 				//realtime
 				cumulus.RealtimeMySqlEnabled = settings.realtime.enabled;
 				cumulus.MySqlRealtimeRetention = settings.realtime.retention;
-				cumulus.MySqlRealtimeTable = settings.realtime.table;
+				cumulus.MySqlRealtimeTable = String.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table;
 				//dayfile
 				cumulus.DayfileMySqlEnabled = settings.dayfile.enabled;
-				cumulus.MySqlDayfileTable = settings.dayfile.table;
+				cumulus.MySqlDayfileTable = String.IsNullOrWhiteSpace(settings.dayfile.table) ? "Dayfile" : settings.dayfile.table;
 				// custom seconds
 				cumulus.CustomMySqlSecondsCommandString = settings.customseconds.command;
 				cumulus.CustomMySqlSecondsEnabled = settings.customseconds.enabled;

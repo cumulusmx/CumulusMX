@@ -136,7 +136,7 @@ namespace CumulusMX
 				// Create a current conditions thread to poll readings once a minute
 				GetWllCurrent(null, null);
 				tmrCurrent.Elapsed += GetWllCurrent;
-				tmrCurrent.Interval = 60 * 1000;  // Every 60 seconds
+				tmrCurrent.Interval = 30 * 1000;  // Every 30 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
@@ -380,14 +380,17 @@ namespace CumulusMX
 						 */
 						if (cumulus.WllPrimaryWind == txid)
 						{
-							if (string.IsNullOrEmpty((string)rec["wind_speed_last"]) || string.IsNullOrEmpty((string)rec["wind_dir_last"]))
+							if (string.IsNullOrEmpty((string)rec["wind_speed_last"]))
 							{
 								cumulus.LogDebugMessage($"WLL broadcast: no valid wind speed found [speed={(string)rec["wind_speed_last"]}, dir= {(string)rec["wind_dir_last"]}] on TxId {txid}");
 							}
 							else
 							{
+								// WLL BUG: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
+								int windDir = string.IsNullOrEmpty((string)rec["wind_dir_last"]) ? 0 : (int)rec["wind_dir_last"];
+
 								// No average in the broadcast data, so use last value from current - allow for calibration
-								DoWind((double)rec["wind_speed_last"], (int)rec["wind_dir_last"], WindAverage / cumulus.WindSpeedMult, dateTime);
+								DoWind((double)rec["wind_speed_last"], windDir, WindAverage / cumulus.WindSpeedMult, dateTime);
 
 								if (checkWllGustValues)
 								{
@@ -985,14 +988,14 @@ namespace CumulusMX
 				}
 
 				// Now we have the primary data, calculate the derived data
-				if (ConvertUserWindToMS(WindAverage) < 1.5)
+				if (cumulus.CalculatedWC)
 				{
-					// wind speed too low, use the temperature
-					DoWindChill(OutdoorTemperature, dateTime);
-				}
-				else
-				{
-					if (cumulus.CalculatedWC)
+					if (ConvertUserWindToMS(WindAverage) < 1.5)
+					{
+						// wind speed too low, use the temperature
+						DoWindChill(OutdoorTemperature, dateTime);
+					}
+					else
 					{
 						// calculate wind chill from calibrated C temp and calibrated wind in KPH
 						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
@@ -1367,7 +1370,8 @@ namespace CumulusMX
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
 
-			cumulus.LogDebugMessage($"WeatherLink URL = {historicUrl.ToString()}");
+			var logUrl = historicUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+			cumulus.LogDebugMessage($"WeatherLink URL = {logUrl}");
 
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
@@ -2203,7 +2207,8 @@ namespace CumulusMX
 			// remove the trailing "&"
 			currentUrl.Remove(currentUrl.Length - 1, 1);
 
-			cumulus.LogDebugMessage($"WeatherLink URL = {currentUrl.ToString()}");
+			var logUrl = currentUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+			cumulus.LogDebugMessage($"WeatherLink URL = {logUrl}");
 
 			try
 			{
@@ -2278,7 +2283,8 @@ namespace CumulusMX
 			// remove the trailing "&"
 			stationsUrl.Remove(stationsUrl.Length - 1, 1);
 
-			cumulus.LogDebugMessage($"WeatherLink Stations URL = {stationsUrl.ToString()}");
+			var logUrl = stationsUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+			cumulus.LogDebugMessage($"WeatherLink Stations URL = {logUrl}");
 
 			try
 			{
@@ -2311,13 +2317,15 @@ namespace CumulusMX
 				}
 				if (stations.Count() > 1)
 				{
-					Console.WriteLine(" - Enter the required station id above into your WLL configuration to enable history downloads.");
+					Console.WriteLine(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
 				}
 
 				if (stations.Count() == 1)
 				{
 					cumulus.LogMessage($"Only found 1 WeatherLink station, using id = {stations[0]["station_id"]}");
 					cumulus.WllStationId = stations[0]["station_id"].ToString();
+					// And save it to the config file
+					cumulus.WriteIniFile();
 					return true;
 				}
 			}
