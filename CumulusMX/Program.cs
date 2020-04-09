@@ -17,6 +17,7 @@ namespace CumulusMX
         {
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
+            const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
@@ -34,7 +35,7 @@ namespace CumulusMX
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGINT").GetValue(null)), 0);
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 1);
 
-                Thread signal_thread = new Thread(delegate()
+                Thread signal_thread = new Thread(delegate ()
                                                   {
                                                       while (true)
                                                       {
@@ -106,28 +107,40 @@ namespace CumulusMX
 #if DEBUG
             debug = true;
 #endif
-            //System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo("en-GB");
-            //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo("en-GB");
-            Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 
-            cumulus = new Cumulus(httpport, debug);
-
-            DateTime now = DateTime.Now;
-
-            Console.WriteLine(DateTime.Now.ToString("G"));
-
-            Console.WriteLine("Type Ctrl-C to terminate");
-            while (!exitSystem)
+            using (Mutex appMutex = new Mutex(false, "Global\\" + appGuid))
             {
-                Thread.Sleep(500);
-            }
+                if (!appMutex.WaitOne(0, false))
+                {
+                    Console.WriteLine("Cumulus is already running - terminating");
+                    Console.WriteLine("Program exit");
+                    Environment.Exit(1);
+                }
 
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                Console.WriteLine("\nCumulus terminating");
-                cumulus.Stop();
-                Console.WriteLine("Program exit");
-                Environment.Exit(0);
+                GC.Collect();
+                //System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo("en-GB");
+                //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo("en-GB");
+                Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+
+                cumulus = new Cumulus(httpport, debug);
+
+                DateTime now = DateTime.Now;
+
+                Console.WriteLine(DateTime.Now.ToString("G"));
+
+                Console.WriteLine("Type Ctrl-C to terminate");
+                while (!exitSystem)
+                {
+                    Thread.Sleep(500);
+                }
+
+                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                {
+                    Console.WriteLine("\nCumulus terminating");
+                    cumulus.Stop();
+                    Console.WriteLine("Program exit");
+                    Environment.Exit(0);
+                }
             }
         }
 

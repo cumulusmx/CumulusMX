@@ -189,6 +189,7 @@ namespace CumulusMX
                         }
 
                         UpdateStatusPanel(Now);
+                        UpdateMQTT();
                     }
                 }
                 catch (Exception ex)

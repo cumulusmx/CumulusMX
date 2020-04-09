@@ -455,6 +455,7 @@ namespace CumulusMX
 						}
 					}
 					UpdateStatusPanel(DateTime.Now);
+					UpdateMQTT();
 
 					broadcastReceived = true;
 					DataStopped = false;
@@ -985,6 +986,7 @@ namespace CumulusMX
 					DoForecast("", false);
 
 					UpdateStatusPanel(DateTime.Now);
+					UpdateMQTT();
 				}
 
 				// Now we have the primary data, calculate the derived data
@@ -2347,7 +2349,6 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
-				UpdateStatusPanel(DateTime.Now);
 				// Try and give the broadcasts a kick in case the last command did not get through
 				GetWllRealtime(null, null);
 			}

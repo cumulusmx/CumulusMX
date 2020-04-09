@@ -1285,6 +1285,7 @@ namespace CumulusMX
 		}
 		*/
 
+		/*
 		public static double CalcMoonAge(DateTime dDate, int iZone)
 		{
 			double fJD, fIP, fAge;
@@ -1294,6 +1295,7 @@ namespace CumulusMX
 			fAge = fIP * 29.530588853;
 			return fAge;
 		}
+		*/
 
 		/*
 		public static string GetMoonStage(double fAge)
@@ -1340,6 +1342,7 @@ namespace CumulusMX
 			return sStage;
 		}
 		*/
+
 
 		private static double Normalize(double fN)
 		{

@@ -492,13 +492,25 @@ namespace CumulusMX
 		{
 			if (!string.IsNullOrEmpty(cumulus.ftp_host))
 			{
-				if (cumulus.WebUpdating)
+				if (cumulus.WebUpdating == 1)
 				{
+					cumulus.LogMessage("Warning, manual FTP, a previous web update is still in progress, first chance, skipping attempt");
 					return "{\"result\":\"A web update is already in progress\"}";
+				}
+				else if (cumulus.WebUpdating >= 2)
+				{
+					cumulus.LogMessage("Warning, manual FTP, a previous web update is still in progress,second chance, aborting connection");
+					if (cumulus.ftpThread.ThreadState == System.Threading.ThreadState.Running)
+						cumulus.ftpThread.Abort();
+					cumulus.LogMessage("Trying new web update");
+					cumulus.WebUpdating = 1;
+					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
+					cumulus.ftpThread.Start();
+					return "{\"result\":\"Am existing FTP process was aborted, and a new FTP process invoked\"}";
 				}
 				else
 				{
-					cumulus.WebUpdating = true;
+					cumulus.WebUpdating = 1;
 					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
 					cumulus.ftpThread.Start();
 					return "{\"result\":\"FTP process invoked\"}";

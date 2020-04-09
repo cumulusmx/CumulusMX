@@ -220,39 +220,30 @@ namespace CumulusMX
 				{
 					case WMR928WindData:
 						WMR928Wind(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928RainData:
 						WMR928Rain(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928ExtraOutdoorData:
 						WMR928ExtraOutdoor(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928OutdoorData:
 						WMR928Outdoor(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928ExtraTempOnlyData:
 						WMR928ExtraTempOnly(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928IndoorData:
 						WMR928Indoor(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928IndoorData2:
 						WMR928Indoor2(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928MinuteData:
 						WMR928Minute(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WMR928ClockData:
 						WMR928Clock(buff);
-						UpdateStatusPanel(now);
 						break;
 					default:
 						Trace.Write("Unrecognised packet:");
@@ -261,8 +252,11 @@ namespace CumulusMX
 							Trace.Write(" " + buff[i].ToString("X2"));
 						}
 						cumulus.LogMessage(" ");
-						break;
+						return;
 				}
+
+				UpdateStatusPanel(now);
+				UpdateMQTT();
 			}
 			else
 			{

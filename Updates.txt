@@ -1,3 +1,41 @@
+3.5.0 - b3071
+=============
+- Fix to "Stop second instance" of Cumulus running
+- Fix for hung update interval (S)FTP sessions getting hung
+- Fix to <#moonage> web tag to improve accuracy
+- Adds support for MQTT output
+  Two options, send an MQTT message whenever new data is received, or send a message at a fixed interval
+  The message format is defined in template files, using web tags, located in the \mqtt folder
+- Tidy up of /interface folder to remove unused files
+- Removal of Highcharts scripts from the distribution
+- Add support for generating a Moon Phase image. This is disabled by default. The output image will be generated and
+  optionally FTP'd once an hour. The generated local image file is always \web\moon.png
+	[FTP site]
+	IncludeMoonImage=1
+
+	[Graphs]
+	MoonImageEnabled=1
+	MoonImageSize=100
+	MoonImageFtpDest=images/moon.png
+
+
+- New files
+	\Licences-Additional.txt
+	\MQTTnet.dll
+	\mqtt\DataUpdateTemplate.txt
+	\mqtt\IntervalTemplate.txt
+	\web\MoonBaseImage.png
+
+- Updated files
+	\CumulusMX.exe
+	\FluentFTP.dll
+	\Newtonsoft.Json.dll
+	\interface\  - [Many changes, delete and replace]
+	\web\indexT.htm
+	\webfiles\js\cumuluscharts.js
+
+
+
 3.4.6 - b3070
 =============
 - Fix for station wind chill on Davis WLL devices

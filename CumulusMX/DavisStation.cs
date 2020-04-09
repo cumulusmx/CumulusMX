@@ -1405,6 +1405,7 @@ namespace CumulusMX
 					}
 				}
 				UpdateStatusPanel(DateTime.Now);
+				UpdateMQTT();
 			}
 
 			//cumulus.LogMessage("end processing loop data");

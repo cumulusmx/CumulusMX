@@ -17,8 +17,8 @@ namespace CumulusMX
 		public InternetSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			internetOptionsFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "InternetOptions.json";
-			internetSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "InternetSchema.json";
+			internetOptionsFile = AppDomain.CurrentDomain.BaseDirectory + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetOptions.json";
+			internetSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
 		}
 
 		//public string UpdateInternetConfig(HttpListenerContext context)
@@ -53,12 +53,13 @@ namespace CumulusMX
 				cumulus.RealtimeFTPEnabled = settings.websettings.enablerealtimeftp;
 				cumulus.RealtimeTxtFTP = settings.websettings.realtimetxtftp;
 				cumulus.RealtimeGaugesTxtFTP = settings.websettings.realtimegaugestxtftp;
-				cumulus.RealtimeInterval = settings.websettings.realtimeinterval*1000;
+				cumulus.RealtimeInterval = settings.websettings.realtimeinterval * 1000;
 				cumulus.DeleteBeforeUpload = settings.websettings.ftpdelete;
 				cumulus.UpdateInterval = settings.websettings.ftpinterval;
 				cumulus.FTPRename = settings.websettings.ftprename;
 				cumulus.IncludeStandardFiles = settings.websettings.includestdfiles;
 				cumulus.IncludeGraphDataFiles = settings.websettings.includegraphdatafiles;
+				cumulus.IncludeMoonImage = settings.websettings.includemoonimage;
 				cumulus.UTF8encode = settings.websettings.utf8encode;
 				if (settings.websettings.ftplogging != cumulus.FTPlogging)
 				{
@@ -174,6 +175,25 @@ namespace CumulusMX
 
 				cumulus.SynchronisedAPRSUpdate = (60 % cumulus.APRSinterval == 0);
 
+				// MQTT
+				cumulus.MQTTServer = settings.mqtt.server ?? string.Empty;
+				cumulus.MQTTPort = settings.mqtt.port;
+				cumulus.MQTTUseTLS = settings.mqtt.useTls;
+				cumulus.MQTTUsername = settings.mqtt.username ?? string.Empty;
+				cumulus.MQTTPassword = settings.mqtt.password ?? string.Empty;
+				cumulus.MQTTEnableDataUpdate = settings.mqtt.dataUpdate.enabled;
+				cumulus.MQTTUpdateTopic = settings.mqtt.dataUpdate.topic ?? string.Empty;
+				cumulus.MQTTUpdateTemplate = settings.mqtt.dataUpdate.template ?? string.Empty;
+				cumulus.MQTTEnableInterval = settings.mqtt.interval.enabled;
+				cumulus.MQTTIntervalTime = settings.mqtt.interval.time;
+				cumulus.MQTTIntervalTopic = settings.mqtt.interval.topic ?? string.Empty;
+				cumulus.MQTTIntervalTemplate = settings.mqtt.interval.template ?? string.Empty;
+
+				// Moon Image
+				cumulus.MoonImageEnabled = settings.moonimage.enabled;
+				cumulus.MoonImageSize = settings.moonimage.size;
+				cumulus.MoonImageFtpDest = settings.moonimage.ftpdest;
+
 				// HTTP proxy
 				cumulus.HTTPProxyPassword = settings.proxies.httpproxy.password ?? string.Empty;
 				cumulus.HTTPProxyPort = settings.proxies.httpproxy.port;
@@ -209,6 +229,30 @@ namespace CumulusMX
 				cumulus.SetUpHttpProxy();
 				//cumulus.SetFtpLogging(cumulus.FTPlogging);
 
+				// Setup MQTT
+				if (cumulus.MQTTEnableDataUpdate || cumulus.MQTTEnableInterval)
+				{
+					if (!MqttPublisher.configured)
+					{
+						MqttPublisher.Setup(cumulus);
+					}
+					if (cumulus.MQTTEnableInterval)
+					{
+						cumulus.MQTTTimer.Elapsed -= cumulus.MQTTTimerTick;
+						cumulus.MQTTTimer.Elapsed += cumulus.MQTTTimerTick;
+						cumulus.MQTTTimer.Start();
+					}
+					else
+					{
+						cumulus.MQTTTimer.Stop();
+					}
+				}
+				else
+				{
+					cumulus.MQTTTimer.Stop();
+				}
+
+
 				context.Response.StatusCode = 200;
 			}
 			catch (Exception ex)
@@ -224,160 +268,195 @@ namespace CumulusMX
 		{
 			// Build the settings data, convert to JSON, and return it
 			var websitesettings = new JsonInternetSettingsWebsite()
-								  {
-									  directory = cumulus.ftp_directory,
-									  forumurl = cumulus.ForumURL,
-									  ftpport = cumulus.ftp_port,
-									  sslftp = (int)cumulus.Sslftp,
-									  hostname = cumulus.ftp_host,
-									  password = cumulus.ftp_password,
-									  username = cumulus.ftp_user,
-									  webcamurl = cumulus.WebcamURL
-								  };
+			{
+				directory = cumulus.ftp_directory,
+				forumurl = cumulus.ForumURL,
+				ftpport = cumulus.ftp_port,
+				sslftp = (int)cumulus.Sslftp,
+				hostname = cumulus.ftp_host,
+				password = cumulus.ftp_password,
+				username = cumulus.ftp_user,
+				webcamurl = cumulus.WebcamURL
+			};
 
 			var websettings = new JsonInternetSettingsWebSettings()
-							  {
-								  activeftp = cumulus.ActiveFTPMode,
-								  autoupdate = cumulus.WebAutoUpdate,
-								  enablerealtime = cumulus.RealtimeEnabled,
-								  enablerealtimeftp = cumulus.RealtimeFTPEnabled,
-								  realtimetxtftp = cumulus.RealtimeTxtFTP,
-								  realtimegaugestxtftp = cumulus.RealtimeGaugesTxtFTP,
-								  realtimeinterval = cumulus.RealtimeInterval/1000,
-								  ftpdelete = cumulus.DeleteBeforeUpload,
-								  ftpinterval = cumulus.UpdateInterval,
-								  ftprename = cumulus.FTPRename,
-								  includestdfiles = cumulus.IncludeStandardFiles,
-								  includegraphdatafiles = cumulus.IncludeGraphDataFiles,
-								  utf8encode = cumulus.UTF8encode,
-								  ftplogging = cumulus.FTPlogging
-							  };
+			{
+				activeftp = cumulus.ActiveFTPMode,
+				autoupdate = cumulus.WebAutoUpdate,
+				enablerealtime = cumulus.RealtimeEnabled,
+				enablerealtimeftp = cumulus.RealtimeFTPEnabled,
+				realtimetxtftp = cumulus.RealtimeTxtFTP,
+				realtimegaugestxtftp = cumulus.RealtimeGaugesTxtFTP,
+				realtimeinterval = cumulus.RealtimeInterval / 1000,
+				ftpdelete = cumulus.DeleteBeforeUpload,
+				ftpinterval = cumulus.UpdateInterval,
+				ftprename = cumulus.FTPRename,
+				includestdfiles = cumulus.IncludeStandardFiles,
+				includegraphdatafiles = cumulus.IncludeGraphDataFiles,
+				includemoonimage = cumulus.IncludeMoonImage,
+				utf8encode = cumulus.UTF8encode,
+				ftplogging = cumulus.FTPlogging
+			};
 
 			var externalprograms = new JsonInternetSettingsExternalPrograms()
-								   {
-									   dailyprogram = cumulus.DailyProgram,
-									   dailyprogramparams = cumulus.DailyParams,
-									   program = cumulus.ExternalProgram,
-									   programparams = cumulus.ExternalParams,
-									   realtimeprogram = cumulus.RealtimeProgram,
-									   realtimeprogramparams = cumulus.RealtimeParams
-								   };
+			{
+				dailyprogram = cumulus.DailyProgram,
+				dailyprogramparams = cumulus.DailyParams,
+				program = cumulus.ExternalProgram,
+				programparams = cumulus.ExternalParams,
+				realtimeprogram = cumulus.RealtimeProgram,
+				realtimeprogramparams = cumulus.RealtimeParams
+			};
 
 			var twittersettings = new JsonInternetSettingsTwitterSettings()
-								  {
-									  enabled = cumulus.TwitterEnabled,
-									  interval = cumulus.TwitterInterval,
-									  password = cumulus.TwitterPW,
-									  sendlocation = cumulus.TwitterSendLocation,
-									  user = cumulus.Twitteruser
-								  };
+			{
+				enabled = cumulus.TwitterEnabled,
+				interval = cumulus.TwitterInterval,
+				password = cumulus.TwitterPW,
+				sendlocation = cumulus.TwitterSendLocation,
+				user = cumulus.Twitteruser
+			};
 
 			var wusettings = new JsonInternetSettingsWunderground()
-							 {
-								 catchup = cumulus.WundCatchUp,
-								 enabled = cumulus.WundEnabled,
-								 includeindoor = cumulus.SendIndoorToWund,
-								 includesolar = cumulus.SendSRToWund,
-								 includeuv = cumulus.SendUVToWund,
-								 interval = cumulus.WundInterval,
-								 password = cumulus.WundPW,
-								 rapidfire = cumulus.WundRapidFireEnabled,
-								 sendavgwind = cumulus.WundSendAverage,
-								 stationid = cumulus.WundID
-							 };
+			{
+				catchup = cumulus.WundCatchUp,
+				enabled = cumulus.WundEnabled,
+				includeindoor = cumulus.SendIndoorToWund,
+				includesolar = cumulus.SendSRToWund,
+				includeuv = cumulus.SendUVToWund,
+				interval = cumulus.WundInterval,
+				password = cumulus.WundPW,
+				rapidfire = cumulus.WundRapidFireEnabled,
+				sendavgwind = cumulus.WundSendAverage,
+				stationid = cumulus.WundID
+			};
 
 			var windysettings = new JsonInternetSettingsWindy()
-							{
-								catchup = cumulus.WindyCatchUp,
-								enabled = cumulus.WindyEnabled,
-								includeuv = cumulus.WindySendUV,
-								interval = cumulus.WindyInterval,
-								apikey = cumulus.WindyApiKey,
-								stationidx = cumulus.WindyStationIdx
-							};
+			{
+				catchup = cumulus.WindyCatchUp,
+				enabled = cumulus.WindyEnabled,
+				includeuv = cumulus.WindySendUV,
+				interval = cumulus.WindyInterval,
+				apikey = cumulus.WindyApiKey,
+				stationidx = cumulus.WindyStationIdx
+			};
 
 			var awekassettings = new JsonInternetSettingsAwekas()
-								 {
-									 enabled = cumulus.AwekasEnabled,
-									 includesolar = cumulus.SendSolarToAwekas,
-									 includesoiltemp = cumulus.SendSoilTempToAwekas,
-									 includeuv = cumulus.SendUVToAwekas,
-									 interval = cumulus.AwekasInterval,
-									 lang = cumulus.AwekasLang,
-									 password = cumulus.AwekasPW,
-									 user = cumulus.AwekasUser
-								 };
+			{
+				enabled = cumulus.AwekasEnabled,
+				includesolar = cumulus.SendSolarToAwekas,
+				includesoiltemp = cumulus.SendSoilTempToAwekas,
+				includeuv = cumulus.SendUVToAwekas,
+				interval = cumulus.AwekasInterval,
+				lang = cumulus.AwekasLang,
+				password = cumulus.AwekasPW,
+				user = cumulus.AwekasUser
+			};
 
 			var wcloudsettings = new JsonInternetSettingsWCloud()
-								 {
-									 enabled = cumulus.WCloudEnabled,
-									 includesolar = cumulus.SendSolarToWCloud,
-									 includeuv = cumulus.SendUVToWCloud,
-									 key = cumulus.WCloudKey,
-									 wid = cumulus.WCloudWid
-								 };
+			{
+				enabled = cumulus.WCloudEnabled,
+				includesolar = cumulus.SendSolarToWCloud,
+				includeuv = cumulus.SendUVToWCloud,
+				key = cumulus.WCloudKey,
+				wid = cumulus.WCloudWid
+			};
 
 			var pwssettings = new JsonInternetSettingsPWSweather()
-							  {
-								  catchup = cumulus.PWSCatchUp,
-								  enabled = cumulus.PWSEnabled,
-								  interval = cumulus.PWSInterval,
-								  includesolar = cumulus.SendSRToPWS,
-								  includeuv = cumulus.SendUVToPWS,
-								  password = cumulus.PWSPW,
-								  stationid = cumulus.PWSID
-							  };
+			{
+				catchup = cumulus.PWSCatchUp,
+				enabled = cumulus.PWSEnabled,
+				interval = cumulus.PWSInterval,
+				includesolar = cumulus.SendSRToPWS,
+				includeuv = cumulus.SendUVToPWS,
+				password = cumulus.PWSPW,
+				stationid = cumulus.PWSID
+			};
 
 			var wowsettings = new JsonInternetSettingsWOW()
-							  {
-								  catchup = cumulus.WOWCatchUp,
-								  enabled = cumulus.WOWEnabled,
-								  includesolar = cumulus.SendSRToWOW,
-								  includeuv = cumulus.SendUVToWOW,
-								  interval = cumulus.WOWInterval,
-								  password = cumulus.WOWPW,
-								  stationid = cumulus.WOWID
-							  };
+			{
+				catchup = cumulus.WOWCatchUp,
+				enabled = cumulus.WOWEnabled,
+				includesolar = cumulus.SendSRToWOW,
+				includeuv = cumulus.SendUVToWOW,
+				interval = cumulus.WOWInterval,
+				password = cumulus.WOWPW,
+				stationid = cumulus.WOWID
+			};
 
 			var wbsettings = new JsonInternetSettingsWeatherbug()
-							 {
-								 catchup = cumulus.WeatherbugCatchUp,
-								 enabled = cumulus.WeatherbugEnabled,
-								 includesolar = cumulus.SendSRToWeatherbug,
-								 includeuv = cumulus.SendUVToWeatherbug,
-								 interval = cumulus.WeatherbugInterval,
-								 number = cumulus.WeatherbugNumber,
-								 password = cumulus.WeatherbugPW,
-								 publisherid = cumulus.WeatherbugID
-							 };
+			{
+				catchup = cumulus.WeatherbugCatchUp,
+				enabled = cumulus.WeatherbugEnabled,
+				includesolar = cumulus.SendSRToWeatherbug,
+				includeuv = cumulus.SendUVToWeatherbug,
+				interval = cumulus.WeatherbugInterval,
+				number = cumulus.WeatherbugNumber,
+				password = cumulus.WeatherbugPW,
+				publisherid = cumulus.WeatherbugID
+			};
 
 			var cwopsettings = new JsonInternetSettingsCwop()
-							   {
-								   enabled = cumulus.APRSenabled,
-								   id = cumulus.APRSID,
-								   interval = cumulus.APRSinterval,
-								   includesolar = cumulus.SendSRToAPRS,
-								   password = cumulus.APRSpass,
-								   port = cumulus.APRSport,
-								   server = cumulus.APRSserver
-							   };
+			{
+				enabled = cumulus.APRSenabled,
+				id = cumulus.APRSID,
+				interval = cumulus.APRSinterval,
+				includesolar = cumulus.SendSRToAPRS,
+				password = cumulus.APRSpass,
+				port = cumulus.APRSport,
+				server = cumulus.APRSserver
+			};
+
+
+			var mqttUpdate = new JsonInternetSettingsMqttDataupdate()
+			{
+				enabled = cumulus.MQTTEnableDataUpdate,
+				topic = cumulus.MQTTUpdateTopic,
+				template = cumulus.MQTTUpdateTemplate
+			};
+
+			var mqttInterval = new JsonInternetSettingsMqttInterval()
+			{
+				enabled = cumulus.MQTTEnableInterval,
+				time = cumulus.MQTTIntervalTime,
+				topic = cumulus.MQTTIntervalTopic,
+				template = cumulus.MQTTIntervalTemplate
+			};
+
+			var mqttsettings = new JsonInternetSettingsMqtt()
+			{
+				server = cumulus.MQTTServer,
+				port = cumulus.MQTTPort,
+				useTls = cumulus.MQTTUseTLS,
+				username = cumulus.MQTTUsername,
+				password = cumulus.MQTTPassword,
+				dataUpdate = mqttUpdate,
+				interval = mqttInterval
+			};
+
+			var moonimagesettings = new JsonInternetSettingsMoonImage()
+			{
+				enabled = cumulus.MoonImageEnabled,
+				size = cumulus.MoonImageSize,
+				ftpdest = cumulus.MoonImageFtpDest
+			};
 
 			var httpproxy = new JsonInternetSettingsHTTPproxySettings()
-							{
-								password = cumulus.HTTPProxyPassword,
-								port = cumulus.HTTPProxyPort,
-								proxy = cumulus.HTTPProxyName,
-								user = cumulus.HTTPProxyUser
-							};
+			{
+				password = cumulus.HTTPProxyPassword,
+				port = cumulus.HTTPProxyPort,
+				proxy = cumulus.HTTPProxyName,
+				user = cumulus.HTTPProxyUser
+			};
 
-			var proxy = new JsonInternetSettingsProxySettings() {httpproxy = httpproxy};
+			var proxy = new JsonInternetSettingsProxySettings() { httpproxy = httpproxy };
 
 			var customseconds = new JsonInternetSettingsCustomHttpSeconds()
-								{
-									enabled = cumulus.CustomHttpSecondsEnabled,
-									interval = cumulus.CustomHttpSecondsInterval,
-									url = cumulus.CustomHttpSecondsString
-								};
+			{
+				enabled = cumulus.CustomHttpSecondsEnabled,
+				interval = cumulus.CustomHttpSecondsInterval,
+				url = cumulus.CustomHttpSecondsString
+			};
 
 			var customminutes = new JsonInternetSettingsCustomHttpMinutes()
 			{
@@ -392,25 +471,27 @@ namespace CumulusMX
 				url = cumulus.CustomHttpRolloverString
 			};
 
-			var customhttp = new JsonInternetSettingsCustomHttpSettings() {customseconds = customseconds, customminutes = customminutes, customrollover = customrollover};
+			var customhttp = new JsonInternetSettingsCustomHttpSettings() { customseconds = customseconds, customminutes = customminutes, customrollover = customrollover };
 
 			var data = new JsonInternetSettingsData()
-					   {
-						   website = websitesettings,
-						   websettings = websettings,
-						   externalprograms = externalprograms,
-						   twitter = twittersettings,
-						   wunderground = wusettings,
-						   windy = windysettings,
-						   awekas = awekassettings,
-						   weathercloud = wcloudsettings,
-						   pwsweather = pwssettings,
-						   wow = wowsettings,
-						   weatherbug = wbsettings,
-						   cwop = cwopsettings,
-						   proxies = proxy,
-						   customhttp = customhttp
-					   };
+			{
+				website = websitesettings,
+				websettings = websettings,
+				externalprograms = externalprograms,
+				twitter = twittersettings,
+				wunderground = wusettings,
+				windy = windysettings,
+				awekas = awekassettings,
+				weathercloud = wcloudsettings,
+				pwsweather = pwssettings,
+				wow = wowsettings,
+				weatherbug = wbsettings,
+				cwop = cwopsettings,
+				mqtt = mqttsettings,
+				moonimage = moonimagesettings,
+				proxies = proxy,
+				customhttp = customhttp
+			};
 
 			return JsonConvert.SerializeObject(data);
 		}
@@ -475,7 +556,7 @@ namespace CumulusMX
 
 				NameValueCollection qscoll = HttpUtility.ParseQueryString(pars);
 
-				var entry = Convert.ToInt32(qscoll["id"])-1;
+				var entry = Convert.ToInt32(qscoll["id"]) - 1;
 				int col = Convert.ToInt32(qscoll["column"]);
 				var value = qscoll["value"];
 
@@ -491,7 +572,7 @@ namespace CumulusMX
 						break;
 					case 2:
 						// process
-						cumulus.ExtraFiles[entry].process = value=="true";
+						cumulus.ExtraFiles[entry].process = value == "true";
 						break;
 					case 3:
 						// realtime
@@ -543,6 +624,8 @@ namespace CumulusMX
 		public JsonInternetSettingsCwop cwop { get; set; }
 		public JsonInternetSettingsAwekas awekas { get; set; }
 		public JsonInternetSettingsWCloud weathercloud { get; set; }
+		public JsonInternetSettingsMqtt mqtt { get; set; }
+		public JsonInternetSettingsMoonImage moonimage { get; set; }
 		public JsonInternetSettingsProxySettings proxies { get; set; }
 		public JsonInternetSettingsCustomHttpSettings customhttp { get; set; }
 	}
@@ -564,6 +647,7 @@ namespace CumulusMX
 		public bool autoupdate { get; set; }
 		public bool includestdfiles { get; set; }
 		public bool includegraphdatafiles { get; set; }
+		public bool includemoonimage { get; set; }
 		public bool activeftp { get; set; }
 		public bool ftprename { get; set; }
 		public bool ftpdelete { get; set; }
@@ -686,6 +770,40 @@ namespace CumulusMX
 		public int port { get; set; }
 		public int interval { get; set; }
 	}
+
+	public class JsonInternetSettingsMqtt
+	{
+		public string server { get; set; }
+		public int port { get; set; }
+		public bool useTls { get; set; }
+		public string username { get; set; }
+		public string password { get; set; }
+		public JsonInternetSettingsMqttDataupdate dataUpdate { get; set; }
+		public JsonInternetSettingsMqttInterval interval { get; set; }
+	}
+
+	public class JsonInternetSettingsMqttDataupdate
+	{
+		public bool enabled { get; set; }
+		public string topic { get; set; }
+		public string template { get; set; }
+	}
+
+	public class JsonInternetSettingsMqttInterval
+	{
+		public bool enabled { get; set; }
+		public int time { get; set; }
+		public string topic { get; set; }
+		public string template { get; set; }
+	}
+
+	public class JsonInternetSettingsMoonImage
+	{
+		public bool enabled { get; set; }
+		public int size { get; set; }
+		public string ftpdest { get; set; }
+	}
+
 
 	public class JsonInternetSettingsProxySettings
 	{

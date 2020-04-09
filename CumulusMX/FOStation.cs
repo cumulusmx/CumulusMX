@@ -873,6 +873,7 @@ namespace CumulusMX
 
 						UpdatePressureTrendString();
 						UpdateStatusPanel(now);
+						UpdateMQTT();
 						DoForecast("", false);
 					}
 					var status = data[15];

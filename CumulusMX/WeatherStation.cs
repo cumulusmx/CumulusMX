@@ -1477,6 +1477,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Hour changed:" + hour);
 			cumulus.DoSunriseAndSunset();
+			cumulus.DoMoonImage();
 
 			if (cumulus.HourlyForecast)
 			{
@@ -1604,13 +1605,32 @@ namespace CumulusMX
 						cumulus.CustomHttpMinutesUpdate();
 					}
 
-					if ((!cumulus.WebUpdating) && cumulus.WebAutoUpdate && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
+					if (cumulus.WebAutoUpdate && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
-						cumulus.WebUpdating = true;
-						//manualftp = false;
-						cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
-						cumulus.ftpThread.IsBackground = true;
-						cumulus.ftpThread.Start();
+						if (cumulus.WebUpdating == 1)
+						{
+							// Skip this update interval
+							cumulus.LogMessage("Warning, previous web update is still in progress, first chance, skipping this interval");
+							cumulus.WebUpdating++;
+						}
+						else if (cumulus.WebUpdating >= 2)
+						{
+							cumulus.LogMessage("Warning, previous web update is still in progress,second chance, aborting connection");
+							if (cumulus.ftpThread.ThreadState == System.Threading.ThreadState.Running)
+								cumulus.ftpThread.Abort();
+							cumulus.LogMessage("Trying new web update");
+							cumulus.WebUpdating = 1;
+							cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+							cumulus.ftpThread.IsBackground = true;
+							cumulus.ftpThread.Start();
+						}
+						else
+						{
+							cumulus.WebUpdating = 1;
+							cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+							cumulus.ftpThread.IsBackground = true;
+							cumulus.ftpThread.Start();
+						}
 					}
 
 					if (!String.IsNullOrEmpty(cumulus.WundID) && (cumulus.WundID != " ") && cumulus.WundEnabled && cumulus.SynchronisedWUUpdate &&
@@ -1709,6 +1729,7 @@ namespace CumulusMX
 		private void TenMinuteChanged()
 		{
 			cumulus.DoMoonPhase();
+			cumulus.MoonAge = MoonriseMoonset.MoonAge();
 		}
 
 		private void CheckForDataStopped()
@@ -6363,6 +6384,15 @@ namespace CumulusMX
 		protected void UpdateStatusPanel(DateTime timestamp)
 		{
 			LastDataReadTimestamp = timestamp;
+		}
+
+
+		protected void UpdateMQTT()
+		{
+			if (cumulus.MQTTEnableDataUpdate)
+			{
+				MqttPublisher.UpdateMQTTfeed("DataUpdate");
+			}
 		}
 
 		/// <summary>

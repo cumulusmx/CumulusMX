@@ -701,6 +701,7 @@ namespace CumulusMX
 			DoApparentTemp(DateTime.Now);
 
 			UpdateStatusPanel(DateTime.Now);
+			UpdateMQTT();
 		}
 
 		/// <summary>

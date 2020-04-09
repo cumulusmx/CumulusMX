@@ -566,7 +566,7 @@ namespace CumulusMX
 								if (!cumulus.CalculatedWC)
 								{
 									tempInt16 = ConvertBigEndianInt16(data, idx);
-									DoWindChill(ConvertTempFToUser(tempInt16 / 10.0), dateTime);
+									DoWindChill(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
 								}
 								idx += 2;
 								break;
@@ -630,12 +630,12 @@ namespace CumulusMX
 								idx += 4;
 								break;
 							case 0x15: //Light (lux)
-								// convert LUX to W/m2 - approximately!
+								// convert Lux to W/m2 - approximately!
 								tempUint32 = (UInt32)(ConvertBigEndianUInt32(data, idx) * cumulus.LuxToWM2 / 10.0);
 								DoSolarRad((int)tempUint32, dateTime);
 								idx += 4;
 								break;
-							case 0x16: //UV (uW/m2)
+							case 0x16: //UV (µW/cm²) - what use is this!
 								idx += 2;
 								break;
 							case 0x17: //UVI (0-15 index)
@@ -822,6 +822,7 @@ namespace CumulusMX
 					DoForecast("", false);
 
 					UpdateStatusPanel(dateTime);
+					UpdateMQTT();
 
 					dataReceived = true;
 					DataStopped = false;
@@ -1204,7 +1205,6 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
-				UpdateStatusPanel(DateTime.Now);
 			}
 		}
 

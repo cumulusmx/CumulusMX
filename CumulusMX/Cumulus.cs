@@ -24,19 +24,16 @@ using Unosquare.Labs.EmbedIO.Constants;
 using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
+//using MQTTnet;
 
 namespace CumulusMX
 {
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.4.6";
-		public string Build = "3070";
+		public string Version = "3.5.0";
+		public string Build = "3071";
 		/////////////////////////////////
-
-		private const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
-
-		private readonly Mutex appMutex;
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
 
@@ -213,7 +210,7 @@ namespace CumulusMX
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
 
-		public volatile bool WebUpdating;
+		public volatile int WebUpdating;
 
 		public double WindRoseAngle { get; set; }
 
@@ -630,6 +627,20 @@ namespace CumulusMX
 		public bool SendUVToWCloud;
 		public bool SendSolarToWCloud;
 
+		// MQTT settings
+		public string MQTTServer;
+		public int MQTTPort;
+		public bool MQTTUseTLS;
+		public string MQTTUsername;
+		public string MQTTPassword;
+		public bool MQTTEnableDataUpdate;
+		public string MQTTUpdateTopic;
+		public string MQTTUpdateTemplate;
+		public bool MQTTEnableInterval;
+		public int MQTTIntervalTime;
+		public string MQTTIntervalTopic;
+		public string MQTTIntervalTemplate;
+
 		// NOAA report settings
 		public string NOAAname;
 		public string NOAAcity;
@@ -1023,12 +1034,11 @@ namespace CumulusMX
 
 			LogMessage("Command line: " + Environment.CommandLine);
 
-			Assembly thisAssembly = this.GetType().Assembly;
+			//Assembly thisAssembly = this.GetType().Assembly;
 			//Version = thisAssembly.GetName().Version.ToString();
 			//VersionLabel.Content = "Cumulus v." + thisAssembly.GetName().Version;
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
 			Console.WriteLine("Cumulus MX v." + Version + " build " + Build);
-			//Console.WriteLine("This is pre-release beta software");
 
 			IsOSX = IsRunningOnMac();
 
@@ -1162,18 +1172,6 @@ namespace CumulusMX
 
 			ReadIniFile();
 
-			if (WarnMultiple)
-			{
-				appMutex = new Mutex(false, "Global\\" + appGuid);
-
-				if (!appMutex.WaitOne(0, false))
-				{
-					Console.WriteLine("Cumulus is already running - terminating");
-					LogMessage("Cumulus is already running - terminating");
-					Environment.Exit(0);
-				}
-			}
-
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval]);
@@ -1291,6 +1289,8 @@ namespace CumulusMX
 
 			DoSunriseAndSunset();
 			DoMoonPhase();
+			MoonAge = MoonriseMoonset.MoonAge();
+			DoMoonImage();
 
 			LogMessage("Station type: " + (StationType == -1 ? "Undefined" : StationDesc[StationType]));
 
@@ -1458,6 +1458,17 @@ namespace CumulusMX
 				sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
 				sock.SendTo(data, iep1);
 				sock.Close();
+			}
+
+			if (MQTTEnableDataUpdate || MQTTEnableInterval)
+			{
+
+				MqttPublisher.Setup(this);
+
+				if (MQTTEnableInterval)
+				{
+					MQTTTimer.Elapsed += MQTTTimerTick;
+				}
 			}
 
 			InitialiseRG11();
@@ -1782,14 +1793,25 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (WebUpdating)
+			if (WebUpdating == 1)
 			{
-				LogMessage("Warning, previous web update is still in progress, skipping this interval");
+				LogMessage("Warning, previous web update is still in progress, first chance, skipping this interval");
+				WebUpdating++;
+			}
+			else if (WebUpdating >= 2)
+			{
+				LogMessage("Warning, previous web update is still in progress,second chance, aborting connection");
+				if (ftpThread.ThreadState == System.Threading.ThreadState.Running)
+					ftpThread.Abort();
+				LogMessage("Trying new web update");
+				WebUpdating = 1;
+				ftpThread = new Thread(DoHTMLFiles) { IsBackground = true };
+				ftpThread.Start();
 			}
 			else
 			{
-				WebUpdating = true;
-				ftpThread = new Thread(DoHTMLFiles) {IsBackground = true};
+				WebUpdating = 1;
+				ftpThread = new Thread(DoHTMLFiles) { IsBackground = true };
 				ftpThread.Start();
 			}
 		}
@@ -1908,6 +1930,12 @@ namespace CumulusMX
 			if (!string.IsNullOrEmpty(WCloudWid) && (WCloudWid != " "))
 				UpdateWCloud(DateTime.Now);
 		}
+
+		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
+		{
+			MqttPublisher.UpdateMQTTfeed("Interval");
+		}
+
 
 		private void PWSTimerTick(object sender, ElapsedEventArgs e)
 		{
@@ -2056,6 +2084,7 @@ namespace CumulusMX
 				}
 			}
 		}
+
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
@@ -2340,7 +2369,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void TokenParserOnToken(string strToken, ref string strReplacement)
+		public void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
 			var tagParams = new Dictionary<string, string>();
 			var paramList = ParseParams(strToken);
@@ -2447,11 +2476,12 @@ namespace CumulusMX
 			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
 
 			DateTime utcNow = DateTime.UtcNow;
-			double moonAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour);
-			MoonPercent = (100.0 * (1.0 + Math.Cos(moonAngle * Math.PI / 180)) / 2.0);
-			var phasePercent = Math.Round(MoonPercent);
+			MoonPhaseAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour);
+			MoonPercent = (100.0 * (1.0 + Math.Cos(MoonPhaseAngle * Math.PI / 180)) / 2.0);
+			var phasePercent =(int)MoonPercent;
+
 			// If between full moon and new moon, angle is between 180 and 360, make percent negative to indicate waning
-			if (moonAngle > 180)
+			if (MoonPhaseAngle > 180)
 			{
 				MoonPercent = -MoonPercent;
 				phasePercent = -phasePercent;
@@ -2473,9 +2503,27 @@ namespace CumulusMX
 			else
 				MoonPhaseString = Newmoon;
 
-			MoonAge = AstroLib.CalcMoonAge(now, (int)TimeZone.CurrentTimeZone.GetUtcOffset(now).TotalHours);
-			//MoonPhaseString = GetMoonStage(MoonAge);
 		}
+
+		internal void DoMoonImage()
+		{
+			if (MoonImageEnabled)
+			{
+				LogDebugMessage("Generating new Moon image");
+				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, Latitude, MoonImageSize);
+
+				if (ret == "OK")
+				{
+					// set a flag to show file is ready for FTP
+					MoonImageReady = true;
+				}
+				else
+				{
+					LogMessage(ret);
+				}
+			}
+		}
+
 
 		/*
 		private string GetMoonStage(double fAge)
@@ -2527,11 +2575,21 @@ namespace CumulusMX
 
 		public string MoonPhaseString { get; set; }
 
+		public double MoonPhaseAngle { get; set; }
+
 		public double MoonPercent { get; set; }
 
 		public TimeSpan MoonSetTime { get; set; }
 
 		public TimeSpan MoonRiseTime { get; set; }
+
+		public bool MoonImageEnabled;
+
+		public int MoonImageSize;
+
+		public string MoonImageFtpDest;
+
+		private bool MoonImageReady = false;
 
 		private void getSunriseSunset(DateTime time, out DateTime sunrise, out DateTime sunset, out bool alwaysUp, out bool alwaysDown)
 		{
@@ -3261,6 +3319,7 @@ namespace CumulusMX
 			SynchronisedWebUpdate = (60 % UpdateInterval == 0);
 			IncludeStandardFiles = ini.GetValue("FTP site", "IncludeSTD", true);
 			IncludeGraphDataFiles = ini.GetValue("FTP site", "IncludeGraphDataFiles", true);
+			IncludeMoonImage = ini.GetValue("FTP site", "IncludeMoonImage", false);
 
 			FTPRename = ini.GetValue("FTP site", "FTPRename", false);
 			UTF8encode = ini.GetValue("FTP site", "UTF8encode", true);
@@ -3294,6 +3353,9 @@ namespace CumulusMX
 
 			GraphDays = ini.GetValue("Graphs", "ChartMaxDays", 31);
 			GraphHours = ini.GetValue("Graphs", "GraphHours", 24);
+			MoonImageEnabled = ini.GetValue("Graphs", "MoonImageEnabled", false);
+			MoonImageSize = ini.GetValue("Graphs", "MoonImageSize", 100);
+			MoonImageFtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
 
 			WundID = ini.GetValue("Wunderground", "ID", "");
 			WundPW = ini.GetValue("Wunderground", "Password", "");
@@ -3410,6 +3472,19 @@ namespace CumulusMX
 			SendSRToAPRS = ini.GetValue("APRS", "SendSR", false);
 
 			SynchronisedAPRSUpdate = (60 % APRSinterval == 0);
+
+			MQTTServer = ini.GetValue("MQTT", "Server", "");
+			MQTTPort = ini.GetValue("MQTT", "Port", 1883);
+			MQTTUseTLS = ini.GetValue("MQTT", "UseTLS", false);
+			MQTTUsername = ini.GetValue("MQTT", "Username", "");
+			MQTTPassword = ini.GetValue("MQTT", "Password", "");
+			MQTTEnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
+			MQTTUpdateTopic = ini.GetValue("MQTT", "UpdateTopic", "CumulusMX/DataUpdate");
+			MQTTUpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
+			MQTTEnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
+			MQTTIntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 5 minutes
+			MQTTIntervalTopic = ini.GetValue("MQTT", "IntervalTopic", "CumulusMX/Interval");
+			MQTTIntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
 
 			LowTempAlarmValue = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
 			LowTempAlarmEnabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
@@ -3824,6 +3899,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			ini.SetValue("FTP site", "IncludeSTD", IncludeStandardFiles);
 			ini.SetValue("FTP site", "IncludeGraphDataFiles", IncludeGraphDataFiles);
+			ini.SetValue("FTP site", "IncludeMoonImage", IncludeMoonImage);
 			//ini.SetValue("FTP site", "IncludeSTDImages", IncludeStandardImages);
 			//ini.SetValue("FTP site", "IncludeSolarChart", IncludeSolarChart);
 			//ini.SetValue("FTP site", "IncludeUVChart", IncludeUVChart);
@@ -3930,6 +4006,19 @@ namespace CumulusMX
 			ini.SetValue("APRS", "Enabled", APRSenabled);
 			ini.SetValue("APRS", "Interval", APRSinterval);
 			ini.SetValue("APRS", "SendSR", SendSRToAPRS);
+
+			ini.SetValue("MQTT", "Server", MQTTServer);
+			ini.SetValue("MQTT", "Port", MQTTPort);
+			ini.SetValue("MQTT", "UseTLS", MQTTUseTLS);
+			ini.SetValue("MQTT", "Username", MQTTUsername);
+			ini.SetValue("MQTT", "Password", MQTTPassword);
+			ini.SetValue("MQTT", "EnableDataUpdate", MQTTEnableDataUpdate);
+			ini.SetValue("MQTT", "UpdateTopic", MQTTUpdateTopic);
+			ini.SetValue("MQTT", "UpdateTemplate", MQTTUpdateTemplate);
+			ini.SetValue("MQTT", "EnableInterval", MQTTEnableInterval);
+			ini.SetValue("MQTT", "IntervalTime", MQTTIntervalTime);
+			ini.SetValue("MQTT", "IntervalTopic", MQTTIntervalTopic);
+			ini.SetValue("MQTT", "IntervalTemplate", MQTTIntervalTemplate);
 
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarmValue);
 			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmEnabled);
@@ -4075,6 +4164,9 @@ namespace CumulusMX
 
 			ini.SetValue("Graphs", "ChartMaxDays", GraphDays);
 			ini.SetValue("Graphs", "GraphHours", GraphHours);
+			ini.SetValue("Graphs", "MoonImageEnabled", MoonImageEnabled);
+			ini.SetValue("Graphs", "MoonImageSize", MoonImageSize);
+			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImageFtpDest);
 
 			ini.SetValue("MySQL", "Host", MySqlHost);
 			ini.SetValue("MySQL", "Port", MySqlPort);
@@ -4885,6 +4977,7 @@ namespace CumulusMX
 		public Timer TwitterTimer = new Timer();
 		public Timer AwekasTimer = new Timer();
 		public Timer WCloudTimer = new Timer();
+		public Timer MQTTTimer = new Timer();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -4916,6 +5009,7 @@ namespace CumulusMX
 		private readonly string TwitterTxtFile;
 		public bool IncludeStandardFiles = true;
 		public bool IncludeGraphDataFiles;
+		public bool IncludeMoonImage;
 		public bool TwitterSendLocation;
 		private const int numwebtextfiles = 9;
 		private readonly FtpClient RealtimeFTP = new FtpClient();
@@ -5181,16 +5275,17 @@ namespace CumulusMX
 				if (live)
 				{
 					// do the update
-					MySqlCommand cmd = new MySqlCommand();
-					cmd.CommandText = queryString;
-					cmd.Connection = MonthlyMySqlConn;
-					LogDebugMessage(queryString);
-
 					try
 					{
-						MonthlyMySqlConn.Open();
-						int aff = cmd.ExecuteNonQuery();
-						LogMessage("MySQL: Table " + MySqlMonthlyTable + " " + aff + " rows were affected.");
+						using (MySqlCommand cmd = new MySqlCommand())
+						{
+							cmd.CommandText = queryString;
+							cmd.Connection = MonthlyMySqlConn;
+							LogDebugMessage(queryString);
+							MonthlyMySqlConn.Open();
+							int aff = cmd.ExecuteNonQuery();
+							LogMessage("MySQL: Table " + MySqlMonthlyTable + " " + aff + " rows were affected.");
+						}
 					}
 					catch (Exception ex)
 					{
@@ -5831,6 +5926,7 @@ namespace CumulusMX
 					station.CreateGraphDataFiles();
 					//LogDebugMessage("Done creating graph data files");
 				}
+
 				//LogDebugMessage("Creating extra files");
 				// handle any extra files
 				for (int i = 0; i < numextrafiles; i++)
@@ -5924,7 +6020,7 @@ namespace CumulusMX
 			}
 			finally
 			{
-				WebUpdating = false;
+				WebUpdating = 0;
 			}
 		}
 
@@ -6067,8 +6163,23 @@ namespace CumulusMX
 								LogMessage(e.Message);
 							}
 						}
-					}
 
+						if (IncludeMoonImage && MoonImageReady)
+						{
+							try
+							{
+								LogFtpMessage("SFTP: Uploading Moon image file");
+								UploadFile(conn, "web/moon.png", remotePath + MoonImageFtpDest);
+								LogFtpMessage("SFTP: Done uploading Moon image file");
+								// clear the image ready for FTP flag, only upload once an hour
+								MoonImageReady = false;
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
+						}
+					}
 					conn.Disconnect();
 				}
 			}
@@ -6232,6 +6343,21 @@ namespace CumulusMX
 								LogMessage(e.Message);
 							}
 						}
+
+						if (IncludeMoonImage && MoonImageReady)
+						{
+							try
+							{
+								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading Moon image file");
+								UploadFile(conn, "web/moon.png", remotePath + MoonImageFtpDest);
+								// clear the image ready for FTP flag, only upload once an hour
+								MoonImageReady = false;
+							}
+							catch (Exception e)
+							{
+								LogMessage(e.Message);
+							}
+						}
 					}
 
 					// b3045 - dispose of connection
@@ -6333,7 +6459,7 @@ namespace CumulusMX
 				}
 				*/
 
-				LogFtpMessage($"SFTP: Uploading {remotefilename}");
+				//LogFtpMessage($"SFTP: Uploading {remotefilename}");
 				using (Stream istream = new FileStream(localfile, FileMode.Open))
 				{
 					try
@@ -6342,13 +6468,9 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("SFTP: Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+						LogMessage($"SFTP: Error uploading {localfile} to {remotefile} : {ex.Message}");
 						RealtimeFTPConnectionTest();
 						return;
-					}
-					finally
-					{
-						istream.Close();
 					}
 				}
 
@@ -6362,12 +6484,12 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("SFTP: Error renaming " + remotefilename + " to " + remotefile + " : " + ex.Message);
+						LogMessage($"SFTP: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 						RealtimeFTPConnectionTest();
 						return;
 					}
 				}
-				LogFtpMessage("SFTP: Completed uploading " + localfile + " to " + remotefile);
+				LogFtpMessage($"SFTP: Completed uploading {localfile} to {remotefile}");
 			}
 			catch (Exception ex)
 			{
@@ -6576,31 +6698,10 @@ namespace CumulusMX
 				string queryString = StartOfRealtimeInsertSQL + values;
 
 				// do the update
-				MySqlCommand cmd = new MySqlCommand();
-				cmd.CommandText = queryString;
-				cmd.Connection = RealtimeSqlConn;
-				//LogMessage(queryString);
-
-				try
+				using (MySqlCommand cmd = new MySqlCommand())
 				{
-					RealtimeSqlConn.Open();
-					int aff = cmd.ExecuteNonQuery();
-					//LogMessage("MySQL: " + aff + " rows were affected.");
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Error encountered during Realtime MySQL operation.");
-					LogMessage(ex.Message);
-				}
-				finally
-				{
-					RealtimeSqlConn.Close();
-				}
-
-				if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
-				{
-					// delete old entries
-					cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " + MySqlRealtimeRetention + ")";
+					cmd.CommandText = queryString;
+					cmd.Connection = RealtimeSqlConn;
 					//LogMessage(queryString);
 
 					try
@@ -6611,12 +6712,35 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Error encountered during Realtime delete MySQL operation.");
+						LogMessage("Error encountered during Realtime MySQL operation.");
 						LogMessage(ex.Message);
 					}
 					finally
 					{
 						RealtimeSqlConn.Close();
+					}
+
+					if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
+					{
+						// delete old entries
+						cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " + MySqlRealtimeRetention + ")";
+						//LogMessage(queryString);
+
+						try
+						{
+							RealtimeSqlConn.Open();
+							int aff = cmd.ExecuteNonQuery();
+							//LogMessage("MySQL: " + aff + " rows were affected.");
+						}
+						catch (Exception ex)
+						{
+							LogMessage("Error encountered during Realtime delete MySQL operation.");
+							LogMessage(ex.Message);
+						}
+						finally
+						{
+							RealtimeSqlConn.Close();
+						}
 					}
 				}
 			}
@@ -6697,6 +6821,12 @@ namespace CumulusMX
 			WCloudTimer.Interval = WCloudInterval * 60 * 1000;
 
 			WeatherbugTimer.Interval = WeatherbugInterval * 60 * 1000; // mins to millisecs
+
+			MQTTTimer.Interval = MQTTIntervalTime * 1000; // secs to millisecs
+			if (MQTTEnableInterval)
+			{
+				MQTTTimer.Enabled = true;
+			}
 
 			if (WundList == null)
 			{
@@ -6996,16 +7126,18 @@ namespace CumulusMX
 			for (int i = 0; i < MySqlList.Count; i++)
 			{
 				LogMessage("Uploading MySQL archive #" + (i + 1));
-				MySqlCommand cmd = new MySqlCommand();
-				cmd.CommandText = MySqlList[i];
-				cmd.Connection = mySqlConn;
-				LogDebugMessage(MySqlList[i]);
-
 				try
 				{
-					mySqlConn.Open();
-					int aff = cmd.ExecuteNonQuery();
-					LogMessage("MySQL: Table " + MySqlMonthlyTable + "  " + aff + " rows were affected.");
+					using (MySqlCommand cmd = new MySqlCommand())
+					{
+						cmd.CommandText = MySqlList[i];
+						cmd.Connection = mySqlConn;
+						LogDebugMessage(MySqlList[i]);
+
+						mySqlConn.Open();
+						int aff = cmd.ExecuteNonQuery();
+						LogMessage("MySQL: Table " + MySqlMonthlyTable + "  " + aff + " rows were affected.");
+					}
 				}
 				catch (Exception ex)
 				{

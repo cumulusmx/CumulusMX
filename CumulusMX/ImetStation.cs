@@ -971,6 +971,7 @@ namespace CumulusMX
 				UpdatePressureTrendString();
 
 				UpdateStatusPanel(now);
+				UpdateMQTT();
 			}
 			else
 			{
