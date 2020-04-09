@@ -256,36 +256,32 @@ namespace CumulusMX
                 {
                     case BARO_PACKET_TYPE:
                         ProcessBaroPacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     case TEMP_PACKET_TYPE:
                         ProcessTempPacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     case WIND_PACKET_TYPE:
                         ProcessWindPacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     case RAIN_PACKET_TYPE:
                         ProcessRainPacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     case UV_PACKET_TYPE:
                         ProcessUVPacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     case DATE_PACKET_TYPE:
                         ProcessDatePacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     case POND_PACKET_TYPE:
                         ProcessPondPacket();
-                        UpdateStatusPanel(DateTime.Now);
                         break;
                     default:
                         cumulus.LogMessage("Unknown packet type: " + CurrentPacketType.ToString("X2"));
-                        break;
+                        return;
                 }
+
+                UpdateStatusPanel(DateTime.Now);
+                UpdateMQTT();
             }
             else
             {

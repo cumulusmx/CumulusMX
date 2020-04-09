@@ -245,23 +245,18 @@ namespace CumulusMX
 				{
 					case WM918HumidData:
 						WM918Humid(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WM918RainData:
 						WM918Rain(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WM918TempData:
 						WM918Temp(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WM918BaroData:
 						WM918Baro(buff);
-						UpdateStatusPanel(now);
 						break;
 					case WM918WindData:
 						WM918Wind(buff);
-						UpdateStatusPanel(now);
 						break;
 					default:
 						Trace.Write("Unrecognised packet:");
@@ -270,8 +265,10 @@ namespace CumulusMX
 							Trace.Write(" " + buff[i].ToString("X2"));
 						}
 						cumulus.LogMessage(" ");
-						break;
+						return;
 				}
+				UpdateStatusPanel(now);
+				UpdateMQTT();
 			}
 			else
 			{

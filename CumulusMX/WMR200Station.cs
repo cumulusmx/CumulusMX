@@ -1650,10 +1650,7 @@ namespace CumulusMX
 				Str += " ";
 			}
 
-			if (cumulus.logging)
-			{
-				cumulus.LogMessage(DateTime.Now + " Packet:" + Str);
-			}
+			cumulus.LogDataMessage(DateTime.Now + " Packet:" + Str);
 
 			if (CRCOK())
 			{
@@ -1680,10 +1677,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (cumulus.logging)
-							{
-								cumulus.LogMessage("Wind packet received");
-							}
+							cumulus.LogDebugMessage("Wind packet received");
 							ProcessWindPacket();
 							UpdateStatusPanel(DateTime.Now);
 						}
@@ -1696,10 +1690,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (cumulus.logging)
-							{
-								cumulus.LogMessage("Rain packet received");
-							}
+							cumulus.LogDebugMessage("Rain packet received");
 							ProcessRainPacket();
 							UpdateStatusPanel(DateTime.Now);
 						}
@@ -1712,10 +1703,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (cumulus.logging)
-							{
-								cumulus.LogMessage("UV packet received");
-							}
+							cumulus.LogDebugMessage("UV packet received");
 							ProcessUVPacket();
 							UpdateStatusPanel(DateTime.Now);
 						}
@@ -1728,10 +1716,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (cumulus.logging)
-							{
-								cumulus.LogMessage("Baro packet received");
-							}
+							cumulus.LogDebugMessage("Baro packet received");
 							ProcessBaroPacket();
 							UpdateStatusPanel(DateTime.Now);
 						}
@@ -1744,31 +1729,30 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (cumulus.logging)
-							{
-								cumulus.LogMessage("Temp packet received");
-							}
+							cumulus.LogDebugMessage("Temp packet received");
 							ProcessTempHumPacket();
 							UpdateStatusPanel(DateTime.Now);
 						}
 						break;
 					case STATUS_PACKET_TYPE:
-						if (cumulus.logging)
-						{
-							cumulus.LogMessage("Status packet received");
-						}
+						cumulus.LogDebugMessage("Status packet received");
 						ProcessStatusPacket();
-						UpdateStatusPanel(DateTime.Now);
 						break;
 					default:
-						cumulus.LogMessage("Unknown packet received: " + Str);
-						break;
+						cumulus.LogDebugMessage("Unknown packet received: " + Str);
+						return;
 				}
+
+				UpdateStatusPanel(DateTime.Now);
 
 				if (GettingHistory)
 				{
 					cumulus.LogMessage("Sending DA");
 					SendDA();
+				}
+				else
+				{
+					UpdateMQTT();
 				}
 
 				//UpdateStatusPanel;
