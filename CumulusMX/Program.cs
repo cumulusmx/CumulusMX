@@ -36,24 +36,24 @@ namespace CumulusMX
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 1);
 
                 Thread signal_thread = new Thread(delegate ()
-                                                  {
-                                                      while (true)
-                                                      {
-                                                          // Wait for a signal to be delivered
-                                                          var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
+                    {
+                        while (true)
+                        {
+                            // Wait for a signal to be delivered
+                            var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
 
-                                                          // Notify the main thread that a signal was received,
-                                                          // you can use things like:
-                                                          //    Application.Invoke () for Gtk#
-                                                          //    Control.Invoke on Windows.Forms
-                                                          //    Write to a pipe created with UnixPipes for server apps.
-                                                          //    Use an AutoResetEvent
+                            // Notify the main thread that a signal was received,
+                            // you can use things like:
+                            //    Application.Invoke () for Gtk#
+                            //    Control.Invoke on Windows.Forms
+                            //    Write to a pipe created with UnixPipes for server apps.
+                            //    Use an AutoResetEvent
 
-                                                          exitSystem = true;
+                            exitSystem = true;
 
-                                                          //AppDomain.CurrentDomain.UnhandledException -= UnhandledExceptionTrapper;
-                                                      }
-                                                  });
+                            //AppDomain.CurrentDomain.UnhandledException -= UnhandledExceptionTrapper;
+                        }
+                    });
 
                 signal_thread.Start();
             }
@@ -110,19 +110,9 @@ namespace CumulusMX
 
             using (Mutex appMutex = new Mutex(false, "Global\\" + appGuid))
             {
-                if (!appMutex.WaitOne(0, false))
-                {
-                    Console.WriteLine("Cumulus is already running - terminating");
-                    Console.WriteLine("Program exit");
-                    Environment.Exit(1);
-                }
-
-                GC.Collect();
-                //System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo("en-GB");
-                //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo("en-GB");
                 Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 
-                cumulus = new Cumulus(httpport, debug);
+                cumulus = new Cumulus(httpport, debug, appMutex);
 
                 DateTime now = DateTime.Now;
 
