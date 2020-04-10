@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.5.0";
-		public string Build = "3071";
+		public string Version = "3.5.1";
+		public string Build = "3072";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -443,6 +443,8 @@ namespace CumulusMX
 		private const int DefaultAPRSInterval = 9;
 		private const int DefaultAwekasInterval = 15;
 		private const int DefaultWCloudInterval = 10;
+
+		public int RecordSetTimeoutHrs = 24;
 
 		private const int VP2SERIALCONNECTION = 0;
 		//private const int VP2USBCONNECTION = 1;
@@ -932,7 +934,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public Cumulus(int HTTPport, bool DebugEnabled)
+		public Cumulus(int HTTPport, bool DebugEnabled, Mutex appMutex)
 		{
 			//DoLicenseCheck();
 
@@ -1129,6 +1131,19 @@ namespace CumulusMX
 			//localgraphdatafiles = new[] {"units.json","tempdatad3.json", "pressdatad3.json", "winddatad3.json", "wdirdatad3.json", "humdatad3.json", "raindatad3.json", "solardatad3.json"};
 			//remotegraphdatafiles = new[] {"units.json","tempdatad3.json", "pressdatad3.json", "winddatad3.json", "wdirdatad3.json", "humdatad3.json", "raindatad3.json", "solardatad3.json"};
 
+			ReadIniFile();
+
+			if (WarnMultiple && !appMutex.WaitOne(0, false))
+			{
+				Console.WriteLine("Cumulus is already running - terminating");
+				Console.WriteLine("Program exit");
+				LogMessage("Cumulus is already running - terminating");
+				LogMessage("Program exit");
+				Environment.Exit(1);
+			}
+
+			GC.Collect();
+
 			localgraphdatafiles = new[]
 				{
 					"web" + DirectorySeparator + "graphconfig.json",
@@ -1145,10 +1160,10 @@ namespace CumulusMX
 				};
 
 			remotegraphdatafiles = new[]
-									{
-										"graphconfig.json", "tempdata.json", "pressdata.json", "winddata.json", "wdirdata.json", "humdata.json", "raindata.json", "solardata.json",
-										"dailyrain.json", "sunhours.json", "dailytemp.json"
-									};
+				{
+					"graphconfig.json", "tempdata.json", "pressdata.json", "winddata.json", "wdirdata.json", "humdata.json", "raindata.json", "solardata.json",
+					"dailyrain.json", "sunhours.json", "dailytemp.json"
+				};
 
 			LogMessage("Data path = " + Datapath);
 
@@ -1165,12 +1180,7 @@ namespace CumulusMX
 
 			DiaryDB.CreateTable<DiaryData>();
 
-			// Read some details from the user config
-			//Stationtype = (StationTypes) Enum.Parse(typeof (StationTypes), Properties.Settings.Default.StationType);
-
 			Backupdata(false, DateTime.Now);
-
-			ReadIniFile();
 
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
@@ -3123,7 +3133,7 @@ namespace CumulusMX
 
 			TempDPlaces = TempDPlace[TempUnit];
 			PressDPlaces = PressDPlace[PressUnit];
-			if ((StationType == 0 || StationType == 1)&&DavisIncrementPressureDP)
+			if ((StationType == 0 || StationType == 1) && DavisIncrementPressureDP)
 			{
 				// Use one more DP for Davis stations
 				++PressDPlaces;
@@ -3177,6 +3187,7 @@ namespace CumulusMX
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
 			UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false);
+			RecordSetTimeoutHrs = ini.GetValue("Station", "RecordSetTimeoutHrs", 24);
 
 			SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 0);
 
@@ -3482,7 +3493,7 @@ namespace CumulusMX
 			MQTTUpdateTopic = ini.GetValue("MQTT", "UpdateTopic", "CumulusMX/DataUpdate");
 			MQTTUpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
 			MQTTEnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
-			MQTTIntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 5 minutes
+			MQTTIntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 10 minutes
 			MQTTIntervalTopic = ini.GetValue("MQTT", "IntervalTopic", "CumulusMX/Interval");
 			MQTTIntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
 

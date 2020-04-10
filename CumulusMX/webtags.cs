@@ -1050,187 +1050,202 @@ namespace CumulusMX
 
 		private string Tagnewrecord(Dictionary<string,string> TagParams)
 		{
-			return station.AlltimeRecordTimestamp < DateTime.Now.AddDays(-1) ? "0" : "1";
+			return station.AlltimeRecordTimestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
+			if (station.alltimerecarray[WeatherStation.AT_hightemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowtemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowchill].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highmintemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highdewpoint].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp >= threshold
+			)
+				return "1";
+			else
+				return "0";
 		}
 
 		private string TagWindRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
+			if (station.alltimerecarray[WeatherStation.AT_highgust].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highwind].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highwindrun].timestamp >= threshold
+			)
+				return "1";
+			else
+				return "0";
 		}
 
 		private string TagRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
+			if (station.alltimerecarray[WeatherStation.AT_highrainrate].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_dailyrain].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_hourlyrain].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_wetmonth].timestamp >= threshold
+			)
+				return "1";
+			else
+				return "0";
 		}
 
 		private string TagHumidityRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
+			if (station.alltimerecarray[WeatherStation.AT_highhumidity].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowhumidity].timestamp >= threshold
+			)
+				return "1";
+			else
+				return "0";
 		}
 
 		private string TagPressureRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
+			if (station.alltimerecarray[WeatherStation.AT_lowpress].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highpress].timestamp >= threshold
+			)
+				return "1";
+			else
+				return "0";
 		}
 
 		private string TagHighTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_hightemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowtemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighAppTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowAppTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHeatIndexRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowWindChillRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowchill].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMinTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highmintemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowMaxTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighDewPointRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highdewpoint].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowDewPointRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindGustRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highgust].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindSpeedRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highwind].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighRainRateRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highrainrate].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHourlyRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_hourlyrain].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighDailyRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_dailyrain].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMonthlyRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_wetmonth].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHumidityRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highhumidity].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindrunRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highwindrun].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowHumidityRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowhumidity].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighPressureRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highpress].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowPressureRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowpress].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLongestDryPeriodRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLongestWetPeriodRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighTempRangeRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowTempRangeRecordSet(Dictionary<string,string> TagParams)
 		{
-			// TODO
-			return "0";
+			return station.alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string Tagerrorlight(Dictionary<string,string> TagParams)

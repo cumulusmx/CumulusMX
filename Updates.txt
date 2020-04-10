@@ -1,3 +1,23 @@
+3.5.1 - b0372
+=============
+- Fix for the "Stop second instance" option now working a bit too well, you could not disable it!
+- Implements the "record set" web tags. These will be set from the time of the record until a timeout value (default 24 hours).
+  You can change the default timeout by adding a entry to Cumulus.ini
+	[Station]
+	RecordSetTimeoutHrs=24
+
+  The web tags enabled are: TempRecordSet, WindRecordSet, RainRecordSet, HumidityRecordSet, PressureRecordSet, HighTempRecordSet,
+  LowTempRecordSet, HighAppTempRecordSet, LowAppTempRecordSet, HighHeatIndexRecordSet, LowWindChillRecordSet, HighMinTempRecordSet,
+  LowMaxTempRecordSet, HighDewPointRecordSet, LowDewPointRecordSet, HighWindGustRecordSet, HighWindSpeedRecordSet, HighRainRateRecordSet,
+  HighHourlyRainRecordSet, HighDailyRainRecordSet, HighMonthlyRainRecordSet, HighHumidityRecordSet, HighWindrunRecordSet, LowHumidityRecordSet,
+  HighPressureRecordSet, LowPressureRecordSet, LongestDryPeriodRecordSet, LongestWetPeriodRecordSet, HighTempRangeRecordSet, LowTempRangeRecordSet
+
+
+- Updated files
+	\CumulusMX.exe
+
+
+
 3.5.0 - b3071
 =============
 - Fix to "Stop second instance" of Cumulus running
