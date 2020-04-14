@@ -1,4 +1,24 @@
-3.5.1 - b0372
+3.5.2 - b3073
+=============
+- Fixes and improvements to MQTT processing
+- Adds new Cumulus.ini setting for MQTT to force IPv4/IPv6 connectivity (default is System decides which to use)
+	[MQTT]
+	IPversion=0   (0=default, 4=IPv4, 6=IPv6)
+- Adds Sensor Contact lost flag/alarm for Davis WLL devices
+- GW1000 raw Lux value is now available via the <#Light> weg tag like other Fine Offset stations
+- Adds three new web tags...
+	<#timeJavaScript> - returns the current date/time in JavaScript milliseconds. Example use = "var dt = Date(<#timeJavaScript>)"
+	<#directionTM> - returns todays max wind gust direction as a compass point
+	<#directionYM> - returns yesterdays max wind gust direction as a compass point
+
+
+- Updated files
+	\CumulusMX.exe
+	\MQTTnet.dll
+
+
+
+3.5.1 - b3072
 =============
 - Fix for the "Stop second instance" option now working a bit too well, you could not disable it!
 - Implements the "record set" web tags. These will be set from the time of the record until a timeout value (default 24 hours).

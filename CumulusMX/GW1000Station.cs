@@ -630,9 +630,10 @@ namespace CumulusMX
 								idx += 4;
 								break;
 							case 0x15: //Light (lux)
+								// Save the Lux value
+								LightValue = ConvertBigEndianUInt32(data, idx) / 10.0;
 								// convert Lux to W/m2 - approximately!
-								tempUint32 = (UInt32)(ConvertBigEndianUInt32(data, idx) * cumulus.LuxToWM2 / 10.0);
-								DoSolarRad((int)tempUint32, dateTime);
+								DoSolarRad((int)(LightValue * cumulus.LuxToWM2), dateTime);
 								idx += 4;
 								break;
 							case 0x16: //UV (µW/cm²) - what use is this!
