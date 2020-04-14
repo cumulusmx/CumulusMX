@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.5.2";
-		public string Build = "3073";
+		public string Version = "3.5.3";
+		public string Build = "3074";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -1025,7 +1025,7 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			string loggingfile = GetLoggingFileName(AppDir + "MXdiags" + DirectorySeparator);
+			string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
 
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
 
@@ -1085,10 +1085,10 @@ namespace CumulusMX
 			// find the data folder
 			//datapath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + DirectorySeparator + "Cumulus" + DirectorySeparator;
 
-			Datapath = AppDir + "data" + DirectorySeparator;
-			Backuppath = AppDir + "backup" + DirectorySeparator;
-			ReportPath = AppDir + "Reports" + DirectorySeparator;
-			WebPath = AppDir + "web" + DirectorySeparator;
+			Datapath = "data" + DirectorySeparator;
+			Backuppath = "backup" + DirectorySeparator;
+			ReportPath = "Reports" + DirectorySeparator;
+			WebPath = "web" + DirectorySeparator;
 
 			dbfile = Datapath + "cumulusmx.db";
 			diaryfile = Datapath + "diary.db";
@@ -2961,16 +2961,16 @@ namespace CumulusMX
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
 
-			IniFile ini = new IniFile(AppDir + "Cumulus.ini");
+			IniFile ini = new IniFile("Cumulus.ini");
 
 			// check for Cumulus 1 [FTP Site] and correct it
 			if (ini.GetValue("FTP Site", "Port", -999) != -999)
 			{
-				if (File.Exists(AppDir + "Cumulus.ini"))
+				if (File.Exists("Cumulus.ini"))
 				{
 					var contents = File.ReadAllText("Cumulus.ini");
 					contents = contents.Replace("[FTP Site]", "[FTP site]");
-					File.WriteAllText(AppDir + "Cumulus.ini", contents);
+					File.WriteAllText("Cumulus.ini", contents);
 					ini.Refresh();
 				}
 			}
@@ -3767,7 +3767,7 @@ namespace CumulusMX
 		{
 			LogMessage("Writing Cumulus.ini file");
 
-			IniFile ini = new IniFile(AppDir + "Cumulus.ini");
+			IniFile ini = new IniFile("Cumulus.ini");
 
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
@@ -4224,9 +4224,9 @@ namespace CumulusMX
 
 		private void ReadStringsFile()
 		{
-			if (File.Exists(AppDir + "strings.ini"))
+			if (File.Exists("strings.ini"))
 			{
-				IniFile ini = new IniFile(AppDir + "strings.ini");
+				IniFile ini = new IniFile("strings.ini");
 
 				// forecast
 
