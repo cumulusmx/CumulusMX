@@ -25,18 +25,33 @@ namespace CumulusMX
 
 			var clientId = Guid.NewGuid().ToString();
 
-			var mqttOptions = new MQTTnet.Client.Options.MqttClientOptionsBuilder()
-				.WithClientId(clientId)
-				.WithTcpServer(cumulus.MQTTServer, cumulus.MQTTPort)
-				.WithCredentials(cumulus.MQTTUsername, cumulus.MQTTPassword)
-				.WithCleanSession()
-				.WithTls(new MQTTnet.Client.Options.MqttClientOptionsBuilderTlsParameters
-					{UseTls = cumulus.MQTTUseTLS}
-				)
-				.Build();
+			MQTTnet.Client.Options.MqttClientTcpOptions mqttTcpOptions = new MQTTnet.Client.Options.MqttClientTcpOptions
+			{
+				Server = cumulus.MQTTServer,
+				Port = cumulus.MQTTPort,
+				TlsOptions = new MQTTnet.Client.Options.MqttClientTlsOptions { UseTls = cumulus.MQTTUseTLS }
+			};
+
+			switch (cumulus.MQTTIpVersion)
+			{
+				case 4:
+					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
+					break;
+				case 6:
+					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.InterNetworkV6;
+					break;
+				default:
+					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
+					break;
+			}
+
+			var mqttOptions = new MQTTnet.Client.Options.MqttClientOptions();
+			mqttOptions.ChannelOptions = mqttTcpOptions;
+			mqttOptions.ClientId = clientId;
+			mqttOptions.Credentials = String.IsNullOrEmpty(cumulus.MQTTPassword) ? null : new MQTTnet.Client.Options.MqttClientCredentials { Username = cumulus.MQTTUsername, Password = System.Text.Encoding.UTF8.GetBytes(cumulus.MQTTPassword) };
+			mqttOptions.CleanSession = true;
 
 			Connect(mqttOptions);
-
 
 			mqttClient.UseDisconnectedHandler(async e =>
 			{
@@ -64,6 +79,7 @@ namespace CumulusMX
 			cumulus.LogDataMessage($"MQTT: publishing to topic '{topic}', message '{message}'");
 			var mqttMsg = new MqttApplicationMessageBuilder()
 				.WithTopic(topic)
+				.WithPayload(message)
 				.Build();
 
 			await mqttClient.PublishAsync(mqttMsg, CancellationToken.None);

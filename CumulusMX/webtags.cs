@@ -538,6 +538,11 @@ namespace CumulusMX
 			return DateTime.Now.ToString("HH:mm:ss");
 		}
 
+		private string TagTimeJavascript(Dictionary<string, string> TagParams)
+		{
+			return ((UInt64)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds).ToString();
+		}
+
 		private string TagDate(Dictionary<string,string> TagParams)
 		{
 			string dtformat = TagParams.Get("format");
@@ -1474,6 +1479,11 @@ namespace CumulusMX
 			return station.highgustbearing.ToString();
 		}
 
+		private string TagdirectionTM(Dictionary<string, string> TagParams)
+		{
+			return station.CompassPoint(station.highgustbearing);
+		}
+
 		private string TagrrateTM(Dictionary<string,string> TagParams)
 		{
 			return station.highraintoday.ToString(cumulus.RainFormat);
@@ -1710,6 +1720,10 @@ namespace CumulusMX
 			return station.highgustbearingyesterday.ToString();
 		}
 
+		private string TagdirectionYM(Dictionary<string, string> TagParams)
+		{
+			return  station.CompassPoint(station.highgustbearingyesterday);
+		}
 		private string TagrrateYM(Dictionary<string,string> TagParams)
 		{
 			return station.highrainyesterday.ToString(cumulus.RainFormat);
@@ -4610,6 +4624,7 @@ namespace CumulusMX
 				{ "DaysSince30Dec1899", TagDaysSince30Dec1899 },
 				{ "timeUTC", TagTimeUTC },
 				{ "timehhmmss", TagTimehhmmss },
+				{ "timeJavaScript", TagTimeJavascript },
 				{ "date", TagDate },
 				{ "yesterday", TagYesterday },
 				{ "metdate", TagMetDate },
@@ -4768,6 +4783,7 @@ namespace CumulusMX
 				{ "wgustTM", TagwgustTM },
 				{ "TwgustTM", TagTwgustTM },
 				{ "bearingTM", TagbearingTM },
+				{ "directionTM", TagdirectionTM },
 				{ "rrateTM", TagrrateTM },
 				{ "TrrateTM", TagTrrateTM },
 				{ "hourlyrainTH", TaghourlyrainTH },
@@ -4812,6 +4828,7 @@ namespace CumulusMX
 				{ "wgustYM", TagwgustYM },
 				{ "TwgustYM", TagTwgustYM },
 				{ "bearingYM", TagbearingYM },
+				{ "directionYM", TagdirectionYM },
 				{ "rrateYM", TagrrateYM },
 				{ "TrrateYM", TagTrrateYM },
 				{ "rfallY", TagrfallY },

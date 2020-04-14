@@ -3481,21 +3481,24 @@ namespace CumulusMX
 
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
-			Bearing = (bearingpar + cumulus.WindDirOffset)%360;
-			if (Bearing < 0)
-			{
-				Bearing = 360 + Bearing;
-			}
-
-			if (Bearing == 0)
-			{
-				Bearing = 360;
-			}
 
 			// use bearing of zero when calm
 			if ((Math.Abs(gustpar) < 0.001) && cumulus.UseZeroBearing)
 			{
 				Bearing = 0;
+			}
+			else
+			{
+				Bearing = (bearingpar + cumulus.WindDirOffset) % 360;
+				if (Bearing < 0)
+				{
+					Bearing = 360 + Bearing;
+				}
+
+				if (Bearing == 0)
+				{
+					Bearing = 360;
+				}
 			}
 			var uncalibratedgust = gustpar;
 			calibratedgust = uncalibratedgust*cumulus.WindGustMult;
@@ -5389,15 +5392,7 @@ namespace CumulusMX
 		/// <returns>Rain in configured units</returns>
 		public virtual double ConvertRainMMToUser(double value)
 		{
-			if (cumulus.RainUnit == 1)
-			{
-				return value*0.0393700787;
-			}
-			else
-			{
-				// mm
-				return value;
-			}
+			return cumulus.RainUnit == 1 ? value * 0.0393700787 : value;
 		}
 
 		/// <summary>
@@ -5407,19 +5402,7 @@ namespace CumulusMX
 		/// <returns>Rain in configured units</returns>
 		public virtual double ConvertRainINToUser(double value)
 		{
-			double num;
-
-			if (cumulus.RainUnit == 1)
-			{
-				num = value;
-			}
-			else
-			{
-				// mm
-				num = value*25.4;
-			}
-
-			return num;
+			return cumulus.RainUnit == 1 ? value : value * 25.4;
 		}
 
 		/// <summary>
@@ -5429,15 +5412,7 @@ namespace CumulusMX
 		/// <returns>Rain in mm</returns>
 		public virtual double ConvertUserRainToMM(double value)
 		{
-			if (cumulus.RainUnit == 1)
-			{
-				return value/0.0393700787;
-			}
-			else
-			{
-				// mm
-				return value;
-			}
+			return cumulus.RainUnit == 1 ? value / 0.0393700787 : value;
 		}
 
 		/// <summary>
@@ -5447,14 +5422,7 @@ namespace CumulusMX
 		/// <returns>pressure in configured units</returns>
 		public double ConvertPressMBToUser(double value)
 		{
-			double num;
-
-			if (cumulus.PressUnit == 2)
-				num = value*0.0295333727;
-			else
-				num = value;
-
-			return num;
+			return cumulus.PressUnit == 2 ? value * 0.0295333727 : value;
 		}
 
 		/// <summary>
@@ -5464,14 +5432,7 @@ namespace CumulusMX
 		/// <returns>pressure in configured units</returns>
 		public double ConvertPressINHGToUser(double value)
 		{
-			double num;
-
-			if (cumulus.PressUnit == 2)
-				num = value;
-			else
-				num = value*33.8638866667;
-
-			return num;
+			return cumulus.PressUnit == 2 ? value : value * 33.8638866667;
 		}
 
 		/// <summary>
@@ -5481,14 +5442,7 @@ namespace CumulusMX
 		/// <returns>pressure in mb</returns>
 		public double ConvertUserPressToMB(double value)
 		{
-			double num;
-
-			if (cumulus.PressUnit == 2)
-				num = value/0.0295333727;
-			else
-				num = value;
-
-			return num;
+			return cumulus.PressUnit == 2 ? value / 0.0295333727 : value;
 		}
 
 		/// <summary>
@@ -5498,19 +5452,12 @@ namespace CumulusMX
 		/// <returns>pressure in mb</returns>
 		public double ConvertUserPressToIN(double value)
 		{
-			double num;
-
-			if (cumulus.PressUnit == 2)
-				num = value;
-			else
-				num = value*0.0295333727;
-
-			return num;
+			return cumulus.PressUnit == 2 ? value : value * 0.0295333727;
 		}
 
 		public string CompassPoint(int bearing)
 		{
-			return cumulus.compassp[(((bearing*100) + 1125)%36000)/2250];
+			return bearing == 0 ? "-" : cumulus.compassp[(((bearing*100) + 1125)%36000)/2250];
 		}
 
 		public void StartLoop()

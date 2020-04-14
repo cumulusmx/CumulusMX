@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.5.1";
-		public string Build = "3072";
+		public string Version = "3.5.2";
+		public string Build = "3073";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -467,7 +467,8 @@ namespace CumulusMX
 		public string MonthIniFile;
 		public string YearIniFile;
 		//private readonly string stringsFile;
-		private readonly string backuppath;
+		private readonly string Backuppath;
+		private readonly string WebPath;
 		//private readonly string ExternaldataFile;
 		public string WebTagFile;
 		private readonly string Indexfile;
@@ -632,6 +633,7 @@ namespace CumulusMX
 		// MQTT settings
 		public string MQTTServer;
 		public int MQTTPort;
+		public int MQTTIpVersion;
 		public bool MQTTUseTLS;
 		public string MQTTUsername;
 		public string MQTTPassword;
@@ -1023,7 +1025,7 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+			string loggingfile = GetLoggingFileName(AppDir + "MXdiags" + DirectorySeparator);
 
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
 
@@ -1083,9 +1085,10 @@ namespace CumulusMX
 			// find the data folder
 			//datapath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + DirectorySeparator + "Cumulus" + DirectorySeparator;
 
-			Datapath = "data" + DirectorySeparator;
-			backuppath = "backup" + DirectorySeparator;
-			ReportPath = "Reports" + DirectorySeparator;
+			Datapath = AppDir + "data" + DirectorySeparator;
+			Backuppath = AppDir + "backup" + DirectorySeparator;
+			ReportPath = AppDir + "Reports" + DirectorySeparator;
+			WebPath = AppDir + "web" + DirectorySeparator;
 
 			dbfile = Datapath + "cumulusmx.db";
 			diaryfile = Datapath + "diary.db";
@@ -1103,27 +1106,27 @@ namespace CumulusMX
 			YearIniFile = Datapath + "year.ini";
 			//stringsFile = "strings.ini";
 
-			IndexTFile = "web" + DirectorySeparator + "indexT.htm";
-			TodayTFile = "web" + DirectorySeparator + "todayT.htm";
-			YesterdayTFile = "web" + DirectorySeparator + "yesterdayT.htm";
-			RecordTFile = "web" + DirectorySeparator + "recordT.htm";
-			TrendsTFile = "web" + DirectorySeparator + "trendsT.htm";
-			GaugesTFile = "web" + DirectorySeparator + "gaugesT.htm";
-			ThisMonthTFile = "web" + DirectorySeparator + "thismonthT.htm";
-			ThisYearTFile = "web" + DirectorySeparator + "thisyearT.htm";
-			MonthlyRecordTFile = "web" + DirectorySeparator + "monthlyrecordT.htm";
-			RealtimeGaugesTxtTFile = "web" + DirectorySeparator + "realtimegaugesT.txt";
+			IndexTFile = WebPath + "indexT.htm";
+			TodayTFile = WebPath + "todayT.htm";
+			YesterdayTFile = WebPath + "yesterdayT.htm";
+			RecordTFile = WebPath + "recordT.htm";
+			TrendsTFile = WebPath + "trendsT.htm";
+			GaugesTFile = WebPath + "gaugesT.htm";
+			ThisMonthTFile = WebPath + "thismonthT.htm";
+			ThisYearTFile = WebPath + "thisyearT.htm";
+			MonthlyRecordTFile = WebPath + "monthlyrecordT.htm";
+			RealtimeGaugesTxtTFile = WebPath + "realtimegaugesT.txt";
 
-			Indexfile = "web" + DirectorySeparator + "index.htm";
-			Todayfile = "web" + DirectorySeparator + "today.htm";
-			Yesterfile = "web" + DirectorySeparator + "yesterday.htm";
-			Recordfile = "web" + DirectorySeparator + "record.htm";
-			Trendsfile = "web" + DirectorySeparator + "trends.htm";
-			Gaugesfile = "web" + DirectorySeparator + "gauges.htm";
-			ThisMonthfile = "web" + DirectorySeparator + "thismonth.htm";
-			ThisYearfile = "web" + DirectorySeparator + "thisyear.htm";
-			MonthlyRecordfile = "web" + DirectorySeparator + "monthlyrecord.htm";
-			RealtimeGaugesTxtFile = "web" + DirectorySeparator + "realtimegauges.txt";
+			Indexfile = WebPath + "index.htm";
+			Todayfile = WebPath + "today.htm";
+			Yesterfile = WebPath + "yesterday.htm";
+			Recordfile = WebPath + "record.htm";
+			Trendsfile = WebPath + "trends.htm";
+			Gaugesfile = WebPath + "gauges.htm";
+			ThisMonthfile = WebPath + "thismonth.htm";
+			ThisYearfile = WebPath + "thisyear.htm";
+			MonthlyRecordfile = WebPath + "monthlyrecord.htm";
+			RealtimeGaugesTxtFile = WebPath + "realtimegauges.txt";
 
 			localwebtextfiles = new[] { Indexfile, Todayfile, Yesterfile, Recordfile, Trendsfile, Gaugesfile, ThisMonthfile, ThisYearfile, MonthlyRecordfile };
 			remotewebtextfiles = new[] { "index.htm", "today.htm", "yesterday.htm", "record.htm", "trends.htm", "gauges.htm", "thismonth.htm", "thisyear.htm", "monthlyrecord.htm" };
@@ -2958,16 +2961,16 @@ namespace CumulusMX
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
 
-			IniFile ini = new IniFile("Cumulus.ini");
+			IniFile ini = new IniFile(AppDir + "Cumulus.ini");
 
 			// check for Cumulus 1 [FTP Site] and correct it
 			if (ini.GetValue("FTP Site", "Port", -999) != -999)
 			{
-				if (File.Exists("Cumulus.ini"))
+				if (File.Exists(AppDir + "Cumulus.ini"))
 				{
 					var contents = File.ReadAllText("Cumulus.ini");
 					contents = contents.Replace("[FTP Site]", "[FTP site]");
-					File.WriteAllText("Cumulus.ini", contents);
+					File.WriteAllText(AppDir + "Cumulus.ini", contents);
 					ini.Refresh();
 				}
 			}
@@ -3486,6 +3489,9 @@ namespace CumulusMX
 
 			MQTTServer = ini.GetValue("MQTT", "Server", "");
 			MQTTPort = ini.GetValue("MQTT", "Port", 1883);
+			MQTTIpVersion = ini.GetValue("MQTT", "IPversion", 0); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
+			if (MQTTIpVersion != 0 && MQTTIpVersion != 4 && MQTTIpVersion != 6)
+				MQTTIpVersion = 0;
 			MQTTUseTLS = ini.GetValue("MQTT", "UseTLS", false);
 			MQTTUsername = ini.GetValue("MQTT", "Username", "");
 			MQTTPassword = ini.GetValue("MQTT", "Password", "");
@@ -3761,7 +3767,7 @@ namespace CumulusMX
 		{
 			LogMessage("Writing Cumulus.ini file");
 
-			IniFile ini = new IniFile("Cumulus.ini");
+			IniFile ini = new IniFile(AppDir + "Cumulus.ini");
 
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
@@ -4218,9 +4224,9 @@ namespace CumulusMX
 
 		private void ReadStringsFile()
 		{
-			if (File.Exists("strings.ini"))
+			if (File.Exists(AppDir + "strings.ini"))
 			{
-				IniFile ini = new IniFile("strings.ini");
+				IniFile ini = new IniFile(AppDir + "strings.ini");
 
 				// forecast
 
@@ -5399,7 +5405,7 @@ namespace CumulusMX
 
 		private void Backupdata(bool daily, DateTime timestamp)
 		{
-			string dirpath = daily ? backuppath + "daily" + DirectorySeparator : backuppath;
+			string dirpath = daily ? Backuppath + "daily" + DirectorySeparator : Backuppath;
 
 			if (!Directory.Exists(dirpath))
 			{
@@ -6718,8 +6724,28 @@ namespace CumulusMX
 					try
 					{
 						RealtimeSqlConn.Open();
-						int aff = cmd.ExecuteNonQuery();
+						int aff1 = cmd.ExecuteNonQuery();
 						//LogMessage("MySQL: " + aff + " rows were affected.");
+
+						if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
+						{
+							// delete old entries
+							cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " + MySqlRealtimeRetention + ")";
+							//LogMessage(queryString);
+
+							try
+							{
+								RealtimeSqlConn.Open();
+								int aff2 = cmd.ExecuteNonQuery();
+								//LogMessage("MySQL: " + aff + " rows were affected.");
+							}
+							catch (Exception ex)
+							{
+								LogMessage("Error encountered during Realtime delete MySQL operation.");
+								LogMessage(ex.Message);
+							}
+
+						}
 					}
 					catch (Exception ex)
 					{
@@ -6729,29 +6755,6 @@ namespace CumulusMX
 					finally
 					{
 						RealtimeSqlConn.Close();
-					}
-
-					if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
-					{
-						// delete old entries
-						cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " + MySqlRealtimeRetention + ")";
-						//LogMessage(queryString);
-
-						try
-						{
-							RealtimeSqlConn.Open();
-							int aff = cmd.ExecuteNonQuery();
-							//LogMessage("MySQL: " + aff + " rows were affected.");
-						}
-						catch (Exception ex)
-						{
-							LogMessage("Error encountered during Realtime delete MySQL operation.");
-							LogMessage(ex.Message);
-						}
-						finally
-						{
-							RealtimeSqlConn.Close();
-						}
 					}
 				}
 			}
@@ -7134,6 +7137,8 @@ namespace CumulusMX
 			mySqlConn.Password = MySqlPass;
 			mySqlConn.Database = MySqlDatabase;
 
+			mySqlConn.Open();
+
 			for (int i = 0; i < MySqlList.Count; i++)
 			{
 				LogMessage("Uploading MySQL archive #" + (i + 1));
@@ -7145,7 +7150,6 @@ namespace CumulusMX
 						cmd.Connection = mySqlConn;
 						LogDebugMessage(MySqlList[i]);
 
-						mySqlConn.Open();
 						int aff = cmd.ExecuteNonQuery();
 						LogMessage("MySQL: Table " + MySqlMonthlyTable + "  " + aff + " rows were affected.");
 					}
@@ -7155,11 +7159,9 @@ namespace CumulusMX
 					LogMessage("Error encountered during catchup MySQL operation.");
 					LogMessage(ex.Message);
 				}
-				finally
-				{
-					mySqlConn.Close();
-				}
 			}
+
+			mySqlConn.Close();
 
 			LogMessage("End of MySQL archive upload");
 			MySqlList.Clear();

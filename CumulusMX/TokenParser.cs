@@ -299,6 +299,7 @@ namespace CumulusMX
 		/// <returns>
 		///     A string representing the unparsed text file.
 		/// </returns>
+		/*
 		public String Content()
 		{
 			string result;
@@ -317,6 +318,7 @@ namespace CumulusMX
 			}
 			return result;
 		}
+		*/
 
 		/// <summary>
 		///     This is called to return the parsed text file.
