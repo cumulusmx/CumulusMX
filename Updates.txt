@@ -1,3 +1,14 @@
+3.5.3 - b3074
+=============
+- Fix: Backs out changes that created bad file paths in b3073
+
+
+- Updated files
+	\CumulusMX.exe
+	\web\webfiles\lib\steelseries\scripts\gauges.js
+
+
+
 3.5.2 - b3073
 =============
 - Fixes and improvements to MQTT processing
