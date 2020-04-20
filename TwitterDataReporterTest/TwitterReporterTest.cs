@@ -44,6 +44,7 @@ namespace TwitterDataReporterTest
             var di = GetDiWrapper(wrappedLogger, statistics, testConfigurationProvider, meteoLibType);
             di.Builder.RegisterType<TwitterDataReporter.TwitterDataReporter>();
             var testContext = new TwitterContextTest();
+            testContext.Tag = System.Guid.NewGuid().ToString();
             di.Builder.RegisterInstance(testContext).As<ITwitterContext>();
             di.Builder.RegisterType(typeof(TwitterReporterSettings));
             di.Builder.RegisterType(typeof(XAuthoriserTest)).As<IAuthorizer>();

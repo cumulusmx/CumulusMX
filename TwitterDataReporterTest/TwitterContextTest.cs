@@ -8,40 +8,39 @@ namespace TwitterDataReporterTest
     public class TwitterContextTest : ITwitterContext
     {
         public List<Tweet> Tweets { get; } = new List<Tweet>();
+        public string Tag { get; set; }
 
         public void Dispose()
         {
             Tweets.Clear();
         }
 
-        public Task<Status> TweetAsync(string status)
+        public async Task<Status> TweetAsync(string status)
         {
-            return TweetAsync(status,default(decimal),default(decimal),default(bool));
+            return await TweetAsync(status,default(decimal),default(decimal),default(bool));
         }
 
-        public Task<Status> TweetAsync(string status, string attachmentUrl)
+        public async Task<Status> TweetAsync(string status, string attachmentUrl)
         {
-            return TweetAsync(status, default(decimal), default(decimal), default(bool));
+            return await TweetAsync(status, default(decimal), default(decimal), default(bool));
         }
 
-        public Task<Status> TweetAsync(string status, decimal latitude, decimal longitude)
+        public async Task<Status> TweetAsync(string status, decimal latitude, decimal longitude)
         {
-            return TweetAsync(status, latitude, longitude, default(bool));
+            return await TweetAsync(status, latitude, longitude, default(bool));
         }
 
-        public Task<Status> TweetAsync(string status, decimal latitude, decimal longitude, bool displayCoordinates)
+        public async Task<Status> TweetAsync(string status, decimal latitude, decimal longitude, bool displayCoordinates)
         {
-            return new Task<Status>(() =>
-            {
-                Tweets.Add(new Tweet()
-                    {
-                        Status = status, Latitude = latitude, Longitude = longitude,
-                        DisplayCoordinates = displayCoordinates
-                    }
-                );
+            Tweets.Add(new Tweet()
+                {
+                    Status = status, Latitude = latitude, Longitude = longitude,
+                    DisplayCoordinates = displayCoordinates
+                }
+            );
 
-                return new Status();
-            });
+            var result = new Status() { StatusID = 12345, Text = status, CreatedAt = System.DateTime.Now, User = new User() {Name = "Test User" } };
+            return result;
         }
 
         public struct Tweet

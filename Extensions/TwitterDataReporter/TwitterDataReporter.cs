@@ -108,7 +108,9 @@ namespace TwitterDataReporter
                 {
                     if (TwitterSettings.SendLocation)
                     {
-                        tweet = await twitterCtx.TweetAsync(status, decimal.Parse(Settings.GetValue("Latitude","0")), decimal.Parse(Settings.GetValue("Longitude","0")));
+                        var latitude = decimal.Parse(Settings.GetValue("Latitude", "0"));
+                        var longitude = decimal.Parse(Settings.GetValue("Longitude", "0"));
+                        tweet = await twitterCtx.TweetAsync(status, latitude, longitude );
                     }
                     else
                     {
