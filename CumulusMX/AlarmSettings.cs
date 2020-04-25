@@ -9,7 +9,7 @@ namespace CumulusMX
 {
 	public class AlarmSettings
 	{
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 
 		public AlarmSettings(Cumulus cumulus)
 		{
@@ -18,7 +18,7 @@ namespace CumulusMX
 
 		public string GetAlarmSettings()
 		{
-			var InvC = new CultureInfo("");
+			//var InvC = new CultureInfo("");
 
 			var alarmUnits = new JsonAlarmUnits()
 			{
@@ -86,7 +86,11 @@ namespace CumulusMX
 
 				dataStoppedEnabled = cumulus.DataStoppedAlarmEnabled,
 				dataStoppedSoundEnabled = cumulus.DataStoppedAlarmSound,
-				dataStoppedSound = cumulus.DataStoppedAlarmSoundFile
+				dataStoppedSound = cumulus.DataStoppedAlarmSoundFile,
+
+				batteryLowEnabled = cumulus.BatteryLowAlarmEnabled,
+				batteryLowSoundEnabled = cumulus.BatteryLowAlarmSound,
+				batteryLowSound = cumulus.BatteryLowAlarmSoundFile
 			};
 
 			var retObject = new JsonAlarmSettings()
@@ -172,6 +176,10 @@ namespace CumulusMX
 				cumulus.DataStoppedAlarmSound = settings.dataStoppedSoundEnabled;
 				cumulus.DataStoppedAlarmSoundFile = settings.dataStoppedSound;
 
+				cumulus.BatteryLowAlarmEnabled = settings.batteryLowEnabled;
+				cumulus.BatteryLowAlarmSound = settings.batteryLowSoundEnabled;
+				cumulus.BatteryLowAlarmSoundFile = settings.batteryLowSound;
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -247,6 +255,9 @@ namespace CumulusMX
 		public bool dataStoppedSoundEnabled;
 		public string dataStoppedSound;
 
+		public bool batteryLowEnabled;
+		public bool batteryLowSoundEnabled;
+		public string batteryLowSound;
 	}
 
 	public class JsonAlarmUnits

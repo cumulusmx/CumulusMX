@@ -770,6 +770,8 @@ namespace CumulusMX
 							DoWindChill(0, timestamp);
 
 							DoApparentTemp(timestamp);
+							FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
 							// sunshine hours
 							if (sl[SUNPOS] != "")
@@ -965,6 +967,8 @@ namespace CumulusMX
 				}
 
 				DoApparentTemp(now);
+				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
 				DoForecast("", false);
 

@@ -149,7 +149,6 @@ namespace CumulusMX
         {
             try
             {
-                cumulus.LogMessage(e.ExceptionObject.ToString());
                 Trace.Flush();
                 Console.WriteLine(e.ExceptionObject.ToString());
                 Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");

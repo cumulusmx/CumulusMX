@@ -155,6 +155,8 @@ namespace CumulusMX
                             Now);
 
                         DoApparentTemp(Now);
+                        FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
                         DoForecast("", false);
 

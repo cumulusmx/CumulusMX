@@ -1206,6 +1206,8 @@ namespace CumulusMX
 				}
 
 				DoApparentTemp(now);
+				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
 				var forecastRule = loopData.ForecastRule < cumulus.DavisForecastLookup.Length ? loopData.ForecastRule : cumulus.DavisForecastLookup.Length - 1;
 
@@ -1235,6 +1237,9 @@ namespace CumulusMX
 
 				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
 				//cumulus.LogDebugMessage("TX batt=" + TxBatText);
+
+				cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || loopData.ConBatVoltage < 4.0;
+
 
 				if (cumulus.LogExtraSensors)
 				{
@@ -2012,6 +2017,7 @@ namespace CumulusMX
 						}
 
 						DoApparentTemp(timestamp);
+						FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
 
 						// add in 'archivePeriod' minutes worth of wind speed to windrun
 						WindRunToday += ((WindAverage*WindRunHourMult[cumulus.WindUnit]*interval)/60.0);
@@ -2168,6 +2174,8 @@ namespace CumulusMX
 						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
 
 						DoApparentTemp(timestamp);
+						FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
 						lastDataReadTime = timestamp;
 

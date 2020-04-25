@@ -819,6 +819,8 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(dateTime);
+					FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
 					DoForecast("", false);
 
@@ -960,6 +962,8 @@ namespace CumulusMX
 			str += " ch3=" + TestBattery3(status.wh55_ch2);
 			str += " ch4=" + TestBattery3(status.wh55_ch2);
 			cumulus.LogDebugMessage(str);
+
+			cumulus.BatteryLowAlarmState = str.Contains("Low");
 		}
 
 		private string TestBattery1(byte value, byte mask)
