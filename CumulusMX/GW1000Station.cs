@@ -819,7 +819,7 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(dateTime);
-					FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+					DoFeelsLike();
 
 
 					DoForecast("", false);

@@ -312,7 +312,7 @@ namespace CumulusMX
 				DoOutdoorTemp(ConvertTempCToUser(temp10/10), DateTime.Now);
 
 				DoApparentTemp(DateTime.Now);
-				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+				DoFeelsLike();
 
 			}
 		}
@@ -465,7 +465,7 @@ namespace CumulusMX
 				DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[7])), DateTime.Now);
 
 				DoApparentTemp(DateTime.Now);
-				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+				DoFeelsLike();
 
 			}
 		}

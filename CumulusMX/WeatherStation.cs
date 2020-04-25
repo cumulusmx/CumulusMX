@@ -2964,6 +2964,12 @@ namespace CumulusMX
 			}
 		}
 
+		public void DoFeelsLike()
+		{
+			// For now just provide a current value
+			FeelsLike = ConvertTempCToUser(MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity));
+		}
+
 		public void CheckForWindrunHighLow(DateTime timestamp)
 		{
 			DateTime adjustedtimestamp = timestamp.AddHours(cumulus.GetHourInc());
