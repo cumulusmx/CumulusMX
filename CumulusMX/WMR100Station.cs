@@ -452,6 +452,8 @@ namespace CumulusMX
                 DoOutdoorDewpoint(ConvertTempCToUser(num), Now);
 
                 DoApparentTemp(Now);
+                FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
                 // battery status
                 //if (PacketBuffer[0] & 0x40 == 0x40 )

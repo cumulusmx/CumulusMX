@@ -32,8 +32,35 @@ namespace CumulusMX
         /// <returns></returns>
         public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
         {
-            double avp = (humidity/100.0)*6.105*Math.Exp(17.27*tempC/(237.7 + tempC));
+            double avp = (humidity/100.0)*6.105*Math.Exp(17.27*tempC/(237.7 + tempC)); // hPa
             return tempC + (0.33*avp) - (0.7*windspeedMS) - 4.0;
+        }
+
+        // Joint Action Group for Temerature Indices (JAG/TI) formula
+        public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
+        {
+            // Cannot use the WindChill function as we need the chill above 10 C
+            double chill = windSpeedKph < 4.8 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
+            double vaporp = ((humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC))) / 10; // kPa
+            // Steadman's Apparent Temperature
+            double apptemp = -2.7 + (1.04 * tempC) + (2 * vaporp) - (windSpeedKph * 0.1805553);
+            double feels;
+            if (tempC < 10.0)
+            {
+                feels = chill;
+            }
+            else if (tempC > 20.0)
+            {
+                feels = apptemp;
+            }
+            else
+            {
+                // linear interpolation between chill and apparent
+                double A = (tempC - 10) / 10;
+                double B = 1 - A;
+                feels = (apptemp * A) + (chill * B);
+            }
+            return feels;
         }
 
         public static double HeatIndex(double tempC, int humidity)

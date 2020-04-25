@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.5.3";
-		public string Build = "3074";
+		public string Version = "3.5.4";
+		public string Build = "3075";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -2491,31 +2491,56 @@ namespace CumulusMX
 			DateTime utcNow = DateTime.UtcNow;
 			MoonPhaseAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour);
 			MoonPercent = (100.0 * (1.0 + Math.Cos(MoonPhaseAngle * Math.PI / 180)) / 2.0);
-			var phasePercent =(int)MoonPercent;
 
 			// If between full moon and new moon, angle is between 180 and 360, make percent negative to indicate waning
 			if (MoonPhaseAngle > 180)
 			{
 				MoonPercent = -MoonPercent;
-				phasePercent = -phasePercent;
 			}
-			if ((phasePercent > 2) && (phasePercent < 48))
+			/*
+			// New   = -0.4 -> 0.4
+			// 1st Q = 45 -> 55
+			// Full  = 99.6 -> -99.6
+			// 3rd Q = -45 -> -55
+			if ((MoonPercent > 0.4) && (MoonPercent < 45))
 				MoonPhaseString = WaxingCrescent;
-			else if ((phasePercent >= 48) && (phasePercent <= 52))
+			else if ((MoonPercent >= 45) && (MoonPercent <= 55))
 				MoonPhaseString = FirstQuarter;
-			else if ((phasePercent > 52) && (phasePercent < 98))
+			else if ((MoonPercent > 55) && (MoonPercent < 99.6))
 				MoonPhaseString = WaxingGibbous;
-			else if ((phasePercent >= 98) || (phasePercent <= -98))
+			else if ((MoonPercent >= 99.6) || (MoonPercent <= -99.6))
 				MoonPhaseString = Fullmoon;
-			else if ((phasePercent < -52) && (phasePercent > -98))
+			else if ((MoonPercent < -55) && (MoonPercent > -99.6))
 				MoonPhaseString = WaningGibbous;
-			else if ((phasePercent <= -48) && (phasePercent >= -52))
+			else if ((MoonPercent <= -45) && (MoonPercent >= -55))
 				MoonPhaseString = LastQuarter;
-			else if ((phasePercent > -48) && (phasePercent < -2))
+			else if ((MoonPercent > -45) && (MoonPercent < -0.4))
 				MoonPhaseString = WaningCrescent;
 			else
 				MoonPhaseString = Newmoon;
+			*/
 
+			// Use Phase Angle to determine string - it's linear unlike Illuminated Percentage
+			// New  = 186 - 180 - 174
+			// 1st  =  96 -  90 -  84
+			// Full =   6 -   0 - 354
+			// 3rd  = 276 - 270 - 264
+			if (MoonPhaseAngle < 174 && MoonPhaseAngle > 96)
+				MoonPhaseString = WaxingCrescent;
+			else if (MoonPhaseAngle <= 96 && MoonPhaseAngle >= 84)
+				MoonPhaseString = FirstQuarter;
+			else if (MoonPhaseAngle < 84 && MoonPhaseAngle > 6)
+				MoonPhaseString = WaxingGibbous;
+			else if (MoonPhaseAngle <= 6 || MoonPhaseAngle >= 354)
+				MoonPhaseString = Fullmoon;
+			else if (MoonPhaseAngle < 354 && MoonPhaseAngle > 276)
+				MoonPhaseString = WaningGibbous;
+			else if (MoonPhaseAngle <= 276 && MoonPhaseAngle >= 264)
+				MoonPhaseString = LastQuarter;
+			else if (MoonPhaseAngle < 264 && MoonPhaseAngle > 186)
+				MoonPhaseString = WaningCrescent;
+			else
+				MoonPhaseString = Newmoon;
 		}
 
 		internal void DoMoonImage()
@@ -3573,6 +3598,10 @@ namespace CumulusMX
 			DataStoppedAlarmSoundFile = ini.GetValue("Alarms", "DataStoppedlarmSoundFile", DefaultSoundFile);
 			if (DataStoppedAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
 
+			BatteryLowAlarmEnabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
+			BatteryLowAlarmSound = ini.GetValue("Alarms", "BatteryLowAlarmSound", false);
+			BatteryLowAlarmSoundFile = ini.GetValue("Alarms", "BatteryLowlarmSoundFile", DefaultSoundFile);
+
 			PressOffset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			TempOffset = ini.GetValue("Offsets", "TempOffset", 0.0);
 			HumOffset = ini.GetValue("Offsets", "HumOffset", 0);
@@ -4095,6 +4124,10 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataStoppedAlarmSound", DataStoppedAlarmSound);
 			ini.SetValue("Alarms", "DataStoppedAlarmSoundFile", DataStoppedAlarmSoundFile);
 
+			ini.SetValue("Alarms", "BatteryLowAlarmSet", BatteryLowAlarmEnabled);
+			ini.SetValue("Alarms", "BatteryLowAlarmSound", BatteryLowAlarmSound);
+			ini.SetValue("Alarms", "BatteryLowAlarmSoundFile", BatteryLowAlarmSoundFile);
+
 			ini.SetValue("Offsets", "PressOffset", PressOffset);
 			ini.SetValue("Offsets", "TempOffset", TempOffset);
 			ini.SetValue("Offsets", "HumOffset", HumOffset);
@@ -4511,121 +4544,81 @@ namespace CumulusMX
 		}
 
 		public string DataStoppedAlarmSoundFile { get; set; }
-
 		public bool DataStoppedAlarmSound { get; set; }
-
 		public bool DataStoppedAlarmEnabled { get; set; }
 
-		//public bool DataStoppedAlarmState { get; set; }
+		public string BatteryLowAlarmSoundFile { get; set; }
+		public bool BatteryLowAlarmSound { get; set; }
+		public bool BatteryLowAlarmEnabled { get; set; }
+		public bool BatteryLowAlarmState = false;
 
 		public string SensorAlarmSoundFile { get; set; }
-
 		public bool SensorAlarmSound { get; set; }
-
 		public bool SensorAlarmEnabled { get; set; }
-
 		public bool SensorAlarmState = false;
 
 		public bool HighWindAlarmSound { get; set; }
-
 		public string HighWindAlarmSoundFile { get; set; }
-
 		public bool HighWindAlarmEnabled { get; set; }
-
 		public double HighWindAlarmValue { get; set; }
-
 		public bool HighWindAlarmState = false;
 
 		public string HighGustAlarmSoundFile { get; set; }
-
 		public bool HighGustAlarmSound { get; set; }
-
 		public bool HighGustAlarmEnabled { get; set; }
-
 		public double HighGustAlarmValue { get; set; }
-
 		public bool HighGustAlarmState = false;
 
 		public string HighRainRateAlarmSoundFile { get; set; }
-
 		public bool HighRainRateAlarmSound { get; set; }
-
 		public bool HighRainRateAlarmEnabled { get; set; }
-
 		public double HighRainRateAlarmValue { get; set; }
-
 		public bool HighRainRateAlarmState = false;
 
 		public string HighRainTodayAlarmSoundFile { get; set; }
-
 		public bool HighRainTodayAlarmSound { get; set; }
-
 		public bool HighRainTodayAlarmEnabled { get; set; }
-
 		public double HighRainTodayAlarmValue { get; set; }
-
 		public bool HighRainTodayAlarmState = false;
 
 		public string PressChangeAlarmSoundFile { get; set; }
-
 		public bool PressChangeAlarmSound { get; set; }
-
 		public bool PressChangeAlarmEnabled { get; set; }
-
 		public double PressChangeAlarmValue { get; set; }
 
 		public bool PressChangeUpAlarmState = false;
 		public bool PressChangeDownAlarmState = false;
 
 		public string HighPressAlarmSoundFile { get; set; }
-
 		public bool HighPressAlarmSound { get; set; }
-
 		public bool HighPressAlarmEnabled { get; set; }
-
 		public double HighPressAlarmValue { get; set; }
-
 		public bool HighPressAlarmState = false;
 
 		public string LowPressAlarmSoundFile { get; set; }
-
 		public bool LowPressAlarmSound { get; set; }
-
 		public bool LowPressAlarmEnabled { get; set; }
-
 		public double LowPressAlarmValue { get; set; }
-
 		public bool LowPressAlarmState = false;
 
 		public string TempChangeAlarmSoundFile { get; set; }
-
 		public bool TempChangeAlarmSound { get; set; }
-
 		public bool TempChangeAlarmEnabled { get; set; }
-
 		public double TempChangeAlarmValue { get; set; }
 
 		public bool TempChangeUpAlarmState = false;
 		public bool TempChangeDownAlarmState = false;
 
 		public string HighTempAlarmSoundFile { get; set; }
-
 		public bool HighTempAlarmSound { get; set; }
-
 		public bool HighTempAlarmEnabled { get; set; }
-
 		public double HighTempAlarmValue { get; set; }
-
 		public bool HighTempAlarmState = false;
 
 		public string LowTempAlarmSoundFile { get; set; }
-
 		public bool LowTempAlarmSound { get; set; }
-
 		public bool LowTempAlarmEnabled { get; set; }
-
 		public bool LowTempAlarmState = false;
-
 		public double LowTempAlarmValue { get; set; }
 
 		public bool UseBlakeLarsen { get; set; }
@@ -6101,7 +6094,7 @@ namespace CumulusMX
 							if ((uploadfile != "") &&
 								(remotefile != "") &&
 								!ExtraFiles[i].realtime &&
-								EODfilesNeedFTP == ExtraFiles[i].endofday &&
+								(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
 								ExtraFiles[i].FTP)
 							{
 								if (uploadfile == "<currentlogfile>")

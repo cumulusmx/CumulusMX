@@ -13,7 +13,7 @@ using System.Security.Cryptography;
 using System.ComponentModel;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System.Globalization;
+
 
 namespace CumulusMX
 {
@@ -25,6 +25,7 @@ namespace CumulusMX
 		private readonly System.Timers.Timer tmrRealtime;
 		private readonly System.Timers.Timer tmrCurrent;
 		private readonly System.Timers.Timer tmrBroadcastWatchdog;
+		private readonly System.Timers.Timer tmrHealth;
 		private readonly object threadSafer = new object();
 		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1);
 		private bool startupDayResetIfRequired = true;
@@ -35,7 +36,7 @@ namespace CumulusMX
 		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly bool checkWllGustValues;
 		private bool broadcastReceived = false;
-		private byte[] recvBuffer = new Byte[4096];
+		private int weatherLinkArchiveInterval = 0;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -52,9 +53,10 @@ namespace CumulusMX
 			tmrRealtime = new System.Timers.Timer();
 			tmrCurrent = new System.Timers.Timer();
 			tmrBroadcastWatchdog = new System.Timers.Timer();
+			tmrHealth = new System.Timers.Timer();
 
 			// Get the firmware version from WL.com API
-			GetWlCurrentData();
+			_ = GetWlCurrentData(true);
 
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
 			if (cumulus.PeakGustMinutes == 10)
@@ -134,7 +136,7 @@ namespace CumulusMX
 				tmrRealtime.AutoReset = true;
 				tmrRealtime.Start();
 
-				// Create a current conditions thread to poll readings once a minute
+				// Create a current conditions thread to poll readings every 30 seconds
 				GetWllCurrent(null, null);
 				tmrCurrent.Elapsed += GetWllCurrent;
 				tmrCurrent.Interval = 30 * 1000;  // Every 30 seconds
@@ -155,18 +157,26 @@ namespace CumulusMX
 					using (var udpClient = new UdpClient())
 					{
 						udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
-						udpClient.Client.ReceiveTimeout = 5000;
+						udpClient.Client.ReceiveTimeout = 4000;  // We should get a message every 2.5 seconds
 						var from = new IPEndPoint(0, 0);
 
 						while (!Program.exitSystem)
 						{
 							try
 							{
-								recvBuffer = udpClient.Receive(ref @from);
+								var recvBuffer = udpClient.Receive(ref @from);
 								DecodeBroadcast(Encoding.UTF8.GetString(recvBuffer));
 							}
-							catch
+							catch (SocketException exp)
 							{
+								if (exp.SocketErrorCode == SocketError.TimedOut)
+								{
+									cumulus.LogDebugMessage("WLL: Missed a WLL broadcast message");
+								}
+								else
+								{
+									cumulus.LogMessage($"WLL: UDP socket exception: {exp.Message}");
+								}
 							}
 						}
 						udpClient.Close();
@@ -180,6 +190,16 @@ namespace CumulusMX
 				tmrBroadcastWatchdog.Interval = 1000 * 30; // timeout after 30 seconds
 				tmrBroadcastWatchdog.AutoReset = true;
 				tmrBroadcastWatchdog.Start();
+
+				if (cumulus.UseDataLogger)
+				{
+					// get the health data every 15 minutes
+					tmrHealth.Elapsed += GetWlHealth;
+					tmrHealth.Interval = 15 * 60 * 1000;  // Every 15 minutes
+					tmrHealth.AutoReset = true;
+					tmrHealth.Start();
+				}
+
 
 			}
 			catch (ThreadAbortException)
@@ -639,16 +659,13 @@ namespace CumulusMX
 									{
 										cumulus.LogDebugMessage($"WLL current: using wind data from TxId {txid}");
 
-										DoWind(rec.Value<double>("wind_speed_last"), rec.Value<int>("wind_dir_last"), rec.Value<double>("wind_speed_avg_last_10_min"), dateTime);
+										// pesky null values from WLL when its calm
+										int wdir = string.IsNullOrEmpty(rec.Value<string>("wind_dir_last")) ? 0 : rec.Value<int>("wind_dir_last");
+										double wspdAvg10min = string.IsNullOrEmpty(rec.Value<string>("wind_speed_avg_last_10_min")) ? 0 : rec.Value<double>("wind_speed_avg_last_10_min");
 
-										if (string.IsNullOrEmpty(rec.Value<string>("wind_speed_avg_last_10_min")))
-										{
-											cumulus.LogDebugMessage($"WLL current: no wind speed 10 min average value found [avg={rec.Value<string>("wind_speed_avg_last_10_min")}] on TxId {txid}");
-										}
-										else
-										{
-											WindAverage = ConvertWindMPHToUser(rec.Value<double>("wind_speed_avg_last_10_min")) * cumulus.WindSpeedMult;
-										}
+										DoWind(rec.Value<double>("wind_speed_last"), wdir, wspdAvg10min, dateTime);
+
+										WindAverage = ConvertWindMPHToUser(wspdAvg10min) * cumulus.WindSpeedMult;
 
 										if (checkWllGustValues)
 										{
@@ -1032,7 +1049,16 @@ namespace CumulusMX
 
 				DoApparentTemp(dateTime);
 
+				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 				SensorContactLost = localSensorContactLost;
+
+				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
+				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
+				if (!cumulus.UseDataLogger)
+				{
+					cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW");
+				}
 
 			}
 			catch (Exception exp)
@@ -1320,8 +1346,6 @@ namespace CumulusMX
 			}
 			cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
-			// Cleanup
-			WlHttpClient.Dispose();
 		}
 
 		private void GetWlHistoricData()
@@ -1359,7 +1383,7 @@ namespace CumulusMX
 			// The API call is limited to fetching 24 hours of data
 			if (unixDateTime - startTime > unix24hrs)
 			{
-				// only fecth 24 hours worth of data, and schedule another run to fetch the rest
+				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
 				endTime = startTime + unix24hrs;
 				MaxArchiveRuns++;
 			}
@@ -1367,12 +1391,14 @@ namespace CumulusMX
 			Console.WriteLine($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
 			cumulus.LogMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>();
-			parameters.Add("api-key", cumulus.WllApiKey);
-			parameters.Add("station-id", cumulus.WllStationId.ToString());
-			parameters.Add("t", unixDateTime.ToString());
-			parameters.Add("start-timestamp", startTime.ToString());
-			parameters.Add("end-timestamp", endTime.ToString());
+			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
+			{
+				{ "api-key", cumulus.WllApiKey },
+				{ "station-id", cumulus.WllStationId.ToString() },
+				{ "t", unixDateTime.ToString() },
+				{ "start-timestamp", startTime.ToString() },
+				{ "end-timestamp", endTime.ToString() }
+			};
 
 			StringBuilder dataStringBuilder = new StringBuilder();
 			foreach (KeyValuePair<string, string> entry in parameters)
@@ -1506,6 +1532,7 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(timestamp);
+					FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
 
 					// Log all the data
 					cumulus.DoLogFile(timestamp, false);
@@ -1578,6 +1605,7 @@ namespace CumulusMX
 					case 11: // ISS data
 						txid = data.Value<int>("tx_id");
 						recordTs = FromUnixTime(data.Value<long>("ts"));
+						weatherLinkArchiveInterval = data.Value<int>("arch_int");
 
 						// Temperature & Humidity
 						if (cumulus.WllPrimaryTempHum == txid)
@@ -2136,8 +2164,9 @@ namespace CumulusMX
 			}
 		}
 
-		private void DecodeWlApiHealth(JToken data)
+		private void DecodeWlApiHealth(JToken data, bool startingup)
 		{
+			bool voltageLow = false;
 			cumulus.LogDebugMessage("WL.com API: found WLL health data");
 
 			/*
@@ -2177,12 +2206,57 @@ namespace CumulusMX
 			else
 			{
 				var dat = FromUnixTime(data.Value<long>("firmware_version"));
-				DavisFirmwareVersion = dat.ToUniversalTime().ToString("s", DateTimeFormatInfo.InvariantInfo);
+				DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
+				var battV = data.Value<double>("battery_voltage") / 1000.0;
+				if (battV < 5.2)
+				{
+					voltageLow = true;
+					cumulus.LogMessage($"WLL WARNING: Backup battery voltage is low = {battV:0.##}V");
+					Console.WriteLine($"WLL WARNING: Backup battery voltage is low = {battV:0.##}V");
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
+				}
+				var inpV = data.Value<double>("input_voltage") / 1000.0;
+				if (inpV < 4.0)
+				{
+					voltageLow = true;
+					cumulus.LogMessage($"WLL WARNING: Input voltage is low = {inpV:0.##}V");
+					Console.WriteLine($"WLL WARNING: Input voltage is low = {inpV:0.##}V");
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"WLL Input Voltage = {inpV:0.##}V");
+				}
+				var upt = TimeSpan.FromSeconds(data.Value<double>("uptime"));
+				var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
+						(int)upt.TotalDays,
+						upt.Hours,
+						upt.Minutes,
+						upt.Seconds);
+				cumulus.LogDebugMessage("WLL Uptime = " + uptStr);
+				cumulus.LogDebugMessage("WLL WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
+				upt = TimeSpan.FromSeconds(data.Value<double>("link_uptime"));
+				uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
+						(int)upt.TotalDays,
+						upt.Hours,
+						upt.Minutes,
+						upt.Seconds);
+				cumulus.LogDebugMessage("WLL Link Uptime = " + uptStr);
 			}
-			cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
+			if (startingup)
+			{
+				cumulus.LogMessage("WLL FW version = " + DavisFirmwareVersion);
+			}
+			else
+			{
+				cumulus.LogDebugMessage("WLL FW version = " + DavisFirmwareVersion);
+				cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || voltageLow;
+			}
 		}
 
-		private async void GetWlCurrentData()
+		private async Task GetWlCurrentData(bool firstTime = false)
 		{
 			Newtonsoft.Json.Linq.JObject jObject;
 
@@ -2205,10 +2279,12 @@ namespace CumulusMX
 
 			var unixDateTime = ToUnixTime(DateTime.Now);
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>();
-			parameters.Add("api-key", cumulus.WllApiKey);
-			parameters.Add("station-id", cumulus.WllStationId.ToString());
-			parameters.Add("t", unixDateTime.ToString());
+			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
+			{
+				{ "api-key", cumulus.WllApiKey },
+				{ "station-id", cumulus.WllStationId.ToString() },
+				{ "t", unixDateTime.ToString() }
+			};
 
 			StringBuilder dataStringBuilder = new StringBuilder();
 			foreach (KeyValuePair<string, string> entry in parameters)
@@ -2267,7 +2343,7 @@ namespace CumulusMX
 					// The only thing we are doing at the moment is extracting "health" data
 					if (sensor.Value<int>("sensor_type") == 504)
 					{
-						DecodeWlApiHealth(sensor["data"][0]);
+						DecodeWlApiHealth(sensor["data"][0], firstTime);
 					}
 				}
 			}
@@ -2275,6 +2351,12 @@ namespace CumulusMX
 			{
 				cumulus.LogDebugMessage("WeatherLink API Current exception: " + ex.Message);
 			}
+		}
+
+		private async void GetWlHealth(object source, ElapsedEventArgs e)
+		{
+			await GetWlCurrentData();
+
 		}
 
 		// Finds all stations associated with this API
@@ -2285,9 +2367,11 @@ namespace CumulusMX
 
 			var unixDateTime = ToUnixTime(DateTime.Now);
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>();
-			parameters.Add("api-key", cumulus.WllApiKey);
-			parameters.Add("t", unixDateTime.ToString());
+			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
+			{
+				{ "api-key", cumulus.WllApiKey },
+				{ "t", unixDateTime.ToString() }
+			};
 
 			StringBuilder dataStringBuilder = new StringBuilder();
 			foreach (KeyValuePair<string, string> entry in parameters)

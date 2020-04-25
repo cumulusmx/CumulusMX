@@ -57,7 +57,7 @@ namespace CumulusMX
 		public string[] alltimedescs = new[]
 									   {
 										   "High temperature", "Low temperature", "High gust", "High wind speed", "Low wind chill", "High rain rate", "High daily rain",
-										   "High hourly rain", "Low barometer", "High barometer", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
+										   "High hourly rain", "Low pressure", "High pressure", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
 										   "High humidity", "Low humidity", "High apparent temp", "Low apparent temp", "High heat index", "High dew point", "Low dew point",
 										   "High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range"
 									   };
@@ -325,6 +325,7 @@ namespace CumulusMX
 			WindChill = 0.0F;
 			HeatIndex = 0.0F;
 			Humidex = 0.0F;
+			FeelsLike = 0.0F;
 			RainRate = 0.0F;
 			Forecast = "Forecast: ";
 			// save the reference to the owner
@@ -1093,6 +1094,12 @@ namespace CumulusMX
 		public double Humidex { get; set; }
 
 		/// <summary>
+		/// Feels like (JAG/TI)
+		/// </summary>
+		public double FeelsLike { get; set; }
+
+
+		/// <summary>
 		/// Latest wind speed/gust
 		/// </summary>
 		public double WindLatest { get; set; }
@@ -1420,7 +1427,8 @@ namespace CumulusMX
 						highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage), cumulus.BeaufortDesc(WindAverage),
 						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 						cumulus.LowTempAlarmState, cumulus.HighTempAlarmState, cumulus.TempChangeUpAlarmState, cumulus.TempChangeDownAlarmState, cumulus.HighRainTodayAlarmState, cumulus.HighRainRateAlarmState,
-						cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState, cumulus.SensorAlarmState);
+						cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState,
+						cumulus.SensorAlarmState, cumulus.BatteryLowAlarmState);
 
 					//var json = jss.Serialize(data);
 
@@ -9107,7 +9115,8 @@ namespace CumulusMX
 				highhourlyraintoday, highhourlyraintodaytime.ToString("HH:mm"), "F" + cumulus.Beaufort(highwindtoday), "F" + cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				cumulus.LowTempAlarmState, cumulus.HighTempAlarmState, cumulus.TempChangeUpAlarmState, cumulus.TempChangeDownAlarmState, cumulus.HighRainTodayAlarmState, cumulus.HighRainRateAlarmState,
-				cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState, cumulus.SensorAlarmState);
+				cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState,
+				cumulus.SensorAlarmState, cumulus.BatteryLowAlarmState);
 
 			try
 			{

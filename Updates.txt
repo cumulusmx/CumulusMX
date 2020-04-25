@@ -1,3 +1,32 @@
+3.5.4 - b3075
+=============
+- Fix for bearing zero on the interface "Now" page
+- Fix for admin interface charts popup
+- Fix for "normal" Extra files not being FTP'd at rollover interval, only those flagged as EOD were being transferred
+- Another attempt to rationalise the Moon Phase messages - each quarter (new, 1st, full, 3rd) should now show for approximately 12 hours either side of the event
+- All web tags that produce decimal number output now support the "rc=y" option
+- Additional Davis WLL health info dumped in the MXdiags log on start-up and every 10 minutes if debug logging is on (voltages, uptimes, WiFi RSSI etc)
+    Logs warnings to the command line console and log file if voltages are too low
+- Adds BatteryLow Alarm for WLL (Console [if you have an API key] & Tx), VP2 (Console & Tx), GW1000 (Tx), and adds a new web tag <#BatteryLowAlarm>
+- Adds new web tag <#feelslike> - calculated using the JAG/TI formula used in the UK, USA, Canada etc. Currently there are no stats for this value
+
+- Updated files
+	\CumulusMX.exe
+	\interface\alarmsettings.html
+	\interface\alltimerecseditor.html
+	\interface\index.html
+	\interface\now.html
+	\interface\todayest.html
+	\interface\js\alarmsettings.js
+	\interface\js\charts.js
+	\interface\js\dashboard.js
+	\interface\js\now.js
+	\mqtt\DataUpdateTemplate.txt
+	\mqtt\IntervalUpdate.txt
+	\webfiles\js\cumuluscharts.js
+
+
+
 3.5.3 - b3074
 =============
 - Fix: Backs out changes that created bad file paths in b3073

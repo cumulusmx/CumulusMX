@@ -499,6 +499,8 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(timestamp);
+					FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 
 					if (hasSolar)
 					{
@@ -992,6 +994,8 @@ namespace CumulusMX
 								}
 
 								DoApparentTemp(now);
+								FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+
 							}
 							else
 							{
