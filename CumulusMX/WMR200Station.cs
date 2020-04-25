@@ -615,7 +615,7 @@ namespace CumulusMX
 				DoOutdoorDewpoint(ConvertTempCToUser(num), now);
 
 				DoApparentTemp(now);
-				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+				DoFeelsLike();
 
 			}
 			else if (sensor == 0)
@@ -1620,7 +1620,7 @@ namespace CumulusMX
 			DoSolarRad(0, timestamp);
 
 			DoApparentTemp(timestamp);
-			FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+			DoFeelsLike();
 
 
 			cumulus.DoLogFile(timestamp,false);

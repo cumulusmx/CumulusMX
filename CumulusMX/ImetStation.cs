@@ -770,7 +770,7 @@ namespace CumulusMX
 							DoWindChill(0, timestamp);
 
 							DoApparentTemp(timestamp);
-							FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+							DoFeelsLike();
 
 
 							// sunshine hours
@@ -967,7 +967,7 @@ namespace CumulusMX
 				}
 
 				DoApparentTemp(now);
-				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+				DoFeelsLike();
 
 
 				DoForecast("", false);

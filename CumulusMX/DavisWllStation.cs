@@ -1049,7 +1049,7 @@ namespace CumulusMX
 
 				DoApparentTemp(dateTime);
 
-				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+				DoFeelsLike();
 
 				SensorContactLost = localSensorContactLost;
 
@@ -1532,7 +1532,7 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(timestamp);
-					FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+					DoFeelsLike();
 
 					// Log all the data
 					cumulus.DoLogFile(timestamp, false);

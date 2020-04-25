@@ -368,7 +368,7 @@ namespace CumulusMX
 				UpdateDegreeDays(historydata.interval);
 
 				DoApparentTemp(timestamp);
-				FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+				DoFeelsLike();
 
 
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
@@ -701,7 +701,7 @@ namespace CumulusMX
 			}
 
 			DoApparentTemp(DateTime.Now);
-			FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+			DoFeelsLike();
 
 
 			UpdateStatusPanel(DateTime.Now);

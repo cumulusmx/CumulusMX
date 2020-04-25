@@ -377,7 +377,7 @@ namespace CumulusMX
 			DoIndoorTemp(ConvertTempCToUser(temp10 / 10));
 
 			DoApparentTemp(DateTime.Now);
-			FeelsLike = MeteoLib.FeelsLike(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage), OutdoorHumidity);
+			DoFeelsLike();
 
 		}
 
