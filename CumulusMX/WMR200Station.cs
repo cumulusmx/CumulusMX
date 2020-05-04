@@ -615,7 +615,7 @@ namespace CumulusMX
 				DoOutdoorDewpoint(ConvertTempCToUser(num), now);
 
 				DoApparentTemp(now);
-				DoFeelsLike();
+				DoFeelsLike(now);
 
 			}
 			else if (sensor == 0)
@@ -1620,7 +1620,7 @@ namespace CumulusMX
 			DoSolarRad(0, timestamp);
 
 			DoApparentTemp(timestamp);
-			DoFeelsLike();
+			DoFeelsLike(timestamp);
 
 
 			cumulus.DoLogFile(timestamp,false);
@@ -1634,7 +1634,8 @@ namespace CumulusMX
 			AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 			RemoveOldLHData(timestamp);
 			RemoveOldL3HData(timestamp);
-			AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV);
+			AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage,
+							RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 			RemoveOldGraphData(timestamp);
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 							Pressure, RainToday, SolarRad, UV, Raincounter);

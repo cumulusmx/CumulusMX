@@ -52,6 +52,27 @@ namespace ExportMySQL
             MySqlMonthlyTable = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
             MySqlDayfileTable = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
 
+            if (File.Exists("strings.ini"))
+            {
+                IniFile iniStrs = new IniFile("strings.ini");
+                compassp[0] = iniStrs.GetValue("Compass", "N", "N");
+                compassp[1] = iniStrs.GetValue("Compass", "NNE", "NNE");
+                compassp[2] = iniStrs.GetValue("Compass", "NE", "NE");
+                compassp[3] = iniStrs.GetValue("Compass", "ENE", "ENE");
+                compassp[4] = iniStrs.GetValue("Compass", "E", "E");
+                compassp[5] = iniStrs.GetValue("Compass", "ESE", "ESE");
+                compassp[6] = iniStrs.GetValue("Compass", "SE", "SE");
+                compassp[7] = iniStrs.GetValue("Compass", "SSE", "SSE");
+                compassp[8] = iniStrs.GetValue("Compass", "S", "S");
+                compassp[9] = iniStrs.GetValue("Compass", "SSW", "SSW");
+                compassp[10] = iniStrs.GetValue("Compass", "SW", "SW");
+                compassp[11] = iniStrs.GetValue("Compass", "WSW", "WSW");
+                compassp[12] = iniStrs.GetValue("Compass", "W", "W");
+                compassp[13] = iniStrs.GetValue("Compass", "WNW", "WNW");
+                compassp[14] = iniStrs.GetValue("Compass", "NW", "NW");
+                compassp[15] = iniStrs.GetValue("Compass", "NNW", "NNW");
+            }
+
             if (param.ToLower().Equals("dayfile"))
             {
                 doDayfileExport();
@@ -77,17 +98,21 @@ namespace ExportMySQL
 
         private static void doSingleMonthlyExport(string filename)
         {
-            var mySqlConn = new MySqlConnection();
-            mySqlConn.Host = MySqlHost;
-            mySqlConn.Port = MySqlPort;
-            mySqlConn.UserId = MySqlUser;
-            mySqlConn.Password = MySqlPass;
-            mySqlConn.Database = MySqlDatabase;
+            var mySqlConn = new MySqlConnection
+            {
+                Host = MySqlHost,
+                Port = MySqlPort,
+                UserId = MySqlUser,
+                Password = MySqlPass,
+                Database = MySqlDatabase
+            };
 
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.Connection = mySqlConn;
+            MySqlCommand cmd = new MySqlCommand
+            {
+                Connection = mySqlConn
+            };
 
-            var StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable + " (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym)";
+            var StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable + " (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,FeelsLike,WindbearingSym,CurrWindBearingSym)";
 
             try
             {
@@ -130,7 +155,7 @@ namespace ExportMySQL
                         Console.Write(sqldate+"\r");
                         StringBuilder sb = new StringBuilder(StartOfMonthlyInsertSQL + " Values('" + sqldate + "',");
 
-                        for (int i = 2; i < 27; i++)
+                        for (int i = 2; i < 28; i++)
                         {
                             if (i < st.Count && !String.IsNullOrEmpty(st[i]))
                             {
@@ -194,15 +219,19 @@ namespace ExportMySQL
 
         private static void doDayfileExport()
         {
-            var mySqlConn = new MySqlConnection();
-            mySqlConn.Host = MySqlHost;
-            mySqlConn.Port = MySqlPort;
-            mySqlConn.UserId = MySqlUser;
-            mySqlConn.Password = MySqlPass;
-            mySqlConn.Database = MySqlDatabase;
+            var mySqlConn = new MySqlConnection
+            {
+                Host = MySqlHost,
+                Port = MySqlPort,
+                UserId = MySqlUser,
+                Password = MySqlPass,
+                Database = MySqlDatabase
+            };
 
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.Connection = mySqlConn;
+            MySqlCommand cmd = new MySqlCommand
+            {
+                Connection = mySqlConn
+            };
 
             var filename = "data" + Path.DirectorySeparatorChar + "dayfile.txt";
 
@@ -211,7 +240,7 @@ namespace ExportMySQL
             if (File.Exists(filename))
             {
                 Console.WriteLine("Dayfile exists, beginning export");
-                string StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable + " (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym)";
+                string StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable + " (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,HWindGBearSym,MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,DomWindDirSym)";
 
                 try
                 {
@@ -250,7 +279,7 @@ namespace ExportMySQL
 
                             StringBuilder sb = new StringBuilder(StartOfDayfileInsertSQL + " Values('" + sqldate + "',");
 
-                            for (int i = 1; i < 46; i++)
+                            for (int i = 1; i < 50; i++)
                             {
                                 if (i < st.Count && !String.IsNullOrEmpty(st[i]))
                                 {
@@ -297,7 +326,7 @@ namespace ExportMySQL
 
         private static string CompassPoint(int bearing)
         {
-            return compassp[(((bearing * 100) + 1125) % 36000) / 2250];
+            return bearing == 0 ? "-" : compassp[(((bearing * 100) + 1125) % 36000) / 2250];
         }
     }
 }

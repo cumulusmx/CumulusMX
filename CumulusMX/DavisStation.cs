@@ -175,10 +175,10 @@ namespace CumulusMX
 				var vals = recepStats.Split(' ');
 
 				DavisTotalPacketsReceived = Convert.ToInt32(vals[0]);
-				DavisTotalPacketsMissed = Convert.ToInt32(vals[1]);
-				DavisNumberOfResynchs = Convert.ToInt32(vals[2]);
-				DavisMaxInARow = Convert.ToInt32(vals[3]);
-				DavisNumCRCerrors = Convert.ToInt32(vals[4]);
+				DavisTotalPacketsMissed[0] = Convert.ToInt32(vals[1]);
+				DavisNumberOfResynchs[0] = Convert.ToInt32(vals[2]);
+				DavisMaxInARow[0] = Convert.ToInt32(vals[3]);
+				DavisNumCRCerrors[0] = Convert.ToInt32(vals[4]);
 			}
 			catch (Exception ex)
 			{
@@ -1206,7 +1206,7 @@ namespace CumulusMX
 				}
 
 				DoApparentTemp(now);
-				DoFeelsLike();
+				DoFeelsLike(now);
 
 				var forecastRule = loopData.ForecastRule < cumulus.DavisForecastLookup.Length ? loopData.ForecastRule : cumulus.DavisForecastLookup.Length - 1;
 
@@ -2016,7 +2016,7 @@ namespace CumulusMX
 						}
 
 						DoApparentTemp(timestamp);
-						DoFeelsLike();
+						DoFeelsLike(timestamp);
 
 						// add in 'archivePeriod' minutes worth of wind speed to windrun
 						WindRunToday += ((WindAverage*WindRunHourMult[cumulus.WindUnit]*interval)/60.0);
@@ -2173,7 +2173,7 @@ namespace CumulusMX
 						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
 
 						DoApparentTemp(timestamp);
-						DoFeelsLike();
+						DoFeelsLike(timestamp);
 
 
 						lastDataReadTime = timestamp;
@@ -2190,7 +2190,7 @@ namespace CumulusMX
 						AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 						AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 						AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-							IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV);
+							IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 						AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 							OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter);
 						RemoveOldLHData(timestamp);

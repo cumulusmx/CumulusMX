@@ -140,6 +140,8 @@ namespace CumulusMX
 			json += "\"lowDewPointVal\":\"" + station.alltimerecarray[WeatherStation.AT_lowdewpoint].value.ToString(cumulus.TempFormat) + "\",";
 			json += "\"highApparentTempVal\":\"" + station.alltimerecarray[WeatherStation.AT_highapptemp].value.ToString(cumulus.TempFormat) + "\",";
 			json += "\"lowApparentTempVal\":\"" + station.alltimerecarray[WeatherStation.AT_lowapptemp].value.ToString(cumulus.TempFormat) + "\",";
+			json += "\"highFeelsLikeVal\":\"" + station.alltimerecarray[WeatherStation.AT_highfeelslike].value.ToString(cumulus.TempFormat) + "\",";
+			json += "\"lowFeelsLikeVal\":\"" + station.alltimerecarray[WeatherStation.AT_lowfeelslike].value.ToString(cumulus.TempFormat) + "\",";
 			json += "\"lowWindChillVal\":\"" + station.alltimerecarray[WeatherStation.AT_lowchill].value.ToString(cumulus.TempFormat) + "\",";
 			json += "\"highHeatIndexVal\":\"" + station.alltimerecarray[WeatherStation.AT_highheatindex].value.ToString(cumulus.TempFormat) + "\",";
 			json += "\"highMinTempVal\":\"" + station.alltimerecarray[WeatherStation.AT_highmintemp].value.ToString(cumulus.TempFormat) + "\",";
@@ -153,6 +155,8 @@ namespace CumulusMX
 			json += "\"lowDewPointTime\":\"" + station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp.ToString(timeStampFormat) + "\",";
 			json += "\"highApparentTempTime\":\"" + station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp.ToString(timeStampFormat) + "\",";
 			json += "\"lowApparentTempTime\":\"" + station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp.ToString(timeStampFormat) + "\",";
+			json += "\"highFeelsLikeTime\":\"" + station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp.ToString(timeStampFormat) + "\",";
+			json += "\"lowFeelsLikeTime\":\"" + station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp.ToString(timeStampFormat) + "\",";
 			json += "\"lowWindChillTime\":\"" + station.alltimerecarray[WeatherStation.AT_lowchill].timestamp.ToString(timeStampFormat) + "\",";
 			json += "\"highHeatIndexTime\":\"" + station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp.ToString(timeStampFormat) + "\",";
 			json += "\"highMinTempTime\":\"" + station.alltimerecarray[WeatherStation.AT_highmintemp].timestamp.ToString(dateStampFormat) + "\",";
@@ -209,6 +213,8 @@ namespace CumulusMX
 			var lowDewPtVal = lowTempVal;
 			var highAppTempVal = highTempVal;
 			var lowAppTempVal = lowTempVal;
+			var highFeelsLikeVal = highTempVal;
+			var lowFeelsLikeVal = lowTempVal;
 			var lowWindChillVal = lowTempVal;
 			var highHeatIndVal = highTempVal;
 			var highMinTempVal = highTempVal;
@@ -234,6 +240,8 @@ namespace CumulusMX
 			var lowDewPtTime = highTempTime;
 			var highAppTempTime = highTempTime;
 			var lowAppTempTime = highTempTime;
+			var highFeelsLikeTime = highTempTime;
+			var lowFeelsLikeTime = highTempTime;
 			var lowWindChillTime = highTempTime;
 			var highHeatIndTime = highTempTime;
 			var highMinTempTime = highTempTime;
@@ -324,6 +332,12 @@ namespace CumulusMX
 							thisDate = loggedDate;
 							rainThisMonth = 0;
 						}
+						// hi gust
+						if (double.TryParse(st[1], out valDbl) && valDbl > highGustVal)
+						{
+							highGustVal = valDbl;
+							highGustTime = GetDateTime(loggedDate, st[3]);
+						}
 						// hi temp
 						if (double.TryParse(st[6], out valDbl) && valDbl > highTempVal)
 						{
@@ -335,42 +349,6 @@ namespace CumulusMX
 						{
 							lowTempVal = valDbl;
 							lowTempTime = GetDateTime(loggedDate, st[5]);
-						}
-						// hi dewpt
-						if (double.TryParse(st[35], out valDbl) && valDbl > highDewPtVal)
-						{
-							highDewPtVal = valDbl;
-							highDewPtTime = GetDateTime(loggedDate, st[36]);
-						}
-						// lo dewpt
-						if (double.TryParse(st[37], out valDbl) && valDbl < lowDewPtVal)
-						{
-							lowDewPtVal = valDbl;
-							lowDewPtTime = GetDateTime(loggedDate, st[38]);
-						}
-						// hi app temp
-						if (double.TryParse(st[27], out valDbl) && valDbl > highAppTempVal)
-						{
-							highAppTempVal = valDbl;
-							highAppTempTime = GetDateTime(loggedDate, st[28]);
-						}
-						// lo app temp
-						if (double.TryParse(st[29], out valDbl) && valDbl < lowAppTempVal)
-						{
-							lowAppTempVal = valDbl;
-							lowAppTempTime = GetDateTime(loggedDate, st[30]);
-						}
-						// lo wind chill
-						if (double.TryParse(st[33], out valDbl) && valDbl < lowWindChillVal)
-						{
-							lowWindChillVal = valDbl;
-							lowWindChillTime = GetDateTime(loggedDate, st[34]);
-						}
-						// hi heat index
-						if (double.TryParse(st[25], out valDbl) && valDbl > highHeatIndVal)
-						{
-							highHeatIndVal = valDbl;
-							highHeatIndTime = GetDateTime(loggedDate, st[26]);
 						}
 						// hi min temp
 						if (double.TryParse(st[4], out valDbl) && valDbl > highMinTempVal)
@@ -400,17 +378,11 @@ namespace CumulusMX
 								lowTempRangeTime = loggedDate;
 							}
 						}
-						// hi humidity
-						if (double.TryParse(st[21], out valDbl) && valDbl > highHumVal)
+						// lo baro
+						if (double.TryParse(st[8], out valDbl) && valDbl < lowBaroVal)
 						{
-							highHumVal = valDbl;
-							highHumTime = GetDateTime(loggedDate, st[22]);
-						}
-						// lo humidity
-						if (double.TryParse(st[19], out valDbl) && valDbl < lowHumVal)
-						{
-							lowHumVal = valDbl;
-							lowHumTime = GetDateTime(loggedDate, st[20]);
+							lowBaroVal = valDbl;
+							lowBaroTime = GetDateTime(loggedDate, st[9]);
 						}
 						// hi baro
 						if (double.TryParse(st[10], out valDbl) && valDbl > highBaroVal)
@@ -418,41 +390,11 @@ namespace CumulusMX
 							highBaroVal = valDbl;
 							highBaroTime = GetDateTime(loggedDate, st[11]);
 						}
-						// lo baro
-						if (double.TryParse(st[8], out valDbl) && valDbl < lowBaroVal)
-						{
-							lowBaroVal = valDbl;
-							lowBaroTime = GetDateTime(loggedDate, st[9]);
-						}
-						// hi gust
-						if (double.TryParse(st[1], out valDbl) && valDbl > highGustVal)
-						{
-							highGustVal = valDbl;
-							highGustTime = GetDateTime(loggedDate, st[3]);
-						}
-						// hi wind
-						if (double.TryParse(st[17], out valDbl) && valDbl > highWindVal)
-						{
-							highWindVal = valDbl;
-							highWindTime = GetDateTime(loggedDate, st[18]);
-						}
-						// hi wind run
-						if (double.TryParse(st[16], out valDbl) && valDbl > highWindRunVal)
-						{
-							highWindRunVal = valDbl;
-							highWindRunTime = loggedDate;
-						}
 						// hi rain rate
 						if (double.TryParse(st[12], out valDbl) && valDbl > highRainRateVal)
 						{
 							highRainRateVal = valDbl;
 							highRainRateTime = GetDateTime(loggedDate, st[13]);
-						}
-						// hi rain hour
-						if (double.TryParse(st[31], out valDbl) && valDbl > highRainHourVal)
-						{
-							highRainHourVal = valDbl;
-							highRainHourTime = GetDateTime(loggedDate, st[32]);
 						}
 						if (double.TryParse(st[14], out valDbl))
 						{
@@ -506,6 +448,104 @@ namespace CumulusMX
 								}
 							}
 						}
+						// Extended for ???
+						if (st.Count > 15)
+						{
+							// hi wind run
+							if (double.TryParse(st[16], out valDbl) && valDbl > highWindRunVal)
+							{
+								highWindRunVal = valDbl;
+								highWindRunTime = loggedDate;
+							}
+						}
+						// Extended for v1.8.9
+						if (st.Count > 17)
+						{
+							// hi wind
+							if (double.TryParse(st[17], out valDbl) && valDbl > highWindVal)
+							{
+								highWindVal = valDbl;
+								highWindTime = GetDateTime(loggedDate, st[18]);
+							}
+						}
+						// Extended for v1.9.0
+						if (st.Count > 18)
+						{
+							// lo humidity
+							if (double.TryParse(st[19], out valDbl) && valDbl < lowHumVal)
+							{
+								lowHumVal = valDbl;
+								lowHumTime = GetDateTime(loggedDate, st[20]);
+							}
+							// hi humidity
+							if (double.TryParse(st[21], out valDbl) && valDbl > highHumVal)
+							{
+								highHumVal = valDbl;
+								highHumTime = GetDateTime(loggedDate, st[22]);
+							}
+							// hi heat index
+							if (double.TryParse(st[25], out valDbl) && valDbl > highHeatIndVal)
+							{
+								highHeatIndVal = valDbl;
+								highHeatIndTime = GetDateTime(loggedDate, st[26]);
+							}
+							// hi app temp
+							if (double.TryParse(st[27], out valDbl) && valDbl > highAppTempVal)
+							{
+								highAppTempVal = valDbl;
+								highAppTempTime = GetDateTime(loggedDate, st[28]);
+							}
+							// lo app temp
+							if (double.TryParse(st[29], out valDbl) && valDbl < lowAppTempVal)
+							{
+								lowAppTempVal = valDbl;
+								lowAppTempTime = GetDateTime(loggedDate, st[30]);
+							}
+							// hi rain hour
+							if (double.TryParse(st[31], out valDbl) && valDbl > highRainHourVal)
+							{
+								highRainHourVal = valDbl;
+								highRainHourTime = GetDateTime(loggedDate, st[32]);
+							}
+							// lo wind chill
+							if (double.TryParse(st[33], out valDbl) && valDbl < lowWindChillVal)
+							{
+								lowWindChillVal = valDbl;
+								lowWindChillTime = GetDateTime(loggedDate, st[34]);
+							}
+						}
+						// extended for v1.9.1
+						if (st.Count > 35)
+						{
+							// hi dewpt
+							if (double.TryParse(st[35], out valDbl) && valDbl > highDewPtVal)
+							{
+								highDewPtVal = valDbl;
+								highDewPtTime = GetDateTime(loggedDate, st[36]);
+							}
+							// lo dewpt
+							if (double.TryParse(st[37], out valDbl) && valDbl < lowDewPtVal)
+							{
+								lowDewPtVal = valDbl;
+								lowDewPtTime = GetDateTime(loggedDate, st[38]);
+							}
+						}
+						// extended for v3.6.0
+						if (st.Count > 46)
+						{
+							// hi feels like
+							if (double.TryParse(st[46], out valDbl) && valDbl > highFeelsLikeVal)
+							{
+								highFeelsLikeVal = valDbl;
+								highFeelsLikeTime = GetDateTime(loggedDate, st[47]);
+							}
+							// lo feels like
+							if (double.TryParse(st[48], out valDbl) && valDbl < lowFeelsLikeVal)
+							{
+								lowFeelsLikeVal = valDbl;
+								lowFeelsLikeTime = GetDateTime(loggedDate, st[49]);
+							}
+						}
 					}
 
 					// We need to check if the run or wet/dry days at the end of logs exceeds any records
@@ -532,6 +572,10 @@ namespace CumulusMX
 					json += "\"highApparentTempTimeDayfile\":\"" + highAppTempTime.ToString(timeStampFormat) + "\",";
 					json += "\"lowApparentTempValDayfile\":\"" + lowAppTempVal.ToString(cumulus.TempFormat) + "\",";
 					json += "\"lowApparentTempTimeDayfile\":\"" + lowAppTempTime.ToString(timeStampFormat) + "\",";
+					json += "\"highFeelsLikeValDayfile\":\"" + highFeelsLikeVal.ToString(cumulus.TempFormat) + "\",";
+					json += "\"highFeelsLikeTimeDayfile\":\"" + highFeelsLikeTime.ToString(timeStampFormat) + "\",";
+					json += "\"lowFeelsLikeValDayfile\":\"" + lowFeelsLikeVal.ToString(cumulus.TempFormat) + "\",";
+					json += "\"lowFeelsLikeTimeDayfile\":\"" + lowFeelsLikeTime.ToString(timeStampFormat) + "\",";
 					json += "\"lowWindChillValDayfile\":\"" + lowWindChillVal.ToString(cumulus.TempFormat) + "\",";
 					json += "\"lowWindChillTimeDayfile\":\"" + lowWindChillTime.ToString(timeStampFormat) + "\",";
 					json += "\"highHeatIndexValDayfile\":\"" + highHeatIndVal.ToString(cumulus.TempFormat) + "\",";
@@ -645,6 +689,8 @@ namespace CumulusMX
 			var lowDewPtVal = lowTempVal;
 			var highAppTempVal = highTempVal;
 			var lowAppTempVal = lowTempVal;
+			var highFeelsLikeVal = highTempVal;
+			var lowFeelsLikeVal = lowTempVal;
 			var lowWindChillVal = lowTempVal;
 			var highHeatIndVal = highTempVal;
 			var highMinTempVal = highTempVal;
@@ -671,6 +717,8 @@ namespace CumulusMX
 			var lowDewPtTime = highTempTime;
 			var highAppTempTime = highTempTime;
 			var lowAppTempTime = highTempTime;
+			var highFeelsLikeTime = highTempTime;
+			var lowFeelsLikeTime = highTempTime;
 			var lowWindChillTime = highTempTime;
 			var highHeatIndTime = highTempTime;
 			var highMinTempTime = highTempTime;
@@ -739,40 +787,48 @@ namespace CumulusMX
 							var rainrate = double.Parse(st[8]);
 							var raintoday = double.Parse(st[9]);
 							var pressure = double.Parse(st[10]);
-							if (st.Count > 15 && double.TryParse(st[15], out valDbl))
-							{
-								// low chill
-								if (valDbl < lowWindChillVal)
-								{
-									lowWindChillVal = valDbl;
-									lowWindChillTime = entrydate;
-								}
 
-							}
-							if (st.Count > 16 && double.TryParse(st[16], out valDbl))
+							// low chill
+							if (double.TryParse(st[15], out valDbl) && valDbl < lowWindChillVal)
 							{
-								// hi heat
-								if (valDbl > highHeatIndVal)
-								{
-									highHeatIndVal = valDbl;
-									highHeatIndTime = entrydate;
-								}
+								lowWindChillVal = valDbl;
+								lowWindChillTime = entrydate;
 							}
+							// hi heat
+							if (double.TryParse(st[16], out valDbl) && valDbl > highHeatIndVal)
+							{
+								highHeatIndVal = valDbl;
+								highHeatIndTime = entrydate;
+							}
+							// hi/low appt
 							if (st.Count > 21 && double.TryParse(st[21], out valDbl))
 							{
-								// hi appt
 								if (valDbl > highAppTempVal)
 								{
 									highAppTempVal = valDbl;
 									highAppTempTime = entrydate;
 								}
-								// lo appt
 								if (valDbl < lowAppTempVal)
 								{
 									lowAppTempVal = valDbl;
 									lowAppTempTime = entrydate;
 								}
 							}
+							// hi/low feels like
+							if (st.Count > 27 && double.TryParse(st[27], out valDbl))
+							{
+								if (valDbl > highFeelsLikeVal)
+								{
+									highFeelsLikeVal = valDbl;
+									highFeelsLikeTime = entrydate;
+								}
+								if (valDbl < lowFeelsLikeVal)
+								{
+									lowFeelsLikeVal = valDbl;
+									lowFeelsLikeTime = entrydate;
+								}
+							}
+
 							// hi temp
 							if (outsidetemp > highTempVal)
 							{
@@ -1008,6 +1064,10 @@ namespace CumulusMX
 			json += "\"highApparentTempTimeLogfile\":\"" + highAppTempTime.ToString(timeStampFormat) + "\",";
 			json += "\"lowApparentTempValLogfile\":\"" + lowAppTempVal.ToString(cumulus.TempFormat) + "\",";
 			json += "\"lowApparentTempTimeLogfile\":\"" + lowAppTempTime.ToString(timeStampFormat) + "\",";
+			json += "\"highFeelsLikeValLogfile\":\"" + highFeelsLikeVal.ToString(cumulus.TempFormat) + "\",";
+			json += "\"highFeelsLikeTimeLogfile\":\"" + highFeelsLikeTime.ToString(timeStampFormat) + "\",";
+			json += "\"lowFeelsLikeValLogfile\":\"" + lowFeelsLikeVal.ToString(cumulus.TempFormat) + "\",";
+			json += "\"lowFeelsLikeTimeLogfile\":\"" + lowFeelsLikeTime.ToString(timeStampFormat) + "\",";
 			json += "\"lowWindChillValLogfile\":\"" + lowWindChillVal.ToString(cumulus.TempFormat) + "\",";
 			json += "\"lowWindChillTimeLogfile\":\"" + lowWindChillTime.ToString(timeStampFormat) + "\",";
 			json += "\"highHeatIndexValLogfile\":\"" + highHeatIndVal.ToString(cumulus.TempFormat) + "\",";
@@ -1130,6 +1190,20 @@ namespace CumulusMX
 					case "lowApparentTempTime":
 						dt = value.Split('+');
 						station.SetAlltime(WeatherStation.AT_lowapptemp, station.alltimerecarray[WeatherStation.AT_lowapptemp].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+						break;
+					case "highFeelsLikeVal":
+						station.SetAlltime(WeatherStation.AT_highfeelslike, double.Parse(value), station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp);
+						break;
+					case "highFeelsLikeTime":
+						dt = value.Split('+');
+						station.SetAlltime(WeatherStation.AT_highfeelslike, station.alltimerecarray[WeatherStation.AT_highfeelslike].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+						break;
+					case "lowFeelsLikeVal":
+						station.SetAlltime(WeatherStation.AT_lowfeelslike, double.Parse(value), station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp);
+						break;
+					case "lowFeelsLikeTime":
+						dt = value.Split('+');
+						station.SetAlltime(WeatherStation.AT_lowfeelslike, station.alltimerecarray[WeatherStation.AT_lowfeelslike].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
 						break;
 					case "lowWindChillVal":
 						station.SetAlltime(WeatherStation.AT_lowchill, double.Parse(value), station.alltimerecarray[WeatherStation.AT_lowchill].timestamp);
@@ -1334,6 +1408,20 @@ namespace CumulusMX
 							dt = value.Split('+');
 							station.SetMonthlyAlltime(WeatherStation.AT_lowapptemp, station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
 							break;
+						case "highFeelsLikeVal":
+							station.SetMonthlyAlltime(WeatherStation.AT_highfeelslike, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_highfeelslike, month].timestamp, month);
+							break;
+						case "highFeelsLikeTime":
+							dt = value.Split('+');
+							station.SetMonthlyAlltime(WeatherStation.AT_highfeelslike, station.monthlyrecarray[WeatherStation.AT_highfeelslike, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
+							break;
+						case "lowFeelsLikeVal":
+							station.SetMonthlyAlltime(WeatherStation.AT_lowfeelslike, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowfeelslike, month].timestamp, month);
+							break;
+						case "lowFeelsLikeTime":
+							dt = value.Split('+');
+							station.SetMonthlyAlltime(WeatherStation.AT_lowfeelslike, station.monthlyrecarray[WeatherStation.AT_lowfeelslike, month].value, station.ddmmyyhhmmStrToDate(dt[0], dt[1]), month);
+							break;
 						case "lowWindChillVal":
 							station.SetMonthlyAlltime(WeatherStation.AT_lowchill, double.Parse(value), station.monthlyrecarray[WeatherStation.AT_lowchill, month].timestamp, month);
 							break;
@@ -1488,6 +1576,8 @@ namespace CumulusMX
 				json += $"\"{m}-lowDewPointVal\":\"" + station.monthlyrecarray[WeatherStation.AT_lowdewpoint, m].value.ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-highApparentTempVal\":\"" + station.monthlyrecarray[WeatherStation.AT_highapptemp, m].value.ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-lowApparentTempVal\":\"" + station.monthlyrecarray[WeatherStation.AT_lowapptemp, m].value.ToString(cumulus.TempFormat) + "\",";
+				json += $"\"{m}-highFeelsLikeVal\":\"" + station.monthlyrecarray[WeatherStation.AT_highfeelslike, m].value.ToString(cumulus.TempFormat) + "\",";
+				json += $"\"{m}-lowFeelsLikeVal\":\"" + station.monthlyrecarray[WeatherStation.AT_lowfeelslike, m].value.ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-lowWindChillVal\":\"" + station.monthlyrecarray[WeatherStation.AT_lowchill, m].value.ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-highHeatIndexVal\":\"" + station.monthlyrecarray[WeatherStation.AT_highheatindex, m].value.ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-highMinTempVal\":\"" + station.monthlyrecarray[WeatherStation.AT_highmintemp, m].value.ToString(cumulus.TempFormat) + "\",";
@@ -1501,6 +1591,8 @@ namespace CumulusMX
 				json += $"\"{m}-lowDewPointTime\":\"" + station.monthlyrecarray[WeatherStation.AT_lowdewpoint, m].timestamp.ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-highApparentTempTime\":\"" + station.monthlyrecarray[WeatherStation.AT_highapptemp, m].timestamp.ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-lowApparentTempTime\":\"" + station.monthlyrecarray[WeatherStation.AT_lowapptemp, m].timestamp.ToString(timeStampFormat) + "\",";
+				json += $"\"{m}-highFeelsLikeTime\":\"" + station.monthlyrecarray[WeatherStation.AT_highfeelslike, m].timestamp.ToString(timeStampFormat) + "\",";
+				json += $"\"{m}-lowFeelsLikeTime\":\"" + station.monthlyrecarray[WeatherStation.AT_lowfeelslike, m].timestamp.ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-lowWindChillTime\":\"" + station.monthlyrecarray[WeatherStation.AT_lowchill, m].timestamp.ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-highHeatIndexTime\":\"" + station.monthlyrecarray[WeatherStation.AT_highheatindex, m].timestamp.ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-highMinTempTime\":\"" + station.monthlyrecarray[WeatherStation.AT_highmintemp, m].timestamp.ToString(dateStampFormat) + "\",";
@@ -1560,6 +1652,8 @@ namespace CumulusMX
 			var lowDewPtVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 			var highAppTempVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
 			var lowAppTempVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
+			var highFeelsLikeVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
+			var lowFeelsLikeVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 			var lowWindChillVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 			var highHeatIndVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
 			var highMinTempVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
@@ -1587,6 +1681,8 @@ namespace CumulusMX
 			var lowDewPtTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var highAppTempTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var lowAppTempTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
+			var highFeelsLikeTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
+			var lowFeelsLikeTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var lowWindChillTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var highHeatIndTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var highMinTempTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
@@ -1662,66 +1758,43 @@ namespace CumulusMX
 							thisDate = loggedDate;
 							rainThisMonth = 0;
 						}
-						// hi temp
-						if (double.TryParse(st[6], out valDbl) && valDbl > highTempVal[monthOffset])
+						// hi gust
+						if (double.TryParse(st[1], out valDbl) && valDbl > highGustVal[monthOffset])
 						{
-							highTempVal[monthOffset] = valDbl;
-							highTempTime[monthOffset] = GetDateTime(loggedDate, st[7]);
+							highGustVal[monthOffset] = valDbl;
+							highGustTime[monthOffset] = GetDateTime(loggedDate, st[3]);
 						}
 						// lo temp
-						if (double.TryParse(st[4], out valDbl) && valDbl < lowTempVal[monthOffset])
+						if (double.TryParse(st[4], out valDbl))
 						{
-							lowTempVal[monthOffset] = valDbl;
-							lowTempTime[monthOffset] = GetDateTime(loggedDate, st[5]);
+							if (valDbl < lowTempVal[monthOffset])
+							{
+								lowTempVal[monthOffset] = valDbl;
+								lowTempTime[monthOffset] = GetDateTime(loggedDate, st[5]);
+							}
+							// hi min temp
+							if (valDbl > highMinTempVal[monthOffset])
+							{
+								highMinTempVal[monthOffset] = valDbl;
+								highMinTempTime[monthOffset] = loggedDate;
+							}
 						}
-						// hi dewpt
-						if (double.TryParse(st[35], out valDbl) && valDbl > highDewPtVal[monthOffset])
+						// hi temp
+						if (double.TryParse(st[6], out valDbl))
 						{
-							highDewPtVal[monthOffset] = valDbl;
-							highDewPtTime[monthOffset] = GetDateTime(loggedDate, st[36]);
+							if (valDbl > highTempVal[monthOffset])
+							{
+								highTempVal[monthOffset] = valDbl;
+								highTempTime[monthOffset] = GetDateTime(loggedDate, st[7]);
+							}
+							// lo max temp
+							if (valDbl < lowMaxTempVal[monthOffset])
+							{
+								lowMaxTempVal[monthOffset] = valDbl;
+								lowMaxTempTime[monthOffset] = loggedDate;
+							}
 						}
-						// lo dewpt
-						if (double.TryParse(st[37], out valDbl) && valDbl < lowDewPtVal[monthOffset])
-						{
-							lowDewPtVal[monthOffset] = valDbl;
-							lowDewPtTime[monthOffset] = GetDateTime(loggedDate, st[38]);
-						}
-						// hi app temp
-						if (double.TryParse(st[27], out valDbl) && valDbl > highAppTempVal[monthOffset])
-						{
-							highAppTempVal[monthOffset] = valDbl;
-							highAppTempTime[monthOffset] = GetDateTime(loggedDate, st[28]);
-						}
-						// lo app temp
-						if (double.TryParse(st[29], out valDbl) && valDbl < lowAppTempVal[monthOffset])
-						{
-							lowAppTempVal[monthOffset] = valDbl;
-							lowAppTempTime[monthOffset] = GetDateTime(loggedDate, st[30]);
-						}
-						// lo wind chill
-						if (double.TryParse(st[33], out valDbl) && valDbl < lowWindChillVal[monthOffset])
-						{
-							lowWindChillVal[monthOffset] = valDbl;
-							lowWindChillTime[monthOffset] = GetDateTime(loggedDate, st[34]);
-						}
-						// hi heat index
-						if (double.TryParse(st[25], out valDbl) && valDbl > highHeatIndVal[monthOffset])
-						{
-							highHeatIndVal[monthOffset] = valDbl;
-							highHeatIndTime[monthOffset] = GetDateTime(loggedDate, st[26]);
-						}
-						// hi min temp
-						if (double.TryParse(st[4], out valDbl) && valDbl > highMinTempVal[monthOffset])
-						{
-							highMinTempVal[monthOffset] = valDbl;
-							highMinTempTime[monthOffset] = loggedDate;
-						}
-						// lo max temp
-						if (double.TryParse(st[6], out valDbl) && valDbl < lowMaxTempVal[monthOffset])
-						{
-							lowMaxTempVal[monthOffset] = valDbl;
-							lowMaxTempTime[monthOffset] = loggedDate;
-						}
+
 						// temp ranges
 						if (double.TryParse(st[6], out valDbl) && double.TryParse(st[4], out valDbl2))
 						{
@@ -1738,17 +1811,11 @@ namespace CumulusMX
 								lowTempRangeTime[monthOffset] = loggedDate;
 							}
 						}
-						// hi humidity
-						if (double.TryParse(st[21], out valDbl) && valDbl > highHumVal[monthOffset])
+						// lo baro
+						if (double.TryParse(st[8], out valDbl) && valDbl < lowBaroVal[monthOffset])
 						{
-							highHumVal[monthOffset] = valDbl;
-							highHumTime[monthOffset] = GetDateTime(loggedDate, st[22]);
-						}
-						// lo humidity
-						if (double.TryParse(st[19], out valDbl) && valDbl  < lowHumVal[monthOffset])
-						{
-							lowHumVal[monthOffset] = valDbl;
-							lowHumTime[monthOffset] = GetDateTime(loggedDate, st[20]);
+							lowBaroVal[monthOffset] = valDbl;
+							lowBaroTime[monthOffset] = GetDateTime(loggedDate, st[9]);
 						}
 						// hi baro
 						if (double.TryParse(st[10], out valDbl) && valDbl > highBaroVal[monthOffset])
@@ -1756,41 +1823,11 @@ namespace CumulusMX
 							highBaroVal[monthOffset] = valDbl;
 							highBaroTime[monthOffset] = GetDateTime(loggedDate, st[11]);
 						}
-						// lo baro
-						if (double.TryParse(st[8], out valDbl) && valDbl < lowBaroVal[monthOffset])
-						{
-							lowBaroVal[monthOffset] = valDbl;
-							lowBaroTime[monthOffset] = GetDateTime(loggedDate, st[9]);
-						}
-						// hi gust
-						if (double.TryParse(st[1], out valDbl) && valDbl > highGustVal[monthOffset])
-						{
-							highGustVal[monthOffset] = valDbl;
-							highGustTime[monthOffset] = GetDateTime(loggedDate, st[3]);
-						}
-						// hi wind
-						if (double.TryParse(st[17], out valDbl) && valDbl > highWindVal[monthOffset])
-						{
-							highWindVal[monthOffset] = valDbl;
-							highWindTime[monthOffset] = GetDateTime(loggedDate, st[18]);
-						}
-						// hi wind run
-						if (double.TryParse(st[16], out valDbl) && valDbl > highWindRunVal[monthOffset])
-						{
-							highWindRunVal[monthOffset] = valDbl;
-							highWindRunTime[monthOffset] = loggedDate;
-						}
 						// hi rain rate
 						if (double.TryParse(st[12], out valDbl) && valDbl > highRainRateVal[monthOffset])
 						{
 							highRainRateVal[monthOffset] = valDbl;
 							highRainRateTime[monthOffset] = GetDateTime(loggedDate, st[13]);
-						}
-						// hi rain hour
-						if (double.TryParse(st[31], out valDbl) && valDbl > highRainHourVal[monthOffset])
-						{
-							highRainHourVal[monthOffset] = valDbl;
-							highRainHourTime[monthOffset] = GetDateTime(loggedDate, st[32]);
 						}
 						if (double.TryParse(st[14], out valDbl))
 						{
@@ -1846,6 +1883,104 @@ namespace CumulusMX
 								}
 							}
 						}
+						// extended v????
+						if (st.Count > 15)
+						{
+							// hi wind run
+							if (double.TryParse(st[16], out valDbl) && valDbl > highWindRunVal[monthOffset])
+							{
+								highWindRunVal[monthOffset] = valDbl;
+								highWindRunTime[monthOffset] = loggedDate;
+							}
+						}
+						// extended v1.8.9
+						if (st.Count > 17)
+						{
+							// hi wind
+							if (double.TryParse(st[17], out valDbl) && valDbl > highWindVal[monthOffset])
+							{
+								highWindVal[monthOffset] = valDbl;
+								highWindTime[monthOffset] = GetDateTime(loggedDate, st[18]);
+							}
+						}
+						//extended v1.9.0
+						if (st.Count > 19)
+						{
+							// lo humidity
+							if (double.TryParse(st[19], out valDbl) && valDbl < lowHumVal[monthOffset])
+							{
+								lowHumVal[monthOffset] = valDbl;
+								lowHumTime[monthOffset] = GetDateTime(loggedDate, st[20]);
+							}
+							// hi humidity
+							if (double.TryParse(st[21], out valDbl) && valDbl > highHumVal[monthOffset])
+							{
+								highHumVal[monthOffset] = valDbl;
+								highHumTime[monthOffset] = GetDateTime(loggedDate, st[22]);
+							}
+							// hi heat index
+							if (double.TryParse(st[25], out valDbl) && valDbl > highHeatIndVal[monthOffset])
+							{
+								highHeatIndVal[monthOffset] = valDbl;
+								highHeatIndTime[monthOffset] = GetDateTime(loggedDate, st[26]);
+							}
+							// hi app temp
+							if (double.TryParse(st[27], out valDbl) && valDbl > highAppTempVal[monthOffset])
+							{
+								highAppTempVal[monthOffset] = valDbl;
+								highAppTempTime[monthOffset] = GetDateTime(loggedDate, st[28]);
+							}
+							// lo app temp
+							if (double.TryParse(st[29], out valDbl) && valDbl < lowAppTempVal[monthOffset])
+							{
+								lowAppTempVal[monthOffset] = valDbl;
+								lowAppTempTime[monthOffset] = GetDateTime(loggedDate, st[30]);
+							}
+							// hi rain hour
+							if (double.TryParse(st[31], out valDbl) && valDbl > highRainHourVal[monthOffset])
+							{
+								highRainHourVal[monthOffset] = valDbl;
+								highRainHourTime[monthOffset] = GetDateTime(loggedDate, st[32]);
+							}
+							// lo wind chill
+							if (double.TryParse(st[33], out valDbl) && valDbl < lowWindChillVal[monthOffset])
+							{
+								lowWindChillVal[monthOffset] = valDbl;
+								lowWindChillTime[monthOffset] = GetDateTime(loggedDate, st[34]);
+							}
+						}
+						// extended v1.9.1
+						if (st.Count > 35)
+						{
+							// hi dewpt
+							if (double.TryParse(st[35], out valDbl) && valDbl > highDewPtVal[monthOffset])
+							{
+								highDewPtVal[monthOffset] = valDbl;
+								highDewPtTime[monthOffset] = GetDateTime(loggedDate, st[36]);
+							}
+							// lo dewpt
+							if (double.TryParse(st[37], out valDbl) && valDbl < lowDewPtVal[monthOffset])
+							{
+								lowDewPtVal[monthOffset] = valDbl;
+								lowDewPtTime[monthOffset] = GetDateTime(loggedDate, st[38]);
+							}
+						}
+						// extended v3.6.0
+						if (st.Count > 46)
+						{
+							// hi feels like
+							if (double.TryParse(st[46], out valDbl) && valDbl > highFeelsLikeVal[monthOffset])
+							{
+								highFeelsLikeVal[monthOffset] = valDbl;
+								highFeelsLikeTime[monthOffset] = GetDateTime(loggedDate, st[47]);
+							}
+							// lo feels like
+							if (double.TryParse(st[48], out valDbl) && valDbl < lowFeelsLikeVal[monthOffset])
+							{
+								lowFeelsLikeVal[monthOffset] = valDbl;
+								lowFeelsLikeTime[monthOffset] = GetDateTime(loggedDate, st[49]);
+							}
+						}
 					}
 
 					for (var i = 0; i < 12; i++)
@@ -1863,6 +1998,10 @@ namespace CumulusMX
 						json += $"\"{m}-highApparentTempTimeDayfile\":\"" + highAppTempTime[i].ToString(timeStampFormat) + "\",";
 						json += $"\"{m}-lowApparentTempValDayfile\":\"" + lowAppTempVal[i].ToString(cumulus.TempFormat) + "\",";
 						json += $"\"{m}-lowApparentTempTimeDayfile\":\"" + lowAppTempTime[i].ToString(timeStampFormat) + "\",";
+						json += $"\"{m}-highFeelsLikeValDayfile\":\"" + highFeelsLikeVal[i].ToString(cumulus.TempFormat) + "\",";
+						json += $"\"{m}-highFeelsLikeTimeDayfile\":\"" + highFeelsLikeTime[i].ToString(timeStampFormat) + "\",";
+						json += $"\"{m}-lowFeelsLikeValDayfile\":\"" + lowFeelsLikeVal[i].ToString(cumulus.TempFormat) + "\",";
+						json += $"\"{m}-lowFeelsLikeTimeDayfile\":\"" + lowFeelsLikeTime[i].ToString(timeStampFormat) + "\",";
 						json += $"\"{m}-lowWindChillValDayfile\":\"" + lowWindChillVal[i].ToString(cumulus.TempFormat) + "\",";
 						json += $"\"{m}-lowWindChillTimeDayfile\":\"" + lowWindChillTime[i].ToString(timeStampFormat) + "\",";
 						json += $"\"{m}-highHeatIndexValDayfile\":\"" + highHeatIndVal[i].ToString(cumulus.TempFormat) + "\",";
@@ -1959,6 +2098,8 @@ namespace CumulusMX
 			var lowDewPtVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 			var highAppTempVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
 			var lowAppTempVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
+			var highFeelsLikeVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
+			var lowFeelsLikeVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 			var lowWindChillVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 			var highHeatIndVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
 			var highMinTempVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
@@ -1986,6 +2127,8 @@ namespace CumulusMX
 			var lowDewPtTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var highAppTempTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var lowAppTempTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
+			var highFeelsLikeTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
+			var lowFeelsLikeTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var lowWindChillTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var highHeatIndTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
 			var highMinTempTime = new[] { thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate, thisDate };
@@ -2054,40 +2197,58 @@ namespace CumulusMX
 							var rainrate = double.Parse(st[8]);
 							var raintoday = double.Parse(st[9]);
 							var pressure = double.Parse(st[10]);
-							if (st.Count > 15 && double.TryParse(st[15], out valDbl))
+
+							// extended v1.9.1
+							if (st.Count > 19)
 							{
 								// low chill
-								if (valDbl < lowWindChillVal[monthOffset])
+								if (double.TryParse(st[15], out valDbl) && valDbl < lowWindChillVal[monthOffset])
 								{
 									lowWindChillVal[monthOffset] = valDbl;
 									lowWindChillTime[monthOffset] = entrydate;
 								}
-
-							}
-							if (st.Count > 16 && double.TryParse(st[16], out valDbl))
-							{
 								// hi heat
-								if (valDbl > highHeatIndVal[monthOffset])
+								if (double.TryParse(st[16], out valDbl) && valDbl > highHeatIndVal[monthOffset])
 								{
 									highHeatIndVal[monthOffset] = valDbl;
 									highHeatIndTime[monthOffset] = entrydate;
 								}
+								if (double.TryParse(st[21], out valDbl))
+								{
+									// hi appt
+									if (valDbl > highAppTempVal[monthOffset])
+									{
+										highAppTempVal[monthOffset] = valDbl;
+										highAppTempTime[monthOffset] = entrydate;
+									}
+									// lo appt
+									if (valDbl < lowAppTempVal[monthOffset])
+									{
+										lowAppTempVal[monthOffset] = valDbl;
+										lowAppTempTime[monthOffset] = entrydate;
+									}
+								}
 							}
-							if (st.Count > 21 && double.TryParse(st[21], out valDbl))
+							// extended v3.6.0
+							if (st.Count > 27)
 							{
-								// hi appt
-								if (valDbl > highAppTempVal[monthOffset])
+								if (double.TryParse(st[27], out valDbl))
 								{
-									highAppTempVal[monthOffset] = valDbl;
-									highAppTempTime[monthOffset] = entrydate;
-								}
-								// lo appt
-								if (valDbl < lowAppTempVal[monthOffset])
-								{
-									lowAppTempVal[monthOffset] = valDbl;
-									lowAppTempTime[monthOffset] = entrydate;
+									// hi feels like
+									if (valDbl > highFeelsLikeVal[monthOffset])
+									{
+										highFeelsLikeVal[monthOffset] = valDbl;
+										highFeelsLikeTime[monthOffset] = entrydate;
+									}
+									// lo feels like
+									if (valDbl < lowFeelsLikeVal[monthOffset])
+									{
+										lowFeelsLikeVal[monthOffset] = valDbl;
+										lowFeelsLikeTime[monthOffset] = entrydate;
+									}
 								}
 							}
+
 							// hi temp
 							if (outsidetemp > highTempVal[monthOffset])
 							{
@@ -2324,6 +2485,10 @@ namespace CumulusMX
 				json += $"\"{m}-highApparentTempTimeLogfile\":\"" + highAppTempTime[i].ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-lowApparentTempValLogfile\":\"" + lowAppTempVal[i].ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-lowApparentTempTimeLogfile\":\"" + lowAppTempTime[i].ToString(timeStampFormat) + "\",";
+				json += $"\"{m}-highFeelsLikeValLogfile\":\"" + highFeelsLikeVal[i].ToString(cumulus.TempFormat) + "\",";
+				json += $"\"{m}-highFeelsLikeTimeLogfile\":\"" + highFeelsLikeTime[i].ToString(timeStampFormat) + "\",";
+				json += $"\"{m}-lowFeelsLikeValLogfile\":\"" + lowFeelsLikeVal[i].ToString(cumulus.TempFormat) + "\",";
+				json += $"\"{m}-lowFeelsLikeTimeLogfile\":\"" + lowFeelsLikeTime[i].ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-lowWindChillValLogfile\":\"" + lowWindChillVal[i].ToString(cumulus.TempFormat) + "\",";
 				json += $"\"{m}-lowWindChillTimeLogfile\":\"" + lowWindChillTime[i].ToString(timeStampFormat) + "\",";
 				json += $"\"{m}-highHeatIndexValLogfile\":\"" + highHeatIndVal[i].ToString(cumulus.TempFormat) + "\",";
@@ -2393,6 +2558,10 @@ namespace CumulusMX
 			json += $"\"highApparentTempTime\": \"{station.HighAppTempThisMonthTS.ToString(timeStampFormat)}\",";
 			json += $"\"lowApparentTempVal\": \"{station.LowAppTempThisMonth.ToString(cumulus.TempFormat)}\",";
 			json += $"\"lowApparentTempTime\": \"{station.LowAppTempThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"highFeelsLikeVal\": \"{station.HighFeelsLikeThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highFeelsLikeTime\": \"{station.HighFeelsLikeThisMonthTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowFeelsLikeVal\": \"{station.LowFeelsLikeThisMonth.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowFeelsLikeTime\": \"{station.LowFeelsLikeThisMonthTS.ToString(timeStampFormat)}\",";
 			json += $"\"lowWindChillVal\": \"{station.LowWindChillThisMonth.ToString(cumulus.TempFormat)}\",";
 			json += $"\"lowWindChillTime\": \"{station.LowWindChillThisMonthTS.ToString(timeStampFormat)}\",";
 			json += $"\"highHeatIndexVal\": \"{station.HighHeatIndexThisMonth.ToString(cumulus.TempFormat)}\",";
@@ -2494,11 +2663,25 @@ namespace CumulusMX
 						station.HighAppTempThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "lowApparentTempVal":
-						station.LowAppTempThisMonth =double.Parse(value);
+						station.LowAppTempThisMonth = double.Parse(value);
 						break;
 					case "lowApparentTempTime":
 						dt = value.Split('+');
 						station.LowAppTempThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highFeelsLikeVal":
+						station.HighFeelsLikeThisMonth = double.Parse(value);
+						break;
+					case "highFeelsLikeTime":
+						dt = value.Split('+');
+						station.HighFeelsLikeThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowFeelsLikeVal":
+						station.LowFeelsLikeThisMonth = double.Parse(value);
+						break;
+					case "lowFeelsLikeTime":
+						dt = value.Split('+');
+						station.LowFeelsLikeThisMonthTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "lowWindChillVal":
 						station.LowWindChillThisMonth = double.Parse(value);
@@ -2650,6 +2833,10 @@ namespace CumulusMX
 			json += $"\"highApparentTempTime\": \"{station.HighAppTempThisYearTS.ToString(timeStampFormat)}\",";
 			json += $"\"lowApparentTempVal\": \"{station.LowAppTempThisYear.ToString(cumulus.TempFormat)}\",";
 			json += $"\"lowApparentTempTime\": \"{station.LowAppTempThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"highFeelsLikeVal\": \"{station.HighFeelsLikeThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"highFeelsLikeTime\": \"{station.HighFeelsLikeThisYearTS.ToString(timeStampFormat)}\",";
+			json += $"\"lowFeelsLikeVal\": \"{station.LowFeelsLikeThisYear.ToString(cumulus.TempFormat)}\",";
+			json += $"\"lowFeelsLikeTime\": \"{station.LowFeelsLikeThisYearTS.ToString(timeStampFormat)}\",";
 			json += $"\"lowWindChillVal\": \"{station.LowWindChillThisYear.ToString(cumulus.TempFormat)}\",";
 			json += $"\"lowWindChillTime\": \"{station.LowWindChillThisYearTS.ToString(timeStampFormat)}\",";
 			json += $"\"highHeatIndexVal\": \"{station.HighHeatIndexThisYear.ToString(cumulus.TempFormat)}\",";
@@ -2758,6 +2945,20 @@ namespace CumulusMX
 					case "lowApparentTempTime":
 						dt = value.Split('+');
 						station.LowAppTempThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "highFeelsLikeVal":
+						station.HighFeelsLikeThisYear = double.Parse(value);
+						break;
+					case "highFeelsLikeTime":
+						dt = value.Split('+');
+						station.HighFeelsLikeThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
+					case "lowFeelsLikeVal":
+						station.LowFeelsLikeThisYear = double.Parse(value);
+						break;
+					case "lowFeelsLikeTime":
+						dt = value.Split('+');
+						station.LowFeelsLikeThisYearTS = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "lowWindChillVal":
 						station.LowWindChillThisYear = double.Parse(value);

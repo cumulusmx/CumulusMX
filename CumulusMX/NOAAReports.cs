@@ -22,12 +22,13 @@ namespace CumulusMX
 		public List<string> GenerateNoaaYearReport(int year)
 		{
 			NOAA noaa = new NOAA(cumulus);
-			var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-			var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 			DateTime noaats = new DateTime(year, 1, 1);
 
 			cumulus.LogMessage("Creating NOAA yearly report");
 			report = noaa.CreateYearlyReport(noaats);
+			// If not using UTF, then we have to convert the character set
+			var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+			var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 			var reportName = noaats.ToString(cumulus.NOAAYearFileFormat);
 			noaafile = cumulus.ReportPath + reportName;
 			cumulus.LogMessage("Saving yearly NOAA report as " + noaafile);
@@ -39,12 +40,13 @@ namespace CumulusMX
 		public List<string> GenerateNoaaMonthReport(int year, int month)
 		{
 			NOAA noaa = new NOAA(cumulus);
-			var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-			var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 			DateTime noaats = new DateTime(year, month, 1);
 
 			cumulus.LogMessage("Creating NOAA monthly report");
-			report = noaa.CreateMonthlyReport(noaats);
+			var report = noaa.CreateMonthlyReport(noaats);
+			// If not using UTF, then we have to convert the character set
+			var utf8WithoutBom = new System.Text.UTF8Encoding(false);
+			var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 			var reportName = noaats.ToString(cumulus.NOAAMonthFileFormat);
 			noaafile = cumulus.ReportPath + reportName;
 			cumulus.LogMessage("Saving monthly NOAA report as " + noaafile);

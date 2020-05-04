@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.5.4";
-		public string Build = "3075";
+		public string Version = "3.6.0";
+		public string Build = "3076";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -122,6 +122,7 @@ namespace CumulusMX
 			public double HeatIndex;
 			public double Humidex;
 			public double AppTemp;
+			public double FeelsLike;
 			public double TempTrend;
 			public double PressTrend;
 		}
@@ -160,7 +161,7 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
-		public const int DayfileFields = 46;
+		public const int DayfileFields = 50;
 
 		private WeatherStation station;
 
@@ -1544,41 +1545,100 @@ namespace CumulusMX
 
 		internal void SetStartOfRealtimeInsertSQL()
 		{
-			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlRealtimeTable +
-										" (LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press,currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit,windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend,tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM,pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex,UV,ET,SolarRad,avgbearing,rhour,forecastnumber,isdaylight,SensorContactLost,wdir,cloudbasevalue,cloudbaseunit,apptemp,SunshineHours,CurrentSolarMax,IsSunny)";
+			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlRealtimeTable + " (" +
+				"LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press," +
+				"currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit," +
+				"windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend," +
+				"tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM," +
+				"pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex," +
+				"UV,ET,SolarRad,avgbearing,rhour,forecastnumber,isdaylight,SensorContactLost," +
+				"wdir,cloudbasevalue,cloudbaseunit,apptemp,SunshineHours,CurrentSolarMax,IsSunny," +
+				"FeelsLike)";
 		}
 
 		internal void SetRealtimeSqlCreateString()
 		{
-			CreateRealtimeSQL = "CREATE TABLE " + MySqlRealtimeTable + " (LogDateTime DATETIME NOT NULL,temp decimal(4," + TempDPlaces + ") NOT NULL,hum decimal(4," + HumDPlaces +
-								") NOT NULL,dew decimal(4," + TempDPlaces + ") NOT NULL,wspeed decimal(4," + WindDPlaces + ") NOT NULL,wlatest decimal(4," + WindDPlaces +
-								") NOT NULL,bearing VARCHAR(3) NOT NULL,rrate decimal(4," + RainDPlaces + ") NOT NULL,rfall decimal(4," + RainDPlaces +
-								") NOT NULL,press decimal(6," + PressDPlaces +
-								") NOT NULL,currentwdir varchar(3) NOT NULL,beaufortnumber varchar(2) NOT NULL,windunit varchar(4) NOT NULL,tempunitnodeg varchar(1) NOT NULL,pressunit varchar(3) NOT NULL,rainunit varchar(2) NOT NULL,windrun decimal(4," +
-								WindRunDPlaces + ") NOT NULL,presstrendval varchar(6) NOT NULL,rmonth decimal(4," + RainDPlaces + ") NOT NULL,ryear decimal(4," + RainDPlaces +
-								") NOT NULL,rfallY decimal(4," + RainDPlaces + ") NOT NULL,intemp decimal(4," + TempDPlaces + ") NOT NULL,inhum decimal(4," + HumDPlaces +
-								") NOT NULL,wchill decimal(4," + TempDPlaces + ") NOT NULL,temptrend varchar(5) NOT NULL,tempTH decimal(4," + TempDPlaces +
-								") NOT NULL,TtempTH varchar(5) NOT NULL,tempTL decimal(4," + TempDPlaces + ") NOT NULL,TtempTL varchar(5) NOT NULL,windTM decimal(4," + WindDPlaces +
-								") NOT NULL,TwindTM varchar(5) NOT NULL,wgustTM decimal(4," + WindDPlaces + ") NOT NULL,TwgustTM varchar(5) NOT NULL,pressTH decimal(6," +
-								PressDPlaces + ") NOT NULL,TpressTH varchar(5) NOT NULL,pressTL decimal(6," + PressDPlaces +
-								") NOT NULL,TpressTL varchar(5) NOT NULL,version varchar(8) NOT NULL,build varchar(5) NOT NULL,wgust decimal(4," + WindDPlaces +
-								") NOT NULL,heatindex decimal(4," + TempDPlaces + ") NOT NULL,humidex decimal(4," + TempDPlaces + ") NOT NULL,UV decimal(3," + UVDPlaces +
-								") NOT NULL,ET decimal(4," + RainDPlaces + ") NOT NULL,SolarRad decimal(5,1) NOT NULL,avgbearing varchar(3) NOT NULL,rhour decimal(4," + RainDPlaces +
-								") NOT NULL,forecastnumber varchar(2) NOT NULL,isdaylight varchar(1) NOT NULL,SensorContactLost varchar(1) NOT NULL,wdir varchar(3) NOT NULL,cloudbasevalue varchar(5) NOT NULL,cloudbaseunit varchar(2) NOT NULL,apptemp decimal(4," +
-								TempDPlaces +
-								") NOT NULL,SunshineHours decimal(3," + SunshineDPlaces + ") NOT NULL,CurrentSolarMax decimal(5,1) NOT NULL,IsSunny varchar(1) NOT NULL,PRIMARY KEY (LogDateTime)) COMMENT = \"Realtime log\"";
+			CreateRealtimeSQL = "CREATE TABLE " + MySqlRealtimeTable + " (LogDateTime DATETIME NOT NULL," +
+				"temp decimal(4," + TempDPlaces + ") NOT NULL," +
+				"hum decimal(4," + HumDPlaces + ") NOT NULL," +
+				"dew decimal(4," + TempDPlaces + ") NOT NULL," +
+				"wspeed decimal(4," + WindDPlaces + ") NOT NULL," +
+				"wlatest decimal(4," + WindDPlaces + ") NOT NULL," +
+				"bearing VARCHAR(3) NOT NULL," +
+				"rrate decimal(4," + RainDPlaces + ") NOT NULL," +
+				"rfall decimal(4," + RainDPlaces + ") NOT NULL," +
+				"press decimal(6," + PressDPlaces +") NOT NULL," +
+				"currentwdir varchar(3) NOT NULL," +
+				"beaufortnumber varchar(2) NOT NULL," +
+				"windunit varchar(4) NOT NULL," +
+				"tempunitnodeg varchar(1) NOT NULL," +
+				"pressunit varchar(3) NOT NULL," +
+				"rainunit varchar(2) NOT NULL," +
+				"windrun decimal(4," + WindRunDPlaces + ") NOT NULL," +
+				"presstrendval varchar(6) NOT NULL," +
+				"rmonth decimal(4," + RainDPlaces + ") NOT NULL," +
+				"ryear decimal(4," + RainDPlaces + ") NOT NULL," +
+				"rfallY decimal(4," + RainDPlaces + ") NOT NULL," +
+				"intemp decimal(4," + TempDPlaces + ") NOT NULL," +
+				"inhum decimal(4," + HumDPlaces + ") NOT NULL," +
+				"wchill decimal(4," + TempDPlaces + ") NOT NULL," +
+				"temptrend varchar(5) NOT NULL," +
+				"tempTH decimal(4," + TempDPlaces + ") NOT NULL," +
+				"TtempTH varchar(5) NOT NULL," +
+				"tempTL decimal(4," + TempDPlaces + ") NOT NULL," +
+				"TtempTL varchar(5) NOT NULL," +
+				"windTM decimal(4," + WindDPlaces + ") NOT NULL," +
+				"TwindTM varchar(5) NOT NULL," +
+				"wgustTM decimal(4," + WindDPlaces + ") NOT NULL," +
+				"TwgustTM varchar(5) NOT NULL," +
+				"pressTH decimal(6," + PressDPlaces + ") NOT NULL," +
+				"TpressTH varchar(5) NOT NULL," +
+				"pressTL decimal(6," + PressDPlaces + ") NOT NULL," +
+				"TpressTL varchar(5) NOT NULL," +
+				"version varchar(8) NOT NULL," +
+				"build varchar(5) NOT NULL," +
+				"wgust decimal(4," + WindDPlaces + ") NOT NULL," +
+				"heatindex decimal(4," + TempDPlaces + ") NOT NULL," +
+				"humidex decimal(4," + TempDPlaces + ") NOT NULL," +
+				"UV decimal(3," + UVDPlaces + ") NOT NULL," +
+				"ET decimal(4," + RainDPlaces + ") NOT NULL," +
+				"SolarRad decimal(5,1) NOT NULL," +
+				"avgbearing varchar(3) NOT NULL," +
+				"rhour decimal(4," + RainDPlaces + ") NOT NULL," +
+				"forecastnumber varchar(2) NOT NULL," +
+				"isdaylight varchar(1) NOT NULL," +
+				"SensorContactLost varchar(1) NOT NULL," +
+				"wdir varchar(3) NOT NULL," +
+				"cloudbasevalue varchar(5) NOT NULL," +
+				"cloudbaseunit varchar(2) NOT NULL," +
+				"apptemp decimal(4," + TempDPlaces + ") NOT NULL," +
+				"SunshineHours decimal(3," + SunshineDPlaces + ") NOT NULL," +
+				"CurrentSolarMax decimal(5,1) NOT NULL," +
+				"IsSunny varchar(1) NOT NULL," +
+				"FeelsLike decimal(4," + TempDPlaces + ") NOT NULL," +
+				"PRIMARY KEY (LogDateTime)) COMMENT = \"Realtime log\"";
 		}
 
 		internal void SetStartOfDayfileInsertSQL()
 		{
-			StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable +
-										" (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym)";
+			StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable + " (" +
+				"LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp," +
+				"MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp," +
+				"TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap," +
+				"HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp," +
+				"HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint," +
+				"LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad," +
+				"THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym," +
+				"MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike)";
 		}
 
 		internal void SetStartOfMonthlyInsertSQL()
 		{
-			StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable +
-										" (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym)";
+			StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable + " (" +
+				"LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar," +
+				"Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex," +
+				"SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing," +
+				"RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym,FeelsLike)";
 		}
 
 		internal void SetupUnitText()
@@ -4253,6 +4313,8 @@ namespace CumulusMX
 			ini.SetValue("HTTP", "CustomHttpMinutesIntervalIndex", CustomHttpMinutesIntervalIndex);
 
 			ini.Flush();
+
+			LogMessage("Completed writing Cumulus.ini file");
 		}
 
 		private void ReadStringsFile()
@@ -5182,7 +5244,7 @@ namespace CumulusMX
 			return Datapath + "ExtraLog" + datestring + ".txt";
 		}
 
-		public const int NumLogFileFields = 27;
+		public const int NumLogFileFields = 28;
 
 		public void DoLogFile(DateTime timestamp, bool live) // Writes an entry to the n-minute logfile. Fields are comma-separated:
 															 // 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
@@ -5212,6 +5274,7 @@ namespace CumulusMX
 															 // 24  Current wind bearing
 															 // 25  RG-11 rain total
 															 // 26  Rain since midnight
+															 // 27  Feels like
 		{
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("Writing log entry for " + timestamp);
@@ -5248,8 +5311,8 @@ namespace CumulusMX
 				file.Write(station.SunshineHours.ToString(SunFormat) + ListSeparator);
 				file.Write(station.Bearing + ListSeparator);
 				file.Write(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
-				file.WriteLine(station.RainSinceMidnight.ToString(RainFormat));
-
+				file.Write(station.RainSinceMidnight.ToString(RainFormat) + ListSeparator);
+				file.WriteLine(station.FeelsLike.ToString(TempFormat));
 				file.Close();
 			}
 
@@ -5267,18 +5330,37 @@ namespace CumulusMX
 			{
 				var InvC = new CultureInfo("");
 
-				string values = " Values('" + timestamp.ToString("yy-MM-dd HH:mm") + "'," + station.OutdoorTemperature.ToString(TempFormat, InvC) + "," + station.OutdoorHumidity +
-								"," + station.OutdoorDewpoint.ToString(TempFormat, InvC) + "," + station.WindAverage.ToString(WindFormat, InvC) + "," +
-								station.RecentMaxGust.ToString(WindFormat, InvC) + "," + station.AvgBearing + "," + station.RainRate.ToString(RainFormat, InvC) + "," +
-								station.RainToday.ToString(RainFormat, InvC) + "," + station.Pressure.ToString(PressFormat, InvC) + "," +
-								station.Raincounter.ToString(RainFormat, InvC) + "," + station.IndoorTemperature.ToString(TempFormat, InvC) + "," + station.IndoorHumidity + "," +
-								station.WindLatest.ToString(WindFormat, InvC) + "," + station.WindChill.ToString(TempFormat, InvC) + "," +
-								station.HeatIndex.ToString(TempFormat, InvC) + "," + station.UV.ToString(UVFormat, InvC) + "," + station.SolarRad + "," +
-								station.ET.ToString(ETFormat, InvC) + "," + station.AnnualETTotal.ToString(ETFormat, InvC) + "," +
-								station.ApparentTemperature.ToString(TempFormat, InvC) + "," + (Math.Round(station.CurrentSolarMax)) + "," +
-								station.SunshineHours.ToString(SunFormat, InvC) + "," + station.Bearing + "," + station.RG11RainToday.ToString(RainFormat, InvC) + "," +
-								station.RainSinceMidnight.ToString(RainFormat, InvC) + ",'" + station.CompassPoint(station.AvgBearing) + "','" +
-								station.CompassPoint(station.Bearing) + "')";
+				string values = " Values('" +
+					timestamp.ToString("yy-MM-dd HH:mm") + "'," +
+					station.OutdoorTemperature.ToString(TempFormat, InvC) + "," +
+					station.OutdoorHumidity + "," +
+					station.OutdoorDewpoint.ToString(TempFormat, InvC) + "," +
+					station.WindAverage.ToString(WindFormat, InvC) + "," +
+					station.RecentMaxGust.ToString(WindFormat, InvC) + "," +
+					station.AvgBearing + "," +
+					station.RainRate.ToString(RainFormat, InvC) + "," +
+					station.RainToday.ToString(RainFormat, InvC) + "," +
+					station.Pressure.ToString(PressFormat, InvC) + "," +
+					station.Raincounter.ToString(RainFormat, InvC) + "," +
+					station.IndoorTemperature.ToString(TempFormat, InvC) + "," +
+					station.IndoorHumidity + "," +
+					station.WindLatest.ToString(WindFormat, InvC) + "," +
+					station.WindChill.ToString(TempFormat, InvC) + "," +
+					station.HeatIndex.ToString(TempFormat, InvC) + "," +
+					station.UV.ToString(UVFormat, InvC) + "," +
+					station.SolarRad + "," +
+					station.ET.ToString(ETFormat, InvC) + "," +
+					station.AnnualETTotal.ToString(ETFormat, InvC) + "," +
+					station.ApparentTemperature.ToString(TempFormat, InvC) + "," +
+					(Math.Round(station.CurrentSolarMax)) + "," +
+					station.SunshineHours.ToString(SunFormat, InvC) + "," +
+					station.Bearing + "," +
+					station.RG11RainToday.ToString(RainFormat, InvC) + "," +
+					station.RainSinceMidnight.ToString(RainFormat, InvC) + ",'" +
+					station.CompassPoint(station.AvgBearing) + "','" +
+					station.CompassPoint(station.Bearing) + "','" +
+					station.FeelsLike.ToString(TempFormat, InvC) +
+					"')";
 
 				string queryString = StartOfMonthlyInsertSQL + values;
 
@@ -5517,6 +5599,7 @@ namespace CumulusMX
 				currentData.HeatIndex = station.HeatIndex;
 				currentData.Humidex = station.Humidex;
 				currentData.AppTemp = station.ApparentTemperature;
+				currentData.FeelsLike = station.FeelsLike;
 				currentData.IndoorHumidity = station.IndoorHumidity;
 				currentData.IndoorTemperature = station.IndoorTemperature;
 				currentData.OutdoorDewpoint = station.OutdoorDewpoint;
@@ -6681,29 +6764,66 @@ namespace CumulusMX
 			{
 				var InvC = new CultureInfo("");
 
-				string values = " Values('" + timestamp.ToString("yy-MM-dd HH:mm:ss") + "'," + station.OutdoorTemperature.ToString(TempFormat, InvC) + ',' +
-								station.OutdoorHumidity.ToString() + ',' + station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',' + station.WindAverage.ToString(WindFormat, InvC) +
-								',' + station.WindLatest.ToString(WindFormat, InvC) + ',' + station.Bearing.ToString() + ',' + station.RainRate.ToString(RainFormat, InvC) + ',' +
-								station.RainToday.ToString(RainFormat, InvC) + ',' + station.Pressure.ToString(PressFormat, InvC) + ",'" + station.CompassPoint(station.Bearing) +
-								"','" + Beaufort(station.WindAverage) + "','" + WindUnitText + "','" + TempUnitText[1].ToString() + "','" + PressUnitText + "','" + RainUnitText +
-								"'," + station.WindRunToday.ToString(WindRunFormat, InvC) + ",'" +
-								(station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'," +
-								station.RainMonth.ToString(RainFormat, InvC) + ',' + station.RainYear.ToString(RainFormat, InvC) + ',' +
-								station.RainYesterday.ToString(RainFormat, InvC) + ',' + station.IndoorTemperature.ToString(TempFormat, InvC) + ',' +
-								station.IndoorHumidity.ToString() + ',' + station.WindChill.ToString(TempFormat, InvC) + ',' + station.temptrendval.ToString(TempTrendFormat, InvC) +
-								',' + station.HighTempToday.ToString(TempFormat, InvC) + ",'" + station.hightemptodaytime.ToString("HH:mm") + "'," +
-								station.LowTempToday.ToString(TempFormat, InvC) + ",'" + station.lowtemptodaytime.ToString("HH:mm") + "'," +
-								station.highwindtoday.ToString(WindFormat, InvC) + ",'" + station.highwindtodaytime.ToString("HH:mm") + "'," +
-								station.highgusttoday.ToString(WindFormat, InvC) + ",'" + station.highgusttodaytime.ToString("HH:mm") + "'," +
-								station.highpresstoday.ToString(PressFormat, InvC) + ",'" + station.highpresstodaytime.ToString("HH:mm") + "'," +
-								station.lowpresstoday.ToString(PressFormat, InvC) + ",'" + station.lowpresstodaytime.ToString("HH:mm") + "','" + Version + "','" + Build + "'," +
-								station.RecentMaxGust.ToString(WindFormat, InvC) + ',' + station.HeatIndex.ToString(TempFormat, InvC) + ',' +
-								station.Humidex.ToString(TempFormat, InvC) + ',' + station.UV.ToString(UVFormat, InvC) + ',' + station.ET.ToString(ETFormat, InvC) + ',' +
-								((int)station.SolarRad).ToString() + ',' + station.AvgBearing.ToString() + ',' + station.RainLastHour.ToString(RainFormat, InvC) + ',' +
-								station.Forecastnumber.ToString() + ",'" + (IsDaylight() ? "1" : "0") + "','" + (station.SensorContactLost ? "1" : "0") + "','" +
-								station.CompassPoint(station.AvgBearing) + "'," + ((int)station.CloudBase).ToString() + ",'" + (CloudBaseInFeet ? "ft" : "m") + "'," +
-								station.ApparentTemperature.ToString(TempFormat, InvC) + ',' + station.SunshineHours.ToString(SunFormat, InvC) + ',' +
-								((int) Math.Round(station.CurrentSolarMax)).ToString() + ",'" + (station.IsSunny ? "1" : "0") + "')";
+				string values = " Values('" +
+					timestamp.ToString("yy-MM-dd HH:mm:ss") + "'," +
+					station.OutdoorTemperature.ToString(TempFormat, InvC) + ',' +
+					station.OutdoorHumidity.ToString() + ',' +
+					station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',' +
+					station.WindAverage.ToString(WindFormat, InvC) + ',' +
+					station.WindLatest.ToString(WindFormat, InvC) + ',' +
+					station.Bearing.ToString() + ',' +
+					station.RainRate.ToString(RainFormat, InvC) + ',' +
+					station.RainToday.ToString(RainFormat, InvC) + ',' +
+					station.Pressure.ToString(PressFormat, InvC) + ",'" +
+					station.CompassPoint(station.Bearing) + "','" +
+					Beaufort(station.WindAverage) + "','" +
+					WindUnitText + "','" +
+					TempUnitText[1].ToString() + "','" +
+					PressUnitText + "','" +
+					RainUnitText + "'," +
+					station.WindRunToday.ToString(WindRunFormat, InvC) + ",'" +
+					(station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'," +
+					station.RainMonth.ToString(RainFormat, InvC) + ',' +
+					station.RainYear.ToString(RainFormat, InvC) + ',' +
+					station.RainYesterday.ToString(RainFormat, InvC) + ',' +
+					station.IndoorTemperature.ToString(TempFormat, InvC) + ',' +
+					station.IndoorHumidity.ToString() + ',' +
+					station.WindChill.ToString(TempFormat, InvC) + ',' +
+					station.temptrendval.ToString(TempTrendFormat, InvC) + ',' +
+					station.HighTempToday.ToString(TempFormat, InvC) + ",'" +
+					station.hightemptodaytime.ToString("HH:mm") + "'," +
+					station.LowTempToday.ToString(TempFormat, InvC) + ",'" +
+					station.lowtemptodaytime.ToString("HH:mm") + "'," +
+					station.highwindtoday.ToString(WindFormat, InvC) + ",'" +
+					station.highwindtodaytime.ToString("HH:mm") + "'," +
+					station.highgusttoday.ToString(WindFormat, InvC) + ",'" +
+					station.highgusttodaytime.ToString("HH:mm") + "'," +
+					station.highpresstoday.ToString(PressFormat, InvC) + ",'" +
+					station.highpresstodaytime.ToString("HH:mm") + "'," +
+					station.lowpresstoday.ToString(PressFormat, InvC) + ",'" +
+					station.lowpresstodaytime.ToString("HH:mm") + "','" +
+					Version + "','" +
+					Build + "'," +
+					station.RecentMaxGust.ToString(WindFormat, InvC) + ',' +
+					station.HeatIndex.ToString(TempFormat, InvC) + ',' +
+					station.Humidex.ToString(TempFormat, InvC) + ',' +
+					station.UV.ToString(UVFormat, InvC) + ',' +
+					station.ET.ToString(ETFormat, InvC) + ',' +
+					((int)station.SolarRad).ToString() + ',' +
+					station.AvgBearing.ToString() + ',' +
+					station.RainLastHour.ToString(RainFormat, InvC) + ',' +
+					station.Forecastnumber.ToString() + ",'" +
+					(IsDaylight() ? "1" : "0") + "','" +
+					(station.SensorContactLost ? "1" : "0") + "','" +
+					station.CompassPoint(station.AvgBearing) + "'," +
+					((int)station.CloudBase).ToString() + ",'" +
+					(CloudBaseInFeet ? "ft" : "m") + "'," +
+					station.ApparentTemperature.ToString(TempFormat, InvC) + ',' +
+					station.SunshineHours.ToString(SunFormat, InvC) + ',' +
+					((int) Math.Round(station.CurrentSolarMax)).ToString() + ",'" +
+					(station.IsSunny ? "1" : "0") + "'," +
+					station.FeelsLike.ToString(TempFormat, InvC) +
+					")";
 
 				string queryString = StartOfRealtimeInsertSQL + values;
 
@@ -6712,7 +6832,7 @@ namespace CumulusMX
 				{
 					cmd.CommandText = queryString;
 					cmd.Connection = RealtimeSqlConn;
-					//LogMessage(queryString);
+					LogDebugMessage(queryString);
 
 					try
 					{
@@ -7681,34 +7801,92 @@ namespace CumulusMX
 
 		public void SetMonthlySqlCreateString()
 		{
-			CreateMonthlySQL = "CREATE TABLE " + MySqlMonthlyTable + " (LogDateTime DATETIME NOT NULL,Temp decimal(4," + TempDPlaces + ") NOT NULL,Humidity decimal(4," + HumDPlaces +
-								") NOT NULL,Dewpoint decimal(4," + TempDPlaces + ") NOT NULL,Windspeed decimal(4," + WindDPlaces + ") NOT NULL,Windgust decimal(4," + WindDPlaces +
-								") NOT NULL,Windbearing VARCHAR(3) NOT NULL,RainRate decimal(4," + RainDPlaces + ") NOT NULL,TodayRainSoFar decimal(4," + RainDPlaces +
-								") NOT NULL,Pressure decimal(6," + PressDPlaces + ") NOT NULL,Raincounter decimal(6," + RainDPlaces + ") NOT NULL,InsideTemp decimal(4," +
-								TempDPlaces + ") NOT NULL,InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL,LatestWindGust decimal(5," + WindDPlaces +
-								") NOT NULL,WindChill decimal(4," + TempDPlaces + ") NOT NULL,HeatIndex decimal(4," + TempDPlaces + ") NOT NULL,UVindex decimal(4," + UVDPlaces +
-								"),SolarRad decimal(5,1),Evapotrans decimal(4," + RainDPlaces + "),AnnualEvapTran decimal(5," + RainDPlaces + "),ApparentTemp decimal(4," +
-								TempDPlaces + "),MaxSolarRad decimal(5,1),HrsSunShine decimal(3," + SunshineDPlaces + "),CurrWindBearing varchar(3),RG11rain decimal(4," + RainDPlaces +
-								"),RainSinceMidnight decimal(4," + RainDPlaces +
-								"), WindbearingSym varchar(3),CurrWindBearingSym varchar(3),PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"";
+			CreateMonthlySQL = "CREATE TABLE " + MySqlMonthlyTable + " (" +
+				"LogDateTime DATETIME NOT NULL," +
+				"Temp decimal(4," + TempDPlaces + ") NOT NULL," +
+				"Humidity decimal(4," + HumDPlaces + ") NOT NULL," +
+				"Dewpoint decimal(4," + TempDPlaces + ") NOT NULL," +
+				"Windspeed decimal(4," + WindDPlaces + ") NOT NULL," +
+				"Windgust decimal(4," + WindDPlaces + ") NOT NULL," +
+				"Windbearing VARCHAR(3) NOT NULL," +
+				"RainRate decimal(4," + RainDPlaces + ") NOT NULL," +
+				"TodayRainSoFar decimal(4," + RainDPlaces + ") NOT NULL," +
+				"Pressure decimal(6," + PressDPlaces + ") NOT NULL," +
+				"Raincounter decimal(6," + RainDPlaces + ") NOT NULL," +
+				"InsideTemp decimal(4," + TempDPlaces + ") NOT NULL," +
+				"InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL," +
+				"LatestWindGust decimal(5," + WindDPlaces + ") NOT NULL," +
+				"WindChill decimal(4," + TempDPlaces + ") NOT NULL," +
+				"HeatIndex decimal(4," + TempDPlaces + ") NOT NULL," +
+				"UVindex decimal(4," + UVDPlaces + ")," +
+				"SolarRad decimal(5,1)," +
+				"Evapotrans decimal(4," + RainDPlaces + ")," +
+				"AnnualEvapTran decimal(5," + RainDPlaces + ")," +
+				"ApparentTemp decimal(4," + TempDPlaces + ")," +
+				"MaxSolarRad decimal(5,1)," +
+				"HrsSunShine decimal(3," + SunshineDPlaces + ")," +
+				"CurrWindBearing varchar(3)," +
+				"RG11rain decimal(4," + RainDPlaces + ")," +
+				"RainSinceMidnight decimal(4," + RainDPlaces + ")," +
+				"WindbearingSym varchar(3)," +
+				"CurrWindBearingSym varchar(3)," +
+				"FeelsLike decimal(4," + TempDPlaces + ") NOT NULL," +
+				"PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"";
 		}
 
 		internal void SetDayfileSqlCreateString()
 		{
-			CreateDayfileSQL = "CREATE TABLE " + MySqlDayfileTable + " (LogDate date NOT NULL ,HighWindGust decimal(4," + WindDPlaces +
-								") NOT NULL,HWindGBear varchar(3) NOT NULL,THWindG varchar(5) NOT NULL,MinTemp decimal(5," + TempDPlaces +
-								") NOT NULL,TMinTemp varchar(5) NOT NULL,MaxTemp decimal(5," + TempDPlaces + ") NOT NULL,TMaxTemp varchar(5) NOT NULL,MinPress decimal(6," +
-								PressDPlaces + ") NOT NULL,TMinPress varchar(5) NOT NULL,MaxPress decimal(6," + PressDPlaces +
-								") NOT NULL,TMaxPress varchar(5) NOT NULL,MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL,TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," +
-								RainDPlaces + ") NOT NULL,AvgTemp decimal(4," + TempDPlaces + ") NOT NULL,TotWindRun decimal(5," + WindRunDPlaces +
-								") NOT NULL,HighAvgWSpeed decimal(3," + WindDPlaces + "),THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces +
-								"),TLowHum varchar(5),HighHum decimal(4," + HumDPlaces + "),THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces +
-								"),HoursSun decimal(3," + SunshineDPlaces + "),HighHeatInd decimal(4," + TempDPlaces + "),THighHeatInd varchar(5),HighAppTemp decimal(4," + TempDPlaces +
-								"),THighAppTemp varchar(5),LowAppTemp decimal(4," + TempDPlaces + "),TLowAppTemp varchar(5),HighHourRain decimal(4," + RainDPlaces +
-								"),THighHourRain varchar(5),LowWindChill decimal(4," + TempDPlaces + "),TLowWindChill varchar(5),HighDewPoint decimal(4," + TempDPlaces +
-								"),THighDewPoint varchar(5),LowDewPoint decimal(4," + TempDPlaces +
-								"),TLowDewPoint varchar(5),DomWindDir varchar(3),HeatDegDays decimal(4,1),CoolDegDays decimal(4,1),HighSolarRad decimal(5,1),THighSolarRad varchar(5),HighUV decimal(3," +
-								UVDPlaces + "),THighUV varchar(5),HWindGBearSym varchar(3),DomWindDirSym varchar(3),PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"";
+			CreateDayfileSQL = "CREATE TABLE " + MySqlDayfileTable + " (" +
+				"LogDate date NOT NULL ," +
+				"HighWindGust decimal(4," + WindDPlaces + ") NOT NULL," +
+				"HWindGBear varchar(3) NOT NULL," +
+				"THWindG varchar(5) NOT NULL," +
+				"MinTemp decimal(5," + TempDPlaces + ") NOT NULL," +
+				"TMinTemp varchar(5) NOT NULL," +
+				"MaxTemp decimal(5," + TempDPlaces + ") NOT NULL," +
+				"TMaxTemp varchar(5) NOT NULL," +
+				"MinPress decimal(6," + PressDPlaces + ") NOT NULL," +
+				"TMinPress varchar(5) NOT NULL," +
+				"MaxPress decimal(6," + PressDPlaces + ") NOT NULL," +
+				"TMaxPress varchar(5) NOT NULL," +
+				"MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL," +
+				"TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," + RainDPlaces + ") NOT NULL," +
+				"AvgTemp decimal(4," + TempDPlaces + ") NOT NULL," +
+				"TotWindRun decimal(5," + WindRunDPlaces +") NOT NULL," +
+				"HighAvgWSpeed decimal(3," + WindDPlaces + ")," +
+				"THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces + ")," +
+				"TLowHum varchar(5)," +
+				"HighHum decimal(4," + HumDPlaces + ")," +
+				"THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces + ")," +
+				"HoursSun decimal(3," + SunshineDPlaces + ")," +
+				"HighHeatInd decimal(4," + TempDPlaces + ")," +
+				"THighHeatInd varchar(5)," +
+				"HighAppTemp decimal(4," + TempDPlaces + ")," +
+				"THighAppTemp varchar(5)," +
+				"LowAppTemp decimal(4," + TempDPlaces + ")," +
+				"TLowAppTemp varchar(5)," +
+				"HighHourRain decimal(4," + RainDPlaces +")," +
+				"THighHourRain varchar(5)," +
+				"LowWindChill decimal(4," + TempDPlaces + ")," +
+				"TLowWindChill varchar(5)," +
+				"HighDewPoint decimal(4," + TempDPlaces + ")," +
+				"THighDewPoint varchar(5)," +
+				"LowDewPoint decimal(4," + TempDPlaces + ")," +
+				"TLowDewPoint varchar(5)," +
+				"DomWindDir varchar(3)," +
+				"HeatDegDays decimal(4,1)," +
+				"CoolDegDays decimal(4,1)," +
+				"HighSolarRad decimal(5,1)," +
+				"THighSolarRad varchar(5)," +
+				"HighUV decimal(3," + UVDPlaces + ")," +
+				"THighUV varchar(5)," +
+				"HWindGBearSym varchar(3)," +
+				"DomWindDirSym varchar(3)," +
+				"MaxFeelsLike decimal(5," + TempDPlaces + ")," +
+				"TMaxFeelsLike varchar(5)," +
+				"MinFeelsLike decimal(5," + TempDPlaces + ")," +
+				"TMinFeelsLike varchar(5)," +
+				"PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"";
 		}
 	}
 

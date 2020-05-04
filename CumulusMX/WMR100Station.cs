@@ -452,7 +452,7 @@ namespace CumulusMX
                 DoOutdoorDewpoint(ConvertTempCToUser(num), Now);
 
                 DoApparentTemp(Now);
-                DoFeelsLike();
+                DoFeelsLike(Now);
 
 
                 // battery status

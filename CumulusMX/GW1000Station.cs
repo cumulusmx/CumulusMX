@@ -210,15 +210,18 @@ namespace CumulusMX
 
 			ipaddr = cumulus.Gw1000IpAddress;
 
-			var discoveredIP = DiscoverGW1000();
-
-			if (cumulus.Gw1000AutoUpdateIpAddress && discoveredIP != "0" && discoveredIP != ipaddr)
+			if (cumulus.Gw1000AutoUpdateIpAddress)
 			{
-				cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
-				cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredIP}");
-				ipaddr = discoveredIP;
-				cumulus.Gw1000IpAddress = ipaddr;
-				cumulus.WriteIniFile();
+				var discoveredIP = DiscoverGW1000();
+
+				if (discoveredIP != "0" && discoveredIP != ipaddr)
+				{
+					cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
+					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredIP}");
+					ipaddr = discoveredIP;
+					cumulus.Gw1000IpAddress = ipaddr;
+					cumulus.WriteIniFile();
+				}
 			}
 
 			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AT_port);
@@ -385,49 +388,58 @@ namespace CumulusMX
 
 		private string DiscoverGW1000()
 		{
-			var udp = new UdpClient();
-			var BroadcastPort = 46000;
-			var ClientPort = 59387;
-
-			var receiveEp = new IPEndPoint(IPAddress.Any, ClientPort);
-			//var client = new UdpClient(ClientPort);
-
-			var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-			socket.ReceiveTimeout = 2000;
-			socket.Bind(receiveEp);
-			//socket.Listen(1);
-
-			var groupEp = new IPEndPoint(IPAddress.Broadcast, BroadcastPort);
-			var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
-
-			udp.EnableBroadcast = true;
-			udp.Send(sendBytes, sendBytes.Length, groupEp);
-
-			var receivedBytes = new byte[35];
-			socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
-
-			string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
-
-			udp.Close();
-			socket.Close();
-
-			if (ipAddr.Split(new char[] {'.'}, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+			try
 			{
-				IPAddress ipAddr2;
-				if (IPAddress.TryParse(ipAddr, out ipAddr2))
+				var udp = new UdpClient();
+				var BroadcastPort = 46000;
+				var ClientPort = 59387;
+
+				var receiveEp = new IPEndPoint(IPAddress.Any, ClientPort);
+				//var client = new UdpClient(ClientPort);
+
+				var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+				socket.ReceiveTimeout = 2000;
+				socket.Bind(receiveEp);
+				//socket.Listen(1);
+
+				var groupEp = new IPEndPoint(IPAddress.Broadcast, BroadcastPort);
+				var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
+
+				udp.EnableBroadcast = true;
+				udp.Send(sendBytes, sendBytes.Length, groupEp);
+
+				var receivedBytes = new byte[35];
+				socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
+
+				string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
+
+				udp.Close();
+				socket.Close();
+
+				if (ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
 				{
-					cumulus.LogMessage($"Discovered a GW1000 at address {ipaddr}");
-					return ipAddr;
+					IPAddress ipAddr2;
+					if (IPAddress.TryParse(ipAddr, out ipAddr2))
+					{
+						cumulus.LogMessage($"Discovered a GW1000 at address {ipaddr}");
+						return ipAddr;
+					}
+					else
+					{
+						return "0";
+					}
 				}
 				else
 				{
 					return "0";
 				}
 			}
-			else
+			catch (Exception ex)
 			{
-				return "0";
+				cumulus.LogMessage("An error occured during GW1000 auto-discovery");
+				cumulus.LogMessage("Error: " + ex.Message);
 			}
+			return "0";
 		}
 
 		private string GetFirmwareVersion()
@@ -819,8 +831,7 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(dateTime);
-					DoFeelsLike();
-
+					DoFeelsLike(dateTime);
 
 					DoForecast("", false);
 

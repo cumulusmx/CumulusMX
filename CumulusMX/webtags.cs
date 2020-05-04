@@ -1092,7 +1092,9 @@ namespace CumulusMX
 				station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp >= threshold ||
 				station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp >= threshold ||
 				station.alltimerecarray[WeatherStation.AT_highdewpoint].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp >= threshold
+				station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp >= threshold
 			)
 				return "1";
 			else
@@ -1158,14 +1160,24 @@ namespace CumulusMX
 			return station.alltimerecarray[WeatherStation.AT_lowtemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
-		private string TagHighAppTempRecordSet(Dictionary<string,string> TagParams)
+		private string TagHighAppTempRecordSet(Dictionary<string, string> TagParams)
 		{
 			return station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
-		private string TagLowAppTempRecordSet(Dictionary<string,string> TagParams)
+		private string TagLowAppTempRecordSet(Dictionary<string, string> TagParams)
 		{
 			return station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+		}
+
+		private string TagHighFeelsLikeRecordSet(Dictionary<string, string> TagParams)
+		{
+			return station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+		}
+
+		private string TagLowFeelsLikeRecordSet(Dictionary<string, string> TagParams)
+		{
+			return station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHeatIndexRecordSet(Dictionary<string,string> TagParams)
@@ -1347,6 +1359,26 @@ namespace CumulusMX
 		private string TagTapptempTL(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.lowapptemptodaytime, "HH:mm", TagParams);
+		}
+
+		private string TagfeelslikeTH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighFeelsLikeToday.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagTfeelslikeTH(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.highfeelsliketodaytime, "HH:mm", TagParams);
+		}
+
+		private string TagfeelslikeTL(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.LowFeelsLikeToday.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagTfeelslikeTL(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.lowfeelsliketodaytime, "HH:mm", TagParams);
 		}
 
 		private string TagdewpointTH(Dictionary<string,string> TagParams)
@@ -1635,6 +1667,26 @@ namespace CumulusMX
 			return CheckRC(station.HighDewpointYesterday.ToString(cumulus.TempFormat), TagParams);
 		}
 
+		private string TagfeelslikeYH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighFeelsLikeYesterday.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagTfeelslikeYH(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.highfeelslikeyesterdaytime, "HH:mm", TagParams);
+		}
+
+		private string TagfeelslikeYL(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.LowFeelsLikeYesterday.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagTfeelslikeYL(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.lowfeelslikeyesterdaytime, "HH:mm", TagParams);
+		}
+
 		private string TagTdewpointYH(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.HighDewpointYesterdayTime, "HH:mm", TagParams);
@@ -1799,6 +1851,26 @@ namespace CumulusMX
 		private string TagTapptempL(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+		}
+
+		private string TagfeelslikeH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_highfeelslike].value.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagTfeelslikeH(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+		}
+
+		private string TagfeelslikeL(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowfeelslike].value.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagTfeelslikeL(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagdewpointH(Dictionary<string,string> TagParams)
@@ -2071,6 +2143,30 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(TagParams);
 			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+		}
+
+		private string TagByMonthFeelsLikeH(Dictionary<string, string> TagParams)
+		{
+			var month = GetMonthParam(TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highfeelslike, month, cumulus.TempFormat), TagParams);
+		}
+
+		private string TagByMonthFeelsLikeHT(Dictionary<string, string> TagParams)
+		{
+			var month = GetMonthParam(TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highfeelslike, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+		}
+
+		private string TagByMonthFeelsLikeL(Dictionary<string, string> TagParams)
+		{
+			var month = GetMonthParam(TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowfeelslike, month, cumulus.TempFormat), TagParams);
+		}
+
+		private string TagByMonthFeelsLikeLT(Dictionary<string, string> TagParams)
+		{
+			var month = GetMonthParam(TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowfeelslike, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthDewPointH(Dictionary<string,string> TagParams)
@@ -3433,6 +3529,16 @@ namespace CumulusMX
 			return CheckRC(station.LowAppTempThisMonth.ToString(cumulus.TempFormat), TagParams);
 		}
 
+		private string TagMonthFeelsLikeH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighFeelsLikeThisMonth.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagMonthFeelsLikeL(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.LowFeelsLikeThisMonth.ToString(cumulus.TempFormat), TagParams);
+		}
+
 		private string TagMonthDewPointH(Dictionary<string,string> TagParams)
 		{
 			return CheckRC(station.HighDewpointThisMonth.ToString(cumulus.TempFormat), TagParams);
@@ -3570,6 +3676,16 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LowAppTempThisMonthTS, "t", TagParams);
 		}
 
+		private string TagMonthFeelsLikeHT(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighFeelsLikeThisMonthTS, "t", TagParams);
+		}
+
+		private string TagMonthFeelsLikeLT(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.LowFeelsLikeThisMonthTS, "t", TagParams);
+		}
+
 		private string TagMonthDewPointHT(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.HighDewpointThisMonthTS, "t", TagParams);
@@ -3671,6 +3787,16 @@ namespace CumulusMX
 		private string TagMonthAppTempLD(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.LowAppTempThisMonthTS, "dd MMMM", TagParams);
+		}
+
+		private string TagMonthFeelsLikeHD(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighFeelsLikeThisMonthTS, "dd MMMM", TagParams);
+		}
+
+		private string TagMonthFeelsLikeLD(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.LowFeelsLikeThisMonthTS, "dd MMMM", TagParams);
 		}
 
 		private string TagMonthDewPointHD(Dictionary<string,string> TagParams)
@@ -3808,6 +3934,16 @@ namespace CumulusMX
 		private string TagYearAppTempL(Dictionary<string,string> TagParams)
 		{
 			return CheckRC(station.LowAppTempThisYear.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagYearFeelsLikeH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighFeelsLikeThisYear.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagYearFeelsLikeL(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.LowFeelsLikeThisYear.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagYearDewPointH(Dictionary<string,string> TagParams)
@@ -3952,6 +4088,17 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LowAppTempThisYearTS, "t", TagParams);
 		}
 
+		private string TagYearFeelsLikeHT(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighFeelsLikeThisYearTS, "t", TagParams);
+		}
+
+		private string TagYearFeelsLikeLT(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.LowFeelsLikeThisYearTS, "t", TagParams);
+		}
+
+
 		private string TagYearDewPointHT(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.HighDewpointThisYearTS, "t", TagParams);
@@ -4053,6 +4200,16 @@ namespace CumulusMX
 		private string TagYearAppTempLD(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.LowAppTempThisYearTS, "dd MMMM", TagParams);
+		}
+
+		private string TagYearFeelsLikeHD(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighFeelsLikeThisYearTS, "dd MMMM", TagParams);
+		}
+
+		private string TagYearFeelsLikeLD(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.LowFeelsLikeThisYearTS, "dd MMMM", TagParams);
 		}
 
 		private string TagYearDewPointHD(Dictionary<string,string> TagParams)
@@ -4277,22 +4434,38 @@ namespace CumulusMX
 
 		private string TagDavisTotalPacketsMissed(Dictionary<string,string> TagParams)
 		{
-			return station.DavisTotalPacketsMissed.ToString();
+			int tx = Int32.TryParse(TagParams.Get("tx"), out tx) ? tx : 0; // Default to transmitter 0=VP2
+			return station.DavisTotalPacketsMissed[tx].ToString();
 		}
 
 		private string TagDavisNumberOfResynchs(Dictionary<string,string> TagParams)
 		{
-			return station.DavisNumberOfResynchs.ToString();
+			int tx = Int32.TryParse(TagParams.Get("tx"), out tx) ? tx : 0; // Default to transmitter 0=VP2
+			return station.DavisNumberOfResynchs[tx].ToString();
 		}
 
 		private string TagDavisMaxInARow(Dictionary<string,string> TagParams)
 		{
-			return station.DavisMaxInARow.ToString();
+			int tx = Int32.TryParse(TagParams.Get("tx"), out tx) ? tx : 0; // Default to transmitter 0=VP2
+			return station.DavisMaxInARow[tx].ToString();
 		}
 
 		private string TagDavisNumCRCerrors(Dictionary<string,string> TagParams)
 		{
-			return station.DavisNumCRCerrors.ToString();
+			int tx = Int32.TryParse(TagParams.Get("tx"), out tx) ? tx : 0; // Default to transmitter 0=VP2
+			return station.DavisNumCRCerrors[tx].ToString();
+		}
+
+		private string TagDavisReceptionPercent(Dictionary<string, string> TagParams)
+		{
+			int tx = Int32.TryParse(TagParams.Get("tx"), out tx) ? tx : 1; // Only WLL uses this, default to transmitter 1
+			return station.DavisReceptionPct[tx].ToString();
+		}
+
+		private string TagDavisTxRssi(Dictionary<string, string> TagParams)
+		{
+			int tx = Int32.TryParse(TagParams.Get("tx"), out tx) ? tx : 1; // Only WLL uses this, default to transmitter 1
+			return station.DavisTxRssi[tx].ToString();
 		}
 
 		private string TagDavisFirmwareVersion(Dictionary<string,string> TagParams)
@@ -4719,6 +4892,8 @@ namespace CumulusMX
 				{ "LowTempRecordSet", TagLowTempRecordSet },
 				{ "HighAppTempRecordSet", TagHighAppTempRecordSet },
 				{ "LowAppTempRecordSet", TagLowAppTempRecordSet },
+				{ "HighFeelsLikeRecordSet", TagHighFeelsLikeRecordSet },
+				{ "LowFeelsLikeRecordSet", TagLowFeelsLikeRecordSet },
 				{ "HighHeatIndexRecordSet", TagHighHeatIndexRecordSet },
 				{ "LowWindChillRecordSet", TagLowWindChillRecordSet },
 				{ "HighDewPointRecordSet", TagHighDewPointRecordSet },
@@ -4750,6 +4925,10 @@ namespace CumulusMX
 				{ "TapptempTH", TagTapptempTH },
 				{ "apptempTL", TagapptempTL },
 				{ "TapptempTL", TagTapptempTL },
+				{ "feelslikeTH", TagfeelslikeTH },
+				{ "TfeelslikeTH", TagTfeelslikeTH },
+				{ "feelslikeTL", TagfeelslikeTL },
+				{ "TfeelslikeTL", TagTfeelslikeTL },
 				{ "dewpointTH", TagdewpointTH },
 				{ "TdewpointTH", TagTdewpointTH },
 				{ "dewpointTL", TagdewpointTL },
@@ -4795,6 +4974,10 @@ namespace CumulusMX
 				{ "TapptempYH", TagTapptempYH },
 				{ "apptempYL", TagapptempYL },
 				{ "TapptempYL", TagTapptempYL },
+				{ "feelslikeYH", TagfeelslikeYH },
+				{ "TfeelslikeYH", TagTfeelslikeYH },
+				{ "feelslikeYL", TagfeelslikeYL },
+				{ "TfeelslikeYL", TagTfeelslikeYL },
 				{ "dewpointYH", TagdewpointYH },
 				{ "TdewpointYH", TagTdewpointYH },
 				{ "dewpointYL", TagdewpointYL },
@@ -4832,6 +5015,10 @@ namespace CumulusMX
 				{ "TapptempH", TagTapptempH },
 				{ "apptempL", TagapptempL },
 				{ "TapptempL", TagTapptempL },
+				{ "feelslikeH", TagfeelslikeH },
+				{ "TfeelslikeH", TagTfeelslikeH },
+				{ "feelslikeL", TagfeelslikeL },
+				{ "TfeelslikeL", TagTfeelslikeL },
 				{ "dewpointH", TagdewpointH },
 				{ "TdewpointH", TagTdewpointH },
 				{ "dewpointL", TagdewpointL },
@@ -5059,6 +5246,8 @@ namespace CumulusMX
 				{ "MonthWChillL", TagMonthWChillL },
 				{ "MonthAppTempH", TagMonthAppTempH },
 				{ "MonthAppTempL", TagMonthAppTempL },
+				{ "MonthFeelsLikeH", TagMonthFeelsLikeH },
+				{ "MonthFeelsLikeL", TagMonthFeelsLikeL },
 				{ "MonthMinTempH", TagMonthMinTempH },
 				{ "MonthMaxTempL", TagMonthMaxTempL },
 				{ "MonthPressH", TagMonthPressH },
@@ -5084,6 +5273,8 @@ namespace CumulusMX
 				{ "MonthWChillLT", TagMonthWChillLT },
 				{ "MonthAppTempHT", TagMonthAppTempHT },
 				{ "MonthAppTempLT", TagMonthAppTempLT },
+				{ "MonthFeelsLikeHT", TagMonthFeelsLikeHT },
+				{ "MonthFeelsLikeLT", TagMonthFeelsLikeLT },
 				{ "MonthPressHT", TagMonthPressHT },
 				{ "MonthPressLT", TagMonthPressLT },
 				{ "MonthHumHT", TagMonthHumHT },
@@ -5101,6 +5292,8 @@ namespace CumulusMX
 				{ "MonthWChillLD", TagMonthWChillLD },
 				{ "MonthAppTempHD", TagMonthAppTempHD },
 				{ "MonthAppTempLD", TagMonthAppTempLD },
+				{ "MonthFeelsLikeHD", TagMonthFeelsLikeHD },
+				{ "MonthFeelsLikeLD", TagMonthFeelsLikeLD },
 				{ "MonthMinTempHD", TagMonthMinTempHD },
 				{ "MonthMaxTempLD", TagMonthMaxTempLD },
 				{ "MonthPressHD", TagMonthPressHD },
@@ -5126,6 +5319,8 @@ namespace CumulusMX
 				{ "YearWChillL", TagYearWChillL },
 				{ "YearAppTempH", TagYearAppTempH },
 				{ "YearAppTempL", TagYearAppTempL },
+				{ "YearFeelsLikeH", TagYearFeelsLikeH },
+				{ "YearFeelsLikeL", TagYearFeelsLikeL },
 				{ "YearMinTempH", TagYearMinTempH },
 				{ "YearMaxTempL", TagYearMaxTempL },
 				{ "YearPressH", TagYearPressH },
@@ -5152,6 +5347,8 @@ namespace CumulusMX
 				{ "YearWChillLT", TagYearWChillLT },
 				{ "YearAppTempHT", TagYearAppTempHT },
 				{ "YearAppTempLT", TagYearAppTempLT },
+				{ "YearFeelsLikeHT", TagYearFeelsLikeHT },
+				{ "YearFeelsLikeLT", TagYearFeelsLikeLT },
 				{ "YearPressHT", TagYearPressHT },
 				{ "YearPressLT", TagYearPressLT },
 				{ "YearHumHT", TagYearHumHT },
@@ -5169,6 +5366,8 @@ namespace CumulusMX
 				{ "YearWChillLD", TagYearWChillLD },
 				{ "YearAppTempHD", TagYearAppTempHD },
 				{ "YearAppTempLD", TagYearAppTempLD },
+				{ "YearFeelsLikeHD", TagYearFeelsLikeHD },
+				{ "YearFeelsLikeLD", TagYearFeelsLikeLD },
 				{ "YearMinTempHD", TagYearMinTempHD },
 				{ "YearMaxTempLD", TagYearMaxTempLD },
 				{ "YearPressHD", TagYearPressHD },
@@ -5212,7 +5411,9 @@ namespace CumulusMX
 				{ "DavisNumberOfResynchs", TagDavisNumberOfResynchs },
 				{ "DavisMaxInARow", TagDavisMaxInARow },
 				{ "DavisNumCRCerrors", TagDavisNumCRCerrors },
+				{ "DavisReceptionPercent", TagDavisReceptionPercent },
 				{ "DavisFirmwareVersion", TagDavisFirmwareVersion },
+				{ "DavisTxRssi", TagDavisTxRssi },
 				{ "GW1000FirmwareVersion", TagGW1000FirmwareVersion },
 				{ "DataStopped", TagDataStopped },
 				// Recent history
@@ -5247,6 +5448,8 @@ namespace CumulusMX
 				{ "ByMonthTempL", TagByMonthTempL },
 				{ "ByMonthAppTempH", TagByMonthAppTempH },
 				{ "ByMonthAppTempL", TagByMonthAppTempL },
+				{ "ByMonthFeelsLikeH", TagByMonthFeelsLikeH },
+				{ "ByMonthFeelsLikeL", TagByMonthFeelsLikeL },
 				{ "ByMonthDewPointH", TagByMonthDewPointH },
 				{ "ByMonthDewPointL", TagByMonthDewPointL },
 				{ "ByMonthHeatIndexH", TagByMonthHeatIndexH },
@@ -5273,6 +5476,8 @@ namespace CumulusMX
 				{ "ByMonthTempLT", TagByMonthTempLT },
 				{ "ByMonthAppTempHT", TagByMonthAppTempHT },
 				{ "ByMonthAppTempLT", TagByMonthAppTempLT },
+				{ "ByMonthFeelsLikeHT", TagByMonthFeelsLikeHT },
+				{ "ByMonthFeelsLikeLT", TagByMonthFeelsLikeLT },
 				{ "ByMonthDewPointHT", TagByMonthDewPointHT },
 				{ "ByMonthDewPointLT", TagByMonthDewPointLT },
 				{ "ByMonthHeatIndexHT", TagByMonthHeatIndexHT },

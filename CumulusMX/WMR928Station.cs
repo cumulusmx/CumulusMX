@@ -312,7 +312,7 @@ namespace CumulusMX
 				DoOutdoorTemp(ConvertTempCToUser(temp10/10), DateTime.Now);
 
 				DoApparentTemp(DateTime.Now);
-				DoFeelsLike();
+				DoFeelsLike(DateTime.Now);
 
 			}
 		}
@@ -465,7 +465,7 @@ namespace CumulusMX
 				DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[7])), DateTime.Now);
 
 				DoApparentTemp(DateTime.Now);
-				DoFeelsLike();
+				DoFeelsLike(DateTime.Now);
 
 			}
 		}
