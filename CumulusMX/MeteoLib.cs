@@ -40,7 +40,7 @@ namespace CumulusMX
         public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
         {
             // Cannot use the WindChill function as we need the chill above 10 C
-            double chill = windSpeedKph < 4.8 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
+            double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
             double vaporp = ((humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC))) / 10; // kPa
             // Steadman's Apparent Temperature
             double apptemp = -2.7 + (1.04 * tempC) + (2 * vaporp) - (windSpeedKph * 0.1805553);

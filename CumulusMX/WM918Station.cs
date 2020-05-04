@@ -377,7 +377,7 @@ namespace CumulusMX
 			DoIndoorTemp(ConvertTempCToUser(temp10 / 10));
 
 			DoApparentTemp(DateTime.Now);
-			DoFeelsLike();
+			DoFeelsLike(DateTime.Now);
 
 		}
 

@@ -14,7 +14,6 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-
 namespace CumulusMX
 {
 	internal class DavisWllStation : WeatherStation
@@ -36,7 +35,8 @@ namespace CumulusMX
 		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly bool checkWllGustValues;
 		private bool broadcastReceived = false;
-		private int weatherLinkArchiveInterval = 0;
+		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
+		private bool wllVoltageLow = false;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -56,7 +56,7 @@ namespace CumulusMX
 			tmrHealth = new System.Timers.Timer();
 
 			// Get the firmware version from WL.com API
-			_ = GetWlCurrentData(true);
+			//_ = GetWlCurrentData(true);
 
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
 			if (cumulus.PeakGustMinutes == 10)
@@ -143,6 +143,11 @@ namespace CumulusMX
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
+				// Get the archive data health to do the initial value populations
+				GetWlHistoricHealth();
+				// And reset the fetch interval to 2 minutes
+				weatherLinkArchiveInterval = 2 * 60;
+
 				// short wait for realtime response
 				Thread.Sleep(1200);
 
@@ -194,8 +199,9 @@ namespace CumulusMX
 				if (cumulus.UseDataLogger)
 				{
 					// get the health data every 15 minutes
-					tmrHealth.Elapsed += GetWlHealth;
-					tmrHealth.Interval = 15 * 60 * 1000;  // Every 15 minutes
+					//tmrHealth.Elapsed += GetWlHealth;
+					tmrHealth.Elapsed += HealthTimerTick;
+					tmrHealth.Interval = 60 * 1000;  // Every minute
 					tmrHealth.AutoReset = true;
 					tmrHealth.Start();
 				}
@@ -539,7 +545,7 @@ namespace CumulusMX
 							if (rec.Value<int>("rx_state") > 0)
 							{
 								localSensorContactLost = true;
-								cumulus.LogMessage($"Sensor contact lost TxId {txid}; ignoring data from this ISS");
+								cumulus.LogMessage($"Warning: Sensor contact lost TxId {txid}; ignoring data from this ISS");
 							}
 							else
 							{
@@ -810,7 +816,7 @@ namespace CumulusMX
 							if (rec.Value<int>("rx_state") > 0)
 							{
 								localSensorContactLost = true;
-								cumulus.LogMessage($"Sensor contact lost TxId {txid}; ignoring data from this Leaf/Soil transmitter");
+								cumulus.LogMessage($"Warning: Sensor contact lost TxId {txid}; ignoring data from this Leaf/Soil transmitter");
 							}
 							else
 							{
@@ -1048,8 +1054,7 @@ namespace CumulusMX
 				}
 
 				DoApparentTemp(dateTime);
-
-				DoFeelsLike();
+				DoFeelsLike(dateTime);
 
 				SensorContactLost = localSensorContactLost;
 
@@ -1358,6 +1363,7 @@ namespace CumulusMX
 			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
 			{
 				cumulus.LogMessage("Missing WeatherLink API data in the cumulus.ini file, aborting!");
+				cumulus.LastUpdateTime = DateTime.Now;
 				return;
 			}
 
@@ -1368,6 +1374,7 @@ namespace CumulusMX
 				Console.WriteLine(msg);
 				if (!GetAvailableStationIds())
 				{
+					cumulus.LastUpdateTime = DateTime.Now;
 					return;
 				}
 			}
@@ -1455,6 +1462,8 @@ namespace CumulusMX
 				if ((int)response.StatusCode != 200)
 				{
 					cumulus.LogMessage($"WeatherLink API Historic Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
+					Console.WriteLine($" - Error {jObject.Value<string>("code")}: {jObject.Value<string>("message")}");
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
 					return;
 				}
 
@@ -1484,6 +1493,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage("No historic data available");
 						Console.WriteLine(" - No historic data available");
+						cumulus.LastUpdateTime = FromUnixTime(endTime);
 						return;
 					}
 					else
@@ -1495,11 +1505,15 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("Invalid historic message received");
 					cumulus.LogDataMessage("Received: " + responseBody);
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
+					return;
 				}
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("GetWlHistoricData exception: " + ex.Message);
+				cumulus.LastUpdateTime = FromUnixTime(endTime);
+				return;
 			}
 
 			for (int dataIndex = 0; dataIndex < noOfRecs; dataIndex++)
@@ -1532,7 +1546,7 @@ namespace CumulusMX
 					}
 
 					DoApparentTemp(timestamp);
-					DoFeelsLike();
+					DoFeelsLike(timestamp);
 
 					// Log all the data
 					cumulus.DoLogFile(timestamp, false);
@@ -1541,7 +1555,7 @@ namespace CumulusMX
 					AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 					AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 					AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-						IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV);
+						IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 					AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter);
 					RemoveOldLHData(timestamp);
@@ -1590,6 +1604,7 @@ namespace CumulusMX
 			}
 
 			Console.WriteLine(""); // flush the progress line
+			return;
 		}
 
 		private void DecodeHistoric(int dataType, int sensorType, JToken data)
@@ -1605,7 +1620,7 @@ namespace CumulusMX
 					case 11: // ISS data
 						txid = data.Value<int>("tx_id");
 						recordTs = FromUnixTime(data.Value<long>("ts"));
-						weatherLinkArchiveInterval = data.Value<int>("arch_int");
+						//weatherLinkArchiveInterval = data.Value<int>("arch_int");
 
 						// Temperature & Humidity
 						if (cumulus.WllPrimaryTempHum == txid)
@@ -1665,7 +1680,7 @@ namespace CumulusMX
 
 								// do high temp
 								ts = FromUnixTime(data.Value<long>("temp_hi_at"));
-								DoOutdoorTemp(ConvertTempFToUser(data.Value<double>("temp_max")), ts);
+								DoOutdoorTemp(ConvertTempFToUser(data.Value<double>("temp_hi")), ts);
 								// do low temp
 								ts = FromUnixTime(data.Value<long>("temp_lo_at"));
 								DoOutdoorTemp(ConvertTempFToUser(data.Value<double>("temp_lo")), ts);
@@ -2164,113 +2179,298 @@ namespace CumulusMX
 			}
 		}
 
-		private void DecodeWlApiHealth(JToken data, bool startingup)
+		private void DecodeWlApiHealth(JToken sensor, bool startingup)
 		{
-			bool voltageLow = false;
-			cumulus.LogDebugMessage("WL.com API: found WLL health data");
-
-			/*
-			 * Available fields
-			 * "battery_voltage"
-			 * "bgn"					- historic only
-			 * "bluetooth_version"		- historic only
-			 * "bootloader_version"
-			 * "dns_type_used"			- historic only
-			 * "espressif_version"
-			 * "firmware_version"
-			 * "health_version"
-			 * "input_voltage"
-			 * "ip_address_type"
-			 * "ip_v4_address"
-			 * "ip_v4_gateway"
-			 * "ip_v4_netmask"
-			 * "link_uptime"
-			 * "local_api_queries"
-			 * "network_error"
-			 * "network_type":
-			 * "radio_version"
-			 * "rapid_records_sent"
-			 * "rx_bytes"
-			 * "touchpad_wakeups"
-			 * "tx_bytes"
-			 * "uptime"
-			 * "wifi_rssi"
-			 * "ts"						- historic only
-			 */
-
-			if (string.IsNullOrEmpty(data.Value<string>("firmware_version")))
+			JToken data;
+			if (sensor["data"].Count() > 0)
 			{
-				cumulus.LogDebugMessage($"WL.com historic: no valid firmware version [{data.Value<string>("firmware_version")}]");
-				DavisFirmwareVersion = "???";
+				data = sensor["data"].Last;
 			}
 			else
 			{
-				var dat = FromUnixTime(data.Value<long>("firmware_version"));
-				DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
-				var battV = data.Value<double>("battery_voltage") / 1000.0;
-				if (battV < 5.2)
+				if (sensor.Value<int>("data_structure_type") == 15)
 				{
-					voltageLow = true;
-					cumulus.LogMessage($"WLL WARNING: Backup battery voltage is low = {battV:0.##}V");
-					Console.WriteLine($"WLL WARNING: Backup battery voltage is low = {battV:0.##}V");
+					cumulus.LogDebugMessage("WLL Health - did not find any health data for WLL device");
+				}
+				else if (sensor.Value<int>("data_structure_type") == 11)
+				{
+					cumulus.LogDebugMessage("WLL Health - did not find health data for ISS device");
+				}
+				return;
+			}
+
+			if (sensor.Value<int>("data_structure_type") == 15)
+			{
+				/* WLL Device
+				 *
+				 * Available fields
+				 * "battery_voltage"
+				 * "bgn"					- historic only
+				 * "bluetooth_version"		- historic only
+				 * "bootloader_version"
+				 * "dns_type_used"			- historic only
+				 * "espressif_version"
+				 * "firmware_version"
+				 * "health_version"
+				 * "input_voltage"
+				 * "ip_address_type"
+				 * "ip_v4_address"
+				 * "ip_v4_gateway"
+				 * "ip_v4_netmask"
+				 * "link_uptime"
+				 * "local_api_queries"
+				 * "network_error"
+				 * "network_type":
+				 * "radio_version"
+				 * "rapid_records_sent"
+				 * "rx_bytes"
+				 * "touchpad_wakeups"
+				 * "tx_bytes"
+				 * "uptime"
+				 * "wifi_rssi"
+				 * "ts"						- historic only
+				 */
+
+				cumulus.LogDebugMessage("WLL Health - found health data for WLL device");
+
+				if (string.IsNullOrEmpty(data.Value<string>("firmware_version")))
+				{
+					cumulus.LogDebugMessage($"WL.com historic: no valid firmware version [{data.Value<string>("firmware_version")}]");
+					DavisFirmwareVersion = "???";
 				}
 				else
 				{
-					cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
+					var dat = FromUnixTime(data.Value<long>("firmware_version"));
+					DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
+					var battV = data.Value<double>("battery_voltage") / 1000.0;
+					ConBatText = battV.ToString("F2");
+					if (battV < 5.2)
+					{
+						wllVoltageLow = true;
+						cumulus.LogMessage($"WLL WARNING: Backup battery voltage is low = {battV:0.##}V");
+					}
+					else
+					{
+						wllVoltageLow = false;
+						cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
+					}
+					var inpV = data.Value<double>("input_voltage") / 1000.0;
+					if (inpV < 4.0)
+					{
+						cumulus.LogMessage($"WLL WARNING: Input voltage is low = {inpV:0.##}V");
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"WLL Input Voltage = {inpV:0.##}V");
+					}
+					var upt = TimeSpan.FromSeconds(data.Value<double>("uptime"));
+					var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
+							(int)upt.TotalDays,
+							upt.Hours,
+							upt.Minutes,
+							upt.Seconds);
+					cumulus.LogDebugMessage("WLL Uptime = " + uptStr);
+
+					DavisTxRssi[0] = data.Value<int>("wifi_rssi");
+					cumulus.LogDebugMessage("WLL WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
+
+					upt = TimeSpan.FromSeconds(data.Value<double>("link_uptime"));
+					uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
+							(int)upt.TotalDays,
+							upt.Hours,
+							upt.Minutes,
+							upt.Seconds);
+					cumulus.LogDebugMessage("WLL Link Uptime = " + uptStr);
 				}
-				var inpV = data.Value<double>("input_voltage") / 1000.0;
-				if (inpV < 4.0)
+				if (startingup)
 				{
-					voltageLow = true;
-					cumulus.LogMessage($"WLL WARNING: Input voltage is low = {inpV:0.##}V");
-					Console.WriteLine($"WLL WARNING: Input voltage is low = {inpV:0.##}V");
+					cumulus.LogMessage("WLL FW version = " + DavisFirmwareVersion);
 				}
 				else
 				{
-					cumulus.LogDebugMessage($"WLL Input Voltage = {inpV:0.##}V");
+					cumulus.LogDebugMessage("WLL FW version = " + DavisFirmwareVersion);
 				}
-				var upt = TimeSpan.FromSeconds(data.Value<double>("uptime"));
-				var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-						(int)upt.TotalDays,
-						upt.Hours,
-						upt.Minutes,
-						upt.Seconds);
-				cumulus.LogDebugMessage("WLL Uptime = " + uptStr);
-				cumulus.LogDebugMessage("WLL WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
-				upt = TimeSpan.FromSeconds(data.Value<double>("link_uptime"));
-				uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-						(int)upt.TotalDays,
-						upt.Hours,
-						upt.Minutes,
-						upt.Seconds);
-				cumulus.LogDebugMessage("WLL Link Uptime = " + uptStr);
 			}
-			if (startingup)
+			else if (sensor.Value<int>("data_structure_type") == 11)
 			{
-				cumulus.LogMessage("WLL FW version = " + DavisFirmwareVersion);
+				/* ISS
+				 * Available fields of interest to health
+				 * "afc": -1
+				 * "error_packets": 0
+				 * "good_packets_streak": 602
+				 * "reception": 100
+				 * "resynchs": 0
+				 * "rssi": -60
+				 * "supercap_volt_last": null
+				 * "trans_battery_flag": 0
+				 * "trans_battery": null
+				 * "tx_id": 2
+				 */
+
+				var txid = data.Value<int>("tx_id");
+
+				cumulus.LogDebugMessage("WLL Health - found health data for ISS device TxId = " + txid);
+
+				// Save the archive interval
+				//weatherLinkArchiveInterval = data.Value<int>("arch_int");
+
+				// Check battery state 0=Good, 1=Low
+				var battState = data.Value<uint>("trans_battery_flag");
+				SetTxBatteryStatus(txid, battState);
+				if (battState == 1)
+				{
+					cumulus.LogMessage($"WLL WARNING: Battery voltage is low in TxId {txid}");
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"WLL Health: ISS {txid}: Battery state is OK");
+				}
+
+				//DavisTotalPacketsReceived[txid] = ;  // Do not have a value for this
+				DavisTotalPacketsMissed[txid] = data.Value<int>("error_packets");
+				DavisNumCRCerrors[txid] = data.Value<int>("error_packets");
+				DavisNumberOfResynchs[txid] = data.Value<int>("resynchs");
+				DavisMaxInARow[txid] = data.Value<int>("good_packets_streak");
+				DavisReceptionPct[txid] = data.Value<int>("reception");
+				DavisTxRssi[txid] = data.Value<int>("rssi");
+
+				cumulus.LogDebugMessage($"WLL Health: IIS {txid}: Errors={DavisTotalPacketsMissed[txid]}, CRCs={DavisNumCRCerrors[txid]}, Resyncs={DavisNumberOfResynchs[txid]}, Streak={DavisMaxInARow[txid]}, %={DavisReceptionPct[txid]}, RSSI={DavisTxRssi[txid]}");
 			}
-			else
+		}
+		/*
+				private async Task GetWlCurrentData(bool firstTime = false)
+				{
+					Newtonsoft.Json.Linq.JObject jObject;
+
+					cumulus.LogMessage("Get WL.com Current Data");
+
+					if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
+					{
+						cumulus.LogMessage("Missing WeatherLink API data in the cumulus.ini file, aborting!");
+						return;
+					}
+
+					if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
+					{
+						cumulus.LogMessage("No WeatherLink API station ID in the cumulus.ini file");
+						if (!GetAvailableStationIds())
+						{
+							return;
+						}
+					}
+
+					var unixDateTime = ToUnixTime(DateTime.Now);
+
+					SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
+					{
+						{ "api-key", cumulus.WllApiKey },
+						{ "station-id", cumulus.WllStationId.ToString() },
+						{ "t", unixDateTime.ToString() }
+					};
+
+					StringBuilder dataStringBuilder = new StringBuilder();
+					foreach (KeyValuePair<string, string> entry in parameters)
+					{
+						dataStringBuilder.Append(entry.Key);
+						dataStringBuilder.Append(entry.Value);
+					}
+
+					string data = dataStringBuilder.ToString();
+
+					var apiSignature = CalculateApiSignature(cumulus.WllApiSecret, data);
+
+					parameters.Remove("station-id");
+					parameters.Add("api-signature", apiSignature);
+
+					StringBuilder currentUrl = new StringBuilder();
+					currentUrl.Append("https://api.weatherlink.com/v2/current/" + cumulus.WllStationId + "?");
+					foreach (KeyValuePair<string, string> entry in parameters)
+					{
+						currentUrl.Append(entry.Key);
+						currentUrl.Append("=");
+						currentUrl.Append(entry.Value);
+						currentUrl.Append("&");
+					}
+					// remove the trailing "&"
+					currentUrl.Remove(currentUrl.Length - 1, 1);
+
+					var logUrl = currentUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+					cumulus.LogDebugMessage($"WeatherLink URL = {logUrl}");
+
+					try
+					{
+						var response = await WlHttpClient.GetAsync(currentUrl.ToString());
+						var responseBody = await response.Content.ReadAsStringAsync();
+						cumulus.LogDataMessage($"WeatherLink API Current Response: {response.StatusCode}: {responseBody}");
+
+						jObject = JObject.Parse(responseBody);
+
+						if ((int)response.StatusCode != 200)
+						{
+							cumulus.LogMessage($"WeatherLink API Current Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
+							return;
+						}
+
+						if (responseBody == "{}")
+						{
+							cumulus.LogMessage("WeatherLink API Current: No data was returned. Check your Device Id.");
+							return;
+						}
+
+						// get the sensor data
+						JToken sensorData = jObject["sensors"];
+
+						foreach (JToken sensor in sensorData)
+						{
+							// The only thing we are doing at the moment is extracting "health" data
+							if (sensor.Value<int>("sensor_type") == 504)
+							{
+								DecodeWlApiHealth(sensor, firstTime);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogDebugMessage("WeatherLink API Current exception: " + ex.Message);
+					}
+				}
+		*/
+
+		/*
+				private async void GetWlHealth(object source, ElapsedEventArgs e)
+				{
+					await GetWlCurrentData();
+
+				}
+		*/
+		private void HealthTimerTick(object source, ElapsedEventArgs e)
+		{
+			// Only run every 15 + 1 minutes
+			// The WLL only reports its health every 15 mins, on the hour, :15, :30 and :45
+			if (DateTime.Now.Minute % 15 == 1)
 			{
-				cumulus.LogDebugMessage("WLL FW version = " + DavisFirmwareVersion);
-				cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || voltageLow;
+				GetWlHistoricHealth();
 			}
 		}
 
-		private async Task GetWlCurrentData(bool firstTime = false)
+		// Extracts health infomation from the last archive record
+		private void GetWlHistoricHealth()
 		{
-			Newtonsoft.Json.Linq.JObject jObject;
+			JObject jObject;
 
-			cumulus.LogMessage("Get WL.com Current Data");
+			cumulus.LogMessage("WLL Health: Get WL.com Historic Data");
 
 			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
 			{
-				cumulus.LogMessage("Missing WeatherLink API data in the cumulus.ini file, aborting!");
+				cumulus.LogMessage("WLL Health: Missing WeatherLink API data in the cumulus.ini file, aborting!");
 				return;
 			}
 
 			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
 			{
-				cumulus.LogMessage("No WeatherLink API station ID in the cumulus.ini file");
+				var msg = "No WeatherLink API station ID in the cumulus.ini file";
+				cumulus.LogMessage(msg);
+				Console.WriteLine(msg);
 				if (!GetAvailableStationIds())
 				{
 					return;
@@ -2278,12 +2478,18 @@ namespace CumulusMX
 			}
 
 			var unixDateTime = ToUnixTime(DateTime.Now);
+			var startTime = unixDateTime - weatherLinkArchiveInterval;
+			int endTime = unixDateTime;
+
+			cumulus.LogDebugMessage($"WLL Health: Downloading the historic record from WL.com from: {FromUnixTime(startTime):s} to: {FromUnixTime(endTime):s}");
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
 				{ "api-key", cumulus.WllApiKey },
 				{ "station-id", cumulus.WllStationId.ToString() },
-				{ "t", unixDateTime.ToString() }
+				{ "t", unixDateTime.ToString() },
+				{ "start-timestamp", startTime.ToString() },
+				{ "end-timestamp", endTime.ToString() }
 			};
 
 			StringBuilder dataStringBuilder = new StringBuilder();
@@ -2300,64 +2506,84 @@ namespace CumulusMX
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
 
-			StringBuilder currentUrl = new StringBuilder();
-			currentUrl.Append("https://api.weatherlink.com/v2/current/" + cumulus.WllStationId + "?");
+			StringBuilder historicUrl = new StringBuilder();
+			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId + "?");
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
-				currentUrl.Append(entry.Key);
-				currentUrl.Append("=");
-				currentUrl.Append(entry.Value);
-				currentUrl.Append("&");
+				historicUrl.Append(entry.Key);
+				historicUrl.Append("=");
+				historicUrl.Append(entry.Value);
+				historicUrl.Append("&");
 			}
 			// remove the trailing "&"
-			currentUrl.Remove(currentUrl.Length - 1, 1);
+			historicUrl.Remove(historicUrl.Length - 1, 1);
 
-			var logUrl = currentUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"WeatherLink URL = {logUrl}");
+			var logUrl = historicUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+			cumulus.LogDebugMessage($"WLL Health: WeatherLink URL = {logUrl}");
+
+			JToken sensorData = new JObject();
 
 			try
 			{
-				var response = await WlHttpClient.GetAsync(currentUrl.ToString());
-				var responseBody = await response.Content.ReadAsStringAsync();
-				cumulus.LogDataMessage($"WeatherLink API Current Response: {response.StatusCode}: {responseBody}");
+				// we want to do this synchronously, so .Result
+				var response = WlHttpClient.GetAsync(historicUrl.ToString()).Result;
+				var responseBody = response.Content.ReadAsStringAsync().Result;
+				cumulus.LogDataMessage($"WLL Health: WeatherLink API Response: {response.StatusCode}: {responseBody}");
 
-				jObject = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
+				jObject = JObject.Parse(responseBody);
 
 				if ((int)response.StatusCode != 200)
 				{
-					cumulus.LogMessage($"WeatherLink API Current Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
+					cumulus.LogMessage($"WLL Health: WeatherLink API Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
 					return;
 				}
 
 				if (responseBody == "{}")
 				{
-					cumulus.LogMessage("WeatherLink API Current: No data was returned. Check your Device Id.");
+					cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
 					return;
 				}
-
-				// get the sensor data
-				JToken sensorData = jObject["sensors"];
-
-				foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+				else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
 				{
-					// The only thing we are doing at the moment is extracting "health" data
-					if (sensor.Value<int>("sensor_type") == 504)
+					// get the sensor data
+					sensorData = jObject["sensors"];
+
+					if (sensorData.Count() == 0)
 					{
-						DecodeWlApiHealth(sensor["data"][0], firstTime);
+						cumulus.LogMessage("WLL Health: No historic data available");
+						return;
 					}
+					else
+					{
+						cumulus.LogDebugMessage($"WLL Health: Found {sensorData.Count()} sensor records to process");
+					}
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogMessage("WLL Health: Invalid historic message received");
+					cumulus.LogDataMessage("WLL Health: Received: " + responseBody);
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("WeatherLink API Current exception: " + ex.Message);
+				cumulus.LogMessage("WLL Health: exception: " + ex.Message);
 			}
+
+			try
+			{
+				foreach (JToken sensor in sensorData)
+				{
+					DecodeWlApiHealth(sensor, true);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("WLL Health: exception: " + ex.Message);
+			}
+			cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || wllVoltageLow;
 		}
 
-		private async void GetWlHealth(object source, ElapsedEventArgs e)
-		{
-			await GetWlCurrentData();
-
-		}
 
 		// Finds all stations associated with this API
 		// Return true if only 1 result is found, else return false

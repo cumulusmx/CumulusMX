@@ -770,7 +770,7 @@ namespace CumulusMX
 							DoWindChill(0, timestamp);
 
 							DoApparentTemp(timestamp);
-							DoFeelsLike();
+							DoFeelsLike(timestamp);
 
 
 							// sunshine hours
@@ -784,7 +784,7 @@ namespace CumulusMX
 							AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 							RemoveOldLHData(timestamp);
 							AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-								IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV);
+								IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 							RemoveOldGraphData(timestamp);
 							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 							RemoveOldL3HData(timestamp);
@@ -967,7 +967,7 @@ namespace CumulusMX
 				}
 
 				DoApparentTemp(now);
-				DoFeelsLike();
+				DoFeelsLike(now);
 
 
 				DoForecast("", false);

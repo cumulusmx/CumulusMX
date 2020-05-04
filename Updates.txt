@@ -1,3 +1,94 @@
+3.6.0 - b3076
+=============
+- Fix for records editors failing to read log files from Cumulus 1 versions
+- Fix for Ecowitt GW-1000 devices to bypass the auto-discovery mechanism if it is disabled in the config
+- NOAA reports now include degree, minutes, seconds symbols
+- Slightly enhanced program termination logging
+- Implements highs/low/records for Feels like
+	- Changes to ini files to add Feels Like - Adds [FeelsLike] section to
+		today.ini, yesterday.ini, month.ini, year.ini, alltime.ini, monthlyalltime.ini
+	- Changes to log files
+		monthlog.txt - adds field 27, feels like
+		dayfile.txt - adds fields 47-50, high feels like, high time, low, low time
+	- Changes to the MYSQL database tables are required
+		Adds column FeelsLike to the Monthly table
+		Adds columns MaxFeelsLike, TMaxFeelsLike, MinFeelsLike, TMinFeelsLike to the Dayfile table
+	- New web tags
+		<#HighFeelsLikeRecordSet>
+		<#LowFeelsLikeRecordSet>
+		<#ByMonthFeelsLikeHT>
+		<#ByMonthFeelsLikeLT>
+		<#ByMonthFeelsLikeL>
+		<#ByMonthFeelsLikeH>
+		<#YearFeelsLikeHD>
+		<#YearFeelsLikeLD>
+		<#YearFeelsLikeHT>
+		<#YearFeelsLikeLT>
+		<#YearFeelsLikeH>
+		<#YearFeelsLikeL>
+		<#MonthFeelsLikeHD>
+		<#MonthFeelsLikeLD>
+		<#MonthFeelsLikeHT>
+		<#MonthFeelsLikeLT>
+		<#MonthFeelsLikeH>
+		<#MonthFeelsLikeL>
+		<#feelslikeH>
+		<#TfeelslikeH>
+		<#feelslikeL>
+		<#TfeelslikeL>
+		<#feelslikeYH>
+		<#TfeelslikeYH>
+		<#feelslikeYL>
+		<#TfeelslikeYL>
+		<#feelslikeTH>
+		<#TfeelslikeTH>
+		<#feelslikeTL>
+		<#TfeelslikeTL>
+	- Updated record editors
+	- Updated log file viewers/editors
+- Adds battery and reception data for Davis WLL. It now logs battery and input voltages to the MXdiags.
+  These are updated every 15 minutes and require you to have a WeatherLink Pro subscription.
+  The WLL unlike the VP2 console provides individual data for each transmitter
+	- The following web tags have been updated to accept a "tx=n" parameter, where n=1-8 and equals the desired transmitter id.
+	  Omitting the tx= parameter or using tx=0 makes the tag function as before for Davis VP2 systems
+		<#DavisTotalPacketsMissed tx=n>
+		<#DavisNumberOfResynchs tx=n>
+		<#DavisMaxInARow tx=n>
+		<#DavisNumCRCerrors tx=n>
+	- New web tags for WLL transmitter reception percentage and RSSI figure, these must be used with the tx=n parameter
+		<#DavisReceptionPercent tx=n>   - defaults to tx=1, tx=0 is unused
+		<#DavisTxRssi tx=n>             - defaults to tx=1, use tx=0 to get the WLL WiFi RSSI
+- Updated ExportMySQL.exe to version 1.1.0
+	- Incorporates the new Feels Like data
+	- Uses compass point "-" for Calm
+	- Reads customised compass points from strings.ini if set
+
+
+- Updated files
+	\CumulusMX.exe
+	\dayfileheader.txt
+	\ExportMySQL.exe
+	\Extrafileheader.txt
+	\monthlyfileheader.txt
+	\interface\alltimerecseditor.html
+	\interface\extrawebfiles.html
+	\interface\index.html
+	\interface\monthlyrecseditor.html
+	\interface\now.html
+	\interface\thismonthrecseditor.html
+	\interface\thisyearrecseditor.html
+	\interface\todayest.html
+	\interface\js\alltimerecseditor.js
+	\interface\js\charts.js
+	\interface\js\datalogs.js
+	\interface\js\dayfileeditor.js
+	\interface\js\monthlyrecseditor.js
+	\interface\js\thismonthrecseditor.js
+	\interface\js\thisyearrecseditor.js
+	\interface\json\StationOptions.json
+
+
+
 3.5.4 - b3075
 =============
 - Fix for bearing zero on the interface "Now" page

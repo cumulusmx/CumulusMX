@@ -368,7 +368,7 @@ namespace CumulusMX
 				UpdateDegreeDays(historydata.interval);
 
 				DoApparentTemp(timestamp);
-				DoFeelsLike();
+				DoFeelsLike(timestamp);
 
 
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
@@ -384,7 +384,7 @@ namespace CumulusMX
 				}
 
 				AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV);
+				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 							Pressure, RainToday, SolarRad, UV, Raincounter);
@@ -700,11 +700,10 @@ namespace CumulusMX
 				DoRain(ConvertRainMMToUser(raintot), -1, now);
 			}
 
-			DoApparentTemp(DateTime.Now);
-			DoFeelsLike();
+			DoApparentTemp(now);
+			DoFeelsLike(now);
 
-
-			UpdateStatusPanel(DateTime.Now);
+			UpdateStatusPanel(now);
 			UpdateMQTT();
 		}
 

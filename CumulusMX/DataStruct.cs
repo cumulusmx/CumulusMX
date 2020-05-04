@@ -23,7 +23,8 @@ namespace CumulusMX
 							double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead,
 							bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain, bool alarmLowTemp,
 							bool alarmHighTemp, bool alarmTempUp, bool alarmTempDown, bool alarmRain, bool alarmRainRate, bool alarmLowPress, bool alarmHighPress,
-							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery)
+							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery,
+							double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime)
 		{
 			this.cumulus = cumulus;
 			OutdoorTemp = outdoorTemp;
@@ -70,6 +71,11 @@ namespace CumulusMX
 			LowAppTempToday = lowAppTempToday;
 			HighAppTempTodayTime = highAppTempTodayTime;
 			LowAppTempTodayTime = lowAppTempTodayTime;
+			FeelsLike = feelsLike;
+			HighFeelsLikeToday = highFeelsLikeToday;
+			LowFeelsLikeToday = lowFeelsLikeToday;
+			HighFeelsLikeTodayTime = highFeelsLikeTodayTime;
+			LowFeelsLikeTodayTime = lowFeelsLikeTodayTime;
 			TempTrend = tempTrend;
 			PressTrend = pressTrend;
 			HighGustToday = highGustToday;
@@ -434,8 +440,15 @@ namespace CumulusMX
 		[DataMember]
 		public int OutdoorHum { get; set; }
 
-		[DataMember]
+		[IgnoreDataMember]
 		public double AvgTempToday { get; set; }
+
+		[DataMember(Name = "AvgTempToday")]
+		public string AvgTempRounded
+		{
+			get { return AvgTempToday.ToString(cumulus.TempFormat); }
+			set { }
+		}
 
 		[DataMember]
 		public int IndoorHum { get; set; }
@@ -638,6 +651,42 @@ namespace CumulusMX
 		public string HighAppTempTodayRounded
 		{
 			get { return HighAppTempToday.ToString(cumulus.TempFormat); }
+			set { }
+		}
+
+		[IgnoreDataMember]
+		public double FeelsLike { get; set; }
+
+		[DataMember(Name = "FeelsLike")]
+		public string FeelsLikeRounded
+		{
+			get { return FeelsLike.ToString(cumulus.TempFormat); }
+			set { }
+		}
+
+		[DataMember]
+		public string LowFeelsLikeTodayTime { get; set; }
+
+		[DataMember]
+		public string HighFeelsLikeTodayTime { get; set; }
+
+		[IgnoreDataMember]
+		public double LowFeelsLikeToday { get; set; }
+
+		[DataMember(Name = "LowFeelsLikeToday")]
+		public string LowFeelsLikeTodayRounded
+		{
+			get { return LowFeelsLikeToday.ToString(cumulus.TempFormat); }
+			set { }
+		}
+
+		[IgnoreDataMember]
+		public double HighFeelsLikeToday { get; set; }
+
+		[DataMember(Name = "HighFeelsLikeToday")]
+		public string HighFeelsLikeTodayRounded
+		{
+			get { return HighFeelsLikeToday.ToString(cumulus.TempFormat); }
 			set { }
 		}
 

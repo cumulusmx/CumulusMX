@@ -598,8 +598,8 @@ namespace CumulusMX
 			latdeg = Math.Abs(latdeg);
 			londeg = Math.Abs(londeg);
 
-			output.Add("Elevation: " + elev + "  Lat: " + String.Format("{0} {1,2:D2} {2,2:D2} {3,2:D2}", lathem, latdeg, latmin, latsec) + "   Lon: " +
-					   String.Format("{0} {1,3:D3} {2,2:D2} {3,2:D2}", lonhem, londeg, lonmin, lonsec));
+			output.Add("Elevation: " + elev + "  Lat: " + String.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec) +
+				"   Lon: " + String.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec));
 			output.Add("");
 			output.Add("                  Temperature (" + cumulus.TempUnitText + "), Rain (" + cumulus.RainUnitText + "), Wind Speed (" + cumulus.WindUnitText + ")");
 			output.Add("");
@@ -1007,8 +1007,8 @@ namespace CumulusMX
 			latdeg = Math.Abs(latdeg);
 			londeg = Math.Abs(londeg);
 
-			output.Add("Elevation: " + elev + "  Lat: " + String.Format("{0} {1,2:D2} {2,2:D2} {3,2:D2}", lathem, latdeg, latmin, latsec) + "   Lon: " +
-					   String.Format("{0} {1,3:D3} {2,2:D2} {3,2:D2}", lonhem, londeg, lonmin, lonsec));
+			output.Add("Elevation: " + elev + "  Lat: " + String.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec) +
+				"   Lon: " + String.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec));
 			output.Add("");
 			output.Add("                  Temperature (" + cumulus.TempUnitText + "), Heat Base: " + cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat) + "  Cool Base: " + cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat));
 			output.Add("                          Dep.  Heat  Cool                       Max  Max  Min  Min");

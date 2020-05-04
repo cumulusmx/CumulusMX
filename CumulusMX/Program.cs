@@ -19,9 +19,11 @@ namespace CumulusMX
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
             const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            //if (Environment.OSVersion.Platform == PlatformID.Unix)
+            if (Type.GetType("Mono.Runtime") != null)
             {
                 // Use reflection, so no attempt to load Mono dll on Windows
+
                 Assembly _posixAsm;
                 Type _unixSignalType, _signumType;
                 MethodInfo _unixSignalWaitAny;
@@ -36,24 +38,17 @@ namespace CumulusMX
                 _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 1);
 
                 Thread signal_thread = new Thread(delegate ()
+                {
+                    while (!exitSystem)
                     {
-                        while (true)
-                        {
-                            // Wait for a signal to be delivered
-                            var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
+                        // Wait for a signal to be delivered
+                        var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
 
-                            // Notify the main thread that a signal was received,
-                            // you can use things like:
-                            //    Application.Invoke () for Gtk#
-                            //    Control.Invoke on Windows.Forms
-                            //    Write to a pipe created with UnixPipes for server apps.
-                            //    Use an AutoResetEvent
+                        Console.WriteLine("\nExiting system due to external signal: " + (id == 0 ? "SIGINT" : "SIGTERM"));
 
-                            exitSystem = true;
-
-                            //AppDomain.CurrentDomain.UnhandledException -= UnhandledExceptionTrapper;
-                        }
-                    });
+                        exitSystem = true;
+                    }
+                });
 
                 signal_thread.Start();
             }
@@ -124,11 +119,12 @@ namespace CumulusMX
                     Thread.Sleep(500);
                 }
 
-                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                if (Type.GetType("Mono.Runtime") != null)
                 {
                     Console.WriteLine("\nCumulus terminating");
                     cumulus.Stop();
-                    Console.WriteLine("Program exit");
+                    Trace.WriteLine("Cumulus has shutdown");
+
                     Environment.Exit(0);
                 }
             }
@@ -190,15 +186,19 @@ namespace CumulusMX
 
         private static bool Handler(CtrlType sig)
         {
+            var reason = new string[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
             Console.WriteLine("Cumulus terminating");
-            Trace.WriteLine("Exiting system due to external CTRL-C, or process kill, or shutdown");
+
+            Trace.WriteLine("Exiting system due to external: " + reason[(int)sig]);
 
             //allow main to run off
             Program.exitSystem = true;
 
             Program.cumulus.Stop();
-            Environment.Exit(0);
 
+            Trace.WriteLine("Cumulus has shutdown");
+            Console.WriteLine("Cumulus stopped");
+            Environment.Exit(0);
             return true;
         }
     }

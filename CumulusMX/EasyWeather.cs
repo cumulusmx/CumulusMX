@@ -155,7 +155,7 @@ namespace CumulusMX
                             Now);
 
                         DoApparentTemp(Now);
-                        DoFeelsLike();
+                        DoFeelsLike(Now);
 
 
                         DoForecast("", false);
