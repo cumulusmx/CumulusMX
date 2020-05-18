@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.1";
-		public string Build = "3077";
+		public string Version = "3.6.2";
+		public string Build = "3078";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -6756,8 +6756,8 @@ namespace CumulusMX
 				file.Write(station.ApparentTemperature.ToString(TempFormat, InvC) + ' '); // 55
 				file.Write(station.SunshineHours.ToString(SunFormat, InvC) + ' '); // 56
 				file.Write(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' '); // 57
-				file.WriteLine(station.IsSunny ? "1 " : "0 "); // 58
-				file.Write(station.FeelsLike.ToString(TempFormat, InvC)); // 59
+				file.Write(station.IsSunny ? "1 " : "0 "); // 58
+				file.WriteLine(station.FeelsLike.ToString(TempFormat, InvC)); // 59
 
 				file.Close();
 			}
