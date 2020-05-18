@@ -1,3 +1,13 @@
+3.6.2 - b3078
+=============
+- Fix for badly formed realtime.txt in b3077
+
+
+- Updated files
+	\CumulusMX.exe
+
+
+
 3.6.1 - b3077
 =============
 - Fix for Oregon WMR928 extra temperature only sensors (unconfirmed)
