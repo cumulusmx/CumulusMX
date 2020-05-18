@@ -21,7 +21,7 @@ namespace CumulusMX
 		private int currentPacketLength;
 		private int currentPacketType;
 
-		private readonly int[] WMR928PacketLength = {11, 16, 9, 9, 0, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255};
+		private readonly int[] WMR928PacketLength = {11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255};
 
 		public WMR928Station(Cumulus cumulus) : base(cumulus)
 		{
@@ -112,7 +112,7 @@ namespace CumulusMX
 										currentPacketLength = 0;
 									break;
 								case 2: // We're looking for the packet type
-									if (nextByte < 16)
+									if (nextByte < 16 && WMR928PacketLength[currentPacketType] > 0)
 									{
 										// Success
 										buffer.Add(255);
@@ -120,6 +120,7 @@ namespace CumulusMX
 										buffer.Add(nextByte);
 										currentPacketLength = 3;
 										currentPacketType = nextByte;
+										cumulus.LogDebugMessage("Found packet type: " + currentPacketType);
 									}
 									else
 									{
@@ -157,7 +158,7 @@ namespace CumulusMX
 							} // end of switch for current packet length
 						} // end of for loop for available chars
 
-						cumulus.LogDebugMessage(datastr);
+						cumulus.LogDataMessage(datastr);
 					}
 				}
 			}
@@ -201,16 +202,11 @@ namespace CumulusMX
 		{
 			int csum;
 
-			if (cumulus.logging)
+			string msg = "Packet received: ";
+
+			for (int i = 0; i < buff.Count; i++)
 			{
-				string msg = "Packet received: ";
-
-				for (int i = 0; i < buff.Count; i++)
-				{
-					msg += buff[i].ToString("X2");
-				}
-
-				cumulus.LogDebugMessage(msg);
+				msg += buff[i].ToString("X2");
 			}
 
 			if (WMR928valid(buff, out csum))
@@ -219,30 +215,39 @@ namespace CumulusMX
 				switch (buff[2])
 				{
 					case WMR928WindData:
+						cumulus.LogDebugMessage("Wind " + msg);
 						WMR928Wind(buff);
 						break;
 					case WMR928RainData:
+						cumulus.LogDebugMessage("Rain " + msg);
 						WMR928Rain(buff);
 						break;
 					case WMR928ExtraOutdoorData:
+						cumulus.LogDebugMessage("Extra Outdoor " + msg);
 						WMR928ExtraOutdoor(buff);
 						break;
 					case WMR928OutdoorData:
+						cumulus.LogDebugMessage("Outdoor " + msg);
 						WMR928Outdoor(buff);
 						break;
 					case WMR928ExtraTempOnlyData:
+						cumulus.LogDebugMessage("Extra Temp " + msg);
 						WMR928ExtraTempOnly(buff);
 						break;
 					case WMR928IndoorData:
+						cumulus.LogDebugMessage("Indoor " + msg);
 						WMR928Indoor(buff);
 						break;
 					case WMR928IndoorData2:
+						cumulus.LogDebugMessage("Indoor2 " + msg);
 						WMR928Indoor2(buff);
 						break;
 					case WMR928MinuteData:
+						cumulus.LogDebugMessage("Minute " + msg);
 						WMR928Minute(buff);
 						break;
 					case WMR928ClockData:
+						cumulus.LogDebugMessage("Clock " + msg);
 						WMR928Clock(buff);
 						break;
 					default:
@@ -272,13 +277,11 @@ namespace CumulusMX
 		private void WMR928ExtraTempOnly(List<int> buff)
 		{
 			// Extra sensor
-			// FF FF 04 bc T2T3 TST1 H1H2 D1D2 C1C2
-			//  0  1  2  3    4    5    6    7    8
+			// FF FF 04 bc T2T3 TST1 C1C2
+			//  0  1  2  3    4    5    6
 			// Battery status b
 			// Channel Number c
 			// Temperature T1T2T3 (TS gives sign)
-			// Relative Humidity H1H2
-			// Dewpoint D1D2
 			// Checksum C1C2
 
 			int channel = buff[3] & 0xF;

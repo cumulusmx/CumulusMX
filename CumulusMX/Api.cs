@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
+using System.Threading;
 
 namespace CumulusMX
 {
@@ -104,7 +106,7 @@ namespace CumulusMX
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "edit/*")]
-			public bool EditData()
+			public async Task<bool> EditData()
 			{
 				try
 				{
@@ -114,60 +116,60 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "raintodayeditdata.json":
-							return this.JsonResponse(dataEditor.GetRainTodayEditData());
+							return await this.JsonResponseAsync(dataEditor.GetRainTodayEditData());
 
 						case "raintoday":
-							return this.JsonResponse(dataEditor.EditRainToday(this));
+							return await this.JsonResponseAsync(dataEditor.EditRainToday(this));
 
 						case "currentcond.json":
-							return this.JsonResponse(dataEditor.GetCurrentCond());
+							return await this.JsonResponseAsync(dataEditor.GetCurrentCond());
 
 						case "alltimerecords.json":
-							return this.JsonResponse(dataEditor.GetAllTimeRecData());
+							return await this.JsonResponseAsync(dataEditor.GetAllTimeRecData());
 
 						case "alltimerecordsdayfile.json":
-							return this.JsonResponse(dataEditor.GetRecordsDayFile("alltime"));
+							return await this.JsonResponseAsync(dataEditor.GetRecordsDayFile("alltime"));
 
 						case "alltimerecordslogfile.json":
-							return this.JsonResponse(dataEditor.GetRecordsLogFile("alltime"));
+							return await this.JsonResponseAsync(dataEditor.GetRecordsLogFile("alltime"));
 
 						case "monthlyrecords.json":
-							return this.JsonResponse(dataEditor.GetMonthlyRecData());
+							return await this.JsonResponseAsync(dataEditor.GetMonthlyRecData());
 
 						case "monthlyrecordsdayfile.json":
-							return this.JsonResponse(dataEditor.GetMonthlyRecDayFile());
+							return await this.JsonResponseAsync(dataEditor.GetMonthlyRecDayFile());
 
 						case "monthlyrecordslogfile.json":
-							return this.JsonResponse(dataEditor.GetMonthlyRecLogFile());
+							return await this.JsonResponseAsync(dataEditor.GetMonthlyRecLogFile());
 
 						case "thismonthrecords.json":
-							return this.JsonResponse(dataEditor.GetThisMonthRecData());
+							return await this.JsonResponseAsync(dataEditor.GetThisMonthRecData());
 
 						case "thismonthrecordsdayfile.json":
-							return this.JsonResponse(dataEditor.GetRecordsDayFile("thismonth"));
+							return await this.JsonResponseAsync(dataEditor.GetRecordsDayFile("thismonth"));
 
 						case "thismonthrecordslogfile.json":
-							return this.JsonResponse(dataEditor.GetRecordsLogFile("thismonth"));
+							return await this.JsonResponseAsync(dataEditor.GetRecordsLogFile("thismonth"));
 
 						case "thisyearrecords.json":
-							return this.JsonResponse(dataEditor.GetThisYearRecData());
+							return await this.JsonResponseAsync(dataEditor.GetThisYearRecData());
 
 						case "thisyearrecordsdayfile.json":
-							return this.JsonResponse(dataEditor.GetRecordsDayFile("thisyear"));
+							return await this.JsonResponseAsync(dataEditor.GetRecordsDayFile("thisyear"));
 
 						case "thisyearrecordslogfile.json":
-							return this.JsonResponse(dataEditor.GetRecordsLogFile("thisyear"));
+							return await this.JsonResponseAsync(dataEditor.GetRecordsLogFile("thisyear"));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -177,7 +179,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -188,7 +190,7 @@ namespace CumulusMX
 			}
 
 			[WebApiHandler(HttpVerbs.Post, RelativePath + "edit/*")]
-			public bool EditData()
+			public async Task<bool> EditData()
 			{
 				try
 				{
@@ -198,48 +200,48 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "raintodayeditdata.json":
-							return this.JsonResponse(dataEditor.GetRainTodayEditData());
+							return await this.JsonResponseAsync(dataEditor.GetRainTodayEditData());
 
 						case "raintoday":
-							return this.JsonResponse(dataEditor.EditRainToday(this));
+							return await this.JsonResponseAsync(dataEditor.EditRainToday(this));
 
 						case "diarydata":
-							return this.JsonResponse(dataEditor.EditDiary(this));
+							return await this.JsonResponseAsync(dataEditor.EditDiary(this));
 
 						case "diarydelete":
-							return this.JsonResponse(dataEditor.DeleteDiary(this));
+							return await this.JsonResponseAsync(dataEditor.DeleteDiary(this));
 
 						case "currcond":
-							return this.JsonResponse(dataEditor.EditCurrentCond(this));
+							return await this.JsonResponseAsync(dataEditor.EditCurrentCond(this));
 
 						case "alltime":
-							return this.JsonResponse(dataEditor.EditAllTimeRecs(this));
+							return await this.JsonResponseAsync(dataEditor.EditAllTimeRecs(this));
 
 						case "monthly":
-							return this.JsonResponse(dataEditor.EditMonthlyRecs(this));
+							return await this.JsonResponseAsync(dataEditor.EditMonthlyRecs(this));
 
 						case "thismonth":
-							return this.JsonResponse(dataEditor.EditThisMonthRecs(this));
+							return await this.JsonResponseAsync(dataEditor.EditThisMonthRecs(this));
 
 						case "thisyear":
-							return this.JsonResponse(dataEditor.EditThisYearRecs(this));
+							return await this.JsonResponseAsync(dataEditor.EditThisYearRecs(this));
 
 						case "dayfile":
-							return this.JsonResponse(dataEditor.EditDayFile(this));
+							return await this.JsonResponseAsync(dataEditor.EditDayFile(this));
 
 						case "datalogs":
-							return this.JsonResponse(dataEditor.EditDatalog(this));
+							return await this.JsonResponseAsync(dataEditor.EditDatalog(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -249,7 +251,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -260,7 +262,7 @@ namespace CumulusMX
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "data/*")]
-			public bool GetData()
+			public async Task<bool> GetData()
 			{
 				try
 				{
@@ -278,29 +280,29 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "dayfile":
-							return this.JsonResponse(Station.GetDayfile(draw,start,length));
+							return await this.JsonResponseAsync(Station.GetDayfile(draw,start,length));
 						case "logfile":
-							return this.JsonResponse(Station.GetLogfile(month,draw,start,length,false));
+							return await this.JsonResponseAsync(Station.GetLogfile(month,draw,start,length,false));
 						case "extralogfile":
-							return this.JsonResponse(Station.GetLogfile(month, draw, start, length, true));
+							return await this.JsonResponseAsync(Station.GetLogfile(month, draw, start, length, true));
 						case "currentdata":
-							return this.JsonResponse(Station.GetCurrentData());
+							return await this.JsonResponseAsync(Station.GetCurrentData());
 						case "diarydata":
-							return this.JsonResponse(Station.GetDiaryData(date));
+							return await this.JsonResponseAsync(Station.GetDiaryData(date));
 						case "diarysummary":
-							//return this.JsonResponse(Station.GetDiarySummary(year, month));
-							return this.JsonResponse(Station.GetDiarySummary());
+							//return await this.JsonResponseAsync(Station.GetDiarySummary(year, month));
+							return await this.JsonResponseAsync(Station.GetDiarySummary());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -310,7 +312,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -321,7 +323,7 @@ namespace CumulusMX
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "graphdata/*")]
-			public bool GetGraphData()
+			public async Task<bool> GetGraphData()
 			{
 				try
 				{
@@ -331,54 +333,54 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "tempdata.json":
-							return this.JsonResponse(Station.GetTempGraphData());
+							return await this.JsonResponseAsync(Station.GetTempGraphData());
 						case "tempdatad3.json":
-							return this.JsonResponse(Station.GetTempGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetTempGraphDataD3());
 						case "winddata.json":
-							return this.JsonResponse(Station.GetWindGraphData());
+							return await this.JsonResponseAsync(Station.GetWindGraphData());
 						case "winddatad3.json":
-							return this.JsonResponse(Station.GetWindGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetWindGraphDataD3());
 						case "raindata.json":
-							return this.JsonResponse(Station.GetRainGraphData());
+							return await this.JsonResponseAsync(Station.GetRainGraphData());
 						case "raindatad3.json":
-							return this.JsonResponse(Station.GetRainGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetRainGraphDataD3());
 						case "pressdata.json":
-							return this.JsonResponse(Station.GetPressGraphData());
+							return await this.JsonResponseAsync(Station.GetPressGraphData());
 						case "pressdatad3.json":
-							return this.JsonResponse(Station.GetPressGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetPressGraphDataD3());
 						case "wdirdata.json":
-							return this.JsonResponse(Station.GetWindDirGraphData());
+							return await this.JsonResponseAsync(Station.GetWindDirGraphData());
 						case "wdirdatad3.json":
-							return this.JsonResponse(Station.GetWindDirGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetWindDirGraphDataD3());
 						case "humdata.json":
-							return this.JsonResponse(Station.GetHumGraphData());
+							return await this.JsonResponseAsync(Station.GetHumGraphData());
 						case "humdatad3.json":
-							return this.JsonResponse(Station.GetHumGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetHumGraphDataD3());
 						case "solardata.json":
-							return this.JsonResponse(Station.GetSolarGraphData());
+							return await this.JsonResponseAsync(Station.GetSolarGraphData());
 						case "solardatad3.json":
-							return this.JsonResponse(Station.GetSolarGraphDataD3());
+							return await this.JsonResponseAsync(Station.GetSolarGraphDataD3());
 						case "dailyrain.json":
-							return this.JsonResponse(Station.GetDailyRainGraphData());
+							return await this.JsonResponseAsync(Station.GetDailyRainGraphData());
 						case "sunhours.json":
-							return this.JsonResponse(Station.GetSunHoursGraphData());
+							return await this.JsonResponseAsync(Station.GetSunHoursGraphData());
 						case "dailytemp.json":
-							return this.JsonResponse(Station.GetDailyTempGraphData());
+							return await this.JsonResponseAsync(Station.GetDailyTempGraphData());
 						case "units.json":
-							return this.JsonResponse(Station.GetUnits());
+							return await this.JsonResponseAsync(Station.GetUnits());
 						case "graphconfig.json":
-							return this.JsonResponse(Station.GetGraphConfig());
+							return await this.JsonResponseAsync(Station.GetGraphConfig());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -388,7 +390,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -399,7 +401,7 @@ namespace CumulusMX
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/alltime/*")]
-			public bool GetAlltimeData()
+			public async Task<bool> GetAlltimeData()
 			{
 				try
 				{
@@ -409,27 +411,27 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "temperature.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetTempRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetTempRecords()));
 						case "humidity.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetHumRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetHumRecords()));
 						case "pressure.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetPressRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetPressRecords()));
 						case "wind.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetWindRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetWindRecords()));
 						case "rain.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetRainRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetRainRecords()));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/month/*")]
-			public bool GetMonthlyRecordData()
+			public async Task<bool> GetMonthlyRecordData()
 			{
 				try
 				{
@@ -441,27 +443,27 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "temperature.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetMonthlyTempRecords(month)));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyTempRecords(month)));
 						case "humidity.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetMonthlyHumRecords(month)));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyHumRecords(month)));
 						case "pressure.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetMonthlyPressRecords(month)));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyPressRecords(month)));
 						case "wind.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetMonthlyWindRecords(month)));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyWindRecords(month)));
 						case "rain.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetMonthlyRainRecords(month)));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyRainRecords(month)));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/thismonth/*")]
-			public bool GetThisMonthRecordData()
+			public async Task<bool> GetThisMonthRecordData()
 			{
 				try
 				{
@@ -471,27 +473,27 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "temperature.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisMonthTempRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthTempRecords()));
 						case "humidity.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisMonthHumRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthHumRecords()));
 						case "pressure.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisMonthPressRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthPressRecords()));
 						case "wind.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisMonthWindRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthWindRecords()));
 						case "rain.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisMonthRainRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthRainRecords()));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/thisyear/*")]
-			public bool GetThisYearRecordData()
+			public async Task<bool> GetThisYearRecordData()
 			{
 				try
 				{
@@ -501,26 +503,26 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "temperature.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisYearTempRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearTempRecords()));
 						case "humidity.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisYearHumRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearHumRecords()));
 						case "pressure.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisYearPressRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearPressRecords()));
 						case "wind.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisYearWindRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearWindRecords()));
 						case "rain.json":
-							return this.JsonResponse(EscapeUnicode(Station.GetThisYearRainRecords()));
+							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearRainRecords()));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -530,7 +532,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -539,7 +541,7 @@ namespace CumulusMX
 			public TodayYestDataController(IHttpContext context) : base(context) {}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "todayyest/*")]
-			public bool GetYesterdayData()
+			public async Task<bool> GetYesterdayData()
 			{
 				try
 				{
@@ -549,28 +551,28 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "temp.json":
-							return this.JsonResponse(Station.GetTodayYestTemp());
+							return await this.JsonResponseAsync(Station.GetTodayYestTemp());
 						case "hum.json":
-							return this.JsonResponse(Station.GetTodayYestHum());
+							return await this.JsonResponseAsync(Station.GetTodayYestHum());
 						case "rain.json":
-							return this.JsonResponse(Station.GetTodayYestRain());
+							return await this.JsonResponseAsync(Station.GetTodayYestRain());
 						case "wind.json":
-							return this.JsonResponse(Station.GetTodayYestWind());
+							return await this.JsonResponseAsync(Station.GetTodayYestWind());
 						case "pressure.json":
-							return this.JsonResponse(Station.GetTodayYestPressure());
+							return await this.JsonResponseAsync(Station.GetTodayYestPressure());
 						case "solar.json":
-							return this.JsonResponse(Station.GetTodayYestSolar());
+							return await this.JsonResponseAsync(Station.GetTodayYestSolar());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -580,7 +582,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -589,7 +591,7 @@ namespace CumulusMX
 			public ExtraDataController(IHttpContext context) : base(context) { }
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "extra/*")]
-			public bool GetExtraData()
+			public async Task<bool> GetExtraData()
 			{
 				try
 				{
@@ -599,34 +601,34 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "temp.json":
-							return this.JsonResponse(Station.GetExtraTemp());
+							return await this.JsonResponseAsync(Station.GetExtraTemp());
 						case "hum.json":
-							return this.JsonResponse(Station.GetExtraHum());
+							return await this.JsonResponseAsync(Station.GetExtraHum());
 						case "dew.json":
-							return this.JsonResponse(Station.GetExtraDew());
+							return await this.JsonResponseAsync(Station.GetExtraDew());
 						case "soiltemp.json":
-							return this.JsonResponse(Station.GetSoilTemp());
+							return await this.JsonResponseAsync(Station.GetSoilTemp());
 						case "soilmoisture.json":
-							return this.JsonResponse(Station.GetSoilMoisture());
+							return await this.JsonResponseAsync(Station.GetSoilMoisture());
 						case "leaf.json":
-							return this.JsonResponse(Station.GetLeaf());
+							return await this.JsonResponseAsync(Station.GetLeaf());
 						case "leaf4.json":
-							return this.JsonResponse(Station.GetLeaf4());
+							return await this.JsonResponseAsync(Station.GetLeaf4());
 						case "airqual.json":
-							return this.JsonResponse(Station.GetAirQuality());
+							return await this.JsonResponseAsync(Station.GetAirQuality());
 						case "lightning.json":
-							return this.JsonResponse(Station.GetLightning());
+							return await this.JsonResponseAsync(Station.GetLightning());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -636,7 +638,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -645,7 +647,7 @@ namespace CumulusMX
 			public SetSettingsController(IHttpContext context) : base(context) { }
 
 			[WebApiHandler(HttpVerbs.Post, RelativePath + "setsettings/*")]
-			public bool SettingsSet()
+			public async Task<bool> SettingsSet()
 			{
 				try
 				{
@@ -655,38 +657,38 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "updatestationconfig.json":
-							return this.JsonResponse(stationSettings.UpdateStationConfig(this));
+							return await this.JsonResponseAsync(stationSettings.UpdateStationConfig(this));
 						case "updateinternetconfig.json":
-							return this.JsonResponse(internetSettings.UpdateInternetConfig(this));
+							return await this.JsonResponseAsync(internetSettings.UpdateInternetConfig(this));
 						case "updatecalibrationconfig.json":
-							return this.JsonResponse(calibrationSettings.UpdateCalibrationConfig(this));
+							return await this.JsonResponseAsync(calibrationSettings.UpdateCalibrationConfig(this));
 						case "updatenoaaconfig.json":
-							return this.JsonResponse(noaaSettings.UpdateNoaaConfig(this));
+							return await this.JsonResponseAsync(noaaSettings.UpdateNoaaConfig(this));
 						case "updateextrawebfiles.html":
-							return this.JsonResponse(internetSettings.UpdateExtraWebFiles(this));
+							return await this.JsonResponseAsync(internetSettings.UpdateExtraWebFiles(this));
 						case "updatemysqlconfig.json":
-							return this.JsonResponse(mySqlSettings.UpdateMysqlConfig(this));
+							return await this.JsonResponseAsync(mySqlSettings.UpdateMysqlConfig(this));
 						case "createmonthlysql.json":
-							return this.JsonResponse(mySqlSettings.CreateMonthlySQL(this));
+							return await this.JsonResponseAsync(mySqlSettings.CreateMonthlySQL(this));
 						case "createdayfilesql.json":
-							return this.JsonResponse(mySqlSettings.CreateDayfileSQL(this));
+							return await this.JsonResponseAsync(mySqlSettings.CreateDayfileSQL(this));
 						case "createrealtimesql.json":
-							return this.JsonResponse(mySqlSettings.CreateRealtimeSQL(this));
+							return await this.JsonResponseAsync(mySqlSettings.CreateRealtimeSQL(this));
 						case "updatealarmconfig.json":
-							return this.JsonResponse(alarmSettings.UpdateAlarmSettings(this));
+							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
 						case "ftpnow.json":
-							return this.JsonResponse(stationSettings.FtpNow());
+							return await this.JsonResponseAsync(stationSettings.FtpNow());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -696,7 +698,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -705,7 +707,7 @@ namespace CumulusMX
 			public GetSettingsController(IHttpContext context) : base(context) { }
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "settings/*")]
-			public bool SettingsGet()
+			public async Task<bool> SettingsGet()
 			{
 				/* string authorization = context.Request.Headers["Authorization"];
 				 string userInfo;
@@ -741,61 +743,61 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "stationdata.json":
-							return this.JsonResponse(stationSettings.GetStationAlpacaFormData());
+							return await this.JsonResponseAsync(stationSettings.GetStationAlpacaFormData());
 						case "stationoptions.json":
-							return this.JsonResponse(stationSettings.GetStationAlpacaFormOptions());
+							return await this.JsonResponseAsync(stationSettings.GetStationAlpacaFormOptions());
 						case "stationschema.json":
-							return this.JsonResponse(stationSettings.GetStationAlpacaFormSchema());
+							return await this.JsonResponseAsync(stationSettings.GetStationAlpacaFormSchema());
 
 						case "internetdata.json":
-							return this.JsonResponse(internetSettings.GetInternetAlpacaFormData());
+							return await this.JsonResponseAsync(internetSettings.GetInternetAlpacaFormData());
 						case "internetoptions.json":
-							return this.JsonResponse(internetSettings.GetInternetAlpacaFormOptions());
+							return await this.JsonResponseAsync(internetSettings.GetInternetAlpacaFormOptions());
 						case "internetschema.json":
-							return this.JsonResponse(internetSettings.GetInternetAlpacaFormSchema());
+							return await this.JsonResponseAsync(internetSettings.GetInternetAlpacaFormSchema());
 
 						case "extrawebfiles.json":
-							return this.JsonResponse(internetSettings.GetExtraWebFilesData());
+							return await this.JsonResponseAsync(internetSettings.GetExtraWebFilesData());
 
 						case "calibrationdata.json":
-							return this.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormData());
+							return await this.JsonResponseAsync(calibrationSettings.GetCalibrationAlpacaFormData());
 						case "calibrationoptions.json":
-							return this.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormOptions());
+							return await this.JsonResponseAsync(calibrationSettings.GetCalibrationAlpacaFormOptions());
 						case "calibrationschema.json":
-							return this.JsonResponse(calibrationSettings.GetCalibrationAlpacaFormSchema());
+							return await this.JsonResponseAsync(calibrationSettings.GetCalibrationAlpacaFormSchema());
 
 						case "noaadata.json":
-							return this.JsonResponse(noaaSettings.GetNoaaAlpacaFormData());
+							return await this.JsonResponseAsync(noaaSettings.GetNoaaAlpacaFormData());
 						case "noaaoptions.json":
-							return this.JsonResponse(noaaSettings.GetNoaaAlpacaFormOptions());
+							return await this.JsonResponseAsync(noaaSettings.GetNoaaAlpacaFormOptions());
 						case "noaaschema.json":
-							return this.JsonResponse(noaaSettings.GetNoaaAlpacaFormSchema());
+							return await this.JsonResponseAsync(noaaSettings.GetNoaaAlpacaFormSchema());
 
 						case "wsport.json":
-							return this.JsonResponse(stationSettings.GetWSport());
+							return await this.JsonResponseAsync(stationSettings.GetWSport());
 						case "version.json":
-							return this.JsonResponse(stationSettings.GetVersion());
+							return await this.JsonResponseAsync(stationSettings.GetVersion());
 
 						case "mysqldata.json":
-							return this.JsonResponse(mySqlSettings.GetMySqlAlpacaFormData());
+							return await this.JsonResponseAsync(mySqlSettings.GetMySqlAlpacaFormData());
 						case "mysqloptions.json":
-							return this.JsonResponse(mySqlSettings.GetMySqAlpacaFormOptions());
+							return await this.JsonResponseAsync(mySqlSettings.GetMySqAlpacaFormOptions());
 						case "mysqlschema.json":
-							return this.JsonResponse(mySqlSettings.GetMySqAlpacaFormSchema());
+							return await this.JsonResponseAsync(mySqlSettings.GetMySqAlpacaFormSchema());
 
 						case "alarms.json":
-							return this.JsonResponse(alarmSettings.GetAlarmSettings());
+							return await this.JsonResponseAsync(alarmSettings.GetAlarmSettings());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -805,7 +807,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -816,7 +818,7 @@ namespace CumulusMX
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "reports/*")]
-			public bool GetData()
+			public async Task<bool> GetData()
 			{
 				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
 				try
@@ -828,28 +830,28 @@ namespace CumulusMX
 					int month, year;
 
 					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
-						return this.JsonResponse("Invalid year supplied: " + year);
+						return await this.JsonResponseAsync("Invalid year supplied: " + year);
 
 					switch (lastSegment)
 					{
 						case "noaayear":
-							return this.JsonResponse(noaarpts.GetNoaaYearReport(year));
+							return await this.JsonResponseAsync(noaarpts.GetNoaaYearReport(year));
 						case "noaamonth":
 							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
-								return this.JsonResponse("Invalid month supplied: " + month);
-							return this.JsonResponse(noaarpts.GetNoaaMonthReport(year, month));
+								return await this.JsonResponseAsync("Invalid month supplied: " + month);
+							return await this.JsonResponseAsync(noaarpts.GetNoaaMonthReport(year, month));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "genreports/*")]
-			public bool GenReports()
+			public async Task<bool> GenReports()
 			{
 				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
 				try
@@ -861,27 +863,27 @@ namespace CumulusMX
 					int month, year;
 
 					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
-						return this.JsonResponse("Invalid year supplied: " + year);
+						return await this.JsonResponseAsync("Invalid year supplied: " + year);
 
 					switch (lastSegment)
 					{
 						case "noaayear":
-							return this.JsonResponse(noaarpts.GenerateNoaaYearReport(year));
+							return await this.JsonResponseAsync(noaarpts.GenerateNoaaYearReport(year));
 						case "noaamonth":
 							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
-								return this.JsonResponse("Invalid month supplied: " + month);
-							return this.JsonResponse(noaarpts.GenerateNoaaMonthReport(year, month));
+								return await this.JsonResponseAsync("Invalid month supplied: " + month);
+							return await this.JsonResponseAsync(noaarpts.GenerateNoaaMonthReport(year, month));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch(Exception ex)
 				{
-					return HandleError(ex, 404);
+					return await HandleError(ex, 404);
 				}
 			}
 
-			private bool HandleError(Exception ex, int statusCode)
+			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
 				{
@@ -891,7 +893,7 @@ namespace CumulusMX
 				};
 
 				this.Response.StatusCode = statusCode;
-				return this.JsonResponse(errorResponse);
+				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 	}

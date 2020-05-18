@@ -575,11 +575,8 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x04: //Wind chill (℃)
-								if (!cumulus.CalculatedWC)
-								{
-									tempInt16 = ConvertBigEndianInt16(data, idx);
-									DoWindChill(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
-								}
+								tempInt16 = ConvertBigEndianInt16(data, idx);
+								DoWindChill(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
 								idx += 2;
 								break;
 							case 0x05: //Heat index (℃)
@@ -771,16 +768,24 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x60: //Lightning dist (1-40km)
-								//cumulus.LogDebugMessage($"Lightning dist={data[idx]}");
-								LightningDistance = ConvertKmtoUserUnits(data[idx]);
+								// Sends a default value of 255km until the first strike is detected
+								LightningDistance = data[idx] == 0xFF ? 999 : ConvertKmtoUserUnits(data[idx]);
 								idx += 1;
 								break;
 							case 0x61: //Lightning time (UTC)
+								// Sends a default value until the first strike is detected of 0xFFFFFFFF
 								tempUint32 = ConvertBigEndianUInt32(data, idx);
-								var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-								dtDateTime = dtDateTime.AddSeconds(tempUint32).ToLocalTime();
-								//cumulus.LogDebugMessage($"Lightning time={dtDateTime}");
-								LightningTime = dtDateTime;
+								if (tempUint32 == 0xFFFFFFFF)
+								{
+									LightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+								}
+								else
+								{
+									var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+									dtDateTime = dtDateTime.AddSeconds(tempUint32).ToLocalTime();
+									//cumulus.LogDebugMessage($"Lightning time={dtDateTime}");
+									LightningTime = dtDateTime;
+								}
 								idx += 4;
 								break;
 							case 0x62: //Lightning strikes today

@@ -11,7 +11,6 @@ namespace CumulusMX
     {
         public static Cumulus cumulus;
         public static bool exitSystem = false;
-        //private exitHandler ctrlchandler;
 
         private static void Main(string[] args)
         {
@@ -19,7 +18,6 @@ namespace CumulusMX
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
             const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
-            //if (Environment.OSVersion.Platform == PlatformID.Unix)
             if (Type.GetType("Mono.Runtime") != null)
             {
                 // Use reflection, so no attempt to load Mono dll on Windows
@@ -102,6 +100,7 @@ namespace CumulusMX
 #if DEBUG
             debug = true;
 #endif
+
 
             using (Mutex appMutex = new Mutex(false, "Global\\" + appGuid))
             {

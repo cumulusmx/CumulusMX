@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.0";
-		public string Build = "3076";
+		public string Version = "3.6.1";
+		public string Build = "3077";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -1006,8 +1006,6 @@ namespace CumulusMX
 							Environment.Exit(0);
 						}
 			*/
-
-
 
 			DirectorySeparator = Path.DirectorySeparatorChar;
 
@@ -6629,7 +6627,7 @@ namespace CumulusMX
 		private void CreateRealtimeFile()
 		{
 			/*
-			Example: 18/10/08 16:03:45 8.4 84 5.8 24.2 33.0 261 0.0 1.0 999.7 W 6 mph C mb mm 146.6 +0.1 85.2 588.4 11.6 20.3 57 3.6 -0.7 10.9 12:00 7.8 14:41 37.4 14:38 44.0 14:28 999.8 16:01 998.4 12:06 1.8.2 448 36.0 10.3 10.5 0
+			Example: 18/10/08 16:03:45 8.4 84 5.8 24.2 33.0 261 0.0 1.0 999.7 W 6 mph C mb mm 146.6 +0.1 85.2 588.4 11.6 20.3 57 3.6 -0.7 10.9 12:00 7.8 14:41 37.4 14:38 44.0 14:28 999.8 16:01 998.4 12:06 1.8.2 448 36.0 10.3 10.5 0 9.3
 
 			Field  Example    Description
 			1      18/10/08   date (always dd/mm/yy)
@@ -6690,72 +6688,76 @@ namespace CumulusMX
 			56     11.4       Sunshine hours today
 			57     420        Current theoretical max solar radiation
 			58     1          Is sunny?
+			59     8.4        Feels Like temperature
 		  */
 			var filename = AppDir + RealtimeFile;
 			DateTime timestamp = DateTime.Now;
 
 			using (StreamWriter file = new StreamWriter(filename, false))
 			{
-				file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss "));
-				file.Write(ReplaceCommas(station.OutdoorTemperature.ToString(TempFormat)) + ' '); // 3
+				var InvC = new CultureInfo("");
+
+				file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss ")); // 1, 2
+				file.Write(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' '); // 3
 				file.Write(station.OutdoorHumidity.ToString() + ' '); // 4
-				file.Write(ReplaceCommas(station.OutdoorDewpoint.ToString(TempFormat)) + ' '); // 5
-				file.Write(ReplaceCommas(station.WindAverage.ToString(WindFormat)) + ' '); // 6
-				file.Write(ReplaceCommas(station.WindLatest.ToString(WindFormat)) + ' '); // 7
+				file.Write(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' '); // 5
+				file.Write(station.WindAverage.ToString(WindFormat, InvC) + ' '); // 6
+				file.Write(station.WindLatest.ToString(WindFormat, InvC) + ' '); // 7
 				file.Write(station.Bearing.ToString() + ' '); // 8
-				file.Write(ReplaceCommas(station.RainRate.ToString(RainFormat)) + ' '); // 9
-				file.Write(ReplaceCommas(station.RainToday.ToString(RainFormat)) + ' '); // 10
-				file.Write(ReplaceCommas(station.Pressure.ToString(PressFormat)) + ' '); // 11
+				file.Write(station.RainRate.ToString(RainFormat, InvC) + ' '); // 9
+				file.Write(station.RainToday.ToString(RainFormat, InvC) + ' '); // 10
+				file.Write(station.Pressure.ToString(PressFormat, InvC) + ' '); // 11
 				file.Write(station.CompassPoint(station.Bearing) + ' '); // 12
 				file.Write(Beaufort(station.WindAverage) + ' '); // 13
 				file.Write(WindUnitText + ' '); // 14
 				file.Write(TempUnitText[1].ToString() + ' '); // 15
 				file.Write(PressUnitText + ' '); // 16
 				file.Write(RainUnitText + ' '); // 17
-				file.Write(ReplaceCommas(station.WindRunToday.ToString(WindRunFormat)) + ' '); // 18
+				file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' '); // 18
 				if (station.presstrendval > 0)
-					file.Write(ReplaceCommas('+' + station.presstrendval.ToString(PressFormat)) + ' '); // 19
+					file.Write('+' + station.presstrendval.ToString(PressFormat, InvC) + ' '); // 19
 				else
-					file.Write(ReplaceCommas(station.presstrendval.ToString(PressFormat)) + ' ');
-				file.Write(ReplaceCommas(station.RainMonth.ToString(RainFormat)) + ' '); // 20
-				file.Write(ReplaceCommas(station.RainYear.ToString(RainFormat)) + ' '); // 21
-				file.Write(ReplaceCommas(station.RainYesterday.ToString(RainFormat)) + ' '); // 22
-				file.Write(ReplaceCommas(station.IndoorTemperature.ToString(TempFormat)) + ' '); // 23
+					file.Write(station.presstrendval.ToString(PressFormat, InvC) + ' ');
+				file.Write(station.RainMonth.ToString(RainFormat, InvC) + ' '); // 20
+				file.Write(station.RainYear.ToString(RainFormat, InvC) + ' '); // 21
+				file.Write(station.RainYesterday.ToString(RainFormat, InvC) + ' '); // 22
+				file.Write(station.IndoorTemperature.ToString(TempFormat, InvC) + ' '); // 23
 				file.Write(station.IndoorHumidity.ToString() + ' '); // 24
-				file.Write(ReplaceCommas(station.WindChill.ToString(TempFormat)) + ' '); // 25
-				file.Write(ReplaceCommas(station.temptrendval.ToString(TempTrendFormat)) + ' '); // 26
-				file.Write(ReplaceCommas(station.HighTempToday.ToString(TempFormat)) + ' '); // 27
+				file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
+				file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
+				file.Write(station.HighTempToday.ToString(TempFormat, InvC) + ' '); // 27
 				file.Write(station.hightemptodaytime.ToString("HH:mm") + ' '); // 28
-				file.Write(ReplaceCommas(station.LowTempToday.ToString(TempFormat)) + ' '); // 29
+				file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
 				file.Write(station.lowtemptodaytime.ToString("HH:mm") + ' '); // 30
-				file.Write(ReplaceCommas(station.highwindtoday.ToString(WindFormat)) + ' '); // 31
+				file.Write(station.highwindtoday.ToString(WindFormat, InvC) + ' '); // 31
 				file.Write(station.highwindtodaytime.ToString("HH:mm") + ' '); // 32
-				file.Write(ReplaceCommas(station.highgusttoday.ToString(WindFormat)) + ' '); // 33
+				file.Write(station.highgusttoday.ToString(WindFormat, InvC) + ' '); // 33
 				file.Write(station.highgusttodaytime.ToString("HH:mm") + ' '); // 34
-				file.Write(ReplaceCommas(station.highpresstoday.ToString(PressFormat)) + ' '); // 35
+				file.Write(station.highpresstoday.ToString(PressFormat, InvC) + ' '); // 35
 				file.Write(station.highpresstodaytime.ToString("HH:mm") + ' '); // 36
-				file.Write(ReplaceCommas(station.lowpresstoday.ToString(PressFormat)) + ' '); // 37
+				file.Write(station.lowpresstoday.ToString(PressFormat, InvC) + ' '); // 37
 				file.Write(station.lowpresstodaytime.ToString("HH:mm") + ' '); // 38
 				file.Write(Version + ' '); // 39
 				file.Write(Build + ' '); // 40
-				file.Write(ReplaceCommas(station.RecentMaxGust.ToString(WindFormat)) + ' '); // 41
-				file.Write(ReplaceCommas(station.HeatIndex.ToString(TempFormat)) + ' '); // 42
-				file.Write(ReplaceCommas(station.Humidex.ToString(TempFormat)) + ' '); // 43
-				file.Write(ReplaceCommas(station.UV.ToString(UVFormat)) + ' '); // 44
-				file.Write(ReplaceCommas(station.ET.ToString(ETFormat)) + ' '); // 45
+				file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
+				file.Write(station.HeatIndex.ToString(TempFormat, InvC) + ' '); // 42
+				file.Write(station.Humidex.ToString(TempFormat, InvC) + ' '); // 43
+				file.Write(station.UV.ToString(UVFormat, InvC) + ' '); // 44
+				file.Write(station.ET.ToString(ETFormat, InvC) + ' '); // 45
 				file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' '); // 46
 				file.Write(station.AvgBearing.ToString() + ' '); // 47
-				file.Write(ReplaceCommas(station.RainLastHour.ToString(RainFormat)) + ' '); // 48
+				file.Write(station.RainLastHour.ToString(RainFormat, InvC) + ' '); // 48
 				file.Write(station.Forecastnumber.ToString() + ' '); // 49
 				file.Write(IsDaylight() ? "1 " : "0 ");
 				file.Write(station.SensorContactLost ? "1 " : "0 ");
 				file.Write(station.CompassPoint(station.AvgBearing) + ' '); // 52
 				file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
 				file.Write(CloudBaseInFeet ? "ft " : "m ");
-				file.Write(ReplaceCommas(station.ApparentTemperature.ToString(TempFormat)) + ' '); // 55
-				file.Write(ReplaceCommas(station.SunshineHours.ToString(SunFormat)) + ' '); // 56
-				file.Write((Convert.ToInt32(station.CurrentSolarMax)).ToString() + ' '); // 57
-				file.WriteLine(station.IsSunny ? "1 " : "0 ");
+				file.Write(station.ApparentTemperature.ToString(TempFormat, InvC) + ' '); // 55
+				file.Write(station.SunshineHours.ToString(SunFormat, InvC) + ' '); // 56
+				file.Write(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' '); // 57
+				file.WriteLine(station.IsSunny ? "1 " : "0 "); // 58
+				file.Write(station.FeelsLike.ToString(TempFormat, InvC)); // 59
 
 				file.Close();
 			}
