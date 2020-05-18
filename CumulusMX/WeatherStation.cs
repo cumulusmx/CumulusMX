@@ -8945,8 +8945,8 @@ namespace CumulusMX
 					highfeelsliketodaytime.ToShortTimeString() + "\",\"" + HighFeelsLikeYesterday.ToString(cumulus.TempFormat) + "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() +
 					"\",\"" + highfeelslikeyesterdaytime.ToShortTimeString() + "\"],";
 			json += "[\"" + "Low Feels Like" + "\",\"" + LowFeelsLikeToday.ToString(cumulus.TempFormat) + "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() + "\",\"" +
-					lowfeelsliketodaytime.ToShortTimeString() + "\",\"" + LowAppTempYesterday.ToString(cumulus.TempFormat) + "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() +
-					"\",\"" + lowapptempyesterdaytime.ToShortTimeString() + "\"],";
+					lowfeelsliketodaytime.ToShortTimeString() + "\",\"" + LowFeelsLikeYesterday.ToString(cumulus.TempFormat) + "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() +
+					"\",\"" + lowfeelslikeyesterdaytime.ToShortTimeString() + "\"],";
 			json += "[\"" + "High Dew Point" + "\",\"" + HighDewpointToday.ToString(cumulus.TempFormat) + "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() + "\",\"" +
 					HighDewpointTodayTime.ToShortTimeString() + "\",\"" + HighDewpointYesterday.ToString(cumulus.TempFormat) + "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() +
 					"\",\"" + HighDewpointYesterdayTime.ToShortTimeString() + "\"],";

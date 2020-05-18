@@ -2726,13 +2726,34 @@ namespace CumulusMX
 
 		private string TagLastRainTipISO(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.LastRainTip, TagParams);
+			return station.LastRainTip;
+		}
+
+		private string TagLastRainTip(Dictionary<string, string> TagParams)
+		{
+			DateTime lastTip;
+			string dtformat = TagParams.Get("format");
+			try
+			{
+				lastTip = DateTime.Parse(station.LastRainTip);
+				if (dtformat == null)
+				{
+					return lastTip.ToString("d");
+				}
+				else
+				{
+					return lastTip.ToString(dtformat);
+				}
+			}
+			catch (Exception)
+			{
+				return "---";
+			}
 		}
 
 		private string TagMinutesSinceLastRainTip(Dictionary<string,string> TagParams)
 		{
 			DateTime lastTip;
-
 			try
 			{
 				lastTip = DateTime.Parse(station.LastRainTip);
@@ -3308,12 +3329,18 @@ namespace CumulusMX
 
 		private string TagLightningDistance(Dictionary<string, string> TagParams)
 		{
-			return CheckRC(station.LightningDistance.ToString(cumulus.WindRunFormat), TagParams);
+			if (station.LightningDistance == 999)
+				return "--";
+			else
+				return CheckRC(station.LightningDistance.ToString(cumulus.WindRunFormat), TagParams);
 		}
 
 		private string TagLightningTime(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.LightningTime, "t", TagParams);
+			if (DateTime.Compare(station.LightningTime, new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)) == 0)
+				return "---";
+			else
+				return GetFormattedDateTime(station.LightningTime, "t", TagParams);
 		}
 
 		private string TagLightningStrikesToday(Dictionary<string, string> TagParams)
@@ -5096,6 +5123,7 @@ namespace CumulusMX
 				{ "version", Tagversion },
 				{ "build", Tagbuild },
 				{ "update", Tagupdate },
+				{ "LastRainTip", TagLastRainTip },
 				{ "LastRainTipISO", TagLastRainTipISO },
 				{ "MinutesSinceLastRainTip", TagMinutesSinceLastRainTip },
 				{ "LastDataReadT", TagLastDataReadT },
