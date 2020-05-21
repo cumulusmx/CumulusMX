@@ -298,21 +298,17 @@ namespace CumulusMX
 			WMR928ExtraTempValueOnly[channel] = true;
 			ExtraSensorsDetected = true;
 
-			double temp10 = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100);
-			if (buff[5]/16 == 8) temp10 = -temp10;
+			double temp = ExtractTemp(buff[4], buff[5]);
 
-			WMR928ExtraTempValues[channel] = ConvertTempCToUser(temp10/10);
+			WMR928ExtraTempValues[channel] = ConvertTempCToUser(temp);
+			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
 
 			if (cumulus.WMR928TempChannel == channel)
 			{
 				// use this sensor as main temp sensor
 				TempBattStatus = buff[3]/16;
 
-				// Extract temperature
-				temp10 = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100);
-				if (buff[5]/16 == 8) temp10 = -temp10;
-
-				DoOutdoorTemp(ConvertTempCToUser(temp10/10), DateTime.Now);
+				DoOutdoorTemp(WMR928ExtraTempValues[channel], DateTime.Now);
 
 				DoApparentTemp(DateTime.Now);
 				DoFeelsLike(DateTime.Now);
@@ -357,11 +353,10 @@ namespace CumulusMX
 			WMR928ExtraHumValues[channel] = hum;
 			DoExtraHum(hum, channel);
 
-			double temp10 = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100);
-			if (buff[5]/16 == 8) temp10 = -temp10;
+			double temp = ExtractTemp(buff[4], buff[5]);
 
-			WMR928ExtraTempValues[channel] = ConvertTempCToUser(temp10/10);
-			DoExtraTemp(ConvertTempCToUser(temp10/10), channel);
+			WMR928ExtraTempValues[channel] = ConvertTempCToUser(temp);
+			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
 
 			WMR928ExtraDPValues[channel] = ConvertTempCToUser(BCDchartoint(buff[7]));
 			ExtraDewPoint[channel] = ConvertTempCToUser(BCDchartoint(buff[7]));
@@ -374,11 +369,7 @@ namespace CumulusMX
 				// Extract humidity
 				DoOutdoorHumidity(BCDchartoint(buff[6]), DateTime.Now);
 
-				// Extract temperature
-				temp10 = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100);
-				if (buff[5]/16 == 8) temp10 = -temp10;
-
-				DoOutdoorTemp(ConvertTempCToUser(temp10/10), DateTime.Now);
+				DoOutdoorTemp(ConvertTempCToUser(temp), DateTime.Now);
 
 				DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[7])), DateTime.Now);
 			}
@@ -459,10 +450,9 @@ namespace CumulusMX
 				DoOutdoorHumidity(hum, DateTime.Now);
 
 				// Extract temperature
-				double temp10 = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100);
-				if (buff[5]/16 == 8) temp10 = -temp10;
+				double temp = ExtractTemp(buff[4], buff[5]);
 
-				DoOutdoorTemp(ConvertTempCToUser(temp10/10), DateTime.Now);
+				DoOutdoorTemp(ConvertTempCToUser(temp), DateTime.Now);
 
 				// Extract dewpoint
 				DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[7])), DateTime.Now);
@@ -550,10 +540,9 @@ namespace CumulusMX
 			//MainForm.Indoorbatt.Position := (15-indoor_batt_status)*100 DIV 15;
 
 			// Extract temp (tenths of deg C) in BCD;
-			double temp10 = BCDchartoint(buff[4]) + (BCDchartoint(buff[5]%10)*100);
-			if (buff[5]/16 == 8) temp10 = -temp10;
+			double temp = ExtractTemp(buff[4], buff[5]);
 
-			DoIndoorTemp(temp10/10.0);
+			DoIndoorTemp(temp);
 
 			// humidity in BCD; byte 6
 			DoIndoorHumidity(BCDchartoint(buff[6]));
@@ -673,5 +662,13 @@ namespace CumulusMX
 
 	//        cumulus.LogDebugMessage(datastr);
 		}
+
+		private double ExtractTemp(int byteOne, int byteTwo)
+		{
+			double temp10 = BCDchartoint(byteOne) + ((BCDchartoint(byteTwo) % 10) * 100);
+			if (byteTwo / 16 == 8) temp10 = -temp10;
+			return temp10 / 10;
+		}
+
 	}
 }
