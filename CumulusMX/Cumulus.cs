@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.2";
-		public string Build = "3078";
+		public string Version = "3.6.3";
+		public string Build = "3079";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -1402,10 +1402,9 @@ namespace CumulusMX
 			mySqlSettings = new MysqlSettings(this);
 			dataEditor = new DataEditor(this, station, webtags);
 
-			//ILog Log = Logger.For<Program>();
 
 			// switch off logging from Unosquare.Swan which underlies embedIO
-			Unosquare.Swan.Terminal.Settings.DisplayLoggingMessageType = Unosquare.Swan.LogMessageType.None;
+			Unosquare.Swan.Terminal.Settings.DisplayLoggingMessageType = Unosquare.Swan.LogMessageType.Fatal;
 
 			WebServer httpServer = new WebServer(HttpPort, RoutingStrategy.Wildcard);
 
@@ -1434,6 +1433,7 @@ namespace CumulusMX
 			httpServer.RunAsync();
 
 			Console.WriteLine("Cumulus running at: " + httpServer.Listener.Prefixes.First());
+
 			Console.WriteLine("  (Replace * with any IP address on this machine, or localhost)");
 			Console.WriteLine("  Open the admin interface by entering this URL in a browser.");
 			RealtimeTimer.Interval = RealtimeInterval;
@@ -5966,15 +5966,21 @@ namespace CumulusMX
 
 			if (station != null)
 			{
+				LogMessage("Station stopping");
 				station.Stop();
 
 				LogMessage("Station stopped");
 
 				if (station.HaveReadData)
+				{
+					LogMessage("Writing today.ini file");
 					station.WriteTodayFile(DateTime.Now, false);
+					LogMessage("Comleted writing today.ini file");
+				}
 				else
 					LogMessage("No data read this session, today.ini not written");
 			}
+			LogMessage("Station shutdown complete");
 		}
 
 		public void ExecuteProgram(string externalProgram, string externalParams)

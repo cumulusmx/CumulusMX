@@ -1,3 +1,15 @@
+3.6.3 - b3079
+=============
+- Reverts b3077 FluentFTP update
+- Fix for the long standing random Cumulus.ini/today.ini corruption when shutting down on Windows
+- Another fix for Oregon WMR928 extra temperature only sensors
+
+
+- Updated files
+	\CumulusMX.exe
+	\FluentFTP.dll
+
+
 3.6.2 - b3078
 =============
 - Fix for badly formed realtime.txt in b3077
@@ -10,7 +22,7 @@
 
 3.6.1 - b3077
 =============
-- Fix for Oregon WMR928 extra temperature only sensors (unconfirmed)
+- Fix for Oregon WMR928 extra temperature only sensors
 - Fix for yesterdays Feels Like values in Admin interface Today/Yesterday screen
 - Adds Feels Like to realtime.txt file as field 59
 - Changes GW1000 default Lightning distance to 999 (all user units), and time to 1900-01-01 00:00:00

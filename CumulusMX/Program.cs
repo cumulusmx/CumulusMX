@@ -123,9 +123,12 @@ namespace CumulusMX
                     Console.WriteLine("\nCumulus terminating");
                     cumulus.Stop();
                     Trace.WriteLine("Cumulus has shutdown");
-
+                    Trace.Flush();
                     Environment.Exit(0);
                 }
+
+                Trace.Flush();
+                Environment.Exit(0);
             }
         }
 
@@ -144,11 +147,14 @@ namespace CumulusMX
         {
             try
             {
-                Trace.Flush();
+                Trace.WriteLine("!!! Unhandled Exception !!!");
+                Trace.WriteLine(e.ExceptionObject.ToString());
+
                 Console.WriteLine(e.ExceptionObject.ToString());
                 Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
                 Console.WriteLine("Press Enter to terminate");
                 Console.ReadLine();
+                Trace.Flush();
                 Environment.Exit(1);
             }
             catch (Exception)
@@ -190,14 +196,14 @@ namespace CumulusMX
 
             Trace.WriteLine("Exiting system due to external: " + reason[(int)sig]);
 
-            //allow main to run off
-            Program.exitSystem = true;
-
             Program.cumulus.Stop();
 
             Trace.WriteLine("Cumulus has shutdown");
             Console.WriteLine("Cumulus stopped");
-            Environment.Exit(0);
+
+            //allow main to run off
+            Program.exitSystem = true;
+
             return true;
         }
     }
