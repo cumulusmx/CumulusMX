@@ -3247,6 +3247,46 @@ namespace CumulusMX
 			return station.SoilMoisture16.ToString();
 		}
 
+		private string TagUserTemp1(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[1].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp2(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[2].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp3(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[3].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp4(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[4].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp5(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[5].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp6(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[6].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp7(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[7].ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagUserTemp8(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.UserTemp[8].ToString(cumulus.TempFormat), TagParams);
+		}
+
 		private string TagAirQuality1(Dictionary<string, string> TagParams)
 		{
 			return CheckRC(station.AirQuality1.ToString(cumulus.TempFormat), TagParams);
@@ -5229,6 +5269,14 @@ namespace CumulusMX
 				{ "SoilMoisture14", TagSoilMoisture14 },
 				{ "SoilMoisture15", TagSoilMoisture15 },
 				{ "SoilMoisture16", TagSoilMoisture16 },
+				{ "UserTemp1", TagUserTemp1 },
+				{ "UserTemp2", TagUserTemp2 },
+				{ "UserTemp3", TagUserTemp3 },
+				{ "UserTemp4", TagUserTemp4 },
+				{ "UserTemp5", TagUserTemp5 },
+				{ "UserTemp6", TagUserTemp6 },
+				{ "UserTemp7", TagUserTemp7 },
+				{ "UserTemp8", TagUserTemp8 },
 				{ "AirQuality1", TagAirQuality1 },
 				{ "AirQuality2", TagAirQuality2 },
 				{ "AirQuality3", TagAirQuality3 },

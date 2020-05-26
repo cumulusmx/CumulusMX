@@ -7,6 +7,7 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Timers;
+using System.Runtime.Remoting.Messaging;
 
 namespace CumulusMX
 {
@@ -122,6 +123,7 @@ namespace CumulusMX
 			ch8 = 1 << 7
 		}
 
+
 		/*
 		private enum _wh41_ch : UInt16
 		{
@@ -162,37 +164,45 @@ namespace CumulusMX
 
 		private enum SensorIds
 		{
-			WH65,
-			WH68,
-			WH80,
-			WH40,
-			WH25,
-			WH26,
-			WH31_CH1,
-			WH31_CH2,
-			WH31_CH3,
-			WH31_CH4,
-			WH31_CH5,
-			WH31_CH6,
-			WH31_CH7,
-			WH31_CH8,
-			WH51_CH1,
-			WH51_CH2,
-			WH51_CH3,
-			WH51_CH4,
-			WH51_CH5,
-			WH51_CH6,
-			WH51_CH7,
-			WH51_CH8,
-			WH41_CH1,
-			WH41_CH2,
-			WH41_CH3,
-			WH41_CH4,
-			WH57,
-			WH55_CH1,
-			WH55_CH2,
-			WH55_CH3,
-			WH55_CH4
+			WH65,			// 0
+			WH68,			// 1
+			WH80,			// 2
+			WH40,			// 3
+			WH25,			// 4
+			WH26,			// 5
+			WH31_CH1,		// 6
+			WH31_CH2,		// 7
+			WH31_CH3,		// 8
+			WH31_CH4,		// 9
+			WH31_CH5,		// 10
+			WH31_CH6,		// 11
+			WH31_CH7,		// 12
+			WH31_CH8,		// 13
+			WH51_CH1,		// 14
+			WH51_CH2,		// 15
+			WH51_CH3,		// 16
+			WH51_CH4,		// 17
+			WH51_CH5,		// 18
+			WH51_CH6,		// 19
+			WH51_CH7,		// 20
+			WH51_CH8,		// 21
+			WH41_CH1,		// 22
+			WH41_CH2,		// 23
+			WH41_CH3,		// 24
+			WH41_CH4,		// 25
+			WH57,			// 26
+			WH55_CH1,		// 27
+			WH55_CH2,		// 28
+			WH55_CH3,		// 29
+			WH55_CH4,		// 30
+			WH34_CH1,		// 31
+			WH34_CH2,		// 32
+			WH34_CH3,		// 33
+			WH34_CH4,		// 34
+			WH34_CH5,		// 35
+			WH34_CH6,		// 36
+			WH34_CH7,		// 37
+			WH34_CH8		// 38
 		};
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
@@ -340,6 +350,7 @@ namespace CumulusMX
 						if (connectedOK)
 						{
 							cumulus.LogMessage("Reconnected to GW1000");
+							GetLiveData();
 						}
 					}
 					Thread.Sleep(1000 * 10);
@@ -555,6 +566,8 @@ namespace CumulusMX
 					var windSpeedLast = rainRateLast = rainLast = gustLast = 0;
 					var windDirLast = 0;
 
+					bool batteryLow = false;
+
 					do
 					{
 						switch (data[idx++])
@@ -591,7 +604,7 @@ namespace CumulusMX
 								DoOutdoorHumidity(data[idx], dateTime);
 								idx += 1;
 								break;
-							case 0x08: //Absolutely Barometric (hpa)
+							case 0x08: //Absolute Barometric (hpa)
 								idx += 2;
 								break;
 							case 0x09: //Relative Barometric (hpa)
@@ -613,6 +626,7 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x0D: //Rain Event (mm)
+							//TODO: add rain event total
 								idx += 2;
 								break;
 							case 0x0E: //Rain Rate (mm/h)
@@ -729,11 +743,10 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
-									   //TODO: battery status, do we need to know which sensors are attached?
+								//TODO: battery status, do we need to know which sensors are attached?
 								if (tenMinuteChanged)
 								{
-									DoBatteryStatus(data, idx);
-									tenMinuteChanged = false;
+									batteryLow = batteryLow || DoBatteryStatus(data, idx);
 								}
 								idx += 16;
 								break;
@@ -794,6 +807,29 @@ namespace CumulusMX
 								LightningStrikesToday = (int)tempUint32;
 								idx += 4;
 								break;
+							// user temp = WH34 8 channel Soil or Water temperature sensors
+							case 0x63: // user temp ch1 (°C)
+							case 0x64: // user temp ch2 (°C)
+							case 0x65: // user temp ch3 (°C)
+							case 0x66: // user temp ch4 (°C)
+							case 0x67: // user temp ch5 (°C)
+							case 0x68: // user temp ch6 (°C)
+							case 0x69: // user temp ch7 (°C)
+							case 0x6A: // user temp ch8 (°C)
+								chan = data[idx - 1] - 0x63 + 2;  // -> 2,4,6,8...
+								chan /= 2; // -> 1,2,3,4...
+								tempInt16 = ConvertBigEndianInt16(data, idx);
+								DoUserTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
+								idx += 2;
+								break;
+							case 0x6B: //WH34 User temperature battery (8 channels)
+									   //TODO: battery status, do we need to know which sensors are attached?
+								if (tenMinuteChanged)
+								{
+									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
+								}
+								idx += 8;
+								break;
 
 							default:
 								cumulus.LogDebugMessage($"Error: Unknown sensor id found = {data[idx - 1]}, at position = {idx - 1}");
@@ -803,7 +839,11 @@ namespace CumulusMX
 						}
 					} while (idx < size);
 
+					if (tenMinuteChanged) tenMinuteChanged = false;
+
 					// Now do the stuff that requires more than one input parameter
+
+					cumulus.BatteryLowAlarmState = batteryLow;
 
 					// No average in the live data, so use last value from cumulus
 					DoWind(windSpeedLast, windDirLast, WindAverage / cumulus.WindSpeedMult, dateTime);
@@ -901,10 +941,18 @@ namespace CumulusMX
 					}
 				}
 				// Check the response is to our command and checksum is OK
-				if (buffer[2] != command || !ChecksumOK(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
+				if (bytesRead == 0 || buffer[2] != command || !ChecksumOK(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
 				{
-					cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
-					cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer, 0, bytesRead - 1));
+					if (bytesRead > 0)
+					{
+						cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
+						cumulus.LogDebugMessage($"command resp={buffer[2]}, checksum=" + (ChecksumOK(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)) ? "OK" : "BAD"));
+						cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer, 0, bytesRead - 1));
+					}
+					else
+					{
+						cumulus.LogMessage($"DoCommand({cmdName}): No response received");
+					}
 				}
 				else
 				{
@@ -930,42 +978,46 @@ namespace CumulusMX
 			}
 		}
 
-		private void DoBatteryStatus(byte[] data, int index)
+		private bool DoBatteryStatus(byte[] data, int index)
 		{
 
 			BatteryStatus status = (BatteryStatus)RawDeserialize(data, index, typeof(BatteryStatus));
 			cumulus.LogDebugMessage("battery status...");
 
-			var str = "singles> wh24=" + TestBattery1(status.single, (byte)_sig_sen.wh24);
-			str += " wh25=" + TestBattery1(status.single, (byte)_sig_sen.wh25);
-			str += " wh26=" + TestBattery1(status.single, (byte)_sig_sen.wh26);
-			str += " wh40=" + TestBattery1(status.single, (byte)_sig_sen.wh40);
+			var str = "singles>" +
+				" wh24=" + TestBattery1(status.single, (byte)_sig_sen.wh24) +
+				" wh25=" + TestBattery1(status.single, (byte)_sig_sen.wh25) +
+				" wh26=" + TestBattery1(status.single, (byte)_sig_sen.wh26) +
+				" wh40=" + TestBattery1(status.single, (byte)_sig_sen.wh40);
 			cumulus.LogDebugMessage(str);
 
-			str = "wh31> ch1=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch1);
-			str += " ch2=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch2);
-			str += " ch3=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch3);
-			str += " ch4=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch4);
-			str += " ch5=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch5);
-			str += " ch6=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch6);
-			str += " ch7=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch7);
-			str += " ch8=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch8);
+			str = "wh31>" +
+				" ch1=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch1) +
+				" ch2=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch2) +
+				" ch3=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch3) +
+				" ch4=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch4) +
+				" ch5=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch5) +
+				" ch6=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch6) +
+				" ch7=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch7) +
+				" ch8=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch8);
 			cumulus.LogDebugMessage(str);
 
-			str = "wh41> ch1=" + TestBattery2(status.wh41, 0x0F);
-			str += " ch2=" + TestBattery2((UInt16)(status.wh41 >> 4), 0x0F);
-			str += " ch3=" + TestBattery2((UInt16)(status.wh41 >> 8), 0x0F);
-			str += " ch4=" + TestBattery2((UInt16)(status.wh41 >> 12), 0x0F);
+			str = "wh41>" +
+				" ch1=" + TestBattery2(status.wh41, 0x0F) +
+				" ch2=" + TestBattery2((UInt16)(status.wh41 >> 4), 0x0F) +
+				" ch3=" + TestBattery2((UInt16)(status.wh41 >> 8), 0x0F) +
+				" ch4=" + TestBattery2((UInt16)(status.wh41 >> 12), 0x0F);
 			cumulus.LogDebugMessage(str);
 
-			str = "wh51> ch1=" + TestBattery1(status.wh51, (byte)_wh51_ch.ch1);
-			str += " ch2=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch2);
-			str += " ch3=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch3);
-			str += " ch4=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch4);
-			str += " ch5=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch5);
-			str += " ch6=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch6);
-			str += " ch7=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch7);
-			str += " ch8=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch8);
+			str = "wh51>" +
+				" ch1=" + TestBattery1(status.wh51, (byte)_wh51_ch.ch1) +
+				" ch2=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch2) +
+				" ch3=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch3) +
+				" ch4=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch4) +
+				" ch5=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch5) +
+				" ch6=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch6) +
+				" ch7=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch7) +
+				" ch8=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch8);
 			cumulus.LogDebugMessage(str);
 
 			cumulus.LogDebugMessage("wh57> " + TestBattery3(status.wh57));
@@ -973,13 +1025,33 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("wh68> " + (0.02 * status.wh68) + "V");
 			cumulus.LogDebugMessage("wh80> " + (0.02 * status.wh80) + "V");
 
-			str = "wh55> ch1=" + TestBattery3(status.wh55_ch1);
-			str += " ch2=" + TestBattery3(status.wh55_ch2);
-			str += " ch3=" + TestBattery3(status.wh55_ch2);
-			str += " ch4=" + TestBattery3(status.wh55_ch2);
+			str = "wh55>" +
+				" ch1=" + TestBattery3(status.wh55_ch1) +
+				" ch2=" + TestBattery3(status.wh55_ch2) +
+				" ch3=" + TestBattery3(status.wh55_ch3) +
+				" ch4=" + TestBattery3(status.wh55_ch4);
 			cumulus.LogDebugMessage(str);
 
-			cumulus.BatteryLowAlarmState = str.Contains("Low");
+			return str.Contains("Low");
+		}
+
+		private bool DoWH34BatteryStatus(byte[] data, int index)
+		{
+
+			cumulus.LogDebugMessage("WH34 battery status...");
+			var str = "wh34>" +
+				" ch1=" + TestBattery3(data[index + 1]) +
+				" ch2=" + TestBattery3(data[index + 2]) +
+				" ch3=" + TestBattery3(data[index + 3]) +
+				" ch4=" + TestBattery3(data[index + 4]) +
+				" ch5=" + TestBattery3(data[index + 5]) +
+				" ch6=" + TestBattery3(data[index + 6]) +
+				" ch7=" + TestBattery3(data[index + 7]) +
+				" ch8=" + TestBattery3(data[index + 8]);
+
+			cumulus.LogDebugMessage(str);
+
+			return str.Contains("Low");
 		}
 
 		private string TestBattery1(byte value, byte mask)
@@ -1078,6 +1150,22 @@ namespace CumulusMX
 			public byte wh55_ch3;
 			public byte wh55_ch4;
 		}
+
+		/*
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+		private struct BatteryStatusWH34
+		{
+			public byte single;
+			public byte ch1;
+			public byte ch2;
+			public byte ch3;
+			public byte ch4;
+			public byte ch5;
+			public byte ch6;
+			public byte ch7;
+			public byte ch8;
+		}
+		*/
 
 		/*
 		private struct SensorInfo

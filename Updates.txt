@@ -1,3 +1,21 @@
+3.6.4 - b3080
+=============
+- Fix for Ctrl-C not being handled when running under Linux/mono. Now handles SIGTERM and console Ctrl-C
+- Fix for realtime FTP getting stuck on "already in progress"
+- Adds support for Ecowitt GW1000 WH34 8 channel "User" (soil and water) temperature sensors
+	New web tags <#UserTemp1> - <#UserTemp8>
+	ExtraLog file has eight new fields appended - UserTemp1-8
+
+- Updated files
+	\CumulusMX.exe
+	\Extrafileheader.txt
+	\SampleStrings.ini
+	\interface\extra.html
+	\interface\js\extradatalogs.js
+	\interface\js\extrasensors.js
+
+
+
 3.6.3 - b3079
 =============
 - Reverts b3077 FluentFTP update

@@ -348,6 +348,7 @@ namespace CumulusMX
 			ExtraTemp = new double[11];
 			ExtraHum = new double[11];
 			ExtraDewPoint = new double[11];
+			UserTemp = new double[9];
 
 			WindReadyToPlot = false;
 			HaveReadData = false;
@@ -1214,6 +1215,11 @@ namespace CumulusMX
 		/// Extra Temps
 		/// </summary>
 		public double[] ExtraTemp { get; set; }
+
+		/// <summary>
+		/// User allocated Temps
+		/// </summary>
+		public double[] UserTemp { get; set; }
 
 		/// <summary>
 		/// Extra Humidity
@@ -3442,6 +3448,15 @@ namespace CumulusMX
 				ExtraTemp[channel] = temp;
 			}
 		}
+
+		public void DoUserTemp(double temp, int channel)
+		{
+			if ((channel > 0) && (channel < 11))
+			{
+				UserTemp[channel] = temp;
+			}
+		}
+
 
 		public void DoExtraDP(double dp, int channel)
 		{
@@ -8761,6 +8776,25 @@ namespace CumulusMX
 						"\"]";
 
 				if (sensor < 10)
+				{
+					json += ",";
+				}
+			}
+
+			json += "]}";
+			return json;
+		}
+
+		public string GetUserTemp()
+		{
+			var json = "{\"data\":[";
+
+			for (int sensor = 1; sensor < 9; sensor++)
+			{
+				json += "[\"" + cumulus.UserTempCaptions[sensor] + "\",\"" + UserTemp[sensor].ToString(cumulus.TempFormat) + "\",\"&deg;" + cumulus.TempUnitText[1].ToString() +
+						"\"]";
+
+				if (sensor < 8)
 				{
 					json += ",";
 				}
