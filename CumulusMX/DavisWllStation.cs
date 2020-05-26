@@ -171,6 +171,7 @@ namespace CumulusMX
 							{
 								var recvBuffer = udpClient.Receive(ref @from);
 								DecodeBroadcast(Encoding.UTF8.GetString(recvBuffer));
+								recvBuffer = null;
 							}
 							catch (SocketException exp)
 							{
@@ -491,6 +492,9 @@ namespace CumulusMX
 							DoRain(rain, rainrate, dateTime);
 						}
 					}
+
+					data = null;
+
 					UpdateStatusPanel(DateTime.Now);
 					UpdateMQTT();
 
@@ -1267,13 +1271,13 @@ namespace CumulusMX
 			//histprog.Show();
 			bw.DoWork += bw_ReadHistory;
 			//bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-			bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+			bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_ReadHistoryCompleted);
 			bw.WorkerReportsProgress = true;
 			bw.RunWorkerAsync();
 
 		}
 
-		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+		private void bw_ReadHistoryCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
 			cumulus.LogMessage("WeatherLink API archive reading thread completed");
 			if (e.Error != null)

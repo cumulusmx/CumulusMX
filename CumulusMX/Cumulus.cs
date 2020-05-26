@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.3";
-		public string Build = "3079";
+		public string Version = "3.6.4";
+		public string Build = "3080";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -539,6 +539,7 @@ namespace CumulusMX
 		public bool RealtimeFTPEnabled; // The FTP connection is to be established
 		public bool RealtimeTxtFTP; // The realtime.txt file is to be uploaded
 		public bool RealtimeGaugesTxtFTP; // The realtimegauges.txt file is to be uploaded
+		private int RealtimeFTPRetries; // Count of failed realtime FTP attempts
 
 		// Twitter settings
 		public string Twitteruser = " ";
@@ -2163,104 +2164,112 @@ namespace CumulusMX
 			// We are not overly fussed about locking as the thread start times are sufficently far apart
 			if (RealtimeInProgress)
 			{
-				LogMessage("Warning, previous realtime ftp still in progress, skipping this period.");
-			}
-			else
-			{
-				RealtimeInProgress = true;
-				try
+				if (RealtimeFTPRetries++ < 3)
 				{
-					// Process any files
-					CreateRealtimeFile();
-					CreateRealtimeHTMLfiles();
-
-					if (RealtimeFTPEnabled)
-					{
-						// This only happens if the user enables realtime FTP after starting Cumulus
-						if (Sslftp == FtpProtocols.SFTP)
-						{
-							if (RealtimeSSH.ConnectionInfo.Host == null)
-							{
-								RealtimeSSHLogin();
-							}
-						}
-						else
-						{
-							if (RealtimeFTP.Host == null)
-							{
-								RealtimeFTPLogin();
-							}
-						}
-						// Force a test of the connection, IsConnected is not always reliable
-						try
-						{
-							string pwd;
-							if (Sslftp == FtpProtocols.SFTP)
-							{
-								pwd = RealtimeSSH.WorkingDirectory;
-							}
-							else
-							{
-								pwd = RealtimeFTP.GetWorkingDirectory();
-							}
-							if (pwd.Length == 0)
-							{
-								connectionFailed = true;
-							}
-						}
-						catch (Exception ex)
-						{
-							LogDebugMessage("Test of realtime FTP connection failed: " + ex.Message);
-							connectionFailed = true;
-						}
-
-						if (connectionFailed)
-						{
-							RealtimeFTPConnectionTest();
-						}
-
-						try
-						{
-							RealtimeFTPUpload();
-						}
-						catch (Exception ex)
-						{
-							LogMessage("Error during realtime FTP update: " + ex.Message);
-							RealtimeFTPConnectionTest();
-						}
-					}
-
-					if (!string.IsNullOrEmpty(RealtimeProgram))
-					{
-						//LogDebugMessage("Execute realtime program");
-						ExecuteProgram(RealtimeProgram, RealtimeParams);
-					}
+					LogMessage("Warning, previous realtime ftp still in progress, skipping this period.");
+					return;
 				}
-				catch (Exception ex)
+				else
 				{
-					LogMessage("Error during realtime update: " + ex.Message);
-					if (ex is NullReferenceException)
+					LogMessage("Error, realtime ftp has failed too many times, attempting to reconnect.");
+					RealtimeFTPRetries = 0;
+					RealtimeFTPConnectionTest();
+				}
+			}
+
+			RealtimeInProgress = true;
+			try
+			{
+				// Process any files
+				CreateRealtimeFile();
+				CreateRealtimeHTMLfiles();
+
+				if (RealtimeFTPEnabled)
+				{
+					// This only happens if the user enables realtime FTP after starting Cumulus
+					if (Sslftp == FtpProtocols.SFTP)
 					{
-						// If we haven't initialised the object (eg. user enables realtime FTP after starting Cumulus)
-						// then start from the beginning
-						if (Sslftp == FtpProtocols.SFTP)
+						if (!RealtimeSSH.ConnectionInfo.IsAuthenticated)
 						{
 							RealtimeSSHLogin();
-						}
-						else
-						{
-							RealtimeFTPLogin();
 						}
 					}
 					else
 					{
+						if (!RealtimeFTP.IsConnected)
+						{
+							RealtimeFTPLogin();
+						}
+					}
+					// Force a test of the connection, IsConnected is not always reliable
+					try
+					{
+						string pwd;
+						if (Sslftp == FtpProtocols.SFTP)
+						{
+							pwd = RealtimeSSH.WorkingDirectory;
+						}
+						else
+						{
+							pwd = RealtimeFTP.GetWorkingDirectory();
+						}
+						if (pwd.Length == 0)
+						{
+							connectionFailed = true;
+						}
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("Test of realtime FTP connection failed: " + ex.Message);
+						connectionFailed = true;
+					}
+
+					if (connectionFailed)
+					{
+						RealtimeFTPConnectionTest();
+					}
+
+					try
+					{
+						RealtimeFTPUpload();
+					}
+					catch (Exception ex)
+					{
+						LogMessage("Error during realtime FTP update: " + ex.Message);
 						RealtimeFTPConnectionTest();
 					}
 				}
-				finally
+
+				if (!string.IsNullOrEmpty(RealtimeProgram))
 				{
-					RealtimeInProgress = false;
+					//LogDebugMessage("Execute realtime program");
+					ExecuteProgram(RealtimeProgram, RealtimeParams);
 				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Error during realtime update: " + ex.Message);
+				if (ex is NullReferenceException)
+				{
+					// If we haven't initialised the object (eg. user enables realtime FTP after starting Cumulus)
+					// then start from the beginning
+					if (Sslftp == FtpProtocols.SFTP)
+					{
+						RealtimeSSHLogin();
+					}
+					else
+					{
+						RealtimeFTPLogin();
+					}
+				}
+				else
+				{
+					RealtimeFTPConnectionTest();
+				}
+			}
+			finally
+			{
+				RealtimeInProgress = false;
 			}
 		}
 
@@ -4542,6 +4551,16 @@ namespace CumulusMX
 				AirQualityAvgCaptions[3] = ini.GetValue("AirQualityCaptions", "SensorAvg3", "Sensor Avg 3");
 				AirQualityAvgCaptions[4] = ini.GetValue("AirQualityCaptions", "SensorAvg4", "Sensor Avg 4");
 
+				// User temperature captions (for Extra Sensor Data screen)
+				UserTempCaptions[1] = ini.GetValue("UserTempCaptions", "Sensor1", "Sensor 1");
+				UserTempCaptions[2] = ini.GetValue("UserTempCaptions", "Sensor2", "Sensor 2");
+				UserTempCaptions[3] = ini.GetValue("UserTempCaptions", "Sensor3", "Sensor 3");
+				UserTempCaptions[4] = ini.GetValue("UserTempCaptions", "Sensor4", "Sensor 4");
+				UserTempCaptions[5] = ini.GetValue("UserTempCaptions", "Sensor5", "Sensor 5");
+				UserTempCaptions[6] = ini.GetValue("UserTempCaptions", "Sensor6", "Sensor 6");
+				UserTempCaptions[7] = ini.GetValue("UserTempCaptions", "Sensor7", "Sensor 7");
+				UserTempCaptions[8] = ini.GetValue("UserTempCaptions", "Sensor8", "Sensor 8");
+
 				thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
 				thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
 
@@ -5108,6 +5127,7 @@ namespace CumulusMX
 		public string[] AirQualityCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
 		public string[] AirQualityAvgCaptions = { "", "Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4" };
 		public string[] LeafCaptions = { "", "Temp 1", "Temp 2", "Wetness 1", "Wetness 2" };
+		public string[] UserTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8" };
 		private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
 		private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
 
@@ -5395,7 +5415,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 76;
+		public const int NumExtraLogFileFields = 84;
 
 		public void DoExtraLogFile(DateTime timestamp)
 		{
@@ -5469,7 +5489,13 @@ namespace CumulusMX
 				file.Write(station.AirQualityAvg1.ToString(AirQualityFormat) + ListSeparator);
 				file.Write(station.AirQualityAvg2.ToString(AirQualityFormat) + ListSeparator);
 				file.Write(station.AirQualityAvg3.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQualityAvg4.ToString(AirQualityFormat));
+				file.Write(station.AirQualityAvg4.ToString(AirQualityFormat) + ListSeparator);
+
+				for (int i = 1; i < 8; i++)
+				{
+					file.Write(station.UserTemp[i].ToString(TempFormat) + ListSeparator);
+				}
+				file.Write(station.UserTemp[8].ToString(TempFormat));
 
 				file.WriteLine();
 				file.Close();
@@ -5975,7 +6001,7 @@ namespace CumulusMX
 				{
 					LogMessage("Writing today.ini file");
 					station.WriteTodayFile(DateTime.Now, false);
-					LogMessage("Comleted writing today.ini file");
+					LogMessage("Completed writing today.ini file");
 				}
 				else
 					LogMessage("No data read this session, today.ini not written");

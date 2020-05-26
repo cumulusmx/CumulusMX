@@ -31,9 +31,8 @@ namespace CumulusMX
                 _unixSignalWaitAny = _unixSignalType.GetMethod("WaitAny", new[] { _unixSignalType.MakeArrayType() });
                 _signumType = _posixAsm.GetType("Mono.Unix.Native.Signum");
 
-                Array _signals = Array.CreateInstance(_unixSignalType, 2);
-                _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGINT").GetValue(null)), 0);
-                _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 1);
+                Array _signals = Array.CreateInstance(_unixSignalType, 1);
+                _signals.SetValue(Activator.CreateInstance(_unixSignalType, _signumType.GetField("SIGTERM").GetValue(null)), 0);
 
                 Thread signal_thread = new Thread(delegate ()
                 {
@@ -42,13 +41,26 @@ namespace CumulusMX
                         // Wait for a signal to be delivered
                         var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
 
-                        Console.WriteLine("\nExiting system due to external signal: " + (id == 0 ? "SIGINT" : "SIGTERM"));
+                        Console.WriteLine("\nExiting system due to external SIGTERM signal");
 
                         exitSystem = true;
                     }
                 });
 
                 signal_thread.Start();
+
+                // Now we need to catch the console Ctrl-C
+                Console.CancelKeyPress += (s, ev) =>
+                {
+                    Console.WriteLine("Ctrl+C pressed");
+                    Console.WriteLine("\nCumulus terminating");
+                    cumulus.Stop();
+                    Trace.WriteLine("Cumulus has shutdown");
+                    Trace.Flush();
+                    ev.Cancel = true;
+                    exitSystem = true;
+                };
+
             }
             else
             {
@@ -116,15 +128,6 @@ namespace CumulusMX
                 while (!exitSystem)
                 {
                     Thread.Sleep(500);
-                }
-
-                if (Type.GetType("Mono.Runtime") != null)
-                {
-                    Console.WriteLine("\nCumulus terminating");
-                    cumulus.Stop();
-                    Trace.WriteLine("Cumulus has shutdown");
-                    Trace.Flush();
-                    Environment.Exit(0);
                 }
 
                 Trace.Flush();

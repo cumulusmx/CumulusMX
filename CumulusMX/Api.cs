@@ -618,6 +618,8 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(Station.GetAirQuality());
 						case "lightning.json":
 							return await this.JsonResponseAsync(Station.GetLightning());
+						case "usertemp.json":
+							return await this.JsonResponseAsync(Station.GetUserTemp());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
