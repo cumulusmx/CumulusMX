@@ -1554,7 +1554,7 @@ namespace CumulusMX
 
 			if (!DataStopped)
 			{
-				CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity);
+				CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity, cumulus.SolarCalc);
 				if (((Pressure > 0) && TempReadyToPlot && WindReadyToPlot) || cumulus.NoSensorCheck)
 				{
 					// increment wind run by one minute's worth of average speed
@@ -3867,7 +3867,7 @@ namespace CumulusMX
 				HighSolarToday = SolarRad;
 				highsolartodaytime = timestamp;
 			}
-			CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity);
+			CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity, cumulus.SolarCalc);
 
 			if (!cumulus.UseBlakeLarsen)
 			{

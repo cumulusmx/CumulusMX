@@ -70,7 +70,7 @@ namespace CumulusMX
 		}
 
 		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
-									  out double solarelevation, double transfactor, double turbidity)
+									  out double solarelevation, double transfactor, double turbidity, int method)
 		{
 			double az;
 
@@ -81,11 +81,11 @@ namespace CumulusMX
 			double erv = CalcSunDistance(utctime, dEpoch);
 
 			//cumulus.LogMessage(utctime+" lat="+latitude+" lon="+longitude+" sun elev="+solarelevation);
-			if (Program.cumulus.SolarCalc == 0)
+			if (method == 0)
 			{
 				return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
 			}
-			else if (Program.cumulus.SolarCalc == 1)
+			else if (method == 1)
 			{
 				return BrasSolar(solarelevation, erv, turbidity);
 			}
