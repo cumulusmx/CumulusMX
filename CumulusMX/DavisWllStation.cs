@@ -1057,6 +1057,8 @@ namespace CumulusMX
 					}
 				}
 
+				data = null;
+
 				DoApparentTemp(dateTime);
 				DoFeelsLike(dateTime);
 
@@ -1606,6 +1608,9 @@ namespace CumulusMX
 					cumulus.LogMessage("GetWlHistoricData exception: " + ex.Message);
 				}
 			}
+
+			sensorData = null;
+			jObject = null;
 
 			Console.WriteLine(""); // flush the progress line
 			return;
