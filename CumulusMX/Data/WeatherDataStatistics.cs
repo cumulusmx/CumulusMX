@@ -287,7 +287,7 @@ namespace CumulusMX.Data
                     var serialiser = new JsonSerializer();
                     //var unitsNetJson = new UnitsNetJsonConverter();
                     //unitsNetJson.AddUnit(typeof(Number), typeof(NumberUnit));
-                    serialiser.Converters.Add(new UnitsNetJsonConverter());
+                    serialiser.Converters.Add(new ExtendedJsonConverter());
                     serialiser.TypeNameHandling = TypeNameHandling.Auto;
                     var reader = new JsonTextReader(fileReader);
                     var newWds = serialiser.Deserialize<WeatherDataStatistics>(reader);
@@ -317,7 +317,7 @@ namespace CumulusMX.Data
             try
             {
                 var serialiser = new JsonSerializer();
-                serialiser.Converters.Add(new UnitsNetJsonConverter());
+                serialiser.Converters.Add(new ExtendedJsonConverter());
                 serialiser.TypeNameHandling = TypeNameHandling.Auto;
                 using (var fileWriter = File.Create(filename))
                 {

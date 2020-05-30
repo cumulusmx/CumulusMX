@@ -439,7 +439,7 @@ namespace UnitsNet
                     throw new NotImplementedException($"Can not convert {Unit} to {unit}.");
             }
         }
-
+        
         #endregion
 
         #region ToString Methods
