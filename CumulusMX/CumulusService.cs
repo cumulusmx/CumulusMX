@@ -13,10 +13,12 @@ using CumulusMX.Extensions.DataReporter;
 using CumulusMX.Extensions.Station;
 using CumulusMX.Common;
 using CumulusMX.Web;
+using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
-    public class CumulusService : ServiceBase
+    public class CumulusService : BackgroundService
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger("cumulus", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -54,7 +56,7 @@ namespace CumulusMX
             _reporters = new List<IDataReporter>();
         }
 
-        protected override void OnStart(string[] args)
+        protected void OnStart(string[] args)
         {
             log.Info("========================== Cumulus MX starting ==========================");
             log.Info($"Command line    : {Environment.CommandLine}");
@@ -168,16 +170,20 @@ namespace CumulusMX
             }
         }
 
-        protected override void OnStop()
-        {
-
-        }
-
-
         public void Start()
         {
-            OnStart(null);
+            var token = new CancellationToken();
+            ExecuteAsync(token).Wait();
         }
 
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            OnStart(null);
+            
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await Task.Delay(1000);
+            }
+        }
     }
 }

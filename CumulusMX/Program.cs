@@ -75,21 +75,22 @@ namespace CumulusMX
             log.Debug("Current Date: " + DateTime.Now.ToString("G"));
             var cumulusService = new CumulusService(httpport, pathToApplicationBase, pathToContentRoot);
 
-            if (runAsService)
-            {
-                ServiceBase.Run(new ServiceBase[]
-                {
-                    cumulusService
-                });
-            }
-            else
-            {
-                cumulusService.Start();
-                log.Debug("Type Ctrl-C to terminate");
-                exitEvent.WaitOne();
-                log.Debug("\nCumulus terminating");
-                cumulusService.Stop();
-            }
+            cumulusService.Start(); //TODO: Make cross-platform service work
+            // if (runAsService) 
+            // {
+            //     ServiceBase.Run(new ServiceBase[]
+            //     {
+            //         cumulusService
+            //     });
+            // }
+            // else
+            // {
+            //     cumulusService.Start();
+            //     log.Debug("Type Ctrl-C to terminate");
+            //     exitEvent.WaitOne();
+            //     log.Debug("\nCumulus terminating");
+            //     cumulusService.Stop();
+            // }
 
 
         }
