@@ -1,13 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="UnitsNet" Version="4.62.0" />
+    <PackageReference Include="UnitsNet.Serialization.JsonNet" Version="4.2.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
@@ -15,8 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CumulusMXTest.Common\CumulusMXTest.Common.csproj" />
     <ProjectReference Include="..\CumulusMX\CumulusMX.csproj" />
-    <ProjectReference Include="..\UnitsNet\UnitsNet.Serialization.JsonNet\UnitsNet.Serialization.JsonNet.csproj" />
-    <ProjectReference Include="..\UnitsNet\UnitsNet\UnitsNet.csproj" />
   </ItemGroup>
 
 </Project>

@@ -37,7 +37,7 @@ namespace UnitsNet
                 BaseDimensions.Dimensionless
             );
 
-            QuantityFactory.Default.AddUnit(typeof(Number), typeof(NumberUnit));
+            //QuantityFactory.Default.AddUnit(typeof(Number), typeof(NumberUnit));
         }
 
         /// <summary>

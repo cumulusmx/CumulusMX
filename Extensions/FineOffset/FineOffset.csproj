@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,8 +13,14 @@
     <ProjectReference Include="..\..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)CumulusMX\bin\$(ConfigurationName)\netcoreapp2.2\Extensions\$(TargetName)\&quot; /D /Y" />
+  <ItemGroup>
+    <FilesToCopy Include="$(TargetDir)*.dll" />
+    <FilesToCopy Include="$(TargetDir)*.StringTemplate" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="Build">
+    <Copy SourceFiles="@(FilesToCopy)"
+            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(TargetName)\" />
   </Target>
 
 </Project>

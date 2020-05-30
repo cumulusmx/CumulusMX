@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
@@ -20,13 +20,13 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.5.0" />
+    <PackageReference Include="unitsnet" Version="4.62.0" />
+    <PackageReference Include="UnitsNet.Serialization.JsonNet" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CumulusMX.Common\CumulusMX.Common.csproj" />
     <ProjectReference Include="..\CumulusMX.Extensions\CumulusMX.Extensions.csproj" />
-    <ProjectReference Include="..\UnitsNet\UnitsNet.Serialization.JsonNet\UnitsNet.Serialization.JsonNet.csproj" />
-    <ProjectReference Include="..\UnitsNet\UnitsNet\UnitsNet.csproj" />
   </ItemGroup>
 
   <ItemGroup>
