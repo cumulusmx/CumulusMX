@@ -331,7 +331,7 @@ namespace CumulusMX
 
 		internal void SetValue(string SectionName, string Key, double Value)
 		{
-			SetValue(SectionName, Key, Value.ToString(CultureInfo.InvariantCulture));
+			SetValue(SectionName, Key, Value.ToString("G17", CultureInfo.InvariantCulture));
 		}
 
 		internal void SetValue(string SectionName, string Key, byte[] Value)

@@ -1,9 +1,21 @@
+3.6.6 - b3082
+=============
+- Change ini files to use 17 significant figures for decimal values (up from 15)
+- Fix for Davis WLL health data decoding when the WLL is LAN attached
+- Fix for real time SFTP not reconnecting after failure
+
+
+- Updated files
+	\CumulusMX.exe
+
+
+
 3.6.5 - b3081
 =============
 - Fix for sun rise/set and dawn/dusk calcuations when there is one event but not the other in a single day
 - Fix for realtime FTP timeout/recovery issues
 
-- Update files
+- Updated files
 	\CumulusMX.exe
 
 

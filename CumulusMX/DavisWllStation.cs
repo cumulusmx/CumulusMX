@@ -2280,8 +2280,12 @@ namespace CumulusMX
 							upt.Seconds);
 					cumulus.LogDebugMessage("WLL Uptime = " + uptStr);
 
-					DavisTxRssi[0] = data.Value<int>("wifi_rssi");
-					cumulus.LogDebugMessage("WLL WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
+					// Only present if WiFi attached
+					if (data.SelectToken("wifi_rssi") != null)
+					{
+						DavisTxRssi[0] = data.Value<int>("wifi_rssi");
+						cumulus.LogDebugMessage("WLL WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
+					}
 
 					upt = TimeSpan.FromSeconds(data.Value<double>("link_uptime"));
 					uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",

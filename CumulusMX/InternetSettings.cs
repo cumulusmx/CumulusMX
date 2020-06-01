@@ -44,6 +44,8 @@ namespace CumulusMX
 				cumulus.Sslftp = (Cumulus.FtpProtocols)settings.website.sslftp;
 				cumulus.ftp_password = settings.website.password ?? string.Empty;
 				cumulus.ftp_user = settings.website.username ?? string.Empty;
+				cumulus.SshftpAuthentication = settings.website.sshAuth ?? string.Empty;
+				cumulus.SshftpPskFile = settings.website.pskFile ?? string.Empty;
 				cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty;
 
 				// web settings
@@ -276,6 +278,8 @@ namespace CumulusMX
 				hostname = cumulus.ftp_host,
 				password = cumulus.ftp_password,
 				username = cumulus.ftp_user,
+				sshAuth = cumulus.SshftpAuthentication,
+				pskFile = cumulus.SshftpPskFile,
 				webcamurl = cumulus.WebcamURL
 			};
 
@@ -638,6 +642,8 @@ namespace CumulusMX
 		public string directory { get; set; }
 		public string username { get; set; }
 		public string password { get; set; }
+		public string sshAuth { get; set; }
+		public string pskFile { get; set; }
 		public string forumurl { get; set; }
 		public string webcamurl { get; set; }
 	}
