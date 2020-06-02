@@ -20,7 +20,7 @@
 
   <Target Name="PostBuild" AfterTargets="Build">
     <Copy SourceFiles="@(FilesToCopy)"
-            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(TargetName)\" />
+            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(ProjectName)\" />
   </Target>
 
 </Project>

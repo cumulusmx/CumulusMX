@@ -13,13 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <FilesToCopy Include="$(TargetDir)*.dll" />
+    <FilesToCopy Include="$(TargetDir)*.dll" Exclude="CumulusMX.Extensions.dll;CumulusMX.Common.dll" />
     <FilesToCopy Include="$(TargetDir)*.StringTemplate" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="Build">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="@(FilesToCopy)"
-            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(TargetName)\" />
+            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(ProjectName)\" />
   </Target>
 
 </Project>
