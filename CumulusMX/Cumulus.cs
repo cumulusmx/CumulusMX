@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.6";
-		public string Build = "3082";
+		public string Version = "3.6.7";
+		public string Build = "3083";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -2163,42 +2163,56 @@ namespace CumulusMX
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
 			bool connectionFailed = false;
-			bool allowNextFtpCycle = false;
+			bool allowFTP = true;
 			var cycle = RealtimeCycleCounter++;
 
-			LogDebugMessage($"Realtime FTP[{cycle}]: Start upload cycle");
+			LogDebugMessage($"Realtime[{cycle}]: Start upload cycle");
+
 			try
 			{
 				// Process any files
-				CreateRealtimeFile();
-				CreateRealtimeHTMLfiles();
+				CreateRealtimeFile(cycle);
+				CreateRealtimeHTMLfiles(cycle);
 
 				if (RealtimeFTPEnabled)
 				{
-					// are we currently trying to connect
-					if (RealtimeFtpReconnecting)
+					// Is a previous cycle still running?
+					if (RealtimeInProgress)
 					{
-						LogDebugMessage($"Realtime FTP[{cycle}]: Warning, previous FTP is still reconnecting");
-					}
-					// The previous cycle is still running
-					else if (RealtimeInProgress)
-					{
-						// Allow retries to continue for 1 minute
-						if (++RealtimeFTPRetries < 60000 / RealtimeInterval)
+						// Is a previous cycle still trying to reconnect?
+						if (RealtimeFtpReconnecting)
 						{
-							LogMessage($"Realtime FTP[{cycle}]: Warning, previous FTP still in progress, skipping this period - {RealtimeFTPRetries}");
+							if (++RealtimeFTPRetries < 60000 / RealtimeInterval)
+							{
+								LogDebugMessage($"Realtime[{cycle}]: Warning, previous Realtime process still trying to connect to FTP server, skip count = {RealtimeFTPRetries}");
+								allowFTP = false;
+							}
+							else
+							{
+								LogMessage($"Realtime[{cycle}]: Error, realtime has been reconnecting for too long, attempting to reconnect.");
+								RealtimeFtpReconnecting = true;
+								RealtimeFTPConnectionTest(cycle);
+								RealtimeFtpReconnecting = false;
+							}
+						}
+						// Allow retries to continue for 1 minute
+						else if (++RealtimeFTPRetries < 60000 / RealtimeInterval)
+						{
+							LogMessage($"Realtime[{cycle}]: Warning, previous Realtime process still in progress, skip count = {RealtimeFTPRetries}");
+							allowFTP = false;
 						}
 						else
 						{
-							LogMessage($"Realtime FTP[{cycle}]: Error, FTP been failing for 1 minute, attempting to reconnect.");
+							LogMessage($"Realtime[{cycle}]: Error, previous upload has been running for too long, attempting to reconnect.");
+							RealtimeFtpReconnecting = true;
 							RealtimeFTPConnectionTest(cycle);
-							// we should be reconnected, or not, reset the retry counter anyway to restart the process
-							RealtimeFTPRetries = 0;
-							allowNextFtpCycle = true;
+							RealtimeFtpReconnecting = false;
 						}
 					}
-					// We are good to go
-					else
+
+
+					// are we good to go?
+					if (allowFTP)
 					{
 						RealtimeFTPRetries = 0;
 						RealtimeInProgress = true;
@@ -2251,13 +2265,15 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogDebugMessage($"Realtime FTP[{cycle}]: Test of FTP connection failed: {ex.Message}");
+							LogDebugMessage($"Realtime[{cycle}]: Test of FTP connection failed: {ex.Message}");
 							connectionFailed = true;
 						}
 
 						if (connectionFailed)
 						{
+							RealtimeFtpReconnecting = true;
 							RealtimeFTPConnectionTest(cycle);
+							RealtimeFtpReconnecting = false;
 						}
 
 						try
@@ -2266,27 +2282,33 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogMessage($"Realtime FTP[{cycle}]: Error during realtime FTP update: {ex.Message}");
+							LogMessage($"Realtime[{cycle}]: Error during realtime FTP update: {ex.Message}");
+							RealtimeFtpReconnecting = true;
 							RealtimeFTPConnectionTest(cycle);
+							RealtimeFtpReconnecting = false;
 						}
-						allowNextFtpCycle = true;
+						RealtimeInProgress = false;
+					}
+					else
+					{
+						LogDebugMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
 					}
 				}
 
 				if (!string.IsNullOrEmpty(RealtimeProgram))
 				{
-					//LogDebugMessage("Execute realtime program");
+					LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}");
 					ExecuteProgram(RealtimeProgram, RealtimeParams);
 				}
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"Realtime FTP[{cycle}]: Error during update: {ex.Message}");
+				LogMessage($"Realtime[{cycle}]: Error during update: {ex.Message}");
+				RealtimeFtpReconnecting = true;
 				if (ex is NullReferenceException)
 				{
 					// If we haven't initialised the object (eg. user enables realtime FTP after starting Cumulus)
 					// then start from the beginning
-					RealtimeFtpReconnecting = true;
 					if (Sslftp == FtpProtocols.SFTP)
 					{
 						RealtimeSSHLogin();
@@ -2295,22 +2317,20 @@ namespace CumulusMX
 					{
 						RealtimeFTPLogin();
 					}
-					RealtimeFtpReconnecting = false;
 				}
 				else
 				{
 					RealtimeFTPConnectionTest(cycle);
 				}
+				RealtimeFtpReconnecting = false;
 			}
-			LogDebugMessage($"Realtime FTP[{cycle}]: End upload cycle");
-			if (allowNextFtpCycle)
-				RealtimeInProgress = false;
+			LogDebugMessage($"Realtime[{cycle}]: End upload cycle");
 		}
 
 		private void RealtimeFTPConnectionTest(uint cycle)
 		{
 			RealtimeFtpReconnecting = true;
-			LogDebugMessage($"Realtime FTP[{cycle}]: Realtime ftp attempting disconnect");
+			LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting disconnect");
 			try
 			{
 				if (Sslftp == FtpProtocols.SFTP)
@@ -2321,14 +2341,14 @@ namespace CumulusMX
 				{
 					RealtimeFTP.Disconnect();
 				}
-				LogDebugMessage($"Realtime FTP[{cycle}]: Realtime ftp disconnected OK");
+				LogDebugMessage($"Realtime[{cycle}]: Realtime ftp disconnected OK");
 			}
 			catch(Exception ex)
 			{
-				LogDebugMessage($"Realtime FTP[{cycle}]: Error disconnecting from server - " + ex.Message);
+				LogDebugMessage($"Realtime[{cycle}]: Error disconnecting from server - " + ex.Message);
 			}
 
-			LogDebugMessage($"Realtime FTP[{cycle}]: Realtime ftp attempting to reconnect");
+			LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting to reconnect");
 			try
 			{
 				if (Sslftp == FtpProtocols.SFTP)
@@ -2339,12 +2359,12 @@ namespace CumulusMX
 				{
 					RealtimeFTP.Connect();
 				}
-				LogDebugMessage($"Realtime FTP[{cycle}]: Reconnected with server OK");
+				LogDebugMessage($"Realtime[{cycle}]: Reconnected with server OK");
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"Realtime FTP[{cycle}]: Error reconnecting ftp server - " + ex.Message);
-				LogDebugMessage($"Realtime FTP[{cycle}]: Realtime ftp attempting to reinitialise the connection");
+				LogMessage($"Realtime[{cycle}]: Error reconnecting ftp server - " + ex.Message);
+				LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting to reinitialise the connection");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
 					RealtimeSSHLogin();
@@ -2375,7 +2395,7 @@ namespace CumulusMX
 
 			if (RealtimeTxtFTP)
 			{
-				LogFtpMessage($"Realtime FTP[{cycle}]: Uploading - realtime.txt");
+				LogFtpMessage($"Realtime[{cycle}]: Uploading - realtime.txt");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
 					UploadFile(RealtimeSSH, RealtimeFile, filepath);
@@ -2389,7 +2409,7 @@ namespace CumulusMX
 			if (RealtimeGaugesTxtFTP)
 			{
 				ProcessTemplateFile(RealtimeGaugesTxtTFile, RealtimeGaugesTxtFile, realtimeTokenParser);
-				LogFtpMessage($"Realtime FTP[{cycle}]: Uploading - realtimegauges.txt");
+				LogFtpMessage($"Realtime[{cycle}]: Uploading - realtimegauges.txt");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
 					UploadFile(RealtimeSSH, RealtimeGaugesTxtFile, gaugesfilepath);
@@ -2423,7 +2443,7 @@ namespace CumulusMX
 							// we've already processed the file
 							uploadfile += "tmp";
 						}
-						LogFtpMessage($"Realtime FTP[{cycle}]: Uploading - " + uploadfile);
+						LogFtpMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] - {uploadfile}");
 						if (Sslftp == FtpProtocols.SFTP)
 						{
 							UploadFile(RealtimeSSH, uploadfile, remotefile);
@@ -2435,13 +2455,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"Realtime FTP[{cycle}]: Extra web file #" + i + " [" + uploadfile + "] not found!");
+						LogMessage($"Realtime[{cycle}]: Warning, extra web file[{i}] not found! - {uploadfile}");
 					}
 				}
 			}
 		}
 
-		private void CreateRealtimeHTMLfiles()
+		private void CreateRealtimeHTMLfiles(int cycle)
 		{
 			for (int i = 0; i < numextrafiles; i++)
 			{
@@ -2464,17 +2484,24 @@ namespace CumulusMX
 							if (ExtraFiles[i].process)
 							{
 								// process the file
+								LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
 								var utf8WithoutBom = new UTF8Encoding(false);
 								var encoding = UTF8encode ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
 								realtimeTokenParser.encoding = encoding;
 								realtimeTokenParser.SourceFile = uploadfile;
 								var output = realtimeTokenParser.ToString();
 								uploadfile += "tmp";
-								using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+								try
 								{
-									file.Write(output);
-
-									file.Close();
+									using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+									{
+										file.Write(output);
+										file.Close();
+									}
+								}
+								catch (Exception ex)
+								{
+									LogMessage($"Error writing to extra realtime file[{i}] - {uploadfile}: {ex.Message}");
 								}
 							}
 
@@ -2483,17 +2510,18 @@ namespace CumulusMX
 								// just copy the file
 								try
 								{
+									LogDebugMessage($"Realtime[{cycle}]: Copying extra file[{i}] - {uploadfile}");
 									File.Copy(uploadfile, remotefile, true);
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage($"Copying extra realtime file - {uploadfile}: {ex.Message}");
+									LogDebugMessage($"Copying extra realtime file[{i}] - {uploadfile}: {ex.Message}");
 								}
 							}
 						}
 						else
 						{
-							LogMessage($"Extra realtime web file #{i} [{uploadfile}] not found!");
+							LogMessage($"Extra realtime web file[{i}] not found - {uploadfile}");
 						}
 
 					}
@@ -6124,7 +6152,7 @@ namespace CumulusMX
 			{
 				if (!RealtimeEnabled)
 				{
-					CreateRealtimeFile();
+					CreateRealtimeFile(999);
 				}
 
 				//LogDebugMessage("Creating standard HTML files");
@@ -6167,7 +6195,7 @@ namespace CumulusMX
 
 								if (ExtraFiles[i].process)
 								{
-									//LogDebugMessage("Processing extra file "+uploadfile);
+									LogDebugMessage($"Processing extra file[{i}] - {uploadfile}");
 									// process the file
 									var utf8WithoutBom = new System.Text.UTF8Encoding(false);
 									var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
@@ -6202,14 +6230,14 @@ namespace CumulusMX
 									}
 									catch (Exception ex)
 									{
-										LogDebugMessage("Error copying extra file: " + ex.Message);
+										LogDebugMessage($"Error copying extra file[{i}]: " + ex.Message);
 									}
 									//LogDebugMessage("Finished copying extra file " + uploadfile);
 								}
 							}
 							else
 							{
-								LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+								LogMessage($"Warning, extra web file[{i}] not found - {uploadfile}");
 							}
 						}
 					}
@@ -6636,7 +6664,7 @@ namespace CumulusMX
 				}
 
 				using (Stream ostream = conn.OpenWrite(remotefilename))
-				using (Stream istream = new FileStream(localfile, FileMode.Open))
+				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read))
 				{
 					try
 					{
@@ -6706,10 +6734,11 @@ namespace CumulusMX
 				*/
 
 				//LogFtpMessage($"SFTP: Uploading {remotefilename}");
-				using (Stream istream = new FileStream(localfile, FileMode.Open))
+				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read))
 				{
 					try
 					{
+						conn.OperationTimeout = TimeSpan.FromSeconds(15);
 						conn.UploadFile(istream, remotefilename, true);
 					}
 					catch (Exception ex)
@@ -6776,7 +6805,7 @@ namespace CumulusMX
 			return AStr.Replace(',', '.');
 		}
 
-		private void CreateRealtimeFile()
+		private void CreateRealtimeFile(int cycle)
 		{
 			/*
 			Example: 18/10/08 16:03:45 8.4 84 5.8 24.2 33.0 261 0.0 1.0 999.7 W 6 mph C mb mm 146.6 +0.1 85.2 588.4 11.6 20.3 57 3.6 -0.7 10.9 12:00 7.8 14:41 37.4 14:38 44.0 14:28 999.8 16:01 998.4 12:06 1.8.2 448 36.0 10.3 10.5 0 9.3
@@ -6845,74 +6874,84 @@ namespace CumulusMX
 			var filename = AppDir + RealtimeFile;
 			DateTime timestamp = DateTime.Now;
 
-			using (StreamWriter file = new StreamWriter(filename, false))
+			try
 			{
-				var InvC = new CultureInfo("");
+				LogDebugMessage($"Realtime[{cycle}]: Creating realtime.txt");
+				using (StreamWriter file = new StreamWriter(filename, false))
+				{
+					var InvC = new CultureInfo("");
 
-				file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss ")); // 1, 2
-				file.Write(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' '); // 3
-				file.Write(station.OutdoorHumidity.ToString() + ' '); // 4
-				file.Write(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' '); // 5
-				file.Write(station.WindAverage.ToString(WindFormat, InvC) + ' '); // 6
-				file.Write(station.WindLatest.ToString(WindFormat, InvC) + ' '); // 7
-				file.Write(station.Bearing.ToString() + ' '); // 8
-				file.Write(station.RainRate.ToString(RainFormat, InvC) + ' '); // 9
-				file.Write(station.RainToday.ToString(RainFormat, InvC) + ' '); // 10
-				file.Write(station.Pressure.ToString(PressFormat, InvC) + ' '); // 11
-				file.Write(station.CompassPoint(station.Bearing) + ' '); // 12
-				file.Write(Beaufort(station.WindAverage) + ' '); // 13
-				file.Write(WindUnitText + ' '); // 14
-				file.Write(TempUnitText[1].ToString() + ' '); // 15
-				file.Write(PressUnitText + ' '); // 16
-				file.Write(RainUnitText + ' '); // 17
-				file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' '); // 18
-				if (station.presstrendval > 0)
-					file.Write('+' + station.presstrendval.ToString(PressFormat, InvC) + ' '); // 19
-				else
-					file.Write(station.presstrendval.ToString(PressFormat, InvC) + ' ');
-				file.Write(station.RainMonth.ToString(RainFormat, InvC) + ' '); // 20
-				file.Write(station.RainYear.ToString(RainFormat, InvC) + ' '); // 21
-				file.Write(station.RainYesterday.ToString(RainFormat, InvC) + ' '); // 22
-				file.Write(station.IndoorTemperature.ToString(TempFormat, InvC) + ' '); // 23
-				file.Write(station.IndoorHumidity.ToString() + ' '); // 24
-				file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
-				file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
-				file.Write(station.HighTempToday.ToString(TempFormat, InvC) + ' '); // 27
-				file.Write(station.hightemptodaytime.ToString("HH:mm") + ' '); // 28
-				file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
-				file.Write(station.lowtemptodaytime.ToString("HH:mm") + ' '); // 30
-				file.Write(station.highwindtoday.ToString(WindFormat, InvC) + ' '); // 31
-				file.Write(station.highwindtodaytime.ToString("HH:mm") + ' '); // 32
-				file.Write(station.highgusttoday.ToString(WindFormat, InvC) + ' '); // 33
-				file.Write(station.highgusttodaytime.ToString("HH:mm") + ' '); // 34
-				file.Write(station.highpresstoday.ToString(PressFormat, InvC) + ' '); // 35
-				file.Write(station.highpresstodaytime.ToString("HH:mm") + ' '); // 36
-				file.Write(station.lowpresstoday.ToString(PressFormat, InvC) + ' '); // 37
-				file.Write(station.lowpresstodaytime.ToString("HH:mm") + ' '); // 38
-				file.Write(Version + ' '); // 39
-				file.Write(Build + ' '); // 40
-				file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
-				file.Write(station.HeatIndex.ToString(TempFormat, InvC) + ' '); // 42
-				file.Write(station.Humidex.ToString(TempFormat, InvC) + ' '); // 43
-				file.Write(station.UV.ToString(UVFormat, InvC) + ' '); // 44
-				file.Write(station.ET.ToString(ETFormat, InvC) + ' '); // 45
-				file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' '); // 46
-				file.Write(station.AvgBearing.ToString() + ' '); // 47
-				file.Write(station.RainLastHour.ToString(RainFormat, InvC) + ' '); // 48
-				file.Write(station.Forecastnumber.ToString() + ' '); // 49
-				file.Write(IsDaylight() ? "1 " : "0 ");
-				file.Write(station.SensorContactLost ? "1 " : "0 ");
-				file.Write(station.CompassPoint(station.AvgBearing) + ' '); // 52
-				file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
-				file.Write(CloudBaseInFeet ? "ft " : "m ");
-				file.Write(station.ApparentTemperature.ToString(TempFormat, InvC) + ' '); // 55
-				file.Write(station.SunshineHours.ToString(SunFormat, InvC) + ' '); // 56
-				file.Write(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' '); // 57
-				file.Write(station.IsSunny ? "1 " : "0 "); // 58
-				file.WriteLine(station.FeelsLike.ToString(TempFormat, InvC)); // 59
+					file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss ")); // 1, 2
+					file.Write(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' '); // 3
+					file.Write(station.OutdoorHumidity.ToString() + ' '); // 4
+					file.Write(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' '); // 5
+					file.Write(station.WindAverage.ToString(WindFormat, InvC) + ' '); // 6
+					file.Write(station.WindLatest.ToString(WindFormat, InvC) + ' '); // 7
+					file.Write(station.Bearing.ToString() + ' '); // 8
+					file.Write(station.RainRate.ToString(RainFormat, InvC) + ' '); // 9
+					file.Write(station.RainToday.ToString(RainFormat, InvC) + ' '); // 10
+					file.Write(station.Pressure.ToString(PressFormat, InvC) + ' '); // 11
+					file.Write(station.CompassPoint(station.Bearing) + ' '); // 12
+					file.Write(Beaufort(station.WindAverage) + ' '); // 13
+					file.Write(WindUnitText + ' '); // 14
+					file.Write(TempUnitText[1].ToString() + ' '); // 15
+					file.Write(PressUnitText + ' '); // 16
+					file.Write(RainUnitText + ' '); // 17
+					file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' '); // 18
+					if (station.presstrendval > 0)
+						file.Write('+' + station.presstrendval.ToString(PressFormat, InvC) + ' '); // 19
+					else
+						file.Write(station.presstrendval.ToString(PressFormat, InvC) + ' ');
+					file.Write(station.RainMonth.ToString(RainFormat, InvC) + ' '); // 20
+					file.Write(station.RainYear.ToString(RainFormat, InvC) + ' '); // 21
+					file.Write(station.RainYesterday.ToString(RainFormat, InvC) + ' '); // 22
+					file.Write(station.IndoorTemperature.ToString(TempFormat, InvC) + ' '); // 23
+					file.Write(station.IndoorHumidity.ToString() + ' '); // 24
+					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
+					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
+					file.Write(station.HighTempToday.ToString(TempFormat, InvC) + ' '); // 27
+					file.Write(station.hightemptodaytime.ToString("HH:mm") + ' '); // 28
+					file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
+					file.Write(station.lowtemptodaytime.ToString("HH:mm") + ' '); // 30
+					file.Write(station.highwindtoday.ToString(WindFormat, InvC) + ' '); // 31
+					file.Write(station.highwindtodaytime.ToString("HH:mm") + ' '); // 32
+					file.Write(station.highgusttoday.ToString(WindFormat, InvC) + ' '); // 33
+					file.Write(station.highgusttodaytime.ToString("HH:mm") + ' '); // 34
+					file.Write(station.highpresstoday.ToString(PressFormat, InvC) + ' '); // 35
+					file.Write(station.highpresstodaytime.ToString("HH:mm") + ' '); // 36
+					file.Write(station.lowpresstoday.ToString(PressFormat, InvC) + ' '); // 37
+					file.Write(station.lowpresstodaytime.ToString("HH:mm") + ' '); // 38
+					file.Write(Version + ' '); // 39
+					file.Write(Build + ' '); // 40
+					file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
+					file.Write(station.HeatIndex.ToString(TempFormat, InvC) + ' '); // 42
+					file.Write(station.Humidex.ToString(TempFormat, InvC) + ' '); // 43
+					file.Write(station.UV.ToString(UVFormat, InvC) + ' '); // 44
+					file.Write(station.ET.ToString(ETFormat, InvC) + ' '); // 45
+					file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' '); // 46
+					file.Write(station.AvgBearing.ToString() + ' '); // 47
+					file.Write(station.RainLastHour.ToString(RainFormat, InvC) + ' '); // 48
+					file.Write(station.Forecastnumber.ToString() + ' '); // 49
+					file.Write(IsDaylight() ? "1 " : "0 ");
+					file.Write(station.SensorContactLost ? "1 " : "0 ");
+					file.Write(station.CompassPoint(station.AvgBearing) + ' '); // 52
+					file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
+					file.Write(CloudBaseInFeet ? "ft " : "m ");
+					file.Write(station.ApparentTemperature.ToString(TempFormat, InvC) + ' '); // 55
+					file.Write(station.SunshineHours.ToString(SunFormat, InvC) + ' '); // 56
+					file.Write(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' '); // 57
+					file.Write(station.IsSunny ? "1 " : "0 "); // 58
+					file.WriteLine(station.FeelsLike.ToString(TempFormat, InvC)); // 59
 
-				file.Close();
+					file.Close();
+				}
 			}
+			catch (Exception ex)
+			{
+				LogMessage("Error encountered during Realtime file update.");
+				LogMessage(ex.Message);
+			}
+
 
 			if (RealtimeMySqlEnabled)
 			{
@@ -6986,7 +7025,7 @@ namespace CumulusMX
 				{
 					cmd.CommandText = queryString;
 					cmd.Connection = RealtimeSqlConn;
-					LogDebugMessage(queryString);
+					LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {queryString}");
 
 					try
 					{
@@ -7021,7 +7060,14 @@ namespace CumulusMX
 					}
 					finally
 					{
-						RealtimeSqlConn.Close();
+						try
+						{
+							RealtimeSqlConn.Close();
+						}
+						catch
+						{
+							// do nothing
+						}
 					}
 				}
 			}
@@ -7057,6 +7103,7 @@ namespace CumulusMX
 
 			if (RealtimeFTPEnabled)
 			{
+				Console.WriteLine("Connecting real time FTP");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
 					RealtimeSSHLogin();
@@ -7518,15 +7565,15 @@ namespace CumulusMX
 					}
 					RealtimeSSH = new SftpClient(connectionInfo);
 					*/
+					if (RealtimeSSH != null) RealtimeSSH.Dispose();
 					RealtimeSSH = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password);
 					RealtimeSSH.Connect();
+					RealtimeSSH.ConnectionInfo.Timeout = TimeSpan.FromSeconds(15);  // 15 seconds to match FTP default timeout
 					LogMessage("Realtime SFTP connected");
 				}
 				catch (Exception ex)
 				{
 					LogMessage("Error connecting sftp - " + ex.Message);
-					//RealtimeSSH.Disconnect();
-					//RealtimeSSH.Dispose();
 				}
 			}
 		}

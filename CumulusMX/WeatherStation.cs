@@ -3536,6 +3536,11 @@ namespace CumulusMX
 
 		public bool FirstForecastDone = false;
 
+		/// <summary>
+		/// Convert altitude from user units to metres
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public double AltitudeM(double altitude)
 		{
 			if (cumulus.AltitudeInFeet)

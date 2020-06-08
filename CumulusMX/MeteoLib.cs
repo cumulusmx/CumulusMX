@@ -23,20 +23,31 @@ namespace CumulusMX
         }
 
         /// <summary>
-        /// Calculates Apparent Temperature
-        /// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
+        /// Calculates Apparent Temperature in Celcius
         /// </summary>
+        /// <remarks>
+        /// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
+        /// </remarks>
         /// <param name="tempC">Temp in C</param>
         /// <param name="windspeed">Wind speed in m/s</param>
         /// <param name="humidity">Relative humidity</param>
-        /// <returns></returns>
+        /// <returns>Apparent temperature in Celcius</returns>
         public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
         {
             double avp = (humidity/100.0)*6.105*Math.Exp(17.27*tempC/(237.7 + tempC)); // hPa
             return tempC + (0.33*avp) - (0.7*windspeedMS) - 4.0;
         }
 
-        // Joint Action Group for Temerature Indices (JAG/TI) formula
+        /// <summary>
+        /// Calculates the Feels Like temperature in Celcius
+        /// </summary>
+        /// <remarks>
+        /// Joint Action Group for Temerature Indices (JAG/TI) formula
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <param name="windSpeedKph">Windspeed in kph</param>
+        /// <param name="humidity">Relative humidity</param>
+        /// <returns>Feels Like temperture in Celcius</returns>
         public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
         {
             // Cannot use the WindChill function as we need the chill above 10 C
@@ -107,6 +118,14 @@ namespace CumulusMX
             // WBc =     (((0.00066 * P         ) * Tc   ) + ((4098 * E    ) / (    (Tdc + 237.7          ) ^ 2) * Tdc      )) / ((0.00066 * P         ) + (4098 * E    ) / (   (Tdc + 237.7      ) ^ 2))
         }
 
+        /// <summary>
+        /// Calculates the Saturated Vapour Pressure in hPa
+        /// </summary>
+        /// <remarks>
+        /// Bolton(1980)
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <returns>SVP in hPa</returns>
         public static double SaturationVaporPressure(double tempC)
         {
             return 6.112*Math.Exp(17.67*tempC/(tempC + 243.5)); // Bolton(1980)
@@ -125,6 +144,14 @@ namespace CumulusMX
             return ((243.12 * lnVapor) - 440.1) / (19.43 - lnVapor);
         }
 
+        /// <summary>
+        /// Calculates the Saturated Vapour Pressure in hPa
+        /// </summary>
+        /// <remarks>
+        /// WMO - CIMO Guide - 2008
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <returns>SVP in hPa</returns>
         public static double SaturationVapourPressure(double tempC)
         {
             return 6.112*Math.Exp((17.62*tempC)/(243.12 + tempC));
