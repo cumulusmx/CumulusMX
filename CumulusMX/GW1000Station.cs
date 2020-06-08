@@ -328,7 +328,7 @@ namespace CumulusMX
 			tenMinuteChanged = true;
 			lastMinute = DateTime.Now.Minute;
 
-			// Start a broadcast watchdog to warn if WLL broadcast messages are not being received
+			// Start a broadcast watchdog to warn if messages are not being received
 			tmrDataWatchdog.Elapsed += DataTimeout;
 			tmrDataWatchdog.Interval = 1000 * 30; // timeout after 30 seconds
 			tmrDataWatchdog.AutoReset = true;

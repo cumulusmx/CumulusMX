@@ -33,6 +33,7 @@ namespace CumulusMX
 		private int MaxArchiveRuns = 1;
 		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
 		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
+		private readonly HttpClient dogsBodyClient = new HttpClient();
 		private readonly bool checkWllGustValues;
 		private bool broadcastReceived = false;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
@@ -55,8 +56,8 @@ namespace CumulusMX
 			tmrBroadcastWatchdog = new System.Timers.Timer();
 			tmrHealth = new System.Timers.Timer();
 
-			// Get the firmware version from WL.com API
-			//_ = GetWlCurrentData(true);
+			// used for kicking real time, and getting current conditions
+			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
 
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
 			if (cumulus.PeakGustMinutes == 10)
@@ -82,12 +83,13 @@ namespace CumulusMX
 			// Perform zero-config
 			// If it works - check IP address in config file and set/update if required
 			// If it fails - just use the IP address from config file
+
 			const string serviceType = "_weatherlinklive._tcp";
 			var serviceBrowser = new ServiceBrowser();
 			serviceBrowser.ServiceAdded += OnServiceAdded;
 			serviceBrowser.ServiceRemoved += OnServiceRemoved;
 			serviceBrowser.ServiceChanged += OnServiceChanged;
-			serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 / 2;
+			serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
 
 			//Console.WriteLine($"Browsing for type: {serviceType}");
 			serviceBrowser.StartBrowse(serviceType);
@@ -132,7 +134,7 @@ namespace CumulusMX
 				// Create a realtime thread to periodically restart broadcasts
 				GetWllRealtime(null, null);
 				tmrRealtime.Elapsed += GetWllRealtime;
-				tmrRealtime.Interval = cumulus.WllBroadcastDuration * 1000;
+				tmrRealtime.Interval = cumulus.WllBroadcastDuration * 1000 / 3 * 2; // give the multicasts a kick after 2/3 of the duration (default 200 secs)
 				tmrRealtime.AutoReset = true;
 				tmrRealtime.Start();
 
@@ -200,9 +202,8 @@ namespace CumulusMX
 				if (cumulus.UseDataLogger)
 				{
 					// get the health data every 15 minutes
-					//tmrHealth.Elapsed += GetWlHealth;
 					tmrHealth.Elapsed += HealthTimerTick;
-					tmrHealth.Interval = 60 * 1000;  // Every minute
+					tmrHealth.Interval = 60 * 1000;  // Tick every minute
 					tmrHealth.AutoReset = true;
 					tmrHealth.Start();
 				}
@@ -244,33 +245,29 @@ namespace CumulusMX
 			WebReq.Wait();
 			cumulus.LogDebugMessage("Lock: GetWllRealtime has the lock");
 
-			using (HttpClient client = new HttpClient())
+			// The WLL will error if already responding to a request from another device, so add a retry
+			do
 			{
-				// The WLL will error if already responding to a request from another device, so add a retry
-				do
+				// Call asynchronous network methods in a try/catch block to handle exceptions
+				try
 				{
-					// Call asynchronous network methods in a try/catch block to handle exceptions
-					try
+					string ip;
+
+					lock (threadSafer)
 					{
-						string ip;
+						ip = cumulus.VP2IPAddr;
+					}
 
-						lock (threadSafer)
+					if (CheckIpValid(ip))
+					{
+						var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllBroadcastDuration;
+
+						cumulus.LogDebugMessage($"Sending GET realtime request to WLL: {urlRealtime} ...");
+
+						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlRealtime))
 						{
-							ip = cumulus.VP2IPAddr;
-						}
-
-						if (CheckIpValid(ip))
-						{
-							var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllBroadcastDuration;
-
-							cumulus.LogDebugMessage($"Sending GET realtime request to WLL: {urlRealtime} ...");
-
-							client.DefaultRequestHeaders.Add("Connection", "close");
-
-							var response = await client.GetAsync(urlRealtime);
 							//response.EnsureSuccessStatusCode();
 							var responseBody = await response.Content.ReadAsStringAsync();
-
 							responseBody = responseBody.TrimEnd('\r', '\n');
 
 							cumulus.LogDataMessage("WLL Real_time response: " + responseBody);
@@ -291,27 +288,24 @@ namespace CumulusMX
 								cumulus.WllBroadcastPort = port;
 							}
 						}
-						else
-						{
-							cumulus.LogMessage($"WLL realtime: Invalid IP address: {ip}");
-						}
-						retry = 0;
 					}
-					catch (Exception exp)
+					else
 					{
-						retry--;
-						cumulus.LogDebugMessage("GetRealtime(): Exception Caught!");
-						cumulus.LogDebugMessage($"Message :{exp.Message}");
-						//Console.ForegroundColor = ConsoleColor.Red;
-						//Console.WriteLine("GetRealtime():Exception Caught!");
-						//Console.ForegroundColor = ConsoleColor.White;
-						Thread.Sleep(2000);
+						cumulus.LogMessage($"WLL realtime: Invalid IP address: {ip}");
 					}
-				} while (retry > 0);
+					retry = 0;
+				}
+				catch (Exception exp)
+				{
+					retry--;
+					cumulus.LogDebugMessage("GetRealtime(): Exception Caught!");
+					cumulus.LogDebugMessage($"Message :{exp.Message}");
+					Thread.Sleep(2000);
+				}
+			} while (retry > 0);
 
-				cumulus.LogDebugMessage("Lock: GetWllRealtime releasing lock");
-				WebReq.Release();
-			}
+			cumulus.LogDebugMessage("Lock: GetWllRealtime releasing lock");
+			WebReq.Release();
 		}
 
 		private async void GetWllCurrent(object source, ElapsedEventArgs e)
@@ -338,17 +332,13 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"Sending GET current conditions request to WLL: {urlCurrent} ...");
 					// First time run it synchronously
-					using (HttpClient client = new HttpClient())
+					// Call asynchronous network methods in a try/catch block to handle exceptions
+					try
 					{
-						// Call asynchronous network methods in a try/catch block to handle exceptions
-						try
+						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlCurrent))
 						{
-							client.DefaultRequestHeaders.Add("Connection", "close");
-
-							var response = await client.GetAsync(urlCurrent);
 							response.EnsureSuccessStatusCode();
 							var responseBody = await response.Content.ReadAsStringAsync();
-
 							//Console.WriteLine($" - Current conds response: {responseBody}");
 							// sanity check
 							if (responseBody.StartsWith("{\"data\":{\"did\":"))
@@ -367,17 +357,17 @@ namespace CumulusMX
 							}
 							retry = 0;
 						}
-						catch (Exception exp)
-						{
-							retry--;
-							cumulus.LogDebugMessage("GetWllCurrent(): Exception Caught!");
-							cumulus.LogDebugMessage($"Message :" + exp.Message);
+					}
+					catch (Exception exp)
+					{
+						retry--;
+						cumulus.LogDebugMessage("GetWllCurrent(): Exception Caught!");
+						cumulus.LogDebugMessage($"Message :" + exp.Message);
 
-							//Console.ForegroundColor = ConsoleColor.Red;
-							//Console.WriteLine("GetWllCurrent():Exception Caught!");
-							//Console.ForegroundColor = ConsoleColor.White;
-							Thread.Sleep(2000);
-						}
+						//Console.ForegroundColor = ConsoleColor.Red;
+						//Console.WriteLine("GetWllCurrent():Exception Caught!");
+						//Console.ForegroundColor = ConsoleColor.White;
+						Thread.Sleep(2000);
 					}
 				} while (retry > 0);
 
@@ -399,7 +389,7 @@ namespace CumulusMX
 				// sanity check
 				if (broadcastJson.StartsWith("{\"did\":"))
 				{
-					var data = Newtonsoft.Json.Linq.JObject.Parse(broadcastJson)["conditions"];
+					var data = JObject.Parse(broadcastJson).GetValue("conditions");
 
 					// The WLL sends the timestamp in Unix ticks, and in UTC
 					// rather than rely on the WLL clock being correct, we will use our local time
@@ -520,7 +510,8 @@ namespace CumulusMX
 				cumulus.LogDataMessage("WLL Current conditions: " + currentJson);
 
 				// Convert JSON string to an object
-				var data = Newtonsoft.Json.Linq.JObject.Parse(currentJson)["data"]["conditions"];
+				//var data = Newtonsoft.Json.Linq.JObject.Parse(currentJson)["data"]["conditions"];
+				var data = Newtonsoft.Json.Linq.JObject.Parse(currentJson).SelectToken("data.conditions");
 
 				// The WLL sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the WLL clock being correct, we will use our local time
@@ -996,6 +987,11 @@ namespace CumulusMX
 							{
 								DoPressure(ConvertPressINHGToUser(rec.Value<double>("bar_sea_level")), dateTime);
 								DoPressTrend("Pressure trend");
+								// Altimeter from absolute
+								StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute"));
+								// Or do we use calibration? The VP2 code doesn't?
+								//StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.PressMult + cumulus.PressOffset;
+								AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 							}
 
 							break;
@@ -1056,8 +1052,6 @@ namespace CumulusMX
 						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
 					}
 				}
-
-				data = null;
 
 				DoApparentTemp(dateTime);
 				DoFeelsLike(dateTime);
@@ -1459,60 +1453,62 @@ namespace CumulusMX
 			try
 			{
 				// we want to do this synchronously, so .Result
-				var response = WlHttpClient.GetAsync(historicUrl.ToString()).Result;
-				var responseBody = response.Content.ReadAsStringAsync().Result;
-				cumulus.LogDebugMessage($"WeatherLink API Historic Response: {response.StatusCode}: {responseBody}");
-
-				jObject = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
-
-				if ((int)response.StatusCode != 200)
+				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
-					cumulus.LogMessage($"WeatherLink API Historic Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
-					Console.WriteLine($" - Error {jObject.Value<string>("code")}: {jObject.Value<string>("message")}");
-					cumulus.LastUpdateTime = FromUnixTime(endTime);
-					return;
-				}
+					var responseBody = response.Content.ReadAsStringAsync().Result;
+					cumulus.LogDebugMessage($"WeatherLink API Historic Response: {response.StatusCode}: {responseBody}");
 
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("WeatherLink API Historic: No data was returned. Check your Device Id.");
-					Console.WriteLine(" - No historic data available");
-					cumulus.LastUpdateTime = FromUnixTime(endTime);
-					return;
-				}
-				else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
-				{
-					// get the sensor data
-					sensorData = jObject["sensors"];
+					jObject = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
 
-					foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+					if ((int)response.StatusCode != 200)
 					{
-						if (sensor.Value<int>("sensor_type") != 504)
-						{
-							var recs = sensor["data"].Count();
-							if (recs > noOfRecs)
-								noOfRecs = recs;
-						}
+						cumulus.LogMessage($"WeatherLink API Historic Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
+						Console.WriteLine($" - Error {jObject.Value<string>("code")}: {jObject.Value<string>("message")}");
+						cumulus.LastUpdateTime = FromUnixTime(endTime);
+						return;
 					}
 
-					if (noOfRecs == 0)
+					if (responseBody == "{}")
 					{
-						cumulus.LogMessage("No historic data available");
+						cumulus.LogMessage("WeatherLink API Historic: No data was returned. Check your Device Id.");
 						Console.WriteLine(" - No historic data available");
 						cumulus.LastUpdateTime = FromUnixTime(endTime);
 						return;
 					}
-					else
+					else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
 					{
-						cumulus.LogMessage($"Found {noOfRecs} historic records to process");
+						// get the sensor data
+						sensorData = jObject.GetValue("sensors");
+
+						foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+						{
+							if (sensor.Value<int>("sensor_type") != 504)
+							{
+								var recs = sensor["data"].Count();
+								if (recs > noOfRecs)
+									noOfRecs = recs;
+							}
+						}
+
+						if (noOfRecs == 0)
+						{
+							cumulus.LogMessage("No historic data available");
+							Console.WriteLine(" - No historic data available");
+							cumulus.LastUpdateTime = FromUnixTime(endTime);
+							return;
+						}
+						else
+						{
+							cumulus.LogMessage($"Found {noOfRecs} historic records to process");
+						}
 					}
-				}
-				else // No idea what we got, dump it to the log
-				{
-					cumulus.LogMessage("Invalid historic message received");
-					cumulus.LogDataMessage("Received: " + responseBody);
-					cumulus.LastUpdateTime = FromUnixTime(endTime);
-					return;
+					else // No idea what we got, dump it to the log
+					{
+						cumulus.LogMessage("Invalid historic message received");
+						cumulus.LogDataMessage("Received: " + responseBody);
+						cumulus.LastUpdateTime = FromUnixTime(endTime);
+						return;
+					}
 				}
 			}
 			catch (Exception ex)
@@ -1527,7 +1523,7 @@ namespace CumulusMX
 				try
 				{
 					DateTime timestamp = new DateTime();
-					foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+					foreach (var sensor in sensorData)
 					{
 						if (sensor.Value<int>("sensor_type") != 504)
 						{
@@ -1609,9 +1605,6 @@ namespace CumulusMX
 				}
 			}
 
-			sensorData = null;
-			jObject = null;
-
 			Console.WriteLine(""); // flush the progress line
 			return;
 		}
@@ -1635,7 +1628,7 @@ namespace CumulusMX
 						if (cumulus.WllPrimaryTempHum == txid)
 						{
 							/*
-							 * Avaialble fields
+							 * Avaialable fields
 							 * "cooling_degree_days"
 							 * "dew_point_hi_at"
 							 * "dew_point_hi"
@@ -1844,6 +1837,14 @@ namespace CumulusMX
 						// UV
 						if (cumulus.WllPrimaryUV == txid)
 						{
+							/*
+							 * Available fields
+							 * "uv_dose"
+							 * "uv_index_avg"
+							 * "uv_index_hi_at"
+							 * "uv_index_hi"
+							 * "uv_volt_last"
+							 */
 							if (string.IsNullOrEmpty(data.Value<string>("uv_index_avg")))
 							{
 								cumulus.LogDebugMessage($"WL.com historic: no valid UV value found [{data.Value<string>("uv_index_avg")}] on TxId {txid}");
@@ -1859,6 +1860,16 @@ namespace CumulusMX
 						// Solar
 						if (cumulus.WllPrimarySolar == txid)
 						{
+							/*
+							 * Available fields
+							 * "solar_energy"
+							 * "solar_rad_avg"
+							 * "solar_rad_hi_at"
+							 * "solar_rad_hi"
+							 * "solar_rad_volt_last"
+							 * "solar_volt_last"
+							 * "et"
+							 */
 							if (string.IsNullOrEmpty(data.Value<string>("solar_rad_avg")))
 							{
 								cumulus.LogDebugMessage($"WL.com historic: no valid Solar value found [{data.Value<string>("solar_rad_avg")}] on TxId {txid}");
@@ -2131,6 +2142,11 @@ namespace CumulusMX
 									ts = FromUnixTime(data.Value<long>("ts"));
 									DoPressure(ConvertPressINHGToUser(data.Value<double>("bar_sea_level")), ts);
 									DoPressTrend("Pressure trend");
+									// Altimeter from absolute
+									StationPressure = ConvertPressINHGToUser(data.Value<double>("bar_absolute"));
+									// Or do we use calibration? The VP2 code doesn't?
+									//StationPressure = ConvertPressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.PressMult + cumulus.PressOffset;
+									AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 								break;
 
@@ -2458,8 +2474,9 @@ namespace CumulusMX
 		*/
 		private void HealthTimerTick(object source, ElapsedEventArgs e)
 		{
-			// Only run every 15 + 1 minutes
+			// Only run every 15 minutes
 			// The WLL only reports its health every 15 mins, on the hour, :15, :30 and :45
+			// We run at :01, :16, :31, :46 to allow time for wl.com to generate the stats
 			if (DateTime.Now.Minute % 15 == 1)
 			{
 				GetWlHistoricHealth();
@@ -2539,43 +2556,45 @@ namespace CumulusMX
 			try
 			{
 				// we want to do this synchronously, so .Result
-				var response = WlHttpClient.GetAsync(historicUrl.ToString()).Result;
-				var responseBody = response.Content.ReadAsStringAsync().Result;
-				cumulus.LogDataMessage($"WLL Health: WeatherLink API Response: {response.StatusCode}: {responseBody}");
-
-				jObject = JObject.Parse(responseBody);
-
-				if ((int)response.StatusCode != 200)
+				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
-					cumulus.LogMessage($"WLL Health: WeatherLink API Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
-					return;
-				}
+					var responseBody = response.Content.ReadAsStringAsync().Result;
+					cumulus.LogDataMessage($"WLL Health: WeatherLink API Response: {response.StatusCode}: {responseBody}");
 
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
-					cumulus.LastUpdateTime = FromUnixTime(endTime);
-					return;
-				}
-				else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
-				{
-					// get the sensor data
-					sensorData = jObject["sensors"];
+					jObject = JObject.Parse(responseBody);
 
-					if (sensorData.Count() == 0)
+					if ((int)response.StatusCode != 200)
 					{
-						cumulus.LogMessage("WLL Health: No historic data available");
+						cumulus.LogMessage($"WLL Health: WeatherLink API Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
 						return;
 					}
-					else
+
+					if (responseBody == "{}")
 					{
-						cumulus.LogDebugMessage($"WLL Health: Found {sensorData.Count()} sensor records to process");
+						cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
+						cumulus.LastUpdateTime = FromUnixTime(endTime);
+						return;
 					}
-				}
-				else // No idea what we got, dump it to the log
-				{
-					cumulus.LogMessage("WLL Health: Invalid historic message received");
-					cumulus.LogDataMessage("WLL Health: Received: " + responseBody);
+					else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+					{
+						// get the sensor data
+						sensorData = jObject["sensors"];
+
+						if (sensorData.Count() == 0)
+						{
+							cumulus.LogMessage("WLL Health: No historic data available");
+							return;
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"WLL Health: Found {sensorData.Count()} sensor records to process");
+						}
+					}
+					else // No idea what we got, dump it to the log
+					{
+						cumulus.LogMessage("WLL Health: Invalid historic message received");
+						cumulus.LogDataMessage("WLL Health: Received: " + responseBody);
+					}
 				}
 			}
 			catch (Exception ex)
