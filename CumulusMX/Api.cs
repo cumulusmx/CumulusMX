@@ -334,32 +334,32 @@ namespace CumulusMX
 					{
 						case "tempdata.json":
 							return await this.JsonResponseAsync(Station.GetTempGraphData());
-						case "tempdatad3.json":
-							return await this.JsonResponseAsync(Station.GetTempGraphDataD3());
+						//case "tempdatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetTempGraphDataD3());
 						case "winddata.json":
 							return await this.JsonResponseAsync(Station.GetWindGraphData());
-						case "winddatad3.json":
-							return await this.JsonResponseAsync(Station.GetWindGraphDataD3());
+						//case "winddatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetWindGraphDataD3());
 						case "raindata.json":
 							return await this.JsonResponseAsync(Station.GetRainGraphData());
-						case "raindatad3.json":
-							return await this.JsonResponseAsync(Station.GetRainGraphDataD3());
+						//case "raindatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetRainGraphDataD3());
 						case "pressdata.json":
 							return await this.JsonResponseAsync(Station.GetPressGraphData());
-						case "pressdatad3.json":
-							return await this.JsonResponseAsync(Station.GetPressGraphDataD3());
+						//case "pressdatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetPressGraphDataD3());
 						case "wdirdata.json":
 							return await this.JsonResponseAsync(Station.GetWindDirGraphData());
-						case "wdirdatad3.json":
-							return await this.JsonResponseAsync(Station.GetWindDirGraphDataD3());
+						//case "wdirdatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetWindDirGraphDataD3());
 						case "humdata.json":
 							return await this.JsonResponseAsync(Station.GetHumGraphData());
-						case "humdatad3.json":
-							return await this.JsonResponseAsync(Station.GetHumGraphDataD3());
+						//case "humdatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetHumGraphDataD3());
 						case "solardata.json":
 							return await this.JsonResponseAsync(Station.GetSolarGraphData());
-						case "solardatad3.json":
-							return await this.JsonResponseAsync(Station.GetSolarGraphDataD3());
+						//case "solardatad3.json":
+						//	return await this.JsonResponseAsync(Station.GetSolarGraphDataD3());
 						case "dailyrain.json":
 							return await this.JsonResponseAsync(Station.GetDailyRainGraphData());
 						case "sunhours.json":

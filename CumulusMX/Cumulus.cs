@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.7";
-		public string Build = "3083";
+		public string Version = "3.6.8";
+		public string Build = "3084";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -89,7 +89,7 @@ namespace CumulusMX
 			SFTP = 2
 		}
 
-		private string[] SshAuthenticationVals = { "password", "psk", "password_psk" };
+		private readonly string[] SshAuthenticationVals = { "password", "psk", "password_psk" };
 
 		public struct Dataunits
 		{
@@ -1189,7 +1189,9 @@ namespace CumulusMX
 
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
+			LogMessage("FTP logging is " + (FTPlogging ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval]);
+			LogMessage("Real time interval = " + RealtimeInterval / 1000);
 			LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
 
 			TempFormat = "F" + TempDPlaces;
@@ -2163,11 +2165,9 @@ namespace CumulusMX
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
 			bool connectionFailed = false;
-			bool allowFTP = true;
 			var cycle = RealtimeCycleCounter++;
 
-			LogDebugMessage($"Realtime[{cycle}]: Start upload cycle");
-
+			LogDebugMessage($"Realtime[{cycle}]: Start cycle");
 			try
 			{
 				// Process any files
@@ -2177,63 +2177,28 @@ namespace CumulusMX
 				if (RealtimeFTPEnabled)
 				{
 					// Is a previous cycle still running?
-					if (RealtimeInProgress)
+					if (RealtimeFtpInProgress)
 					{
-						// Is a previous cycle still trying to reconnect?
-						if (RealtimeFtpReconnecting)
-						{
-							if (++RealtimeFTPRetries < 60000 / RealtimeInterval)
-							{
-								LogDebugMessage($"Realtime[{cycle}]: Warning, previous Realtime process still trying to connect to FTP server, skip count = {RealtimeFTPRetries}");
-								allowFTP = false;
-							}
-							else
-							{
-								LogMessage($"Realtime[{cycle}]: Error, realtime has been reconnecting for too long, attempting to reconnect.");
-								RealtimeFtpReconnecting = true;
-								RealtimeFTPConnectionTest(cycle);
-								RealtimeFtpReconnecting = false;
-							}
-						}
-						// Allow retries to continue for 1 minute
-						else if (++RealtimeFTPRetries < 60000 / RealtimeInterval)
-						{
-							LogMessage($"Realtime[{cycle}]: Warning, previous Realtime process still in progress, skip count = {RealtimeFTPRetries}");
-							allowFTP = false;
-						}
-						else
-						{
-							LogMessage($"Realtime[{cycle}]: Error, previous upload has been running for too long, attempting to reconnect.");
-							RealtimeFtpReconnecting = true;
-							RealtimeFTPConnectionTest(cycle);
-							RealtimeFtpReconnecting = false;
-						}
+						LogDebugMessage($"Realtime[{cycle}]: Warning, previous Realtime process still trying to connect to FTP server, skip count = {++RealtimeFTPRetries}");
+						LogDebugMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
 					}
-
-
-					// are we good to go?
-					if (allowFTP)
+					else
 					{
-						RealtimeFTPRetries = 0;
-						RealtimeInProgress = true;
+						RealtimeFtpInProgress = true;
 
 						// This only happens if the user enables realtime FTP after starting Cumulus
 						if (Sslftp == FtpProtocols.SFTP)
 						{
 							if (!RealtimeSSH.ConnectionInfo.IsAuthenticated)
 							{
-								RealtimeFtpReconnecting = true;
-								RealtimeSSHLogin();
-								RealtimeFtpReconnecting = false;
+								RealtimeSSHLogin(cycle);
 							}
 						}
 						else
 						{
 							if (!RealtimeFTP.IsConnected)
 							{
-								RealtimeFtpReconnecting = true;
-								RealtimeFTPLogin();
-								RealtimeFtpReconnecting = false;
+								RealtimeFTPLogin(cycle);
 							}
 						}
 						// Force a test of the connection, IsConnected is not always reliable
@@ -2271,9 +2236,7 @@ namespace CumulusMX
 
 						if (connectionFailed)
 						{
-							RealtimeFtpReconnecting = true;
 							RealtimeFTPConnectionTest(cycle);
-							RealtimeFtpReconnecting = false;
 						}
 
 						try
@@ -2283,15 +2246,9 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogMessage($"Realtime[{cycle}]: Error during realtime FTP update: {ex.Message}");
-							RealtimeFtpReconnecting = true;
 							RealtimeFTPConnectionTest(cycle);
-							RealtimeFtpReconnecting = false;
 						}
-						RealtimeInProgress = false;
-					}
-					else
-					{
-						LogDebugMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
+						RealtimeFtpInProgress = false;
 					}
 				}
 
@@ -2304,36 +2261,33 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage($"Realtime[{cycle}]: Error during update: {ex.Message}");
-				RealtimeFtpReconnecting = true;
 				if (ex is NullReferenceException)
 				{
 					// If we haven't initialised the object (eg. user enables realtime FTP after starting Cumulus)
 					// then start from the beginning
 					if (Sslftp == FtpProtocols.SFTP)
 					{
-						RealtimeSSHLogin();
+						RealtimeSSHLogin(cycle);
 					}
 					else
 					{
-						RealtimeFTPLogin();
+						RealtimeFTPLogin(cycle);
 					}
 				}
 				else
 				{
 					RealtimeFTPConnectionTest(cycle);
 				}
-				RealtimeFtpReconnecting = false;
 			}
-			LogDebugMessage($"Realtime[{cycle}]: End upload cycle");
+			LogDebugMessage($"Realtime[{cycle}]: End cycle");
 		}
 
 		private void RealtimeFTPConnectionTest(uint cycle)
 		{
-			RealtimeFtpReconnecting = true;
 			LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting disconnect");
 			try
 			{
-				if (Sslftp == FtpProtocols.SFTP)
+				if (Sslftp == FtpProtocols.SFTP && RealtimeSSH != null)
 				{
 					RealtimeSSH.Disconnect();
 				}
@@ -2351,7 +2305,7 @@ namespace CumulusMX
 			LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting to reconnect");
 			try
 			{
-				if (Sslftp == FtpProtocols.SFTP)
+				if (Sslftp == FtpProtocols.SFTP && RealtimeSSH != null)
 				{
 					RealtimeSSH.Connect();
 				}
@@ -2367,17 +2321,21 @@ namespace CumulusMX
 				LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting to reinitialise the connection");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
-					RealtimeSSHLogin();
+					RealtimeSSHLogin(cycle);
 				}
 				else
 				{
-					RealtimeFTPLogin();
+					RealtimeFTPLogin(cycle);
 				}
 			}
-			RealtimeFtpReconnecting = false;
+			if (Sslftp == FtpProtocols.SFTP && RealtimeSSH == null)
+			{
+				LogDebugMessage($"Realtime[{cycle}]: Realtime ftp attempting to reinitialise the connection");
+				RealtimeSSHLogin(cycle);
+			}
 		}
 
-		private void RealtimeFTPUpload(uint cycle)
+		private void RealtimeFTPUpload(byte cycle)
 		{
 			// realtime.txt
 			string filepath, gaugesfilepath;
@@ -2398,11 +2356,11 @@ namespace CumulusMX
 				LogFtpMessage($"Realtime[{cycle}]: Uploading - realtime.txt");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
-					UploadFile(RealtimeSSH, RealtimeFile, filepath);
+					UploadFile(RealtimeSSH, RealtimeFile, filepath, cycle);
 				}
 				else
 				{
-					UploadFile(RealtimeFTP, RealtimeFile, filepath);
+					UploadFile(RealtimeFTP, RealtimeFile, filepath, cycle);
 				}
 			}
 
@@ -2412,11 +2370,11 @@ namespace CumulusMX
 				LogFtpMessage($"Realtime[{cycle}]: Uploading - realtimegauges.txt");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
-					UploadFile(RealtimeSSH, RealtimeGaugesTxtFile, gaugesfilepath);
+					UploadFile(RealtimeSSH, RealtimeGaugesTxtFile, gaugesfilepath, cycle);
 				}
 				else
 				{
-					UploadFile(RealtimeFTP, RealtimeGaugesTxtFile, gaugesfilepath);
+					UploadFile(RealtimeFTP, RealtimeGaugesTxtFile, gaugesfilepath, cycle);
 				}
 			}
 
@@ -2446,11 +2404,11 @@ namespace CumulusMX
 						LogFtpMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] - {uploadfile}");
 						if (Sslftp == FtpProtocols.SFTP)
 						{
-							UploadFile(RealtimeSSH, uploadfile, remotefile);
+							UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
 						}
 						else
 						{
-							UploadFile(RealtimeFTP, uploadfile, remotefile);
+							UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
 						}
 					}
 					else
@@ -5224,8 +5182,7 @@ namespace CumulusMX
 		private const int numwebtextfiles = 9;
 		private readonly FtpClient RealtimeFTP = new FtpClient();
 		private SftpClient RealtimeSSH;
-		private volatile bool RealtimeInProgress = false;
-		private volatile bool RealtimeFtpReconnecting = false;
+		private volatile bool RealtimeFtpInProgress = false;
 		private byte RealtimeCycleCounter;
 		public bool SendSoilTemp1ToWund;
 		public bool SendSoilTemp2ToWund;
@@ -6311,12 +6268,12 @@ namespace CumulusMX
 				{
 					try
 					{
-						LogFtpMessage($"SFTP: CumulusMX Connecting to {ftp_host} on port {ftp_port}");
+						LogFtpMessage($"SFTP[Int]: CumulusMX Connecting to {ftp_host} on port {ftp_port}");
 						conn.Connect();
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"SFTP: Error connecting sftp - {ex.Message}");
+						LogMessage($"SFTP[Int]: Error connecting sftp - {ex.Message}");
 					}
 
 					if (conn.IsConnected)
@@ -6327,19 +6284,19 @@ namespace CumulusMX
 							try
 							{
 								// upload NOAA reports
-								LogFtpMessage("SFTP: Uploading NOAA reports");
+								LogFtpMessage("SFTP[Int]: Uploading NOAA reports");
 
 								var uploadfile = ReportPath + NOAALatestMonthlyReport;
 								var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
 
-								UploadFile(conn, uploadfile, remotefile);
+								UploadFile(conn, uploadfile, remotefile, -1);
 
 								uploadfile = ReportPath + NOAALatestYearlyReport;
 								remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
 
-								UploadFile(conn, uploadfile, remotefile);
+								UploadFile(conn, uploadfile, remotefile, -1);
 
-								LogFtpMessage("SFTP: Done uploading NOAA reports");
+								LogFtpMessage("SFTP[Int]: Done uploading NOAA reports");
 							}
 							catch (Exception e)
 							{
@@ -6348,7 +6305,7 @@ namespace CumulusMX
 							NOAANeedFTP = false;
 						}
 
-						LogFtpMessage("SFTP: Uploading extra files");
+						LogFtpMessage("SFTP[Int]: Uploading extra files");
 						// Extra files
 						for (int i = 0; i < numextrafiles; i++)
 						{
@@ -6378,7 +6335,7 @@ namespace CumulusMX
 									}
 									try
 									{
-										UploadFile(conn, uploadfile, remotefile);
+										UploadFile(conn, uploadfile, remotefile, -1);
 									}
 									catch (Exception e)
 									{
@@ -6387,7 +6344,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									LogMessage("Extra web file #" + i + " [" + uploadfile + "] not found!");
+									LogMessage("SFTP[Int]: Extra web file #" + i + " [" + uploadfile + "] not found!");
 								}
 							}
 						}
@@ -6395,12 +6352,12 @@ namespace CumulusMX
 						{
 							EODfilesNeedFTP = false;
 						}
-						LogFtpMessage("SFTP: Done uploading extra files");
+						LogFtpMessage("SFTP[Int]: Done uploading extra files");
 
 						// standard files
 						if (IncludeStandardFiles)
 						{
-							LogFtpMessage("SFTP: Uploading standard files");
+							LogFtpMessage("SFTP[Int]: Uploading standard files");
 							try
 							{
 								for (int i = 0; i < numwebtextfiles; i++)
@@ -6408,9 +6365,9 @@ namespace CumulusMX
 									var uploadfile = localwebtextfiles[i];
 									var remotefile = remotePath + remotewebtextfiles[i];
 
-									UploadFile(conn, uploadfile, remotefile);
+									UploadFile(conn, uploadfile, remotefile, -1);
 								}
-								LogFtpMessage("SFTP: Done uploading standard files");
+								LogFtpMessage("SFTP[Int]: Done uploading standard files");
 							}
 							catch (Exception e)
 							{
@@ -6422,15 +6379,15 @@ namespace CumulusMX
 						{
 							try
 							{
-								LogFtpMessage("SFTP: Uploading graph data files");
+								LogFtpMessage("SFTP[Int]: Uploading graph data files");
 								for (int i = 0; i < localgraphdatafiles.Length; i++)
 								{
 									var uploadfile = localgraphdatafiles[i];
 									var remotefile = remotePath + remotegraphdatafiles[i];
 
-									UploadFile(conn, uploadfile, remotefile);
+									UploadFile(conn, uploadfile, remotefile, -1);
 								}
-								LogFtpMessage("SFTP: Done uploading graph data files");
+								LogFtpMessage("SFTP[Int]: Done uploading graph data files");
 							}
 							catch (Exception e)
 							{
@@ -6442,9 +6399,9 @@ namespace CumulusMX
 						{
 							try
 							{
-								LogFtpMessage("SFTP: Uploading Moon image file");
-								UploadFile(conn, "web/moon.png", remotePath + MoonImageFtpDest);
-								LogFtpMessage("SFTP: Done uploading Moon image file");
+								LogFtpMessage("SFTP[Int]: Uploading Moon image file");
+								UploadFile(conn, "web/moon.png", remotePath + MoonImageFtpDest, -1);
+								LogFtpMessage("SFTP[Int]: Done uploading Moon image file");
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImageReady = false;
 							}
@@ -6456,13 +6413,14 @@ namespace CumulusMX
 					}
 					conn.Disconnect();
 				}
+				LogFtpMessage($"SFTP[Int]: Process complete");
 			}
 			else
 			{
 				using (FtpClient conn = new FtpClient())
 				{
 					FtpTrace.WriteLine(""); // insert a blank line
-					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " CumulusMX Connecting to " + ftp_host);
+					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: CumulusMX Connecting to " + ftp_host);
 					conn.Host = ftp_host;
 					conn.Port = ftp_port;
 					conn.Credentials = new NetworkCredential(ftp_user, ftp_password);
@@ -6493,7 +6451,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("FTP: Error connecting ftp - " + ex.Message);
+						LogMessage("FTP[Int]: Error connecting ftp - " + ex.Message);
 					}
 
 					conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
@@ -6506,18 +6464,18 @@ namespace CumulusMX
 							try
 							{
 								// upload NOAA reports
-								LogMessage("FTP: Uploading NOAA reports");
-								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading NOAA reports");
+								LogMessage("FTP[Int]: Uploading NOAA reports");
+								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: Uploading NOAA reports");
 
 								var uploadfile = ReportPath + NOAALatestMonthlyReport;
 								var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
 
-								UploadFile(conn, uploadfile, remotefile);
+								UploadFile(conn, uploadfile, remotefile, -1);
 
 								uploadfile = ReportPath + NOAALatestYearlyReport;
 								remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
 
-								UploadFile(conn, uploadfile, remotefile);
+								UploadFile(conn, uploadfile, remotefile, -1);
 							}
 							catch (Exception e)
 							{
@@ -6528,7 +6486,7 @@ namespace CumulusMX
 
 						//LogDebugMessage("Uploading extra files");
 						// Extra files
-						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading Extra files");
+						FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: Uploading Extra files");
 						for (int i = 0; i < numextrafiles; i++)
 						{
 							var uploadfile = ExtraFiles[i].local;
@@ -6557,16 +6515,16 @@ namespace CumulusMX
 									}
 									try
 									{
-										UploadFile(conn, uploadfile, remotefile);
+										UploadFile(conn, uploadfile, remotefile, -1);
 									}
 									catch (Exception e)
 									{
-										LogMessage(e.Message);
+										LogMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}");
 									}
 								}
 								else
 								{
-									LogMessage("FTP: Extra web file #" + i + " [" + uploadfile + "] not found!");
+									LogMessage("FTP[Int]: Extra web file #" + i + " [" + uploadfile + "] not found!");
 								}
 							}
 						}
@@ -6579,21 +6537,22 @@ namespace CumulusMX
 						if (IncludeStandardFiles)
 						{
 							//LogDebugMessage("Uploading standard files");
-							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading standard files");
+							string uploadfile = "";
+							FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: Uploading standard files");
 							try
 							{
 								for (int i = 0; i < numwebtextfiles; i++)
 								{
-									var uploadfile = localwebtextfiles[i];
+									uploadfile = localwebtextfiles[i];
 									var remotefile = remotePath + remotewebtextfiles[i];
 
-									UploadFile(conn, uploadfile, remotefile);
+									UploadFile(conn, uploadfile, remotefile, -1);
 								}
 								//LogDebugMessage("Done uploading standard files");
 							}
 							catch (Exception e)
 							{
-								LogMessage(e.Message);
+								LogMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}");
 							}
 						}
 
@@ -6602,13 +6561,13 @@ namespace CumulusMX
 							try
 							{
 								//LogDebugMessage("Uploading graph data files");
-								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading graph data files");
+								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: Uploading graph data files");
 								for (int i = 0; i < localgraphdatafiles.Length; i++)
 								{
 									var uploadfile = localgraphdatafiles[i];
 									var remotefile = remotePath + remotegraphdatafiles[i];
 
-									UploadFile(conn, uploadfile, remotefile);
+									UploadFile(conn, uploadfile, remotefile, -1);
 								}
 								//LogDebugMessage("Done uploading graph data files");
 							}
@@ -6622,8 +6581,8 @@ namespace CumulusMX
 						{
 							try
 							{
-								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading Moon image file");
-								UploadFile(conn, "web/moon.png", remotePath + MoonImageFtpDest);
+								FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: Uploading Moon image file");
+								UploadFile(conn, "web/moon.png", remotePath + MoonImageFtpDest, -1);
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImageReady = false;
 							}
@@ -6636,17 +6595,19 @@ namespace CumulusMX
 
 					// b3045 - dispose of connection
 					conn.Disconnect();
-					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Disconnected from " + ftp_host);
+					FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " FTP[Int]: Disconnected from " + ftp_host);
 				}
+				LogFtpMessage($"FTP[Int]: Process complete");
 			}
 		}
 
-		private void UploadFile(FtpClient conn, string localfile, string remotefile)
+		private void UploadFile(FtpClient conn, string localfile, string remotefile, int cycle)
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
+			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
 			FtpTrace.WriteLine("");
-			FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Uploading " + localfile + " to " + remotefile);
+			FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + $"FTP[{cycleStr}]: Uploading {localfile} to {remotefile}");
 
 			try
 			{
@@ -6659,7 +6620,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("FTP error deleting " + remotefile + " : " + ex.Message);
+						LogMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
 					}
 				}
 
@@ -6677,7 +6638,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+						LogMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
 					}
 					finally
 					{
@@ -6696,78 +6657,86 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("FTP error renaming " + remotefilename + " to " + remotefile + " : " + ex.Message);
+						LogMessage($"FTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 					}
 				}
 
-				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Completed uploading " + localfile + " to " + remotefile);
+				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + $"FTP[{cycleStr}]: Completed uploading {localfile} to {remotefile}");
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Error uploading " + localfile + " to " + remotefile + " : " + ex.Message);
+				LogMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
 			}
 		}
 
-		private void UploadFile(SftpClient conn, string localfile, string remotefile)
+		private void UploadFile(SftpClient conn, string localfile, string remotefile, int cycle)
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
+			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
-			LogFtpMessage($"SFTP: Starting Upload of {localfile} to {remotefile}");
-
-			try
+			if (conn == null)
 			{
-				/*
-				if (DeleteBeforeUpload)
-				{
-					// delete the existing file
-					// Not required for SFTP - we use the flag to always overwrite any existing file
-					try
-					{
-						LogFtpMessage($"SFTP: Deleting {remotefile}");
-						conn.DeleteFile(remotefile);
-					}
-					catch (Exception ex)
-					{
-						LogMessage("SFTP: Error deleting " + remotefile + " : " + ex.Message);
-					}
-				}
-				*/
-
-				//LogFtpMessage($"SFTP: Uploading {remotefilename}");
-				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read))
-				{
-					try
-					{
-						conn.OperationTimeout = TimeSpan.FromSeconds(15);
-						conn.UploadFile(istream, remotefilename, true);
-					}
-					catch (Exception ex)
-					{
-						LogMessage($"SFTP: Error uploading {localfile} to {remotefile} : {ex.Message}");
-						return;
-					}
-				}
-
-				if (FTPRename)
-				{
-					// rename the file
-					try
-					{
-						LogFtpMessage($"SFTP: Renaming {remotefilename} to {remotefile}");
-						conn.RenameFile(remotefilename, remotefile, true);
-					}
-					catch (Exception ex)
-					{
-						LogMessage($"SFTP: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
-						return;
-					}
-				}
-				LogFtpMessage($"SFTP: Completed uploading {localfile} to {remotefile}");
+				LogDebugMessage($"SFTP[{cycleStr}]: The SFTP object is null - skipping this upload");
 			}
-			catch (Exception ex)
+			else
 			{
-				LogMessage($"SFTP: Error uploading {localfile} to {remotefile} - {ex.Message}");
-				return;
+				LogFtpMessage($"SFTP[{cycleStr}]: Starting Upload of {localfile} to {remotefile}");
+
+				try
+				{
+					/*
+					if (DeleteBeforeUpload)
+					{
+						// delete the existing file
+						// Not required for SFTP - we use the flag to always overwrite any existing file
+						try
+						{
+							LogFtpMessage($"SFTP: Deleting {remotefile}");
+							conn.DeleteFile(remotefile);
+						}
+						catch (Exception ex)
+						{
+							LogMessage("SFTP: Error deleting " + remotefile + " : " + ex.Message);
+						}
+					}
+					*/
+
+					//LogFtpMessage($"SFTP: Uploading {remotefilename}");
+					using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read))
+					{
+						try
+						{
+							conn.OperationTimeout = TimeSpan.FromSeconds(15);
+							conn.UploadFile(istream, remotefilename, true);
+						}
+						catch (Exception ex)
+						{
+							LogMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
+							return;
+						}
+					}
+
+					if (FTPRename)
+					{
+						// rename the file
+						try
+						{
+							LogFtpMessage($"SFTP[{cycleStr}]: Renaming {remotefilename} to {remotefile}");
+							conn.RenameFile(remotefilename, remotefile, true);
+						}
+						catch (Exception ex)
+						{
+							LogMessage($"SFTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
+							return;
+						}
+					}
+					LogFtpMessage($"SFTP[{cycleStr}]: Completed uploading {localfile} to {remotefile}");
+				}
+				catch (Exception ex)
+				{
+					LogMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} - {ex.Message}");
+					return;
+				}
 			}
 		}
 
@@ -7106,11 +7075,11 @@ namespace CumulusMX
 				Console.WriteLine("Connecting real time FTP");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
-					RealtimeSSHLogin();
+					RealtimeSSHLogin(RealtimeCycleCounter++);
 				}
 				else
 				{
-					RealtimeFTPLogin();
+					RealtimeFTPLogin(RealtimeCycleCounter++);
 				}
 			}
 
@@ -7481,7 +7450,7 @@ namespace CumulusMX
 			MySqlList.Clear();
 		}
 
-		private void RealtimeFTPLogin()
+		private void RealtimeFTPLogin(uint cycle)
 		{
 			//RealtimeTimer.Enabled = false;
 			RealtimeFTP.Host = ftp_host;
@@ -7495,32 +7464,32 @@ namespace CumulusMX
 				RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
 				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
 				RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-				LogDebugMessage("FTP: Using FTPS protocol");
+				LogDebugMessage($"FTP[{cycle}]: Using FTPS protocol");
 			}
 
 			if (ActiveFTPMode)
 			{
 				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
-				LogDebugMessage("FTP: Using Active FTP mode");
+				LogDebugMessage($"FTP[{cycle}]: Using Active FTP mode");
 			}
 			else if (DisableFtpsEPSV)
 			{
 				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
-				LogDebugMessage("FTP: Disabling EPSV mode");
+				LogDebugMessage($"FTP[{cycle}]: Disabling EPSV mode");
 			}
 
 			if (ftp_host != "" && ftp_host != " ")
 			{
-				LogMessage($"Attempting realtime FTP connect to host {ftp_host} on port {ftp_port}");
+				LogMessage($"FTP[{ cycle}]: Attempting realtime FTP connect to host {ftp_host} on port {ftp_port}");
 				try
 				{
 					RealtimeFTP.Connect();
-					LogMessage("Realtime FTP connected");
+					LogMessage($"FTP[{cycle}]: Realtime FTP connected");
 					RealtimeFTP.SocketKeepAlive = true;
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Error connecting ftp - " + ex.Message);
+					LogMessage($"FTP[{cycle}]: Error connecting ftp - " + ex.Message);
 					RealtimeFTP.Disconnect();
 				}
 
@@ -7529,12 +7498,11 @@ namespace CumulusMX
 			//RealtimeTimer.Enabled = true;
 		}
 
-		private void RealtimeSSHLogin()
+		private void RealtimeSSHLogin(uint cycle)
 		{
-
 			if (ftp_host != "" && ftp_host != " ")
 			{
-				LogMessage($"Attempting realtime SFTP connect to host {ftp_host} on port {ftp_port}");
+				LogMessage($"SFTP[{cycle}]: Attempting realtime SFTP connect to host {ftp_host} on port {ftp_port}");
 				try
 				{
 					// BUILD 3082 - added alternate SFTP authenication options, but currently only "password" is functional
@@ -7569,11 +7537,11 @@ namespace CumulusMX
 					RealtimeSSH = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password);
 					RealtimeSSH.Connect();
 					RealtimeSSH.ConnectionInfo.Timeout = TimeSpan.FromSeconds(15);  // 15 seconds to match FTP default timeout
-					LogMessage("Realtime SFTP connected");
+					LogMessage($"SFTP[{cycle}]: Realtime SFTP connected");
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Error connecting sftp - " + ex.Message);
+					LogMessage($"SFTP[{cycle}]: Error connecting sftp - {ex.Message}");
 				}
 			}
 		}

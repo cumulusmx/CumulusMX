@@ -682,20 +682,21 @@ namespace CumulusMX
 											}
 											else
 											{
-												var gust = ConvertWindMPHToUser(rec.Value<double>("wind_speed_hi_last_10_min")) * cumulus.WindGustMult;
+												var gust = ConvertWindMPHToUser(rec.Value<double>("wind_speed_hi_last_10_min"));
+												var gustCal = gust * cumulus.WindGustMult;
 
-												if (gust > RecentMaxGust)
+												if (gustCal > RecentMaxGust)
 												{
-													cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + RecentMaxGust.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-													CheckHighGust(gust, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime);
+													cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+													CheckHighGust(gustCal, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime);
 
 													// add to recent values so normal calculation includes this value
-													WindRecent[nextwind].Gust = gust / cumulus.WindGustMult;
+													WindRecent[nextwind].Gust = gust; // use uncalibrated value
 													WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
 													WindRecent[nextwind].Timestamp = dateTime;
 													nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
 
-													RecentMaxGust = gust;
+													RecentMaxGust = gustCal;
 												}
 											}
 										}

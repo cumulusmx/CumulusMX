@@ -983,7 +983,7 @@ namespace CumulusMX
 
 		private string Tagintemp(Dictionary<string,string> TagParams)
 		{
-			return station.IndoorTemperature.ToString(cumulus.TempFormat);
+			return CheckRC(station.IndoorTemperature.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string Tagbattery(Dictionary<string,string> TagParams)
@@ -1614,7 +1614,7 @@ namespace CumulusMX
 
 		private string Tagcurrcond(Dictionary<string,string> TagParams)
 		{
-			return EncodeForWeb(GetCurrCondText());
+			return GetCurrCondText();
 		}
 
 		private string Tagcurrcondenc(Dictionary<string,string> TagParams)
@@ -2512,7 +2512,10 @@ namespace CumulusMX
 
 		private string Tagdaylength(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(cumulus.DayLength, "HH:mm", TagParams);
+			if (TagParams.Get("format") == null)
+				return ((int)cumulus.DayLength.TotalHours).ToString("D2") + ":" + cumulus.DayLength.Minutes.ToString("D2");
+			else
+				return GetFormattedDateTime(cumulus.DayLength, "HH:mm", TagParams);
 		}
 
 		private string Tagdawn(Dictionary<string,string> TagParams)
@@ -2527,7 +2530,10 @@ namespace CumulusMX
 
 		private string Tagdaylightlength(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(cumulus.DaylightLength, "HH:mm", TagParams);
+			if (TagParams.Get("format") == null)
+				return ((int)cumulus.DaylightLength.TotalHours).ToString("D2") + ":" + cumulus.DaylightLength.Minutes.ToString("D2");
+			else
+				return GetFormattedDateTime(cumulus.DaylightLength, "HH:mm", TagParams);
 		}
 
 		private string Tagisdaylight(Dictionary<string,string> TagParams)

@@ -1893,19 +1893,32 @@ namespace CumulusMX
 			// Chart data for Highcharts graphs
 			// config
 			var json = GetGraphConfig();
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "graphconfig.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "graphconfig.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing graphconfig.json: " + ex.Message);
 			}
 
 			// Temperature
 			json = GetTempGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "tempdata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "tempdata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing tempdata.json: " + ex.Message);
 			}
 
 			/*// temperature for nvd3 charts
@@ -1919,11 +1932,17 @@ namespace CumulusMX
 
 			// Pressure
 			json = GetPressGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "pressdata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "pressdata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing pressdata.json: " + ex.Message);
 			}
 
 			/*// Pressure for nvd3 charts
@@ -1937,29 +1956,47 @@ namespace CumulusMX
 
 			// Wind
 			json = GetWindGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "winddata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "winddata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing winddata.json: " + ex.Message);
 			}
 
 			/*// Wind for nvd3 charts
 			json = GetWindGraphDataD3();
-
-			using (var file = new StreamWriter("winddatad3.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
-			}*/
+				using (var file = new StreamWriter("winddatad3.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+						catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing winddatad3.json: " + ex.Message);
+			}
+			*/
 
 			// Wind direction
 			json = GetWindDirGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "wdirdata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "wdirdata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing wdirdata.json: " + ex.Message);
 			}
 
 			/*// Wind direction for nvd3 charts
@@ -1973,86 +2010,145 @@ namespace CumulusMX
 
 			// Humidity
 			json = GetHumGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "humdata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "humdata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing humdata.json: " + ex.Message);
 			}
 
 			/*// Humidity for nvd3 charts
 			json = GetHumGraphDataD3();
-
-			using (var file = new StreamWriter("humdatad3.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("humdatad3.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+						catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing humdatad3.json: " + ex.Message);
 			}*/
 
 			// Rain
 			json = GetRainGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "raindata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "raindata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
 			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing wdirdata.json: " + ex.Message);
+			}
+
 
 			/*// Rain for nvd3 charts
 			json = GetRainGraphDataD3();
-
-			using (var file = new StreamWriter("raindatad3.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("raindatad3.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+						catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing raindatad3.json: " + ex.Message);
 			}*/
 
 			// Solar
 			json = GetSolarGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "solardata.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "solardata.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
 			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing solardata.json: " + ex.Message);
+			}
+
 
 			/*// Solar for nvd3 charts
 			json = GetSolarGraphDataD3();
-
-			using (var file = new StreamWriter("solardatad3.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("solardatad3.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+						catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing solardatad3.json: " + ex.Message);
 			}*/
 
 			// Daily rain
 			json = GetDailyRainGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "dailyrain.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "dailyrain.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing dailyrain.json: " + ex.Message);
 			}
 
 			// Sun hours
 			json = GetSunHoursGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "sunhours.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "sunhours.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
 			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing sunhours.json: " + ex.Message);
+			}
+
 
 			// Daily temp
 			json = GetDailyTempGraphData();
-
-			using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "dailytemp.json", false))
+			try
 			{
-				file.WriteLine(json);
-				file.Close();
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "dailytemp.json", false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
 			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing dailytemp.json: " + ex.Message);
+			}
+
 		}
 
+		/*
 		public string GetSolarGraphDataD3()
 		{
 			var InvC = new CultureInfo("");
@@ -2083,6 +2179,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetSolarGraphData()
 		{
@@ -2115,6 +2212,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		public string GetRainGraphDataD3()
 		{
 			var InvC = new CultureInfo("");
@@ -2137,6 +2235,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetRainGraphData()
 		{
@@ -2161,6 +2260,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		public string GetHumGraphDataD3()
 		{
 			var sb = new StringBuilder("[{\"key\":\"Outdoor humidity\",\"values\":[");
@@ -2182,6 +2282,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetHumGraphData()
 		{
@@ -2205,6 +2306,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		public string GetWindDirGraphDataD3()
 		{
 			var sb = new StringBuilder("[{\"key\":\"Direction\",\"values\":[");
@@ -2226,6 +2328,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetWindDirGraphData()
 		{
@@ -2249,6 +2352,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		public string GetWindGraphDataD3()
 		{
 			var InvC = new CultureInfo("");
@@ -2272,6 +2376,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetWindGraphData()
 		{
@@ -2297,6 +2402,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		public string GetPressGraphDataD3()
 		{
 			var InvC = new CultureInfo("");
@@ -2311,6 +2417,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetPressGraphData()
 		{
@@ -2329,6 +2436,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		/*
 		public string GetTempGraphDataD3()
 		{
 			var InvC = new CultureInfo("");
@@ -2388,6 +2496,7 @@ namespace CumulusMX
 			sb.Append("]}]");
 			return sb.ToString();
 		}
+		*/
 
 		public string GetTempGraphData()
 		{
@@ -2889,12 +2998,13 @@ namespace CumulusMX
 			// Calculates Apparent Temperature
 			// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
 
-			// don't try to calculate windchill if we haven't yet had wind and temp readings
+			// don't try to calculate apparent if we haven't yet had wind and temp readings
 			//if (TempReadyToPlot && WindReadyToPlot)
 			//{
-				ApparentTemperature =
-				ConvertTempCToUser(ConvertUserTempToC(OutdoorTemperature) + (0.33 * MeteoLib.ActualVapourPressure(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity)) -
-								   (0.7 * ConvertUserWindToMS(WindAverage)) - 4);
+				//ApparentTemperature =
+				//ConvertTempCToUser(ConvertUserTempToC(OutdoorTemperature) + (0.33 * MeteoLib.ActualVapourPressure(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity)) -
+				//				   (0.7 * ConvertUserWindToMS(WindAverage)) - 4);
+				ApparentTemperature = ConvertTempCToUser(MeteoLib.ApparentTemperature(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToMS(WindAverage), OutdoorHumidity));
 
 				if (ApparentTemperature > HighAppTempToday)
 				{
@@ -3907,8 +4017,8 @@ namespace CumulusMX
 
 			// calculate RH
 			double TempDry = ConvertUserTempToC(OutdoorTemperature);
-			double Es = MeteoLib.SaturationVaporPressure(TempDry);
-			double Ew = MeteoLib.SaturationVaporPressure(temp);
+			double Es = MeteoLib.SaturationVapourPressure1980(TempDry);
+			double Ew = MeteoLib.SaturationVapourPressure1980(temp);
 			double E = Ew - (0.00066*(1 + 0.00115*temp)*(TempDry - temp)*1013);
 			int hum = (int) (100*(E/Es));
 			DoOutdoorHumidity(hum, timestamp);

@@ -1,9 +1,20 @@
-﻿using System;
+using Newtonsoft.Json.Serialization;
+using System;
 
 namespace CumulusMX
 {
     internal class MeteoLib
     {
+
+        /// <summary>
+        /// Calculates the Wind Chill in Celcius
+        /// </summary>
+        /// <remarks>
+        /// JAG/TI - 2003
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <param name="windSpeedKph">Average wind speed in km/h</param>
+        /// <returns>Wind Chill in Celcius</returns>
         public static double WindChill(double tempC, double windSpeedKph)
         {
             // see American Meteorological Society Journal
@@ -29,12 +40,13 @@ namespace CumulusMX
         /// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
         /// </remarks>
         /// <param name="tempC">Temp in C</param>
-        /// <param name="windspeed">Wind speed in m/s</param>
+        /// <param name="windspeedMS">Wind speed in m/s</param>
         /// <param name="humidity">Relative humidity</param>
         /// <returns>Apparent temperature in Celcius</returns>
         public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
         {
             double avp = (humidity/100.0)*6.105*Math.Exp(17.27*tempC/(237.7 + tempC)); // hPa
+            //double avp = ActualVapourPressure(tempC, humidity);
             return tempC + (0.33*avp) - (0.7*windspeedMS) - 4.0;
         }
 
@@ -42,7 +54,7 @@ namespace CumulusMX
         /// Calculates the Feels Like temperature in Celcius
         /// </summary>
         /// <remarks>
-        /// Joint Action Group for Temerature Indices (JAG/TI) formula
+        /// Joint Action Group for Temperature Indices (JAG/TI) formula
         /// </remarks>
         /// <param name="tempC">Temp in C</param>
         /// <param name="windSpeedKph">Windspeed in kph</param>
@@ -52,9 +64,10 @@ namespace CumulusMX
         {
             // Cannot use the WindChill function as we need the chill above 10 C
             double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
-            double vaporp = ((humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC))) / 10; // kPa
-            // Steadman's Apparent Temperature
-            double apptemp = -2.7 + (1.04 * tempC) + (2 * vaporp) - (windSpeedKph * 0.1805553);
+            double svp = SaturationVapourPressure1980(tempC);   // Saturation Vapour Pressure in hPa
+            double avp = humidity / 100 * svp / 10;             // Actual Vapour Pressure in kPa
+            if (windSpeedKph > 72) windSpeedKph = 72;           // Windspeed limited to 20 m/s = 72 km/h
+            double apptemp = (1.04 * tempC) + (2 * avp) - (windSpeedKph * 0.1805553) - 2.7;
             double feels;
             if (tempC < 10.0)
             {
@@ -66,7 +79,7 @@ namespace CumulusMX
             }
             else
             {
-                // linear interpolation between chill and apparent
+                // 10-20 C = linear interpolation between chill and apparent
                 double A = (tempC - 10) / 10;
                 double B = 1 - A;
                 feels = (apptemp * A) + (chill * B);
@@ -74,15 +87,25 @@ namespace CumulusMX
             return feels;
         }
 
+
+
+        /// <summary>
+        /// Calculates the North American Heat Index
+        /// </summary>
+        /// <remarks>
+        /// Uses the NOAA formula and corrections
+        /// see: https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <param name="humidity">Relative humidity</param>
+        /// <returns>Heat Index in Celcius</returns>
         public static double HeatIndex(double tempC, int humidity)
         {
-            // see http://www.hpc.ncep.noaa.gov/heat_index/hi_equation.html
-
             double tempF = CToF(tempC);
 
             if (tempF < 80)
             {
-                return FtoC(tempF);
+                return tempC;
             }
             else
             {
@@ -109,38 +132,99 @@ namespace CumulusMX
             }
         }
 
+        /// <summary>
+        /// Estimates the Wet Bulb temperature using a polynomial
+        /// </summary>
+        /// <remarks>
+        /// To calculate this accurately we need an iterative process
+        /// <param name="TempC">Temp in C</param>
+        /// <param name="DewPointC">Dew point in C</param>
+        /// <param name="PressureMB">Station pressure in mb/hPa</param>
+        /// <returns>Wet bulb temperature in Celcius</returns>
         public static double CalculateWetBulbC(double TempC, double DewPointC, double PressureMB)
-
         {
-            double svpDP = SaturationVaporPressure(DewPointC);
+            double svpDP = SaturationVapourPressure1980(DewPointC);
 
-            return (((0.00066*PressureMB)*TempC) + ((4098*svpDP)/(Sqr(DewPointC + 237.7))*DewPointC))/((0.00066*PressureMB) + (4098*svpDP)/(Sqr(DewPointC + 237.7)));
-            // WBc =     (((0.00066 * P         ) * Tc   ) + ((4098 * E    ) / (    (Tdc + 237.7          ) ^ 2) * Tdc      )) / ((0.00066 * P         ) + (4098 * E    ) / (   (Tdc + 237.7      ) ^ 2))
+            return (((0.00066 * PressureMB) * TempC) + ((4098 * svpDP) / (Sqr(DewPointC + 237.7)) * DewPointC)) / ((0.00066 * PressureMB) + (4098 * svpDP) / (Sqr(DewPointC + 237.7)));
         }
 
         /// <summary>
-        /// Calculates the Saturated Vapour Pressure in hPa
+        /// Estimates the Wet Bulb temperature using a polynomial
         /// </summary>
         /// <remarks>
-        /// Bolton(1980)
-        /// </remarks>
-        /// <param name="tempC">Temp in C</param>
-        /// <returns>SVP in hPa</returns>
-        public static double SaturationVaporPressure(double tempC)
+        /// To calculate this accurately we need an iterative process
+        /// This method assumes a pressure of 1013.25 hPa, and RH in the range 5% - 99%
+        /// It is an emprical approximation generated using a best fit function
+        /// See: https://journals.ametsoc.org/jamc/article/50/11/2267/13533/Wet-Bulb-Temperature-from-Relative-Humidity-and
+        /// and Strull: https://www.eoas.ubc.ca/books/Practical_Meteorology/prmet102/Ch04-watervapor-v102b.pdf
+        /// Errors have multiple relative maxima and minima of order from −1.0° to +0.6°C
+        /// <param name="TempC">Temp in C</param>
+        /// <param name="Humidity">Relative Humidty in %</param>
+        /// <param name="PressureMB">Station pressure in mb/hPa</param>
+        /// <returns>Wet bulb temperature in Celcius</returns>
+        public static double CalculateWetBulbC2(double TempC, int Humidity)
         {
-            return 6.112*Math.Exp(17.67*tempC/(tempC + 243.5)); // Bolton(1980)
+            if (Humidity == 100)
+                return TempC;
+
+            return TempC * Math.Atan(0.151977 * Math.Sqrt(Humidity + 8.313659)) + Math.Atan(TempC + Humidity) - Math.Atan(Humidity - 1.676331) + 0.00391838 * Math.Pow(Humidity, 3/2) * Math.Atan(0.023101 * Humidity) - 4.686035;
         }
+
+
+        /// <summary>
+        /// Calcuates the Wet Bulb temperature iteratively
+        /// </summary>
+        /// <remarks>
+        /// To calculate this accurately we need an iterative process
+        /// See: https://www.researchgate.net/publication/303156836_Simple_Iterative_Approach_to_Calculate_Wet-Bulb_Temperature_for_Estimating_Evaporative_Cooling_Efficiency
+        /// <param name="TempC">Temp in C</param>
+        /// <param name="Humidity">Relative Humidty in %</param>
+        /// <param name="PressureHPA">Station pressure in mb/hPa</param>
+        /// <returns>Wet bulb temperature in Celcius</returns>
+        public static double CalculateWetBulbCIterative(double TempC, int Humidity, double PressureHPA)
+        {
+            if (Humidity == 100)
+                return TempC;
+
+            var e = ActualVapourPressure2008(TempC, Humidity);
+            double Tw;
+            double Tw1 = TempC;
+            double Ewg, eg, Ed;
+
+            do {
+                Tw = Tw1;
+                Ewg = SaturationVapourPressure1980(Tw);
+                eg = Ewg - PressureHPA * (TempC - Tw) * 0.00066 * (1 + (0.00115 * Tw));
+                Ed = e - eg;
+                Tw1 = Tw + Ed / 5 * 2;
+            } while (Math.Abs(Tw - Tw1) > 0.1);
+
+            return Tw1;
+        }
+
 
         private static double Sqr(double num)
         {
             return num*num;
         }
 
+        /// <summary>
+        /// Calculates the Dew Point in Celcius
+        /// </summary>
+        /// <remarks>
+        /// Uses the Davis formula, described as "an approximation of the Goff & Gratch equation"
+        /// It is functionally equivalent to the Magnus formula using the Sonntag 1990 values for constants
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <param name="humidity">Relative humidity</param>
+        /// <returns>Dew Point temperature in Celcius</returns>
         public static double DewPoint(double tempC, double humidity)
         {
-            //return tempC + ((0.13*tempC) + 13.6)*Math.Log(humidity/100.0);
+            if (humidity == 0 || humidity == 100)
+                return tempC;
+
             // Davis algorithm
-            double lnVapor = Math.Log(ActualVapourPressure(tempC, (int) humidity));
+            double lnVapor = Math.Log(ActualVapourPressure2008(tempC, (int) humidity));
             return ((243.12 * lnVapor) - 440.1) / (19.43 - lnVapor);
         }
 
@@ -148,23 +232,47 @@ namespace CumulusMX
         /// Calculates the Saturated Vapour Pressure in hPa
         /// </summary>
         /// <remarks>
-        /// WMO - CIMO Guide - 2008
+        /// Bolton(1980) or
+        /// August–Roche–Magnus?
         /// </remarks>
         /// <param name="tempC">Temp in C</param>
         /// <returns>SVP in hPa</returns>
-        public static double SaturationVapourPressure(double tempC)
+        public static double SaturationVapourPressure1980(double tempC)
+        {
+            return 6.112 * Math.Exp(17.67 * tempC / (tempC + 243.5));
+        }
+
+        /// <summary>
+        /// Calculates the Saturated Vapour Pressure in hPa
+        /// </summary>
+        /// <remarks>
+        /// WMO - CIMO Guide - 2008
+        /// Sonntag 1990
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <returns>SVP in hPa</returns>
+        public static double SaturationVapourPressure2008(double tempC)
         {
             return 6.112*Math.Exp((17.62*tempC)/(243.12 + tempC));
         }
 
-        public static double ActualVapourPressure(double tempC, int humidity)
+        public static double ActualVapourPressure2008(double tempC, int humidity)
         {
-            return (humidity*SaturationVapourPressure(tempC))/100.0;
+            return (humidity*SaturationVapourPressure2008(tempC))/100.0;
         }
 
+        /// <summary>
+        /// Calculates the Canadian Humidex
+        /// </summary>
+        /// <remarks>
+        /// WMO - CIMO Guide - 2008
+        /// Sonntag 1990
+        /// </remarks>
+        /// <param name="tempC">Temp in C</param>
+        /// <returns>Humidex - dimensionless</returns>
         public static double Humidex(double tempC, int humidity)
         {
-            return tempC + ((5.0/9.0)*(ActualVapourPressure(tempC, humidity) - 10.0));
+            return tempC + ((5.0/9.0)*(ActualVapourPressure2008(tempC, humidity) - 10.0));
         }
 
         public static double CToF(double tempC)

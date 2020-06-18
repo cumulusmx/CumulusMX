@@ -562,9 +562,8 @@ namespace CumulusMX
 					var size = ConvertBigEndianUInt16(data, 3);
 					int chan;
 
-					double rainRateLast, rainLast, gustLast;
-					var windSpeedLast = rainRateLast = rainLast = gustLast = 0;
-					var windDirLast = 0;
+					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999, gustLastCal = -999;
+					int windDirLast = -999;
 
 					bool batteryLow = false;
 
@@ -623,6 +622,7 @@ namespace CumulusMX
 								break;
 							case 0x0C: // Gust speed (m/s)
 								gustLast = ConvertWindMSToUser(ConvertBigEndianUInt16(data, idx) / 10.0);
+								gustLastCal = gustLast * cumulus.WindGustMult;
 								idx += 2;
 								break;
 							case 0x0D: //Rain Event (mm)
@@ -820,10 +820,22 @@ namespace CumulusMX
 								chan /= 2; // -> 1,2,3,4...
 								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoUserTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
-								idx += 2;
+								if (tenMinuteChanged)
+								{
+									var volts = TestBattery4V(data[idx + 2]);
+									if (volts <= 1.2)
+									{
+										batteryLow = true;
+										cumulus.LogMessage($"WH34 channel #{chan} battery LOW = {volts}V");
+									}
+									else
+									{
+										cumulus.LogDebugMessage($"WH34 channel #{chan} battery OK = {volts}V");
+									}
+								}
+								idx += 3; // Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
 								break;
-							case 0x6B: //WH34 User temperature battery (8 channels)
-									   //TODO: battery status, do we need to know which sensors are attached?
+							case 0x6B: //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
 								if (tenMinuteChanged)
 								{
 									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
@@ -846,24 +858,30 @@ namespace CumulusMX
 					cumulus.BatteryLowAlarmState = batteryLow;
 
 					// No average in the live data, so use last value from cumulus
-					DoWind(windSpeedLast, windDirLast, WindAverage / cumulus.WindSpeedMult, dateTime);
-					//DoWind(windSpeedLast, windDirLast, windSpeedLast, dateTime);
-
-					if (gustLast > RecentMaxGust)
+					if (windSpeedLast > -999 && windDirLast > -999)
 					{
-						cumulus.LogDebugMessage("Setting max gust from current value: " + gustLast.ToString(cumulus.WindFormat));
-						CheckHighGust(gustLast, windDirLast, dateTime);
+						DoWind(windSpeedLast, windDirLast, WindAverage / cumulus.WindSpeedMult, dateTime);
+						//DoWind(windSpeedLast, windDirLast, windSpeedLast, dateTime);
+					}
+
+					if (gustLastCal > RecentMaxGust)
+					{
+						cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
+						CheckHighGust(gustLastCal, windDirLast, dateTime);
 
 						// add to recent values so normal calculation includes this value
-						WindRecent[nextwind].Gust = ConvertWindMPHToUser(gustLast);
+						WindRecent[nextwind].Gust = gustLast; // use uncalibrated value
 						WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
 						WindRecent[nextwind].Timestamp = dateTime;
 						nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
 
-						RecentMaxGust = gustLast;
+						RecentMaxGust = gustLastCal;
 					}
 
-					DoRain(rainLast, rainRateLast, dateTime);
+					if (rainLast > -999 && rainRateLast > -999)
+					{
+						DoRain(rainLast, rainRateLast, dateTime);
+					}
 
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
 					{
@@ -871,7 +889,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						// calculate wind chill from calibrated C temp and calibrated win in KPH
+						// calculate wind chill from calibrated C temp and calibrated wind in KPH
 						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
 					}
 
@@ -980,7 +998,7 @@ namespace CumulusMX
 
 		private bool DoBatteryStatus(byte[] data, int index)
 		{
-
+			bool batteryLow = false;
 			BatteryStatus status = (BatteryStatus)RawDeserialize(data, index, typeof(BatteryStatus));
 			cumulus.LogDebugMessage("battery status...");
 
@@ -989,7 +1007,13 @@ namespace CumulusMX
 				" wh25=" + TestBattery1(status.single, (byte)_sig_sen.wh25) +
 				" wh26=" + TestBattery1(status.single, (byte)_sig_sen.wh26) +
 				" wh40=" + TestBattery1(status.single, (byte)_sig_sen.wh40);
-			cumulus.LogDebugMessage(str);
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
 			str = "wh31>" +
 				" ch1=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch1) +
@@ -1000,14 +1024,26 @@ namespace CumulusMX
 				" ch6=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch6) +
 				" ch7=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch7) +
 				" ch8=" + TestBattery1(status.wh31, (byte)_wh31_ch.ch8);
-			cumulus.LogDebugMessage(str);
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
 			str = "wh41>" +
 				" ch1=" + TestBattery2(status.wh41, 0x0F) +
 				" ch2=" + TestBattery2((UInt16)(status.wh41 >> 4), 0x0F) +
 				" ch3=" + TestBattery2((UInt16)(status.wh41 >> 8), 0x0F) +
 				" ch4=" + TestBattery2((UInt16)(status.wh41 >> 12), 0x0F);
-			cumulus.LogDebugMessage(str);
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
 			str = "wh51>" +
 				" ch1=" + TestBattery1(status.wh51, (byte)_wh51_ch.ch1) +
@@ -1018,26 +1054,60 @@ namespace CumulusMX
 				" ch6=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch6) +
 				" ch7=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch7) +
 				" ch8=" + TestBattery1(status.wh31, (byte)_wh51_ch.ch8);
-			cumulus.LogDebugMessage(str);
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
-			cumulus.LogDebugMessage("wh57> " + TestBattery3(status.wh57));
+			str = "wh57> " + TestBattery3(status.wh57);
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
-			cumulus.LogDebugMessage("wh68> " + (0.02 * status.wh68) + "V");
-			cumulus.LogDebugMessage("wh80> " + (0.02 * status.wh80) + "V");
+			str = "wh68> " + TestBattery4S(status.wh68) + " - " + TestBattery4V(status.wh68) + "V";
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
+
+			str= "wh80> " + TestBattery4S(status.wh80) + " - " + TestBattery4V(status.wh80) + "V";
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
 			str = "wh55>" +
 				" ch1=" + TestBattery3(status.wh55_ch1) +
 				" ch2=" + TestBattery3(status.wh55_ch2) +
 				" ch3=" + TestBattery3(status.wh55_ch3) +
 				" ch4=" + TestBattery3(status.wh55_ch4);
-			cumulus.LogDebugMessage(str);
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
 
-			return str.Contains("Low");
+			return batteryLow;
 		}
 
 		private bool DoWH34BatteryStatus(byte[] data, int index)
 		{
-
+			// No longer used in firmware 1.6.0+
 			cumulus.LogDebugMessage("WH34 battery status...");
 			var str = "wh34>" +
 				" ch1=" + TestBattery3(data[index + 1]) +
@@ -1084,6 +1154,14 @@ namespace CumulusMX
 				return "OK";
 			else
 				return "Low";
+		}
+		private double TestBattery4V(byte value)
+		{
+			return value * 0.02;
+		}
+		private string TestBattery4S(byte value)
+		{
+			return value * 0.02 > 1.2 ? "OK" : "Low";
 		}
 
 		public static object RawDeserialize(byte[] rawData, int position, Type anyType)
