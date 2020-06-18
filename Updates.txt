@@ -1,3 +1,24 @@
+3.6.8 - b3084
+=============
+- Simplify realtime SFTP error detection and recovery
+- Change the default web site Gauges page to not show pop-up graphs by default
+- Fix for Ecowitt GW1000 stations when sensors go offline/online (wind and rain values)
+- Fix for GW1000 stations wind gust values when using units other than "mph"
+- Fix for GW1000 stations with WH34 type sensors and firmware 1.6.0 or later. You *must* now use firmware 1.6.0+ with WH34 devices
+- Fix crash when creating the graph JSON files when file in use by FTP
+- Fix for rc=y parameter not working with the <#intemp> web tag
+- Fix low contrast menus on admin interface
+- Fix HighCharts theme on admin interface Charts page, and default web site Trends page
+- Fix for web tags <#daylength> and <#daylightlength> to display "24:00" if they last all day (they still allow custom formats)
+
+- Updated files
+	\CumulusmX.exe
+	\interface\charts.html
+	\interface\css\cumulus.css
+	\web\trendsT.htm
+	\webfiles\lib\steelseries\scripts\gauges.js
+
+
 3.6.7 - b3083
 =============
 - Add catches for real time MySQL updates and all real time file failures
