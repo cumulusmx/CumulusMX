@@ -105,10 +105,17 @@ namespace CumulusMX
 					DavisFirmwareVersion = GetFirmwareVersion();
 				}
 				cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
-				if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.UseDavisLoop2)
+				try
 				{
-					cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmare version does not support it. Consider disabling it in Cumulus.ini");
-					Console.WriteLine("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
+					if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.UseDavisLoop2)
+					{
+						cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmare version does not support it. Consider disabling it in Cumulus.ini");
+						Console.WriteLine("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
+					}
+				}
+				catch(Exception ex)
+				{
+					cumulus.LogDebugMessage("Error parsing firmware string for version number: " + ex.Message);
 				}
 
 				if (cumulus.DavisReadReceptionStats)
@@ -190,6 +197,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Reading firmware version");
 			string response = "";
+			string data = "";
 
 			if (IsSerial)
 			{
@@ -197,17 +205,16 @@ namespace CumulusMX
 				if (
 				WakeVP(comport))
 				{
+					comport.DiscardInBuffer();
 					comport.WriteLine(commandString);
 
-					CommTimer tmrComm = new CommTimer();
-					tmrComm.Start(commWaitTimeMs);
+					CommTimer timer = new CommTimer();
+					timer.Start(commWaitTimeMs);
 
 					// Read the response
-					var bytesRead = 0;
-					byte[] buffer = new byte[20];
 					try
 					{
-						while (tmrComm.timedout == false)
+						while (timer.timedout == false)
 						{
 							if (comport.BytesToRead > 0)
 							{
@@ -216,24 +223,22 @@ namespace CumulusMX
 									// Read the current character
 									var ch = comport.ReadChar();
 									response += Convert.ToChar(ch);
-									buffer[bytesRead] = (byte)ch;
-									bytesRead++;
-									//cumulus.LogMessage("Received " + ch.ToString("X2"));
+									data += ch.ToString("X2") + "-";
 								}
-								tmrComm.Stop();
+								timer.Stop();
+								data = data.Remove(data.Length - 1);
 							}
 							else
 							{
 								Thread.Sleep(20);
 							}
 						}
-						cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
+						cumulus.LogDataMessage("Received 0x" + data);
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("GetFirmwareVersion: Error - " + ex.Message);
 					}
-					tmrComm.tmrComm.Dispose();
 				}
 			}
 			else
@@ -249,19 +254,16 @@ namespace CumulusMX
 
 						Thread.Sleep(cumulus.DavisIPResponseTime);
 
-						var bytesRead = 0;
-						byte[] buffer = new byte[20];
-
 						while (stream.DataAvailable)
 						{
 							// Read the current character
 							var ch = stream.ReadByte();
 							response += Convert.ToChar(ch);
-							buffer[bytesRead] = (byte) ch;
-							bytesRead++;
+							data += ch.ToString("X2") + "-";
 							//cumulus.LogMessage("Received " + ch.ToString("X2"));
 						}
-						cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer));
+						data = data.Remove(data.Length - 1);
+						cumulus.LogDataMessage("Received 0x" + data);
 					}
 					catch (Exception ex)
 					{
@@ -1461,8 +1463,6 @@ namespace CumulusMX
 								tmrComm.Stop();
 							}
 						}
-
-						tmrComm.tmrComm.Dispose();
 
 						if (comport.BytesToRead < loopDataLength)
 						{

@@ -9728,6 +9728,7 @@ namespace CumulusMX
 			public void Dispose()
 			{
 				tmrComm.Close();
+				tmrComm.Dispose();
 			}
 		}
 

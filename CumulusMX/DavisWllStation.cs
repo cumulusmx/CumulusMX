@@ -38,6 +38,7 @@ namespace CumulusMX
 		private bool broadcastReceived = false;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow = false;
+		private int multicastsGood, multicastsBad;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -179,7 +180,9 @@ namespace CumulusMX
 							{
 								if (exp.SocketErrorCode == SocketError.TimedOut)
 								{
-									cumulus.LogDebugMessage("WLL: Missed a WLL broadcast message");
+									multicastsBad++;
+									var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+									cumulus.LogDebugMessage(msg);
 								}
 								else
 								{
@@ -399,7 +402,7 @@ namespace CumulusMX
 					{
 						var txid = rec.Value<int>("txid");
 
-						// Wind
+						// Wind - All values in MPH
 						/* Available fields:
 						 * rec["wind_speed_last"]
 						 * rec["wind_dir_last"]
@@ -418,7 +421,7 @@ namespace CumulusMX
 								int windDir = string.IsNullOrEmpty(rec.Value<string>("wind_dir_last")) ? 0 : rec.Value<int>("wind_dir_last");
 
 								// No average in the broadcast data, so use last value from current - allow for calibration
-								DoWind(rec.Value<double>("wind_speed_last"), windDir, WindAverage / cumulus.WindSpeedMult, dateTime);
+								DoWind(ConvertWindMPHToUser(rec.Value<double>("wind_speed_last")), windDir, WindAverage / cumulus.WindSpeedMult, dateTime);
 
 								if (checkWllGustValues)
 								{
@@ -490,16 +493,22 @@ namespace CumulusMX
 
 					broadcastReceived = true;
 					DataStopped = false;
+					multicastsGood++;
 				}
 				else
 				{
-					cumulus.LogMessage("WLL broadcast: Invalid payload in message");
+					multicastsBad++;
+					var msg = string.Format("WLL broadcast: Invalid payload in message. Percentage good packets {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+					cumulus.LogMessage(msg);
 				}
 			}
 			catch (Exception exp)
 			{
 				cumulus.LogDebugMessage("DecodeBroadcast(): Exception Caught!");
 				cumulus.LogDebugMessage($"Message :" + exp.Message);
+				multicastsBad++;
+				var msg = string.Format("WLL broadcast: Error processing broadcast. Percentage good packets {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+				cumulus.LogMessage(msg);
 			}
 		}
 
@@ -662,11 +671,11 @@ namespace CumulusMX
 
 										// pesky null values from WLL when its calm
 										int wdir = string.IsNullOrEmpty(rec.Value<string>("wind_dir_last")) ? 0 : rec.Value<int>("wind_dir_last");
-										double wspdAvg10min = string.IsNullOrEmpty(rec.Value<string>("wind_speed_avg_last_10_min")) ? 0 : rec.Value<double>("wind_speed_avg_last_10_min");
+										double wspdAvg10min = string.IsNullOrEmpty(rec.Value<string>("wind_speed_avg_last_10_min")) ? 0 : ConvertWindMPHToUser(rec.Value<double>("wind_speed_avg_last_10_min"));
 
-										DoWind(rec.Value<double>("wind_speed_last"), wdir, wspdAvg10min, dateTime);
+										DoWind(ConvertWindMPHToUser(rec.Value<double>("wind_speed_last")), wdir, wspdAvg10min, dateTime);
 
-										WindAverage = ConvertWindMPHToUser(wspdAvg10min) * cumulus.WindSpeedMult;
+										WindAverage = wspdAvg10min * cumulus.WindSpeedMult;
 
 										if (checkWllGustValues)
 										{
@@ -1774,7 +1783,7 @@ namespace CumulusMX
 							else
 							{
 								cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {txid}");
-								DoWind(data.Value<double>("wind_speed_hi"), data.Value<int>("wind_speed_hi_dir"), data.Value<double>("wind_speed_avg"), recordTs);
+								DoWind(ConvertWindMPHToUser(data.Value<double>("wind_speed_hi")), data.Value<int>("wind_speed_hi_dir"), ConvertWindMPHToUser(data.Value<double>("wind_speed_avg")), recordTs);
 
 								if (string.IsNullOrEmpty(data.Value<string>("wind_speed_avg")))
 								{
