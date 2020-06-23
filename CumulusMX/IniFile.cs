@@ -67,6 +67,7 @@ namespace CumulusMX
 		{
 			lock (m_Lock)
 			{
+				FileStream fs = null;
 				StreamReader sr = null;
 				try
 				{
@@ -76,7 +77,8 @@ namespace CumulusMX
 					// *** Open the INI file ***
 					try
 					{
-						sr = new StreamReader(m_FileName);
+						fs = new FileStream(m_FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+						sr = new StreamReader(fs);
 					}
 					catch (FileNotFoundException)
 					{
@@ -134,7 +136,9 @@ namespace CumulusMX
 				{
 					// *** Cleanup: close file ***
 					if (sr != null) sr.Close();
+					if (fs != null) fs.Close();
 					sr = null;
+					fs = null;
 				}
 			}
 		}

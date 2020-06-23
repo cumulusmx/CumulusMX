@@ -31,8 +31,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.8";
-		public string Build = "3084";
+		public string Version = "3.6.9";
+		public string Build = "3085";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -6625,7 +6625,7 @@ namespace CumulusMX
 				}
 
 				using (Stream ostream = conn.OpenWrite(remotefilename))
-				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read))
+				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				{
 					try
 					{
@@ -6702,7 +6702,7 @@ namespace CumulusMX
 					*/
 
 					//LogFtpMessage($"SFTP: Uploading {remotefilename}");
-					using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read))
+					using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 					{
 						try
 						{
