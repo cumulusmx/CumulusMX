@@ -65,7 +65,7 @@ namespace CumulusMX
             // Cannot use the WindChill function as we need the chill above 10 C
             double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
             double svp = SaturationVapourPressure1980(tempC);   // Saturation Vapour Pressure in hPa
-            double avp = humidity / 100 * svp / 10;             // Actual Vapour Pressure in kPa
+            double avp = (float)humidity / 100.0 * svp / 10.0;             // Actual Vapour Pressure in kPa
             if (windSpeedKph > 72) windSpeedKph = 72;           // Windspeed limited to 20 m/s = 72 km/h
             double apptemp = (1.04 * tempC) + (2 * avp) - (windSpeedKph * 0.1805553) - 2.7;
             double feels;

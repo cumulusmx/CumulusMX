@@ -33,8 +33,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.9";
-		public string Build = "3085";
+		public string Version = "3.6.10";
+		public string Build = "3086";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);

@@ -1,5 +1,6 @@
-3.6.9 - b3085
-=============
+3.6.10 - b3086
+==============
+- Fix for Feels Like calcuation broken in previous release
 - Fix for Davis WLL wind values when using units other than mph
 - Fix for poor performance of wind direction charts on the MX interface and base web site
 - Make end of day SQL inserts asynchronous
@@ -11,6 +12,10 @@
 	\interface\js\charts.js
 	\web\trendsT.htm
 	\webfiles\cumuluscharts.js
+
+3.6.9 - b3085
+=============
+- RELEASE WITHDRAWN
 
 
 3.6.8 - b3084
