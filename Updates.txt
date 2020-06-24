@@ -2,6 +2,8 @@
 =============
 - Fix for Davis WLL wind values when using units other than mph
 - Fix for poor performance of wind direction charts on the MX interface and base web site
+- Make end of day SQL inserts asynchronous
+- Use a fixed timestamp for all EOD operations
 
 - Updated files
 	\CumulusMX.exe

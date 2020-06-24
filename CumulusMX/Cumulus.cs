@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using Devart.Data.MySql;
 using FluentFTP;
@@ -24,6 +25,7 @@ using Unosquare.Labs.EmbedIO.Constants;
 using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
+
 //using MQTTnet;
 
 namespace CumulusMX
@@ -7293,7 +7295,7 @@ namespace CumulusMX
 					LogDebugMessage(CustomMysqlMinutesCommand.CommandText);
 					CustomMysqlMinutesConn.Open();
 					int aff = CustomMysqlMinutesCommand.ExecuteNonQuery();
-					LogDebugMessage("MySQL: " + aff + " rows were affected.");
+					LogDebugMessage("MySQL: Custom minutes update" + aff + " rows were affected.");
 				}
 				catch (Exception ex)
 				{
@@ -7313,26 +7315,28 @@ namespace CumulusMX
 			if (!customMySqlRolloverUpdateInProgress)
 			{
 				customMySqlRolloverUpdateInProgress = true;
-
-				try
+				var t = Task.Run(() =>
 				{
-					customMysqlRolloverTokenParser.InputText = CustomMySqlRolloverCommandString;
-					CustomMysqlRolloverCommand.CommandText = customMysqlRolloverTokenParser.ToStringFromString();
-					LogDebugMessage(CustomMysqlRolloverCommand.CommandText);
-					CustomMysqlRolloverConn.Open();
-					int aff = CustomMysqlRolloverCommand.ExecuteNonQuery();
-					LogDebugMessage("MySQL: " + aff + " rows were affected.");
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Error encountered during custom Rollover MySQL operation.");
-					LogMessage(ex.Message);
-				}
-				finally
-				{
-					CustomMysqlRolloverConn.Close();
-					customMySqlRolloverUpdateInProgress = false;
-				}
+					try
+					{
+						customMysqlRolloverTokenParser.InputText = CustomMySqlRolloverCommandString;
+						CustomMysqlRolloverCommand.CommandText = customMysqlRolloverTokenParser.ToStringFromString();
+						LogDebugMessage(CustomMysqlRolloverCommand.CommandText);
+						CustomMysqlRolloverConn.Open();
+						int aff = CustomMysqlRolloverCommand.ExecuteNonQuery();
+						LogDebugMessage("MySQL: Custom rollover update " + aff + " rows were affected.");
+					}
+					catch (Exception ex)
+					{
+						LogMessage("Error encountered during custom Rollover MySQL operation.");
+						LogMessage(ex.Message);
+					}
+					finally
+					{
+						CustomMysqlRolloverConn.Close();
+						customMySqlRolloverUpdateInProgress = false;
+					}
+				});
 			}
 		}
 
