@@ -12,6 +12,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using Devart.Data.MySql;
 using SQLite;
@@ -1401,30 +1402,27 @@ namespace CumulusMX
 
 		public void SecondTimer(object sender, ElapsedEventArgs e)
 		{
-			var minute = DateTime.Now.Minute;
+			var timeNow = DateTime.Now; // b3085 change to using a single fixed point in time to make it independent of how long the process takes
 
-			if (minute != lastMinute)
+			if (timeNow.Minute != lastMinute)
 			{
-				lastMinute = minute;
+				lastMinute = timeNow.Minute;
 
-				if ((minute % 10) == 0)
+				if ((timeNow.Minute % 10) == 0)
 				{
 					TenMinuteChanged();
 				}
 
-				var hour = DateTime.Now.Hour;
-
-				if (hour != lastHour)
+				if (timeNow.Hour != lastHour)
 				{
-					lastHour = hour;
-
-					HourChanged(hour);
+					lastHour = timeNow.Hour;
+					HourChanged(timeNow);
 				}
 
-				MinuteChanged();
+				MinuteChanged(timeNow);
 			}
 
-			if (DateTime.Now.Second%3 == 0)
+			if (timeNow.Second%3 == 0)
 			{
 				// send current data to websocket every 3 seconds for now
 				try
@@ -1508,9 +1506,9 @@ namespace CumulusMX
 			}
 		}
 
-		private void HourChanged(int hour)
+		private void HourChanged(DateTime now)
 		{
-			cumulus.LogMessage("Hour changed:" + hour);
+			cumulus.LogMessage("Hour changed:" + now.Hour);
 			cumulus.DoSunriseAndSunset();
 			cumulus.DoMoonImage();
 
@@ -1519,24 +1517,24 @@ namespace CumulusMX
 				DoForecast("", true);
 			}
 
-			if (hour == 0)
+			if (now.Hour == 0)
 			{
-				ResetMidnightRain(DateTime.Now);
+				ResetMidnightRain(now);
 			}
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 
-			if (hour == rollHour)
+			if (now.Hour == rollHour)
 			{
-				DayReset(DateTime.Now);
+				DayReset(now);
 			}
 
-			if (hour == 0)
+			if (now.Hour == 0)
 			{
 				ResetSunshineHours();
 			}
 
-			RemoveOldRecentData(DateTime.Now);
+			RemoveOldRecentData(now);
 		}
 
 		private void RemoveOldRecentData(DateTime ts)
@@ -1546,10 +1544,8 @@ namespace CumulusMX
 			RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime);
 		}
 
-		private void MinuteChanged()
+		private void MinuteChanged(DateTime now)
 		{
-			DateTime now = DateTime.Now;
-
 			CheckForDataStopped();
 
 			if (!DataStopped)
@@ -1595,7 +1591,7 @@ namespace CumulusMX
 						Raintotal = RainToday
 					});
 
-					while (weatherDataCollection[0].DT < DateTime.Now.AddHours(-1))
+					while (weatherDataCollection[0].DT < now.AddHours(-1))
 					{
 						weatherDataCollection.RemoveAt(0);
 					}
@@ -1609,12 +1605,12 @@ namespace CumulusMX
 
 					AddLastHourDataEntry(now, Raincounter, OutdoorTemperature);
 					RemoveOldLHData(now);
-					AddLast3HourDataEntry(DateTime.Now, Pressure, OutdoorTemperature);
+					AddLast3HourDataEntry(now, Pressure, OutdoorTemperature);
 					RemoveOldL3HData(now);
-					AddGraphDataEntry(DateTime.Now, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
+					AddGraphDataEntry(now, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
 						IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 					RemoveOldGraphData(now);
-					DoTrendValues(DateTime.Now);
+					DoTrendValues(now);
 					AddRecentDataEntry(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, Raincounter);
 
@@ -1731,8 +1727,8 @@ namespace CumulusMX
 						sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
 						sock.SendTo(data, iep1);
 
-						var timeUTC = DateTime.Now.ToUniversalTime().ToString("HH:mm");
-						var dateISO = DateTime.Now.ToUniversalTime().ToString("yyyyMMdd");
+						var timeUTC = now.ToUniversalTime().ToString("HH:mm");
+						var dateISO = now.ToUniversalTime().ToString("yyyyMMdd");
 
 						var xapReport = "xap-header\n{\nv=12\nhop=1\nuid=FF" + cumulus.xapUID + "00\nclass=weather.report\nsource=" + cumulus.xapsource + "\n}\n";
 						xapReport += "weather.report\n{\nUTC=" + timeUTC + "\nDATE=" + dateISO + "\nWindM=" + ConvertUserWindToMPH(WindAverage).ToString("F1") + "\nWindK=" +
@@ -5372,80 +5368,84 @@ namespace CumulusMX
 
 				string values = " Values('" + timestamp.AddDays(-1).ToString("yy-MM-dd") + "'," +
 					highgusttoday.ToString(cumulus.WindFormat, InvC) + "," +
-				highgustbearing + "," +
-				highgusttodaytime.ToString("\\'HH:mm\\'") + "," +
-				LowTempToday.ToString(cumulus.TempFormat, InvC) + "," +
-				lowtemptodaytime.ToString("\\'HH:mm\\'") + "," +
-				HighTempToday.ToString(cumulus.TempFormat, InvC) + "," +
-				hightemptodaytime.ToString("\\'HH:mm\\'") + "," +
-				lowpresstoday.ToString(cumulus.PressFormat, InvC) + "," +
-				lowpresstodaytime.ToString("\\'HH:mm\\'") + "," +
-				highpresstoday.ToString(cumulus.PressFormat, InvC) + "," +
-				highpresstodaytime.ToString("\\'HH:mm\\'") + "," +
-				highraintoday.ToString(cumulus.RainFormat, InvC) + "," +
-				highraintodaytime.ToString("\\'HH:mm\\'") + "," +
-				RainToday.ToString(cumulus.RainFormat, InvC) + "," +
-				AvgTemp.ToString(cumulus.TempFormat, InvC) + "," +
-				WindRunToday.ToString("F1",InvC) + "," +
-				highwindtoday.ToString(cumulus.WindFormat, InvC) + "," +
-				highwindtodaytime.ToString("\\'HH:mm\\'") + "," +
-				lowhumiditytoday + "," +
-				lowhumiditytodaytime.ToString("\\'HH:mm\\'") + "," +
-				highhumiditytoday + "," +
-				highhumiditytodaytime.ToString("\\'HH:mm\\'") + "," +
-				ET.ToString(cumulus.ETFormat, InvC) + "," +
-				(cumulus.RolloverHour == 0 ? SunshineHours.ToString(cumulus.SunFormat, InvC) : SunshineToMidnight.ToString(cumulus.SunFormat, InvC)) + "," +
-				HighHeatIndexToday.ToString(cumulus.TempFormat, InvC) + "," +
-				highheatindextodaytime.ToString("\\'HH:mm\\'") + "," +
-				HighAppTempToday.ToString(cumulus.TempFormat, InvC) + "," +
-				highapptemptodaytime.ToString("\\'HH:mm\\'") + "," +
-				LowAppTempToday.ToString(cumulus.TempFormat, InvC) + "," +
-				lowapptemptodaytime.ToString("\\'HH:mm\\'") + "," +
-				highhourlyraintoday.ToString(cumulus.RainFormat, InvC) + "," +
-				highhourlyraintodaytime.ToString("\\'HH:mm\\'") + "," +
-				LowWindChillToday.ToString(cumulus.TempFormat, InvC) + "," +
-				lowwindchilltodaytime.ToString("\\'HH:mm\\'") + "," +
-				HighDewpointToday.ToString(cumulus.TempFormat, InvC) + "," +
-				HighDewpointTodayTime.ToString("\\'HH:mm\\'") + "," +
-				LowDewpointToday.ToString(cumulus.TempFormat, InvC) + "," +
-				LowDewpointTodayTime.ToString("\\'HH:mm\\'") + "," +
-				DominantWindBearing + "," +
-				HeatingDegreeDays.ToString("F1",InvC) + "," +
-				CoolingDegreeDays.ToString("F1",InvC) + "," +
-				(int)HighSolarToday + "," +
-				highsolartodaytime.ToString("\\'HH:mm\\'") + "," +
-				HighUVToday.ToString(cumulus.UVFormat, InvC) + "," +
-				highuvtodaytime.ToString("\\'HH:mm\\'") + ",'" +
-				CompassPoint(highgustbearing) + "','" +
-				CompassPoint(DominantWindBearing) + "'," +
-				HighFeelsLikeToday.ToString(cumulus.TempFormat, InvC) + "," +
-				highfeelsliketodaytime.ToString("\\'HH:mm\\'") + "," +
-				LowFeelsLikeToday.ToString(cumulus.TempFormat, InvC) + "," +
-				lowfeelsliketodaytime.ToString("\\'HH:mm\\'") +
-				")";
+					highgustbearing + "," +
+					highgusttodaytime.ToString("\\'HH:mm\\'") + "," +
+					LowTempToday.ToString(cumulus.TempFormat, InvC) + "," +
+					lowtemptodaytime.ToString("\\'HH:mm\\'") + "," +
+					HighTempToday.ToString(cumulus.TempFormat, InvC) + "," +
+					hightemptodaytime.ToString("\\'HH:mm\\'") + "," +
+					lowpresstoday.ToString(cumulus.PressFormat, InvC) + "," +
+					lowpresstodaytime.ToString("\\'HH:mm\\'") + "," +
+					highpresstoday.ToString(cumulus.PressFormat, InvC) + "," +
+					highpresstodaytime.ToString("\\'HH:mm\\'") + "," +
+					highraintoday.ToString(cumulus.RainFormat, InvC) + "," +
+					highraintodaytime.ToString("\\'HH:mm\\'") + "," +
+					RainToday.ToString(cumulus.RainFormat, InvC) + "," +
+					AvgTemp.ToString(cumulus.TempFormat, InvC) + "," +
+					WindRunToday.ToString("F1",InvC) + "," +
+					highwindtoday.ToString(cumulus.WindFormat, InvC) + "," +
+					highwindtodaytime.ToString("\\'HH:mm\\'") + "," +
+					lowhumiditytoday + "," +
+					lowhumiditytodaytime.ToString("\\'HH:mm\\'") + "," +
+					highhumiditytoday + "," +
+					highhumiditytodaytime.ToString("\\'HH:mm\\'") + "," +
+					ET.ToString(cumulus.ETFormat, InvC) + "," +
+					(cumulus.RolloverHour == 0 ? SunshineHours.ToString(cumulus.SunFormat, InvC) : SunshineToMidnight.ToString(cumulus.SunFormat, InvC)) + "," +
+					HighHeatIndexToday.ToString(cumulus.TempFormat, InvC) + "," +
+					highheatindextodaytime.ToString("\\'HH:mm\\'") + "," +
+					HighAppTempToday.ToString(cumulus.TempFormat, InvC) + "," +
+					highapptemptodaytime.ToString("\\'HH:mm\\'") + "," +
+					LowAppTempToday.ToString(cumulus.TempFormat, InvC) + "," +
+					lowapptemptodaytime.ToString("\\'HH:mm\\'") + "," +
+					highhourlyraintoday.ToString(cumulus.RainFormat, InvC) + "," +
+					highhourlyraintodaytime.ToString("\\'HH:mm\\'") + "," +
+					LowWindChillToday.ToString(cumulus.TempFormat, InvC) + "," +
+					lowwindchilltodaytime.ToString("\\'HH:mm\\'") + "," +
+					HighDewpointToday.ToString(cumulus.TempFormat, InvC) + "," +
+					HighDewpointTodayTime.ToString("\\'HH:mm\\'") + "," +
+					LowDewpointToday.ToString(cumulus.TempFormat, InvC) + "," +
+					LowDewpointTodayTime.ToString("\\'HH:mm\\'") + "," +
+					DominantWindBearing + "," +
+					HeatingDegreeDays.ToString("F1",InvC) + "," +
+					CoolingDegreeDays.ToString("F1",InvC) + "," +
+					(int)HighSolarToday + "," +
+					highsolartodaytime.ToString("\\'HH:mm\\'") + "," +
+					HighUVToday.ToString(cumulus.UVFormat, InvC) + "," +
+					highuvtodaytime.ToString("\\'HH:mm\\'") + ",'" +
+					CompassPoint(highgustbearing) + "','" +
+					CompassPoint(DominantWindBearing) + "'," +
+					HighFeelsLikeToday.ToString(cumulus.TempFormat, InvC) + "," +
+					highfeelsliketodaytime.ToString("\\'HH:mm\\'") + "," +
+					LowFeelsLikeToday.ToString(cumulus.TempFormat, InvC) + "," +
+					lowfeelsliketodaytime.ToString("\\'HH:mm\\'") +
+					")";
 
 				string queryString = cumulus.StartOfDayfileInsertSQL + values;
 
-				MySqlCommand cmd = new MySqlCommand();
-				cmd.CommandText = queryString;
-				cmd.Connection = mySqlConn;
-				cumulus.LogMessage(queryString);
+				// run the query async so we do not block the main EOD processing
+				Task.Run(() =>
+				{
+					MySqlCommand cmd = new MySqlCommand();
+					cmd.CommandText = queryString;
+					cmd.Connection = mySqlConn;
+					cumulus.LogMessage(queryString);
 
-				try
-				{
-					mySqlConn.Open();
-					int aff = cmd.ExecuteNonQuery();
-					cumulus.LogMessage("MySQL: " + aff + " rows were affected.");
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage("Error encountered during MySQL operation.");
-					cumulus.LogMessage(ex.Message);
-				}
-				finally
-				{
-					mySqlConn.Close();
-				}
+					try
+					{
+						mySqlConn.Open();
+						int aff = cmd.ExecuteNonQuery();
+						cumulus.LogMessage($"MySQL: Table {cumulus.MySqlDayfileTable} {aff} rows were affected.");
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("Error encountered during EOD MySQL operation.");
+						cumulus.LogMessage(ex.Message);
+					}
+					finally
+					{
+						mySqlConn.Close();
+					}
+				});
 			}
 		}
 
