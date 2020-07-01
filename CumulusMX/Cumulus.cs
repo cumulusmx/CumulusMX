@@ -1066,7 +1066,7 @@ namespace CumulusMX
 			{
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
-					LogMessage("Mono version: "+displayName.Invoke(null, null));
+					LogMessage("Mono version: " + displayName.Invoke(null, null));
 			}
 
 			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
@@ -1572,7 +1572,7 @@ namespace CumulusMX
 				"bearing VARCHAR(3) NOT NULL," +
 				"rrate decimal(4," + RainDPlaces + ") NOT NULL," +
 				"rfall decimal(4," + RainDPlaces + ") NOT NULL," +
-				"press decimal(6," + PressDPlaces +") NOT NULL," +
+				"press decimal(6," + PressDPlaces + ") NOT NULL," +
 				"currentwdir varchar(3) NOT NULL," +
 				"beaufortnumber varchar(2) NOT NULL," +
 				"windunit varchar(4) NOT NULL," +
@@ -2299,7 +2299,7 @@ namespace CumulusMX
 				}
 				LogDebugMessage($"Realtime[{cycle}]: Realtime ftp disconnected OK");
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				LogDebugMessage($"Realtime[{cycle}]: Error disconnecting from server - " + ex.Message);
 			}
@@ -3449,7 +3449,7 @@ namespace CumulusMX
 			WllExtraLeafIdx1 = ini.GetValue("WLL", "ExtraLeafIdx1", 1);
 			WllExtraLeafTx2 = ini.GetValue("WLL", "ExtraLeafTxId2", 0);
 			WllExtraLeafIdx2 = ini.GetValue("WLL", "ExtraLeafIdx2", 2);
-			for (int i = 1; i <=8; i++)
+			for (int i = 1; i <= 8; i++)
 			{
 				WllExtraTempTx[i - 1] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0);
 				WllExtraHumTx[i - 1] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
@@ -3458,6 +3458,8 @@ namespace CumulusMX
 			// GW1000 setiings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
+
+			LocalWebFileCopyPath = ini.GetValue("Local webfile copy", "Path", "");
 
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
@@ -3492,7 +3494,7 @@ namespace CumulusMX
 			if (RealtimeInterval < 1) { RealtimeInterval = 1; }
 			//RealtimeTimer.Change(0,RealtimeInterval);
 			UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", DefaultWebUpdateInterval);
-			if (UpdateInterval<1) { UpdateInterval = 1; }
+			if (UpdateInterval < 1) { UpdateInterval = 1; }
 			SynchronisedWebUpdate = (60 % UpdateInterval == 0);
 			IncludeStandardFiles = ini.GetValue("FTP site", "IncludeSTD", true);
 			IncludeGraphDataFiles = ini.GetValue("FTP site", "IncludeGraphDataFiles", true);
@@ -4063,6 +4065,8 @@ namespace CumulusMX
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
+
+			ini.SetValue("Local webfile copy", "Path", LocalWebFileCopyPath);
 
 			ini.SetValue("FTP site", "Host", ftp_host);
 			ini.SetValue("FTP site", "Port", ftp_port);
@@ -4855,6 +4859,8 @@ namespace CumulusMX
 
 		public string ftp_host { get; set; }
 
+		public string LocalWebFileCopyPath { get; set; }
+
 		public bool CreateWxnowTxt { get; set; }
 
 		public int WMR200TempChannel { get; set; }
@@ -5199,7 +5205,7 @@ namespace CumulusMX
 		private readonly string[] localgraphdatafiles;
 		private readonly string[] remotegraphdatafiles;
 		public string exceptional;
-//		private WebSocketServer wsServer;
+		//		private WebSocketServer wsServer;
 		public string[] WMR200ExtraChannelCaptions = new string[11];
 		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
 		public string[] ExtraHumCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
@@ -5347,34 +5353,34 @@ namespace CumulusMX
 		public const int NumLogFileFields = 28;
 
 		public void DoLogFile(DateTime timestamp, bool live) // Writes an entry to the n-minute logfile. Fields are comma-separated:
-															 // 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-															 // 1  Current time - hh:mm
-															 // 2  Current temperature
-															 // 3  Current humidity
-															 // 4  Current dewpoint
-															 // 5  Current wind speed
-															 // 6  Recent (10-minute) high gust
-															 // 7  Average wind bearing
-															 // 8  Current rainfall rate
-															 // 9  Total rainfall today so far
-															 // 10  Current sea level pressure
-															 // 11  Total rainfall counter as held by the station
-															 // 12  Inside temperature
-															 // 13  Inside humidity
-															 // 14  Current gust (i.e. 'Latest')
-															 // 15  Wind chill
-															 // 16  Heat Index
-															 // 17  UV Index
-															 // 18  Solar Radiation
-															 // 19  Evapotranspiration
-															 // 20  Annual Evapotranspiration
-															 // 21  Apparent temperature
-															 // 22  Current theoretical max solar radiation
-															 // 23  Hours of sunshine so far today
-															 // 24  Current wind bearing
-															 // 25  RG-11 rain total
-															 // 26  Rain since midnight
-															 // 27  Feels like
+																			  // 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+																			  // 1  Current time - hh:mm
+																			  // 2  Current temperature
+																			  // 3  Current humidity
+																			  // 4  Current dewpoint
+																			  // 5  Current wind speed
+																			  // 6  Recent (10-minute) high gust
+																			  // 7  Average wind bearing
+																			  // 8  Current rainfall rate
+																			  // 9  Total rainfall today so far
+																			  // 10  Current sea level pressure
+																			  // 11  Total rainfall counter as held by the station
+																			  // 12  Inside temperature
+																			  // 13  Inside humidity
+																			  // 14  Current gust (i.e. 'Latest')
+																			  // 15  Wind chill
+																			  // 16  Heat Index
+																			  // 17  UV Index
+																			  // 18  Solar Radiation
+																			  // 19  Evapotranspiration
+																			  // 20  Annual Evapotranspiration
+																			  // 21  Apparent temperature
+																			  // 22  Current theoretical max solar radiation
+																			  // 23  Hours of sunshine so far today
+																			  // 24  Current wind bearing
+																			  // 25  RG-11 rain total
+																			  // 26  Rain since midnight
+																			  // 27  Feels like
 		{
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("Writing log entry for " + timestamp);
@@ -6222,6 +6228,11 @@ namespace CumulusMX
 				{
 					DoFTPLogin();
 				}
+
+				if (!string.IsNullOrEmpty(LocalWebFileCopyPath))
+				{
+					DoLocalWebfileCopy();
+				}
 			}
 			finally
 			{
@@ -6741,6 +6752,75 @@ namespace CumulusMX
 				}
 			}
 		}
+
+		/// <summary>
+		/// Copies the standard, graph data and moon files to a local folder.
+		/// Used when running a web server on the same machine that is running CumulusMX
+		/// </summary>
+		public void DoLocalWebfileCopy()
+		{
+
+			string copyToPath = (LocalWebFileCopyPath.EndsWith("/") ? LocalWebFileCopyPath : LocalWebFileCopyPath + "/");
+
+			LogDebugMessage($"Copying web files to {copyToPath}");
+
+			//TODO: Support NOAA Reports?
+
+			string sourceFileName = "";
+			string destFileName = "";
+
+			if (IncludeStandardFiles)
+			{
+				try
+				{
+					for (int i = 0; i < numwebtextfiles; i++)
+					{
+						sourceFileName = localwebtextfiles[i];
+						destFileName = copyToPath + remotewebtextfiles[i];
+						File.Copy(sourceFileName, destFileName, true);
+					}
+				}
+				catch (Exception e)
+				{
+					LogMessage($"Error copying file {sourceFileName} to {destFileName}: {e.Message}");
+				}
+			}
+
+			if (IncludeGraphDataFiles)
+			{
+				try
+				{
+					for (int i = 0; i < localgraphdatafiles.Length; i++)
+					{
+						sourceFileName = localgraphdatafiles[i];
+						destFileName = copyToPath + remotegraphdatafiles[i];
+						File.Copy(sourceFileName, destFileName, true);
+					}
+				}
+				catch (Exception e)
+				{
+					LogMessage($"Error copying file {sourceFileName} to {destFileName}: {e.Message}");
+				}
+			}
+
+			if (IncludeMoonImage && MoonImageReady)
+			{
+				try
+				{
+					sourceFileName = "web/moon.png";
+					destFileName = copyToPath + MoonImageFtpDest;
+
+					File.Copy(sourceFileName, destFileName, true);
+					// clear the image ready for FTP flag, only upload once an hour
+					MoonImageReady = false;
+				}
+				catch (Exception e)
+				{
+					LogMessage($"Error copying file {sourceFileName} to {destFileName}: {e.Message}");
+				}
+			}
+		}
+
 
 		public void LogMessage(string message)
 		{

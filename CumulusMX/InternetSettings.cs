@@ -47,6 +47,7 @@ namespace CumulusMX
 				cumulus.SshftpAuthentication = settings.website.sshAuth ?? string.Empty;
 				cumulus.SshftpPskFile = settings.website.pskFile ?? string.Empty;
 				cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty;
+				cumulus.LocalWebFileCopyPath = settings.website.localcopypath ?? string.Empty;
 
 				// web settings
 				cumulus.ActiveFTPMode = settings.websettings.activeftp;
@@ -280,7 +281,8 @@ namespace CumulusMX
 				username = cumulus.ftp_user,
 				sshAuth = cumulus.SshftpAuthentication,
 				pskFile = cumulus.SshftpPskFile,
-				webcamurl = cumulus.WebcamURL
+				webcamurl = cumulus.WebcamURL,
+				localcopypath = cumulus.LocalWebFileCopyPath				
 			};
 
 			var websettings = new JsonInternetSettingsWebSettings()
@@ -646,6 +648,7 @@ namespace CumulusMX
 		public string pskFile { get; set; }
 		public string forumurl { get; set; }
 		public string webcamurl { get; set; }
+		public string localcopypath { get; set; }
 	}
 
 	public class JsonInternetSettingsWebSettings
