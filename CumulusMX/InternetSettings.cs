@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Web;
 using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
@@ -520,8 +521,8 @@ namespace CumulusMX
 
 		public string GetExtraWebFilesData()
 		{
-			string json =
-				"{\"metadata\":[{\"name\":\"local\",\"label\":\"LOCAL FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"REMOTE FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"PROCESS\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"REALTIME\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"BINARY\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"END OF DAY\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[";
+			var json = new StringBuilder(10240);
+			json.Append("{\"metadata\":[{\"name\":\"local\",\"label\":\"LOCAL FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"REMOTE FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"PROCESS\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"REALTIME\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"BINARY\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"END OF DAY\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[");
 
 			int numfiles = Cumulus.numextrafiles;
 
@@ -536,17 +537,18 @@ namespace CumulusMX
 				string utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
 				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
 				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
-				json = json + "{\"id\":" + (i + 1) + ",\"values\":[\"" + local + "\",\"" + remote + "\",\"" + process + "\",\"" + realtime + "\",\"" + ftp + "\",\"" + utf8 + "\",\"" +
-					   binary + "\",\"" + endofday + "\"]}";
+				json.Append("{");
+				json.Append($"\"id\":{(i + 1)},\"values\":[\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\"]");
+				json.Append("}");
 
 				if (i < numfiles - 1)
 				{
-					json += ",";
+					json.Append(",");
 				}
 			}
 
-			json += "]}";
-			return json;
+			json.Append("]}");
+			return json.ToString();
 		}
 
 		//public string UpdateExtraWebFiles(HttpListenerContext context)

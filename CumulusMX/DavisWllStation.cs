@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.ComponentModel;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Unosquare.Swan;
 
 namespace CumulusMX
 {
@@ -39,6 +40,7 @@ namespace CumulusMX
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow = false;
 		private int multicastsGood, multicastsBad;
+		private bool stop = false;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -168,12 +170,15 @@ namespace CumulusMX
 						udpClient.Client.ReceiveTimeout = 4000;  // We should get a message every 2.5 seconds
 						var from = new IPEndPoint(0, 0);
 
-						while (!Program.exitSystem)
+						while (!stop)
 						{
 							try
 							{
 								var recvBuffer = udpClient.Receive(ref @from);
-								DecodeBroadcast(Encoding.UTF8.GetString(recvBuffer));
+								if (!stop) // we may be waiting for a broadcast when a shutdown is started
+								{
+									DecodeBroadcast(Encoding.UTF8.GetString(recvBuffer));
+								}
 								recvBuffer = null;
 							}
 							catch (SocketException exp)
@@ -191,6 +196,7 @@ namespace CumulusMX
 							}
 						}
 						udpClient.Close();
+						cumulus.LogMessage("WLL broadcast listener stopped");
 					}
 				});
 
@@ -228,11 +234,15 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing WLL connections");
 			try
 			{
+				stop = true;
 				tmrRealtime.Stop();
 				tmrCurrent.Stop();
+				tmrBroadcastWatchdog.Stop();
+				tmrHealth.Stop();
 			}
 			catch
 			{
+				cumulus.LogMessage("Error stopping station timers");
 			}
 		}
 
@@ -1042,7 +1052,7 @@ namespace CumulusMX
 							break;
 					}
 
-					DoForecast("", false);
+					DoForecast(string.Empty, false);
 
 					UpdateStatusPanel(DateTime.Now);
 					UpdateMQTT();
@@ -1092,9 +1102,7 @@ namespace CumulusMX
 
 		private static Int32 ToUnixTime(DateTime dateTime)
 		{
-			var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-			return (Int32)(dateTime.ToUniversalTime() - epoch).TotalSeconds;
-
+			return (Int32)dateTime.ToUniversalTime().ToUnixEpochDate();
 		}
 
 		private void CheckHighGust(double gust, int gustdir, DateTime timestamp)
@@ -1569,7 +1577,7 @@ namespace CumulusMX
 					AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
 						IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 					AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter);
+						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
 					RemoveOldLHData(timestamp);
 					RemoveOldL3HData(timestamp);
 					RemoveOldGraphData(timestamp);

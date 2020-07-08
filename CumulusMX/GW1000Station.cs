@@ -23,6 +23,7 @@ namespace CumulusMX
 		private bool dataReceived = false;
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
+		private bool stop = false;
 
 
 		private enum Commands : byte {
@@ -336,7 +337,7 @@ namespace CumulusMX
 
 			try
 			{
-				while (!Program.exitSystem)
+				while (!stop)
 				{
 					if (connectedOK)
 					{
@@ -375,8 +376,10 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing connection");
 			try
 			{
+				stop = true;
 				socket.GetStream().WriteByte(10);
 				socket.Close();
+				tmrDataWatchdog.Stop();
 			}
 			catch
 			{

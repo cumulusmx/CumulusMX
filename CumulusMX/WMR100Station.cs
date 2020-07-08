@@ -35,6 +35,8 @@ namespace CumulusMX
         private const int PacketBufferBound = 255;
         private readonly byte[] usbbuffer = new byte[9];
 
+        private bool stop = false;
+
         public WMR100Station(Cumulus cumulus) : base(cumulus)
         {
             cumulus.Manufacturer = cumulus.OREGONUSB;
@@ -91,13 +93,15 @@ namespace CumulusMX
 
             try
             {
-                while (true)
+                while (!stop)
                 {
                     cumulus.LogDebugMessage("Calling Read, current packet length = "+CurrentPacketLength);
 
                     try
                     {
                         numBytes = stream.Read(usbbuffer, offset, responseLength);
+
+                        if (stop) break;
 
                         String Str = "";
 

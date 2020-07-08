@@ -169,7 +169,7 @@ namespace CumulusMX
 
 				if (!String.IsNullOrEmpty(cumulus.MySqlRealtimeRetention))
 				{
-					cumulus.DeleteRealtimeSQL = "DELETE IGNORE FROM " + cumulus.MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL " + cumulus.MySqlRealtimeRetention + ")";
+					cumulus.DeleteRealtimeSQL = $"DELETE IGNORE FROM {cumulus.MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL {cumulus.MySqlRealtimeRetention})";
 				}
 
 				cumulus.CustomMysqlSecondsConn.Host = cumulus.MySqlHost;

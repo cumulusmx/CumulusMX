@@ -18,6 +18,7 @@ namespace CumulusMX
 
 		private int currentPacketLength;
 		private int currentPacketType;
+		private bool stop = false;
 
 		public WM918Station(Cumulus cumulus)
 			: base(cumulus)
@@ -95,7 +96,7 @@ namespace CumulusMX
 
 			try
 			{
-				while (true)
+				while (!stop)
 				{
 					Thread.Sleep(1000);
 					if (comport.BytesToRead > 0)
@@ -108,6 +109,8 @@ namespace CumulusMX
 						string datastr = "Data: ";
 
 						cumulus.LogDebugMessage("Data received, number of bytes = " + bytes);
+
+						if (stop) break;
 
 						// Create a byte array buffer to hold the incoming data
 						//byte[] buffer = new byte[bytes];
@@ -195,6 +198,7 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
+			stop = true;
 		}
 
 		/// <summary>
@@ -349,7 +353,7 @@ namespace CumulusMX
 					break;
 			}
 
-			DoForecast(forecast,false);
+			DoForecast(forecast, false);
 		}
 
 		private void WM918Temp(List<int> buff)

@@ -1,6 +1,29 @@
+3.6.11 - b3087
+==============
+- Fix Davis TCP logger connections not timing out occasionally
+- Fix heading on interface Now page, remove units from Humidex
+- Fix FTP log file handling in Extra Files, with EOD option on the first of the month
+- Add Feels Like to the default web site trends temperature graph
+- Add Extra Sensors log file to the backup routine
+- Add previous months log files (monthly and extra) to the backup on the first of the month
+- Add "<currentextralogfile>" tag to Extra Web Files to specify the variable extra log file name
+- Improve web tag token parser performance
+- Cumulus (Zambretti) forecast now works with localised compass points
+- Internal optimisations (watch out for new issues!)
+- Uplift the SFTP component from a 2016 version to new beta version - supports more encryption methods and key file formats
+- Further additions to shutdown code for all stations
+- Adds new web tag <#RecentFeelsLike>
+
+- Updated files
+	\CumulusMX.exe
+	\Renchi.SshNet.dll
+	\interface\now.html
+	\webfiles\js\cumuluscharts.js
+
+
 3.6.10 - b3086
 ==============
-- Fix for Feels Like calcuation broken in previous release
+- Fix for Feels Like calculation broken in previous release
 - Fix for Davis WLL wind values when using units other than mph
 - Fix for poor performance of wind direction charts on the MX interface and base web site
 - Make end of day SQL inserts asynchronous
@@ -11,7 +34,7 @@
 	\interface\charts.html
 	\interface\js\charts.js
 	\web\trendsT.htm
-	\webfiles\cumuluscharts.js
+	\webfiles\js\cumuluscharts.js
 
 3.6.9 - b3085
 =============
@@ -60,7 +83,7 @@
 
 3.6.5 - b3081
 =============
-- Fix for sun rise/set and dawn/dusk calcuations when there is one event but not the other in a single day
+- Fix for sun rise/set and dawn/dusk calculations when there is one event but not the other in a single day
 - Fix for realtime FTP timeout/recovery issues
 
 - Updated files
@@ -260,7 +283,7 @@
 	[MQTT]
 	IPversion=0   (0=default, 4=IPv4, 6=IPv6)
 - Adds Sensor Contact lost flag/alarm for Davis WLL devices
-- GW1000 raw Lux value is now available via the <#Light> weg tag like other Fine Offset stations
+- GW1000 raw Lux value is now available via the <#Light> web tag like other Fine Offset stations
 - Adds three new web tags...
 	<#timeJavaScript> - returns the current date/time in JavaScript milliseconds. Example use = "var dt = Date(<#timeJavaScript>)"
 	<#directionTM> - returns todays max wind gust direction as a compass point
@@ -359,7 +382,7 @@
 
 3.4.4 - b3068
 =============
-- Fix for incorrect NOAA yearly report, annual averages for tempertaure and wind were calculated incorrectly
+- Fix for incorrect NOAA yearly report, annual averages for temperature and wind were calculated incorrectly
 - Now detects invalid CumulusMX.exe command line parameters
 - Adds a new command line parameter -debug. This switches on debug and data logging from the start-up of Cumulus MX. You no
   longer have to edit Cumulus.ini to gather these diagnostics.
@@ -560,7 +583,7 @@
 	- Added custom captions available in Cumulus.ini [SoilMoistureCaptions] : Sensors5-16
 	- Units now change between cb for Davis and % for GW1000 sensors
 - Added extra air quality sensors 1-4 for GW1000 stations
-	- New weg tags <#AirQuality1-4> and <#AirQualityAvg1-4>
+	- New web tags <#AirQuality1-4> and <#AirQualityAvg1-4>
 	- Values are logged to extra log file
 	- Added custom captions available in Cumulus.ini [AirQualityCaptions] : Sensor1-4 and SensorAvg1-4
 - Added new web tags for <#LeakSensor1-4> to support GW1000 leak sensors
@@ -684,7 +707,7 @@
 3050
 ====
 - Fixes MX not working with locales that use two character date separators
-  Eg. Crotia "29. 04. 19"
+  Eg. Croatia "29. 04. 19"
 
 - Updated files
 	\CumulusMX.exe

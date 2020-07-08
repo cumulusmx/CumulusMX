@@ -33,8 +33,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.10";
-		public string Build = "3086";
+		public string Version = "3.6.11";
+		public string Build = "3087";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -1267,7 +1267,7 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 				{
-					DeleteRealtimeSQL = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL " + MySqlRealtimeRetention + ")";
+					DeleteRealtimeSQL = $"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL {MySqlRealtimeRetention})";
 				}
 			}
 
@@ -1927,7 +1927,7 @@ namespace CumulusMX
 
 			using (var twitterCtx = new TwitterContext(auth))
 			{
-				string status;
+				StringBuilder status = new StringBuilder(1024);
 
 				if (File.Exists(TwitterTxtFile))
 				{
@@ -1939,31 +1939,32 @@ namespace CumulusMX
 					twitterTokenParser.encoding = encoding;
 					twitterTokenParser.SourceFile = TwitterTxtFile;
 					twitterTokenParser.OnToken += TokenParserOnToken;
-					status = twitterTokenParser.ToString();
+					status.Append(twitterTokenParser.ToString());
 				}
 				else
 				{
 					// default message
-					status = "Wind " + station.WindAverage.ToString(WindFormat) + " " + WindUnitText + " " + station.AvgBearingText;
-					status += ". Barometer " + station.Pressure.ToString(PressFormat) + " " + PressUnitText + ", " + station.Presstrendstr;
-					status += ". Temperature " + station.OutdoorTemperature.ToString(TempFormat) + " " + TempUnitText;
-					status += ". Rain today " + station.RainToday.ToString(RainFormat) + RainUnitText;
-					status += ". Humidity " + station.OutdoorHumidity + "%";
+					status.Append($"Wind {station.WindAverage.ToString(WindFormat)} {WindUnitText} {station.AvgBearingText}.");
+					status.Append($" Barometer {station.Pressure.ToString(PressFormat)} {PressUnitText}, {station.Presstrendstr}.");
+					status.Append($" Temperature {station.OutdoorTemperature.ToString(TempFormat)} {TempUnitText}.");
+					status.Append($" Rain today {station.RainToday.ToString(RainFormat)}{RainUnitText}.");
+					status.Append($" Humidity {station.OutdoorHumidity}%");
 				}
 
-				LogDebugMessage("Updating Twitter: " + status);
+				LogDebugMessage($"Updating Twitter: {status}");
 
+				var statusStr = status.ToString();
 				Status tweet;
 
 				try
 				{
 					if (TwitterSendLocation)
 					{
-						tweet = await twitterCtx.TweetAsync(status, (decimal)Latitude, (decimal)Longitude);
+						tweet = await twitterCtx.TweetAsync(statusStr, (decimal)Latitude, (decimal)Longitude);
 					}
 					else
 					{
-						tweet = await twitterCtx.TweetAsync(status);
+						tweet = await twitterCtx.TweetAsync(statusStr);
 					}
 
 					if (tweet == null)
@@ -1972,13 +1973,12 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogDebugMessage("Status returned: " + "(" + tweet.StatusID + ")" + "[" + tweet.User.Name + "]" + tweet.User.Name + ", " + tweet.Text + ", " +
-										tweet.CreatedAt + "\n");
+						LogDebugMessage($"Status returned: ({tweet.StatusID}) {tweet.User.Name}, {tweet.Text}, {tweet.CreatedAt}");
 					}
 				}
 				catch (Exception ex)
 				{
-					LogMessage("UpdateTwitter: " + ex.Message);
+					LogMessage($"UpdateTwitter: {ex.Message}");
 				}
 				//if (tweet != null)
 				//    Console.WriteLine("Status returned: " + "(" + tweet.StatusID + ")" + tweet.User.Name + ", " + tweet.Text + "\n");
@@ -2047,7 +2047,7 @@ namespace CumulusMX
 				string LogURL = URL.Replace(pwstring, starredpwstring);
 				if (!WundRapidFireEnabled)
 				{
-					LogDebugMessage(LogURL);
+					LogDebugMessage("WU URL: " + LogURL);
 				}
 
 				try
@@ -2112,7 +2112,7 @@ namespace CumulusMX
 
 				string LogURL = URL.Replace(pwstring, starredpwstring);
 
-				LogDebugMessage(LogURL);
+				LogDebugMessage("Awekas URL: " + LogURL);
 
 				try
 				{
@@ -2144,7 +2144,7 @@ namespace CumulusMX
 
 				string LogURL = URL.Replace(pwstring, starredpwstring);
 
-				LogDebugMessage(LogURL);
+				LogDebugMessage("WeatherCloud URL: " + LogURL);
 
 				try
 				{
@@ -2173,91 +2173,104 @@ namespace CumulusMX
 			try
 			{
 				// Process any files
-				CreateRealtimeFile(cycle);
-				CreateRealtimeHTMLfiles(cycle);
-
-				if (RealtimeFTPEnabled)
+				if (RealtimeCopyInProgress)
 				{
-					// Is a previous cycle still running?
-					if (RealtimeFtpInProgress)
-					{
-						LogDebugMessage($"Realtime[{cycle}]: Warning, previous Realtime process still trying to connect to FTP server, skip count = {++RealtimeFTPRetries}");
-						LogDebugMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
-					}
-					else
-					{
-						RealtimeFtpInProgress = true;
+					LogDebugMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
+				}
+				else
+				{
+					RealtimeCopyInProgress = true;
+					CreateRealtimeFile(cycle);
+					CreateRealtimeHTMLfiles(cycle);
+					RealtimeCopyInProgress = false;
 
-						// This only happens if the user enables realtime FTP after starting Cumulus
-						if (Sslftp == FtpProtocols.SFTP)
+					if (RealtimeFTPEnabled)
+					{
+						// Is a previous cycle still running?
+						if (RealtimeFtpInProgress)
 						{
-							if (!RealtimeSSH.ConnectionInfo.IsAuthenticated)
-							{
-								RealtimeSSHLogin(cycle);
-							}
+							LogDebugMessage($"Realtime[{cycle}]: Warning, a previous cycle is still trying to connect to FTP server, skip count = {++RealtimeFTPRetries}");
+							LogDebugMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
 						}
 						else
 						{
-							if (!RealtimeFTP.IsConnected)
-							{
-								RealtimeFTPLogin(cycle);
-							}
-						}
-						// Force a test of the connection, IsConnected is not always reliable
-						try
-						{
-							string pwd;
+							RealtimeFtpInProgress = true;
+
+							// This only happens if the user enables realtime FTP after starting Cumulus
 							if (Sslftp == FtpProtocols.SFTP)
 							{
-								pwd = RealtimeSSH.WorkingDirectory;
-								// Double check
-								if (!RealtimeSSH.IsConnected)
+								if (RealtimeSSH == null || !RealtimeSSH.ConnectionInfo.IsAuthenticated)
 								{
-									connectionFailed = true;
+									RealtimeSSHLogin(cycle);
 								}
 							}
 							else
 							{
-								pwd = RealtimeFTP.GetWorkingDirectory();
-								// Double check
 								if (!RealtimeFTP.IsConnected)
+								{
+									RealtimeFTPLogin(cycle);
+								}
+							}
+							// Force a test of the connection, IsConnected is not always reliable
+							try
+							{
+								string pwd;
+								if (Sslftp == FtpProtocols.SFTP)
+								{
+									pwd = RealtimeSSH.WorkingDirectory;
+									// Double check
+									if (!RealtimeSSH.IsConnected)
+									{
+										connectionFailed = true;
+									}
+								}
+								else
+								{
+									pwd = RealtimeFTP.GetWorkingDirectory();
+									// Double check
+									if (!RealtimeFTP.IsConnected)
+									{
+										connectionFailed = true;
+									}
+								}
+								if (pwd.Length == 0)
 								{
 									connectionFailed = true;
 								}
 							}
-							if (pwd.Length == 0)
+							catch (Exception ex)
 							{
+								LogDebugMessage($"Realtime[{cycle}]: Test of FTP connection failed: {ex.Message}");
 								connectionFailed = true;
 							}
-						}
-						catch (Exception ex)
-						{
-							LogDebugMessage($"Realtime[{cycle}]: Test of FTP connection failed: {ex.Message}");
-							connectionFailed = true;
-						}
 
-						if (connectionFailed)
-						{
-							RealtimeFTPConnectionTest(cycle);
-						}
+							if (connectionFailed)
+							{
+								RealtimeFTPConnectionTest(cycle);
+							}
+							else
+							{
+								RealtimeFTPRetries = 0;
+							}
 
-						try
-						{
-							RealtimeFTPUpload(cycle);
+							try
+							{
+								RealtimeFTPUpload(cycle);
+							}
+							catch (Exception ex)
+							{
+								LogMessage($"Realtime[{cycle}]: Error during realtime FTP update: {ex.Message}");
+								RealtimeFTPConnectionTest(cycle);
+							}
+							RealtimeFtpInProgress = false;
 						}
-						catch (Exception ex)
-						{
-							LogMessage($"Realtime[{cycle}]: Error during realtime FTP update: {ex.Message}");
-							RealtimeFTPConnectionTest(cycle);
-						}
-						RealtimeFtpInProgress = false;
 					}
-				}
 
-				if (!string.IsNullOrEmpty(RealtimeProgram))
-				{
-					LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}");
-					ExecuteProgram(RealtimeProgram, RealtimeParams);
+					if (!string.IsNullOrEmpty(RealtimeProgram))
+					{
+						LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}");
+						ExecuteProgram(RealtimeProgram, RealtimeParams);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -2342,7 +2355,7 @@ namespace CumulusMX
 			// realtime.txt
 			string filepath, gaugesfilepath;
 
-			if (ftp_directory == "")
+			if (ftp_directory.Length == 0)
 			{
 				filepath = "realtime.txt";
 				gaugesfilepath = "realtimegauges.txt";
@@ -2386,16 +2399,27 @@ namespace CumulusMX
 				var uploadfile = ExtraFiles[i].local;
 				var remotefile = ExtraFiles[i].remote;
 
-				if ((uploadfile != "") && (remotefile != "") && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
+				if ((uploadfile.Length > 0) && (remotefile.Length > 0) && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
 				{
 					if (uploadfile == "<currentlogfile>")
 					{
 						uploadfile = GetLogFileName(DateTime.Now);
 					}
+					else if (uploadfile == "<currentextralogfile>")
+					{
+						uploadfile = GetExtraLogFileName(DateTime.Now);
+					}
 
 					if (File.Exists(uploadfile))
 					{
-						remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+						if (remotefile.Contains("<currentlogfile>"))
+						{
+							remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+						}
+						else if (remotefile.Contains("<currentextralogfile>"))
+						{
+							remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(DateTime.Now)));
+						}
 
 						// all checks OK, file needs to be uploaded
 						if (ExtraFiles[i].process)
@@ -2403,7 +2427,7 @@ namespace CumulusMX
 							// we've already processed the file
 							uploadfile += "tmp";
 						}
-						LogFtpMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] - {uploadfile}");
+						LogFtpMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
 						if (Sslftp == FtpProtocols.SFTP)
 						{
 							UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
@@ -2430,16 +2454,27 @@ namespace CumulusMX
 					var uploadfile = ExtraFiles[i].local;
 					var remotefile = ExtraFiles[i].remote;
 
-					if ((uploadfile != "") && (remotefile != ""))
+					if ((uploadfile.Length > 0) && (remotefile.Length > 0))
 					{
 						if (uploadfile == "<currentlogfile>")
 						{
 							uploadfile = GetLogFileName(DateTime.Now);
 						}
+						else if (uploadfile == "<currentextralogfile>")
+						{
+							uploadfile = GetExtraLogFileName(DateTime.Now);
+						}
 
 						if (File.Exists(uploadfile))
 						{
-							remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+							if (remotefile.Contains("<currentlogfile>"))
+							{
+								remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+							}
+							else if (remotefile.Contains("<currentextralogfile>"))
+							{
+								remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(DateTime.Now)));
+							}
 
 							if (ExtraFiles[i].process)
 							{
@@ -2461,7 +2496,7 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									LogMessage($"Error writing to extra realtime file[{i}] - {uploadfile}: {ex.Message}");
+									LogMessage($"Realtime[{cycle}]: Error writing to extra realtime file[{i}] - {uploadfile}: {ex.Message}");
 								}
 							}
 
@@ -2470,18 +2505,18 @@ namespace CumulusMX
 								// just copy the file
 								try
 								{
-									LogDebugMessage($"Realtime[{cycle}]: Copying extra file[{i}] - {uploadfile}");
+									LogDebugMessage($"Realtime[{cycle}]: Copying extra file[{i}] {uploadfile} to {remotefile}");
 									File.Copy(uploadfile, remotefile, true);
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage($"Copying extra realtime file[{i}] - {uploadfile}: {ex.Message}");
+									LogDebugMessage($"Realtime[{cycle}]: Error copying extra realtime file[{i}] - {uploadfile}: {ex.Message}");
 								}
 							}
 						}
 						else
 						{
-							LogMessage($"Extra realtime web file[{i}] not found - {uploadfile}");
+							LogMessage($"Realtime[{cycle}]: Extra realtime web file[{i}] not found - {uploadfile}");
 						}
 
 					}
@@ -5185,6 +5220,7 @@ namespace CumulusMX
 		private readonly FtpClient RealtimeFTP = new FtpClient();
 		private SftpClient RealtimeSSH;
 		private volatile bool RealtimeFtpInProgress = false;
+		private volatile bool RealtimeCopyInProgress = false;
 		private byte RealtimeCycleCounter;
 		public bool SendSoilTemp1ToWund;
 		public bool SendSoilTemp2ToWund;
@@ -5340,6 +5376,7 @@ namespace CumulusMX
 			}
 
 			var datestring = logfiledate.ToString("yyyyMM");
+			datestring = datestring.Replace(".", "");
 
 			return Datapath + "ExtraLog" + datestring + ".txt";
 		}
@@ -5430,39 +5467,40 @@ namespace CumulusMX
 			{
 				var InvC = new CultureInfo("");
 
-				string values = " Values('" +
-					timestamp.ToString("yy-MM-dd HH:mm") + "'," +
-					station.OutdoorTemperature.ToString(TempFormat, InvC) + "," +
-					station.OutdoorHumidity + "," +
-					station.OutdoorDewpoint.ToString(TempFormat, InvC) + "," +
-					station.WindAverage.ToString(WindFormat, InvC) + "," +
-					station.RecentMaxGust.ToString(WindFormat, InvC) + "," +
-					station.AvgBearing + "," +
-					station.RainRate.ToString(RainFormat, InvC) + "," +
-					station.RainToday.ToString(RainFormat, InvC) + "," +
-					station.Pressure.ToString(PressFormat, InvC) + "," +
-					station.Raincounter.ToString(RainFormat, InvC) + "," +
-					station.IndoorTemperature.ToString(TempFormat, InvC) + "," +
-					station.IndoorHumidity + "," +
-					station.WindLatest.ToString(WindFormat, InvC) + "," +
-					station.WindChill.ToString(TempFormat, InvC) + "," +
-					station.HeatIndex.ToString(TempFormat, InvC) + "," +
-					station.UV.ToString(UVFormat, InvC) + "," +
-					station.SolarRad + "," +
-					station.ET.ToString(ETFormat, InvC) + "," +
-					station.AnnualETTotal.ToString(ETFormat, InvC) + "," +
-					station.ApparentTemperature.ToString(TempFormat, InvC) + "," +
-					(Math.Round(station.CurrentSolarMax)) + "," +
-					station.SunshineHours.ToString(SunFormat, InvC) + "," +
-					station.Bearing + "," +
-					station.RG11RainToday.ToString(RainFormat, InvC) + "," +
-					station.RainSinceMidnight.ToString(RainFormat, InvC) + ",'" +
-					station.CompassPoint(station.AvgBearing) + "','" +
-					station.CompassPoint(station.Bearing) + "','" +
-					station.FeelsLike.ToString(TempFormat, InvC) +
-					"')";
+				StringBuilder values = new StringBuilder(StartOfMonthlyInsertSQL, 600);
+				values.Append(" Values('");
+				values.Append(timestamp.ToString("yy-MM-dd HH:mm") + "',");
+				values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ",");
+				values.Append(station.OutdoorHumidity + ",");
+				values.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ",");
+				values.Append(station.WindAverage.ToString(WindFormat, InvC) + ",");
+				values.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ",");
+				values.Append(station.AvgBearing + ",");
+				values.Append(station.RainRate.ToString(RainFormat, InvC) + ",");
+				values.Append(station.RainToday.ToString(RainFormat, InvC) + ",");
+				values.Append(station.Pressure.ToString(PressFormat, InvC) + ",");
+				values.Append(station.Raincounter.ToString(RainFormat, InvC) + ",");
+				values.Append(station.IndoorTemperature.ToString(TempFormat, InvC) + ",");
+				values.Append(station.IndoorHumidity + ",");
+				values.Append(station.WindLatest.ToString(WindFormat, InvC) + ",");
+				values.Append(station.WindChill.ToString(TempFormat, InvC) + ",");
+				values.Append(station.HeatIndex.ToString(TempFormat, InvC) + ",");
+				values.Append(station.UV.ToString(UVFormat, InvC) + ",");
+				values.Append(station.SolarRad + ",");
+				values.Append(station.ET.ToString(ETFormat, InvC) + ",");
+				values.Append(station.AnnualETTotal.ToString(ETFormat, InvC) + ",");
+				values.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ",");
+				values.Append((Math.Round(station.CurrentSolarMax)) + ",");
+				values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ",");
+				values.Append(station.Bearing + ",");
+				values.Append(station.RG11RainToday.ToString(RainFormat, InvC) + ",");
+				values.Append(station.RainSinceMidnight.ToString(RainFormat, InvC) + ",'");
+				values.Append(station.CompassPoint(station.AvgBearing) + "','");
+				values.Append(station.CompassPoint(station.Bearing) + "','");
+				values.Append(station.FeelsLike.ToString(TempFormat, InvC));
+				values.Append("')");
 
-				string queryString = StartOfMonthlyInsertSQL + values;
+				string queryString = values.ToString();
 
 				if (live)
 				{
@@ -5631,11 +5669,17 @@ namespace CumulusMX
 				// First determine the date for the logfile.
 				// if (we"re using 9am rollover, the date should be 9 hours (10 in summer)
 				// before "Now"
-				DateTime logfiledate = timestamp.AddHours(GetHourInc());
-				var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
+				//DateTime logfiledate = timestamp.AddHours(GetHourInc());
+				//var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
 
-				var LogFile = LogFilePath + datestring + "log.txt";
-				var logbackup = foldername + datestring + "log.txt";
+				//var LogFile = LogFilePath + datestring + "log.txt";
+				//var logbackup = foldername + datestring + "log.txt";
+				var LogFile = GetLogFileName(timestamp);
+				var logbackup = foldername + LogFile.Replace(LogFilePath, "");
+
+				var extraFile = GetExtraLogFileName(timestamp);
+				var extraBackup = foldername + extraFile.Replace(LogFilePath, "");
+
 
 				if (!Directory.Exists(foldername))
 				{
@@ -5679,6 +5723,29 @@ namespace CumulusMX
 					if (File.Exists("Cumulus.ini"))
 					{
 						File.Copy("Cumulus.ini", configbackup);
+					}
+					if (File.Exists(extraFile))
+					{
+						File.Copy(extraFile, extraBackup);
+					}
+
+					if (timestamp.Day == 1)
+					{
+						// on the first of month, we also need to backup last months files as well
+						var LogFile2 = GetLogFileName(timestamp.AddDays(-1));
+						var logbackup2 = foldername + LogFile2.Replace(LogFilePath, "");
+
+						var extraFile2 = GetExtraLogFileName(timestamp.AddDays(-1));
+						var extraBackup2 = foldername + extraFile2.Replace(LogFilePath, "");
+
+						if (File.Exists(LogFile2))
+						{
+							File.Copy(LogFile2, logbackup2);
+						}
+						if (File.Exists(extraFile2))
+						{
+							File.Copy(extraFile2, extraBackup2);
+						}
 					}
 
 					LogMessage("Created backup folder " + foldername);
@@ -6072,6 +6139,11 @@ namespace CumulusMX
 
 			//if (httpServer != null) httpServer.Dispose();
 
+			// Stop the timers
+			if (RealtimeEnabled) {
+
+			}
+
 			if (station != null)
 			{
 				LogMessage("Station stopping");
@@ -6141,20 +6213,31 @@ namespace CumulusMX
 						var uploadfile = ExtraFiles[i].local;
 						var remotefile = ExtraFiles[i].remote;
 
-						if ((uploadfile != "") && (remotefile != ""))
+						if ((uploadfile.Length > 0) && (remotefile.Length > 0))
 						{
 							if (uploadfile == "<currentlogfile>")
 							{
 								uploadfile = GetLogFileName(DateTime.Now);
 							}
+							else if (uploadfile == "<currentextralogfile>")
+							{
+								uploadfile = GetExtraLogFileName(DateTime.Now);
+							}
 
 							if (File.Exists(uploadfile))
 							{
-								remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+								if (remotefile.Contains("<currentlogfile>"))
+								{
+									remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+								}
+								else if (remotefile.Contains("<currentextralogfile>"))
+								{
+									remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(DateTime.Now)));
+								}
 
 								if (ExtraFiles[i].process)
 								{
-									LogDebugMessage($"Processing extra file[{i}] - {uploadfile}");
+									LogDebugMessage($"Interval: Processing extra file[{i}] - {uploadfile}");
 									// process the file
 									var utf8WithoutBom = new System.Text.UTF8Encoding(false);
 									var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
@@ -6173,7 +6256,7 @@ namespace CumulusMX
 									}
 									catch (Exception ex)
 									{
-										LogDebugMessage("Error writing file " + uploadfile);
+										LogDebugMessage("Interval: Error writing file " + uploadfile);
 										LogDebugMessage(ex.Message);
 									}
 									//LogDebugMessage("Finished processing extra file " + uploadfile);
@@ -6182,21 +6265,21 @@ namespace CumulusMX
 								if (!ExtraFiles[i].FTP)
 								{
 									// just copy the file
-									//LogDebugMessage("Copying extra file " + uploadfile);
+									LogDebugMessage($"Interval: Copying extra file {uploadfile} to {remotefile}");
 									try
 									{
 										File.Copy(uploadfile, remotefile, true);
 									}
 									catch (Exception ex)
 									{
-										LogDebugMessage($"Error copying extra file[{i}]: " + ex.Message);
+										LogDebugMessage($"Interval: Error copying extra file[{i}]: " + ex.Message);
 									}
 									//LogDebugMessage("Finished copying extra file " + uploadfile);
 								}
 							}
 							else
 							{
-								LogMessage($"Warning, extra web file[{i}] not found - {uploadfile}");
+								LogMessage($"Interval: Warning, extra web file[{i}] not found - {uploadfile}");
 							}
 						}
 					}
@@ -6204,15 +6287,15 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
-					LogDebugMessage("Executing program " + ExternalProgram + " " + ExternalParams);
+					LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + ExternalParams);
 					try
 					{
 						ExecuteProgram(ExternalProgram, ExternalParams);
-						LogDebugMessage("External program started");
+						LogDebugMessage("Interval: External program started");
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Error starting external program: " + ex.Message);
+						LogMessage("Interval: Error starting external program: " + ex.Message);
 					}
 				}
 
@@ -6314,20 +6397,34 @@ namespace CumulusMX
 							var uploadfile = ExtraFiles[i].local;
 							var remotefile = ExtraFiles[i].remote;
 
-							if ((uploadfile != "") &&
-								(remotefile != "") &&
+							if ((uploadfile.Length > 0) &&
+								(remotefile.Length > 0) &&
 								!ExtraFiles[i].realtime &&
 								(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
 								ExtraFiles[i].FTP)
 							{
+								// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
+								var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+
 								if (uploadfile == "<currentlogfile>")
 								{
-									uploadfile = GetLogFileName(DateTime.Now);
+									uploadfile = GetLogFileName(logDay);
+								}
+								else if (uploadfile == "<currentextralogfile>")
+								{
+									uploadfile = GetExtraLogFileName(logDay);
 								}
 
 								if (File.Exists(uploadfile))
 								{
-									remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+									if (remotefile.Contains("<currentlogfile>"))
+									{
+										remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(logDay)));
+									}
+									else if (remotefile.Contains("<currentextralogfile>"))
+									{
+										remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDay)));
+									}
 
 									// all checks OK, file needs to be uploaded
 									if (ExtraFiles[i].process)
@@ -6494,20 +6591,34 @@ namespace CumulusMX
 							var uploadfile = ExtraFiles[i].local;
 							var remotefile = ExtraFiles[i].remote;
 
-							if ((uploadfile != "") &&
-								(remotefile != "") &&
+							if ((uploadfile.Length > 0) &&
+								(remotefile.Length > 0) &&
 								!ExtraFiles[i].realtime &&
 								EODfilesNeedFTP == ExtraFiles[i].endofday &&
 								ExtraFiles[i].FTP)
 							{
+								// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
+								var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+
 								if (uploadfile == "<currentlogfile>")
 								{
-									uploadfile = GetLogFileName(DateTime.Now);
+									uploadfile = GetLogFileName(logDay);
+								}
+								else if (uploadfile == "<currentextralogfile>")
+								{
+									uploadfile = GetExtraLogFileName(logDay);
 								}
 
 								if (File.Exists(uploadfile))
 								{
-									remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+									if (remotefile.Contains("<currentlogfile>"))
+									{
+										remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(logDay)));
+									}
+									else if (remotefile.Contains("<currentextralogfile>"))
+									{
+										remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDay)));
+									}
 
 									// all checks OK, file needs to be uploaded
 									if (ExtraFiles[i].process)
@@ -6714,6 +6825,11 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
+							if (ex.Message.Contains("Safe handle has been closed"))
+							{
+								// This appears to be an unrecoverable internal error. Abort the whole connection.
+								conn.Dispose();
+							}
 							return;
 						}
 					}
@@ -6881,17 +6997,17 @@ namespace CumulusMX
 					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
 					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
 					file.Write(station.HighTempToday.ToString(TempFormat, InvC) + ' '); // 27
-					file.Write(station.hightemptodaytime.ToString("HH:mm") + ' '); // 28
+					file.Write(station.hightemptodaytime.ToString("HH:mm ") ); // 28
 					file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
-					file.Write(station.lowtemptodaytime.ToString("HH:mm") + ' '); // 30
+					file.Write(station.lowtemptodaytime.ToString("HH:mm ")); // 30
 					file.Write(station.highwindtoday.ToString(WindFormat, InvC) + ' '); // 31
-					file.Write(station.highwindtodaytime.ToString("HH:mm") + ' '); // 32
+					file.Write(station.highwindtodaytime.ToString("HH:mm ")); // 32
 					file.Write(station.highgusttoday.ToString(WindFormat, InvC) + ' '); // 33
-					file.Write(station.highgusttodaytime.ToString("HH:mm") + ' '); // 34
+					file.Write(station.highgusttodaytime.ToString("HH:mm ")); // 34
 					file.Write(station.highpresstoday.ToString(PressFormat, InvC) + ' '); // 35
-					file.Write(station.highpresstodaytime.ToString("HH:mm") + ' '); // 36
+					file.Write(station.highpresstodaytime.ToString("HH:mm ")); // 36
 					file.Write(station.lowpresstoday.ToString(PressFormat, InvC) + ' '); // 37
-					file.Write(station.lowpresstodaytime.ToString("HH:mm") + ' '); // 38
+					file.Write(station.lowpresstodaytime.ToString("HH:mm ")); // 38
 					file.Write(Version + ' '); // 39
 					file.Write(Build + ' '); // 40
 					file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
@@ -6914,7 +7030,7 @@ namespace CumulusMX
 					file.Write(station.IsSunny ? "1 " : "0 "); // 58
 					file.WriteLine(station.FeelsLike.ToString(TempFormat, InvC)); // 59
 
-					file.Close();
+				file.Close();
 				}
 			}
 			catch (Exception ex)
@@ -6928,68 +7044,69 @@ namespace CumulusMX
 			{
 				var InvC = new CultureInfo("");
 
-				string values = " Values('" +
-					timestamp.ToString("yy-MM-dd HH:mm:ss") + "'," +
-					station.OutdoorTemperature.ToString(TempFormat, InvC) + ',' +
-					station.OutdoorHumidity.ToString() + ',' +
-					station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',' +
-					station.WindAverage.ToString(WindFormat, InvC) + ',' +
-					station.WindLatest.ToString(WindFormat, InvC) + ',' +
-					station.Bearing.ToString() + ',' +
-					station.RainRate.ToString(RainFormat, InvC) + ',' +
-					station.RainToday.ToString(RainFormat, InvC) + ',' +
-					station.Pressure.ToString(PressFormat, InvC) + ",'" +
-					station.CompassPoint(station.Bearing) + "','" +
-					Beaufort(station.WindAverage) + "','" +
-					WindUnitText + "','" +
-					TempUnitText[1].ToString() + "','" +
-					PressUnitText + "','" +
-					RainUnitText + "'," +
-					station.WindRunToday.ToString(WindRunFormat, InvC) + ",'" +
-					(station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'," +
-					station.RainMonth.ToString(RainFormat, InvC) + ',' +
-					station.RainYear.ToString(RainFormat, InvC) + ',' +
-					station.RainYesterday.ToString(RainFormat, InvC) + ',' +
-					station.IndoorTemperature.ToString(TempFormat, InvC) + ',' +
-					station.IndoorHumidity.ToString() + ',' +
-					station.WindChill.ToString(TempFormat, InvC) + ',' +
-					station.temptrendval.ToString(TempTrendFormat, InvC) + ',' +
-					station.HighTempToday.ToString(TempFormat, InvC) + ",'" +
-					station.hightemptodaytime.ToString("HH:mm") + "'," +
-					station.LowTempToday.ToString(TempFormat, InvC) + ",'" +
-					station.lowtemptodaytime.ToString("HH:mm") + "'," +
-					station.highwindtoday.ToString(WindFormat, InvC) + ",'" +
-					station.highwindtodaytime.ToString("HH:mm") + "'," +
-					station.highgusttoday.ToString(WindFormat, InvC) + ",'" +
-					station.highgusttodaytime.ToString("HH:mm") + "'," +
-					station.highpresstoday.ToString(PressFormat, InvC) + ",'" +
-					station.highpresstodaytime.ToString("HH:mm") + "'," +
-					station.lowpresstoday.ToString(PressFormat, InvC) + ",'" +
-					station.lowpresstodaytime.ToString("HH:mm") + "','" +
-					Version + "','" +
-					Build + "'," +
-					station.RecentMaxGust.ToString(WindFormat, InvC) + ',' +
-					station.HeatIndex.ToString(TempFormat, InvC) + ',' +
-					station.Humidex.ToString(TempFormat, InvC) + ',' +
-					station.UV.ToString(UVFormat, InvC) + ',' +
-					station.ET.ToString(ETFormat, InvC) + ',' +
-					((int)station.SolarRad).ToString() + ',' +
-					station.AvgBearing.ToString() + ',' +
-					station.RainLastHour.ToString(RainFormat, InvC) + ',' +
-					station.Forecastnumber.ToString() + ",'" +
-					(IsDaylight() ? "1" : "0") + "','" +
-					(station.SensorContactLost ? "1" : "0") + "','" +
-					station.CompassPoint(station.AvgBearing) + "'," +
-					((int)station.CloudBase).ToString() + ",'" +
-					(CloudBaseInFeet ? "ft" : "m") + "'," +
-					station.ApparentTemperature.ToString(TempFormat, InvC) + ',' +
-					station.SunshineHours.ToString(SunFormat, InvC) + ',' +
-					((int) Math.Round(station.CurrentSolarMax)).ToString() + ",'" +
-					(station.IsSunny ? "1" : "0") + "'," +
-					station.FeelsLike.ToString(TempFormat, InvC) +
-					")";
+				StringBuilder values = new StringBuilder(StartOfRealtimeInsertSQL, 1024);
+				values.Append(" Values('");
+				values.Append(timestamp.ToString("yy-MM-dd HH:mm:ss") + "',");
+				values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ',');
+				values.Append(station.OutdoorHumidity.ToString() + ',');
+				values.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',');
+				values.Append(station.WindAverage.ToString(WindFormat, InvC) + ',');
+				values.Append(station.WindLatest.ToString(WindFormat, InvC) + ',');
+				values.Append(station.Bearing.ToString() + ',');
+				values.Append(station.RainRate.ToString(RainFormat, InvC) + ',');
+				values.Append(station.RainToday.ToString(RainFormat, InvC) + ',');
+				values.Append(station.Pressure.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.CompassPoint(station.Bearing) + "','");
+				values.Append(Beaufort(station.WindAverage) + "','");
+				values.Append(WindUnitText + "','");
+				values.Append(TempUnitText[1].ToString() + "','");
+				values.Append(PressUnitText + "','");
+				values.Append(RainUnitText + "',");
+				values.Append(station.WindRunToday.ToString(WindRunFormat, InvC) + ",'");
+				values.Append((station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "',");
+				values.Append(station.RainMonth.ToString(RainFormat, InvC) + ',');
+				values.Append(station.RainYear.ToString(RainFormat, InvC) + ',');
+				values.Append(station.RainYesterday.ToString(RainFormat, InvC) + ',');
+				values.Append(station.IndoorTemperature.ToString(TempFormat, InvC) + ',');
+				values.Append(station.IndoorHumidity.ToString() + ',');
+				values.Append(station.WindChill.ToString(TempFormat, InvC) + ',');
+				values.Append(station.temptrendval.ToString(TempTrendFormat, InvC) + ',');
+				values.Append(station.HighTempToday.ToString(TempFormat, InvC) + ",'");
+				values.Append(station.hightemptodaytime.ToString("HH:mm") + "',");
+				values.Append(station.LowTempToday.ToString(TempFormat, InvC) + ",'");
+				values.Append(station.lowtemptodaytime.ToString("HH:mm") + "',");
+				values.Append(station.highwindtoday.ToString(WindFormat, InvC) + ",'");
+				values.Append(station.highwindtodaytime.ToString("HH:mm") + "',");
+				values.Append(station.highgusttoday.ToString(WindFormat, InvC) + ",'");
+				values.Append(station.highgusttodaytime.ToString("HH:mm") + "',");
+				values.Append(station.highpresstoday.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.highpresstodaytime.ToString("HH:mm") + "',");
+				values.Append(station.lowpresstoday.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.lowpresstodaytime.ToString("HH:mm") + "','");
+				values.Append(Version + "','");
+				values.Append(Build + "',");
+				values.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ',');
+				values.Append(station.HeatIndex.ToString(TempFormat, InvC) + ',');
+				values.Append(station.Humidex.ToString(TempFormat, InvC) + ',');
+				values.Append(station.UV.ToString(UVFormat, InvC) + ',');
+				values.Append(station.ET.ToString(ETFormat, InvC) + ',');
+				values.Append(((int)station.SolarRad).ToString() + ',');
+				values.Append(station.AvgBearing.ToString() + ',');
+				values.Append(station.RainLastHour.ToString(RainFormat, InvC) + ',');
+				values.Append(station.Forecastnumber.ToString() + ",'");
+				values.Append((IsDaylight() ? "1" : "0") + "','");
+				values.Append((station.SensorContactLost ? "1" : "0") + "','");
+				values.Append(station.CompassPoint(station.AvgBearing) + "',");
+				values.Append(((int)station.CloudBase).ToString() + ",'");
+				values.Append((CloudBaseInFeet ? "ft" : "m") + "',");
+				values.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ',');
+				values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ',');
+				values.Append(((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'");
+				values.Append((station.IsSunny ? "1" : "0") + "',");
+				values.Append(station.FeelsLike.ToString(TempFormat, InvC));
+				values.Append(")");
 
-				string queryString = StartOfRealtimeInsertSQL + values;
+				string queryString = values.ToString();
 
 				// do the update
 				using (MySqlCommand cmd = new MySqlCommand())
@@ -7007,7 +7124,7 @@ namespace CumulusMX
 						if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 						{
 							// delete old entries
-							cmd.CommandText = "DELETE IGNORE FROM " + MySqlRealtimeTable + " WHERE LogDateTime < DATE_SUB('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', INTERVAL " + MySqlRealtimeRetention + ")";
+							cmd.CommandText = $"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB('{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}', INTERVAL {MySqlRealtimeRetention})";
 							//LogMessage(queryString);
 
 							try
@@ -7018,7 +7135,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogMessage("Error encountered during Realtime delete MySQL operation.");
+								LogMessage($"Realtime[{cycle}]: Error encountered during Realtime delete MySQL operation.");
 								LogMessage(ex.Message);
 							}
 
@@ -7026,7 +7143,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Error encountered during Realtime MySQL operation.");
+						LogMessage($"Realtime[{cycle}]: Error encountered during Realtime MySQL operation.");
 						LogMessage(ex.Message);
 					}
 					finally
@@ -7352,20 +7469,34 @@ namespace CumulusMX
 					var uploadfile = ExtraFiles[i].local;
 					var remotefile = ExtraFiles[i].remote;
 
-					if ((uploadfile != "") && (remotefile != ""))
+					if ((uploadfile.Length > 0) && (remotefile.Length > 0))
 					{
+						// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
+						var logDay = DateTime.Now.AddDays(-1);
+
 						if (uploadfile == "<currentlogfile>")
 						{
-							uploadfile = GetLogFileName(DateTime.Now);
+							uploadfile = GetLogFileName(logDay);
+						}
+						else if (uploadfile == "<currentextralogfile>")
+						{
+							uploadfile = GetExtraLogFileName(logDay);
 						}
 
 						if (File.Exists(uploadfile))
 						{
-							remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(DateTime.Now)));
+							if (remotefile.Contains("<currentlogfile>"))
+							{
+								remotefile = remotefile.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(logDay)));
+							}
+							else if (remotefile.Contains("<currentextralogfile>"))
+							{
+								remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDay)));
+							}
 
 							if (ExtraFiles[i].process)
 							{
-								LogDebugMessage("Processing extra file " + uploadfile);
+								LogDebugMessage("EOD: Processing extra file " + uploadfile);
 								// process the file
 								var utf8WithoutBom = new System.Text.UTF8Encoding(false);
 								var encoding = UTF8encode ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
@@ -7384,7 +7515,7 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage("Error writing file " + uploadfile);
+									LogDebugMessage("EOD: Error writing file " + uploadfile);
 									LogDebugMessage(ex.Message);
 								}
 								//LogDebugMessage("Finished processing extra file " + uploadfile);
@@ -7398,14 +7529,14 @@ namespace CumulusMX
 							else
 							{
 								// just copy the file
-								LogDebugMessage("Copying extra file " + uploadfile);
+								LogDebugMessage($"EOD: Copying extra file {uploadfile} to {remotefile}");
 								try
 								{
 									File.Copy(uploadfile, remotefile, true);
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage("Error copying extra file: " + ex.Message);
+									LogDebugMessage("EOD: Error copying extra file: " + ex.Message);
 								}
 								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
@@ -7482,7 +7613,7 @@ namespace CumulusMX
 				LogDebugMessage($"FTP[{cycle}]: Disabling EPSV mode");
 			}
 
-			if (ftp_host != "" && ftp_host != " ")
+			if (ftp_host.Length > 0 && ftp_host.Length > 0)
 			{
 				LogMessage($"FTP[{ cycle}]: Attempting realtime FTP connect to host {ftp_host} on port {ftp_port}");
 				try
@@ -8002,92 +8133,94 @@ namespace CumulusMX
 
 		public void SetMonthlySqlCreateString()
 		{
-			CreateMonthlySQL = "CREATE TABLE " + MySqlMonthlyTable + " (" +
-				"LogDateTime DATETIME NOT NULL," +
-				"Temp decimal(4," + TempDPlaces + ") NOT NULL," +
-				"Humidity decimal(4," + HumDPlaces + ") NOT NULL," +
-				"Dewpoint decimal(4," + TempDPlaces + ") NOT NULL," +
-				"Windspeed decimal(4," + WindDPlaces + ") NOT NULL," +
-				"Windgust decimal(4," + WindDPlaces + ") NOT NULL," +
-				"Windbearing VARCHAR(3) NOT NULL," +
-				"RainRate decimal(4," + RainDPlaces + ") NOT NULL," +
-				"TodayRainSoFar decimal(4," + RainDPlaces + ") NOT NULL," +
-				"Pressure decimal(6," + PressDPlaces + ") NOT NULL," +
-				"Raincounter decimal(6," + RainDPlaces + ") NOT NULL," +
-				"InsideTemp decimal(4," + TempDPlaces + ") NOT NULL," +
-				"InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL," +
-				"LatestWindGust decimal(5," + WindDPlaces + ") NOT NULL," +
-				"WindChill decimal(4," + TempDPlaces + ") NOT NULL," +
-				"HeatIndex decimal(4," + TempDPlaces + ") NOT NULL," +
-				"UVindex decimal(4," + UVDPlaces + ")," +
-				"SolarRad decimal(5,1)," +
-				"Evapotrans decimal(4," + RainDPlaces + ")," +
-				"AnnualEvapTran decimal(5," + RainDPlaces + ")," +
-				"ApparentTemp decimal(4," + TempDPlaces + ")," +
-				"MaxSolarRad decimal(5,1)," +
-				"HrsSunShine decimal(3," + SunshineDPlaces + ")," +
-				"CurrWindBearing varchar(3)," +
-				"RG11rain decimal(4," + RainDPlaces + ")," +
-				"RainSinceMidnight decimal(4," + RainDPlaces + ")," +
-				"WindbearingSym varchar(3)," +
-				"CurrWindBearingSym varchar(3)," +
-				"FeelsLike decimal(4," + TempDPlaces + ") NOT NULL," +
-				"PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"";
+			StringBuilder strb = new StringBuilder("CREATE TABLE " + MySqlMonthlyTable + " (", 1500);
+			strb.Append("LogDateTime DATETIME NOT NULL,");
+			strb.Append("Temp decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("Humidity decimal(4," + HumDPlaces + ") NOT NULL,");
+			strb.Append("Dewpoint decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("Windspeed decimal(4," + WindDPlaces + ") NOT NULL,");
+			strb.Append("Windgust decimal(4," + WindDPlaces + ") NOT NULL,");
+			strb.Append("Windbearing VARCHAR(3) NOT NULL,");
+			strb.Append("RainRate decimal(4," + RainDPlaces + ") NOT NULL,");
+			strb.Append("TodayRainSoFar decimal(4," + RainDPlaces + ") NOT NULL,");
+			strb.Append("Pressure decimal(6," + PressDPlaces + ") NOT NULL,");
+			strb.Append("Raincounter decimal(6," + RainDPlaces + ") NOT NULL,");
+			strb.Append("InsideTemp decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL,");
+			strb.Append("LatestWindGust decimal(5," + WindDPlaces + ") NOT NULL,");
+			strb.Append("WindChill decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("HeatIndex decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("UVindex decimal(4," + UVDPlaces + "),");
+			strb.Append("SolarRad decimal(5,1),");
+			strb.Append("Evapotrans decimal(4," + RainDPlaces + "),");
+			strb.Append("AnnualEvapTran decimal(5," + RainDPlaces + "),");
+			strb.Append("ApparentTemp decimal(4," + TempDPlaces + "),");
+			strb.Append("MaxSolarRad decimal(5,1),");
+			strb.Append("HrsSunShine decimal(3," + SunshineDPlaces + "),");
+			strb.Append("CurrWindBearing varchar(3),");
+			strb.Append("RG11rain decimal(4," + RainDPlaces + "),");
+			strb.Append("RainSinceMidnight decimal(4," + RainDPlaces + "),");
+			strb.Append("WindbearingSym varchar(3),");
+			strb.Append("CurrWindBearingSym varchar(3),");
+			strb.Append("FeelsLike decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"");
+			CreateMonthlySQL = strb.ToString();
 		}
 
 		internal void SetDayfileSqlCreateString()
 		{
-			CreateDayfileSQL = "CREATE TABLE " + MySqlDayfileTable + " (" +
-				"LogDate date NOT NULL ," +
-				"HighWindGust decimal(4," + WindDPlaces + ") NOT NULL," +
-				"HWindGBear varchar(3) NOT NULL," +
-				"THWindG varchar(5) NOT NULL," +
-				"MinTemp decimal(5," + TempDPlaces + ") NOT NULL," +
-				"TMinTemp varchar(5) NOT NULL," +
-				"MaxTemp decimal(5," + TempDPlaces + ") NOT NULL," +
-				"TMaxTemp varchar(5) NOT NULL," +
-				"MinPress decimal(6," + PressDPlaces + ") NOT NULL," +
-				"TMinPress varchar(5) NOT NULL," +
-				"MaxPress decimal(6," + PressDPlaces + ") NOT NULL," +
-				"TMaxPress varchar(5) NOT NULL," +
-				"MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL," +
-				"TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," + RainDPlaces + ") NOT NULL," +
-				"AvgTemp decimal(4," + TempDPlaces + ") NOT NULL," +
-				"TotWindRun decimal(5," + WindRunDPlaces +") NOT NULL," +
-				"HighAvgWSpeed decimal(3," + WindDPlaces + ")," +
-				"THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces + ")," +
-				"TLowHum varchar(5)," +
-				"HighHum decimal(4," + HumDPlaces + ")," +
-				"THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces + ")," +
-				"HoursSun decimal(3," + SunshineDPlaces + ")," +
-				"HighHeatInd decimal(4," + TempDPlaces + ")," +
-				"THighHeatInd varchar(5)," +
-				"HighAppTemp decimal(4," + TempDPlaces + ")," +
-				"THighAppTemp varchar(5)," +
-				"LowAppTemp decimal(4," + TempDPlaces + ")," +
-				"TLowAppTemp varchar(5)," +
-				"HighHourRain decimal(4," + RainDPlaces +")," +
-				"THighHourRain varchar(5)," +
-				"LowWindChill decimal(4," + TempDPlaces + ")," +
-				"TLowWindChill varchar(5)," +
-				"HighDewPoint decimal(4," + TempDPlaces + ")," +
-				"THighDewPoint varchar(5)," +
-				"LowDewPoint decimal(4," + TempDPlaces + ")," +
-				"TLowDewPoint varchar(5)," +
-				"DomWindDir varchar(3)," +
-				"HeatDegDays decimal(4,1)," +
-				"CoolDegDays decimal(4,1)," +
-				"HighSolarRad decimal(5,1)," +
-				"THighSolarRad varchar(5)," +
-				"HighUV decimal(3," + UVDPlaces + ")," +
-				"THighUV varchar(5)," +
-				"HWindGBearSym varchar(3)," +
-				"DomWindDirSym varchar(3)," +
-				"MaxFeelsLike decimal(5," + TempDPlaces + ")," +
-				"TMaxFeelsLike varchar(5)," +
-				"MinFeelsLike decimal(5," + TempDPlaces + ")," +
-				"TMinFeelsLike varchar(5)," +
-				"PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"";
+			StringBuilder strb = new StringBuilder("CREATE TABLE " + MySqlDayfileTable + " (", 2048);
+			strb.Append("LogDate date NOT NULL ,");
+			strb.Append("HighWindGust decimal(4," + WindDPlaces + ") NOT NULL,");
+			strb.Append("HWindGBear varchar(3) NOT NULL,");
+			strb.Append("THWindG varchar(5) NOT NULL,");
+			strb.Append("MinTemp decimal(5," + TempDPlaces + ") NOT NULL,");
+			strb.Append("TMinTemp varchar(5) NOT NULL,");
+			strb.Append("MaxTemp decimal(5," + TempDPlaces + ") NOT NULL,");
+			strb.Append("TMaxTemp varchar(5) NOT NULL,");
+			strb.Append("MinPress decimal(6," + PressDPlaces + ") NOT NULL,");
+			strb.Append("TMinPress varchar(5) NOT NULL,");
+			strb.Append("MaxPress decimal(6," + PressDPlaces + ") NOT NULL,");
+			strb.Append("TMaxPress varchar(5) NOT NULL,");
+			strb.Append("MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL,");
+			strb.Append("TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," + RainDPlaces + ") NOT NULL,");
+			strb.Append("AvgTemp decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("TotWindRun decimal(5," + WindRunDPlaces +") NOT NULL,");
+			strb.Append("HighAvgWSpeed decimal(3," + WindDPlaces + "),");
+			strb.Append("THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces + "),");
+			strb.Append("TLowHum varchar(5),");
+			strb.Append("HighHum decimal(4," + HumDPlaces + "),");
+			strb.Append("THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces + "),");
+			strb.Append("HoursSun decimal(3," + SunshineDPlaces + "),");
+			strb.Append("HighHeatInd decimal(4," + TempDPlaces + "),");
+			strb.Append("THighHeatInd varchar(5),");
+			strb.Append("HighAppTemp decimal(4," + TempDPlaces + "),");
+			strb.Append("THighAppTemp varchar(5),");
+			strb.Append("LowAppTemp decimal(4," + TempDPlaces + "),");
+			strb.Append("TLowAppTemp varchar(5),");
+			strb.Append("HighHourRain decimal(4," + RainDPlaces + "),");
+			strb.Append("THighHourRain varchar(5),");
+			strb.Append("LowWindChill decimal(4," + TempDPlaces + "),");
+			strb.Append("TLowWindChill varchar(5),");
+			strb.Append("HighDewPoint decimal(4," + TempDPlaces + "),");
+			strb.Append("THighDewPoint varchar(5),");
+			strb.Append("LowDewPoint decimal(4," + TempDPlaces + "),");
+			strb.Append("TLowDewPoint varchar(5),");
+			strb.Append("DomWindDir varchar(3),");
+			strb.Append("HeatDegDays decimal(4,1),");
+			strb.Append("CoolDegDays decimal(4,1),");
+			strb.Append("HighSolarRad decimal(5,1),");
+			strb.Append("THighSolarRad varchar(5),");
+			strb.Append("HighUV decimal(3," + UVDPlaces + "),");
+			strb.Append("THighUV varchar(5),");
+			strb.Append("HWindGBearSym varchar(3),");
+			strb.Append("DomWindDirSym varchar(3),");
+			strb.Append("MaxFeelsLike decimal(5," + TempDPlaces + "),");
+			strb.Append("TMaxFeelsLike varchar(5),");
+			strb.Append("MinFeelsLike decimal(5," + TempDPlaces + "),");
+			strb.Append("TMinFeelsLike varchar(5),");
+			strb.Append("PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"");
+			CreateDayfileSQL = strb.ToString();
 		}
 	}
 
