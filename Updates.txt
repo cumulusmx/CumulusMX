@@ -1,4 +1,4 @@
-3.6.11 - b3078
+3.6.11 - b3087
 ==============
 - Fix Davis TCP logger connections not timing out occasionally
 - Fix heading on interface Now page, remove units from Humidex
