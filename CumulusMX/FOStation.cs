@@ -556,7 +556,7 @@ namespace CumulusMX
 					IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
 				RemoveOldLHData(timestamp);
 				RemoveOldL3HData(timestamp);
 				RemoveOldGraphData(timestamp);
@@ -876,7 +876,7 @@ namespace CumulusMX
 						UpdatePressureTrendString();
 						UpdateStatusPanel(now);
 						UpdateMQTT();
-						DoForecast("", false);
+						DoForecast(string.Empty, false);
 					}
 					var status = data[15];
 					if ((status & 0x40) != 0)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO.Ports;
+using System.Text;
 using System.Threading;
 
 namespace CumulusMX
@@ -24,6 +25,8 @@ namespace CumulusMX
 		private double previoustemp = 999;
 		private double previouspress = 9999;
 		private double previouswind = 999;
+
+		private bool stop = false;
 
 		public WS2300Station(Cumulus cumulus) : base(cumulus)
 		{
@@ -80,6 +83,7 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
+			stop = true;
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -387,7 +391,7 @@ namespace CumulusMX
 				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, Raincounter);
+							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
 				RemoveOldLHData(timestamp);
 				RemoveOldL3HData(timestamp);
 				RemoveOldGraphData(timestamp);
@@ -417,7 +421,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				while (true)
+				while (!stop)
 				{
 					GetAndProcessData();
 					Thread.Sleep(5000);
@@ -549,14 +553,14 @@ namespace CumulusMX
 				return -1000;
 			}
 
-			string msg = "History record read: ";
+			StringBuilder msg = new StringBuilder("History record read: ", 256);
 			for (int n = 0; n < bytes; n++)
 			{
-				msg += data[n].ToString("X2");
-				msg += " ";
+				msg.Append(data[n].ToString("X2"));
+				msg.Append(" ");
 			}
 
-			cumulus.LogMessage(msg);
+			cumulus.LogMessage(msg.ToString());
 			tempint = (data[4] << 12) + (data[3] << 4) + (data[2] >> 4);
 
 			pressure = 1000 + (tempint % 10000) / 10.0;
@@ -606,105 +610,134 @@ namespace CumulusMX
 			DateTime now = DateTime.Now;
 
 			// Indoor humidity =====================================================================
-			int inhum = ws2300IndoorHumidity();
-			if (inhum > -1 && inhum < 101)
+			if (!stop)
 			{
-				DoIndoorHumidity(inhum);
+				int inhum = ws2300IndoorHumidity();
+				if (inhum > -1 && inhum < 101)
+				{
+					DoIndoorHumidity(inhum);
+				}
 			}
 
 			// Outdoor humidity ====================================================================
-			int outhum = ws2300OutdoorHumidity();
-			if ((outhum > 0) && (outhum <= 100) && ((previoushum == 999) || (Math.Abs(outhum - previoushum) < cumulus.EWhumiditydiff)))
+			if(!stop)
 			{
-				previoushum = outhum;
-				DoOutdoorHumidity(outhum, now);
+				int outhum = ws2300OutdoorHumidity();
+				if ((outhum > 0) && (outhum <= 100) && ((previoushum == 999) || (Math.Abs(outhum - previoushum) < cumulus.EWhumiditydiff)))
+				{
+					previoushum = outhum;
+					DoOutdoorHumidity(outhum, now);
+				}
 			}
 
 			// Indoor temperature ==================================================================
-			double intemp = ws2300IndoorTemperature();
-			if (intemp > -20)
+			if (!stop)
 			{
-				DoIndoorTemp(ConvertTempCToUser(intemp));
+				double intemp = ws2300IndoorTemperature();
+				if (intemp > -20)
+				{
+					DoIndoorTemp(ConvertTempCToUser(intemp));
+				}
 			}
 
 			// Outdoor temperature ================================================================
-			double outtemp = ws2300OutdoorTemperature();
-			if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.EWtempdiff)))
+			if (!stop)
 			{
-				previoustemp = outtemp;
-				DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
+				double outtemp = ws2300OutdoorTemperature();
+				if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.EWtempdiff)))
+				{
+					previoustemp = outtemp;
+					DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
+				}
 			}
 
 			// Outdoor dewpoint ==================================================================
-			double dp = ws2300OutdoorDewpoint();
-			if (dp > -100 && dp < 60)
+			if (!stop)
 			{
-				DoOutdoorDewpoint(ConvertTempCToUser(dp), now);
+				double dp = ws2300OutdoorDewpoint();
+				if (dp > -100 && dp < 60)
+				{
+					DoOutdoorDewpoint(ConvertTempCToUser(dp), now);
+				}
 			}
 
 			// Pressure ==========================================================================
-			double pressure = ws2300RelativePressure();
-			if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.EWpressurediff)))
+			if (!stop)
 			{
-				previouspress = pressure;
-				DoPressure(ConvertPressMBToUser(pressure), now);
-			}
+				double pressure = ws2300RelativePressure();
+				if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.EWpressurediff)))
+				{
+					previouspress = pressure;
+					DoPressure(ConvertPressMBToUser(pressure), now);
+				}
 
-			pressure = ws2300AbsolutePressure();
+				pressure = ws2300AbsolutePressure();
 
-			if ((Pressure > 850) && (Pressure < 1200))
-			{
-				StationPressure = pressure * cumulus.PressMult + cumulus.PressOffset;
-				// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
+				if ((Pressure > 850) && (Pressure < 1200))
+				{
+					StationPressure = pressure * cumulus.PressMult + cumulus.PressOffset;
+					// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
+				}
 			}
 
 			// Pressure trend and forecast =======================================================
-			int res = ws2300PressureTrendAndForecast(out presstrend, out forecast);
-			if (res > ERROR)
+			if (!stop)
 			{
-				DoForecast(forecast, false);
-				DoPressTrend(presstrend);
+				int res = ws2300PressureTrendAndForecast(out presstrend, out forecast);
+				if (res > ERROR)
+				{
+					DoForecast(forecast, false);
+					DoPressTrend(presstrend);
+				}
 			}
 
 			// Wind ============================================================================
-			double wind = ws2300CurrentWind(out direction);
-			if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.EWwinddiff)))
+			if (!stop)
 			{
-				previouswind = wind;
-				DoWind(ConvertWindMSToUser(wind), (int)direction, ConvertWindMSToUser(wind), now);
-			}
-			else
-			{
-				cumulus.LogDebugMessage("Ignoring wind reading: wind=" + wind.ToString("F1") + " previouswind=" + previouswind.ToString("F1") + " sr=" +
-										cumulus.EWwinddiff.ToString("F1"));
-			}
-
-			// wind chill
-			if (cumulus.CalculatedWC)
-			{
-				DoWindChill(OutdoorTemperature, now);
-			}
-			else
-			{
-				double wc = ws2300WindChill();
-				if (wc > -100 && wc < 60)
+				double wind = ws2300CurrentWind(out direction);
+				if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.EWwinddiff)))
 				{
-					DoWindChill(ConvertTempCToUser(wc), now);
+					previouswind = wind;
+					DoWind(ConvertWindMSToUser(wind), (int)direction, ConvertWindMSToUser(wind), now);
+				}
+				else
+				{
+					cumulus.LogDebugMessage("Ignoring wind reading: wind=" + wind.ToString("F1") + " previouswind=" + previouswind.ToString("F1") + " sr=" +
+											cumulus.EWwinddiff.ToString("F1"));
+				}
+
+				// wind chill
+				if (cumulus.CalculatedWC)
+				{
+					DoWindChill(OutdoorTemperature, now);
+				}
+				else
+				{
+					double wc = ws2300WindChill();
+					if (wc > -100 && wc < 60)
+					{
+						DoWindChill(ConvertTempCToUser(wc), now);
+					}
 				}
 			}
 
 			// Rain ===========================================================================
-			double raintot = ws2300RainTotal();
-			if (raintot > -1)
+			if (!stop)
 			{
-				DoRain(ConvertRainMMToUser(raintot), -1, now);
+				double raintot = ws2300RainTotal();
+				if (raintot > -1)
+				{
+					DoRain(ConvertRainMMToUser(raintot), -1, now);
+				}
 			}
 
-			DoApparentTemp(now);
-			DoFeelsLike(now);
-
-			UpdateStatusPanel(now);
-			UpdateMQTT();
+			if (!stop)
+			{
+				DoApparentTemp(now);
+				DoFeelsLike(now);
+				UpdateStatusPanel(now);
+				UpdateMQTT();
+			}
 		}
 
 		/// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO.Ports;
+using System.Text;
 using System.Threading;
 using System.Timers;
 using HidSharp;
@@ -42,6 +43,7 @@ namespace CumulusMX
 		private int LivePacketCount;
 		private readonly byte[] usbbuffer = new byte[9];
 
+		private bool stop = false;
 		private readonly Timer HearbeatTimer;
 
 		public WMR200Station(Cumulus cumulus)
@@ -109,6 +111,7 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
+			stop = true;
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -173,7 +176,7 @@ namespace CumulusMX
 
 			try
 			{
-				while (true)
+				while (!stop)
 				{
 					cumulus.LogDataMessage("Calling Read");
 
@@ -182,7 +185,9 @@ namespace CumulusMX
 						numBytes = stream.Read(usbbuffer, offset, responseLength);
 						cumulus.LogDataMessage("numBytes = " + numBytes);
 
-						String Str = "";
+						if (stop) break;
+
+						String Str = string.Empty;
 
 						for (int I = startByte; I < responseLength; I++)
 						{
@@ -1638,7 +1643,7 @@ namespace CumulusMX
 							RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 			RemoveOldGraphData(timestamp);
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, Raincounter);
+							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
 			DoTrendValues(timestamp);
 			UpdatePressureTrendString();
 			UpdateStatusPanel(timestamp);
@@ -1648,14 +1653,14 @@ namespace CumulusMX
 
 		private void ProcessWMR200Packet()
 		{
-			String Str = "";
+			StringBuilder Str = new StringBuilder(25);
 			for (int i = 0; i < PacketBuffer[1]; i++)
 			{
-				Str += PacketBuffer[i].ToString("X2");
-				Str += " ";
+				Str.Append(PacketBuffer[i].ToString("X2"));
+				Str.Append(" ");
 			}
 
-			cumulus.LogDataMessage(DateTime.Now + " Packet:" + Str);
+			cumulus.LogDataMessage($"{DateTime.Now} Packet:{Str}");
 
 			if (CRCOK())
 			{

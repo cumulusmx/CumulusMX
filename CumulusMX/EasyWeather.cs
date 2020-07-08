@@ -107,92 +107,91 @@ namespace CumulusMX
                 try
                 {
                     string Line;
-
-                    using (var sr = new StreamReader(cumulus.EWFile))
+                    using (FileStream fs = new FileStream(cumulus.EWFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs))
                     {
                         do
                         {
                             Line = sr.ReadLine();
                         } while (!sr.EndOfStream);
-
-                        cumulus.LogDataMessage("Data: " + Line);
-
-                        // split string on commas and spaces
-                        char[] charSeparators = new char[] { ',', ' ' };
-
-                        var st = Line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
-
-                        string datestr = st[EW_READING_DATE];
-                        string timestr = st[EW_READING_TIME];
-
-                        DateTime Now = DateTime.Now;
-
-                        if ((datestr != lastDate) || (timestr != lastTime))
-                        {
-                            lastDate = datestr;
-                            lastTime = timestr;
-                        }
-
-                        DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]),
-                            ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), Now);
-
-                        DoWindChill(ConvertTempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), Now);
-
-                        DoIndoorHumidity(Convert.ToInt32(st[EW_INDOOR_HUM]));
-                        DoOutdoorHumidity(Convert.ToInt32(st[EW_OUTDOOR_HUM]), Now);
-
-                        DoOutdoorDewpoint(ConvertTempCToUser(GetConvertedValue(st[EW_DEW_POINT])), Now);
-
-                        DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), Now);
-
-                        UpdatePressureTrendString();
-
-                        DoIndoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
-                        DoOutdoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), Now);
-
-                        DoRain(ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_YEAR])), // use year as total
-                            ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
-                            Now);
-
-                        DoApparentTemp(Now);
-                        DoFeelsLike(Now);
-
-
-                        DoForecast("", false);
-
-                        if (cumulus.LogExtraSensors)
-                        {
-                            var LightReading = GetConvertedValue(st[EW_LIGHT]);
-
-                            if ((LightReading >= 0) && (LightReading <= 300000))
-                            {
-                                DoSolarRad((int)(LightReading * cumulus.LuxToWM2), Now);
-                                LightValue = LightReading;
-                            }
-
-                            var UVreading = GetConvertedValue(st[EW_UV]);
-
-                            if (UVreading == 255)
-                            {
-                                // ignore
-                            }
-                            else if (UVreading < 0)
-                            {
-                                DoUV(0, Now);
-                            }
-                            else if (UVreading > 16)
-                            {
-                                DoUV(16, Now);
-                            }
-                            else
-                            {
-                                DoUV(UVreading, Now);
-                            }
-                        }
-
-                        UpdateStatusPanel(Now);
-                        UpdateMQTT();
                     }
+                    cumulus.LogDataMessage("Data: " + Line);
+
+                    // split string on commas and spaces
+                    char[] charSeparators = new char[] { ',', ' ' };
+
+                    var st = Line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+                    string datestr = st[EW_READING_DATE];
+                    string timestr = st[EW_READING_TIME];
+
+                    DateTime Now = DateTime.Now;
+
+                    if ((datestr != lastDate) || (timestr != lastTime))
+                    {
+                        lastDate = datestr;
+                        lastTime = timestr;
+                    }
+
+                    DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]),
+                        ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), Now);
+
+                    DoWindChill(ConvertTempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), Now);
+
+                    DoIndoorHumidity(Convert.ToInt32(st[EW_INDOOR_HUM]));
+                    DoOutdoorHumidity(Convert.ToInt32(st[EW_OUTDOOR_HUM]), Now);
+
+                    DoOutdoorDewpoint(ConvertTempCToUser(GetConvertedValue(st[EW_DEW_POINT])), Now);
+
+                    DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), Now);
+
+                    UpdatePressureTrendString();
+
+                    DoIndoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
+                    DoOutdoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), Now);
+
+                    DoRain(ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_YEAR])), // use year as total
+                        ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
+                        Now);
+
+                    DoApparentTemp(Now);
+                    DoFeelsLike(Now);
+
+
+                    DoForecast(string.Empty, false);
+
+                    if (cumulus.LogExtraSensors)
+                    {
+                        var LightReading = GetConvertedValue(st[EW_LIGHT]);
+
+                        if ((LightReading >= 0) && (LightReading <= 300000))
+                        {
+                            DoSolarRad((int)(LightReading * cumulus.LuxToWM2), Now);
+                            LightValue = LightReading;
+                        }
+
+                        var UVreading = GetConvertedValue(st[EW_UV]);
+
+                        if (UVreading == 255)
+                        {
+                            // ignore
+                        }
+                        else if (UVreading < 0)
+                        {
+                            DoUV(0, Now);
+                        }
+                        else if (UVreading > 16)
+                        {
+                            DoUV(16, Now);
+                        }
+                        else
+                        {
+                            DoUV(UVreading, Now);
+                        }
+                    }
+
+                    UpdateStatusPanel(Now);
+                    UpdateMQTT();
                 }
                 catch (Exception ex)
                 {

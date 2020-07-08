@@ -17,6 +17,7 @@ namespace CumulusMX
 		private int previousminute = 60;
 		private string currentWritePointer = "";
 		private int readCounter = 30;
+		private bool stop = false;
 
 		public ImetStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -87,7 +88,7 @@ namespace CumulusMX
 			string response = GetResponse("wrtm");
 
 			string data = ExtractText(response, "wrtm");
-			cumulus.LogMessage("Response: " + data);
+			cumulus.LogMessage("WRTM Response: " + data);
 		}
 
 		/*
@@ -210,11 +211,19 @@ namespace CumulusMX
 							// and if it all worked, update our pointer record
 							currentWritePointer = currPtr;
 						}
+						else
+						{
+							cumulus.LogMessage("WRST: Invalid checksum");
+						}
 					}
 				}
 				catch
 				{
 				}
+			}
+			else
+			{
+				cumulus.LogMessage("RDST: Invalid checksum");
 			}
 		}
 
@@ -353,7 +362,7 @@ namespace CumulusMX
 					// split the data
 					var st = new List<string>(Regex.Split(data, ","));
 
-					if (st[1] != "")
+					if (st[1].Length > 0)
 					{
 						num = Convert.ToInt32(st[1]);
 					}
@@ -443,6 +452,7 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
+			stop = true;
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -663,12 +673,12 @@ namespace CumulusMX
 								midnightraindone = false;
 							}
 
-							if (sl[RELHUMAVGPOS] != "")
+							if (sl[RELHUMAVGPOS].Length > 0)
 							{
 								DoOutdoorHumidity((int) (Convert.ToDouble(sl[RELHUMAVGPOS], provider)), timestamp);
 							}
 
-							if ((sl[WINDAVGPOS] != "") && (sl[WINDMAXPOS] != "") && (sl[DIRPOS] != ""))
+							if ((sl[WINDAVGPOS].Length > 0) && (sl[WINDMAXPOS].Length > 0) && (sl[DIRPOS].Length > 0))
 							{
 								double windspeed = Convert.ToDouble(sl[WINDAVGPOS], provider);
 								double windgust = Convert.ToDouble(sl[WINDMAXPOS], provider);
@@ -697,7 +707,7 @@ namespace CumulusMX
 								CalculateDominantWindBearing(Bearing, WindAverage, interval);
 							}
 
-							if (sl[TEMP1AVGPOS] != "")
+							if (sl[TEMP1AVGPOS].Length > 0)
 							{
 								DoOutdoorTemp(ConvertTempCToUser(Convert.ToDouble(sl[TEMP1AVGPOS], provider)), timestamp);
 
@@ -716,7 +726,7 @@ namespace CumulusMX
 								UpdateDegreeDays(interval);
 							}
 
-							if (sl[TEMP2AVGPOS] != "")
+							if (sl[TEMP2AVGPOS].Length > 0)
 							{
 								double temp2 = Convert.ToDouble(sl[TEMP2AVGPOS], provider);
 								// supply in CELSIUS
@@ -730,7 +740,7 @@ namespace CumulusMX
 								}
 							}
 
-							if (sl[RAINPOS] != "")
+							if (sl[RAINPOS].Length > 0)
 							{
 								var raintotal = Convert.ToDouble(sl[RAINPOS], provider);
 								double raindiff;
@@ -750,7 +760,7 @@ namespace CumulusMX
 								prevraintotal = raintotal;
 							}
 
-							if ((sl[WINDAVGPOS] != "") && (sl[TEMP1AVGPOS] != ""))
+							if ((sl[WINDAVGPOS].Length > 0) && (sl[TEMP1AVGPOS].Length > 0))
 							{
 								// wind chill
 								double tempinC = ConvertUserTempToC(OutdoorTemperature);
@@ -761,7 +771,7 @@ namespace CumulusMX
 								DoWindChill(value, timestamp);
 							}
 
-							if (sl[PRESSAVGPOS] != "")
+							if (sl[PRESSAVGPOS].Length > 0)
 							{
 								DoPressure(ConvertPressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
 							}
@@ -774,7 +784,7 @@ namespace CumulusMX
 
 
 							// sunshine hours
-							if (sl[SUNPOS] != "")
+							if (sl[SUNPOS].Length > 0)
 							{
 								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider));
 							}
@@ -789,7 +799,7 @@ namespace CumulusMX
 							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 							RemoveOldL3HData(timestamp);
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter);
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
 							DoTrendValues(timestamp);
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
@@ -840,7 +850,7 @@ namespace CumulusMX
 
 			try
 			{
-				while (true)
+				while (!stop)
 				{
 					ImetGetData();
 					if (cumulus.ImetLoggerInterval != cumulus.logints[cumulus.DataLogInterval])
@@ -896,7 +906,7 @@ namespace CumulusMX
 			// read the response
 			var response = GetResponse("rdlv");
 
-			if (ValidChecksum(response))
+			if (ValidChecksum(response) && !stop)
 			{
 				// split the data
 				var sl = new List<string>(Regex.Split(response, ","));
@@ -977,13 +987,17 @@ namespace CumulusMX
 				UpdateStatusPanel(now);
 				UpdateMQTT();
 			}
-			else
+			else if (!stop)
 			{
-				cumulus.LogMessage("Invalid checksum:");
+				cumulus.LogMessage("RDLV: Invalid checksum:");
 				cumulus.LogMessage(response);
 			}
+			else
+			{
+				return;
+			}
 
-		    if (cumulus.ImetUpdateLogPointer)
+		    if (cumulus.ImetUpdateLogPointer && !stop)
 		    {
 				// Keep the log pointer current, to avoid large numbers of logs
 				// being downloaded at next startup

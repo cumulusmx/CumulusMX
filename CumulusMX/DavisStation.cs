@@ -25,7 +25,9 @@ namespace CumulusMX
 		private const string newline = "\n";
 		private DateTime lastRecepStatsTime;
 		private const int commWaitTimeMs = 1000;
+		private const int tcpWaitTimeMs = 2500;
 		private int MaxArchiveRuns = 2;
+		private bool stop = false;
 
 		private TcpClient socket;
 
@@ -109,7 +111,7 @@ namespace CumulusMX
 				{
 					if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.UseDavisLoop2)
 					{
-						cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmare version does not support it. Consider disabling it in Cumulus.ini");
+						cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
 						Console.WriteLine("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
 					}
 				}
@@ -249,6 +251,8 @@ namespace CumulusMX
 					try
 					{
 						NetworkStream stream = socket.GetStream();
+						stream.ReadTimeout = tcpWaitTimeMs;
+						stream.WriteTimeout = tcpWaitTimeMs;
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
@@ -353,6 +357,8 @@ namespace CumulusMX
 					try
 					{
 						NetworkStream stream = socket.GetStream();
+						stream.ReadTimeout = tcpWaitTimeMs;
+						stream.WriteTimeout = tcpWaitTimeMs;
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
@@ -418,7 +424,8 @@ namespace CumulusMX
 
 			// Set the timeout of the underlying stream
 			if (!(client == null)) {
-				client.GetStream().ReadTimeout = 2500;
+				client.GetStream().ReadTimeout = tcpWaitTimeMs;
+				client.GetStream().WriteTimeout = tcpWaitTimeMs;
 				cumulus.LogDebugMessage("TCP Logger reconnected");
 			}
 			else
@@ -673,9 +680,9 @@ namespace CumulusMX
 
 			try
 			{
-				while (!Program.exitSystem)
+				while (!stop)
 				{
-					if (clockSetNeeded)
+					if (clockSetNeeded && !stop)
 					{
 						// set the console clock
 						setTime();
@@ -707,12 +714,12 @@ namespace CumulusMX
 						}
 					}
 
-					if (cumulus.ForceVPBarUpdate)
+					if (cumulus.ForceVPBarUpdate && !stop)
 					{
 						SendBarRead();
 					}
 
-					if (cumulus.DavisReadReceptionStats && lastRecepStatsTime.AddMinutes(15) < DateTime.Now)
+					if (cumulus.DavisReadReceptionStats && lastRecepStatsTime.AddMinutes(15) < DateTime.Now && !stop)
 					{
 						var recepStats = GetReceptionStats();
 						cumulus.LogDebugMessage(recepStats);
@@ -801,6 +808,9 @@ namespace CumulusMX
 					try
 					{
 						NetworkStream stream = socket.GetStream();
+						stream.ReadTimeout = 2500;
+						stream.WriteTimeout = 2500;
+
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
 						Thread.Sleep(cumulus.DavisIPResponseTime);
@@ -886,6 +896,8 @@ namespace CumulusMX
 			try
 			{
 				NetworkStream stream = tcpPort.GetStream();
+				stream.ReadTimeout = 2500;
+				stream.WriteTimeout = 2500;
 
 				// Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
 				// a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
@@ -962,13 +974,13 @@ namespace CumulusMX
 
 						if (!comport.IsOpen)
 						{
-							cumulus.LogMessage("!!! loop data not received, Comm port is closed");
+							cumulus.LogMessage("LOOP: Data not received, Comm port is closed");
 							return;
 						}
 						else if (comport.BytesToRead < loopDataLength)
 						{
 							// all data not received
-							cumulus.LogMessage("!!! loop data not received, bytes received = " + comport.BytesToRead);
+							cumulus.LogMessage("LOOP: Data not received, bytes received = " + comport.BytesToRead);
 						}
 
 						// Read the data from the buffer into the array
@@ -976,7 +988,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("GetAndProcessLoopData: " + ex.ToString());
+						cumulus.LogMessage("LOOP: Exception - " + ex.ToString());
 						return;
 					}
 				}
@@ -993,7 +1005,7 @@ namespace CumulusMX
 							{
 								previousMinuteDisconnect = min;
 
-								cumulus.LogDebugMessage("Periodic disconnect from logger");
+								cumulus.LogDebugMessage("LOOP: Periodic disconnect from logger");
 								// time to disconnect - first stop the loop data by sending a newline
 								socket.GetStream().WriteByte(10);
 								//socket.Client.Shutdown(SocketShutdown.Both);
@@ -1001,7 +1013,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage("Periodic disconnect: " + ex.Message);
+								cumulus.LogMessage("LOOP: Periodic disconnect error: " + ex.Message);
 							}
 							finally
 							{
@@ -1011,12 +1023,12 @@ namespace CumulusMX
 							// Wait
 							Thread.Sleep(cumulus.VP2PeriodicDisconnectInterval*1000);
 
-							cumulus.LogDebugMessage("Attempting reconnect to logger");
+							cumulus.LogDebugMessage("LOOP: Attempting reconnect to logger");
 							// open a new connection
 							socket = OpenTcpPort();
 							if (socket == null)
 							{
-								cumulus.LogMessage("Unable to reconnect to logger");
+								cumulus.LogMessage("LOOP: Unable to reconnect to logger");
 								//Console.WriteLine("Unable to connect to station, closing");
 							}
 							return;
@@ -1034,7 +1046,7 @@ namespace CumulusMX
 					if (loopcount == 100)
 					{
 						// all data not received
-						cumulus.LogMessage("!!! loop data not received");
+						cumulus.LogMessage("LOOP: Data not received");
 						return;
 					}
 
@@ -1042,12 +1054,12 @@ namespace CumulusMX
 					socket.GetStream().Read(loopString, 0, loopDataLength);
 				}
 
-				cumulus.LogDataMessage("Data " + (i + 1) + ": " + BitConverter.ToString(loopString));
+				cumulus.LogDataMessage("LOOP: Data - " + (i + 1) + ": " + BitConverter.ToString(loopString));
 
 				// Check it is a LOOP packet, starts with "LOO" and 5th byte == 0: LOOP1
 				if (!(loopString[0] == 'L' && loopString[1] == 'O' && loopString[2] == 'O' && Convert.ToByte(loopString[4]) == 0))
 				{
-					cumulus.LogDebugMessage("invalid LOOP packet");
+					cumulus.LogDebugMessage("LOOP: Invalid packet format");
 					// Stop the sending of LOOP packets so we can resynch
 					if (IsSerial)
 					{
@@ -1055,7 +1067,7 @@ namespace CumulusMX
 						Thread.Sleep(3000);
 						// read off all data in the pipeline
 
-						cumulus.LogDebugMessage("Discarding bytes from pipeline: " + comport.BytesToRead);
+						cumulus.LogDebugMessage("LOOP: Discarding bytes from pipeline: " + comport.BytesToRead);
 						while (comport.BytesToRead > 0)
 						{
 							comport.ReadByte();
@@ -1067,7 +1079,7 @@ namespace CumulusMX
 						Thread.Sleep(3000);
 						// read off all data in the pipeline
 						int avail = socket.Available;
-						cumulus.LogDebugMessage("Discarding bytes from pipeline: " + avail);
+						cumulus.LogDebugMessage("LOOP: Discarding bytes from pipeline: " + avail);
 						for (int b = 0; b < avail; b++)
 						{
 							socket.GetStream().ReadByte();
@@ -1079,9 +1091,11 @@ namespace CumulusMX
 
 				if (!crcOK(loopString))
 				{
-					cumulus.LogDebugMessage("LOOP packet CRC invalid");
+					cumulus.LogDebugMessage("LOOP: Packet CRC invalid");
 					continue;
 				}
+
+				if (stop) return;
 
 				// Allocate a structure for the data
 				loopData = new VPLoopData();
@@ -1133,12 +1147,12 @@ namespace CumulusMX
 
 					if (winddir == 0x7FFF) // no reading
 					{
-						cumulus.LogDebugMessage("Wind direction = 0x7FFF = no reading, using zero instead");
+						cumulus.LogDebugMessage("LOOP: Wind direction = 0x7FFF = no reading, using zero instead");
 						winddir = 0;
 					}
 					else if (winddir > 360)
 					{
-						cumulus.LogDebugMessage("Wind direction = "+winddir+", using zero instead");
+						cumulus.LogDebugMessage($"LOOP: Wind direction = {winddir}, using zero instead");
 						winddir = 0;
 					}
 
@@ -1160,13 +1174,13 @@ namespace CumulusMX
 						if (WindLatest > RecentMaxGust)
 						{
 							RecentMaxGust = WindLatest;
-							cumulus.LogDebugMessage("Setting max gust from loop value: " + RecentMaxGust.ToString(cumulus.WindFormat));
+							cumulus.LogDebugMessage("LOOP: Setting max gust from loop value: " + RecentMaxGust.ToString(cumulus.WindFormat));
 						}
 					}
 				}
 				else
 				{
-					cumulus.LogDebugMessage("Ignoring wind data. Speed=" + loopData.CurrentWindSpeed + " mph, Avg=" + loopData.AvgWindSpeed + " mph.");
+					cumulus.LogDebugMessage($"LOOP: Ignoring wind data. Speed={loopData.CurrentWindSpeed} mph, Avg={loopData.AvgWindSpeed} mph.");
 				}
 
 				double rain = ConvertRainClicksToUser(loopData.YearRain);
@@ -1467,7 +1481,7 @@ namespace CumulusMX
 						if (comport.BytesToRead < loopDataLength)
 						{
 							// all data not received
-							cumulus.LogMessage("!!! loop2 data not received");
+							cumulus.LogMessage("LOOP2: Data not received!");
 							return;
 						}
 
@@ -1476,7 +1490,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("GetAndProcessLoop2Data: Error - " + ex.ToString());
+						cumulus.LogMessage("LOOP2: Error - " + ex.ToString());
 					}
 				}
 				else
@@ -1495,7 +1509,7 @@ namespace CumulusMX
 						if (loopcount == 100)
 						{
 							// all data not received
-							cumulus.LogMessage("!!! loop2 data not received");
+							cumulus.LogMessage("LOOP2: Data not received!");
 							return;
 						}
 
@@ -1504,20 +1518,25 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogDebugMessage("Loop2 data: Error - " + ex.Message);
+						cumulus.LogDebugMessage("LOOP2: Data: Error - " + ex.Message);
 					}
 				}
 
 				// Check it is a LOOP packet, starts with "LOO" and 5th byte == 1: LOOP2
 				if (!(loopString[0] == 'L' && loopString[1] == 'O' && loopString[2] == 'O' && Convert.ToByte(loopString[4]) == 1))
 				{
-					cumulus.LogDebugMessage("invalid LOOP2 packet");
+					cumulus.LogDebugMessage("LOOP2: Invalid packet format");
 					continue;
 				}
 
-				if (!crcOK(loopString)) continue;
+				if (!crcOK(loopString))
+				{
+					cumulus.LogDebugMessage("LOOP2: Packet CRC invalid");
+					continue;
+				}
+				if (stop) return;
 
-				cumulus.LogDataMessage("Loop2: " + BitConverter.ToString(loopString));
+				cumulus.LogDataMessage("LOOP2: Data - " + BitConverter.ToString(loopString));
 
 				// Allocate a structure for the data
 				loopData = new VPLoop2Data();
@@ -1544,7 +1563,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogDebugMessage("Ignoring LOOP2 wind speed: " + loopData.CurrentWindSpeed + " mph");
+					cumulus.LogDebugMessage("LOOP2: Ignoring wind speed: " + loopData.CurrentWindSpeed + " mph");
 				}
 
 				// Check if the station 10 minute gust value is greater than ours - only if our gust period is 10 minutes or more though
@@ -1554,11 +1573,11 @@ namespace CumulusMX
 					var gust10min = ConvertWindMPHToUser(loopData.WindGust10Min)*cumulus.WindGustMult;
 					var gustdir = loopData.WindGustDir;
 
-					cumulus.LogDebugMessage("10-min gust from loop2: " + gust10min.ToString(cumulus.WindFormat));
+					cumulus.LogDebugMessage("LOOP2: 10-min gust: " + gust10min.ToString(cumulus.WindFormat));
 
 					if (gust10min > RecentMaxGust)
 					{
-						cumulus.LogDebugMessage("Using 10-min gust from loop2");
+						cumulus.LogDebugMessage("LOOP2: Using 10-min gust from loop2");
 						CheckHighGust(gust10min, gustdir, now);
 
 						// add to recent values so normal calculation includes this value
@@ -1639,6 +1658,8 @@ namespace CumulusMX
 			NetworkStream stream = null;
 
 			if (!IsSerial) stream = socket.GetStream();
+			stream.ReadTimeout = 2500;
+			stream.WriteTimeout = 2500;
 
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
@@ -2192,7 +2213,7 @@ namespace CumulusMX
 						AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
 							IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
 						AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-							OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter);
+							OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
 						RemoveOldLHData(timestamp);
 						RemoveOldL3HData(timestamp);
 						RemoveOldGraphData(timestamp);
@@ -2452,6 +2473,8 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Flushing input stream");
 				NetworkStream stream = thePort.GetStream();
+				stream.ReadTimeout = 2500;
+				stream.WriteTimeout = 2500;
 
 				// stop loop data
 				stream.WriteByte(0x0D);
@@ -2462,6 +2485,12 @@ namespace CumulusMX
 				{
 					// Read the current character
 					int ch = stream.ReadByte();
+					if (ch == -1)
+					{
+						// end of stream - or can occur if DataAvailable is true and socket has been disconnected at remote end?
+						cumulus.LogDataMessage("No data available - disconnected?");
+						return;
+					}
 					cumulus.LogDataMessage("Received 0x" + ch.ToString("X2"));
 
 					Thread.Sleep(200);
@@ -2478,7 +2507,7 @@ namespace CumulusMX
 			byte newLineASCII = 10;
 			byte LF = 13;
 			int passCount = 1, maxPasses = 4;
-			NetworkStream theStream;
+			NetworkStream stream;
 
 			cumulus.LogDataMessage("Wake VP");
 
@@ -2486,7 +2515,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					theStream = thePort.GetStream();
+					stream = thePort.GetStream();
 				}
 				catch (Exception exStream)
 				{
@@ -2516,25 +2545,28 @@ namespace CumulusMX
 					}
 					else
 					{
-						theStream = thePort.GetStream();
+						stream = thePort.GetStream();
 					}
 				}
+				stream.ReadTimeout = 2500;
+				stream.WriteTimeout = 2500;
+
 
 				// First flush the stream
-				while (theStream.DataAvailable)
+				while (stream.DataAvailable)
 				{
 					// Read the current character
-					theStream.ReadByte();
+					stream.ReadByte();
 				}
 
 				while (passCount < maxPasses)
 				{
 					cumulus.LogDataMessage("Sending newline");
-					theStream.WriteByte(newLineASCII);
+					stream.WriteByte(newLineASCII);
 
 					Thread.Sleep(cumulus.DavisIPResponseTime);
-					var ch1 = theStream.ReadByte();
-					var ch2 = theStream.ReadByte();
+					var ch1 = stream.ReadByte();
+					var ch2 = stream.ReadByte();
 					cumulus.LogDataMessage("ch1 = 0x" + ch1.ToString("X2"));
 					cumulus.LogDataMessage("ch2 = 0x" + ch2.ToString("X2"));
 					if (ch1 == newLineASCII && ch2 == LF)
@@ -2713,6 +2745,9 @@ namespace CumulusMX
 					try
 					{
 						NetworkStream stream = socket.GetStream();
+						stream.ReadTimeout = 2500;
+						stream.WriteTimeout = 2500;
+
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
 						//Thread.Sleep(cumulus.DavisIPResponseTime);
@@ -2808,6 +2843,9 @@ namespace CumulusMX
 					if (WakeVP(socket))
 					{
 						stream = socket.GetStream();
+						stream.ReadTimeout = 2500;
+						stream.WriteTimeout = 2500;
+
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
 						//Thread.Sleep(cumulus.DavisIPResponseTime);

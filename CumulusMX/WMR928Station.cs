@@ -21,6 +21,8 @@ namespace CumulusMX
 		private int currentPacketLength;
 		private int currentPacketType;
 
+		private bool stop = false;
+
 		private readonly int[] WMR928PacketLength = {11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255};
 
 		public WMR928Station(Cumulus cumulus) : base(cumulus)
@@ -64,6 +66,7 @@ namespace CumulusMX
 
 		public override void Stop()
 		{
+			stop = true;
 		}
 
 		public override void Start()
@@ -72,7 +75,7 @@ namespace CumulusMX
 
 			try
 			{
-				while (true)
+				while (!stop)
 				{
 					Thread.Sleep(1000);
 					if (comport.BytesToRead > 0)
@@ -81,6 +84,8 @@ namespace CumulusMX
 						Thread.Sleep(200);
 						// Obtain the number of bytes waiting in the port's buffer
 						int bytes = comport.BytesToRead;
+
+						if (stop) break;
 
 						string datastr = "Data: ";
 

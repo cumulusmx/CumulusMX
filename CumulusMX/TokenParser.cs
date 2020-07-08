@@ -197,7 +197,8 @@ namespace CumulusMX
 
 		private String Parse3()
 		{
-			String outText = String.Empty;
+			// Preallocate SB memory to double input size
+			StringBuilder outText = new StringBuilder(InputText.Length * 2);
 			String token = String.Empty;
 			String replacement = String.Empty;
 
@@ -212,39 +213,38 @@ namespace CumulusMX
 			{
 				foreach (Match match in matches)
 				{
-					outText += InputText.Substring(i, match.Index - i);
+					outText.Append(InputText.Substring(i, match.Index - i));
 					try
 					{
 						// strip the "<#" ">" characters from the token string
 						token = match.Value;
 						token = token.Substring(2, token.Length - 3);
 						OnToken(token, ref replacement);
-						outText += replacement;
+						outText.Append(replacement);
 					}
 					catch (Exception e)
 					{
 						Trace.WriteLine($"Web tag error in file: {SourceFile}");
-						Trace.WriteLine("token=" + match.Value);
+						Trace.WriteLine($"token={match.Value}");
 						Trace.WriteLine($"Position in file (character)={match.Index}");
-						Trace.WriteLine("Exception: i=" + i + " len=" + len);
-						Trace.WriteLine("inputText.Length=" + InputText.Length);
+						Trace.WriteLine($"Exception: i={i} len={len}");
+						Trace.WriteLine($"inputText.Length={InputText.Length}");
 						Trace.WriteLine(e.ToString());
 						Trace.WriteLine("** The output file will contain an error message starting \"**Web tag error\"");
 						//cumulus.LogMessage(InputText);
 						Console.WriteLine($"*** web tag error in file '{SourceFile}' - see MXdiags file ***");
-						//outText += e.Message;
-						outText += "**Web tag error, tag starting: <#" + token.Substring(0, token.Length > 40 ? 39 : token.Length - 1) + "**";
+						outText.Append($"**Web tag error, tag starting: <#{token.Substring(0, token.Length > 40 ? 39 : token.Length - 1)}**");
 					}
 					i = match.Index + match.Length;
 				}
-				outText += InputText.Substring(i, InputText.Length - i);
+				outText.Append(InputText.Substring(i, InputText.Length - i));
 			}
 			else
 			{
-				outText = InputText;
+				outText.Append(InputText);
 			}
 
-			return outText;
+			return outText.ToString();
 		}
 
 		//private static string Utf16ToUtf8(string utf16String)

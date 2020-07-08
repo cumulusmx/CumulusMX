@@ -1012,7 +1012,7 @@ namespace CumulusMX
 
 					int channel = int.Parse(channeltxt) * 2 - 1;
 
-					if ((channel < sl.Length) && (sl[channel] != ""))
+					if ((channel < sl.Length) && (sl[channel].Length > 0))
 					{
 						return sl[channel];
 					}
@@ -4701,6 +4701,22 @@ namespace CumulusMX
 			}
 		}
 
+		private string TagRecentFeelsLike(Dictionary<string, string> TagParams)
+		{
+			var recentTS = GetRecentTS(TagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTS);
+
+			if (result.Count == 0)
+			{
+				return CheckRC(station.FeelsLike.ToString(cumulus.TempFormat), TagParams);
+			}
+			else
+			{
+				return CheckRC(result[0].FeelsLike.ToString(cumulus.TempFormat), TagParams);
+			}
+		}
+
 		private string TagRecentHumidity(Dictionary<string,string> TagParams)
 		{
 			var recentTS = GetRecentTS(TagParams);
@@ -5508,6 +5524,7 @@ namespace CumulusMX
 				{ "RecentWindChill", TagRecentWindChill },
 				{ "RecentDewPoint", TagRecentDewPoint },
 				{ "RecentHeatIndex", TagRecentHeatIndex },
+				{ "RecentFeelsLike", TagRecentFeelsLike },
 				{ "RecentHumidity", TagRecentHumidity },
 				{ "RecentPressure", TagRecentPressure },
 				{ "RecentRainToday", TagRecentRainToday },
