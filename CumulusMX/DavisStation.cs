@@ -1657,10 +1657,6 @@ namespace CumulusMX
 
 			NetworkStream stream = null;
 
-			if (!IsSerial) stream = socket.GetStream();
-			stream.ReadTimeout = 2500;
-			stream.WriteTimeout = 2500;
-
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
 
@@ -1704,6 +1700,10 @@ namespace CumulusMX
 			}
 			else
 			{
+				stream = socket.GetStream();
+				stream.ReadTimeout = 2500;
+				stream.WriteTimeout = 2500;
+
 				WakeVP(socket);
 				string dmpaft = "DMPAFT\n";
 				stream.Write(Encoding.ASCII.GetBytes(dmpaft), 0, dmpaft.Length);

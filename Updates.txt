@@ -1,3 +1,11 @@
+3.6.12 - b3088
+==============
+- Fix Davis stations not downloading historic logger data (in b3087)
+
+- Updated files
+	\CumulusMX.exe
+
+
 3.6.11 - b3087
 ==============
 - Fix Davis TCP logger connections not timing out occasionally
