@@ -133,30 +133,30 @@ namespace CumulusMX
                         lastTime = timestr;
                     }
 
-                    DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]),
-                        ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), Now);
+                    DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]), ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), Now);
 
                     DoWindChill(ConvertTempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), Now);
 
                     DoIndoorHumidity(Convert.ToInt32(st[EW_INDOOR_HUM]));
+
                     DoOutdoorHumidity(Convert.ToInt32(st[EW_OUTDOOR_HUM]), Now);
 
                     DoOutdoorDewpoint(ConvertTempCToUser(GetConvertedValue(st[EW_DEW_POINT])), Now);
 
                     DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), Now);
-
                     UpdatePressureTrendString();
 
                     DoIndoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
+
                     DoOutdoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), Now);
 
                     DoRain(ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_YEAR])), // use year as total
-                        ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
-                        Now);
+                            ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
+                            Now);
 
                     DoApparentTemp(Now);
                     DoFeelsLike(Now);
-
+                    DoHumidex(Now);
 
                     DoForecast(string.Empty, false);
 

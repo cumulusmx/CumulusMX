@@ -25,7 +25,6 @@ namespace CumulusMX
 		private readonly System.Timers.Timer tmrDataWatchdog;
 		private bool stop = false;
 
-
 		private enum Commands : byte {
 			// General order
 			CMD_WRITE_SSID = 0x11,// send router SSID and Password to wifi module
@@ -898,6 +897,7 @@ namespace CumulusMX
 
 					DoApparentTemp(dateTime);
 					DoFeelsLike(dateTime);
+					DoHumidex(dateTime);
 
 					DoForecast("", false);
 
@@ -1329,39 +1329,6 @@ namespace CumulusMX
 		private static UInt32 ConvertBigEndianUInt32(byte[] array, int start)
 		{
 			return (UInt32)(array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
-		}
-
-		private void CheckHighGust(double gust, int gustdir, DateTime timestamp)
-		{
-			if (!(gust > RecentMaxGust)) return;
-
-			if (gust > highgusttoday)
-			{
-				highgusttoday = gust;
-				highgusttodaytime = timestamp;
-				highgustbearing = gustdir;
-				WriteTodayFile(timestamp, false);
-			}
-			if (gust > HighGustThisMonth)
-			{
-				HighGustThisMonth = gust;
-				HighGustThisMonthTS = timestamp;
-				WriteMonthIniFile();
-			}
-			if (gust > HighGustThisYear)
-			{
-				HighGustThisYear = gust;
-				HighGustThisYearTS = timestamp;
-				WriteYearIniFile();
-			}
-			// All time high gust?
-			if (gust > alltimerecarray[AT_highgust].value)
-			{
-				SetAlltime(AT_highgust, gust, timestamp);
-			}
-
-			// check for monthly all time records (and set)
-			CheckMonthlyAlltime(AT_highgust, gust, true, timestamp);
 		}
 
 		/// <summary>

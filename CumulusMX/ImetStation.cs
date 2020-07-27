@@ -781,7 +781,7 @@ namespace CumulusMX
 
 							DoApparentTemp(timestamp);
 							DoFeelsLike(timestamp);
-
+							DoHumidex(timestamp);
 
 							// sunshine hours
 							if (sl[SUNPOS].Length > 0)
@@ -794,12 +794,12 @@ namespace CumulusMX
 							AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 							RemoveOldLHData(timestamp);
 							AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-								IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
+								IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 							RemoveOldGraphData(timestamp);
 							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 							RemoveOldL3HData(timestamp);
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 							DoTrendValues(timestamp);
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
@@ -941,21 +941,18 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(sl[RELHUMPOS]))
 				{
-					double hum = Convert.ToDouble(sl[RELHUMPOS], provider);
-					DoOutdoorHumidity((int) hum, now);
+					DoOutdoorHumidity((int)Convert.ToDouble(sl[RELHUMPOS], provider), now);
 				}
 
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]))
 				{
-					double press = Convert.ToDouble(sl[PRESSPOS], provider);
-					DoPressure(ConvertPressMBToUser(press), now);
+					DoPressure(ConvertPressMBToUser(Convert.ToDouble(sl[PRESSPOS], provider)), now);
 				}
 
 				if (!string.IsNullOrEmpty(sl[DIRPOS])&&!string.IsNullOrEmpty(sl[WINDPOS]))
 				{
 					int winddir = Convert.ToInt32(sl[DIRPOS], provider);
 					windspeed = Convert.ToDouble(sl[WINDPOS], provider);
-
 					DoWind(ConvertWindMSToUser(windspeed), winddir, ConvertWindMSToUser(windspeed), now);
 				}
 				if (!string.IsNullOrEmpty(sl[RAINPOS]))
@@ -978,7 +975,7 @@ namespace CumulusMX
 
 				DoApparentTemp(now);
 				DoFeelsLike(now);
-
+				DoHumidex(now);
 
 				DoForecast("", false);
 

@@ -23,6 +23,7 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
+		internal static ApiTagProcessor tagProcessor;
 
 		public static string Utf16ToUtf8(string utf16String)
 		{
@@ -97,6 +98,7 @@ namespace CumulusMX
 			server.Module<WebApiModule>().RegisterController<EditControllerGet>();
 			server.Module<WebApiModule>().RegisterController<EditControllerPost>();
 			server.Module<WebApiModule>().RegisterController<ReportsController>();
+			server.Module<WebApiModule>().RegisterController<TagController>();
 		}
 
 		public class EditControllerGet : WebApiController
@@ -316,6 +318,73 @@ namespace CumulusMX
 			}
 		}
 
+
+		public class TagController : WebApiController
+		{
+			public TagController(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Post, RelativePath + "tags/*")]
+			public async Task<bool> PostTags()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "process.txt":
+							return await this.StringResponseAsync(tagProcessor.ProcessText(this));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "tags/*")]
+			public async Task<bool> GetTags()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "process.json":
+							return await this.JsonResponseAsync(tagProcessor.ProcessJson(Request.Url.Query));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+
+
+			private async Task<bool> HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
+				{
+					Title = "Unexpected Error",
+					ErrorCode = ex.GetType().Name,
+					Description = ex.Message,
+				};
+
+				this.Response.StatusCode = statusCode;
+				return await this.JsonResponseAsync(errorResponse);
+			}
+		}
+
 		public class GraphDataController : WebApiController
 		{
 			public GraphDataController(IHttpContext context) : base(context)
@@ -334,32 +403,18 @@ namespace CumulusMX
 					{
 						case "tempdata.json":
 							return await this.JsonResponseAsync(Station.GetTempGraphData());
-						//case "tempdatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetTempGraphDataD3());
 						case "winddata.json":
 							return await this.JsonResponseAsync(Station.GetWindGraphData());
-						//case "winddatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetWindGraphDataD3());
 						case "raindata.json":
 							return await this.JsonResponseAsync(Station.GetRainGraphData());
-						//case "raindatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetRainGraphDataD3());
 						case "pressdata.json":
 							return await this.JsonResponseAsync(Station.GetPressGraphData());
-						//case "pressdatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetPressGraphDataD3());
 						case "wdirdata.json":
 							return await this.JsonResponseAsync(Station.GetWindDirGraphData());
-						//case "wdirdatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetWindDirGraphDataD3());
 						case "humdata.json":
 							return await this.JsonResponseAsync(Station.GetHumGraphData());
-						//case "humdatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetHumGraphDataD3());
 						case "solardata.json":
 							return await this.JsonResponseAsync(Station.GetSolarGraphData());
-						//case "solardatad3.json":
-						//	return await this.JsonResponseAsync(Station.GetSolarGraphDataD3());
 						case "dailyrain.json":
 							return await this.JsonResponseAsync(Station.GetDailyRainGraphData());
 						case "sunhours.json":

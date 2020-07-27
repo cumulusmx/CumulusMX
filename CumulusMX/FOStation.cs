@@ -23,13 +23,8 @@ namespace CumulusMX
 
 		private readonly int maxHistoryEntries;
 		private int prevaddr = -1;
-		private double previouspress = 9999;
-		private double previousgust = 999;
-		private double previouswind = 999;
-		private int previoushum = 999;
 		private int prevraintotal = -1;
 		private int ignoreraincount = 0;
-		private double previoustemp = 999;
 		private int SynchroPhase = 0;
 		private DateTime PreviousSensorClock;
 		private DateTime PreviousStationClock;
@@ -500,7 +495,7 @@ namespace CumulusMX
 
 					DoApparentTemp(timestamp);
 					DoFeelsLike(timestamp);
-
+					DoHumidex(timestamp);
 
 					if (hasSolar)
 					{
@@ -553,10 +548,10 @@ namespace CumulusMX
 
 				AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-					IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
+					IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 				RemoveOldLHData(timestamp);
 				RemoveOldL3HData(timestamp);
 				RemoveOldGraphData(timestamp);
@@ -851,27 +846,16 @@ namespace CumulusMX
 					{
 						// bad value
 						cumulus.LogMessage("Ignoring bad data: pressure = " + pressure.ToString());
-						cumulus.LogMessage("                   offset = " + pressureOffset.ToString());
+						cumulus.LogMessage("                     offset = " + pressureOffset.ToString());
 					}
 					else
 					{
-						if ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.EWpressurediff))
-						{
-							previouspress = pressure;
-
-							DoPressure(ConvertPressMBToUser(pressure), now);
-							// Get station pressure in hPa by subtracting offset and calibrating
-							// EWpressure offset is difference between rel and abs in hPa
-							// PressOffset is user calibration in user units.
-							pressure = (pressure - pressureOffset) * PressureHPa(cumulus.PressMult) + PressureHPa(cumulus.PressOffset);
-							StationPressure = ConvertPressMBToUser(pressure);
-						}
-						else
-						{
-							LogSpikeRemoval("Pressure difference greater than specified; reading ignored");
-							LogSpikeRemoval("Old value = " + previouspress.ToString("F1") + " New value = " + pressure.ToString("F1") + " EWpressurediff = " +
-											cumulus.EWpressurediff.ToString("F1"));
-						}
+						DoPressure(ConvertPressMBToUser(pressure), now);
+						// Get station pressure in hPa by subtracting offset and calibrating
+						// EWpressure offset is difference between rel and abs in hPa
+						// PressOffset is user calibration in user units.
+						pressure = (pressure - pressureOffset) * PressureHPa(cumulus.PressMult) + PressureHPa(cumulus.PressOffset);
+						StationPressure = ConvertPressMBToUser(pressure);
 
 						UpdatePressureTrendString();
 						UpdateStatusPanel(now);
@@ -905,16 +889,7 @@ namespace CumulusMX
 
 							if (outhum > 0)
 							{
-								if ((previoushum == 999) || (Math.Abs(outhum - previoushum) < cumulus.EWhumiditydiff))
-								{
-									previoushum = outhum;
-									DoOutdoorHumidity(outhum, now);
-								}
-								else
-								{
-									LogSpikeRemoval("Humidity difference greater than specified; reading ignored");
-									LogSpikeRemoval("Old value = " + previoushum + " New value = " + outhum + " EWhumiditydiff = " + cumulus.EWhumiditydiff.ToString("F1"));
-								}
+								DoOutdoorHumidity(outhum, now);
 							}
 						}
 
@@ -935,21 +910,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							if (((previousgust == 999) || (Math.Abs(gust - previousgust) < cumulus.EWgustdiff)) &&
-								((previouswind == 999) || (Math.Abs(windspeed - previouswind) < cumulus.EWwinddiff)))
-							{
-								previousgust = gust;
-								previouswind = windspeed;
-								DoWind(ConvertWindMSToUser(gust), winddir, ConvertWindMSToUser(windspeed), now);
-							}
-							else
-							{
-								LogSpikeRemoval("Wind or gust difference greater than specified; reading ignored");
-								LogSpikeRemoval("Gust: Old value = " + previousgust.ToString("F1") + " New value = " + gust.ToString("F1") + " EWgustdiff = " +
-												cumulus.EWgustdiff.ToString("F1"));
-								LogSpikeRemoval("Wind: Old value = " + previouswind.ToString("F1") + " New value = " + windspeed.ToString("F1") + " EWwinddiff = " +
-												cumulus.EWwinddiff.ToString("F1"));
-							}
+							DoWind(ConvertWindMSToUser(gust), winddir, ConvertWindMSToUser(windspeed), now);
 						}
 
 						// Outdoor Temperature ==============================================
@@ -964,44 +925,34 @@ namespace CumulusMX
 						}
 						else
 						{
-							if ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.EWtempdiff))
+							DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
+
+							// Use current humidity for dewpoint
+							if (OutdoorHumidity > 0)
 							{
-								previoustemp = outtemp;
+								OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
 
-								DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
-
-								// Use current humidity for dewpoint
-								if (OutdoorHumidity > 0)
-								{
-									OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
-
-									CheckForDewpointHighLow(now);
-								}
-								;
-
-								// calculate wind chill
-								if ((outtemp > -50) || (outtemp < 70))
-								{
-									// The 'global average speed will have been determined by the call of DoWind
-									// so use that in the wind chill calculation
-									double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
-
-									// windinMPH = calibwind * 2.23693629;
-									// calculate wind chill from calibrated C temp and calibrated win in KPH
-									double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
-
-									DoWindChill(ConvertTempCToUser(val), now);
-								}
-
-								DoApparentTemp(now);
-								DoFeelsLike(now);
-
+								CheckForDewpointHighLow(now);
 							}
-							else
+							;
+
+							// calculate wind chill
+							if ((outtemp > -50) || (outtemp < 70))
 							{
-								LogSpikeRemoval("Temp difference greater than specified; reading ignored");
-								LogSpikeRemoval("Old value = " + previoustemp + " New value = " + outtemp + " EWtempdiff = " + cumulus.EWtempdiff);
+								// The 'global average speed will have been determined by the call of DoWind
+								// so use that in the wind chill calculation
+								double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
+
+								// windinMPH = calibwind * 2.23693629;
+								// calculate wind chill from calibrated C temp and calibrated win in KPH
+								double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
+
+								DoWindChill(ConvertTempCToUser(val), now);
 							}
+
+							DoApparentTemp(now);
+							DoFeelsLike(now);
+							DoHumidex(now);
 						}
 
 						// Rain ============================================================
@@ -1132,14 +1083,6 @@ namespace CumulusMX
 		}
 
 		//public double EWpressureoffset { get; set; }
-
-		private void LogSpikeRemoval(string message)
-		{
-			if (cumulus.ErrorLogSpikeRemoval)
-			{
-				cumulus.LogErrorMessage(message);
-			}
-		}
 
 		private class HistoryData
 		{

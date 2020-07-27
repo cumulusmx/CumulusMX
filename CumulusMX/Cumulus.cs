@@ -33,8 +33,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.6.12";
-		public string Build = "3088";
+		public string Version = "3.7.0";
+		public string Build = "3089";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -165,7 +165,7 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
-		public const int DayfileFields = 50;
+		public const int DayfileFields = 52;
 
 		private WeatherStation station;
 
@@ -176,6 +176,7 @@ namespace CumulusMX
 		private readonly AlarmSettings alarmSettings;
 		private readonly MysqlSettings mySqlSettings;
 		private readonly DataEditor dataEditor;
+		private readonly ApiTagProcessor tagProcessor;
 
 		public DateTime LastUpdateTime;
 
@@ -503,7 +504,6 @@ namespace CumulusMX
 		private List<string> WundList = new List<string>();
 		private List<string> WindyList = new List<string>();
 		private List<string> PWSList = new List<string>();
-		private List<string> WeatherbugList = new List<string>();
 		private List<string> WOWList = new List<string>();
 
 		private List<string> MySqlList = new List<string>();
@@ -533,6 +533,15 @@ namespace CumulusMX
 		public double UVMult = 1.0;
 		public double WetBulbMult = 1.0;
 
+		public double LimitTempHigh;
+		public double LimitTempLow;
+		public double LimitDewHigh;
+		public double LimitPressHigh;
+		public double LimitPressLow;
+		public double LimitWindHigh;
+
+		public GraphOptions GraphOptions = new GraphOptions();
+
 		//private int CurrentYear;
 		//private int CurrentMonth;
 		//private int CurrentDay;
@@ -559,7 +568,7 @@ namespace CumulusMX
 		public bool WundEnabled = false;
 		public bool WundRapidFireEnabled = false;
 		public int WundInterval = 15;
-		private bool WundHTTPLogging = false;
+		//private bool WundHTTPLogging = false;
 		public bool SendUVToWund = false;
 		public bool SendSRToWund = false;
 		public bool SendIndoorToWund = false;
@@ -572,7 +581,7 @@ namespace CumulusMX
 		public int WindyStationIdx = 0;
 		public bool WindyEnabled = false;
 		public int WindyInterval = 15;
-		private bool WindyHTTPLogging = false;
+		//private bool WindyHTTPLogging = false;
 		public bool WindySendUV = false;
 		public bool WindySendSolar = false;
 		public bool WindyCatchUp = true;
@@ -597,17 +606,6 @@ namespace CumulusMX
 		public bool SendSRToWOW = false;
 		public bool WOWCatchUp = true;
 		public bool WOWCatchingUp = false;
-
-		// Weatherbug settings
-		public string WeatherbugID = " ";
-		public string WeatherbugNumber = " ";
-		public string WeatherbugPW = " ";
-		public bool WeatherbugEnabled = false;
-		public int WeatherbugInterval = 15;
-		public bool SendUVToWeatherbug = false;
-		public bool SendSRToWeatherbug = false;
-		public bool WeatherbugCatchUp = true;
-		public bool WeatherbugCatchingUp = false;
 
 		// APRS settings
 		public string APRSserver = "cwop.aprs.net";
@@ -744,10 +742,6 @@ namespace CumulusMX
 		private readonly HttpClient PWShttpClient = new HttpClient(PWShttpHandler);
 		private bool UpdatingPWS = false;
 
-		private static readonly HttpClientHandler WBhttpHandler = new HttpClientHandler();
-		private readonly HttpClient WBhttpClient = new HttpClient(WBhttpHandler);
-		private bool UpdatingWB = false;
-
 		private static readonly HttpClientHandler WOWhttpHandler = new HttpClientHandler();
 		private readonly HttpClient WOWhttpClient = new HttpClient(WOWhttpHandler);
 		private bool UpdatingWOW = false;
@@ -799,6 +793,8 @@ namespace CumulusMX
 		public string MySqlUser;
 		public string MySqlPass;
 		public string MySqlDatabase;
+
+		public string LatestBuild = "n/a";
 
 		public bool RealtimeMySqlEnabled;
 		public bool MonthlyMySqlEnabled;
@@ -1192,8 +1188,9 @@ namespace CumulusMX
 			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
 			LogMessage("FTP logging is " + (FTPlogging ? "enabled" : "disabled"));
-			LogMessage("Logging interval = " + logints[DataLogInterval]);
-			LogMessage("Real time interval = " + RealtimeInterval / 1000);
+			LogMessage("Spike logging is " + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
+			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
+			LogMessage("Real time interval = " + RealtimeInterval / 1000 + " secs");
 			LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
 
 			TempFormat = "F" + TempDPlaces;
@@ -1318,15 +1315,8 @@ namespace CumulusMX
 			LogMessage("WindUnit=" + WindUnitText + " RainUnit=" + RainUnitText + " TempUnit=" + TempUnitText + " PressureUnit=" + PressUnitText);
 			LogMessage("YTDRain=" + YTDrain.ToString("F3") + " Year=" + YTDrainyear);
 			LogMessage("RainDayThreshold=" + RainDayThreshold.ToString("F3"));
-			LogMessage("Offsets and Multipliers:");
-			LogMessage("PO=" + PressOffset.ToString("F3") + " TO=" + TempOffset.ToString("F3") + " HO=" + HumOffset + " WDO=" + WindDirOffset + " ITO=" +
-						InTempoffset.ToString("F3") + " SO=" + SolarOffset.ToString("F3") + " UVO=" + UVOffset.ToString("F3"));
-			LogMessage("PM=" + PressMult.ToString("F3") + " WSM=" + WindSpeedMult.ToString("F3") + " WGM=" + WindGustMult.ToString("F3") + " TM=" + TempMult.ToString("F3") + " TM2=" + TempMult2.ToString("F3") +
-						" HM=" + HumMult.ToString("F3") + " HM2=" + HumMult2.ToString("F3") + " RM=" + RainMult.ToString("F3") + " SM=" + SolarMult.ToString("F3") + " UVM=" + UVMult.ToString("F3"));
-			LogMessage("Spike removal:");
-			LogMessage("TD=" + EWtempdiff.ToString("F3") + " GD=" + EWgustdiff.ToString("F3") + " WD=" + EWwinddiff.ToString("F3") + " HD=" + EWhumiditydiff.ToString("F3") + " PD=" +
-						EWpressurediff.ToString("F3"));
-			LogMessage("MR=" + EWmaxRainRate.ToString("F3") + " MH=" + EWmaxHourlyRain.ToString("F3"));
+
+			LogOffsetsMultipliers();
 
 			LogMessage("Cumulus Starting");
 			Trace.Flush();
@@ -1408,6 +1398,7 @@ namespace CumulusMX
 			alarmSettings = new AlarmSettings(this);
 			mySqlSettings = new MysqlSettings(this);
 			dataEditor = new DataEditor(this, station, webtags);
+			tagProcessor = new ApiTagProcessor(this, webtags);
 
 
 			// switch off logging from Unosquare.Swan which underlies embedIO
@@ -1433,6 +1424,7 @@ namespace CumulusMX
 			Api.alarmSettings = alarmSettings;
 			Api.mySqlSettings = mySqlSettings;
 			Api.dataEditor = dataEditor;
+			Api.tagProcessor = tagProcessor;
 
 			// Set up the Web Socket server
 			WebSocket.Setup(httpServer, this);
@@ -1455,7 +1447,6 @@ namespace CumulusMX
 			WindyTimer.Elapsed += WindyTimerTick;
 			PWSTimer.Elapsed += PWSTimerTick;
 			WOWTimer.Elapsed += WowTimerTick;
-			WeatherbugTimer.Elapsed += WBTimerTick;
 			AwekasTimer.Elapsed += AwekasTimerTick;
 			WCloudTimer.Elapsed += WCloudTimerTick;
 
@@ -1515,9 +1506,6 @@ namespace CumulusMX
 				PWShttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				PWShttpHandler.UseProxy = true;
 
-				WBhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				WBhttpHandler.UseProxy = true;
-
 				WOWhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				WOWhttpHandler.UseProxy = true;
 
@@ -1534,7 +1522,6 @@ namespace CumulusMX
 				{
 					WUhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					PWShttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					WBhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					WOWhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpSecondsHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpMinutesHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
@@ -1634,7 +1621,7 @@ namespace CumulusMX
 				"HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint," +
 				"LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad," +
 				"THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym," +
-				"MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike)";
+				"MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,MaxHumidex,TMaxHumidex)";
 		}
 
 		internal void SetStartOfMonthlyInsertSQL()
@@ -1643,7 +1630,7 @@ namespace CumulusMX
 				"LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar," +
 				"Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex," +
 				"SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing," +
-				"RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym,FeelsLike)";
+				"RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym,FeelsLike,Humidex)";
 		}
 
 		internal void SetupUnitText()
@@ -2027,12 +2014,6 @@ namespace CumulusMX
 				UpdateWOW(DateTime.Now);
 		}
 
-		private void WBTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrEmpty(WeatherbugID) && (WeatherbugID != " "))
-				UpdateWeatherbug(DateTime.Now);
-		}
-
 		internal async void UpdateWunderground(DateTime timestamp)
 		{
 			if (!UpdatingWU)
@@ -2293,6 +2274,7 @@ namespace CumulusMX
 				{
 					RealtimeFTPConnectionTest(cycle);
 				}
+				RealtimeFtpInProgress = false;
 			}
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
 		}
@@ -3296,7 +3278,7 @@ namespace CumulusMX
 			ReportDataStoppedErrors = ini.GetValue("Station", "ReportDataStoppedErrors", true);
 			ReportLostSensorContact = ini.GetValue("Station", "ReportLostSensorContact", true);
 			NoFlashWetDryDayRecords = ini.GetValue("Station", "NoFlashWetDryDayRecords", false);
-			ErrorLogSpikeRemoval = ini.GetValue("Station", "ErrorLogSpikeRemoval", false);
+			ErrorLogSpikeRemoval = ini.GetValue("Station", "ErrorLogSpikeRemoval", true);
 			DataLogInterval = ini.GetValue("Station", "DataLogInterval", 2);
 			// this is now an index
 			if (DataLogInterval > 5)
@@ -3340,13 +3322,13 @@ namespace CumulusMX
 			EWdisablecheckinit = ini.GetValue("Station", "EWdisablecheckinit", false);
 			EWduplicatecheck = ini.GetValue("Station", "EWduplicatecheck", true);
 
-			EWtempdiff = ini.GetValue("Station", "EWtempdiff", 999.0);
-			EWpressurediff = ini.GetValue("Station", "EWpressurediff", 999.0);
-			EWhumiditydiff = ini.GetValue("Station", "EWhumiditydiff", 999.0);
-			EWgustdiff = ini.GetValue("Station", "EWgustdiff", 999.0);
-			EWwinddiff = ini.GetValue("Station", "EWwinddiff", 999.0);
-			EWmaxRainRate = ini.GetValue("Station", "EWmaxRainRate", 999.0);
-			EWmaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
+			SpikeTempDiff = ini.GetValue("Station", "EWtempdiff", 999.0);
+			SpikePressDiff = ini.GetValue("Station", "EWpressurediff", 999.0);
+			SpikeHumidityDiff = ini.GetValue("Station", "EWhumiditydiff", 999.0);
+			SpikeGustDiff = ini.GetValue("Station", "EWgustdiff", 999.0);
+			SpikeWindDiff = ini.GetValue("Station", "EWwinddiff", 999.0);
+			SpikeMaxRainRate = ini.GetValue("Station", "EWmaxRainRate", 999.0);
+			SpikeMaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 
 			EWminpressureMB = ini.GetValue("Station", "EWminpressureMB", 900);
 			EWmaxpressureMB = ini.GetValue("Station", "EWmaxpressureMB", 1200);
@@ -3568,13 +3550,23 @@ namespace CumulusMX
 			MoonImageEnabled = ini.GetValue("Graphs", "MoonImageEnabled", false);
 			MoonImageSize = ini.GetValue("Graphs", "MoonImageSize", 100);
 			MoonImageFtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
+			GraphOptions.TempVisible = ini.GetValue("Graphs", "TempVisible", true);
+			GraphOptions.InTempVisible = ini.GetValue("Graphs", "InTempVisible", true);
+			GraphOptions.HIVisible = ini.GetValue("Graphs", "HIVisible", true);
+			GraphOptions.DPVisible = ini.GetValue("Graphs", "DPVisible", true);
+			GraphOptions.WCVisible = ini.GetValue("Graphs", "WCVisible", true);
+			GraphOptions.AppTempVisible = ini.GetValue("Graphs", "AppTempVisible", true);
+			GraphOptions.FeelsLikeVisible = ini.GetValue("Graphs", "FeelsLikeVisible", true);
+			GraphOptions.HumidexVisible = ini.GetValue("Graphs", "HumidexVisible", true);
+			GraphOptions.InHumVisible = ini.GetValue("Graphs", "InHumVisible", true);
+			GraphOptions.OutHumVisible = ini.GetValue("Graphs", "OutHumVisible", true);
 
 			WundID = ini.GetValue("Wunderground", "ID", "");
 			WundPW = ini.GetValue("Wunderground", "Password", "");
 			WundEnabled = ini.GetValue("Wunderground", "Enabled", false);
 			WundRapidFireEnabled = ini.GetValue("Wunderground", "RapidFire", false);
 			WundInterval = ini.GetValue("Wunderground", "Interval", DefaultWundInterval);
-			WundHTTPLogging = ini.GetValue("Wunderground", "Logging", false);
+			//WundHTTPLogging = ini.GetValue("Wunderground", "Logging", false);
 			SendUVToWund = ini.GetValue("Wunderground", "SendUV", false);
 			SendSRToWund = ini.GetValue("Wunderground", "SendSR", false);
 			SendIndoorToWund = ini.GetValue("Wunderground", "SendIndoor", false);
@@ -3598,7 +3590,7 @@ namespace CumulusMX
 			WindyEnabled = ini.GetValue("Windy", "Enabled", false);
 			WindyInterval = ini.GetValue("Windy", "Interval", DefaultWindyInterval);
 			if (WindyInterval < 5) { WindyInterval = 5; }
-			WindyHTTPLogging = ini.GetValue("Windy", "Logging", false);
+			//WindyHTTPLogging = ini.GetValue("Windy", "Logging", false);
 			WindySendUV = ini.GetValue("Windy", "SendUV", false);
 			WindySendSolar = ini.GetValue("Windy", "SendSolar", false);
 			WindyCatchUp = ini.GetValue("Windy", "CatchUp", true);
@@ -3660,18 +3652,6 @@ namespace CumulusMX
 			WOWCatchUp = ini.GetValue("WOW", "CatchUp", true);
 
 			SynchronisedWOWUpdate = (60 % WOWInterval == 0);
-
-			WeatherbugID = ini.GetValue("Weatherbug", "ID", "");
-			WeatherbugNumber = ini.GetValue("Weatherbug", "Number", "");
-			WeatherbugPW = ini.GetValue("Weatherbug", "Password", "");
-			WeatherbugEnabled = ini.GetValue("Weatherbug", "Enabled", false);
-			WeatherbugInterval = ini.GetValue("Weatherbug", "Interval", DefaultPWSInterval);
-			if (WeatherbugInterval < 1) { WeatherbugInterval = 1; }
-			SendUVToWeatherbug = ini.GetValue("Weatherbug", "SendUV", false);
-			SendSRToWeatherbug = ini.GetValue("Weatherbug", "SendSR", false);
-			WeatherbugCatchUp = ini.GetValue("Weatherbug", "CatchUp", true);
-
-			SynchronisedWBUpdate = (60 % WeatherbugInterval == 0);
 
 			APRSID = ini.GetValue("APRS", "ID", "");
 			APRSpass = ini.GetValue("APRS", "pass", "-1");
@@ -3768,12 +3748,16 @@ namespace CumulusMX
 
 			DataStoppedAlarmEnabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", false);
 			DataStoppedAlarmSound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
-			DataStoppedAlarmSoundFile = ini.GetValue("Alarms", "DataStoppedlarmSoundFile", DefaultSoundFile);
+			DataStoppedAlarmSoundFile = ini.GetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
 			if (DataStoppedAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
 
 			BatteryLowAlarmEnabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
 			BatteryLowAlarmSound = ini.GetValue("Alarms", "BatteryLowAlarmSound", false);
-			BatteryLowAlarmSoundFile = ini.GetValue("Alarms", "BatteryLowlarmSoundFile", DefaultSoundFile);
+			BatteryLowAlarmSoundFile = ini.GetValue("Alarms", "BatteryLowAlarmSoundFile", DefaultSoundFile);
+
+			SpikeAlarmEnabled = ini.GetValue("Alarms", "DataSpikeAlarmSet", false);
+			SpikeAlarmSound = ini.GetValue("Alarms", "DataSpikeAlarmSound", false);
+			SpikeAlarmSoundFile = ini.GetValue("Alarms", "DataSpikeAlarmSoundFile", DefaultSoundFile);
 
 			PressOffset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			TempOffset = ini.GetValue("Offsets", "TempOffset", 0.0);
@@ -3795,6 +3779,13 @@ namespace CumulusMX
 			SolarMult = ini.GetValue("Offsets", "SolarMult", 1.0);
 			UVMult = ini.GetValue("Offsets", "UVMult", 1.0);
 			WetBulbMult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
+
+			LimitTempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
+			LimitTempLow = ini.GetValue("Limits", "TempLowC", -60.0);
+			LimitDewHigh = ini.GetValue("Limits", "DewHighC", 40.0);
+			LimitPressHigh = ini.GetValue("Limits", "PressHighMB", 1090.0);
+			LimitPressLow = ini.GetValue("Limits", "PressLowMB", 870.0);
+			LimitWindHigh = ini.GetValue("Limits", "WindHighMS", 90.0);
 
 			xapEnabled = ini.GetValue("xAP", "Enabled", false);
 			xapUID = ini.GetValue("xAP", "UID", "4375");
@@ -4024,13 +4015,13 @@ namespace CumulusMX
 			ini.SetValue("Station", "WarnMultiple", WarnMultiple);
 			ini.SetValue("Station", "RoundWindSpeed", RoundWindSpeed);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", VP2PeriodicDisconnectInterval);
-			ini.SetValue("Station", "EWtempdiff", EWtempdiff);
-			ini.SetValue("Station", "EWpressurediff", EWpressurediff);
-			ini.SetValue("Station", "EWhumiditydiff", EWhumiditydiff);
-			ini.SetValue("Station", "EWgustdiff", EWgustdiff);
-			ini.SetValue("Station", "EWwinddiff", EWwinddiff);
-			ini.SetValue("Station", "EWmaxHourlyRain", EWmaxHourlyRain);
-			ini.SetValue("Station", "EWmaxRainRate", EWmaxRainRate);
+			ini.SetValue("Station", "EWtempdiff", SpikeTempDiff);
+			ini.SetValue("Station", "EWpressurediff", SpikePressDiff);
+			ini.SetValue("Station", "EWhumiditydiff", SpikeHumidityDiff);
+			ini.SetValue("Station", "EWgustdiff", SpikeGustDiff);
+			ini.SetValue("Station", "EWwinddiff", SpikeWindDiff);
+			ini.SetValue("Station", "EWmaxHourlyRain", SpikeMaxHourlyRain);
+			ini.SetValue("Station", "EWmaxRainRate", SpikeMaxRainRate);
 
 			ini.SetValue("Station", "EWminpressureMB", EWminpressureMB);
 			ini.SetValue("Station", "EWmaxpressureMB", EWmaxpressureMB);
@@ -4215,15 +4206,6 @@ namespace CumulusMX
 			ini.SetValue("WOW", "SendSR", SendSRToWOW);
 			ini.SetValue("WOW", "CatchUp", WOWCatchUp);
 
-			ini.SetValue("Weatherbug", "ID", WeatherbugID);
-			ini.SetValue("Weatherbug", "Number", WeatherbugNumber);
-			ini.SetValue("Weatherbug", "Password", WeatherbugPW);
-			ini.SetValue("Weatherbug", "Enabled", WeatherbugEnabled);
-			ini.SetValue("Weatherbug", "Interval", WeatherbugInterval);
-			ini.SetValue("Weatherbug", "SendUV", SendUVToWeatherbug);
-			ini.SetValue("Weatherbug", "SendSR", SendSRToWeatherbug);
-			ini.SetValue("Weatherbug", "CatchUp", WeatherbugCatchUp);
-
 			ini.SetValue("APRS", "ID", APRSID);
 			ini.SetValue("APRS", "pass", APRSpass);
 			ini.SetValue("APRS", "server", APRSserver);
@@ -4307,6 +4289,10 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "BatteryLowAlarmSound", BatteryLowAlarmSound);
 			ini.SetValue("Alarms", "BatteryLowAlarmSoundFile", BatteryLowAlarmSoundFile);
 
+			ini.SetValue("Alarms", "DataSpikeAlarmSet", SpikeAlarmEnabled);
+			ini.SetValue("Alarms", "DataSpikeAlarmSound", SpikeAlarmSound);
+			ini.SetValue("Alarms", "DataSpikeAlarmSoundFile", SpikeAlarmSoundFile);
+
 			ini.SetValue("Offsets", "PressOffset", PressOffset);
 			ini.SetValue("Offsets", "TempOffset", TempOffset);
 			ini.SetValue("Offsets", "HumOffset", HumOffset);
@@ -4326,6 +4312,13 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "SolarMult", SolarMult);
 			ini.SetValue("Offsets", "UVMult", UVMult);
 			ini.SetValue("Offsets", "WetBulbMult", WetBulbMult);
+
+			ini.SetValue("Limits", "TempHighC", LimitTempHigh);
+			ini.SetValue("Limits", "TempLowC", LimitTempLow);
+			ini.SetValue("Limits", "DewHighC", LimitDewHigh);
+			ini.SetValue("Limits", "PressHighMB", LimitPressHigh);
+			ini.SetValue("Limits", "PressLowMB", LimitPressLow);
+			ini.SetValue("Limits", "WindHighMS", LimitWindHigh);
 
 			ini.SetValue("xAP", "Enabled", xapEnabled);
 			ini.SetValue("xAP", "UID", xapUID);
@@ -4396,6 +4389,16 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "MoonImageEnabled", MoonImageEnabled);
 			ini.SetValue("Graphs", "MoonImageSize", MoonImageSize);
 			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImageFtpDest);
+			ini.SetValue("Graphs", "TempVisible", GraphOptions.TempVisible);
+			ini.SetValue("Graphs", "InTempVisible", GraphOptions.InTempVisible);
+			ini.SetValue("Graphs", "HIVisible", GraphOptions.HIVisible);
+			ini.SetValue("Graphs", "DPVisible", GraphOptions.DPVisible);
+			ini.SetValue("Graphs", "WCVisible", GraphOptions.WCVisible);
+			ini.SetValue("Graphs", "AppTempVisible", GraphOptions.AppTempVisible);
+			ini.SetValue("Graphs", "FeelsLikeVisible", GraphOptions.FeelsLikeVisible);
+			ini.SetValue("Graphs", "HumidexVisible", GraphOptions.HumidexVisible);
+			ini.SetValue("Graphs", "InHumVisible", GraphOptions.InHumVisible);
+			ini.SetValue("Graphs", "OutHumVisible", GraphOptions.OutHumVisible);
 
 			ini.SetValue("MySQL", "Host", MySqlHost);
 			ini.SetValue("MySQL", "Port", MySqlPort);
@@ -4748,6 +4751,11 @@ namespace CumulusMX
 		public bool SensorAlarmEnabled { get; set; }
 		public bool SensorAlarmState = false;
 
+		public string SpikeAlarmSoundFile { get; set; }
+		public bool SpikeAlarmSound { get; set; }
+		public bool SpikeAlarmEnabled { get; set; }
+		public bool SpikeAlarmState = false;
+
 		public bool HighWindAlarmSound { get; set; }
 		public string HighWindAlarmSoundFile { get; set; }
 		public bool HighWindAlarmEnabled { get; set; }
@@ -4989,19 +4997,19 @@ namespace CumulusMX
 
 		public int EWminpressureMB { get; set; }
 
-		public double EWmaxHourlyRain { get; set; }
+		public double SpikeMaxHourlyRain { get; set; }
 
-		public double EWmaxRainRate { get; set; }
+		public double SpikeMaxRainRate { get; set; }
 
-		public double EWwinddiff { get; set; }
+		public double SpikeWindDiff { get; set; }
 
-		public double EWgustdiff { get; set; }
+		public double SpikeGustDiff { get; set; }
 
-		public double EWhumiditydiff { get; set; }
+		public double SpikeHumidityDiff { get; set; }
 
-		public double EWpressurediff { get; set; }
+		public double SpikePressDiff { get; set; }
 
-		public double EWtempdiff { get; set; }
+		public double SpikeTempDiff { get; set; }
 
 		public bool EWduplicatecheck { get; set; }
 
@@ -5176,7 +5184,6 @@ namespace CumulusMX
 		public Timer WindyTimer = new Timer();
 		public Timer PWSTimer = new Timer();
 		public Timer WOWTimer = new Timer();
-		public Timer WeatherbugTimer = new Timer();
 		public Timer APRStimer = new Timer();
 		public Timer WebTimer = new Timer();
 		public Timer TwitterTimer = new Timer();
@@ -5381,7 +5388,7 @@ namespace CumulusMX
 			return Datapath + "ExtraLog" + datestring + ".txt";
 		}
 
-		public const int NumLogFileFields = 28;
+		public const int NumLogFileFields = 29;
 
 		public void DoLogFile(DateTime timestamp, bool live) // Writes an entry to the n-minute logfile. Fields are comma-separated:
 															 // 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
@@ -5412,6 +5419,7 @@ namespace CumulusMX
 															 // 25  RG-11 rain total
 															 // 26  Rain since midnight
 															 // 27  Feels like
+															 // 28  Humidex
 		{
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("Writing log entry for " + timestamp);
@@ -5449,7 +5457,8 @@ namespace CumulusMX
 				file.Write(station.Bearing + ListSeparator);
 				file.Write(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
 				file.Write(station.RainSinceMidnight.ToString(RainFormat) + ListSeparator);
-				file.WriteLine(station.FeelsLike.ToString(TempFormat));
+				file.Write(station.FeelsLike.ToString(TempFormat) + ListSeparator);
+				file.WriteLine(station.Humidex.ToString(TempFormat));
 				file.Close();
 			}
 
@@ -5496,9 +5505,10 @@ namespace CumulusMX
 				values.Append(station.RG11RainToday.ToString(RainFormat, InvC) + ",");
 				values.Append(station.RainSinceMidnight.ToString(RainFormat, InvC) + ",'");
 				values.Append(station.CompassPoint(station.AvgBearing) + "','");
-				values.Append(station.CompassPoint(station.Bearing) + "','");
-				values.Append(station.FeelsLike.ToString(TempFormat, InvC));
-				values.Append("')");
+				values.Append(station.CompassPoint(station.Bearing) + "',");
+				values.Append(station.FeelsLike.ToString(TempFormat, InvC) + ",");
+				values.Append(station.Humidex.ToString(TempFormat, InvC));
+				values.Append(")");
 
 				string queryString = values.ToString();
 
@@ -5666,14 +5676,6 @@ namespace CumulusMX
 				var diarybackup = foldername + "diary.db";
 				var configbackup = foldername + "Cumulus.ini";
 
-				// First determine the date for the logfile.
-				// if (we"re using 9am rollover, the date should be 9 hours (10 in summer)
-				// before "Now"
-				//DateTime logfiledate = timestamp.AddHours(GetHourInc());
-				//var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
-
-				//var LogFile = LogFilePath + datestring + "log.txt";
-				//var logbackup = foldername + datestring + "log.txt";
 				var LogFile = GetLogFileName(timestamp);
 				var logbackup = foldername + LogFile.Replace(LogFilePath, "");
 
@@ -5804,11 +5806,11 @@ namespace CumulusMX
 
 			if (station != null)
 			{
-				data.TodayHigh = station.highhumiditytoday;
-				data.TodayHighDT = station.highhumiditytodaytime;
+				data.TodayHigh = station.HighHumidityToday;
+				data.TodayHighDT = station.HighHumidityTodayTime;
 
-				data.TodayLow = station.lowhumiditytoday;
-				data.TodayLowDT = station.lowhumiditytodaytime;
+				data.TodayLow = station.LowHumidityToday;
+				data.TodayLowDT = station.LowHumidityTodayTime;
 
 				data.YesterdayHigh = station.Yesterdayhighouthumidity;
 				data.YesterdayHighDT = station.Yesterdayhighouthumiditydt.ToLocalTime();
@@ -6129,6 +6131,14 @@ namespace CumulusMX
 			LogMessage(message);
 		}
 
+		public void LogSpikeRemoval(string message)
+		{
+			if (ErrorLogSpikeRemoval)
+			{
+				LogErrorMessage("Spike removal: " + message);
+			}
+		}
+
 		public void Stop()
 		{
 			LogMessage("Cumulus closing");
@@ -6256,7 +6266,7 @@ namespace CumulusMX
 									}
 									catch (Exception ex)
 									{
-										LogDebugMessage("Interval: Error writing file " + uploadfile);
+										LogDebugMessage($"Interval: Error writing file[{i}] - {uploadfile}");
 										LogDebugMessage(ex.Message);
 									}
 									//LogDebugMessage("Finished processing extra file " + uploadfile);
@@ -6265,7 +6275,7 @@ namespace CumulusMX
 								if (!ExtraFiles[i].FTP)
 								{
 									// just copy the file
-									LogDebugMessage($"Interval: Copying extra file {uploadfile} to {remotefile}");
+									LogDebugMessage($"Interval: Copying extra file[{i}] {uploadfile} to {remotefile}");
 									try
 									{
 										File.Copy(uploadfile, remotefile, true);
@@ -6997,17 +7007,17 @@ namespace CumulusMX
 					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
 					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
 					file.Write(station.HighTempToday.ToString(TempFormat, InvC) + ' '); // 27
-					file.Write(station.hightemptodaytime.ToString("HH:mm ") ); // 28
+					file.Write(station.HighTempTodayTime.ToString("HH:mm ") ); // 28
 					file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
-					file.Write(station.lowtemptodaytime.ToString("HH:mm ")); // 30
-					file.Write(station.highwindtoday.ToString(WindFormat, InvC) + ' '); // 31
-					file.Write(station.highwindtodaytime.ToString("HH:mm ")); // 32
-					file.Write(station.highgusttoday.ToString(WindFormat, InvC) + ' '); // 33
-					file.Write(station.highgusttodaytime.ToString("HH:mm ")); // 34
-					file.Write(station.highpresstoday.ToString(PressFormat, InvC) + ' '); // 35
-					file.Write(station.highpresstodaytime.ToString("HH:mm ")); // 36
-					file.Write(station.lowpresstoday.ToString(PressFormat, InvC) + ' '); // 37
-					file.Write(station.lowpresstodaytime.ToString("HH:mm ")); // 38
+					file.Write(station.LowTempTodayTime.ToString("HH:mm ")); // 30
+					file.Write(station.HighWindToday.ToString(WindFormat, InvC) + ' '); // 31
+					file.Write(station.HighWindTodayTime.ToString("HH:mm ")); // 32
+					file.Write(station.HighGustToday.ToString(WindFormat, InvC) + ' '); // 33
+					file.Write(station.HighGustTodayTime.ToString("HH:mm ")); // 34
+					file.Write(station.HighPressToday.ToString(PressFormat, InvC) + ' '); // 35
+					file.Write(station.HighPressTodayTime.ToString("HH:mm ")); // 36
+					file.Write(station.LowPressToday.ToString(PressFormat, InvC) + ' '); // 37
+					file.Write(station.LowPressTodayTime.ToString("HH:mm ")); // 38
 					file.Write(Version + ' '); // 39
 					file.Write(Build + ' '); // 40
 					file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
@@ -7072,17 +7082,17 @@ namespace CumulusMX
 				values.Append(station.WindChill.ToString(TempFormat, InvC) + ',');
 				values.Append(station.temptrendval.ToString(TempTrendFormat, InvC) + ',');
 				values.Append(station.HighTempToday.ToString(TempFormat, InvC) + ",'");
-				values.Append(station.hightemptodaytime.ToString("HH:mm") + "',");
+				values.Append(station.HighTempTodayTime.ToString("HH:mm") + "',");
 				values.Append(station.LowTempToday.ToString(TempFormat, InvC) + ",'");
-				values.Append(station.lowtemptodaytime.ToString("HH:mm") + "',");
-				values.Append(station.highwindtoday.ToString(WindFormat, InvC) + ",'");
-				values.Append(station.highwindtodaytime.ToString("HH:mm") + "',");
-				values.Append(station.highgusttoday.ToString(WindFormat, InvC) + ",'");
-				values.Append(station.highgusttodaytime.ToString("HH:mm") + "',");
-				values.Append(station.highpresstoday.ToString(PressFormat, InvC) + ",'");
-				values.Append(station.highpresstodaytime.ToString("HH:mm") + "',");
-				values.Append(station.lowpresstoday.ToString(PressFormat, InvC) + ",'");
-				values.Append(station.lowpresstodaytime.ToString("HH:mm") + "','");
+				values.Append(station.LowTempTodayTime.ToString("HH:mm") + "',");
+				values.Append(station.HighWindToday.ToString(WindFormat, InvC) + ",'");
+				values.Append(station.HighWindTodayTime.ToString("HH:mm") + "',");
+				values.Append(station.HighGustToday.ToString(WindFormat, InvC) + ",'");
+				values.Append(station.HighGustTodayTime.ToString("HH:mm") + "',");
+				values.Append(station.HighPressToday.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.HighPressTodayTime.ToString("HH:mm") + "',");
+				values.Append(station.LowPressToday.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.LowPressTodayTime.ToString("HH:mm") + "','");
 				values.Append(Version + "','");
 				values.Append(Build + "',");
 				values.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ',');
@@ -7119,19 +7129,19 @@ namespace CumulusMX
 					{
 						RealtimeSqlConn.Open();
 						int aff1 = cmd.ExecuteNonQuery();
-						//LogMessage("MySQL: " + aff + " rows were affected.");
+						LogDebugMessage($"Realtime[{cycle}]: {aff1} rows were affected.");
 
 						if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 						{
 							// delete old entries
 							cmd.CommandText = $"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB('{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}', INTERVAL {MySqlRealtimeRetention})";
-							//LogMessage(queryString);
+							LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {cmd.CommandText}");
 
 							try
 							{
 								RealtimeSqlConn.Open();
 								int aff2 = cmd.ExecuteNonQuery();
-								//LogMessage("MySQL: " + aff + " rows were affected.");
+								LogMessage($"Realtime[{cycle}]: {aff2} rows were affected.");
 							}
 							catch (Exception ex)
 							{
@@ -7236,8 +7246,6 @@ namespace CumulusMX
 
 			WCloudTimer.Interval = WCloudInterval * 60 * 1000;
 
-			WeatherbugTimer.Interval = WeatherbugInterval * 60 * 1000; // mins to millisecs
-
 			MQTTTimer.Interval = MQTTIntervalTime * 1000; // secs to millisecs
 			if (MQTTEnableInterval)
 			{
@@ -7320,24 +7328,6 @@ namespace CumulusMX
 				WOWCatchup();
 			}
 
-			if (WeatherbugList == null)
-			{
-				// we've already been through here
-				// do nothing
-			}
-			else if (WeatherbugList.Count == 0)
-			{
-				// No archived entries to upload
-				WeatherbugList = null;
-				WeatherbugTimer.Enabled = WeatherbugEnabled && !SynchronisedWBUpdate;
-			}
-			else
-			{
-				// start the archive upload thread
-				WeatherbugCatchingUp = true;
-				WBCatchup();
-			}
-
 			if (MySqlList == null)
 			{
 				// we've already been through here
@@ -7382,13 +7372,14 @@ namespace CumulusMX
 				{
 					customMysqlSecondsTokenParser.InputText = CustomMySqlSecondsCommandString;
 					CustomMysqlSecondsCommand.CommandText = customMysqlSecondsTokenParser.ToStringFromString();
+					LogDebugMessage($"Custom SQL sec: {CustomMysqlSecondsCommand.CommandText}");
 					CustomMysqlSecondsConn.Open();
 					int aff = CustomMysqlSecondsCommand.ExecuteNonQuery();
-					//LogMessage("MySQL: " + aff + " rows were affected.");
+					LogDebugMessage($"Custom SQL sec: {aff} rows were affected.");
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Error encountered during custom seconds MySQL operation.");
+					LogMessage("Custom SQL sec: Error encountered during custom seconds MySQL operation.");
 					LogMessage(ex.Message);
 				}
 				finally
@@ -7412,7 +7403,7 @@ namespace CumulusMX
 					LogDebugMessage(CustomMysqlMinutesCommand.CommandText);
 					CustomMysqlMinutesConn.Open();
 					int aff = CustomMysqlMinutesCommand.ExecuteNonQuery();
-					LogDebugMessage("MySQL: Custom minutes update" + aff + " rows were affected.");
+					LogDebugMessage("MySQL: Custom minutes update " + aff + " rows were affected.");
 				}
 				catch (Exception ex)
 				{
@@ -7559,7 +7550,7 @@ namespace CumulusMX
 
 			for (int i = 0; i < MySqlList.Count; i++)
 			{
-				LogMessage("Uploading MySQL archive #" + (i + 1));
+				LogMessage("MySQL Archive: Uploading archive #" + (i + 1));
 				try
 				{
 					using (MySqlCommand cmd = new MySqlCommand())
@@ -7569,19 +7560,19 @@ namespace CumulusMX
 						LogDebugMessage(MySqlList[i]);
 
 						int aff = cmd.ExecuteNonQuery();
-						LogMessage("MySQL: Table " + MySqlMonthlyTable + "  " + aff + " rows were affected.");
+						LogMessage($"MySQL Archive: Table {MySqlMonthlyTable} - {aff} rows were affected.");
 					}
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Error encountered during catchup MySQL operation.");
+					LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
 					LogMessage(ex.Message);
 				}
 			}
 
 			mySqlConn.Close();
 
-			LogMessage("End of MySQL archive upload");
+			LogMessage("MySQL Archive: End of MySQL archive upload");
 			MySqlList.Clear();
 		}
 
@@ -7790,35 +7781,6 @@ namespace CumulusMX
 			UpdatingWOW = false;
 		}
 
-		/// <summary>
-		/// Process the list of Weatherbug updates created at startup from logger entries
-		/// </summary>
-		private async void WBCatchup()
-		{
-			UpdatingWB = true;
-
-			for (int i = 0; i < WeatherbugList.Count; i++)
-			{
-				LogMessage("Uploading Weatherbug archive #" + (i + 1));
-				try
-				{
-					HttpResponseMessage response = await WBhttpClient.GetAsync(WeatherbugList[i]);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("Weatherbug Response: " + response.StatusCode + ": " + responseBodyAsText);
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Wbug update: " + ex.Message);
-				}
-			}
-
-			LogMessage("End of Weatherbug archive upload");
-			WeatherbugList.Clear();
-			WeatherbugCatchingUp = false;
-			WeatherbugTimer.Enabled = WeatherbugEnabled && !SynchronisedWBUpdate;
-			UpdatingWB = false;
-		}
-
 		public async void UpdatePWSweather(DateTime timestamp)
 		{
 			if (!UpdatingPWS)
@@ -7881,7 +7843,7 @@ namespace CumulusMX
 			}
 		}
 
-		private async void GetLatestVersion()
+		public async void GetLatestVersion()
 		{
 			var http = new HttpClient();
 			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
@@ -7889,48 +7851,21 @@ namespace CumulusMX
 			{
 				var retVal = await http.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");
 				var latestUri = retVal.RequestMessage.RequestUri.AbsolutePath;
-				var latestBuild = new String(latestUri.Split('/').Last().Where(Char.IsDigit).ToArray());
-				if (int.Parse(Build) < int.Parse(latestBuild))
+				LatestBuild = new String(latestUri.Split('/').Last().Where(Char.IsDigit).ToArray());
+				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
-					var msg = $"You are not running the latest version of CumulusMX, build {latestBuild} is available.";
+					var msg = $"You are not running the latest version of CumulusMX, build {LatestBuild} is available.";
 					Console.WriteLine(msg);
 					LogMessage(msg);
 				}
+				else
+				{
+					LogMessage($"This Cumulus MX instance is running the latest version");
+				}
 			}
-			catch
+			catch (Exception ex)
 			{
-				// Do nothing, probably no internet connection?
-			}
-		}
-
-		public async void UpdateWeatherbug(DateTime timestamp)
-		{
-			if (!UpdatingWB)
-			{
-				UpdatingWB = true;
-
-				string pwstring;
-				string URL = station.GetWeatherbugURL(out pwstring, timestamp);
-
-				string starredpwstring = "&Key=" + new string('*', WeatherbugPW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-				LogDebugMessage(LogURL);
-
-				try
-				{
-					HttpResponseMessage response = await WBhttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("Wbug Response: " + response.StatusCode + ": " + responseBodyAsText);
-				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("Wbug update: " + ex.Message);
-				}
-				finally
-				{
-					UpdatingWB = false;
-				}
+				LogMessage("Failed to get the latest build version from Github: " + ex.Message);
 			}
 		}
 
@@ -8031,7 +7966,6 @@ namespace CumulusMX
 			AddToWindyList(timestamp);
 			AddToPWSList(timestamp);
 			AddToWOWList(timestamp);
-			AddToWeatherbugList(timestamp);
 		}
 
 		/// <summary>
@@ -8112,25 +8046,6 @@ namespace CumulusMX
 			}
 		}
 
-		private void AddToWeatherbugList(DateTime timestamp)
-		{
-			if (WeatherbugEnabled && WeatherbugCatchUp)
-			{
-				string pwstring;
-				string URL = station.GetWeatherbugURL(out pwstring, timestamp);
-
-				WeatherbugList.Add(URL);
-
-				string starredpwstring = "&Key=" + new string('*', WeatherbugPW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-
-				LogMessage("Creating Weatherbug URL #" + WeatherbugList.Count);
-
-				LogMessage(LogURL);
-			}
-		}
-
 		public void SetMonthlySqlCreateString()
 		{
 			StringBuilder strb = new StringBuilder("CREATE TABLE " + MySqlMonthlyTable + " (", 1500);
@@ -8162,7 +8077,8 @@ namespace CumulusMX
 			strb.Append("RainSinceMidnight decimal(4," + RainDPlaces + "),");
 			strb.Append("WindbearingSym varchar(3),");
 			strb.Append("CurrWindBearingSym varchar(3),");
-			strb.Append("FeelsLike decimal(4," + TempDPlaces + ") NOT NULL,");
+			strb.Append("FeelsLike decimal(4," + TempDPlaces + "),");
+			strb.Append("Humidex decimal(4," + TempDPlaces + "),");
 			strb.Append("PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"");
 			CreateMonthlySQL = strb.ToString();
 		}
@@ -8219,10 +8135,28 @@ namespace CumulusMX
 			strb.Append("TMaxFeelsLike varchar(5),");
 			strb.Append("MinFeelsLike decimal(5," + TempDPlaces + "),");
 			strb.Append("TMinFeelsLike varchar(5),");
+			strb.Append("MaxHumidex decimal(5," + TempDPlaces + "),");
+			strb.Append("TMaxHumidex varchar(5),");
+			//strb.Append("MinHumidex decimal(5," + TempDPlaces + "),");
+			//strb.Append("TMinHumidex varchar(5),");
 			strb.Append("PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"");
 			CreateDayfileSQL = strb.ToString();
 		}
+
+		public void LogOffsetsMultipliers()
+		{
+			LogMessage("Offsets and Multipliers:");
+			LogMessage($"PO={PressOffset.ToString("F3")} TO={TempOffset.ToString("F3")} HO={HumOffset} WDO={WindDirOffset} ITO={InTempoffset.ToString("F3")} SO={SolarOffset.ToString("F3")} UVO={UVOffset.ToString("F3")}");
+			LogMessage($"PM={PressMult.ToString("F3")} WSM={WindSpeedMult.ToString("F3")} WGM={WindGustMult.ToString("F3")} TM={TempMult.ToString("F3")} TM2={TempMult2.ToString("F3")} " +
+						$"HM={HumMult.ToString("F3")} HM2={HumMult2.ToString("F3")} RM={RainMult.ToString("F3")} SM={SolarMult.ToString("F3")} UVM={UVMult.ToString("F3")}");
+			LogMessage("Spike removal:");
+			LogMessage($"TD={SpikeTempDiff.ToString("F3")} GD={SpikeGustDiff.ToString("F3")} WD={SpikeWindDiff.ToString("F3")} HD={SpikeHumidityDiff.ToString("F3")} PD={SpikePressDiff.ToString("F3")} MR={SpikeMaxRainRate.ToString("F3")} MH={SpikeMaxHourlyRain.ToString("F3")}");
+			LogMessage("Limits:");
+			LogMessage($"TH={LimitTempHigh.ToString(TempFormat)} TL={LimitTempLow.ToString(TempFormat)} DH={LimitDewHigh.ToString(TempFormat)} PH={LimitPressHigh.ToString(PressFormat)} PL={LimitPressLow.ToString(PressFormat)} GH={LimitWindHigh.ToString("F3")}");
+
+		}
 	}
+
 
 	internal class Raintotaldata
 	{
@@ -8270,5 +8204,19 @@ namespace CumulusMX
 		public int snowFalling { get; set; }
 		public int snowLying { get; set; }
 		public double snowDepth { get; set; }
+	}
+
+	public class GraphOptions
+	{
+		public bool TempVisible { get; set; }
+		public bool InTempVisible { get; set; }
+		public bool HIVisible { get; set; }
+		public bool DPVisible { get; set; }
+		public bool WCVisible { get; set; }
+		public bool AppTempVisible { get; set; }
+		public bool FeelsLikeVisible { get; set; }
+		public bool HumidexVisible { get; set; }
+		public bool InHumVisible { get; set; }
+		public bool OutHumVisible { get; set; }
 	}
 }

@@ -57,17 +57,33 @@ namespace CumulusMX
 				cumulus.WetBulbMult = Convert.ToDouble(settings.multipliers.wetbulb, InvC);
 
 				// spike removal
-				cumulus.EWtempdiff = Convert.ToDouble(settings.spikeremoval.outdoortemp, InvC);
-				cumulus.EWhumiditydiff = Convert.ToDouble(settings.spikeremoval.humidity, InvC);
-				cumulus.EWwinddiff = Convert.ToDouble(settings.spikeremoval.windspeed, InvC);
-				cumulus.EWgustdiff = Convert.ToDouble(settings.spikeremoval.windgust, InvC);
-				cumulus.EWmaxHourlyRain = Convert.ToDouble(settings.spikeremoval.maxhourlyrain, InvC);
-				cumulus.EWmaxRainRate = Convert.ToDouble(settings.spikeremoval.maxrainrate, InvC);
-				cumulus.EWpressurediff = Convert.ToDouble(settings.spikeremoval.pressure, InvC);
-				cumulus.ErrorLogSpikeRemoval = settings.spikeremoval.log;
+				cumulus.SpikeTempDiff = Convert.ToDouble(settings.spikeremoval.outdoortemp, InvC);
+				cumulus.SpikeHumidityDiff = Convert.ToDouble(settings.spikeremoval.humidity, InvC);
+				cumulus.SpikeWindDiff = Convert.ToDouble(settings.spikeremoval.windspeed, InvC);
+				cumulus.SpikeGustDiff = Convert.ToDouble(settings.spikeremoval.windgust, InvC);
+				cumulus.SpikeMaxHourlyRain = Convert.ToDouble(settings.spikeremoval.maxhourlyrain, InvC);
+				cumulus.SpikeMaxRainRate = Convert.ToDouble(settings.spikeremoval.maxrainrate, InvC);
+				cumulus.SpikePressDiff = Convert.ToDouble(settings.spikeremoval.pressure, InvC);
+
+				// limits
+				cumulus.LimitTempHigh = Convert.ToDouble(settings.limits.temphigh, InvC);
+				cumulus.LimitTempLow = Convert.ToDouble(settings.limits.templow, InvC);
+				cumulus.LimitDewHigh = Convert.ToDouble(settings.limits.dewhigh, InvC);
+				cumulus.LimitPressHigh = Convert.ToDouble(settings.limits.presshigh, InvC);
+				cumulus.LimitPressLow = Convert.ToDouble(settings.limits.presslow, InvC);
+				cumulus.LimitWindHigh = Convert.ToDouble(settings.limits.windhigh, InvC);
+
+				cumulus.ErrorLogSpikeRemoval = settings.log;
 
 				// Save the settings
 				cumulus.WriteIniFile();
+
+				// Clear the spike alarm
+				cumulus.SpikeAlarmState = false;
+
+				// Log the new values
+				cumulus.LogMessage("Setting new calibration values...");
+				cumulus.LogOffsetsMultipliers();
 
 				context.Response.StatusCode = 200;
 			}
@@ -108,23 +124,35 @@ namespace CumulusMX
 					};
 
 			var spikeremoval = new JsonCalibrationSettingsSpikeRemoval()
-								{
-									humidity = cumulus.EWhumiditydiff,
-									windgust = cumulus.EWgustdiff,
-									windspeed = cumulus.EWwinddiff,
-									outdoortemp = cumulus.EWtempdiff,
-									maxhourlyrain = cumulus.EWmaxHourlyRain,
-									maxrainrate = cumulus.EWmaxRainRate,
-									pressure = cumulus.EWpressurediff,
-									log = cumulus.ErrorLogSpikeRemoval
-								};
+					{
+						humidity = cumulus.SpikeHumidityDiff,
+						windgust = cumulus.SpikeGustDiff,
+						windspeed = cumulus.SpikeWindDiff,
+						outdoortemp = cumulus.SpikeTempDiff,
+						maxhourlyrain = cumulus.SpikeMaxHourlyRain,
+						maxrainrate = cumulus.SpikeMaxRainRate,
+						pressure = cumulus.SpikePressDiff
+					};
+
+			var limits = new JsonCalibrationSettingsLimits()
+				{
+					temphigh = cumulus.LimitTempHigh,
+					templow = cumulus.LimitTempLow,
+					dewhigh = cumulus.LimitDewHigh,
+					presshigh = cumulus.LimitPressHigh,
+					presslow = cumulus.LimitPressLow,
+					windhigh = cumulus.LimitWindHigh
+				};
+
 
 			var data = new JsonCalibrationSettingsData()
 					   {
 						   offsets = offsets,
 						   multipliers = multipliers,
-						   spikeremoval = spikeremoval
-					   };
+						   spikeremoval = spikeremoval,
+						   limits = limits,
+						   log = cumulus.ErrorLogSpikeRemoval
+			};
 
 			return JsonConvert.SerializeObject(data);
 		}
@@ -153,6 +181,8 @@ namespace CumulusMX
 		public JsonCalibrationSettingsOffsets offsets { get; set; }
 		public JsonCalibrationSettingsMultipliers multipliers { get; set; }
 		public JsonCalibrationSettingsSpikeRemoval spikeremoval { get; set; }
+		public JsonCalibrationSettingsLimits limits { get; set; }
+		public bool log { get; set; }
 	}
 
 	public class JsonCalibrationSettingsOffsets
@@ -189,6 +219,15 @@ namespace CumulusMX
 		public double pressure { get; set; }
 		public double maxrainrate { get; set; }
 		public double maxhourlyrain { get; set; }
-		public bool log { get; set; }
+	}
+
+	public class JsonCalibrationSettingsLimits
+	{
+		public double temphigh { get; set; }
+		public double templow { get; set; }
+		public double dewhigh { get; set; }
+		public double presshigh { get; set; }
+		public double presslow { get; set; }
+		public double windhigh { get; set; }
 	}
 }

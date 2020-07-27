@@ -621,7 +621,7 @@ namespace CumulusMX
 
 				DoApparentTemp(now);
 				DoFeelsLike(now);
-
+				DoHumidex(now);
 			}
 			else if (sensor == 0)
 			{
@@ -1626,7 +1626,7 @@ namespace CumulusMX
 
 			DoApparentTemp(timestamp);
 			DoFeelsLike(timestamp);
-
+			DoHumidex(timestamp);
 
 			cumulus.DoLogFile(timestamp,false);
 
@@ -1640,10 +1640,10 @@ namespace CumulusMX
 			RemoveOldLHData(timestamp);
 			RemoveOldL3HData(timestamp);
 			AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage,
-							RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
+							RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 			RemoveOldGraphData(timestamp);
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
+							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 			DoTrendValues(timestamp);
 			UpdatePressureTrendString();
 			UpdateStatusPanel(timestamp);
@@ -1790,7 +1790,7 @@ namespace CumulusMX
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
-			cumulus.LogMessage("Serial data recieved for USB station?");
+			cumulus.LogMessage("Serial data received for USB station?");
 		}
 	}
 }

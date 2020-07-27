@@ -317,7 +317,7 @@ namespace CumulusMX
 
 				DoApparentTemp(DateTime.Now);
 				DoFeelsLike(DateTime.Now);
-
+				DoHumidex(DateTime.Now);
 			}
 		}
 
@@ -464,7 +464,7 @@ namespace CumulusMX
 
 				DoApparentTemp(DateTime.Now);
 				DoFeelsLike(DateTime.Now);
-
+				DoHumidex(DateTime.Now);
 			}
 		}
 

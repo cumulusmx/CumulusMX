@@ -373,7 +373,7 @@ namespace CumulusMX
 
 				DoApparentTemp(timestamp);
 				DoFeelsLike(timestamp);
-
+				DoHumidex(timestamp);
 
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
 
@@ -388,10 +388,10 @@ namespace CumulusMX
 				}
 
 				AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
+				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
+							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 				RemoveOldLHData(timestamp);
 				RemoveOldL3HData(timestamp);
 				RemoveOldGraphData(timestamp);
@@ -623,7 +623,7 @@ namespace CumulusMX
 			if(!stop)
 			{
 				int outhum = ws2300OutdoorHumidity();
-				if ((outhum > 0) && (outhum <= 100) && ((previoushum == 999) || (Math.Abs(outhum - previoushum) < cumulus.EWhumiditydiff)))
+				if ((outhum > 0) && (outhum <= 100) && ((previoushum == 999) || (Math.Abs(outhum - previoushum) < cumulus.SpikeHumidityDiff)))
 				{
 					previoushum = outhum;
 					DoOutdoorHumidity(outhum, now);
@@ -644,7 +644,7 @@ namespace CumulusMX
 			if (!stop)
 			{
 				double outtemp = ws2300OutdoorTemperature();
-				if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.EWtempdiff)))
+				if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.SpikeTempDiff)))
 				{
 					previoustemp = outtemp;
 					DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
@@ -665,7 +665,7 @@ namespace CumulusMX
 			if (!stop)
 			{
 				double pressure = ws2300RelativePressure();
-				if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.EWpressurediff)))
+				if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.SpikePressDiff)))
 				{
 					previouspress = pressure;
 					DoPressure(ConvertPressMBToUser(pressure), now);
@@ -695,7 +695,7 @@ namespace CumulusMX
 			if (!stop)
 			{
 				double wind = ws2300CurrentWind(out direction);
-				if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.EWwinddiff)))
+				if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.SpikeWindDiff)))
 				{
 					previouswind = wind;
 					DoWind(ConvertWindMSToUser(wind), (int)direction, ConvertWindMSToUser(wind), now);
@@ -703,7 +703,7 @@ namespace CumulusMX
 				else
 				{
 					cumulus.LogDebugMessage("Ignoring wind reading: wind=" + wind.ToString("F1") + " previouswind=" + previouswind.ToString("F1") + " sr=" +
-											cumulus.EWwinddiff.ToString("F1"));
+											cumulus.SpikeWindDiff.ToString("F1"));
 				}
 
 				// wind chill
@@ -735,6 +735,7 @@ namespace CumulusMX
 			{
 				DoApparentTemp(now);
 				DoFeelsLike(now);
+				DoHumidex(now);
 				UpdateStatusPanel(now);
 				UpdateMQTT();
 			}

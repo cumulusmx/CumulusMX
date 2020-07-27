@@ -1,3 +1,105 @@
+3.7.0 - b3089
+=============
+- Fix: Humidex was treated by MX as a temperature and incorrectly converted using the Celsius to Fahrenheit
+  conversion (if that was the user selected temperature unit).
+  Humidex is a dimensionless scale that should not be converted to retain meaning
+- Fix: Thread unsafe graph data access
+- Fix: Real time SFTP not recovering from some reconnection situations
+- Fix: Add missing "rc" function from <#battery> web tag
+- Fix: Remove units from Humidex value on the chart tooltip
+- Fix: Station Settings page menu
+- Fix: Davis WLL devices were flagging sensor contact lost for lost packets, now it only flags contact lost
+		when resynchronising with a transmitter
+- Fix: Monthly records editor not functioning correctly on Humidex in beta1
+- Adds a logger interval check for Davis VP2 stations - prints warning to console and log file if there is a mismatch
+- Now supports some of the Cumulus 1 Graph plotting options, configured via Station Settings
+	- Cumulus.ini file settings
+		[Graphs]
+		TempVisible=1
+		InTempVisible=1		*new?
+		HIVisible=1
+		DPVisible=1
+		WCVisible=1
+		AppTempVisible=1
+		FeelsLikeVisible=1
+		HumidexVisible=1	*new
+		InHumVisible=1
+		OutHumVisible=1
+- Remove defunct WeatherBug upload from Cumulus MX
+- Humidex is now a fully fledged variable...
+	- Daily, monthly, yearly highs
+	- Recent data
+	- Graph data - added to MX interface
+	- Records
+	- New Humidex web tags:
+		<#HighHumidexRecordSet>
+		<#humidexTH>, <#ThumidexTH>
+		<#humidexYH>, <#ThumidexYH>
+		<#MonthHumidexH>, <#MonthHumidexHT>, <#MonthHumidexHD>
+		<#YearHumidexH>, <#YearHumidexHT>, <#YearHumidexHD>
+		<#humidexH>, <#ThumidexH>
+		<#ByMonthHumidexH>, <#ByMonthHumidexHT>
+		<#RecentHumidex>
+- Add Humidex to default web site trend graphs
+- Now only calculates Humidex above 10C
+- Day file updated with four additional fields or Humidex high, high time
+- Monthly log file has an additional field for Humidex
+- Daily SQL table has four additional columns for Humidex high, high time
+- Monthly SQL table has an additional column for Humidex
+- Add new web tag <#timeUnix> = provides current date/time as a Unix timestamp (like <#timeJavaScript>)
+- The web tags <#SunshineHours> and <#YSunshineHours> now accept the decimal place parameter "dp=n"
+- Adds a new web token processor API - details available separately
+- Spike removal settings are now active for all station types - TAKE CARE! Use with caution
+- Spike/limit logging is now enabled by default for new installs
+- Adds a new alarm - Spike removal triggered - it stays active for 12 hours, or it is cleared if you save the calibration settings
+	- New web tag <#DataSpikeAlarm>
+	- New Cumulus.ini file settings...
+		[Alarms]
+		DataSpikeAlarmSet=0
+		DataSpikeAlarmSound=0
+		DataSpikeAlarmSoundFile=alarm.mp3
+- New "Limits" implemented. Now MX ignores temperature, dew point, pressure, and wind values outside sensible value ranges from any station type (these also trigger a spike alarm)
+	- Set via the Calibration settings screen
+	- New Cumulus.ini file settings...
+		[Limits]
+		TempHighC=60
+		TempLowC=-60
+		DewHighC=40
+		PressHighMB=1090
+		PressLowMB=870
+		WindHighMS=90
+- New web tags for latest build notification - these require internet access to be meaningful
+	<#NewBuildAvailable> - returns "1" or "0"
+	<#NewBuildNumber> - returns the latest available Cumulus MX build number
+
+
+- Updated files
+	\CumulusMX.exe
+	\dayfileheader.txt
+	\monthlyfileheader.txt
+	\interface\alarmsettings.html
+	\interface\alltimerecseditor.html
+	\interface\index.html
+	\interface\monthlyrecseditor.html
+	\interface\stationsettings.html
+	\interface\thismonthrecseditor.html
+	\interface\thisyearrecseditor.html
+	\interface\js\alarmsettings.js
+	\interface\js\alltimerecseditor.js
+	\interface\js\charts.js
+	\interface\js\dashboard.js
+	\interface\js\datalogs.js
+	\interface\js\dayfileeditor.js
+	\interface\js\monthlyrecseditor.js
+	\interface\js\thismonthrecseditor.js
+	\interface\js\thisyearrecseditor.js
+	\interface\json\CalibrationOptions.json
+	\interface\json\CalibrationSchema.json
+	\interface\json\InternetOptions.json
+	\interface\json\InternetSchema.json
+	\webfiles\js\cumuluscharts.js
+
+
 3.6.12 - b3088
 ==============
 - Fix Davis stations not downloading historic logger data (in b3087)
