@@ -215,7 +215,7 @@ namespace CumulusMX
 			MySqlCommand cmd = new MySqlCommand();
 			cmd.CommandText = createSQL;
 			cmd.Connection = mySqlConn;
-			cumulus.LogMessage(createSQL);
+			cumulus.LogMessage($"MySQL Create Table: {createSQL}");
 
 			string res;
 
@@ -223,12 +223,12 @@ namespace CumulusMX
 			{
 				mySqlConn.Open();
 				int aff = cmd.ExecuteNonQuery();
-				cumulus.LogMessage("MySQL: " + aff + " rows were affected.");
+				cumulus.LogMessage($"MySQL Create Table: {aff} items were affected.");
 				res = "Database table created successfully";
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error encountered during MySQL operation.");
+				cumulus.LogMessage("MySQL Create Table: Error encountered during MySQL operation.");
 				cumulus.LogMessage(ex.Message);
 				res = "Error: " + ex.Message;
 			}

@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api.cs" />
+    <Compile Include="ApiTagProcessor.cs" />
     <Compile Include="AstroLib.cs" />
     <Compile Include="CalibrationSettings.cs" />
     <Compile Include="Cumulus.cs" />

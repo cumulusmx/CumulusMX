@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Web;
+using Unosquare.Swan;
 
 namespace CumulusMX
 {
@@ -119,8 +120,6 @@ namespace CumulusMX
 				{
 					depth = 0;
 				}
-
-
 			}
 			catch(Exception e)
 			{
@@ -336,6 +335,7 @@ namespace CumulusMX
 			return GetFormattedDateTime(dt, defaultFormat, TagParams);
 		}
 
+		/*
 		private string GetFormattedDateTime(string dtstr, Dictionary<string,string> TagParams)
 		{
 			string dtformat = TagParams.Get("format");
@@ -347,6 +347,7 @@ namespace CumulusMX
 			DateTime ts = DateTime.Parse(dtstr);
 			return ts.ToString(dtformat);
 		}
+		*/
 
 		private string GetMonthlyAlltimeValueStr(int identifier, int month, string format)
 		{
@@ -556,6 +557,11 @@ namespace CumulusMX
 		private string TagTimeJavascript(Dictionary<string, string> TagParams)
 		{
 			return ((UInt64)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds).ToString();
+		}
+
+		private string TagTimeUnix(Dictionary<string, string> TagParams)
+		{
+			return DateTime.UtcNow.ToUnixEpochDate().ToString();
 		}
 
 		private string TagDate(Dictionary<string,string> TagParams)
@@ -988,7 +994,7 @@ namespace CumulusMX
 
 		private string Tagbattery(Dictionary<string,string> TagParams)
 		{
-			return station.ConBatText;
+			return CheckRC(station.ConBatText, TagParams);
 		}
 
 		private string Tagtxbattery(Dictionary<string,string> TagParams)
@@ -1081,20 +1087,21 @@ namespace CumulusMX
 		private string TagTempRecordSet(Dictionary<string,string> TagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.alltimerecarray[WeatherStation.AT_hightemp].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowtemp].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowchill].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highmintemp].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highdewpoint].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp >= threshold
+			if (station.alltimerecarray[WeatherStation.AT_HighTemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowTemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighDailyTempRange].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowDailyTempRange].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowChill].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighMinTemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowMaxTemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighAppTemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowAppTemp].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighHeatIndex].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighDewPoint].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowDewpoint].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighFeelsLike].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LowFeelsLike].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighHumidex].timestamp >= threshold
 			)
 				return "1";
 			else
@@ -1104,9 +1111,9 @@ namespace CumulusMX
 		private string TagWindRecordSet(Dictionary<string,string> TagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.alltimerecarray[WeatherStation.AT_highgust].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highwind].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highwindrun].timestamp >= threshold
+			if (station.alltimerecarray[WeatherStation.AT_HighGust].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighWind].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighWindrun].timestamp >= threshold
 			)
 				return "1";
 			else
@@ -1116,12 +1123,12 @@ namespace CumulusMX
 		private string TagRainRecordSet(Dictionary<string,string> TagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.alltimerecarray[WeatherStation.AT_highrainrate].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_dailyrain].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_hourlyrain].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_wetmonth].timestamp >= threshold
+			if (station.alltimerecarray[WeatherStation.AT_HighRainRate].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_DailyRain].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HourlyRain].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_WetMonth].timestamp >= threshold
 			)
 				return "1";
 			else
@@ -1131,7 +1138,7 @@ namespace CumulusMX
 		private string TagHumidityRecordSet(Dictionary<string,string> TagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.alltimerecarray[WeatherStation.AT_highhumidity].timestamp >= threshold ||
+			if (station.alltimerecarray[WeatherStation.AT_HighHumidity].timestamp >= threshold ||
 				station.alltimerecarray[WeatherStation.AT_lowhumidity].timestamp >= threshold
 			)
 				return "1";
@@ -1142,8 +1149,8 @@ namespace CumulusMX
 		private string TagPressureRecordSet(Dictionary<string,string> TagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.alltimerecarray[WeatherStation.AT_lowpress].timestamp >= threshold ||
-				station.alltimerecarray[WeatherStation.AT_highpress].timestamp >= threshold
+			if (station.alltimerecarray[WeatherStation.AT_LowPress].timestamp >= threshold ||
+				station.alltimerecarray[WeatherStation.AT_HighPress].timestamp >= threshold
 			)
 				return "1";
 			else
@@ -1152,102 +1159,107 @@ namespace CumulusMX
 
 		private string TagHighTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_hightemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighTemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowtemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowTemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighAppTempRecordSet(Dictionary<string, string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighAppTemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowAppTempRecordSet(Dictionary<string, string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowAppTemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighFeelsLikeRecordSet(Dictionary<string, string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighFeelsLike].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowFeelsLikeRecordSet(Dictionary<string, string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowFeelsLike].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+		}
+
+		private string TagHighHumidexRecordSet(Dictionary<string, string> TagParams)
+		{
+			return station.alltimerecarray[WeatherStation.AT_HighHumidex].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHeatIndexRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighHeatIndex].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowWindChillRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowchill].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowChill].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMinTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highmintemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighMinTemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowMaxTempRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowMaxTemp].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighDewPointRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highdewpoint].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighDewPoint].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowDewPointRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowDewpoint].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindGustRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highgust].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighGust].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindSpeedRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highwind].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighWind].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighRainRateRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highrainrate].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighRainRate].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHourlyRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_hourlyrain].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HourlyRain].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighDailyRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_dailyrain].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_DailyRain].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMonthlyRainRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_wetmonth].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_WetMonth].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHumidityRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highhumidity].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighHumidity].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindrunRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highwindrun].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighWindrun].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowHumidityRecordSet(Dictionary<string,string> TagParams)
@@ -1257,32 +1269,32 @@ namespace CumulusMX
 
 		private string TagHighPressureRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highpress].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighPress].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowPressureRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowpress].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowPress].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLongestDryPeriodRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLongestWetPeriodRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighTempRangeRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_HighDailyTempRange].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowTempRangeRecordSet(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.alltimerecarray[WeatherStation.AT_LowDailyTempRange].timestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string Tagerrorlight(Dictionary<string,string> TagParams)
@@ -1298,7 +1310,7 @@ namespace CumulusMX
 
 		private string TagTtempTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.hightemptodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighTempTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagtempTL(Dictionary<string,string> TagParams)
@@ -1308,7 +1320,7 @@ namespace CumulusMX
 
 		private string TagTtempTL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowtemptodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowTempTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagSolarTH(Dictionary<string,string> TagParams)
@@ -1318,7 +1330,7 @@ namespace CumulusMX
 
 		private string TagTsolarTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highsolartodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighSolarTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagUVTH(Dictionary<string,string> TagParams)
@@ -1328,7 +1340,7 @@ namespace CumulusMX
 
 		private string TagTUVTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highuvtodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighUvTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagapptempTH(Dictionary<string,string> TagParams)
@@ -1343,7 +1355,7 @@ namespace CumulusMX
 
 		private string TagTapptempTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highapptemptodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighAppTempTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagapptempTL(Dictionary<string,string> TagParams)
@@ -1358,7 +1370,7 @@ namespace CumulusMX
 
 		private string TagTapptempTL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowapptemptodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowAppTempTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagfeelslikeTH(Dictionary<string, string> TagParams)
@@ -1368,7 +1380,7 @@ namespace CumulusMX
 
 		private string TagTfeelslikeTH(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.highfeelsliketodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighFeelsLikeTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagfeelslikeTL(Dictionary<string, string> TagParams)
@@ -1378,7 +1390,17 @@ namespace CumulusMX
 
 		private string TagTfeelslikeTL(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowfeelsliketodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowFeelsLikeTodayTime, "HH:mm", TagParams);
+		}
+
+		private string TaghumidexTH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighHumidexToday.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagThumidexTH(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighHumidexTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagdewpointTH(Dictionary<string,string> TagParams)
@@ -1423,7 +1445,7 @@ namespace CumulusMX
 
 		private string TagTwchillTL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowwindchilltodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowWindChillTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagheatindexTH(Dictionary<string,string> TagParams)
@@ -1438,7 +1460,7 @@ namespace CumulusMX
 
 		private string TagTheatindexTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highheatindextodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighHeatIndexTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagheatindexYH(Dictionary<string,string> TagParams)
@@ -1448,122 +1470,122 @@ namespace CumulusMX
 
 		private string TagTheatindexYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highheatindexyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighHeatIndexYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagpressTH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highpresstoday.ToString(cumulus.PressFormat), TagParams);
+			return CheckRC(station.HighPressToday.ToString(cumulus.PressFormat), TagParams);
 		}
 
 		private string TagTpressTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highpresstodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighPressTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagpressTL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.lowpresstoday.ToString(cumulus.PressFormat), TagParams);
+			return CheckRC(station.LowPressToday.ToString(cumulus.PressFormat), TagParams);
 		}
 
 		private string TagTpressTL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowpresstodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowPressTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TaghumTH(Dictionary<string,string> TagParams)
 		{
-			return station.highhumiditytoday.ToString();
+			return station.HighHumidityToday.ToString();
 		}
 
 		private string TagThumTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highhumiditytodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighHumidityTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TaghumTL(Dictionary<string,string> TagParams)
 		{
-			return station.lowhumiditytoday.ToString();
+			return station.LowHumidityToday.ToString();
 		}
 
 		private string TagThumTL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowhumiditytodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowHumidityTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagwindTM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highwindtoday.ToString(cumulus.WindFormat), TagParams);
+			return CheckRC(station.HighWindToday.ToString(cumulus.WindFormat), TagParams);
 		}
 
 		private string TagTbeaufort(Dictionary<string,string> TagParams)
 		{
-			return "F" + cumulus.Beaufort(station.highwindtoday);
+			return "F" + cumulus.Beaufort(station.HighWindToday);
 		}
 
 		private string TagTbeaufortnumber(Dictionary<string,string> TagParams)
 		{
-			return cumulus.Beaufort(station.highwindtoday);
+			return cumulus.Beaufort(station.HighWindToday);
 		}
 
 		private string TagTbeaudesc(Dictionary<string,string> TagParams)
 		{
-			return cumulus.BeaufortDesc(station.highwindtoday);
+			return cumulus.BeaufortDesc(station.HighWindToday);
 		}
 
 		private string TagTwindTM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highwindtodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighWindTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagwgustTM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highgusttoday.ToString(cumulus.WindFormat), TagParams);
+			return CheckRC(station.HighGustToday.ToString(cumulus.WindFormat), TagParams);
 		}
 
 		private string TagTwgustTM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highgusttodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighGustTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TagbearingTM(Dictionary<string,string> TagParams)
 		{
-			return station.highgustbearing.ToString();
+			return station.HighGustBearing.ToString();
 		}
 
 		private string TagdirectionTM(Dictionary<string, string> TagParams)
 		{
-			return station.CompassPoint(station.highgustbearing);
+			return station.CompassPoint(station.HighGustBearing);
 		}
 
 		private string TagrrateTM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highraintoday.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.HighRainToday.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagTrrateTM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highraintodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighRainTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TaghourlyrainTH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highhourlyraintoday.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.HighHourlyRainToday.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagThourlyrainTH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highhourlyraintodaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighHourlyRainTodayTime, "HH:mm", TagParams);
 		}
 
 		private string TaghourlyrainYH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highhourlyrainyesterday.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.HighHourlyRainYesterday.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagThourlyrainYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highhourlyrainyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighHourlyRainYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagSolarYH(Dictionary<string,string> TagParams)
@@ -1573,7 +1595,7 @@ namespace CumulusMX
 
 		private string TagTsolarYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highsolaryesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighSolarYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagUVYH(Dictionary<string,string> TagParams)
@@ -1583,7 +1605,7 @@ namespace CumulusMX
 
 		private string TagTUVYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highuvyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighUvYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string Tagrollovertime(Dictionary<string,string> TagParams)
@@ -1629,7 +1651,7 @@ namespace CumulusMX
 
 		private string TagTtempYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.hightempyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighTempYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagtempYL(Dictionary<string,string> TagParams)
@@ -1639,7 +1661,7 @@ namespace CumulusMX
 
 		private string TagTtempYL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowtempyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowTempYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagapptempYH(Dictionary<string,string> TagParams)
@@ -1649,7 +1671,7 @@ namespace CumulusMX
 
 		private string TagTapptempYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highapptempyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighAppTempYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagapptempYL(Dictionary<string,string> TagParams)
@@ -1659,7 +1681,7 @@ namespace CumulusMX
 
 		private string TagTapptempYL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowapptempyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowAppTempYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagdewpointYH(Dictionary<string,string> TagParams)
@@ -1674,7 +1696,7 @@ namespace CumulusMX
 
 		private string TagTfeelslikeYH(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.highfeelslikeyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighFeelsLikeYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagfeelslikeYL(Dictionary<string, string> TagParams)
@@ -1684,7 +1706,17 @@ namespace CumulusMX
 
 		private string TagTfeelslikeYL(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowfeelslikeyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowFeelsLikeYesterdayTime, "HH:mm", TagParams);
+		}
+
+		private string TaghumidexYH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighHumidexYesterday.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagThumidexYH(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighHumidexYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagTdewpointYH(Dictionary<string,string> TagParams)
@@ -1704,107 +1736,107 @@ namespace CumulusMX
 
 		private string TagwchillYL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.lowwindchillyesterday.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.LowWindChillYesterday.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTwchillYL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowwindchillyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowWindChillYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagpressYH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highpressyesterday.ToString(cumulus.PressFormat), TagParams);
+			return CheckRC(station.HighPressYesterday.ToString(cumulus.PressFormat), TagParams);
 		}
 
 		private string TagTpressYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highpressyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighPressYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagpressYL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.lowpressyesterday.ToString(cumulus.PressFormat), TagParams);
+			return CheckRC(station.LowPressYesterday.ToString(cumulus.PressFormat), TagParams);
 		}
 
 		private string TagTpressYL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowpressyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowPressYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TaghumYH(Dictionary<string,string> TagParams)
 		{
-			return station.highhumidityyesterday.ToString();
+			return station.HighHumidityYesterday.ToString();
 		}
 
 		private string TagThumYH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highhumidityyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighHumidityYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TaghumYL(Dictionary<string,string> TagParams)
 		{
-			return station.lowhumidityyesterday.ToString();
+			return station.LowHumidityYesterday.ToString();
 		}
 
 		private string TagThumYL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.lowhumidityyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.LowHumidityYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagwindYM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highwindyesterday.ToString(cumulus.WindFormat), TagParams);
+			return CheckRC(station.HighWindYesterday.ToString(cumulus.WindFormat), TagParams);
 		}
 
 		private string TagYbeaufort(Dictionary<string,string> TagParams)
 		{
-			return "F" + station.Beaufort(station.highwindyesterday);
+			return "F" + station.Beaufort(station.HighWindYesterday);
 		}
 
 		private string TagYbeaufortnumber(Dictionary<string,string> TagParams)
 		{
-			return station.Beaufort(station.highwindyesterday).ToString();
+			return station.Beaufort(station.HighWindYesterday).ToString();
 		}
 
 		private string TagYbeaudesc(Dictionary<string,string> TagParams)
 		{
-			return cumulus.BeaufortDesc(station.highwindyesterday);
+			return cumulus.BeaufortDesc(station.HighWindYesterday);
 		}
 
 		private string TagTwindYM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highwindyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighWindYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagwgustYM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highgustyesterday.ToString(cumulus.WindFormat), TagParams);
+			return CheckRC(station.HighGustYesterday.ToString(cumulus.WindFormat), TagParams);
 		}
 
 		private string TagTwgustYM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highgustyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighGustYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagbearingYM(Dictionary<string,string> TagParams)
 		{
-			return station.highgustbearingyesterday.ToString();
+			return station.HighGustBearingYesterday.ToString();
 		}
 
 		private string TagdirectionYM(Dictionary<string, string> TagParams)
 		{
-			return  station.CompassPoint(station.highgustbearingyesterday);
+			return  station.CompassPoint(station.HighGustBearingYesterday);
 		}
 
 		private string TagrrateYM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.highrainyesterday.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.HighRainYesterday.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagTrrateYM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.highrainyesterdaytime, "HH:mm", TagParams);
+			return GetFormattedDateTime(station.HighRainYesterdayTime, "HH:mm", TagParams);
 		}
 
 		private string TagrfallY(Dictionary<string,string> TagParams)
@@ -1815,242 +1847,252 @@ namespace CumulusMX
 		// all time records
 		private string TagtempH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_hightemp].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighTemp].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTtempH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_hightemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighTemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagtempL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowtemp].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowTemp].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTtempL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowtemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowTemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagapptempH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highapptemp].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighAppTemp].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTapptempH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highapptemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighAppTemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagapptempL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowapptemp].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowAppTemp].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTapptempL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowapptemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowAppTemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagfeelslikeH(Dictionary<string, string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highfeelslike].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighFeelsLike].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTfeelslikeH(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highfeelslike].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighFeelsLike].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagfeelslikeL(Dictionary<string, string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowfeelslike].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowFeelsLike].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTfeelslikeL(Dictionary<string, string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowfeelslike].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowFeelsLike].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+		}
+
+		private string TaghumidexH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighHumidex].value.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagThumidexH(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighHumidex].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagdewpointH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highdewpoint].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighDewPoint].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTdewpointH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highdewpoint].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighDewPoint].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagdewpointL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowdewpoint].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowDewpoint].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTdewpointL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowdewpoint].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowDewpoint].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagheatindexH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highheatindex].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighHeatIndex].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTheatindexH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highheatindex].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighHeatIndex].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TaggustM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highgust].value.ToString(cumulus.WindFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighGust].value.ToString(cumulus.WindFormat), TagParams);
 		}
 
 		private string TagTgustM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highgust].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighGust].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagwspeedH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highwind].value.ToString(cumulus.WindFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighWind].value.ToString(cumulus.WindFormat), TagParams);
 		}
 
 		private string TagTwspeedH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highwind].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighWind].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagwchillH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowchill].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowChill].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTwchillH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowchill].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowChill].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagrrateM(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highrainrate].value.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighRainRate].value.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagTrrateM(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highrainrate].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighRainRate].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagwindrunH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highwindrun].value.ToString(cumulus.WindRunFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighWindrun].value.ToString(cumulus.WindRunFormat), TagParams);
 		}
 
 		private string TagTwindrunH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highwindrun].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighWindrun].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagrfallH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_dailyrain].value.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_DailyRain].value.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagTrfallH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_dailyrain].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_DailyRain].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagLongestDryPeriod(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_longestdryperiod].value.ToString("F0");
+			return station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].value.ToString("F0");
 		}
 
 		private string TagTLongestDryPeriod(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_longestdryperiod].timestamp, "\\to dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].timestamp, "\\to dd MMMM yyyy", TagParams);
 		}
 
 		private string TagLongestWetPeriod(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_longestwetperiod].value.ToString("F0");
+			return station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].value.ToString("F0");
 		}
 
 		private string TagTLongestWetPeriod(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_longestwetperiod].timestamp, "\\to dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].timestamp, "\\to dd MMMM yyyy", TagParams);
 		}
 
 		private string TagLowDailyTempRange(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowdailytemprange].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowDailyTempRange].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagHighDailyTempRange(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highdailytemprange].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighDailyTempRange].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTLowDailyTempRange(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowdailytemprange].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowDailyTempRange].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagTHighDailyTempRange(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highdailytemprange].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighDailyTempRange].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagrfallhH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_hourlyrain].value.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HourlyRain].value.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagTrfallhH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_hourlyrain].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HourlyRain].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagrfallmH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_wetmonth].value.ToString(cumulus.RainFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_WetMonth].value.ToString(cumulus.RainFormat), TagParams);
 		}
 
 		private string TagTrfallmH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_wetmonth].timestamp, "MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_WetMonth].timestamp, "MMMM yyyy", TagParams);
 		}
 
 		private string TagpressH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highpress].value.ToString(cumulus.PressFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighPress].value.ToString(cumulus.PressFormat), TagParams);
 		}
 
 		private string TagTpressH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highpress].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighPress].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagpressL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowpress].value.ToString(cumulus.PressFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowPress].value.ToString(cumulus.PressFormat), TagParams);
 		}
 
 		private string TagTpressL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowpress].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowPress].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TaghumH(Dictionary<string,string> TagParams)
 		{
-			return station.alltimerecarray[WeatherStation.AT_highhumidity].value.ToString(cumulus.HumFormat);
+			return station.alltimerecarray[WeatherStation.AT_HighHumidity].value.ToString(cumulus.HumFormat);
 		}
 
 		private string TagThumH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highhumidity].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighHumidity].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TaghumL(Dictionary<string,string> TagParams)
@@ -2077,22 +2119,22 @@ namespace CumulusMX
 
 		private string TagmintempH(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_highmintemp].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_HighMinTemp].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTmintempH(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_highmintemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_HighMinTemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagmaxtempL(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.alltimerecarray[WeatherStation.AT_lowmaxtemp].value.ToString(cumulus.TempFormat), TagParams);
+			return CheckRC(station.alltimerecarray[WeatherStation.AT_LowMaxTemp].value.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagTmaxtempL(Dictionary<string,string> TagParams)
 		{
-			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_lowmaxtemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.alltimerecarray[WeatherStation.AT_LowMaxTemp].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		// end of all-time records
@@ -2100,289 +2142,301 @@ namespace CumulusMX
 		private string TagByMonthTempH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_hightemp, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighTemp, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthTempHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_hightemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighTemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthTempL(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowtemp, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowTemp, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthTempLT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowtemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowTemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthAppTempH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highapptemp, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighAppTemp, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthAppTempHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highapptemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighAppTemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthAppTempL(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowapptemp, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowAppTemp, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthAppTempLT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowapptemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowAppTemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthFeelsLikeH(Dictionary<string, string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highfeelslike, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighFeelsLike, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthFeelsLikeHT(Dictionary<string, string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highfeelslike, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighFeelsLike, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthFeelsLikeL(Dictionary<string, string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowfeelslike, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowFeelsLike, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthFeelsLikeLT(Dictionary<string, string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowfeelslike, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowFeelsLike, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+		}
+
+		private string TagByMonthHumidexH(Dictionary<string, string> TagParams)
+		{
+			var month = GetMonthParam(TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighHumidex, month, cumulus.TempFormat), TagParams);
+		}
+
+		private string TagByMonthHumidexHT(Dictionary<string, string> TagParams)
+		{
+			var month = GetMonthParam(TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighHumidex, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthDewPointH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highdewpoint, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighDewPoint, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthDewPointHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highdewpoint, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighDewPoint, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthDewPointL(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowdewpoint, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowDewpoint, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthDewPointLT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowdewpoint, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowDewpoint, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthHeatIndexH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highheatindex, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighHeatIndex, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthHeatIndexHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highheatindex, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighHeatIndex, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthGustH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highgust, month, cumulus.WindFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighGust, month, cumulus.WindFormat), TagParams);
 		}
 
 		private string TagByMonthGustHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highgust, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighGust, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthWindH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highwind, month, cumulus.WindFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighWind, month, cumulus.WindFormat), TagParams);
 		}
 
 		private string TagByMonthWindHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highwind, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighWind, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthWChillL(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowchill, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowChill, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthWChillLT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowchill, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowChill, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthRainRateH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highrainrate, month, cumulus.RainFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighRainRate, month, cumulus.RainFormat), TagParams);
 		}
 
 		private string TagByMonthRainRateHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highrainrate, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighRainRate, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthWindRunH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highwindrun, month, cumulus.WindRunFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighWindrun, month, cumulus.WindRunFormat), TagParams);
 		}
 
 		private string TagByMonthWindRunHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highwindrun, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighWindrun, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthDailyRainH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_dailyrain, month, cumulus.RainFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_DailyRain, month, cumulus.RainFormat), TagParams);
 		}
 
 		private string TagByMonthDailyRainHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_dailyrain, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_DailyRain, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthLongestDryPeriod(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetMonthlyAlltimeValueStr(WeatherStation.AT_longestdryperiod, month, "F0");
+			return GetMonthlyAlltimeValueStr(WeatherStation.AT_LongestDryPeriod, month, "F0");
 		}
 
 		private string TagByMonthLongestDryPeriodT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_longestdryperiod, month].timestamp, "\\to dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LongestDryPeriod, month].timestamp, "\\to dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthLongestWetPeriod(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetMonthlyAlltimeValueStr(WeatherStation.AT_longestwetperiod, month, "F0");
+			return GetMonthlyAlltimeValueStr(WeatherStation.AT_LongestWetPeriod, month, "F0");
 		}
 
 		private string TagByMonthLongestWetPeriodT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_longestwetperiod, month].timestamp, "\\to dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LongestWetPeriod, month].timestamp, "\\to dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthLowDailyTempRange(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowdailytemprange, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowDailyTempRange, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthHighDailyTempRange(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highdailytemprange, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighDailyTempRange, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthLowDailyTempRangeT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowdailytemprange, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowDailyTempRange, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthHighDailyTempRangeT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highdailytemprange, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighDailyTempRange, month].timestamp, "o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthHourlyRainH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_hourlyrain, month, cumulus.RainFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HourlyRain, month, cumulus.RainFormat), TagParams);
 		}
 
 		private string TagByMonthHourlyRainHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_hourlyrain, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HourlyRain, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthMonthlyRainH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_wetmonth, month, cumulus.RainFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_WetMonth, month, cumulus.RainFormat), TagParams);
 		}
 
 		private string TagByMonthMonthlyRainHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_wetmonth, month].timestamp, "MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_WetMonth, month].timestamp, "MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthPressH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highpress, month, cumulus.PressFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighPress, month, cumulus.PressFormat), TagParams);
 		}
 
 		private string TagByMonthPressHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highpress, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighPress, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthPressL(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowpress, month, cumulus.PressFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowPress, month, cumulus.PressFormat), TagParams);
 		}
 
 		private string TagByMonthPressLT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowpress, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowPress, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthHumH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetMonthlyAlltimeValueStr(WeatherStation.AT_highhumidity, month, cumulus.HumFormat);
+			return GetMonthlyAlltimeValueStr(WeatherStation.AT_HighHumidity, month, cumulus.HumFormat);
 		}
 
 		private string TagByMonthHumHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highhumidity, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighHumidity, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthHumL(Dictionary<string,string> TagParams)
@@ -2400,25 +2454,25 @@ namespace CumulusMX
 		private string TagByMonthMinTempH(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_highmintemp, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_HighMinTemp, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthMinTempHT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_highmintemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_HighMinTemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		private string TagByMonthMaxTempL(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_lowmaxtemp, month, cumulus.TempFormat), TagParams);
+			return CheckRC(GetMonthlyAlltimeValueStr(WeatherStation.AT_LowMaxTemp, month, cumulus.TempFormat), TagParams);
 		}
 
 		private string TagByMonthMaxTempLT(Dictionary<string,string> TagParams)
 		{
 			var month = GetMonthParam(TagParams);
-			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_lowmaxtemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
+			return GetFormattedDateTime(station.monthlyrecarray[WeatherStation.AT_LowMaxTemp, month].timestamp, "\\a\\t HH:mm o\\n dd MMMM yyyy", TagParams);
 		}
 
 		// end of month-by-month all-time records
@@ -2558,26 +2612,12 @@ namespace CumulusMX
 
 		private string Tagmoonrise(Dictionary<string,string> TagParams)
 		{
-			try
-			{
-				return GetFormattedDateTime(cumulus.MoonRiseTime, "HH:mm", TagParams);
-			}
-			catch (Exception)
-			{
-				return "-----";
-			}
+			return cumulus.MoonRiseTime.Hours < 0 ? "-----" : GetFormattedDateTime(cumulus.MoonRiseTime, "HH:mm", TagParams);
 		}
 
 		private string Tagmoonset(Dictionary<string,string> TagParams)
 		{
-			try
-			{
-				return GetFormattedDateTime(cumulus.MoonSetTime, "HH:mm", TagParams);
-			}
-			catch (Exception)
-			{
-				return "-----";
-			}
+			return cumulus.MoonSetTime.Hours < 0 ? "-----" : GetFormattedDateTime(cumulus.MoonSetTime, "HH:mm", TagParams);
 		}
 
 		private string Tagmoonphase(Dictionary<string,string> TagParams)
@@ -2669,6 +2709,23 @@ namespace CumulusMX
 		private string Tagbuild(Dictionary<string,string> TagParams)
 		{
 			return cumulus.Build;
+		}
+
+		private string TagNewBuildAvailable(Dictionary<string, string> TagParams)
+		{
+			try
+			{
+				return (int.Parse(cumulus.Build) < int.Parse(cumulus.LatestBuild)) ? "1" : "0";
+			}
+			catch
+			{
+				return "0";
+			}
+		}
+
+		private string TagNewBuildNumber(Dictionary<string, string> TagParams)
+		{
+			return cumulus.LatestBuild;
 		}
 
 		private string Tagupdate(Dictionary<string,string> TagParams)
@@ -2894,7 +2951,11 @@ namespace CumulusMX
 
 		private string TagSunshineHours(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.SunshineHours.ToString(cumulus.SunFormat), TagParams);
+			var dpstr = TagParams.Get("dp");
+			int i, dp;
+			dp = Int32.TryParse(dpstr, out i) ? i : cumulus.SunshineDPlaces;
+
+			return CheckRC(station.SunshineHours.ToString("F" + dp), TagParams);
 		}
 
 		private string TagTHWIndex(Dictionary<string,string> TagParams)
@@ -2914,7 +2975,10 @@ namespace CumulusMX
 
 		private string TagYSunshineHours(Dictionary<string,string> TagParams)
 		{
-			return CheckRC(station.YestSunshineHours.ToString(cumulus.SunFormat), TagParams);
+			var dpstr = TagParams.Get("dp");
+			int i, dp;
+			dp = Int32.TryParse(dpstr, out i) ? i : cumulus.SunshineDPlaces;
+			return CheckRC(station.YestSunshineHours.ToString("F" + dp), TagParams);
 		}
 
 		private string TagIsSunny(Dictionary<string,string> TagParams)
@@ -3571,6 +3635,18 @@ namespace CumulusMX
 			}
 		}
 
+		private string TagDataSpikeAlarm(Dictionary<string, string> TagParams)
+		{
+			if (cumulus.SpikeAlarmEnabled)
+			{
+				return cumulus.SpikeAlarmState ? "1" : "0";
+			}
+			else
+			{
+				return "0";
+			}
+		}
+
 		// Monthly highs and lows - values
 		private string TagMonthTempH(Dictionary<string,string> TagParams)
 		{
@@ -3610,6 +3686,11 @@ namespace CumulusMX
 		private string TagMonthFeelsLikeL(Dictionary<string, string> TagParams)
 		{
 			return CheckRC(station.LowFeelsLikeThisMonth.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagMonthHumidexH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighHumidexThisMonth.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagMonthDewPointH(Dictionary<string,string> TagParams)
@@ -3759,6 +3840,11 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LowFeelsLikeThisMonthTS, "t", TagParams);
 		}
 
+		private string TagMonthHumidexHT(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighHumidexThisMonthTS, "t", TagParams);
+		}
+
 		private string TagMonthDewPointHT(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.HighDewpointThisMonthTS, "t", TagParams);
@@ -3768,28 +3854,6 @@ namespace CumulusMX
 		{
 			return GetFormattedDateTime(station.LowDewpointThisMonthTS, "t", TagParams);
 		}
-
-		/*
-		private string TagMonthMinTempHT(Dictionary<string,string> TagParams)
-		{
-			if (station.HighMinTempThisMonth > -999)
-			{
-				return GetFormattedDateTime(station.HighMinTempThisMonthTS, "t", TagParams);
-			}
-			return "---";
-		}
-		*/
-
-		/*
-		private string TagMonthMaxTempLT(Dictionary<string,string> TagParams)
-		{
-			if (station.LowMaxTempThisMonth < 999)
-			{
-				return GetFormattedDateTime(station.LowMaxTempThisMonthTS, "t", TagParams);
-			}
-			return "---";
-		}
-		*/
 
 		private string TagMonthPressHT(Dictionary<string,string> TagParams)
 		{
@@ -3870,6 +3934,11 @@ namespace CumulusMX
 		private string TagMonthFeelsLikeLD(Dictionary<string, string> TagParams)
 		{
 			return GetFormattedDateTime(station.LowFeelsLikeThisMonthTS, "dd MMMM", TagParams);
+		}
+
+		private string TagMonthHumidexHD(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighHumidexThisMonthTS, "dd MMMM", TagParams);
 		}
 
 		private string TagMonthDewPointHD(Dictionary<string,string> TagParams)
@@ -4017,6 +4086,11 @@ namespace CumulusMX
 		private string TagYearFeelsLikeL(Dictionary<string, string> TagParams)
 		{
 			return CheckRC(station.LowFeelsLikeThisYear.ToString(cumulus.TempFormat), TagParams);
+		}
+
+		private string TagYearHumidexH(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.HighHumidexThisYear.ToString(cumulus.TempFormat), TagParams);
 		}
 
 		private string TagYearDewPointH(Dictionary<string,string> TagParams)
@@ -4171,7 +4245,10 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LowFeelsLikeThisYearTS, "t", TagParams);
 		}
 
-
+		private string TagYearHumidexHT(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighHumidexThisYearTS, "t", TagParams);
+		}
 		private string TagYearDewPointHT(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.HighDewpointThisYearTS, "t", TagParams);
@@ -4181,28 +4258,6 @@ namespace CumulusMX
 		{
 			return GetFormattedDateTime(station.LowDewpointThisYearTS, "t", TagParams);
 		}
-
-		/*
-		private string TagYearMinTempHT(Dictionary<string,string> TagParams)
-		{
-			if (station.HighMinTempThisYear > -999)
-			{
-				return GetFormattedDateTime(station.HighMinTempThisYearTS, "t", TagParams);
-			}
-			return "---";
-		}
-		*/
-
-		/*
-		private string TagYearMaxTempLT(Dictionary<string,string> TagParams)
-		{
-			if (station.LowMaxTempThisYear < 999)
-			{
-				return GetFormattedDateTime(station.LowMaxTempThisYearTS, "t", TagParams);
-			}
-			return "---";
-		}
-		*/
 
 		private string TagYearPressHT(Dictionary<string,string> TagParams)
 		{
@@ -4285,6 +4340,10 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LowFeelsLikeThisYearTS, "dd MMMM", TagParams);
 		}
 
+		private string TagYearHumidexHD(Dictionary<string, string> TagParams)
+		{
+			return GetFormattedDateTime(station.HighHumidexThisYearTS, "dd MMMM", TagParams);
+		}
 		private string TagYearDewPointHD(Dictionary<string,string> TagParams)
 		{
 			return GetFormattedDateTime(station.HighDewpointThisYearTS, "dd MMMM", TagParams);
@@ -4717,6 +4776,22 @@ namespace CumulusMX
 			}
 		}
 
+		private string TagRecentHumidex(Dictionary<string, string> TagParams)
+		{
+			var recentTS = GetRecentTS(TagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTS);
+
+			if (result.Count == 0)
+			{
+				return CheckRC(station.Humidex.ToString(cumulus.TempFormat), TagParams);
+			}
+			else
+			{
+				return CheckRC(result[0].Humidex.ToString(cumulus.TempFormat), TagParams);
+			}
+		}
+
 		private string TagRecentHumidity(Dictionary<string,string> TagParams)
 		{
 			var recentTS = GetRecentTS(TagParams);
@@ -4874,6 +4949,7 @@ namespace CumulusMX
 				{ "timeUTC", TagTimeUTC },
 				{ "timehhmmss", TagTimehhmmss },
 				{ "timeJavaScript", TagTimeJavascript },
+				{ "timeUnix", TagTimeUnix },
 				{ "date", TagDate },
 				{ "yesterday", TagYesterday },
 				{ "metdate", TagMetDate },
@@ -4983,6 +5059,7 @@ namespace CumulusMX
 				{ "LowAppTempRecordSet", TagLowAppTempRecordSet },
 				{ "HighFeelsLikeRecordSet", TagHighFeelsLikeRecordSet },
 				{ "LowFeelsLikeRecordSet", TagLowFeelsLikeRecordSet },
+				{ "HighHumidexRecordSet", TagHighHumidexRecordSet },
 				{ "HighHeatIndexRecordSet", TagHighHeatIndexRecordSet },
 				{ "LowWindChillRecordSet", TagLowWindChillRecordSet },
 				{ "HighDewPointRecordSet", TagHighDewPointRecordSet },
@@ -5018,6 +5095,8 @@ namespace CumulusMX
 				{ "TfeelslikeTH", TagTfeelslikeTH },
 				{ "feelslikeTL", TagfeelslikeTL },
 				{ "TfeelslikeTL", TagTfeelslikeTL },
+				{ "humidexTH", TaghumidexTH },
+				{ "ThumidexTH", TagThumidexTH },
 				{ "dewpointTH", TagdewpointTH },
 				{ "TdewpointTH", TagTdewpointTH },
 				{ "dewpointTL", TagdewpointTL },
@@ -5067,6 +5146,8 @@ namespace CumulusMX
 				{ "TfeelslikeYH", TagTfeelslikeYH },
 				{ "feelslikeYL", TagfeelslikeYL },
 				{ "TfeelslikeYL", TagTfeelslikeYL },
+				{ "humidexYH", TaghumidexYH },
+				{ "ThumidexYH", TagThumidexYH },
 				{ "dewpointYH", TagdewpointYH },
 				{ "TdewpointYH", TagTdewpointYH },
 				{ "dewpointYL", TagdewpointYL },
@@ -5108,6 +5189,8 @@ namespace CumulusMX
 				{ "TfeelslikeH", TagTfeelslikeH },
 				{ "feelslikeL", TagfeelslikeL },
 				{ "TfeelslikeL", TagTfeelslikeL },
+				{ "humidexH", TaghumidexH },
+				{ "ThumidexH", TagThumidexH },
 				{ "dewpointH", TagdewpointH },
 				{ "TdewpointH", TagTdewpointH },
 				{ "dewpointL", TagdewpointL },
@@ -5184,6 +5267,8 @@ namespace CumulusMX
 				{ "realtimeinterval", Tagrealtimeinterval },
 				{ "version", Tagversion },
 				{ "build", Tagbuild },
+				{ "NewBuildAvailable", TagNewBuildAvailable },
+				{ "NewBuildNumber", TagNewBuildNumber },
 				{ "update", Tagupdate },
 				{ "LastRainTip", TagLastRainTip },
 				{ "LastRainTipISO", TagLastRainTipISO },
@@ -5335,6 +5420,7 @@ namespace CumulusMX
 				{ "HighWindGustAlarm", TagHighWindGustAlarm },
 				{ "HighWindSpeedAlarm", TagHighWindSpeedAlarm },
 				{ "BatteryLowAlarm", TagBatteryLowAlarm },
+				{ "DataSpikeAlarm", TagDataSpikeAlarm },
 				{ "RG11RainToday", TagRG11RainToday },
 				{ "RG11RainYest", TagRG11RainYest },
 				// Monthly highs and lows - values
@@ -5346,6 +5432,7 @@ namespace CumulusMX
 				{ "MonthAppTempL", TagMonthAppTempL },
 				{ "MonthFeelsLikeH", TagMonthFeelsLikeH },
 				{ "MonthFeelsLikeL", TagMonthFeelsLikeL },
+				{ "MonthHumidexH", TagMonthHumidexH },
 				{ "MonthMinTempH", TagMonthMinTempH },
 				{ "MonthMaxTempL", TagMonthMaxTempL },
 				{ "MonthPressH", TagMonthPressH },
@@ -5373,6 +5460,7 @@ namespace CumulusMX
 				{ "MonthAppTempLT", TagMonthAppTempLT },
 				{ "MonthFeelsLikeHT", TagMonthFeelsLikeHT },
 				{ "MonthFeelsLikeLT", TagMonthFeelsLikeLT },
+				{ "MonthHumidexHT", TagMonthHumidexHT },
 				{ "MonthPressHT", TagMonthPressHT },
 				{ "MonthPressLT", TagMonthPressLT },
 				{ "MonthHumHT", TagMonthHumHT },
@@ -5392,6 +5480,7 @@ namespace CumulusMX
 				{ "MonthAppTempLD", TagMonthAppTempLD },
 				{ "MonthFeelsLikeHD", TagMonthFeelsLikeHD },
 				{ "MonthFeelsLikeLD", TagMonthFeelsLikeLD },
+				{ "MonthHumidexHD", TagMonthHumidexHD },
 				{ "MonthMinTempHD", TagMonthMinTempHD },
 				{ "MonthMaxTempLD", TagMonthMaxTempLD },
 				{ "MonthPressHD", TagMonthPressHD },
@@ -5419,6 +5508,7 @@ namespace CumulusMX
 				{ "YearAppTempL", TagYearAppTempL },
 				{ "YearFeelsLikeH", TagYearFeelsLikeH },
 				{ "YearFeelsLikeL", TagYearFeelsLikeL },
+				{ "YearHumidexH", TagYearHumidexH },
 				{ "YearMinTempH", TagYearMinTempH },
 				{ "YearMaxTempL", TagYearMaxTempL },
 				{ "YearPressH", TagYearPressH },
@@ -5447,6 +5537,7 @@ namespace CumulusMX
 				{ "YearAppTempLT", TagYearAppTempLT },
 				{ "YearFeelsLikeHT", TagYearFeelsLikeHT },
 				{ "YearFeelsLikeLT", TagYearFeelsLikeLT },
+				{ "YearHumidexHT", TagYearHumidexHT },
 				{ "YearPressHT", TagYearPressHT },
 				{ "YearPressLT", TagYearPressLT },
 				{ "YearHumHT", TagYearHumHT },
@@ -5466,6 +5557,7 @@ namespace CumulusMX
 				{ "YearAppTempLD", TagYearAppTempLD },
 				{ "YearFeelsLikeHD", TagYearFeelsLikeHD },
 				{ "YearFeelsLikeLD", TagYearFeelsLikeLD },
+				{ "YearHumidexHD", TagYearHumidexHD },
 				{ "YearMinTempHD", TagYearMinTempHD },
 				{ "YearMaxTempLD", TagYearMaxTempLD },
 				{ "YearPressHD", TagYearPressHD },
@@ -5525,6 +5617,7 @@ namespace CumulusMX
 				{ "RecentDewPoint", TagRecentDewPoint },
 				{ "RecentHeatIndex", TagRecentHeatIndex },
 				{ "RecentFeelsLike", TagRecentFeelsLike },
+				{ "RecentHumidex", TagRecentHumidex },
 				{ "RecentHumidity", TagRecentHumidity },
 				{ "RecentPressure", TagRecentPressure },
 				{ "RecentRainToday", TagRecentRainToday },
@@ -5549,6 +5642,8 @@ namespace CumulusMX
 				{ "ByMonthAppTempL", TagByMonthAppTempL },
 				{ "ByMonthFeelsLikeH", TagByMonthFeelsLikeH },
 				{ "ByMonthFeelsLikeL", TagByMonthFeelsLikeL },
+				{ "ByMonthHumidexH", TagByMonthHumidexH },
+				//{ "ByMonthHumidexL", TagByMonthHumidexL },
 				{ "ByMonthDewPointH", TagByMonthDewPointH },
 				{ "ByMonthDewPointL", TagByMonthDewPointL },
 				{ "ByMonthHeatIndexH", TagByMonthHeatIndexH },
@@ -5577,6 +5672,8 @@ namespace CumulusMX
 				{ "ByMonthAppTempLT", TagByMonthAppTempLT },
 				{ "ByMonthFeelsLikeHT", TagByMonthFeelsLikeHT },
 				{ "ByMonthFeelsLikeLT", TagByMonthFeelsLikeLT },
+				{ "ByMonthHumidexHT", TagByMonthHumidexHT },
+				//{ "ByMonthHumidexLT", TagByMonthHumidexLT },
 				{ "ByMonthDewPointHT", TagByMonthDewPointHT },
 				{ "ByMonthDewPointLT", TagByMonthDewPointLT },
 				{ "ByMonthHeatIndexHT", TagByMonthHeatIndexHT },

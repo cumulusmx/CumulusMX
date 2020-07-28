@@ -382,7 +382,7 @@ namespace CumulusMX
 
 			DoApparentTemp(DateTime.Now);
 			DoFeelsLike(DateTime.Now);
-
+			DoHumidex(DateTime.Now);
 		}
 
 		private void WM918Rain(List<int> buff)

@@ -90,7 +90,11 @@ namespace CumulusMX
 
 				batteryLowEnabled = cumulus.BatteryLowAlarmEnabled,
 				batteryLowSoundEnabled = cumulus.BatteryLowAlarmSound,
-				batteryLowSound = cumulus.BatteryLowAlarmSoundFile
+				batteryLowSound = cumulus.BatteryLowAlarmSoundFile,
+
+				spikeEnabled = cumulus.SpikeAlarmEnabled,
+				spikeSoundEnabled = cumulus.SpikeAlarmSound,
+				spikeSound = cumulus.SpikeAlarmSoundFile
 			};
 
 			var retObject = new JsonAlarmSettings()
@@ -180,6 +184,10 @@ namespace CumulusMX
 				cumulus.BatteryLowAlarmSound = settings.batteryLowSoundEnabled;
 				cumulus.BatteryLowAlarmSoundFile = settings.batteryLowSound;
 
+				cumulus.SpikeAlarmEnabled = settings.spikeEnabled;
+				cumulus.SpikeAlarmSound = settings.spikeSoundEnabled;
+				cumulus.SpikeAlarmSoundFile = settings.spikeSound;
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -258,6 +266,10 @@ namespace CumulusMX
 		public bool batteryLowEnabled;
 		public bool batteryLowSoundEnabled;
 		public string batteryLowSound;
+
+		public bool spikeEnabled;
+		public bool spikeSoundEnabled;
+		public string spikeSound;
 	}
 
 	public class JsonAlarmUnits

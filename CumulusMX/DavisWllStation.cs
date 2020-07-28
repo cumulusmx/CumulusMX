@@ -433,30 +433,35 @@ namespace CumulusMX
 								// No average in the broadcast data, so use last value from current - allow for calibration
 								DoWind(ConvertWindMPHToUser(rec.Value<double>("wind_speed_last")), windDir, WindAverage / cumulus.WindSpeedMult, dateTime);
 
+								var gust = ConvertWindMPHToUser(rec.Value<double>("wind_speed_hi_last_10_min"));
+								var gustCal = gust * cumulus.WindGustMult;
 								if (checkWllGustValues)
 								{
-									var gust = ConvertWindMPHToUser(rec.Value<double>("wind_speed_hi_last_10_min")) * cumulus.WindGustMult;
-
 									if (gust > RecentMaxGust)
 									{
 										// See if the station 10 min high speed is higher than our current 10-min max
 										// ie we missed the high gust
-										cumulus.LogDebugMessage("Setting max gust from broadcast 10 min high value: " + gust.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
-										CheckHighGust(gust, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime);
-										// add to recent values so normal calculation includes this value
-										WindRecent[nextwind].Gust = gust / cumulus.WindGustMult;
-										WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
-										WindRecent[nextwind].Timestamp = dateTime;
-										nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+										if (CheckHighGust(gustCal, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime))
+										{
+											cumulus.LogDebugMessage("Set max gust from broadcast 10 min high value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
-										RecentMaxGust = gust;
+											// add to recent values so normal calculation includes this value
+											WindRecent[nextwind].Gust = gust; // use uncalibrated value
+											WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
+											WindRecent[nextwind].Timestamp = dateTime;
+											nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+
+											RecentMaxGust = gustCal;
+										}
 									}
 								}
 								else if (!CalcRecentMaxGust)
 								{
-									RecentMaxGust = ConvertWindMPHToUser(rec.Value<int>("wind_speed_hi_last_10_min") * cumulus.WindGustMult);
-									CheckHighGust(RecentMaxGust, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime);
+									if (CheckHighGust(gust, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime))
+									{
+										RecentMaxGust = gustCal;
+									}
 								}
 							}
 						}
@@ -556,7 +561,7 @@ namespace CumulusMX
 							batt = rec.Value<uint>("trans_battery_flag");
 							SetTxBatteryStatus(txid, batt);
 
-							if (rec.Value<int>("rx_state") > 0)
+							if (rec.Value<int>("rx_state") == 2)
 							{
 								localSensorContactLost = true;
 								cumulus.LogMessage($"Warning: Sensor contact lost TxId {txid}; ignoring data from this ISS");
@@ -706,23 +711,28 @@ namespace CumulusMX
 
 												if (gustCal > RecentMaxGust)
 												{
-													cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-													CheckHighGust(gustCal, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime);
+													if (CheckHighGust(gustCal, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime))
+													{
+														cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
-													// add to recent values so normal calculation includes this value
-													WindRecent[nextwind].Gust = gust; // use uncalibrated value
-													WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
-													WindRecent[nextwind].Timestamp = dateTime;
-													nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+														// add to recent values so normal calculation includes this value
+														WindRecent[nextwind].Gust = gust; // use uncalibrated value
+														WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
+														WindRecent[nextwind].Timestamp = dateTime;
+														nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
 
-													RecentMaxGust = gustCal;
+														RecentMaxGust = gustCal;
+													}
 												}
 											}
 										}
 										else if (!CalcRecentMaxGust)
 										{
-											RecentMaxGust = ConvertWindMPHToUser(rec.Value<double>("wind_speed_hi_last_10_min")) * cumulus.WindGustMult;
-											CheckHighGust(RecentMaxGust, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime);
+											var gust = ConvertWindMPHToUser(rec.Value<int>("wind_speed_hi_last_10_min") * cumulus.WindGustMult);
+											if (CheckHighGust(gust, rec.Value<int>("wind_dir_at_hi_speed_last_10_min"), dateTime))
+											{
+												RecentMaxGust = gust;
+											}
 										}
 									}
 								}
@@ -828,7 +838,7 @@ namespace CumulusMX
 							batt = rec.Value<uint>("trans_battery_flag");
 							SetTxBatteryStatus(txid, batt);
 
-							if (rec.Value<int>("rx_state") > 0)
+							if (rec.Value<int>("rx_state") == 2)
 							{
 								localSensorContactLost = true;
 								cumulus.LogMessage($"Warning: Sensor contact lost TxId {txid}; ignoring data from this Leaf/Soil transmitter");
@@ -1075,6 +1085,7 @@ namespace CumulusMX
 
 				DoApparentTemp(dateTime);
 				DoFeelsLike(dateTime);
+				DoHumidex(dateTime);
 
 				SensorContactLost = localSensorContactLost;
 
@@ -1105,39 +1116,6 @@ namespace CumulusMX
 			return (Int32)dateTime.ToUniversalTime().ToUnixEpochDate();
 		}
 
-		private void CheckHighGust(double gust, int gustdir, DateTime timestamp)
-		{
-			if (gust > RecentMaxGust)
-			{
-				if (gust > highgusttoday)
-				{
-					highgusttoday = gust;
-					highgusttodaytime = timestamp;
-					highgustbearing = gustdir;
-					WriteTodayFile(timestamp, false);
-				}
-				if (gust > HighGustThisMonth)
-				{
-					HighGustThisMonth = gust;
-					HighGustThisMonthTS = timestamp;
-					WriteMonthIniFile();
-				}
-				if (gust > HighGustThisYear)
-				{
-					HighGustThisYear = gust;
-					HighGustThisYearTS = timestamp;
-					WriteYearIniFile();
-				}
-				// All time high gust?
-				if (gust > alltimerecarray[AT_highgust].value)
-				{
-					SetAlltime(AT_highgust, gust, timestamp);
-				}
-
-				// check for monthly all time records (and set)
-				CheckMonthlyAlltime(AT_highgust, gust, true, timestamp);
-			}
-		}
 
 		private void OnServiceChanged(object sender, ServiceAnnouncementEventArgs e)
 		{
@@ -1567,6 +1545,7 @@ namespace CumulusMX
 
 					DoApparentTemp(timestamp);
 					DoFeelsLike(timestamp);
+					DoHumidex(timestamp);
 
 					// Log all the data
 					cumulus.DoLogFile(timestamp, false);
@@ -1575,9 +1554,9 @@ namespace CumulusMX
 					AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 					AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
 					AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-						IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike);
+						IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 					AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike);
+						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 					RemoveOldLHData(timestamp);
 					RemoveOldL3HData(timestamp);
 					RemoveOldGraphData(timestamp);
@@ -2498,6 +2477,8 @@ namespace CumulusMX
 			if (DateTime.Now.Minute % 15 == 1)
 			{
 				GetWlHistoricHealth();
+				var msg = string.Format("WLL: Percentage good packets received from WLL {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+				cumulus.LogMessage(msg);
 			}
 		}
 

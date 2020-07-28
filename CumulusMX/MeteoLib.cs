@@ -258,7 +258,7 @@ namespace CumulusMX
 
         public static double ActualVapourPressure2008(double tempC, int humidity)
         {
-            return (humidity*SaturationVapourPressure2008(tempC))/100.0;
+            return humidity / 100.0 * SaturationVapourPressure2008(tempC);
         }
 
         /// <summary>
@@ -272,7 +272,10 @@ namespace CumulusMX
         /// <returns>Humidex - dimensionless</returns>
         public static double Humidex(double tempC, int humidity)
         {
-            return tempC + ((5.0/9.0)*(ActualVapourPressure2008(tempC, humidity) - 10.0));
+            if (tempC < 10)
+                return tempC;
+            else
+                return tempC + ((5.0 / 9.0) * (ActualVapourPressure2008(tempC, humidity) - 10.0));
         }
 
         public static double CToF(double tempC)

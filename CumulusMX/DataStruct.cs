@@ -23,8 +23,9 @@ namespace CumulusMX
 							double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead,
 							bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain, bool alarmLowTemp,
 							bool alarmHighTemp, bool alarmTempUp, bool alarmTempDown, bool alarmRain, bool alarmRainRate, bool alarmLowPress, bool alarmHighPress,
-							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery,
-							double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime)
+							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery, bool alarmSpike,
+							double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime,
+							double highHumidexToday, string highHumidexTodayTime)
 		{
 			this.cumulus = cumulus;
 			OutdoorTemp = outdoorTemp;
@@ -66,6 +67,8 @@ namespace CumulusMX
 			HighHeatIndexToday = highHeatIndexToday;
 			HighHeatIndexTodayTime = highHeatIndexTodayTime;
 			Humidex = humidex;
+			HighHumidexToday = highHumidexToday;
+			HighHumidexTodayTime = highHumidexTodayTime;
 			AppTemp = appTemp;
 			HighAppTempToday = highAppTempToday;
 			LowAppTempToday = lowAppTempToday;
@@ -137,6 +140,7 @@ namespace CumulusMX
 			AlarmWind = alarmWind;
 			AlarmSensor = alarmSensor;
 			AlarmBattery = alarmBattery;
+			AlarmSpike = alarmSpike;
 		}
 
 		[IgnoreDataMember]
@@ -618,6 +622,19 @@ namespace CumulusMX
 			set { }
 		}
 
+		[DataMember]
+		public string HighHumidexTodayTime { get; set; }
+
+		[IgnoreDataMember]
+		public double HighHumidexToday { get; set; }
+
+		[DataMember(Name = "HighHumidexToday")]
+		public string HighHumidexTodayRounded
+		{
+			get { return HighHumidexToday.ToString(cumulus.TempFormat); }
+			set { }
+		}
+
 		[IgnoreDataMember]
 		public double AppTemp { get; set; }
 
@@ -796,5 +813,8 @@ namespace CumulusMX
 
 		[DataMember]
 		public bool AlarmBattery { get; set; }
+
+		[DataMember]
+		public bool AlarmSpike { get; set; }
 	}
 }
