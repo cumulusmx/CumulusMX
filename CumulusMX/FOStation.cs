@@ -77,19 +77,19 @@ namespace CumulusMX
 			int PID = (cumulus.ProductID < 0 ? defaultPID : cumulus.ProductID);
 
 			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+VID.ToString("X4")+" ProductID=0x"+PID.ToString("X4"));
-			Console.WriteLine("Looking for Fine Offset station");
+			cumulus.LogConsoleMessage("Looking for Fine Offset station");
 
 			hidDevice = devicelist.GetHidDeviceOrNull(vendorID: VID, productID: PID);
 
 			if (hidDevice != null)
 			{
 				cumulus.LogMessage("Fine Offset station found");
-				Console.WriteLine("Fine Offset station found");
+				cumulus.LogConsoleMessage("Fine Offset station found");
 
 				if (hidDevice.TryOpen(out stream))
 				{
 					cumulus.LogMessage("Stream opened");
-					Console.WriteLine("Connected to station");
+					cumulus.LogConsoleMessage("Connected to station");
 					// Get the block of data containing the abs and rel pressures
 					cumulus.LogMessage("Reading pressure offset");
 					ReadAddress(0x20, data);
@@ -112,13 +112,13 @@ namespace CumulusMX
 				else
 				{
 					cumulus.LogMessage("Stream open failed");
-					Console.WriteLine("Unable to connect to station");
+					cumulus.LogConsoleMessage("Unable to connect to station");
 				}
 			}
 			else
 			{
 				cumulus.LogMessage("Fine Offset station not found");
-				Console.WriteLine("Fine Offset station not found");
+				cumulus.LogConsoleMessage("Fine Offset station not found");
 			}
 		}
 
@@ -183,7 +183,7 @@ namespace CumulusMX
 			//DateTime now = DateTime.Now;
 			cumulus.LogMessage(DateTime.Now.ToString("G"));
 			cumulus.LogMessage("Start reading history data");
-			Console.WriteLine("Downloading Archive Data");
+			cumulus.LogConsoleMessage("Downloading Archive Data");
 			DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
@@ -616,7 +616,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine("Error reading data from station - it may need resetting");
+						cumulus.LogConsoleMessage("Error reading data from station - it may need resetting");
 						cumulus.LogMessage(ex.Message);
 						cumulus.LogMessage("Error reading data from station - it may need resetting");
 					}

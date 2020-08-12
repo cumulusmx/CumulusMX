@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.ServiceProcess;
+using System.IO;
 
 namespace CumulusMX
 {
@@ -11,17 +13,20 @@ namespace CumulusMX
     {
         public static Cumulus cumulus;
         public static bool exitSystem = false;
+        public static bool service = false;
+        public static TextWriterTraceListener svcTextListener;
+        const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
+        public static Mutex appMutex;
 
         private static void Main(string[] args)
         {
+            var Windows = Type.GetType("Mono.Runtime") == null;
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
-            const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 
-            if (Type.GetType("Mono.Runtime") != null)
+            if (!Windows)
             {
                 // Use reflection, so no attempt to load Mono dll on Windows
-
                 Assembly _posixAsm;
                 Type _unixSignalType, _signumType;
                 MethodInfo _unixSignalWaitAny;
@@ -41,7 +46,7 @@ namespace CumulusMX
                         // Wait for a signal to be delivered
                         var id = (int)_unixSignalWaitAny.Invoke(null, new object[] { _signals });
 
-                        Console.WriteLine("\nExiting system due to external SIGTERM signal");
+                        cumulus.LogConsoleMessage("\nExiting system due to external SIGTERM signal");
 
                         exitSystem = true;
                     }
@@ -52,11 +57,10 @@ namespace CumulusMX
                 // Now we need to catch the console Ctrl-C
                 Console.CancelKeyPress += (s, ev) =>
                 {
-                    Console.WriteLine("Ctrl+C pressed");
-                    Console.WriteLine("\nCumulus terminating");
+                    cumulus.LogConsoleMessage("Ctrl+C pressed");
+                    cumulus.LogConsoleMessage("\nCumulus terminating");
                     cumulus.Stop();
                     Trace.WriteLine("Cumulus has shutdown");
-                    Trace.Flush();
                     ev.Cancel = true;
                     exitSystem = true;
                 };
@@ -64,6 +68,9 @@ namespace CumulusMX
             }
             else
             {
+                // set the working path to the exe location
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
                 var exithandler = new exitHandler();
             }
 
@@ -71,6 +78,7 @@ namespace CumulusMX
             bool debug = false;
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -97,6 +105,52 @@ namespace CumulusMX
                         i++;
                         Console.WriteLine("The use of the -wsport command line parameter is deprecated");
                     }
+                    else if (args[i] == "-install")
+                    {
+                        if (Windows)
+                        {
+                            if (SelfInstaller.InstallMe())
+                            {
+                                Console.WriteLine("Cumulus MX is now installed to run as service");
+                                Environment.Exit(0);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Cumulus MX failed to install as service");
+                                Environment.Exit(1);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("You can only install Cumulus MX as a service in Windows");
+                            Environment.Exit(1);
+                        }
+                    }
+                    else if (args[i] == "-uninstall")
+                    {
+                        if (Windows)
+                        {
+                            if (SelfInstaller.UninstallMe())
+                            {
+                                Console.WriteLine("Cumulus MX is no longer installed to run as service");
+                                Environment.Exit(0);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Cumulus MX failed uninstall itself as service");
+                                Environment.Exit(1);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("You can only uninstall Cumulus MX as a service in Windows");
+                            Environment.Exit(1);
+                        }
+                    }
+                    else if (args[i] == "-service")
+                    {
+                        service = true;
+                    }
                     else
                     {
                         Console.WriteLine($"Invalid command line argument \"{args[i]}\"");
@@ -111,26 +165,36 @@ namespace CumulusMX
 
 #if DEBUG
             debug = true;
+            //Debugger.Launch();
 #endif
 
-
-            using (Mutex appMutex = new Mutex(false, "Global\\" + appGuid))
+            using (appMutex = new Mutex(false, "Global\\" + appGuid))
             {
-                Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+                // Interactive seems to be always false under mono :(
+                // So we need the no service flag & mono
+                if (Environment.UserInteractive || (!service && !Windows))
+                {
+                    service = false;
+                    RunAsAConsole(appGuid, httpport, debug);
+                }
+                else
+                {
+                    var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
+                    svcTextListener = new TextWriterTraceListener(logfile);
+                    service = true;
+                    if (File.Exists(logfile))
+                    {
+                        File.Delete(logfile);
+                    }
+                    svcTextListener = new TextWriterTraceListener(logfile);
+                    RunAsAService();
+                }
 
-                cumulus = new Cumulus(httpport, debug, appMutex);
-
-                DateTime now = DateTime.Now;
-
-                Console.WriteLine(DateTime.Now.ToString("G"));
-
-                Console.WriteLine("Type Ctrl-C to terminate");
                 while (!exitSystem)
                 {
                     Thread.Sleep(500);
                 }
 
-                Trace.Flush();
                 Environment.Exit(0);
             }
         }
@@ -142,9 +206,32 @@ namespace CumulusMX
             Console.WriteLine(" -port <http_portnum> - Sets the HTTP port Cumulus will use (default 8998)");
             Console.WriteLine(" -lang <culture_name> - Sets the Language Cumulus will use (defaults to current user language)");
             Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");
+            Console.WriteLine(" -install             - Installs Cumulus as a system service (Windows only)");
+            Console.WriteLine(" -uninstall           - Removes Cumulus as a system service (Windows only)");
             Console.WriteLine("\nCumulus terminating");
             Environment.Exit(1);
         }
+
+        static void RunAsAConsole(string AppGuid, int port, bool debug)
+        {
+            Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+
+            cumulus = new Cumulus(port, debug, "");
+
+            Console.WriteLine(DateTime.Now.ToString("G"));
+
+            Console.WriteLine("Type Ctrl-C to terminate");
+        }
+
+        static void RunAsAService()
+        {
+            ServiceBase[] servicesToRun = new ServiceBase[]
+            {
+                new CumulusService()
+            };
+            ServiceBase.Run(servicesToRun);
+        }
+
 
         private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
         {
@@ -153,11 +240,19 @@ namespace CumulusMX
                 Trace.WriteLine("!!! Unhandled Exception !!!");
                 Trace.WriteLine(e.ExceptionObject.ToString());
 
-                Console.WriteLine(e.ExceptionObject.ToString());
-                Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
-                Console.WriteLine("Press Enter to terminate");
-                Console.ReadLine();
-                Trace.Flush();
+                if (service)
+                {
+                    svcTextListener.WriteLine(e.ExceptionObject.ToString());
+                    svcTextListener.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
+                    svcTextListener.Flush();
+                }
+                else
+                {
+                    Console.WriteLine(e.ExceptionObject.ToString());
+                    Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
+                    Console.WriteLine("Press Enter to terminate");
+                    Console.ReadLine();
+                }
                 Environment.Exit(1);
             }
             catch (Exception)
@@ -196,6 +291,7 @@ namespace CumulusMX
         {
             var reason = new string[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
             Console.WriteLine("Cumulus terminating");
+            //Program.cumulus.LogConsoleMessage("Cumulus terminating");
 
             Trace.WriteLine("Exiting system due to external: " + reason[(int)sig]);
 

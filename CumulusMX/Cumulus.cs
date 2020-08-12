@@ -19,6 +19,7 @@ using System.Timers;
 using Devart.Data.MySql;
 using FluentFTP;
 using LinqToTwitter;
+using Newtonsoft.Json;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
@@ -33,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.7.0";
-		public string Build = "3089";
+		public string Version = "3.8.0";
+		public string Build = "3090";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -447,7 +448,7 @@ namespace CumulusMX
 		private const int DefaultWindyInterval = 15;
 		private const int DefaultPWSInterval = 15;
 		private const int DefaultAPRSInterval = 9;
-		private const int DefaultAwekasInterval = 15;
+		private const int DefaultAwekasInterval = 15 * 60;
 		private const int DefaultWCloudInterval = 10;
 
 		public int RecordSetTimeoutHrs = 24;
@@ -621,10 +622,15 @@ namespace CumulusMX
 		public string AwekasPW = " ";
 		public bool AwekasEnabled = false;
 		public int AwekasInterval = 15;
+		public bool AwekasRateLimited = false;
+		public int AwekasOriginalInterval;
 		public string AwekasLang = "en";
 		public bool SendUVToAwekas;
 		public bool SendSolarToAwekas;
 		public bool SendSoilTempToAwekas;
+		public bool SendIndoorToAwekas;
+		public bool SendSoilMoistureToAwekas;
+		public bool SendLeafWetnessToAwekas;
 
 		// WeatherCloud settings
 		public string WCloudWid = " ";
@@ -938,7 +944,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public Cumulus(int HTTPport, bool DebugEnabled, Mutex appMutex)
+		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
 			//DoLicenseCheck();
 
@@ -1010,8 +1016,7 @@ namespace CumulusMX
 
 			DirectorySeparator = Path.DirectorySeparatorChar;
 
-			AppDir = AppDomain.CurrentDomain.BaseDirectory;
-
+			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
 			TwitterTxtFile = AppDir + "twitter.txt";
 			WebTagFile = AppDir + "WebTags.txt";
 
@@ -1036,13 +1041,14 @@ namespace CumulusMX
 
 			LogMessage(" ========================== Cumulus MX starting ==========================");
 
-			LogMessage("Command line: " + Environment.CommandLine);
+			LogMessage("Command line: " + Environment.CommandLine + " " + startParms);
 
 			//Assembly thisAssembly = this.GetType().Assembly;
 			//Version = thisAssembly.GetName().Version.ToString();
 			//VersionLabel.Content = "Cumulus v." + thisAssembly.GetName().Version;
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
-			Console.WriteLine("Cumulus MX v." + Version + " build " + Build);
+			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
+			LogConsoleMessage("Working Dir: " + AppDir);
 
 			IsOSX = IsRunningOnMac();
 
@@ -1136,10 +1142,10 @@ namespace CumulusMX
 
 			ReadIniFile();
 
-			if (WarnMultiple && !appMutex.WaitOne(0, false))
+			if (WarnMultiple && !Program.appMutex.WaitOne(0, false))
 			{
-				Console.WriteLine("Cumulus is already running - terminating");
-				Console.WriteLine("Program exit");
+				LogConsoleMessage("Cumulus is already running - terminating");
+				LogConsoleMessage("Program exit");
 				LogMessage("Cumulus is already running - terminating");
 				LogMessage("Program exit");
 				Environment.Exit(1);
@@ -1319,7 +1325,6 @@ namespace CumulusMX
 			LogOffsetsMultipliers();
 
 			LogMessage("Cumulus Starting");
-			Trace.Flush();
 
 			LogDebugMessage("Lock: Cumulus waiting for the lock");
 			syncInit.Wait();
@@ -1327,7 +1332,6 @@ namespace CumulusMX
 
 			LogMessage("Opening station");
 
-			Trace.Flush();
 			switch (StationType)
 			{
 				case StationTypes.FineOffset:
@@ -1378,7 +1382,7 @@ namespace CumulusMX
 					station = new GW1000Station(this);
 					break;
 				default:
-					Console.WriteLine("Station type not set");
+					LogConsoleMessage("Station type not set");
 					break;
 			}
 
@@ -1431,10 +1435,11 @@ namespace CumulusMX
 
 			httpServer.RunAsync();
 
-			Console.WriteLine("Cumulus running at: " + httpServer.Listener.Prefixes.First());
+			LogConsoleMessage("Cumulus running at: " + httpServer.Listener.Prefixes.First());
+			LogConsoleMessage("  (Replace * with any IP address on this machine, or localhost)");
+			LogConsoleMessage("  Open the admin interface by entering this URL in a browser.");
 
-			Console.WriteLine("  (Replace * with any IP address on this machine, or localhost)");
-			Console.WriteLine("  Open the admin interface by entering this URL in a browser.");
+
 			RealtimeTimer.Interval = RealtimeInterval;
 			RealtimeTimer.Elapsed += RealtimeTimerTick;
 			RealtimeTimer.AutoReset = true;
@@ -1449,9 +1454,7 @@ namespace CumulusMX
 			WOWTimer.Elapsed += WowTimerTick;
 			AwekasTimer.Elapsed += AwekasTimerTick;
 			WCloudTimer.Elapsed += WCloudTimerTick;
-
 			APRStimer.Elapsed += APRSTimerTick;
-
 			WebTimer.Elapsed += WebTimerTick;
 
 			xapsource = "sanday.cumulus." + Environment.MachineName;
@@ -1974,25 +1977,25 @@ namespace CumulusMX
 
 		private void WundTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!string.IsNullOrEmpty(WundID) && (WundID != " "))
+			if (!string.IsNullOrWhiteSpace(WundID))
 				UpdateWunderground(DateTime.Now);
 		}
 
 		private void WindyTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!string.IsNullOrEmpty(WindyApiKey) && (WindyApiKey != " "))
+			if (!string.IsNullOrWhiteSpace(WindyApiKey))
 				UpdateWindy(DateTime.Now);
 		}
 
 		private void AwekasTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!string.IsNullOrEmpty(AwekasUser) && (AwekasUser != " "))
+			if (!string.IsNullOrWhiteSpace(AwekasUser))
 				UpdateAwekas(DateTime.Now);
 		}
 
 		private void WCloudTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!string.IsNullOrEmpty(WCloudWid) && (WCloudWid != " "))
+			if (!string.IsNullOrWhiteSpace(WCloudWid))
 				UpdateWCloud(DateTime.Now);
 		}
 
@@ -2004,13 +2007,13 @@ namespace CumulusMX
 
 		private void PWSTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!string.IsNullOrEmpty(PWSID) && (PWSID != " "))
+			if (!string.IsNullOrWhiteSpace(PWSID))
 				UpdatePWSweather(DateTime.Now);
 		}
 
 		private void WowTimerTick(object sender, ElapsedEventArgs e)
 		{
-			if (!string.IsNullOrEmpty(WOWID) && (WOWID != " "))
+			if (!string.IsNullOrWhiteSpace(WOWID))
 				UpdateWOW(DateTime.Now);
 		}
 
@@ -2087,23 +2090,103 @@ namespace CumulusMX
 				UpdatingAwekas = true;
 
 				string pwstring;
-				string URL = station.GetAwekasURL(out pwstring, timestamp);
+				//string URL = station.GetAwekasURL(out pwstring, timestamp);
+				string URL = station.GetAwekasURLv4(out pwstring, timestamp);
 
 				string starredpwstring = "<password>";
 
 				string LogURL = URL.Replace(pwstring, starredpwstring);
 
-				LogDebugMessage("Awekas URL: " + LogURL);
+				LogDebugMessage("AWEKAS: URL = " + LogURL);
 
 				try
 				{
 					HttpResponseMessage response = await AwekashttpClient.GetAsync(URL);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("Awekas Response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
+					LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
+					var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
+					//var jObject = JObject.Parse(responseBodyAsText);
+
+					// Check the status response
+					if (respJson.status == 2)
+					//if (jObject.Value<int>("status") == 2)
+						LogMessage("AWEKAS: Data stored OK");
+					else if (respJson.status == 1)
+					//else if (jObject.Value<int>("status") == 1)
+					{
+						LogMessage("AWEKAS: Data PARIALLY stored");
+						// TODO: Check errors and disabled
+					}
+					else if (respJson.status == 0)  // Authenication error or rate limited
+					//else if (jObject.Value<int>("status") == 0)
+					{
+						if (respJson.minuploadtime > 0 && respJson.authentication == 0)
+						//if (!string.IsNullOrEmpty(jObject.Value<string>("authentication")) && jObject.Value<int>("authentication") == 0)
+						{
+							LogMessage("AWEKAS: Authentication error");
+							if (AwekasInterval < 60)
+							{
+								AwekasRateLimited = true;
+								AwekasOriginalInterval = AwekasInterval;
+								AwekasInterval = 60;
+								AwekasTimer.Enabled = false;
+								SynchronisedAwekasUpdate = true;
+								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to authenication error");
+							}
+						}
+						else if (respJson.minuploadtime == 0)
+						//else if (jObject.Value<int>("minuploadtime") == 0)
+						{
+							LogMessage("AWEKAS: Too many requests, rate limited");
+							if (AwekasInterval < 60)
+							{
+								AwekasRateLimited = true;
+								AwekasOriginalInterval = AwekasInterval;
+								AwekasInterval = 60;
+								AwekasTimer.Enabled = false;
+								SynchronisedAwekasUpdate = true;
+								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
+							}
+						}
+						else
+						{
+							LogMessage("AWEKAS: Unknown error");
+						}
+					}
+
+					// check the min upload time is greater than our upload time
+					if (respJson.status > 0 && respJson.minuploadtime > AwekasOriginalInterval)
+					//if (jObject.Value<int>("status") > 0 && jObject.Value<int>("minuploadtime") > AwekasInterval)
+					{
+						//LogMessage($"The minimum upload time to AWEKAS for your station is {jObject.Value<string>("minuploadtime")} sec, Cumulus is configured for {AwekasInterval} sec, increasing Cumulus interval to match AWEKAS");
+						//AwekasInterval = jObject.Value<int>("minuploadtime") <= 60 ? 1 : jObject.Value<int>("minuploadtime");
+						LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AwekasOriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
+						AwekasInterval = respJson.minuploadtime;
+						WriteIniFile();
+						AwekasTimer.Interval = AwekasInterval * 1000;
+						SynchronisedAwekasUpdate = AwekasInterval % 60 == 0;
+						AwekasTimer.Enabled = !SynchronisedAwekasUpdate;
+						// we got a successful upload, and reset the interval, so clear the rate limited values
+						AwekasOriginalInterval = AwekasInterval;
+						AwekasRateLimited = false;
+					}
+					else if (AwekasRateLimited && respJson.status > 0)
+					{
+						// We are currently rate limited, it could have been a transient thing because
+						// we just got a valid response, and our interval is >= the minimum allowed.
+						// So we just undo the limit, and resume as before
+						LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {AwekasOriginalInterval} secs");
+						AwekasInterval = AwekasOriginalInterval;
+						AwekasTimer.Interval = AwekasInterval * 1000;
+						SynchronisedAwekasUpdate = AwekasInterval % 60 == 0;
+						AwekasTimer.Enabled = !SynchronisedAwekasUpdate;
+						AwekasRateLimited = false;
+					}
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Awekas update: " + ex.Message);
+					LogMessage("AWEKAS: Exception = " + ex.Message);
 				}
 				finally
 				{
@@ -3310,6 +3393,8 @@ namespace CumulusMX
 			}
 			RainDPlaces = RainDPlace[RainUnit];
 
+			SunshineDPlaces = ini.GetValue("Station", "SunshineHrsDecimals", 1);
+
 			LocationName = ini.GetValue("Station", "LocName", "");
 			LocationDesc = ini.GetValue("Station", "LocDesc", "");
 
@@ -3414,7 +3499,7 @@ namespace CumulusMX
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
-			WarnMultiple = ini.GetValue("Station", "WarnMultiple", false);
+			WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 
 			VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 
@@ -3560,6 +3645,8 @@ namespace CumulusMX
 			GraphOptions.HumidexVisible = ini.GetValue("Graphs", "HumidexVisible", true);
 			GraphOptions.InHumVisible = ini.GetValue("Graphs", "InHumVisible", true);
 			GraphOptions.OutHumVisible = ini.GetValue("Graphs", "OutHumVisible", true);
+			GraphOptions.UVVisible = ini.GetValue("Graphs", "UVVisible", true);
+
 
 			WundID = ini.GetValue("Wunderground", "ID", "");
 			WundPW = ini.GetValue("Wunderground", "Password", "");
@@ -3601,12 +3688,17 @@ namespace CumulusMX
 			AwekasPW = ini.GetValue("Awekas", "Password", "");
 			AwekasEnabled = ini.GetValue("Awekas", "Enabled", false);
 			AwekasInterval = ini.GetValue("Awekas", "Interval", DefaultAwekasInterval);
-			if (AwekasInterval < 1) { AwekasInterval = 1; }
+			if (AwekasInterval < 15) { AwekasInterval = 15; }
+			AwekasLang = ini.GetValue("Awekas", "Language", "en");
+			AwekasOriginalInterval = AwekasInterval;
 			SendUVToAwekas = ini.GetValue("Awekas", "SendUV", false);
 			SendSolarToAwekas = ini.GetValue("Awekas", "SendSR", false);
 			SendSoilTempToAwekas = ini.GetValue("Awekas", "SendSoilTemp", false);
+			SendIndoorToAwekas = ini.GetValue("Awekas", "SendIndoor", false);
+			SendSoilMoistureToAwekas = ini.GetValue("Awekas", "SendSoilMoisture", false);
+			SendLeafWetnessToAwekas = ini.GetValue("Awekas", "SendLeafWetness", false);
 
-			SynchronisedAwekasUpdate = (60 % AwekasInterval == 0);
+			SynchronisedAwekasUpdate = (AwekasInterval % 60 == 0);
 
 			WCloudWid = ini.GetValue("WeatherCloud", "Wid", "");
 			WCloudKey = ini.GetValue("WeatherCloud", "Key", "");
@@ -4169,11 +4261,15 @@ namespace CumulusMX
 
 			ini.SetValue("Awekas", "User", AwekasUser);
 			ini.SetValue("Awekas", "Password", AwekasPW);
+			ini.SetValue("Awekas", "Language", AwekasLang);
 			ini.SetValue("Awekas", "Enabled", AwekasEnabled);
 			ini.SetValue("Awekas", "Interval", AwekasInterval);
 			ini.SetValue("Awekas", "SendUV", SendUVToAwekas);
 			ini.SetValue("Awekas", "SendSR", SendSolarToAwekas);
 			ini.SetValue("Awekas", "SendSoilTemp", SendSoilTempToAwekas);
+			ini.SetValue("Awekas", "SendIndoor", SendIndoorToAwekas);
+			ini.SetValue("Awekas", "SendSoilMoisture", SendSoilMoistureToAwekas);
+			ini.SetValue("Awekas", "SendLeafWetness", SendLeafWetnessToAwekas);
 
 			ini.SetValue("WeatherCloud", "Wid", WCloudWid);
 			ini.SetValue("WeatherCloud", "Key", WCloudKey);
@@ -4399,6 +4495,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "HumidexVisible", GraphOptions.HumidexVisible);
 			ini.SetValue("Graphs", "InHumVisible", GraphOptions.InHumVisible);
 			ini.SetValue("Graphs", "OutHumVisible", GraphOptions.OutHumVisible);
+			ini.SetValue("Graphs", "UVVisible", GraphOptions.UVVisible);
 
 			ini.SetValue("MySQL", "Host", MySqlHost);
 			ini.SetValue("MySQL", "Port", MySqlPort);
@@ -5731,7 +5828,9 @@ namespace CumulusMX
 						File.Copy(extraFile, extraBackup);
 					}
 
-					if (timestamp.Day == 1)
+					// Do not do this extra backup between 00:00 & Rollover hour on the first of the month
+					// as the month has not yet rolled over - only applies for start-up backups
+					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
 					{
 						// on the first of month, we also need to backup last months files as well
 						var LogFile2 = GetLogFileName(timestamp.AddDays(-1));
@@ -5742,11 +5841,11 @@ namespace CumulusMX
 
 						if (File.Exists(LogFile2))
 						{
-							File.Copy(LogFile2, logbackup2);
+							File.Copy(LogFile2, logbackup2, true);
 						}
 						if (File.Exists(extraFile2))
 						{
-							File.Copy(extraFile2, extraBackup2);
+							File.Copy(extraFile2, extraBackup2, true);
 						}
 					}
 
@@ -6897,6 +6996,19 @@ namespace CumulusMX
 			}
 		}
 
+		public void LogConsoleMessage(string message)
+		{
+			if (Program.service)
+			{
+				Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				Program.svcTextListener.Flush();
+			}
+			else
+			{
+				Console.WriteLine(message);
+			}
+		}
+
 		public string ReplaceCommas(string AStr)
 		{
 			return AStr.Replace(',', '.');
@@ -7201,7 +7313,7 @@ namespace CumulusMX
 
 			if (RealtimeFTPEnabled)
 			{
-				Console.WriteLine("Connecting real time FTP");
+				LogConsoleMessage("Connecting real time FTP");
 				if (Sslftp == FtpProtocols.SFTP)
 				{
 					RealtimeSSHLogin(RealtimeCycleCounter++);
@@ -7242,7 +7354,7 @@ namespace CumulusMX
 
 			WOWTimer.Interval = WOWInterval * 60 * 1000; // mins to millisecs
 
-			AwekasTimer.Interval = AwekasInterval * 60 * 1000;
+			AwekasTimer.Interval = AwekasInterval * 1000;
 
 			WCloudTimer.Interval = WCloudInterval * 60 * 1000;
 
@@ -7358,8 +7470,10 @@ namespace CumulusMX
 			WebTimer.Interval = UpdateInterval * 60 * 1000; // mins to millisecs
 			WebTimer.Enabled = WebAutoUpdate && !SynchronisedWebUpdate;
 
+			AwekasTimer.Enabled = AwekasEnabled && !SynchronisedAwekasUpdate;
+
 			LogMessage("Normal running");
-			Console.WriteLine("Normal running");
+			LogConsoleMessage("Normal running");
 		}
 
 		private void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -7855,7 +7969,7 @@ namespace CumulusMX
 				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
 					var msg = $"You are not running the latest version of CumulusMX, build {LatestBuild} is available.";
-					Console.WriteLine(msg);
+					LogConsoleMessage(msg);
 					LogMessage(msg);
 				}
 				else
@@ -8218,5 +8332,74 @@ namespace CumulusMX
 		public bool HumidexVisible { get; set; }
 		public bool InHumVisible { get; set; }
 		public bool OutHumVisible { get; set; }
+		public bool UVVisible { get; set; }
 	}
+
+	public class AwekasResponse
+	{
+		public int status { get; set; }
+		public int authentication { get; set; }
+		public int minuploadtime { get; set; }
+		public AwekasErrors error { get; set; }
+		public AwekasDisabled disabled { get; set; }
+	}
+
+	public class AwekasErrors
+	{
+		public int count { get; set; }
+		public int time { get; set; }
+		public int date { get; set; }
+		public int temp { get; set; }
+		public int hum { get; set; }
+		public int airp { get; set; }
+		public int rain { get; set; }
+		public int rainrate { get; set; }
+		public int wind { get; set; }
+		public int gust { get; set; }
+		public int snow { get; set; }
+		public int solar { get; set; }
+		public int uv { get; set; }
+		public int brightness { get; set; }
+		public int suntime { get; set; }
+		public int indoortemp { get; set; }
+		public int indoorhumidity { get; set; }
+		public int soilmoisture1 { get; set; }
+		public int soilmoisture2 { get; set; }
+		public int soilmoisture3 { get; set; }
+		public int soilmoisture4 { get; set; }
+		public int soiltemp1 { get; set; }
+		public int soiltemp2 { get; set; }
+		public int soiltemp3 { get; set; }
+		public int soiltemp4 { get; set; }
+		public int leafwetness1 { get; set; }
+		public int leafwetness2 { get; set; }
+		public int warning { get; set; }
+	}
+
+	public class AwekasDisabled
+	{
+		public int temp { get; set; }
+		public int hum { get; set; }
+		public int airp { get; set; }
+		public int rain { get; set; }
+		public int rainrate { get; set; }
+		public int wind { get; set; }
+		public int snow { get; set; }
+		public int solar { get; set; }
+		public int uv { get; set; }
+		public int indoortemp { get; set; }
+		public int indoorhumidity { get; set; }
+		public int soilmoisture1 { get; set; }
+		public int soilmoisture2 { get; set; }
+		public int soilmoisture3 { get; set; }
+		public int soilmoisture4 { get; set; }
+		public int soiltemp1 { get; set; }
+		public int soiltemp2 { get; set; }
+		public int soiltemp3 { get; set; }
+		public int soiltemp4 { get; set; }
+		public int leafwetness1 { get; set; }
+		public int leafwetness2 { get; set; }
+		public int report { get; set; }
+	}
+
 }

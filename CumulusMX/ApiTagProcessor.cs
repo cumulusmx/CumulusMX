@@ -49,17 +49,13 @@ namespace CumulusMX
 					parms.Add("rc", "y");
 				}
 				var val = webtags.GetWebTagText(tag, parms);
-				if (val != "")
-				{
-
-					output.Append($"\"{tag}\":\"{val}\",");
-				}
+				output.Append($"\"{tag}\":\"{val}\",");
 				if (rc)
 				{
 					parms.Clear();
 				}
 			}
-			if (output.Length > 0)
+			if (output.Length > 1)
 			{
 				// remove trailing ","
 				output.Remove(output.Length - 1, 1);

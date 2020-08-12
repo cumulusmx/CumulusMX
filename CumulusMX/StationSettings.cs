@@ -18,8 +18,8 @@ namespace CumulusMX
 		{
 			this.cumulus = cumulus;
 
-			stationOptionsFile = AppDomain.CurrentDomain.BaseDirectory+ "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
-			stationSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
+			stationOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
+			stationSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
 		}
 
 		public string GetStationAlpacaFormData()
@@ -137,7 +137,8 @@ namespace CumulusMX
 				graphFeelsLikeVis = cumulus.GraphOptions.FeelsLikeVisible,
 				graphHumidexVis = cumulus.GraphOptions.HumidexVisible,
 				graphHumVis = cumulus.GraphOptions.OutHumVisible,
-				graphInHumVis = cumulus.GraphOptions.InHumVisible
+				graphInHumVis = cumulus.GraphOptions.InHumVisible,
+				graphUvVis = cumulus.GraphOptions.UVVisible
 			};
 
 			var wllNetwork = new JsonStationSettingsWLLNetwork()
@@ -340,6 +341,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.HumidexVisible = settings.Graphs.graphHumidexVis;
 					cumulus.GraphOptions.OutHumVisible = settings.Graphs.graphHumVis;
 					cumulus.GraphOptions.InHumVisible = settings.Graphs.graphInHumVis;
+					cumulus.GraphOptions.UVVisible = settings.Graphs.graphUvVis;
 				}
 				catch (Exception ex)
 				{
@@ -627,7 +629,7 @@ namespace CumulusMX
 					if (cumulus.StationType != settings.stationtype)
 					{
 						cumulus.LogMessage("Station type changed, restart required");
-						Console.WriteLine("*** Station type changed, restart required ***");
+						cumulus.LogConsoleMessage("*** Station type changed, restart required ***");
 					}
 					cumulus.StationType = settings.stationtype;
 				}
@@ -921,5 +923,6 @@ namespace CumulusMX
 		public bool graphHumidexVis { get; set; }
 		public bool graphHumVis { get; set; }
 		public bool graphInHumVis { get; set; }
+		public bool graphUvVis { get; set; }
 	}
 }

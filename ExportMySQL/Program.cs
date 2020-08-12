@@ -112,7 +112,7 @@ namespace ExportMySQL
                 Connection = mySqlConn
             };
 
-            var StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable + " (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,FeelsLike,WindbearingSym,CurrWindBearingSym)";
+            var StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlMonthlyTable + " (LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar,Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex,SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing,RG11rain,RainSinceMidnight,FeelsLike,Humidex,WindbearingSym,CurrWindBearingSym)";
 
             try
             {
@@ -155,7 +155,7 @@ namespace ExportMySQL
                         Console.Write(sqldate+"\r");
                         StringBuilder sb = new StringBuilder(StartOfMonthlyInsertSQL + " Values('" + sqldate + "',");
 
-                        for (int i = 2; i < 28; i++)
+                        for (int i = 2; i < 29; i++)
                         {
                             if (i < st.Count && !String.IsNullOrEmpty(st[i]))
                             {
@@ -240,7 +240,7 @@ namespace ExportMySQL
             if (File.Exists(filename))
             {
                 Console.WriteLine("Dayfile exists, beginning export");
-                string StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable + " (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,HWindGBearSym,MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,DomWindDirSym)";
+                string StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlDayfileTable + " (LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp,MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp,TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap,HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp,HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint,LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad,THighSolarRad,HighUV,THighUV,MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,MaxHumidex,TMaxHumidex,HWindGBearSym,DomWindDirSym)";
 
                 try
                 {
@@ -279,7 +279,7 @@ namespace ExportMySQL
 
                             StringBuilder sb = new StringBuilder(StartOfDayfileInsertSQL + " Values('" + sqldate + "',");
 
-                            for (int i = 1; i < 50; i++)
+                            for (int i = 1; i < 52; i++)
                             {
                                 if (i < st.Count && !String.IsNullOrEmpty(st[i]))
                                 {

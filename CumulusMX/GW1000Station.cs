@@ -242,12 +242,13 @@ namespace CumulusMX
 			if (connectedOK)
 			{
 				cumulus.LogMessage("Connected OK");
-				Console.WriteLine("Connected to station");
+				//Console.WriteLine("Connected to station");
+				cumulus.LogConsoleMessage("Connected to station");
 			}
 			else
 			{
 				cumulus.LogMessage("Not Connected");
-				Console.WriteLine("Unable to connect to station");
+				cumulus.LogConsoleMessage("Unable to connect to station");
 			}
 
 			if (connectedOK)

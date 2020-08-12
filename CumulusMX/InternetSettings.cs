@@ -18,8 +18,8 @@ namespace CumulusMX
 		public InternetSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			internetOptionsFile = AppDomain.CurrentDomain.BaseDirectory + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetOptions.json";
-			internetSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
+			internetOptionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetOptions.json";
+			internetSchemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
 		}
 
 		//public string UpdateInternetConfig(HttpListenerContext context)
@@ -120,6 +120,9 @@ namespace CumulusMX
 					cumulus.TwitterSendLocation = settings.twitter.sendlocation;
 					cumulus.Twitteruser = settings.twitter.user ?? string.Empty;
 					cumulus.SynchronisedTwitterUpdate = (60 % cumulus.TwitterInterval == 0);
+
+					cumulus.TwitterTimer.Interval = cumulus.TwitterInterval * 60 * 1000;
+					cumulus.TwitterTimer.Enabled = cumulus.TwitterEnabled && !cumulus.SynchronisedTwitterUpdate && !String.IsNullOrWhiteSpace(cumulus.Twitteruser) && !String.IsNullOrWhiteSpace(cumulus.TwitterPW);
 				}
 				catch (Exception ex)
 				{
@@ -143,6 +146,9 @@ namespace CumulusMX
 					cumulus.WundSendAverage = settings.wunderground.sendavgwind;
 					cumulus.WundID = settings.wunderground.stationid ?? string.Empty;
 					cumulus.SynchronisedWUUpdate = (!cumulus.WundRapidFireEnabled) && (60 % cumulus.WundInterval == 0);
+
+					cumulus.WundTimer.Interval = cumulus.WundRapidFireEnabled ? 5000 : cumulus.WundInterval * 60 * 1000;
+					cumulus.WundTimer.Enabled = cumulus.WundEnabled && !cumulus.SynchronisedWUUpdate && !String.IsNullOrWhiteSpace(cumulus.WundID) && !String.IsNullOrWhiteSpace(cumulus.WundPW);
 				}
 				catch (Exception ex)
 				{
@@ -163,6 +169,9 @@ namespace CumulusMX
 					cumulus.WindyApiKey = settings.windy.apikey;
 					cumulus.WindyStationIdx = settings.windy.stationidx;
 					cumulus.SynchronisedWindyUpdate = (60 % cumulus.WindyInterval == 0);
+
+					cumulus.WindyTimer.Interval = cumulus.WindyInterval * 60 * 1000;
+					cumulus.WindyTimer.Enabled = cumulus.WindyEnabled && !cumulus.SynchronisedWindyUpdate && !String.IsNullOrWhiteSpace(cumulus.WindyApiKey);
 				}
 				catch (Exception ex)
 				{
@@ -183,7 +192,13 @@ namespace CumulusMX
 					cumulus.SendSolarToAwekas = settings.awekas.includesolar;
 					cumulus.SendUVToAwekas = settings.awekas.includeuv;
 					cumulus.SendSoilTempToAwekas = settings.awekas.includesoiltemp;
-					cumulus.SynchronisedAwekasUpdate = (60 % cumulus.AwekasInterval == 0);
+					cumulus.SendSoilMoistureToAwekas = settings.awekas.includesoilmoisture;
+					cumulus.SendLeafWetnessToAwekas = settings.awekas.includeleafwetness;
+					cumulus.SendIndoorToAwekas = settings.awekas.includeindoor;
+					cumulus.SynchronisedAwekasUpdate = (cumulus.AwekasInterval % 60 == 0);
+
+					cumulus.AwekasTimer.Interval = cumulus.AwekasInterval * 1000;
+					cumulus.AwekasTimer.Enabled = cumulus.AwekasEnabled && !cumulus.SynchronisedAwekasUpdate && !String.IsNullOrWhiteSpace(cumulus.AwekasUser) && !String.IsNullOrWhiteSpace(cumulus.AwekasPW);
 				}
 				catch (Exception ex)
 				{
@@ -202,6 +217,9 @@ namespace CumulusMX
 					cumulus.SendSolarToWCloud = settings.weathercloud.includesolar;
 					cumulus.SendUVToWCloud = settings.weathercloud.includeuv;
 					cumulus.SynchronisedWCloudUpdate = (60 % cumulus.WCloudInterval == 0);
+
+					//cumulus.WCloudTimer.Interval = cumulus.WCloudInterval * 60 * 1000;
+					///cumulus.WCloudTimer.Enabled = cumulus.WCloudEnabled && !cumulus.SynchronisedWCloudUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloudWid) && !String.IsNullOrWhiteSpace(cumulus.WCloudKey);
 				}
 				catch (Exception ex)
 				{
@@ -222,6 +240,9 @@ namespace CumulusMX
 					cumulus.PWSPW = settings.pwsweather.password ?? string.Empty;
 					cumulus.PWSID = settings.pwsweather.stationid ?? string.Empty;
 					cumulus.SynchronisedPWSUpdate = (60 % cumulus.PWSInterval == 0);
+
+					cumulus.PWSTimer.Interval = cumulus.PWSInterval * 60 * 1000;
+					cumulus.PWSTimer.Enabled = cumulus.PWSEnabled && !cumulus.SynchronisedPWSUpdate && !String.IsNullOrWhiteSpace(cumulus.PWSID) && !String.IsNullOrWhiteSpace(cumulus.PWSPW);
 				}
 				catch (Exception ex)
 				{
@@ -242,6 +263,9 @@ namespace CumulusMX
 					cumulus.WOWPW = settings.wow.password ?? string.Empty; ;
 					cumulus.WOWID = settings.wow.stationid ?? string.Empty; ;
 					cumulus.SynchronisedWOWUpdate = (60 % cumulus.WOWInterval == 0);
+
+					cumulus.WOWTimer.Interval = cumulus.WOWInterval * 60 * 1000;
+					cumulus.WOWTimer.Enabled = cumulus.WOWEnabled && !cumulus.SynchronisedWOWUpdate && !String.IsNullOrWhiteSpace(cumulus.WOWID) && !String.IsNullOrWhiteSpace(cumulus.WOWPW);
 				}
 				catch (Exception ex)
 				{
@@ -262,6 +286,9 @@ namespace CumulusMX
 					cumulus.APRSport = settings.cwop.port;
 					cumulus.APRSserver = settings.cwop.server ?? string.Empty; ;
 					cumulus.SynchronisedAPRSUpdate = (60 % cumulus.APRSinterval == 0);
+
+					cumulus.APRStimer.Interval = cumulus.APRSinterval * 60 * 1000;
+					cumulus.APRStimer.Enabled = cumulus.APRSenabled && !cumulus.SynchronisedAPRSUpdate && !String.IsNullOrWhiteSpace(cumulus.APRSID) && !String.IsNullOrWhiteSpace(cumulus.APRSpass);
 				}
 				catch (Exception ex)
 				{
@@ -286,6 +313,9 @@ namespace CumulusMX
 					cumulus.MQTTIntervalTime = settings.mqtt.interval.time;
 					cumulus.MQTTIntervalTopic = settings.mqtt.interval.topic ?? string.Empty;
 					cumulus.MQTTIntervalTemplate = settings.mqtt.interval.template ?? string.Empty;
+
+					cumulus.MQTTTimer.Interval = cumulus.MQTTIntervalTime * 1000;
+					cumulus.MQTTTimer.Enabled = cumulus.MQTTEnableInterval && !String.IsNullOrWhiteSpace(cumulus.MQTTIntervalTopic) && !String.IsNullOrWhiteSpace(cumulus.MQTTIntervalTemplate);
 				}
 				catch (Exception ex)
 				{
@@ -485,6 +515,9 @@ namespace CumulusMX
 				enabled = cumulus.AwekasEnabled,
 				includesolar = cumulus.SendSolarToAwekas,
 				includesoiltemp = cumulus.SendSoilTempToAwekas,
+				includesoilmoisture = cumulus.SendSoilMoistureToAwekas,
+				includeleafwetness = cumulus.SendLeafWetnessToAwekas,
+				includeindoor = cumulus.SendIndoorToAwekas,
 				includeuv = cumulus.SendUVToAwekas,
 				interval = cumulus.AwekasInterval,
 				lang = cumulus.AwekasLang,
@@ -839,6 +872,9 @@ namespace CumulusMX
 		public bool includeuv { get; set; }
 		public bool includesolar { get; set; }
 		public bool includesoiltemp { get; set; }
+		public bool includesoilmoisture { get; set; }
+		public bool includeleafwetness { get; set; }
+		public bool includeindoor { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
 		public string lang { get; set; }

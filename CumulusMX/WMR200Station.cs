@@ -40,6 +40,8 @@ namespace CumulusMX
 		private bool rolloverdone;
 		private DateTime PreviousHistoryTimeStamp;
 		private bool GettingHistory;
+		private int BadHistoryPackets;
+		private int BadHistoryPacketThreshold = 50;
 		private int LivePacketCount;
 		private readonly byte[] usbbuffer = new byte[9];
 
@@ -55,13 +57,13 @@ namespace CumulusMX
 
 			if (station != null)
 			{
-				cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " WMR200 station found");
-				Console.WriteLine("WMR200 station found");
+				cumulus.LogMessage("WMR200 station found");
+				cumulus.LogConsoleMessage("WMR200 station found");
 
 				if (station.TryOpen(out stream))
 				{
-					cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Stream opened");
-					Console.WriteLine("Connected to station");
+					cumulus.LogMessage("Stream opened");
+					cumulus.LogConsoleMessage("Connected to station");
 				}
 
 				PacketBuffer = new byte[PacketBufferBound];
@@ -79,8 +81,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " WMR200 station not found!");
-				Console.WriteLine("WMR200 station not found!");
+				cumulus.LogMessage("WMR200 station not found!");
+				cumulus.LogConsoleMessage("WMR200 station not found!");
 			}
 		}
 
@@ -97,7 +99,8 @@ namespace CumulusMX
 		public override void startReadingHistoryData()
 		{
 			cumulus.CurrentActivity = "Getting archive data";
-			Console.WriteLine("Reading archive data");
+			cumulus.LogConsoleMessage("Reading archive data");
+
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -121,7 +124,8 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			cumulus.LogMessage("Start reading history data");
-			Console.WriteLine("Start reading history data...");
+			cumulus.LogConsoleMessage("Start reading history data...");
+
 			//DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
@@ -163,7 +167,7 @@ namespace CumulusMX
 		/// </summary>
 		public override void Start()
 		{
-			cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Start loop");
+			cumulus.LogMessage("Start loop");
 			int numBytes;
 			int responseLength;
 			int startByte;
@@ -1184,13 +1188,13 @@ namespace CumulusMX
 			// Byte 24:  (a) byte(24:L) = Wind Avrg low  byte : high nibble
 			// (A) byte(24:H) = Wind Avrg high byte : low  nibble
 			//
-			// WIND GUST: [byte10:L + byte09]
+			// WIND GUST: [byte23:L + byte22]
 			// WindGust in m/s = (((byte(23:L) * 256) + byte(22)) / 10)
 			// WindGust in mph = (((byte(23:L) * 256) + byte(22)) / 10) * 2.23693629
 			// WindGust in kph = (((byte(23:L) * 256) + byte(22)) / 10) * 3.60000000
 			// WindGust in kts = (((byte(23:L) * 256) + byte(22)) / 10) * 1.94384449
 			//
-			// WIND AVRG: [byte11:H + byte11:L + byte10:H]
+			// WIND AVRG: [byte24 + byte23:H]
 			// WindAvrg in m/s = (((byte(24) * 16) + byte(23:H)) / 10)
 			// WindAvrg in mph = (((byte(24) * 16) + byte(23:H)) / 10) * 2.23693629
 			// WindAvrg in kph = (((byte(24) * 16) + byte(23:H)) / 10) * 3.60000000
@@ -1397,7 +1401,14 @@ namespace CumulusMX
 			}
 			catch
 			{
-				cumulus.LogMessage("Invalid date, ignoring");
+				BadHistoryPackets++;
+				cumulus.LogMessage($"Invalid date, ignoring. Count = {BadHistoryPackets}/{BadHistoryPacketThreshold}");
+				if (BadHistoryPackets > BadHistoryPacketThreshold)
+				{
+					cumulus.LogMessage($"Bad history packet count exceeds the threshold, stop history download and start normal running");
+					GettingHistory = false;
+				}
+
 				return;
 			}
 			if (timestamp < cumulus.LastUpdateTime)
@@ -1683,7 +1694,7 @@ namespace CumulusMX
 						if (GettingHistory)
 						{
 							LivePacketCount++;
-							cumulus.LogMessage("Wind packet received");
+							cumulus.LogMessage("Wind packet received and ignored during history download");
 						}
 						else
 						{
@@ -1696,7 +1707,7 @@ namespace CumulusMX
 						if (GettingHistory)
 						{
 							LivePacketCount++;
-							cumulus.LogMessage("Rain packet received");
+							cumulus.LogMessage("Rain packet received and ignored during history download");
 						}
 						else
 						{
@@ -1709,7 +1720,7 @@ namespace CumulusMX
 						if (GettingHistory)
 						{
 							LivePacketCount++;
-							cumulus.LogMessage("UV packet received");
+							cumulus.LogMessage("UV packet received and ignored during history download");
 						}
 						else
 						{
@@ -1722,7 +1733,7 @@ namespace CumulusMX
 						if (GettingHistory)
 						{
 							LivePacketCount++;
-							cumulus.LogMessage("Baro packet received");
+							cumulus.LogMessage("Baro packet received and ignored during history download");
 						}
 						else
 						{
@@ -1735,7 +1746,7 @@ namespace CumulusMX
 						if (GettingHistory)
 						{
 							LivePacketCount++;
-							cumulus.LogMessage("Temp packet received");
+							cumulus.LogMessage("Temp packet received and ignored during history download");
 						}
 						else
 						{

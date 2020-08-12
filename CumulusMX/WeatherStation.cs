@@ -302,6 +302,8 @@ namespace CumulusMX
 		public double presstrendval;
 		public double temptrendval;
 
+		public int multicastsGood, multicastsBad;
+
 		public bool timerStartNeeded = false;
 
 		private readonly DateTime versionCheckTime;
@@ -603,12 +605,12 @@ namespace CumulusMX
 
 			IniFile ini = new IniFile(cumulus.TodayIniFile);
 
-			Console.WriteLine("Today.ini = " + cumulus.TodayIniFile);
+			cumulus.LogConsoleMessage("Today.ini = " + cumulus.TodayIniFile);
 
 			var todayfiledate = ini.GetValue("General", "Date", "00/00/00");
 			var timestampstr = ini.GetValue("General", "Timestamp", DateTime.Now.ToString("s"));
 
-			Console.WriteLine("Last update=" + timestampstr);
+			cumulus.LogConsoleMessage("Last update=" + timestampstr);
 
 			cumulus.LastUpdateTime = DateTime.Parse(timestampstr);
 			cumulus.LogMessage("Last update time from today.ini: " + cumulus.LastUpdateTime);
@@ -1696,49 +1698,42 @@ namespace CumulusMX
 						}
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.WundID) && (cumulus.WundID != " ") && cumulus.WundEnabled && cumulus.SynchronisedWUUpdate &&
-						(now.Minute % cumulus.WundInterval == 0))
+					if (cumulus.WundEnabled && (now.Minute % cumulus.WundInterval == 0) && cumulus.SynchronisedWUUpdate && !String.IsNullOrWhiteSpace(cumulus.WundID))
 					{
 						cumulus.UpdateWunderground(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.WindyApiKey) && (cumulus.WindyApiKey != " ") && cumulus.WindyEnabled && cumulus.SynchronisedWindyUpdate &&
-						(now.Minute % cumulus.WindyInterval == 0))
+					if (cumulus.WindyEnabled && (now.Minute % cumulus.WindyInterval == 0) && cumulus.SynchronisedWindyUpdate && !String.IsNullOrWhiteSpace(cumulus.WindyApiKey))
 					{
 						cumulus.UpdateWindy(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.AwekasUser) && (cumulus.AwekasUser != " ") && cumulus.AwekasEnabled && cumulus.SynchronisedAwekasUpdate &&
-						(now.Minute % cumulus.AwekasInterval == 0))
+					if (cumulus.AwekasEnabled && (now.Minute % ((double)cumulus.AwekasInterval / 60) == 0) && cumulus.SynchronisedAwekasUpdate && !String.IsNullOrWhiteSpace(cumulus.AwekasUser))
 					{
 						cumulus.UpdateAwekas(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.WCloudWid) && (cumulus.WCloudWid != " ") && cumulus.WCloudEnabled && cumulus.SynchronisedWCloudUpdate &&
-						(now.Minute % cumulus.WCloudInterval == 0))
+					if (cumulus.WCloudEnabled && (now.Minute % cumulus.WCloudInterval == 0) && cumulus.SynchronisedWCloudUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloudWid))
 					{
 						cumulus.UpdateWCloud(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.PWSID) && (cumulus.PWSID != " ") && (cumulus.PWSPW != " ") && (cumulus.PWSPW != "") && cumulus.PWSEnabled &&
-						cumulus.SynchronisedPWSUpdate && (now.Minute % cumulus.PWSInterval == 0))
+					if (cumulus.PWSEnabled && (now.Minute % cumulus.PWSInterval == 0) && cumulus.SynchronisedPWSUpdate && !String.IsNullOrWhiteSpace(cumulus.PWSID) && !String.IsNullOrWhiteSpace(cumulus.PWSPW))
 					{
 						cumulus.UpdatePWSweather(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.WOWID) && (cumulus.WOWID != " ") && (cumulus.WOWPW != " ") && (cumulus.WOWPW != "") && cumulus.WOWEnabled &&
-						cumulus.SynchronisedWOWUpdate && (now.Minute % cumulus.WOWInterval == 0))
+					if (cumulus.WOWEnabled && (now.Minute % cumulus.WOWInterval == 0) && cumulus.SynchronisedWOWUpdate && !String.IsNullOrWhiteSpace(cumulus.WOWID) && !String.IsNullOrWhiteSpace(cumulus.WOWPW))
 					{
 						cumulus.UpdateWOW(now);
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.APRSID) && cumulus.APRSenabled && cumulus.SynchronisedAPRSUpdate && (now.Minute % cumulus.APRSinterval == 0))
+					if (cumulus.APRSenabled && (now.Minute % cumulus.APRSinterval == 0) && cumulus.SynchronisedAPRSUpdate && !String.IsNullOrWhiteSpace(cumulus.APRSID))
 					{
 						UpdateAPRS();
 					}
 
-					if (!String.IsNullOrEmpty(cumulus.Twitteruser) && (cumulus.Twitteruser != " ") && (cumulus.TwitterPW != " ") && (cumulus.TwitterPW != "") && cumulus.TwitterEnabled &&
-						cumulus.SynchronisedTwitterUpdate && (now.Minute % cumulus.TwitterInterval == 0))
+					if (cumulus.TwitterEnabled  && (now.Minute % cumulus.TwitterInterval == 0) && cumulus.SynchronisedTwitterUpdate && !String.IsNullOrWhiteSpace(cumulus.Twitteruser) && !String.IsNullOrWhiteSpace(cumulus.TwitterPW))
 					{
 						cumulus.UpdateTwitter();
 					}
@@ -2111,23 +2106,36 @@ namespace CumulusMX
 		public string GetSolarGraphData()
 		{
 			var InvC = new CultureInfo("");
-			var sb = new StringBuilder("{\"UV\":[");
+			var sb = new StringBuilder("{");
+			var append = false;
+
 			lock (GraphDataList)
 			{
-				for (var i = 0; i < GraphDataList.Count; i++)
+				if (cumulus.GraphOptions.UVVisible)
 				{
-					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + GraphDataList[i].uvindex.ToString(cumulus.UVFormat, InvC) + "]");
-					if (i < GraphDataList.Count - 1)
-						sb.Append(",");
+					sb.Append("\"UV\":[");
+					for (var i = 0; i < GraphDataList.Count; i++)
+					{
+						sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + GraphDataList[i].uvindex.ToString(cumulus.UVFormat, InvC) + "]");
+						if (i < GraphDataList.Count - 1)
+							sb.Append(",");
+					}
+					sb.Append("]");
+					append = true;
 				}
 
-				sb.Append("],\"SolarRad\":[");
+				if (append)
+				{
+					sb.Append(",");
+				}
+				sb.Append("\"SolarRad\":[");
 				for (var i = 0; i < GraphDataList.Count; i++)
 				{
 					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarrad + "]");
 					if (i < GraphDataList.Count - 1)
 						sb.Append(",");
 				}
+
 
 				sb.Append("],\"CurrentSolarMax\":[");
 				for (var i = 0; i < GraphDataList.Count; i++)
@@ -6220,6 +6228,7 @@ namespace CumulusMX
 		public int YestDominantWindBearing { get; set; }
 		public double RainLast24Hour { get; set; }
 		public string ConBatText { get; set; }
+		public string ConSupplyVoltageText { get; set; }
 		public string TxBatText { get; set; }
 
 		public double YestHeatingDegreeDays { get; set; }
@@ -8108,6 +8117,7 @@ namespace CumulusMX
 			return hex.ToString();
 		}
 
+		/*
 		public string GetAwekasURL(out string pwstring, DateTime timestamp)
 		{
 			var InvC = new CultureInfo("");
@@ -8349,6 +8359,209 @@ namespace CumulusMX
 
 			return sb.ToString();
 		}
+		*/
+
+		public string GetAwekasURLv4(out string pwstring, DateTime timestamp)
+		{
+			var InvC = new CultureInfo("");
+			byte[] hashPW;
+			string sep = ";";
+
+			// password is sent as MD5 hash
+			using (MD5 md5 = MD5.Create())
+			{
+				hashPW = md5.ComputeHash(Encoding.ASCII.GetBytes(cumulus.AwekasPW));
+			}
+
+			pwstring = ByteArrayToString(hashPW);
+
+			int presstrend;
+
+			double threeHourlyPressureChangeMb = 0;
+
+			switch (cumulus.PressUnit)
+			{
+				case 0:
+				case 1:
+					threeHourlyPressureChangeMb = presstrendval * 3;
+					break;
+				case 2:
+					threeHourlyPressureChangeMb = presstrendval * 3 / 0.0295333727;
+					break;
+			}
+
+			if (threeHourlyPressureChangeMb > 6) presstrend = 2;
+			else if (threeHourlyPressureChangeMb > 3.5) presstrend = 2;
+			else if (threeHourlyPressureChangeMb > 1.5) presstrend = 1;
+			else if (threeHourlyPressureChangeMb > 0.1) presstrend = 1;
+			else if (threeHourlyPressureChangeMb > -0.1) presstrend = 0;
+			else if (threeHourlyPressureChangeMb > -1.5) presstrend = -1;
+			else if (threeHourlyPressureChangeMb > -3.5) presstrend = -1;
+			else if (threeHourlyPressureChangeMb > -6) presstrend = -2;
+			else
+				presstrend = -2;
+
+			double AvgTemp;
+			if (tempsamplestoday > 0)
+				AvgTemp = TempTotalToday / tempsamplestoday;
+			else
+				AvgTemp = 0;
+
+			StringBuilder sb = new StringBuilder("http://data.awekas.at/eingabe_pruefung.php?val=");
+			// val
+			sb.Append(cumulus.AwekasUser + sep);											// 1
+			sb.Append(pwstring + sep);														// 2
+			sb.Append(timestamp.ToString("dd'.'MM'.'yyyy';'HH':'mm") + sep);				// 3 + 4
+			sb.Append(ConvertUserTempToC(OutdoorTemperature).ToString("F1", InvC) + sep);	// 5
+			sb.Append(OutdoorHumidity + sep);												// 6
+			sb.Append(ConvertUserPressToMB(Pressure).ToString("F1", InvC) + sep);			// 7
+			sb.Append(ConvertUserRainToMM(RainSinceMidnight).ToString("F1", InvC) + sep);	// 8   - was RainToday in v2
+			sb.Append(ConvertUserWindToKPH(WindAverage).ToString("F1", InvC) + sep);		// 9
+			sb.Append(AvgBearing + sep);													// 10
+			sb.Append(sep + sep + sep);														// 11/12/13 - condition and warning, snow height
+			sb.Append(cumulus.AwekasLang + sep);											// 14
+			sb.Append(presstrend + sep);													// 15
+			sb.Append(ConvertUserWindToKPH(RecentMaxGust).ToString("F1", InvC) + sep);		// 16
+
+			if (cumulus.SendSolarToAwekas)
+				sb.Append(SolarRad.ToString("F1", InvC) + sep);								// 17
+			else
+				sb.Append(sep);
+
+			if (cumulus.SendUVToAwekas)
+				sb.Append(UV.ToString("F1", InvC) + sep);									// 18
+			else
+				sb.Append(sep);
+
+			if (cumulus.SendSolarToAwekas)
+			{
+				if (cumulus.StationType == StationTypes.FineOffsetSolar)
+					sb.Append(LightValue.ToString("F0", InvC) + sep);						// 19
+				else
+					sb.Append(sep);
+
+				sb.Append(SunshineHours.ToString("F2", InvC) + sep);						// 20
+			}
+			else
+			{
+				sb.Append(sep + sep);
+			}
+
+			if (cumulus.SendSoilTempToAwekas)
+				sb.Append(ConvertUserTempToC(SoilTemp1).ToString("F1", InvC) + sep);		// 21
+			else
+				sb.Append(sep);
+
+			sb.Append(ConvertUserRainToMM(RainRate).ToString("F1", InvC) + sep);			// 22
+			sb.Append("Cum_" + cumulus.Version + sep);										// 23
+			sb.Append(sep + sep);															// 24/25 location for mobile
+			sb.Append(ConvertUserTempToC(LowTempToday).ToString("F1", InvC) + sep);			// 26
+			sb.Append(ConvertUserTempToC(AvgTemp).ToString("F1", InvC) + sep);				// 27
+			sb.Append(ConvertUserTempToC(HighTempToday).ToString("F1", InvC) + sep);		// 28
+			sb.Append(ConvertUserTempToC(LowTempThisMonth).ToString("F1", InvC) + sep);		// 29
+			sb.Append(sep);																	// 30 avg temp this month
+			sb.Append(ConvertUserTempToC(HighTempThisMonth).ToString("F1", InvC) + sep);	// 31
+			sb.Append(ConvertUserTempToC(LowTempThisYear).ToString("F1", InvC) + sep);		// 32
+			sb.Append(sep);																	// 33 avg temp this year
+			sb.Append(ConvertUserTempToC(HighTempThisYear).ToString("F1", InvC) + sep);		// 34
+			sb.Append(LowHumidityToday + sep);												// 35
+			sb.Append(sep);																	// 36 avg hum today
+			sb.Append(HighHumidityToday + sep);												// 37
+			sb.Append(LowHumidityThisMonth + sep);											// 38
+			sb.Append(sep);																	// 39 avg hum this month
+			sb.Append(HighHumidityThisMonth + sep);											// 40
+			sb.Append(LowHumidityThisYear + sep);											// 41
+			sb.Append(sep);																	// 42 avg hum this year
+			sb.Append(HighHumidityThisYear + sep);											// 43
+			sb.Append(ConvertUserPressToMB(LowPressToday).ToString("F1", InvC) + sep);		// 44
+			sb.Append(sep);																	// 45 avg press today
+			sb.Append(ConvertUserPressToMB(HighPressToday).ToString("F1", InvC) + sep);		// 46
+			sb.Append(ConvertUserPressToMB(LowPressThisMonth).ToString("F1", InvC) + sep);	// 47
+			sb.Append(sep);																	// 48 avg press this month
+			sb.Append(ConvertUserPressToMB(HighPressThisMonth).ToString("F1", InvC) + sep);	// 49
+			sb.Append(ConvertUserPressToMB(LowPressThisYear).ToString("F1", InvC) + sep);	// 50
+			sb.Append(sep);																	// 51 avg press this year
+			sb.Append(ConvertUserPressToMB(HighPressThisYear).ToString("F1", InvC) + sep);	// 52
+			sb.Append(sep + sep);															// 53/54 min/avg wind today
+			sb.Append(ConvertUserWindToKPH(HighWindToday).ToString("F1", InvC) + sep);		// 55
+			sb.Append(sep + sep);															// 56/57 min/avg wind this month
+			sb.Append(ConvertUserWindToKPH(HighWindThisMonth).ToString("F1", InvC) + sep);	// 58
+			sb.Append(sep + sep);															// 59/60 min/avg wind this year
+			sb.Append(ConvertUserWindToKPH(HighWindThisYear).ToString("F1", InvC) + sep);	// 61
+			sb.Append(sep + sep);															// 62/63 min/avg gust today
+			sb.Append(ConvertUserWindToKPH(HighGustToday).ToString("F1", InvC) + sep);		// 64
+			sb.Append(sep + sep);															// 65/66 min/avg gust this month
+			sb.Append(ConvertUserWindToKPH(HighGustThisMonth).ToString("F1", InvC) + sep);	// 67
+			sb.Append(sep + sep);															// 68/69 min/avg gust this year
+			sb.Append(ConvertUserWindToKPH(HighGustThisYear).ToString("F1", InvC) + sep);	// 70
+			sb.Append(sep + sep + sep);														// 71/72/73 avg wind bearing today/month/year
+			sb.Append(ConvertUserRainToMM(RainLast24Hour).ToString("F1", InvC) + sep);		// 74
+			sb.Append(ConvertUserRainToMM(RainMonth).ToString("F1", InvC) + sep);			// 75
+			sb.Append(ConvertUserRainToMM(RainYear).ToString("F1", InvC) + sep);			// 76
+			sb.Append(sep);																	// 77 avg rain rate today
+			sb.Append(ConvertUserRainToMM(HighRainToday).ToString("F1", InvC) + sep);		// 78
+			sb.Append(sep);																	// 79 avg rain rate this month
+			sb.Append(ConvertUserRainToMM(HighRainThisMonth).ToString("F1", InvC) + sep);	// 80
+			sb.Append(sep);																	// 81 avg rain rate this year
+			sb.Append(ConvertUserRainToMM(HighRainThisYear).ToString("F1", InvC) + sep);	// 82
+			sb.Append(sep);																	// 83 avg solar today
+			if (cumulus.SendSolarToAwekas)
+				sb.Append(HighSolarToday.ToString("F1", InvC));								// 84
+			else
+				sb.Append(sep);
+
+			sb.Append(sep + sep);															// 85/86 avg/high solar this month
+			sb.Append(sep + sep);															// 87/88 avg/high solar this year
+			sb.Append(sep);																	// 89 avg uv today
+
+			if (cumulus.SendUVToAwekas)
+				sb.Append(HighUVToday.ToString("F1", InvC));								// 90
+			else
+				sb.Append(sep);
+
+			sb.Append(sep + sep);															// 91/92 avg/high uv this month
+			sb.Append(sep + sep);															// 93/94 avg/high uv this year
+			sb.Append(sep + sep + sep + sep + sep + sep);									// 95/96/97/98/99/100 avg/max lux today/month/year
+			sb.Append(sep + sep);															// 101/102 sun hours this month/year
+			sb.Append(sep + sep + sep + sep + sep + sep + sep + sep + sep);					// 103-111 min/avg/max Soil temp today/month/year
+
+
+			// indoor temp/humidity
+			if (cumulus.SendIndoorToAwekas)
+			{
+				sb.Append("&indoortemp=" + ConvertUserTempToC(IndoorTemperature).ToString("F1", InvC));
+				sb.Append("&indoorhumidity=" + IndoorHumidity);
+			}
+
+			if (cumulus.SendSoilTempToAwekas)
+			{
+				sb.Append("&soiltemp1=" + ConvertUserTempToC(SoilTemp1).ToString("F1", InvC));
+				sb.Append("&soiltemp2=" + ConvertUserTempToC(SoilTemp2).ToString("F1", InvC));
+				sb.Append("&soiltemp3=" + ConvertUserTempToC(SoilTemp3).ToString("F1", InvC));
+				sb.Append("&soiltemp4=" + ConvertUserTempToC(SoilTemp4).ToString("F1", InvC));
+			}
+
+			if (cumulus.SendSoilMoistureToAwekas)
+			{
+				sb.Append("&soilmoisture1=" + SoilMoisture1);
+				sb.Append("&soilmoisture2=" + SoilMoisture2);
+				sb.Append("&soilmoisture3=" + SoilMoisture3);
+				sb.Append("&soilmoisture4=" + SoilMoisture4);
+			}
+
+			if (cumulus.SendLeafWetnessToAwekas)
+			{
+				sb.Append("&leafwetness1=" + LeafWetness1);
+				sb.Append("&leafwetness2=" + LeafWetness2);
+				sb.Append("&leafwetness3=" + LeafWetness3);
+				sb.Append("&leafwetness4=" + LeafWetness4);
+			}
+
+			sb.Append("&output=json");
+
+			return sb.ToString();
+		}
+
 
 		public string GetWundergroundURL(out string pwstring, DateTime timestamp, bool catchup)
 		{
@@ -9857,8 +10070,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
-
+				cumulus.LogConsoleMessage(ex.Message);
 				return "";
 			}
 

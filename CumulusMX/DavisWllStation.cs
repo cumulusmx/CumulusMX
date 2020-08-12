@@ -39,7 +39,6 @@ namespace CumulusMX
 		private bool broadcastReceived = false;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow = false;
-		private int multicastsGood, multicastsBad;
 		private bool stop = false;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
@@ -1367,7 +1366,8 @@ namespace CumulusMX
 			{
 				var msg = "No WeatherLink API station ID in the cumulus.ini file";
 				cumulus.LogMessage(msg);
-				Console.WriteLine(msg);
+				cumulus.LogConsoleMessage(msg);
+
 				if (!GetAvailableStationIds())
 				{
 					cumulus.LastUpdateTime = DateTime.Now;
@@ -1391,7 +1391,7 @@ namespace CumulusMX
 				MaxArchiveRuns++;
 			}
 
-			Console.WriteLine($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
+			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
 			cumulus.LogMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime.ToString("s")} to: {FromUnixTime(endTime).ToString("s")}");
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
@@ -1459,7 +1459,7 @@ namespace CumulusMX
 					if ((int)response.StatusCode != 200)
 					{
 						cumulus.LogMessage($"WeatherLink API Historic Error: {jObject.Value<string>("code")}, {jObject.Value<string>("message")}");
-						Console.WriteLine($" - Error {jObject.Value<string>("code")}: {jObject.Value<string>("message")}");
+						cumulus.LogConsoleMessage($" - Error {jObject.Value<string>("code")}: {jObject.Value<string>("message")}");
 						cumulus.LastUpdateTime = FromUnixTime(endTime);
 						return;
 					}
@@ -1467,7 +1467,7 @@ namespace CumulusMX
 					if (responseBody == "{}")
 					{
 						cumulus.LogMessage("WeatherLink API Historic: No data was returned. Check your Device Id.");
-						Console.WriteLine(" - No historic data available");
+						cumulus.LogConsoleMessage(" - No historic data available");
 						cumulus.LastUpdateTime = FromUnixTime(endTime);
 						return;
 					}
@@ -1489,7 +1489,7 @@ namespace CumulusMX
 						if (noOfRecs == 0)
 						{
 							cumulus.LogMessage("No historic data available");
-							Console.WriteLine(" - No historic data available");
+							cumulus.LogConsoleMessage(" - No historic data available");
 							cumulus.LastUpdateTime = FromUnixTime(endTime);
 							return;
 						}
@@ -1593,7 +1593,9 @@ namespace CumulusMX
 						midnightraindone = true;
 					}
 
-					Console.Write("\r - processed " + (((double)dataIndex + 1) / (double)noOfRecs).ToString("P0"));
+
+					if (!Program.service)
+						Console.Write("\r - processed " + (((double)dataIndex + 1) / (double)noOfRecs).ToString("P0"));
 					cumulus.LogMessage($"{(dataIndex + 1)} of {noOfRecs} archive entries processed");
 				}
 				catch (Exception ex)
@@ -1602,7 +1604,8 @@ namespace CumulusMX
 				}
 			}
 
-			Console.WriteLine(""); // flush the progress line
+			if (!Program.service)
+				Console.WriteLine(""); // flush the progress line
 			return;
 		}
 
@@ -2277,6 +2280,7 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
 					}
 					var inpV = data.Value<double>("input_voltage") / 1000.0;
+					ConSupplyVoltageText = inpV.ToString("F2");
 					if (inpV < 4.0)
 					{
 						cumulus.LogMessage($"WLL WARNING: Input voltage is low = {inpV:0.##}V");
@@ -2499,7 +2503,8 @@ namespace CumulusMX
 			{
 				var msg = "No WeatherLink API station ID in the cumulus.ini file";
 				cumulus.LogMessage(msg);
-				Console.WriteLine(msg);
+				cumulus.LogConsoleMessage(msg);
+
 				if (!GetAvailableStationIds())
 				{
 					return;
@@ -2678,7 +2683,7 @@ namespace CumulusMX
 					cumulus.LogMessage($"Found WeatherLink station id = {station.Value<string>("station_id")}, name = {station.Value<string>("station_name")}");
 					if (stations.Count() > 1)
 					{
-						Console.WriteLine($" - Found WeatherLink station id = {station.Value<string>("station_id")}, name = {station.Value<string>("station_name")}, active = {station.Value<string>("active")}");
+						cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.Value<string>("station_id")}, name = {station.Value<string>("station_name")}, active = {station.Value<string>("active")}");
 					}
 					if (station.Value<int>("recording_interval") != cumulus.logints[cumulus.DataLogInterval])
 					{
@@ -2687,7 +2692,7 @@ namespace CumulusMX
 				}
 				if (stations.Count() > 1)
 				{
-					Console.WriteLine(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
+					cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
 				}
 
 				if (stations.Count() == 1)

@@ -92,12 +92,12 @@ namespace CumulusMX
 			if (connectedOK)
 			{
 				cumulus.LogMessage("Connected OK");
-				Console.WriteLine("Connected to station");
+				cumulus.LogConsoleMessage("Connected to station");
 			}
 			else
 			{
 				cumulus.LogMessage("Not Connected");
-				Console.WriteLine("Unable to connect to station");
+				cumulus.LogConsoleMessage("Unable to connect to station");
 			}
 
 			if (connectedOK)
@@ -117,7 +117,7 @@ namespace CumulusMX
 					if ((DavisFirmwareVersion == "???" || float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.UseDavisLoop2)
 					{
 						cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
-						Console.WriteLine("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
+						cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
 					}
 				}
 				catch(Exception ex)
@@ -392,7 +392,7 @@ namespace CumulusMX
 			if (buffer[0] != cumulus.logints[cumulus.DataLogInterval])
 			{
 				var msg = $"** WARNING: Your station logger interval {buffer[0]} mins does not match your Cumulus MX loggung interval {cumulus.logints[cumulus.DataLogInterval]} mins";
-				Console.WriteLine(msg);
+				cumulus.LogConsoleMessage(msg);
 				cumulus.LogMessage(msg);
 			}
 		}
@@ -1735,7 +1735,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Get Archive Data");
 
-			Console.WriteLine("Downloading Archive Data");
+			cumulus.LogConsoleMessage("Downloading Archive Data");
 
 			bool badCRC;
 			const int ACK = 6;
@@ -1812,7 +1812,6 @@ namespace CumulusMX
 			}
 
 			cumulus.LogMessage("Received response to DMPAFT, sending start date and time");
-			Trace.Flush();
 
 			// Construct date time string to send next
 			byte[] data = {(byte) (vantageDateStamp%256), (byte) (vantageDateStamp/256), (byte) (vantageTimeStamp%256), (byte) (vantageTimeStamp/256), 0, 0};
@@ -1896,7 +1895,6 @@ namespace CumulusMX
 			byte[] buff = new byte[pageSize];
 
 			cumulus.LogMessage("Reading data: " + numPages + " pages , offset = " + offset);
-			Trace.Flush();
 
 			// keep track of how many records processed for percentage display
 			// but there may be some old entries in the last page
@@ -1906,7 +1904,7 @@ namespace CumulusMX
 			if (numtodo == 0)
 			{
 				cumulus.LogMessage("No historic data available");
-				Console.WriteLine(" - No historic data available");
+				cumulus.LogConsoleMessage(" - No historic data available");
 			}
 
 			for (int p = 0; p < numPages; p++)
@@ -1949,7 +1947,8 @@ namespace CumulusMX
 						if (tmrComm.timedout)
 						{
 							cumulus.LogMessage("The station has stopped sending archive data, ending attempts");
-							Console.WriteLine(""); // flush the progress line
+							if (!Program.service)
+								Console.WriteLine(""); // flush the progress line
 							return;
 						}
 						// Read the response
@@ -1983,7 +1982,8 @@ namespace CumulusMX
 						if (responsePasses == 20)
 						{
 							cumulus.LogMessage("The station has stopped sending archive data");
-							Console.WriteLine(""); // flush the progress line
+							if (!Program.service)
+								Console.WriteLine(""); // flush the progress line
 							return;
 						}
 
@@ -2010,7 +2010,6 @@ namespace CumulusMX
 				if (badCRC)
 				{
 					cumulus.LogMessage("bad CRC");
-					Trace.Flush();
 					if (IsSerial)
 						comport.Write(ESCstring, 0, 1);
 					else
@@ -2282,7 +2281,6 @@ namespace CumulusMX
 						}
 
 						cumulus.LogMessage("Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
-						Trace.Flush();
 
 						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
 
@@ -2360,7 +2358,8 @@ namespace CumulusMX
 					}
 
 					numdone++;
-					Console.Write("\r - processed " + ((double)numdone / (double)numtodo).ToString("P0"));
+					if (!Program.service)
+						Console.Write("\r - processed " + ((double)numdone / (double)numtodo).ToString("P0"));
 					cumulus.LogMessage(numdone + " archive entries processed");
 
 					//bw.ReportProgress(numdone*100/numtodo, "processing");
@@ -2368,7 +2367,8 @@ namespace CumulusMX
 			}
 			if (numtodo > 0)
 			{
-				Console.WriteLine(""); // flush the progress line
+				if (!Program.service)
+					Console.WriteLine(""); // flush the progress line
 			}
 		}
 
@@ -2618,7 +2618,6 @@ namespace CumulusMX
 					{
 						cumulus.LogDebugMessage("WakeVP: Problem with TCP connection - " + exStream.Message);
 						socket.Client.Close(0);
-
 					}
 					finally
 					{
@@ -2654,18 +2653,46 @@ namespace CumulusMX
 
 				while (passCount < maxPasses)
 				{
-					cumulus.LogDataMessage("Sending newline");
-					stream.WriteByte(newLineASCII);
-
-					Thread.Sleep(cumulus.DavisIPResponseTime);
-					var ch1 = stream.ReadByte();
-					var ch2 = stream.ReadByte();
-					cumulus.LogDataMessage("ch1 = 0x" + ch1.ToString("X2"));
-					cumulus.LogDataMessage("ch2 = 0x" + ch2.ToString("X2"));
-					if (ch1 == newLineASCII && ch2 == LF)
+					try
 					{
-						// success
-						break;
+						cumulus.LogDataMessage("Sending newline");
+						stream.WriteByte(newLineASCII);
+
+						Thread.Sleep(cumulus.DavisIPResponseTime);
+						var ch1 = stream.ReadByte();
+						var ch2 = stream.ReadByte();
+						cumulus.LogDataMessage("ch1 = 0x" + ch1.ToString("X2"));
+						cumulus.LogDataMessage("ch2 = 0x" + ch2.ToString("X2"));
+						if (ch1 == newLineASCII && ch2 == LF)
+						{
+							// success
+							break;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogDebugMessage("WakeVP: Problem with TCP connection " + ex.Message);
+						socket.Client.Close(0);
+					}
+					finally
+					{
+						// Wait a second
+						Thread.Sleep(1000);
+						socket = null;
+
+						cumulus.LogDebugMessage("WakeVP: Attempting reconnect to logger");
+						// open a new connection
+						socket = OpenTcpPort();
+						thePort = socket;
+					}
+
+					if (thePort == null)
+					{
+						return (false);
+					}
+					else
+					{
+						stream = thePort.GetStream();
 					}
 					passCount++;
 				}
@@ -2993,6 +3020,8 @@ namespace CumulusMX
 					if (WaitForACK(comport))
 					{
 						cumulus.LogMessage("Console time set OK");
+						// Pause wilst the console sorts itself out
+						Thread.Sleep(10 * 1000);
 					}
 					else
 					{
@@ -3007,7 +3036,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage("Console time set OK");
 						// Pause wilst the console sorts itself out
-						Thread.Sleep(1500);
+						Thread.Sleep(10 * 1000);
 					}
 					else
 					{
