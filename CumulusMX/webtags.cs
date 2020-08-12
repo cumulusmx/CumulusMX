@@ -997,6 +997,11 @@ namespace CumulusMX
 			return CheckRC(station.ConBatText, TagParams);
 		}
 
+		private string TagConsoleSupplyV(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(station.ConSupplyVoltageText, TagParams);
+		}
+
 		private string Tagtxbattery(Dictionary<string,string> TagParams)
 		{
 			if (String.IsNullOrEmpty(station.TxBatText))
@@ -1030,6 +1035,29 @@ namespace CumulusMX
 				}
 			}
 		}
+
+		private string TagMulticastGoodCnt(Dictionary<string, string> TagParams)
+		{
+			return station.multicastsGood.ToString();
+		}
+
+		private string TagMulticastBadCnt(Dictionary<string, string> TagParams)
+		{
+			return station.multicastsBad.ToString();
+		}
+
+		private string TagMulticastGoodPct(Dictionary<string, string> TagParams)
+		{
+			try
+			{
+				return (station.multicastsGood / (float)(station.multicastsBad + station.multicastsGood) * 100).ToString("0.00");
+			}
+			catch
+			{
+				return "0.00";
+			}
+		}
+
 
 		private string Tagsnowdepth(Dictionary<string,string> TagParams)
 		{
@@ -5044,6 +5072,10 @@ namespace CumulusMX
 				{ "intemp", Tagintemp },
 				{ "battery", Tagbattery },
 				{ "txbattery", Tagtxbattery },
+				{ "ConsoleSupplyV", TagConsoleSupplyV },
+				{ "MulticastBadCnt", TagMulticastBadCnt },
+				{ "MulticastGoodCnt", TagMulticastGoodCnt },
+				{ "MulticastGoodPct", TagMulticastGoodPct },
 				{ "snowdepth", Tagsnowdepth },
 				{ "snowlying", Tagsnowlying },
 				{ "snowfalling", Tagsnowfalling },

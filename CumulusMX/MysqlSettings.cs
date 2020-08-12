@@ -16,8 +16,8 @@ namespace CumulusMX
 		public MysqlSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			mySqlOptionsFile = AppDomain.CurrentDomain.BaseDirectory + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlOptions.json";
-			mySqlSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlSchema.json";
+			mySqlOptionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlOptions.json";
+			mySqlSchemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlSchema.json";
 		}
 
 		public string GetMySqlAlpacaFormData()

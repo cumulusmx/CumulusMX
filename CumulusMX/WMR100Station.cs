@@ -45,11 +45,11 @@ namespace CumulusMX
 
             if (station != null)
             {
-                cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " WMR100 station found");
+                cumulus.LogMessage("WMR100 station found");
 
                 if (station.TryOpen(out stream))
                 {
-                    cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Stream opened");
+                    cumulus.LogMessage("Stream opened");
                 }
 
                 PacketBuffer = new byte[PacketBufferBound];
@@ -61,8 +61,8 @@ namespace CumulusMX
             }
             else
             {
-                cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " WMR100 station not found!");
-                Console.WriteLine("WMR100 station not found!");
+                cumulus.LogMessage("WMR100 station not found!");
+                cumulus.LogConsoleMessage("WMR100 station not found!");
             }
         }
 

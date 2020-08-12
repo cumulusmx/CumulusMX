@@ -434,7 +434,7 @@ namespace CumulusMX
 		public override void startReadingHistoryData()
 		{
 			cumulus.LogMessage("Start reading history data");
-			Console.WriteLine("Start reading history data...");
+			cumulus.LogConsoleMessage("Start reading history data...");
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -542,7 +542,7 @@ namespace CumulusMX
 			}
 
 			cumulus.LogMessage("Downloading history from " + startfrom);
-			Console.WriteLine("Reading archive data from " + startfrom + " - please wait");
+			cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
 			//RegressLogs(cumulus.LastUpdateTime);
 			//bool valid = false;
 			int numrecs = GetNumberOfLogs();

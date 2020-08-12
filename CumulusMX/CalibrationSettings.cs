@@ -16,8 +16,8 @@ namespace CumulusMX
 		public CalibrationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			calibrationOptionsFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationOptions.json";
-			calibrationSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
+			calibrationOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationOptions.json";
+			calibrationSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
 		}
 
 		//public string UpdateCalibrationConfig(HttpListenerContext context)

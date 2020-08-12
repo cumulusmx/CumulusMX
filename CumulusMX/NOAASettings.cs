@@ -16,8 +16,8 @@ namespace CumulusMX
 		public NOAASettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			noaaOptionsFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaOptions.json";
-			noaaSchemaFile = AppDomain.CurrentDomain.BaseDirectory + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaSchema.json";
+			noaaOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaOptions.json";
+			noaaSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaSchema.json";
 		}
 
 		public string GetNoaaAlpacaFormData()
