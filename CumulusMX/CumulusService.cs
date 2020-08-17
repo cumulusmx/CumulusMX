@@ -6,8 +6,6 @@ namespace CumulusMX
 {
 	partial class CumulusService : ServiceBase
 	{
-		Cumulus cumulus;
-
 		public CumulusService()
 		{
 			InitializeComponent();
@@ -54,20 +52,20 @@ namespace CumulusMX
 				{}
 			}
 
-			cumulus = new Cumulus(httpport, debug, startParams);
+			Program.cumulus = new Cumulus(httpport, debug, startParams);
 		}
 
 		protected override void OnStop()
 		{
-			cumulus.LogMessage("Shutting down due to SERVICE STOP");
-			cumulus.Stop();
+			Program.cumulus.LogMessage("Shutting down due to SERVICE STOP");
+			Program.cumulus.Stop();
 			Program.exitSystem = true;
 		}
 
 		protected override void OnShutdown()
 		{
-			cumulus.LogMessage("Shutting down due to SYSTEM SHUTDOWN");
-			cumulus.Stop();
+			Program.cumulus.LogMessage("Shutting down due to SYSTEM SHUTDOWN");
+			Program.cumulus.Stop();
 			Program.exitSystem = true;
 			base.OnShutdown();
 		}
@@ -78,10 +76,10 @@ namespace CumulusMX
 			switch (powerStatus)
 			{
 				case PowerBroadcastStatus.ResumeSuspend:
-					cumulus.LogMessage("Detected system RESUMING FROM STANDBY");
+					Program.cumulus.LogMessage("Detected system RESUMING FROM STANDBY");
 					break;
 				case PowerBroadcastStatus.Suspend:
-					cumulus.LogMessage("Detected system GOING TO STANDBY");
+					Program.cumulus.LogMessage("Detected system GOING TO STANDBY");
 					break;
 			}
 

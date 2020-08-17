@@ -140,8 +140,10 @@ namespace CumulusMX
 				if (cumulus.SyncTime)
 				{
 					setTime();
-					// And pause to let console process the new time setting
-					Thread.Sleep(2000);
+					// Pause whilst the console sorts itself out
+					cumulus.LogMessage("Pausing to allow console to process the new date/time");
+					cumulus.LogConsoleMessage("Pausing to allow console to process the new date/time");
+					Thread.Sleep(10 * 1000);
 				}
 
 				var consoleclock = getTime();
@@ -2480,7 +2482,7 @@ namespace CumulusMX
 		// receives another character, the 2 minute timer will be reset.
 		private bool WakeVP(SerialPort serialPort)
 		{
-			int newLine = 10;
+			int LF = 10;
 
 			try
 			{
@@ -2489,7 +2491,7 @@ namespace CumulusMX
 				serialPort.DiscardInBuffer();
 				serialPort.DiscardOutBuffer();
 
-				cumulus.LogDebugMessage("Waking VP");
+				cumulus.LogDebugMessage("WakeVP: Starting");
 				CommTimer tmrComm = new CommTimer();
 
 				bool woken = false;
@@ -2505,7 +2507,7 @@ namespace CumulusMX
 					{
 						while (serialPort.BytesToRead != 0)
 						{
-							if (comport.ReadChar() == newLine)
+							if (comport.ReadChar() == LF)
 							{
 								woken = true;
 								tmrComm.Stop();
@@ -2544,12 +2546,12 @@ namespace CumulusMX
 						}
 						Thread.Sleep(20);
 					}
-					cumulus.LogDebugMessage("Woken");
+					cumulus.LogDebugMessage("WakeVP: Woken");
 					return (true);
 				}
 				else
 				{
-					cumulus.LogMessage("!!! VP2 Not woken");
+					cumulus.LogMessage("WakeVP: *** VP2 Not woken");
 					return (false);
 				}
 			}
@@ -2597,12 +2599,13 @@ namespace CumulusMX
 
 		private bool WakeVP(TcpClient thePort)
 		{
-			byte newLineASCII = 10;
-			byte LF = 13;
-			int passCount = 1, maxPasses = 4;
+			byte LF = 10;
+			byte CR = 13;
+			int passCount, maxPasses = 3;
+			int retryCount = 0;
 			NetworkStream stream;
 
-			cumulus.LogDataMessage("Wake VP");
+			cumulus.LogDebugMessage("WakeVP: Starting");
 
 			try
 			{
@@ -2651,33 +2654,46 @@ namespace CumulusMX
 					stream.ReadByte();
 				}
 
-				while (passCount < maxPasses)
+				while (retryCount < 1)
 				{
+					passCount = 1;
+
+					while (passCount <= maxPasses)
+					{
+						try
+						{
+							cumulus.LogDebugMessage($"WakeVP: Sending newline ({passCount}/{maxPasses})");
+							stream.WriteByte(LF);
+
+							Thread.Sleep(cumulus.DavisIPResponseTime);
+							var ch1 = stream.ReadByte();
+							var ch2 = stream.ReadByte();
+							cumulus.LogDataMessage("ch1 = 0x" + ch1.ToString("X2"));
+							cumulus.LogDataMessage("ch2 = 0x" + ch2.ToString("X2"));
+							if (ch1 == LF && ch2 == CR)
+							{
+								// success
+								cumulus.LogDebugMessage("WakeVP: Woken OK");
+								return true;
+							}
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogDebugMessage("WakeVP: Problem with TCP connection " + ex.Message);
+							socket.Client.Close(0);
+						}
+						passCount++;
+					}
+
+					// we only get here if we did not receive a LF/CR
+					// try reconnecting the TCP session
 					try
 					{
-						cumulus.LogDataMessage("Sending newline");
-						stream.WriteByte(newLineASCII);
-
-						Thread.Sleep(cumulus.DavisIPResponseTime);
-						var ch1 = stream.ReadByte();
-						var ch2 = stream.ReadByte();
-						cumulus.LogDataMessage("ch1 = 0x" + ch1.ToString("X2"));
-						cumulus.LogDataMessage("ch2 = 0x" + ch2.ToString("X2"));
-						if (ch1 == newLineASCII && ch2 == LF)
-						{
-							// success
-							break;
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogDebugMessage("WakeVP: Problem with TCP connection " + ex.Message);
 						socket.Client.Close(0);
 					}
 					finally
 					{
-						// Wait a second
-						Thread.Sleep(1000);
+
 						socket = null;
 
 						cumulus.LogDebugMessage("WakeVP: Attempting reconnect to logger");
@@ -2685,38 +2701,31 @@ namespace CumulusMX
 						socket = OpenTcpPort();
 						thePort = socket;
 					}
-
 					if (thePort == null)
 					{
+						cumulus.LogDebugMessage("WakeVP: Failed to reconnect to logger");
 						return (false);
 					}
 					else
 					{
 						stream = thePort.GetStream();
+						stream.ReadTimeout = 2500;
+						stream.WriteTimeout = 2500;
+						cumulus.LogDebugMessage("WakeVP: Reconnected to logger");
 					}
-					passCount++;
+
+					retryCount++;
+
+					// Wait a second
+					Thread.Sleep(1000);
 				}
 
-				if (passCount < maxPasses)
-				{
-					if (cumulus.DataLogging)
-					{
-						cumulus.LogMessage("Woken");
-					}
-					return (true);
-				}
-				else
-				{
-					if (cumulus.DataLogging)
-					{
-						cumulus.LogMessage("*** Not woken");
-					}
-					return (false);
-				}
+				cumulus.LogMessage("WakeVP: *** Console Not woken");
+				return (false);
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("WakeVP Error: " + ex.Message);
+				cumulus.LogDebugMessage("WakeVP: Error - " + ex.Message);
 				return (false);
 			}
 		}
@@ -3020,8 +3029,6 @@ namespace CumulusMX
 					if (WaitForACK(comport))
 					{
 						cumulus.LogMessage("Console time set OK");
-						// Pause wilst the console sorts itself out
-						Thread.Sleep(10 * 1000);
 					}
 					else
 					{
@@ -3035,8 +3042,6 @@ namespace CumulusMX
 					if (WaitForACK(stream))
 					{
 						cumulus.LogMessage("Console time set OK");
-						// Pause wilst the console sorts itself out
-						Thread.Sleep(10 * 1000);
 					}
 					else
 					{

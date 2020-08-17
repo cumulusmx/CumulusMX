@@ -1,3 +1,13 @@
+3.8.1 - b3091
+=============
+- Fix: Davis TCP loggers failing to connect correctly
+- Fix: NOAA reports not viewable in Admin interface when Cumulus started as a service
+- Fix: Prevents an Exception on shutdown when running as a service
+
+- Updated files
+	\CumulusMX.exe
+
+
 3.8.0 - b3090
 =============
 - Fix: Malformed API JSON returned by api/tags/process.json if no data output is generated
