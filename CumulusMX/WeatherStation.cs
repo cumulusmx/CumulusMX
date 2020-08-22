@@ -1810,6 +1810,8 @@ namespace CumulusMX
 		{
 			cumulus.DoMoonPhase();
 			cumulus.MoonAge = MoonriseMoonset.MoonAge();
+
+			cumulus.RotateLogFiles();
 		}
 
 		private void CheckForDataStopped()
@@ -3307,12 +3309,32 @@ namespace CumulusMX
 			var previoustotal = Raincounter;
 
 			double raintipthreshold;
-			if (cumulus.RainUnit == 0)
-				// mm
-				raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.009 : 0.09;
+			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
+			{
+				if (cumulus.VPrainGaugeType == 0) // 0.2 mm tips
+				{
+					// mm/mm (0.2) or mm/in (0.00787)
+					raintipthreshold = cumulus.RainUnit == 0 ? 0.19 : 0.006;
+				}
+				else // 0.01 inch tips
+				{
+					// in/mm (0.254) or in/in (0.01)
+					raintipthreshold = cumulus.RainUnit == 0 ? 0.2 : 0.009;
+				}
+			}
 			else
-				// in
-				raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.0003 : 0.009;
+			{
+				if (cumulus.RainUnit == 0)
+				{
+					// mm
+					raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.009 : 0.09;
+				}
+				else
+				{
+					// in
+					raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.0003 : 0.009;
+				}
+			}
 
 			if (total - Raincounter > raintipthreshold)
 				// rain has occurred
@@ -7196,6 +7218,7 @@ namespace CumulusMX
 			else return 12;
 		}
 
+		// This overridden in each station implementation
 		public abstract void Stop();
 
 		public void ReadAlltimeIniFile()

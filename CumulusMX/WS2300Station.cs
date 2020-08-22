@@ -84,6 +84,7 @@ namespace CumulusMX
 		public override void Stop()
 		{
 			stop = true;
+			StopMinuteTimer();
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)

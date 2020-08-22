@@ -238,6 +238,7 @@ namespace CumulusMX
 				tmrCurrent.Stop();
 				tmrBroadcastWatchdog.Stop();
 				tmrHealth.Stop();
+				StopMinuteTimer();
 			}
 			catch
 			{

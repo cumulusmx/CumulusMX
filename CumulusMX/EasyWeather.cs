@@ -98,6 +98,8 @@ namespace CumulusMX
 
         public override void Stop()
         {
+            tmrDataRead.Stop();
+            StopMinuteTimer();
         }
 
         private void EWGetData(object sender, ElapsedEventArgs elapsedEventArgs)

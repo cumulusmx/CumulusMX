@@ -58,6 +58,7 @@ namespace CumulusMX
 		protected override void OnStop()
 		{
 			Program.cumulus.LogMessage("Shutting down due to SERVICE STOP");
+			Program.cumulus.LogConsoleMessage("Shutting down due to SERVICE STOP");
 			Program.cumulus.Stop();
 			Program.exitSystem = true;
 		}
@@ -65,6 +66,7 @@ namespace CumulusMX
 		protected override void OnShutdown()
 		{
 			Program.cumulus.LogMessage("Shutting down due to SYSTEM SHUTDOWN");
+			Program.cumulus.LogConsoleMessage("Shutting down due to SYSTEM SHUTDOWN");
 			Program.cumulus.Stop();
 			Program.exitSystem = true;
 			base.OnShutdown();
@@ -77,9 +79,11 @@ namespace CumulusMX
 			{
 				case PowerBroadcastStatus.ResumeSuspend:
 					Program.cumulus.LogMessage("Detected system RESUMING FROM STANDBY");
+					Program.cumulus.LogConsoleMessage("Detected system RESUMING FROM STANDBY");
 					break;
 				case PowerBroadcastStatus.Suspend:
 					Program.cumulus.LogMessage("Detected system GOING TO STANDBY");
+					Program.cumulus.LogConsoleMessage("Detected system GOING TO STANDBY");
 					break;
 			}
 

@@ -70,8 +70,6 @@ namespace CumulusMX
             {
                 // set the working path to the exe location
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-
-                var exithandler = new exitHandler();
             }
 
             int httpport = 8998;
@@ -175,7 +173,7 @@ namespace CumulusMX
                 if (Environment.UserInteractive || (!service && !Windows))
                 {
                     service = false;
-                    RunAsAConsole(appGuid, httpport, debug);
+                    RunAsAConsole(httpport, debug);
                 }
                 else
                 {
@@ -208,13 +206,18 @@ namespace CumulusMX
             Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");
             Console.WriteLine(" -install             - Installs Cumulus as a system service (Windows only)");
             Console.WriteLine(" -uninstall           - Removes Cumulus as a system service (Windows only)");
+            Console.WriteLine(" -service             - Must be used when running as a mono-service (Linux only)");
             Console.WriteLine("\nCumulus terminating");
             Environment.Exit(1);
         }
 
-        static void RunAsAConsole(string AppGuid, int port, bool debug)
+        static void RunAsAConsole(int port, bool debug)
         {
-            Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+            //Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+            if (Type.GetType("Mono.Runtime") == null)
+            {
+                _ = new exitHandler();
+            }
 
             cumulus = new Cumulus(port, debug, "");
 
@@ -253,6 +256,7 @@ namespace CumulusMX
                     Console.WriteLine("Press Enter to terminate");
                     Console.ReadLine();
                 }
+                Thread.Sleep(1000);
                 Environment.Exit(1);
             }
             catch (Exception)
@@ -290,8 +294,8 @@ namespace CumulusMX
         private static bool Handler(CtrlType sig)
         {
             var reason = new string[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
-            Console.WriteLine("Cumulus terminating");
-            //Program.cumulus.LogConsoleMessage("Cumulus terminating");
+            //Console.WriteLine("Cumulus terminating");
+            Program.cumulus.LogConsoleMessage("Cumulus terminating");
 
             Trace.WriteLine("Exiting system due to external: " + reason[(int)sig]);
 
@@ -301,6 +305,7 @@ namespace CumulusMX
             Console.WriteLine("Cumulus stopped");
 
             //allow main to run off
+            Thread.Sleep(200);
             Program.exitSystem = true;
 
             return true;

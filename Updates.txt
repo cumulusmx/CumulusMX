@@ -1,3 +1,27 @@
+3.8.2 - b3092
+=============
+- Fix: Davis VP2 stations - LastRainTip not being updated correctly with mixed metric/imperial gauges/units
+- Fix: Davis VP2 stations - Bug that prevented the seconds being read from the console clock
+- Fix: Dashboard temp/press trend arrows not working in locales with comma decimals
+- MXdiags log files are now rotated if they exceed 20MB in size, 15 log files are now retained
+- For Davis VP2 stations, setting the console clock now checks the console time and only sets it if it
+  differs from the current time by greater than 60 seconds
+- Davis VP2 stations protocols have been extensively rewritten to make them more efficent and less timing sensitive
+  Third party IP loggers such as meteobridge and WiFi logger should now work more reliably
+- Enables PSK authentication when using SFTP. Options are now Password, PSK, PSK with Password fallback
+	New Cumulus.ini entries...
+	[FTP site]
+	SshFtpAuthentication=password      [password (default), psk, password_psk]
+	SshFtpPskFile=                     [PSK filename, must include the full path is the file is not in the CumulusMX folder]
+
+
+- Updated files
+	\CumulusMX.exe
+	\interface\js\dashboard.js
+	\interface\json\InternetOptions.json
+	\interface\json\InternetSchema.json
+
+
 3.8.1 - b3091
 =============
 - Fix: Davis TCP loggers failing to connect correctly
