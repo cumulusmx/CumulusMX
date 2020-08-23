@@ -67,6 +67,7 @@ namespace CumulusMX
 		public override void Stop()
 		{
 			stop = true;
+			StopMinuteTimer();
 		}
 
 		public override void Start()

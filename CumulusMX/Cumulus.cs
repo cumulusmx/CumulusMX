@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.8.1";
-		public string Build = "3091";
+		public string Version = "3.8.2";
+		public string Build = "3092";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -843,6 +843,8 @@ namespace CumulusMX
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
 
+		public string loggingfile;
+
 		/*
 		CryptoLicense lic = new CryptoLicense();
 
@@ -1030,10 +1032,9 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			string loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+			loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
 
-			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile);
-
+			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
 
@@ -3188,7 +3189,7 @@ namespace CumulusMX
 
 		private string GetLoggingFileName(string directory)
 		{
-			const int maxEntries = 10;
+			const int maxEntries = 15;
 
 			List<string> fileEntries = new List<string>(Directory.GetFiles(directory));
 
@@ -3201,6 +3202,23 @@ namespace CumulusMX
 			}
 
 			return $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+		}
+
+		public void RotateLogFiles()
+		{
+			// cycle the MXdiags log file?
+			var logfileSize = new FileInfo(loggingfile).Length;
+			// if > 20 MB
+			if (logfileSize > 20971520)
+			{
+				var oldfile = loggingfile;
+				loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+				LogMessage("Rotating log file, new log file will be: " + loggingfile.Split(DirectorySeparator).Last());
+				TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
+				Trace.Listeners.Remove("MXlog");
+				Trace.Listeners.Add(myTextListener);
+				LogMessage("Rotated log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
+			}
 		}
 
 		private void ReadIniFile()
@@ -3234,8 +3252,8 @@ namespace CumulusMX
 
 			UseDavisLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
 			DavisReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
-			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 200);
-			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 1000);
+			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 2000);
+			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 500);
 			DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
 			DavisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
 			if (StationType == StationTypes.VantagePro)
@@ -3570,7 +3588,7 @@ namespace CumulusMX
 			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);
 			ActiveFTPMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			Sslftp = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
-			// BUILD 3082 - added alternate SFTP authenication options, but currently only "password" is functional
+			// BUILD 3092 - added alternate SFTP authenication options
 			SshftpAuthentication = ini.GetValue("FTP site", "SshFtpAuthentication", "password"); // valid options: password, psk, password_psk
 			if (!SshAuthenticationVals.Any(SshftpAuthentication.Contains))
 			{
@@ -4191,11 +4209,9 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "AutoUpdate", WebAutoUpdate);
 			ini.SetValue("FTP site", "ActiveFTP", ActiveFTPMode);
 			ini.SetValue("FTP site", "Sslftp", (int)Sslftp);
-			// BUILD 3082 - added alternate SFTP authenication options, but currently only "password" is functional
-			/*
+			// BUILD 3092 - added alternate SFTP authenication options
 			ini.SetValue("FTP site", "SshFtpAuthentication", SshftpAuthentication);
 			ini.SetValue("FTP site", "SshFtpPskFile", SshftpPskFile);
-			*/
 
 			ini.SetValue("FTP site", "FTPlogging", FTPlogging);
 			ini.SetValue("FTP site", "UTF8encode", UTF8encode);
@@ -6430,35 +6446,32 @@ namespace CumulusMX
 		{
 			if (Sslftp == FtpProtocols.SFTP)
 			{
-				// BUILD 3082 - added alternate SFTP authenication options, but currently only "password" is functional
-				/*
+				// BUILD 3092 - added alternate SFTP authenication options
 				ConnectionInfo connectionInfo;
 				if (SshftpAuthentication == "password")
 				{
 					connectionInfo = new ConnectionInfo(ftp_host, ftp_port, ftp_user, new PasswordAuthenticationMethod(ftp_user, ftp_password));
-					LogDebugMessage("SFTP: Connecting using password authentication");
+					LogDebugMessage("SFTP[Int]: Connecting using password authentication");
 				}
 				else if (SshftpAuthentication == "psk")
 				{
 					PrivateKeyFile pskFile = new PrivateKeyFile(SshftpPskFile);
 					connectionInfo = new ConnectionInfo(ftp_host, ftp_port, ftp_user, new PrivateKeyAuthenticationMethod(ftp_user, pskFile));
-					LogDebugMessage("SFTP: Connecting using PSK authentication");
+					LogDebugMessage("SFTP[Int]: Connecting using PSK authentication");
 				}
 				else if (SshftpAuthentication == "password_psk")
 				{
 					PrivateKeyFile pskFile = new PrivateKeyFile(SshftpPskFile);
 					connectionInfo = new ConnectionInfo(ftp_host, ftp_port, ftp_user, new PasswordAuthenticationMethod(ftp_user, ftp_password), new PrivateKeyAuthenticationMethod(ftp_user, pskFile));
-					LogDebugMessage("SFTP: Connecting using password or PSK authentication");
+					LogDebugMessage("SFTP[Int]: Connecting using password or PSK authentication");
 				}
 				else
 				{
-					LogMessage($"SFTP: Invalid SshftpAuthentication specified [{SshftpAuthentication}]");
+					LogMessage($"SFTP[Int]: Invalid SshftpAuthentication specified [{SshftpAuthentication}]");
 					return;
 				}
 
 				using (SftpClient conn = new SftpClient(connectionInfo))
-				*/
-				using (SftpClient conn = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password))
 				{
 					try
 					{
@@ -6621,7 +6634,7 @@ namespace CumulusMX
 					}
 					conn.Disconnect();
 				}
-				LogFtpMessage($"SFTP[Int]: Process complete");
+				LogDebugMessage($"SFTP[Int]: Process complete");
 			}
 			else
 			{
@@ -7745,36 +7758,36 @@ namespace CumulusMX
 				LogMessage($"SFTP[{cycle}]: Attempting realtime SFTP connect to host {ftp_host} on port {ftp_port}");
 				try
 				{
-					// BUILD 3082 - added alternate SFTP authenication options, but currently only "password" is functional
-					/*
+					// BUILD 3092 - added alternate SFTP authenication options
 					ConnectionInfo connectionInfo;
 					PrivateKeyFile pskFile;
 					if (SshftpAuthentication == "password")
 					{
 						connectionInfo = new ConnectionInfo(ftp_host, ftp_port, ftp_user, new PasswordAuthenticationMethod(ftp_user, ftp_password));
-						LogDebugMessage("SFTP connecting using password authentication");
+						LogDebugMessage($"SFTP[{cycle}]: Connecting using password authentication");
 					}
 					else if (SshftpAuthentication == "psk")
 					{
 						pskFile = new PrivateKeyFile(SshftpPskFile);
 						connectionInfo = new ConnectionInfo(ftp_host, ftp_port, ftp_user, new PrivateKeyAuthenticationMethod(ftp_user, pskFile));
-						LogDebugMessage("SFTP connecting using PSK authentication");
+						LogDebugMessage($"SFTP[{cycle}]: Connecting using PSK authentication");
 					}
 					else if (SshftpAuthentication == "password_psk")
 					{
 						pskFile = new PrivateKeyFile(SshftpPskFile);
 						connectionInfo = new ConnectionInfo(ftp_host, ftp_port, ftp_user, new PasswordAuthenticationMethod(ftp_user, ftp_password), new PrivateKeyAuthenticationMethod(ftp_user, pskFile));
-						LogDebugMessage("SFTP connecting using password or PSK authentication");
+						LogDebugMessage($"SFTP[{cycle}]: Connecting using password or PSK authentication");
 					}
 					else
 					{
-						LogMessage($"Invalid SshftpAuthentication specified [{SshftpAuthentication}]");
+						LogMessage($"SFTP[{cycle}]: Invalid SshftpAuthentication specified [{SshftpAuthentication}]");
 						return;
 					}
 					RealtimeSSH = new SftpClient(connectionInfo);
-					*/
-					if (RealtimeSSH != null) RealtimeSSH.Dispose();
-					RealtimeSSH = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password);
+
+					//if (RealtimeSSH != null) RealtimeSSH.Dispose();
+					//RealtimeSSH = new SftpClient(ftp_host, ftp_port, ftp_user, ftp_password);
+
 					RealtimeSSH.Connect();
 					RealtimeSSH.ConnectionInfo.Timeout = TimeSpan.FromSeconds(15);  // 15 seconds to match FTP default timeout
 					LogMessage($"SFTP[{cycle}]: Realtime SFTP connected");
