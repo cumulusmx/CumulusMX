@@ -13,7 +13,7 @@
 	[FTP site]
 	SshFtpAuthentication=password      [password (default), psk, password_psk]
 	SshFtpPskFile=                     [PSK filename, must include the full path is the file is not in the CumulusMX folder]
-
+- CMX calculated dew point is automatically enabled for GW1000 stations
 
 - Updated files
 	\CumulusMX.exe

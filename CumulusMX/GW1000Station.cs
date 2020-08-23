@@ -217,6 +217,8 @@ namespace CumulusMX
 
 			tmrDataWatchdog = new System.Timers.Timer();
 
+			// GW1000 does not send DP, so force MX to calculate it
+			cumulus.CalculatedDP = true;
 
 			ipaddr = cumulus.Gw1000IpAddress;
 
