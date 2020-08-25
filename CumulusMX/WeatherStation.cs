@@ -3501,7 +3501,7 @@ namespace CumulusMX
 		{
 			if (!cumulus.CalculatedDP)
 			{
-				if (dp <= cumulus.LimitDewHigh)
+				if (ConvertUserTempToC(dp) <= cumulus.LimitDewHigh)
 				{
 					OutdoorDewpoint = dp;
 					CheckForDewpointHighLow(timestamp);

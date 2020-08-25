@@ -1,3 +1,12 @@
+3.8.3 - b3093
+=============
+- Fix: The dew point threshold limit (default value 40C) was incorrectly being applied to installations configured to use Fahrenheit
+  as if the value were in Fahrenheit.
+
+- Updated files
+	\CumulusMX.exe
+
+
 3.8.2 - b3092
 =============
 - Fix: Davis VP2 stations - LastRainTip not being updated correctly with mixed metric/imperial gauges/units

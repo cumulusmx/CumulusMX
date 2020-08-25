@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.8.2";
-		public string Build = "3092";
+		public string Version = "3.8.3";
+		public string Build = "3093";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -3890,7 +3890,7 @@ namespace CumulusMX
 			UVMult = ini.GetValue("Offsets", "UVMult", 1.0);
 			WetBulbMult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
 
-			LimitTempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
+			LimitTempHigh = ini.GetValue("Limits", "TempHighC",60.0);
 			LimitTempLow = ini.GetValue("Limits", "TempLowC", -60.0);
 			LimitDewHigh = ini.GetValue("Limits", "DewHighC", 40.0);
 			LimitPressHigh = ini.GetValue("Limits", "PressHighMB", 1090.0);
