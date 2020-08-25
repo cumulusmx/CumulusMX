@@ -2,6 +2,13 @@
 =============
 - Fix: The dew point threshold limit (default value 40C) was incorrectly being applied to installations configured to use Fahrenheit
   as if the value were in Fahrenheit.
+- Fix: Davis VP/VP2 force 1 minute baromter updates no longer working correctly after v3.8.2 protocol changes.
+	Note: this setting should only be used for VP stations, or VP2 stations with very old firmware.
+- Adds two new Cumulus.ini file settings to control the numer of decimal places used for wind speeds. These override the built-in defaults.
+  These settings are read-only, they can to be manually added ONLY if you need to use them. Add either or both settings as required.
+	[Station]
+	WindSpeedDecimals=[0|1|2]
+	WindSpeedAvgDecimals=[0|1|2]
 
 - Updated files
 	\CumulusMX.exe

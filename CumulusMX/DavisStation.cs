@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Renci.SshNet.Sftp;
 using Unosquare.Swan;
+using System.Web.UI;
 
 namespace CumulusMX
 {
@@ -1035,8 +1036,8 @@ namespace CumulusMX
 							response += Convert.ToChar(ch);
 							buffer[bytesRead] = (byte)ch;
 							bytesRead++;
-							//cumulus.LogMessage("Received " + ch.ToString("X2"));
-						} while (comport.BytesToRead > 0);
+
+						} while (bytesRead < 12);
 					}
 					catch (TimeoutException)
 					{
