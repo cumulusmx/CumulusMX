@@ -3898,7 +3898,7 @@ namespace CumulusMX
 			UVMult = ini.GetValue("Offsets", "UVMult", 1.0);
 			WetBulbMult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
 
-			LimitTempHigh = ini.GetValue("Limits", "TempHighC",60.0);
+			LimitTempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
 			LimitTempLow = ini.GetValue("Limits", "TempLowC", -60.0);
 			LimitDewHigh = ini.GetValue("Limits", "DewHighC", 40.0);
 			LimitPressHigh = ini.GetValue("Limits", "PressHighMB", 1090.0);

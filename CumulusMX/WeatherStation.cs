@@ -3311,7 +3311,10 @@ namespace CumulusMX
 			double raintipthreshold;
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
-				if (cumulus.VPrainGaugeType == 0) // 0.2 mm tips
+				// If the bucket size is set, use that, otherwise infer from rain units
+				var bucketSize = cumulus.VPrainGaugeType == -1 ? cumulus.RainUnit : cumulus.VPrainGaugeType;
+
+				if (bucketSize == 0) // 0.2 mm tips
 				{
 					// mm/mm (0.2) or mm/in (0.00787)
 					raintipthreshold = cumulus.RainUnit == 0 ? 0.19 : 0.006;

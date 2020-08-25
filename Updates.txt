@@ -4,6 +4,7 @@
   as if the value were in Fahrenheit.
 - Fix: Davis VP/VP2 force 1 minute baromter updates no longer working correctly after v3.8.2 protocol changes.
 	Note: this setting should only be used for VP stations, or VP2 stations with very old firmware.
+- Fix: Last rain date not updating for Davis stations (fixes the mixed unit/bucket size update in 3.8.2)
 - Adds two new Cumulus.ini file settings to control the numer of decimal places used for wind speeds. These override the built-in defaults.
   These settings are read-only, they can to be manually added ONLY if you need to use them. Add either or both settings as required.
 	[Station]
