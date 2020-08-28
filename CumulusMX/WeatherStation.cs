@@ -2255,7 +2255,7 @@ namespace CumulusMX
 				sb.Append("],\"wspeed\":[");
 				for (var i = 0; i < GraphDataList.Count; i++)
 				{
-					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + GraphDataList[i].windspeed.ToString(cumulus.WindFormat, InvC) + "]");
+					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + GraphDataList[i].windspeed.ToString(cumulus.WindAvgFormat, InvC) + "]");
 					if (i < GraphDataList.Count - 1)
 						sb.Append(",");
 				}
@@ -3311,7 +3311,10 @@ namespace CumulusMX
 			double raintipthreshold;
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
-				if (cumulus.VPrainGaugeType == 0) // 0.2 mm tips
+				// If the bucket size is set, use that, otherwise infer from rain units
+				var bucketSize = cumulus.VPrainGaugeType == -1 ? cumulus.RainUnit : cumulus.VPrainGaugeType;
+
+				if (bucketSize == 0) // 0.2 mm tips
 				{
 					// mm/mm (0.2) or mm/in (0.00787)
 					raintipthreshold = cumulus.RainUnit == 0 ? 0.19 : 0.006;
@@ -3501,7 +3504,7 @@ namespace CumulusMX
 		{
 			if (!cumulus.CalculatedDP)
 			{
-				if (dp <= cumulus.LimitDewHigh)
+				if (ConvertUserTempToC(dp) <= cumulus.LimitDewHigh)
 				{
 					OutdoorDewpoint = dp;
 					CheckForDewpointHighLow(timestamp);
@@ -5261,7 +5264,7 @@ namespace CumulusMX
 			strb.Append(RainToday.ToString(cumulus.RainFormat) + cumulus.ListSeparator);
 			strb.Append(AvgTemp.ToString(cumulus.TempFormat) + cumulus.ListSeparator);
 			strb.Append(WindRunToday.ToString("F1") + cumulus.ListSeparator);
-			strb.Append(HighWindToday.ToString(cumulus.WindFormat) + cumulus.ListSeparator);
+			strb.Append(HighWindToday.ToString(cumulus.WindAvgFormat) + cumulus.ListSeparator);
 			strb.Append(HighWindTodayTime.ToString("HH:mm") + cumulus.ListSeparator);
 			strb.Append(LowHumidityToday + cumulus.ListSeparator);
 			strb.Append(LowHumidityTodayTime.ToString("HH:mm") + cumulus.ListSeparator);
@@ -5365,7 +5368,7 @@ namespace CumulusMX
 				queryString.Append(RainToday.ToString(cumulus.RainFormat, InvC) + ",");
 				queryString.Append(AvgTemp.ToString(cumulus.TempFormat, InvC) + ",");
 				queryString.Append(WindRunToday.ToString("F1", InvC) + ",");
-				queryString.Append(HighWindToday.ToString(cumulus.WindFormat, InvC) + ",");
+				queryString.Append(HighWindToday.ToString(cumulus.WindAvgFormat, InvC) + ",");
 				queryString.Append(HighWindTodayTime.ToString("\\'HH:mm\\'") + ",");
 				queryString.Append(LowHumidityToday + ",");
 				queryString.Append(LowHumidityTodayTime.ToString("\\'HH:mm\\'") + ",");
@@ -8912,7 +8915,7 @@ namespace CumulusMX
 
 			json.Append(alltimejsonformat(AT_HighGust, cumulus.WindUnitText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AT_HighWind, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(alltimejsonformat(AT_HighWind, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
 			json.Append(alltimejsonformat(AT_HighWindrun, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
@@ -9008,7 +9011,7 @@ namespace CumulusMX
 
 			json.Append(monthlyjsonformat(AT_HighGust, month, cumulus.WindUnitText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(AT_HighWind, month, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(monthlyjsonformat(AT_HighWind, month, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
 			json.Append(monthlyjsonformat(AT_HighWindrun, month, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
@@ -9104,7 +9107,7 @@ namespace CumulusMX
 
 			json.Append(monthyearjsonformat(AT_HighGust, HighGustThisMonth, HighGustThisMonthTS, cumulus.WindUnitText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(AT_HighWind, HighWindThisMonth, HighWindThisMonthTS, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(monthyearjsonformat(AT_HighWind, HighWindThisMonth, HighWindThisMonthTS, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(AT_HighWindrun, HighDailyWindrunThisMonth, HighDailyWindrunThisMonthTS, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
@@ -9195,7 +9198,7 @@ namespace CumulusMX
 
 			json.Append(monthyearjsonformat(AT_HighGust, HighGustThisYear, HighGustThisYearTS, cumulus.WindUnitText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(AT_HighWind, HighWindThisYear, HighWindThisYearTS, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(monthyearjsonformat(AT_HighWind, HighWindThisYear, HighWindThisYearTS, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(AT_HighWindrun, HighDailyWindrunThisYear, HighDailyWindrunThisYearTS, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
@@ -9646,12 +9649,12 @@ namespace CumulusMX
 			json.Append("\"],");
 
 			json.Append("[\"Highest Speed\",\"");
-			json.Append(HighWindToday.ToString(cumulus.WindFormat));
+			json.Append(HighWindToday.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.WindUnitText);
 			json.Append(sepStr);
 			json.Append(HighWindTodayTime.ToShortTimeString());
 			json.Append(sepStr);
-			json.Append(HighWindYesterday.ToString(cumulus.WindFormat));
+			json.Append(HighWindYesterday.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.WindUnitText);
 			json.Append(sepStr);
 			json.Append(HighWindYesterdayTime.ToShortTimeString());
@@ -9967,7 +9970,7 @@ namespace CumulusMX
 			var json = new StringBuilder(200);
 			json.Append("{");
 			json.Append($"\"temp\":{{\"units\":\"{cumulus.TempUnitText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
-			json.Append($"\"wind\":{{\"units\":\"{cumulus.WindUnitText}\",\"decimals\":{cumulus.WindDPlaces}}},");
+			json.Append($"\"wind\":{{\"units\":\"{cumulus.WindUnitText}\",\"decimals\":{cumulus.WindAvgDPlaces}}},");
 			json.Append($"\"rain\":{{\"units\":\"{cumulus.RainUnitText}\",\"decimals\":{cumulus.RainDPlaces}}},");
 			json.Append($"\"press\":{{\"units\":\"{cumulus.PressUnitText}\",\"decimals\":{cumulus.PressDPlaces}}},");
 			json.Append($"\"hum\":{{\"decimals\":{cumulus.HumDPlaces}}},");

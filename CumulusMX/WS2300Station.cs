@@ -354,7 +354,7 @@ namespace CumulusMX
 				}
 
 				// Wind run ======================================================================
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.WindUnitText + " for " + historydata.interval + " minutes = " +
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.WindUnitText + " for " + historydata.interval + " minutes = " +
 								(WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.WindRunUnitText);
 
 				WindRunToday += (WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.interval / 60.0);

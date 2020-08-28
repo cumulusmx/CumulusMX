@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.8.2";
-		public string Build = "3092";
+		public string Version = "3.8.3";
+		public string Build = "3093";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -359,7 +359,9 @@ namespace CumulusMX
 		public string TempFormat;
 
 		internal int WindDPlaces = 1;
+		internal int WindAvgDPlaces = 1;
 		public string WindFormat;
+		public string WindAvgFormat;
 
 		internal int HumDPlaces = 0;
 		public string HumFormat;
@@ -1202,6 +1204,7 @@ namespace CumulusMX
 
 			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
+			WindAvgFormat = "F" + WindAvgDPlaces;
 			RainFormat = "F" + RainDPlaces;
 			PressFormat = "F" + PressDPlaces;
 			HumFormat = "F" + HumDPlaces;
@@ -1935,7 +1938,7 @@ namespace CumulusMX
 				else
 				{
 					// default message
-					status.Append($"Wind {station.WindAverage.ToString(WindFormat)} {WindUnitText} {station.AvgBearingText}.");
+					status.Append($"Wind {station.WindAverage.ToString(WindAvgFormat)} {WindUnitText} {station.AvgBearingText}.");
 					status.Append($" Barometer {station.Pressure.ToString(PressFormat)} {PressUnitText}, {station.Presstrendstr}.");
 					status.Append($" Temperature {station.OutdoorTemperature.ToString(TempFormat)} {TempUnitText}.");
 					status.Append($" Rain today {station.RainToday.ToString(RainFormat)}{RainUnitText}.");
@@ -3401,6 +3404,11 @@ namespace CumulusMX
 			RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 
 			WindDPlaces = RoundWindSpeed ? 0 : WindDPlace[WindUnit];
+			WindAvgDPlaces = WindDPlaces;
+
+			// Wind speed decimals overrides - readonly
+			WindDPlaces = ini.GetValue("Station", "WindSpeedDecimals", WindDPlaces);
+			WindAvgDPlaces = ini.GetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
 
 			TempDPlaces = TempDPlace[TempUnit];
 			PressDPlaces = PressDPlace[PressUnit];
@@ -5548,7 +5556,7 @@ namespace CumulusMX
 				file.Write(station.OutdoorTemperature.ToString(TempFormat) + ListSeparator);
 				file.Write(station.OutdoorHumidity + ListSeparator);
 				file.Write(station.OutdoorDewpoint.ToString(TempFormat) + ListSeparator);
-				file.Write(station.WindAverage.ToString(WindFormat) + ListSeparator);
+				file.Write(station.WindAverage.ToString(WindAvgFormat) + ListSeparator);
 				file.Write(station.RecentMaxGust.ToString(WindFormat) + ListSeparator);
 				file.Write(station.AvgBearing + ListSeparator);
 				file.Write(station.RainRate.ToString(RainFormat) + ListSeparator);
@@ -5595,7 +5603,7 @@ namespace CumulusMX
 				values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ",");
 				values.Append(station.OutdoorHumidity + ",");
 				values.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ",");
-				values.Append(station.WindAverage.ToString(WindFormat, InvC) + ",");
+				values.Append(station.WindAverage.ToString(WindAvgFormat, InvC) + ",");
 				values.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ",");
 				values.Append(station.AvgBearing + ",");
 				values.Append(station.RainRate.ToString(RainFormat, InvC) + ",");
@@ -7107,7 +7115,7 @@ namespace CumulusMX
 					file.Write(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' '); // 3
 					file.Write(station.OutdoorHumidity.ToString() + ' '); // 4
 					file.Write(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' '); // 5
-					file.Write(station.WindAverage.ToString(WindFormat, InvC) + ' '); // 6
+					file.Write(station.WindAverage.ToString(WindAvgFormat, InvC) + ' '); // 6
 					file.Write(station.WindLatest.ToString(WindFormat, InvC) + ' '); // 7
 					file.Write(station.Bearing.ToString() + ' '); // 8
 					file.Write(station.RainRate.ToString(RainFormat, InvC) + ' '); // 9
@@ -7135,7 +7143,7 @@ namespace CumulusMX
 					file.Write(station.HighTempTodayTime.ToString("HH:mm ") ); // 28
 					file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
 					file.Write(station.LowTempTodayTime.ToString("HH:mm ")); // 30
-					file.Write(station.HighWindToday.ToString(WindFormat, InvC) + ' '); // 31
+					file.Write(station.HighWindToday.ToString(WindAvgFormat, InvC) + ' '); // 31
 					file.Write(station.HighWindTodayTime.ToString("HH:mm ")); // 32
 					file.Write(station.HighGustToday.ToString(WindFormat, InvC) + ' '); // 33
 					file.Write(station.HighGustTodayTime.ToString("HH:mm ")); // 34
@@ -7185,7 +7193,7 @@ namespace CumulusMX
 				values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ',');
 				values.Append(station.OutdoorHumidity.ToString() + ',');
 				values.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',');
-				values.Append(station.WindAverage.ToString(WindFormat, InvC) + ',');
+				values.Append(station.WindAverage.ToString(WindAvgFormat, InvC) + ',');
 				values.Append(station.WindLatest.ToString(WindFormat, InvC) + ',');
 				values.Append(station.Bearing.ToString() + ',');
 				values.Append(station.RainRate.ToString(RainFormat, InvC) + ',');
@@ -7210,7 +7218,7 @@ namespace CumulusMX
 				values.Append(station.HighTempTodayTime.ToString("HH:mm") + "',");
 				values.Append(station.LowTempToday.ToString(TempFormat, InvC) + ",'");
 				values.Append(station.LowTempTodayTime.ToString("HH:mm") + "',");
-				values.Append(station.HighWindToday.ToString(WindFormat, InvC) + ",'");
+				values.Append(station.HighWindToday.ToString(WindAvgFormat, InvC) + ",'");
 				values.Append(station.HighWindTodayTime.ToString("HH:mm") + "',");
 				values.Append(station.HighGustToday.ToString(WindFormat, InvC) + ",'");
 				values.Append(station.HighGustTodayTime.ToString("HH:mm") + "',");
@@ -8180,7 +8188,7 @@ namespace CumulusMX
 			strb.Append("Temp decimal(4," + TempDPlaces + ") NOT NULL,");
 			strb.Append("Humidity decimal(4," + HumDPlaces + ") NOT NULL,");
 			strb.Append("Dewpoint decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("Windspeed decimal(4," + WindDPlaces + ") NOT NULL,");
+			strb.Append("Windspeed decimal(4," + WindAvgDPlaces + ") NOT NULL,");
 			strb.Append("Windgust decimal(4," + WindDPlaces + ") NOT NULL,");
 			strb.Append("Windbearing VARCHAR(3) NOT NULL,");
 			strb.Append("RainRate decimal(4," + RainDPlaces + ") NOT NULL,");
@@ -8229,7 +8237,7 @@ namespace CumulusMX
 			strb.Append("TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," + RainDPlaces + ") NOT NULL,");
 			strb.Append("AvgTemp decimal(4," + TempDPlaces + ") NOT NULL,");
 			strb.Append("TotWindRun decimal(5," + WindRunDPlaces +") NOT NULL,");
-			strb.Append("HighAvgWSpeed decimal(3," + WindDPlaces + "),");
+			strb.Append("HighAvgWSpeed decimal(3," + WindAvgDPlaces + "),");
 			strb.Append("THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces + "),");
 			strb.Append("TLowHum varchar(5),");
 			strb.Append("HighHum decimal(4," + HumDPlaces + "),");

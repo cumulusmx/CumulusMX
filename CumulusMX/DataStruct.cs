@@ -414,7 +414,7 @@ namespace CumulusMX
 		[DataMember(Name="HighWindToday")]
 		public string HighWindTodayRounded
 		{
-			get { return HighWindToday.ToString(cumulus.WindFormat); }
+			get { return HighWindToday.ToString(cumulus.WindAvgFormat); }
 			set { }
 		}
 
@@ -503,7 +503,7 @@ namespace CumulusMX
 		[DataMember(Name = "WindAverage")]
 		public String WindAverageRounded
 		{
-			get { return WindAverage.ToString(cumulus.WindFormat); }
+			get { return WindAverage.ToString(cumulus.WindAvgFormat); }
 			set { }
 		}
 
