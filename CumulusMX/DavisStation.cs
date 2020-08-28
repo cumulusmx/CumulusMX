@@ -136,13 +136,13 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("Console clock: " + consoleclock);
 
-					if (cumulus.SyncTime && Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 60)
+					if (cumulus.SyncTime && Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
 					{
 						setTime();
 						// Pause whilst the console sorts itself out
 						cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
 						cumulus.LogConsoleMessage("Pausing to allow console to process the new date/time");
-						Thread.Sleep(10 * 5000);
+						Thread.Sleep(1000 * 5);
 
 						consoleclock = getTime();
 
@@ -157,7 +157,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage($"Console clock: Accurate to < 60 seconds, no need to set it (diff={(int)nowTime.Subtract(consoleclock).TotalSeconds}s)");
+						cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int)nowTime.Subtract(consoleclock).TotalSeconds}s)");
 					}
 				}
 				else
@@ -849,9 +849,12 @@ namespace CumulusMX
 							cumulus.LogMessage("Console clock: Failed to read console time");
 						}
 
-						if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 60)
+						if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
 						{
 							setTime();
+
+							cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
+							Thread.Sleep(1000 * 5);
 
 							consoleclock = getTime();
 
