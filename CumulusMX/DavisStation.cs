@@ -869,7 +869,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage($"Console clock: Accurate to < 60 seconds, no need to set it (diff={(int)nowTime.Subtract(consoleclock).TotalSeconds}s)");
+							cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int)nowTime.Subtract(consoleclock).TotalSeconds}s)");
 						}
 
 						clockSetNeeded = false;

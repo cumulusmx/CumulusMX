@@ -165,6 +165,7 @@
     <Compile Include="Cumulus.cs" />
     <Compile Include="DataEditor.cs" />
     <Compile Include="DataStruct.cs" />
+    <Compile Include="DavisAirLink.cs" />
     <Compile Include="DavisWllStation.cs" />
     <Compile Include="EasyWeather.cs" />
     <Compile Include="FOStation.cs" />

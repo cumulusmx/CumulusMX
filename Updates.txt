@@ -1,11 +1,36 @@
+
+3.9.0 - b3xxx
+=============
+- Adds support for the Davis AirLink air quality monitor.
+	- Like the WLL it supports auto-discovery of the AirLink IP address, this can be disabled via config
+	- A new Settings page has been created for "Secondary sensors", this is where you can configure the AirLink. The BlakeLarson, and RG-11
+	  configuration options will also be moved to this new page
+	- Creates a new Cumulus.ini file section
+		[AirLink]
+		In-Enabled=0
+		In-IPAddress=0.0.0.0
+		In-IsNode=0
+		In-AutoUpdateIpAddress=1
+		In-WLv2ApiKey=
+		In-WLv2ApiSecret=
+		In-WLStationId=
+		Out-Enabled=0
+		Out-IPAddress=0.0.0.0
+		Out-IsNode=0
+		Out-AutoUpdateIpAddress=1
+		Out-WLv2ApiKey=
+		Out-WLv2ApiSecret=
+		Out-WLStationId=
+
+
 3.8.3 - b3093
 =============
 - Fix: The dew point threshold limit (default value 40C) was incorrectly being applied to installations configured to use Fahrenheit
   as if the value were in Fahrenheit.
-- Fix: Davis VP/VP2 force 1 minute baromter updates no longer working correctly after v3.8.2 protocol changes.
+- Fix: Davis VP/VP2 force 1 minute barometer updates no longer working correctly after v3.8.2 protocol changes.
 	Note: this setting should only be used for VP stations, or VP2 stations with very old firmware.
 - Fix: Last rain date not updating for Davis stations (fixes the mixed unit/bucket size update in 3.8.2)
-- Adds two new Cumulus.ini file settings to control the numer of decimal places used for wind speeds. These override the built-in defaults.
+- Adds two new Cumulus.ini file settings to control the number of decimal places used for wind speeds. These override the built-in defaults.
   These settings are read-only, they can to be manually added ONLY if you need to use them. Add either or both settings as required.
 	[Station]
 	WindSpeedDecimals=[0|1|2]
