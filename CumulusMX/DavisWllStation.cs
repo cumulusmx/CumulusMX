@@ -1522,7 +1522,15 @@ namespace CumulusMX
 					DateTime timestamp = new DateTime();
 					foreach (var sensor in sensorData)
 					{
-						if (sensor.Value<int>("sensor_type") != 504)
+						var sensorType = sensor.Value<int>("sensor_type");
+
+						// Check for AirLink data
+						if (sensorType == 323 || sensorType == 326 )
+						{
+							// Pass AirLink historic record to the AirLink module to process
+							//airlink.;
+						}
+						else if (sensorType != 504)
 						{
 							DecodeHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
 							// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor

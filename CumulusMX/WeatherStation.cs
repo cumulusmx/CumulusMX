@@ -1659,6 +1659,11 @@ namespace CumulusMX
 						{
 							cumulus.DoExtraLogFile(now);
 						}
+
+						if (cumulus.AirLinkInEnabled || cumulus.AirLinkOutEnabled)
+						{
+							cumulus.DoAirLinkLogFile(now);
+						}
 					}
 
 					// Custom MySQL update - minutes interval
@@ -4296,6 +4301,7 @@ namespace CumulusMX
 		public int[] DavisReceptionPct = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		public int[] DavisTxRssi = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		public string DavisFirmwareVersion = "???";
+		public string AirLinkFirmwareVersion = "???";
 		public string GW1000FirmwareVersion = "???";
 
 		//private bool manualftp;
@@ -10520,6 +10526,30 @@ namespace CumulusMX
 			maxtemp = maxt;
 			avgtemp = avgt;
 		}
+	}
+
+	public class AirLinkData
+	{
+		public double temperature { get; set; }
+		public int humidity { get; set; }
+		public double pm1 { get; set; }
+		public double pm2p5 { get; set; }
+		public double pm2p5_1hr { get; set; }
+		public double pm2p5_3hr { get; set; }
+		public double pm2p5_nowcast { get; set; }
+		public double pm2p5_24hr { get; set; }
+		public double pm10 { get; set; }
+		public double pm10_1hr { get; set; }
+		public double pm10_3hr { get; set; }
+		public double pm10_nowcast { get; set; }
+		public double pm10_24hr { get; set; }
+		public int pct_1hr { get; set; }
+		public int pct_3hr { get; set; }
+		public int pct_nowcast { get; set; }
+		public int pct_24hr { get; set; }
+		public int aqi { get; set; }
+		public int aqi_1hr { get; set; }
+		public int aqi_nowcast { get; set; }
 	}
 
 	public class RecentData
