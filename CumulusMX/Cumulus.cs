@@ -5641,8 +5641,8 @@ namespace CumulusMX
 			// 28  Humidex
 
 			// make sure solar max is calculated for those stations without a solar sensor
-			LogMessage("Writing log entry for " + timestamp);
-			LogDebugMessage("max gust: " + station.RecentMaxGust.ToString(WindFormat));
+			LogMessage("DoLogFile: Writing log entry for " + timestamp);
+			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor, BrasTurbidity, SolarCalc);
 			var filename = GetLogFileName(timestamp);
 
@@ -5682,7 +5682,7 @@ namespace CumulusMX
 			}
 
 			LastUpdateTime = timestamp;
-			LogMessage("Written log entry for " + timestamp);
+			LogMessage("DoLogFile: Written log entry for " + timestamp);
 			station.WriteTodayFile(timestamp, true);
 
 			if (StartOfDayBackupNeeded)
@@ -5740,7 +5740,7 @@ namespace CumulusMX
 						{
 							cmd.CommandText = queryString;
 							cmd.Connection = MonthlyMySqlConn;
-							LogDebugMessage(queryString);
+							LogDebugMessage("DoLogFile: MySQL -  " + queryString);
 							MonthlyMySqlConn.Open();
 							int aff = cmd.ExecuteNonQuery();
 							LogMessage("MySQL: Table " + MySqlMonthlyTable + " " + aff + " rows were affected.");
@@ -5748,12 +5748,16 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Error encountered during Monthly MySQL operation.");
+						LogMessage("DoLogFile: Error encountered during Monthly MySQL operation.");
 						LogMessage(ex.Message);
 					}
 					finally
 					{
-						MonthlyMySqlConn.Close();
+						try
+						{
+							MonthlyMySqlConn.Close();
+						}
+						catch { }
 					}
 				}
 				else
@@ -7492,12 +7496,12 @@ namespace CumulusMX
 				// do the update
 				using (MySqlCommand cmd = new MySqlCommand())
 				{
-					cmd.CommandText = queryString;
-					cmd.Connection = RealtimeSqlConn;
-					LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {queryString}");
-
 					try
 					{
+						cmd.CommandText = queryString;
+						cmd.Connection = RealtimeSqlConn;
+						LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {queryString}");
+
 						RealtimeSqlConn.Open();
 						int aff1 = cmd.ExecuteNonQuery();
 						LogDebugMessage($"Realtime[{cycle}]: {aff1} rows were affected.");
@@ -7533,10 +7537,7 @@ namespace CumulusMX
 						{
 							RealtimeSqlConn.Close();
 						}
-						catch
-						{
-							// do nothing
-						}
+						catch {}
 					}
 				}
 			}
@@ -7757,7 +7758,11 @@ namespace CumulusMX
 				}
 				finally
 				{
-					CustomMysqlSecondsConn.Close();
+					try
+					{
+						CustomMysqlSecondsConn.Close();
+					}
+					catch {}
 					customMySqlSecondsUpdateInProgress = false;
 				}
 			}
@@ -7785,7 +7790,11 @@ namespace CumulusMX
 				}
 				finally
 				{
-					CustomMysqlMinutesConn.Close();
+					try
+					{
+						CustomMysqlMinutesConn.Close();
+					}
+					catch {}
 					customMySqlMinutesUpdateInProgress = false;
 				}
 			}
@@ -7814,7 +7823,11 @@ namespace CumulusMX
 					}
 					finally
 					{
-						CustomMysqlRolloverConn.Close();
+						try
+						{
+							CustomMysqlRolloverConn.Close();
+						}
+						catch {}
 						customMySqlRolloverUpdateInProgress = false;
 					}
 				});
@@ -7919,31 +7932,45 @@ namespace CumulusMX
 			mySqlConn.Password = MySqlPass;
 			mySqlConn.Database = MySqlDatabase;
 
-			mySqlConn.Open();
-
-			for (int i = 0; i < MySqlList.Count; i++)
+			try
 			{
-				LogMessage("MySQL Archive: Uploading archive #" + (i + 1));
-				try
-				{
-					using (MySqlCommand cmd = new MySqlCommand())
-					{
-						cmd.CommandText = MySqlList[i];
-						cmd.Connection = mySqlConn;
-						LogDebugMessage(MySqlList[i]);
+				mySqlConn.Open();
 
-						int aff = cmd.ExecuteNonQuery();
-						LogMessage($"MySQL Archive: Table {MySqlMonthlyTable} - {aff} rows were affected.");
+				for (int i = 0; i < MySqlList.Count; i++)
+				{
+					LogMessage("MySQL Archive: Uploading archive #" + (i + 1));
+					try
+					{
+						using (MySqlCommand cmd = new MySqlCommand())
+						{
+							cmd.CommandText = MySqlList[i];
+							cmd.Connection = mySqlConn;
+							LogDebugMessage(MySqlList[i]);
+
+							int aff = cmd.ExecuteNonQuery();
+							LogMessage($"MySQL Archive: Table {MySqlMonthlyTable} - {aff} rows were affected.");
+						}
+					}
+					catch (Exception ex)
+					{
+						LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
+						LogMessage(ex.Message);
 					}
 				}
-				catch (Exception ex)
-				{
-					LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
-					LogMessage(ex.Message);
-				}
 			}
-
-			mySqlConn.Close();
+			catch (Exception ex)
+			{
+				LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
+				LogMessage(ex.Message);
+			}
+			finally
+			{
+				try
+				{
+					mySqlConn.Close();
+				}
+				catch {}
+			}
 
 			LogMessage("MySQL Archive: End of MySQL archive upload");
 			MySqlList.Clear();
@@ -8257,7 +8284,7 @@ namespace CumulusMX
 					response.EnsureSuccessStatusCode();
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					LogDebugMessage("CustomHttpSeconds: Response - " + response.StatusCode);
-					LogDataMessage("CustomHttpSeconds: Response Text- " + responseBodyAsText);
+					LogDataMessage("CustomHttpSeconds: Response Text - " + responseBodyAsText);
 				}
 				catch (Exception ex)
 				{

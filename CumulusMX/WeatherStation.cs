@@ -1336,6 +1336,9 @@ namespace CumulusMX
 		public double AirQualityAvg3 { get; set; }
 		public double AirQualityAvg4 { get; set; }
 
+		public int CO2 { get; set; }
+		public int CO2_24h { get; set; }
+
 		public int LeakSensor1 { get; set; }
 		public int LeakSensor2 { get; set; }
 		public int LeakSensor3 { get; set; }
@@ -5417,13 +5420,13 @@ namespace CumulusMX
 				// run the query async so we do not block the main EOD processing
 				Task.Run(() =>
 				{
-					MySqlCommand cmd = new MySqlCommand();
-					cmd.CommandText = queryString.ToString();
-					cmd.Connection = mySqlConn;
-					cumulus.LogMessage($"MySQL Dayfile: {cmd.CommandText}");
-
 					try
 					{
+						MySqlCommand cmd = new MySqlCommand();
+						cmd.CommandText = queryString.ToString();
+						cmd.Connection = mySqlConn;
+						cumulus.LogMessage($"MySQL Dayfile: {cmd.CommandText}");
+
 						mySqlConn.Open();
 						int aff = cmd.ExecuteNonQuery();
 						cumulus.LogMessage($"MySQL Dayfile: Table {cumulus.MySqlDayfileTable} - {aff} rows were affected.");
@@ -5435,7 +5438,11 @@ namespace CumulusMX
 					}
 					finally
 					{
-						mySqlConn.Close();
+						try
+						{
+							mySqlConn.Close();
+						}
+						catch {}
 					}
 				});
 			}
