@@ -119,7 +119,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				// Read the data from the logger
+				// Read the data from the WL APIv2
 				startReadingHistoryData();
 			}
 		}

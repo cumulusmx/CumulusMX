@@ -42,7 +42,9 @@ namespace CumulusMX
 			CMD_WRITE_CUSTOMIZED = 0x2B, // write back customized sever setting
 			CMD_WRITE_UPDATE = 0x43,// update firmware
 			CMD_READ_FIRMWARE_VERSION = 0x50,// read back firmware version
-			// the following command is only valid for GW1000 and WH2650：
+			CMD_READ_USER_PATH = 0x51,
+			CMD_WRITE_USER_PATH = 0x52,
+			// the following commands are only valid for GW1000 and WH2650：
 			CMD_GW1000_LIVEDATA = 0x27, // read current，return size is 2 Byte
 			CMD_GET_SOILHUMIAD = 0x28,// read Soilmoisture Sensor calibration parameter
 			CMD_SET_SOILHUMIAD = 0x29, // write back Soilmoisture Sensor calibration parameter
@@ -60,8 +62,11 @@ namespace CumulusMX
 			CMD_WRITE_CALIBRATION = 0x39,//  write back multiple parameter offset
 			CMD_READ_SENSOR_ID = 0x3A,//  read Sensors ID
 			CMD_WRITE_SENSOR_ID = 0x3B, // write back Sensors ID
+			CMD_READ_SENSOR_ID_NEW = 0x3C,
 			CMD_WRITE_REBOOT = 0x40,// system rebset
 			CMD_WRITE_RESET = 0x41,// system default setting reset
+			CMD_GET_CO2_OFFSET = 0x53,
+			CMD_SET_CO2_OFFSET = 0x54
 		}
 
 		private enum CommandRespSize : int
@@ -81,7 +86,9 @@ namespace CumulusMX
 			CMD_WRITE_CUSTOMIZED = 1,
 			CMD_WRITE_UPDATE = 1,
 			CMD_READ_FIRMWARE_VERSION = 1,
-			// the following command is only valid for GW1000 and WH2650：
+			CMD_READ_USER_PATH = 1,
+			CMD_WRITE_USER_PATH = 1,
+			// the following commands are only valid for GW1000 and WH2650：
 			CMD_GW1000_LIVEDATA = 2,
 			CMD_GET_SOILHUMIAD = 1,
 			CMD_SET_SOILHUMIAD = 1,
@@ -848,6 +855,10 @@ namespace CumulusMX
 								}
 								idx += 8;
 								break;
+							case 0x70: // WH CO₂
+								batteryLow = batteryLow || DoCO2Decode(data, idx);
+								idx += 16;
+								break;
 
 							default:
 								cumulus.LogDebugMessage($"Error: Unknown sensor id found = {data[idx - 1]}, at position = {idx - 1}");
@@ -1003,6 +1014,45 @@ namespace CumulusMX
 			}
 		}
 
+		private bool DoCO2Decode(byte[] data, int index)
+		{
+			bool batteryLow = false;
+			int idx = index;
+			cumulus.LogDebugMessage("CO₂: Decoding...");
+			//CO2Data co2Data = (CO2Data)RawDeserialize(data, index, typeof(CO2Data));
+
+			var temp = ConvertBigEndianInt16(data, idx) / 10;
+			idx += 2;
+			int hum = data[idx++];
+			int pm10 = ConvertBigEndianUInt16(data, idx) / 10;
+			idx += 2;
+			int pm10_24h = ConvertBigEndianUInt16(data, idx) / 10;
+			idx += 2;
+			int pm2p5 = ConvertBigEndianUInt16(data, idx) / 10;
+			idx += 2;
+			int pm2p5_24h = ConvertBigEndianUInt16(data, idx) / 10;
+			idx += 2;
+			CO2 = ConvertBigEndianUInt16(data, idx);
+			idx += 2;
+			CO2_24h = ConvertBigEndianUInt16(data, idx);
+			idx += 2;
+			var batt = TestBattery3(data[idx]);
+			cumulus.LogDebugMessage($"CO₂: temp={temp.ToString(cumulus.TempFormat)}, hum={hum}, pm10={pm10:F1}, pm10_24h={pm10_24h:F1}, pm2.5={pm2p5:F1}, pm2.5_24h={pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}");
+			if (tenMinuteChanged)
+			{
+				if (batt == "Low")
+				{
+					batteryLow = true;
+					cumulus.LogMessage($"CO₂: Battery={batt}");
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"CO₂: Battery={batt}");
+				}
+			}
+			return batteryLow;
+		}
+
 		private bool DoBatteryStatus(byte[] data, int index)
 		{
 			bool batteryLow = false;
@@ -1087,7 +1137,7 @@ namespace CumulusMX
 			else
 				cumulus.LogDebugMessage(str);
 
-			str= "wh80> " + TestBattery4S(status.wh80) + " - " + TestBattery4V(status.wh80) + "V";
+			str = "wh80> " + TestBattery4S(status.wh80) + " - " + TestBattery4V(status.wh80) + "V";
 			if (str.Contains("Low"))
 			{
 				batteryLow = true;
@@ -1095,6 +1145,17 @@ namespace CumulusMX
 			}
 			else
 				cumulus.LogDebugMessage(str);
+
+			str = "wh45> " + TestBattery4S(status.wh45) + " - " + TestBattery4V(status.wh45) + "V";
+			if (str.Contains("Low"))
+			{
+				batteryLow = true;
+				cumulus.LogMessage(str);
+			}
+			else
+				cumulus.LogDebugMessage(str);
+
+
 
 			str = "wh55>" +
 				" ch1=" + TestBattery3(status.wh55_ch1) +
@@ -1228,7 +1289,7 @@ namespace CumulusMX
 			public byte wh57;
 			public byte wh68;
 			public byte wh80;
-			private readonly byte unused1;
+			public byte wh45;
 			public UInt16 wh41;
 			public byte wh55_ch1;
 			public byte wh55_ch2;
@@ -1278,6 +1339,19 @@ namespace CumulusMX
 			public Sensors()
 			{
 			}
+		}
+
+		private struct CO2Data
+		{
+			public Int16 temp;          // °C x10
+			public byte hum;			// %
+			public UInt16 pm10;			// ug/m3 x10
+			public UInt16 pm10_24hr;	// ug/m3 x10
+			public UInt16 pm2p5;		// ug/m3 x10
+			public UInt16 pm2p5_24hr;	// ug/m3 x10
+			public UInt16 co2;			// ppm
+			public UInt16 co2_24hr;		// ppm
+			public byte batt;			// 0-5
 		}
 		*/
 

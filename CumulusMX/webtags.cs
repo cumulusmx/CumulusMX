@@ -3425,6 +3425,16 @@ namespace CumulusMX
 			return CheckRC(station.AirQualityAvg4.ToString(cumulus.TempFormat), TagParams);
 		}
 
+		private string TagCO2(Dictionary<string, string> TagParams)
+		{
+			return station.CO2.ToString();
+		}
+
+		private string TagCO2_24h(Dictionary<string, string> TagParams)
+		{
+			return station.CO2_24h.ToString();
+		}
+
 		private string TagLeafTemp1(Dictionary<string,string> TagParams)
 		{
 			return CheckRC(station.LeafTemp1.ToString(cumulus.TempFormat), TagParams);
@@ -5424,6 +5434,8 @@ namespace CumulusMX
 				{ "AirQualityAvg2", TagAirQualityAvg2 },
 				{ "AirQualityAvg3", TagAirQualityAvg3 },
 				{ "AirQualityAvg4", TagAirQualityAvg4 },
+				{ "CO2", TagCO2 },
+				{ "CO2-24h", TagCO2_24h },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },
