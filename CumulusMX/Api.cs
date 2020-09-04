@@ -18,6 +18,7 @@ namespace CumulusMX
 		internal static WeatherStation Station;
 		public static StationSettings stationSettings;
 		public static InternetSettings internetSettings;
+		public static ExtraSensorSettings extraSensorSettings;
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
@@ -717,6 +718,8 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(stationSettings.UpdateStationConfig(this));
 						case "updateinternetconfig.json":
 							return await this.JsonResponseAsync(internetSettings.UpdateInternetConfig(this));
+						case "updateextrasensorconfig.json":
+							return await this.JsonResponseAsync(extraSensorSettings.UpdateExtraSensorConfig(this));
 						case "updatecalibrationconfig.json":
 							return await this.JsonResponseAsync(calibrationSettings.UpdateCalibrationConfig(this));
 						case "updatenoaaconfig.json":
@@ -813,6 +816,12 @@ namespace CumulusMX
 						case "internetschema.json":
 							return await this.JsonResponseAsync(internetSettings.GetInternetAlpacaFormSchema());
 
+						case "extrasensordata.json":
+							return await this.JsonResponseAsync(extraSensorSettings.GetExtraSensorAlpacaFormData());
+						case "extrasensoroptions.json":
+							return await this.JsonResponseAsync(extraSensorSettings.GetExtraSensorAlpacaFormOptions());
+						case "extrasensorschema.json":
+							return await this.JsonResponseAsync(extraSensorSettings.GetExtraSensorAlpacaFormSchema());
 						case "extrawebfiles.json":
 							return await this.JsonResponseAsync(internetSettings.GetExtraWebFilesData());
 

@@ -3,26 +3,31 @@
 =============
 - Adds support for the Davis AirLink air quality monitor.
 	- Like the WLL it supports auto-discovery of the AirLink IP address, this can be disabled via config
-	- A new Settings page has been created for "Secondary sensors", this is where you can configure the AirLink. The BlakeLarson, and RG-11
-	  configuration options will also be moved to this new page
+	- A new Settings page has been created for "Extra sensors", this is where you can configure the AirLink.
 	- Creates a new Cumulus.ini file section
 		[AirLink]
+		WLv2ApiKey=
+		WLv2ApiSecret=
+		AutoUpdateIpAddress=1
 		In-Enabled=0
 		In-IPAddress=0.0.0.0
 		In-IsNode=0
-		In-AutoUpdateIpAddress=1
-		In-WLv2ApiKey=
-		In-WLv2ApiSecret=
 		In-WLStationId=
 		Out-Enabled=0
 		Out-IPAddress=0.0.0.0
 		Out-IsNode=0
-		Out-AutoUpdateIpAddress=1
-		Out-WLv2ApiKey=
-		Out-WLv2ApiSecret=
 		Out-WLStationId=
+- The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now also be set on the new Extra Sensors page.
+  There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
+	[Station]
+	RG11Enabled=0
+	RG11Enabled2=0
 
 
+
+- Updated files
+	\CumulusMX.exe
+	\interface			- lots of changes, copy the whole folder
 
 
 3.8.4 - b3094

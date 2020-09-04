@@ -168,6 +168,7 @@
     <Compile Include="DavisAirLink.cs" />
     <Compile Include="DavisWllStation.cs" />
     <Compile Include="EasyWeather.cs" />
+    <Compile Include="ExtraSensorSettings.cs" />
     <Compile Include="FOStation.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GW1000Station.cs" />
