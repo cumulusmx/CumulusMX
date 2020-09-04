@@ -4300,6 +4300,7 @@ namespace CumulusMX
 		public int[] DavisNumCRCerrors = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		public int[] DavisReceptionPct = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		public int[] DavisTxRssi = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		public int[] DavisAirLinkRssi = { 0, 0 };
 		public string DavisFirmwareVersion = "???";
 		public string AirLinkFirmwareVersion = "???";
 		public string GW1000FirmwareVersion = "???";

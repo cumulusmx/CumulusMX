@@ -175,6 +175,7 @@ namespace CumulusMX
 
 		private readonly StationSettings stationSettings;
 		private readonly InternetSettings internetSettings;
+		private readonly ExtraSensorSettings extraSensorSettings;
 		private readonly CalibrationSettings calibrationSettings;
 		private readonly NOAASettings noaaSettings;
 		private readonly AlarmSettings alarmSettings;
@@ -1420,6 +1421,7 @@ namespace CumulusMX
 
 			stationSettings = new StationSettings(this);
 			internetSettings = new InternetSettings(this);
+			extraSensorSettings = new ExtraSensorSettings(this);
 			calibrationSettings = new CalibrationSettings(this);
 			noaaSettings = new NOAASettings(this);
 			alarmSettings = new AlarmSettings(this);
@@ -1446,6 +1448,7 @@ namespace CumulusMX
 			Api.Station = station;
 			Api.stationSettings = stationSettings;
 			Api.internetSettings = internetSettings;
+			Api.extraSensorSettings = extraSensorSettings;
 			Api.calibrationSettings = calibrationSettings;
 			Api.noaaSettings = noaaSettings;
 			Api.alarmSettings = alarmSettings;
@@ -1813,14 +1816,14 @@ namespace CumulusMX
 */
 		private void InitialiseRG11()
 		{
-			if (RG11Port.Length > 0)
+			if (RG11Enabled && RG11Port.Length > 0)
 			{
 				cmprtRG11 = new SerialPort(RG11Port, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
 
 				cmprtRG11.PinChanged += RG11StateChange;
 			}
 
-			if (RG11Port2.Length > 0 && (!RG11Port2.Equals(RG11Port)))
+			if (RG11Enabled2 && RG11Port2.Length > 0 && (!RG11Port2.Equals(RG11Port)))
 			{
 				// a second RG11 is in use, using a different com port
 				cmprt2RG11 = new SerialPort(RG11Port2, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
@@ -3504,12 +3507,14 @@ namespace CumulusMX
 			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
 
+			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
 			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
 			RG11TBRmode = ini.GetValue("Station", "RG11TBRmode", false);
 			RG11tipsize = ini.GetValue("Station", "RG11tipsize", 0.0);
 			RG11IgnoreFirst = ini.GetValue("Station", "RG11IgnoreFirst", false);
 			RG11DTRmode = ini.GetValue("Station", "RG11DTRmode", true);
 
+			RG11Enabled2 = ini.GetValue("Station", "RG11Enabled2", false);
 			RG11Port2 = ini.GetValue("Station", "RG11port2Name", DefaultComportName);
 			RG11TBRmode2 = ini.GetValue("Station", "RG11TBRmode2", false);
 			RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0);
@@ -3607,20 +3612,19 @@ namespace CumulusMX
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 
 			// AirLink settings
+			AirLinkApiKey = ini.GetValue("AirLink", "WLv2ApiKey", "");
+			AirLinkApiSecret = ini.GetValue("AirLink", "WLv2ApiSecret", "");
+			AirLinkAutoUpdateIpAddress = ini.GetValue("AirLink", "AutoUpdateIpAddress", true);
 			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
 			AirLinkInIsNode = ini.GetValue("AirLink", "In-IsNode", false);
-			AirLinkInApiKey = ini.GetValue("AirLink", "In-WLv2ApiKey", WllApiKey);
-			AirLinkInApiSecret = ini.GetValue("AirLink", "In-WLv2ApiSecret", WllApiSecret);
 			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", "");
+			if (AirLinkInStationId == "-1") AirLinkInStationId = "";
 			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
 			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
 			AirLinkOutIsNode = ini.GetValue("AirLink", "Out-IsNode", false);
-			AirLinkOutApiKey = ini.GetValue("AirLink", "Out-WLv2ApiKey", WllApiKey);
-			AirLinkOutApiSecret = ini.GetValue("AirLink", "Out-WLv2ApiSecret", WllApiSecret);
 			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", "");
-			if (AirLinkInStationId == "-1") AirLinkInStationId = "";
-			AirLinkAutoUpdateIpAddress = ini.GetValue("AirLink", "AutoUpdateIpAddress", true);
+			if (AirLinkOutStationId == "-1") AirLinkOutStationId = "";
 
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
@@ -4187,12 +4191,14 @@ namespace CumulusMX
 			//ini.SetValue("Station", "ImetBaudRate", ImetBaudRate);
 			//ini.SetValue("Station", "DavisBaudRate", DavisBaudRate);
 
+			ini.SetValue("Station", "RG11Enabled", RG11Enabled);
 			ini.SetValue("Station", "RG11portName", RG11Port);
 			ini.SetValue("Station", "RG11TBRmode", RG11TBRmode);
 			ini.SetValue("Station", "RG11tipsize", RG11tipsize);
 			ini.SetValue("Station", "RG11IgnoreFirst", RG11IgnoreFirst);
 			ini.SetValue("Station", "RG11DTRmode", RG11DTRmode);
 
+			ini.SetValue("Station", "RG11Enabled2", RG11Enabled2);
 			ini.SetValue("Station", "RG11portName2", RG11Port2);
 			ini.SetValue("Station", "RG11TBRmode2", RG11TBRmode2);
 			ini.SetValue("Station", "RG11tipsize2", RG11tipsize2);
@@ -4241,15 +4247,16 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 
 			// AirLink settings
+			ini.SetValue("AirLink", "WLv2ApiKey", AirLinkApiKey);
+			ini.SetValue("AirLink", "WLv2ApiSecret", AirLinkApiSecret);
+			ini.SetValue("AirLink", "AutoUpdateIpAddress", AirLinkAutoUpdateIpAddress);
 			ini.SetValue("AirLink", "In-Enabled", AirLinkInEnabled);
 			ini.SetValue("AirLink", "In-IPAddress", AirLinkInIPAddr);
 			ini.SetValue("AirLink", "In-IsNode", AirLinkInIsNode);
-			ini.SetValue("AirLink", "In-WLv2ApiSecret", AirLinkInApiSecret);
 			ini.SetValue("AirLink", "In-WLStationId", AirLinkInStationId);
 			ini.SetValue("AirLink", "Out-Enabled", AirLinkOutEnabled);
 			ini.SetValue("AirLink", "Out-IPAddress", AirLinkOutIPAddr);
 			ini.SetValue("AirLink", "Out-IsNode", AirLinkOutIsNode);
-			ini.SetValue("AirLink", "Out-WLv2ApiSecret", AirLinkOutApiSecret);
 			ini.SetValue("AirLink", "Out-WLStationId", AirLinkOutStationId);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
@@ -5120,6 +5127,9 @@ namespace CumulusMX
 
 		public string RG11Port { get; set; }
 
+		public bool RG11Enabled { get; set; }
+		public bool RG11Enabled2 { get; set; }
+
 		public double ChillHourThreshold { get; set; }
 
 		public int ChillHourSeasonStart { get; set; }
@@ -5352,12 +5362,10 @@ namespace CumulusMX
 
 		// WeatherLink Live transmitter Ids and indexes
 		public bool AirLinkInIsNode = false;
-		public string AirLinkInApiKey;
-		public string AirLinkInApiSecret;
+		public string AirLinkApiKey;
+		public string AirLinkApiSecret;
 		public string AirLinkInStationId;
 		public bool AirLinkOutIsNode = false;
-		public string AirLinkOutApiKey;
-		public string AirLinkOutApiSecret;
 		public string AirLinkOutStationId;
 		public bool AirLinkAutoUpdateIpAddress = true;
 
@@ -5882,40 +5890,40 @@ namespace CumulusMX
 			// 5  Indoor PM 2.5
 			// 6  Indoor PM 2.5 1-hour
 			// 7  Indoor PM 2.5 3-hour
-			// 8  Indoor PM 2.5 nowcast
-			// 9  Indoor PM 2.5 24-hour
-			// 5  Indoor PM 10
-			// 6  Indoor PM 10 1-hour
-			// 7  Indoor PM 10 3-hour
-			// 8  Indoor PM 10 nowcast
-			// 9  Indoor PM 10 24-hour
-			// 10 Indoor Percent received 1-hour
-			// 11 Indoor Percent received 3-hour
-			// 12 Indoor Percent received nowcast
-			// 13 Indoor Percent received 24-hour
-			// 14 Indoor AQI
-			// 15 Indoor AQI 1-hour
-			// 16 Indoor AQI nowcast
-			// 17 Outdoor Temperature
-			// 18 Outdoor Humidity
-			// 19 Outdoor PM 1
-			// 20 Outdoor PM 2.5
-			// 21 Outdoor PM 2.5 1-hour
-			// 22 Outdoor PM 2.5 3-hour
-			// 23 Outdoor PM 2.5 nowcast
-			// 24 Outdoor PM 2.5 24-hour
-			// 25 Outdoor PM 10
-			// 26 Outdoor PM 10 1-hour
-			// 27 Outdoor PM 10 3-hour
-			// 28 Outdoor PM 10 nowcast
-			// 29 Outdoor PM 10 24-hour
-			// 30 Outdoor Percent received 1-hour
-			// 31 Outdoor Percent received 3-hour
-			// 32 Outdoor Percent received nowcast
-			// 33 Outdoor Percent received 24-hour
-			// 34 Outdoor AQI
-			// 35 Outdoor AQI 1-hour
-			// 36 Outdoor AQI nowcast
+			// 8  Indoor PM 2.5 24-hour
+			// 9  Indoor PM 2.5 nowcast
+			// 10 Indoor PM 10
+			// 11 Indoor PM 10 1-hour
+			// 12 Indoor PM 10 3-hour
+			// 13 Indoor PM 10 24-hour
+			// 14 Indoor PM 10 nowcast
+			// 15 Indoor Percent received 1-hour
+			// 16 Indoor Percent received 3-hour
+			// 17 Indoor Percent received nowcast
+			// 18 Indoor Percent received 24-hour
+			// 19 Indoor AQI
+			// 20 Indoor AQI 1-hour
+			// 21 Indoor AQI nowcast
+			// 22 Outdoor Temperature
+			// 23 Outdoor Humidity
+			// 24 Outdoor PM 1
+			// 25 Outdoor PM 2.5
+			// 26 Outdoor PM 2.5 1-hour
+			// 27 Outdoor PM 2.5 3-hour
+			// 28 Outdoor PM 2.5 24-hour
+			// 29 Outdoor PM 2.5 nowcast
+			// 30 Outdoor PM 10
+			// 31 Outdoor PM 10 1-hour
+			// 32 Outdoor PM 10 3-hour
+			// 33 Outdoor PM 10 24-hour
+			// 34 Outdoor PM 10 nowcast
+			// 35 Outdoor Percent received 1-hour
+			// 36 Outdoor Percent received 3-hour
+			// 37 Outdoor Percent received nowcast
+			// 38 Outdoor Percent received 24-hour
+			// 39 Outdoor AQI
+			// 40 Outdoor AQI 1-hour
+			// 41 Outdoor AQI nowcast
 
 			var filename = GetExtraLogFileName(timestamp);
 
@@ -5933,17 +5941,17 @@ namespace CumulusMX
 					file.Write(airLinkDataIn.pm2p5 + ListSeparator);
 					file.Write(airLinkDataIn.pm2p5_1hr + ListSeparator);
 					file.Write(airLinkDataIn.pm2p5_3hr + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_nowcast + ListSeparator);
 					file.Write(airLinkDataIn.pm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_nowcast + ListSeparator);
 					file.Write(airLinkDataIn.pm10 + ListSeparator);
 					file.Write(airLinkDataIn.pm10_1hr + ListSeparator);
 					file.Write(airLinkDataIn.pm10_3hr + ListSeparator);
-					file.Write(airLinkDataIn.pm10_nowcast + ListSeparator);
 					file.Write(airLinkDataIn.pm10_24hr + ListSeparator);
+					file.Write(airLinkDataIn.pm10_nowcast + ListSeparator);
 					file.Write(airLinkDataIn.pct_1hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_3hr + ListSeparator);
-					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
 					file.Write(airLinkDataIn.pct_24hr + ListSeparator);
+					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
 					file.Write(airLinkDataIn.aqi + ListSeparator);
 					file.Write(airLinkDataIn.aqi_1hr + ListSeparator);
 					file.Write(airLinkDataIn.aqi_nowcast + ListSeparator);
@@ -5951,7 +5959,7 @@ namespace CumulusMX
 				else
 				{
 					// write zero values
-					for (var i = 1; i <= 17; i++)
+					for (var i = 0; i < typeof(AirLinkData).GetFields().Length; i++)
 					{
 						file.Write("0" + ListSeparator);
 					}
@@ -5965,17 +5973,17 @@ namespace CumulusMX
 					file.Write(airLinkDataOut.pm2p5 + ListSeparator);
 					file.Write(airLinkDataOut.pm2p5_1hr + ListSeparator);
 					file.Write(airLinkDataOut.pm2p5_3hr + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_nowcast + ListSeparator);
 					file.Write(airLinkDataOut.pm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_nowcast + ListSeparator);
 					file.Write(airLinkDataOut.pm10 + ListSeparator);
 					file.Write(airLinkDataOut.pm10_1hr + ListSeparator);
 					file.Write(airLinkDataOut.pm10_3hr + ListSeparator);
-					file.Write(airLinkDataOut.pm10_nowcast + ListSeparator);
 					file.Write(airLinkDataOut.pm10_24hr + ListSeparator);
+					file.Write(airLinkDataOut.pm10_nowcast + ListSeparator);
 					file.Write(airLinkDataOut.pct_1hr + ListSeparator);
 					file.Write(airLinkDataOut.pct_3hr + ListSeparator);
-					file.Write(airLinkDataOut.pct_nowcast + ListSeparator);
 					file.Write(airLinkDataOut.pct_24hr + ListSeparator);
+					file.Write(airLinkDataOut.pct_nowcast + ListSeparator);
 					file.Write(airLinkDataOut.aqi + ListSeparator);
 					file.Write(airLinkDataOut.aqi_1hr + ListSeparator);
 					file.Write(airLinkDataOut.aqi_nowcast);
@@ -5983,7 +5991,7 @@ namespace CumulusMX
 				else
 				{
 					// write zero values
-					for (var i = 1; i <= 16; i++)
+					for (var i = 0; i < typeof(AirLinkData).GetFields().Length - 1; i++)
 					{
 						file.Write("0" + ListSeparator);
 					}

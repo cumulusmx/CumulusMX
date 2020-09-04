@@ -35,32 +35,11 @@ namespace CumulusMX
 		private bool alVoltageLow = false;
 		private bool stop = false;
 
-		private string AirLinkIPAddr;
-		private bool AirLinkIsNode;
-		private string AirLinkApiKey;
-		private string AirLinkApiSecret;
-		private string AirLinkStationId;
 		private bool indoor;
 
 		public DavisAirLink(Cumulus cumulus, bool Indoor) : base(cumulus)
 		{
 			indoor = Indoor;
-			if (Indoor)
-			{
-				AirLinkIPAddr = cumulus.AirLinkInIPAddr;
-				AirLinkIsNode = cumulus.AirLinkInIsNode;
-				AirLinkApiKey = cumulus.AirLinkInApiKey;
-				AirLinkApiSecret = cumulus.AirLinkInApiSecret;
-				AirLinkStationId = cumulus.AirLinkInStationId;
-			}
-			else
-			{
-				AirLinkIPAddr = cumulus.AirLinkOutIPAddr;
-				AirLinkIsNode = cumulus.AirLinkOutIsNode;
-				AirLinkApiKey = cumulus.AirLinkOutApiKey;
-				AirLinkApiSecret = cumulus.AirLinkOutApiSecret;
-				AirLinkStationId = cumulus.AirLinkOutStationId;
-			}
 
 			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({(Indoor ? "Indoor" : "Outdoor")})");
 
@@ -100,8 +79,10 @@ namespace CumulusMX
 				cumulus.LogMessage($"Starting Davis AirLink ({(Indoor ? "Indoor" : "Outdoor")})");
 				StartLoop();
 			}
-			else if (cumulus.UseDataLogger && !AirLinkIsNode && AirLinkStationId != cumulus.WllStationId)
+			else if (cumulus.UseDataLogger)
 			{
+				if ((indoor && !cumulus.AirLinkInIsNode) || (!indoor && !cumulus.AirLinkOutIsNode))
+
 				// Read the data from the WL APIv2
 				startReadingHistoryData();
 			}
@@ -124,13 +105,16 @@ namespace CumulusMX
 
 
 				// Only poll health data here if the AirLink is not linked to another WLL station
-				if (cumulus.UseDataLogger && !AirLinkIsNode && AirLinkStationId != cumulus.WllStationId)
+				if (cumulus.UseDataLogger)
 				{
-					// get the health data every 15 minutes
-					tmrHealth.Elapsed += HealthTimerTick;
-					tmrHealth.Interval = 60 * 1000;  // Tick every minute
-					tmrHealth.AutoReset = true;
-					tmrHealth.Start();
+					if ((indoor && !cumulus.AirLinkInIsNode) || (!indoor && !cumulus.AirLinkOutIsNode))
+					{
+						// get the health data every 15 minutes
+						tmrHealth.Elapsed += HealthTimerTick;
+						tmrHealth.Interval = 60 * 1000;  // Tick every minute
+						tmrHealth.AutoReset = true;
+						tmrHealth.Start();
+					}
 				}
 			}
 			catch (ThreadAbortException)
@@ -150,7 +134,7 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				ip = AirLinkIPAddr;
+				ip = (indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr);
 			}
 
 			if (CheckIpValid(ip))
@@ -236,7 +220,8 @@ namespace CumulusMX
 
 					switch (type)
 					{
-						case 5: // AirLink
+						case 5: // AirLink - original firmware
+						case 6: // AirLink - newer firmware
 							cumulus.LogDebugMessage("DecodeAlCurrent: Found AirLink data");
 
 							// Temperature & Humidity
@@ -262,45 +247,122 @@ namespace CumulusMX
 								}
 								else
 								{
-									//DoOutdoorHumidity(rec.Value<int>("hum"), dateTime);
+									if (indoor)
+									{
+										cumulus.airLinkDataIn.humidity = rec.Value<int>("hum");
+									}
+									else
+									{
+										cumulus.airLinkDataOut.humidity = rec.Value<int>("hum");
+									}
 								}
 
-								//DoOutdoorTemp(ConvertTempFToUser(rec.Value<double>("temp")), dateTime);
-
-								if (string.IsNullOrEmpty(rec.Value<string>("dew_point")))
+								if (indoor)
 								{
-									cumulus.LogDebugMessage($"DecodeAlCurrent: No valid dewpoint value found [{rec.Value<string>("dew_point")}]");
+									cumulus.airLinkDataIn.temperature = rec.Value<double>("temp");
 								}
 								else
 								{
-									//DoOutdoorDewpoint(ConvertTempFToUser(rec.Value<double>("dew_point")), dateTime);
+									cumulus.airLinkDataOut.temperature = rec.Value<double>("temp");
 								}
 							}
 
 							// AQ fields
 							/* Available fields
 							 * pm_1_last					// the most recent valid PM 1.0 reading calculated using atmospheric calibration in µg/m^3
-							 * pm_2p5_last
-							 * pm_10_last
 							 * pm_1							// the average of all PM 1.0 readings in the last minute calculated using atmospheric calibration in µg/m^3
+							 * pm_2p5_last
 							 * pm_2p5
-							 * pm_10
 							 * pm_2p5_last_1_hour			// the average of all PM 2.5 readings in the last hour calculated using atmospheric calibration in µg/m^3
 							 * pm_2p5_last_3_hours			// the average of all PM 2.5 readings in the last 3 hours calculated using atmospheric calibration in µg/m^3
-							 * pm_2p5_nowcast				// the weighted average of all PM 2.5 readings in the last 12 hours calculated using atmospheric calibration in µg/m^3
 							 * pm_2p5_last_24_hours			// the weighted average of all PM 2.5 readings in the last 24 hours calculated using atmospheric calibration in µg/m^3
+							 * pm_2p5_nowcast				// the weighted average of all PM 2.5 readings in the last 12 hours calculated using atmospheric calibration in µg/m^3
+							 * pm_10p0_last					// type=5
+							 * pm_10p0
+							 * pm_10p0_last_1_hour
+							 * pm_10p0_last_3_hours
+							 * pm_10p0_last_24_hours
+							 * pm_10p0_nowcast
+							 * pm_10_last					// type=6
+							 * pm_10
 							 * pm_10_last_1_hour
 							 * pm_10_last_3_hours
-							 * pm_10_nowcast
 							 * pm_10_last_24_hours
+							 * pm_10_nowcast
 							 * last_report_time				// the UNIX timestamp of the last time a valid reading was received from the PM sensor (or time since boot if time has not been synced), with resolution of seconds
 							 * pct_pm_data_last_1_hour		// the amount of PM data available to calculate averages in the last hour (rounded down to the nearest percent)
 							 * pct_pm_data_last_3_hours
-							 * pct_pm_data_nowcast
 							 * pct_pm_data_last_24_hours
+							 * pct_pm_data_nowcast
 							 *
 							 * With the exception of fields ending in _last, all pm_n_xxx fields are calculated using a rolling window with one minute granularity that is updated once per minute a few seconds after the end of each minute
 							*/
+
+							if (string.IsNullOrEmpty(rec.Value<string>("pm_1")))
+							{
+								cumulus.LogDebugMessage($"DecodeAlCurrent: No valid pm1 value found [{rec.Value<string>("pm_1")}]");
+							}
+							else
+							{
+								if (indoor)
+								{
+									cumulus.airLinkDataIn.pm1 = rec.Value<double>("pm_1");
+									cumulus.airLinkDataIn.pm2p5 = rec.Value<double>("pm_2p5");
+									cumulus.airLinkDataIn.pm2p5_1hr = rec.Value<double>("pm_2p5_last_1_hour");
+									cumulus.airLinkDataIn.pm2p5_3hr = rec.Value<double>("pm_2p5_last_3_hours");
+									cumulus.airLinkDataIn.pm2p5_24hr = rec.Value<double>("pm_2p5_last_24_hours");
+									cumulus.airLinkDataIn.pm2p5_nowcast = rec.Value<double>("pm_2p5_nowcast");
+									if (type == 5)
+									{
+										cumulus.airLinkDataIn.pm10 = rec.Value<double>("pm_10p0");
+										cumulus.airLinkDataIn.pm10_1hr = rec.Value<double>("pm_10p0_last_1_hour");
+										cumulus.airLinkDataIn.pm10_3hr = rec.Value<double>("pm_10p0_last_3_hours");
+										cumulus.airLinkDataIn.pm10_24hr = rec.Value<double>("pm_10p0_last_24_hours");
+										cumulus.airLinkDataIn.pm10_nowcast = rec.Value<double>("pm_10p0_nowcast");
+									}
+									else
+									{
+										cumulus.airLinkDataIn.pm10 = rec.Value<double>("pm_10");
+										cumulus.airLinkDataIn.pm10_1hr = rec.Value<double>("pm_10_last_1_hour");
+										cumulus.airLinkDataIn.pm10_3hr = rec.Value<double>("pm_10_last_3_hours");
+										cumulus.airLinkDataIn.pm10_24hr = rec.Value<double>("pm_10_last_24_hours");
+										cumulus.airLinkDataIn.pm10_nowcast = rec.Value<double>("pm_10_nowcast");
+									}
+									cumulus.airLinkDataIn.pct_1hr = rec.Value<int>("pct_pm_data_last_1_hour");
+									cumulus.airLinkDataIn.pct_3hr = rec.Value<int>("pct_pm_data_last_3_hours");
+									cumulus.airLinkDataIn.pct_24hr = rec.Value<int>("pct_pm_data_last_24_hours");
+									cumulus.airLinkDataIn.pct_nowcast = rec.Value<int>("pct_pm_data_nowcast");
+								}
+								else
+								{
+									cumulus.airLinkDataOut.pm1 = rec.Value<double>("pm_1");
+									cumulus.airLinkDataOut.pm2p5 = rec.Value<double>("pm_2p5");
+									cumulus.airLinkDataOut.pm2p5_1hr = rec.Value<double>("pm_2p5_last_1_hour");
+									cumulus.airLinkDataOut.pm2p5_3hr = rec.Value<double>("pm_2p5_last_3_hours");
+									cumulus.airLinkDataOut.pm2p5_24hr = rec.Value<double>("pm_2p5_last_24_hours");
+									cumulus.airLinkDataOut.pm2p5_nowcast = rec.Value<double>("pm_2p5_nowcast");
+									if (type == 5)
+									{
+										cumulus.airLinkDataOut.pm10 = rec.Value<double>("pm_10p0");
+										cumulus.airLinkDataOut.pm10_1hr = rec.Value<double>("pm_10p0_last_1_hour");
+										cumulus.airLinkDataOut.pm10_3hr = rec.Value<double>("pm_10p0_last_3_hours");
+										cumulus.airLinkDataOut.pm10_24hr = rec.Value<double>("pm_10p0_last_24_hours");
+										cumulus.airLinkDataOut.pm10_nowcast = rec.Value<double>("pm_10p0_nowcast");
+									}
+									else
+									{
+										cumulus.airLinkDataOut.pm10 = rec.Value<double>("pm_10");
+										cumulus.airLinkDataOut.pm10_1hr = rec.Value<double>("pm_10_last_1_hour");
+										cumulus.airLinkDataOut.pm10_3hr = rec.Value<double>("pm_10_last_3_hours");
+										cumulus.airLinkDataOut.pm10_24hr = rec.Value<double>("pm_10_last_24_hours");
+										cumulus.airLinkDataOut.pm10_nowcast = rec.Value<double>("pm_10_nowcast");
+									}
+									cumulus.airLinkDataOut.pct_1hr = rec.Value<int>("pct_pm_data_last_1_hour");
+									cumulus.airLinkDataOut.pct_3hr = rec.Value<int>("pct_pm_data_last_3_hours");
+									cumulus.airLinkDataOut.pct_24hr = rec.Value<int>("pct_pm_data_last_24_hours");
+									cumulus.airLinkDataOut.pct_nowcast = rec.Value<int>("pct_pm_data_nowcast");
+								}
+							}
 
 							break;
 
@@ -345,15 +407,17 @@ namespace CumulusMX
 		{
 			JObject jObject;
 
+			var stationId = indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId;
+
 			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");
 
-			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
+			if (cumulus.AirLinkApiKey == String.Empty || cumulus.AirLinkApiSecret == String.Empty)
 			{
 				cumulus.LogMessage("AirLinkHealth: Missing WeatherLink API data in the cumulus.ini file, aborting!");
 				return;
 			}
 
-			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
+			if (stationId == String.Empty || int.Parse(stationId) < 10)
 			{
 				var msg = "No WeatherLink API station ID in the cumulus.ini file";
 				cumulus.LogMessage("AirLinkHealth: " + msg);
@@ -373,8 +437,8 @@ namespace CumulusMX
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
-				{ "api-key", AirLinkApiKey },
-				{ "station-id", AirLinkStationId.ToString() },
+				{ "api-key", cumulus.AirLinkApiKey },
+				{ "station-id", stationId },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
 				{ "end-timestamp", endTime.ToString() }
@@ -389,13 +453,13 @@ namespace CumulusMX
 
 			string data = dataStringBuilder.ToString();
 
-			var apiSignature = CalculateApiSignature(AirLinkApiSecret, data);
+			var apiSignature = CalculateApiSignature(cumulus.AirLinkApiSecret, data);
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
 
 			StringBuilder historicUrl = new StringBuilder();
-			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + AirLinkStationId + "?");
+			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + stationId + "?");
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				historicUrl.Append(entry.Key);
@@ -406,7 +470,7 @@ namespace CumulusMX
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
 
-			var logUrl = historicUrl.ToString().Replace(AirLinkApiKey, "<<API_KEY>>");
+			var logUrl = historicUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"AirLinkHealth: WeatherLink URL = {logUrl}");
 
 			JToken sensorData = new JObject();
@@ -576,7 +640,7 @@ namespace CumulusMX
 					// Only present if WiFi attached
 					if (data.SelectToken("wifi_rssi") != null)
 					{
-						DavisAirLinkRssi[0] = data.Value<int>("wifi_rssi");
+						DavisAirLinkRssi[(indoor ? 0 : 1)] = data.Value<int>("wifi_rssi");
 						cumulus.LogDebugMessage("AirLinkHealth: WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
 					}
 
@@ -614,12 +678,12 @@ namespace CumulusMX
 			var unixDateTime = ToUnixTime(DateTime.Now);
 
 			// Are we using the same WL APIv2 as a WLL device?
-			if (cumulus.StationType == 11 && cumulus.WllApiKey == AirLinkApiKey)
+			if (cumulus.StationType == 11 && cumulus.WllApiKey == cumulus.AirLinkApiKey)
 				return true;
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
-				{ "api-key", cumulus.WllApiKey },
+				{ "api-key", cumulus.AirLinkApiKey },
 				{ "t", unixDateTime.ToString() }
 			};
 
@@ -646,7 +710,7 @@ namespace CumulusMX
 			// remove the trailing "&"
 			stationsUrl.Remove(stationsUrl.Length - 1, 1);
 
-			var logUrl = stationsUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+			var logUrl = stationsUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"WeatherLink Stations URL = {logUrl}");
 
 			try
@@ -686,14 +750,13 @@ namespace CumulusMX
 				if (stations.Count() == 1)
 				{
 					cumulus.LogMessage($"Only found 1 WeatherLink station, using id = {stations[0].Value<string>("station_id")}");
-					AirLinkStationId = stations[0].Value<string>("station_id");
 					if (indoor)
 					{
-						cumulus.AirLinkInStationId = AirLinkStationId;
+						cumulus.AirLinkInStationId = stations[0].Value<string>("station_id");
 					}
 					else
 					{
-						cumulus.AirLinkOutStationId = AirLinkStationId;
+						cumulus.AirLinkOutStationId = stations[0].Value<string>("station_id");
 					}
 					// And save it to the config file
 					cumulus.WriteIniFile();
@@ -732,6 +795,8 @@ namespace CumulusMX
 			cumulus.LogDebugMessage($"ZeroConf Service: {startChar} '{service.Instance}' on {service.NetworkInterface.Name}");
 			cumulus.LogDebugMessage($"\tHost: {service.Hostname} ({string.Join(", ", service.Addresses)})");
 
+			var currIpAddr = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
+
 			lock (threadSafer)
 			{
 				if (service.Addresses.Count > 1)
@@ -740,9 +805,9 @@ namespace CumulusMX
 				}
 				ipaddr = service.Addresses[0].ToString();
 				cumulus.LogMessage($"AirLink found, reporting its IP address as: {ipaddr}");
-				if (AirLinkIPAddr != ipaddr)
+				if (currIpAddr != ipaddr)
 				{
-					cumulus.LogMessage($"AirLink IP address has changed from {AirLinkIPAddr} to {ipaddr}");
+					cumulus.LogMessage($"AirLink IP address has changed from {currIpAddr} to {ipaddr}");
 					if (cumulus.AirLinkAutoUpdateIpAddress)
 					{
 						cumulus.LogMessage($"AirLink changing Cumulus config to the new IP address {ipaddr}");
