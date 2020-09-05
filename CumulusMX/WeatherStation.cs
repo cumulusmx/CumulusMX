@@ -3343,8 +3343,10 @@ namespace CumulusMX
 			}
 
 			if (total - Raincounter > raintipthreshold)
+			{
 				// rain has occurred
 				LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
+			}
 
 			Raincounter = total;
 
@@ -6093,7 +6095,8 @@ namespace CumulusMX
 						//cumulus.LogMessage("first value = " + fiveminutedata.First().raincounter + " last value = " + fiveminutedata.Last().raincounter);
 						//cumulus.LogMessage("raindiff = " + raindiff);
 
-						var tempRainRate = (double)(raindiff / timediffhours);
+						// Scale the counter values
+						var tempRainRate = (double)(raindiff / timediffhours) * cumulus.RainMult;
 
 						if (tempRainRate < 0)
 						{

@@ -4562,6 +4562,13 @@ namespace CumulusMX
 			return String.Format("{0} days {1} hours", ts.Days, ts.Hours);
 		}
 
+		private string TagProgramUpTimeMs(Dictionary<string, string> TagParams)
+		{
+			TimeSpan ts = DateTime.Now - Process.GetCurrentProcess().StartTime;
+			// Mono appears to have a bug whereby the uptime wraps to negative values after 24 days
+			return ((ulong)ts.TotalMilliseconds).ToString();
+		}
+
 		private string TagCpuName(Dictionary<string,string> TagParams)
 		{
 			return "n/a";
@@ -5633,6 +5640,7 @@ namespace CumulusMX
 				{ "OsLanguage", TagOsLanguage },
 				{ "SystemUpTime", TagSystemUpTime },
 				{ "ProgramUpTime", TagProgramUpTime },
+				{ "ProgramUpTimeMs", TagProgramUpTimeMs },
 				{ "CpuName", TagCpuName },
 				{ "CpuCount", TagCpuCount },
 				{ "MemoryStatus", TagMemoryStatus },
