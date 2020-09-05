@@ -143,7 +143,6 @@ namespace CumulusMX
 				// RG-11 settings
 				try
 				{
-					
 					cumulus.RG11Port = settings.rg11.port1.commPort;
 					cumulus.RG11TBRmode = settings.rg11.port1.tipMode;
 					cumulus.RG11tipsize = settings.rg11.port1.tipSize;
