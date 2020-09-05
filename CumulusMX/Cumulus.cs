@@ -170,8 +170,10 @@ namespace CumulusMX
 
 		private WeatherStation station;
 
-		private DavisAirLink airLinkIn;
-		private DavisAirLink airLinkOut;
+		public DavisAirLink airLinkIn;
+		public int airLinkInLsid;
+		public DavisAirLink airLinkOut;
+		public int airLinkOutLsid;
 
 		private readonly StationSettings stationSettings;
 		private readonly InternetSettings internetSettings;
@@ -1172,17 +1174,45 @@ namespace CumulusMX
 					"web" + DirectorySeparator + "wdirdata.json",
 					"web" + DirectorySeparator + "humdata.json",
 					"web" + DirectorySeparator + "raindata.json",
-					"web" + DirectorySeparator + "solardata.json",
 					"web" + DirectorySeparator + "dailyrain.json",
-					"web" + DirectorySeparator + "sunhours.json",
-					"web" + DirectorySeparator + "dailytemp.json"
+					"web" + DirectorySeparator + "dailytemp.json",
+					"web" + DirectorySeparator + "solardata.json",
+					"web" + DirectorySeparator + "sunhours.json"
 				};
 
 			remotegraphdatafiles = new[]
 				{
-					"graphconfig.json", "tempdata.json", "pressdata.json", "winddata.json", "wdirdata.json", "humdata.json", "raindata.json", "solardata.json",
-					"dailyrain.json", "sunhours.json", "dailytemp.json"
+					"graphconfig.json",
+					"tempdata.json",
+					"pressdata.json",
+					"winddata.json",
+					"wdirdata.json",
+					"humdata.json",
+					"raindata.json",
+					"dailyrain.json",
+					"dailytemp.json",
+					"solardata.json",
+					"sunhours.json"
 				};
+
+			/*
+			if (GraphOptions.SolarVisible || GraphOptions.UVVisible)
+			{
+				Array.Resize(ref localgraphdatafiles, localgraphdatafiles.Length + 1);
+				localgraphdatafiles[localgraphdatafiles.Length - 1] = "web" + DirectorySeparator + "solardata.json";
+
+				Array.Resize(ref remotegraphdatafiles, remotegraphdatafiles.Length + 1);
+				remotegraphdatafiles[remotegraphdatafiles.Length - 1] = "solardata.json";
+			}
+			if (GraphOptions.SolarVisible)
+			{
+				Array.Resize(ref localgraphdatafiles, localgraphdatafiles.Length + 1);
+				localgraphdatafiles[localgraphdatafiles.Length - 1] = "web" + DirectorySeparator + "sunhours.json";
+
+				Array.Resize(ref remotegraphdatafiles, remotegraphdatafiles.Length + 1);
+				remotegraphdatafiles[remotegraphdatafiles.Length - 1] = "sunhours.json";
+			}
+			*/
 
 			LogMessage("Data path = " + Datapath);
 
@@ -3711,6 +3741,7 @@ namespace CumulusMX
 			GraphOptions.InHumVisible = ini.GetValue("Graphs", "InHumVisible", true);
 			GraphOptions.OutHumVisible = ini.GetValue("Graphs", "OutHumVisible", true);
 			GraphOptions.UVVisible = ini.GetValue("Graphs", "UVVisible", true);
+			GraphOptions.SolarVisible = ini.GetValue("Graphs", "SolarVisible", true);
 
 
 			WundID = ini.GetValue("Wunderground", "ID", "");
@@ -4574,6 +4605,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "InHumVisible", GraphOptions.InHumVisible);
 			ini.SetValue("Graphs", "OutHumVisible", GraphOptions.OutHumVisible);
 			ini.SetValue("Graphs", "UVVisible", GraphOptions.UVVisible);
+			ini.SetValue("Graphs", "SolarVisible", GraphOptions.SolarVisible);
 
 			ini.SetValue("MySQL", "Host", MySqlHost);
 			ini.SetValue("MySQL", "Port", MySqlPort);
@@ -8630,6 +8662,7 @@ namespace CumulusMX
 		public bool InHumVisible { get; set; }
 		public bool OutHumVisible { get; set; }
 		public bool UVVisible { get; set; }
+		public bool SolarVisible { get; set; }
 	}
 
 	public class AwekasResponse

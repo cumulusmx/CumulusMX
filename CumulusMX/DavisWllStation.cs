@@ -40,6 +40,8 @@ namespace CumulusMX
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow = false;
 		private bool stop = false;
+		private DavisAirLink airLinkIn;
+		private DavisAirLink airLinkOut;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -1524,11 +1526,15 @@ namespace CumulusMX
 					{
 						var sensorType = sensor.Value<int>("sensor_type");
 
-						// Check for AirLink data
-						if (sensorType == 323 || sensorType == 326 )
+						if (sensorType == 323 && cumulus.airLinkOut != null) // AirLink Outdoor
 						{
 							// Pass AirLink historic record to the AirLink module to process
-							//airlink.;
+							cumulus.airLinkOut.DecodeHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
+						}
+						else if (sensorType == 326 && cumulus.airLinkIn != null) // AirLink Indoor
+						{
+							// Pass AirLink historic record to the AirLink module to process
+							cumulus.airLinkIn.DecodeHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
 						}
 						else if (sensorType != 504)
 						{
@@ -2202,6 +2208,8 @@ namespace CumulusMX
 						}
 						break;
 
+					case 17: // AirLink
+
 					default:
 						cumulus.LogDebugMessage($"WL.com historic: found an unknown data structure type [{dataType}]!");
 						break;
@@ -2619,7 +2627,23 @@ namespace CumulusMX
 			{
 				foreach (JToken sensor in sensorData)
 				{
-					DecodeWlApiHealth(sensor, true);
+					var sensorType = sensor.Value<int>("sensor_type");
+					var lsid = sensor.Value<int>("lsid");
+
+					if (sensorType == 504 && cumulus.airLinkOut != null && lsid == cumulus.airLinkOutLsid) // AirLink Outdoor
+					{
+						// Pass AirLink historic record to the AirLink module to process
+						cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
+					}
+					else if (sensorType == 326 && cumulus.airLinkIn != null && lsid == cumulus.airLinkInLsid) // AirLink Indoor
+					{
+						// Pass AirLink historic record to the AirLink module to process
+						cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
+					}
+					else if (sensorType == 504)
+					{
+						DecodeWlApiHealth(sensor, true);
+					}
 				}
 			}
 			catch (Exception ex)

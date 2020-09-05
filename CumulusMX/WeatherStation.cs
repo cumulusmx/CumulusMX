@@ -2138,24 +2138,29 @@ namespace CumulusMX
 				{
 					sb.Append(",");
 				}
-				sb.Append("\"SolarRad\":[");
-				for (var i = 0; i < GraphDataList.Count; i++)
+
+				if (cumulus.GraphOptions.SolarVisible)
 				{
-					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarrad + "]");
-					if (i < GraphDataList.Count - 1)
-						sb.Append(",");
-				}
+					sb.Append("\"SolarRad\":[");
+					for (var i = 0; i < GraphDataList.Count; i++)
+					{
+						sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarrad + "]");
+						if (i < GraphDataList.Count - 1)
+							sb.Append(",");
+					}
 
 
-				sb.Append("],\"CurrentSolarMax\":[");
-				for (var i = 0; i < GraphDataList.Count; i++)
-				{
-					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarmax + "]");
-					if (i < GraphDataList.Count - 1)
-						sb.Append(",");
+					sb.Append("],\"CurrentSolarMax\":[");
+					for (var i = 0; i < GraphDataList.Count; i++)
+					{
+						sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarmax + "]");
+						if (i < GraphDataList.Count - 1)
+							sb.Append(",");
+					}
+					sb.Append("]");
 				}
 			}
-			sb.Append("]}");
+			sb.Append("}");
 			return sb.ToString();
 		}
 
@@ -10017,18 +10022,23 @@ namespace CumulusMX
 		public string GetSunHoursGraphData()
 		{
 			var InvC = new CultureInfo("");
-			StringBuilder sb = new StringBuilder("{\"sunhours\":[", 10000);
-			lock (RecentDailyDataList)
+			StringBuilder sb = new StringBuilder("{", 10000);
+			if (cumulus.GraphOptions.SolarVisible)
 			{
-				for (var i = 0; i < RecentDailyDataList.Count; i++)
+				sb.Append("\"sunhours\":[");
+				lock (RecentDailyDataList)
 				{
-					sb.Append($"[{DateTimeToUnix(RecentDailyDataList[i].timestamp) * 1000},{RecentDailyDataList[i].sunhours.ToString(cumulus.SunFormat, InvC)}]");
+					for (var i = 0; i < RecentDailyDataList.Count; i++)
+					{
+						sb.Append($"[{DateTimeToUnix(RecentDailyDataList[i].timestamp) * 1000},{RecentDailyDataList[i].sunhours.ToString(cumulus.SunFormat, InvC)}]");
 
-					if (i < RecentDailyDataList.Count - 1)
-						sb.Append(",");
+						if (i < RecentDailyDataList.Count - 1)
+							sb.Append(",");
+					}
 				}
+				sb.Append("]");
 			}
-			sb.Append("]}");
+			sb.Append("}");
 			return sb.ToString();
 		}
 

@@ -17,7 +17,7 @@ using Unosquare.Swan;
 
 namespace CumulusMX
 {
-	class DavisAirLink : WeatherStation
+	public class DavisAirLink : WeatherStation
 	{
 		private string ipaddr;
 		private int port;
@@ -41,7 +41,7 @@ namespace CumulusMX
 		{
 			indoor = Indoor;
 
-			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({(Indoor ? "Indoor" : "Outdoor")})");
+			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({(indoor ? "Indoor" : "Outdoor")})");
 
 			tmrCurrent = new System.Timers.Timer();
 
@@ -71,13 +71,13 @@ namespace CumulusMX
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
 
-				timerStartNeeded = true;
+				//timerStartNeeded = true;
 				//StartLoop();
 				//DoDayResetIfNeeded();
 				//DoTrendValues(DateTime.Now);
 
-				cumulus.LogMessage($"Starting Davis AirLink ({(Indoor ? "Indoor" : "Outdoor")})");
-				StartLoop();
+				cumulus.LogMessage($"Starting Davis AirLink ({(indoor ? "Indoor" : "Outdoor")})");
+				//StartLoop();
 			}
 			else if (cumulus.UseDataLogger)
 			{
@@ -277,7 +277,7 @@ namespace CumulusMX
 							 * pm_2p5_last_3_hours			// the average of all PM 2.5 readings in the last 3 hours calculated using atmospheric calibration in µg/m^3
 							 * pm_2p5_last_24_hours			// the weighted average of all PM 2.5 readings in the last 24 hours calculated using atmospheric calibration in µg/m^3
 							 * pm_2p5_nowcast				// the weighted average of all PM 2.5 readings in the last 12 hours calculated using atmospheric calibration in µg/m^3
-							 * pm_10p0_last					// type=5
+							 * pm_10_last					// type=5
 							 * pm_10p0
 							 * pm_10p0_last_1_hour
 							 * pm_10p0_last_3_hours
@@ -389,6 +389,63 @@ namespace CumulusMX
 			{
 				cumulus.LogDebugMessage("DecodeAlCurrent: Exception Caught!");
 				cumulus.LogDebugMessage($"Message :" + exp.Message);
+			}
+		}
+
+
+
+		public void DecodeHistoric(int dataType, int sensorType, JToken data)
+		{
+
+			try
+			{
+				switch (dataType)
+				{
+					case 17: // AirLink Archive record
+						/* Just the fields we may be interested in - ignoring dew point, wet bulb, heat index
+						 * temp_avg
+						 * temp_hi
+						 * temp_hi_at
+						 * temp_lo
+						 * temp_lo_at
+						 * hum_last
+						 * hum_hi
+						 * hum_hi_at
+						 * hum_lo
+						 * hum_lo_at
+						 * pm_1_avg
+						 * pm_1_hi
+						 * pm_1_hi_at
+						 * pm_2p5_avg
+						 * pm_2p5_hi
+						 * pm_2p5_hi_at
+						 * pm_10_avg
+						 * pm_10_hi
+						 * pm_10_hi_at
+						 * pm_0p3_avg_num_part
+						 * pm_0p3_hi_num_part
+						 * pm_0p5_avg_num_part
+						 * pm_0p5_hi_num_part
+						 * pm_1_avg_num_part
+						 * pm_1_hi_num_part
+						 * pm_2p5_avg_num_part
+						 * pm_2p5_hi_num_part
+						 * pm_5_avg_num_part
+						 * pm_5_hi_num_part
+						 * pm_10_avg_num_part
+						 * pm_10_hi_num_part
+						 */
+
+						break;
+
+					default:
+						// Unknown!
+						break;
+				}
+			}
+			catch (Exception ex)
+			{
+
 			}
 		}
 
@@ -569,11 +626,11 @@ namespace CumulusMX
 					"network_error": null
 					"local_api_queries": 0
 					"health_version": 2
-					"internal_free_memory_chunk_size": 34812
-					"internal_free_memory_watermark": 54552
-					"internal_free_memory": 75596
-					"internal_used_memory": 139656
-					"ip_address_type": 1
+					"internal_free_memory_chunk_size": 34812	- bytes
+					"internal_free_memory_watermark": 54552		- bytes
+					"internal_free_memory": 75596				- bytes
+					"internal_used_memory": 139656				- bytes
+					"ip_address_type": 1						- 1=Dynamic, 2=Dyn DNS Override, 3=Static
 					"ip_v4_address": "192.168.68.137"
 					"ip_v4_gateway": "192.168.68.1"
 					"ip_v4_netmask": "255.255.255.0"
@@ -769,7 +826,6 @@ namespace CumulusMX
 			}
 			return false;
 		}
-
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{

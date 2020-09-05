@@ -21,7 +21,7 @@
 	[Station]
 	RG11Enabled=0
 	RG11Enabled2=0
-
+- Adds new graphs option Solar Visible. Setting both Solar and UV to hidden means the solar graph data files will be empty.
 
 - Updated files
 	\CumulusMX.exe
