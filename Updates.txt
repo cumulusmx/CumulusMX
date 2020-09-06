@@ -2,8 +2,10 @@
 3.8.4 - b3094
 =============
 - Fix: Unhandled exception in MySQL during the start-up catch-up process
-- Fix: Graph buttons on default web site trends page
+- Fix: Graph buttons not wrapping on default web site trends page
 - Fix: Calculating the trend rain rate when a rainfall multiplier is used
+- Fix: Program Uptime when running under Mono and uptime > 24 days
+- Fix: When running as a Windows service, the service was stopped unintentionally on non-critical system power events
 - Adds Ecowitt GW1000 decoding of WH34 battery status
 - Adds Ecowitt GW1000 support for CO₂ sensor, no logging yet, but the decoding is there for when these sensors are released.
 	- New web tags <#CO2>, <#CO2-24h>
