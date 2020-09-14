@@ -209,7 +209,8 @@ namespace CumulusMX
 			WH34_CH5,		// 35
 			WH34_CH6,		// 36
 			WH34_CH7,		// 37
-			WH34_CH8		// 38
+			WH34_CH8,		// 38
+			WH45			// 39
 		};
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
@@ -855,7 +856,7 @@ namespace CumulusMX
 								}
 								idx += 8;
 								break;
-							case 0x70: // WH CO₂
+							case 0x70: // WH45 CO₂
 								batteryLow = batteryLow || DoCO2Decode(data, idx);
 								idx += 16;
 								break;
@@ -1018,7 +1019,7 @@ namespace CumulusMX
 		{
 			bool batteryLow = false;
 			int idx = index;
-			cumulus.LogDebugMessage("CO₂: Decoding...");
+			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 			//CO2Data co2Data = (CO2Data)RawDeserialize(data, index, typeof(CO2Data));
 
 			var temp = ConvertBigEndianInt16(data, idx) / 10;
@@ -1037,19 +1038,21 @@ namespace CumulusMX
 			CO2_24h = ConvertBigEndianUInt16(data, idx);
 			idx += 2;
 			var batt = TestBattery3(data[idx]);
-			cumulus.LogDebugMessage($"CO₂: temp={temp.ToString(cumulus.TempFormat)}, hum={hum}, pm10={pm10:F1}, pm10_24h={pm10_24h:F1}, pm2.5={pm2p5:F1}, pm2.5_24h={pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}");
+			var msg = $"WH45 CO₂: temp={temp.ToString(cumulus.TempFormat)}, hum={hum}, pm10={pm10:F1}, pm10_24h={pm10_24h:F1}, pm2.5={pm2p5:F1}, pm2.5_24h={pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
 			if (tenMinuteChanged)
 			{
 				if (batt == "Low")
 				{
 					batteryLow = true;
-					cumulus.LogMessage($"CO₂: Battery={batt}");
+					msg += $", Battery={batt}";
 				}
 				else
 				{
-					cumulus.LogDebugMessage($"CO₂: Battery={batt}");
+					msg += $", Battery={batt}";
 				}
 			}
+			cumulus.LogDebugMessage(msg);
+
 			return batteryLow;
 		}
 

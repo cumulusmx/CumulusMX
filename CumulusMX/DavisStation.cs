@@ -120,7 +120,6 @@ namespace CumulusMX
 				if (cumulus.DavisReadReceptionStats)
 				{
 					var recepStats = GetReceptionStats();
-					cumulus.LogMessage("Reception stats string: " + recepStats);
 					DecodeReceptionStats(recepStats);
 				}
 
@@ -219,7 +218,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Reading firmware version");
 			string response = "";
 			string data = "";
-			int crCount = 0;
+			int ch;
 
 			// expected response - <LF><CR>OK<LF><CR>1.73<LF><CR>
 
@@ -233,20 +232,19 @@ namespace CumulusMX
 						comport.DiscardInBuffer();
 						comport.WriteLine(commandString);
 
-						// Read the response
-						do
+						if (WaitForOK(comport))
 						{
-							// Read the current character
-							var ch = comport.ReadChar();
-							response += Convert.ToChar(ch);
-							data += ch.ToString("X2") + "-";
-							if (ch == 13)
+							// Read the response
+							do
 							{
-								crCount++;
-							}
-						} while (crCount < 3);
+								// Read the current character
+								ch = comport.ReadChar();
+								response += Convert.ToChar(ch);
+								data += ch.ToString("X2") + "-";
+							} while (ch != CR);
 
-						data = data.Remove(data.Length - 1);
+							data = data.Remove(data.Length - 1);
+						}
 					}
 					catch (TimeoutException)
 					{
@@ -274,21 +272,18 @@ namespace CumulusMX
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
-						Thread.Sleep(cumulus.DavisIPResponseTime);
-
-						do
+						if (WaitForOK(stream))
 						{
-							// Read the current character
-							var ch = stream.ReadByte();
-							response += Convert.ToChar(ch);
-							data += ch.ToString("X2") + "-";
-							if (ch == 13)
+							do
 							{
-								crCount++;
-							}
-						} while (crCount < 3);
+								// Read the current character
+								ch = stream.ReadByte();
+								response += Convert.ToChar(ch);
+								data += ch.ToString("X2") + "-";
+							} while (ch != CR);
 
-						data = data.Remove(data.Length - 1);
+							data = data.Remove(data.Length - 1);
+						}
 					}
 					catch (System.IO.IOException ex)
 					{
@@ -313,11 +308,9 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("GetFirmwareVersion: Received - " + data);
 
-			var okIndex = response.IndexOf("OK");
-
-			if ((okIndex > -1) && (response.Length >= okIndex + 8))
+			if (response.Length >= 5)
 			{
-				return response.Substring(okIndex + 4, 4);
+				return response.Substring(0, response.Length - 2);
 			}
 
 			return "???";
@@ -436,7 +429,7 @@ namespace CumulusMX
 			string response = "";
 			var bytesRead = 0;
 			byte[] buffer = new byte[40];
-			int crCount = 0;
+			int ch;
 
 			if (IsSerial)
 			{
@@ -447,19 +440,18 @@ namespace CumulusMX
 					{
 						comport.WriteLine(commandString);
 
-						// Read the response
-						do
+						if (WaitForOK(comport))
 						{
-							// Read the current character
-							var ch = comport.ReadChar();
-							response += Convert.ToChar(ch);
-							buffer[bytesRead] = (byte)ch;
-							bytesRead++;
-							if (ch == 13)
+							// Read the response -  21629 15 0 3204 128<LF><CR>
+							do
 							{
-								crCount++;
-							}
-						} while (crCount < 3);
+								// Read the current character
+								ch = comport.ReadChar();
+								response += Convert.ToChar(ch);
+								buffer[bytesRead] = (byte)ch;
+								bytesRead++;
+							} while (ch != CR);
+						}
 					}
 					catch (TimeoutException)
 					{
@@ -487,20 +479,18 @@ namespace CumulusMX
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
-						Thread.Sleep(cumulus.DavisIPResponseTime);
-
-						do
+						if (WaitForOK(stream))
 						{
-							// Read the current character
-							var ch = stream.ReadByte();
-							response += Convert.ToChar(ch);
-							buffer[bytesRead] = (byte) ch;
-							bytesRead++;
-							if (ch == 13)
+							// Read the response -  21629 15 0 3204 128<LF><CR>
+							do
 							{
-								crCount++;
-							}
-						} while (crCount < 3);
+								// Read the current character
+								ch = stream.ReadByte();
+								response += Convert.ToChar(ch);
+								buffer[bytesRead] = (byte)ch;
+								bytesRead++;
+							} while (ch != CR);
+						}
 					}
 					catch (System.IO.IOException ex)
 					{
@@ -528,15 +518,16 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("GetReceptionStats: Received - " + BitConverter.ToString(buffer.Take(bytesRead).ToArray()));
 
-			var lastLF = response.LastIndexOf('\n');
-
-			if (lastLF > 15)
+			if (response.Length > 10)
 			{
-				var len = lastLF - 6;
-				return response.Substring(6, len);
+				response = response.Substring(0, response.Length - 2);
 			}
-
-			return "0 0 0 0 0";
+			else
+			{
+				response = "0 0 0 0 0";
+			}
+			cumulus.LogDebugMessage($"GetReceptionStats: {response}");
+			return response;
 		}
 
 		// Open a TCP socket.
@@ -953,7 +944,6 @@ namespace CumulusMX
 					if (cumulus.DavisReadReceptionStats && lastRecepStatsTime.AddMinutes(15) < DateTime.Now && !stop)
 					{
 						var recepStats = GetReceptionStats();
-						cumulus.LogDebugMessage(recepStats);
 						DecodeReceptionStats(recepStats);
 					}
 				}
@@ -1003,16 +993,19 @@ namespace CumulusMX
 					{
 						comport.WriteLine(commandString);
 
-						// Read the response
-						do
+						if (WaitForOK(comport))
 						{
-							// Read the current character
-							var ch = comport.ReadChar();
-							response += Convert.ToChar(ch);
-							buffer[bytesRead] = (byte)ch;
-							bytesRead++;
+							// Read the response
+							do
+							{
+								// Read the current character
+								var ch = comport.ReadChar();
+								response += Convert.ToChar(ch);
+								buffer[bytesRead] = (byte)ch;
+								bytesRead++;
 
-						} while (bytesRead < 12);
+							} while (bytesRead < 7);
+						}
 					}
 					catch (TimeoutException)
 					{
@@ -1038,17 +1031,18 @@ namespace CumulusMX
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
-						Thread.Sleep(cumulus.DavisIPResponseTime);
-
-						do
+						if (WaitForOK(stream))
 						{
-							// Read the current character
-							var ch = stream.ReadByte();
-							response += Convert.ToChar(ch);
-							buffer[bytesRead] = (byte)ch;
-							bytesRead++;
-							//cumulus.LogMessage("Received " + ch.ToString("X2"));
-						} while (stream.DataAvailable) ;
+							do
+							{
+								// Read the current character
+								var ch = stream.ReadByte();
+								response += Convert.ToChar(ch);
+								buffer[bytesRead] = (byte)ch;
+								bytesRead++;
+								//cumulus.LogMessage("Received " + ch.ToString("X2"));
+							} while (stream.DataAvailable);
+						}
 					}
 					catch (System.IO.IOException ex)
 					{
@@ -1075,6 +1069,10 @@ namespace CumulusMX
 			}
 
 			cumulus.LogDataMessage("BARREAD Received - " + BitConverter.ToString(buffer.Take(bytesRead).ToArray()));
+			if (response.Length > 2)
+			{
+				cumulus.LogDebugMessage("BARREAD Received - " + response.Substring(0, response.Length - 2));
+			}
 		}
 
 		private bool SendLoopCommand(SerialPort serialPort, string commandString)
@@ -3188,6 +3186,86 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("InitTCP: Error - " + ex.Message);
 			}
+		}
+
+
+		private bool WaitForOK(SerialPort serialPort)
+		{
+			// Waits for OK<LF><CR>
+			var buffer = new StringBuilder();
+
+			cumulus.LogDebugMessage("WaitForOK: Wait for OK");
+			do
+			{
+				try
+				{
+					// Read the current character
+					buffer.Append((char)serialPort.ReadChar());
+				}
+				catch (TimeoutException)
+				{
+					cumulus.LogDebugMessage($"WaitForOK: Timed out");
+					return false;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogDebugMessage($"WaitForOK: Error - {ex.Message}");
+					cumulus.LogDebugMessage("WaitForOK: Attempting to reconnect to logger");
+					InitSerial();
+					cumulus.LogDebugMessage("WaitForOK: Reconnected to logger");
+					return false;
+				}
+
+			} while (buffer.ToString().IndexOf("OK\n\r") == -1);
+			cumulus.LogDebugMessage("WaitForOK: Found OK");
+			return true;
+		}
+
+		private bool WaitForOK(NetworkStream stream)
+		{
+			// Waits for OK<LF><CR>
+			var buffer = new StringBuilder();
+
+			cumulus.LogDebugMessage("WaitForOK: Wait for OK");
+			Thread.Sleep(cumulus.DavisIPResponseTime);
+
+			do
+			{
+				try
+				{
+					// Read the current character
+					buffer.Append((char)stream.ReadByte());
+				}
+				catch (System.IO.IOException ex)
+				{
+					if (ex.Message.Contains("did not properly respond after a period"))
+					{
+						cumulus.LogDebugMessage("WaitForOK: Timed out");
+						cumulus.LogDataMessage($"WaitForOK: Received - {BitConverter.ToString(Encoding.UTF8.GetBytes(buffer.ToString()))}");
+						return false;
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"WaitForOK: Error - {ex.Message}");
+						cumulus.LogDataMessage($"WaitForOK: Received - {BitConverter.ToString(Encoding.UTF8.GetBytes(buffer.ToString()))}");
+						cumulus.LogDebugMessage("WaitForOK: Attempting to reconnect to logger");
+						InitTCP();
+						cumulus.LogDebugMessage("WaitForOK: Reconnected to logger");
+						return false;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogDebugMessage($"WaitForOK: Error - {ex.Message}");
+					cumulus.LogDebugMessage("WaitForOK: Attempting to reconnect to logger");
+					InitTCP();
+					cumulus.LogDebugMessage("WaitForOK: Reconnected to logger");
+					return false;
+				}
+
+			} while (buffer.ToString().IndexOf("OK\n\r") == -1);
+			cumulus.LogDebugMessage("WaitForOK: Found OK");
+			return true;
 		}
 
 
