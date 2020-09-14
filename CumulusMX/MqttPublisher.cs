@@ -80,6 +80,7 @@ namespace CumulusMX
 			var mqttMsg = new MqttApplicationMessageBuilder()
 				.WithTopic(topic)
 				.WithPayload(message)
+				.WithRetainFlag()
 				.Build();
 
 			await mqttClient.PublishAsync(mqttMsg, CancellationToken.None);
