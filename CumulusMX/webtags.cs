@@ -4650,6 +4650,11 @@ namespace CumulusMX
 			return station.DavisFirmwareVersion;
 		}
 
+		private string TagAirLinkFirmwareVersion(Dictionary<string, string> TagParams)
+		{
+			return station.AirLinkFirmwareVersion;
+		}
+
 		private string TagGW1000FirmwareVersion(Dictionary<string, string> TagParams)
 		{
 			return station.GW1000FirmwareVersion;
@@ -5655,6 +5660,7 @@ namespace CumulusMX
 				{ "DavisNumCRCerrors", TagDavisNumCRCerrors },
 				{ "DavisReceptionPercent", TagDavisReceptionPercent },
 				{ "DavisFirmwareVersion", TagDavisFirmwareVersion },
+				{ "AirLinkFirmwareVersion", TagAirLinkFirmwareVersion },
 				{ "DavisTxRssi", TagDavisTxRssi },
 				{ "GW1000FirmwareVersion", TagGW1000FirmwareVersion },
 				{ "DataStopped", TagDataStopped },
