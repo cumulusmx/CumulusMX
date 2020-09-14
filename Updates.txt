@@ -16,12 +16,14 @@
 		Out-IPAddress=0.0.0.0
 		Out-IsNode=0
 		Out-WLStationId=
-- The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now also be set on the new Extra Sensors page.
+- Adds new web tags for Davis AirLink
+	<#AirLinkFirmwareVersion>
+- The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
   There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
 	[Station]
 	RG11Enabled=0
 	RG11Enabled2=0
-- Adds new graphs option Solar Visible. Setting both Solar and UV to hidden means the solar graph data files will be empty.
+- Adds new graph option - Solar Visible. Setting both Solar and UV to hidden means the solar graph data files will be empty.
 
 - Updated files
 	\CumulusMX.exe
