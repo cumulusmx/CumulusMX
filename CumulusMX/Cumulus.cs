@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.8.3";
-		public string Build = "3093";
+		public string Version = "3.8.4";
+		public string Build = "3094";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -3583,7 +3583,7 @@ namespace CumulusMX
 				WllExtraHumTx[i - 1] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
 			}
 
-			// GW1000 setiings
+			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 
@@ -5543,8 +5543,8 @@ namespace CumulusMX
 															 // 28  Humidex
 		{
 			// make sure solar max is calculated for those stations without a solar sensor
-			LogMessage("Writing log entry for " + timestamp);
-			LogDebugMessage("max gust: " + station.RecentMaxGust.ToString(WindFormat));
+			LogMessage("DoLogFile: Writing log entry for " + timestamp);
+			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor, BrasTurbidity, SolarCalc);
 			var filename = GetLogFileName(timestamp);
 
@@ -5584,7 +5584,7 @@ namespace CumulusMX
 			}
 
 			LastUpdateTime = timestamp;
-			LogMessage("Written log entry for " + timestamp);
+			LogMessage("DoLogFile: Written log entry for " + timestamp);
 			station.WriteTodayFile(timestamp, true);
 
 			if (StartOfDayBackupNeeded)
@@ -5642,7 +5642,7 @@ namespace CumulusMX
 						{
 							cmd.CommandText = queryString;
 							cmd.Connection = MonthlyMySqlConn;
-							LogDebugMessage(queryString);
+							LogDebugMessage("DoLogFile: MySQL -  " + queryString);
 							MonthlyMySqlConn.Open();
 							int aff = cmd.ExecuteNonQuery();
 							LogMessage("MySQL: Table " + MySqlMonthlyTable + " " + aff + " rows were affected.");
@@ -5650,12 +5650,16 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Error encountered during Monthly MySQL operation.");
+						LogMessage("DoLogFile: Error encountered during Monthly MySQL operation.");
 						LogMessage(ex.Message);
 					}
 					finally
 					{
-						MonthlyMySqlConn.Close();
+						try
+						{
+							MonthlyMySqlConn.Close();
+						}
+						catch { }
 					}
 				}
 				else
@@ -7254,12 +7258,12 @@ namespace CumulusMX
 				// do the update
 				using (MySqlCommand cmd = new MySqlCommand())
 				{
-					cmd.CommandText = queryString;
-					cmd.Connection = RealtimeSqlConn;
-					LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {queryString}");
-
 					try
 					{
+						cmd.CommandText = queryString;
+						cmd.Connection = RealtimeSqlConn;
+						LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {queryString}");
+
 						RealtimeSqlConn.Open();
 						int aff1 = cmd.ExecuteNonQuery();
 						LogDebugMessage($"Realtime[{cycle}]: {aff1} rows were affected.");
@@ -7295,10 +7299,7 @@ namespace CumulusMX
 						{
 							RealtimeSqlConn.Close();
 						}
-						catch
-						{
-							// do nothing
-						}
+						catch {}
 					}
 				}
 			}
@@ -7519,7 +7520,11 @@ namespace CumulusMX
 				}
 				finally
 				{
-					CustomMysqlSecondsConn.Close();
+					try
+					{
+						CustomMysqlSecondsConn.Close();
+					}
+					catch {}
 					customMySqlSecondsUpdateInProgress = false;
 				}
 			}
@@ -7547,7 +7552,11 @@ namespace CumulusMX
 				}
 				finally
 				{
-					CustomMysqlMinutesConn.Close();
+					try
+					{
+						CustomMysqlMinutesConn.Close();
+					}
+					catch {}
 					customMySqlMinutesUpdateInProgress = false;
 				}
 			}
@@ -7576,7 +7585,11 @@ namespace CumulusMX
 					}
 					finally
 					{
-						CustomMysqlRolloverConn.Close();
+						try
+						{
+							CustomMysqlRolloverConn.Close();
+						}
+						catch {}
 						customMySqlRolloverUpdateInProgress = false;
 					}
 				});
@@ -7681,31 +7694,45 @@ namespace CumulusMX
 			mySqlConn.Password = MySqlPass;
 			mySqlConn.Database = MySqlDatabase;
 
-			mySqlConn.Open();
-
-			for (int i = 0; i < MySqlList.Count; i++)
+			try
 			{
-				LogMessage("MySQL Archive: Uploading archive #" + (i + 1));
-				try
-				{
-					using (MySqlCommand cmd = new MySqlCommand())
-					{
-						cmd.CommandText = MySqlList[i];
-						cmd.Connection = mySqlConn;
-						LogDebugMessage(MySqlList[i]);
+				mySqlConn.Open();
 
-						int aff = cmd.ExecuteNonQuery();
-						LogMessage($"MySQL Archive: Table {MySqlMonthlyTable} - {aff} rows were affected.");
+				for (int i = 0; i < MySqlList.Count; i++)
+				{
+					LogMessage("MySQL Archive: Uploading archive #" + (i + 1));
+					try
+					{
+						using (MySqlCommand cmd = new MySqlCommand())
+						{
+							cmd.CommandText = MySqlList[i];
+							cmd.Connection = mySqlConn;
+							LogDebugMessage(MySqlList[i]);
+
+							int aff = cmd.ExecuteNonQuery();
+							LogMessage($"MySQL Archive: Table {MySqlMonthlyTable} - {aff} rows were affected.");
+						}
+					}
+					catch (Exception ex)
+					{
+						LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
+						LogMessage(ex.Message);
 					}
 				}
-				catch (Exception ex)
-				{
-					LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
-					LogMessage(ex.Message);
-				}
 			}
-
-			mySqlConn.Close();
+			catch (Exception ex)
+			{
+				LogMessage("MySQL Archive: Error encountered during catchup MySQL operation.");
+				LogMessage(ex.Message);
+			}
+			finally
+			{
+				try
+				{
+					mySqlConn.Close();
+				}
+				catch {}
+			}
 
 			LogMessage("MySQL Archive: End of MySQL archive upload");
 			MySqlList.Clear();
@@ -8014,13 +8041,16 @@ namespace CumulusMX
 				{
 					customHttpSecondsTokenParser.InputText = CustomHttpSecondsString;
 					var processedString = customHttpSecondsTokenParser.ToStringFromString();
-					await customHttpSecondsClient.GetAsync(processedString);
-					//var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					//LogDebugMessage("Custom HTTP seconds response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("CustomHttpSeconds: Querying - " + processedString);
+					var response = await customHttpSecondsClient.GetAsync(processedString);
+					response.EnsureSuccessStatusCode();
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					LogDebugMessage("CustomHttpSeconds: Response - " + response.StatusCode);
+					LogDataMessage("CustomHttpSeconds: Response Text - " + responseBodyAsText);
 				}
 				catch (Exception ex)
 				{
-					LogDebugMessage("Custom HTTP seconds update: " + ex.Message);
+					LogDebugMessage("CustomHttpSeconds: " + ex.Message);
 				}
 				finally
 				{
@@ -8035,19 +8065,19 @@ namespace CumulusMX
 			{
 				updatingCustomHttpMinutes = true;
 
-				LogDebugMessage("Custom HTTP Minutes update");
-
 				try
 				{
 					customHttpMinutesTokenParser.InputText = CustomHttpMinutesString;
 					var processedString = customHttpMinutesTokenParser.ToStringFromString();
+					LogDebugMessage("CustomHttpMinutes: Querying - " + processedString);
 					var response = await customHttpMinutesClient.GetAsync(processedString);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("Custom HTTP Minutes response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("CustomHttpMinutes: Response code - " + response.StatusCode);
+					LogDataMessage("CustomHttpMinutes: Response text - " + responseBodyAsText);
 				}
 				catch (Exception ex)
 				{
-					LogDebugMessage("Custom HTTP Minutes update: " + ex.Message);
+					LogDebugMessage("CustomHttpMinutes: " + ex.Message);
 				}
 				finally
 				{
@@ -8062,19 +8092,19 @@ namespace CumulusMX
 			{
 				updatingCustomHttpRollover = true;
 
-				LogDebugMessage("Custom HTTP Rollover update");
-
 				try
 				{
 					customHttpRolloverTokenParser.InputText = CustomHttpRolloverString;
 					var processedString = customHttpRolloverTokenParser.ToStringFromString();
+					LogDebugMessage("CustomHttpRollover: Querying - " + processedString);
 					var response = await customHttpRolloverClient.GetAsync(processedString);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("Custom HTTP Rollover response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("CustomHttpRollover: Response code - " + response.StatusCode);
+					LogDataMessage("CustomHttpRollover: Response text - " + responseBodyAsText);
 				}
 				catch (Exception ex)
 				{
-					LogDebugMessage("Custom HTTP Rollover update: " + ex.Message);
+					LogDebugMessage("CustomHttpRollover: " + ex.Message);
 				}
 				finally
 				{

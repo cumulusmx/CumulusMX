@@ -1,11 +1,48 @@
+3.8.4 - b3094
+=============
+- Fix: Unhandled exception in MySQL during the start-up catch-up process
+- Fix: Graph buttons not wrapping on default web site trends page
+- Fix: Calculating the trend rain rate when a rainfall multiplier is used
+- Fix: Program Uptime when running under Mono and uptime > 24 days
+- Fix: When running as a Windows service, the service was stopped unintentionally on non-critical system power events
+- Fix: Davis VP receptions stats - ReceptionStats, FirmwareVersion and BaroRead functions rewritten
+- Adds Ecowitt GW1000 decoding of WH34 battery status
+- Adds Ecowitt GW1000 support for CO₂ sensor, no logging yet, but the decoding is there for when these sensors are released.
+	- New web tags <#CO2>, <#CO2-24h>
+- Adds new Linux cumulusmx.service configuration file (thanks to freddie), this allows you run Cumulus MX as a service under Linux using the
+  newer systemd control rather than the original init.d script supplied with v3.8.0
+	- Edit the cumulusmx.service configuration file and change the path to match your Cumulus MX installation folder
+	- Copy cumulusmx.service to your /etc/systemd/system/ folder
+	- Cumulus can then be started and stopped with the following commands:
+		> systemctl start cumulusmx
+		> systemctl stop cumulusmx
+	- Status and restart are available too:
+		> systemctl restart cumulusmx
+		> systemctl status cumulusmx
+	- If you make a change to the unit file, you need to run the following command so that systemd re-reads your file:
+		> systemctl daemon-reload
+	- To have Cumulus start on reboot, issue the following command:
+		> systemctl enable cumulusmx
+	- Finally, to stop the service running on reboot, use the following:
+		> systemctl disable cumulusmx
+- Adds a new web tag <#ProgramUpTimeMs> that returns the Cumulus run time in milliseconds
+
+- Updated files
+	\CumulusMX.exe
+	\web\trendsT.htm
+
+- New files
+	\MXutils\linux\cumulusmx.service
+
+
 3.8.3 - b3093
 =============
 - Fix: The dew point threshold limit (default value 40C) was incorrectly being applied to installations configured to use Fahrenheit
   as if the value were in Fahrenheit.
-- Fix: Davis VP/VP2 force 1 minute baromter updates no longer working correctly after v3.8.2 protocol changes.
+- Fix: Davis VP/VP2 force 1 minute barometer updates no longer working correctly after v3.8.2 protocol changes.
 	Note: this setting should only be used for VP stations, or VP2 stations with very old firmware.
 - Fix: Last rain date not updating for Davis stations (fixes the mixed unit/bucket size update in 3.8.2)
-- Adds two new Cumulus.ini file settings to control the numer of decimal places used for wind speeds. These override the built-in defaults.
+- Adds two new Cumulus.ini file settings to control the number of decimal places used for wind speeds. These override the built-in defaults.
   These settings are read-only, they can to be manually added ONLY if you need to use them. Add either or both settings as required.
 	[Station]
 	WindSpeedDecimals=[0|1|2]
@@ -23,9 +60,9 @@
 - MXdiags log files are now rotated if they exceed 20MB in size, 15 log files are now retained
 - For Davis VP2 stations, setting the console clock now checks the console time and only sets it if it
   differs from the current time by greater than 60 seconds
-- Davis VP2 stations protocols have been extensively rewritten to make them more efficent and less timing sensitive
+- Davis VP2 stations protocols have been extensively rewritten to make them more efficient and less timing sensitive
   Third party IP loggers such as meteobridge and WiFi logger should now work more reliably
-- Enables PSK authentication when using SFTP. Options are now Password, PSK, PSK with Password fallback
+- Enables PSK authentication when using SFTP. Options are now Password, PSK, PSK with Password fall-back
 	New Cumulus.ini entries...
 	[FTP site]
 	SshFtpAuthentication=password      [password (default), psk, password_psk]
@@ -91,7 +128,7 @@
 - New feature:
 	- When running on Windows as a service, the service will stop if the computer goes to standby/hibernate mode. A script to set up
 		a Scheduled Task that will restart the service on resume from standby/hibernate is provided in the \MXutils\windows folder.
-		The script MUST be run with Administrator priveldges.
+		The script MUST be run with Administrator privileges.
 	- Script name: \MXutils\windows\CreateCmxResumeFromStandbyTask.ps1
 - Adds a new web tags for the Davis WLL device.
 	<#ConsoleSupplyV>   - The WLL external supply voltage
@@ -99,7 +136,7 @@
 	<#MulticastGoodCnt> - Count of good multicast packets received
 	<#MulticastGoodPct> - Percentage of good multicast packets received
 - On new installs of Cumulus MX, changes the default value of "WarnMultiple" from false to true
-- Adds a download history limit of 50 bad packets for WMR200 station types. Prevously it could get stuck in a loop downloading bad data.
+- Adds a download history limit of 50 bad packets for WMR200 station types. Previously it could get stuck in a loop downloading bad data.
 - Adds Show UV-I to the graph hide/show options
 - Updates ExportMySQL to include the new Humidex values from b3089
 - AWEKAS uploads updated to API v4 - now can include indoor data, soil temp/moisture 1-4, and leaf wetness 1-2. And it supports rapid

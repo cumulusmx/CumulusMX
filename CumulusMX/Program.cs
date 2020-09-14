@@ -17,9 +17,11 @@ namespace CumulusMX
         public static TextWriterTraceListener svcTextListener;
         const string appGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
         public static Mutex appMutex;
+        public static DateTime StartTime;
 
         private static void Main(string[] args)
         {
+            StartTime = DateTime.Now;
             var Windows = Type.GetType("Mono.Runtime") == null;
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;

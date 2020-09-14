@@ -3425,6 +3425,16 @@ namespace CumulusMX
 			return CheckRC(station.AirQualityAvg4.ToString(cumulus.TempFormat), TagParams);
 		}
 
+		private string TagCO2(Dictionary<string, string> TagParams)
+		{
+			return station.CO2.ToString();
+		}
+
+		private string TagCO2_24h(Dictionary<string, string> TagParams)
+		{
+			return station.CO2_24h.ToString();
+		}
+
 		private string TagLeafTemp1(Dictionary<string,string> TagParams)
 		{
 			return CheckRC(station.LeafTemp1.ToString(cumulus.TempFormat), TagParams);
@@ -4548,8 +4558,16 @@ namespace CumulusMX
 
 		private string TagProgramUpTime(Dictionary<string,string> TagParams)
 		{
-			TimeSpan ts = DateTime.Now - Process.GetCurrentProcess().StartTime;
+			// Bug in Mono Process.StartTime - wraps after 24 days
+			TimeSpan ts = DateTime.Now - Program.StartTime;
 			return String.Format("{0} days {1} hours", ts.Days, ts.Hours);
+		}
+
+		private string TagProgramUpTimeMs(Dictionary<string, string> TagParams)
+		{
+			// Bug in Mono Process.StartTime - wraps after 24 days
+			TimeSpan ts = DateTime.Now - Program.StartTime;
+			return ts.TotalMilliseconds.ToString();
 		}
 
 		private string TagCpuName(Dictionary<string,string> TagParams)
@@ -5424,6 +5442,8 @@ namespace CumulusMX
 				{ "AirQualityAvg2", TagAirQualityAvg2 },
 				{ "AirQualityAvg3", TagAirQualityAvg3 },
 				{ "AirQualityAvg4", TagAirQualityAvg4 },
+				{ "CO2", TagCO2 },
+				{ "CO2-24h", TagCO2_24h },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },
@@ -5621,6 +5641,7 @@ namespace CumulusMX
 				{ "OsLanguage", TagOsLanguage },
 				{ "SystemUpTime", TagSystemUpTime },
 				{ "ProgramUpTime", TagProgramUpTime },
+				{ "ProgramUpTimeMs", TagProgramUpTimeMs },
 				{ "CpuName", TagCpuName },
 				{ "CpuCount", TagCpuCount },
 				{ "MemoryStatus", TagMemoryStatus },

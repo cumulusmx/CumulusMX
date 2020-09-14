@@ -234,7 +234,11 @@ namespace CumulusMX
 			}
 			finally
 			{
-				mySqlConn.Close();
+				try
+				{
+					mySqlConn.Close();
+				}
+				catch {}
 			}
 
 			return res;

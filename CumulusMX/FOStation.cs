@@ -468,9 +468,13 @@ namespace CumulusMX
 					else
 					{
 						if (historydata.interval > 0)
-							rainrate = ConvertRainMMToUser((raindiff*0.3)*(60.0/historydata.interval));
+						{
+							rainrate = ConvertRainMMToUser((raindiff * 0.3) * (60.0 / historydata.interval));
+						}
 						else
+						{
 							rainrate = 0;
+						}
 					}
 
 					DoRain(ConvertRainMMToUser(historydata.rainCounter*0.3), rainrate, timestamp);
