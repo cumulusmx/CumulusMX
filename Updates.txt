@@ -6,11 +6,12 @@
 - Fix: Calculating the trend rain rate when a rainfall multiplier is used
 - Fix: Program Uptime when running under Mono and uptime > 24 days
 - Fix: When running as a Windows service, the service was stopped unintentionally on non-critical system power events
+- Fix: Davis VP receptions stats - ReceptionStats, FirmwareVersion and BaroRead functions rewritten
 - Adds Ecowitt GW1000 decoding of WH34 battery status
 - Adds Ecowitt GW1000 support for CO₂ sensor, no logging yet, but the decoding is there for when these sensors are released.
 	- New web tags <#CO2>, <#CO2-24h>
 - Adds new Linux cumulusmx.service configuration file (thanks to freddie), this allows you run Cumulus MX as a service under Linux using the
-  newer systemd control rather than the original init.d script.
+  newer systemd control rather than the original init.d script supplied with v3.8.0
 	- Edit the cumulusmx.service configuration file and change the path to match your Cumulus MX installation folder
 	- Copy cumulusmx.service to your /etc/systemd/system/ folder
 	- Cumulus can then be started and stopped with the following commands:
