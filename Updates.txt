@@ -1,4 +1,3 @@
-
 3.8.4 - b3094
 =============
 - Fix: Unhandled exception in MySQL during the start-up catch-up process
