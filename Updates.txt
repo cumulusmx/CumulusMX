@@ -16,8 +16,16 @@
 		Out-IPAddress=0.0.0.0
 		Out-IsNode=0
 		Out-WLStationId=
-- Adds new web tags for Davis AirLink
-	<#AirLinkFirmwareVersion>
+	- Adds new web tags for Davis AirLink
+		<#AirLinkFirmwareVersionIn>,<#AirLinkWifiRssiIn>
+		<#AirLinkTempIn>,<#AirLinkHumIn>,<#AirLinkPm1In>,
+		<#AirLinkPm2p5In>,<#AirLinkPm2p5_1hrIn>,<#AirLinkPm2p5_3hrIn>,<#AirLinkPm2p5_24hrIn>,<#AirLinkPm2p5_NowcastIn>
+		<#AirLinkPm10In>,<#AirLinkPm10_1hrIn>,<#AirLinkPm10_3hrIn>,<#AirLinkPm10_24hrIn>,<#AirLinkPm10_NowcastIn>
+		<#AirLinkFirmwareVersionOut>,<#AirLinkWifiRssiOut>
+		<#AirLinkTempOut>,<#AirLinkHumOut>,<#AirLinkPm1Out>,
+		<#AirLinkPm2p5Out>,<#AirLinkPm2p5_1hrOut>,<#AirLinkPm2p5_3hrOut>,<#AirLinkPm2p5_24hrOut>,<#AirLinkPm2p5_NowcastOut>
+		<#AirLinkPm10Out>,<#AirLinkPm10_1hrOut>,<#AirLinkPm10_3hrOut>,<#AirLinkPm10_24hrOut>,<#AirLinkPm10_NowcastOut>
+	- Logs AirLink data to a new CSV data file 'AirLinkLog<yyyyMM>.txt
 - The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
   There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
 	[Station]

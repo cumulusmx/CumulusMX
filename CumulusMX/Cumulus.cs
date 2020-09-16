@@ -170,9 +170,9 @@ namespace CumulusMX
 
 		private WeatherStation station;
 
-		public DavisAirLink airLinkIn;
+		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid;
-		public DavisAirLink airLinkOut;
+		internal DavisAirLink airLinkOut;
 		public int airLinkOutLsid;
 
 		private readonly StationSettings stationSettings;
@@ -2058,6 +2058,18 @@ namespace CumulusMX
 		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
 		{
 			MqttPublisher.UpdateMQTTfeed("Interval");
+		}
+
+		public void AirLinkTimerTick(object sender, ElapsedEventArgs e)
+		{
+			if (AirLinkInEnabled && airLinkIn != null)
+			{
+				airLinkIn.GetAirQuality();
+			}
+			if (AirLinkOutEnabled && airLinkOut != null)
+			{
+				airLinkOut.GetAirQuality();
+			}
 		}
 
 
@@ -5414,6 +5426,7 @@ namespace CumulusMX
 		public Timer AwekasTimer = new Timer();
 		public Timer WCloudTimer = new Timer();
 		public Timer MQTTTimer = new Timer();
+		public Timer AirLinkTimer = new Timer();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -5957,7 +5970,7 @@ namespace CumulusMX
 			// 40 Outdoor AQI 1-hour
 			// 41 Outdoor AQI nowcast
 
-			var filename = GetExtraLogFileName(timestamp);
+			var filename = GetAirLinkLogFileName(timestamp);
 
 			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
 			using (StreamWriter file = new StreamWriter(fs))
@@ -6085,6 +6098,8 @@ namespace CumulusMX
 				var extraFile = GetExtraLogFileName(timestamp);
 				var extraBackup = foldername + extraFile.Replace(LogFilePath, "");
 
+				var AirLinkFile = GetAirLinkLogFileName(timestamp);
+				var AirLinkBackup = foldername + AirLinkFile.Replace(LogFilePath, "");
 
 				if (!Directory.Exists(foldername))
 				{
@@ -6133,7 +6148,10 @@ namespace CumulusMX
 					{
 						File.Copy(extraFile, extraBackup);
 					}
-
+					if (File.Exists(AirLinkFile))
+					{
+						File.Copy(AirLinkFile, AirLinkBackup);
+					}
 					// Do not do this extra backup between 00:00 & Rollover hour on the first of the month
 					// as the month has not yet rolled over - only applies for start-up backups
 					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
@@ -6145,6 +6163,9 @@ namespace CumulusMX
 						var extraFile2 = GetExtraLogFileName(timestamp.AddDays(-1));
 						var extraBackup2 = foldername + extraFile2.Replace(LogFilePath, "");
 
+						var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
+						var AirLinkBackup2 = foldername + AirLinkFile2.Replace(LogFilePath, "");
+
 						if (File.Exists(LogFile2))
 						{
 							File.Copy(LogFile2, logbackup2, true);
@@ -6152,6 +6173,10 @@ namespace CumulusMX
 						if (File.Exists(extraFile2))
 						{
 							File.Copy(extraFile2, extraBackup2, true);
+						}
+						if (File.Exists(AirLinkFile2))
+						{
+							File.Copy(AirLinkFile2, AirLinkBackup2, true);
 						}
 					}
 
@@ -7659,6 +7684,14 @@ namespace CumulusMX
 			WCloudTimer.Interval = WCloudInterval * 60 * 1000;
 
 			MQTTTimer.Interval = MQTTIntervalTime * 1000; // secs to millisecs
+
+			if (AirLinkInEnabled || AirLinkOutEnabled)
+			{
+				AirLinkTimer.Interval = 60 * 1000; // 1 minute
+				AirLinkTimer.Enabled = true;
+				AirLinkTimer.Elapsed += AirLinkTimerTick;
+			}
+
 			if (MQTTEnableInterval)
 			{
 				MQTTTimer.Enabled = true;

@@ -17,7 +17,7 @@ using Unosquare.Swan;
 
 namespace CumulusMX
 {
-	public class DavisAirLink : WeatherStation
+	internal class DavisAirLink : WeatherStation
 	{
 		private string ipaddr;
 		private int port;
@@ -89,7 +89,6 @@ namespace CumulusMX
 
 
 		}
-
 
 		public override void Start()
 		{
@@ -392,8 +391,6 @@ namespace CumulusMX
 			}
 		}
 
-
-
 		public void DecodeHistoric(int dataType, int sensorType, JToken data)
 		{
 
@@ -595,7 +592,7 @@ namespace CumulusMX
 			//cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || wllVoltageLow;
 		}
 
-		private void DecodeWlApiHealth(JToken sensor, bool startingup)
+		internal void DecodeWlApiHealth(JToken sensor, bool startingup)
 		{
 			JToken data;
 			if (sensor["data_structure"].Count() > 0)
@@ -650,12 +647,18 @@ namespace CumulusMX
 				if (string.IsNullOrEmpty(data.Value<string>("air_quality_firmware_version")))
 				{
 					cumulus.LogDebugMessage($"AirLinkHealth: No valid firmware version [{data.Value<string>("air_quality_firmware_version")}]");
-					AirLinkFirmwareVersion = "???";
+					if (indoor)
+						cumulus.airLinkDataIn.firmwareVersion = "???";
+					else
+						cumulus.airLinkDataOut.firmwareVersion = "???";
 				}
 				else
 				{
 					var dat = FromUnixTime(data.Value<long>("air_quality_firmware_version"));
-					AirLinkFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
+					if (indoor)
+						cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
+					else
+						cumulus.airLinkDataOut.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 				}
 
 				if (string.IsNullOrEmpty(data.Value<string>("uptime")))
@@ -697,7 +700,11 @@ namespace CumulusMX
 					// Only present if WiFi attached
 					if (data.SelectToken("wifi_rssi") != null)
 					{
-						DavisAirLinkRssi[(indoor ? 0 : 1)] = data.Value<int>("wifi_rssi");
+						if (indoor)
+							cumulus.airLinkDataIn.wifiRssi = data.Value<int>("wifi_rssi");
+						else
+							cumulus.airLinkDataOut.wifiRssi = data.Value<int>("wifi_rssi");
+
 						cumulus.LogDebugMessage("AirLinkHealth: WiFi RSSI = " + data.Value<string>("wifi_rssi") + "dB");
 					}
 
@@ -719,11 +726,11 @@ namespace CumulusMX
 
 				if (startingup)
 				{
-					cumulus.LogMessage("AirLinkHealth: FW version = " + AirLinkFirmwareVersion);
+					cumulus.LogMessage("AirLinkHealth: FW version = " + (indoor ? cumulus.airLinkDataIn.firmwareVersion : cumulus.airLinkDataOut.firmwareVersion));
 				}
 				else
 				{
-					cumulus.LogDebugMessage("AirLinkHealth: FW version = " + AirLinkFirmwareVersion);
+					cumulus.LogDebugMessage("AirLinkHealth: FW version = " + (indoor ? cumulus.airLinkDataIn.firmwareVersion : cumulus.airLinkDataOut.firmwareVersion));
 				}
 			}
 		}
@@ -924,7 +931,5 @@ namespace CumulusMX
 		{
 			return (Int32)dateTime.ToUniversalTime().ToUnixEpochDate();
 		}
-
-
 	}
 }

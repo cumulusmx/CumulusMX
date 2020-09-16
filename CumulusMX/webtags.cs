@@ -1058,6 +1058,131 @@ namespace CumulusMX
 			}
 		}
 
+		// AirLink Indoor
+		private string TagAirLinkTempIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.temperature.ToString(cumulus.TempFormat), TagParams);
+		}
+		private string TagAirLinkHumIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.humidity.ToString(cumulus.HumFormat), TagParams);
+		}
+		private string TagAirLinkPm1In(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm1.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5In(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm2p5.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_1hrIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm2p5_1hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_3hrIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm2p5_3hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_24hrIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm2p5_24hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_NowcastIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm2p5_nowcast.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10In(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm10.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_1hrIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm10_1hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_3hrIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm10_3hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_24hrIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm10_24hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_NowcastIn(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataIn.pm10_nowcast.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkFirmwareVersionIn(Dictionary<string, string> TagParams)
+		{
+			return cumulus.airLinkDataIn.firmwareVersion;
+		}
+		private string TagAirLinkWifiRssiIn(Dictionary<string, string> TagParams)
+		{
+			return cumulus.airLinkDataIn.wifiRssi.ToString();
+		}
+
+
+		// AirLink Outdoor
+		private string TagAirLinkTempOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.temperature.ToString(cumulus.TempFormat), TagParams);
+		}
+		private string TagAirLinkHumOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.humidity.ToString(cumulus.HumFormat), TagParams);
+		}
+		private string TagAirLinkPm1Out(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm1.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5Out(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm2p5.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_1hrOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm2p5_1hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_3hrOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm2p5_3hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_24hrOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm2p5_24hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm2p5_NowcastOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm2p5_nowcast.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10Out(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm10.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_1hrOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm10_1hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_3hrOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm10_3hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_24hrOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm10_24hr.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkPm10_NowcastOut(Dictionary<string, string> TagParams)
+		{
+			return CheckRC(cumulus.airLinkDataOut.pm10_nowcast.ToString("F1"), TagParams);
+		}
+		private string TagAirLinkFirmwareVersionOut(Dictionary<string, string> TagParams)
+		{
+			return cumulus.airLinkDataOut.firmwareVersion;
+		}
+		private string TagAirLinkWifiRssiOut(Dictionary<string, string> TagParams)
+		{
+			return cumulus.airLinkDataOut.wifiRssi.ToString();
+		}
+
 
 		private string Tagsnowdepth(Dictionary<string,string> TagParams)
 		{
@@ -4651,11 +4776,6 @@ namespace CumulusMX
 			return station.DavisFirmwareVersion;
 		}
 
-		private string TagAirLinkFirmwareVersion(Dictionary<string, string> TagParams)
-		{
-			return station.AirLinkFirmwareVersion;
-		}
-
 		private string TagGW1000FirmwareVersion(Dictionary<string, string> TagParams)
 		{
 			return station.GW1000FirmwareVersion;
@@ -5480,6 +5600,36 @@ namespace CumulusMX
 				{ "DataSpikeAlarm", TagDataSpikeAlarm },
 				{ "RG11RainToday", TagRG11RainToday },
 				{ "RG11RainYest", TagRG11RainYest },
+				{ "AirLinkFirmwareVersionIn", TagAirLinkFirmwareVersionIn },
+				{ "AirLinkWifiRssiIn", TagAirLinkWifiRssiIn },
+				{ "AirLinkTempIn", TagAirLinkTempIn },
+				{ "AirLinkHumIn", TagAirLinkHumIn },
+				{ "AirLinkPm1In", TagAirLinkPm1In },
+				{ "AirLinkPm2p5In", TagAirLinkPm2p5In },
+				{ "AirLinkPm2p5_1hrIn", TagAirLinkPm2p5_1hrIn },
+				{ "AirLinkPm2p5_3hrIn", TagAirLinkPm2p5_3hrIn },
+				{ "AirLinkPm2p5_24hrIn", TagAirLinkPm2p5_24hrIn },
+				{ "AirLinkPm2p5_NowcastIn", TagAirLinkPm2p5_NowcastIn },
+				{ "AirLinkPm10In", TagAirLinkPm10In },
+				{ "AirLinkPm10_1hrIn", TagAirLinkPm10_1hrIn },
+				{ "AirLinkPm10_3hrIn", TagAirLinkPm10_3hrIn },
+				{ "AirLinkPm10_24hrIn", TagAirLinkPm10_24hrIn },
+				{ "AirLinkPm10_NowcastIn", TagAirLinkPm10_NowcastIn },
+				{ "AirLinkFirmwareVersionOut", TagAirLinkFirmwareVersionOut },
+				{ "AirLinkWifiRssiOut", TagAirLinkWifiRssiOut },
+				{ "AirLinkTempOut", TagAirLinkTempOut },
+				{ "AirLinkHumOut", TagAirLinkHumOut },
+				{ "AirLinkPm1Out", TagAirLinkPm1Out },
+				{ "AirLinkPm2p5Out", TagAirLinkPm2p5Out },
+				{ "AirLinkPm2p5_1hrOut", TagAirLinkPm2p5_1hrOut },
+				{ "AirLinkPm2p5_3hrOut", TagAirLinkPm2p5_3hrOut },
+				{ "AirLinkPm2p5_24hrOut", TagAirLinkPm2p5_24hrOut },
+				{ "AirLinkPm2p5_NowcastOut", TagAirLinkPm2p5_NowcastOut },
+				{ "AirLinkPm10Out", TagAirLinkPm10Out },
+				{ "AirLinkPm10_1hrOut", TagAirLinkPm10_1hrOut },
+				{ "AirLinkPm10_3hrOut", TagAirLinkPm10_3hrOut },
+				{ "AirLinkPm10_24hrOut", TagAirLinkPm10_24hrOut },
+				{ "AirLinkPm10_NowcastOut", TagAirLinkPm10_NowcastOut },
 				// Monthly highs and lows - values
 				{ "MonthTempH", TagMonthTempH },
 				{ "MonthTempL", TagMonthTempL },
