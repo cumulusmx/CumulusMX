@@ -158,6 +158,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AirQualityIndices.cs" />
     <Compile Include="Api.cs" />
     <Compile Include="ApiTagProcessor.cs" />
     <Compile Include="AstroLib.cs" />

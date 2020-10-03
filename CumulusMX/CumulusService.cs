@@ -15,8 +15,8 @@ namespace CumulusMX
 
 		protected override void OnStart(string[] args)
 		{
-			int httpport = 8998;
-			bool debug = false;
+			int httpport = Program.httpport;
+			bool debug = Program.debug;
 			string startParams = "";
 
 			for (int i = 0; i < args.Length; i++)
@@ -49,7 +49,7 @@ namespace CumulusMX
 					}
 				}
 				catch
-				{}
+				{ }
 			}
 
 			Program.cumulus = new Cumulus(httpport, debug, startParams);
@@ -100,6 +100,7 @@ namespace CumulusMX
 					Program.cumulus.LogConsoleMessage("Detected system RESUME CRITICAL, stopping service");
 					// A critical suspend will not have shutdown Cumulus, so do it now
 					Stop();
+					Program.exitSystem = true;
 					break;
 				case PowerBroadcastStatus.ResumeSuspend:
 					Program.cumulus.LogMessage("POWER: Detected system RESUMING FROM STANDBY");
@@ -108,6 +109,7 @@ namespace CumulusMX
 					Program.cumulus.LogMessage("POWER: Detected system GOING TO STANDBY, stopping service");
 					Program.cumulus.LogConsoleMessage("Detected system GOING TO STANDBY, stopping service");
 					Stop();
+					Program.exitSystem = true;
 					break;
 			}
 

@@ -45,7 +45,8 @@ namespace CumulusMX
 				apiSecret = cumulus.AirLinkApiSecret,
 				autoUpdateIp = cumulus.AirLinkAutoUpdateIpAddress,
 				indoor = indoor,
-				outdoor = outdoor
+				outdoor = outdoor,
+				aqi = cumulus.airQualityIndex
 			};
 
 			var bl = new JsonExtraSensorBlakeLarsen()
@@ -113,11 +114,21 @@ namespace CumulusMX
 					cumulus.AirLinkInIsNode = settings.airLink.indoor.isNode;
 					cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
 					cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
+					if (string.IsNullOrEmpty(cumulus.AirLinkInStationId) && cumulus.AirLinkInIsNode)
+					{
+						cumulus.AirLinkInStationId = cumulus.WllStationId;
+					}
 
 					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
 					cumulus.AirLinkOutIsNode = settings.airLink.outdoor.isNode;
 					cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
 					cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
+					if (string.IsNullOrEmpty(cumulus.AirLinkOutStationId) && cumulus.AirLinkOutIsNode)
+					{
+						cumulus.AirLinkOutStationId = cumulus.WllStationId;
+					}
+
+					cumulus.airQualityIndex = settings.airLink.aqi;
 				}
 				catch (Exception ex)
 				{
@@ -214,6 +225,7 @@ namespace CumulusMX
 		public bool autoUpdateIp { get; set; }
 		public JsonExtraSensorAirLinkDevice indoor { get; set; }
 		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
+		public int aqi { get; set; }
 	}
 
 	public class JsonExtraSensorAirLinkDevice

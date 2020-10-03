@@ -849,19 +849,14 @@ namespace CumulusMX
     //    Total Length                    99
     public class VPLoop2Data
     {
-        public int WindGust10Min { get; private set; }
-
-        public int WindGustDir { get; private set; }
-
-        public double AbsolutePressure { get; private set; }
-
         public int CurrentWindSpeed { get; private set; }
-
         public int WindDirection { get; private set; }
-
-        public int THSWindex { get; private set; }
-
         public int WindAverage { get; private set; }
+        public int WindGust10Min { get; private set; }
+        public int WindGustDir { get; private set; }
+        public int WindChill { get; private set; }
+        public int THSWindex { get; private set; }
+        public double AbsolutePressure { get; private set; }
 
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
         // Actual data is in the format to the right of the assignments - I convert it to make it easier to use
@@ -870,13 +865,14 @@ namespace CumulusMX
         // In the end, all integers are cast to Int32 for return.
         public void Load(Byte[] byteArray)
         {
-            AbsolutePressure = (double) (BitConverter.ToInt16(byteArray, 67))/1000; // Uint16
+            CurrentWindSpeed = Convert.ToInt32(byteArray[14]); // Byte - unsigned byte
+            WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16
+            WindAverage = Convert.ToInt32(byteArray[18]);
             WindGust10Min = Convert.ToInt32(byteArray[22]);
             WindGustDir = BitConverter.ToInt16(byteArray, 24); // Uint16
-            WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16
-            CurrentWindSpeed = Convert.ToInt32(byteArray[14]); // Byte - unsigned byte
+            WindChill = Convert.ToInt32(byteArray[37]);
             THSWindex = BitConverter.ToInt16(byteArray, 39);
-            WindAverage = Convert.ToInt32(byteArray[18]);
+            AbsolutePressure = (double) (BitConverter.ToInt16(byteArray, 67))/1000; // Uint16
         }
     }
 }

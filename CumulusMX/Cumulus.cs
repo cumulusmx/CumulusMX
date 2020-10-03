@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.0";
-		public string Build = "3999";
+		public string Version = "3.9.0-beta1";
+		public string Build = "3095";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -168,7 +168,7 @@ namespace CumulusMX
 
 		public const int DayfileFields = 52;
 
-		private WeatherStation station;
+		private readonly WeatherStation station;
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid;
@@ -1428,18 +1428,6 @@ namespace CumulusMX
 			}
 
 
-			if (AirLinkInEnabled)
-			{
-				airLinkDataIn = new AirLinkData();
-				airLinkIn = new DavisAirLink(this, true);
-
-			}
-			if (AirLinkOutEnabled)
-			{
-				airLinkDataOut = new AirLinkData();
-				airLinkOut = new DavisAirLink(this, false);
-			}
-
 			webtags = new WebTags(this, station);
 			webtags.InitialiseWebtags();
 
@@ -1541,6 +1529,19 @@ namespace CumulusMX
 			}
 
 			InitialiseRG11();
+
+			if (AirLinkInEnabled)
+			{
+				airLinkDataIn = new AirLinkData();
+				airLinkIn = new DavisAirLink(this, true);
+
+			}
+			if (AirLinkOutEnabled)
+			{
+				airLinkDataOut = new AirLinkData();
+				airLinkOut = new DavisAirLink(this, false);
+			}
+
 
 			if (station != null && station.timerStartNeeded)
 			{
@@ -3661,12 +3662,14 @@ namespace CumulusMX
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
 			AirLinkInIsNode = ini.GetValue("AirLink", "In-IsNode", false);
 			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", "");
-			if (AirLinkInStationId == "-1") AirLinkInStationId = "";
+			if (AirLinkInStationId == "" && AirLinkInIsNode) AirLinkInStationId = WllStationId;
 			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
 			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
 			AirLinkOutIsNode = ini.GetValue("AirLink", "Out-IsNode", false);
 			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", "");
-			if (AirLinkOutStationId == "-1") AirLinkOutStationId = "";
+			if (AirLinkOutStationId == "" && AirLinkOutIsNode) AirLinkOutStationId = WllStationId;
+
+			airQualityIndex = ini.GetValue("AirLink", "AQIformula", 0);
 
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
@@ -4301,6 +4304,7 @@ namespace CumulusMX
 			ini.SetValue("AirLink", "Out-IPAddress", AirLinkOutIPAddr);
 			ini.SetValue("AirLink", "Out-IsNode", AirLinkOutIsNode);
 			ini.SetValue("AirLink", "Out-WLStationId", AirLinkOutStationId);
+			ini.SetValue("AirLink", "AQIformula", airQualityIndex);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
@@ -5356,17 +5360,11 @@ namespace CumulusMX
 		public int DavisIPResponseTime { get; set; }
 		public int GraphHours { get; set; }
 
-		private WeatherStation Station
-		{
-			set { station = value; }
-			get { return station; }
-
-		}
-
 		// WeatherLink Live transmitter Ids and indexes
 		public string WllApiKey;
 		public string WllApiSecret;
 		public string WllStationId;
+		public int WllParentId;
 
 		public int WllBroadcastDuration = 300;
 		public int WllBroadcastPort = 22222;
@@ -5412,6 +5410,8 @@ namespace CumulusMX
 		public bool AirLinkOutIsNode = false;
 		public string AirLinkOutStationId;
 		public bool AirLinkAutoUpdateIpAddress = true;
+
+		public int airQualityIndex = -1;
 
 		public string Gw1000IpAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
@@ -5946,29 +5946,43 @@ namespace CumulusMX
 			// 16 Indoor Percent received 3-hour
 			// 17 Indoor Percent received nowcast
 			// 18 Indoor Percent received 24-hour
-			// 19 Indoor AQI
-			// 20 Indoor AQI 1-hour
-			// 21 Indoor AQI nowcast
-			// 22 Outdoor Temperature
-			// 23 Outdoor Humidity
-			// 24 Outdoor PM 1
-			// 25 Outdoor PM 2.5
-			// 26 Outdoor PM 2.5 1-hour
-			// 27 Outdoor PM 2.5 3-hour
-			// 28 Outdoor PM 2.5 24-hour
-			// 29 Outdoor PM 2.5 nowcast
-			// 30 Outdoor PM 10
-			// 31 Outdoor PM 10 1-hour
-			// 32 Outdoor PM 10 3-hour
-			// 33 Outdoor PM 10 24-hour
-			// 34 Outdoor PM 10 nowcast
-			// 35 Outdoor Percent received 1-hour
-			// 36 Outdoor Percent received 3-hour
-			// 37 Outdoor Percent received nowcast
-			// 38 Outdoor Percent received 24-hour
-			// 39 Outdoor AQI
-			// 40 Outdoor AQI 1-hour
-			// 41 Outdoor AQI nowcast
+			// 19 Indoor AQI PM2.5
+			// 20 Indoor AQI PM2.5 1-hour
+			// 21 Indoor AQI PM2.5 3-hour
+			// 22 Indoor AQI PM2.5 24-hour
+			// 23 Indoor AQI PM2.5 nowcast
+			// 24 Indoor AQI PM10
+			// 25 Indoor AQI PM10 1-hour
+			// 26 Indoor AQI PM10 3-hour
+			// 27 Indoor AQI PM10 24-hour
+			// 28 Indoor AQI PM10 nowcast
+			// 29 Outdoor Temperature
+			// 30 Outdoor Humidity
+			// 31 Outdoor PM 1
+			// 32 Outdoor PM 2.5
+			// 33 Outdoor PM 2.5 1-hour
+			// 34 Outdoor PM 2.5 3-hour
+			// 35 Outdoor PM 2.5 24-hour
+			// 36 Outdoor PM 2.5 nowcast
+			// 37 Outdoor PM 10
+			// 38 Outdoor PM 10 1-hour
+			// 39 Outdoor PM 10 3-hour
+			// 40 Outdoor PM 10 24-hour
+			// 41 Outdoor PM 10 nowcast
+			// 42 Outdoor Percent received 1-hour
+			// 43 Outdoor Percent received 3-hour
+			// 44 Outdoor Percent received nowcast
+			// 45 Outdoor Percent received 24-hour
+			// 46 Outdoor AQI PM2.5
+			// 47 Outdoor AQI PM2.5 1-hour
+			// 48 Outdoor AQI PM2.5 3-hour
+			// 49 Outdoor AQI PM2.5 24-hour
+			// 50 Outdoor AQI PM2.5 nowcast
+			// 51 Outdoor AQI PM10
+			// 52 Outdoor AQI PM10 1-hour
+			// 53 Outdoor AQI PM10 3-hour
+			// 54 Outdoor AQI PM10 24-hour
+			// 55 Outdoor AQI PM10 nowcast
 
 			var filename = GetAirLinkLogFileName(timestamp);
 
@@ -5997,14 +6011,21 @@ namespace CumulusMX
 					file.Write(airLinkDataIn.pct_3hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_24hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
-					file.Write(airLinkDataIn.aqi + ListSeparator);
-					file.Write(airLinkDataIn.aqi_1hr + ListSeparator);
-					file.Write(airLinkDataIn.aqi_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5 + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_3hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10 + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_1hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_3hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_24hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_nowcast + ListSeparator);
 				}
 				else
 				{
-					// write zero values
-					for (var i = 0; i < typeof(AirLinkData).GetFields().Length; i++)
+					// write zero values - subtract 2 for firmware version, wifi RSSI
+					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 2; i++)
 					{
 						file.Write("0" + ListSeparator);
 					}
@@ -6029,14 +6050,21 @@ namespace CumulusMX
 					file.Write(airLinkDataOut.pct_3hr + ListSeparator);
 					file.Write(airLinkDataOut.pct_24hr + ListSeparator);
 					file.Write(airLinkDataOut.pct_nowcast + ListSeparator);
-					file.Write(airLinkDataOut.aqi + ListSeparator);
-					file.Write(airLinkDataOut.aqi_1hr + ListSeparator);
-					file.Write(airLinkDataOut.aqi_nowcast);
+					file.Write(airLinkDataOut.aqiPm2p5 + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_1hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_3hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_nowcast + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10 + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_1hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_3hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_24hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_nowcast);
 				}
 				else
 				{
-					// write zero values
-					for (var i = 0; i < typeof(AirLinkData).GetFields().Length - 1; i++)
+					// write zero values - subtract 1 for firmware version, wifi RSSI - subtract 1 for end field
+					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
 					{
 						file.Write("0" + ListSeparator);
 					}
@@ -6573,23 +6601,52 @@ namespace CumulusMX
 		{
 			LogMessage("Cumulus closing");
 
-			WriteIniFile();
+			//WriteIniFile();
 
 			//httpServer.Stop();
 
 			//if (httpServer != null) httpServer.Dispose();
 
 			// Stop the timers
-			if (RealtimeEnabled) {
-
+			try
+			{
+				LogMessage("Stopping timers");
+				RealtimeTimer.Stop();
+				WundTimer.Stop();
+				WindyTimer.Stop();
+				PWSTimer.Stop();
+				WOWTimer.Stop();
+				APRStimer.Stop();
+				WebTimer.Stop();
+				TwitterTimer.Stop();
+				AwekasTimer.Stop();
+				WCloudTimer.Stop();
+				MQTTTimer.Stop();
+				AirLinkTimer.Stop();
+				CustomHttpSecondsTimer.Stop();
+				CustomMysqlSecondsTimer.Stop();
+				MQTTTimer.Stop();
 			}
+			catch { }
 
 			if (station != null)
 			{
-				LogMessage("Station stopping");
+				LogMessage("Stopping station...");
 				station.Stop();
-
 				LogMessage("Station stopped");
+
+				LogMessage("Stopping extra sensors...");
+				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now
+				if (airLinkOut != null)
+				{
+					airLinkOut.Stop();
+				}
+				// If we have a Indoor AirLink sensor, and it is linked to this WLL then stop it now
+				if (airLinkIn != null)
+				{
+					airLinkIn.Stop();
+				}
+				LogMessage("Extra sensors stopped");
 
 				if (station.HaveReadData)
 				{
@@ -6598,7 +6655,9 @@ namespace CumulusMX
 					LogMessage("Completed writing today.ini file");
 				}
 				else
+				{
 					LogMessage("No data read this session, today.ini not written");
+				}
 			}
 			LogMessage("Station shutdown complete");
 		}
@@ -8662,6 +8721,15 @@ namespace CumulusMX
 		public const int Instromet = 10;
 		public const int WLL = 11;
 		public const int GW1000 = 12;
+	}
+
+	public static class AirQualityIndex
+	{
+		public const int US_EPA = 0;
+		public const int UK_COMEAP = 1;
+		public const int EU_AQI = 2;
+		public const int CANADA_AQHI = 3;
+		public const int EU_CAQI = 4;
 	}
 
 	public static class DoubleExtensions

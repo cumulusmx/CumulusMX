@@ -1,8 +1,12 @@
-3.9.0 - b3xxx
+3.9.0 - b3095
 —————————————
+- Fix: Running as a Windows service, now correctly reads command line parameters from the registry "ImagePath" field
 - Adds support for the Davis AirLink air quality monitor.
 	- Like the WLL it supports auto-discovery of the AirLink IP address, this can be disabled via config
 	- A new Settings page has been created for "Extra sensors", this is where you can configure the AirLink.
+	- Logs AirLink data to a new CSV data file "AirLinkLog<yyyyMM>.txt" - see AirLinkFileHeader.txt for field information
+	- Historic catch-up is supported if the main station is a Davis WLL and the AirLink has been added as node to this station
+	- Historic catch-up for other stations will be a later release
 	- Creates a new Cumulus.ini file section
 		[AirLink]
 		WLv2ApiKey=
@@ -16,26 +20,35 @@
 		Out-IPAddress=0.0.0.0
 		Out-IsNode=0
 		Out-WLStationId=
+		AQIformula=0      [0=US-EPA, 1=UK-COMEAP, 2=EU-AQI, 3=EU-CAQI, 4=Canada-AQHI, 5=Australia-NEMP]
 	- Adds new web tags for Davis AirLink
-		<#AirLinkFirmwareVersionIn>,<#AirLinkWifiRssiIn>
-		<#AirLinkTempIn>,<#AirLinkHumIn>,<#AirLinkPm1In>,
+		<#AirLinkFirmwareVersionIn>,<#AirLinkWifiRssiIn>	- Requires Davis WeatherLink Live Pro subscription
+		<#AirLinkFirmwareVersionOut>,<#AirLinkWifiRssiOut>	- Requires Davis WeatherLink Live Pro subscription
+		<#AirLinkTempIn>,<#AirLinkHumIn>
+		<#AirLinkTempOut>,<#AirLinkHumOut>
+		<#AirLinkPm1In>,<#AirLinkPm1Out>
 		<#AirLinkPm2p5In>,<#AirLinkPm2p5_1hrIn>,<#AirLinkPm2p5_3hrIn>,<#AirLinkPm2p5_24hrIn>,<#AirLinkPm2p5_NowcastIn>
-		<#AirLinkPm10In>,<#AirLinkPm10_1hrIn>,<#AirLinkPm10_3hrIn>,<#AirLinkPm10_24hrIn>,<#AirLinkPm10_NowcastIn>
-		<#AirLinkFirmwareVersionOut>,<#AirLinkWifiRssiOut>
-		<#AirLinkTempOut>,<#AirLinkHumOut>,<#AirLinkPm1Out>,
 		<#AirLinkPm2p5Out>,<#AirLinkPm2p5_1hrOut>,<#AirLinkPm2p5_3hrOut>,<#AirLinkPm2p5_24hrOut>,<#AirLinkPm2p5_NowcastOut>
+		<#AirLinkPm10In>,<#AirLinkPm10_1hrIn>,<#AirLinkPm10_3hrIn>,<#AirLinkPm10_24hrIn>,<#AirLinkPm10_NowcastIn>
 		<#AirLinkPm10Out>,<#AirLinkPm10_1hrOut>,<#AirLinkPm10_3hrOut>,<#AirLinkPm10_24hrOut>,<#AirLinkPm10_NowcastOut>
-	- Logs AirLink data to a new CSV data file 'AirLinkLog<yyyyMM>.txt
+		<#AirLinkAqiPm2p5In>,<#AirLinkAqiPm2p5_1hrIn>,<#AirLinkAqiPm2p5_3hrIn>,<#AirLinkAqiPm2p5_24hrIn>,<#AirLinkAqiPm2p5_NowcastIn>
+		<#AirLinkAqiPm2p5Out>,<#AirLinkAqiPm2p5_1hrOut>,<#AirLinkAqiPm2p5_3hrOut>,<#AirLinkAqiPm2p5_24hrOut>,<#AirLinkAqiPm2p5_NowcastOut>
+		<#AirLinkAqiPm10In>,<#AirLinkAqiPm10_1hrIn>,<#AirLinkAqiPm10_3hrIn>,<#AirLinkAqiPm10_24hrIn>,<#AirLinkAqiPm10_NowcastIn>
+		<#AirLinkAqiPm10Out>,<#AirLinkAqiPm10_1hrOut>,<#AirLinkAqiPm10_3hrOut>,<#AirLinkAqiPm10_24hrOut>,<#AirLinkAqiPm10_NowcastOut>
+		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLink_NowcastIn>
+		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLink_NowcastOut>
 - The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
   There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
 	[Station]
 	RG11Enabled=0
 	RG11Enabled2=0
 - Adds new graph option - Solar Visible. Setting both Solar and UV to hidden means the solar graph data files will be empty.
+- CumulusMX no longer re-writes the Cumulus.ini file on shutdown
 
 - Updated files
 	\CumulusMX.exe
-	\interface			- lots of changes, copy the whole folder
+	\AirLinkFileHeader.txt
+	\interface				- lots of changes, copy the whole folder
 
 
 3.8.4 - b3094
@@ -49,7 +62,7 @@
 - Adds Ecowitt GW1000 decoding of WH34 battery status
 - Adds Ecowitt GW1000 support for CO₂ sensor, no logging yet, but the decoding is there for when these sensors are released.
 	- New web tags <#CO2>, <#CO2-24h>
-- Adds new Linux cumulusmx.service configuration file (thanks to freddie), this allows you run Cumulus MX as a service under Linux using the
+- Adds new Linux cumulusmx.service configuration file (thanks to @freddie), this allows you run Cumulus MX as a service under Linux using the
   newer systemd control rather than the original init.d script supplied with v3.8.0
 	- Edit the cumulusmx.service configuration file and change the path to match your Cumulus MX installation folder
 	- Copy cumulusmx.service to your /etc/systemd/system/ folder

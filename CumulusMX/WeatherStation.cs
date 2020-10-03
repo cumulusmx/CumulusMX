@@ -1454,7 +1454,7 @@ namespace CumulusMX
 
 			if (timeNow.Second % 3 == 0)
 			{
-				// send current data to websocket every 3 seconds for now
+				// send current data to websocket every 3 seconds
 				try
 				{
 					StringBuilder windRoseData = new StringBuilder(80);
@@ -10556,9 +10556,16 @@ namespace CumulusMX
 		public int pct_3hr { get; set; }
 		public int pct_nowcast { get; set; }
 		public int pct_24hr { get; set; }
-		public int aqi { get; set; }
-		public int aqi_1hr { get; set; }
-		public int aqi_nowcast { get; set; }
+		public double aqiPm2p5 { get; set; }
+		public double aqiPm2p5_1hr { get; set; }
+		public double aqiPm2p5_3hr { get; set; }
+		public double aqiPm2p5_24hr { get; set; }
+		public double aqiPm2p5_nowcast { get; set; }
+		public double aqiPm10 { get; set; }
+		public double aqiPm10_1hr { get; set; }
+		public double aqiPm10_3hr { get; set; }
+		public double aqiPm10_24hr { get; set; }
+		public double aqiPm10_nowcast { get; set; }
 		public string firmwareVersion { get; set; }
 		public int wifiRssi { get; set; }
 	}
