@@ -1,10 +1,12 @@
 3.9.0 - b3095
 —————————————
 - Fix: Running as a Windows service, now correctly reads command line parameters from the registry "ImagePath" field
+- Fix: Cumulus forecast would sometimes start with a comma
+- Fix: trendsT.htm location formatting
 - Adds support for the Davis AirLink air quality monitor.
 	- Like the WLL it supports auto-discovery of the AirLink IP address, this can be disabled via config
 	- A new Settings page has been created for "Extra sensors", this is where you can configure the AirLink.
-	- Logs AirLink data to a new CSV data file "AirLinkLog<yyyyMM>.txt" - see AirLinkFileHeader.txt for field information
+	- Logs AirLink data to a new CSV data file "AirLink<yyyyMM>log.txt" - see AirLinkFileHeader.txt for field information
 	- Historic catch-up is supported if the main station is a Davis WLL and the AirLink has been added as node to this station
 	- Historic catch-up for other stations will be a later release
 	- Creates a new Cumulus.ini file section
@@ -38,17 +40,23 @@
 		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLink_NowcastIn>
 		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLink_NowcastOut>
 - The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
-  There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
-	[Station]
-	RG11Enabled=0
-	RG11Enabled2=0
+	There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
+		[Station]
+		RG11Enabled=0
+		RG11Enabled2=0
 - Adds new graph option - Solar Visible. Setting both Solar and UV to hidden means the solar graph data files will be empty.
 - CumulusMX no longer re-writes the Cumulus.ini file on shutdown
+- Adds the option to set the retained flag for the MQTT feeds
+	- New Cumulus.ini file settings
+		[MQTT]
+		UpdateRetained=0
+		IntervalRetained=0
 
 - Updated files
 	\CumulusMX.exe
 	\AirLinkFileHeader.txt
 	\interface				- lots of changes, copy the whole folder
+	\web\trendsT.htm
 
 
 3.8.4 - b3094

@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Unosquare.Swan;
+using SQLite;
 
 namespace CumulusMX
 {
@@ -324,9 +325,9 @@ namespace CumulusMX
 		{
 			var retry = 2;
 
-			cumulus.LogDebugMessage("Lock: GetWllRealtime waiting for lock");
+			cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime waiting for lock");
 			WebReq.Wait();
-			cumulus.LogDebugMessage("Lock: GetWllRealtime has the lock");
+			cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime has the lock");
 
 			// The WLL will error if already responding to a request from another device, so add a retry
 			do
@@ -345,7 +346,7 @@ namespace CumulusMX
 					{
 						var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllBroadcastDuration;
 
-						cumulus.LogDebugMessage($"Sending GET realtime request to WLL: {urlRealtime} ...");
+						cumulus.LogDebugMessage($"GetWllRealtime: Sending GET realtime request to WLL: {urlRealtime} ...");
 
 						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlRealtime))
 						{
@@ -353,41 +354,41 @@ namespace CumulusMX
 							var responseBody = await response.Content.ReadAsStringAsync();
 							responseBody = responseBody.TrimEnd('\r', '\n');
 
-							cumulus.LogDataMessage("WLL Real_time response: " + responseBody);
+							cumulus.LogDataMessage("GetWllRealtime: WLL response: " + responseBody);
 
 							//Console.WriteLine($" - Realtime response: {responseBody}");
 							var jObject = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
 							var err = String.IsNullOrEmpty(jObject.Value<string>("error")) ? "OK" : jObject["error"].Value<string>("code");
 							port = jObject["data"].Value<int>("broadcast_port");
 							duration = jObject["data"].Value<int>("duration");
-							cumulus.LogDebugMessage($"GET realtime request WLL response Code: {err}, Port: {jObject["data"].Value<string>("broadcast_port")}");
+							cumulus.LogDebugMessage($"GetWllRealtime: GET response Code: {err}, Port: {jObject["data"].Value<string>("broadcast_port")}");
 							if (cumulus.WllBroadcastDuration != duration)
 							{
-								cumulus.LogMessage($"WLL broadcast duration {duration} does not match requested duration {cumulus.WllBroadcastDuration}, continuing to use {cumulus.WllBroadcastDuration}");
+								cumulus.LogMessage($"GetWllRealtime: WLL broadcast duration {duration} does not match requested duration {cumulus.WllBroadcastDuration}, continuing to use {cumulus.WllBroadcastDuration}");
 							}
 							if (cumulus.WllBroadcastPort != port)
 							{
-								cumulus.LogMessage($"WLL broadcast port {port} does not match default {cumulus.WllBroadcastPort}, resetting to {port}");
+								cumulus.LogMessage($"GetWllRealtime: WLL broadcast port {port} does not match default {cumulus.WllBroadcastPort}, resetting to {port}");
 								cumulus.WllBroadcastPort = port;
 							}
 						}
 					}
 					else
 					{
-						cumulus.LogMessage($"WLL realtime: Invalid IP address: {ip}");
+						cumulus.LogMessage($"GetWllRealtime: Invalid IP address: {ip}");
 					}
 					retry = 0;
 				}
 				catch (Exception exp)
 				{
 					retry--;
-					cumulus.LogDebugMessage("GetRealtime(): Exception Caught!");
-					cumulus.LogDebugMessage($"Message :{exp.Message}");
+					cumulus.LogDebugMessage("GetRealtime: Exception Caught!");
+					cumulus.LogDebugMessage($"GetWllRealtime: Message :{exp.Message}");
 					Thread.Sleep(2000);
 				}
 			} while (retry > 0);
 
-			cumulus.LogDebugMessage("Lock: GetWllRealtime releasing lock");
+			cumulus.LogDebugMessage("GetWllRealtime: Releasing lock");
 			WebReq.Release();
 		}
 
@@ -1422,7 +1423,7 @@ namespace CumulusMX
 		private void GetWlHistoricData()
 		{
 
-			Newtonsoft.Json.Linq.JObject jObject;
+			JObject jObject;
 
 			cumulus.LogMessage("GetWlHistoricData: Get WL.com Historic Data");
 
@@ -1511,6 +1512,7 @@ namespace CumulusMX
 
 			JToken sensorData = new JObject();
 			int noOfRecs = 0;
+			JToken sensorWithMostRecs = null;
 
 			try
 			{
@@ -1520,7 +1522,7 @@ namespace CumulusMX
 					var responseBody = response.Content.ReadAsStringAsync().Result;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response: {response.StatusCode}: {responseBody}");
 
-					jObject = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
+					jObject = JObject.Parse(responseBody);
 
 					if ((int)response.StatusCode != 200)
 					{
@@ -1542,13 +1544,17 @@ namespace CumulusMX
 						// get the sensor data
 						sensorData = jObject.GetValue("sensors");
 
-						foreach (Newtonsoft.Json.Linq.JToken sensor in sensorData)
+						foreach (JToken sensor in sensorData)
 						{
-							if (sensor.Value<int>("sensor_type") != 504)
+							// Find the WLL baro, or internal temp/hum sensors
+							if (sensor.Value<int>("data_structure_type") == 13)
 							{
 								var recs = sensor["data"].Count();
 								if (recs > noOfRecs)
+								{
 									noOfRecs = recs;
+									sensorWithMostRecs = sensor;
+								}
 							}
 						}
 
@@ -1584,26 +1590,70 @@ namespace CumulusMX
 			{
 				try
 				{
-					DateTime timestamp = new DateTime();
+					// Not all sensors may have the same number of records. We are using the WLL to create the historic data, the other sensors (AirLink) may have more or less records!
+					// For the additional sensors, check if they have the same number of reocrds as the WLL. If they do great, we just process the next record.
+					// If the sensor has more or less historic records than the WLL, then we find the record (if any) that matches the WLL record timestamp
+					DecodeHistoric(sensorWithMostRecs.Value<int>("data_structure_type"), sensorWithMostRecs.Value<int>("sensor_type"), sensorWithMostRecs["data"][dataIndex]);
+					var timestamp = FromUnixTime(sensorWithMostRecs["data"][dataIndex].Value<long>("ts"));
+
 					foreach (var sensor in sensorData)
 					{
 						var sensorType = sensor.Value<int>("sensor_type");
+						var dataStructureType = sensor.Value<int>("data_structure_type");
+						var lsid = sensor.Value<int>("lsid");
 
 						if (sensorType == 323 && cumulus.airLinkOut != null) // AirLink Outdoor
 						{
-							// Pass AirLink historic record to the AirLink module to process
-							cumulus.airLinkOut.DecodeAlHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
+							if (sensor["data"].Count() != noOfRecs)
+							{
+								var found = false;
+								foreach (var dataRec in sensor["data"])
+								{
+									if (dataRec.Value<long>("ts") == sensorWithMostRecs["data"][dataIndex].Value<long>("ts"))
+									{
+										// Pass AirLink historic record to the AirLink module to process
+										cumulus.airLinkOut.DecodeAlHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), dataRec);
+										found = true;
+										break;
+									}
+								}
+								if (!found)
+									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No outdoor Airlink data for this log interval !!");
+							}
+							else
+							{
+								// Pass AirLink historic record to the AirLink module to process
+								cumulus.airLinkOut.DecodeAlHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
+							}
 						}
 						else if (sensorType == 326 && cumulus.airLinkIn != null) // AirLink Indoor
 						{
-							// Pass AirLink historic record to the AirLink module to process
-							cumulus.airLinkIn.DecodeAlHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
+							if (sensor["data"].Count() != noOfRecs)
+							{
+								var found = false;
+								foreach (var dataRec in sensor["data"])
+								{
+									if (dataRec.Value<long>("ts") == sensorWithMostRecs["data"][dataIndex].Value<long>("ts"))
+									{
+										// Pass AirLink historic record to the AirLink module to process
+										cumulus.airLinkIn.DecodeAlHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), dataRec);
+										found = true;
+										break;
+									}
+								}
+								if (!found)
+									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No indoor Airlink data for this log interval !!");
+							}
+							else
+							{
+								// Pass AirLink historic record to the AirLink module to process
+								cumulus.airLinkIn.DecodeAlHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
+							}
 						}
-						else if (sensorType != 504 && sensorType != 506)
+						else if (sensorType != 504 && sensorType != 506 && sensor.Value<int>("lsid") != sensorWithMostRecs.Value<int>("lsid"))
 						{
 							DecodeHistoric(sensor.Value<int>("data_structure_type"), sensor.Value<int>("sensor_type"), sensor["data"][dataIndex]);
 							// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor
-							timestamp = FromUnixTime(sensor["data"][dataIndex].Value<long>("ts"));
 						}
 					}
 
@@ -2693,7 +2743,7 @@ namespace CumulusMX
 				// 504 = WLL Health
 				// 506 = AirLink Health
 
-				// Get the LSID of the heatlh station associated with each device
+				// Get the LSID of the health station associated with each device
 				var wllHealthLsid = GetWlHistoricHealthLsid(cumulus.WllParentId, 504);
 				var alInHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkInLsid, 506);
 				var alOutHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkOutLsid, 506);
@@ -2715,7 +2765,7 @@ namespace CumulusMX
 						// Pass AirLink historic record to the AirLink module to process
 						cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
 					}
-					else if ((sensorType == 504 && lsid == wllHealthLsid) || dataStructureType == 11)
+					else if (sensorType == 504 || dataStructureType == 11)
 					{
 						// Either a WLL (504) or ISS (data type = 11) record
 						DecodeWlApiHealth(sensor, true);

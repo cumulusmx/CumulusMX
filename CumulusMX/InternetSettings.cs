@@ -309,10 +309,12 @@ namespace CumulusMX
 					cumulus.MQTTEnableDataUpdate = settings.mqtt.dataUpdate.enabled;
 					cumulus.MQTTUpdateTopic = settings.mqtt.dataUpdate.topic ?? string.Empty;
 					cumulus.MQTTUpdateTemplate = settings.mqtt.dataUpdate.template ?? string.Empty;
+					cumulus.MQTTUpdateRetained = settings.mqtt.dataUpdate.retained;
 					cumulus.MQTTEnableInterval = settings.mqtt.interval.enabled;
 					cumulus.MQTTIntervalTime = settings.mqtt.interval.time;
 					cumulus.MQTTIntervalTopic = settings.mqtt.interval.topic ?? string.Empty;
 					cumulus.MQTTIntervalTemplate = settings.mqtt.interval.template ?? string.Empty;
+					cumulus.MQTTIntervalRetained = settings.mqtt.interval.retained;
 
 					cumulus.MQTTTimer.Interval = cumulus.MQTTIntervalTime * 1000;
 					cumulus.MQTTTimer.Enabled = cumulus.MQTTEnableInterval && !String.IsNullOrWhiteSpace(cumulus.MQTTIntervalTopic) && !String.IsNullOrWhiteSpace(cumulus.MQTTIntervalTemplate);
@@ -572,7 +574,8 @@ namespace CumulusMX
 			{
 				enabled = cumulus.MQTTEnableDataUpdate,
 				topic = cumulus.MQTTUpdateTopic,
-				template = cumulus.MQTTUpdateTemplate
+				template = cumulus.MQTTUpdateTemplate,
+				retained = cumulus.MQTTUpdateRetained
 			};
 
 			var mqttInterval = new JsonInternetSettingsMqttInterval()
@@ -580,7 +583,8 @@ namespace CumulusMX
 				enabled = cumulus.MQTTEnableInterval,
 				time = cumulus.MQTTIntervalTime,
 				topic = cumulus.MQTTIntervalTopic,
-				template = cumulus.MQTTIntervalTemplate
+				template = cumulus.MQTTIntervalTemplate,
+				retained = cumulus.MQTTUpdateRetained
 			};
 
 			var mqttsettings = new JsonInternetSettingsMqtt()
@@ -939,6 +943,7 @@ namespace CumulusMX
 		public bool enabled { get; set; }
 		public string topic { get; set; }
 		public string template { get; set; }
+		public bool retained { get; set; }
 	}
 
 	public class JsonInternetSettingsMqttInterval
@@ -947,6 +952,7 @@ namespace CumulusMX
 		public int time { get; set; }
 		public string topic { get; set; }
 		public string template { get; set; }
+		public bool retained { get; set; }
 	}
 
 	public class JsonInternetSettingsMoonImage

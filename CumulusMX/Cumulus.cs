@@ -34,7 +34,7 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.0-beta1";
+		public string Version = "3.9.0";
 		public string Build = "3095";
 		/////////////////////////////////
 
@@ -658,10 +658,13 @@ namespace CumulusMX
 		public bool MQTTEnableDataUpdate;
 		public string MQTTUpdateTopic;
 		public string MQTTUpdateTemplate;
+		public bool MQTTUpdateRetained;
 		public bool MQTTEnableInterval;
 		public int MQTTIntervalTime;
 		public string MQTTIntervalTopic;
 		public string MQTTIntervalTemplate;
+		public bool MQTTIntervalRetained;
+
 
 		// NOAA report settings
 		public string NOAAname;
@@ -1519,7 +1522,6 @@ namespace CumulusMX
 
 			if (MQTTEnableDataUpdate || MQTTEnableInterval)
 			{
-
 				MqttPublisher.Setup(this);
 
 				if (MQTTEnableInterval)
@@ -1534,7 +1536,6 @@ namespace CumulusMX
 			{
 				airLinkDataIn = new AirLinkData();
 				airLinkIn = new DavisAirLink(this, true);
-
 			}
 			if (AirLinkOutEnabled)
 			{
@@ -3879,10 +3880,12 @@ namespace CumulusMX
 			MQTTEnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTTUpdateTopic = ini.GetValue("MQTT", "UpdateTopic", "CumulusMX/DataUpdate");
 			MQTTUpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
+			MQTTUpdateRetained = ini.GetValue("MQTT", "UpdateRetained", false);
 			MQTTEnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
 			MQTTIntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 10 minutes
 			MQTTIntervalTopic = ini.GetValue("MQTT", "IntervalTopic", "CumulusMX/Interval");
 			MQTTIntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
+			MQTTIntervalRetained = ini.GetValue("MQTT", "IntervalRetained", false);
 
 			LowTempAlarmValue = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
 			LowTempAlarmEnabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
@@ -4443,10 +4446,12 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTTEnableDataUpdate);
 			ini.SetValue("MQTT", "UpdateTopic", MQTTUpdateTopic);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTTUpdateTemplate);
+			ini.SetValue("MQTT", "UpdateRetained", MQTTUpdateRetained);
 			ini.SetValue("MQTT", "EnableInterval", MQTTEnableInterval);
 			ini.SetValue("MQTT", "IntervalTime", MQTTIntervalTime);
 			ini.SetValue("MQTT", "IntervalTopic", MQTTIntervalTopic);
 			ini.SetValue("MQTT", "IntervalTemplate", MQTTIntervalTemplate);
+			ini.SetValue("MQTT", "IntervalRetained", MQTTIntervalRetained);
 
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarmValue);
 			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmEnabled);
@@ -5478,7 +5483,7 @@ namespace CumulusMX
 		public bool SendLeafWetness2ToWund;
 		private readonly string[] localgraphdatafiles;
 		private readonly string[] remotegraphdatafiles;
-		public string exceptional;
+		public string exceptional = "Exceptional Weather";
 //		private WebSocketServer wsServer;
 		public string[] WMR200ExtraChannelCaptions = new string[11];
 		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
@@ -5655,7 +5660,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + "AirLinkLog" + datestring + ".txt";
+			return Datapath + "AirLink" + datestring + "log.txt";
 		}
 
 		public const int NumLogFileFields = 29;
@@ -6635,6 +6640,17 @@ namespace CumulusMX
 				station.Stop();
 				LogMessage("Station stopped");
 
+				if (station.HaveReadData)
+				{
+					LogMessage("Writing today.ini file");
+					station.WriteTodayFile(DateTime.Now, false);
+					LogMessage("Completed writing today.ini file");
+				}
+				else
+				{
+					LogMessage("No data read this session, today.ini not written");
+				}
+
 				LogMessage("Stopping extra sensors...");
 				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now
 				if (airLinkOut != null)
@@ -6648,16 +6664,6 @@ namespace CumulusMX
 				}
 				LogMessage("Extra sensors stopped");
 
-				if (station.HaveReadData)
-				{
-					LogMessage("Writing today.ini file");
-					station.WriteTodayFile(DateTime.Now, false);
-					LogMessage("Completed writing today.ini file");
-				}
-				else
-				{
-					LogMessage("No data read this session, today.ini not written");
-				}
 			}
 			LogMessage("Station shutdown complete");
 		}
