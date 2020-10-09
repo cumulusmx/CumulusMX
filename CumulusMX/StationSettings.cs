@@ -117,7 +117,6 @@ namespace CumulusMX
 							solarmin = cumulus.SolarMinimum,
 							transfactor = cumulus.RStransfactor,
 							sunthreshold = cumulus.SunThreshold,
-							useblakelarsen = cumulus.UseBlakeLarsen,
 							solarcalc = cumulus.SolarCalc,
 							turbidity = cumulus.BrasTurbidity
 						};
@@ -138,7 +137,8 @@ namespace CumulusMX
 				graphHumidexVis = cumulus.GraphOptions.HumidexVisible,
 				graphHumVis = cumulus.GraphOptions.OutHumVisible,
 				graphInHumVis = cumulus.GraphOptions.InHumVisible,
-				graphUvVis = cumulus.GraphOptions.UVVisible
+				graphUvVis = cumulus.GraphOptions.UVVisible,
+				graphSolarVis = cumulus.GraphOptions.SolarVisible
 			};
 
 			var wllNetwork = new JsonStationSettingsWLLNetwork()
@@ -342,6 +342,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.OutHumVisible = settings.Graphs.graphHumVis;
 					cumulus.GraphOptions.InHumVisible = settings.Graphs.graphInHumVis;
 					cumulus.GraphOptions.UVVisible = settings.Graphs.graphUvVis;
+					cumulus.GraphOptions.SolarVisible = settings.Graphs.graphSolarVis;
 				}
 				catch (Exception ex)
 				{
@@ -372,7 +373,6 @@ namespace CumulusMX
 					cumulus.SolarMinimum = settings.Solar.solarmin;
 					cumulus.RStransfactor = settings.Solar.transfactor;
 					cumulus.SunThreshold = settings.Solar.sunthreshold;
-					cumulus.UseBlakeLarsen = settings.Solar.useblakelarsen;
 					cumulus.SolarCalc = settings.Solar.solarcalc;
 					cumulus.BrasTurbidity = settings.Solar.turbidity;
 				}
@@ -806,7 +806,6 @@ namespace CumulusMX
 		public int sunthreshold { get; set; }
 		public int solarmin { get; set; }
 		public double transfactor { get; set; }
-		public bool useblakelarsen { get; set; }
 		public int solarcalc { get; set; }
 
 		public double turbidity { get; set; }
@@ -924,5 +923,6 @@ namespace CumulusMX
 		public bool graphHumVis { get; set; }
 		public bool graphInHumVis { get; set; }
 		public bool graphUvVis { get; set; }
+		public bool graphSolarVis { get; set; }
 	}
 }

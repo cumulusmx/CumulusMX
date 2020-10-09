@@ -1,5 +1,66 @@
+3.9.0 - b3095
+—————————————
+- Fix: Running as a Windows service, now correctly reads command line parameters from the registry "ImagePath" field
+- Fix: Cumulus forecast would sometimes start with a comma
+- Fix: trendsT.htm location formatting
+- Adds support for the Davis AirLink air quality monitor.
+	- Like the WLL it supports auto-discovery of the AirLink IP address, this can be disabled via config
+	- A new Settings page has been created for "Extra sensors", this is where you can configure the AirLink.
+	- Logs AirLink data to a new CSV data file "AirLink<yyyyMM>log.txt" - see AirLinkFileHeader.txt for field information
+	- Historic catch-up is supported if the main station is a Davis WLL and the AirLink has been added as node to this station
+	- Historic catch-up for other stations will be a later release
+	- Creates a new Cumulus.ini file section
+		[AirLink]
+		WLv2ApiKey=
+		WLv2ApiSecret=
+		AutoUpdateIpAddress=1
+		In-Enabled=0
+		In-IPAddress=0.0.0.0
+		In-IsNode=0
+		In-WLStationId=
+		Out-Enabled=0
+		Out-IPAddress=0.0.0.0
+		Out-IsNode=0
+		Out-WLStationId=
+		AQIformula=0      [0=US-EPA, 1=UK-COMEAP, 2=EU-AQI, 3=EU-CAQI, 4=Canada-AQHI, 5=Australia-NEMP]
+	- Adds new web tags for Davis AirLink
+		<#AirLinkFirmwareVersionIn>,<#AirLinkWifiRssiIn>	- Requires Davis WeatherLink Live Pro subscription
+		<#AirLinkFirmwareVersionOut>,<#AirLinkWifiRssiOut>	- Requires Davis WeatherLink Live Pro subscription
+		<#AirLinkTempIn>,<#AirLinkHumIn>
+		<#AirLinkTempOut>,<#AirLinkHumOut>
+		<#AirLinkPm1In>,<#AirLinkPm1Out>
+		<#AirLinkPm2p5In>,<#AirLinkPm2p5_1hrIn>,<#AirLinkPm2p5_3hrIn>,<#AirLinkPm2p5_24hrIn>,<#AirLinkPm2p5_NowcastIn>
+		<#AirLinkPm2p5Out>,<#AirLinkPm2p5_1hrOut>,<#AirLinkPm2p5_3hrOut>,<#AirLinkPm2p5_24hrOut>,<#AirLinkPm2p5_NowcastOut>
+		<#AirLinkPm10In>,<#AirLinkPm10_1hrIn>,<#AirLinkPm10_3hrIn>,<#AirLinkPm10_24hrIn>,<#AirLinkPm10_NowcastIn>
+		<#AirLinkPm10Out>,<#AirLinkPm10_1hrOut>,<#AirLinkPm10_3hrOut>,<#AirLinkPm10_24hrOut>,<#AirLinkPm10_NowcastOut>
+		<#AirLinkAqiPm2p5In>,<#AirLinkAqiPm2p5_1hrIn>,<#AirLinkAqiPm2p5_3hrIn>,<#AirLinkAqiPm2p5_24hrIn>,<#AirLinkAqiPm2p5_NowcastIn>
+		<#AirLinkAqiPm2p5Out>,<#AirLinkAqiPm2p5_1hrOut>,<#AirLinkAqiPm2p5_3hrOut>,<#AirLinkAqiPm2p5_24hrOut>,<#AirLinkAqiPm2p5_NowcastOut>
+		<#AirLinkAqiPm10In>,<#AirLinkAqiPm10_1hrIn>,<#AirLinkAqiPm10_3hrIn>,<#AirLinkAqiPm10_24hrIn>,<#AirLinkAqiPm10_NowcastIn>
+		<#AirLinkAqiPm10Out>,<#AirLinkAqiPm10_1hrOut>,<#AirLinkAqiPm10_3hrOut>,<#AirLinkAqiPm10_24hrOut>,<#AirLinkAqiPm10_NowcastOut>
+		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLink_NowcastIn>
+		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLink_NowcastOut>
+- The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
+	There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
+		[Station]
+		RG11Enabled=0
+		RG11Enabled2=0
+- Adds new graph option - Solar Visible. Setting both Solar and UV to hidden means the solar graph data files will be empty.
+- CumulusMX no longer re-writes the Cumulus.ini file on shutdown
+- Adds the option to set the retained flag for the MQTT feeds
+	- New Cumulus.ini file settings
+		[MQTT]
+		UpdateRetained=0
+		IntervalRetained=0
+
+- Updated files
+	\CumulusMX.exe
+	\AirLinkFileHeader.txt
+	\interface				- lots of changes, all *.html files, /scripts, and /json
+	\web\trendsT.htm
+
+
 3.8.4 - b3094
-=============
+—————————————
 - Fix: Unhandled exception in MySQL during the start-up catch-up process
 - Fix: Graph buttons not wrapping on default web site trends page
 - Fix: Calculating the trend rain rate when a rainfall multiplier is used
@@ -9,7 +70,7 @@
 - Adds Ecowitt GW1000 decoding of WH34 battery status
 - Adds Ecowitt GW1000 support for CO₂ sensor, no logging yet, but the decoding is there for when these sensors are released.
 	- New web tags <#CO2>, <#CO2-24h>
-- Adds new Linux cumulusmx.service configuration file (thanks to freddie), this allows you run Cumulus MX as a service under Linux using the
+- Adds new Linux cumulusmx.service configuration file (thanks to @freddie), this allows you run Cumulus MX as a service under Linux using the
   newer systemd control rather than the original init.d script supplied with v3.8.0
 	- Edit the cumulusmx.service configuration file and change the path to match your Cumulus MX installation folder
 	- Copy cumulusmx.service to your /etc/systemd/system/ folder
@@ -36,7 +97,7 @@
 
 
 3.8.3 - b3093
-=============
+—————————————
 - Fix: The dew point threshold limit (default value 40C) was incorrectly being applied to installations configured to use Fahrenheit
   as if the value were in Fahrenheit.
 - Fix: Davis VP/VP2 force 1 minute barometer updates no longer working correctly after v3.8.2 protocol changes.
@@ -53,7 +114,7 @@
 
 
 3.8.2 - b3092
-=============
+—————————————
 - Fix: Davis VP2 stations - LastRainTip not being updated correctly with mixed metric/imperial gauges/units
 - Fix: Davis VP2 stations - Bug that prevented the seconds being read from the console clock
 - Fix: Dashboard temp/press trend arrows not working in locales with comma decimals
@@ -77,7 +138,7 @@
 
 
 3.8.1 - b3091
-=============
+—————————————
 - Fix: Davis TCP loggers failing to connect correctly
 - Fix: NOAA reports not viewable in Admin interface when Cumulus started as a service
 - Fix: Prevents an Exception on shutdown when running as a service
@@ -87,7 +148,7 @@
 
 
 3.8.0 - b3090
-=============
+—————————————
 - Fix: Malformed API JSON returned by api/tags/process.json if no data output is generated
 - Fix: Crash on start-up on the 1st of the month between 00:00 and rollover hour when using 9am rollover
 - Fix: AWEKAS Sunshine hours were being truncated to integer hours
@@ -174,7 +235,7 @@
 
 
 3.7.0 - b3089
-=============
+—————————————
 - Fix: Humidex was treated by MX as a temperature and incorrectly converted using the Celsius to Fahrenheit
   conversion (if that was the user selected temperature unit).
   Humidex is a dimensionless scale that should not be converted to retain meaning
@@ -276,7 +337,7 @@
 
 
 3.6.12 - b3088
-==============
+——————————————
 - Fix Davis stations not downloading historic logger data (in b3087)
 
 - Updated files
@@ -284,7 +345,7 @@
 
 
 3.6.11 - b3087
-==============
+——————————————
 - Fix Davis TCP logger connections not timing out occasionally
 - Fix heading on interface Now page, remove units from Humidex
 - Fix FTP log file handling in Extra Files, with EOD option on the first of the month
@@ -307,7 +368,7 @@
 
 
 3.6.10 - b3086
-==============
+——————————————
 - Fix for Feels Like calculation broken in previous release
 - Fix for Davis WLL wind values when using units other than mph
 - Fix for poor performance of wind direction charts on the MX interface and base web site
@@ -322,12 +383,12 @@
 	\webfiles\js\cumuluscharts.js
 
 3.6.9 - b3085
-=============
+—————————————
 - RELEASE WITHDRAWN
 
 
 3.6.8 - b3084
-=============
+—————————————
 - Simplify realtime SFTP error detection and recovery
 - Change the default web site Gauges page to not show pop-up graphs by default
 - Fix for Ecowitt GW1000 stations when sensors go offline/online (wind and rain values)
@@ -348,7 +409,7 @@
 
 
 3.6.7 - b3083
-=============
+—————————————
 - Add catches for real time MySQL updates and all real time file failures
 - Adds Station (Absolute) and Altimeter pressure values for Davis WLL stations
 
@@ -357,7 +418,7 @@
 
 
 3.6.6 - b3082
-=============
+—————————————
 - Change ini files to use 17 significant figures for decimal values (up from 15)
 - Fix for Davis WLL health data decoding when the WLL is LAN attached
 - Fix for real time SFTP not reconnecting after failure
@@ -367,7 +428,7 @@
 
 
 3.6.5 - b3081
-=============
+—————————————
 - Fix for sun rise/set and dawn/dusk calculations when there is one event but not the other in a single day
 - Fix for realtime FTP timeout/recovery issues
 
@@ -376,7 +437,7 @@
 
 
 3.6.4 - b3080
-=============
+—————————————
 - Fix for Ctrl-C not being handled when running under Linux/mono. Now handles SIGTERM and console Ctrl-C
 - Fix for realtime FTP getting stuck on "already in progress"
 - Adds support for Ecowitt GW1000 WH34 8 channel "User" (soil and water) temperature sensors
@@ -393,7 +454,7 @@
 
 
 3.6.3 - b3079
-=============
+—————————————
 - Reverts b3077 FluentFTP update
 - Fix for the long standing random Cumulus.ini/today.ini corruption when shutting down on Windows
 - Another fix for Oregon WMR928 extra temperature only sensors
@@ -405,7 +466,7 @@
 
 
 3.6.2 - b3078
-=============
+—————————————
 - Fix for badly formed realtime.txt in b3077
 
 
@@ -415,7 +476,7 @@
 
 
 3.6.1 - b3077
-=============
+—————————————
 - Fix for Oregon WMR928 extra temperature only sensors
 - Fix for yesterdays Feels Like values in Admin interface Today/Yesterday screen
 - Adds Feels Like to realtime.txt file as field 59
@@ -431,7 +492,7 @@
 
 
 3.6.0 - b3076
-=============
+—————————————
 - Fix for records editors failing to read log files from Cumulus 1 versions
 - Fix for Ecowitt GW-1000 devices to bypass the auto-discovery mechanism if it is disabled in the config
 - NOAA reports now include degree, minutes, seconds symbols
@@ -522,7 +583,7 @@
 
 
 3.5.4 - b3075
-=============
+—————————————
 - Fix for bearing zero on the interface "Now" page
 - Fix for admin interface charts popup
 - Fix for "normal" Extra files not being FTP'd at rollover interval, only those flagged as EOD were being transferred
@@ -551,7 +612,7 @@
 
 
 3.5.3 - b3074
-=============
+—————————————
 - Fix: Backs out changes that created bad file paths in b3073
 
 
@@ -562,7 +623,7 @@
 
 
 3.5.2 - b3073
-=============
+—————————————
 - Fixes and improvements to MQTT processing
 - Adds new Cumulus.ini setting for MQTT to force IPv4/IPv6 connectivity (default is System decides which to use)
 	[MQTT]
@@ -582,7 +643,7 @@
 
 
 3.5.1 - b3072
-=============
+—————————————
 - Fix for the "Stop second instance" option now working a bit too well, you could not disable it!
 - Implements the "record set" web tags. These will be set from the time of the record until a timeout value (default 24 hours).
   You can change the default timeout by adding a entry to Cumulus.ini
@@ -602,7 +663,7 @@
 
 
 3.5.0 - b3071
-=============
+—————————————
 - Fix to "Stop second instance" of Cumulus running
 - Fix for hung update interval (S)FTP sessions getting hung
 - Fix to <#moonage> web tag to improve accuracy
@@ -640,7 +701,7 @@
 
 
 3.4.6 - b3070
-=============
+—————————————
 - Fix for station wind chill on Davis WLL devices
 - Fix for auto-discovered Davis WLL Station-Ids not being saved to the config file
 - More robust failure handling for realtime FTP connections
@@ -652,7 +713,7 @@
 
 
 3.4.5 - b3069
-=============
+—————————————
 - Adds Editors for: Dayfile, Monthly Logs, Extra Logs
 - Adds line numbers to the log file viewer/editors
 - Widens the time windows for the Moons phase names
@@ -666,7 +727,7 @@
 
 
 3.4.4 - b3068
-=============
+—————————————
 - Fix for incorrect NOAA yearly report, annual averages for temperature and wind were calculated incorrectly
 - Now detects invalid CumulusMX.exe command line parameters
 - Adds a new command line parameter -debug. This switches on debug and data logging from the start-up of Cumulus MX. You no
@@ -678,7 +739,7 @@
 
 
 3.4.3 - b3067
-=============
+—————————————
 - Adds a new option to Davis WLL and Ecowitt GW1000 station settings to disable IP address auto-discovery. Use this option
   if you have more than one of these devices on your network, then enter the IP address manually.
 
@@ -690,7 +751,7 @@
 
 
 3.4.2 - b3066
-=============
+—————————————
 - Improved error handing for invalid Davis WLL Station Ids
 - Improved error handling when the network connection to a Davis WLL is lost (and restored)
 - Adds missing Data Stopped alarm to the Dashboard and Alarm Settings screens
@@ -707,7 +768,7 @@
 
 
 3.4.1 - b3065
-=============
+—————————————
 - Fix for WLL if you change the WL.com logging interval around a catch-up period
 - Fix for gust values from WLL devices
 - Add WLL broadcast data watchdog and warning, implements DataStopped flag
@@ -721,7 +782,7 @@
 
 
 3.4.0 - b3064
-=============
+—————————————
 - Adds the option for Davis WLL users who have a WL.com Pro subscription to use WL.com as a "logger" to catch up
   missing data on Cumulus MX start-up.
 - Adds to option to truncate the <#MoonAge> tag value to an integer value instead of rounding it.
@@ -745,7 +806,7 @@
 
 
 3.3.0 - b3063
-=============
+—————————————
 - Adds support for SFTP (SSH FTP)
 	- Moves the FTP SSL option to the web server settings
 	- Adds SFTP to existing FTP, FTPS options
@@ -769,7 +830,7 @@
 
 
 3.2.6 - b3062
-=============
+—————————————
 - Fixes monthly records editor for stations with a met day starting at 9am
 - Adds range checks for latitude and longitude values
 
@@ -778,7 +839,7 @@
 
 
 3.2.5 - b3061
-=============
+—————————————
 - Adds This Month and This Year records editors
 - Adds FTP Now function
 - Fix to MonthlyAlltimeLog.txt to add line feeds
@@ -797,7 +858,7 @@
 
 
 3.2.4 - b3060
-=============
+—————————————
 - Fix uncaught Web exceptions in Davis WLL
 - Fix Monthly Records editor not saving updated date/time stamps
 - Adds a log file for MonthlyAlltime.ini file changes
@@ -807,7 +868,7 @@
 
 
 3.2.3 - b3059
-=============
+—————————————
 - Adds the Cumulus.ini file to the files automatically backed up each day/program start
 - Fixes to the Monthly Records editor monthly rainfall figures
 
@@ -820,7 +881,7 @@
 
 
 3.2.2 - b3058
-=============
+—————————————
 - Implements the missing <#txbattery> web tag for WLL devices
 - Fix default website pages header not wrapping on small screens
 - Adds Monthly Records editor
@@ -837,7 +898,7 @@
 
 
 3.2.1 - b3057
-=============
+—————————————
 - Fix for WMR200 stations writing a zero value Apparent Temperature to the log files when retrieving logger data
 - Fix the dashboard for Internet Explorer
 - Fix default website index page header not wrapping on small screens
@@ -855,7 +916,7 @@
 
 
 3.2.0 - b3056
-=============
+—————————————
 - Adds support for Ecowitt GW1000 WiFi gateway
 - New web tag <#GW1000FirmwareVersion>
 - Added extra soil temp sensors 5-16 for GW1000 stations
@@ -913,7 +974,7 @@
 
 
 3.1.2 - b3055
-=============
+—————————————
 - Fix for the All Time Records editor monthly rain total from the monthly log file month
 - Fix for some long timeouts in All Time Records editor
 
@@ -923,7 +984,7 @@
 
 
 3.1.1 - b3054
-=============
+—————————————
 - Fixes WLL timestamps always being in UTC, now uses local time
 - Adds web tags <#snowlying>, <#snowfalling>, both provide 1|0 responses
 - Adds Current Conditions editor to admin interface
@@ -943,7 +1004,7 @@
 
 
 3.1.0 - b3053
-=============
+—————————————
 - Adds support for Davis WeatherLink Live device
 	- Supports Zero-Config, it should discover your WLL on the network (router support required)
 - Adds support for Cumulus.ini file setting EWpressureoffset for Fine Offset stations as used in Cumulus1.
@@ -966,7 +1027,7 @@
 
 
 3.0.2 - b3052
-=============
+—————————————
 - Fixes Davis archive downloads from the the logger when the day rollover processing takes longer than 10 seconds.
   This can happen on slow processors - Pi Zero for example - or if lengthy procedures are included
   An extra archive processing run is scheduled for each day rollover that takes longer than 10 seconds
@@ -977,7 +1038,7 @@
 
 
 3.0.1 - b3051
-=============
+—————————————
 - Increases Davis DMPAFT Date/Time command timeout
 - Much improved Davis serial port throughput (for USB and Serial loggers), should decrease the historic logger download time
 - Adds Davis archive data processing progress indication
@@ -990,7 +1051,7 @@
 
 
 3050
-====
+————
 - Fixes MX not working with locales that use two character date separators
   Eg. Croatia "29. 04. 19"
 
@@ -998,7 +1059,7 @@
 	\CumulusMX.exe
 
 3049
-====
+————
 - Adds the ability to upload data to Windy.com
 
 - Updated files
@@ -1007,7 +1068,7 @@
 	\interface\json\InternetSchema.json
 
 3048
-====
+————
 - You can now first time enable/disable Realtime FTP without having to restart CMX
 
 - Instromet stations now record and report rainfall (mm) and sunshine hours to 2 decimal places
@@ -1029,7 +1090,7 @@
 
 
 3047
-====
+————
 - Web token parser updated to cope with html tag characters "<>" in the format string.
 	- You can now do things like...
 		<#TapptempH format="dd'&nbsp;'MMM'&nbsp;'yyyy'<span class=\'xx\'> at 'HH:mm'</span>'">
@@ -1087,7 +1148,7 @@
 
 
 3046
-====
+————
 - Weather Diary
 	- Added Weather Diary page to management interface
 	- Added diary.db file to daily backup files
@@ -1103,7 +1164,7 @@
 
 
 3045
-====
+————
 - Internal Stuff
 	- Update the targeted .Net version to 4.5.2 (4.5 and 4.5.1 are no longer supported by Microsoft)
 	- Upgrade System.Net.FtpClient to replacement FluentFTP package
@@ -1144,7 +1205,7 @@
 
 
 3044
-====
+————
 - Added new solar calculation method "Bras"
 	- New Cumulus.ini entries...
 		SolarCalc=0    		(0=Ryan-Stolzenbach, 1=Bras, default=0)

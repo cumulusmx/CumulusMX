@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.8.4";
-		public string Build = "3094";
+		public string Version = "3.9.0";
+		public string Build = "3095";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -168,10 +168,16 @@ namespace CumulusMX
 
 		public const int DayfileFields = 52;
 
-		private WeatherStation station;
+		private readonly WeatherStation station;
+
+		internal DavisAirLink airLinkIn;
+		public int airLinkInLsid;
+		internal DavisAirLink airLinkOut;
+		public int airLinkOutLsid;
 
 		private readonly StationSettings stationSettings;
 		private readonly InternetSettings internetSettings;
+		private readonly ExtraSensorSettings extraSensorSettings;
 		private readonly CalibrationSettings calibrationSettings;
 		private readonly NOAASettings noaaSettings;
 		private readonly AlarmSettings alarmSettings;
@@ -652,10 +658,13 @@ namespace CumulusMX
 		public bool MQTTEnableDataUpdate;
 		public string MQTTUpdateTopic;
 		public string MQTTUpdateTemplate;
+		public bool MQTTUpdateRetained;
 		public bool MQTTEnableInterval;
 		public int MQTTIntervalTime;
 		public string MQTTIntervalTopic;
 		public string MQTTIntervalTemplate;
+		public bool MQTTIntervalRetained;
+
 
 		// NOAA report settings
 		public string NOAAname;
@@ -836,6 +845,9 @@ namespace CumulusMX
 		private bool customMySqlSecondsUpdateInProgress = false;
 		private bool customMySqlMinutesUpdateInProgress = false;
 		private bool customMySqlRolloverUpdateInProgress = false;
+
+		public AirLinkData airLinkDataIn;
+		public AirLinkData airLinkDataOut;
 
 		public string[] StationDesc =
 		{
@@ -1165,17 +1177,45 @@ namespace CumulusMX
 					"web" + DirectorySeparator + "wdirdata.json",
 					"web" + DirectorySeparator + "humdata.json",
 					"web" + DirectorySeparator + "raindata.json",
-					"web" + DirectorySeparator + "solardata.json",
 					"web" + DirectorySeparator + "dailyrain.json",
-					"web" + DirectorySeparator + "sunhours.json",
-					"web" + DirectorySeparator + "dailytemp.json"
+					"web" + DirectorySeparator + "dailytemp.json",
+					"web" + DirectorySeparator + "solardata.json",
+					"web" + DirectorySeparator + "sunhours.json"
 				};
 
 			remotegraphdatafiles = new[]
 				{
-					"graphconfig.json", "tempdata.json", "pressdata.json", "winddata.json", "wdirdata.json", "humdata.json", "raindata.json", "solardata.json",
-					"dailyrain.json", "sunhours.json", "dailytemp.json"
+					"graphconfig.json",
+					"tempdata.json",
+					"pressdata.json",
+					"winddata.json",
+					"wdirdata.json",
+					"humdata.json",
+					"raindata.json",
+					"dailyrain.json",
+					"dailytemp.json",
+					"solardata.json",
+					"sunhours.json"
 				};
+
+			/*
+			if (GraphOptions.SolarVisible || GraphOptions.UVVisible)
+			{
+				Array.Resize(ref localgraphdatafiles, localgraphdatafiles.Length + 1);
+				localgraphdatafiles[localgraphdatafiles.Length - 1] = "web" + DirectorySeparator + "solardata.json";
+
+				Array.Resize(ref remotegraphdatafiles, remotegraphdatafiles.Length + 1);
+				remotegraphdatafiles[remotegraphdatafiles.Length - 1] = "solardata.json";
+			}
+			if (GraphOptions.SolarVisible)
+			{
+				Array.Resize(ref localgraphdatafiles, localgraphdatafiles.Length + 1);
+				localgraphdatafiles[localgraphdatafiles.Length - 1] = "web" + DirectorySeparator + "sunhours.json";
+
+				Array.Resize(ref remotegraphdatafiles, remotegraphdatafiles.Length + 1);
+				remotegraphdatafiles[remotegraphdatafiles.Length - 1] = "sunhours.json";
+			}
+			*/
 
 			LogMessage("Data path = " + Datapath);
 
@@ -1390,6 +1430,7 @@ namespace CumulusMX
 					break;
 			}
 
+
 			webtags = new WebTags(this, station);
 			webtags.InitialiseWebtags();
 
@@ -1401,6 +1442,7 @@ namespace CumulusMX
 
 			stationSettings = new StationSettings(this);
 			internetSettings = new InternetSettings(this);
+			extraSensorSettings = new ExtraSensorSettings(this);
 			calibrationSettings = new CalibrationSettings(this);
 			noaaSettings = new NOAASettings(this);
 			alarmSettings = new AlarmSettings(this);
@@ -1427,6 +1469,7 @@ namespace CumulusMX
 			Api.Station = station;
 			Api.stationSettings = stationSettings;
 			Api.internetSettings = internetSettings;
+			Api.extraSensorSettings = extraSensorSettings;
 			Api.calibrationSettings = calibrationSettings;
 			Api.noaaSettings = noaaSettings;
 			Api.alarmSettings = alarmSettings;
@@ -1479,7 +1522,6 @@ namespace CumulusMX
 
 			if (MQTTEnableDataUpdate || MQTTEnableInterval)
 			{
-
 				MqttPublisher.Setup(this);
 
 				if (MQTTEnableInterval)
@@ -1489,6 +1531,18 @@ namespace CumulusMX
 			}
 
 			InitialiseRG11();
+
+			if (AirLinkInEnabled)
+			{
+				airLinkDataIn = new AirLinkData();
+				airLinkIn = new DavisAirLink(this, true);
+			}
+			if (AirLinkOutEnabled)
+			{
+				airLinkDataOut = new AirLinkData();
+				airLinkOut = new DavisAirLink(this, false);
+			}
+
 
 			if (station != null && station.timerStartNeeded)
 			{
@@ -1794,14 +1848,14 @@ namespace CumulusMX
 */
 		private void InitialiseRG11()
 		{
-			if (RG11Port.Length > 0)
+			if (RG11Enabled && RG11Port.Length > 0)
 			{
 				cmprtRG11 = new SerialPort(RG11Port, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
 
 				cmprtRG11.PinChanged += RG11StateChange;
 			}
 
-			if (RG11Port2.Length > 0 && (!RG11Port2.Equals(RG11Port)))
+			if (RG11Enabled2 && RG11Port2.Length > 0 && (!RG11Port2.Equals(RG11Port)))
 			{
 				// a second RG11 is in use, using a different com port
 				cmprt2RG11 = new SerialPort(RG11Port2, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
@@ -2006,6 +2060,18 @@ namespace CumulusMX
 		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
 		{
 			MqttPublisher.UpdateMQTTfeed("Interval");
+		}
+
+		public void AirLinkTimerTick(object sender, ElapsedEventArgs e)
+		{
+			if (AirLinkInEnabled && airLinkIn != null)
+			{
+				airLinkIn.GetAirQuality();
+			}
+			if (AirLinkOutEnabled && airLinkOut != null)
+			{
+				airLinkOut.GetAirQuality();
+			}
 		}
 
 
@@ -3485,12 +3551,14 @@ namespace CumulusMX
 			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
 
+			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
 			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
 			RG11TBRmode = ini.GetValue("Station", "RG11TBRmode", false);
 			RG11tipsize = ini.GetValue("Station", "RG11tipsize", 0.0);
 			RG11IgnoreFirst = ini.GetValue("Station", "RG11IgnoreFirst", false);
 			RG11DTRmode = ini.GetValue("Station", "RG11DTRmode", true);
 
+			RG11Enabled2 = ini.GetValue("Station", "RG11Enabled2", false);
 			RG11Port2 = ini.GetValue("Station", "RG11port2Name", DefaultComportName);
 			RG11TBRmode2 = ini.GetValue("Station", "RG11TBRmode2", false);
 			RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0);
@@ -3587,6 +3655,23 @@ namespace CumulusMX
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 
+			// AirLink settings
+			AirLinkApiKey = ini.GetValue("AirLink", "WLv2ApiKey", "");
+			AirLinkApiSecret = ini.GetValue("AirLink", "WLv2ApiSecret", "");
+			AirLinkAutoUpdateIpAddress = ini.GetValue("AirLink", "AutoUpdateIpAddress", true);
+			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
+			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
+			AirLinkInIsNode = ini.GetValue("AirLink", "In-IsNode", false);
+			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", "");
+			if (AirLinkInStationId == "" && AirLinkInIsNode) AirLinkInStationId = WllStationId;
+			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
+			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
+			AirLinkOutIsNode = ini.GetValue("AirLink", "Out-IsNode", false);
+			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", "");
+			if (AirLinkOutStationId == "" && AirLinkOutIsNode) AirLinkOutStationId = WllStationId;
+
+			airQualityIndex = ini.GetValue("AirLink", "AQIformula", 0);
+
 			ftp_host = ini.GetValue("FTP site", "Host", "");
 			ftp_port = ini.GetValue("FTP site", "Port", 21);
 			ftp_user = ini.GetValue("FTP site", "Username", "");
@@ -3672,6 +3757,7 @@ namespace CumulusMX
 			GraphOptions.InHumVisible = ini.GetValue("Graphs", "InHumVisible", true);
 			GraphOptions.OutHumVisible = ini.GetValue("Graphs", "OutHumVisible", true);
 			GraphOptions.UVVisible = ini.GetValue("Graphs", "UVVisible", true);
+			GraphOptions.SolarVisible = ini.GetValue("Graphs", "SolarVisible", true);
 
 
 			WundID = ini.GetValue("Wunderground", "ID", "");
@@ -3794,10 +3880,12 @@ namespace CumulusMX
 			MQTTEnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTTUpdateTopic = ini.GetValue("MQTT", "UpdateTopic", "CumulusMX/DataUpdate");
 			MQTTUpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
+			MQTTUpdateRetained = ini.GetValue("MQTT", "UpdateRetained", false);
 			MQTTEnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
 			MQTTIntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 10 minutes
 			MQTTIntervalTopic = ini.GetValue("MQTT", "IntervalTopic", "CumulusMX/Interval");
 			MQTTIntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
+			MQTTIntervalRetained = ini.GetValue("MQTT", "IntervalRetained", false);
 
 			LowTempAlarmValue = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
 			LowTempAlarmEnabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
@@ -4152,12 +4240,14 @@ namespace CumulusMX
 			//ini.SetValue("Station", "ImetBaudRate", ImetBaudRate);
 			//ini.SetValue("Station", "DavisBaudRate", DavisBaudRate);
 
+			ini.SetValue("Station", "RG11Enabled", RG11Enabled);
 			ini.SetValue("Station", "RG11portName", RG11Port);
 			ini.SetValue("Station", "RG11TBRmode", RG11TBRmode);
 			ini.SetValue("Station", "RG11tipsize", RG11tipsize);
 			ini.SetValue("Station", "RG11IgnoreFirst", RG11IgnoreFirst);
 			ini.SetValue("Station", "RG11DTRmode", RG11DTRmode);
 
+			ini.SetValue("Station", "RG11Enabled2", RG11Enabled2);
 			ini.SetValue("Station", "RG11portName2", RG11Port2);
 			ini.SetValue("Station", "RG11TBRmode2", RG11TBRmode2);
 			ini.SetValue("Station", "RG11tipsize2", RG11tipsize2);
@@ -4204,6 +4294,20 @@ namespace CumulusMX
 			// GW1000 settings
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
+
+			// AirLink settings
+			ini.SetValue("AirLink", "WLv2ApiKey", AirLinkApiKey);
+			ini.SetValue("AirLink", "WLv2ApiSecret", AirLinkApiSecret);
+			ini.SetValue("AirLink", "AutoUpdateIpAddress", AirLinkAutoUpdateIpAddress);
+			ini.SetValue("AirLink", "In-Enabled", AirLinkInEnabled);
+			ini.SetValue("AirLink", "In-IPAddress", AirLinkInIPAddr);
+			ini.SetValue("AirLink", "In-IsNode", AirLinkInIsNode);
+			ini.SetValue("AirLink", "In-WLStationId", AirLinkInStationId);
+			ini.SetValue("AirLink", "Out-Enabled", AirLinkOutEnabled);
+			ini.SetValue("AirLink", "Out-IPAddress", AirLinkOutIPAddr);
+			ini.SetValue("AirLink", "Out-IsNode", AirLinkOutIsNode);
+			ini.SetValue("AirLink", "Out-WLStationId", AirLinkOutStationId);
+			ini.SetValue("AirLink", "AQIformula", airQualityIndex);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
@@ -4342,10 +4446,12 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTTEnableDataUpdate);
 			ini.SetValue("MQTT", "UpdateTopic", MQTTUpdateTopic);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTTUpdateTemplate);
+			ini.SetValue("MQTT", "UpdateRetained", MQTTUpdateRetained);
 			ini.SetValue("MQTT", "EnableInterval", MQTTEnableInterval);
 			ini.SetValue("MQTT", "IntervalTime", MQTTIntervalTime);
 			ini.SetValue("MQTT", "IntervalTopic", MQTTIntervalTopic);
 			ini.SetValue("MQTT", "IntervalTemplate", MQTTIntervalTemplate);
+			ini.SetValue("MQTT", "IntervalRetained", MQTTIntervalRetained);
 
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarmValue);
 			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmEnabled);
@@ -4520,6 +4626,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "InHumVisible", GraphOptions.InHumVisible);
 			ini.SetValue("Graphs", "OutHumVisible", GraphOptions.OutHumVisible);
 			ini.SetValue("Graphs", "UVVisible", GraphOptions.UVVisible);
+			ini.SetValue("Graphs", "SolarVisible", GraphOptions.SolarVisible);
 
 			ini.SetValue("MySQL", "Host", MySqlHost);
 			ini.SetValue("MySQL", "Port", MySqlPort);
@@ -5036,6 +5143,11 @@ namespace CumulusMX
 		public bool WarnMultiple { get; set; }
 
 		public string VP2IPAddr { get; set; }
+		public string AirLinkInIPAddr { get; set; }
+		public string AirLinkOutIPAddr { get; set; }
+
+		public bool AirLinkInEnabled { get; set; }
+		public bool AirLinkOutEnabled { get; set; }
 
 		public int VP2TCPPort { get; set; }
 
@@ -5067,6 +5179,9 @@ namespace CumulusMX
 		public bool RG11TBRmode { get; set; }
 
 		public string RG11Port { get; set; }
+
+		public bool RG11Enabled { get; set; }
+		public bool RG11Enabled2 { get; set; }
 
 		public double ChillHourThreshold { get; set; }
 
@@ -5250,17 +5365,11 @@ namespace CumulusMX
 		public int DavisIPResponseTime { get; set; }
 		public int GraphHours { get; set; }
 
-		private WeatherStation Station
-		{
-			set { station = value; }
-			get { return station; }
-
-		}
-
 		// WeatherLink Live transmitter Ids and indexes
 		public string WllApiKey;
 		public string WllApiSecret;
 		public string WllStationId;
+		public int WllParentId;
 
 		public int WllBroadcastDuration = 300;
 		public int WllBroadcastPort = 22222;
@@ -5298,6 +5407,17 @@ namespace CumulusMX
 
 		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false };
 
+		// WeatherLink Live transmitter Ids and indexes
+		public bool AirLinkInIsNode = false;
+		public string AirLinkApiKey;
+		public string AirLinkApiSecret;
+		public string AirLinkInStationId;
+		public bool AirLinkOutIsNode = false;
+		public string AirLinkOutStationId;
+		public bool AirLinkAutoUpdateIpAddress = true;
+
+		public int airQualityIndex = -1;
+
 		public string Gw1000IpAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
 
@@ -5311,6 +5431,7 @@ namespace CumulusMX
 		public Timer AwekasTimer = new Timer();
 		public Timer WCloudTimer = new Timer();
 		public Timer MQTTTimer = new Timer();
+		public Timer AirLinkTimer = new Timer();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -5362,7 +5483,7 @@ namespace CumulusMX
 		public bool SendLeafWetness2ToWund;
 		private readonly string[] localgraphdatafiles;
 		private readonly string[] remotegraphdatafiles;
-		public string exceptional;
+		public string exceptional = "Exceptional Weather";
 //		private WebSocketServer wsServer;
 		public string[] WMR200ExtraChannelCaptions = new string[11];
 		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
@@ -5509,39 +5630,74 @@ namespace CumulusMX
 			return Datapath + "ExtraLog" + datestring + ".txt";
 		}
 
+		public string GetAirLinkLogFileName(DateTime thedate)
+		{
+			// First determine the date for the logfile.
+			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// before 'Now'
+			DateTime logfiledate;
+
+			if (RolloverHour == 0)
+			{
+				logfiledate = thedate;
+			}
+			else
+			{
+				TimeZone tz = TimeZone.CurrentTimeZone;
+
+				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
+				{
+					// Locale is currently on Daylight (summer) time
+					logfiledate = thedate.AddHours(-10);
+				}
+				else
+				{
+					// Locale is currently on Standard time or unknown
+					logfiledate = thedate.AddHours(-9);
+				}
+			}
+
+			var datestring = logfiledate.ToString("yyyyMM");
+			datestring = datestring.Replace(".", "");
+
+			return Datapath + "AirLink" + datestring + "log.txt";
+		}
+
 		public const int NumLogFileFields = 29;
 
-		public void DoLogFile(DateTime timestamp, bool live) // Writes an entry to the n-minute logfile. Fields are comma-separated:
-															 // 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-															 // 1  Current time - hh:mm
-															 // 2  Current temperature
-															 // 3  Current humidity
-															 // 4  Current dewpoint
-															 // 5  Current wind speed
-															 // 6  Recent (10-minute) high gust
-															 // 7  Average wind bearing
-															 // 8  Current rainfall rate
-															 // 9  Total rainfall today so far
-															 // 10  Current sea level pressure
-															 // 11  Total rainfall counter as held by the station
-															 // 12  Inside temperature
-															 // 13  Inside humidity
-															 // 14  Current gust (i.e. 'Latest')
-															 // 15  Wind chill
-															 // 16  Heat Index
-															 // 17  UV Index
-															 // 18  Solar Radiation
-															 // 19  Evapotranspiration
-															 // 20  Annual Evapotranspiration
-															 // 21  Apparent temperature
-															 // 22  Current theoretical max solar radiation
-															 // 23  Hours of sunshine so far today
-															 // 24  Current wind bearing
-															 // 25  RG-11 rain total
-															 // 26  Rain since midnight
-															 // 27  Feels like
-															 // 28  Humidex
+		public void DoLogFile(DateTime timestamp, bool live)
 		{
+			// Writes an entry to the n-minute logfile. Fields are comma-separated:
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2  Current temperature
+			// 3  Current humidity
+			// 4  Current dewpoint
+			// 5  Current wind speed
+			// 6  Recent (10-minute) high gust
+			// 7  Average wind bearing
+			// 8  Current rainfall rate
+			// 9  Total rainfall today so far
+			// 10  Current sea level pressure
+			// 11  Total rainfall counter as held by the station
+			// 12  Inside temperature
+			// 13  Inside humidity
+			// 14  Current gust (i.e. 'Latest')
+			// 15  Wind chill
+			// 16  Heat Index
+			// 17  UV Index
+			// 18  Solar Radiation
+			// 19  Evapotranspiration
+			// 20  Annual Evapotranspiration
+			// 21  Apparent temperature
+			// 22  Current theoretical max solar radiation
+			// 23  Hours of sunshine so far today
+			// 24  Current wind bearing
+			// 25  RG-11 rain total
+			// 26  Rain since midnight
+			// 27  Feels like
+			// 28  Humidex
+
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
@@ -5674,6 +5830,22 @@ namespace CumulusMX
 
 		public void DoExtraLogFile(DateTime timestamp)
 		{
+			// Writes an entry to the n-minute extralogfile. Fields are comma-separated:
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 31-34 Soil temp 1-4
+			// 35-38 Soil moisture 1-4
+			// 39-40 Leaf temp 1-2
+			// 41-42 Leaf wetness 1-2
+			// 43-59 Soil temp 5-16
+			// 60-76 Soil moisture 5-16
+			// 77-81 Air quality 1-4
+			// 82-86 Air quality avg 1-4
+			// 87-95 User temperature 1-8
+
 			var filename = GetExtraLogFileName(timestamp);
 
 			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
@@ -5757,6 +5929,158 @@ namespace CumulusMX
 			}
 		}
 
+		public void DoAirLinkLogFile(DateTime timestamp)
+		{
+			// Writes an entry to the n-minute airlinklogfile. Fields are comma-separated:
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2  Indoor Temperature
+			// 3  Indoor Humidity
+			// 4  Indoor PM 1
+			// 5  Indoor PM 2.5
+			// 6  Indoor PM 2.5 1-hour
+			// 7  Indoor PM 2.5 3-hour
+			// 8  Indoor PM 2.5 24-hour
+			// 9  Indoor PM 2.5 nowcast
+			// 10 Indoor PM 10
+			// 11 Indoor PM 10 1-hour
+			// 12 Indoor PM 10 3-hour
+			// 13 Indoor PM 10 24-hour
+			// 14 Indoor PM 10 nowcast
+			// 15 Indoor Percent received 1-hour
+			// 16 Indoor Percent received 3-hour
+			// 17 Indoor Percent received nowcast
+			// 18 Indoor Percent received 24-hour
+			// 19 Indoor AQI PM2.5
+			// 20 Indoor AQI PM2.5 1-hour
+			// 21 Indoor AQI PM2.5 3-hour
+			// 22 Indoor AQI PM2.5 24-hour
+			// 23 Indoor AQI PM2.5 nowcast
+			// 24 Indoor AQI PM10
+			// 25 Indoor AQI PM10 1-hour
+			// 26 Indoor AQI PM10 3-hour
+			// 27 Indoor AQI PM10 24-hour
+			// 28 Indoor AQI PM10 nowcast
+			// 29 Outdoor Temperature
+			// 30 Outdoor Humidity
+			// 31 Outdoor PM 1
+			// 32 Outdoor PM 2.5
+			// 33 Outdoor PM 2.5 1-hour
+			// 34 Outdoor PM 2.5 3-hour
+			// 35 Outdoor PM 2.5 24-hour
+			// 36 Outdoor PM 2.5 nowcast
+			// 37 Outdoor PM 10
+			// 38 Outdoor PM 10 1-hour
+			// 39 Outdoor PM 10 3-hour
+			// 40 Outdoor PM 10 24-hour
+			// 41 Outdoor PM 10 nowcast
+			// 42 Outdoor Percent received 1-hour
+			// 43 Outdoor Percent received 3-hour
+			// 44 Outdoor Percent received nowcast
+			// 45 Outdoor Percent received 24-hour
+			// 46 Outdoor AQI PM2.5
+			// 47 Outdoor AQI PM2.5 1-hour
+			// 48 Outdoor AQI PM2.5 3-hour
+			// 49 Outdoor AQI PM2.5 24-hour
+			// 50 Outdoor AQI PM2.5 nowcast
+			// 51 Outdoor AQI PM10
+			// 52 Outdoor AQI PM10 1-hour
+			// 53 Outdoor AQI PM10 3-hour
+			// 54 Outdoor AQI PM10 24-hour
+			// 55 Outdoor AQI PM10 nowcast
+
+			var filename = GetAirLinkLogFileName(timestamp);
+
+			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
+			using (StreamWriter file = new StreamWriter(fs))
+			{
+				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);
+				file.Write(timestamp.ToString("HH:mm") + ListSeparator);
+
+				if (AirLinkInEnabled)
+				{
+					file.Write(airLinkDataIn.temperature + ListSeparator);
+					file.Write(airLinkDataIn.humidity + ListSeparator);
+					file.Write(airLinkDataIn.pm1 + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5 + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_1hr + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_3hr + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.pm10 + ListSeparator);
+					file.Write(airLinkDataIn.pm10_1hr + ListSeparator);
+					file.Write(airLinkDataIn.pm10_3hr + ListSeparator);
+					file.Write(airLinkDataIn.pm10_24hr + ListSeparator);
+					file.Write(airLinkDataIn.pm10_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.pct_1hr + ListSeparator);
+					file.Write(airLinkDataIn.pct_3hr + ListSeparator);
+					file.Write(airLinkDataIn.pct_24hr + ListSeparator);
+					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5 + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_3hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10 + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_1hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_3hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_24hr + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_nowcast + ListSeparator);
+				}
+				else
+				{
+					// write zero values - subtract 2 for firmware version, wifi RSSI
+					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 2; i++)
+					{
+						file.Write("0" + ListSeparator);
+					}
+				}
+
+				if (AirLinkOutEnabled)
+				{
+					file.Write(airLinkDataOut.temperature + ListSeparator);
+					file.Write(airLinkDataOut.humidity + ListSeparator);
+					file.Write(airLinkDataOut.pm1 + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5 + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_1hr + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_3hr + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_nowcast + ListSeparator);
+					file.Write(airLinkDataOut.pm10 + ListSeparator);
+					file.Write(airLinkDataOut.pm10_1hr + ListSeparator);
+					file.Write(airLinkDataOut.pm10_3hr + ListSeparator);
+					file.Write(airLinkDataOut.pm10_24hr + ListSeparator);
+					file.Write(airLinkDataOut.pm10_nowcast + ListSeparator);
+					file.Write(airLinkDataOut.pct_1hr + ListSeparator);
+					file.Write(airLinkDataOut.pct_3hr + ListSeparator);
+					file.Write(airLinkDataOut.pct_24hr + ListSeparator);
+					file.Write(airLinkDataOut.pct_nowcast + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5 + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_1hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_3hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_24hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_nowcast + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10 + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_1hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_3hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_24hr + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_nowcast);
+				}
+				else
+				{
+					// write zero values - subtract 1 for firmware version, wifi RSSI - subtract 1 for end field
+					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
+					{
+						file.Write("0" + ListSeparator);
+					}
+					file.Write("0");
+				}
+
+				file.WriteLine();
+				file.Close();
+			}
+		}
+
 		private void Backupdata(bool daily, DateTime timestamp)
 		{
 			string dirpath = daily ? Backuppath + "daily" + DirectorySeparator : Backuppath;
@@ -5807,6 +6131,8 @@ namespace CumulusMX
 				var extraFile = GetExtraLogFileName(timestamp);
 				var extraBackup = foldername + extraFile.Replace(LogFilePath, "");
 
+				var AirLinkFile = GetAirLinkLogFileName(timestamp);
+				var AirLinkBackup = foldername + AirLinkFile.Replace(LogFilePath, "");
 
 				if (!Directory.Exists(foldername))
 				{
@@ -5855,7 +6181,10 @@ namespace CumulusMX
 					{
 						File.Copy(extraFile, extraBackup);
 					}
-
+					if (File.Exists(AirLinkFile))
+					{
+						File.Copy(AirLinkFile, AirLinkBackup);
+					}
 					// Do not do this extra backup between 00:00 & Rollover hour on the first of the month
 					// as the month has not yet rolled over - only applies for start-up backups
 					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
@@ -5867,6 +6196,9 @@ namespace CumulusMX
 						var extraFile2 = GetExtraLogFileName(timestamp.AddDays(-1));
 						var extraBackup2 = foldername + extraFile2.Replace(LogFilePath, "");
 
+						var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
+						var AirLinkBackup2 = foldername + AirLinkFile2.Replace(LogFilePath, "");
+
 						if (File.Exists(LogFile2))
 						{
 							File.Copy(LogFile2, logbackup2, true);
@@ -5874,6 +6206,10 @@ namespace CumulusMX
 						if (File.Exists(extraFile2))
 						{
 							File.Copy(extraFile2, extraBackup2, true);
+						}
+						if (File.Exists(AirLinkFile2))
+						{
+							File.Copy(AirLinkFile2, AirLinkBackup2, true);
 						}
 					}
 
@@ -6270,22 +6606,38 @@ namespace CumulusMX
 		{
 			LogMessage("Cumulus closing");
 
-			WriteIniFile();
+			//WriteIniFile();
 
 			//httpServer.Stop();
 
 			//if (httpServer != null) httpServer.Dispose();
 
 			// Stop the timers
-			if (RealtimeEnabled) {
-
+			try
+			{
+				LogMessage("Stopping timers");
+				RealtimeTimer.Stop();
+				WundTimer.Stop();
+				WindyTimer.Stop();
+				PWSTimer.Stop();
+				WOWTimer.Stop();
+				APRStimer.Stop();
+				WebTimer.Stop();
+				TwitterTimer.Stop();
+				AwekasTimer.Stop();
+				WCloudTimer.Stop();
+				MQTTTimer.Stop();
+				AirLinkTimer.Stop();
+				CustomHttpSecondsTimer.Stop();
+				CustomMysqlSecondsTimer.Stop();
+				MQTTTimer.Stop();
 			}
+			catch { }
 
 			if (station != null)
 			{
-				LogMessage("Station stopping");
+				LogMessage("Stopping station...");
 				station.Stop();
-
 				LogMessage("Station stopped");
 
 				if (station.HaveReadData)
@@ -6295,7 +6647,23 @@ namespace CumulusMX
 					LogMessage("Completed writing today.ini file");
 				}
 				else
+				{
 					LogMessage("No data read this session, today.ini not written");
+				}
+
+				LogMessage("Stopping extra sensors...");
+				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now
+				if (airLinkOut != null)
+				{
+					airLinkOut.Stop();
+				}
+				// If we have a Indoor AirLink sensor, and it is linked to this WLL then stop it now
+				if (airLinkIn != null)
+				{
+					airLinkIn.Stop();
+				}
+				LogMessage("Extra sensors stopped");
+
 			}
 			LogMessage("Station shutdown complete");
 		}
@@ -7381,6 +7749,14 @@ namespace CumulusMX
 			WCloudTimer.Interval = WCloudInterval * 60 * 1000;
 
 			MQTTTimer.Interval = MQTTIntervalTime * 1000; // secs to millisecs
+
+			if (AirLinkInEnabled || AirLinkOutEnabled)
+			{
+				AirLinkTimer.Interval = 60 * 1000; // 1 minute
+				AirLinkTimer.Enabled = true;
+				AirLinkTimer.Elapsed += AirLinkTimerTick;
+			}
+
 			if (MQTTEnableInterval)
 			{
 				MQTTTimer.Enabled = true;
@@ -8353,6 +8729,15 @@ namespace CumulusMX
 		public const int GW1000 = 12;
 	}
 
+	public static class AirQualityIndex
+	{
+		public const int US_EPA = 0;
+		public const int UK_COMEAP = 1;
+		public const int EU_AQI = 2;
+		public const int CANADA_AQHI = 3;
+		public const int EU_CAQI = 4;
+	}
+
 	public static class DoubleExtensions
 	{
 		public static string ToUKString(this double value)
@@ -8384,6 +8769,7 @@ namespace CumulusMX
 		public bool InHumVisible { get; set; }
 		public bool OutHumVisible { get; set; }
 		public bool UVVisible { get; set; }
+		public bool SolarVisible { get; set; }
 	}
 
 	public class AwekasResponse

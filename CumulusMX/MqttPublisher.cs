@@ -74,12 +74,13 @@ namespace CumulusMX
 		}
 
 
-		public static async Task SendMessageAsync(string topic, string message)
+		public static async Task SendMessageAsync(string topic, string message, bool retain)
 		{
 			cumulus.LogDataMessage($"MQTT: publishing to topic '{topic}', message '{message}'");
 			var mqttMsg = new MqttApplicationMessageBuilder()
 				.WithTopic(topic)
 				.WithPayload(message)
+				.WithRetainFlag(retain)
 				.Build();
 
 			await mqttClient.PublishAsync(mqttMsg, CancellationToken.None);
@@ -125,7 +126,6 @@ namespace CumulusMX
 							using (TextReader reader = new StreamReader(template, new System.Text.UTF8Encoding(false)))
 							{
 								dataupdateTemplateContent = reader.ReadToEnd();
-
 							}
 						}
 						catch (Exception e)
@@ -147,24 +147,25 @@ namespace CumulusMX
 			{
 				// use template file
 				cumulus.LogDebugMessage($"MQTT: Using template - {template}");
+				bool retain;
 				var mqttTokenParser = new TokenParser();
-				var encoding = new System.Text.UTF8Encoding(false);
-				mqttTokenParser.encoding = encoding;
+				mqttTokenParser.encoding = new System.Text.UTF8Encoding(false);
 				mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
 				if (feedType == "Interval")
 				{
 					mqttTokenParser.SourceFile = template;
 					message = mqttTokenParser.ToString();
-
+					retain = cumulus.MQTTIntervalRetained;
 				}
 				else
 				{
 					mqttTokenParser.InputText = dataupdateTemplateContent;
 					message = mqttTokenParser.ToStringFromString();
+					retain = cumulus.MQTTUpdateRetained;
 				}
 
 				// send the message
-				_ = SendMessageAsync(topic, message);
+				_ = SendMessageAsync(topic, message, retain);
 			}
 		}
 	}

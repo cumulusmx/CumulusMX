@@ -1454,7 +1454,7 @@ namespace CumulusMX
 
 			if (timeNow.Second % 3 == 0)
 			{
-				// send current data to websocket every 3 seconds for now
+				// send current data to websocket every 3 seconds
 				try
 				{
 					StringBuilder windRoseData = new StringBuilder(80);
@@ -1658,6 +1658,11 @@ namespace CumulusMX
 						if (cumulus.LogExtraSensors)
 						{
 							cumulus.DoExtraLogFile(now);
+						}
+
+						if (cumulus.AirLinkInEnabled || cumulus.AirLinkOutEnabled)
+						{
+							cumulus.DoAirLinkLogFile(now);
 						}
 					}
 
@@ -2133,24 +2138,29 @@ namespace CumulusMX
 				{
 					sb.Append(",");
 				}
-				sb.Append("\"SolarRad\":[");
-				for (var i = 0; i < GraphDataList.Count; i++)
+
+				if (cumulus.GraphOptions.SolarVisible)
 				{
-					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarrad + "]");
-					if (i < GraphDataList.Count - 1)
-						sb.Append(",");
-				}
+					sb.Append("\"SolarRad\":[");
+					for (var i = 0; i < GraphDataList.Count; i++)
+					{
+						sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarrad + "]");
+						if (i < GraphDataList.Count - 1)
+							sb.Append(",");
+					}
 
 
-				sb.Append("],\"CurrentSolarMax\":[");
-				for (var i = 0; i < GraphDataList.Count; i++)
-				{
-					sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarmax + "]");
-					if (i < GraphDataList.Count - 1)
-						sb.Append(",");
+					sb.Append("],\"CurrentSolarMax\":[");
+					for (var i = 0; i < GraphDataList.Count; i++)
+					{
+						sb.Append("[" + DateTimeToUnix(GraphDataList[i].timestamp) * 1000 + "," + (int)GraphDataList[i].solarmax + "]");
+						if (i < GraphDataList.Count - 1)
+							sb.Append(",");
+					}
+					sb.Append("]");
 				}
 			}
-			sb.Append("]}");
+			sb.Append("}");
 			return sb.ToString();
 		}
 
@@ -10010,18 +10020,23 @@ namespace CumulusMX
 		public string GetSunHoursGraphData()
 		{
 			var InvC = new CultureInfo("");
-			StringBuilder sb = new StringBuilder("{\"sunhours\":[", 10000);
-			lock (RecentDailyDataList)
+			StringBuilder sb = new StringBuilder("{", 10000);
+			if (cumulus.GraphOptions.SolarVisible)
 			{
-				for (var i = 0; i < RecentDailyDataList.Count; i++)
+				sb.Append("\"sunhours\":[");
+				lock (RecentDailyDataList)
 				{
-					sb.Append($"[{DateTimeToUnix(RecentDailyDataList[i].timestamp) * 1000},{RecentDailyDataList[i].sunhours.ToString(cumulus.SunFormat, InvC)}]");
+					for (var i = 0; i < RecentDailyDataList.Count; i++)
+					{
+						sb.Append($"[{DateTimeToUnix(RecentDailyDataList[i].timestamp) * 1000},{RecentDailyDataList[i].sunhours.ToString(cumulus.SunFormat, InvC)}]");
 
-					if (i < RecentDailyDataList.Count - 1)
-						sb.Append(",");
+						if (i < RecentDailyDataList.Count - 1)
+							sb.Append(",");
+					}
 				}
+				sb.Append("]");
 			}
-			sb.Append("]}");
+			sb.Append("}");
 			return sb.ToString();
 		}
 
@@ -10520,6 +10535,39 @@ namespace CumulusMX
 			maxtemp = maxt;
 			avgtemp = avgt;
 		}
+	}
+
+	public class AirLinkData
+	{
+		public double temperature { get; set; }
+		public int humidity { get; set; }
+		public double pm1 { get; set; }
+		public double pm2p5 { get; set; }
+		public double pm2p5_1hr { get; set; }
+		public double pm2p5_3hr { get; set; }
+		public double pm2p5_nowcast { get; set; }
+		public double pm2p5_24hr { get; set; }
+		public double pm10 { get; set; }
+		public double pm10_1hr { get; set; }
+		public double pm10_3hr { get; set; }
+		public double pm10_nowcast { get; set; }
+		public double pm10_24hr { get; set; }
+		public int pct_1hr { get; set; }
+		public int pct_3hr { get; set; }
+		public int pct_nowcast { get; set; }
+		public int pct_24hr { get; set; }
+		public double aqiPm2p5 { get; set; }
+		public double aqiPm2p5_1hr { get; set; }
+		public double aqiPm2p5_3hr { get; set; }
+		public double aqiPm2p5_24hr { get; set; }
+		public double aqiPm2p5_nowcast { get; set; }
+		public double aqiPm10 { get; set; }
+		public double aqiPm10_1hr { get; set; }
+		public double aqiPm10_3hr { get; set; }
+		public double aqiPm10_24hr { get; set; }
+		public double aqiPm10_nowcast { get; set; }
+		public string firmwareVersion { get; set; }
+		public int wifiRssi { get; set; }
 	}
 
 	public class RecentData

@@ -19,6 +19,9 @@ namespace CumulusMX
         public static Mutex appMutex;
         public static DateTime StartTime;
 
+        public static int httpport = 8998;
+        public static bool debug = false;
+
         private static void Main(string[] args)
         {
             StartTime = DateTime.Now;
@@ -74,11 +77,12 @@ namespace CumulusMX
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             }
 
-            int httpport = 8998;
-            bool debug = false;
-
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
+#if DEBUG
+            debug = true;
+            //Debugger.Launch();
+#endif
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -163,11 +167,6 @@ namespace CumulusMX
                 }
             }
 
-#if DEBUG
-            debug = true;
-            //Debugger.Launch();
-#endif
-
             using (appMutex = new Mutex(false, "Global\\" + appGuid))
             {
                 // Interactive seems to be always false under mono :(
@@ -187,7 +186,7 @@ namespace CumulusMX
                         File.Delete(logfile);
                     }
                     svcTextListener = new TextWriterTraceListener(logfile);
-                    RunAsAService();
+                    ServiceBase.Run(new CumulusService());
                 }
 
                 while (!exitSystem)
@@ -227,16 +226,6 @@ namespace CumulusMX
 
             Console.WriteLine("Type Ctrl-C to terminate");
         }
-
-        static void RunAsAService()
-        {
-            ServiceBase[] servicesToRun = new ServiceBase[]
-            {
-                new CumulusService()
-            };
-            ServiceBase.Run(servicesToRun);
-        }
-
 
         private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
         {

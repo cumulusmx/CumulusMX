@@ -158,6 +158,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AirQualityIndices.cs" />
     <Compile Include="Api.cs" />
     <Compile Include="ApiTagProcessor.cs" />
     <Compile Include="AstroLib.cs" />
@@ -165,8 +166,10 @@
     <Compile Include="Cumulus.cs" />
     <Compile Include="DataEditor.cs" />
     <Compile Include="DataStruct.cs" />
+    <Compile Include="DavisAirLink.cs" />
     <Compile Include="DavisWllStation.cs" />
     <Compile Include="EasyWeather.cs" />
+    <Compile Include="ExtraSensorSettings.cs" />
     <Compile Include="FOStation.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GW1000Station.cs" />
