@@ -528,7 +528,8 @@ namespace CumulusMX
 				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					var responseBody = response.Content.ReadAsStringAsync().Result;
-					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response: {response.StatusCode}: {responseBody}");
+					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {response.StatusCode}");
+					cumulus.LogDataMessage($"GetWlHistoricData: WeatherLink API Historic Response: {responseBody}");
 
 					jObject = JObject.Parse(responseBody);
 

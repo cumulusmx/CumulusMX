@@ -55,7 +55,7 @@
 - Updated files
 	\CumulusMX.exe
 	\AirLinkFileHeader.txt
-	\interface				- lots of changes, copy the whole folder
+	\interface				- lots of changes, all *.html files, /scripts, and /json
 	\web\trendsT.htm
 
 

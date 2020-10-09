@@ -17,61 +17,68 @@ namespace CumulusMX
 
 		public static double US_EPApm2p5(double pmVal)
 		{
-			double Clow, Chigh, Ilow, Ihigh;
+			//double Clow, Chigh, Ilow, Ihigh;
 
 			if (pmVal > 500.4)
 				return 500;
 
 			if (pmVal >= 350.5)
 			{
-				Clow = 350.5;
-				Chigh = 500.4;
-				Ilow = 401;
-				Ihigh = 500;
+				//Clow = 350.5;
+				//Chigh = 500.4;
+				//Ilow = 401;
+				//Ihigh = 500;
+				return 401 + interpolate(350.5, 500.4, pmVal) * 99;
 			}
 			else if (pmVal >= 250.5)
 			{
-				Clow = 250.5;
-				Chigh = 350.4;
-				Ilow = 301;
-				Ihigh = 400;
+				//Clow = 250.5;
+				//Chigh = 350.4;
+				//Ilow = 301;
+				//Ihigh = 400;
+				return 301 + interpolate(250.5, 350.4, pmVal) * 99;
 			}
 			else if (pmVal >= 150.5)
 			{
-				Clow = 150.5;
-				Chigh = 250.4;
-				Ilow = 201;
-				Ihigh = 300;
+				//Clow = 150.5;
+				//Chigh = 250.4;
+				//Ilow = 201;
+				//Ihigh = 300;
+				return 201 + interpolate(150.5, 250.4, pmVal) * 99;
 			}
 			else if (pmVal >= 55.5)
 			{
-				Clow = 55.5;
-				Chigh = 150.4;
-				Ilow = 151;
-				Ihigh = 200;
+				//Clow = 55.5;
+				//Chigh = 150.4;
+				//Ilow = 151;
+				//Ihigh = 200;
+				return 151 + interpolate(55.5, 150.4, pmVal) * 49;
 			}
 			else if (pmVal >= 35.5)
 			{
-				Clow = 35.5;
-				Chigh = 55.4;
-				Ilow = 101;
-				Ihigh = 150;
+				//Clow = 35.5;
+				//Chigh = 55.4;
+				//Ilow = 101;
+				//Ihigh = 150;
+				return 101 + interpolate(35.5, 55.4, pmVal) * 49;
 			}
 			else if (pmVal >= 12.1)
 			{
-				Clow = 12.1;
-				Chigh = 35.4;
-				Ilow = 51;
-				Ihigh = 100;
+				//Clow = 12.1;
+				//Chigh = 35.4;
+				//Ilow = 51;
+				//Ihigh = 100;
+				return 51 + interpolate(12.1, 35.4, pmVal) * 49;
 			}
 			else
 			{
-				Clow = 0;
-				Chigh = 12;
-				Ilow = 0;
-				Ihigh = 50;
+				//Clow = 0;
+				//Chigh = 12;
+				//Ilow = 0;
+				//Ihigh = 50;
+				return interpolate(0, 12, pmVal) * 50;
 			}
-			return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
+			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
 		}
 
 		/*
@@ -81,61 +88,68 @@ namespace CumulusMX
 
 		public static double US_EPApm10(double pmVal)
 		{
-			int Clow, Chigh, Ilow, Ihigh;
+			//int Clow, Chigh, Ilow, Ihigh;
 
 			if (pmVal > 604)
 				return 500;
 
 			if (pmVal >= 505)
 			{
-				Clow = 505;
-				Chigh = 604;
-				Ilow = 401;
-				Ihigh = 500;
+				//Clow = 505;
+				//Chigh = 604;
+				//Ilow = 401;
+				//Ihigh = 500;
+				return 401 + interpolate(505, 604, pmVal) * 99;
 			}
 			else if (pmVal >= 425)
 			{
-				Clow = 425;
-				Chigh = 504;
-				Ilow = 301;
-				Ihigh = 400;
+				//Clow = 425;
+				//Chigh = 504;
+				//Ilow = 301;
+				//Ihigh = 400;
+				return 301 + interpolate(425, 504, pmVal) * 99;
 			}
 			else if (pmVal >= 355)
 			{
-				Clow = 355;
-				Chigh = 424;
-				Ilow = 201;
-				Ihigh = 300;
+				//Clow = 355;
+				//Chigh = 424;
+				//Ilow = 201;
+				//Ihigh = 300;
+				return 201 + interpolate(355, 424, pmVal) * 99;
 			}
 			else if (pmVal >= 255)
 			{
-				Clow = 255;
-				Chigh = 354;
-				Ilow = 151;
-				Ihigh = 200;
+				//Clow = 255;
+				//Chigh = 354;
+				//Ilow = 151;
+				//Ihigh = 200;
+				return 151 + interpolate(255, 3544, pmVal) * 49;
 			}
 			else if (pmVal >= 155)
 			{
-				Clow = 155;
-				Chigh = 254;
-				Ilow = 101;
-				Ihigh = 150;
+				//Clow = 155;
+				//Chigh = 254;
+				//Ilow = 101;
+				//Ihigh = 150;
+				return 101 + interpolate(155, 254, pmVal) * 49;
 			}
 			else if (pmVal >= 55)
 			{
-				Clow = 55;
-				Chigh = 154;
-				Ilow = 51;
-				Ihigh = 100;
+				//Clow = 55;
+				//Chigh = 154;
+				//Ilow = 51;
+				//Ihigh = 100;
+				return 51 + interpolate(55, 154, pmVal) * 99;
 			}
 			else
 			{
-				Clow = 0;
-				Chigh = 54;
-				Ilow = 0;
-				Ihigh = 50;
+				//Clow = 0;
+				//Chigh = 54;
+				//Ilow = 0;
+				//Ihigh = 50;
+				return interpolate(0, 54, pmVal) * 50;
 			}
-			return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
+			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
 		}
 
 
