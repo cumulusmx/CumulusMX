@@ -1192,7 +1192,7 @@ namespace CumulusMX
 		private string TagAirLinkAqiPm2p5_1hrIn(Dictionary<string, string> TagParams)
 		{
 			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5.ToString("F" + dp), TagParams);
+			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_1hr.ToString("F" + dp), TagParams);
 		}
 		private string TagAirLinkAqiPm2p5_3hrIn(Dictionary<string, string> TagParams)
 		{
@@ -1217,7 +1217,7 @@ namespace CumulusMX
 		private string TagAirLinkAqiPm10_1hrIn(Dictionary<string, string> TagParams)
 		{
 			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm10.ToString("F" + dp), TagParams);
+			return CheckRC(cumulus.airLinkDataIn.aqiPm10_1hr.ToString("F" + dp), TagParams);
 		}
 		private string TagAirLinkAqiPm10_3hrIn(Dictionary<string, string> TagParams)
 		{
@@ -1234,16 +1234,16 @@ namespace CumulusMX
 			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
 			return CheckRC(cumulus.airLinkDataIn.aqiPm10_nowcast.ToString("F" + dp), TagParams);
 		}
+
 		private string TagAirLinkAqiPm2p5Out(Dictionary<string, string> TagParams)
 		{
 			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
 			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5.ToString("F" + dp), TagParams);
 		}
-
 		private string TagAirLinkAqiPm2p5_1hrOut(Dictionary<string, string> TagParams)
 		{
 			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5.ToString("F" + dp), TagParams);
+			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_1hr.ToString("F" + dp), TagParams);
 		}
 		private string TagAirLinkAqiPm2p5_3hrOut(Dictionary<string, string> TagParams)
 		{
@@ -1268,7 +1268,7 @@ namespace CumulusMX
 		private string TagAirLinkAqiPm10_1hrOut(Dictionary<string, string> TagParams)
 		{
 			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm10.ToString("F" + dp), TagParams);
+			return CheckRC(cumulus.airLinkDataOut.aqiPm10_1hr.ToString("F" + dp), TagParams);
 		}
 		private string TagAirLinkAqiPm10_3hrOut(Dictionary<string, string> TagParams)
 		{

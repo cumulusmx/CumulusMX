@@ -1,3 +1,20 @@
+3.9.1 - b3096
+—————————————
+- Fix: AirLink - Limit the number of decimal places in the AirLink log file
+- Fix: AirLink - The web tags for 1hr average AQI values were picking up the latest reading value in error
+- Fix: Send rounded wind speed to Weather Underground/Windy/PWS/WoW if Cumulus "Round Wind Speeds" is set
+- Fix: Attempt to reduce the memory leak for Davis WLL stations when running under Mono on Linux (major refactoring of the code)
+- Fix: Replaces a bad copy of trendsT.htm that crept into b3095 somehow
+- Adds Netherlands LKI, and Belgian BelAQI AQI scales [6=Netherlands=LKI, 7=Belgium-BelAQI] to AirLink devices
+
+- Updated files
+	\CumulusMX.exe
+	\interface\ExtraSensorOptions.json
+	\interface\ExtraSensorSchema.json
+	\web\trendsT.htm
+
+
+
 3.9.0 - b3095
 —————————————
 - Fix: Running as a Windows service, now correctly reads command line parameters from the registry "ImagePath" field

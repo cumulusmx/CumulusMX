@@ -205,6 +205,7 @@
     <Compile Include="WeatherData.cs" />
     <Compile Include="WeatherDataCollection.cs" />
     <Compile Include="WeatherLink.cs" />
+    <Compile Include="WeatherLinkDotCom.cs" />
     <Compile Include="WeatherStation.cs" />
     <Compile Include="WebSocket.cs" />
     <Compile Include="webtags.cs" />

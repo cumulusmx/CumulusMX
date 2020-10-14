@@ -8741,6 +8741,8 @@ namespace CumulusMX
 		private string WindMPHStr(double wind)
 		{
 			var windMPH = ConvertUserWindToMPH(wind);
+			if (cumulus.RoundWindSpeed)
+				windMPH = Math.Round(windMPH);
 
 			return windMPH.ToString("F1");
 		}
@@ -10470,6 +10472,9 @@ namespace CumulusMX
 		public double solarrad;
 		public double solarmax;
 		public double uvindex;
+		// Add AQI data
+
+		// Add AirLink AQI data
 
 		public GraphData(DateTime ts, double rain, double raintoday, double rrate, double temp, double dp, double appt, double chill, double heat, double intemp, double press,
 			double speed, double gust, int avgdir, int wdir, int hum, int inhum, double solar, double smax, double uv, double feels, double humidx)

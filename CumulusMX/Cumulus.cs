@@ -34,8 +34,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.0";
-		public string Build = "3095";
+		public string Version = "3.9.1";
+		public string Build = "3096";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -5999,33 +5999,33 @@ namespace CumulusMX
 
 				if (AirLinkInEnabled)
 				{
-					file.Write(airLinkDataIn.temperature + ListSeparator);
+					file.Write(airLinkDataIn.temperature.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataIn.humidity + ListSeparator);
-					file.Write(airLinkDataIn.pm1 + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5 + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_1hr + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_3hr + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_24hr + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_nowcast + ListSeparator);
-					file.Write(airLinkDataIn.pm10 + ListSeparator);
-					file.Write(airLinkDataIn.pm10_1hr + ListSeparator);
-					file.Write(airLinkDataIn.pm10_3hr + ListSeparator);
-					file.Write(airLinkDataIn.pm10_24hr + ListSeparator);
-					file.Write(airLinkDataIn.pm10_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.pm1.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm2p5_nowcast.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm10.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm10_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm10_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm10_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.pm10_nowcast.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataIn.pct_1hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_3hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_24hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5 + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_3hr + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_24hr + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_nowcast + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10 + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_1hr + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_3hr + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_24hr + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_nowcast + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm2p5_nowcast.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataIn.aqiPm10_nowcast.ToString("F1") + ListSeparator);
 				}
 				else
 				{
@@ -6038,33 +6038,33 @@ namespace CumulusMX
 
 				if (AirLinkOutEnabled)
 				{
-					file.Write(airLinkDataOut.temperature + ListSeparator);
+					file.Write(airLinkDataOut.temperature.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataOut.humidity + ListSeparator);
-					file.Write(airLinkDataOut.pm1 + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5 + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_1hr + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_3hr + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_24hr + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_nowcast + ListSeparator);
-					file.Write(airLinkDataOut.pm10 + ListSeparator);
-					file.Write(airLinkDataOut.pm10_1hr + ListSeparator);
-					file.Write(airLinkDataOut.pm10_3hr + ListSeparator);
-					file.Write(airLinkDataOut.pm10_24hr + ListSeparator);
-					file.Write(airLinkDataOut.pm10_nowcast + ListSeparator);
+					file.Write(airLinkDataOut.pm1.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm2p5_nowcast.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm10.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm10_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm10_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm10_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.pm10_nowcast.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataOut.pct_1hr + ListSeparator);
 					file.Write(airLinkDataOut.pct_3hr + ListSeparator);
 					file.Write(airLinkDataOut.pct_24hr + ListSeparator);
 					file.Write(airLinkDataOut.pct_nowcast + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5 + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_1hr + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_3hr + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_24hr + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_nowcast + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10 + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_1hr + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_3hr + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_24hr + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_nowcast);
+					file.Write(airLinkDataOut.aqiPm2p5.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm2p5_nowcast.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_1hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_3hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_24hr.ToString("F1") + ListSeparator);
+					file.Write(airLinkDataOut.aqiPm10_nowcast.ToString("F1"));
 				}
 				else
 				{
