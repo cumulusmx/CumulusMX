@@ -97,7 +97,7 @@ namespace CumulusMX
 			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
-			cumulus.StartTimers();
+			cumulus.StartTimersAndSensors();
 		}
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)

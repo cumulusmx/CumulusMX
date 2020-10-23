@@ -76,7 +76,7 @@ namespace CumulusMX
             DoDayResetIfNeeded();
             LoadLastHoursFromDataLogs(DateTime.Now);
             DoTrendValues(DateTime.Now);
-            cumulus.StartTimers();
+            cumulus.StartTimersAndSensors();
 
             cumulus.LogMessage("Sending reset");
             SendReset();

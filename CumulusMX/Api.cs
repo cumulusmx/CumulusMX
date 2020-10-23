@@ -676,6 +676,20 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(Station.GetLightning());
 						case "usertemp.json":
 							return await this.JsonResponseAsync(Station.GetUserTemp());
+
+						case "airLinkCountsOut.json":
+							return await this.JsonResponseAsync(Station.GetAirLinkCountsOut());
+						case "airLinkAqiOut.json":
+							return await this.JsonResponseAsync(Station.GetAirLinkAqiOut());
+						case "airLinkPctOut.json":
+							return await this.JsonResponseAsync(Station.GetAirLinkPctOut());
+						case "airLinkCountsIn.json":
+							return await this.JsonResponseAsync(Station.GetAirLinkCountsIn());
+						case "airLinkAqiIn.json":
+							return await this.JsonResponseAsync(Station.GetAirLinkAqiIn());
+						case "airLinkPctIn.json":
+							return await this.JsonResponseAsync(Station.GetAirLinkPctIn());
+
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

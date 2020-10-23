@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
-using Newtonsoft.Json;
+using ServiceStack;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -83,7 +81,7 @@ namespace CumulusMX
 				rg11 = rg11
 			};
 
-			return JsonConvert.SerializeObject(data);
+			return data.ToJson();
 		}
 
 		public string UpdateExtraSensorConfig(IHttpContext context)
@@ -99,7 +97,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonConvert.DeserializeObject<JsonExtraSensorSettings>(json);
+				var settings = json.FromJson<JsonExtraSensorSettings>();
 				// process the settings
 				cumulus.LogMessage("Updating extra sensor settings");
 

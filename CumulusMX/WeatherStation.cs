@@ -1487,9 +1487,9 @@ namespace CumulusMX
 						alltimerecarray[AT_HighPress].value, alltimerecarray[AT_LowPress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 						HighHourlyRainToday, HighHourlyRainTodayTime.ToString("HH:mm"), "F" + cumulus.Beaufort(HighWindToday), "F" + cumulus.Beaufort(WindAverage), cumulus.BeaufortDesc(WindAverage),
 						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
-						cumulus.LowTempAlarmState, cumulus.HighTempAlarmState, cumulus.TempChangeUpAlarmState, cumulus.TempChangeDownAlarmState, cumulus.HighRainTodayAlarmState, cumulus.HighRainRateAlarmState,
-						cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState,
-						cumulus.SensorAlarmState, cumulus.BatteryLowAlarmState, cumulus.SpikeAlarmState, FeelsLike, HighFeelsLikeToday, HighFeelsLikeTodayTime.ToString("HH:mm"), LowFeelsLikeToday, LowFeelsLikeTodayTime.ToString("HH:mm"),
+						cumulus.LowTempAlarm.triggered, cumulus.HighTempAlarm.triggered, cumulus.TempChangeAlarm.upTriggered, cumulus.TempChangeAlarm.downTriggered, cumulus.HighRainTodayAlarm.triggered, cumulus.HighRainRateAlarm.triggered,
+						cumulus.LowPressAlarm.triggered, cumulus.HighPressAlarm.triggered, cumulus.PressChangeAlarm.upTriggered, cumulus.PressChangeAlarm.downTriggered, cumulus.HighGustAlarm.triggered, cumulus.HighWindAlarm.triggered,
+						cumulus.SensorAlarm.triggered, cumulus.BatteryLowAlarm.triggered, cumulus.SpikeAlarm.triggered, FeelsLike, HighFeelsLikeToday, HighFeelsLikeTodayTime.ToString("HH:mm"), LowFeelsLikeToday, LowFeelsLikeTodayTime.ToString("HH:mm"),
 						HighHumidexToday, HighHumidexTodayTime.ToString("HH:mm"));
 
 					//var json = jss.Serialize(data);
@@ -1579,6 +1579,57 @@ namespace CumulusMX
 			var deleteTime = ts.AddDays(-7);
 
 			RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime);
+		}
+
+		private void ClearAlarms()
+		{
+			if (cumulus.DataStoppedAlarm.triggered && DateTime.Now > cumulus.DataStoppedAlarm.triggeredTime.AddHours(cumulus.DataStoppedAlarm.latchHours))
+				cumulus.DataStoppedAlarm.triggered = false;
+
+			if (cumulus.BatteryLowAlarm.triggered && DateTime.Now > cumulus.BatteryLowAlarm.triggeredTime.AddHours(cumulus.BatteryLowAlarm.latchHours))
+				cumulus.BatteryLowAlarm.triggered = false;
+
+			if (cumulus.SensorAlarm.triggered && DateTime.Now > cumulus.SensorAlarm.triggeredTime.AddHours(cumulus.SensorAlarm.latchHours))
+				cumulus.SensorAlarm.triggered = false;
+
+			if (cumulus.SpikeAlarm.triggered && DateTime.Now > cumulus.SpikeAlarm.triggeredTime.AddHours(cumulus.SpikeAlarm.latchHours))
+				cumulus.SpikeAlarm.triggered = false;
+
+			if (cumulus.HighWindAlarm.triggered && DateTime.Now > cumulus.HighWindAlarm.triggeredTime.AddHours(cumulus.HighWindAlarm.latchHours))
+				cumulus.HighWindAlarm.triggered = false;
+
+			if (cumulus.HighGustAlarm.triggered && DateTime.Now > cumulus.HighGustAlarm.triggeredTime.AddHours(cumulus.HighGustAlarm.latchHours))
+				cumulus.HighGustAlarm.triggered = false;
+
+			if (cumulus.HighRainRateAlarm.triggered && DateTime.Now > cumulus.HighRainRateAlarm.triggeredTime.AddHours(cumulus.HighRainRateAlarm.latchHours))
+				cumulus.HighRainRateAlarm.triggered = false;
+
+			if (cumulus.HighRainTodayAlarm.triggered && DateTime.Now > cumulus.HighRainTodayAlarm.triggeredTime.AddHours(cumulus.HighRainTodayAlarm.latchHours))
+				cumulus.HighRainTodayAlarm.triggered = false;
+
+			if (cumulus.HighPressAlarm.triggered && DateTime.Now > cumulus.HighPressAlarm.triggeredTime.AddHours(cumulus.HighPressAlarm.latchHours))
+				cumulus.HighPressAlarm.triggered = false;
+
+			if (cumulus.LowPressAlarm.triggered && DateTime.Now > cumulus.LowPressAlarm.triggeredTime.AddHours(cumulus.LowPressAlarm.latchHours))
+				cumulus.LowPressAlarm.triggered = false;
+
+			if (cumulus.HighTempAlarm.triggered && DateTime.Now > cumulus.HighTempAlarm.triggeredTime.AddHours(cumulus.HighTempAlarm.latchHours))
+				cumulus.HighTempAlarm.triggered = false;
+
+			if (cumulus.LowTempAlarm.triggered && DateTime.Now > cumulus.LowTempAlarm.triggeredTime.AddHours(cumulus.LowTempAlarm.latchHours))
+				cumulus.LowTempAlarm.triggered = false;
+
+			if (cumulus.TempChangeAlarm.upTriggered && DateTime.Now > cumulus.TempChangeAlarm.upTriggeredTime.AddHours(cumulus.TempChangeAlarm.latchHours))
+				cumulus.TempChangeAlarm.upTriggered = false;
+
+			if (cumulus.TempChangeAlarm.downTriggered && DateTime.Now > cumulus.TempChangeAlarm.downTriggeredTime.AddHours(cumulus.TempChangeAlarm.latchHours))
+				cumulus.TempChangeAlarm.downTriggered = false;
+
+			if (cumulus.PressChangeAlarm.upTriggered && DateTime.Now > cumulus.PressChangeAlarm.upTriggeredTime.AddHours(cumulus.PressChangeAlarm.latchHours))
+				cumulus.PressChangeAlarm.upTriggered = false;
+
+			if (cumulus.PressChangeAlarm.downTriggered && DateTime.Now > cumulus.PressChangeAlarm.downTriggeredTime.AddHours(cumulus.PressChangeAlarm.latchHours))
+				cumulus.PressChangeAlarm.downTriggered = false;
 		}
 
 		private void MinuteChanged(DateTime now)
@@ -1769,18 +1820,18 @@ namespace CumulusMX
 							xapReport.Append("}\n");
 							xapReport.Append("weather.report\n{\n");
 							xapReport.Append($"UTC={timeUTC}\nDATE={dateISO}\n");
-							xapReport.Append($"WindM={ConvertUserWindToMPH(WindAverage).ToString("F1")}\n");
-							xapReport.Append($"WindK={ConvertUserWindToKPH(WindAverage).ToString("F1")}\n");
-							xapReport.Append($"WindGustsM={ConvertUserWindToMPH(RecentMaxGust).ToString("F1")}\n");
-							xapReport.Append($"WindGustsK={ConvertUserWindToKPH(RecentMaxGust).ToString("F1")}\n");
+							xapReport.Append($"WindM={ConvertUserWindToMPH(WindAverage):F1}\n");
+							xapReport.Append($"WindK={ConvertUserWindToKPH(WindAverage):F1}\n");
+							xapReport.Append($"WindGustsM={ConvertUserWindToMPH(RecentMaxGust):F1}\n");
+							xapReport.Append($"WindGustsK={ConvertUserWindToKPH(RecentMaxGust):F1}\n");
 							xapReport.Append($"WindDirD={Bearing}\n");
 							xapReport.Append($"WindDirC={AvgBearing}\n");
-							xapReport.Append($"TempC={ConvertUserTempToC(OutdoorTemperature).ToString("F1")}\n");
-							xapReport.Append($"TempF={ConvertUserTempToF(OutdoorTemperature).ToString("F1")}\n");
-							xapReport.Append($"DewC={ConvertUserTempToC(OutdoorDewpoint).ToString("F1")}\n");
-							xapReport.Append($"DewF={ConvertUserTempToF(OutdoorDewpoint).ToString("F1")}\n");
-							xapReport.Append($"AirPressure={ConvertUserPressToMB(Pressure).ToString("F1")}\n");
-							xapReport.Append($"Rain={ConvertUserRainToMM(RainToday).ToString("F1")}\n");
+							xapReport.Append($"TempC={ConvertUserTempToC(OutdoorTemperature):F1}\n");
+							xapReport.Append($"TempF={ConvertUserTempToF(OutdoorTemperature):F1}\n");
+							xapReport.Append($"DewC={ConvertUserTempToC(OutdoorDewpoint):F1}\n");
+							xapReport.Append($"DewF={ConvertUserTempToF(OutdoorDewpoint):F1}\n");
+							xapReport.Append($"AirPressure={ConvertUserPressToMB(Pressure):F1}\n");
+							xapReport.Append($"Rain={ConvertUserRainToMM(RainToday):F1}\n");
 							xapReport.Append("}");
 
 							data = Encoding.ASCII.GetBytes(xapReport.ToString());
@@ -1802,15 +1853,26 @@ namespace CumulusMX
 				}
 			}
 
-			if (cumulus.SpikeAlarmState &&  DateTime.Now > lastSpikeRemoval.AddHours(12))
-			{
-				cumulus.SpikeAlarmState = false;
-			}
-
+			// Check for a new version of Cumulus once a day
 			if (now.Minute == versionCheckTime.Minute && now.Hour == versionCheckTime.Hour)
 			{
 				cumulus.LogMessage("Checking for latest Cumulus MX version...");
 				cumulus.GetLatestVersion();
+			}
+
+			// If not on windows, check for CPU temp
+			if (Type.GetType("Mono.Runtime") != null && File.Exists("/sys/class/thermal/thermal_zone0/temp"))
+			{
+				try
+				{
+					var raw = File.ReadAllText(@"/sys/class/thermal/thermal_zone0/temp");
+					cumulus.CPUtemp = ConvertTempCToUser(double.Parse(raw) / 1000);
+					cumulus.LogDebugMessage($"Current CPU temp = {cumulus.CPUtemp.ToString(cumulus.TempFormat)}{cumulus.TempUnitText}");
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogDebugMessage($"Error reading CPU temperature - {ex.Message}");
+				}
 			}
 		}
 
@@ -1820,6 +1882,8 @@ namespace CumulusMX
 			cumulus.MoonAge = MoonriseMoonset.MoonAge();
 
 			cumulus.RotateLogFiles();
+
+			ClearAlarms();
 		}
 
 		private void CheckForDataStopped()
@@ -1829,6 +1893,7 @@ namespace CumulusMX
 			{
 				// Data input appears to have has stopped
 				DataStopped = true;
+				cumulus.DataStoppedAlarm.triggered = true;
 				/*if (RestartIfDataStops)
 				{
 					cumulus.LogMessage("*** Data input appears to have stopped, restarting");
@@ -1843,6 +1908,7 @@ namespace CumulusMX
 			else
 			{
 				DataStopped = false;
+				cumulus.DataStoppedAlarm.triggered = false;
 			}
 
 			// save the time that data was last read so we can check in a minute's time that it's changed
@@ -2619,7 +2685,7 @@ namespace CumulusMX
 
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
-			cumulus.StartTimers();
+			cumulus.StartTimersAndSensors();
 		}
 
 		public void ResetMidnightRain(DateTime timestamp)
@@ -2661,14 +2727,14 @@ namespace CumulusMX
 			if ((previousHum != 999) && (Math.Abs(humpar - previousHum) > cumulus.SpikeHumidityDiff))
 			{
 				cumulus.LogSpikeRemoval("Humidity difference greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={humpar} OldVal={previousHum} SpikeHumidityDiff={cumulus.SpikeHumidityDiff.ToString("F1")}");
+				cumulus.LogSpikeRemoval($"NewVal={humpar} OldVal={previousHum} SpikeHumidityDiff={cumulus.SpikeHumidityDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarmState = true;
+				cumulus.SpikeAlarm.triggered = true;
 				return;
 			}
 			previousHum = humpar;
 
-			if ((humpar == 98) && cumulus.Humidity98Fix)
+			if ((humpar >= 98) && cumulus.Humidity98Fix)
 			{
 				OutdoorHumidity = 100;
 			}
@@ -2751,7 +2817,7 @@ namespace CumulusMX
 				tempC >= cumulus.LimitTempHigh || tempC <= cumulus.LimitTempLow)
 			{
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarmState = true;
+				cumulus.SpikeAlarm.triggered = true;
 				cumulus.LogSpikeRemoval("Temp difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={tempC.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.SpikeTempDiff.ToString(cumulus.TempFormat)} HighLimit={cumulus.LimitTempHigh.ToString(cumulus.TempFormat)} LowLimit={cumulus.LimitTempLow.ToString(cumulus.TempFormat)}");
 				return;
@@ -2770,12 +2836,12 @@ namespace CumulusMX
 			if (OutdoorTemperature > alltimerecarray[AT_HighTemp].value)
 				SetAlltime(AT_HighTemp, OutdoorTemperature, timestamp);
 
-			DoAlarm(OutdoorTemperature, cumulus.HighTempAlarmValue, cumulus.HighTempAlarmEnabled, true, ref cumulus.HighTempAlarmState);
+			cumulus.HighTempAlarm.triggered = DoAlarm(OutdoorTemperature, cumulus.HighTempAlarm.value, cumulus.HighTempAlarm.enabled, true);
 
 			if (OutdoorTemperature < alltimerecarray[AT_LowTemp].value)
 				SetAlltime(AT_LowTemp, OutdoorTemperature, timestamp);
 
-			DoAlarm(OutdoorTemperature, cumulus.LowTempAlarmValue, cumulus.LowTempAlarmEnabled, false, ref cumulus.LowTempAlarmState);
+			cumulus.LowTempAlarm.triggered = DoAlarm(OutdoorTemperature, cumulus.LowTempAlarm.value, cumulus.LowTempAlarm.enabled, false);
 
 			CheckMonthlyAlltime(AT_HighTemp, OutdoorTemperature, true, timestamp);
 			CheckMonthlyAlltime(AT_LowTemp, OutdoorTemperature, false, timestamp);
@@ -3191,9 +3257,9 @@ namespace CumulusMX
 				pressMB >= cumulus.LimitPressHigh || pressMB <= cumulus.LimitPressLow)
 			{
 				cumulus.LogSpikeRemoval("Pressure difference greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={pressMB.ToString("F1")} OldVal={previousPress.ToString("F1")} SpikePressDiff={cumulus.SpikePressDiff.ToString("F1")} HighLimit={cumulus.LimitPressHigh.ToString("F1")} LowLimit={cumulus.LimitPressLow.ToString("F1")}");
+				cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPress:F1} SpikePressDiff={cumulus.SpikePressDiff:F1} HighLimit={cumulus.LimitPressHigh:F1} LowLimit={cumulus.LimitPressLow:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarmState = true;
+				cumulus.SpikeAlarm.triggered = true;
 				return;
 			}
 
@@ -3228,14 +3294,14 @@ namespace CumulusMX
 				SetAlltime(AT_HighPress, Pressure, timestamp);
 			}
 
-			DoAlarm(Pressure, cumulus.HighPressAlarmValue, cumulus.HighPressAlarmEnabled, true, ref cumulus.HighPressAlarmState);
+			cumulus.HighPressAlarm.triggered = DoAlarm(Pressure, cumulus.HighPressAlarm.value, cumulus.HighPressAlarm.enabled, true);
 
 			if (Pressure < alltimerecarray[AT_LowPress].value)
 			{
 				SetAlltime(AT_LowPress, Pressure, timestamp);
 			}
 
-			DoAlarm(Pressure, cumulus.LowPressAlarmValue, cumulus.LowPressAlarmEnabled, false, ref cumulus.LowPressAlarmState);
+			cumulus.LowPressAlarm.triggered = DoAlarm(Pressure, cumulus.LowPressAlarm.value, cumulus.LowPressAlarm.enabled, false);
 			CheckMonthlyAlltime(AT_LowPress, Pressure, false, timestamp);
 			CheckMonthlyAlltime(AT_HighPress, Pressure, true, timestamp);
 
@@ -3306,9 +3372,9 @@ namespace CumulusMX
 			if (rainRateMM > cumulus.SpikeMaxRainRate)
 			{
 				cumulus.LogSpikeRemoval("Rain rate greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"Rate value = {rainRateMM.ToString("F2")} SpikeMaxRainRate = {cumulus.SpikeMaxRainRate.ToString("F2")}");
+				cumulus.LogSpikeRemoval($"Rate value = {rainRateMM:F2} SpikeMaxRainRate = {cumulus.SpikeMaxRainRate:F2}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarmState = true;
+				cumulus.SpikeAlarm.triggered = true;
 				return;
 			}
 
@@ -3417,7 +3483,7 @@ namespace CumulusMX
 
 					CheckMonthlyAlltime(AT_HighRainRate, RainRate, true, timestamp);
 
-					DoAlarm(RainRate, cumulus.HighRainRateAlarmValue, cumulus.HighRainRateAlarmEnabled, true, ref cumulus.HighRainRateAlarmState);
+					cumulus.HighRainRateAlarm.triggered = DoAlarm(RainRate, cumulus.HighRainRateAlarm.value, cumulus.HighRainRateAlarm.enabled, true);
 
 					if (RainRate > HighRainToday)
 					{
@@ -3504,7 +3570,7 @@ namespace CumulusMX
 
 					CheckMonthlyAlltime(AT_WetMonth, RainMonth, true, timestamp);
 
-					DoAlarm(RainToday, cumulus.HighRainTodayAlarmValue, cumulus.HighRainTodayAlarmEnabled, true, ref cumulus.HighRainTodayAlarmState);
+					cumulus.HighRainTodayAlarm.triggered = DoAlarm(RainToday, cumulus.HighRainTodayAlarm.value, cumulus.HighRainTodayAlarm.enabled, true);
 
 					// Yesterday"s rain - Scale for units
 					// rainyest = rainyesterday * RainMult;
@@ -3527,7 +3593,7 @@ namespace CumulusMX
 				else
 				{
 					lastSpikeRemoval = DateTime.Now;
-					cumulus.SpikeAlarmState = true;
+					cumulus.SpikeAlarm.triggered = true;
 					cumulus.LogSpikeRemoval($"Dew point greater than limit ({cumulus.LimitDewHigh.ToString(cumulus.TempFormat)}); reading ignored: {dp.ToString(cumulus.TempFormat)}");
 				}
 			}
@@ -3688,19 +3754,20 @@ namespace CumulusMX
 		}
 		*/
 
-		public void DoAlarm(double value, double threshold, bool enabled, bool testAbove, ref bool alarmState)
+		public bool DoAlarm(double value, double threshold, bool enabled, bool testAbove)
 		{
 			if (enabled)
 			{
 				if (testAbove)
 				{
-					alarmState = value > threshold;
+					return value > threshold;
 				}
 				else
 				{
-					alarmState = value < threshold;
+					return value < threshold;
 				}
 			}
+			return false;
 		}
 
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
@@ -3715,10 +3782,10 @@ namespace CumulusMX
 				)
 			{
 				cumulus.LogSpikeRemoval("Wind or gust difference greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS.ToString("F1")} OldVal={previousGust.ToString("F1")} SpikeGustDiff={cumulus.SpikeGustDiff.ToString("F1")} HighLimit={cumulus.LimitWindHigh.ToString("F1")}");
-				cumulus.LogSpikeRemoval($"Wind: NewVal={windAvgMS.ToString("F1")} OldVal={previousWind.ToString("F1")} SpikeWindDiff={cumulus.SpikeWindDiff.ToString("F1")}");
+				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.SpikeGustDiff:F1} HighLimit={cumulus.LimitWindHigh:F1}");
+				cumulus.LogSpikeRemoval($"Wind: NewVal={windAvgMS:F1} OldVal={previousWind:F1} SpikeWindDiff={cumulus.SpikeWindDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarmState = true;
+				cumulus.SpikeAlarm.triggered = true;
 				return;
 			}
 			// use bearing of zero when calm
@@ -3828,7 +3895,8 @@ namespace CumulusMX
 
 			WindAverage *= cumulus.WindSpeedMult;
 
-			DoAlarm(WindAverage, cumulus.HighWindAlarmValue, cumulus.HighWindAlarmEnabled, true, ref cumulus.HighWindAlarmState);
+			cumulus.HighWindAlarm.triggered = DoAlarm(WindAverage, cumulus.HighWindAlarm.value, cumulus.HighWindAlarm.enabled, true);
+
 
 			if (CalcRecentMaxGust)
 			{
@@ -3847,7 +3915,7 @@ namespace CumulusMX
 				RecentMaxGust = maxgust * cumulus.WindGustMult;
 			}
 
-			DoAlarm(RecentMaxGust, cumulus.HighGustAlarmValue, cumulus.HighGustAlarmEnabled, true, ref cumulus.HighGustAlarmState);
+			cumulus.HighGustAlarm.triggered = DoAlarm(RecentMaxGust, cumulus.HighGustAlarm.value, cumulus.HighGustAlarm.enabled, true);
 
 			if (WindAverage > HighWindToday)
 			{
@@ -5995,8 +6063,8 @@ namespace CumulusMX
 
 				temptrendval = trendval;
 
-				DoAlarm(temptrendval, cumulus.TempChangeAlarmValue, cumulus.TempChangeAlarmEnabled, true, ref cumulus.TempChangeUpAlarmState);
-				DoAlarm(temptrendval, cumulus.TempChangeAlarmValue * -1, cumulus.TempChangeAlarmEnabled, false, ref cumulus.TempChangeDownAlarmState);
+				cumulus.TempChangeAlarm.upTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.value, cumulus.TempChangeAlarm.enabled, true);
+				cumulus.TempChangeAlarm.downTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.value * -1, cumulus.TempChangeAlarm.enabled, false);
 
 				if (LastHourDataList.Count > 0)
 				{
@@ -6069,8 +6137,8 @@ namespace CumulusMX
 				// save pressure trend in internal units
 				presstrendval = (lastval - firstval) / 3.0;
 
-				DoAlarm(presstrendval, cumulus.PressChangeAlarmValue, cumulus.PressChangeAlarmEnabled, true, ref cumulus.PressChangeUpAlarmState);
-				DoAlarm(presstrendval, cumulus.PressChangeAlarmValue * -1, cumulus.PressChangeAlarmEnabled, false, ref cumulus.PressChangeDownAlarmState);
+				cumulus.PressChangeAlarm.upTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.value, cumulus.PressChangeAlarm.enabled, true);
+				cumulus.PressChangeAlarm.downTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.value * -1, cumulus.PressChangeAlarm.enabled, false);
 
 				// Convert for display
 				trendval = ConvertPressMBToUser(presstrendval);
@@ -6126,7 +6194,7 @@ namespace CumulusMX
 
 							CheckMonthlyAlltime(AT_HighRainRate, RainRate, true, ts);
 
-							DoAlarm(RainRate, cumulus.HighRainRateAlarmValue, cumulus.HighRainRateAlarmEnabled, true, ref cumulus.HighRainRateAlarmState);
+							cumulus.HighRainRateAlarm.triggered = DoAlarm(RainRate, cumulus.HighRainRateAlarm.value, cumulus.HighRainRateAlarm.enabled, true);
 
 							if (RainRate > HighRainToday)
 							{
@@ -9368,22 +9436,22 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[1]}\",\"{SoilMoisture1.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[2]}\",\"{SoilMoisture2.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[3]}\",\"{SoilMoisture3.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[4]}\",\"{SoilMoisture4.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[5]}\",\"{SoilMoisture5.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[6]}\",\"{SoilMoisture6.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[7]}\",\"{SoilMoisture7.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[8]}\",\"{SoilMoisture8.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[9]}\",\"{SoilMoisture9.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[10]}\",\"{SoilMoisture10.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[11]}\",\"{SoilMoisture11.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[12]}\",\"{SoilMoisture12.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[13]}\",\"{SoilMoisture13.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[14]}\",\"{SoilMoisture14.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[15]}\",\"{SoilMoisture15.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[16]}\",\"{SoilMoisture16.ToString("F0")}\",\"{cumulus.SoilMoistureUnitText}\"]");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[1]}\",\"{SoilMoisture1:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[2]}\",\"{SoilMoisture2:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[3]}\",\"{SoilMoisture3:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[4]}\",\"{SoilMoisture4:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[5]}\",\"{SoilMoisture5:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[6]}\",\"{SoilMoisture6:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[7]}\",\"{SoilMoisture7:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[8]}\",\"{SoilMoisture8:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[9]}\",\"{SoilMoisture9:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[10]}\",\"{SoilMoisture10:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[11]}\",\"{SoilMoisture11:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[12]}\",\"{SoilMoisture12:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[13]}\",\"{SoilMoisture13:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[14]}\",\"{SoilMoisture14:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[15]}\",\"{SoilMoisture15:F0}\",\"{cumulus.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.SoilMoistureCaptions[16]}\",\"{SoilMoisture16:F0}\",\"{cumulus.SoilMoistureUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9409,7 +9477,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 256);
 
 			json.Append($"[\"Distance to last strike\",\"{LightningDistance.ToString(cumulus.WindRunFormat)}\",\"{cumulus.WindRunUnitText}\"],");
-			json.Append($"[\"Time of last strike\",\"{LightningTime.ToString()}\",\"\"],");
+			json.Append($"[\"Time of last strike\",\"{LightningTime}\",\"\"],");
 			json.Append($"[\"Number of strikes today\",\"{LightningStrikesToday}\",\"\"]");
 			json.Append("]}");
 			return json.ToString();
@@ -9435,6 +9503,78 @@ namespace CumulusMX
 			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness2}\"],");
 			json.Append($"[\"{cumulus.LeafCaptions[3]}\",\"{LeafTemp3.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness3}\"],");
 			json.Append($"[\"{cumulus.LeafCaptions[4]}\",\"{LeafTemp4.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness4}\"]");
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetAirLinkCountsOut()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.airLinkOut != null)
+			{
+				json.Append($"[\"1 μm\",\"{cumulus.airLinkDataOut.pm1:F1}\",\"--\",\"--\",\"--\",\"--\"],");
+				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataOut.pm2p5:F1}\",\"{cumulus.airLinkDataOut.pm2p5_1hr:F1}\",\"{cumulus.airLinkDataOut.pm2p5_3hr:F1}\",\"{cumulus.airLinkDataOut.pm2p5_24hr:F1}\",\"{cumulus.airLinkDataOut.pm2p5_nowcast:F1}\"],");
+				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataOut.pm10:F1}\",\"{cumulus.airLinkDataOut.pm10_1hr:F1}\",\"{cumulus.airLinkDataOut.pm10_3hr:F1}\",\"{cumulus.airLinkDataOut.pm10_24hr:F1}\",\"{cumulus.airLinkDataOut.pm10_nowcast:F1}\"]");
+			}
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetAirLinkAqiOut()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.airLinkOut != null)
+			{
+				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataOut.aqiPm2p5:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_1hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_3hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_24hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_nowcast:F1}\"],");
+				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataOut.aqiPm10:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_1hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_3hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_24hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_nowcast:F1}\"]");
+			}
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetAirLinkPctOut()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.airLinkOut != null)
+			{
+				json.Append($"[\"All sizes\",\"--\",\"{cumulus.airLinkDataOut.pct_1hr}%\",\"{cumulus.airLinkDataOut.pct_3hr}%\",\"{cumulus.airLinkDataOut.pct_24hr}%\",\"{cumulus.airLinkDataOut.pct_nowcast}%\"]");
+			}
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetAirLinkCountsIn()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.airLinkIn != null)
+			{
+				json.Append($"[\"1 μm\",\"{cumulus.airLinkDataIn.pm1}\",\"--\",\"--\",\"--\",\"--\"],");
+				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataIn.pm2p5}\",\"{cumulus.airLinkDataIn.pm2p5_1hr}\",\"{cumulus.airLinkDataIn.pm2p5_3hr}\",\"{cumulus.airLinkDataIn.pm2p5_24hr}\",\"{cumulus.airLinkDataIn.pm2p5_nowcast}\"],");
+				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataIn.pm10}\",\"{cumulus.airLinkDataIn.pm10_1hr}\",\"{cumulus.airLinkDataIn.pm10_3hr}\",\"{cumulus.airLinkDataIn.pm10_24hr}\",\"{cumulus.airLinkDataIn.pm10_nowcast}\"]");
+			}
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetAirLinkAqiIn()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.airLinkIn != null)
+			{
+				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataIn.aqiPm2p5:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_1hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_3hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_24hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_nowcast:F1}\"],");
+				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataIn.aqiPm10:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_1hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_3hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_24hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_nowcast:F1}\"]");
+			}
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetAirLinkPctIn()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.airLinkIn != null)
+			{
+				json.Append($"[\"All sizes\",\"--\",\"{cumulus.airLinkDataIn.pct_1hr}%\",\"{cumulus.airLinkDataIn.pct_3hr}%\",\"{cumulus.airLinkDataIn.pct_24hr}%\",\"{cumulus.airLinkDataIn.pct_nowcast}%\"]");
+			}
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -10103,9 +10243,9 @@ namespace CumulusMX
 				alltimerecarray[AT_HighPress].value, alltimerecarray[AT_LowPress].value, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				HighHourlyRainToday, HighHourlyRainTodayTime.ToString("HH:mm"), "F" + cumulus.Beaufort(HighWindToday), "F" + cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
-				cumulus.LowTempAlarmState, cumulus.HighTempAlarmState, cumulus.TempChangeUpAlarmState, cumulus.TempChangeDownAlarmState, cumulus.HighRainTodayAlarmState, cumulus.HighRainRateAlarmState,
-				cumulus.LowPressAlarmState, cumulus.HighPressAlarmState, cumulus.PressChangeUpAlarmState, cumulus.PressChangeDownAlarmState, cumulus.HighGustAlarmState, cumulus.HighWindAlarmState,
-				cumulus.SensorAlarmState, cumulus.BatteryLowAlarmState, cumulus.SpikeAlarmState,
+				cumulus.LowTempAlarm.triggered, cumulus.HighTempAlarm.triggered, cumulus.TempChangeAlarm.upTriggered, cumulus.TempChangeAlarm.downTriggered, cumulus.HighRainTodayAlarm.triggered, cumulus.HighRainRateAlarm.triggered,
+				cumulus.LowPressAlarm.triggered, cumulus.HighPressAlarm.triggered, cumulus.PressChangeAlarm.upTriggered, cumulus.PressChangeAlarm.downTriggered, cumulus.HighGustAlarm.triggered, cumulus.HighWindAlarm.triggered,
+				cumulus.SensorAlarm.triggered, cumulus.BatteryLowAlarm.triggered, cumulus.SpikeAlarm.triggered,
 				FeelsLike, HighFeelsLikeToday, HighFeelsLikeTodayTime.ToString("HH:mm:ss"), LowFeelsLikeToday, LowFeelsLikeTodayTime.ToString("HH:mm:ss"),
 				HighHumidexToday, HighHumidexTodayTime.ToString("HH:mm:ss"));
 
@@ -10137,7 +10277,7 @@ namespace CumulusMX
 			if (((previousGust != 999) && (Math.Abs(windGustMS - previousGust) > cumulus.SpikeGustDiff)) || windGustMS >= cumulus.LimitWindHigh)
 			{
 				cumulus.LogSpikeRemoval("Wind Gust difference greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS.ToString("F1")} OldVal={previousGust.ToString("F1")} SpikeGustDiff={cumulus.SpikeGustDiff.ToString("F1")} HighLimit={cumulus.LimitWindHigh.ToString("F1")}");
+				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.SpikeGustDiff:F1} HighLimit={cumulus.LimitWindHigh:F1}");
 				return false;
 			}
 
@@ -10201,7 +10341,7 @@ namespace CumulusMX
 						message.Clear();
 						message.Append($"{cumulus.APRSID}>APRS,TCPIP*:@{timeUTC}z{APRSLat(cumulus)}/{APRSLon(cumulus)}");
 						// bearing _nnn
-						message.Append($"_{AvgBearing.ToString("D3")}");
+						message.Append($"_{AvgBearing:D3}");
 						// wind speed mph /nnn
 						message.Append($"/{APRSwind(WindAverage)}");
 						// wind gust last 5 mins mph gnnn
@@ -10238,7 +10378,7 @@ namespace CumulusMX
 						// station type e<string>
 						message.Append($"eCumulus{cumulus.APRSstationtype[cumulus.StationType]}");
 
-						cumulus.LogDebugMessage($"Sending: {message.ToString()}");
+						cumulus.LogDebugMessage($"Sending: {message}");
 
 						//data = Encoding.ASCII.GetBytes(message.ToString());
 

@@ -556,7 +556,7 @@ namespace CumulusMX
 
 			// Now output everything
 
-			output.Add($"                   Monthly Climatological Summary for {thedate.ToString("MMM")} {year}");
+			output.Add($"                   Monthly Climatological Summary for {thedate:MMM} {year}");
 			output.Add("");
 			output.Add($"Name: {cumulus.NOAAname}   City: {cumulus.NOAAcity}   State: {cumulus.NOAAstate}");
 			string elev;

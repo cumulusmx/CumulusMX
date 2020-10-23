@@ -3,15 +3,31 @@
 - Fix: AirLink - Limit the number of decimal places in the AirLink log file
 - Fix: AirLink - The web tags for 1hr average AQI values were picking up the latest reading value in error
 - Fix: Send rounded wind speed to Weather Underground/Windy/PWS/WoW if Cumulus "Round Wind Speeds" is set
-- Fix: Attempt to reduce the memory leak for Davis WLL stations when running under Mono on Linux (major refactoring of the code)
-- Fix: Replaces a bad copy of trendsT.htm that crept into b3095 somehow
+- Fix: Replaces a bad copy of trendsT.htm that crept into b3095
+- Workaround for the Chromium browser CSS bug that adds scroll bars to the settings screens
 - Adds Netherlands LKI, and Belgian BelAQI AQI scales [6=Netherlands=LKI, 7=Belgium-BelAQI] to AirLink devices
+- All AirLink AQI web tags now support the tc=y parameter, to properly truncate the AQI to an integer value
+- Adds the ability to "latch" all alarms for a user configured number of hours
+- Adds a new web tag <#CPUTemp> - only works on Linux, updates once a minute
 
 - Updated files
 	\CumulusMX.exe
-	\interface\ExtraSensorOptions.json
-	\interface\ExtraSensorSchema.json
+	\FluentFTP.dll
+	\MQTTnet.dll
+	\Newtonsoft.Json.dll                        - REMOVED
+	\ServiceStack.Text.dll                      - NEW
+	\System.Buffers.dll                         - NEW
+	\System.Memory.dll                          - NEW
+	\System.Runtime.CompilerServices.Unsafe.dll - NEW
+	\interface\*.html
+	\interface\css\cumulus.css
+	\interface\json\ExtraSensorOptions.json
+	\interface\json\ExtraSensorSchema.json
+	\interface\js\airlink.js
+	\interface\alarmsettings.js
+	\interface\lib\alpaca\alpaca.css
 	\web\trendsT.htm
+
 
 
 

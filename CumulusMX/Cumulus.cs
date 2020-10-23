@@ -19,7 +19,8 @@ using System.Timers;
 using Devart.Data.MySql;
 using FluentFTP;
 using LinqToTwitter;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
+using ServiceStack.Text;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
@@ -719,6 +720,23 @@ namespace CumulusMX
 		public bool EODfilesNeedFTP = false;
 
 		public bool IsOSX;
+		public double CPUtemp = -999;
+
+		public Alarm DataStoppedAlarm = new Alarm();
+		public Alarm BatteryLowAlarm = new Alarm();
+		public Alarm SensorAlarm = new Alarm();
+		public Alarm SpikeAlarm = new Alarm();
+		public Alarm HighWindAlarm = new Alarm();
+		public Alarm HighGustAlarm = new Alarm();
+		public Alarm HighRainRateAlarm = new Alarm();
+		public Alarm HighRainTodayAlarm = new Alarm();
+		public AlarmChange PressChangeAlarm = new AlarmChange();
+		public Alarm HighPressAlarm = new Alarm();
+		public Alarm LowPressAlarm = new Alarm();
+		public AlarmChange TempChangeAlarm = new AlarmChange();
+		public Alarm HighTempAlarm = new Alarm();
+		public Alarm LowTempAlarm = new Alarm();
+
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
 		private const double DEFAULTFCHIGHPRESS = 1050.0;
@@ -1374,6 +1392,19 @@ namespace CumulusMX
 			syncInit.Wait();
 			LogDebugMessage("Lock: Cumulus has lock");
 
+			LogMessage("Creating extra sensors");
+			if (AirLinkInEnabled)
+			{
+				airLinkDataIn = new AirLinkData();
+				airLinkIn = new DavisAirLink(this, true);
+			}
+			if (AirLinkOutEnabled)
+			{
+				airLinkDataOut = new AirLinkData();
+				airLinkOut = new DavisAirLink(this, false);
+			}
+
+
 			LogMessage("Opening station");
 
 			switch (StationType)
@@ -1532,21 +1563,9 @@ namespace CumulusMX
 
 			InitialiseRG11();
 
-			if (AirLinkInEnabled)
-			{
-				airLinkDataIn = new AirLinkData();
-				airLinkIn = new DavisAirLink(this, true);
-			}
-			if (AirLinkOutEnabled)
-			{
-				airLinkDataOut = new AirLinkData();
-				airLinkOut = new DavisAirLink(this, false);
-			}
-
-
 			if (station != null && station.timerStartNeeded)
 			{
-				StartTimers();
+				StartTimersAndSensors();
 			}
 
 			if (station != null && (StationType == StationTypes.WMR100) || (StationType == StationTypes.EasyWeather) || (Manufacturer == OREGON))
@@ -2062,6 +2081,8 @@ namespace CumulusMX
 			MqttPublisher.UpdateMQTTfeed("Interval");
 		}
 
+		/*
+		 * 15/1020 - This does nothing!
 		public void AirLinkTimerTick(object sender, ElapsedEventArgs e)
 		{
 			if (AirLinkInEnabled && airLinkIn != null)
@@ -2073,7 +2094,7 @@ namespace CumulusMX
 				airLinkOut.GetAirQuality();
 			}
 		}
-
+		*/
 
 		private void PWSTimerTick(object sender, ElapsedEventArgs e)
 		{
@@ -2175,24 +2196,20 @@ namespace CumulusMX
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
 					LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
-					var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
-					//var jObject = JObject.Parse(responseBodyAsText);
+					//var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
+					var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
 
 					// Check the status response
 					if (respJson.status == 2)
-					//if (jObject.Value<int>("status") == 2)
 						LogMessage("AWEKAS: Data stored OK");
 					else if (respJson.status == 1)
-					//else if (jObject.Value<int>("status") == 1)
 					{
 						LogMessage("AWEKAS: Data PARIALLY stored");
 						// TODO: Check errors and disabled
 					}
 					else if (respJson.status == 0)  // Authenication error or rate limited
-					//else if (jObject.Value<int>("status") == 0)
 					{
 						if (respJson.minuploadtime > 0 && respJson.authentication == 0)
-						//if (!string.IsNullOrEmpty(jObject.Value<string>("authentication")) && jObject.Value<int>("authentication") == 0)
 						{
 							LogMessage("AWEKAS: Authentication error");
 							if (AwekasInterval < 60)
@@ -2206,7 +2223,6 @@ namespace CumulusMX
 							}
 						}
 						else if (respJson.minuploadtime == 0)
-						//else if (jObject.Value<int>("minuploadtime") == 0)
 						{
 							LogMessage("AWEKAS: Too many requests, rate limited");
 							if (AwekasInterval < 60)
@@ -2227,10 +2243,7 @@ namespace CumulusMX
 
 					// check the min upload time is greater than our upload time
 					if (respJson.status > 0 && respJson.minuploadtime > AwekasOriginalInterval)
-					//if (jObject.Value<int>("status") > 0 && jObject.Value<int>("minuploadtime") > AwekasInterval)
 					{
-						//LogMessage($"The minimum upload time to AWEKAS for your station is {jObject.Value<string>("minuploadtime")} sec, Cumulus is configured for {AwekasInterval} sec, increasing Cumulus interval to match AWEKAS");
-						//AwekasInterval = jObject.Value<int>("minuploadtime") <= 60 ? 1 : jObject.Value<int>("minuploadtime");
 						LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AwekasOriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
 						AwekasInterval = respJson.minuploadtime;
 						WriteIniFile();
@@ -3887,83 +3900,111 @@ namespace CumulusMX
 			MQTTIntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
 			MQTTIntervalRetained = ini.GetValue("MQTT", "IntervalRetained", false);
 
-			LowTempAlarmValue = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
-			LowTempAlarmEnabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
-			LowTempAlarmSound = ini.GetValue("Alarms", "LowTempAlarmSound", false);
-			LowTempAlarmSoundFile = ini.GetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile);
-			if (LowTempAlarmSoundFile.Contains(DefaultSoundFileOld)) LowTempAlarmSoundFile = DefaultSoundFile;
+			LowTempAlarm.value = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
+			LowTempAlarm.enabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
+			LowTempAlarm.sound = ini.GetValue("Alarms", "LowTempAlarmSound", false);
+			LowTempAlarm.soundFile = ini.GetValue("Alarms", "LowTempAlarmSoundFile", DefaultSoundFile);
+			if (LowTempAlarm.soundFile.Contains(DefaultSoundFileOld)) LowTempAlarm.soundFile = DefaultSoundFile;
+			LowTempAlarm.latch = ini.GetValue("Alarms", "LowTempAlarmLatch", false);
+			LowTempAlarm.latchHours = ini.GetValue("Alarms", "LowTempAlarmLatchHours", 24);
 
-			HighTempAlarmValue = ini.GetValue("Alarms", "alarmhightemp", 0.0);
-			HighTempAlarmEnabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
-			HighTempAlarmSound = ini.GetValue("Alarms", "HighTempAlarmSound", false);
-			HighTempAlarmSoundFile = ini.GetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile);
-			if (HighTempAlarmSoundFile.Contains(DefaultSoundFileOld)) HighTempAlarmSoundFile = DefaultSoundFile;
+			HighTempAlarm.value = ini.GetValue("Alarms", "alarmhightemp", 0.0);
+			HighTempAlarm.enabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
+			HighTempAlarm.sound = ini.GetValue("Alarms", "HighTempAlarmSound", false);
+			HighTempAlarm.soundFile = ini.GetValue("Alarms", "HighTempAlarmSoundFile", DefaultSoundFile);
+			if (HighTempAlarm.soundFile.Contains(DefaultSoundFileOld)) HighTempAlarm.soundFile = DefaultSoundFile;
+			HighTempAlarm.latch = ini.GetValue("Alarms", "HighTempAlarmLatch", false);
+			HighTempAlarm.latchHours = ini.GetValue("Alarms", "HighTempAlarmLatchHours", 24);
 
-			TempChangeAlarmValue = ini.GetValue("Alarms", "alarmtempchange", 0.0);
-			TempChangeAlarmEnabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
-			TempChangeAlarmSound = ini.GetValue("Alarms", "TempChangeAlarmSound", false);
-			TempChangeAlarmSoundFile = ini.GetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile);
-			if (TempChangeAlarmSoundFile.Contains(DefaultSoundFileOld)) TempChangeAlarmSoundFile = DefaultSoundFile;
+			TempChangeAlarm.value = ini.GetValue("Alarms", "alarmtempchange", 0.0);
+			TempChangeAlarm.enabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
+			TempChangeAlarm.sound = ini.GetValue("Alarms", "TempChangeAlarmSound", false);
+			TempChangeAlarm.soundFile = ini.GetValue("Alarms", "TempChangeAlarmSoundFile", DefaultSoundFile);
+			if (TempChangeAlarm.soundFile.Contains(DefaultSoundFileOld)) TempChangeAlarm.soundFile = DefaultSoundFile;
+			TempChangeAlarm.latch = ini.GetValue("Alarms", "TempChangeAlarmLatch", false);
+			TempChangeAlarm.latchHours = ini.GetValue("Alarms", "TempChangeAlarmLatchHours", 24);
 
-			LowPressAlarmValue = ini.GetValue("Alarms", "alarmlowpress", 0.0);
-			LowPressAlarmEnabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
-			LowPressAlarmSound = ini.GetValue("Alarms", "LowPressAlarmSound", false);
-			LowPressAlarmSoundFile = ini.GetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile);
-			if (LowPressAlarmSoundFile.Contains(DefaultSoundFileOld)) LowPressAlarmSoundFile = DefaultSoundFile;
+			LowPressAlarm.value = ini.GetValue("Alarms", "alarmlowpress", 0.0);
+			LowPressAlarm.enabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
+			LowPressAlarm.sound = ini.GetValue("Alarms", "LowPressAlarmSound", false);
+			LowPressAlarm.soundFile = ini.GetValue("Alarms", "LowPressAlarmSoundFile", DefaultSoundFile);
+			if (LowPressAlarm.soundFile.Contains(DefaultSoundFileOld)) LowPressAlarm.soundFile = DefaultSoundFile;
+			LowPressAlarm.latch = ini.GetValue("Alarms", "LowPressAlarmLatch", false);
+			LowPressAlarm.latchHours = ini.GetValue("Alarms", "LowPressAlarmLatchHours", 24);
 
-			HighPressAlarmValue = ini.GetValue("Alarms", "alarmhighpress", 0.0);
-			HighPressAlarmEnabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
-			HighPressAlarmSound = ini.GetValue("Alarms", "HighPressAlarmSound", false);
-			HighPressAlarmSoundFile = ini.GetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile);
-			if (HighPressAlarmSoundFile.Contains(DefaultSoundFileOld)) HighPressAlarmSoundFile = DefaultSoundFile;
+			HighPressAlarm.value = ini.GetValue("Alarms", "alarmhighpress", 0.0);
+			HighPressAlarm.enabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
+			HighPressAlarm.sound = ini.GetValue("Alarms", "HighPressAlarmSound", false);
+			HighPressAlarm.soundFile = ini.GetValue("Alarms", "HighPressAlarmSoundFile", DefaultSoundFile);
+			if (HighPressAlarm.soundFile.Contains(DefaultSoundFileOld)) HighPressAlarm.soundFile = DefaultSoundFile;
+			HighPressAlarm.latch = ini.GetValue("Alarms", "HighPressAlarmLatch", false);
+			HighPressAlarm.latchHours = ini.GetValue("Alarms", "HighPressAlarmLatchHours", 24);
 
-			PressChangeAlarmValue = ini.GetValue("Alarms", "alarmpresschange", 0.0);
-			PressChangeAlarmEnabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
-			PressChangeAlarmSound = ini.GetValue("Alarms", "PressChangeAlarmSound", false);
-			PressChangeAlarmSoundFile = ini.GetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile);
-			if (PressChangeAlarmSoundFile.Contains(DefaultSoundFileOld)) PressChangeAlarmSoundFile = DefaultSoundFile;
+			PressChangeAlarm.value = ini.GetValue("Alarms", "alarmpresschange", 0.0);
+			PressChangeAlarm.enabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
+			PressChangeAlarm.sound = ini.GetValue("Alarms", "PressChangeAlarmSound", false);
+			PressChangeAlarm.soundFile = ini.GetValue("Alarms", "PressChangeAlarmSoundFile", DefaultSoundFile);
+			if (PressChangeAlarm.soundFile.Contains(DefaultSoundFileOld)) PressChangeAlarm.soundFile = DefaultSoundFile;
+			PressChangeAlarm.latch = ini.GetValue("Alarms", "PressChangeAlarmLatch", false);
+			PressChangeAlarm.latchHours = ini.GetValue("Alarms", "PressChangeAlarmLatchHours", 24);
 
-			HighRainTodayAlarmValue = ini.GetValue("Alarms", "alarmhighraintoday", 0.0);
-			HighRainTodayAlarmEnabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
-			HighRainTodayAlarmSound = ini.GetValue("Alarms", "HighRainTodayAlarmSound", false);
-			HighRainTodayAlarmSoundFile = ini.GetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile);
-			if (HighRainTodayAlarmSoundFile.Contains(DefaultSoundFileOld)) HighRainTodayAlarmSoundFile = DefaultSoundFile;
+			HighRainTodayAlarm.value = ini.GetValue("Alarms", "alarmhighraintoday", 0.0);
+			HighRainTodayAlarm.enabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
+			HighRainTodayAlarm.sound = ini.GetValue("Alarms", "HighRainTodayAlarmSound", false);
+			HighRainTodayAlarm.soundFile = ini.GetValue("Alarms", "HighRainTodayAlarmSoundFile", DefaultSoundFile);
+			if (HighRainTodayAlarm.soundFile.Contains(DefaultSoundFileOld)) HighRainTodayAlarm.soundFile = DefaultSoundFile;
+			HighRainTodayAlarm.latch = ini.GetValue("Alarms", "HighRainTodayAlarmLatch", false);
+			HighRainTodayAlarm.latchHours = ini.GetValue("Alarms", "HighRainTodayAlarmLatchHours", 24);
 
-			HighRainRateAlarmValue = ini.GetValue("Alarms", "alarmhighrainrate", 0.0);
-			HighRainRateAlarmEnabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
-			HighRainRateAlarmSound = ini.GetValue("Alarms", "HighRainRateAlarmSound", false);
-			HighRainRateAlarmSoundFile = ini.GetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile);
-			if (HighRainRateAlarmSoundFile.Contains(DefaultSoundFileOld)) HighRainRateAlarmSoundFile = DefaultSoundFile;
+			HighRainRateAlarm.value = ini.GetValue("Alarms", "alarmhighrainrate", 0.0);
+			HighRainRateAlarm.enabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
+			HighRainRateAlarm.sound = ini.GetValue("Alarms", "HighRainRateAlarmSound", false);
+			HighRainRateAlarm.soundFile = ini.GetValue("Alarms", "HighRainRateAlarmSoundFile", DefaultSoundFile);
+			if (HighRainRateAlarm.soundFile.Contains(DefaultSoundFileOld)) HighRainRateAlarm.soundFile = DefaultSoundFile;
+			HighRainRateAlarm.latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
+			HighRainRateAlarm.latchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24);
 
-			HighGustAlarmValue = ini.GetValue("Alarms", "alarmhighgust", 0.0);
-			HighGustAlarmEnabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
-			HighGustAlarmSound = ini.GetValue("Alarms", "HighGustAlarmSound", false);
-			HighGustAlarmSoundFile = ini.GetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile);
-			if (HighGustAlarmSoundFile.Contains(DefaultSoundFileOld)) HighGustAlarmSoundFile = DefaultSoundFile;
+			HighGustAlarm.value = ini.GetValue("Alarms", "alarmhighgust", 0.0);
+			HighGustAlarm.enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
+			HighGustAlarm.sound = ini.GetValue("Alarms", "HighGustAlarmSound", false);
+			HighGustAlarm.soundFile = ini.GetValue("Alarms", "HighGustAlarmSoundFile", DefaultSoundFile);
+			if (HighGustAlarm.soundFile.Contains(DefaultSoundFileOld)) HighGustAlarm.soundFile = DefaultSoundFile;
+			HighGustAlarm.latch = ini.GetValue("Alarms", "HighGustAlarmLatch", false);
+			HighGustAlarm.latchHours = ini.GetValue("Alarms", "HighGustAlarmLatchHours", 24);
 
-			HighWindAlarmValue = ini.GetValue("Alarms", "alarmhighwind", 0.0);
-			HighWindAlarmEnabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
-			HighWindAlarmSound = ini.GetValue("Alarms", "HighWindAlarmSound", false);
-			HighWindAlarmSoundFile = ini.GetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile);
-			if (HighWindAlarmSoundFile.Contains(DefaultSoundFileOld)) HighWindAlarmSoundFile = DefaultSoundFile;
+			HighWindAlarm.value = ini.GetValue("Alarms", "alarmhighwind", 0.0);
+			HighWindAlarm.enabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
+			HighWindAlarm.sound = ini.GetValue("Alarms", "HighWindAlarmSound", false);
+			HighWindAlarm.soundFile = ini.GetValue("Alarms", "HighWindAlarmSoundFile", DefaultSoundFile);
+			if (HighWindAlarm.soundFile.Contains(DefaultSoundFileOld)) HighWindAlarm.soundFile = DefaultSoundFile;
+			HighWindAlarm.latch = ini.GetValue("Alarms", "HighWindAlarmLatch", false);
+			HighWindAlarm.latchHours = ini.GetValue("Alarms", "HighWindAlarmLatchHours", 24);
 
-			SensorAlarmEnabled = ini.GetValue("Alarms", "SensorAlarmSet", false);
-			SensorAlarmSound = ini.GetValue("Alarms", "SensorAlarmSound", false);
-			SensorAlarmSoundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
-			if (SensorAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
+			SensorAlarm.enabled = ini.GetValue("Alarms", "SensorAlarmSet", false);
+			SensorAlarm.sound = ini.GetValue("Alarms", "SensorAlarmSound", false);
+			SensorAlarm.soundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
+			if (SensorAlarm.soundFile.Contains(DefaultSoundFileOld)) SensorAlarm.soundFile = DefaultSoundFile;
+			SensorAlarm.latch = ini.GetValue("Alarms", "SensorAlarmLatch", false);
+			SensorAlarm.latchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 24);
 
-			DataStoppedAlarmEnabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", false);
-			DataStoppedAlarmSound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
-			DataStoppedAlarmSoundFile = ini.GetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
-			if (DataStoppedAlarmSoundFile.Contains(DefaultSoundFileOld)) SensorAlarmSoundFile = DefaultSoundFile;
+			DataStoppedAlarm.enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", false);
+			DataStoppedAlarm.sound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
+			DataStoppedAlarm.soundFile = ini.GetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
+			if (DataStoppedAlarm.soundFile.Contains(DefaultSoundFileOld)) SensorAlarm.soundFile = DefaultSoundFile;
+			DataStoppedAlarm.latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", false);
+			DataStoppedAlarm.latchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 24);
 
-			BatteryLowAlarmEnabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
-			BatteryLowAlarmSound = ini.GetValue("Alarms", "BatteryLowAlarmSound", false);
-			BatteryLowAlarmSoundFile = ini.GetValue("Alarms", "BatteryLowAlarmSoundFile", DefaultSoundFile);
+			BatteryLowAlarm.enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
+			BatteryLowAlarm.sound = ini.GetValue("Alarms", "BatteryLowAlarmSound", false);
+			BatteryLowAlarm.soundFile = ini.GetValue("Alarms", "BatteryLowAlarmSoundFile", DefaultSoundFile);
+			BatteryLowAlarm.latch = ini.GetValue("Alarms", "BatteryLowAlarmLatch", false);
+			BatteryLowAlarm.latchHours = ini.GetValue("Alarms", "BatteryLowAlarmLatchHours", 24);
 
-			SpikeAlarmEnabled = ini.GetValue("Alarms", "DataSpikeAlarmSet", false);
-			SpikeAlarmSound = ini.GetValue("Alarms", "DataSpikeAlarmSound", false);
-			SpikeAlarmSoundFile = ini.GetValue("Alarms", "DataSpikeAlarmSoundFile", DefaultSoundFile);
+			SpikeAlarm.enabled = ini.GetValue("Alarms", "DataSpikeAlarmSet", false);
+			SpikeAlarm.sound = ini.GetValue("Alarms", "DataSpikeAlarmSound", false);
+			SpikeAlarm.soundFile = ini.GetValue("Alarms", "DataSpikeAlarmSoundFile", DefaultSoundFile);
+			SpikeAlarm.latch = ini.GetValue("Alarms", "SpikeAlarmLatch", true);
+			SpikeAlarm.latchHours = ini.GetValue("Alarms", "SpikeAlarmLatchHours", 12);
 
 			PressOffset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			TempOffset = ini.GetValue("Offsets", "TempOffset", 0.0);
@@ -4059,7 +4100,7 @@ namespace CumulusMX
 			NOAAAutoFTP = ini.GetValue("NOAA", "AutoFTP", false);
 			NOAAMonthFileFormat = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
 			// Check for Cumulus 1 default format - and update
-			if (NOAAMonthFileFormat == "'NOAAMO'mmyy'.txt'")
+			if (NOAAMonthFileFormat == "'NOAAMO'mmyy'.txt'" || NOAAMonthFileFormat == "\"NOAAMO\"mmyy\".txt\"")
 			{
 				NOAAMonthFileFormat = "'NOAAMO'MMyy'.txt'";
 			}
@@ -4453,71 +4494,99 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "IntervalTemplate", MQTTIntervalTemplate);
 			ini.SetValue("MQTT", "IntervalRetained", MQTTIntervalRetained);
 
-			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarmValue);
-			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarmEnabled);
-			ini.SetValue("Alarms", "LowTempAlarmSound", LowTempAlarmSound);
-			ini.SetValue("Alarms", "LowTempAlarmSoundFile", LowTempAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarm.value);
+			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarm.enabled);
+			ini.SetValue("Alarms", "LowTempAlarmSound", LowTempAlarm.sound);
+			ini.SetValue("Alarms", "LowTempAlarm.SoundFile", LowTempAlarm.soundFile);
+			ini.SetValue("Alarms", "LowTempAlarmLatch", LowTempAlarm.latch);
+			ini.SetValue("Alarms", "LowTempAlarmLatchHours", LowTempAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmhightemp", HighTempAlarmValue);
-			ini.SetValue("Alarms", "HighTempAlarmSet", HighTempAlarmEnabled);
-			ini.SetValue("Alarms", "HighTempAlarmSound", HighTempAlarmSound);
-			ini.SetValue("Alarms", "HighTempAlarmSoundFile", HighTempAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmhightemp", HighTempAlarm.value);
+			ini.SetValue("Alarms", "HighTempAlarmSet", HighTempAlarm.enabled);
+			ini.SetValue("Alarms", "HighTempAlarmSound", HighTempAlarm.sound);
+			ini.SetValue("Alarms", "HighTempAlarmSoundFile", HighTempAlarm.soundFile);
+			ini.SetValue("Alarms", "HighTempAlarmLatch", HighTempAlarm.latch);
+			ini.SetValue("Alarms", "HighTempAlarmLatchHours", HighTempAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmtempchange", TempChangeAlarmValue);
-			ini.SetValue("Alarms", "TempChangeAlarmSet", TempChangeAlarmEnabled);
-			ini.SetValue("Alarms", "TempChangeAlarmSound", TempChangeAlarmSound);
-			ini.SetValue("Alarms", "TempChangeAlarmSoundFile", TempChangeAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmtempchange", TempChangeAlarm.value);
+			ini.SetValue("Alarms", "TempChangeAlarmSet", TempChangeAlarm.enabled);
+			ini.SetValue("Alarms", "TempChangeAlarmSound", TempChangeAlarm.sound);
+			ini.SetValue("Alarms", "TempChangeAlarmSoundFile", TempChangeAlarm.soundFile);
+			ini.SetValue("Alarms", "TempChangeAlarmLatch", TempChangeAlarm.latch);
+			ini.SetValue("Alarms", "TempChangeAlarmLatchHours", TempChangeAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmlowpress", LowPressAlarmValue);
-			ini.SetValue("Alarms", "LowPressAlarmSet", LowPressAlarmEnabled);
-			ini.SetValue("Alarms", "LowPressAlarmSound", LowPressAlarmSound);
-			ini.SetValue("Alarms", "LowPressAlarmSoundFile", LowPressAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmlowpress", LowPressAlarm.value);
+			ini.SetValue("Alarms", "LowPressAlarmSet", LowPressAlarm.enabled);
+			ini.SetValue("Alarms", "LowPressAlarmSound", LowPressAlarm.sound);
+			ini.SetValue("Alarms", "LowPressAlarmSoundFile", LowPressAlarm.soundFile);
+			ini.SetValue("Alarms", "LowPressAlarmLatch", LowPressAlarm.latch);
+			ini.SetValue("Alarms", "LowPressAlarmLatchHours", LowPressAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmhighpress", HighPressAlarmValue);
-			ini.SetValue("Alarms", "HighPressAlarmSet", HighPressAlarmEnabled);
-			ini.SetValue("Alarms", "HighPressAlarmSound", HighPressAlarmSound);
-			ini.SetValue("Alarms", "HighPressAlarmSoundFile", HighPressAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmhighpress", HighPressAlarm.value);
+			ini.SetValue("Alarms", "HighPressAlarmSet", HighPressAlarm.enabled);
+			ini.SetValue("Alarms", "HighPressAlarmSound", HighPressAlarm.sound);
+			ini.SetValue("Alarms", "HighPressAlarmSoundFile", HighPressAlarm.soundFile);
+			ini.SetValue("Alarms", "HighPressAlarmLatch", HighPressAlarm.latch);
+			ini.SetValue("Alarms", "HighPressAlarmLatchHours", HighPressAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmpresschange", PressChangeAlarmValue);
-			ini.SetValue("Alarms", "PressChangeAlarmSet", PressChangeAlarmEnabled);
-			ini.SetValue("Alarms", "PressChangeAlarmSound", PressChangeAlarmSound);
-			ini.SetValue("Alarms", "PressChangeAlarmSoundFile", PressChangeAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmpresschange", PressChangeAlarm.value);
+			ini.SetValue("Alarms", "PressChangeAlarmSet", PressChangeAlarm.enabled);
+			ini.SetValue("Alarms", "PressChangeAlarmSound", PressChangeAlarm.sound);
+			ini.SetValue("Alarms", "PressChangeAlarmSoundFile", PressChangeAlarm.soundFile);
+			ini.SetValue("Alarms", "PressChangeAlarmLatch", PressChangeAlarm.latch);
+			ini.SetValue("Alarms", "PressChangeAlarmLatchHours", PressChangeAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmhighraintoday", HighRainTodayAlarmValue);
-			ini.SetValue("Alarms", "HighRainTodayAlarmSet", HighRainTodayAlarmEnabled);
-			ini.SetValue("Alarms", "HighRainTodayAlarmSound", HighRainTodayAlarmSound);
-			ini.SetValue("Alarms", "HighRainTodayAlarmSoundFile", HighRainTodayAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmhighraintoday", HighRainTodayAlarm.value);
+			ini.SetValue("Alarms", "HighRainTodayAlarmSet", HighRainTodayAlarm.enabled);
+			ini.SetValue("Alarms", "HighRainTodayAlarmSound", HighRainTodayAlarm.sound);
+			ini.SetValue("Alarms", "HighRainTodayAlarmSoundFile", HighRainTodayAlarm.soundFile);
+			ini.SetValue("Alarms", "HighRainTodayAlarmLatch", HighRainTodayAlarm.latch);
+			ini.SetValue("Alarms", "HighRainTodayAlarmLatchHours", HighRainTodayAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmhighrainrate", HighRainRateAlarmValue);
-			ini.SetValue("Alarms", "HighRainRateAlarmSet", HighRainRateAlarmEnabled);
-			ini.SetValue("Alarms", "HighRainRateAlarmSound", HighRainRateAlarmSound);
-			ini.SetValue("Alarms", "HighRainRateAlarmSoundFile", HighRainRateAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmhighrainrate", HighRainRateAlarm.value);
+			ini.SetValue("Alarms", "HighRainRateAlarmSet", HighRainRateAlarm.enabled);
+			ini.SetValue("Alarms", "HighRainRateAlarmSound", HighRainRateAlarm.sound);
+			ini.SetValue("Alarms", "HighRainRateAlarmSoundFile", HighRainRateAlarm.soundFile);
+			ini.SetValue("Alarms", "HighRainRateAlarmLatch", HighRainRateAlarm.latch);
+			ini.SetValue("Alarms", "HighRainRateAlarmLatchHours", HighRainRateAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmhighgust", HighGustAlarmValue);
-			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarmEnabled);
-			ini.SetValue("Alarms", "HighGustAlarmSound", HighGustAlarmSound);
-			ini.SetValue("Alarms", "HighGustAlarmSoundFile", HighGustAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmhighgust", HighGustAlarm.value);
+			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarm.enabled);
+			ini.SetValue("Alarms", "HighGustAlarmSound", HighGustAlarm.sound);
+			ini.SetValue("Alarms", "HighGustAlarmSoundFile", HighGustAlarm.soundFile);
+			ini.SetValue("Alarms", "HighGustAlarmLatch", HighGustAlarm.latch);
+			ini.SetValue("Alarms", "HighGustAlarmLatchHours", HighGustAlarm.latchHours);
 
-			ini.SetValue("Alarms", "alarmhighwind", HighWindAlarmValue);
-			ini.SetValue("Alarms", "HighWindAlarmSet", HighWindAlarmEnabled);
-			ini.SetValue("Alarms", "HighWindAlarmSound", HighWindAlarmSound);
-			ini.SetValue("Alarms", "HighWindAlarmSoundFile", HighWindAlarmSoundFile);
+			ini.SetValue("Alarms", "alarmhighwind", HighWindAlarm.value);
+			ini.SetValue("Alarms", "HighWindAlarmSet", HighWindAlarm.enabled);
+			ini.SetValue("Alarms", "HighWindAlarmSound", HighWindAlarm.sound);
+			ini.SetValue("Alarms", "HighWindAlarmSoundFile", HighWindAlarm.soundFile);
+			ini.SetValue("Alarms", "HighWindAlarmLatch", HighWindAlarm.latch);
+			ini.SetValue("Alarms", "HighWindAlarmLatchHours", HighWindAlarm.latchHours);
 
-			ini.SetValue("Alarms", "SensorAlarmSet", SensorAlarmEnabled);
-			ini.SetValue("Alarms", "SensorAlarmSound", SensorAlarmSound);
-			ini.SetValue("Alarms", "SensorAlarmSoundFile", SensorAlarmSoundFile);
+			ini.SetValue("Alarms", "SensorAlarmSet", SensorAlarm.enabled);
+			ini.SetValue("Alarms", "SensorAlarmSound", SensorAlarm.sound);
+			ini.SetValue("Alarms", "SensorAlarmSoundFile", SensorAlarm.soundFile);
+			ini.SetValue("Alarms", "SensorAlarmLatch", SensorAlarm.latch);
+			ini.SetValue("Alarms", "SensorAlarmLatchHours", SensorAlarm.latchHours);
 
-			ini.SetValue("Alarms", "DataStoppedAlarmSet", DataStoppedAlarmEnabled);
-			ini.SetValue("Alarms", "DataStoppedAlarmSound", DataStoppedAlarmSound);
-			ini.SetValue("Alarms", "DataStoppedAlarmSoundFile", DataStoppedAlarmSoundFile);
+			ini.SetValue("Alarms", "DataStoppedAlarmSet", DataStoppedAlarm.enabled);
+			ini.SetValue("Alarms", "DataStoppedAlarmSound", DataStoppedAlarm.sound);
+			ini.SetValue("Alarms", "DataStoppedAlarmSoundFile", DataStoppedAlarm.soundFile);
+			ini.SetValue("Alarms", "DataStoppedAlarmLatch", DataStoppedAlarm.latch);
+			ini.SetValue("Alarms", "DataStoppedAlarmLatchHours", DataStoppedAlarm.latchHours);
 
-			ini.SetValue("Alarms", "BatteryLowAlarmSet", BatteryLowAlarmEnabled);
-			ini.SetValue("Alarms", "BatteryLowAlarmSound", BatteryLowAlarmSound);
-			ini.SetValue("Alarms", "BatteryLowAlarmSoundFile", BatteryLowAlarmSoundFile);
+			ini.SetValue("Alarms", "BatteryLowAlarmSet", BatteryLowAlarm.enabled);
+			ini.SetValue("Alarms", "BatteryLowAlarmSound", BatteryLowAlarm.sound);
+			ini.SetValue("Alarms", "BatteryLowAlarmSoundFile", BatteryLowAlarm.soundFile);
+			ini.SetValue("Alarms", "BatteryLowAlarmLatch", BatteryLowAlarm.latch);
+			ini.SetValue("Alarms", "BatteryLowAlarmLatchHours", BatteryLowAlarm.latchHours);
 
-			ini.SetValue("Alarms", "DataSpikeAlarmSet", SpikeAlarmEnabled);
-			ini.SetValue("Alarms", "DataSpikeAlarmSound", SpikeAlarmSound);
-			ini.SetValue("Alarms", "DataSpikeAlarmSoundFile", SpikeAlarmSoundFile);
+			ini.SetValue("Alarms", "DataSpikeAlarmSet", SpikeAlarm.enabled);
+			ini.SetValue("Alarms", "DataSpikeAlarmSound", SpikeAlarm.sound);
+			ini.SetValue("Alarms", "DataSpikeAlarmSoundFile", SpikeAlarm.soundFile);
+			ini.SetValue("Alarms", "DataSpikeAlarmLatch", SpikeAlarm.latch);
+			ini.SetValue("Alarms", "DataSpikeAlarmHours", SpikeAlarm.latchHours);
 
 			ini.SetValue("Offsets", "PressOffset", PressOffset);
 			ini.SetValue("Offsets", "TempOffset", TempOffset);
@@ -4965,88 +5034,6 @@ namespace CumulusMX
 			}
 		}
 
-		public string DataStoppedAlarmSoundFile { get; set; }
-		public bool DataStoppedAlarmSound { get; set; }
-		public bool DataStoppedAlarmEnabled { get; set; }
-
-		public string BatteryLowAlarmSoundFile { get; set; }
-		public bool BatteryLowAlarmSound { get; set; }
-		public bool BatteryLowAlarmEnabled { get; set; }
-		public bool BatteryLowAlarmState = false;
-
-		public string SensorAlarmSoundFile { get; set; }
-		public bool SensorAlarmSound { get; set; }
-		public bool SensorAlarmEnabled { get; set; }
-		public bool SensorAlarmState = false;
-
-		public string SpikeAlarmSoundFile { get; set; }
-		public bool SpikeAlarmSound { get; set; }
-		public bool SpikeAlarmEnabled { get; set; }
-		public bool SpikeAlarmState = false;
-
-		public bool HighWindAlarmSound { get; set; }
-		public string HighWindAlarmSoundFile { get; set; }
-		public bool HighWindAlarmEnabled { get; set; }
-		public double HighWindAlarmValue { get; set; }
-		public bool HighWindAlarmState = false;
-
-		public string HighGustAlarmSoundFile { get; set; }
-		public bool HighGustAlarmSound { get; set; }
-		public bool HighGustAlarmEnabled { get; set; }
-		public double HighGustAlarmValue { get; set; }
-		public bool HighGustAlarmState = false;
-
-		public string HighRainRateAlarmSoundFile { get; set; }
-		public bool HighRainRateAlarmSound { get; set; }
-		public bool HighRainRateAlarmEnabled { get; set; }
-		public double HighRainRateAlarmValue { get; set; }
-		public bool HighRainRateAlarmState = false;
-
-		public string HighRainTodayAlarmSoundFile { get; set; }
-		public bool HighRainTodayAlarmSound { get; set; }
-		public bool HighRainTodayAlarmEnabled { get; set; }
-		public double HighRainTodayAlarmValue { get; set; }
-		public bool HighRainTodayAlarmState = false;
-
-		public string PressChangeAlarmSoundFile { get; set; }
-		public bool PressChangeAlarmSound { get; set; }
-		public bool PressChangeAlarmEnabled { get; set; }
-		public double PressChangeAlarmValue { get; set; }
-
-		public bool PressChangeUpAlarmState = false;
-		public bool PressChangeDownAlarmState = false;
-
-		public string HighPressAlarmSoundFile { get; set; }
-		public bool HighPressAlarmSound { get; set; }
-		public bool HighPressAlarmEnabled { get; set; }
-		public double HighPressAlarmValue { get; set; }
-		public bool HighPressAlarmState = false;
-
-		public string LowPressAlarmSoundFile { get; set; }
-		public bool LowPressAlarmSound { get; set; }
-		public bool LowPressAlarmEnabled { get; set; }
-		public double LowPressAlarmValue { get; set; }
-		public bool LowPressAlarmState = false;
-
-		public string TempChangeAlarmSoundFile { get; set; }
-		public bool TempChangeAlarmSound { get; set; }
-		public bool TempChangeAlarmEnabled { get; set; }
-		public double TempChangeAlarmValue { get; set; }
-
-		public bool TempChangeUpAlarmState = false;
-		public bool TempChangeDownAlarmState = false;
-
-		public string HighTempAlarmSoundFile { get; set; }
-		public bool HighTempAlarmSound { get; set; }
-		public bool HighTempAlarmEnabled { get; set; }
-		public double HighTempAlarmValue { get; set; }
-		public bool HighTempAlarmState = false;
-
-		public string LowTempAlarmSoundFile { get; set; }
-		public bool LowTempAlarmSound { get; set; }
-		public bool LowTempAlarmEnabled { get; set; }
-		public bool LowTempAlarmState = false;
-		public double LowTempAlarmValue { get; set; }
 
 		public bool UseBlakeLarsen { get; set; }
 
@@ -5431,7 +5418,7 @@ namespace CumulusMX
 		public Timer AwekasTimer = new Timer();
 		public Timer WCloudTimer = new Timer();
 		public Timer MQTTTimer = new Timer();
-		public Timer AirLinkTimer = new Timer();
+		//public Timer AirLinkTimer = new Timer();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -6627,7 +6614,7 @@ namespace CumulusMX
 				AwekasTimer.Stop();
 				WCloudTimer.Stop();
 				MQTTTimer.Stop();
-				AirLinkTimer.Stop();
+				//AirLinkTimer.Stop();
 				CustomHttpSecondsTimer.Stop();
 				CustomMysqlSecondsTimer.Stop();
 				MQTTTimer.Stop();
@@ -7639,7 +7626,7 @@ namespace CumulusMX
 						if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 						{
 							// delete old entries
-							cmd.CommandText = $"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB('{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}', INTERVAL {MySqlRealtimeRetention})";
+							cmd.CommandText = $"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB('{DateTime.Now:yyyy-MM-dd HH:mm:ss}', INTERVAL {MySqlRealtimeRetention})";
 							LogDebugMessage($"Realtime[{cycle}]: Running SQL command: {cmd.CommandText}");
 
 							try
@@ -7693,8 +7680,18 @@ namespace CumulusMX
 			}
 		}
 
-		public void StartTimers()
+		public void StartTimersAndSensors()
 		{
+			LogMessage("Start Extra Sensors");
+			if (airLinkOut != null)
+			{
+				airLinkOut.Start() ;
+			}
+			if (airLinkIn != null)
+			{
+				airLinkIn.Start();
+			}
+
 			LogMessage("Start Timers");
 			// start the general one-minute timer
 			LogMessage("Starting 1-minute timer");
@@ -7750,12 +7747,16 @@ namespace CumulusMX
 
 			MQTTTimer.Interval = MQTTIntervalTime * 1000; // secs to millisecs
 
+
+			// 15/10/20 What is doing? Nothing
+			/*
 			if (AirLinkInEnabled || AirLinkOutEnabled)
 			{
 				AirLinkTimer.Interval = 60 * 1000; // 1 minute
 				AirLinkTimer.Enabled = true;
 				AirLinkTimer.Elapsed += AirLinkTimerTick;
 			}
+			*/
 
 			if (MQTTEnableInterval)
 			{
@@ -8687,13 +8688,13 @@ namespace CumulusMX
 		public void LogOffsetsMultipliers()
 		{
 			LogMessage("Offsets and Multipliers:");
-			LogMessage($"PO={PressOffset.ToString("F3")} TO={TempOffset.ToString("F3")} HO={HumOffset} WDO={WindDirOffset} ITO={InTempoffset.ToString("F3")} SO={SolarOffset.ToString("F3")} UVO={UVOffset.ToString("F3")}");
-			LogMessage($"PM={PressMult.ToString("F3")} WSM={WindSpeedMult.ToString("F3")} WGM={WindGustMult.ToString("F3")} TM={TempMult.ToString("F3")} TM2={TempMult2.ToString("F3")} " +
-						$"HM={HumMult.ToString("F3")} HM2={HumMult2.ToString("F3")} RM={RainMult.ToString("F3")} SM={SolarMult.ToString("F3")} UVM={UVMult.ToString("F3")}");
+			LogMessage($"PO={PressOffset:F3} TO={TempOffset:F3} HO={HumOffset} WDO={WindDirOffset} ITO={InTempoffset:F3} SO={SolarOffset:F3} UVO={UVOffset:F3}");
+			LogMessage($"PM={PressMult:F3} WSM={WindSpeedMult:F3} WGM={WindGustMult:F3} TM={TempMult:F3} TM2={TempMult2:F3} " +
+						$"HM={HumMult:F3} HM2={HumMult2:F3} RM={RainMult:F3} SM={SolarMult:F3} UVM={UVMult:F3}");
 			LogMessage("Spike removal:");
-			LogMessage($"TD={SpikeTempDiff.ToString("F3")} GD={SpikeGustDiff.ToString("F3")} WD={SpikeWindDiff.ToString("F3")} HD={SpikeHumidityDiff.ToString("F3")} PD={SpikePressDiff.ToString("F3")} MR={SpikeMaxRainRate.ToString("F3")} MH={SpikeMaxHourlyRain.ToString("F3")}");
+			LogMessage($"TD={SpikeTempDiff:F3} GD={SpikeGustDiff:F3} WD={SpikeWindDiff:F3} HD={SpikeHumidityDiff:F3} PD={SpikePressDiff:F3} MR={SpikeMaxRainRate:F3} MH={SpikeMaxHourlyRain:F3}");
 			LogMessage("Limits:");
-			LogMessage($"TH={LimitTempHigh.ToString(TempFormat)} TL={LimitTempLow.ToString(TempFormat)} DH={LimitDewHigh.ToString(TempFormat)} PH={LimitPressHigh.ToString(PressFormat)} PL={LimitPressLow.ToString(PressFormat)} GH={LimitWindHigh.ToString("F3")}");
+			LogMessage($"TH={LimitTempHigh.ToString(TempFormat)} TL={LimitTempLow.ToString(TempFormat)} DH={LimitDewHigh.ToString(TempFormat)} PH={LimitPressHigh.ToString(PressFormat)} PL={LimitPressLow.ToString(PressFormat)} GH={LimitWindHigh:F3}");
 
 		}
 	}
@@ -8837,6 +8838,123 @@ namespace CumulusMX
 		public int leafwetness1 { get; set; }
 		public int leafwetness2 { get; set; }
 		public int report { get; set; }
+	}
+
+	public class Alarm
+	{
+		public bool enabled { get; set; }
+		public double value { get; set; }
+		public bool sound { get; set; }
+		public string soundFile { get; set; }
+
+		bool _triggered = false;
+		public bool triggered
+		{
+			get { return _triggered; }
+			set
+			{
+				if (value)
+				{
+					// If we get a new trigger, record the time
+					_triggered = value;
+					triggeredTime = DateTime.Now;
+				}
+				else
+				{
+					// If the trigger is cleared, check if we should be latching the value
+					if (latch)
+					{
+						if (DateTime.Now > triggeredTime.AddHours(latchHours))
+						{
+							// We are latching, but the latch period has expired, clear the trigger
+							_triggered = value;
+						}
+					}
+					else
+					{
+						// No latch, just clear the trigger
+						_triggered = value;
+					}
+				}
+			}
+		}
+		public DateTime triggeredTime { get; set; }
+		public bool latch { get; set; }
+		public int latchHours { get; set; }
+	}
+
+	public class AlarmChange : Alarm
+	{
+		//public bool changeUp { get; set; }
+		//public bool changeDown { get; set; }
+
+		bool _upTriggered = false;
+		public bool upTriggered
+		{
+			get { return _upTriggered; }
+			set
+			{
+				if (value)
+				{
+					// If we get a new trigger, record the time
+					_upTriggered = value;
+					upTriggeredTime = DateTime.Now;
+				}
+				else
+				{
+					// If the trigger is cleared, check if we should be latching the value
+					if (latch)
+					{
+						if (DateTime.Now > upTriggeredTime.AddHours(latchHours))
+						{
+							// We are latching, but the latch period has expired, clear the trigger
+							_upTriggered = value;
+						}
+					}
+					else
+					{
+						// No latch, just clear the trigger
+						_upTriggered = value;
+					}
+				}
+			}
+		}
+		public DateTime upTriggeredTime { get; set; }
+
+
+		bool _downTriggered = false;
+		public bool downTriggered
+		{
+			get { return _downTriggered; }
+			set
+			{
+				if (value)
+				{
+					// If we get a new trigger, record the time
+					_downTriggered = value;
+					downTriggeredTime = DateTime.Now;
+				}
+				else
+				{
+					// If the trigger is cleared, check if we should be latching the value
+					if (latch)
+					{
+						if (DateTime.Now > downTriggeredTime.AddHours(latchHours))
+						{
+							// We are latching, but the latch period has expired, clear the trigger
+							_downTriggered = value;
+						}
+					}
+					else
+					{
+						// No latch, just clear the trigger
+						_downTriggered = value;
+					}
+				}
+			}
+		}
+
+		public DateTime downTriggeredTime { get; set; }
 	}
 
 }

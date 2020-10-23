@@ -2,7 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Threading;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
+using ServiceStack.Text;
 using Unosquare.Labs.EmbedIO;
 using System.Reflection;
 
@@ -239,7 +240,8 @@ namespace CumulusMX
 				Graphs = graphs
 			};
 
-			return JsonConvert.SerializeObject(data);
+			//return JsonConvert.SerializeObject(data);
+			return JsonSerializer.SerializeToString(data);
 		}
 
 		public string GetStationAlpacaFormOptions()
@@ -323,7 +325,8 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonConvert.DeserializeObject<JsonStationSettingsData>(json);
+				//var settings = JsonConvert.DeserializeObject<JsonStationSettingsData>(json);
+				var settings = JsonSerializer.DeserializeFromString<JsonStationSettingsData>(json);
 				// process the settings
 
 				// Graph Config

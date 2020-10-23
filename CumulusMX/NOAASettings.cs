@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
-using Newtonsoft.Json;
+using ServiceStack;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -80,7 +80,7 @@ namespace CumulusMX
 						   normalrain = normalrain
 					   };
 
-			return JsonConvert.SerializeObject(data);
+			return data.ToJson();
 		}
 
 		public string GetNoaaAlpacaFormOptions()
@@ -112,7 +112,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonConvert.DeserializeObject<JsonNOAASettingsData>(json);
+				var settings = json.FromJson<JsonNOAASettingsData>();
 				// process the settings
 				cumulus.LogMessage("Updating NOAA settings");
 				var InvC = new CultureInfo("");
@@ -182,58 +182,58 @@ namespace CumulusMX
 
 	public class JsonNOAASettingsData
 	{
-		public string sitename;
-		public string city;
-		public string state;
-		public int timeformat;
-		public string monthfileformat;
-		public string yearfileformat;
-		public bool utf8;
-		public bool autosave;
-		public bool autoftp;
-		public string ftpdirectory;
-		public double heatingthreshold;
-		public double coolingthreshold;
-		public double maxtempcomp1;
-		public double maxtempcomp2;
-		public double mintempcomp1;
-		public double mintempcomp2;
-		public double raincomp1;
-		public double raincomp2;
-		public double raincomp3;
-		public JsonNOAASettingsNormalMeanTemps normalmeantemps;
-		public JsonNOAASettingsNormalRain normalrain;
+		public string sitename {get; set; }
+		public string city {get; set; }
+		public string state {get; set; }
+		public int timeformat {get; set; }
+		public string monthfileformat {get; set; }
+		public string yearfileformat {get; set; }
+		public bool utf8 {get; set; }
+		public bool autosave {get; set; }
+		public bool autoftp {get; set; }
+		public string ftpdirectory {get; set; }
+		public double heatingthreshold {get; set; }
+		public double coolingthreshold {get; set; }
+		public double maxtempcomp1 {get; set; }
+		public double maxtempcomp2 {get; set; }
+		public double mintempcomp1 {get; set; }
+		public double mintempcomp2 {get; set; }
+		public double raincomp1 {get; set; }
+		public double raincomp2 {get; set; }
+		public double raincomp3 {get; set; }
+		public JsonNOAASettingsNormalMeanTemps normalmeantemps {get; set; }
+		public JsonNOAASettingsNormalRain normalrain {get; set; }
 	}
 
 	public class JsonNOAASettingsNormalMeanTemps
 	{
-		public double jan;
-		public double feb;
-		public double mar;
-		public double apr;
-		public double may;
-		public double jun;
-		public double jul;
-		public double aug;
-		public double sep;
-		public double oct;
-		public double nov;
-		public double dec;
+		public double jan {get; set; }
+		public double feb {get; set; }
+		public double mar {get; set; }
+		public double apr {get; set; }
+		public double may {get; set; }
+		public double jun {get; set; }
+		public double jul {get; set; }
+		public double aug {get; set; }
+		public double sep {get; set; }
+		public double oct {get; set; }
+		public double nov {get; set; }
+		public double dec {get; set; }
 	}
 
 	public class JsonNOAASettingsNormalRain
 	{
-		public double jan;
-		public double feb;
-		public double mar;
-		public double apr;
-		public double may;
-		public double jun;
-		public double jul;
-		public double aug;
-		public double sep;
-		public double oct;
-		public double nov;
-		public double dec;
+		public double jan {get; set; }
+		public double feb {get; set; }
+		public double mar {get; set; }
+		public double apr {get; set; }
+		public double may {get; set; }
+		public double jun {get; set; }
+		public double jul {get; set; }
+		public double aug {get; set; }
+		public double sep {get; set; }
+		public double oct {get; set; }
+		public double nov {get; set; }
+		public double dec {get; set; }
 	}
 }
