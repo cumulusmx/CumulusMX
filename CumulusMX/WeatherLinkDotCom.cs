@@ -4,12 +4,29 @@ using System;
 //using System;
 using System.Collections.Generic;
 using System.Reflection;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CumulusMX
 {
+	internal class WlDotCom
+	{
+
+		public static string CalculateApiSignature(string apiSecret, string data)
+		{
+			/*
+			 Calculate the HMAC SHA-256 hash that will be used as the API Signature.
+			 */
+			string apiSignatureString = null;
+			using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(apiSecret)))
+			{
+				byte[] apiSignatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
+				apiSignatureString = BitConverter.ToString(apiSignatureBytes).Replace("-", "").ToLower();
+			}
+			return apiSignatureString;
+		}
+	}
+
 	public class WlHistory
 	{
 		public int station_id { get; set; }

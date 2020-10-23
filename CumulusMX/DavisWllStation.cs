@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Net.Sockets;
 using Tmds.MDns;
 using System.Net;
-using System.Security.Cryptography;
 using System.ComponentModel;
 using System.Collections.Generic;
 using ServiceStack;
@@ -1254,20 +1253,6 @@ namespace CumulusMX
 			TxBatText = TxBatText.Trim();
 		}
 
-		private string CalculateApiSignature(string apiSecret, string data)
-		{
-			/*
-			 Calculate the HMAC SHA-256 hash that will be used as the API Signature.
-			 */
-			string apiSignatureString = null;
-			using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(apiSecret)))
-			{
-				byte[] apiSignatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
-				apiSignatureString = BitConverter.ToString(apiSignatureBytes).Replace("-", "").ToLower();
-			}
-			return apiSignatureString;
-		}
-
 		public override void startReadingHistoryData()
 		{
 			cumulus.CurrentActivity = "Reading archive data";
@@ -1423,7 +1408,7 @@ namespace CumulusMX
 
 			string data = dataStringBuilder.ToString();
 
-			var apiSignature = CalculateApiSignature(cumulus.WllApiSecret, data);
+			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, data);
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
@@ -2519,7 +2504,7 @@ namespace CumulusMX
 
 			string data = dataStringBuilder.ToString();
 
-			var apiSignature = CalculateApiSignature(cumulus.WllApiSecret, data);
+			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, data);
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
@@ -2662,7 +2647,7 @@ namespace CumulusMX
 			}
 			string header = dataStringBuilder.ToString();
 
-			var apiSignature = CalculateApiSignature(cumulus.WllApiSecret, header);
+			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, header);
 			parameters.Add("api-signature", apiSignature);
 
 			StringBuilder stationsUrl = new StringBuilder();
@@ -2770,7 +2755,7 @@ namespace CumulusMX
 			}
 			string header = dataStringBuilder.ToString();
 
-			var apiSignature = CalculateApiSignature(cumulus.WllApiSecret, header);
+			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, header);
 			parameters.Add("api-signature", apiSignature);
 
 			StringBuilder stationsUrl = new StringBuilder();
