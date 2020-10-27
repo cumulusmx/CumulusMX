@@ -3788,6 +3788,10 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.triggered = true;
 				return;
 			}
+
+			previousGust = windGustMS;
+			previousWind = windAvgMS;
+
 			// use bearing of zero when calm
 			if ((Math.Abs(gustpar) < 0.001) && cumulus.UseZeroBearing)
 			{

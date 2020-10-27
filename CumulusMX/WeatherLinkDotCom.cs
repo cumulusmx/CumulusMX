@@ -11,7 +11,6 @@ namespace CumulusMX
 {
 	internal class WlDotCom
 	{
-
 		public static string CalculateApiSignature(string apiSecret, string data)
 		{
 			/*
@@ -319,17 +318,18 @@ namespace CumulusMX
 	// Data Structure type 18 = AirLink Health record
 	public class WlHistorySensorDataType18
 	{
-		public long air_quality_firmware_version { get; set; }
+		public long? air_quality_firmware_version { get; set; }	// OLD original incorrect name
+		public long? firmware_version { get; set; }				// NEW correct name
 		public string application_sha { get; set; }
 		public string application_version { get; set; }
 		public long bootloader_version { get; set; }
 		public int? dns_type_used { get; set; }
 		public int dropped_packets { get; set; }
 		public int health_version { get; set; }
-		public int internal_free_memory_chunk_size { get; set; }
-		public int internal_free_memory_watermark { get; set; }
-		public int internal_free_memory { get; set; }
-		public int internal_used_memory { get; set; }
+		public int internal_free_mem_chunk_size { get; set; }
+		public int internal_free_mem_watermark { get; set; }
+		public int internal_free_mem { get; set; }
+		public int internal_used_mem { get; set; }
 		public int ip_address_type { get; set; }
 		public string ip_v4_address { get; set; }
 		public string ip_v4_gateway { get; set; }
@@ -342,8 +342,8 @@ namespace CumulusMX
 		public int record_stored_count { get; set; }
 		public int record_write_count { get; set; }
 		public long rx_packets { get; set; }
-		public int total_free_memory { get; set; }
-		public int total_used_memory { get; set; }
+		public int total_free_mem { get; set; }
+		public int total_used_mem { get; set; }
 		public long ts { get; set; }
 		public long tx_packets { get; set; }
 		public double uptime { get; set; }

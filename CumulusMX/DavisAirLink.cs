@@ -279,11 +279,11 @@ namespace CumulusMX
 						{
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.humidity = (int)rec.hum;
+								cumulus.airLinkDataIn.humidity = Convert.ToInt32(rec.hum);
 							}
 							else
 							{
-								cumulus.airLinkDataOut.humidity = (int)rec.hum;
+								cumulus.airLinkDataOut.humidity = Convert.ToInt32(rec.hum);
 							}
 						}
 						catch (Exception ex)
@@ -685,7 +685,6 @@ namespace CumulusMX
 			return;
 		}
 
-
 		public void DecodeAlHistoric(int dataType, string json)
 		{
 			DateTime recordTs;
@@ -763,11 +762,11 @@ namespace CumulusMX
 						{
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.humidity = (int)data17.hum_last;
+								cumulus.airLinkDataIn.humidity = Convert.ToInt32(data17.hum_last);
 							}
 							else
 							{
-								cumulus.airLinkDataOut.humidity = (int)data17.hum_last;
+								cumulus.airLinkDataOut.humidity = Convert.ToInt32(data17.hum_last);
 							}
 						}
 						catch (Exception ex)
@@ -1003,7 +1002,8 @@ namespace CumulusMX
 			{
 				/* AirLink
 				 * Available fields of interest to health
-					"air_quality_firmware_version": 1598649428
+					"air_quality_firmware_version": 1598649428	- OLD
+					"firmware_version": 1598649428				- NEW
 					"application_version": "v1.0.0"
 					"bootloader_version": 527991452
 					"dns_type_used": null
@@ -1014,19 +1014,19 @@ namespace CumulusMX
 					"network_error": null
 					"local_api_queries": 0
 					"health_version": 2
-					"internal_free_memory_chunk_size": 34812	- bytes
-					"internal_free_memory_watermark": 54552		- bytes
-					"internal_free_memory": 75596				- bytes
-					"internal_used_memory": 139656				- bytes
-					"ip_address_type": 1						- 1=Dynamic, 2=Dyn DNS Override, 3=Static
+					"internal_free_mem_chunk_size": 34812	- bytes
+					"internal_free_mem_watermark": 54552	- bytes
+					"internal_free_mem": 75596				- bytes
+					"internal_used_mem": 139656				- bytes
+					"ip_address_type": 1					- 1=Dynamic, 2=Dyn DNS Override, 3=Static
 					"ip_v4_address": "192.168.68.137"
 					"ip_v4_gateway": "192.168.68.1"
 					"ip_v4_netmask": "255.255.255.0"
 					"record_backlog_count": 0
 					"record_stored_count": 2048
 					"record_write_count": 5106
-					"total_free_memory": 2212176
-					"total_used_memory": 779380
+					"total_free_mem": 2212176
+					"total_used_mem": 779380
 					"uptime": 283862
 					"link_uptime": 283856
 					"wifi_rssi": -48
@@ -1040,7 +1040,8 @@ namespace CumulusMX
 
 					try
 					{
-						var dat = FromUnixTime(data.air_quality_firmware_version);
+						// Davis are changing the API, from air_quality_firmware_version to firmware_version
+						var dat = FromUnixTime(data.air_quality_firmware_version.HasValue ? data.air_quality_firmware_version.Value : data.firmware_version.Value);
 						if (indoor)
 							cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 						else
@@ -1087,7 +1088,7 @@ namespace CumulusMX
 
 					try
 					{
-						var upt = TimeSpan.FromSeconds((long)data.link_uptime);
+						var upt = TimeSpan.FromSeconds(data.link_uptime);
 						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
 								(int)upt.TotalDays,
 								upt.Hours,
@@ -1101,7 +1102,7 @@ namespace CumulusMX
 					}
 
 					// Only present if WiFi attached
-					if (data.wifi_rssi == null)
+					if (!data.wifi_rssi.HasValue)
 					{
 						cumulus.LogMessage($"AirLinkHealth: {locationStr} - No WiFi RSSI value found");
 					}
@@ -1109,11 +1110,11 @@ namespace CumulusMX
 					{
 						if (indoor)
 						{
-							cumulus.airLinkDataIn.wifiRssi = (int)data.wifi_rssi;
+							cumulus.airLinkDataIn.wifiRssi = data.wifi_rssi.Value;
 						}
 						else
 						{
-							cumulus.airLinkDataOut.wifiRssi = (int)data.wifi_rssi;
+							cumulus.airLinkDataOut.wifiRssi = data.wifi_rssi.Value;
 						}
 						cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - WiFi RSSI={data.wifi_rssi}dB");
 					}
@@ -1122,9 +1123,9 @@ namespace CumulusMX
 					{
 						var txCnt = (int)data.tx_packets;
 						var rxCnt = (int)data.rx_packets;
-						var dropped = (int)data.dropped_packets;
-						var bad = (int)data.packet_errors;
-						var error = data.network_error == null ? "none" : ((int)data.network_error).ToString();
+						var dropped = data.dropped_packets;
+						var bad = data.packet_errors;
+						var error = data.network_error.HasValue ? data.network_error.Value.ToString() : "none";
 						cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Network:  Tx={txCnt}, Rx={rxCnt}, drop={dropped}, bad={bad}, error='{error}'");
 					}
 					catch (Exception ex)
@@ -1339,7 +1340,6 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API exception: " + ex.Message);
 			}
 		}
-
 
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
@@ -1564,6 +1564,7 @@ namespace CumulusMX
 		{
 			public AlCurrentData data { get; set; }
 		}
+
 		private class AlCurrentData
 		{
 			public string did { get; set; }

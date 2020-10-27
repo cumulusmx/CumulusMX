@@ -4,11 +4,14 @@
 - Fix: AirLink - The web tags for 1hr average AQI values were picking up the latest reading value in error
 - Fix: Send rounded wind speed to Weather Underground/Windy/PWS/WoW if Cumulus "Round Wind Speeds" is set
 - Fix: Replaces a bad copy of trendsT.htm that crept into b3095
+- Fix: Bug in wind spike removal that prevented it working
+- Fix: Airlink caused premature day rollover processing during catch-up
 - Workaround for the Chromium browser CSS bug that adds scroll bars to the settings screens
 - Adds Netherlands LKI, and Belgian BelAQI AQI scales [6=Netherlands=LKI, 7=Belgium-BelAQI] to AirLink devices
 - All AirLink AQI web tags now support the tc=y parameter, to properly truncate the AQI to an integer value
 - Adds the ability to "latch" all alarms for a user configured number of hours
 - Adds a new web tag <#CPUTemp> - only works on Linux, updates once a minute
+- Change of JSON library from Newtonsoft to ServiceStack.Text
 
 - Updated files
 	\CumulusMX.exe
