@@ -7,6 +7,7 @@
 - Fix: Bug in wind spike removal that prevented it working
 - Fix: Airlink caused premature day rollover processing during catch-up
 - Workaround for the Chromium browser CSS bug that adds scroll bars to the settings screens
+- Adds a new AirLink Sensors page to the admin interface
 - Adds Netherlands LKI, and Belgian BelAQI AQI scales [6=Netherlands=LKI, 7=Belgium-BelAQI] to AirLink devices
 - All AirLink AQI web tags now support the tc=y parameter, to properly truncate the AQI to an integer value
 - Adds the ability to "latch" all alarms for a user configured number of hours
@@ -14,6 +15,7 @@
 - Change of JSON library from Newtonsoft to ServiceStack.Text
 
 - Updated files
+	\AirLinkFileHeader.txt                      - NEW
 	\CumulusMX.exe
 	\FluentFTP.dll
 	\MQTTnet.dll
@@ -22,11 +24,14 @@
 	\System.Buffers.dll                         - NEW
 	\System.Memory.dll                          - NEW
 	\System.Runtime.CompilerServices.Unsafe.dll - NEW
-	\interface\*.html
+	\interface\*.html                           - ALL html files
 	\interface\css\cumulus.css
-	\interface\json\ExtraSensorOptions.json
-	\interface\json\ExtraSensorSchema.json
+	\interface\json\ExtraSensorOptions.json     - NEW
+	\interface\json\ExtraSensorSchema.json      - NEW
+	\interface\json\InternetSchema.json
+	\interface\json\InternetOptions.json
 	\interface\js\airlink.js
+	\interface\js\extrasensorsettings.js        - NEW
 	\interface\alarmsettings.js
 	\interface\lib\alpaca\alpaca.css
 	\web\trendsT.htm
