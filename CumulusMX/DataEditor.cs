@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Unosquare.Labs.EmbedIO;
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -88,7 +88,7 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
-				var newData = JsonConvert.DeserializeObject<DiaryData>(text);
+				var newData = text.FromJson<DiaryData>();
 
 				// write new/updated entry to the database
 				var result = cumulus.DiaryDB.InsertOrReplace(newData);
@@ -115,7 +115,7 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
-				var record = JsonConvert.DeserializeObject<DiaryData>(text);
+				var record = text.FromJson<DiaryData>();
 
 				// Delete the corresponding entry from the database
 				var result = cumulus.DiaryDB.Delete(record);
@@ -192,13 +192,13 @@ namespace CumulusMX
 			json.Append($"\"highHourlyRainVal\":\"{station.alltimerecarray[WeatherStation.AT_HourlyRain].value.ToString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainVal\":\"{station.alltimerecarray[WeatherStation.AT_DailyRain].value.ToString(cumulus.RainFormat)}\",");
 			json.Append($"\"highMonthlyRainVal\":\"{station.alltimerecarray[WeatherStation.AT_WetMonth].value.ToString(cumulus.RainFormat)}\",");
-			json.Append($"\"longestDryPeriodVal\":\"{station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].value.ToString("f0")}\",");
-			json.Append($"\"longestWetPeriodVal\":\"{station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].value.ToString("f0")}\",");
+			json.Append($"\"longestDryPeriodVal\":\"{station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].value:f0}\",");
+			json.Append($"\"longestWetPeriodVal\":\"{station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].value:f0}\",");
 			// Records - Rain times
 			json.Append($"\"highRainRateTime\":\"{station.alltimerecarray[WeatherStation.AT_HighRainRate].timestamp.ToString(timeStampFormat)}\",");
 			json.Append($"\"highHourlyRainTime\":\"{station.alltimerecarray[WeatherStation.AT_HourlyRain].timestamp.ToString(timeStampFormat)}\",");
 			json.Append($"\"highDailyRainTime\":\"{station.alltimerecarray[WeatherStation.AT_DailyRain].timestamp.ToString(dateStampFormat)}\",");
-			json.Append($"\"highMonthlyRainTime\":\"{station.alltimerecarray[WeatherStation.AT_WetMonth].timestamp.ToString("yyyy/MM")}\",");
+			json.Append($"\"highMonthlyRainTime\":\"{station.alltimerecarray[WeatherStation.AT_WetMonth].timestamp:yyyy/MM}\",");
 			json.Append($"\"longestDryPeriodTime\":\"{station.alltimerecarray[WeatherStation.AT_LongestDryPeriod].timestamp.ToString(dateStampFormat)}\",");
 			json.Append($"\"longestWetPeriodTime\":\"{station.alltimerecarray[WeatherStation.AT_LongestWetPeriod].timestamp.ToString(dateStampFormat)}\"");
 			json.Append("}");
@@ -630,11 +630,11 @@ namespace CumulusMX
 					if (recordType != "thismonth")
 					{
 						json.Append($"\"highMonthlyRainValDayfile\":\"{highRainMonthVal.ToString(cumulus.RainFormat)}\",");
-						json.Append($"\"highMonthlyRainTimeDayfile\":\"{highRainMonthTime.ToString("yyyy/MM")}\",");
+						json.Append($"\"highMonthlyRainTimeDayfile\":\"{highRainMonthTime:yyyy/MM}\",");
 					}
-					json.Append($"\"longestDryPeriodValDayfile\":\"{dryPeriodVal.ToString()}\",");
+					json.Append($"\"longestDryPeriodValDayfile\":\"{dryPeriodVal}\",");
 					json.Append($"\"longestDryPeriodTimeDayfile\":\"{dryPeriodTime.ToString(dateStampFormat)}\",");
-					json.Append($"\"longestWetPeriodValDayfile\":\"{wetPeriodVal.ToString()}\",");
+					json.Append($"\"longestWetPeriodValDayfile\":\"{wetPeriodVal}\",");
 					json.Append($"\"longestWetPeriodTimeDayfile\":\"{wetPeriodTime.ToString(dateStampFormat)}\"");
 					json.Append("}");
 				}
@@ -1138,16 +1138,16 @@ namespace CumulusMX
 			json.Append($"\"highMonthlyRainTimeLogfile\":\"{highRainMonthTime.ToString($"yyyy/MM")}\",");
 			if (recordType == "alltime")
 			{
-				json.Append($"\"longestDryPeriodValLogfile\":\"{dryPeriodVal.ToString()}\",");
+				json.Append($"\"longestDryPeriodValLogfile\":\"{dryPeriodVal}\",");
 				json.Append($"\"longestDryPeriodTimeLogfile\":\"{dryPeriodTime.ToString(dateStampFormat)}\",");
-				json.Append($"\"longestWetPeriodValLogfile\":\"{wetPeriodVal.ToString()}\",");
+				json.Append($"\"longestWetPeriodValLogfile\":\"{wetPeriodVal}\",");
 				json.Append($"\"longestWetPeriodTimeLogfile\":\"{wetPeriodTime.ToString(dateStampFormat)}\"");
 			}
 			else
 			{
-				json.Append($"\"longestDryPeriodValLogfile\":\"{dryPeriodVal.ToString()}*\",");
+				json.Append($"\"longestDryPeriodValLogfile\":\"{dryPeriodVal}*\",");
 				json.Append($"\"longestDryPeriodTimeLogfile\":\"{dryPeriodTime.ToString(dateStampFormat)}*\",");
-				json.Append($"\"longestWetPeriodValLogfile\":\"{wetPeriodVal.ToString()}*\",");
+				json.Append($"\"longestWetPeriodValLogfile\":\"{wetPeriodVal}*\",");
 				json.Append($"\"longestWetPeriodTimeLogfile\":\"{wetPeriodTime.ToString(dateStampFormat)}*\"");
 			}
 			json.Append("}");
@@ -1674,13 +1674,13 @@ namespace CumulusMX
 				json.Append($"\"{m}-highHourlyRainVal\":\"{station.monthlyrecarray[WeatherStation.AT_HourlyRain, m].value.ToString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highDailyRainVal\":\"{station.monthlyrecarray[WeatherStation.AT_DailyRain, m].value.ToString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainVal\":\"{station.monthlyrecarray[WeatherStation.AT_WetMonth, m].value.ToString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-longestDryPeriodVal\":\"{station.monthlyrecarray[WeatherStation.AT_LongestDryPeriod, m].value.ToString("f0")}\",");
-				json.Append($"\"{m}-longestWetPeriodVal\":\"{station.monthlyrecarray[WeatherStation.AT_LongestWetPeriod, m].value.ToString("f0")}\",");
+				json.Append($"\"{m}-longestDryPeriodVal\":\"{station.monthlyrecarray[WeatherStation.AT_LongestDryPeriod, m].value:f0}\",");
+				json.Append($"\"{m}-longestWetPeriodVal\":\"{station.monthlyrecarray[WeatherStation.AT_LongestWetPeriod, m].value:f0}\",");
 				// Records - Rain times
 				json.Append($"\"{m}-highRainRateTime\":\"{station.monthlyrecarray[WeatherStation.AT_HighRainRate, m].timestamp.ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highHourlyRainTime\":\"{station.monthlyrecarray[WeatherStation.AT_HourlyRain, m].timestamp.ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highDailyRainTime\":\"{station.monthlyrecarray[WeatherStation.AT_DailyRain, m].timestamp.ToString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainTime\":\"{station.monthlyrecarray[WeatherStation.AT_WetMonth, m].timestamp.ToString("yyyy/MM")}\",");
+				json.Append($"\"{m}-highMonthlyRainTime\":\"{station.monthlyrecarray[WeatherStation.AT_WetMonth, m].timestamp:yyyy/MM}\",");
 				json.Append($"\"{m}-longestDryPeriodTime\":\"{station.monthlyrecarray[WeatherStation.AT_LongestDryPeriod, m].timestamp.ToString(dateStampFormat)}\",");
 				json.Append($"\"{m}-longestWetPeriodTime\":\"{station.monthlyrecarray[WeatherStation.AT_LongestWetPeriod, m].timestamp.ToString(dateStampFormat)}\",");
 			}
@@ -2099,10 +2099,10 @@ namespace CumulusMX
 						json.Append($"\"{m}-highDailyRainValDayfile\":\"{highRainDayVal[i].ToString(cumulus.RainFormat)}\",");
 						json.Append($"\"{m}-highDailyRainTimeDayfile\":\"{highRainDayTime[i].ToString(dateStampFormat)}\",");
 						json.Append($"\"{m}-highMonthlyRainValDayfile\":\"{highRainMonthVal[i].ToString(cumulus.RainFormat)}\",");
-						json.Append($"\"{m}-highMonthlyRainTimeDayfile\":\"{highRainMonthTime[i].ToString("yyyy/MM")}\",");
-						json.Append($"\"{m}-longestDryPeriodValDayfile\":\"{dryPeriodVal[i].ToString()}\",");
+						json.Append($"\"{m}-highMonthlyRainTimeDayfile\":\"{highRainMonthTime[i]:yyyy/MM}\",");
+						json.Append($"\"{m}-longestDryPeriodValDayfile\":\"{dryPeriodVal[i]}\",");
 						json.Append($"\"{m}-longestDryPeriodTimeDayfile\":\"{dryPeriodTime[i].ToString(dateStampFormat)}\",");
-						json.Append($"\"{m}-longestWetPeriodValDayfile\":\"{wetPeriodVal[i].ToString()}\",");
+						json.Append($"\"{m}-longestWetPeriodValDayfile\":\"{wetPeriodVal[i]}\",");
 						json.Append($"\"{m}-longestWetPeriodTimeDayfile\":\"{wetPeriodTime[i].ToString(dateStampFormat)}\",");
 					}
 					json.Remove(json.Length - 1, 1);
@@ -2603,10 +2603,10 @@ namespace CumulusMX
 				json.Append($"\"{m}-highDailyRainValLogfile\":\"{highRainDayVal[i].ToString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highDailyRainTimeLogfile\":\"{highRainDayTime[i].ToString(dateStampFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainValLogfile\":\"{highRainMonthVal[i].ToString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainTimeLogfile\":\"{highRainMonthTime[i].ToString("yyyy/MM")}\",");
-				json.Append($"\"{m}-longestDryPeriodValLogfile\":\"{dryPeriodVal[i].ToString()}\",");
+				json.Append($"\"{m}-highMonthlyRainTimeLogfile\":\"{highRainMonthTime[i]:yyyy/MM}\",");
+				json.Append($"\"{m}-longestDryPeriodValLogfile\":\"{dryPeriodVal[i]}\",");
 				json.Append($"\"{m}-longestDryPeriodTimeLogfile\":\"{dryPeriodTime[i].ToString(dateStampFormat)}\",");
-				json.Append($"\"{m}-longestWetPeriodValLogfile\":\"{wetPeriodVal[i].ToString()}\",");
+				json.Append($"\"{m}-longestWetPeriodValLogfile\":\"{wetPeriodVal[i]}\",");
 				json.Append($"\"{m}-longestWetPeriodTimeLogfile\":\"{wetPeriodTime[i].ToString(dateStampFormat)}\",");
 			}
 
@@ -2681,9 +2681,9 @@ namespace CumulusMX
 			json.Append($"\"highHourlyRainTime\":\"{station.HighHourlyRainThisMonthTS.ToString(timeStampFormat)}\",");
 			json.Append($"\"highDailyRainVal\":\"{station.HighDailyRainThisMonth.ToString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainTime\":\"{station.HighDailyRainThisMonthTS.ToString(dateStampFormat)}\",");
-			json.Append($"\"longestDryPeriodVal\":\"{station.LongestDryPeriodThisMonth.ToString("D")}\",");
+			json.Append($"\"longestDryPeriodVal\":\"{station.LongestDryPeriodThisMonth:D}\",");
 			json.Append($"\"longestDryPeriodTime\":\"{station.LongestDryPeriodThisMonthTS.ToString(dateStampFormat)}\",");
-			json.Append($"\"longestWetPeriodVal\":\"{station.LongestWetPeriodThisMonth.ToString("D")}\",");
+			json.Append($"\"longestWetPeriodVal\":\"{station.LongestWetPeriodThisMonth:D}\",");
 			json.Append($"\"longestWetPeriodTime\":\"{station.LongestWetPeriodThisMonthTS.ToString(dateStampFormat)}\"");
 
 			json.Append("}");
@@ -2966,10 +2966,10 @@ namespace CumulusMX
 			json.Append($"\"highDailyRainVal\":\"{station.HighDailyRainThisYear.ToString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainTime\":\"{station.HighDailyRainThisYearTS.ToString(dateStampFormat)}\",");
 			json.Append($"\"highMonthlyRainVal\":\"{station.HighMonthlyRainThisYear.ToString(cumulus.RainFormat)}\",");
-			json.Append($"\"highMonthlyRainTime\":\"{station.HighMonthlyRainThisYearTS.ToString("yyyy/MM")}\",");
-			json.Append($"\"longestDryPeriodVal\":\"{station.LongestDryPeriodThisYear.ToString("D")}\",");
+			json.Append($"\"highMonthlyRainTime\":\"{station.HighMonthlyRainThisYearTS:yyyy/MM}\",");
+			json.Append($"\"longestDryPeriodVal\":\"{station.LongestDryPeriodThisYear:D}\",");
 			json.Append($"\"longestDryPeriodTime\":\"{station.LongestDryPeriodThisYearTS.ToString(dateStampFormat)}\",");
-			json.Append($"\"longestWetPeriodVal\":\"{station.LongestWetPeriodThisYear.ToString("D")}\",");
+			json.Append($"\"longestWetPeriodVal\":\"{station.LongestWetPeriodThisYear:D}\",");
 			json.Append($"\"longestWetPeriodTime\":\"{station.LongestWetPeriodThisYearTS.ToString(dateStampFormat)}\"");
 
 			json.Append("}");
@@ -3225,7 +3225,7 @@ namespace CumulusMX
 				text = reader.ReadToEnd();
 			}
 
-			var newData = JsonConvert.DeserializeObject<DayFileEditor>(text);
+			var newData = text.FromJson<DayFileEditor>();
 
 			// read dayfile into a List
 			var lines = File.ReadAllLines(cumulus.DayFile).ToList();
@@ -3264,7 +3264,7 @@ namespace CumulusMX
 			// return the updated record
 			var rec = new List<string>(newData.Data);
 			rec.Insert(0, newData.LineNum.ToString());
-			return JsonConvert.SerializeObject(rec);
+			return rec.ToJson();
 		}
 
 		private class DayFileEditor
@@ -3290,7 +3290,7 @@ namespace CumulusMX
 				text = reader.ReadToEnd();
 			}
 
-			var newData = JsonConvert.DeserializeObject<DatalogEditor>(text);
+			var newData = text.FromJson<DatalogEditor>();
 
 			// date will (hopefully) be in format "m-yyyy" or "mm-yyyy"
 			int month = Convert.ToInt32(newData.Month.Split('-')[0]);
@@ -3335,7 +3335,7 @@ namespace CumulusMX
 			// return the updated record
 			var rec = new List<string>(newData.Data);
 			rec.Insert(0, newData.LineNum.ToString());
-			return JsonConvert.SerializeObject(rec);
+			return rec.ToJson();
 		}
 
 		private class DatalogEditor

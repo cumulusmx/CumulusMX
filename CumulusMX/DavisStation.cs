@@ -683,7 +683,7 @@ namespace CumulusMX
 			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
-			cumulus.StartTimers();
+			cumulus.StartTimersAndSensors();
 		}
 
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
@@ -1586,7 +1586,7 @@ namespace CumulusMX
 				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
 				//cumulus.LogDebugMessage("TX batt=" + TxBatText);
 
-				cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || loopData.ConBatVoltage < 4.0;
+				cumulus.BatteryLowAlarm.triggered = TxBatText.Contains("LOW") || loopData.ConBatVoltage < 4.0;
 
 
 				if (cumulus.LogExtraSensors)
@@ -1913,7 +1913,7 @@ namespace CumulusMX
 				else
 				{
 					cumulus.LogSpikeRemoval("Station Pressure difference greater than specified; reading ignored");
-					cumulus.LogSpikeRemoval($"NewVal={pressMB.ToString("F1")} OldVal={previousPressStation.ToString("F1")} SpikePressDiff={cumulus.SpikePressDiff.ToString("F1")} HighLimit={cumulus.LimitPressHigh.ToString("F1")} LowLimit={cumulus.LimitPressLow.ToString("F1")}");
+					cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPressStation:F1} SpikePressDiff={cumulus.SpikePressDiff:F1} HighLimit={cumulus.LimitPressHigh:F1} LowLimit={cumulus.LimitPressLow:F1}");
 				}
 
 				double wind = ConvertWindMPHToUser(loopData.CurrentWindSpeed);
@@ -3308,7 +3308,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogDataMessage($"WaitForACK: ({tryCount}) Received - {currChar.ToString("X2")}");
+						cumulus.LogDataMessage($"WaitForACK: ({tryCount}) Received - {currChar:X2}");
 					}
 				}
 				catch (TimeoutException)

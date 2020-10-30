@@ -873,7 +873,7 @@ namespace CumulusMX
 
 					// Now do the stuff that requires more than one input parameter
 
-					cumulus.BatteryLowAlarmState = batteryLow;
+					cumulus.BatteryLowAlarm.triggered = batteryLow;
 
 					// No average in the live data, so use last value from cumulus
 					if (windSpeedLast > -999 && windDirLast > -999)
@@ -922,6 +922,7 @@ namespace CumulusMX
 
 					dataReceived = true;
 					DataStopped = false;
+					cumulus.DataStoppedAlarm.triggered = false;
 				}
 				else
 				{
@@ -1438,11 +1439,13 @@ namespace CumulusMX
 			{
 				dataReceived = false;
 				DataStopped = false;
+				cumulus.DataStoppedAlarm.triggered = false;
 			}
 			else
 			{
 				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
+				cumulus.DataStoppedAlarm.triggered = true;
 			}
 		}
 

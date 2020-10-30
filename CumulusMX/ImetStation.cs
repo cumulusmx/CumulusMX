@@ -467,7 +467,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Archive reading thread completed");
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
-			cumulus.StartTimers();
+			cumulus.StartTimersAndSensors();
 			StartLoop();
 		}
 

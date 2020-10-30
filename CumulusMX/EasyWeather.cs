@@ -92,7 +92,7 @@ namespace CumulusMX
             if (File.Exists(cumulus.EWFile))
             {
                 EWGetData(null, null);
-                cumulus.StartTimers();
+                cumulus.StartTimersAndSensors();
             }
         }
 

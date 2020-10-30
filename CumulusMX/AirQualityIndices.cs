@@ -235,7 +235,7 @@ namespace CumulusMX
 		* EU AQI - PM2.5 (24 hr avg) - Very Low = 1, Very High = 5
 		* http://www.airqualitynow.eu/about_indices_definition.php
 		*/
-		public static double euAqi2p5h24(double pmVal)
+		public static double EU_AQI2p5h24(double pmVal)
 		{
 			if (pmVal > 60)			// Very High
 				return 5;
@@ -253,7 +253,7 @@ namespace CumulusMX
 		 * EU AQI - PM2.5 (1 hr avg) - Very Low = 1, Very High = 5
 		 * http://www.airqualitynow.eu/about_indices_definition.php
 		 */
-		public static double euAqi10h1(double pmVal)
+		public static double EU_AQI10h1(double pmVal)
 		{
 			if (pmVal > 180)		// Very High
 				return 5;
@@ -271,7 +271,7 @@ namespace CumulusMX
 		* EU AQI - PM2.5 (24 hr avg) - Very Low = 1, Very High = 5
 		* http://www.airqualitynow.eu/about_indices_definition.php
 		*/
-		public static double euAqi10h24(double pmVal)
+		public static double EU_AQI10h24(double pmVal)
 		{
 			if (pmVal > 100)		// Very High
 				return 5;
@@ -290,7 +290,7 @@ namespace CumulusMX
 		 * Canada AQHI - only valid for PM2.5 and 3 hour data
 		 * https://en.wikipedia.org/wiki/Air_Quality_Health_Index_(Canada)
 		 */
-		public static int canadaAqhi(double pmVal)
+		public static int CA_AQHI(double pmVal)
 		{
 			return (int)((1000 / 10.4) + Math.Exp(0.000487 * pmVal) - 1);
 		}
@@ -302,7 +302,7 @@ namespace CumulusMX
 		 * PM10
 		 * Use 101 to indicate >100
 		 */
-		public static double euCaqi10h1(double pmVal)
+		public static double EU_CAQI10h1(double pmVal)
 		{
 			if (pmVal > 180)
 				return 101;
@@ -321,7 +321,7 @@ namespace CumulusMX
 		 * PM10
 		 * Use 101 to indicate >100
 		 */
-		public static double euCaqi10h24(double pmVal)
+		public static double EU_CAQI10h24(double pmVal)
 		{
 			if (pmVal > 100)
 				return 101;
@@ -340,7 +340,7 @@ namespace CumulusMX
 		 * PM2.5
 		 * Use 101 to indicate >100
 		 */
-		public static double euCaqi2p5h1(double pmVal)
+		public static double EU_CAQI2p5h1(double pmVal)
 		{
 			if (pmVal > 110)
 				return 101;
@@ -359,7 +359,7 @@ namespace CumulusMX
 		 * PM2.5
 		 * Use 101 to indicate >100
 		 */
-		public static double euCaqi2p5h24(double pmVal)
+		public static double EU_CAQI2p5h24(double pmVal)
 		{
 			if (pmVal > 60)
 				return 101;
@@ -379,7 +379,7 @@ namespace CumulusMX
 		 * https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-index
 		 * PM2.5 - standard is 24hr avg
 		 */
-		public static double australiaNepm2p5(double pmVal)
+		public static double AU_NEpm2p5(double pmVal)
 		{
 			if (pmVal > 25) return 101;
 			return pmVal * 4;
@@ -389,10 +389,128 @@ namespace CumulusMX
 		 * https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-index
 		 * PM10 - standard is 24hr avg
 		 */
-		public static double australiaNepm10(double pmVal)
+		public static double AU_NEpm10(double pmVal)
 		{
 			if (pmVal > 50) return 101;
 			return pmVal * 2;
+		}
+
+
+		/*
+		 * Netherlands AQI (turn it up to 11!) - 1-11
+		 * https://www.luchtmeetnet.nl/informatie/luchtkwaliteit/luchtkwaliteitsindex-(lki)
+		 */
+		public static double NL_LKIpm2p5(double pmVal)
+		{
+			if (pmVal > 140)
+				return 11;
+			else if (pmVal >= 100) // AQI 10
+				return 10 + interpolate(100, 140, pmVal);
+			else if (pmVal >= 90) // AQI 9
+				return 9 + interpolate(90, 100, pmVal);
+			else if (pmVal >= 70) // AQI 8
+				return 8 + interpolate(70, 90, pmVal);
+			else if (pmVal >= 50) // AQI 7
+				return 7 + interpolate(50, 70, pmVal);
+			else if (pmVal >= 40) // AQI 6
+				return 6 + interpolate(40, 50, pmVal);
+			else if (pmVal >= 30) // AQI 5
+				return 5 + interpolate(30, 40, pmVal);
+			else if (pmVal >= 20) // AQI 4
+				return 7 + interpolate(20, 30, pmVal);
+			else if (pmVal >= 15) // AQI 3
+				return 7 + interpolate(15, 20, pmVal);
+			else if (pmVal >= 10) // AQI 2
+				return 7 + interpolate(10, 15, pmVal);
+			else // AQI 1
+				return 1 + interpolate(0, 10, pmVal);
+		}
+
+		/*
+		 * Netherlands AQI (turn it up to 11!) - 1-11
+		 * https://www.luchtmeetnet.nl/informatie/luchtkwaliteit/luchtkwaliteitsindex-(lki)
+		 */
+		public static double NL_LKIpm10(double pmVal)
+		{
+			if (pmVal > 200)
+				return 11;
+			else if (pmVal >= 150) // AQI 10
+				return 10 + interpolate(150, 200, pmVal);
+			else if (pmVal >= 125) // AQI 9
+				return 9 + interpolate(125, 150, pmVal);
+			else if (pmVal >= 100) // AQI 8
+				return 8 + interpolate(100, 125, pmVal);
+			else if (pmVal >= 75) // AQI 7
+				return 7 + interpolate(75, 100, pmVal);
+			else if (pmVal >= 60) // AQI 6
+				return 6 + interpolate(60, 75, pmVal);
+			else if (pmVal >= 45) // AQI 5
+				return 5 + interpolate(45, 60, pmVal);
+			else if (pmVal >= 30) // AQI 4
+				return 7 + interpolate(30, 45, pmVal);
+			else if (pmVal >= 20) // AQI 3
+				return 7 + interpolate(20, 30, pmVal);
+			else if (pmVal >= 10) // AQI 2
+				return 7 + interpolate(10, 20, pmVal);
+			else // AQI 1
+				return 1 + interpolate(0, 10, pmVal);
+		}
+
+
+		/*
+		 * Belgan AQI - 1-10
+		 * https://www.irceline.be/en/air-quality/measurements/belaqi-air-quality-index/information?set_language=en
+		 */
+		public static double BE_BelAQIpm2p5(double pmVal)
+		{
+			if (pmVal > 70)
+				return 10;
+			else if (pmVal >= 60) // AQI 9
+				return 9 + interpolate(60, 70, pmVal);
+			else if (pmVal >= 50) // AQI 8
+				return 8 + interpolate(50, 60, pmVal);
+			else if (pmVal >= 40) // AQI 7
+				return 7 + interpolate(40, 50, pmVal);
+			else if (pmVal >= 35) // AQI 6
+				return 6 + interpolate(35, 40, pmVal);
+			else if (pmVal >= 25) // AQI 5
+				return 5 + interpolate(25, 35, pmVal);
+			else if (pmVal >= 15) // AQI 4
+				return 7 + interpolate(15, 25, pmVal);
+			else if (pmVal >= 10) // AQI 3
+				return 7 + interpolate(10, 15, pmVal);
+			else if (pmVal >= 5) // AQI 2
+				return 7 + interpolate(5, 10, pmVal);
+			else // AQI 1
+				return 1 + interpolate(0, 5, pmVal);
+		}
+
+		/*
+		 * Belgan AQI - 1-10
+		 * https://www.irceline.be/en/air-quality/measurements/belaqi-air-quality-index/information?set_language=en
+		 */
+		public static double BE_BelAQIpm10(double pmVal)
+		{
+			if (pmVal > 100)
+				return 10;
+			else if (pmVal >= 80) // AQI 9
+				return 9 + interpolate(80, 100, pmVal);
+			else if (pmVal >= 70) // AQI 8
+				return 8 + interpolate(70, 80, pmVal);
+			else if (pmVal >= 60) // AQI 7
+				return 7 + interpolate(60, 70, pmVal);
+			else if (pmVal >= 50) // AQI 6
+				return 6 + interpolate(50, 60, pmVal);
+			else if (pmVal >= 40) // AQI 5
+				return 5 + interpolate(40, 50, pmVal);
+			else if (pmVal >= 30) // AQI 4
+				return 7 + interpolate(30, 40, pmVal);
+			else if (pmVal >= 20) // AQI 3
+				return 7 + interpolate(20, 30, pmVal);
+			else if (pmVal >= 10) // AQI 2
+				return 7 + interpolate(10, 20, pmVal);
+			else // AQI 1
+				return 1 + interpolate(0, 10, pmVal);
 		}
 
 		// Returns the fraction of val between min and max

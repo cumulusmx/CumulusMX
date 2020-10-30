@@ -1185,105 +1185,205 @@ namespace CumulusMX
 
 		private string TagAirLinkAqiPm2p5In(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp  : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm2p5.ToString("F" + dp), TagParams);
+			}
 		}
 
 		private string TagAirLinkAqiPm2p5_1hrIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_1hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_1hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm2p5_3hrIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_3hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_3hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_3hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm2p5_24hrIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_24hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_24hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_24hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm2p5_NowcastIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_nowcast.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_nowcast).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm2p5_nowcast.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10In(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm10.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm10.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_1hrIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm10.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_1hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm10_1hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_3hrIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm10_3hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_3hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm10_3hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_24hrIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm10_24hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_24hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm10_24hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_NowcastIn(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataIn.aqiPm10_nowcast.ToString("F" + dp), TagParams);
-		}
-		private string TagAirLinkAqiPm2p5Out(Dictionary<string, string> TagParams)
-		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_nowcast).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataIn.aqiPm10_nowcast.ToString("F" + dp), TagParams);
+			}
 		}
 
+		private string TagAirLinkAqiPm2p5Out(Dictionary<string, string> TagParams)
+		{
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm2p5.ToString("F" + dp), TagParams);
+			}
+		}
 		private string TagAirLinkAqiPm2p5_1hrOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_1hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_1hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm2p5_3hrOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_3hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_3hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_3hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm2p5_24hrOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_24hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_24hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_24hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm2p5_NowcastOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_nowcast.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_nowcast).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm2p5_nowcast.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10Out(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm10.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm10.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_1hrOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm10.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_1hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm10_1hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_3hrOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm10_3hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_3hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm10_3hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_24hrOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm10_24hr.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_24hr).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm10_24hr.ToString("F" + dp), TagParams);
+			}
 		}
 		private string TagAirLinkAqiPm10_NowcastOut(Dictionary<string, string> TagParams)
 		{
-			int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
-			return CheckRC(cumulus.airLinkDataOut.aqiPm10_nowcast.ToString("F" + dp), TagParams);
+			if (TagParams.Get("tc") == "y")
+				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_nowcast).ToString();
+			else
+			{
+				int dp = int.TryParse(TagParams.Get("dp"), out dp) ? dp : 1;
+				return CheckRC(cumulus.airLinkDataOut.aqiPm10_nowcast.ToString("F" + dp), TagParams);
+			}
 		}
 
 
@@ -2897,7 +2997,7 @@ namespace CumulusMX
 
 		private string TagDataStopped(Dictionary<string,string> TagParams)
 		{
-			return station.DataStopped ? "1" : "0";
+			return cumulus.DataStoppedAlarm.triggered ? "1" : "0";
 		}
 
 		private string Tagmoonrise(Dictionary<string,string> TagParams)
@@ -3781,9 +3881,9 @@ namespace CumulusMX
 		// Alarms
 		private string TagLowTempAlarm(Dictionary<string, string> TagParams)
 		{
-			if (cumulus.LowTempAlarmEnabled)
+			if (cumulus.LowTempAlarm.enabled)
 			{
-				return cumulus.LowTempAlarmState ? "1" : "0";
+				return cumulus.LowTempAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3793,9 +3893,9 @@ namespace CumulusMX
 
 		private string TagHighTempAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.HighTempAlarmEnabled)
+			if (cumulus.HighTempAlarm.enabled)
 			{
-				return cumulus.HighTempAlarmState ? "1" : "0";
+				return cumulus.HighTempAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3805,9 +3905,9 @@ namespace CumulusMX
 
 		private string TagTempChangeUpAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.TempChangeAlarmEnabled)
+			if (cumulus.TempChangeAlarm.enabled)
 			{
-				return cumulus.TempChangeUpAlarmState ? "1" : "0";
+				return cumulus.TempChangeAlarm.upTriggered ? "1" : "0";
 			}
 			else
 			{
@@ -3817,9 +3917,9 @@ namespace CumulusMX
 
 		private string TagTempChangeDownAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.TempChangeAlarmEnabled)
+			if (cumulus.TempChangeAlarm.enabled)
 			{
-				return cumulus.TempChangeDownAlarmState ? "1" : "0";
+				return cumulus.TempChangeAlarm.downTriggered ? "1" : "0";
 			}
 			else
 			{
@@ -3829,9 +3929,9 @@ namespace CumulusMX
 
 		private string TagLowPressAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.LowPressAlarmEnabled)
+			if (cumulus.LowPressAlarm.enabled)
 			{
-				return cumulus.LowPressAlarmState ? "1" : "0";
+				return cumulus.LowPressAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3841,9 +3941,9 @@ namespace CumulusMX
 
 		private string TagHighPressAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.HighPressAlarmEnabled)
+			if (cumulus.HighPressAlarm.enabled)
 			{
-				return cumulus.HighPressAlarmState ? "1" : "0";
+				return cumulus.HighPressAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3853,9 +3953,9 @@ namespace CumulusMX
 
 		private string TagPressChangeUpAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.PressChangeAlarmEnabled)
+			if (cumulus.PressChangeAlarm.enabled)
 			{
-				return cumulus.PressChangeUpAlarmState ? "1" : "0";
+				return cumulus.PressChangeAlarm.upTriggered ? "1" : "0";
 			}
 			else
 			{
@@ -3865,9 +3965,9 @@ namespace CumulusMX
 
 		private string TagPressChangeDownAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.PressChangeAlarmEnabled)
+			if (cumulus.PressChangeAlarm.enabled)
 			{
-				return cumulus.PressChangeDownAlarmState ? "1" : "0";
+				return cumulus.PressChangeAlarm.downTriggered ? "1" : "0";
 			}
 			else
 			{
@@ -3877,9 +3977,9 @@ namespace CumulusMX
 
 		private string TagHighRainTodayAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.HighRainTodayAlarmEnabled)
+			if (cumulus.HighRainTodayAlarm.enabled)
 			{
-				return cumulus.HighRainTodayAlarmState ? "1" : "0";
+				return cumulus.HighRainTodayAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3889,9 +3989,9 @@ namespace CumulusMX
 
 		private string TagHighRainRateAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.HighRainRateAlarmEnabled)
+			if (cumulus.HighRainRateAlarm.enabled)
 			{
-				return cumulus.HighRainRateAlarmState ? "1" : "0";
+				return cumulus.HighRainRateAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3901,9 +4001,9 @@ namespace CumulusMX
 
 		private string TagHighWindGustAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.HighGustAlarmEnabled)
+			if (cumulus.HighGustAlarm.enabled)
 			{
-				return cumulus.HighGustAlarmState ? "1" : "0";
+				return cumulus.HighGustAlarm.triggered? "1" : "0";
 			}
 			else
 			{
@@ -3913,9 +4013,9 @@ namespace CumulusMX
 
 		private string TagHighWindSpeedAlarm(Dictionary<string,string> TagParams)
 		{
-			if (cumulus.HighWindAlarmEnabled)
+			if (cumulus.HighWindAlarm.enabled)
 			{
-				return cumulus.HighWindAlarmState ? "1" : "0";
+				return cumulus.HighWindAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3925,9 +4025,9 @@ namespace CumulusMX
 
 		private string TagBatteryLowAlarm(Dictionary<string, string> TagParams)
 		{
-			if (cumulus.BatteryLowAlarmEnabled)
+			if (cumulus.BatteryLowAlarm.enabled)
 			{
-				return cumulus.BatteryLowAlarmState ? "1" : "0";
+				return cumulus.BatteryLowAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -3937,9 +4037,9 @@ namespace CumulusMX
 
 		private string TagDataSpikeAlarm(Dictionary<string, string> TagParams)
 		{
-			if (cumulus.SpikeAlarmEnabled)
+			if (cumulus.SpikeAlarm.enabled)
 			{
-				return cumulus.SpikeAlarmState ? "1" : "0";
+				return cumulus.SpikeAlarm.triggered ? "1" : "0";
 			}
 			else
 			{
@@ -4865,6 +4965,11 @@ namespace CumulusMX
 		private string TagDiskFree(Dictionary<string,string> TagParams)
 		{
 			return "n/a";
+		}
+
+		private string TagCpuTemp(Dictionary<string, string> TagParams)
+		{
+			return cumulus.CPUtemp.ToString(cumulus.TempFormat);
 		}
 
 		private string TagDavisTotalPacketsReceived(Dictionary<string,string> TagParams)
@@ -5973,6 +6078,7 @@ namespace CumulusMX
 				{ "AllocatedMemory", TagAllocatedMemory },
 				{ "DiskSize", TagDiskSize },
 				{ "DiskFree", TagDiskFree },
+				{ "CPUTemp", TagCpuTemp },
 				{ "DavisTotalPacketsReceived", TagDavisTotalPacketsReceived },
 				{ "DavisTotalPacketsMissed", TagDavisTotalPacketsMissed },
 				{ "DavisNumberOfResynchs", TagDavisNumberOfResynchs },

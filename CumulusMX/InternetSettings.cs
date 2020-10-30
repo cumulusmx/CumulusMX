@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
-using Newtonsoft.Json;
+using ServiceStack;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -36,7 +36,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonConvert.DeserializeObject<JsonInternetSettingsData>(json);
+				var settings = json.FromJson<JsonInternetSettingsData>();
 				// process the settings
 				cumulus.LogMessage("Updating internet settings");
 
@@ -656,7 +656,7 @@ namespace CumulusMX
 				customhttp = customhttp
 			};
 
-			return JsonConvert.SerializeObject(data);
+			return data.ToJson();
 		}
 
 		public string GetInternetAlpacaFormOptions()

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
-using Newtonsoft.Json;
+using ServiceStack;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -31,7 +31,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonConvert.DeserializeObject<JsonCalibrationSettingsData>(json);
+				var settings = json.FromJson<JsonCalibrationSettingsData>();
 				// process the settings
 				cumulus.LogMessage("Updating calibration settings");
 
@@ -79,7 +79,7 @@ namespace CumulusMX
 				cumulus.WriteIniFile();
 
 				// Clear the spike alarm
-				cumulus.SpikeAlarmState = false;
+				cumulus.SpikeAlarm.triggered = false;
 
 				// Log the new values
 				cumulus.LogMessage("Setting new calibration values...");
@@ -154,7 +154,7 @@ namespace CumulusMX
 						   log = cumulus.ErrorLogSpikeRemoval
 			};
 
-			return JsonConvert.SerializeObject(data);
+			return data.ToJson();
 		}
 
 		public string GetCalibrationAlpacaFormOptions()

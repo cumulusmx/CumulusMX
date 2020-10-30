@@ -2,7 +2,7 @@
 using System.IO;
 using System.Net;
 using Devart.Data.MySql;
-using Newtonsoft.Json;
+using ServiceStack;
 using Unosquare.Labs.EmbedIO;
 
 namespace CumulusMX
@@ -64,7 +64,7 @@ namespace CumulusMX
 						   customrollover = customrollover
 					   };
 
-			return JsonConvert.SerializeObject(data);
+			return data.ToJson();
 		}
 
 		public string GetMySqAlpacaFormOptions()
@@ -96,7 +96,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonConvert.DeserializeObject<JsonMysqlSettings>(json);
+				var settings = json.FromJson<JsonMysqlSettings>();
 				// process the settings
 				cumulus.LogMessage("Updating MySQL settings");
 

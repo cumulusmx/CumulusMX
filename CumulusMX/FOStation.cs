@@ -154,7 +154,7 @@ namespace CumulusMX
 			Start();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
-			cumulus.StartTimers();
+			cumulus.StartTimersAndSensors();
 		}
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
@@ -1019,9 +1019,9 @@ namespace CumulusMX
 							}
 						}
 					}
-					if (cumulus.SensorAlarmEnabled)
+					if (cumulus.SensorAlarm.enabled)
 					{
-						cumulus.SensorAlarmState = SensorContactLost;
+						cumulus.SensorAlarm.triggered = SensorContactLost;
 					}
 				}
 			}
