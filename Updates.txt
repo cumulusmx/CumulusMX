@@ -17,7 +17,6 @@
 - Updated files
 	\AirLinkFileHeader.txt                      - NEW
 	\CumulusMX.exe
-	\FluentFTP.dll
 	\MQTTnet.dll
 	\Newtonsoft.Json.dll                        - REMOVED
 	\ServiceStack.Text.dll                      - NEW

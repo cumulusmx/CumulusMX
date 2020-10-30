@@ -7314,11 +7314,13 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
-							if (ex.Message.Contains("Safe handle has been closed"))
-							{
+							//if (ex.Message.Contains("Safe handle has been closed"))
+							//{
 								// This appears to be an unrecoverable internal error. Abort the whole connection.
-								conn.Dispose();
-							}
+							//	conn.Dispose();
+							//}
+							// Lets start again anyway! Too hard to tell if the error is recoverable
+							conn.Dispose();
 							return;
 						}
 					}

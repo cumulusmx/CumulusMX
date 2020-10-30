@@ -237,7 +237,8 @@ namespace CumulusMX
 				//var dateTime = FromUnixTime(data.Value<int>("ts"));
 				var dateTime = DateTime.Now;
 
-				var rec = json.data.conditions;
+				// The current conditions is sent as an array, even though it only contains 1 record
+				var rec = json.data.conditions.First();
 
 				var type = rec.data_structure_type;
 
@@ -497,7 +498,7 @@ namespace CumulusMX
 
 			string data = dataStringBuilder.ToString();
 
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.AirLinkApiSecret, data);
+			string apiSignature = WlDotCom.CalculateApiSignature(cumulus.AirLinkApiSecret, data);
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
@@ -514,7 +515,7 @@ namespace CumulusMX
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
 
-			var logUrl = historicUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
+			string logUrl = historicUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {logUrl}");
 			lastDataReadTime = airLinkLastUpdateTime;
 
@@ -528,7 +529,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
-					var responseBody = response.Content.ReadAsStringAsync().Result;
+					string responseBody = response.Content.ReadAsStringAsync().Result;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {response.StatusCode}");
 					cumulus.LogDataMessage($"GetWlHistoricData: WeatherLink API Historic Response: {responseBody}");
 
@@ -601,7 +602,7 @@ namespace CumulusMX
 					var refData = sensorWithMostRecs.data[dataIndex].FromJsv<WlHistorySensorDataType13Baro>();
 
 					DateTime timestamp = new DateTime();
-					foreach (var sensor in histObj.sensors)
+					foreach (WlHistorySensor sensor in histObj.sensors)
 					{
 						var sensorType = sensor.sensor_type;
 
@@ -1570,7 +1571,7 @@ namespace CumulusMX
 			public string did { get; set; }
 			public string name { get; set; }
 			public int ts { get; set; }
-			public AlCurrentRec conditions { get; set; }
+			public List<AlCurrentRec> conditions { get; set; }
 		}
 
 		private class AlCurrentRec
