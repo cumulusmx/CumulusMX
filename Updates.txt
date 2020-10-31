@@ -13,6 +13,7 @@
 - Adds the ability to "latch" all alarms for a user configured number of hours
 - Adds a new web tag <#CPUTemp> - only works on Linux, updates once a minute
 - Change of JSON library from Newtonsoft to ServiceStack.Text
+- Dashboard now updates every 2.5 seconds to match Davis stations (was 3 seconds)
 
 - Updated files
 	\AirLinkFileHeader.txt                      - NEW
