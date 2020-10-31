@@ -1420,7 +1420,7 @@ namespace CumulusMX
 		{
 			lastMinute = DateTime.Now.Minute;
 			lastHour = DateTime.Now.Hour;
-			secondTimer = new Timer(1000);
+			secondTimer = new Timer(500);
 			secondTimer.Elapsed += SecondTimer;
 			secondTimer.Start();
 		}
@@ -1452,7 +1452,7 @@ namespace CumulusMX
 				MinuteChanged(timeNow);
 			}
 
-			if (timeNow.Second % 3 == 0)
+			if ((int)timeNow.TimeOfDay.TotalMilliseconds % 2500 <= 500)
 			{
 				// send current data to websocket every 3 seconds
 				try

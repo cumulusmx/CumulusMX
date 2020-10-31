@@ -715,7 +715,7 @@ namespace CumulusMX
 
 										// pesky null values from WLL when it is calm
 										int wdir = data1.wind_dir_last ?? 0;
-										int wind = data1.wind_speed_last ?? 0;
+										double wind = data1.wind_speed_last ?? 0;
 										double wspdAvg10min = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
 
 										DoWind(ConvertWindMPHToUser(wind), wdir, wspdAvg10min, dateTime);
@@ -2919,17 +2919,17 @@ namespace CumulusMX
 			public double wind_chill { get; set; }
 			public double thw_index { get; set; }
 			public double thsw_index { get; set; }
-			public int? wind_speed_last { get; set; }
+			public double? wind_speed_last { get; set; }
 			public int? wind_dir_last { get; set; }
 			public double wind_speed_avg_last_1_min { get; set; }
 			public double wind_dir_scalar_avg_last_1_min { get; set; }
 			public double wind_speed_avg_last_2_min { get; set; }
 			public double wind_dir_scalar_avg_last_2_min { get; set; }
-			public int wind_speed_hi_last_2_min { get; set; }
+			public double wind_speed_hi_last_2_min { get; set; }
 			public int wind_dir_at_hi_speed_last_2_min { get; set; }
 			public double? wind_speed_avg_last_10_min { get; set; }
 			public double wind_dir_scalar_avg_last_10_min { get; set; }
-			public int wind_speed_hi_last_10_min { get; set; }
+			public double wind_speed_hi_last_10_min { get; set; }
 			public int wind_dir_at_hi_speed_last_10_min { get; set; }
 			public int rain_size { get; set; }
 			public double rain_rate_last { get; set; }
