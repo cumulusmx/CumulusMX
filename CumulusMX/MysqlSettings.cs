@@ -167,7 +167,7 @@ namespace CumulusMX
 				cumulus.SetRealtimeSqlCreateString();
 				cumulus.SetStartOfRealtimeInsertSQL();
 
-				if (!String.IsNullOrEmpty(cumulus.MySqlRealtimeRetention))
+				if (!string.IsNullOrEmpty(cumulus.MySqlRealtimeRetention))
 				{
 					cumulus.DeleteRealtimeSQL = $"DELETE IGNORE FROM {cumulus.MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL {cumulus.MySqlRealtimeRetention})";
 				}

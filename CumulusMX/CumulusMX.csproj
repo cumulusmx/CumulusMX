@@ -172,6 +172,7 @@
     <Compile Include="Api.cs" />
     <Compile Include="ApiTagProcessor.cs" />
     <Compile Include="AstroLib.cs" />
+    <Compile Include="CalibrationsLimits.cs" />
     <Compile Include="CalibrationSettings.cs" />
     <Compile Include="Cumulus.cs" />
     <Compile Include="DataEditor.cs" />
@@ -189,6 +190,7 @@
     <Compile Include="MeteoLib.cs" />
     <Compile Include="MoonriseMoonset.cs" />
     <Compile Include="MqttPublisher.cs" />
+    <Compile Include="MxFtpClient.cs" />
     <Compile Include="MysqlSettings.cs" />
     <Compile Include="NOAA.cs" />
     <Compile Include="NOAAReports.cs" />
@@ -218,7 +220,7 @@
     <Compile Include="WeatherLinkDotCom.cs" />
     <Compile Include="WeatherStation.cs" />
     <Compile Include="WebSocket.cs" />
-    <Compile Include="webtags.cs" />
+    <Compile Include="WebTags.cs" />
     <Compile Include="WM918Station.cs" />
     <Compile Include="WMR100Station.cs" />
     <Compile Include="WMR200Station.cs" />

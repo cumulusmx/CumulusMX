@@ -1,19 +1,19 @@
-﻿using System;
+﻿using ServiceStack;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO.Ports;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO.Ports;
-using System.Linq;
 using System.Timers;
-using System.Net.Http;
-using System.Net.Sockets;
 using Tmds.MDns;
-using System.Net;
-using System.ComponentModel;
-using System.Collections.Generic;
-using ServiceStack;
 using Unosquare.Swan;
-using System.Reflection;
 
 namespace CumulusMX
 {
@@ -31,15 +31,15 @@ namespace CumulusMX
 		private bool startupDayResetIfRequired = true;
 		private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
-		private int MaxArchiveRuns = 1;
+		private int maxArchiveRuns = 1;
 		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
-		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
+		private readonly HttpClient wlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly HttpClient dogsBodyClient = new HttpClient();
 		private readonly bool checkWllGustValues;
-		private bool broadcastReceived = false;
+		private bool broadcastReceived;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
-		private bool wllVoltageLow = false;
-		private bool stop = false;
+		private bool wllVoltageLow;
+		private bool stop;
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
 
@@ -60,7 +60,7 @@ namespace CumulusMX
 			tmrBroadcastWatchdog = new System.Timers.Timer();
 			tmrHealth = new System.Timers.Timer();
 
-			WlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
+			wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
 
 			// used for kicking real time, and getting current conditions
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
@@ -161,9 +161,9 @@ namespace CumulusMX
 			// short wait for zero-config
 			Thread.Sleep(1000);
 
-			DateTime tooold = new DateTime(0);
+			DateTime tooOld = new DateTime(0);
 
-			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -238,7 +238,7 @@ namespace CumulusMX
 							{
 								if (!stop) // we may be waiting for a broadcast when a shutdown is started
 								{
-									DecodeBroadcast(Encoding.UTF8.GetString(udpClient.Receive(ref @from)));
+									DecodeBroadcast(Encoding.UTF8.GetString(udpClient.Receive(ref from)));
 								}
 							}
 							catch (SocketException exp)
@@ -246,7 +246,7 @@ namespace CumulusMX
 								if (exp.SocketErrorCode == SocketError.TimedOut)
 								{
 									multicastsBad++;
-									var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+									var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 									cumulus.LogDebugMessage(msg);
 								}
 								else
@@ -344,7 +344,7 @@ namespace CumulusMX
 							cumulus.LogDataMessage("GetWllRealtime: WLL response: " + responseBody);
 
 							var respJson = responseBody.FromJson<WllBroadcastReqResponse>();
-							var err = String.IsNullOrEmpty(respJson.error) ? "OK" : respJson.error;
+							var err = string.IsNullOrEmpty(respJson.error) ? "OK" : respJson.error;
 							port = respJson.data.broadcast_port;
 							duration = respJson.data.duration;
 							cumulus.LogDebugMessage($"GetWllRealtime: GET response Code: {err}, Port: {port}");
@@ -430,7 +430,7 @@ namespace CumulusMX
 					{
 						retry++;
 						cumulus.LogDebugMessage("GetWllCurrent(): Exception Caught!");
-						cumulus.LogDebugMessage($"Message :" + exp.Message);
+						cumulus.LogDebugMessage("Message: " + exp.Message);
 						Thread.Sleep(1000);
 					}
 				} while (retry < 3);
@@ -471,30 +471,31 @@ namespace CumulusMX
 						{
 							try
 							{
-								// WLL BUG: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
-								int windDir = rec.wind_dir_last.HasValue ? rec.wind_dir_last.Value : 0;
+								// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
+								int windDir = rec.wind_dir_last ?? 0;
 
 								// No average in the broadcast data, so use last value from current - allow for calibration
-								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, WindAverage / cumulus.WindSpeedMult, dateTime);
+								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, WindAverage / cumulus.Calib.WindSpeed.Mult, dateTime);
 
 								var gust = ConvertWindMPHToUser(rec.wind_speed_hi_last_10_min);
-								var gustCal = gust * cumulus.WindGustMult;
+								var gustCal = gust * cumulus.Calib.WindGust.Mult;
 								if (checkWllGustValues)
 								{
-									if (gust > RecentMaxGust)
+									if (gustCal > RecentMaxGust)
 									{
 										// See if the station 10 min high speed is higher than our current 10-min max
 										// ie we missed the high gust
 
+										// Check for spikes, and set highs
 										if (CheckHighGust(gustCal, rec.wind_dir_at_hi_speed_last_10_min, dateTime))
 										{
 											cumulus.LogDebugMessage("Set max gust from broadcast 10 min high value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
 											// add to recent values so normal calculation includes this value
 											WindRecent[nextwind].Gust = gust; // use uncalibrated value
-											WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
+											WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
 											WindRecent[nextwind].Timestamp = dateTime;
-											nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+											nextwind = (nextwind + 1) % MaxWindRecent;
 
 											RecentMaxGust = gustCal;
 										}
@@ -502,7 +503,8 @@ namespace CumulusMX
 								}
 								else if (!CalcRecentMaxGust)
 								{
-									if (CheckHighGust(gust, rec.wind_dir_at_hi_speed_last_10_min, dateTime))
+									// Check for spikes, and set highs
+									if (CheckHighGust(gustCal, rec.wind_dir_at_hi_speed_last_10_min, dateTime))
 									{
 										RecentMaxGust = gustCal;
 									}
@@ -551,28 +553,27 @@ namespace CumulusMX
 						}
 					}
 
-					json = null;
 					UpdateStatusPanel(DateTime.Now);
 					UpdateMQTT();
 
 					broadcastReceived = true;
 					DataStopped = false;
-					cumulus.DataStoppedAlarm.triggered = false;
+					cumulus.DataStoppedAlarm.Triggered = false;
 					multicastsGood++;
 				}
 				else
 				{
 					multicastsBad++;
-					var msg = string.Format("WLL broadcast: Invalid payload in message. Percentage good packets {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+					var msg = string.Format("WLL broadcast: Invalid payload in message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 					cumulus.LogMessage(msg);
 				}
 			}
 			catch (Exception exp)
 			{
 				cumulus.LogDebugMessage("DecodeBroadcast(): Exception Caught!");
-				cumulus.LogDebugMessage($"Message :" + exp.Message);
+				cumulus.LogDebugMessage("Message :" + exp.Message);
 				multicastsBad++;
-				var msg = string.Format("WLL broadcast: Error processing broadcast. Percentage good packets {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+				var msg = string.Format("WLL broadcast: Error processing broadcast. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 				cumulus.LogMessage(msg);
 			}
 		}
@@ -613,228 +614,237 @@ namespace CumulusMX
 							{
 								localSensorContactLost = true;
 								cumulus.LogMessage($"Warning: Sensor contact lost TxId {data1.txid}; ignoring data from this ISS");
+								continue;
 							}
-							else
+
+
+							// Temperature & Humidity
+							if (cumulus.WllPrimaryTempHum == data1.txid)
 							{
-								// Temperature & Humidity
-								if (cumulus.WllPrimaryTempHum == data1.txid)
-								{
-									/* Available fields
-									 * "temp": 62.7,                                  // most recent valid temperature **(°F)**
-									 * "hum":1.1,                                     // most recent valid humidity **(%RH)**
-									 * "dew_point": -0.3,                             // **(°F)**
-									 * "wet_bulb":null,                               // **(°F)**
-									 * "heat_index": 5.5,                             // **(°F)**
-									 * "wind_chill": 6.0,                             // **(°F)**
-									 * "thw_index": 5.5,                              // **(°F)**
-									 * "thsw_index": 5.5,                             // **(°F)**
-									 */
-
-									try
-									{
-										cumulus.LogDebugMessage($"WLL current: using temp/hum data from TxId {data1.txid}");
-
-										DoOutdoorHumidity(Convert.ToInt32(data1.hum), dateTime);
-
-										DoOutdoorTemp(ConvertTempFToUser(data1.temp), dateTime);
-
-										DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point), dateTime);
-
-										if (!cumulus.CalculatedWC)
-										{
-											// use wind chill from WLL
-											DoWindChill(ConvertTempFToUser(data1.wind_chill), dateTime);
-										}
-
-										//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
-										//TODO: Heat Index? rec["heat_index"] - No, Cumulus always calculates HI
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing temperature values on TxId {data1.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								else
-								{   // Check for Extra temperature/humidity settings
-									for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
-									{
-										if (cumulus.WllExtraTempTx[tempTxId - 1] != data1.txid) continue;
-
-										try
-										{
-											if (cumulus.WllExtraTempTx[tempTxId - 1] == data1.txid)
-											{
-												if (data1.temp == -99)
-												{
-													cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
-												}
-												else
-												{
-													cumulus.LogDebugMessage($"WLL current: using extra temp data from TxId {data1.txid}");
-
-													DoExtraTemp(ConvertTempFToUser(data1.temp), tempTxId);
-												}
-
-												if (cumulus.WllExtraHumTx[tempTxId - 1])
-												{
-													DoExtraHum(data1.hum, tempTxId);
-												}
-											}
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogMessage($"WLL current: Error processing Extra temperature/humidity values on TxId {data1.txid}");
-											cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-										}
-									}
-								}
-
-								// Wind
-								if (cumulus.WllPrimaryWind == data1.txid)
-								{
-									/*
-									 * Available fields
-									 * "wind_speed_last":2,                           // most recent valid wind speed **(mph)**
-									 * "wind_dir_last":null,                          // most recent valid wind direction **(°degree)**
-									 * "wind_speed_avg_last_1_min":4                  // average wind speed over last 1 min **(mph)**
-									 * "wind_dir_scalar_avg_last_1_min":15            // scalar average wind direction over last 1 min **(°degree)**
-									 * "wind_speed_avg_last_2_min":42606,             // average wind speed over last 2 min **(mph)**
-									 * "wind_dir_scalar_avg_last_2_min": 170.7,       // scalar average wind direction over last 2 min **(°degree)**
-									 * "wind_speed_hi_last_2_min":8,                  // maximum wind speed over last 2 min **(mph)**
-									 * "wind_dir_at_hi_speed_last_2_min":0.0,         // gust wind direction over last 2 min **(°degree)**
-									 * "wind_speed_avg_last_10_min":42606,            // average wind speed over last 10 min **(mph)**
-									 * "wind_dir_scalar_avg_last_10_min": 4822.5,     // scalar average wind direction over last 10 min **(°degree)**
-									 * "wind_speed_hi_last_10_min":8,                 // maximum wind speed over last 10 min **(mph)**
-									 * "wind_dir_at_hi_speed_last_10_min":0.0,        // gust wind direction over last 10 min **(°degree)**
+								/* Available fields
+									* "temp": 62.7,                                  // most recent valid temperature **(°F)**
+									* "hum":1.1,                                     // most recent valid humidity **(%RH)**
+									* "dew_point": -0.3,                             // **(°F)**
+									* "wet_bulb":null,                               // **(°F)**
+									* "heat_index": 5.5,                             // **(°F)**
+									* "wind_chill": 6.0,                             // **(°F)**
+									* "thw_index": 5.5,                              // **(°F)**
+									* "thsw_index": 5.5,                             // **(°F)**
 									*/
 
+								try
+								{
+									cumulus.LogDebugMessage($"WLL current: using temp/hum data from TxId {data1.txid}");
+
+									DoOutdoorHumidity(Convert.ToInt32(data1.hum), dateTime);
+
+									DoOutdoorTemp(ConvertTempFToUser(data1.temp), dateTime);
+
+									DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point), dateTime);
+
+									if (!cumulus.CalculatedWC)
+									{
+										// use wind chill from WLL
+										DoWindChill(ConvertTempFToUser(data1.wind_chill), dateTime);
+									}
+
+									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
+									//TODO: Heat Index? rec["heat_index"] - No, Cumulus always calculates HI
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing temperature values on TxId {data1.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							else
+							{   // Check for Extra temperature/humidity settings
+								for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
+								{
+									if (cumulus.WllExtraTempTx[tempTxId - 1] != data1.txid) continue;
+
 									try
 									{
-										cumulus.LogDebugMessage($"WLL current: using wind data from TxId {data1.txid}");
-
-										// pesky null values from WLL when it is calm
-										int wdir = data1.wind_dir_last ?? 0;
-										double wind = data1.wind_speed_last ?? 0;
-										double wspdAvg10min = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
-
-										DoWind(ConvertWindMPHToUser(wind), wdir, wspdAvg10min, dateTime);
-
-										WindAverage = wspdAvg10min * cumulus.WindSpeedMult;
-
-										if (checkWllGustValues)
+										if (cumulus.WllExtraTempTx[tempTxId - 1] == data1.txid)
 										{
-											// See if the current speed is higher than the current 10-min max
-											// We can then update the figure before the next LOOP2 packet is read
-											var gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min);
-											var gustCal = gust * cumulus.WindGustMult;
-
-											if (gustCal > RecentMaxGust)
+											if (data1.temp == -99)
 											{
-												if (CheckHighGust(gustCal, data1.wind_dir_at_hi_speed_last_10_min, dateTime))
-												{
-													cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-
-													// add to recent values so normal calculation includes this value
-													WindRecent[nextwind].Gust = gust; // use uncalibrated value
-													WindRecent[nextwind].Speed = WindAverage / cumulus.WindSpeedMult;
-													WindRecent[nextwind].Timestamp = dateTime;
-													nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
-
-													RecentMaxGust = gustCal;
-												}
+												cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
 											}
-										}
-										else if (!CalcRecentMaxGust)
-										{
-											var gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min * cumulus.WindGustMult);
-											if (CheckHighGust(gust, data1.wind_dir_at_hi_speed_last_10_min, dateTime))
+											else
 											{
-												RecentMaxGust = gust;
+												cumulus.LogDebugMessage($"WLL current: using extra temp data from TxId {data1.txid}");
+
+												DoExtraTemp(ConvertTempFToUser(data1.temp), tempTxId);
+											}
+
+											if (cumulus.WllExtraHumTx[tempTxId - 1])
+											{
+												DoExtraHum(data1.hum, tempTxId);
 											}
 										}
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogMessage($"WLL current: Error processing wind speeds on TxId {data1.txid}");
+										cumulus.LogMessage($"WLL current: Error processing Extra temperature/humidity values on TxId {data1.txid}");
 										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 									}
 								}
+							}
 
-								// Rainfall
-								if (cumulus.WllPrimaryRain == data1.txid)
+							// Wind
+							if (cumulus.WllPrimaryWind == data1.txid)
+							{
+								/*
+									* Available fields
+									* "wind_speed_last":2,                           // most recent valid wind speed **(mph)**
+									* "wind_dir_last":null,                          // most recent valid wind direction **(°degree)**
+									* "wind_speed_avg_last_1_min":4                  // average wind speed over last 1 min **(mph)**
+									* "wind_dir_scalar_avg_last_1_min":15            // scalar average wind direction over last 1 min **(°degree)**
+									* "wind_speed_avg_last_2_min":42606,             // average wind speed over last 2 min **(mph)**
+									* "wind_dir_scalar_avg_last_2_min": 170.7,       // scalar average wind direction over last 2 min **(°degree)**
+									* "wind_speed_hi_last_2_min":8,                  // maximum wind speed over last 2 min **(mph)**
+									* "wind_dir_at_hi_speed_last_2_min":0.0,         // gust wind direction over last 2 min **(°degree)**
+									* "wind_speed_avg_last_10_min":42606,            // average wind speed over last 10 min **(mph)**
+									* "wind_dir_scalar_avg_last_10_min": 4822.5,     // scalar average wind direction over last 10 min **(°degree)**
+									* "wind_speed_hi_last_10_min":8,                 // maximum wind speed over last 10 min **(mph)**
+									* "wind_dir_at_hi_speed_last_10_min":0.0,        // gust wind direction over last 10 min **(°degree)**
+								*/
+								try
 								{
+									cumulus.LogDebugMessage($"WLL current: using wind data from TxId {data1.txid}");
+
+									// pesky null values from WLL when it is calm
+									int wdir = data1.wind_dir_last ?? 0;
+									double wind = data1.wind_speed_last ?? 0;
+									double wspdAvg10min = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
+
+									DoWind(ConvertWindMPHToUser(wind), wdir, wspdAvg10min, dateTime);
+
+									WindAverage = wspdAvg10min * cumulus.Calib.WindSpeed.Mult;
+
+									// Wind data can be a bit out of date compared to the broadcasts (1 minute update), so only use gust broadcast data
 									/*
-									 * Available fields:
-									 * rec["rain_size"]
-									 * rec["rain_rate_last"], rec["rain_rate_hi"]
-									 * rec["rainfall_last_15_min"], rec["rain_rate_hi_last_15_min"]
-									 * rec["rainfall_last_60_min"]
-									 * rec["rainfall_last_24_hr"]
-									 * rec["rainfall_daily"]
-									 * rec["rainfall_monthly"]
-									 * rec["rainfall_year"]
-									 * rec["rain_storm"], rec["rain_storm_start_at"]
-									 * rec["rain_storm_last"], rec["rain_storm_last_start_at"], rec["rain_storm_last_end_at"]
-									 */
+									var gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min);
+									var gustCal = gust * cumulus.Calib.WindGust.Mult;
 
-									cumulus.LogDebugMessage($"WLL current: using rain data from TxId {data1.txid}");
-
-									// All rainfall values supplied as *tip counts*
-									//double rain = ConvertRainINToUser((double)rec["rainfall_year"]);
-									//double rainrate = ConvertRainINToUser((double)rec["rain_rate_last"]);
-
-									//if (rainrate < 0)
-									//{
-									//	rainrate = 0;
-									//}
-
-									//DoRain(rain, rainrate, dateTime);
-									if (!data1.rain_storm.HasValue || !data1.rain_storm_start_at.HasValue)
+									if (checkWllGustValues)
 									{
-										cumulus.LogDebugMessage("WLL current: No rain storm values present");
-									}
-									else
-									{
-										try
+										// See if the current speed is higher than the current 10-min max
+										// We can then update the figure before the next data packet is read
+
+										if (gustCal > RecentMaxGust)
 										{
-											StormRain = ConvertRainClicksToUser(data1.rain_storm.Value, data1.rain_size) * cumulus.RainMult;
-											StartOfStorm = FromUnixTime(data1.rain_storm_start_at.Value);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogMessage($"WLL current: Error processing rain storm values on TxId {data1.txid}");
-											cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+											// Check for spikes, and set highs
+											if (CheckHighGust(gustCal, data1.wind_dir_at_hi_speed_last_10_min, dateTime))
+											{
+												cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+
+												// add to recent values so normal calculation includes this value
+												WindRecent[nextwind].Gust = gust; // use uncalibrated value
+												WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+												WindRecent[nextwind].Timestamp = dateTime;
+												nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+
+												RecentMaxGust = gustCal;
+											}
 										}
 									}
+									else if (!CalcRecentMaxGust)
+									{
+										// Check for spikes, and set highs
+										if (CheckHighGust(gustCal, data1.wind_dir_at_hi_speed_last_10_min, dateTime))
+										{
+											RecentMaxGust = gustCal;
+										}
+									}
+									*/
 								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing wind speeds on TxId {data1.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
 
-								if (cumulus.WllPrimaryUV == data1.txid)
+
+							// Rainfall
+							if (cumulus.WllPrimaryRain == data1.txid)
+							{
+								/*
+								* Available fields:
+								* rec["rain_size"]
+								* rec["rain_rate_last"], rec["rain_rate_hi"]
+								* rec["rainfall_last_15_min"], rec["rain_rate_hi_last_15_min"]
+								* rec["rainfall_last_60_min"]
+								* rec["rainfall_last_24_hr"]
+								* rec["rainfall_daily"]
+								* rec["rainfall_monthly"]
+								* rec["rainfall_year"]
+								* rec["rain_storm"], rec["rain_storm_start_at"]
+								* rec["rain_storm_last"], rec["rain_storm_last_start_at"], rec["rain_storm_last_end_at"]
+								*/
+
+
+								cumulus.LogDebugMessage($"WLL current: using rain data from TxId {data1.txid}");
+
+								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use storm data
+
+								// All rainfall values supplied as *tip counts*
+								//double rain = ConvertRainINToUser((double)rec["rainfall_year"]);
+								//double rainrate = ConvertRainINToUser((double)rec["rain_rate_last"]);
+
+								//if (rainrate < 0)
+								//{
+								//	rainrate = 0;
+								//}
+
+								//DoRain(rain, rainrate, dateTime);
+
+								if (!data1.rain_storm.HasValue || !data1.rain_storm_start_at.HasValue)
+								{
+									cumulus.LogDebugMessage("WLL current: No rain storm values present");
+								}
+								else
 								{
 									try
 									{
-										cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
-										DoUV(data1.uv_index, dateTime);
+										StormRain = ConvertRainClicksToUser(data1.rain_storm.Value, data1.rain_size) * cumulus.Calib.Rain.Mult;
+										StartOfStorm = FromUnixTime(data1.rain_storm_start_at.Value);
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
+										cumulus.LogMessage($"WLL current: Error processing rain storm values on TxId {data1.txid}");
 										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 									}
 								}
+							}
 
-								if (cumulus.WllPrimarySolar == data1.txid)
+							if (cumulus.WllPrimaryUV == data1.txid)
+							{
+								try
 								{
-									try
-									{
-										cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
-										DoSolarRad(data1.solar_rad, dateTime);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
+									cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
+									DoUV(data1.uv_index, dateTime);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+
+							if (cumulus.WllPrimarySolar == data1.txid)
+							{
+								try
+								{
+									cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
+									DoSolarRad(data1.solar_rad, dateTime);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 								}
 							}
 							break;
@@ -867,141 +877,141 @@ namespace CumulusMX
 							{
 								localSensorContactLost = true;
 								cumulus.LogMessage($"Warning: Sensor contact lost TxId {data2.txid}; ignoring data from this Leaf/Soil transmitter");
+								continue;
 							}
-							else
-							{
-								// For leaf wetness, soil temp/moisture we rely on user configuration, trap any errors
 
-								// Leaf wetness
+							// For leaf wetness, soil temp/moisture we rely on user configuration, trap any errors
+
+							// Leaf wetness
+							try
+							{
+								if (cumulus.WllExtraLeafTx1 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx1;
+									DoLeafWetness((double)data2[idx], 1);
+								}
+								if (cumulus.WllExtraLeafTx2 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx2;
+									DoLeafWetness((double)data2[idx], 2);
+								}
+							}
+							catch (Exception e)
+							{
+								cumulus.LogMessage($"WLL current: Error processung LeafWetness txid={data2.txid}, idx={idx}");
+								cumulus.LogDebugMessage($"WLL current: Exception: {e.Message}");
+							}
+
+							// Soil moisture
+							if (cumulus.WllExtraSoilMoistureTx1 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx1;
 								try
 								{
-									if (cumulus.WllExtraLeafTx1 == data2.txid)
-									{
-										idx = "wet_leaf_" + cumulus.WllExtraLeafIdx1;
-										DoLeafWetness((double)data2[idx], 1);
-									}
-									if (cumulus.WllExtraLeafTx2 == data2.txid)
-									{
-										idx = "wet_leaf_" + cumulus.WllExtraLeafIdx2;
-										DoLeafWetness((double)data2[idx], 2);
-									}
+									DoSoilMoisture((double)data2[idx], 1);
 								}
-								catch (Exception e)
+								catch (Exception ex)
 								{
-									cumulus.LogMessage($"WLL current: Error processung LeafWetness txid={data2.txid}, idx={idx}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {e.Message}");
+									cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 								}
-
-								// Soil moisture
-								if (cumulus.WllExtraSoilMoistureTx1 == data2.txid)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx1;
-									try
-									{
-										DoSoilMoisture((double)data2[idx], 1);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								if (cumulus.WllExtraSoilMoistureTx2 == data2.txid)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx2;
-									try
-									{
-										DoSoilMoisture((double)data2[idx], 2);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								if (cumulus.WllExtraSoilMoistureTx3 == data2.txid)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx3;
-									try
-									{
-										DoSoilMoisture((double)data2[idx], 3);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								if (cumulus.WllExtraSoilMoistureTx4 == data2.txid)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx4;
-									try
-									{
-										DoSoilMoisture((double)data2[idx], 4);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-
-								// SoilTemperature
-								if (cumulus.WllExtraSoilTempTx1 == data2.txid)
-								{
-									idx = "temp_" + cumulus.WllExtraSoilTempIdx1;
-									try
-									{
-										DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 1);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								if (cumulus.WllExtraSoilTempTx2 == data2.txid)
-								{
-									idx = "temp_" + cumulus.WllExtraSoilTempIdx2;
-									try
-									{
-										DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 2);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								if (cumulus.WllExtraSoilTempTx3 == data2.txid)
-								{
-									idx = "temp_" + cumulus.WllExtraSoilTempIdx3;
-									try
-									{
-										DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 3);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-								if (cumulus.WllExtraSoilTempTx4 == data2.txid)
-								{
-									idx = "temp_" + cumulus.WllExtraSoilTempIdx4;
-									try
-									{
-										DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 4);
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data2.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-									}
-								}
-
-								// TODO: Extra Humidity? No type for this on WLL
 							}
+							if (cumulus.WllExtraSoilMoistureTx2 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx2;
+								try
+								{
+									DoSoilMoisture((double)data2[idx], 2);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx3 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx3;
+								try
+								{
+									DoSoilMoisture((double)data2[idx], 3);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx4 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx4;
+								try
+								{
+									DoSoilMoisture((double)data2[idx], 4);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+
+							// SoilTemperature
+							if (cumulus.WllExtraSoilTempTx1 == data2.txid)
+							{
+								idx = "temp_" + cumulus.WllExtraSoilTempIdx1;
+								try
+								{
+									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 1);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilTempTx2 == data2.txid)
+							{
+								idx = "temp_" + cumulus.WllExtraSoilTempIdx2;
+								try
+								{
+									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 2);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilTempTx3 == data2.txid)
+							{
+								idx = "temp_" + cumulus.WllExtraSoilTempIdx3;
+								try
+								{
+									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 3);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilTempTx4 == data2.txid)
+							{
+								idx = "temp_" + cumulus.WllExtraSoilTempIdx4;
+								try
+								{
+									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 4);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+
+							// TODO: Extra Humidity? No type for this on WLL
+
 							break;
 
 						case 3: // Barometer
@@ -1023,12 +1033,12 @@ namespace CumulusMX
 								// Altimeter from absolute
 								StationPressure = ConvertPressINHGToUser(data3.bar_absolute);
 								// Or do we use calibration? The VP2 code doesn't?
-								//StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.PressMult + cumulus.PressOffset;
+								//StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
 								AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"WLL current: Error processing baro data");
+								cumulus.LogMessage("WLL current: Error processing baro data");
 								cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 							}
 
@@ -1053,7 +1063,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"WLL current: Error processing indoor temp data");
+								cumulus.LogMessage("WLL current: Error processing indoor temp data");
 								cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 							}
 
@@ -1063,7 +1073,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"WLL current: Error processing indoor humidity data");
+								cumulus.LogMessage("WLL current: Error processing indoor humidity data");
 								cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 							}
 
@@ -1105,15 +1115,13 @@ namespace CumulusMX
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
 				if (!cumulus.UseDataLogger)
 				{
-					cumulus.BatteryLowAlarm.triggered = TxBatText.Contains("LOW");
+					cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW");
 				}
-
-				json = null;
 			}
 			catch (Exception exp)
 			{
 				cumulus.LogDebugMessage("DecodeCurrent: Exception Caught!");
-				cumulus.LogDebugMessage($"Message :" + exp.Message);
+				cumulus.LogDebugMessage("Message :" + exp.Message);
 			}
 		}
 
@@ -1124,9 +1132,9 @@ namespace CumulusMX
 			return utcTime.ToLocalTime();
 		}
 
-		private static Int32 ToUnixTime(DateTime dateTime)
+		private static int ToUnixTime(DateTime dateTime)
 		{
-			return (Int32)dateTime.ToUniversalTime().ToUnixEpochDate();
+			return (int)dateTime.ToUniversalTime().ToUnixEpochDate();
 		}
 
 		private void OnServiceChanged(object sender, ServiceAnnouncementEventArgs e)
@@ -1170,7 +1178,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal double ConvertRainClicksToUser(double clicks, int size)
+		private double ConvertRainClicksToUser(double clicks, int size)
 		{
 			// 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
 			switch (size)
@@ -1184,30 +1192,21 @@ namespace CumulusMX
 				case 4:
 					return ConvertRainINToUser(clicks * 0.001);
 				default:
-					// Hmm, no valid tip size from WLL...
-					// One click is normally either 0.01 inches or 0.2 mm
-					// Try the setting in Cumulus.ini
-					if (cumulus.VPrainGaugeType == -1)
+					switch (cumulus.VPrainGaugeType)
 					{
+						// Hmm, no valid tip size from WLL...
+						// One click is normally either 0.01 inches or 0.2 mm
+						// Try the setting in Cumulus.ini
 						// Rain gauge type not configured, assume from units
-						if (cumulus.RainUnit == 0)
-						{
+						case -1 when cumulus.RainUnit == 0:
 							return clicks * 0.2;
-						}
-						else
-						{
+						case -1:
 							return clicks * 0.01;
-						}
-					}
-					else
-					{
-						if (cumulus.VPrainGaugeType == 0)
-							// Rain gauge is metric, convert to user unit
+						// Rain gauge is metric, convert to user unit
+						case 0:
 							return ConvertRainMMToUser(clicks * 0.2);
-						else
-						{
+						default:
 							return ConvertRainINToUser(clicks * 0.01);
-						}
 					}
 			}
 		}
@@ -1261,10 +1260,9 @@ namespace CumulusMX
 			//histprog.Show();
 			bw.DoWork += bw_ReadHistory;
 			//bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-			bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_ReadHistoryCompleted);
+			bw.RunWorkerCompleted += bw_ReadHistoryCompleted;
 			bw.WorkerReportsProgress = true;
 			bw.RunWorkerAsync();
-
 		}
 
 		private void bw_ReadHistoryCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -1291,6 +1289,7 @@ namespace CumulusMX
 			cumulus.StartTimersAndSensors();
 		}
 
+		/*
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
 		{
 			cumulus.LogDebugMessage("Lock: Station waiting for lock");
@@ -1304,6 +1303,7 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("Lock: Station releasing lock");
 			Cumulus.syncInit.Release();
 		}
+		*/
 
 		private void bw_ReadHistory(object sender, DoWorkEventArgs e)
 		{
@@ -1337,7 +1337,7 @@ namespace CumulusMX
 				{
 					GetWlHistoricData();
 					archiveRun++;
-				} while (archiveRun < MaxArchiveRuns);
+				} while (archiveRun < maxArchiveRuns);
 			}
 			catch (Exception ex)
 			{
@@ -1351,16 +1351,16 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("GetWlHistoricData: Get WL.com Historic Data");
 
-			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
+			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogMessage("GetWlHistoricData: Missing WeatherLink API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
 				return;
 			}
 
-			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
+			if (cumulus.WllStationId == string.Empty || int.Parse(cumulus.WllStationId) < 10)
 			{
-				var msg = "No WeatherLink API station ID in the configuration";
+				const string msg = "No WeatherLink API station ID in the configuration";
 				cumulus.LogMessage(msg);
 				cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 
@@ -1379,7 +1379,7 @@ namespace CumulusMX
 			{
 				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
 				endTime = startTime + unix24hrs;
-				MaxArchiveRuns++;
+				maxArchiveRuns++;
 			}
 
 			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {FromUnixTime(endTime):s}");
@@ -1388,7 +1388,7 @@ namespace CumulusMX
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
 				{ "api-key", cumulus.WllApiKey },
-				{ "station-id", cumulus.WllStationId.ToString() },
+				{ "station-id", cumulus.WllStationId },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
 				{ "end-timestamp", endTime.ToString() }
@@ -1436,12 +1436,12 @@ namespace CumulusMX
 
 			WlHistory histObj;
 			int noOfRecs = 0;
-			WlHistorySensor sensorWithMostRecs = null;
+			WlHistorySensor sensorWithMostRecs;
 
 			try
 			{
 				// we want to do this synchronously, so .Result
-				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					var responseBody = response.Content.ReadAsStringAsync().Result;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {response.StatusCode}");
@@ -1483,7 +1483,6 @@ namespace CumulusMX
 							}
 						}
 						sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
-
 
 						if (noOfRecs == 0)
 						{
@@ -1672,13 +1671,11 @@ namespace CumulusMX
 
 			if (!Program.service)
 				Console.WriteLine(""); // flush the progress line
-			return;
 		}
 
 		private void DecodeHistoric(int dataType, int sensorType, string json)
 		{
 			// The WLL sends the timestamp in Unix ticks, and in UTC
-			DateTime recordTs;
 
 			try
 			{
@@ -1686,7 +1683,7 @@ namespace CumulusMX
 				{
 					case 11: // ISS data
 						var data11 = json.FromJsv<WlHistorySensorDataType11>();
-						recordTs = FromUnixTime(data11.ts);
+						var recordTs = FromUnixTime(data11.ts);
 						//weatherLinkArchiveInterval = data.Value<int>("arch_int");
 
 						// Temperature & Humidity
@@ -1852,7 +1849,7 @@ namespace CumulusMX
 								cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
 								DoWind(ConvertWindMPHToUser(data11.wind_speed_hi), data11.wind_speed_hi_dir, ConvertWindMPHToUser(data11.wind_speed_avg), recordTs);
 
-								WindAverage = ConvertWindMPHToUser(data11.wind_speed_avg) * cumulus.WindSpeedMult;
+								WindAverage = ConvertWindMPHToUser(data11.wind_speed_avg) * cumulus.Calib.WindSpeed.Mult;
 
 								// add in 'archivePeriod' minutes worth of wind speed to windrun
 								int interval = data11.arch_int / 60;
@@ -2204,7 +2201,7 @@ namespace CumulusMX
 									// Altimeter from absolute
 									StationPressure = ConvertPressINHGToUser(data13baro.bar_absolute);
 									// Or do we use calibration? The VP2 code doesn't?
-									//StationPressure = ConvertPressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.PressMult + cumulus.PressOffset;
+									//StationPressure = ConvertPressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
 									AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 								catch (Exception ex)
@@ -2451,7 +2448,7 @@ namespace CumulusMX
 			if (DateTime.Now.Minute % 15 == 1)
 			{
 				GetWlHistoricHealth();
-				var msg = string.Format("WLL: Percentage good packets received from WLL {0}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100).ToString("F2"), multicastsBad, multicastsGood);
+				var msg = string.Format("WLL: Percentage good packets received from WLL {0:F2}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 				cumulus.LogMessage(msg);
 			}
 		}
@@ -2461,15 +2458,15 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("WLL Health: Get WL.com Historic Data");
 
-			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
+			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogMessage("WLL Health: Missing WeatherLink API data in the cumulus.ini file, aborting!");
 				return;
 			}
 
-			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
+			if (cumulus.WllStationId == string.Empty || int.Parse(cumulus.WllStationId) < 10)
 			{
-				var msg = "No WeatherLink API station ID in the cumulus.ini file";
+				const string msg = "No WeatherLink API station ID in the cumulus.ini file";
 				cumulus.LogConsoleMessage("GetWlHistoricHealth: " + msg);
 				cumulus.LogMessage($"WLL Health: {msg}, aborting!");
 				return;
@@ -2484,7 +2481,7 @@ namespace CumulusMX
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
 				{ "api-key", cumulus.WllApiKey },
-				{ "station-id", cumulus.WllStationId.ToString() },
+				{ "station-id", cumulus.WllStationId },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
 				{ "end-timestamp", endTime.ToString() }
@@ -2519,12 +2516,11 @@ namespace CumulusMX
 			var logUrl = historicUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"WLL Health: WeatherLink URL = {logUrl}");
 
-			WlHistory histObj;
-
 			try
 			{
 				// we want to do this synchronously, so .Result
-				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
+				WlHistory histObj;
+				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					var responseBody = response.Content.ReadAsStringAsync().Result;
 					cumulus.LogDataMessage($"WLL Health: WeatherLink API Response: {response.StatusCode} - {responseBody}");
@@ -2573,7 +2569,7 @@ namespace CumulusMX
 					// 506 = AirLink Health
 
 					// Get the LSID of the health station associated with each device
-					var wllHealthLsid = GetWlHistoricHealthLsid(cumulus.WllParentId, 504);
+					//var wllHealthLsid = GetWlHistoricHealthLsid(cumulus.WllParentId, 504);
 					var alInHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkInLsid, 506);
 					var alOutHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkOutLsid, 506);
 
@@ -2583,20 +2579,25 @@ namespace CumulusMX
 						var dataStructureType = sensor.data_structure_type;
 						var lsid = sensor.lsid;
 
-						if (sensorType == 506 && lsid == alOutHealthLsid) // AirLink Outdoor
+						switch (sensorType)
 						{
-							// Pass AirLink historic record to the AirLink module to process
-							cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
-						}
-						else if (sensorType == 506 && lsid == alInHealthLsid) // AirLink Indoor
-						{
-							// Pass AirLink historic record to the AirLink module to process
-							cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
-						}
-						else if (sensorType == 504 || dataStructureType == 11)
-						{
-							// Either a WLL (504) or ISS (data type = 11) record
-							DecodeWlApiHealth(sensor, true);
+							// AirLink Outdoor
+							case 506 when lsid == alOutHealthLsid:
+								// Pass AirLink historic record to the AirLink module to process
+								cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
+								break;
+							// AirLink Indoor
+							case 506 when lsid == alInHealthLsid:
+								// Pass AirLink historic record to the AirLink module to process
+								cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
+								break;
+							default:
+								if (sensorType == 504 || dataStructureType == 11)
+								{
+									// Either a WLL (504) or ISS (data type = 11) record
+									DecodeWlApiHealth(sensor, true);
+								}
+								break;
 						}
 					}
 				}
@@ -2604,7 +2605,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("WLL Health: exception: " + ex.Message);
 				}
-				cumulus.BatteryLowAlarm.triggered = TxBatText.Contains("LOW") || wllVoltageLow;
+				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || wllVoltageLow;
 			}
 			catch (Exception ex)
 			{
@@ -2615,16 +2616,14 @@ namespace CumulusMX
 
 		// Finds all stations associated with this API
 		// Return true if only 1 result is found, else return false
-		private bool GetAvailableStationIds(bool logToConsole = false)
+		private void GetAvailableStationIds(bool logToConsole = false)
 		{
-			WlStationList stationsObj;
-
 			var unixDateTime = ToUnixTime(DateTime.Now);
 
-			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
+			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogMessage("WLLStations: Missing WeatherLink API data in the cumulus.ini file, aborting!");
-				return false;
+				return;
 			}
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
@@ -2662,7 +2661,7 @@ namespace CumulusMX
 			try
 			{
 				// We want to do this synchronously
-				var response = WlHttpClient.GetAsync(stationsUrl.ToString()).Result;
+				var response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result;
 				var responseBody = response.Content.ReadAsStringAsync().Result;
 				cumulus.LogDebugMessage("WLLStations: WeatherLink API Response: " + response.StatusCode + ": " + responseBody);
 
@@ -2670,10 +2669,10 @@ namespace CumulusMX
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"WLLStations: WeatherLink API Error: {errObj.code} - {errObj.message}");
-					return false;
+					return;
 				}
 
-				stationsObj = responseBody.FromJson<WlStationList>();
+				var stationsObj = responseBody.FromJson<WlStationList>();
 
 				foreach (var station in stationsObj.stations)
 				{
@@ -2707,31 +2706,29 @@ namespace CumulusMX
 
 					cumulus.LogDebugMessage($"WLLStations: Setting WLL parent ID = {stationsObj.stations[0].gateway_id}");
 					cumulus.WllParentId = stationsObj.stations[0].gateway_id;
-					return true;
+					return;
 				}
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogDebugMessage("WLLStations: WeatherLink API exception: " + ex.Message);
 			}
-			return false;
+			return;
 		}
 
 		private void GetAvailableSensors()
 		{
-			WlSensorList sensorsObj;
-
 			var unixDateTime = ToUnixTime(DateTime.Now);
 
-			if (cumulus.WllApiKey == String.Empty || cumulus.WllApiSecret == String.Empty)
+			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogMessage("GetAvailableSensors: WeatherLink API data is missing in the configuration, aborting!");
 				return;
 			}
 
-			if (cumulus.WllStationId == String.Empty || int.Parse(cumulus.WllStationId) < 10)
+			if (cumulus.WllStationId == string.Empty || int.Parse(cumulus.WllStationId) < 10)
 			{
-				cumulus.LogMessage($"GetAvailableSensors: No WeatherLink API station ID has been configured, aborting!");
+				cumulus.LogMessage("GetAvailableSensors: No WeatherLink API station ID has been configured, aborting!");
 				return;
 			}
 
@@ -2770,7 +2767,7 @@ namespace CumulusMX
 			try
 			{
 				// We want to do this synchronously
-				var response = WlHttpClient.GetAsync(stationsUrl.ToString()).Result;
+				var response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result;
 				var responseBody = response.Content.ReadAsStringAsync().Result;
 				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API Response: " + response.StatusCode + ": " + responseBody);
 
@@ -2781,32 +2778,31 @@ namespace CumulusMX
 					return;
 				}
 
-				sensorsObj = responseBody.FromJson<WlSensorList>();
-				WlSensor wl_sensor;
+				var sensorsObj = responseBody.FromJson<WlSensorList>();
 
 				// Sensor types we are interested in...
 				// 323 = Outdoor AirLink
 				// 326 = Indoor AirLink
 				// 504 = WLL Health
 				// 506 = AirLink Health
-				var types = new int[] { 45, 323, 326, 504, 506 };
+				var types = new[] { 45, 323, 326, 504, 506 };
 				foreach (var sensor in sensorsObj.sensors)
 				{
 					cumulus.LogDebugMessage($"GetAvailableSensors: Found WeatherLink Sensor type={sensor.sensor_type}, lsid={sensor.lsid}, station_id={sensor.station_id}, name={sensor.product_name}, parentId={sensor.parent_device_id}, parent={sensor.parent_device_name}");
 
 					if (types.Contains(sensor.sensor_type) || sensor.category == "ISS")
 					{
-						wl_sensor = new WlSensor(sensor.sensor_type, sensor.lsid, sensor.parent_device_id, sensor.product_name, sensor.parent_device_name);
-						sensorList.Add(wl_sensor);
-						if (wl_sensor.SensorType == 323 && sensor.station_id == int.Parse(cumulus.AirLinkOutStationId))
+						var wlSensor = new WlSensor(sensor.sensor_type, sensor.lsid, sensor.parent_device_id, sensor.product_name, sensor.parent_device_name);
+						sensorList.Add(wlSensor);
+						if (wlSensor.SensorType == 323 && sensor.station_id == int.Parse(cumulus.AirLinkOutStationId))
 						{
-							cumulus.LogDebugMessage($"GetAvailableSensors: Setting AirLink Outdoor LSID to {wl_sensor.LSID}");
-							cumulus.airLinkOutLsid = wl_sensor.LSID;
+							cumulus.LogDebugMessage($"GetAvailableSensors: Setting AirLink Outdoor LSID to {wlSensor.LSID}");
+							cumulus.airLinkOutLsid = wlSensor.LSID;
 						}
-						else if (wl_sensor.SensorType == 326 && sensor.station_id == int.Parse(cumulus.AirLinkInStationId))
+						else if (wlSensor.SensorType == 326 && sensor.station_id == int.Parse(cumulus.AirLinkInStationId))
 						{
-							cumulus.LogDebugMessage($"GetAvailableSensors: Setting AirLink Indoor LSID to {wl_sensor.LSID}");
-							cumulus.airLinkInLsid = wl_sensor.LSID;
+							cumulus.LogDebugMessage($"GetAvailableSensors: Setting AirLink Indoor LSID to {wlSensor.LSID}");
+							cumulus.airLinkInLsid = wlSensor.LSID;
 						}
 					}
 				}
@@ -2823,13 +2819,13 @@ namespace CumulusMX
 			{
 				broadcastReceived = false;
 				DataStopped = false;
-				cumulus.DataStoppedAlarm.triggered = false;
+				cumulus.DataStoppedAlarm.Triggered = false;
 			}
 			else
 			{
 				cumulus.LogMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
-				cumulus.DataStoppedAlarm.triggered = true;
+				cumulus.DataStoppedAlarm.Triggered = true;
 				// Try and give the broadcasts a kick in case the last command did not get through
 				GetWllRealtime(null, null);
 			}
@@ -2839,10 +2835,10 @@ namespace CumulusMX
 		{
 			try
 			{
-				var sensor = sensorList.Where(i => i.LSID == id || i.ParentID == id).FirstOrDefault();
+				var sensor = sensorList.FirstOrDefault(i => i.LSID == id || i.ParentID == id);
 				if (sensor != null)
 				{
-					var health = sensorList.Where(i => i.ParentID == sensor.ParentID && i.SensorType == type).FirstOrDefault();
+					var health = sensorList.FirstOrDefault(i => i.ParentID == sensor.ParentID && i.SensorType == type);
 					if (health != null)
 					{
 						return health.LSID;

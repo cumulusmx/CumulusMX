@@ -86,7 +86,7 @@ namespace CumulusMX
 
 		public string UpdateExtraSensorConfig(IHttpContext context)
 		{
-			var ErrorMsg = "";
+			var errorMsg = "";
 			context.Response.StatusCode = 200;
 
 			try
@@ -132,7 +132,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing AirLink settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -145,7 +145,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Blake-Larsen settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -168,7 +168,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing RG-11 settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -183,10 +183,7 @@ namespace CumulusMX
 			// Save the settings
 			cumulus.WriteIniFile();
 
-			if (context.Response.StatusCode == 200)
-				return "success";
-			else
-				return ErrorMsg;
+			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
 

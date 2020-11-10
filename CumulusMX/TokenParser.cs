@@ -9,7 +9,6 @@
 //     Date        :  7/20/2008
 // ********************************************************************************
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -28,7 +27,7 @@ namespace CumulusMX
 		public string InputText;
 		public string SourceFile { set; get; }
 
-		public Encoding encoding { set; get; }
+		public Encoding Encoding { set; get; }
 
 		public delegate void TokenHandler(string strToken, ref string strReplacement);
 		public event TokenHandler OnToken;
@@ -37,6 +36,7 @@ namespace CumulusMX
 		{
 		}
 
+		/*
 		/// <summary>
 		///     ExtractToken parses a token in the format "<#TOKENNAME>".
 		/// </summary>
@@ -48,15 +48,17 @@ namespace CumulusMX
 		/// <returns>
 		///     It returns the string between the tokens "<#" and ">"
 		/// </returns>
-		/*private string ExtractToken(string strToken)
+		private string ExtractToken(string strToken)
 		{
 			int firstPos = strToken.IndexOf("<#") + 2;
 			int secondPos = strToken.LastIndexOf(">");
 			string result = strToken.Substring(firstPos, secondPos - firstPos);
 
 			return result.Trim();
-		}*/
+		}
+		*/
 
+		/*
 		/// <summary>
 		///     Parse() iterates through each character of the class variable "inputText"
 		/// </summary>
@@ -64,7 +66,7 @@ namespace CumulusMX
 		///     Parse() returns a string representing inputText with its tokens exchanged
 		///     for the calling code's values.
 		/// </returns>
-		/*private String Parse()
+		private String Parse()
 		{
 			const string tokenStart = "<";
 			const string tokenNext = "#";
@@ -126,9 +128,11 @@ namespace CumulusMX
 				i++;
 			}
 			return outText;
-		}*/
+		}
+		*/
 
-		/*private String Parse2()
+		/*
+		private String Parse2()
 		{
 			const string tokenStart = "<#";
 			const string tokenEnd = ">";
@@ -193,14 +197,15 @@ namespace CumulusMX
 				}
 			}
 			return outText;
-		}*/
+		}
+		*/
 
-		private String Parse3()
+		private string Parse3()
 		{
 			// Preallocate SB memory to double input size
 			StringBuilder outText = new StringBuilder(InputText.Length * 2);
-			String token = String.Empty;
-			String replacement = String.Empty;
+			String token = string.Empty;
+			String replacement = string.Empty;
 
 			int i = 0;
 			int len = InputText.Length;
@@ -294,13 +299,13 @@ namespace CumulusMX
 		//	return utf8String;
 		//}
 
+		/*
 		/// <summary>
 		///     Content() reads the text file specified in the constructor and returns the unparsed text.
 		/// </summary>
 		/// <returns>
 		///     A string representing the unparsed text file.
 		/// </returns>
-		/*
 		public String Content()
 		{
 			string result;
@@ -334,7 +339,7 @@ namespace CumulusMX
 			string result;
 			try
 			{
-				using (TextReader reader = new StreamReader(SourceFile, encoding))
+				using (TextReader reader = new StreamReader(SourceFile, Encoding))
 				{
 					InputText = reader.ReadToEnd();
 				}

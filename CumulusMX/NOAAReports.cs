@@ -63,14 +63,7 @@ namespace CumulusMX
 			{
 				var reportName = noaats.ToString(cumulus.NOAAYearFileFormat);
 				noaafile = cumulus.ReportPath + reportName;
-				if (File.Exists(noaafile))
-				{
-					report = new List<string>(File.ReadAllLines(noaafile));
-				}
-				else
-				{
-					report = new List<String> { "That report does not exist" };
-				}
+				report = File.Exists(noaafile) ? new List<string>(File.ReadAllLines(noaafile)) : new List<String> { "That report does not exist" };
 			}
 			catch
 			{
@@ -87,14 +80,7 @@ namespace CumulusMX
 			{
 				var reportName = noaats.ToString(cumulus.NOAAMonthFileFormat);
 				noaafile = cumulus.ReportPath + reportName;
-				if (File.Exists(noaafile))
-				{
-					report = new List<string> (File.ReadAllLines(noaafile));
-				}
-				else
-				{
-					report = new List<string> { "That report does not exist" };
-				}
+				report = File.Exists(noaafile) ? new List<string> (File.ReadAllLines(noaafile)) : new List<string> { "That report does not exist" };
 			}
 			catch
 			{

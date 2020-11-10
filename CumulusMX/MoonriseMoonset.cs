@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.IO;
 
 namespace CumulusMX
 {
@@ -1123,7 +1122,7 @@ namespace CumulusMX
             return (180.0/Math.PI)*Math.Atan(y/x) - 180.0*num;
         }
 
-        static double dayno(int year, int month,int day,double hours) {
+        private static double DayNum(int year, int month,int day,double hours) {
             // Day number is a modified Julian date, day 0 is 2000 January 0.0
             // which corresponds to a Julian date of 2451543.5
             double d=  (367*year-Math.Floor(7*(year+Math.Floor((month+9)/12.0))/4)
@@ -1131,27 +1130,27 @@ namespace CumulusMX
             return d;
         }
 
-        static double julian(int year, int month,int day,double hours)
+        private static double Julian(int year, int month,int day,double hours)
         {
-            return dayno(year, month, day, hours) + 2451543.5;
+            return DayNum(year, month, day, hours) + 2451543.5;
         }
 
-        static double local_sidereal(int year,int month,int day,double hours,double lon)
+        private static double LocalSidereal(int year,int month,int day,double hours,double lon)
         {
             // Compute local siderial time in degrees
             // year, month, day and hours are the Greenwich date and time
             // lon is the observers longitude
-            var d=dayno(year,month,day,hours);
+            var d=DayNum(year,month,day,hours);
             var lst=(98.9818+0.985647352*d+hours*15+lon);
             return rev(lst)/15;
         }
 
-        private static double[] radtoaa(double ra,double dec,int year,int month,int day,double hours,double lat,double lon)
+        private static double[] RaDecToAltAz(double ra,double dec,int year,int month,int day,double hours,double lat,double lon)
         {
             // convert ra and dec to altitude and azimuth
             // year, month, day and hours are the Greenwich date and time
             // lat and lon are the observers latitude and longitude
-            var lst=local_sidereal(year,month,day,hours,lon);
+            var lst=LocalSidereal(year,month,day,hours,lon);
             var x=cosd(15.0*(lst-ra))*cosd(dec);
             var y=sind(15.0*(lst-ra))*cosd(dec);
             var z=sind(dec);
@@ -1168,7 +1167,7 @@ namespace CumulusMX
         public static double[] MoonPos(int year, int month, int day, double hours)
         {
             // julian date
-            var jd = julian(year, month, day, hours);
+            var jd = Julian(year, month, day, hours);
             var T = (jd - 2451545.0)/36525;
             var T2 = T*T;
             var T3 = T2*T;
@@ -1246,7 +1245,7 @@ namespace CumulusMX
             // Compute the moon elevation at start and end of day
             // store elevation at the hours in an array elh to save search time
             var rad = MoonPos(year, month, day, hours - TZ);
-            var altaz = radtoaa(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
+            var altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
             elh[0] = altaz[0];
             elhdone[0] = true;
             // set the return code to allow for always up or never rises
@@ -1260,7 +1259,7 @@ namespace CumulusMX
             }
             hours = 24;
             rad = MoonPos(year, month, day, hours - TZ);
-            altaz = radtoaa(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
+            altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
             elh[24] = altaz[0];
             elhdone[24] = true;
             // search for moonrise and set
@@ -1277,7 +1276,7 @@ namespace CumulusMX
                     {
                         hours = hmid;
                         rad = MoonPos(year, month, day, hours - TZ);
-                        altaz = radtoaa(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
+                        altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
                         elh[hmid] = altaz[0];
                         elhdone[hmid] = true;
                     }
@@ -1305,7 +1304,7 @@ namespace CumulusMX
                         {
                             hours = i + 1;
                             rad = MoonPos(year, month, day, hours - TZ);
-                            altaz = radtoaa(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
+                            altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
                             elh[(int) hours] = altaz[0];
                             elhdone[(int) hours] = true;
                         }
@@ -1325,7 +1324,7 @@ namespace CumulusMX
                     var ellast = elh[(int) hlast];
                     hours = hfirst + 0.5;
                     rad = MoonPos(year, month, day, hours - TZ);
-                    altaz = radtoaa(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
+                    altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
                     // alert("day ="+day+" hour ="+hours+" altaz="+altaz[0]+" "+altaz[1]);
                     if ((rise == 0) && (altaz[0] <= 0.0))
                     {
@@ -1357,7 +1356,7 @@ namespace CumulusMX
         public static double MoonPhase(int year, int month, int day, int hours)
         {
             // the illuminated percentage from Meeus chapter 46
-            var j = julian(year, month, day, hours);
+            var j = Julian(year, month, day, hours);
             var T = (j - 2451545.0)/36525;
             var T2 = T*T;
             var T3 = T2*T;
@@ -1520,8 +1519,7 @@ namespace CumulusMX
 
         public static string CreateMoonImage(double phaseAngle, double latitude, int size)
         {
-            int xPos, yPos, xPos2;
-            Bitmap bmp;
+	        Bitmap bmp;
             // we need to reverse a couple of settings beyond full moon
             double corr = -1;
 
@@ -1548,16 +1546,16 @@ namespace CumulusMX
                 int srcSize2 = srcSize / 2;
                 Pen dark = new Pen(Color.FromArgb(200, 20, 20, 20));
 
-                for (yPos = 0; yPos <= srcSize2; yPos++)
+                for (int yPos = 0; yPos <= srcSize2; yPos++)
                 {
                     // moons limb
                     var y = srcSize2 - yPos;
-                    xPos = (int)(Math.Sqrt(srcSize2 * srcSize2 - y * y) * corr + srcSize2);
+                    var xPos = (int)(Math.Sqrt(srcSize2 * srcSize2 - y * y) * corr + srcSize2);
 
                     // Determine the edges of the illuminated part of the moon
                     double x = 1 - ((double)yPos / (double)srcSize2);
                     x = Math.Sqrt(1 - (x * x));
-                    xPos2 = (int)(srcSize2 + (phase - 0.5) * x * srcSize * (-corr));
+                    var xPos2 = (int)(srcSize2 + (phase - 0.5) * x * srcSize * (-corr));
 
                     Point p1 = new Point(xPos, yPos);
                     Point p2 = new Point(xPos2, yPos);

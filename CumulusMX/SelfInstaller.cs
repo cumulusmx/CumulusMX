@@ -5,41 +5,35 @@ namespace CumulusMX
 {
 	public class SelfInstaller
 	{
-		private static readonly string _exePath = Assembly.GetExecutingAssembly().Location;
+		private static readonly string ExePath = Assembly.GetExecutingAssembly().Location;
 		public static bool InstallMe()
 		{
-			bool result;
 			try
 			{
 				ManagedInstallerClass.InstallHelper(new string[] {
-					SelfInstaller._exePath
+					SelfInstaller.ExePath
 				});
 			}
 			catch
 			{
-				result = false;
-				return result;
+				return false;
 			}
-			result = true;
-			return result;
+			return true;
 		}
 
 		public static bool UninstallMe()
 		{
-			bool result;
 			try
 			{
 				ManagedInstallerClass.InstallHelper(new string[] {
-					"/u", SelfInstaller._exePath
+					"/u", SelfInstaller.ExePath
 				});
 			}
 			catch
 			{
-				result = false;
-				return result;
+				return false;
 			}
-			result = true;
-			return result;
+			return true;
 		}
 	}
 }

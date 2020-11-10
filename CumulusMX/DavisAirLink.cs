@@ -23,45 +23,45 @@ namespace CumulusMX
 		private readonly object threadSafer = new object();
 		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1);
 		private bool startupDayResetIfRequired = true;
-		private int MaxArchiveRuns = 1;
+		private int maxArchiveRuns = 1;
 
 		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
-		private readonly HttpClient WlHttpClient = new HttpClient(HistoricHttpHandler);
+		private readonly HttpClient wlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly HttpClient dogsBodyClient = new HttpClient();
-		private readonly int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
+		private const int WeatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
+
 		//private bool alVoltageLow = false;
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
-		private readonly int HealthLsid;
+		private readonly int healthLsid;
 		private bool updateInProgress;
 		private readonly bool indoor;
 		private readonly string locationStr;
-		private readonly bool standalone;		// used to flag if this AirLink is linked to a WLL
 		private readonly bool standaloneHistory; // Used to flag if we need to get history data on catch-up
 
 		private DateTime airLinkLastUpdateTime;
 
 
-		public DavisAirLink(Cumulus cumulus, bool Indoor) : base(cumulus)
+		public DavisAirLink(Cumulus cumulus, bool indoor) : base(cumulus)
 		{
-			indoor = Indoor;
+			this.indoor = indoor;
 
-			locationStr = indoor ? "Indoor" : "Outdoor";
+			locationStr = this.indoor ? "Indoor" : "Outdoor";
 
 			airLinkLastUpdateTime = cumulus.LastUpdateTime;
 
 			// Working out if we are standalone or integrated with WLL is a bit tricky.
 			// Easist to see if we are a node of a WLL station, and the station id is same
-			standalone = !(
-							cumulus.StationType == StationTypes.WLL &&
-							(indoor ? cumulus.AirLinkInIsNode : cumulus.AirLinkOutIsNode) &&
-							(indoor ? cumulus.AirLinkInStationId == cumulus.WllStationId : cumulus.AirLinkOutStationId == cumulus.WllStationId)
-						);
+			var standalone = !(
+				cumulus.StationType == StationTypes.WLL &&
+				(this.indoor ? cumulus.AirLinkInIsNode : cumulus.AirLinkOutIsNode) &&
+				(this.indoor ? cumulus.AirLinkInStationId == cumulus.WllStationId : cumulus.AirLinkOutStationId == cumulus.WllStationId)
+			);
 
 			// If we are standalone, are we configured to read history data?
 			standaloneHistory = standalone &&
 								!string.IsNullOrEmpty(cumulus.AirLinkApiKey) &&
 								!string.IsNullOrEmpty(cumulus.AirLinkApiSecret) &&
-								!(indoor ? string.IsNullOrEmpty(cumulus.AirLinkInStationId) : string.IsNullOrEmpty(cumulus.AirLinkOutStationId));
+								!(this.indoor ? string.IsNullOrEmpty(cumulus.AirLinkInStationId) : string.IsNullOrEmpty(cumulus.AirLinkOutStationId));
 
 			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({locationStr}) - standalone={standalone}");
 
@@ -86,7 +86,7 @@ namespace CumulusMX
 			// short wait for zero-config
 			Thread.Sleep(1000);
 
-			WlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
+			wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
 
 			// Only start reading history if the main station isn't a WLL
@@ -100,7 +100,7 @@ namespace CumulusMX
 				GetAvailableSensors();
 
 				// Now find our corresponding Health sensor LSID
-				HealthLsid = GetWlHistoricHealthLsid((indoor ? cumulus.airLinkInLsid : cumulus.airLinkOutLsid), 506);
+				healthLsid = GetWlHistoricHealthLsid((this.indoor ? cumulus.airLinkInLsid : cumulus.airLinkOutLsid), 506);
 
 				// Fetch the current health data to pre-polulate web tags
 				GetWlHistoricHealth();
@@ -145,7 +145,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage($"AirLink {locationStr} Stopping");
 				tmrCurrent.Stop();
-				if (tmrHealth != null) tmrHealth.Stop();
+				tmrHealth?.Stop();
 				cumulus.LogMessage($"AirLink {locationStr} Stopped");
 			}
 			catch { }
@@ -235,7 +235,6 @@ namespace CumulusMX
 				// The WLL sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the WLL clock being correct, we will use our local time
 				//var dateTime = FromUnixTime(data.Value<int>("ts"));
-				var dateTime = DateTime.Now;
 
 				// The current conditions is sent as an array, even though it only contains 1 record
 				var rec = json.data.conditions.First();
@@ -433,7 +432,7 @@ namespace CumulusMX
 				{
 					GetWlHistoricData();
 					archiveRun++;
-				} while (archiveRun < MaxArchiveRuns);
+				} while (archiveRun < maxArchiveRuns);
 			}
 			catch (Exception ex)
 			{
@@ -474,7 +473,7 @@ namespace CumulusMX
 			{
 				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
 				endTime = startTime + unix24hrs;
-				MaxArchiveRuns++;
+				maxArchiveRuns++;
 			}
 
 			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {FromUnixTime(endTime):s}");
@@ -520,14 +519,14 @@ namespace CumulusMX
 			lastDataReadTime = airLinkLastUpdateTime;
 
 			WlHistory histObj;
-			WlHistorySensor sensorWithMostRecs = null;
+			WlHistorySensor sensorWithMostRecs;
 
 			int noOfRecs = 0;
 
 			try
 			{
 				// we want to do this synchronously, so .Result
-				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					string responseBody = response.Content.ReadAsStringAsync().Result;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {response.StatusCode}");
@@ -667,8 +666,6 @@ namespace CumulusMX
 						}
 					}
 
-					var h = timestamp.Hour;
-
 					cumulus.DoAirLinkLogFile(timestamp);
 
 					if (!Program.service)
@@ -683,12 +680,10 @@ namespace CumulusMX
 
 			if (!Program.service)
 				Console.WriteLine(""); // flush the progress line
-			return;
 		}
 
 		public void DecodeAlHistoric(int dataType, string json)
 		{
-			DateTime recordTs;
 			try
 			{
 				switch (dataType)
@@ -730,8 +725,6 @@ namespace CumulusMX
 
 
 						var data17 = json.FromJsv<WlHistorySensorDataType17>();
-
-						recordTs = FromUnixTime(data17.ts);
 
 						try
 						{
@@ -831,7 +824,7 @@ namespace CumulusMX
 						break;
 
 					default:
-						// Unknown!
+						cumulus.LogDebugMessage($"DecodeAlHistoric: Unknown data type found - {dataType}");
 						break;
 				}
 			}
@@ -879,7 +872,7 @@ namespace CumulusMX
 			}
 
 			var unixDateTime = ToUnixTime(DateTime.Now);
-			var startTime = unixDateTime - weatherLinkArchiveInterval;
+			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			int endTime = unixDateTime;
 
 			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {FromUnixTime(startTime):s} to: {FromUnixTime(endTime):s}");
@@ -925,7 +918,7 @@ namespace CumulusMX
 			try
 			{
 				// we want to do this synchronously, so .Result
-				using (HttpResponseMessage response = WlHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					var responseBody = response.Content.ReadAsStringAsync().Result;
 					cumulus.LogDataMessage($"AirLinkHealth: WeatherLink API Response: {response.StatusCode}: {responseBody}");
@@ -969,7 +962,7 @@ namespace CumulusMX
 				{
 					foreach (var sensor in histObj.sensors)
 					{
-						if (sensor.sensor_type == 506 && sensor.lsid == HealthLsid) // AirLink Outdoor
+						if (sensor.sensor_type == 506 && sensor.lsid == healthLsid) // AirLink Outdoor
 						{
 							DecodeWlApiHealth(sensor, true);
 						}
@@ -1042,7 +1035,7 @@ namespace CumulusMX
 					try
 					{
 						// Davis are changing the API, from air_quality_firmware_version to firmware_version
-						var dat = FromUnixTime(data.air_quality_firmware_version.HasValue ? data.air_quality_firmware_version.Value : data.firmware_version.Value);
+						var dat = FromUnixTime(data.air_quality_firmware_version ?? data.firmware_version.Value);
 						if (indoor)
 							cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 						else
@@ -1186,7 +1179,7 @@ namespace CumulusMX
 			try
 			{
 				// We want to do this synchronously
-				var response = WlHttpClient.GetAsync(stationsUrl.ToString()).Result;
+				var response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result;
 				var responseBody = response.Content.ReadAsStringAsync().Result;
 				cumulus.LogDebugMessage("WeatherLink API Response: " + response.StatusCode + ": " + responseBody);
 
@@ -1293,7 +1286,7 @@ namespace CumulusMX
 			try
 			{
 				// We want to do this synchronously
-				var response = WlHttpClient.GetAsync(sensorsUrl.ToString()).Result;
+				var response = wlHttpClient.GetAsync(sensorsUrl.ToString()).Result;
 				var responseBody = response.Content.ReadAsStringAsync().Result;
 				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API Response: " + response.StatusCode + ": " + responseBody);
 
@@ -1437,11 +1430,11 @@ namespace CumulusMX
 					data.aqiPm2p5_24hr = AirQualityIndices.US_EPApm2p5(data.pm2p5_24hr);
 					data.aqiPm2p5_nowcast = AirQualityIndices.US_EPApm2p5(data.pm2p5_nowcast);
 
-					data.aqiPm10 = AirQualityIndices.US_EPApm2p5(data.pm10);
-					data.aqiPm10_1hr = AirQualityIndices.US_EPApm2p5(data.pm10_1hr);
-					data.aqiPm10_3hr = AirQualityIndices.US_EPApm2p5(data.pm10_3hr);
-					data.aqiPm10_24hr = AirQualityIndices.US_EPApm2p5(data.pm10_24hr);
-					data.aqiPm10_nowcast = AirQualityIndices.US_EPApm2p5(data.pm10_nowcast);
+					data.aqiPm10 = AirQualityIndices.US_EPApm10(data.pm10);
+					data.aqiPm10_1hr = AirQualityIndices.US_EPApm10(data.pm10_1hr);
+					data.aqiPm10_3hr = AirQualityIndices.US_EPApm10(data.pm10_3hr);
+					data.aqiPm10_24hr = AirQualityIndices.US_EPApm10(data.pm10_24hr);
+					data.aqiPm10_nowcast = AirQualityIndices.US_EPApm10(data.pm10_nowcast);
 					break;
 				case 1: // UK CMEAP
 					data.aqiPm2p5 = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5);

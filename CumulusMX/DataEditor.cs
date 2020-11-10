@@ -46,7 +46,7 @@ namespace CumulusMX
 					var raintoday = double.Parse(raintodaystring, CultureInfo.InvariantCulture);
 					cumulus.LogMessage("Before rain today edit, raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.raindaystart.ToString(cumulus.RainFormat));
 					station.RainToday = raintoday;
-					station.raindaystart = station.Raincounter - (station.RainToday / cumulus.RainMult);
+					station.raindaystart = station.Raincounter - (station.RainToday / cumulus.Calib.Rain.Mult);
 					cumulus.LogMessage("After rain today edit,  raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.raindaystart.ToString(cumulus.RainFormat));
 				}
 				catch (Exception ex)
@@ -58,7 +58,7 @@ namespace CumulusMX
 			var json = "{\"raintoday\":\"" + station.RainToday.ToString(cumulus.RainFormat, invC) +
 				"\",\"raincounter\":\"" + station.Raincounter.ToString(cumulus.RainFormat, invC) +
 				"\",\"startofdayrain\":\"" + station.raindaystart.ToString(cumulus.RainFormat, invC) +
-				"\",\"rainmult\":\"" + cumulus.RainMult.ToString("F3", invC) + "\"}";
+				"\",\"rainmult\":\"" + cumulus.Calib.Rain.Mult.ToString("F3", invC) + "\"}";
 
 			return json;
 		}
@@ -70,7 +70,7 @@ namespace CumulusMX
 			var json = "{\"raintoday\":\"" + station.RainToday.ToString(cumulus.RainFormat, invC) +
 				"\",\"raincounter\":\"" + station.Raincounter.ToString(cumulus.RainFormat, invC) +
 				"\",\"startofdayrain\":\"" + station.raindaystart.ToString(cumulus.RainFormat, invC) +
-				"\",\"rainmult\":\"" + cumulus.RainMult.ToString("F3", invC) +
+				"\",\"rainmult\":\"" + cumulus.Calib.Rain.Mult.ToString("F3", invC) +
 				"\",\"step\":\"" + step + "\"}";
 
 			return json;
@@ -136,7 +136,7 @@ namespace CumulusMX
 			const string dateStampFormat = "dd/MM/yy";
 			// Records - Temperature values
 			var json = new StringBuilder("{", 1700);
-			json.Append($"\"highTempVal\":\"{station.alltimerecarray[WeatherStation.AT_HighTemp].value.ToString(cumulus.TempFormat)}\","); ;
+			json.Append($"\"highTempVal\":\"{station.alltimerecarray[WeatherStation.AT_HighTemp].value.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"lowTempVal\":\"{station.alltimerecarray[WeatherStation.AT_LowTemp].value.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highDewPointVal\":\"{station.alltimerecarray[WeatherStation.AT_HighDewPoint].value.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"lowDewPointVal\":\"{station.alltimerecarray[WeatherStation.AT_LowDewpoint].value.ToString(cumulus.TempFormat)}\",");
@@ -640,17 +640,16 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					cumulus.LogMessage("Error on line " + linenum + " of " + cumulus.DayFile + ": " + e.Message);
+					cumulus.LogMessage("GetRecordsDayFile: Error on line " + linenum + " of " + cumulus.DayFile + ": " + e.Message);
 				}
 			}
 			else
 			{
-				cumulus.LogMessage("Error failed to find day file: " + cumulus.DayFile);
+				cumulus.LogMessage("GetRecordsDayFile: Error failed to find day file: " + cumulus.DayFile);
 			}
 
 			watch.Stop();
-			var elapsed = watch.ElapsedMilliseconds;
-			cumulus.LogDebugMessage($"All time recs editor Dayfile load = {elapsed} ms");
+			cumulus.LogDebugMessage($"GetRecordsDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
 
 			return json.ToString();
 		}
@@ -1051,7 +1050,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetRecordsLogFile: Error at line {linenum} of {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -1153,7 +1152,7 @@ namespace CumulusMX
 			json.Append("}");
 			watch.Stop();
 			var elapsed = watch.ElapsedMilliseconds;
-			cumulus.LogDebugMessage($"All time recs editor Logfiles load = {elapsed} ms");
+			cumulus.LogDebugMessage($"GetRecordsLogFile: Logfiles parse = {elapsed} ms");
 
 			return json.ToString();
 		}

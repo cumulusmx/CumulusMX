@@ -182,39 +182,36 @@ namespace CumulusMX
 
 		private void UpdateReadPointer()
 		{
-			string response1, response2;
-			List<string> sl;
-			string currPtr;
-
 			// If required, update the logger read pointer to match the current write pointer
 			// It means the read pointer will always point to the last live record we read.
 			SendCommand("RDST,14");
 			// read the response
-			response1 = GetResponse("rdst");
+			var response1 = GetResponse("rdst");
 			if (ValidChecksum(response1))
 			{
 				try
 				{
 					// Response: rdst,adr,dat
 					// split the data
-					sl = new List<string>(Regex.Split(response1, ","));
-					currPtr = sl[2];
-					if (!currentWritePointer.Equals(currPtr))
+					var sl = new List<string>(Regex.Split(response1, ","));
+					var currPtr = sl[2];
+
+					if (currentWritePointer.Equals(currPtr))
+						return;
+
+					// The write pointer does not equal the read pointer
+					// write it back to the logger memory
+					cumulus.LogDebugMessage("Updating logger read pointer");
+					SendCommand("WRST,13," + currPtr);
+					var response2 = GetResponse("wrst");
+					if (ValidChecksum(response2))
 					{
-						// The write pointer does not equal the read pointer
-						// write it back to the logger memory
-						cumulus.LogDebugMessage("Updating logger read pointer");
-						SendCommand("WRST,13," + currPtr);
-						response2 = GetResponse("wrst");
-						if (ValidChecksum(response2))
-						{
-							// and if it all worked, update our pointer record
-							currentWritePointer = currPtr;
-						}
-						else
-						{
-							cumulus.LogMessage("WRST: Invalid checksum");
-						}
+						// and if it all worked, update our pointer record
+						currentWritePointer = currPtr;
+					}
+					else
+					{
+						cumulus.LogMessage("WRST: Invalid checksum");
 					}
 				}
 				catch
@@ -229,8 +226,6 @@ namespace CumulusMX
 
 		private void SendCommand(string command)
 		{
-			string response;
-
 			// First flush the receive buffer
 			comport.DiscardInBuffer();
 			comport.BaseStream.Flush();
@@ -242,8 +237,7 @@ namespace CumulusMX
 			// Flush the first response - should be the echo of the command
 			try
 			{
-				response = comport.ReadTo(sLineBreak);
-				cumulus.LogDebugMessage("Discarding input: " + response);
+				cumulus.LogDebugMessage("Discarding input: " + comport.ReadTo(sLineBreak));
 			}
 			catch
 			{
@@ -258,7 +252,6 @@ namespace CumulusMX
 		private string GetResponse(string expected)
 		{
 			string response = "";
-			string ready;
 			int attempts = 0;
 
 			// The Instromet is odd, in that the serial connection is configured for human interaction rather than machine.
@@ -287,7 +280,7 @@ namespace CumulusMX
 				// returning so we know the logger is ready for the next command
 				if ((response.Contains(expected)) && attempts < 6)
 				{
-					ready = comport.ReadTo(">"); // just discard this
+					comport.ReadTo(">"); // just discard this
 				}
 			}
 			catch
@@ -344,14 +337,7 @@ namespace CumulusMX
 				data = ExtractText(response, "lgct");
 				cumulus.LogMessage("Response from LGCT=" + data);
 				valid = ValidChecksum(data);
-				if (valid)
-				{
-					cumulus.LogMessage("Checksum valid");
-				}
-				else
-				{
-					cumulus.LogMessage("!!! Checksum invalid !!!");
-				}
+				cumulus.LogMessage(valid ? "Checksum valid" : "!!! Checksum invalid !!!");
 			} while (!valid && (attempts < 3));
 
 			if (valid)
@@ -380,13 +366,10 @@ namespace CumulusMX
 			return num;
 		}
 
-		private bool ValidChecksum(string str)
+		private static bool ValidChecksum(string str)
 		{
 			try
 			{
-				// get length of string
-				int strlen = str.Length;
-
 				// split the data
 				var sl = new List<string>(Regex.Split(str, ","));
 
@@ -405,7 +388,7 @@ namespace CumulusMX
 				}
 
 				// 8-bit 1's complement
-				sum = (~sum)%256;
+				sum = (~sum) % 256;
 
 				return (sum == csum);
 			}
@@ -415,7 +398,7 @@ namespace CumulusMX
 			}
 		}
 
-		private string ExtractText(string input, string after)
+		private static string ExtractText(string input, string after)
 		{
 			// return string after supplied string
 			// used for extracting actual response from reply from station
@@ -423,12 +406,7 @@ namespace CumulusMX
 			// readto() should have stripped this off
 			int pos1 = input.IndexOf(after);
 			//int pos2 = input.Length - 2;
-			if (pos1>=0)
-			{return input.Substring(pos1);}
-			else
-			{
-			  return "";
-			}
+			return pos1>=0 ? input.Substring(pos1) : "";
 		}
 
 		public override void startReadingHistoryData()
@@ -505,13 +483,9 @@ namespace CumulusMX
 			const int SUNPOS = 22;
 			const int RAINPOS = 23;
 
-			//string response;
-			bool rolloverdone;
-			bool dataOK;
 			DateTime timestamp = DateTime.MinValue;
 
-			NumberFormatInfo provider = new NumberFormatInfo();
-			provider.NumberDecimalSeparator = ".";
+			NumberFormatInfo provider = new NumberFormatInfo {NumberDecimalSeparator = "."};
 
 			DateTime startfrom = cumulus.LastUpdateTime;
 			int startindex = 0;
@@ -553,6 +527,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Number of history records = " + numrecs);
 				// get the earliest record
 				List<string> sl = GetArchiveRecord();
+				bool dataOK;
 				try
 				{
 					hour = Convert.ToInt32(sl[TIMEPOS].Substring(0, 2));
@@ -640,7 +615,7 @@ namespace CumulusMX
 
 					int luhour = cumulus.LastUpdateTime.Hour;
 
-					rolloverdone = luhour == rollHour;
+					var rolloverdone = luhour == rollHour;
 
 					midnightraindone = luhour == 0;
 
@@ -720,7 +695,7 @@ namespace CumulusMX
 								if (OutdoorTemperature < cumulus.ChillHourThreshold)
 								{
 									// add 1 minute to chill hours
-									ChillHours += (interval/60);
+									ChillHours += interval / 60.0;
 								}
 
 								// update heating/cooling degree days
@@ -754,7 +729,7 @@ namespace CumulusMX
 									raindiff = raintotal - prevraintotal;
 								}
 
-								double rainrate = ConvertRainMMToUser((raindiff)*(60/cumulus.logints[cumulus.DataLogInterval]));
+								double rainrate = ConvertRainMMToUser((raindiff) * (60.0 / cumulus.logints[cumulus.DataLogInterval]));
 
 								DoRain(ConvertRainMMToUser(raintotal), rainrate, timestamp);
 
@@ -913,8 +888,7 @@ namespace CumulusMX
 				var sl = new List<string>(Regex.Split(response, ","));
 
 				// Parse data using decimal points rather than user's decimal separator
-				NumberFormatInfo provider = new NumberFormatInfo();
-				provider.NumberDecimalSeparator = ".";
+				NumberFormatInfo provider = new NumberFormatInfo {NumberDecimalSeparator = "."};
 
 				double temp1 = 0;
 				double windspeed = 0;
@@ -995,20 +969,20 @@ namespace CumulusMX
 				return;
 			}
 
-		    if (cumulus.ImetUpdateLogPointer && !stop)
+			if (!cumulus.ImetUpdateLogPointer || stop)
+				return;
+
+			// Keep the log pointer current, to avoid large numbers of logs
+		    // being downloaded at next startup
+		    // Only do this every 30 read intervals
+		    if (readCounter > 0)
 		    {
-				// Keep the log pointer current, to avoid large numbers of logs
-				// being downloaded at next startup
-				// Only do this every 30 read intervals
-				if (readCounter > 0)
-				{
-					readCounter--;
-				}
-				else
-				{
-					UpdateReadPointer();
-					readCounter = 30;
-				}
+			    readCounter--;
+		    }
+		    else
+		    {
+			    UpdateReadPointer();
+			    readCounter = 30;
 		    }
 		}
 	}

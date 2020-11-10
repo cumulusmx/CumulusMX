@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.ModelBinding;
 
 namespace CumulusMX
 {
@@ -28,7 +22,7 @@ namespace CumulusMX
 				//Chigh = 500.4;
 				//Ilow = 401;
 				//Ihigh = 500;
-				return 401 + interpolate(350.5, 500.4, pmVal) * 99;
+				return 401 + Interpolate(350.5, 500.4, pmVal) * 99;
 			}
 			else if (pmVal >= 250.5)
 			{
@@ -36,7 +30,7 @@ namespace CumulusMX
 				//Chigh = 350.4;
 				//Ilow = 301;
 				//Ihigh = 400;
-				return 301 + interpolate(250.5, 350.4, pmVal) * 99;
+				return 301 + Interpolate(250.5, 350.4, pmVal) * 99;
 			}
 			else if (pmVal >= 150.5)
 			{
@@ -44,7 +38,7 @@ namespace CumulusMX
 				//Chigh = 250.4;
 				//Ilow = 201;
 				//Ihigh = 300;
-				return 201 + interpolate(150.5, 250.4, pmVal) * 99;
+				return 201 + Interpolate(150.5, 250.4, pmVal) * 99;
 			}
 			else if (pmVal >= 55.5)
 			{
@@ -52,7 +46,7 @@ namespace CumulusMX
 				//Chigh = 150.4;
 				//Ilow = 151;
 				//Ihigh = 200;
-				return 151 + interpolate(55.5, 150.4, pmVal) * 49;
+				return 151 + Interpolate(55.5, 150.4, pmVal) * 49;
 			}
 			else if (pmVal >= 35.5)
 			{
@@ -60,7 +54,7 @@ namespace CumulusMX
 				//Chigh = 55.4;
 				//Ilow = 101;
 				//Ihigh = 150;
-				return 101 + interpolate(35.5, 55.4, pmVal) * 49;
+				return 101 + Interpolate(35.5, 55.4, pmVal) * 49;
 			}
 			else if (pmVal >= 12.1)
 			{
@@ -68,7 +62,7 @@ namespace CumulusMX
 				//Chigh = 35.4;
 				//Ilow = 51;
 				//Ihigh = 100;
-				return 51 + interpolate(12.1, 35.4, pmVal) * 49;
+				return 51 + Interpolate(12.1, 35.4, pmVal) * 49;
 			}
 			else
 			{
@@ -76,7 +70,7 @@ namespace CumulusMX
 				//Chigh = 12;
 				//Ilow = 0;
 				//Ihigh = 50;
-				return interpolate(0, 12, pmVal) * 50;
+				return Interpolate(0, 12, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
 		}
@@ -99,7 +93,7 @@ namespace CumulusMX
 				//Chigh = 604;
 				//Ilow = 401;
 				//Ihigh = 500;
-				return 401 + interpolate(505, 604, pmVal) * 99;
+				return 401 + Interpolate(505, 604, pmVal) * 99;
 			}
 			else if (pmVal >= 425)
 			{
@@ -107,7 +101,7 @@ namespace CumulusMX
 				//Chigh = 504;
 				//Ilow = 301;
 				//Ihigh = 400;
-				return 301 + interpolate(425, 504, pmVal) * 99;
+				return 301 + Interpolate(425, 504, pmVal) * 99;
 			}
 			else if (pmVal >= 355)
 			{
@@ -115,7 +109,7 @@ namespace CumulusMX
 				//Chigh = 424;
 				//Ilow = 201;
 				//Ihigh = 300;
-				return 201 + interpolate(355, 424, pmVal) * 99;
+				return 201 + Interpolate(355, 424, pmVal) * 99;
 			}
 			else if (pmVal >= 255)
 			{
@@ -123,7 +117,7 @@ namespace CumulusMX
 				//Chigh = 354;
 				//Ilow = 151;
 				//Ihigh = 200;
-				return 151 + interpolate(255, 3544, pmVal) * 49;
+				return 151 + Interpolate(255, 3544, pmVal) * 49;
 			}
 			else if (pmVal >= 155)
 			{
@@ -131,7 +125,7 @@ namespace CumulusMX
 				//Chigh = 254;
 				//Ilow = 101;
 				//Ihigh = 150;
-				return 101 + interpolate(155, 254, pmVal) * 49;
+				return 101 + Interpolate(155, 254, pmVal) * 49;
 			}
 			else if (pmVal >= 55)
 			{
@@ -139,7 +133,7 @@ namespace CumulusMX
 				//Chigh = 154;
 				//Ilow = 51;
 				//Ihigh = 100;
-				return 51 + interpolate(55, 154, pmVal) * 99;
+				return 51 + Interpolate(55, 154, pmVal) * 99;
 			}
 			else
 			{
@@ -147,7 +141,7 @@ namespace CumulusMX
 				//Chigh = 54;
 				//Ilow = 0;
 				//Ihigh = 50;
-				return interpolate(0, 54, pmVal) * 50;
+				return Interpolate(0, 54, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
 		}
@@ -163,23 +157,23 @@ namespace CumulusMX
 			if (pmVal >= 71)
 				return 10;
 			else if (pmVal >= 65)
-				return 9 + interpolate(65, 71, pmVal);
+				return 9 + Interpolate(65, 71, pmVal);
 			else if (pmVal >= 59)
-				return 8 + interpolate(59, 65, pmVal);
+				return 8 + Interpolate(59, 65, pmVal);
 			else if (pmVal >= 54)
-				return 7 + interpolate(54, 59, pmVal);
+				return 7 + Interpolate(54, 59, pmVal);
 			else if (pmVal >= 47)
-				return 6 + interpolate(47, 54, pmVal);
+				return 6 + Interpolate(47, 54, pmVal);
 			else if (pmVal >= 42)
-				return 5 + interpolate(42, 47, pmVal);
+				return 5 + Interpolate(42, 47, pmVal);
 			else if (pmVal >= 36)
-				return 4 + interpolate(36, 42, pmVal);
+				return 4 + Interpolate(36, 42, pmVal);
 			else if (pmVal >= 24)
-				return 3 + interpolate(24, 36, pmVal);
+				return 3 + Interpolate(24, 36, pmVal);
 			else if (pmVal >= 12)
-				return 2 + interpolate(12, 24, pmVal);
+				return 2 + Interpolate(12, 24, pmVal);
 			else
-				return 1 + interpolate(0, 12, pmVal);
+				return 1 + Interpolate(0, 12, pmVal);
 		}
 
 		/*
@@ -192,23 +186,23 @@ namespace CumulusMX
 			if (pmVal >= 101)
 				return 10;
 			else if (pmVal >= 92)
-				return 9 + interpolate(92, 101, pmVal);
+				return 9 + Interpolate(92, 101, pmVal);
 			else if (pmVal >= 84)
-				return 8 + interpolate(84, 92, pmVal);
+				return 8 + Interpolate(84, 92, pmVal);
 			else if (pmVal >= 76)
-				return 7 + interpolate(76, 84, pmVal);
+				return 7 + Interpolate(76, 84, pmVal);
 			else if (pmVal >= 67)
-				return 6 + interpolate(67, 76, pmVal);
+				return 6 + Interpolate(67, 76, pmVal);
 			else if (pmVal >= 59)
-				return 5 + interpolate(59, 67, pmVal);
+				return 5 + Interpolate(59, 67, pmVal);
 			else if (pmVal >= 51)
-				return 4 + interpolate(51, 59, pmVal);
+				return 4 + Interpolate(51, 59, pmVal);
 			else if (pmVal >= 34)
-				return 3 + interpolate(34, 51, pmVal);
+				return 3 + Interpolate(34, 51, pmVal);
 			else if (pmVal >= 17)
-				return 2 + interpolate(17, 34, pmVal);
+				return 2 + Interpolate(17, 34, pmVal);
 			else
-				return 1 + interpolate(0, 17, pmVal);
+				return 1 + Interpolate(0, 17, pmVal);
 		}
 
 
@@ -222,13 +216,13 @@ namespace CumulusMX
 			if (pmVal > 110)		// Very High
 				return 5;
 			else if (pmVal >= 55)	// High
-				return 4 + interpolate(55, 110, pmVal);
+				return 4 + Interpolate(55, 110, pmVal);
 			else if (pmVal >= 30)	// Medium
-				return 3 + interpolate(30, 55, pmVal);
+				return 3 + Interpolate(30, 55, pmVal);
 			else if (pmVal >= 15)	// Low
-				return 2 + interpolate(15, 30, pmVal);
+				return 2 + Interpolate(15, 30, pmVal);
 			else					// Very Low
-				return 1 + interpolate(0, 15, pmVal);
+				return 1 + Interpolate(0, 15, pmVal);
 		}
 
 		/*
@@ -240,13 +234,13 @@ namespace CumulusMX
 			if (pmVal > 60)			// Very High
 				return 5;
 			else if (pmVal >= 30)	// High
-				return 4 + interpolate(30, 60, pmVal);
+				return 4 + Interpolate(30, 60, pmVal);
 			else if (pmVal >= 20)	// Medium
-				return 3 + interpolate(20, 30, pmVal);
+				return 3 + Interpolate(20, 30, pmVal);
 			else if (pmVal >= 10)	// Low
-				return 2 + interpolate(10, 20, pmVal);
+				return 2 + Interpolate(10, 20, pmVal);
 			else					// Very Low
-				return 1 + interpolate(0, 10, pmVal);
+				return 1 + Interpolate(0, 10, pmVal);
 		}
 
 		/*
@@ -258,13 +252,13 @@ namespace CumulusMX
 			if (pmVal > 180)		// Very High
 				return 5;
 			else if (pmVal >= 90)	// High
-				return 4 + interpolate(90, 180, pmVal);
+				return 4 + Interpolate(90, 180, pmVal);
 			else if (pmVal >= 50)	// Medium
-				return 3 + interpolate(50, 90, pmVal);
+				return 3 + Interpolate(50, 90, pmVal);
 			else if (pmVal >= 25)	// Low
-				return 2 + interpolate(25, 50, pmVal);
+				return 2 + Interpolate(25, 50, pmVal);
 			else					// Very Low
-				return 1 + interpolate(0, 25, pmVal);
+				return 1 + Interpolate(0, 25, pmVal);
 		}
 
 		/*
@@ -276,13 +270,13 @@ namespace CumulusMX
 			if (pmVal > 100)		// Very High
 				return 5;
 			else if (pmVal >= 50)	// High
-				return 4 + interpolate(50, 100, pmVal);
+				return 4 + Interpolate(50, 100, pmVal);
 			else if (pmVal >= 30)	// Medium
-				return 3 + interpolate(30, 50, pmVal);
+				return 3 + Interpolate(30, 50, pmVal);
 			else if (pmVal >= 15)	// Low
-				return 2 + interpolate(15, 30, pmVal);
+				return 2 + Interpolate(15, 30, pmVal);
 			else					// Very Low
-				return 1 + interpolate(0, 15, pmVal);
+				return 1 + Interpolate(0, 15, pmVal);
 		}
 
 
@@ -292,7 +286,8 @@ namespace CumulusMX
 		 */
 		public static int CA_AQHI(double pmVal)
 		{
-			return (int)((1000 / 10.4) + Math.Exp(0.000487 * pmVal) - 1);
+			var aqi = (int)(1000 / 10.4 * (Math.Exp(0.000487 * pmVal) - 1));
+			return aqi < 1 ? 1 : aqi;
 		}
 
 
@@ -307,13 +302,13 @@ namespace CumulusMX
 			if (pmVal > 180)
 				return 101;
 			else if (pmVal >= 90) // AQI 75
-				return 75 + interpolate(90, 180, pmVal) * 25;
+				return 75 + Interpolate(90, 180, pmVal) * 25;
 			else if (pmVal >= 50) // AQI 50
-				return 50 + interpolate(50, 75, pmVal) * 25;
+				return 50 + Interpolate(50, 75, pmVal) * 25;
 			else if (pmVal >= 25) // AQI 25
-				return 25 + interpolate(25, 75, pmVal) * 25;
+				return 25 + Interpolate(25, 75, pmVal) * 25;
 			else
-				return 1 + interpolate(0, 25, pmVal) * 24;
+				return 1 + Interpolate(0, 25, pmVal) * 24;
 		}
 		/*
 		 * EU Common Air Quality Index - CAQI - 0-100 scale
@@ -326,13 +321,13 @@ namespace CumulusMX
 			if (pmVal > 100)
 				return 101;
 			else if (pmVal >= 50) // AQI 75
-				return 75 + interpolate(50, 100, pmVal) * 25;
+				return 75 + Interpolate(50, 100, pmVal) * 25;
 			else if (pmVal >= 30) // AQI 50
-				return 50 + interpolate(30, 50, pmVal) * 25;
+				return 50 + Interpolate(30, 50, pmVal) * 25;
 			else if (pmVal >= 15) // AQI 25
-				return 25 + interpolate(15, 30, pmVal) * 25;
+				return 25 + Interpolate(15, 30, pmVal) * 25;
 			else
-				return 1 + interpolate(0, 15, pmVal) * 24;
+				return 1 + Interpolate(0, 15, pmVal) * 24;
 		}
 		/*
 		 * EU Common Air Quality Index - CAQI - 0-100 scale
@@ -345,13 +340,13 @@ namespace CumulusMX
 			if (pmVal > 110)
 				return 101;
 			else if (pmVal >= 55) // AQI 75
-				return 75 + interpolate(55, 110, pmVal) * 25;
+				return 75 + Interpolate(55, 110, pmVal) * 25;
 			else if (pmVal >= 30) // AQI 50
-				return 50 + interpolate(30, 55, pmVal) * 25;
+				return 50 + Interpolate(30, 55, pmVal) * 25;
 			else if (pmVal >= 15) // AQI 25
-				return 15 + interpolate(15, 30, pmVal) * 25;
+				return 15 + Interpolate(15, 30, pmVal) * 25;
 			else
-				return 1 + interpolate(0, 15, pmVal) * 24;
+				return 1 + Interpolate(0, 15, pmVal) * 24;
 		}
 		/*
 		 * EU Common Air Quality Index - CAQI - 0-100 scale
@@ -364,34 +359,34 @@ namespace CumulusMX
 			if (pmVal > 60)
 				return 101;
 			else if (pmVal >= 30) // AQI 75
-				return 75 + interpolate(30, 60, pmVal) * 25;
+				return 75 + Interpolate(30, 60, pmVal) * 25;
 			else if (pmVal >= 20) // AQI 50
-				return 50 + interpolate(20, 30, pmVal) * 25;
+				return 50 + Interpolate(20, 30, pmVal) * 25;
 			else if (pmVal >= 10) // AQI 25
-				return 25 + interpolate(10, 20, pmVal) * 25;
+				return 25 + Interpolate(10, 20, pmVal) * 25;
 			else
-				return 1 + interpolate(0, 10, pmVal) * 24;
+				return 1 + Interpolate(0, 10, pmVal) * 24;
 		}
 
 
 		/*
 		 * Australia National Environment Pollution Measure - NEPM
-		 * https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-index
+		 * https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-categories/history-of-air-quality-reporting/about-the-air-quality-index
 		 * PM2.5 - standard is 24hr avg
+		 * AQI = pm / 25 * 100
 		 */
 		public static double AU_NEpm2p5(double pmVal)
 		{
-			if (pmVal > 25) return 101;
 			return pmVal * 4;
 		}
 		/*
 		 * Australia National Environment Pollution Measure - NEPM
-		 * https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-index
+		 * https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-categories/history-of-air-quality-reporting/about-the-air-quality-index
 		 * PM10 - standard is 24hr avg
+		 * AQI = pm / 50 * 100
 		 */
 		public static double AU_NEpm10(double pmVal)
 		{
-			if (pmVal > 50) return 101;
 			return pmVal * 2;
 		}
 
@@ -405,25 +400,25 @@ namespace CumulusMX
 			if (pmVal > 140)
 				return 11;
 			else if (pmVal >= 100) // AQI 10
-				return 10 + interpolate(100, 140, pmVal);
+				return 10 + Interpolate(100, 140, pmVal);
 			else if (pmVal >= 90) // AQI 9
-				return 9 + interpolate(90, 100, pmVal);
+				return 9 + Interpolate(90, 100, pmVal);
 			else if (pmVal >= 70) // AQI 8
-				return 8 + interpolate(70, 90, pmVal);
+				return 8 + Interpolate(70, 90, pmVal);
 			else if (pmVal >= 50) // AQI 7
-				return 7 + interpolate(50, 70, pmVal);
+				return 7 + Interpolate(50, 70, pmVal);
 			else if (pmVal >= 40) // AQI 6
-				return 6 + interpolate(40, 50, pmVal);
+				return 6 + Interpolate(40, 50, pmVal);
 			else if (pmVal >= 30) // AQI 5
-				return 5 + interpolate(30, 40, pmVal);
+				return 5 + Interpolate(30, 40, pmVal);
 			else if (pmVal >= 20) // AQI 4
-				return 7 + interpolate(20, 30, pmVal);
+				return 4 + Interpolate(20, 30, pmVal);
 			else if (pmVal >= 15) // AQI 3
-				return 7 + interpolate(15, 20, pmVal);
+				return 3 + Interpolate(15, 20, pmVal);
 			else if (pmVal >= 10) // AQI 2
-				return 7 + interpolate(10, 15, pmVal);
+				return 2 + Interpolate(10, 15, pmVal);
 			else // AQI 1
-				return 1 + interpolate(0, 10, pmVal);
+				return 1 + Interpolate(0, 10, pmVal);
 		}
 
 		/*
@@ -435,25 +430,25 @@ namespace CumulusMX
 			if (pmVal > 200)
 				return 11;
 			else if (pmVal >= 150) // AQI 10
-				return 10 + interpolate(150, 200, pmVal);
+				return 10 + Interpolate(150, 200, pmVal);
 			else if (pmVal >= 125) // AQI 9
-				return 9 + interpolate(125, 150, pmVal);
+				return 9 + Interpolate(125, 150, pmVal);
 			else if (pmVal >= 100) // AQI 8
-				return 8 + interpolate(100, 125, pmVal);
+				return 8 + Interpolate(100, 125, pmVal);
 			else if (pmVal >= 75) // AQI 7
-				return 7 + interpolate(75, 100, pmVal);
+				return 7 + Interpolate(75, 100, pmVal);
 			else if (pmVal >= 60) // AQI 6
-				return 6 + interpolate(60, 75, pmVal);
+				return 6 + Interpolate(60, 75, pmVal);
 			else if (pmVal >= 45) // AQI 5
-				return 5 + interpolate(45, 60, pmVal);
+				return 5 + Interpolate(45, 60, pmVal);
 			else if (pmVal >= 30) // AQI 4
-				return 7 + interpolate(30, 45, pmVal);
+				return 4 + Interpolate(30, 45, pmVal);
 			else if (pmVal >= 20) // AQI 3
-				return 7 + interpolate(20, 30, pmVal);
+				return 3 + Interpolate(20, 30, pmVal);
 			else if (pmVal >= 10) // AQI 2
-				return 7 + interpolate(10, 20, pmVal);
+				return 2 + Interpolate(10, 20, pmVal);
 			else // AQI 1
-				return 1 + interpolate(0, 10, pmVal);
+				return 1 + Interpolate(0, 10, pmVal);
 		}
 
 
@@ -466,23 +461,23 @@ namespace CumulusMX
 			if (pmVal > 70)
 				return 10;
 			else if (pmVal >= 60) // AQI 9
-				return 9 + interpolate(60, 70, pmVal);
+				return 9 + Interpolate(60, 70, pmVal);
 			else if (pmVal >= 50) // AQI 8
-				return 8 + interpolate(50, 60, pmVal);
+				return 8 + Interpolate(50, 60, pmVal);
 			else if (pmVal >= 40) // AQI 7
-				return 7 + interpolate(40, 50, pmVal);
+				return 7 + Interpolate(40, 50, pmVal);
 			else if (pmVal >= 35) // AQI 6
-				return 6 + interpolate(35, 40, pmVal);
+				return 6 + Interpolate(35, 40, pmVal);
 			else if (pmVal >= 25) // AQI 5
-				return 5 + interpolate(25, 35, pmVal);
+				return 5 + Interpolate(25, 35, pmVal);
 			else if (pmVal >= 15) // AQI 4
-				return 7 + interpolate(15, 25, pmVal);
+				return 4 + Interpolate(15, 25, pmVal);
 			else if (pmVal >= 10) // AQI 3
-				return 7 + interpolate(10, 15, pmVal);
+				return 3 + Interpolate(10, 15, pmVal);
 			else if (pmVal >= 5) // AQI 2
-				return 7 + interpolate(5, 10, pmVal);
+				return 2 + Interpolate(5, 10, pmVal);
 			else // AQI 1
-				return 1 + interpolate(0, 5, pmVal);
+				return 1 + Interpolate(0, 5, pmVal);
 		}
 
 		/*
@@ -494,27 +489,27 @@ namespace CumulusMX
 			if (pmVal > 100)
 				return 10;
 			else if (pmVal >= 80) // AQI 9
-				return 9 + interpolate(80, 100, pmVal);
+				return 9 + Interpolate(80, 100, pmVal);
 			else if (pmVal >= 70) // AQI 8
-				return 8 + interpolate(70, 80, pmVal);
+				return 8 + Interpolate(70, 80, pmVal);
 			else if (pmVal >= 60) // AQI 7
-				return 7 + interpolate(60, 70, pmVal);
+				return 7 + Interpolate(60, 70, pmVal);
 			else if (pmVal >= 50) // AQI 6
-				return 6 + interpolate(50, 60, pmVal);
+				return 6 + Interpolate(50, 60, pmVal);
 			else if (pmVal >= 40) // AQI 5
-				return 5 + interpolate(40, 50, pmVal);
+				return 5 + Interpolate(40, 50, pmVal);
 			else if (pmVal >= 30) // AQI 4
-				return 7 + interpolate(30, 40, pmVal);
+				return 4 + Interpolate(30, 40, pmVal);
 			else if (pmVal >= 20) // AQI 3
-				return 7 + interpolate(20, 30, pmVal);
+				return 3 + Interpolate(20, 30, pmVal);
 			else if (pmVal >= 10) // AQI 2
-				return 7 + interpolate(10, 20, pmVal);
+				return 2 + Interpolate(10, 20, pmVal);
 			else // AQI 1
-				return 1 + interpolate(0, 10, pmVal);
+				return 1 + Interpolate(0, 10, pmVal);
 		}
 
 		// Returns the fraction of val between min and max
-		static double interpolate(double min, double max, double val)
+		private static double Interpolate(double min, double max, double val)
 		{
 			if (val < min) return 0;
 			if (val > max) return 1;

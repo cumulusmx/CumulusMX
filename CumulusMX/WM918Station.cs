@@ -18,7 +18,7 @@ namespace CumulusMX
 
 		private int currentPacketLength;
 		private int currentPacketType;
-		private bool stop = false;
+		private bool stop;
 
 		public WM918Station(Cumulus cumulus)
 			: base(cumulus)
@@ -35,9 +35,10 @@ namespace CumulusMX
 		// Not used - now uses polling in Start() because Mono doesn't support data received events
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
-			SerialPort port = sender as SerialPort;
-
 			// Obtain the number of bytes waiting in the port's buffer
+			if (!(sender is SerialPort port))
+				return;
+
 			int bytes = port.BytesToRead;
 
 			int nextByte;
@@ -53,13 +54,13 @@ namespace CumulusMX
 				switch (currentPacketLength)
 				{
 					case 0: // We're looking for the start of a packet
-					   if (nextByte>=0x8F && nextByte<=0xCF)
-					   {
-						   // Possible start of packet
-						   currentPacketLength = 1;
-						   currentPacketType = nextByte>>4;
-						   buffer.Add(nextByte);
-					   }
+						if (nextByte>=0x8F && nextByte<=0xCF)
+						{
+							// Possible start of packet
+							currentPacketLength = 1;
+							currentPacketType = nextByte>>4;
+							buffer.Add(nextByte);
+						}
 						break;
 
 					default: // We've had the packet header, continue collecting the packet

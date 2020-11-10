@@ -9,83 +9,68 @@ namespace CumulusMX
 
         public double WindSpeed
         {
-            get { return _windspeed; }
+            get => windspeed;
             set
             {
-                _windspeed = value;
+                windspeed = value;
                 var handler = PropertyChanged;
-                if (null != handler)
-                {
-                    handler.Invoke(this, new PropertyChangedEventArgs("WindSpeed"));
-                }
+                handler?.Invoke(this, new PropertyChangedEventArgs("WindSpeed"));
             }
         }
 
-        private double _windspeed;
+        private double windspeed;
 
         public double WindAverage
         {
-            get { return _windaverage; }
+            get => windaverage;
             set
             {
-                _windaverage = value;
+                windaverage = value;
                 var handler = PropertyChanged;
-                if (null != handler)
-                {
-                    handler.Invoke(this, new PropertyChangedEventArgs("WindAverage"));
-                }
+                handler?.Invoke(this, new PropertyChangedEventArgs("WindAverage"));
             }
         }
 
-        private double _windaverage;
+        private double windaverage;
 
         public double OutdoorTemp
         {
-            get { return _outdoortemp; }
+            get => outdoortemp;
             set
             {
-                _outdoortemp = value;
+                outdoortemp = value;
                 var handler = PropertyChanged;
-                if (null != handler)
-                {
-                    handler.Invoke(this, new PropertyChangedEventArgs("OutdoorTemp"));
-                }
+                handler?.Invoke(this, new PropertyChangedEventArgs("OutdoorTemp"));
             }
         }
 
-        private double _outdoortemp;
+        private double outdoortemp;
 
         public double Pressure
         {
-            get { return _pressure; }
+            get => pressure;
             set
             {
-                _pressure = value;
+                pressure = value;
                 var handler = PropertyChanged;
-                if (null != handler)
-                {
-                    handler.Invoke(this, new PropertyChangedEventArgs("Pressure"));
-                }
+                handler?.Invoke(this, new PropertyChangedEventArgs("Pressure"));
             }
         }
 
-        private double _pressure;
+        private double pressure;
 
         public double Raintotal
         {
-            get { return _raintotal; }
+            get => raintotal;
             set
             {
-                _raintotal = value;
+                raintotal = value;
                 var handler = PropertyChanged;
-                if (null != handler)
-                {
-                    handler.Invoke(this, new PropertyChangedEventArgs("Raintotal"));
-                }
+                handler?.Invoke(this, new PropertyChangedEventArgs("Raintotal"));
             }
         }
 
-        private double _raintotal;
+        private double raintotal;
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

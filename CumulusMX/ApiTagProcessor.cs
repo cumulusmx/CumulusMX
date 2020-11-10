@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Unosquare.Labs.EmbedIO;
@@ -19,7 +17,7 @@ namespace CumulusMX
 			this.webtags = webtags;
 			tokenParser = new TokenParser();
 			tokenParser.OnToken += cumulus.TokenParserOnToken;
-			tokenParser.encoding = new UTF8Encoding(false);
+			tokenParser.Encoding = new UTF8Encoding(false);
 		}
 
 

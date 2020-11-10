@@ -25,34 +25,34 @@ namespace CumulusMX
 			//var InvC = new CultureInfo("");
 			var normalmeantemps = new JsonNOAASettingsNormalMeanTemps()
 								  {
-									  jan = Math.Round(cumulus.NOAATempNormJan,cumulus.TempDPlaces),
-									  feb = Math.Round(cumulus.NOAATempNormFeb,cumulus.TempDPlaces),
-									  mar = Math.Round(cumulus.NOAATempNormMar,cumulus.TempDPlaces),
-									  apr = Math.Round(cumulus.NOAATempNormApr,cumulus.TempDPlaces),
-									  may = Math.Round(cumulus.NOAATempNormMay,cumulus.TempDPlaces),
-									  jun = Math.Round(cumulus.NOAATempNormJun,cumulus.TempDPlaces),
-									  jul = Math.Round(cumulus.NOAATempNormJul,cumulus.TempDPlaces),
-									  aug = Math.Round(cumulus.NOAATempNormAug,cumulus.TempDPlaces),
-									  sep = Math.Round(cumulus.NOAATempNormSep,cumulus.TempDPlaces),
-									  oct = Math.Round(cumulus.NOAATempNormOct,cumulus.TempDPlaces),
-									  nov = Math.Round(cumulus.NOAATempNormNov,cumulus.TempDPlaces),
-									  dec = Math.Round(cumulus.NOAATempNormDec, cumulus.TempDPlaces)
+									  jan = Math.Round(cumulus.NOAATempNorms[1],cumulus.TempDPlaces),
+									  feb = Math.Round(cumulus.NOAATempNorms[2], cumulus.TempDPlaces),
+									  mar = Math.Round(cumulus.NOAATempNorms[3], cumulus.TempDPlaces),
+									  apr = Math.Round(cumulus.NOAATempNorms[4], cumulus.TempDPlaces),
+									  may = Math.Round(cumulus.NOAATempNorms[5], cumulus.TempDPlaces),
+									  jun = Math.Round(cumulus.NOAATempNorms[6], cumulus.TempDPlaces),
+									  jul = Math.Round(cumulus.NOAATempNorms[7], cumulus.TempDPlaces),
+									  aug = Math.Round(cumulus.NOAATempNorms[8], cumulus.TempDPlaces),
+									  sep = Math.Round(cumulus.NOAATempNorms[9], cumulus.TempDPlaces),
+									  oct = Math.Round(cumulus.NOAATempNorms[10], cumulus.TempDPlaces),
+									  nov = Math.Round(cumulus.NOAATempNorms[11], cumulus.TempDPlaces),
+									  dec = Math.Round(cumulus.NOAATempNorms[12], cumulus.TempDPlaces)
 								  };
 
 			var normalrain = new JsonNOAASettingsNormalRain()
 							 {
-									  jan = Math.Round(cumulus.NOAARainNormJan,cumulus.RainDPlaces),
-									  feb = Math.Round(cumulus.NOAARainNormFeb,cumulus.RainDPlaces),
-									  mar = Math.Round(cumulus.NOAARainNormMar,cumulus.RainDPlaces),
-									  apr = Math.Round(cumulus.NOAARainNormApr,cumulus.RainDPlaces),
-									  may = Math.Round(cumulus.NOAARainNormMay,cumulus.RainDPlaces),
-									  jun = Math.Round(cumulus.NOAARainNormJun,cumulus.RainDPlaces),
-									  jul = Math.Round(cumulus.NOAARainNormJul,cumulus.RainDPlaces),
-									  aug = Math.Round(cumulus.NOAARainNormAug,cumulus.RainDPlaces),
-									  sep = Math.Round(cumulus.NOAARainNormSep,cumulus.RainDPlaces),
-									  oct = Math.Round(cumulus.NOAARainNormOct,cumulus.RainDPlaces),
-									  nov = Math.Round(cumulus.NOAARainNormNov,cumulus.RainDPlaces),
-									  dec = Math.Round(cumulus.NOAARainNormDec,cumulus.RainDPlaces)
+									  jan = Math.Round(cumulus.NOAARainNorms[1], cumulus.RainDPlaces),
+									  feb = Math.Round(cumulus.NOAARainNorms[2], cumulus.RainDPlaces),
+									  mar = Math.Round(cumulus.NOAARainNorms[3], cumulus.RainDPlaces),
+									  apr = Math.Round(cumulus.NOAARainNorms[4], cumulus.RainDPlaces),
+									  may = Math.Round(cumulus.NOAARainNorms[5], cumulus.RainDPlaces),
+									  jun = Math.Round(cumulus.NOAARainNorms[6], cumulus.RainDPlaces),
+									  jul = Math.Round(cumulus.NOAARainNorms[7], cumulus.RainDPlaces),
+									  aug = Math.Round(cumulus.NOAARainNorms[8], cumulus.RainDPlaces),
+									  sep = Math.Round(cumulus.NOAARainNorms[9], cumulus.RainDPlaces),
+									  oct = Math.Round(cumulus.NOAARainNorms[10], cumulus.RainDPlaces),
+									  nov = Math.Round(cumulus.NOAARainNorms[11], cumulus.RainDPlaces),
+									  dec = Math.Round(cumulus.NOAARainNorms[12], cumulus.RainDPlaces)
 								  };
 
 			var data = new JsonNOAASettingsData()
@@ -115,7 +115,6 @@ namespace CumulusMX
 				var settings = json.FromJson<JsonNOAASettingsData>();
 				// process the settings
 				cumulus.LogMessage("Updating NOAA settings");
-				var InvC = new CultureInfo("");
 
 				cumulus.NOAAname = settings.sitename;
 				cumulus.NOAAcity = settings.city;
@@ -138,32 +137,32 @@ namespace CumulusMX
 				cumulus.NOAAraincomp3 = settings.raincomp3;
 
 				// normal mean temps
-				cumulus.NOAATempNormJan = settings.normalmeantemps.jan;
-				cumulus.NOAATempNormFeb = settings.normalmeantemps.feb;
-				cumulus.NOAATempNormMar = settings.normalmeantemps.mar;
-				cumulus.NOAATempNormApr = settings.normalmeantemps.apr;
-				cumulus.NOAATempNormMay = settings.normalmeantemps.may;
-				cumulus.NOAATempNormJun = settings.normalmeantemps.jun;
-				cumulus.NOAATempNormJul = settings.normalmeantemps.jul;
-				cumulus.NOAATempNormAug = settings.normalmeantemps.aug;
-				cumulus.NOAATempNormSep = settings.normalmeantemps.sep;
-				cumulus.NOAATempNormOct = settings.normalmeantemps.oct;
-				cumulus.NOAATempNormNov = settings.normalmeantemps.nov;
-				cumulus.NOAATempNormDec = settings.normalmeantemps.dec;
+				cumulus.NOAATempNorms[1] = settings.normalmeantemps.jan;
+				cumulus.NOAATempNorms[2] = settings.normalmeantemps.feb;
+				cumulus.NOAATempNorms[3] = settings.normalmeantemps.mar;
+				cumulus.NOAATempNorms[4] = settings.normalmeantemps.apr;
+				cumulus.NOAATempNorms[5] = settings.normalmeantemps.may;
+				cumulus.NOAATempNorms[6] = settings.normalmeantemps.jun;
+				cumulus.NOAATempNorms[7] = settings.normalmeantemps.jul;
+				cumulus.NOAATempNorms[8] = settings.normalmeantemps.aug;
+				cumulus.NOAATempNorms[9] = settings.normalmeantemps.sep;
+				cumulus.NOAATempNorms[10] = settings.normalmeantemps.oct;
+				cumulus.NOAATempNorms[11] = settings.normalmeantemps.nov;
+				cumulus.NOAATempNorms[12] = settings.normalmeantemps.dec;
 
 				// normal rain
-				cumulus.NOAARainNormJan = settings.normalrain.jan;
-				cumulus.NOAARainNormFeb = settings.normalrain.feb;
-				cumulus.NOAARainNormMar = settings.normalrain.mar;
-				cumulus.NOAARainNormApr = settings.normalrain.apr;
-				cumulus.NOAARainNormMay = settings.normalrain.may;
-				cumulus.NOAARainNormJun = settings.normalrain.jun;
-				cumulus.NOAARainNormJul = settings.normalrain.jul;
-				cumulus.NOAARainNormAug = settings.normalrain.aug;
-				cumulus.NOAARainNormSep = settings.normalrain.sep;
-				cumulus.NOAARainNormOct = settings.normalrain.oct;
-				cumulus.NOAARainNormNov = settings.normalrain.nov;
-				cumulus.NOAARainNormDec = settings.normalrain.dec;
+				cumulus.NOAARainNorms[1] = settings.normalrain.jan;
+				cumulus.NOAARainNorms[2] = settings.normalrain.feb;
+				cumulus.NOAARainNorms[3] = settings.normalrain.mar;
+				cumulus.NOAARainNorms[4] = settings.normalrain.apr;
+				cumulus.NOAARainNorms[5] = settings.normalrain.may;
+				cumulus.NOAARainNorms[6] = settings.normalrain.jun;
+				cumulus.NOAARainNorms[6] = settings.normalrain.jul;
+				cumulus.NOAARainNorms[8] = settings.normalrain.aug;
+				cumulus.NOAARainNorms[9] = settings.normalrain.sep;
+				cumulus.NOAARainNorms[10] = settings.normalrain.oct;
+				cumulus.NOAARainNorms[11] = settings.normalrain.nov;
+				cumulus.NOAARainNorms[12] = settings.normalrain.dec;
 
 				// Save the settings
 				cumulus.WriteIniFile();

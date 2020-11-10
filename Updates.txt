@@ -1,3 +1,21 @@
+3.9.2 - b3097
+—————————————
+- Fix: Change log messages for number of SQL rows affected to Debug only messages
+- Fix: AirLink web tags no longer error if the sensor is not enabled - all now return "--"
+- Fix: Australia NEPM AQIs to allow values greater than 101
+- Fix: Canada AQHI - still based on PM2.5 3 hour values only
+
+- Adds Notifications to Alarms
+- Lots of internal code fettling
+- Admin interface tweaks
+- Wind Rose is now populated from data files at start-up (24 hours)
+- New graphs option to show/hide sunshine hours data
+- New admin interface historic graphs (and associated API)
+- New default web page to show historic graphs
+
+
+
+
 3.9.1 - b3096
 —————————————
 - Fix: AirLink - Limit the number of decimal places in the AirLink log file

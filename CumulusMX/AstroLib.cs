@@ -10,27 +10,22 @@ namespace CumulusMX
 			// r       distance from earth to sun in AU
 			// nfac    atmospheric turbidity parameter (2=clear, 4-5=smoggy)
 
-			double sinal = Math.Sin(degToRad(el)); // Sine of the solar elevation angle
+			double sinal = Math.Sin(DegToRad(el)); // Sine of the solar elevation angle
 
 			if (sinal < 0)
-			{
 				return 0;
-			}
-			else
-			{
-				// solar radiation on horizonal surface at top of atmosphere
-				double i0 = (1367 / (r * r)) * sinal;
 
-				// optical air mass
-				double m = 1/(sinal + (0.15 * Math.Pow(el + 3.885, -1.253)));
+			// solar radiation on horizonal surface at top of atmosphere
+			double i0 = (1367 / (r * r)) * sinal;
 
-				// molecular scattering coeff
-				double al = 0.128 - (0.054 * Math.Log(m) / Math.Log(10));
+			// optical air mass
+			double m = 1/(sinal + (0.15 * Math.Pow(el + 3.885, -1.253)));
 
-				// clear-sky solar radiation at earth surface on horizontal surface (W/m^2)
-				return i0 * Math.Exp(-nfac * al * m);
+			// molecular scattering coeff
+			double al = 0.128 - (0.054 * Math.Log(m) / Math.Log(10));
 
-			}
+			// clear-sky solar radiation at earth surface on horizontal surface (W/m^2)
+			return i0 * Math.Exp(-nfac * al * m);
 		}
 
 		public static double RyanStolzSolar(double el, double erv, double atc, double z)
@@ -40,31 +35,27 @@ namespace CumulusMX
 			// atc     atmospheric transmission coefficient
 			// z       elevation, metres
 
-			double sinal = Math.Sin(degToRad(el)); // Sine of the solar elevation angle
+			double sinal = Math.Sin(DegToRad(el)); // Sine of the solar elevation angle
 
 			if (sinal < 0)
-			{
 				return 0;
-			}
-			else
-			{
-				double al = Math.Asin(sinal);
-				double a0 = radToDeg(al); // convert the radians to degree
 
-				double rm = Math.Pow(((288.0 - 0.0065*z)/288.0), 5.256)/(sinal + 0.15*Math.Pow((a0 + 3.885), (-1.253)));
+			double al = Math.Asin(sinal);
+			double a0 = RadToDeg(al); // convert the radians to degree
 
-				double rs_toa = 1360*sinal/(erv*erv); // RS on the top of atmosphere
+			double rm = Math.Pow(((288.0 - 0.0065*z)/288.0), 5.256)/(sinal + 0.15*Math.Pow((a0 + 3.885), (-1.253)));
 
-				return rs_toa *Math.Pow(atc, rm); //RS on the ground
-			}
+			double rsToa = 1360*sinal/(erv*erv); // RS on the top of atmosphere
+
+			return rsToa * Math.Pow(atc, rm); //RS on the ground
 		}
 
-		private static double degToRad(double angle)
+		private static double DegToRad(double angle)
 		{
 			return Math.PI*angle/180.0;
 		}
 
-		private static double radToDeg(double angle)
+		private static double RadToDeg(double angle)
 		{
 			return angle*(180.0/Math.PI);
 		}
@@ -85,19 +76,17 @@ namespace CumulusMX
 			{
 				return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
 			}
-			else if (method == 1)
+			if (method == 1)
 			{
 				return BrasSolar(solarelevation, erv, turbidity);
 			}
-			else
-			{
-				return 0;
-			}
+
+			return 0;
 		}
 
 		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
 
-		public static void CalculateSunPosition(
+		private static void CalculateSunPosition(
 			DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
 		{
 			const double Deg2Rad = Math.PI / 180.0;
@@ -115,12 +104,12 @@ namespace CumulusMX
 			double siderealTimeHours = 6.6974 + 2400.0513 * julianCenturies;
 
 			double siderealTimeUT = siderealTimeHours +
-				(366.2422 / 365.2422) * (double)dateTime.TimeOfDay.TotalHours;
+				(366.2422 / 365.2422) * dateTime.TimeOfDay.TotalHours;
 
 			double siderealTime = siderealTimeUT * 15 + longitude;
 
 			// Refine to number of days (fractional) to specific time.
-			julianDate += (double)dateTime.TimeOfDay.TotalHours / 24.0;
+			julianDate += dateTime.TimeOfDay.TotalHours / 24.0;
 			julianCenturies = julianDate / 36525.0;
 
 			// Solar Coordinates
@@ -168,7 +157,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				double te = Math.Tan(degToRad(altitude));
+				double te = Math.Tan(DegToRad(altitude));
 				if (altitude > 5.0)
 				{
 					refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
@@ -225,14 +214,13 @@ namespace CumulusMX
 			{
 				return 2*Math.PI - (Math.Abs(angleInRadians)%(2*Math.PI));
 			}
-			else if (angleInRadians > 2*Math.PI)
+
+			if (angleInRadians > 2*Math.PI)
 			{
 				return angleInRadians%(2*Math.PI);
 			}
-			else
-			{
-				return angleInRadians;
-			}
+
+			return angleInRadians;
 		}
 
 		public static double CalcSunDistance(DateTime dDate, DateTime dEpoch)
@@ -249,7 +237,7 @@ namespace CumulusMX
 			fN = PutIn360Deg(fN);
 			double fM = fN + fSolarMEL - fSolarPL;
 			fM = PutIn360Deg(fM);
-			fM = degToRad(fM);
+			fM = DegToRad(fM);
 			double fE = CalcEccentricAnomaly(fM, fM, fSunEarthEcc, fAcc);
 			double fTanV2 = Math.Sqrt((1.0 + fSunEarthEcc)/(1.0 - fSunEarthEcc))*Math.Tan(fE/2.0);
 			double fV = Math.Atan(fTanV2)*2.0;
@@ -273,9 +261,10 @@ namespace CumulusMX
 			return fEcc;
 		}
 
+		/*
 		public static double GetEarthObliquity(DateTime dDate, bool b0Epoch)
 		{
-			//Returns theobliquity of Earth's orbit around the sun for the specified date
+			//Returns the obliquity of Earth's orbit around the sun for the specified date
 
 			double fJD = GetJulianDay(dDate, 0);
 			if (b0Epoch)
@@ -288,6 +277,7 @@ namespace CumulusMX
 			double fObl = 23.43929167 - (fDeltaObl/3600.0);
 			return fObl;
 		}
+		*/
 
 		public static double CalcEccentricAnomaly(double fEGuess, double fMA, double fEcc, double fAcc)
 		{
@@ -334,28 +324,21 @@ namespace CumulusMX
 
 			dDate = CalcUTFromZT(dDate, iZone);
 
-			double iYear = dDate.Year;
-			double iMonth = dDate.Month;
-			double iDay = dDate.Day;
-			double iHour = dDate.Hour;
-			double iMinute = dDate.Minute;
-			double iSecond = dDate.Second;
+			int iYear = dDate.Year;
+			int iMonth = dDate.Month;
+			int iDay = dDate.Day;
+			int iHour = dDate.Hour;
+			int iMinute = dDate.Minute;
+			int iSecond = dDate.Second;
 			double fFrac = iDay + ((iHour + (iMinute/60) + (iSecond/60/60))/24);
-			if (iYear < 1582)
-			{
-				iGreg = 0;
-			}
-			else
-			{
-				iGreg = 1;
-			}
+			iGreg = iYear < 1582 ? 0 : 1;
 			if ((iMonth == 1) || (iMonth == 2))
 			{
 				iYear -= 1;
 				iMonth += 12;
 			}
 
-			double fA = (long) Math.Floor(iYear/100);
+			double fA = (long) Math.Floor(iYear / 100.0);
 			double fB = (2 - fA + (long) Math.Floor(fA/4))*iGreg;
 			if (iYear < 0)
 			{
@@ -377,10 +360,8 @@ namespace CumulusMX
 			{
 				return dDate.Subtract(new TimeSpan(iZone, 0, 0));
 			}
-			else
-			{
-				return dDate.AddHours(Math.Abs(iZone));
-			}
+
+			return dDate.AddHours(Math.Abs(iZone));
 		}
 
 		public static double GetSolarMEL(DateTime dDate, bool b0Epoch)
@@ -429,14 +410,14 @@ namespace CumulusMX
 			return pfDeg;
 		}
 
-		public static int cSunrise = 1;
-		public static int cBeginCivilTwilight = -2;
-		public static int cBeginNautTwilight = -3;
-		public static int cBeginAstroTwilight = -4;
-		public static int cSunset = -1;
-		public static int cEndCivilTwilight = 2;
-		public static int cEndNautTwilight = 3;
-		public static int cEndAstroTwilight = 4;
+		//public static int cSunrise = 1;
+		//public static int cBeginCivilTwilight = -2;
+		//public static int cBeginNautTwilight = -3;
+		//public static int cBeginAstroTwilight = -4;
+		//public static int cSunset = -1;
+		//public static int cEndCivilTwilight = 2;
+		//public static int cEndNautTwilight = 3;
+		//public static int cEndAstroTwilight = 4;
 
 		/*
 		private static double mjd(int year, int month, int day)
@@ -1206,44 +1187,42 @@ namespace CumulusMX
 		}
 		*/
 
+		/*
 		public static void CalcMoonDistance(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, double fMSMA, ref double fMDistance)
 		{
-			double fN, fSM, fSE, fSLambda;
-			double fL, fMM, fME, fAE, fMEC, fA3, fMM1;
-			double fJD1, fJD2, fDays;
-
-			fJD1 = GetJulianDay(dDate, 0);
-			fJD2 = GetJulianDay(dEpoch, 0);
-			fDays = (fJD1 - fJD2);
+			var fJD1 = GetJulianDay(dDate, 0);
+			var fJD2 = GetJulianDay(dEpoch, 0);
+			var fDays = (fJD1 - fJD2);
 			fDays += 1;
 
-			fN = (360.0 / 365.242191) * fDays;
+			var fN = (360.0 / 365.242191) * fDays;
 			fN = Trig.PutIn360Deg(fN);
-			fSM = fN + fSEpochEclLong - fSPeriEclLong;
+			var fSM = fN + fSEpochEclLong - fSPeriEclLong;
 			fSM = Trig.PutIn360Deg(fSM);
 
-			fSE = (360.0 / Math.PI) * fSEcc * Math.Sin(Trig.DegToRad(fSM));
-			fSLambda = fN + fSE + fSEpochEclLong;
+			var fSE = (360.0 / Math.PI) * fSEcc * Math.Sin(Trig.DegToRad(fSM));
+			var fSLambda = fN + fSE + fSEpochEclLong;
 
-			fL = (13.176396 * fDays) + fMEpochLong;
+			var fL = (13.176396 * fDays) + fMEpochLong;
 			fL = Trig.PutIn360Deg(fL);
 
-			fMM = fL - (0.111404 * fDays) - fMPeriLong;
+			var fMM = fL - (0.111404 * fDays) - fMPeriLong;
 			fMM = Trig.PutIn360Deg(fMM);
 
 			//fMN = fMAscNode - (0.0529539 * fDays);
 			//fMN = Trig.PutIn360Deg(fMN);
 
-			fME = 1.2739 * Trig.Sin((2.0 * (fL - fSLambda)) - fMM);
-			fAE = 0.1858 * Trig.Sin(fSM);
-			fA3 = 0.37 * Trig.Sin(fSM);
+			var fME = 1.2739 * Trig.Sin((2.0 * (fL - fSLambda)) - fMM);
+			var fAE = 0.1858 * Trig.Sin(fSM);
+			var fA3 = 0.37 * Trig.Sin(fSM);
 
-			fMM1 = fMM + fME - fAE + fA3;
+			var fMM1 = fMM + fME - fAE + fA3;
 
-			fMEC = 6.2886 * Trig.Sin(fMM1);
+			var fMEC = 6.2886 * Trig.Sin(fMM1);
 
 			fMDistance = fMSMA * ((1.0 - (fMEcc * fMEcc)) / (1.0 + (fMEcc * Trig.Cos(fMM1 + fMEC))));
 		}
+		*/
 
 		/*
 		public static void CalcMoonDiam(DateTime dDate, DateTime dEpoch, double fMEpochLong, double fMPeriLong, double fMAscNode, double fMIncl, double fMEcc, double fSEpochEclLong, double fSPeriEclLong, double fSEcc, double fMSMA, double fVAngDiam, ref double fMAngDiam)
@@ -1343,7 +1322,7 @@ namespace CumulusMX
 		}
 		*/
 
-
+		/*
 		private static double Normalize(double fN)
 		{
 			fN -= Math.Floor(fN);
@@ -1353,5 +1332,6 @@ namespace CumulusMX
 			}
 			return fN;
 		}
+		*/
 	}
 }
