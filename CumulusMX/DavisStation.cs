@@ -114,7 +114,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Error parsing firmware string for version number: " + ex.Message);
 			}
 
-			if (cumulus.DavisReadReceptionStats)
+			if (cumulus.StationOptions.DavisReadReceptionStats)
 			{
 				var recepStats = GetReceptionStats();
 				DecodeReceptionStats(recepStats);
@@ -132,7 +132,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Console clock: " + consoleclock);
 
-				if (cumulus.SyncTime && Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
+				if (cumulus.StationOptions.SyncTime && Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
 				{
 					SetTime();
 					// Pause whilst the console sorts itself out
@@ -665,7 +665,7 @@ namespace CumulusMX
 			//    CalcRecentMaxGust = false;
 			//}
 			// restore this setting
-			cumulus.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
+			cumulus.StationOptions.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
 			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
@@ -695,8 +695,8 @@ namespace CumulusMX
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
-				savedUseSpeedForAvgCalc = cumulus.UseSpeedForAvgCalc;
-				cumulus.UseSpeedForAvgCalc = true;
+				savedUseSpeedForAvgCalc = cumulus.StationOptions.UseSpeedForAvgCalc;
+				cumulus.StationOptions.UseSpeedForAvgCalc = true;
 				do
 				{
 					GetArchiveData();
@@ -803,7 +803,7 @@ namespace CumulusMX
 		public override void Start()
 		{
 			cumulus.LogMessage("Start normal reading loop");
-			int loopcount = cumulus.ForceVPBarUpdate ? 20 : 50;
+			int loopcount = cumulus.StationOptions.ForceVPBarUpdate ? 20 : 50;
 			const int loop2count = 1;
 			bool reconnecting = false;
 
@@ -922,12 +922,12 @@ namespace CumulusMX
 						}
 					}
 
-					if (cumulus.ForceVPBarUpdate && !stop)
+					if (cumulus.StationOptions.ForceVPBarUpdate && !stop)
 					{
 						SendBarRead();
 					}
 
-					if (!cumulus.DavisReadReceptionStats || lastRecepStatsTime.AddMinutes(15) >= DateTime.Now || stop)
+					if (!cumulus.StationOptions.DavisReadReceptionStats || lastRecepStatsTime.AddMinutes(15) >= DateTime.Now || stop)
 						continue;
 
 					var recepStats = GetReceptionStats();
@@ -1211,7 +1211,7 @@ namespace CumulusMX
 				if (min != previousMinuteSetClock)
 				{
 					previousMinuteSetClock = min;
-					if (cumulus.SyncTime && DateTime.Now.Hour == cumulus.ClockSettingHour && min == 0)
+					if (cumulus.StationOptions.SyncTime && DateTime.Now.Hour == cumulus.ClockSettingHour && min == 0)
 					{
 						// set the console clock
 						clockSetNeeded = true;
@@ -1561,7 +1561,7 @@ namespace CumulusMX
 				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || loopData.ConBatVoltage < 4.0;
 
 
-				if (cumulus.LogExtraSensors)
+				if (cumulus.StationOptions.LogExtraSensors)
 				{
 					if (loopData.ExtraTemp1 < 255)
 					{
@@ -2399,7 +2399,7 @@ namespace CumulusMX
 								DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 							}
 
-							if (cumulus.LogExtraSensors)
+							if (cumulus.StationOptions.LogExtraSensors)
 							{
 								if (archiveData.ExtraTemp1 < 255)
 								{
@@ -2509,7 +2509,7 @@ namespace CumulusMX
 							cumulus.DoLogFile(timestamp, false);
 							cumulus.LogMessage("GetArchiveData: Log file entry written");
 
-							if (cumulus.LogExtraSensors)
+							if (cumulus.StationOptions.LogExtraSensors)
 							{
 								cumulus.DoExtraLogFile(timestamp);
 							}

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using HidSharp;
+using System;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Timers;
-using HidSharp;
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -84,11 +84,7 @@ namespace CumulusMX
 
 		private void HearbeatTimerProc(object sender, ElapsedEventArgs e)
 		{
-			if (cumulus.logging)
-			{
-				cumulus.LogMessage("Sending heartbeat");
-			}
-
+			cumulus.LogDebugMessage("Sending heartbeat");
 			SendHeartBeat();
 		}
 
@@ -165,15 +161,11 @@ namespace CumulusMX
 		public override void Start()
 		{
 			cumulus.LogMessage("Start loop");
-			int numBytes;
-			int responseLength;
-			int startByte;
-			int offset;
 
 			// Returns 9-byte usb packet, with report ID in first byte
-			responseLength = 9;
-			startByte = 1;
-			offset = 0;
+			const int responseLength = 9;
+			const int startByte = 1;
+			const int offset = 0;
 
 			try
 			{
@@ -183,18 +175,17 @@ namespace CumulusMX
 
 					try
 					{
-						numBytes = stream.Read(usbbuffer, offset, responseLength);
-						cumulus.LogDataMessage("numBytes = " + numBytes);
+						var numBytes = stream.Read(usbbuffer, offset, responseLength);
 
 						if (stop) break;
 
-						String str = string.Empty;
+						string str = string.Empty;
 
 						for (int I = startByte; I < responseLength; I++)
 						{
-							str = str + " " + usbbuffer[I].ToString("X2");
+							str += " " + usbbuffer[I].ToString("X2");
 						}
-						cumulus.LogDataMessage(DateTime.Now.ToLongTimeString() + str);
+						cumulus.LogDataMessage($"Bytes read {numBytes} = {str}");
 
 						if ((currentPacketLength == 0) // expecting a new packet
 							&& !((usbbuffer[2] >= HISTORY_AVAILABLE_PACKET_TYPE) && (usbbuffer[2] <= TEMPHUM_PACKET_TYPE))
@@ -238,11 +229,8 @@ namespace CumulusMX
 								if ((currentPacketLength == 1) && (packetBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE))
 								{
 									//ArchiveDataAvailable = true;
-									if (cumulus.logging)
-									{
-										cumulus.LogMessage("HISTORY_AVAILABLE_PACKET_TYPE");
-										cumulus.LogMessage("Sending DA response");
-									}
+									cumulus.LogDebugMessage("HISTORY_AVAILABLE_PACKET_TYPE");
+									cumulus.LogDebugMessage("Sending DA response");
 									SendDA();
 								}
 
@@ -259,32 +247,20 @@ namespace CumulusMX
 									switch (packetBuffer[0])
 									{
 										case HISTORY_AVAILABLE_PACKET_TYPE:
-											if (cumulus.logging)
-											{
-												cumulus.LogMessage("HISTORY_AVAILABLE_PACKET_TYPE");
-											}
+											cumulus.LogDebugMessage("HISTORY_AVAILABLE_PACKET_TYPE");
 											break;
 										case CLEAR_LOGGER_PACKET_TYPE:
-											if (cumulus.logging)
-											{
-												cumulus.LogMessage("CLEAR_LOGGER_PACKET_TYPE");
-											}
+											cumulus.LogDebugMessage("CLEAR_LOGGER_PACKET_TYPE");
 											break;
 										case STOP_COMMS_PACKET_TYPE:
-											if (cumulus.logging)
-											{
-												cumulus.LogMessage("STOP_COMMS_PACKET_TYPE");
-											}
+											cumulus.LogDebugMessage("STOP_COMMS_PACKET_TYPE");
 											break;
 									}
 
 									if (packetBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE)
 									{
 										//ArchiveDataAvailable = true;
-										if (cumulus.logging)
-										{
-											cumulus.LogMessage("Sending DA response");
-										}
+										cumulus.LogDebugMessage("Sending DA response");
 										SendDA();
 									}
 
@@ -320,10 +296,7 @@ namespace CumulusMX
 
 		private void SendReset()
 		{
-			if (cumulus.DataLogging)
-			{
-				cumulus.LogMessage("Sending reset");
-			}
+			cumulus.LogDebugMessage("Sending reset");
 
 			byte[] reset;
 
@@ -433,10 +406,7 @@ namespace CumulusMX
 				{
 					str += packetBuffer[I].ToString("X2");
 				}
-				if (cumulus.logging)
-				{
-					cumulus.LogMessage(DateTime.Now.ToLongTimeString() + str);
-				}
+				cumulus.LogDebugMessage(DateTime.Now.ToLongTimeString() + str);
 			}
 		}
 
@@ -1366,16 +1336,8 @@ namespace CumulusMX
 			//int s;
 			//int ms;
 			int i;
-			double num;
 			//int intnum;
-			int sign;
 			int interval;
-			double wc;
-			double counter;
-			double rate;
-			int sensorcount;
-			int sensornumber;
-			int offset;
 			//ArchiveDataDownloaded = true;
 			// Byte 02: (mm) Minute
 			// Byte 03: (hh) Hour
@@ -1471,7 +1433,7 @@ namespace CumulusMX
 			previousHistoryTimeStamp = timestamp;
 			// pressure
 			StationPressure = ConvertPressMBToUser(((packetBuffer[29] & 0xF)*256) + packetBuffer[28]);
-			num = ((packetBuffer[31] & 0xF)*256) + packetBuffer[30];
+			double num = ((packetBuffer[31] & 0xF)*256) + packetBuffer[30];
 			DoPressure(ConvertPressMBToUser(num),timestamp);
 
 			// bearing
@@ -1487,13 +1449,14 @@ namespace CumulusMX
 			WindRunToday += (WindAverage*WindRunHourMult[cumulus.WindUnit]*interval*60)/1000.0;
 			// update dominant wind bearing
 			CalculateDominantWindBearing(Bearing, WindAverage, interval);
-			sensorcount = packetBuffer[32];
+			int sensorcount = packetBuffer[32];
 			for (i = 0; i <= sensorcount; i++)
 			{
 				try
 				{
-					offset = 33 + (i*7);
-					sensornumber = packetBuffer[offset] & 0xF;
+					var offset = 33 + (i*7);
+					var sensornumber = packetBuffer[offset] & 0xF;
+					int sign;
 					if (sensornumber == 0)
 					{
 						// indoor sensor
@@ -1605,7 +1568,7 @@ namespace CumulusMX
 			else
 			{
 				// wind chill is in Fahrenheit!
-				wc = MeteoLib.FtoC((packetBuffer[25] + (packetBuffer[26] & 0xF)*256)/10.0);
+				var wc = MeteoLib.FtoC((packetBuffer[25] + (packetBuffer[26] & 0xF)*256)/10.0);
 
 				if (cumulus.TempUnit == 0)
 				{
@@ -1616,9 +1579,9 @@ namespace CumulusMX
 			}
 
 			// rain
-			counter = ((packetBuffer[14]*256) + packetBuffer[13])/100.0;
+			var counter = ((packetBuffer[14]*256) + packetBuffer[13])/100.0;
 
-			rate = ((packetBuffer[8]*256) + packetBuffer[7])/100.0;
+			var rate = ((packetBuffer[8]*256) + packetBuffer[7])/100.0;
 
 			DoRain(ConvertRainINToUser(counter),ConvertRainINToUser(rate),timestamp);
 
@@ -1638,7 +1601,7 @@ namespace CumulusMX
 
 			cumulus.DoLogFile(timestamp,false);
 
-			if (cumulus.LogExtraSensors)
+			if (cumulus.StationOptions.LogExtraSensors)
 			{
 				cumulus.DoExtraLogFile(timestamp);
 			}
@@ -1668,7 +1631,7 @@ namespace CumulusMX
 				str.Append(" ");
 			}
 
-			cumulus.LogDataMessage($"{DateTime.Now} Packet:{str}");
+			cumulus.LogDataMessage($"Packet:{str}");
 
 			if (CRCOK())
 			{
@@ -1677,7 +1640,6 @@ namespace CumulusMX
 					case HISTORY_DATA_PACKET_TYPE:
 						if (gettingHistory)
 						{
-							cumulus.LogMessage("Packet:" + str);
 							ProcessHistoryDataPacket();
 							livePacketCount = 0;
 						}
@@ -1791,7 +1753,7 @@ namespace CumulusMX
 			}
 		}
 
-		private int MinutesBetween(DateTime endTime, DateTime startTime)
+		private static int MinutesBetween(DateTime endTime, DateTime startTime)
 		{
 			return endTime.Subtract(startTime).Minutes;
 		}

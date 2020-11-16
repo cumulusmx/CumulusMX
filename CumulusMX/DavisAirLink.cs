@@ -748,7 +748,8 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Error processing avg temperature. Error: {ex.Message}");
+							cumulus.LogDebugMessage(
+								$"DecodeAlHistoric: {locationStr} - Error processing avg temperature. Error: {ex.Message}");
 						}
 
 
@@ -765,7 +766,8 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Error processing humidity. Error: {ex.Message}");
+							cumulus.LogDebugMessage(
+								$"DecodeAlHistoric: {locationStr} - Error processing humidity. Error: {ex.Message}");
 						}
 
 						try
@@ -815,10 +817,20 @@ namespace CumulusMX
 
 								DoAqi(cumulus.airLinkDataOut);
 							}
+
+							// If we are the primary AQ sensor,
+							// and we are not linked to a WLL,
+							// and we are outdoor,
+							// then add the PM data into the graphdata list
+							if (cumulus.StationOptions.PrimaryAqSensor == 0 && standaloneHistory && !indoor)
+							{
+								UpdateGraphDataAqEntry(FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+							}
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Error processing PM data. Error: {ex.Message}");
+							cumulus.LogDebugMessage(
+								$"DecodeAlHistoric: {locationStr} - Error processing PM data. Error: {ex.Message}");
 						}
 
 						break;
@@ -1604,4 +1616,39 @@ namespace CumulusMX
 			public int pct_pm_data_nowcast { get; set; }
 		}
 	}
+
+	public class AirLinkData
+	{
+		public double temperature { get; set; }
+		public int humidity { get; set; }
+		public double pm1 { get; set; }
+		public double pm2p5 { get; set; }
+		public double pm2p5_1hr { get; set; }
+		public double pm2p5_3hr { get; set; }
+		public double pm2p5_nowcast { get; set; }
+		public double pm2p5_24hr { get; set; }
+		public double pm10 { get; set; }
+		public double pm10_1hr { get; set; }
+		public double pm10_3hr { get; set; }
+		public double pm10_nowcast { get; set; }
+		public double pm10_24hr { get; set; }
+		public int pct_1hr { get; set; }
+		public int pct_3hr { get; set; }
+		public int pct_nowcast { get; set; }
+		public int pct_24hr { get; set; }
+		public double aqiPm2p5 { get; set; }
+		public double aqiPm2p5_1hr { get; set; }
+		public double aqiPm2p5_3hr { get; set; }
+		public double aqiPm2p5_24hr { get; set; }
+		public double aqiPm2p5_nowcast { get; set; }
+		public double aqiPm10 { get; set; }
+		public double aqiPm10_1hr { get; set; }
+		public double aqiPm10_3hr { get; set; }
+		public double aqiPm10_24hr { get; set; }
+		public double aqiPm10_nowcast { get; set; }
+		public string firmwareVersion { get; set; }
+		public int wifiRssi { get; set; }
+	}
+
+
 }

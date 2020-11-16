@@ -347,10 +347,6 @@ namespace CumulusMX
 
 		internal int[] FactorsOf60 = { 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60 };
 
-		public bool UseWind10MinAve { get; set; }
-		public bool UseSpeedForAvgCalc { get; set; }
-		public bool UseZeroBearing { get; set; }
-//		public int MaxWindRecent = 720;
 		public TimeSpan AvgSpeedTime { get; set; }
 		public int AvgSpeedMinutes = 10;
 
@@ -374,7 +370,7 @@ namespace CumulusMX
 		internal int AirQualityDPlaces = 1;
 		public string AirQualityFormat;
 
-		private readonly int WindRunDPlaces = 1;
+		private int WindRunDPlaces = 1;
 		public string WindRunFormat;
 
 		public int RainDPlaces = 1;
@@ -421,13 +417,6 @@ namespace CumulusMX
 		public string ListSeparator;
 		public char DirectorySeparator;
 
-		//public bool ImportData;
-		//public string CumulusIniPath;
-
-		//public int LogInterval = 5;
-
-		//public bool LogExtraData;
-
 		public int RolloverHour;
 		public bool Use10amInSummer;
 
@@ -440,10 +429,7 @@ namespace CumulusMX
 		internal int wsPort;
 		private readonly bool DebuggingEnabled;
 
-		public bool LogExtraSensors;
-
 		public bool UseDavisLoop2 = true;
-		public bool DavisReadReceptionStats;
 		public int DavisReadTimeout;
 
 		public SerialPort cmprtRG11;
@@ -462,7 +448,6 @@ namespace CumulusMX
 
 		public int FineOffsetReadTime;
 
-		//private readonly string AlltimeFile;
 		public string AlltimeIniFile;
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
@@ -515,6 +500,8 @@ namespace CumulusMX
 		/// User spike limit settings
 		/// </summary>
 		public Spikes Spike = new Spikes();
+
+		public StationOptions StationOptions = new StationOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
 
@@ -992,7 +979,7 @@ namespace CumulusMX
 
 			ReadIniFile();
 
-			if (WarnMultiple && !Program.appMutex.WaitOne(0, false))
+			if (StationOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
 			{
 				LogConsoleMessage("Cumulus is already running - terminating");
 				LogConsoleMessage("Program exit");
@@ -1015,7 +1002,8 @@ namespace CumulusMX
 					"web" + DirectorySeparator + "dailyrain.json",
 					"web" + DirectorySeparator + "dailytemp.json",
 					"web" + DirectorySeparator + "solardata.json",
-					"web" + DirectorySeparator + "sunhours.json"
+					"web" + DirectorySeparator + "sunhours.json",
+					"web" + DirectorySeparator + "airquality.json"
 				};
 
 			remoteGraphdataFiles = new[]
@@ -1030,7 +1018,8 @@ namespace CumulusMX
 					"dailyrain.json",
 					"dailytemp.json",
 					"solardata.json",
-					"sunhours.json"
+					"sunhours.json",
+					"airquality.json"
 				};
 
 			localDailyGraphdataFiles = new[]
@@ -1081,19 +1070,17 @@ namespace CumulusMX
 
 			// Open database (create file if it doesn't exist)
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-			LogDB = new SQLiteConnection(dbfile, flags);
-
-			LogDB.CreateTable<StandardData>();
+			//LogDB = new SQLiteConnection(dbfile, flags)
+			//LogDB.CreateTable<StandardData>();
 
 			// Open diary database (create file if it doesn't exist)
 			DiaryDB = new SQLiteConnection(diaryfile, flags);
-
 			DiaryDB.CreateTable<DiaryData>();
 
 			Backupdata(false, DateTime.Now);
 
-			LogMessage("Debug logging is " + (logging ? "enabled" : "disabled"));
-			LogMessage("Data logging is " + (DataLogging ? "enabled" : "disabled"));
+			LogMessage("Debug logging is " + (StationOptions.DebugLogging ? "enabled" : "disabled"));
+			LogMessage("Data logging is " + (StationOptions.DataLogging ? "enabled" : "disabled"));
 			LogMessage("FTP logging is " + (FTPlogging ? "enabled" : "disabled"));
 			LogMessage("Spike logging is " + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
@@ -3165,11 +3152,11 @@ namespace CumulusMX
 			DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
 
 			UseDavisLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
-			DavisReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
+			StationOptions.DavisReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
 			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 2000);
 			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 500);
 			DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
-			davisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", true);
+			davisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", false);
 			if (StationType == StationTypes.VantagePro)
 			{
 				UseDavisLoop2 = false;
@@ -3222,9 +3209,9 @@ namespace CumulusMX
 			Altitude = ini.GetValue("Station", "Altitude", 0.0);
 			AltitudeInFeet = ini.GetValue("Station", "AltitudeInFeet", true);
 
-			Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
-			UseWind10MinAve = ini.GetValue("Station", "Wind10MinAverage", false);
-			UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
+			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
+			StationOptions.UseWind10MinAve = ini.GetValue("Station", "Wind10MinAverage", false);
+			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 
 			AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
 			if (AvgBearingMinutes > 120)
@@ -3278,18 +3265,18 @@ namespace CumulusMX
 
 			NoSensorCheck = ini.GetValue("Station", "NoSensorCheck", false);
 
-			CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
-			CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
+			StationOptions.CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
+			StationOptions.CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
 			RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
 			Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
 			ConfirmClose = ini.GetValue("Station", "ConfirmClose", false);
 			CloseOnSuspend = ini.GetValue("Station", "CloseOnSuspend", false);
 			RestartIfUnplugged = ini.GetValue("Station", "RestartIfUnplugged", false);
 			RestartIfDataStops = ini.GetValue("Station", "RestartIfDataStops", false);
-			SyncTime = ini.GetValue("Station", "SyncDavisClock", false);
+			StationOptions.SyncTime = ini.GetValue("Station", "SyncDavisClock", false);
 			ClockSettingHour = ini.GetValue("Station", "ClockSettingHour", 4);
-			WS2300IgnoreStationClock = ini.GetValue("Station", "WS2300IgnoreStationClock", false);
-			LogExtraSensors = ini.GetValue("Station", "LogExtraSensors", false);
+			StationOptions.WS2300IgnoreStationClock = ini.GetValue("Station", "WS2300IgnoreStationClock", false);
+			StationOptions.LogExtraSensors = ini.GetValue("Station", "LogExtraSensors", false);
 			ReportDataStoppedErrors = ini.GetValue("Station", "ReportDataStoppedErrors", true);
 			ReportLostSensorContact = ini.GetValue("Station", "ReportLostSensorContact", true);
 			NoFlashWetDryDayRecords = ini.GetValue("Station", "NoFlashWetDryDayRecords", false);
@@ -3301,7 +3288,7 @@ namespace CumulusMX
 				DataLogInterval = 2;
 			}
 
-			SyncFOReads = ini.GetValue("Station", "SyncFOReads", true);
+			StationOptions.SyncFOReads = ini.GetValue("Station", "SyncFOReads", true);
 			FOReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
 			FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
 
@@ -3312,25 +3299,34 @@ namespace CumulusMX
 			RainUnit = ini.GetValue("Station", "RainUnit", 0);
 			TempUnit = ini.GetValue("Station", "TempUnit", 0);
 
-			RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
+			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
+			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1);
 
-			WindDPlaces = RoundWindSpeed ? 0 : WindDPlace[WindUnit];
-			WindAvgDPlaces = WindDPlaces;
 
-			// Wind speed decimals overrides - readonly
-			WindDPlaces = ini.GetValue("Station", "WindSpeedDecimals", WindDPlaces);
-			WindAvgDPlaces = ini.GetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
-
+			// Unit decimals
+			RainDPlaces = RainDPlace[RainUnit];
 			TempDPlaces = TempDPlace[TempUnit];
 			PressDPlaces = PressDPlace[PressUnit];
+			WindDPlaces = StationOptions.RoundWindSpeed ? 0 : WindDPlace[WindUnit];
+			WindAvgDPlaces = WindDPlaces;
+
+			// Unit decimal overrides - readonly
+			WindDPlaces = ini.GetValue("Station", "WindSpeedDecimals", WindDPlaces);
+			WindAvgDPlaces = ini.GetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
+			WindRunDPlaces = ini.GetValue("Station", "WindRunDecimals", WindRunDPlaces);
+			SunshineDPlaces = ini.GetValue("Station", "SunshineHrsDecimals", 1);
+
 			if ((StationType == 0 || StationType == 1) && davisIncrementPressureDP)
 			{
 				// Use one more DP for Davis stations
 				++PressDPlaces;
 			}
-			RainDPlaces = RainDPlace[RainUnit];
+			PressDPlaces = ini.GetValue("Station", "PressDecimals", PressDPlaces);
+			RainDPlaces = ini.GetValue("Station", "RainDecimals", RainDPlaces);
+			TempDPlaces = ini.GetValue("Station", "TempDecimals", TempDPlaces);
+			UVDPlaces = ini.GetValue("Station", "UVDecimals", UVDPlaces);
+			AirQualityDPlaces = ini.GetValue("Station", "AirQualityDecimals", AirQualityDPlaces);
 
-			SunshineDPlaces = ini.GetValue("Station", "SunshineHrsDecimals", 1);
 
 			LocationName = ini.GetValue("Station", "LocName", "");
 			LocationDesc = ini.GetValue("Station", "LocDesc", "");
@@ -3361,7 +3357,7 @@ namespace CumulusMX
 
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
-			ForceVPBarUpdate = ini.GetValue("Station", "ForceVPBarUpdate", false);
+			StationOptions.ForceVPBarUpdate = ini.GetValue("Station", "ForceVPBarUpdate", false);
 			DavisUseDLLBarCalData = ini.GetValue("Station", "DavisUseDLLBarCalData", false);
 			DavisCalcAltPress = ini.GetValue("Station", "DavisCalcAltPress", true);
 			DavisConsoleHighGust = ini.GetValue("Station", "DavisConsoleHighGust", false);
@@ -3377,13 +3373,13 @@ namespace CumulusMX
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
-			UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
+			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
 			UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false);
 			RecordSetTimeoutHrs = ini.GetValue("Station", "RecordSetTimeoutHrs", 24);
 
 			SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 0);
 
-			UseZeroBearing = ini.GetValue("Station", "UseZeroBearing", false);
+			StationOptions.UseZeroBearing = ini.GetValue("Station", "UseZeroBearing", false);
 
 			RainDayThreshold = ini.GetValue("Station", "RainDayThreshold", -1.0);
 
@@ -3425,20 +3421,20 @@ namespace CumulusMX
 
 			if (DebuggingEnabled)
 			{
-				logging = true;
-				DataLogging = true;
+				StationOptions.DebugLogging = true;
+				StationOptions.DataLogging = true;
 			}
 			else
 			{
-				logging = ini.GetValue("Station", "Logging", false);
-				DataLogging = ini.GetValue("Station", "DataLogging", false);
+				StationOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
+				StationOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
 			}
 
 			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
-			WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
+			StationOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 
 			VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 
@@ -3625,6 +3621,7 @@ namespace CumulusMX
 			Wund.SendSoilMoisture4 = ini.GetValue("Wunderground", "SendSoilMoisture4", false);
 			Wund.SendLeafWetness1 = ini.GetValue("Wunderground", "SendLeafWetness1", false);
 			Wund.SendLeafWetness2 = ini.GetValue("Wunderground", "SendLeafWetness2", false);
+			Wund.SendAirQuality = ini.GetValue("Wunderground", "SendAirQuality", false);
 			Wund.SendAverage = ini.GetValue("Wunderground", "SendAverage", false);
 			Wund.CatchUp = ini.GetValue("Wunderground", "CatchUp", true);
 
@@ -3655,6 +3652,7 @@ namespace CumulusMX
 			AWEKAS.SendIndoor = ini.GetValue("Awekas", "SendIndoor", false);
 			AWEKAS.SendSoilMoisture = ini.GetValue("Awekas", "SendSoilMoisture", false);
 			AWEKAS.SendLeafWetness = ini.GetValue("Awekas", "SendLeafWetness", false);
+			AWEKAS.SendAirQuality = ini.GetValue("Awekas", "SendAirQuality", false);
 
 			AWEKAS.SynchronisedUpdate = (AWEKAS.Interval % 60 == 0);
 
@@ -4065,23 +4063,23 @@ namespace CumulusMX
 			ini.SetValue("Station", "LonTxt", LonTxt);
 			ini.SetValue("Station", "Altitude", Altitude);
 			ini.SetValue("Station", "AltitudeInFeet", AltitudeInFeet);
-			ini.SetValue("Station", "Humidity98Fix", Humidity98Fix);
-			ini.SetValue("Station", "Wind10MinAverage", UseWind10MinAve);
-			ini.SetValue("Station", "UseSpeedForAvgCalc", UseSpeedForAvgCalc);
-			ini.SetValue("Station", "DavisReadReceptionStats", DavisReadReceptionStats);
-			ini.SetValue("Station", "CalculatedDP", CalculatedDP);
-			ini.SetValue("Station", "CalculatedWC", CalculatedWC);
+			ini.SetValue("Station", "Humidity98Fix", StationOptions.Humidity98Fix);
+			ini.SetValue("Station", "Wind10MinAverage", StationOptions.UseWind10MinAve);
+			ini.SetValue("Station", "UseSpeedForAvgCalc", StationOptions.UseSpeedForAvgCalc);
+			ini.SetValue("Station", "DavisReadReceptionStats", StationOptions.DavisReadReceptionStats);
+			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
+			ini.SetValue("Station", "CalculatedWC", StationOptions.CalculatedWC);
 			ini.SetValue("Station", "RolloverHour", RolloverHour);
 			ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
 			ini.SetValue("Station", "ConfirmClose", ConfirmClose);
 			ini.SetValue("Station", "CloseOnSuspend", CloseOnSuspend);
 			ini.SetValue("Station", "RestartIfUnplugged", RestartIfUnplugged);
 			ini.SetValue("Station", "RestartIfDataStops", RestartIfDataStops);
-			ini.SetValue("Station", "SyncDavisClock", SyncTime);
+			ini.SetValue("Station", "SyncDavisClock", StationOptions.SyncTime);
 			ini.SetValue("Station", "ClockSettingHour", ClockSettingHour);
-			ini.SetValue("Station", "SyncFOReads", SyncFOReads);
-			ini.SetValue("Station", "WS2300IgnoreStationClock", WS2300IgnoreStationClock);
-			ini.SetValue("Station", "LogExtraSensors", LogExtraSensors);
+			ini.SetValue("Station", "SyncFOReads", StationOptions.SyncFOReads);
+			ini.SetValue("Station", "WS2300IgnoreStationClock", StationOptions.WS2300IgnoreStationClock);
+			ini.SetValue("Station", "LogExtraSensors", StationOptions.LogExtraSensors);
 			ini.SetValue("Station", "DataLogInterval", DataLogInterval);
 			ini.SetValue("Station", "WindUnit", WindUnit);
 			ini.SetValue("Station", "PressureUnit", PressUnit);
@@ -4097,17 +4095,18 @@ namespace CumulusMX
 			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
 			ini.SetValue("Station", "UseCumulusForecast", UseCumulusForecast);
 			ini.SetValue("Station", "HourlyForecast", HourlyForecast);
-			ini.SetValue("Station", "UseCumulusPresstrendstr", UseCumulusPresstrendstr);
+			ini.SetValue("Station", "UseCumulusPresstrendstr", StationOptions.UseCumulusPresstrendstr);
 			ini.SetValue("Station", "FCpressinMB", FCpressinMB);
 			ini.SetValue("Station", "FClowpress", FClowpress);
 			ini.SetValue("Station", "FChighpress", FChighpress);
-			ini.SetValue("Station", "ForceVPBarUpdate", ForceVPBarUpdate);
-			ini.SetValue("Station", "UseZeroBearing", UseZeroBearing);
+			ini.SetValue("Station", "ForceVPBarUpdate", StationOptions.ForceVPBarUpdate);
+			ini.SetValue("Station", "UseZeroBearing", StationOptions.UseZeroBearing);
 			ini.SetValue("Station", "VP2ConnectionType", VP2ConnectionType);
 			ini.SetValue("Station", "VP2TCPPort", VP2TCPPort);
 			ini.SetValue("Station", "VP2IPAddr", VP2IPAddr);
-			ini.SetValue("Station", "WarnMultiple", WarnMultiple);
-			ini.SetValue("Station", "RoundWindSpeed", RoundWindSpeed);
+			ini.SetValue("Station", "WarnMultiple", StationOptions.WarnMultiple);
+			ini.SetValue("Station", "RoundWindSpeed", StationOptions.RoundWindSpeed);
+			ini.SetValue("Station", "PrimaryAqSensor", StationOptions.PrimaryAqSensor);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", VP2PeriodicDisconnectInterval);
 			ini.SetValue("Station", "EWtempdiff", Spike.TempDiff);
 			ini.SetValue("Station", "EWpressurediff", Spike.PressDiff);
@@ -4277,6 +4276,7 @@ namespace CumulusMX
 			ini.SetValue("Wunderground", "SendSoilMoisture4", Wund.SendSoilMoisture4);
 			ini.SetValue("Wunderground", "SendLeafWetness1", Wund.SendLeafWetness1);
 			ini.SetValue("Wunderground", "SendLeafWetness2", Wund.SendLeafWetness2);
+			ini.SetValue("Wunderground", "SendAirQuality", Wund.SendAirQuality);
 
 			ini.SetValue("Windy", "APIkey", Windy.ApiKey);
 			ini.SetValue("Windy", "StationIdx", Windy.StationIdx);
@@ -4296,6 +4296,7 @@ namespace CumulusMX
 			ini.SetValue("Awekas", "SendIndoor", AWEKAS.SendIndoor);
 			ini.SetValue("Awekas", "SendSoilMoisture", AWEKAS.SendSoilMoisture);
 			ini.SetValue("Awekas", "SendLeafWetness", AWEKAS.SendLeafWetness);
+			ini.SetValue("Awekas", "SendAirQuality", AWEKAS.SendAirQuality);
 
 			ini.SetValue("WeatherCloud", "Wid", WCloud.ID);
 			ini.SetValue("WeatherCloud", "Key", WCloud.PW);
@@ -4998,9 +4999,6 @@ namespace CumulusMX
 		public int VP2SleepInterval { get; set; }
 
 		public int VPClosedownTime { get; set; }
-
-		public bool WarnMultiple { get; set; }
-
 		public string VP2IPAddr { get; set; }
 		public string AirLinkInIPAddr { get; set; }
 		public string AirLinkOutIPAddr { get; set; }
@@ -5011,9 +5009,6 @@ namespace CumulusMX
 		public int VP2TCPPort { get; set; }
 
 		public int VP2ConnectionType { get; set; }
-
-		public bool logging { get; set; }
-		public bool DataLogging { get; set; }
 
 		public bool solar_logging { get; set; }
 
@@ -5062,8 +5057,6 @@ namespace CumulusMX
 
 		public bool UseWindChillCutoff { get; set; }
 
-		public bool UseCumulusPresstrendstr { get; set; }
-
 		public bool HourlyForecast { get; set; }
 
 		public bool UseCumulusForecast { get; set; }
@@ -5079,8 +5072,6 @@ namespace CumulusMX
 		public bool DavisCalcAltPress { get; set; }
 
 		public bool DavisUseDLLBarCalData { get; set; }
-
-		public bool ForceVPBarUpdate { get; set; }
 
 		public int LCMaxWind { get; set; }
 
@@ -5126,8 +5117,6 @@ namespace CumulusMX
 		public int[] RainDPlace = { 1, 2 };
 		public const int numextrafiles = 99;
 
-		public bool RoundWindSpeed { get; set; }
-
 		public int RainUnit { get; set; }
 
 		public int PressUnit { get; set; }
@@ -5138,8 +5127,6 @@ namespace CumulusMX
 
 		public int FOReadAvoidPeriod { get; set; }
 
-		public bool SyncFOReads { get; set; }
-
 		public bool ErrorLogSpikeRemoval { get; set; }
 
 		public bool NoFlashWetDryDayRecords { get; set; }
@@ -5147,10 +5134,6 @@ namespace CumulusMX
 		public bool ReportLostSensorContact { get; set; }
 
 		public bool ReportDataStoppedErrors { get; set; }
-
-		public bool WS2300IgnoreStationClock { get; set; }
-
-		public bool SyncTime { get; set; }
 
 		public int ClockSettingHour { get; set; }
 
@@ -5163,10 +5146,6 @@ namespace CumulusMX
 		public bool ConfirmClose { get; set; }
 
 		public int DataLogInterval { get; set; }
-
-		public bool CalculatedWC { get; set; }
-
-		public bool CalculatedDP { get; set; }
 
 		public bool NoSensorCheck { get; set; }
 
@@ -5181,8 +5160,6 @@ namespace CumulusMX
 		public string LatTxt { get; set; }
 
 		public int AvgBearingMinutes { get; set; }
-
-		public bool Humidity98Fix { get; set; }
 
 		public int TempUnit { get; set; }
 
@@ -6825,6 +6802,10 @@ namespace CumulusMX
 									var uploadfile = localGraphdataFiles[i];
 									var remotefile = remotePath + remoteGraphdataFiles[i];
 
+									// Check if we need to upload the AirQuality graph data
+									if (remoteGraphdataFiles[i] == "airquality.json" && StationOptions.PrimaryAqSensor < 0)
+										continue;
+
 									UploadFile(conn, uploadfile, remotefile, -1);
 								}
 								LogFtpMessage("SFTP[Int]: Done uploading graph data files");
@@ -7235,7 +7216,7 @@ namespace CumulusMX
 
 		public void LogDebugMessage(string message)
 		{
-			if (logging || DataLogging)
+			if (StationOptions.DebugLogging || StationOptions.DataLogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -7243,7 +7224,7 @@ namespace CumulusMX
 
 		public void LogDataMessage(string message)
 		{
-			if (DataLogging)
+			if (StationOptions.DataLogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -7393,18 +7374,18 @@ namespace CumulusMX
 					file.Write(station.IndoorHumidity.ToString() + ' '); // 24
 					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
 					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
-					file.Write(station.HighTempToday.ToString(TempFormat, InvC) + ' '); // 27
-					file.Write(station.HighTempTodayTime.ToString("HH:mm ") ); // 28
-					file.Write(station.LowTempToday.ToString(TempFormat, InvC) + ' '); // 29
-					file.Write(station.LowTempTodayTime.ToString("HH:mm ")); // 30
-					file.Write(station.HighWindToday.ToString(WindAvgFormat, InvC) + ' '); // 31
-					file.Write(station.HighWindTodayTime.ToString("HH:mm ")); // 32
-					file.Write(station.HighGustToday.ToString(WindFormat, InvC) + ' '); // 33
-					file.Write(station.HighGustTodayTime.ToString("HH:mm ")); // 34
-					file.Write(station.HighPressToday.ToString(PressFormat, InvC) + ' '); // 35
-					file.Write(station.HighPressTodayTime.ToString("HH:mm ")); // 36
-					file.Write(station.LowPressToday.ToString(PressFormat, InvC) + ' '); // 37
-					file.Write(station.LowPressTodayTime.ToString("HH:mm ")); // 38
+					file.Write(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ' '); // 27
+					file.Write(station.HiLoToday.HighTempTime.ToString("HH:mm ") ); // 28
+					file.Write(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ' '); // 29
+					file.Write(station.HiLoToday.LowTempTime.ToString("HH:mm ")); // 30
+					file.Write(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' '); // 31
+					file.Write(station.HiLoToday.HighWindTime.ToString("HH:mm ")); // 32
+					file.Write(station.HiLoToday.HighGust.ToString(WindFormat, InvC) + ' '); // 33
+					file.Write(station.HiLoToday.HighGustTime.ToString("HH:mm ")); // 34
+					file.Write(station.HiLoToday.HighPress.ToString(PressFormat, InvC) + ' '); // 35
+					file.Write(station.HiLoToday.HighPressTime.ToString("HH:mm ")); // 36
+					file.Write(station.HiLoToday.LowPress.ToString(PressFormat, InvC) + ' '); // 37
+					file.Write(station.HiLoToday.LowPressTime.ToString("HH:mm ")); // 38
 					file.Write(Version + ' '); // 39
 					file.Write(Build + ' '); // 40
 					file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
@@ -7468,18 +7449,18 @@ namespace CumulusMX
 				values.Append(station.IndoorHumidity.ToString() + ',');
 				values.Append(station.WindChill.ToString(TempFormat, InvC) + ',');
 				values.Append(station.temptrendval.ToString(TempTrendFormat, InvC) + ',');
-				values.Append(station.HighTempToday.ToString(TempFormat, InvC) + ",'");
-				values.Append(station.HighTempTodayTime.ToString("HH:mm") + "',");
-				values.Append(station.LowTempToday.ToString(TempFormat, InvC) + ",'");
-				values.Append(station.LowTempTodayTime.ToString("HH:mm") + "',");
-				values.Append(station.HighWindToday.ToString(WindAvgFormat, InvC) + ",'");
-				values.Append(station.HighWindTodayTime.ToString("HH:mm") + "',");
-				values.Append(station.HighGustToday.ToString(WindFormat, InvC) + ",'");
-				values.Append(station.HighGustTodayTime.ToString("HH:mm") + "',");
-				values.Append(station.HighPressToday.ToString(PressFormat, InvC) + ",'");
-				values.Append(station.HighPressTodayTime.ToString("HH:mm") + "',");
-				values.Append(station.LowPressToday.ToString(PressFormat, InvC) + ",'");
-				values.Append(station.LowPressTodayTime.ToString("HH:mm") + "','");
+				values.Append(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ",'");
+				values.Append(station.HiLoToday.HighTempTime.ToString("HH:mm") + "',");
+				values.Append(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ",'");
+				values.Append(station.HiLoToday.LowTempTime.ToString("HH:mm") + "',");
+				values.Append(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ",'");
+				values.Append(station.HiLoToday.HighWindTime.ToString("HH:mm") + "',");
+				values.Append(station.HiLoToday.HighGust.ToString(WindFormat, InvC) + ",'");
+				values.Append(station.HiLoToday.HighGustTime.ToString("HH:mm") + "',");
+				values.Append(station.HiLoToday.HighPress.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.HiLoToday.HighPressTime.ToString("HH:mm") + "',");
+				values.Append(station.HiLoToday.LowPress.ToString(PressFormat, InvC) + ",'");
+				values.Append(station.HiLoToday.LowPressTime.ToString("HH:mm") + "','");
 				values.Append(Version + "','");
 				values.Append(Build + "',");
 				values.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ',');
@@ -8652,6 +8633,28 @@ namespace CumulusMX
 		public double snowDepth { get; set; }
 	}
 
+	public class StationOptions
+	{
+		public bool UseZeroBearing { get; set; }
+		public bool UseWind10MinAve { get; set; }
+		public bool UseSpeedForAvgCalc { get; set; }
+		public bool Humidity98Fix { get; set; }
+		public bool CalculatedDP { get; set; }
+		public bool CalculatedWC { get; set; }
+		public bool SyncTime { get; set; }
+		public bool UseCumulusPresstrendstr { get; set; }
+		public bool ForceVPBarUpdate { get; set; }
+		public bool LogExtraSensors { get; set; }
+		public bool WS2300IgnoreStationClock { get; set; }
+		public bool RoundWindSpeed { get; set; }
+		public bool SyncFOReads { get; set; }
+		public bool DebugLogging { get; set; }
+		public bool DataLogging { get; set; }
+		public bool WarnMultiple { get; set; }
+		public bool DavisReadReceptionStats { get; set; }
+		public int PrimaryAqSensor { get; set; }
+}
+
 	public class GraphOptions
 	{
 		public bool TempVisible { get; set; }
@@ -8893,6 +8896,7 @@ namespace CumulusMX
 		public bool SendSoilMoisture4;
 		public bool SendLeafWetness1;
 		public bool SendLeafWetness2;
+		public bool SendAirQuality;
 	}
 
 	public class WebUploadWindy : WebUploadService
@@ -8909,6 +8913,7 @@ namespace CumulusMX
 		public bool SendSoilTemp;
 		public bool SendSoilMoisture;
 		public bool SendLeafWetness;
+		public bool SendAirQuality;
 	}
 
 	public class WebUploadAprs : WebUploadService

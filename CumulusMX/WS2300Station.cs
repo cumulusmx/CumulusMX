@@ -140,7 +140,7 @@ namespace CumulusMX
 
 				DateTime recordtime;// = ws2300TimestampToDateTime(ts);
 
-				if (cumulus.WS2300IgnoreStationClock)
+				if (cumulus.StationOptions.WS2300IgnoreStationClock)
 				{
 					// assume latest archive record is 'now'
 					recordtime = DateTime.Now;
@@ -318,7 +318,7 @@ namespace CumulusMX
 				prevraintotal = historydata.rainTotal;
 
 				// Dewpoint ====================================================================
-				if (cumulus.CalculatedDP)
+				if (cumulus.StationOptions.CalculatedDP)
 				{
 					double tempC = ConvertUserTempToC(OutdoorTemperature);
 					DoOutdoorDewpoint(ConvertTempCToUser(MeteoLib.DewPoint(tempC, OutdoorHumidity)), timestamp);
@@ -333,7 +333,7 @@ namespace CumulusMX
 				}
 
 				// Windchill ==================================================================
-				if (cumulus.CalculatedWC)
+				if (cumulus.StationOptions.CalculatedWC)
 				{
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
 					{
@@ -383,7 +383,7 @@ namespace CumulusMX
 				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
 
 				cumulus.DoLogFile(timestamp, false);
-				if (cumulus.LogExtraSensors)
+				if (cumulus.StationOptions.LogExtraSensors)
 				{
 					cumulus.DoExtraLogFile(timestamp);
 				}
@@ -708,7 +708,7 @@ namespace CumulusMX
 				}
 
 				// wind chill
-				if (cumulus.CalculatedWC)
+				if (cumulus.StationOptions.CalculatedWC)
 				{
 					DoWindChill(OutdoorTemperature, now);
 				}

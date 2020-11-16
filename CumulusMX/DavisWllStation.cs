@@ -642,7 +642,7 @@ namespace CumulusMX
 
 									DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point), dateTime);
 
-									if (!cumulus.CalculatedWC)
+									if (!cumulus.StationOptions.CalculatedWC)
 									{
 										// use wind chill from WLL
 										DoWindChill(ConvertTempFToUser(data1.wind_chill), dateTime);
@@ -1091,7 +1091,7 @@ namespace CumulusMX
 				}
 
 				// Now we have the primary data, calculate the derived data
-				if (cumulus.CalculatedWC)
+				if (cumulus.StationOptions.CalculatedWC)
 				{
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
 					{
@@ -1280,7 +1280,7 @@ namespace CumulusMX
 			cumulus.CurrentActivity = "Normal running";
 
 			// restore settings
-			cumulus.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
+			cumulus.StationOptions.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
 			CalcRecentMaxGust = savedCalculatePeakGust;
 
 			StartLoop();
@@ -1315,8 +1315,8 @@ namespace CumulusMX
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
-				savedUseSpeedForAvgCalc = cumulus.UseSpeedForAvgCalc;
-				cumulus.UseSpeedForAvgCalc = true;
+				savedUseSpeedForAvgCalc = cumulus.StationOptions.UseSpeedForAvgCalc;
+				cumulus.StationOptions.UseSpeedForAvgCalc = true;
 
 				// same for gust values
 				savedCalculatePeakGust = CalcRecentMaxGust;
@@ -1591,7 +1591,7 @@ namespace CumulusMX
 
 					var h = timestamp.Hour;
 
-					if (cumulus.LogExtraSensors)
+					if (cumulus.StationOptions.LogExtraSensors)
 					{
 						cumulus.DoExtraLogFile(timestamp);
 					}
@@ -1602,7 +1602,7 @@ namespace CumulusMX
 					}
 
 					// Now we have the primary data, calculate the derived data
-					if (cumulus.CalculatedWC)
+					if (cumulus.StationOptions.CalculatedWC)
 					{
 						// DoWindChill does all the required checks and conversions
 						DoWindChill(OutdoorTemperature, timestamp);
@@ -1776,7 +1776,7 @@ namespace CumulusMX
 								cumulus.LogMessage($"WL.com historic: Error processing dew point value on TxId {data11.tx_id}. Error: {ex.Message}");
 							}
 
-							if (!cumulus.CalculatedWC)
+							if (!cumulus.StationOptions.CalculatedWC)
 							{
 								// use wind chill from WLL - otherwise we calculate it at the end of processing the historic record when we have all the data
 								try

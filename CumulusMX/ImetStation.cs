@@ -52,7 +52,7 @@ namespace CumulusMX
 			if (comport.IsOpen)
 			{
 				ImetSetLoggerInterval(cumulus.logints[cumulus.DataLogInterval]);
-				if (cumulus.SyncTime)
+				if (cumulus.StationOptions.SyncTime)
 				{
 					SetStationClock();
 				}
@@ -706,7 +706,7 @@ namespace CumulusMX
 							{
 								double temp2 = Convert.ToDouble(sl[TEMP2AVGPOS], provider);
 								// supply in CELSIUS
-								if (cumulus.LogExtraSensors)
+								if (cumulus.StationOptions.LogExtraSensors)
 								{
 									DoExtraTemp(temp2, 1);
 								}
@@ -871,7 +871,7 @@ namespace CumulusMX
 			{
 				previousminute = min;
 
-				if (cumulus.SyncTime && (h == cumulus.ClockSettingHour) && (min == 0))
+				if (cumulus.StationOptions.SyncTime && (h == cumulus.ClockSettingHour) && (min == 0))
 				{
 					// It's 0400, set the station clock
 					SetStationClock();
@@ -902,7 +902,7 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(sl[TEMP2POS]))
 				{
 					double temp2 = Convert.ToDouble(sl[TEMP2POS], provider);
-					if (cumulus.LogExtraSensors)
+					if (cumulus.StationOptions.LogExtraSensors)
 					{
 						// use second temp as Extra Temp 1
 						DoExtraTemp(ConvertTempCToUser(temp2), 1);

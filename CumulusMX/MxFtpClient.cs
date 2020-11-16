@@ -10,9 +10,11 @@ namespace CumulusMX
 	public class MxFtpClient
 	{
 		public bool Connected;
+		public bool Reconnecting;
 
 		private readonly Cumulus cumulus;
 		private readonly FtpClient ftpClient;
+		private readonly bool persistent;
 
 		private static readonly CustomTraceListener FtpTraceListener = new CustomTraceListener("ftplog.txt", "ftplog");
 
@@ -20,9 +22,10 @@ namespace CumulusMX
 		/// Creates the FTP client
 		/// </summary>
 		/// <param name="cumulus">The parent object, required for all sorts of config "stuff"</param>
-		public MxFtpClient(Cumulus cumulus)
+		public MxFtpClient(Cumulus cumulus, bool persist)
 		{
 			this.cumulus = cumulus;
+			persistent = persist;
 
 			ftpClient = new FtpClient()
 			{
@@ -67,7 +70,11 @@ namespace CumulusMX
 			}
 		}
 
-		public async void Connect(int cycle)
+		/// <summary>
+		/// Connects to the FTP server
+		/// </summary>
+		/// <param name="cycle">Optional realtime upload cycle number for logging</param>
+		public async void Connect(int cycle = -1)
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
@@ -75,12 +82,13 @@ namespace CumulusMX
 			try
 			{
 				await ftpClient.ConnectAsync();
+				Connected = true;
+				cumulus.LogFtpDebugMessage($"FTP[{cycleStr}]: Connected OK");
 			}
 			catch (FtpAuthenticationException e)
 			{
 				cumulus.LogFtpMessage($"FTP[{cycleStr}]: Authenication error - {e}");
 				Connected = false;
-				return;
 			}
 			catch (FtpSecurityNotAvailableException e)
 			{
@@ -94,7 +102,6 @@ namespace CumulusMX
 				}
 
 				Connected = false;
-				return;
 			}
 			catch (Exception e)
 			{
@@ -105,13 +112,22 @@ namespace CumulusMX
 				}
 
 				Connected = false;
-				return;
 			}
-			Connected = true;
-			cumulus.LogFtpDebugMessage($"FTP[{cycleStr}]: Connected OK");
+
+			// Are we a persistent connection?
+			// And the connect failed, and we are not already attempting to reconnect, then we need to fall back into reconnect mode
+			if (persistent && !Connected && !Reconnecting)
+			{
+				Reconnecting = true;
+				// TODO: Add the reconnecting code!
+			}
 		}
 
-		public void Disconnect(int cycle)
+		/// <summary>
+		/// Disconnects from the FTP server
+		/// </summary>
+		/// <param name="cycle">Optional realtime upload cycle number for logging</param>
+		public void Disconnect(int cycle = -1)
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
@@ -120,6 +136,10 @@ namespace CumulusMX
 			cumulus.LogFtpDebugMessage($"FTP[{cycleStr}]: Disconnected OK");
 		}
 
+		/// <summary>
+		/// Attempts to reconnect to the FTP server
+		/// </summary>
+		/// <returns>Connection status, true = connected, false = failed</returns>
 		public bool Reconnect()
 		{
 			cumulus.LogFtpDebugMessage("FTP: Reconnecting...");
@@ -177,7 +197,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="localFile">Source filename</param>
 		/// <param name="remoteFile">Destination filename</param>
-		/// <param name="cycle">Realtime upload cycle number for logging</param>
+		/// <param name="cycle">Optional realtime upload cycle number for logging</param>
 		/// <returns>True on success, False on failure</returns>
 		public bool UploadFile(string localFile, string remoteFile, int cycle = -1)
 		{
@@ -188,7 +208,7 @@ namespace CumulusMX
 			cumulus.LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localFile} to {remoteFile}");
 
 			// Do we have an FTP connection?
-			if (!Connected || !IsConnected || !ftpClient.IsConnected)
+			if (!Connected || !IsConnected)
 			{
 				cumulus.LogFtpDebugMessage($"FTP[{cycleStr}]: Error, FTP client is not connected, aborting upload");
 				return false;
@@ -244,6 +264,10 @@ namespace CumulusMX
 			return success;
 		}
 
+		/// <summary>
+		/// Tests if the server connection is still alive
+		/// </summary>
+		/// <returns>True = alive, False = dead</returns>
 		public bool TestConnection()
 		{
 			try
@@ -265,6 +289,10 @@ namespace CumulusMX
 
 		public bool IsConnected => ftpClient?.IsConnected ?? false;
 
+		/// <summary>
+		/// Enables or disables FTP logging
+		/// </summary>
+		/// <param name="isSet">Enable or disable logging</param>
 		public void SetFtpLogging(bool isSet)
 		{
 			try

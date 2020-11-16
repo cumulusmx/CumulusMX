@@ -517,7 +517,7 @@ namespace CumulusMX
 				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
 
 				cumulus.DoLogFile(timestamp,false);
-				if (cumulus.LogExtraSensors)
+				if (cumulus.StationOptions.LogExtraSensors)
 				{
 					cumulus.DoExtraLogFile(timestamp);
 				}
@@ -649,7 +649,7 @@ namespace CumulusMX
 
 			var data = new byte[32];
 
-			if (cumulus.SyncFOReads && !synchronising)
+			if (cumulus.StationOptions.SyncFOReads && !synchronising)
 			{
 				if ((DateTime.Now - FOSensorClockTime).TotalDays > 1)
 				{
@@ -684,18 +684,12 @@ namespace CumulusMX
 
 			// get the block of memory containing the current data location
 
-			if (cumulus.DataLogging)
-			{
-				cumulus.LogMessage("Reading first block");
-			}
+			cumulus.LogDataMessage("Reading first block");
 			ReadAddress(0, data);
 
 			int addr = (data[31]*256) + data[30];
 
-			if (cumulus.DataLogging)
-			{
-				cumulus.LogMessage("First block read, addr = " + addr.ToString("X8"));
-			}
+			cumulus.LogDataMessage("First block read, addr = " + addr.ToString("X8"));
 
 			if (addr != prevaddr)
 			{
@@ -711,17 +705,11 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (cumulus.DataLogging)
-				{
-					cumulus.LogMessage("Reading data, addr = " + addr.ToString("X8"));
-				}
+				cumulus.LogDataMessage("Reading data, addr = " + addr.ToString("X8"));
 
 				ReadAddress(addr, data);
 
-				if (cumulus.DataLogging)
-				{
-					cumulus.LogMessage("Data read - " + BitConverter.ToString(data));
-				}
+				cumulus.LogDataMessage("Data read - " + BitConverter.ToString(data));
 
 				DateTime now = DateTime.Now;
 
@@ -771,10 +759,7 @@ namespace CumulusMX
 						LatestFOReading = LatestFOReading + " " + data[i].ToString("X2");
 					}
 
-					if (cumulus.DataLogging)
-					{
-						cumulus.LogMessage(LatestFOReading);
-					}
+					cumulus.LogDataMessage(LatestFOReading);
 
 					// Indoor Humidity ====================================================
 					int inhum = data[1];

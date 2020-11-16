@@ -162,7 +162,7 @@ namespace CumulusMX
 
                     DoForecast(string.Empty, false);
 
-                    if (cumulus.LogExtraSensors)
+                    if (cumulus.StationOptions.LogExtraSensors)
                     {
                         var lightReading = GetConvertedValue(st[EW_LIGHT]);
 

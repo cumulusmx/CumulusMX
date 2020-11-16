@@ -142,6 +142,7 @@ namespace CumulusMX
 					cumulus.Wund.SendIndoor = settings.wunderground.includeindoor;
 					cumulus.Wund.SendSolar = settings.wunderground.includesolar;
 					cumulus.Wund.SendUV = settings.wunderground.includeuv;
+					cumulus.Wund.SendAirQuality = settings.wunderground.includeaq;
 					cumulus.Wund.Interval = settings.wunderground.interval;
 					cumulus.Wund.PW = settings.wunderground.password ?? string.Empty;
 					cumulus.Wund.RapidFireEnabled = settings.wunderground.rapidfire;
@@ -197,6 +198,7 @@ namespace CumulusMX
 					cumulus.AWEKAS.SendSoilMoisture = settings.awekas.includesoilmoisture;
 					cumulus.AWEKAS.SendLeafWetness = settings.awekas.includeleafwetness;
 					cumulus.AWEKAS.SendIndoor = settings.awekas.includeindoor;
+					cumulus.AWEKAS.SendAirQuality = settings.awekas.includeaq;
 					cumulus.AWEKAS.SynchronisedUpdate = (cumulus.AWEKAS.Interval % 60 == 0);
 
 					cumulus.AwekasTimer.Interval = cumulus.AWEKAS.Interval * 1000;
@@ -498,7 +500,8 @@ namespace CumulusMX
 				password = cumulus.Wund.PW,
 				rapidfire = cumulus.Wund.RapidFireEnabled,
 				sendavgwind = cumulus.Wund.SendAverage,
-				stationid = cumulus.Wund.ID
+				stationid = cumulus.Wund.ID,
+				includeaq = cumulus.Wund.SendAirQuality
 			};
 
 			var windysettings = new JsonInternetSettingsWindy()
@@ -520,6 +523,7 @@ namespace CumulusMX
 				includeleafwetness = cumulus.AWEKAS.SendLeafWetness,
 				includeindoor = cumulus.AWEKAS.SendIndoor,
 				includeuv = cumulus.AWEKAS.SendUV,
+				includeaq =  cumulus.AWEKAS.SendAirQuality,
 				interval = cumulus.AWEKAS.Interval,
 				lang = cumulus.AWEKAS.Lang,
 				password = cumulus.AWEKAS.PW,
@@ -848,6 +852,7 @@ namespace CumulusMX
 		public bool includeindoor { get; set; }
 		public bool includeuv { get; set; }
 		public bool includesolar { get; set; }
+		public bool includeaq { get; set; }
 		public bool rapidfire { get; set; }
 		public bool sendavgwind { get; set; }
 		public bool catchup { get; set; }
@@ -876,6 +881,7 @@ namespace CumulusMX
 		public bool includesoilmoisture { get; set; }
 		public bool includeleafwetness { get; set; }
 		public bool includeindoor { get; set; }
+		public bool includeaq { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
 		public string lang { get; set; }

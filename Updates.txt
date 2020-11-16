@@ -6,14 +6,30 @@
 - Fix: Canada AQHI - still based on PM2.5 3 hour values only
 
 - Adds Notifications to Alarms
-- Lots of internal code fettling
-- Admin interface tweaks
+- The default value for "DavisIncrementPressureDP" is changed from true to false
+  ** The effect of this is that for Davis VP/VP2 stations, the default number of decimal places used for pressure values changes
+     from 2 dp (hPa/mb) and 3 dp (kPa, inHg) to 1 dp (hPa/mb) and 2 dp (kPa, inHg)
+  ** If you wish to retain the previous behaviour, then you MUST add the setting "DavisIncrementPressureDP=1" to your Cumulus.ini file
 - Wind Rose is now populated from data files at start-up (24 hours)
 - New graphs option to show/hide sunshine hours data
 - New admin interface historic graphs (and associated API)
-- New default web page to show historic graphs
-
-
+- New default web site page to show historic graphs
+- Adds Air Quality to Recent Graphs in Admin Interface and default web site - configure a primary AQ sensor in Station.Options
+- Adds Air Quality upload to WeatherUnderground. Enable in WeatherUnderGround settings, and configure a primary AQ sensor in Station.Options
+- Adds Air Quality upload to AWEKAS. Enable in AWEKAS settings, and configure a primary AQ sensor in Station.Options
+- Adds ability to define the number of decimal places used for various weather units via read-only settings in Cumulus.ini.
+  The full list of existing and new values for the [Station] section is:
+	WindSpeedDecimals=1         // Existing entry
+	WindSpeedAvgDecimals=1      // Existing entry
+	WindRunDecimals=1           // NEW
+	SunshineHrsDecimals=1       // Existing entry
+	PressDecimals=              // NEW [hPa/mb=1, inHg=2]
+	RainDecimals=               // NEW [mm=1, in=2]
+	TempDecimals=1              // NEW
+	UVDecimals=1                // NEW
+	AirQualityDecimals=1        // NEW - affects AQI values only, not PM values
+- Lots of internal code fettling
+- Admin interface tweaks
 
 
 3.9.1 - b3096

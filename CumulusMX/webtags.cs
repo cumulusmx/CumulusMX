@@ -246,12 +246,10 @@ namespace CumulusMX
 			if (File.Exists(fileName))
 			{
 				res = ReadFileIntoString(fileName);
-				//MainUnit.Units.MainUnit.MainForm.CurrConditions.Text = Res;
 			}
 			else
 			{
-				// TODO
-				res = String.Empty; // MainUnit.Units.MainUnit.MainForm.CurrConditions.Text;
+				res = string.Empty;
 			}
 			return res;
 		}
@@ -631,12 +629,12 @@ namespace CumulusMX
 
 		private string Tagtemprange(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.TempRangeToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.TempRange.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagtemprangeY(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.TempRangeYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.TempRange.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string Tagavgtemp(Dictionary<string,string> tagParams)
@@ -1554,307 +1552,307 @@ namespace CumulusMX
 
 		private string TagtempTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighTempToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTtempTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighTempTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagtempTl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowTempToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.LowTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTtempTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowTempTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagSolarTh(Dictionary<string,string> tagParams)
 		{
-			return ((int)station.HighSolarToday).ToString();
+			return ((int)station.HiLoToday.HighSolar).ToString();
 		}
 
 		private string TagTsolarTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighSolarTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighSolarTime, "HH:mm", tagParams);
 		}
 
 		private string TagUvth(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighUVToday.ToString(cumulus.UVFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighUv.ToString(cumulus.UVFormat), tagParams);
 		}
 
 		private string TagTuvth(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighUvTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighUvTime, "HH:mm", tagParams);
 		}
 
 		private string TagapptempTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighAppTempToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighAppTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCapptempTh(Dictionary<string,string> tagParams)
 		{
-			return ReplaceCommas(station.HighAppTempToday.ToString(cumulus.TempFormat));
+			return ReplaceCommas(station.HiLoToday.HighAppTemp.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTapptempTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighAppTempTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighAppTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagapptempTl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowAppTempToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.LowAppTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCapptempTl(Dictionary<string,string> tagParams)
 		{
-			return ReplaceCommas(station.LowAppTempToday.ToString(cumulus.TempFormat));
+			return ReplaceCommas(station.HiLoToday.LowAppTemp.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTapptempTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowAppTempTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowAppTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagfeelslikeTh(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.HighFeelsLikeToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighFeelsLike.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTfeelslikeTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighFeelsLikeTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighFeelsLikeTime, "HH:mm", tagParams);
 		}
 
 		private string TagfeelslikeTl(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.LowFeelsLikeToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTfeelslikeTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowFeelsLikeTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowFeelsLikeTime, "HH:mm", tagParams);
 		}
 
 		private string TaghumidexTh(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.HighHumidexToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighHumidex.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagThumidexTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHumidexTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHumidexTime, "HH:mm", tagParams);
 		}
 
 		private string TagdewpointTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighDewpointToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighDewpoint.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCdewpointTh(Dictionary<string,string> tagParams)
 		{
-		   return ReplaceCommas(station.HighDewpointToday.ToString(cumulus.TempFormat));
+		   return ReplaceCommas(station.HiLoToday.HighDewpoint.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTdewpointTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighDewpointTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighDewpointTime, "HH:mm", tagParams);
 		}
 
 		private string TagdewpointTl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowDewpointToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.LowDewpoint.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCdewpointTl(Dictionary<string,string> tagParams)
 		{
-			return ReplaceCommas(station.LowDewpointToday.ToString(cumulus.TempFormat));
+			return ReplaceCommas(station.HiLoToday.LowDewpoint.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTdewpointTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowDewpointTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowDewpointTime, "HH:mm", tagParams);
 		}
 
 		private string TagwchillTl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowWindChillToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.LowWindChill.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCwchillTl(Dictionary<string,string> tagParams)
 		{
-			return ReplaceCommas(station.LowWindChillToday.ToString(cumulus.TempFormat));
+			return ReplaceCommas(station.HiLoToday.LowWindChill.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTwchillTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowWindChillTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowWindChillTime, "HH:mm", tagParams);
 		}
 
 		private string TagheatindexTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighHeatIndexToday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCheatindexTh(Dictionary<string,string> tagParams)
 		{
-			return ReplaceCommas(station.HighHeatIndexToday.ToString(cumulus.TempFormat));
+			return ReplaceCommas(station.HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTheatindexTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHeatIndexTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHeatIndexTime, "HH:mm", tagParams);
 		}
 
 		private string TagheatindexYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighHeatIndexYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighHeatIndex.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTheatindexYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHeatIndexYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHeatIndexTime, "HH:mm", tagParams);
 		}
 
 		private string TagpressTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighPressToday.ToString(cumulus.PressFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighPress.ToString(cumulus.PressFormat), tagParams);
 		}
 
 		private string TagTpressTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighPressTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighPressTime, "HH:mm", tagParams);
 		}
 
 		private string TagpressTl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowPressToday.ToString(cumulus.PressFormat), tagParams);
+			return CheckRc(station.HiLoToday.LowPress.ToString(cumulus.PressFormat), tagParams);
 		}
 
 		private string TagTpressTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowPressTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowPressTime, "HH:mm", tagParams);
 		}
 
 		private string TaghumTh(Dictionary<string,string> tagParams)
 		{
-			return station.HighHumidityToday.ToString();
+			return station.HiLoToday.HighHumidity.ToString();
 		}
 
 		private string TagThumTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHumidityTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHumidityTime, "HH:mm", tagParams);
 		}
 
 		private string TaghumTl(Dictionary<string,string> tagParams)
 		{
-			return station.LowHumidityToday.ToString();
+			return station.HiLoToday.LowHumidity.ToString();
 		}
 
 		private string TagThumTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowHumidityTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowHumidityTime, "HH:mm", tagParams);
 		}
 
 		private string TagwindTm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighWindToday.ToString(cumulus.WindAvgFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighWind.ToString(cumulus.WindAvgFormat), tagParams);
 		}
 
 		private string TagTbeaufort(Dictionary<string,string> tagParams)
 		{
-			return "F" + cumulus.Beaufort(station.HighWindToday);
+			return "F" + cumulus.Beaufort(station.HiLoToday.HighWind);
 		}
 
 		private string TagTbeaufortnumber(Dictionary<string,string> tagParams)
 		{
-			return cumulus.Beaufort(station.HighWindToday);
+			return cumulus.Beaufort(station.HiLoToday.HighWind);
 		}
 
 		private string TagTbeaudesc(Dictionary<string,string> tagParams)
 		{
-			return cumulus.BeaufortDesc(station.HighWindToday);
+			return cumulus.BeaufortDesc(station.HiLoToday.HighWind);
 		}
 
 		private string TagTwindTm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighWindTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighWindTime, "HH:mm", tagParams);
 		}
 
 		private string TagwgustTm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighGustToday.ToString(cumulus.WindFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighGust.ToString(cumulus.WindFormat), tagParams);
 		}
 
 		private string TagTwgustTm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighGustTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighGustTime, "HH:mm", tagParams);
 		}
 
 		private string TagbearingTm(Dictionary<string,string> tagParams)
 		{
-			return station.HighGustBearing.ToString();
+			return station.HiLoToday.HighGustBearing.ToString();
 		}
 
 		private string TagdirectionTm(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(station.HighGustBearing);
+			return station.CompassPoint(station.HiLoToday.HighGustBearing);
 		}
 
 		private string TagrrateTm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighRainToday.ToString(cumulus.RainFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighRain.ToString(cumulus.RainFormat), tagParams);
 		}
 
 		private string TagTrrateTm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighRainTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighRainTime, "HH:mm", tagParams);
 		}
 
 		private string TaghourlyrainTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighHourlyRainToday.ToString(cumulus.RainFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat), tagParams);
 		}
 
 		private string TagThourlyrainTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHourlyRainTodayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHourlyRainTime, "HH:mm", tagParams);
 		}
 
 		private string TaghourlyrainYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighHourlyRainYesterday.ToString(cumulus.RainFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighHourlyRain.ToString(cumulus.RainFormat), tagParams);
 		}
 
 		private string TagThourlyrainYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHourlyRainYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHourlyRainTime, "HH:mm", tagParams);
 		}
 
 		private string TagSolarYh(Dictionary<string,string> tagParams)
 		{
-			return station.HighSolarYesterday.ToString("F0");
+			return station.HiLoYest.HighSolar.ToString("F0");
 		}
 
 		private string TagTsolarYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighSolarYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighSolarTime, "HH:mm", tagParams);
 		}
 
 		private string TagUvyh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighUVYesterday.ToString(cumulus.UVFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighUv.ToString(cumulus.UVFormat), tagParams);
 		}
 
 		private string TagTuvyh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighUvYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighUvTime, "HH:mm", tagParams);
 		}
 
 		private string Tagrollovertime(Dictionary<string,string> tagParams)
@@ -1894,197 +1892,197 @@ namespace CumulusMX
 
 		private string TagtempYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighTempYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTtempYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighTempYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagtempYl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowTempYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.LowTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTtempYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowTempYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagapptempYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighAppTempYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighAppTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTapptempYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighAppTempYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighAppTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagapptempYl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowAppTempYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.LowAppTemp.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTapptempYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowAppTempYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowAppTempTime, "HH:mm", tagParams);
 		}
 
 		private string TagdewpointYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighDewpointYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighDewpoint.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagfeelslikeYh(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.HighFeelsLikeYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighFeelsLike.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTfeelslikeYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighFeelsLikeYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighFeelsLikeTime, "HH:mm", tagParams);
 		}
 
 		private string TagfeelslikeYl(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.LowFeelsLikeYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.LowFeelsLike.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTfeelslikeYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowFeelsLikeYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowFeelsLikeTime, "HH:mm", tagParams);
 		}
 
 		private string TaghumidexYh(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.HighHumidexYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighHumidex.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagThumidexYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHumidexYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHumidexTime, "HH:mm", tagParams);
 		}
 
 		private string TagTdewpointYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighDewpointYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighDewpointTime, "HH:mm", tagParams);
 		}
 
 		private string TagdewpointYl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowDewpointYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.LowDewpoint.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTdewpointYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowDewpointYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowDewpointTime, "HH:mm", tagParams);
 		}
 
 		private string TagwchillYl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowWindChillYesterday.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.LowWindChill.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagTwchillYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowWindChillYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowWindChillTime, "HH:mm", tagParams);
 		}
 
 		private string TagpressYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighPressYesterday.ToString(cumulus.PressFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighPress.ToString(cumulus.PressFormat), tagParams);
 		}
 
 		private string TagTpressYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighPressYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighPressTime, "HH:mm", tagParams);
 		}
 
 		private string TagpressYl(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.LowPressYesterday.ToString(cumulus.PressFormat), tagParams);
+			return CheckRc(station.HiLoYest.LowPress.ToString(cumulus.PressFormat), tagParams);
 		}
 
 		private string TagTpressYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowPressYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowPressTime, "HH:mm", tagParams);
 		}
 
 		private string TaghumYh(Dictionary<string,string> tagParams)
 		{
-			return station.HighHumidityYesterday.ToString();
+			return station.HiLoYest.HighHumidity.ToString();
 		}
 
 		private string TagThumYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighHumidityYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHumidityTime, "HH:mm", tagParams);
 		}
 
 		private string TaghumYl(Dictionary<string,string> tagParams)
 		{
-			return station.LowHumidityYesterday.ToString();
+			return station.HiLoYest.LowHumidity.ToString();
 		}
 
 		private string TagThumYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.LowHumidityYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowHumidityTime, "HH:mm", tagParams);
 		}
 
 		private string TagwindYm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighWindYesterday.ToString(cumulus.WindAvgFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighWind.ToString(cumulus.WindAvgFormat), tagParams);
 		}
 
 		private string TagYbeaufort(Dictionary<string,string> tagParams)
 		{
-			return "F" + station.Beaufort(station.HighWindYesterday);
+			return "F" + station.Beaufort(station.HiLoYest.HighWind);
 		}
 
 		private string TagYbeaufortnumber(Dictionary<string,string> tagParams)
 		{
-			return station.Beaufort(station.HighWindYesterday).ToString();
+			return station.Beaufort(station.HiLoYest.HighWind).ToString();
 		}
 
 		private string TagYbeaudesc(Dictionary<string,string> tagParams)
 		{
-			return cumulus.BeaufortDesc(station.HighWindYesterday);
+			return cumulus.BeaufortDesc(station.HiLoYest.HighWind);
 		}
 
 		private string TagTwindYm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighWindYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighWindTime, "HH:mm", tagParams);
 		}
 
 		private string TagwgustYm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighGustYesterday.ToString(cumulus.WindFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighGust.ToString(cumulus.WindFormat), tagParams);
 		}
 
 		private string TagTwgustYm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighGustYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighGustTime, "HH:mm", tagParams);
 		}
 
 		private string TagbearingYm(Dictionary<string,string> tagParams)
 		{
-			return station.HighGustBearingYesterday.ToString();
+			return station.HiLoYest.HighGustBearing.ToString();
 		}
 
 		private string TagdirectionYm(Dictionary<string, string> tagParams)
 		{
-			return  station.CompassPoint(station.HighGustBearingYesterday);
+			return  station.CompassPoint(station.HiLoYest.HighGustBearing);
 		}
 
 		private string TagrrateYm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HighRainYesterday.ToString(cumulus.RainFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighRain.ToString(cumulus.RainFormat), tagParams);
 		}
 
 		private string TagTrrateYm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HighRainYesterdayTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighRainTime, "HH:mm", tagParams);
 		}
 
 		private string TagrfallY(Dictionary<string,string> tagParams)

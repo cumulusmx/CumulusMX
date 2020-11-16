@@ -220,13 +220,13 @@ namespace CumulusMX
 			cumulus.AirQualityUnitText = "µg/m³";
 			cumulus.SoilMoistureUnitText = "%";
 			// GW1000 does not provide average wind speeds
-			cumulus.UseWind10MinAve = true;
-			cumulus.UseSpeedForAvgCalc = false;
+			cumulus.StationOptions.UseWind10MinAve = true;
+			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
 			tmrDataWatchdog = new System.Timers.Timer();
 
 			// GW1000 does not send DP, so force MX to calculate it
-			cumulus.CalculatedDP = true;
+			cumulus.StationOptions.CalculatedDP = true;
 
 			ipaddr = cumulus.Gw1000IpAddress;
 

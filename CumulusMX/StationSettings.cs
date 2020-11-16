@@ -27,23 +27,24 @@ namespace CumulusMX
 			// Build the settings data, convert to JSON, and return it
 			var options = new JsonStationSettingsOptions()
 						  {
-							  usezerobearing = cumulus.UseZeroBearing,
-							  calcwindaverage = cumulus.UseWind10MinAve,
-							  usespeedforavg = cumulus.UseSpeedForAvgCalc,
-							  use100for98hum = cumulus.Humidity98Fix,
-							  calculatedewpoint = cumulus.CalculatedDP,
-							  calculatewindchill = cumulus.CalculatedWC,
-							  syncstationclock = cumulus.SyncTime,
-							  cumuluspresstrendnames = cumulus.UseCumulusPresstrendstr,
-							  vp1minbarupdate = cumulus.ForceVPBarUpdate,
-							  extrasensors = cumulus.LogExtraSensors,
-							  ignorelacrosseclock = cumulus.WS2300IgnoreStationClock,
-							  roundwindspeeds = cumulus.RoundWindSpeed,
-							  synchroniseforeads = cumulus.SyncFOReads,
-							  debuglogging = cumulus.logging,
-							  datalogging = cumulus.DataLogging,
-							  stopsecondinstance = cumulus.WarnMultiple,
-							  readreceptionstats = cumulus.DavisReadReceptionStats
+							  usezerobearing = cumulus.StationOptions.UseZeroBearing,
+							  calcwindaverage = cumulus.StationOptions.UseWind10MinAve,
+							  usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
+							  use100for98hum = cumulus.StationOptions.Humidity98Fix,
+							  calculatedewpoint = cumulus.StationOptions.CalculatedDP,
+							  calculatewindchill = cumulus.StationOptions.CalculatedWC,
+							  syncstationclock = cumulus.StationOptions.SyncTime,
+							  cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
+							  vp1minbarupdate = cumulus.StationOptions.ForceVPBarUpdate,
+							  extrasensors = cumulus.StationOptions.LogExtraSensors,
+							  ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
+							  roundwindspeeds = cumulus.StationOptions.RoundWindSpeed,
+							  synchroniseforeads = cumulus.StationOptions.SyncFOReads,
+							  debuglogging = cumulus.StationOptions.DebugLogging,
+							  datalogging = cumulus.StationOptions.DataLogging,
+							  stopsecondinstance = cumulus.StationOptions.WarnMultiple,
+							  readreceptionstats = cumulus.StationOptions.DavisReadReceptionStats,
+							  primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor
 						  };
 
 			var units = new JsonStationSettingsUnits()
@@ -442,23 +443,24 @@ namespace CumulusMX
 				// Options
 				try
 				{
-					cumulus.UseZeroBearing = settings.Options.usezerobearing;
-					cumulus.UseWind10MinAve = settings.Options.calcwindaverage;
-					cumulus.UseSpeedForAvgCalc = settings.Options.usespeedforavg;
-					cumulus.Humidity98Fix = settings.Options.use100for98hum;
-					cumulus.CalculatedDP = settings.Options.calculatedewpoint;
-					cumulus.CalculatedWC = settings.Options.calculatewindchill;
-					cumulus.SyncTime = settings.Options.syncstationclock;
-					cumulus.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
-					cumulus.ForceVPBarUpdate = settings.Options.vp1minbarupdate;
-					cumulus.LogExtraSensors = settings.Options.extrasensors;
-					cumulus.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
-					cumulus.RoundWindSpeed = settings.Options.roundwindspeeds;
-					cumulus.SyncFOReads = settings.Options.synchroniseforeads;
-					cumulus.logging = settings.Options.debuglogging;
-					cumulus.DataLogging = settings.Options.datalogging;
-					cumulus.WarnMultiple = settings.Options.stopsecondinstance;
-					cumulus.DavisReadReceptionStats = settings.Options.readreceptionstats;
+					cumulus.StationOptions.UseZeroBearing = settings.Options.usezerobearing;
+					cumulus.StationOptions.UseWind10MinAve = settings.Options.calcwindaverage;
+					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.usespeedforavg;
+					cumulus.StationOptions.Humidity98Fix = settings.Options.use100for98hum;
+					cumulus.StationOptions.CalculatedDP = settings.Options.calculatedewpoint;
+					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
+					cumulus.StationOptions.SyncTime = settings.Options.syncstationclock;
+					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
+					cumulus.StationOptions.ForceVPBarUpdate = settings.Options.vp1minbarupdate;
+					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
+					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
+					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
+					cumulus.StationOptions.SyncFOReads = settings.Options.synchroniseforeads;
+					cumulus.StationOptions.DebugLogging = settings.Options.debuglogging;
+					cumulus.StationOptions.DataLogging = settings.Options.datalogging;
+					cumulus.StationOptions.WarnMultiple = settings.Options.stopsecondinstance;
+					cumulus.StationOptions.DavisReadReceptionStats = settings.Options.readreceptionstats;
+					cumulus.StationOptions.PrimaryAqSensor = settings.Options.primaryaqsensor;
 				}
 				catch (Exception ex)
 				{
@@ -738,6 +740,7 @@ namespace CumulusMX
 		public bool datalogging { get; set; }
 		public bool stopsecondinstance { get; set; }
 		public bool readreceptionstats { get; set; }
+		public int primaryaqsensor { get; set; }
 	}
 
 	public class JsonStationSettingsTCPsettings

@@ -593,10 +593,7 @@ namespace CumulusMX
 
 		private void SendReset()
 		{
-			if (cumulus.logging)
-			{
-				cumulus.LogMessage("Sending reset");
-			}
+			cumulus.LogDebugMessage("Sending reset");
 
 			byte[] reset;
 

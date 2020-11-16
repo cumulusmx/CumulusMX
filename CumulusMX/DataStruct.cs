@@ -410,7 +410,7 @@ namespace CumulusMX
 		[IgnoreDataMember]
 		public double HighWindToday { get; set; }
 
-		[DataMember(Name="HighWindToday")]
+		[DataMember(Name = "HighWindToday")]
 		public string HighWindTodayRounded
 		{
 			get => HighWindToday.ToString(cumulus.WindAvgFormat);
