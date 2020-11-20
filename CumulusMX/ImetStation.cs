@@ -24,6 +24,7 @@ namespace CumulusMX
 			cumulus.Manufacturer = cumulus.INSTROMET;
 			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetUpdateLogPointer);
 			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetWaitTime);
+			cumulus.LogMessage("ImetReadDelay=" + cumulus.ImetReadDelay);
 			cumulus.LogMessage("ImetBaudRate=" + cumulus.ImetBaudRate);
 			cumulus.LogMessage("Instromet: Attempting to open " + cumulus.ComportName);
 
@@ -65,14 +66,14 @@ namespace CumulusMX
 
 		private void ImetSetLoggerInterval(int interval)
 		{
-			cumulus.LogMessage("Setting logger interval to " + interval + " minutes");
+			cumulus.LogMessage($"Setting logger interval to {interval} minutes");
 
 			SendCommand("WRST,11," + interval * 60);
 			// read the response
 			string response = GetResponse("wrst");
 
 			string data = ExtractText(response, "wrst");
-			cumulus.LogMessage("Response: " + data);
+			cumulus.LogDataMessage("Response: " + data);
 			cumulus.ImetLoggerInterval = interval;
 		}
 
@@ -81,14 +82,14 @@ namespace CumulusMX
 			string datestr = DateTime.Now.ToString("yyyyMMdd");
 			string timestr = DateTime.Now.ToString("HHmmss");
 
-			cumulus.LogMessage("WRTM," + datestr + ',' + timestr);
+			cumulus.LogDataMessage($"WRTM,{datestr},{timestr}");
 
-			SendCommand("WRTM," + datestr + ',' + timestr);
+			SendCommand($"WRTM,{datestr},{timestr}");
 			// read the response
 			string response = GetResponse("wrtm");
 
 			string data = ExtractText(response, "wrtm");
-			cumulus.LogMessage("WRTM Response: " + data);
+			cumulus.LogDataMessage("WRTM Response: " + data);
 		}
 
 		/*
@@ -182,6 +183,7 @@ namespace CumulusMX
 
 		private void UpdateReadPointer()
 		{
+			cumulus.LogDebugMessage("Checking the read pointer");
 			// If required, update the logger read pointer to match the current write pointer
 			// It means the read pointer will always point to the last live record we read.
 			SendCommand("RDST,14");
@@ -272,7 +274,7 @@ namespace CumulusMX
 					response = comport.ReadTo(sLineBreak);
 					byte[] ba = Encoding.Default.GetBytes(response);
 
-					cumulus.LogDataMessage("Response from station: '" + response + "'");
+					cumulus.LogDataMessage($"Response from station: '{response}'");
 					//cumulus.LogDebugMessage("Hex: '" + BitConverter.ToString(ba) + "'");
 				} while (!(response.Contains(expected)) && attempts < 6);
 
@@ -335,9 +337,9 @@ namespace CumulusMX
 				string response = GetResponse("lgct");
 				// extract the bit we want from all the other crap (echo, newlines, prompt etc)
 				data = ExtractText(response, "lgct");
-				cumulus.LogMessage("Response from LGCT=" + data);
+				cumulus.LogDataMessage("Response from LGCT=" + data);
 				valid = ValidChecksum(data);
-				cumulus.LogMessage(valid ? "Checksum valid" : "!!! Checksum invalid !!!");
+				cumulus.LogDebugMessage(valid ? "Checksum valid" : "!!! Checksum invalid !!!");
 			} while (!valid && (attempts < 3));
 
 			if (valid)
@@ -836,7 +838,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						Thread.Sleep(500);
+						Thread.Sleep(cumulus.ImetReadDelay);
 					}
 				}
 			}

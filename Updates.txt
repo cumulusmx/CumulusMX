@@ -4,6 +4,8 @@
 - Fix: AirLink web tags no longer error if the sensor is not enabled - all now return "--"
 - Fix: Australia NEPM AQIs to allow values greater than 101
 - Fix: Canada AQHI - still based on PM2.5 3 hour values only
+- Fix: Dutch and Belgian AQI calculations
+- Fix: Default web site temperature Trends graph yAxis issue
 
 - Adds Notifications to Alarms
 - The default value for "DavisIncrementPressureDP" is changed from true to false

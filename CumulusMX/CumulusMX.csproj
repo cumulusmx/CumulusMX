@@ -193,7 +193,6 @@
     <Compile Include="MeteoLib.cs" />
     <Compile Include="MoonriseMoonset.cs" />
     <Compile Include="MqttPublisher.cs" />
-    <Compile Include="MxFtpClient.cs" />
     <Compile Include="MysqlSettings.cs" />
     <Compile Include="NOAA.cs" />
     <Compile Include="NOAAReports.cs" />

@@ -1121,7 +1121,7 @@ namespace CumulusMX
 				{
 					RealtimeFTP.EncryptionMode = DisableFtpsExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 					RealtimeFTP.DataConnectionEncryption = true;
-					RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
+					RealtimeFTP.ValidateAnyCertificate = true;
 					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
 					RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				}
@@ -3368,6 +3368,7 @@ namespace CumulusMX
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
 			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
+			ImetReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);
 			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
@@ -5065,6 +5066,8 @@ namespace CumulusMX
 
 		public int ImetWaitTime { get; set; }
 
+		public int ImetReadDelay { get; set; }
+
 		public bool ImetUpdateLogPointer { get; set; }
 
 		public bool DavisConsoleHighGust { get; set; }
@@ -6233,8 +6236,8 @@ namespace CumulusMX
 				data.YesterdayHigh = station.Yesterdayhighgust;
 				data.YesterdayHighDT = station.Yesterdayhighgustdt.ToLocalTime();
 
-				data.MonthHigh = station.HighGustThisMonth;
-				data.MonthHighDT = station.HighGustThisMonthTS.ToLocalTime();
+				data.MonthHigh = station.ThisMonthRecs.HighGust.Val;
+				data.MonthHighDT = station.ThisMonthRecs.HighGust.Ts.ToLocalTime();
 
 				data.YearHigh = station.Yearhighgust;
 				data.YearHighDT = station.Yearhighgustdt.ToLocalTime();
@@ -6630,11 +6633,6 @@ namespace CumulusMX
 			}
 		}
 
-		void Client_ValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
-		{
-			e.Accept = true; // Allow all
-		}
-
 		public void DoFTPLogin()
 		{
 			if (Sslftp == FtpProtocols.SFTP)
@@ -6865,7 +6863,7 @@ namespace CumulusMX
 						// Implicit = Old depreciated protcol - connects using TLS
 						conn.EncryptionMode = DisableFtpsExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 						conn.DataConnectionEncryption = true;
-						conn.ValidateCertificate += Client_ValidateCertificate;
+						conn.ValidateAnyCertificate = true;
 						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 						conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 					}
@@ -7997,7 +7995,7 @@ namespace CumulusMX
 			{
 				RealtimeFTP.EncryptionMode = DisableFtpsExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 				RealtimeFTP.DataConnectionEncryption = true;
-				RealtimeFTP.ValidateCertificate += Client_ValidateCertificate;
+				RealtimeFTP.ValidateAnyCertificate = true;
 				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
 				RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				LogDebugMessage($"FTP[{cycle}]: Using FTPS protocol");
