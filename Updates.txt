@@ -1,4 +1,19 @@
-3.9.2 - b3097
+beta2 fixes
+———————————
+- Fix: Dashboard add missing space
+	/interface/index.html
+- Fix: Broken logfile, extralogfile, and dayfile editors in b3096
+- Fix: Incorrect air quality data file name in default website
+	/webfiles/cumuluscharts.js
+- Improve historic graph data generation efficiency
+- Change dashboard/web site recent AQ graph to have last 12 hours selected by default
+	/interface/js/charts.js
+	/webfiles/cumuluscharts.js
+- The graph data file airquality.json is now always uploaded even if no primary sensor is enabled. This prevents the default web
+  site from erroring when the AQ graph is selected.
+- Increase WLL multicast time from 5 minutes to 20 minutes
+
+3.9.2 - b3097 - beta1
 —————————————
 - Fix: Change log messages for number of SQL rows affected to Debug only messages
 - Fix: AirLink web tags no longer error if the sensor is not enabled - all now return "--"
@@ -6,13 +21,24 @@
 - Fix: Canada AQHI - still based on PM2.5 3 hour values only
 - Fix: Dutch and Belgian AQI calculations
 - Fix: Default web site temperature Trends graph yAxis issue
+- Fix: Broken logfile, extralogfile, and dayfile editors in b3096
+- Fix: Improve Instromet stations error handling of out of sequence responses
 
 - Adds Notifications to Alarms
+	Note: Cumulus notifications only work by default if you run the browser on the same machine as Cumulus and connect using the
+	url: http://localhost:8998
+	In order to get them working on a remote machine you will have to change an advanced flag in your browser.
+	This is at your own risk as advanced flags are unsupported features in Chrome and Edge.
+	In Chrome or Edge, open the url - "about:flags"
+	Find the entry "Insecure origins treated as secure" and enable it
+	The add the url you use to remotely access the Cumulus dashboard - eg. http://192.168.1.23:8998
+	Then click the button to restart your browser. Notifications should now work.
+- Adds Latch times to Alarms. You can now specify a period in hours that an alarm will remain active after the event that tripped it has reset.
 - The default value for "DavisIncrementPressureDP" is changed from true to false
   ** The effect of this is that for Davis VP/VP2 stations, the default number of decimal places used for pressure values changes
      from 2 dp (hPa/mb) and 3 dp (kPa, inHg) to 1 dp (hPa/mb) and 2 dp (kPa, inHg)
   ** If you wish to retain the previous behaviour, then you MUST add the setting "DavisIncrementPressureDP=1" to your Cumulus.ini file
-- Wind Rose is now populated from data files at start-up (24 hours)
+- Wind Rose is now populated from data files at start-up (last 24 hours)
 - New graphs option to show/hide sunshine hours data
 - New admin interface historic graphs (and associated API)
 - New default web site page to show historic graphs
@@ -20,7 +46,8 @@
 - Adds Air Quality upload to WeatherUnderground. Enable in WeatherUnderGround settings, and configure a primary AQ sensor in Station.Options
 - Adds Air Quality upload to AWEKAS. Enable in AWEKAS settings, and configure a primary AQ sensor in Station.Options
 - Adds ability to define the number of decimal places used for various weather units via read-only settings in Cumulus.ini.
-  The full list of existing and new values for the [Station] section is:
+  The full list of existing and new values is:
+	[Station]
 	WindSpeedDecimals=1         // Existing entry
 	WindSpeedAvgDecimals=1      // Existing entry
 	WindRunDecimals=1           // NEW
@@ -31,6 +58,9 @@
 	UVDecimals=1                // NEW
 	AirQualityDecimals=1        // NEW - affects AQI values only, not PM values
 - Lots of internal code fettling
+- New Cumulus.ini read-only entry to control the data read rate for Instromet stations. The value is in milliseconds, default is 500.
+	[Station]
+	ImetReadDelay=500
 - Admin interface tweaks
 
 

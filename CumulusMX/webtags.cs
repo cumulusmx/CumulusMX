@@ -1077,7 +1077,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm2p5.ToString("F" + dp), tagParams);
 		}
 
@@ -1088,7 +1088,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_1hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm2p5_1hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_3hrIn(Dictionary<string, string> tagParams)
@@ -1098,7 +1098,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_3hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm2p5_3hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_24hrIn(Dictionary<string, string> tagParams)
@@ -1108,7 +1108,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_24hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm2p5_24hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_NowcastIn(Dictionary<string, string> tagParams)
@@ -1118,7 +1118,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm2p5_nowcast).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm2p5_nowcast.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10In(Dictionary<string, string> tagParams)
@@ -1128,7 +1128,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm10.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_1hrIn(Dictionary<string, string> tagParams)
@@ -1138,7 +1138,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_1hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm10_1hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_3hrIn(Dictionary<string, string> tagParams)
@@ -1148,7 +1148,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_3hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm10_3hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_24hrIn(Dictionary<string, string> tagParams)
@@ -1158,7 +1158,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_24hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm10_24hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_NowcastIn(Dictionary<string, string> tagParams)
@@ -1168,7 +1168,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataIn.aqiPm10_nowcast).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataIn.aqiPm10_nowcast.ToString("F" + dp), tagParams);
 		}
 
@@ -1179,7 +1179,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm2p5.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_1hrOut(Dictionary<string, string> tagParams)
@@ -1189,7 +1189,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_1hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm2p5_1hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_3hrOut(Dictionary<string, string> tagParams)
@@ -1199,7 +1199,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_3hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm2p5_3hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_24hrOut(Dictionary<string, string> tagParams)
@@ -1209,7 +1209,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_24hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm2p5_24hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm2p5_NowcastOut(Dictionary<string, string> tagParams)
@@ -1219,7 +1219,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm2p5_nowcast).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm2p5_nowcast.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10Out(Dictionary<string, string> tagParams)
@@ -1229,7 +1229,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm10.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_1hrOut(Dictionary<string, string> tagParams)
@@ -1239,7 +1239,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_1hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm10_1hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_3hrOut(Dictionary<string, string> tagParams)
@@ -1249,7 +1249,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_3hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm10_3hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_24hrOut(Dictionary<string, string> tagParams)
@@ -1259,7 +1259,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_24hr).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm10_24hr.ToString("F" + dp), tagParams);
 		}
 		private string TagAirLinkAqiPm10_NowcastOut(Dictionary<string, string> tagParams)
@@ -1269,7 +1269,7 @@ namespace CumulusMX
 			if (tagParams.Get("tc") == "y")
 				return Math.Truncate(cumulus.airLinkDataOut.aqiPm10_nowcast).ToString();
 
-			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : 1;
+			int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : cumulus.AirQualityDPlaces;
 			return CheckRc(cumulus.airLinkDataOut.aqiPm10_nowcast.ToString("F" + dp), tagParams);
 		}
 
@@ -1652,17 +1652,17 @@ namespace CumulusMX
 
 		private string TagdewpointTh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HiLoToday.HighDewpoint.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighDewPoint.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagRCdewpointTh(Dictionary<string,string> tagParams)
 		{
-		   return ReplaceCommas(station.HiLoToday.HighDewpoint.ToString(cumulus.TempFormat));
+		   return ReplaceCommas(station.HiLoToday.HighDewPoint.ToString(cumulus.TempFormat));
 		}
 
 		private string TagTdewpointTh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighDewpointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighDewPointTime, "HH:mm", tagParams);
 		}
 
 		private string TagdewpointTl(Dictionary<string,string> tagParams)
@@ -1677,7 +1677,7 @@ namespace CumulusMX
 
 		private string TagTdewpointTl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowDewpointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowDewPointTime, "HH:mm", tagParams);
 		}
 
 		private string TagwchillTl(Dictionary<string,string> tagParams)
@@ -1807,12 +1807,12 @@ namespace CumulusMX
 
 		private string TagrrateTm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HiLoToday.HighRain.ToString(cumulus.RainFormat), tagParams);
+			return CheckRc(station.HiLoToday.HighRainRate.ToString(cumulus.RainFormat), tagParams);
 		}
 
 		private string TagTrrateTm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighRainTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighRainRateTime, "HH:mm", tagParams);
 		}
 
 		private string TaghourlyrainTh(Dictionary<string,string> tagParams)
@@ -1932,7 +1932,7 @@ namespace CumulusMX
 
 		private string TagdewpointYh(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HiLoYest.HighDewpoint.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighDewPoint.ToString(cumulus.TempFormat), tagParams);
 		}
 
 		private string TagfeelslikeYh(Dictionary<string, string> tagParams)
@@ -1967,7 +1967,7 @@ namespace CumulusMX
 
 		private string TagTdewpointYh(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighDewpointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighDewPointTime, "HH:mm", tagParams);
 		}
 
 		private string TagdewpointYl(Dictionary<string,string> tagParams)
@@ -1977,7 +1977,7 @@ namespace CumulusMX
 
 		private string TagTdewpointYl(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowDewpointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowDewPointTime, "HH:mm", tagParams);
 		}
 
 		private string TagwchillYl(Dictionary<string,string> tagParams)
@@ -2077,12 +2077,12 @@ namespace CumulusMX
 
 		private string TagrrateYm(Dictionary<string,string> tagParams)
 		{
-			return CheckRc(station.HiLoYest.HighRain.ToString(cumulus.RainFormat), tagParams);
+			return CheckRc(station.HiLoYest.HighRainRate.ToString(cumulus.RainFormat), tagParams);
 		}
 
 		private string TagTrrateYm(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighRainTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighRainRateTime, "HH:mm", tagParams);
 		}
 
 		private string TagrfallY(Dictionary<string,string> tagParams)
@@ -3556,42 +3556,42 @@ namespace CumulusMX
 
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQuality1.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQuality1.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQuality2(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQuality2.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQuality2.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQuality3(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQuality3.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQuality3.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQuality4(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQuality4.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQuality4.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQualityAvg1(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQualityAvg1.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQualityAvg1.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQualityAvg2(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQualityAvg2.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQualityAvg2.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQualityAvg3(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQuality3.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQuality3.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagAirQualityAvg4(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.AirQualityAvg4.ToString(cumulus.TempFormat), tagParams);
+			return CheckRc(station.AirQualityAvg4.ToString(cumulus.AirQualityFormat), tagParams);
 		}
 
 		private string TagCo2(Dictionary<string, string> tagParams)

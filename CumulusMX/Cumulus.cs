@@ -31,7 +31,7 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.10.0";
+		public string Version = "3.9.2-beta2";
 		public string Build = "3097";
 		/////////////////////////////////
 
@@ -453,7 +453,7 @@ namespace CumulusMX
 		public string MonthlyAlltimeIniFile;
 		public string MonthlyAlltimeLogFile;
 		private readonly string logFilePath;
-		public string DayFile;
+		public string DayFileName;
 		public string YesterdayFile;
 		public string TodayIniFile;
 		public string MonthIniFile;
@@ -932,7 +932,7 @@ namespace CumulusMX
 			MonthlyAlltimeIniFile = Datapath + "monthlyalltime.ini";
 			MonthlyAlltimeLogFile = Datapath + "monthlyalltimelog.txt";
 			logFilePath = Datapath;
-			DayFile = Datapath + "dayfile.txt";
+			DayFileName = Datapath + "dayfile.txt";
 			YesterdayFile = Datapath + "yesterday.ini";
 			TodayIniFile = Datapath + "today.ini";
 			MonthIniFile = Datapath + "month.ini";
@@ -3367,9 +3367,9 @@ namespace CumulusMX
 
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
-			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
-			ImetReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);
-			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
+			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);					// readonly setting - delay to wait for a reply to a command
+			ImetReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);					// readonly setting - delay between sending read live data commands
+			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);	// readonly setting - keep the logger pointer pointing at last data read
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
@@ -3459,7 +3459,7 @@ namespace CumulusMX
 			WllStationId = ini.GetValue("WLL", "WLStationId", "");
 			if (WllStationId == "-1") WllStationId = "";
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
-			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 300);      // Readonly setting, default 5 minutes
+			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 1200);     // Readonly setting, default 20 minutes
 			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);            // Readonly setting, default 22222
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
 			WllPrimaryTempHum = ini.GetValue("WLL", "PrimaryTempHumTxId", 1);
@@ -5725,14 +5725,14 @@ namespace CumulusMX
 				file.Write(station.SoilMoisture15 + ListSeparator);
 				file.Write(station.SoilMoisture16 + ListSeparator);
 
-				file.Write(station.AirQuality1.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQuality2.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQuality3.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQuality4.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQualityAvg1.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQualityAvg2.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQualityAvg3.ToString(AirQualityFormat) + ListSeparator);
-				file.Write(station.AirQualityAvg4.ToString(AirQualityFormat) + ListSeparator);
+				file.Write(station.AirQuality1.ToString("F1") + ListSeparator);
+				file.Write(station.AirQuality2.ToString("F1") + ListSeparator);
+				file.Write(station.AirQuality3.ToString("F1") + ListSeparator);
+				file.Write(station.AirQuality4.ToString("F1") + ListSeparator);
+				file.Write(station.AirQualityAvg1.ToString("F1") + ListSeparator);
+				file.Write(station.AirQualityAvg2.ToString("F1") + ListSeparator);
+				file.Write(station.AirQualityAvg3.ToString("F1") + ListSeparator);
+				file.Write(station.AirQualityAvg4.ToString("F1") + ListSeparator);
 
 				for (int i = 1; i < 8; i++)
 				{
@@ -5832,16 +5832,32 @@ namespace CumulusMX
 					file.Write(airLinkDataIn.pct_3hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_24hr + ListSeparator);
 					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm2p5_nowcast.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.aqiPm10_nowcast.ToString("F1") + ListSeparator);
+					if (AirQualityDPlaces > 0)
+					{
+						file.Write(airLinkDataIn.aqiPm2p5.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm2p5_1hr.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm2p5_3hr.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm2p5_24hr.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm2p5_nowcast.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm10.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm10_1hr.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm10_3hr.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm10_24hr.ToString(AirQualityFormat) + ListSeparator);
+						file.Write(airLinkDataIn.aqiPm10_nowcast.ToString(AirQualityFormat) + ListSeparator);
+					}
+					else // Zero decimals - trucate value rather than round
+					{
+						file.Write((int)airLinkDataIn.aqiPm2p5 + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm2p5_3hr + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm2p5_24hr + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm2p5_nowcast + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm10 + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm10_1hr + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm10_3hr + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm10_24hr + ListSeparator);
+						file.Write((int)airLinkDataIn.aqiPm10_nowcast + ListSeparator);
+					}
 				}
 				else
 				{
@@ -5961,9 +5977,9 @@ namespace CumulusMX
 					{
 						File.Copy(MonthlyAlltimeIniFile, monthlyAlltimebackup);
 					}
-					if (File.Exists(DayFile))
+					if (File.Exists(DayFileName))
 					{
-						File.Copy(DayFile, daybackup);
+						File.Copy(DayFileName, daybackup);
 					}
 					if (File.Exists(TodayIniFile))
 					{
@@ -6799,10 +6815,6 @@ namespace CumulusMX
 								{
 									var uploadfile = localGraphdataFiles[i];
 									var remotefile = remotePath + remoteGraphdataFiles[i];
-
-									// Check if we need to upload the AirQuality graph data
-									if (remoteGraphdataFiles[i] == "airquality.json" && StationOptions.PrimaryAqSensor < 0)
-										continue;
 
 									UploadFile(conn, uploadfile, remotefile, -1);
 								}

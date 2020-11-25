@@ -132,23 +132,34 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Console clock: " + consoleclock);
 
-				if (cumulus.StationOptions.SyncTime && Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
+				var timeDiff = nowTime.Subtract(consoleclock).TotalSeconds;
+
+				if (Math.Abs(timeDiff) >= 30)
 				{
-					SetTime();
-					// Pause whilst the console sorts itself out
-					cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
-					cumulus.LogConsoleMessage("Pausing to allow console to process the new date/time");
-					Thread.Sleep(1000 * 5);
-
-					consoleclock = GetTime();
-
-					if (consoleclock > DateTime.MinValue)
+					if (cumulus.StationOptions.SyncTime)
 					{
-						cumulus.LogMessage("Console clock: " + consoleclock);
+						cumulus.LogMessage($"Console clock: Console is {(int)timeDiff} seconds adrift, resetting it...");
+
+						SetTime();
+						// Pause whilst the console sorts itself out
+						cumulus.LogMessage("Console clock: Pausing to allow Davis console to process the new date/time");
+						cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
+						Thread.Sleep(1000 * 5);
+
+						consoleclock = GetTime();
+
+						if (consoleclock > DateTime.MinValue)
+						{
+							cumulus.LogMessage("Console clock: " + consoleclock);
+						}
+						else
+						{
+							cumulus.LogMessage("Console clock: Failed to read console time");
+						}
 					}
 					else
 					{
-						cumulus.LogMessage("Console clock: Failed to read console time");
+						cumulus.LogMessage($"Console clock: Console is {(int)timeDiff} seconds adrift but automatic setting is disabled - you should set the clock manually.");
 					}
 				}
 				else

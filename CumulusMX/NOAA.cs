@@ -246,7 +246,7 @@ namespace CumulusMX
 
 			try
 			{
-				using (FileStream fs = new FileStream(cumulus.DayFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				using (FileStream fs = new FileStream(cumulus.DayFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				using (var sr = new StreamReader(fs))
 				{
 					do
@@ -790,7 +790,7 @@ namespace CumulusMX
 			}
 			try
 			{
-				using (FileStream fs = new FileStream(cumulus.DayFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				using (FileStream fs = new FileStream(cumulus.DayFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				using (var sr = new StreamReader(fs))
 				{
 					do

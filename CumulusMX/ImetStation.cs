@@ -889,21 +889,52 @@ namespace CumulusMX
 				// split the data
 				var sl = new List<string>(Regex.Split(response, ","));
 
+				if (sl.Count != 10 && sl[0] != "rdlv")
+				{
+					cumulus.LogMessage($"RDLV: Unexpected reponse: {response}");
+					return;
+				}
+
 				// Parse data using decimal points rather than user's decimal separator
 				NumberFormatInfo provider = new NumberFormatInfo {NumberDecimalSeparator = "."};
 
-				double temp1 = 0;
-				double windspeed = 0;
+				double windspeed = -999;
+				double temp1 = -999;
+				int humidity = -999;
 
-				if (!string.IsNullOrEmpty(sl[TEMP1POS]))
+				double varDbl;
+				int varInt;
+
+				if (!string.IsNullOrEmpty(sl[DIRPOS]) && int.TryParse(sl[DIRPOS], out varInt) &&
+				    !string.IsNullOrEmpty(sl[WINDPOS]) && double.TryParse(sl[WINDPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					temp1 = Convert.ToDouble(sl[TEMP1POS], provider);
-					DoOutdoorTemp(ConvertTempCToUser(temp1), now);
+					windspeed = varDbl;
+					DoWind(ConvertWindMSToUser(windspeed), varInt, ConvertWindMSToUser(windspeed), now);
+				}
+				else
+				{
+					cumulus.LogMessage($"RDLV: Unexpected wind dir/speed format, found: {sl[DIRPOS]}/{sl[WINDPOS]}");
 				}
 
-				if (!string.IsNullOrEmpty(sl[TEMP2POS]))
+
+				if (!string.IsNullOrEmpty(sl[TEMP2POS]) && double.TryParse(sl[TEMP1POS], NumberStyles.Float, provider, out varDbl))
 				{
-					double temp2 = Convert.ToDouble(sl[TEMP2POS], provider);
+					temp1 = varDbl;
+					DoOutdoorTemp(ConvertTempCToUser(temp1), now);
+					if (windspeed > -99)
+					{
+						double windchill = MeteoLib.WindChill(temp1, windspeed * 3.6);
+						DoWindChill(windchill, now);
+					}
+				}
+				else
+				{
+					cumulus.LogMessage($"RDLV: Unexpected temperature 1 format, found: {sl[TEMP1POS]}");
+				}
+
+				if (!string.IsNullOrEmpty(sl[TEMP2POS]) && double.TryParse(sl[TEMP2POS], NumberStyles.Float, provider, out varDbl))
+				{
+					double temp2 = varDbl;
 					if (cumulus.StationOptions.LogExtraSensors)
 					{
 						// use second temp as Extra Temp 1
@@ -915,60 +946,73 @@ namespace CumulusMX
 						DoWetBulb(ConvertTempCToUser(temp2), now);
 					}
 				}
-
-				if (!string.IsNullOrEmpty(sl[RELHUMPOS]))
+				else
 				{
-					DoOutdoorHumidity((int)Convert.ToDouble(sl[RELHUMPOS], provider), now);
+					cumulus.LogMessage($"RDLV: Unexpected temperature 2 format, found: {sl[TEMP2POS]}");
 				}
 
-				if (!string.IsNullOrEmpty(sl[PRESSPOS]))
+				if (!string.IsNullOrEmpty(sl[RELHUMPOS]) && double.TryParse(sl[RELHUMPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					DoPressure(ConvertPressMBToUser(Convert.ToDouble(sl[PRESSPOS], provider)), now);
+					humidity = Convert.ToInt32(varDbl);
+					DoOutdoorHumidity(humidity, now);
+				}
+				else
+				{
+					cumulus.LogMessage($"RDLV: Unexpected humidity format, found: {sl[RELHUMPOS]}");
 				}
 
-				if (!string.IsNullOrEmpty(sl[DIRPOS])&&!string.IsNullOrEmpty(sl[WINDPOS]))
+				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					int winddir = Convert.ToInt32(sl[DIRPOS], provider);
-					windspeed = Convert.ToDouble(sl[WINDPOS], provider);
-					DoWind(ConvertWindMSToUser(windspeed), winddir, ConvertWindMSToUser(windspeed), now);
+					DoPressure(ConvertPressMBToUser(varDbl), now);
+					UpdatePressureTrendString();
 				}
-				if (!string.IsNullOrEmpty(sl[RAINPOS]))
+				else
 				{
-					double raintotal = Convert.ToDouble(sl[RAINPOS], provider);
-					DoRain(ConvertRainMMToUser(raintotal), -1, now);
+					cumulus.LogMessage($"RDLV: Unexpected pressure format, found: {sl[PRESSPOS]}");
 				}
 
-				if (!string.IsNullOrEmpty(sl[SUNPOS]))
+
+				if (!string.IsNullOrEmpty(sl[RAINPOS]) && double.TryParse(sl[RAINPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					double sunhours = Convert.ToDouble(sl[SUNPOS], provider);
-					DoSunHours(sunhours);
+					DoRain(ConvertRainMMToUser(varDbl), -1, now);
+				}
+				else
+				{
+					cumulus.LogMessage($"RDLV: Unexpected rain format, found: {sl[RAINPOS]}");
 				}
 
-				if (!string.IsNullOrEmpty(sl[TEMP1POS]))
+				if (!string.IsNullOrEmpty(sl[SUNPOS]) && double.TryParse(sl[SUNPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					double windchill = MeteoLib.WindChill(temp1, windspeed*3.6);
-					DoWindChill(windchill, now);
+					DoSunHours(varDbl);
+				}
+				else
+				{
+					cumulus.LogMessage($"RDLV: Unexpected rain format, found: {sl[RAINPOS]}");
 				}
 
-				DoApparentTemp(now);
-				DoFeelsLike(now);
-				DoHumidex(now);
+				if (temp1 > -999 && humidity > -999)
+				{
+					DoHumidex(now);
+					if (windspeed > -999)
+					{
+						DoApparentTemp(now);
+						DoFeelsLike(now);
+					}
+				}
 
 				DoForecast("", false);
-
-				UpdatePressureTrendString();
 
 				UpdateStatusPanel(now);
 				UpdateMQTT();
 			}
 			else if (!stop)
 			{
-				cumulus.LogMessage("RDLV: Invalid checksum:");
-				cumulus.LogMessage(response);
+				return;
 			}
 			else
 			{
-				return;
+				cumulus.LogMessage("RDLV: Invalid checksum:");
+				cumulus.LogMessage(response);
 			}
 
 			if (!cumulus.ImetUpdateLogPointer || stop)
