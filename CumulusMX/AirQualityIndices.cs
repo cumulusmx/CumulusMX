@@ -163,9 +163,9 @@ namespace CumulusMX
 			else if (pmVal >= 54)
 				return 7 + Interpolate(54, 59, pmVal);
 			else if (pmVal >= 48)
-				return 6 + Interpolate(47, 54, pmVal);
+				return 6 + Interpolate(48, 54, pmVal);
 			else if (pmVal >= 42)
-				return 5 + Interpolate(42, 47, pmVal);
+				return 5 + Interpolate(42, 48, pmVal);
 			else if (pmVal >= 36)
 				return 4 + Interpolate(36, 42, pmVal);
 			else if (pmVal >= 24)
