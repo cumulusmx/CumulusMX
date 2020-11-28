@@ -1,3 +1,16 @@
+beta3 fixes
+———————————
+- Move Primary AQ Sensor selection from Station Options, to Extra Sensors
+- Move AQI method from AirLink settings to the top level of Extra Sensors
+	/interface/ExtraSensorOptions.json
+	/interface/ExtraSensorSchema.json
+	/interface/StationOptions.json
+	/interface/StationSchema.json
+- Change WUnderground Password field name to Station Key
+	/interface/InternetOptions.json
+	/interface/InternetSchema.json
+- Fix AQ graph data file not being created unless a primary sensor was selected
+
 beta2 fixes
 ———————————
 - Fix: Dashboard add missing space
@@ -62,6 +75,7 @@ beta2 fixes
 	[Station]
 	ImetReadDelay=500
 - Admin interface tweaks
+- Change WUnderground Password field name to Station Key in settings
 
 
 3.9.1 - b3096
@@ -144,8 +158,8 @@ beta2 fixes
 		<#AirLinkAqiPm2p5Out>,<#AirLinkAqiPm2p5_1hrOut>,<#AirLinkAqiPm2p5_3hrOut>,<#AirLinkAqiPm2p5_24hrOut>,<#AirLinkAqiPm2p5_NowcastOut>
 		<#AirLinkAqiPm10In>,<#AirLinkAqiPm10_1hrIn>,<#AirLinkAqiPm10_3hrIn>,<#AirLinkAqiPm10_24hrIn>,<#AirLinkAqiPm10_NowcastIn>
 		<#AirLinkAqiPm10Out>,<#AirLinkAqiPm10_1hrOut>,<#AirLinkAqiPm10_3hrOut>,<#AirLinkAqiPm10_24hrOut>,<#AirLinkAqiPm10_NowcastOut>
-		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLink_NowcastIn>
-		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLink_NowcastOut>
+		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLinkPct_NowcastIn>
+		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLinkPct_NowcastOut>
 - The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
 	There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
 		[Station]

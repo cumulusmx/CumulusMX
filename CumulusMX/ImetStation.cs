@@ -917,7 +917,7 @@ namespace CumulusMX
 				}
 
 
-				if (!string.IsNullOrEmpty(sl[TEMP2POS]) && double.TryParse(sl[TEMP1POS], NumberStyles.Float, provider, out varDbl))
+				if (!string.IsNullOrEmpty(sl[TEMP1POS]) && double.TryParse(sl[TEMP1POS], NumberStyles.Float, provider, out varDbl))
 				{
 					temp1 = varDbl;
 					DoOutdoorTemp(ConvertTempCToUser(temp1), now);
@@ -932,23 +932,25 @@ namespace CumulusMX
 					cumulus.LogMessage($"RDLV: Unexpected temperature 1 format, found: {sl[TEMP1POS]}");
 				}
 
-				if (!string.IsNullOrEmpty(sl[TEMP2POS]) && double.TryParse(sl[TEMP2POS], NumberStyles.Float, provider, out varDbl))
+				if (!string.IsNullOrEmpty(sl[TEMP2POS]))  // TEMP2 is optional
 				{
-					double temp2 = varDbl;
-					if (cumulus.StationOptions.LogExtraSensors)
+					if (double.TryParse(sl[TEMP2POS], NumberStyles.Float, provider, out varDbl))
 					{
-						// use second temp as Extra Temp 1
-						DoExtraTemp(ConvertTempCToUser(temp2), 1);
+						if (cumulus.StationOptions.LogExtraSensors)
+						{
+							// use second temp as Extra Temp 1
+							DoExtraTemp(ConvertTempCToUser(varDbl), 1);
+						}
+						else
+						{
+							// use second temp as wet bulb
+							DoWetBulb(ConvertTempCToUser(varDbl), now);
+						}
 					}
 					else
 					{
-						// use second temp as wet bulb
-						DoWetBulb(ConvertTempCToUser(temp2), now);
+						cumulus.LogMessage($"RDLV: Unexpected temperature 2 format, found: {sl[TEMP2POS]}");
 					}
-				}
-				else
-				{
-					cumulus.LogMessage($"RDLV: Unexpected temperature 2 format, found: {sl[TEMP2POS]}");
 				}
 
 				if (!string.IsNullOrEmpty(sl[RELHUMPOS]) && double.TryParse(sl[RELHUMPOS], NumberStyles.Float, provider, out varDbl))

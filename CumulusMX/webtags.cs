@@ -958,7 +958,7 @@ namespace CumulusMX
 		{
 			return cumulus.airLinkDataIn == null ? "--" : CheckRc(cumulus.airLinkDataIn.pm1.ToString("F1"), tagParams);
 		}
-		private string TagAirLinkPm2P5In(Dictionary<string, string> tagParams)
+		private string TagAirLinkPm2p5In(Dictionary<string, string> tagParams)
 		{
 			return cumulus.airLinkDataIn == null ? "--" : CheckRc(cumulus.airLinkDataIn.pm2p5.ToString("F1"), tagParams);
 		}
@@ -1021,7 +1021,7 @@ namespace CumulusMX
 		{
 			return cumulus.airLinkDataOut == null ? "--" : CheckRc(cumulus.airLinkDataOut.pm1.ToString("F1"), tagParams);
 		}
-		private string TagAirLinkPm2P5Out(Dictionary<string, string> tagParams)
+		private string TagAirLinkPm2p5Out(Dictionary<string, string> tagParams)
 		{
 			return cumulus.airLinkDataOut == null ? "--" : CheckRc(cumulus.airLinkDataOut.pm2p5.ToString("F1"), tagParams);
 		}
@@ -5423,7 +5423,7 @@ namespace CumulusMX
 				{ "AirLinkTempIn", TagAirLinkTempIn },
 				{ "AirLinkHumIn", TagAirLinkHumIn },
 				{ "AirLinkPm1In", TagAirLinkPm1In },
-				{ "AirLinkPm2p5In", TagAirLinkPm2P5In },
+				{ "AirLinkPm2p5In", TagAirLinkPm2p5In },
 				{ "AirLinkPm2p5_1hrIn", TagAirLinkPm2p5_1hrIn },
 				{ "AirLinkPm2p5_3hrIn", TagAirLinkPm2p5_3hrIn },
 				{ "AirLinkPm2p5_24hrIn", TagAirLinkPm2p5_24hrIn },
@@ -5438,7 +5438,7 @@ namespace CumulusMX
 				{ "AirLinkTempOut", TagAirLinkTempOut },
 				{ "AirLinkHumOut", TagAirLinkHumOut },
 				{ "AirLinkPm1Out", TagAirLinkPm1Out },
-				{ "AirLinkPm2p5Out", TagAirLinkPm2P5Out },
+				{ "AirLinkPm2p5Out", TagAirLinkPm2p5Out },
 				{ "AirLinkPm2p5_1hrOut", TagAirLinkPm2p5_1hrOut },
 				{ "AirLinkPm2p5_3hrOut", TagAirLinkPm2p5_3hrOut },
 				{ "AirLinkPm2p5_24hrOut", TagAirLinkPm2p5_24hrOut },

@@ -43,8 +43,7 @@ namespace CumulusMX
 							  debuglogging = cumulus.StationOptions.DebugLogging,
 							  datalogging = cumulus.StationOptions.DataLogging,
 							  stopsecondinstance = cumulus.StationOptions.WarnMultiple,
-							  readreceptionstats = cumulus.StationOptions.DavisReadReceptionStats,
-							  primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor
+							  readreceptionstats = cumulus.StationOptions.DavisReadReceptionStats
 						  };
 
 			var units = new JsonStationSettingsUnits()
@@ -460,7 +459,6 @@ namespace CumulusMX
 					cumulus.StationOptions.DataLogging = settings.Options.datalogging;
 					cumulus.StationOptions.WarnMultiple = settings.Options.stopsecondinstance;
 					cumulus.StationOptions.DavisReadReceptionStats = settings.Options.readreceptionstats;
-					cumulus.StationOptions.PrimaryAqSensor = settings.Options.primaryaqsensor;
 				}
 				catch (Exception ex)
 				{
@@ -740,7 +738,6 @@ namespace CumulusMX
 		public bool datalogging { get; set; }
 		public bool stopsecondinstance { get; set; }
 		public bool readreceptionstats { get; set; }
-		public int primaryaqsensor { get; set; }
 	}
 
 	public class JsonStationSettingsTCPsettings

@@ -2151,21 +2151,18 @@ namespace CumulusMX
 			}
 
 			// Air Quality
-			if (cumulus.StationOptions.PrimaryAqSensor >= 0)
+			json = GetAqGraphData();
+			try
 			{
-				json = GetAqGraphData();
-				try
+				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "airquality.json", false))
 				{
-					using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "airquality.json", false))
-					{
-						file.WriteLine(json);
-						file.Close();
-					}
+					file.WriteLine(json);
+					file.Close();
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage("Error writing airquality.json: " + ex.Message);
-				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error writing airquality.json: " + ex.Message);
 			}
 		}
 
@@ -9043,6 +9040,8 @@ namespace CumulusMX
 
 		public string GetWundergroundURL(out string pwstring, DateTime timestamp, bool catchup)
 		{
+			// API documentation: https://support.weather.com/s/article/PWS-Upload-Protocol?language=en_US
+
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
 			StringBuilder URL = new StringBuilder(1024);
 			if (cumulus.Wund.RapidFireEnabled && !catchup)

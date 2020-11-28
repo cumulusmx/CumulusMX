@@ -1584,8 +1584,11 @@ namespace CumulusMX
 						}
 						else if (sensorType != 504 && sensorType != 506 && lsid != sensorWithMostRecs.lsid)
 						{
-							DecodeHistoric(dataStructureType, sensorType, sensor.data[dataIndex]);
-							// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor
+							if (sensor.data.Count > dataIndex)
+							{
+								DecodeHistoric(dataStructureType, sensorType, sensor.data[dataIndex]);
+								// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor
+							}
 						}
 					}
 
