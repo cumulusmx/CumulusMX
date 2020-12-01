@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.Serialization;
 
 namespace CumulusMX
@@ -149,7 +148,7 @@ namespace CumulusMX
 		[DataMember(Name = "StormRain")]
 		public string StormRainRounded
 		{
-			get { return StormRain.ToString(cumulus.RainFormat); }
+			get => StormRain.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -165,7 +164,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighHeatIndexToday")]
 		public string HighHeatIndexTodayRounded
 		{
-			get { return HighHeatIndexToday.ToString(cumulus.TempFormat); }
+			get => HighHeatIndexToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -193,7 +192,7 @@ namespace CumulusMX
 		[DataMember(Name = "UVindex")]
 		public string UVindexRounded
 		{
-			get { return UVindex.ToString(cumulus.UVFormat); }
+			get => UVindex.ToString(cumulus.UVFormat);
 			set { }
 		}
 
@@ -203,7 +202,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighUVindexToday")]
 		public string HighUVindexTodayRounded
 		{
-			get { return HighUVindexToday.ToString(cumulus.UVFormat); }
+			get => HighUVindexToday.ToString(cumulus.UVFormat);
 			set { }
 		}
 
@@ -225,7 +224,7 @@ namespace CumulusMX
 		[DataMember(Name = "IndoorTemp")]
 		public string IndoorTempRounded
 		{
-			get { return IndoorTemp.ToString(cumulus.TempFormat); }
+			get => IndoorTemp.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -235,7 +234,7 @@ namespace CumulusMX
 		[DataMember(Name = "OutdoorDewpoint")]
 		public string OutdoorDewpointRounded
 		{
-			get { return OutdoorDewpoint.ToString(cumulus.TempFormat); }
+			get => OutdoorDewpoint.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -245,7 +244,7 @@ namespace CumulusMX
 		[DataMember(Name = "LowDewpointToday")]
 		public string LowDewpointTodayRounded
 		{
-			get { return LowDewpointToday.ToString(cumulus.TempFormat); }
+			get => LowDewpointToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -255,7 +254,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighDewpointToday")]
 		public string HighDewpointTodayRounded
 		{
-			get { return HighDewpointToday.ToString(cumulus.TempFormat); }
+			get => HighDewpointToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -271,7 +270,7 @@ namespace CumulusMX
 		[DataMember(Name = "WindChill")]
 		public string WindChillRounded
 		{
-			get { return WindChill.ToString(cumulus.TempFormat); }
+			get => WindChill.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -281,7 +280,7 @@ namespace CumulusMX
 		[DataMember(Name = "LowWindChillToday")]
 		public string LowWindChillTodayRounded
 		{
-			get { return LowWindChillToday.ToString(cumulus.TempFormat); }
+			get => LowWindChillToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -327,7 +326,7 @@ namespace CumulusMX
 		[DataMember(Name="HighRainRateToday")]
 		public string HighRainRateTodayRounded
 		{
-			get { return HighRainRateToday.ToString(cumulus.RainFormat); }
+			get => HighRainRateToday.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -340,7 +339,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighHourlyRainToday")]
 		public string HighHourlyRainTodayRounded
 		{
-			get { return HighHourlyRainToday.ToString(cumulus.RainFormat); }
+			get => HighHourlyRainToday.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -356,7 +355,7 @@ namespace CumulusMX
 		[DataMember(Name = "LowPressToday")]
 		public string LowPressTodayRounded
 		{
-			get { return LowPressToday.ToString(cumulus.PressFormat); }
+			get => LowPressToday.ToString(cumulus.PressFormat);
 			set { }
 		}
 
@@ -366,7 +365,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighPressToday")]
 		public string HighPressTodayRounded
 		{
-			get { return HighPressToday.ToString(cumulus.PressFormat); }
+			get => HighPressToday.ToString(cumulus.PressFormat);
 			set { }
 		}
 
@@ -382,7 +381,7 @@ namespace CumulusMX
 		[DataMember(Name = "LowTempToday")]
 		public string LowTempTodayRounded
 		{
-			get { return LowTempToday.ToString(cumulus.TempFormat); }
+			get => LowTempToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -392,7 +391,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighTempToday")]
 		public string HighTempTodayRounded
 		{
-			get { return HighTempToday.ToString(cumulus.TempFormat); }
+			get => HighTempToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -411,10 +410,10 @@ namespace CumulusMX
 		[IgnoreDataMember]
 		public double HighWindToday { get; set; }
 
-		[DataMember(Name="HighWindToday")]
+		[DataMember(Name = "HighWindToday")]
 		public string HighWindTodayRounded
 		{
-			get { return HighWindToday.ToString(cumulus.WindAvgFormat); }
+			get => HighWindToday.ToString(cumulus.WindAvgFormat);
 			set { }
 		}
 
@@ -427,7 +426,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighGustToday")]
 		public string HighGustTodayRounded
 		{
-			get { return HighGustToday.ToString(cumulus.WindFormat); }
+			get => HighGustToday.ToString(cumulus.WindFormat);
 			set { }
 		}
 
@@ -437,7 +436,7 @@ namespace CumulusMX
 		[DataMember(Name = "OutdoorTemp")]
 		public string OutdoorTempRounded
 		{
-			get { return OutdoorTemp.ToString(cumulus.TempFormat); }
+			get => OutdoorTemp.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -450,7 +449,7 @@ namespace CumulusMX
 		[DataMember(Name = "AvgTempToday")]
 		public string AvgTempRounded
 		{
-			get { return AvgTempToday.ToString(cumulus.TempFormat); }
+			get => AvgTempToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -461,9 +460,9 @@ namespace CumulusMX
 		public double Pressure { get; set; }
 
 		[DataMember(Name = "Pressure")]
-		public String PressureRounded
+		public string PressureRounded
 		{
-			get { return Pressure.ToString(cumulus.PressFormat); }
+			get => Pressure.ToString(cumulus.PressFormat);
 			set { }
 		}
 
@@ -471,9 +470,9 @@ namespace CumulusMX
 		public double AlltimeHighPressure { get; set; }
 
 		[DataMember(Name = "AlltimeHighPressure")]
-		public String AlltimeHighPressureRounded
+		public string AlltimeHighPressureRounded
 		{
-			get { return AlltimeHighPressure.ToString(cumulus.PressFormat); }
+			get => AlltimeHighPressure.ToString(cumulus.PressFormat);
 			set { }
 		}
 
@@ -481,9 +480,9 @@ namespace CumulusMX
 		public double AlltimeLowPressure { get; set; }
 
 		[DataMember(Name = "AlltimeLowPressure")]
-		public String AlltimeLowPressureRounded
+		public string AlltimeLowPressureRounded
 		{
-			get { return AlltimeLowPressure.ToString(cumulus.PressFormat); }
+			get => AlltimeLowPressure.ToString(cumulus.PressFormat);
 			set { }
 		}
 
@@ -491,9 +490,9 @@ namespace CumulusMX
 		public double WindLatest { get; set; }
 
 		[DataMember(Name = "WindLatest")]
-		public String WindLatestRounded
+		public string WindLatestRounded
 		{
-			get { return WindLatest.ToString(cumulus.WindFormat); }
+			get => WindLatest.ToString(cumulus.WindFormat);
 			set { }
 		}
 
@@ -501,9 +500,9 @@ namespace CumulusMX
 		public double WindAverage { get; set; }
 
 		[DataMember(Name = "WindAverage")]
-		public String WindAverageRounded
+		public string WindAverageRounded
 		{
-			get { return WindAverage.ToString(cumulus.WindAvgFormat); }
+			get => WindAverage.ToString(cumulus.WindAvgFormat);
 			set { }
 		}
 
@@ -511,9 +510,9 @@ namespace CumulusMX
 		public double Recentmaxgust { get; set; }
 
 		[DataMember(Name = "Recentmaxgust")]
-		public String RecentmaxgustRounded
+		public string RecentmaxgustRounded
 		{
-			get { return Recentmaxgust.ToString(cumulus.WindFormat); }
+			get => Recentmaxgust.ToString(cumulus.WindFormat);
 			set { }
 		}
 
@@ -521,9 +520,9 @@ namespace CumulusMX
 		public double WindRunToday { get; set; }
 
 		[DataMember(Name="WindRunToday")]
-		public String WindRunTodayRounded
+		public string WindRunTodayRounded
 		{
-			get { return WindRunToday.ToString(cumulus.WindRunFormat); }
+			get => WindRunToday.ToString(cumulus.WindRunFormat);
 			set { }
 		}
 
@@ -537,9 +536,9 @@ namespace CumulusMX
 		public double RainToday { get; set; }
 
 		[DataMember(Name = "RainToday")]
-		public String RainTodayRounded
+		public string RainTodayRounded
 		{
-			get { return RainToday.ToString(cumulus.RainFormat); }
+			get => RainToday.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -547,9 +546,9 @@ namespace CumulusMX
 		public double RainYesterday { get; set; }
 
 		[DataMember(Name = "RainYesterday")]
-		public String RainYesterdayRounded
+		public string RainYesterdayRounded
 		{
-			get { return RainYesterday.ToString(cumulus.RainFormat); }
+			get => RainYesterday.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -557,18 +556,18 @@ namespace CumulusMX
 		public double RainMonth { get; set; }
 
 		[DataMember(Name = "RainMonth")]
-		public String RainMonthRounded
+		public string RainMonthRounded
 		{
-			get { return RainMonth.ToString(cumulus.RainFormat); }
+			get => RainMonth.ToString(cumulus.RainFormat);
 			set { }
 		}
 
 		[IgnoreDataMember]
 		public double RainYear { get; set; }
 		[DataMember(Name = "RainYear")]
-		public String RainYearRounded
+		public string RainYearRounded
 		{
-			get { return RainYear.ToString(cumulus.RainFormat); }
+			get => RainYear.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -576,9 +575,9 @@ namespace CumulusMX
 		public double RainRate { get; set; }
 
 		[DataMember(Name = "RainRate")]
-		public String RainRateRounded
+		public string RainRateRounded
 		{
-			get { return RainRate.ToString(cumulus.RainFormat); }
+			get => RainRate.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -586,9 +585,9 @@ namespace CumulusMX
 		public double RainLastHour { get; set; }
 
 		[DataMember(Name = "RainLastHour")]
-		public String RainLastHourRounded
+		public string RainLastHourRounded
 		{
-			get { return RainLastHour.ToString(cumulus.RainFormat); }
+			get => RainLastHour.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -596,9 +595,9 @@ namespace CumulusMX
 		public double RainLast24Hour { get; set; }
 
 		[DataMember(Name = "RainLast24Hour")]
-		public String RainLast24HourRounded
+		public string RainLast24HourRounded
 		{
-			get { return RainLast24Hour.ToString(cumulus.RainFormat); }
+			get => RainLast24Hour.ToString(cumulus.RainFormat);
 			set { }
 		}
 
@@ -608,7 +607,7 @@ namespace CumulusMX
 		[DataMember(Name = "HeatIndex")]
 		public string HeatIndexRounded
 		{
-			get { return HeatIndex.ToString(cumulus.TempFormat); }
+			get => HeatIndex.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -618,7 +617,7 @@ namespace CumulusMX
 		[DataMember(Name = "Humidex")]
 		public string HumidexRounded
 		{
-			get { return Humidex.ToString(cumulus.TempFormat); }
+			get => Humidex.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -631,7 +630,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighHumidexToday")]
 		public string HighHumidexTodayRounded
 		{
-			get { return HighHumidexToday.ToString(cumulus.TempFormat); }
+			get => HighHumidexToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -641,7 +640,7 @@ namespace CumulusMX
 		[DataMember(Name = "AppTemp")]
 		public string AppTempRounded
 		{
-			get { return AppTemp.ToString(cumulus.TempFormat); }
+			get => AppTemp.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -657,7 +656,7 @@ namespace CumulusMX
 		[DataMember(Name = "LowAppTempToday")]
 		public string LowAppTempTodayRounded
 		{
-			get { return LowAppTempToday.ToString(cumulus.TempFormat); }
+			get => LowAppTempToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -667,7 +666,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighAppTempToday")]
 		public string HighAppTempTodayRounded
 		{
-			get { return HighAppTempToday.ToString(cumulus.TempFormat); }
+			get => HighAppTempToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -677,7 +676,7 @@ namespace CumulusMX
 		[DataMember(Name = "FeelsLike")]
 		public string FeelsLikeRounded
 		{
-			get { return FeelsLike.ToString(cumulus.TempFormat); }
+			get => FeelsLike.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -693,7 +692,7 @@ namespace CumulusMX
 		[DataMember(Name = "LowFeelsLikeToday")]
 		public string LowFeelsLikeTodayRounded
 		{
-			get { return LowFeelsLikeToday.ToString(cumulus.TempFormat); }
+			get => LowFeelsLikeToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -703,7 +702,7 @@ namespace CumulusMX
 		[DataMember(Name = "HighFeelsLikeToday")]
 		public string HighFeelsLikeTodayRounded
 		{
-			get { return HighFeelsLikeToday.ToString(cumulus.TempFormat); }
+			get => HighFeelsLikeToday.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -713,7 +712,7 @@ namespace CumulusMX
 		[DataMember(Name = "TempTrend")]
 		public string TempTrendRounded
 		{
-			get { return TempTrend.ToString(cumulus.TempFormat); }
+			get => TempTrend.ToString(cumulus.TempFormat);
 			set { }
 		}
 
@@ -723,7 +722,7 @@ namespace CumulusMX
 		[DataMember(Name = "PressTrend")]
 		public string PressTrendRounded
 		{
-			get { return PressTrend.ToString(cumulus.PressFormat); }
+			get => PressTrend.ToString(cumulus.PressFormat);
 			set { }
 		}
 
@@ -733,21 +732,21 @@ namespace CumulusMX
 		[DataMember(Name = "SunshineHours")]
 		public string SunshineHoursRounded
 		{
-			get { return SunshineHours.ToString(cumulus.SunFormat); }
+			get => SunshineHours.ToString(cumulus.SunFormat);
 			set { }
 		}
 
 		[DataMember]
 		public string Version
 		{
-			get { return cumulus.Version; }
+			get => cumulus.Version;
 			set { }
 		}
 
 		[DataMember]
 		public string Build
 		{
-			get { return cumulus.Build; }
+			get => cumulus.Build;
 			set { }
 		}
 

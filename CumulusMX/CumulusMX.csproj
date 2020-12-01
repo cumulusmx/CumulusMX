@@ -41,6 +41,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -73,6 +75,7 @@
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
+  <PropertyGroup />
   <PropertyGroup />
   <PropertyGroup />
   <PropertyGroup>
@@ -172,6 +175,7 @@
     <Compile Include="Api.cs" />
     <Compile Include="ApiTagProcessor.cs" />
     <Compile Include="AstroLib.cs" />
+    <Compile Include="CalibrationsLimits.cs" />
     <Compile Include="CalibrationSettings.cs" />
     <Compile Include="Cumulus.cs" />
     <Compile Include="DataEditor.cs" />
@@ -218,7 +222,7 @@
     <Compile Include="WeatherLinkDotCom.cs" />
     <Compile Include="WeatherStation.cs" />
     <Compile Include="WebSocket.cs" />
-    <Compile Include="webtags.cs" />
+    <Compile Include="WebTags.cs" />
     <Compile Include="WM918Station.cs" />
     <Compile Include="WMR100Station.cs" />
     <Compile Include="WMR200Station.cs" />

@@ -1,3 +1,55 @@
+3.9.2 - b3097
+—————————————
+- Fix: Change log messages for number of SQL rows affected to Debug only messages
+- Fix: AirLink web tags no longer error if the sensor is not enabled - all now return "--"
+- Fix: Australia NEPM AQIs to allow values greater than 101
+- Fix: Canada AQHI - still based on PM2.5 3 hour values only
+- Fix: Dutch and Belgian AQI calculations
+- Fix: Default web site temperature Trends graph yAxis issue
+- Fix: Broken logfile, extralogfile, and dayfile editors in b3096
+- Fix: Improve Instromet stations error handling of out of sequence responses
+
+- Adds Notifications to Alarms
+	Note: Cumulus notifications only work by default if you run the browser on the same machine as Cumulus and connect using the
+	url: http://localhost:8998
+	In order to get them working on a remote machine you will have to change an advanced flag in your browser.
+	This is at your own risk as advanced flags are unsupported features in Chrome and Edge.
+	In Chrome or Edge, open the url - "about:flags"
+	Find the entry "Insecure origins treated as secure" and enable it
+	The add the url you use to remotely access the Cumulus dashboard - eg. http://192.168.1.23:8998
+	Then click the button to restart your browser. Notifications should now work.
+- Adds Latch times to Alarms. You can now specify a period in hours that an alarm will remain active after the event that tripped it has reset.
+- The default value for "DavisIncrementPressureDP" is changed from true to false
+  ** The effect of this is that for Davis VP/VP2 stations, the default number of decimal places used for pressure values changes
+     from 2 dp (hPa/mb) and 3 dp (kPa, inHg) to 1 dp (hPa/mb) and 2 dp (kPa, inHg)
+  ** If you wish to retain the previous behaviour, then you MUST add the setting "DavisIncrementPressureDP=1" to your Cumulus.ini file
+- Wind Rose is now populated from data files at start-up (last 24 hours)
+- New graphs option to show/hide sunshine hours data
+- New admin interface historic graphs (and associated API)
+- New default web site page to show historic graphs
+- Adds Air Quality to Recent Graphs in Admin Interface and default web site - configure a primary AQ sensor in Station.Options
+- Adds Air Quality upload to WeatherUnderground. Enable in WeatherUnderGround settings, and configure a primary AQ sensor in Station.Options
+- Adds Air Quality upload to AWEKAS. Enable in AWEKAS settings, and configure a primary AQ sensor in Station.Options
+- Adds ability to define the number of decimal places used for various weather units via read-only settings in Cumulus.ini.
+  The full list of existing and new values is:
+	[Station]
+	WindSpeedDecimals=1         // Existing entry
+	WindSpeedAvgDecimals=1      // Existing entry
+	WindRunDecimals=1           // NEW
+	SunshineHrsDecimals=1       // Existing entry
+	PressDecimals=              // NEW [hPa/mb=1, inHg=2]
+	RainDecimals=               // NEW [mm=1, in=2]
+	TempDecimals=1              // NEW
+	UVDecimals=1                // NEW
+	AirQualityDecimals=1        // NEW - affects AQI values only, not PM values
+- Lots of internal code fettling
+- New Cumulus.ini read-only entry to control the data read rate for Instromet stations. The value is in milliseconds, default is 500.
+	[Station]
+	ImetReadDelay=500
+- Admin interface tweaks
+- Change WUnderground Password field name to Station Key in settings
+
+
 3.9.1 - b3096
 —————————————
 - Fix: AirLink - Limit the number of decimal places in the AirLink log file
@@ -78,8 +130,8 @@
 		<#AirLinkAqiPm2p5Out>,<#AirLinkAqiPm2p5_1hrOut>,<#AirLinkAqiPm2p5_3hrOut>,<#AirLinkAqiPm2p5_24hrOut>,<#AirLinkAqiPm2p5_NowcastOut>
 		<#AirLinkAqiPm10In>,<#AirLinkAqiPm10_1hrIn>,<#AirLinkAqiPm10_3hrIn>,<#AirLinkAqiPm10_24hrIn>,<#AirLinkAqiPm10_NowcastIn>
 		<#AirLinkAqiPm10Out>,<#AirLinkAqiPm10_1hrOut>,<#AirLinkAqiPm10_3hrOut>,<#AirLinkAqiPm10_24hrOut>,<#AirLinkAqiPm10_NowcastOut>
-		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLink_NowcastIn>
-		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLink_NowcastOut>
+		<#AirLinkPct_1hrIn>,<#AirLinkPct_3hrIn>,<#AirLinkPct_24hrIn><#AirLinkPct_NowcastIn>
+		<#AirLinkPct_1hrOut>,<#AirLinkPct_3hrOut>,<#AirLinkPct_24hrOut><#AirLinkPct_NowcastOut>
 - The Blake-Larsen sunshine recorder, and Hydreon RG-11 rain device configuration options can now be set on the new Extra Sensors page.
 	There are two new settings for RG-11 devices, if you use these devices you must set these via the configuration page as they will default to disabled.
 		[Station]

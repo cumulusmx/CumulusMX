@@ -108,26 +108,26 @@ namespace CumulusMX
             {
                 try
                 {
-                    string Line;
+                    string line;
                     using (FileStream fs = new FileStream(cumulus.EWFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var sr = new StreamReader(fs))
                     {
                         do
                         {
-                            Line = sr.ReadLine();
+                            line = sr.ReadLine();
                         } while (!sr.EndOfStream);
                     }
-                    cumulus.LogDataMessage("Data: " + Line);
+                    cumulus.LogDataMessage("Data: " + line);
 
                     // split string on commas and spaces
-                    char[] charSeparators = new char[] { ',', ' ' };
+                    char[] charSeparators = { ',', ' ' };
 
-                    var st = Line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
+                    var st = line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
 
                     string datestr = st[EW_READING_DATE];
                     string timestr = st[EW_READING_TIME];
 
-                    DateTime Now = DateTime.Now;
+                    DateTime now = DateTime.Now;
 
                     if ((datestr != lastDate) || (timestr != lastTime))
                     {
@@ -135,64 +135,64 @@ namespace CumulusMX
                         lastTime = timestr;
                     }
 
-                    DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]), ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), Now);
+                    DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]), ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), now);
 
-                    DoWindChill(ConvertTempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), Now);
+                    DoWindChill(ConvertTempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), now);
 
                     DoIndoorHumidity(Convert.ToInt32(st[EW_INDOOR_HUM]));
 
-                    DoOutdoorHumidity(Convert.ToInt32(st[EW_OUTDOOR_HUM]), Now);
+                    DoOutdoorHumidity(Convert.ToInt32(st[EW_OUTDOOR_HUM]), now);
 
-                    DoOutdoorDewpoint(ConvertTempCToUser(GetConvertedValue(st[EW_DEW_POINT])), Now);
+                    DoOutdoorDewpoint(ConvertTempCToUser(GetConvertedValue(st[EW_DEW_POINT])), now);
 
-                    DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), Now);
+                    DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
                     UpdatePressureTrendString();
 
                     DoIndoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
 
-                    DoOutdoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), Now);
+                    DoOutdoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), now);
 
                     DoRain(ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_YEAR])), // use year as total
                             ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
-                            Now);
+                            now);
 
-                    DoApparentTemp(Now);
-                    DoFeelsLike(Now);
-                    DoHumidex(Now);
+                    DoApparentTemp(now);
+                    DoFeelsLike(now);
+                    DoHumidex(now);
 
                     DoForecast(string.Empty, false);
 
-                    if (cumulus.LogExtraSensors)
+                    if (cumulus.StationOptions.LogExtraSensors)
                     {
-                        var LightReading = GetConvertedValue(st[EW_LIGHT]);
+                        var lightReading = GetConvertedValue(st[EW_LIGHT]);
 
-                        if ((LightReading >= 0) && (LightReading <= 300000))
+                        if ((lightReading >= 0) && (lightReading <= 300000))
                         {
-                            DoSolarRad((int)(LightReading * cumulus.LuxToWM2), Now);
-                            LightValue = LightReading;
+                            DoSolarRad((int)(lightReading * cumulus.LuxToWM2), now);
+                            LightValue = lightReading;
                         }
 
-                        var UVreading = GetConvertedValue(st[EW_UV]);
+                        var uVreading = GetConvertedValue(st[EW_UV]);
 
-                        if (UVreading == 255)
+                        if (uVreading == 255)
                         {
                             // ignore
                         }
-                        else if (UVreading < 0)
+                        else if (uVreading < 0)
                         {
-                            DoUV(0, Now);
+                            DoUV(0, now);
                         }
-                        else if (UVreading > 16)
+                        else if (uVreading > 16)
                         {
-                            DoUV(16, Now);
+                            DoUV(16, now);
                         }
                         else
                         {
-                            DoUV(UVreading, Now);
+                            DoUV(uVreading, now);
                         }
                     }
 
-                    UpdateStatusPanel(Now);
+                    UpdateStatusPanel(now);
                     UpdateMQTT();
                 }
                 catch (Exception ex)
@@ -205,7 +205,7 @@ namespace CumulusMX
             }
         }
 
-        private int CPtoBearing(string cp)
+        private static int CPtoBearing(string cp)
         {
             switch (cp)
             {
@@ -256,14 +256,14 @@ namespace CumulusMX
             }
         }
 
-        private string ConvertPeriodToSystemDecimal(string AStr)
+        private string ConvertPeriodToSystemDecimal(string aStr)
         {
-            return AStr.Replace(".", cumulus.DecimalSeparator);
+            return aStr.Replace(".", cumulus.DecimalSeparator);
         }
 
-        private double GetConvertedValue(string AStr)
+        private double GetConvertedValue(string aStr)
         {
-            return Convert.ToDouble(ConvertPeriodToSystemDecimal(AStr));
+            return Convert.ToDouble(ConvertPeriodToSystemDecimal(aStr));
         }
     }
 }

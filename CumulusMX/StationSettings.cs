@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Threading;
-//using Newtonsoft.Json;
 using ServiceStack.Text;
 using Unosquare.Labs.EmbedIO;
 using System.Reflection;
@@ -28,23 +27,23 @@ namespace CumulusMX
 			// Build the settings data, convert to JSON, and return it
 			var options = new JsonStationSettingsOptions()
 						  {
-							  usezerobearing = cumulus.UseZeroBearing,
-							  calcwindaverage = cumulus.UseWind10MinAve,
-							  usespeedforavg = cumulus.UseSpeedForAvgCalc,
-							  use100for98hum = cumulus.Humidity98Fix,
-							  calculatedewpoint = cumulus.CalculatedDP,
-							  calculatewindchill = cumulus.CalculatedWC,
-							  syncstationclock = cumulus.SyncTime,
-							  cumuluspresstrendnames = cumulus.UseCumulusPresstrendstr,
-							  vp1minbarupdate = cumulus.ForceVPBarUpdate,
-							  extrasensors = cumulus.LogExtraSensors,
-							  ignorelacrosseclock = cumulus.WS2300IgnoreStationClock,
-							  roundwindspeeds = cumulus.RoundWindSpeed,
-							  synchroniseforeads = cumulus.SyncFOReads,
-							  debuglogging = cumulus.logging,
-							  datalogging = cumulus.DataLogging,
-							  stopsecondinstance = cumulus.WarnMultiple,
-							  readreceptionstats = cumulus.DavisReadReceptionStats
+							  usezerobearing = cumulus.StationOptions.UseZeroBearing,
+							  calcwindaverage = cumulus.StationOptions.UseWind10MinAve,
+							  usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
+							  use100for98hum = cumulus.StationOptions.Humidity98Fix,
+							  calculatedewpoint = cumulus.StationOptions.CalculatedDP,
+							  calculatewindchill = cumulus.StationOptions.CalculatedWC,
+							  syncstationclock = cumulus.StationOptions.SyncTime,
+							  cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
+							  vp1minbarupdate = cumulus.StationOptions.ForceVPBarUpdate,
+							  extrasensors = cumulus.StationOptions.LogExtraSensors,
+							  ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
+							  roundwindspeeds = cumulus.StationOptions.RoundWindSpeed,
+							  synchroniseforeads = cumulus.StationOptions.SyncFOReads,
+							  debuglogging = cumulus.StationOptions.DebugLogging,
+							  datalogging = cumulus.StationOptions.DataLogging,
+							  stopsecondinstance = cumulus.StationOptions.WarnMultiple,
+							  readreceptionstats = cumulus.StationOptions.DavisReadReceptionStats
 						  };
 
 			var units = new JsonStationSettingsUnits()
@@ -78,25 +77,25 @@ namespace CumulusMX
 
 			LatToDMS(cumulus.Latitude, out deg, out min, out sec, out hem);
 
-			var Latitude = new JsonStationSettingsLatLong() {degrees = deg, minutes = min, seconds = sec, hemisphere = hem};
+			var latitude = new JsonStationSettingsLatLong() {degrees = deg, minutes = min, seconds = sec, hemisphere = hem};
 
 			LongToDMS(cumulus.Longitude, out deg, out min, out sec, out hem);
 
-			var Longitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
+			var longitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
-			var Location = new JsonStationSettingsLocation()
+			var location = new JsonStationSettingsLocation()
 							{
 								altitude = (int) cumulus.Altitude,
 								altitudeunit = "metres",
 								description = cumulus.LocationDesc,
-								Latitude = Latitude,
-								Longitude = Longitude,
+								Latitude = latitude,
+								Longitude = longitude,
 								sitename = cumulus.LocationName
 							};
 
 			if (cumulus.AltitudeInFeet)
 			{
-				Location.altitudeunit = "feet";
+				location.altitudeunit = "feet";
 			}
 
 			var forecast = new JsonStationSettingsForecast()
@@ -139,7 +138,8 @@ namespace CumulusMX
 				graphHumVis = cumulus.GraphOptions.OutHumVisible,
 				graphInHumVis = cumulus.GraphOptions.InHumVisible,
 				graphUvVis = cumulus.GraphOptions.UVVisible,
-				graphSolarVis = cumulus.GraphOptions.SolarVisible
+				graphSolarVis = cumulus.GraphOptions.SolarVisible,
+				graphSunshineVis = cumulus.GraphOptions.SunshineVisible
 			};
 
 			var wllNetwork = new JsonStationSettingsWLLNetwork()
@@ -232,7 +232,7 @@ namespace CumulusMX
 				comportname = cumulus.ComportName,
 				loginterval = cumulus.DataLogInterval,
 				logrollover = logrollover,
-				Location = Location,
+				Location = location,
 				Options = options,
 				Forecast = forecast,
 				Solar = solar,
@@ -312,7 +312,7 @@ namespace CumulusMX
 		//public string UpdateStationConfig(HttpListenerContext context)
 		public string UpdateStationConfig(IHttpContext context)
 		{
-			var ErrorMsg = "";
+			var errorMsg = "";
 			context.Response.StatusCode = 200;
 			// get the response
 			try
@@ -346,12 +346,13 @@ namespace CumulusMX
 					cumulus.GraphOptions.InHumVisible = settings.Graphs.graphInHumVis;
 					cumulus.GraphOptions.UVVisible = settings.Graphs.graphUvVis;
 					cumulus.GraphOptions.SolarVisible = settings.Graphs.graphSolarVis;
+					cumulus.GraphOptions.SunshineVisible = settings.Graphs.graphSunshineVis;
 				}
 				catch (Exception ex)
 				{
 					var msg = "Error processing Graph hours: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -366,7 +367,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Rainfall settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -383,7 +384,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Solar settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -400,7 +401,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Forecast settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -418,7 +419,7 @@ namespace CumulusMX
 						cumulus.Latitude = -cumulus.Latitude;
 					}
 
-					cumulus.LatTxt = String.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.Location.Latitude.hemisphere[0], settings.Location.Latitude.degrees, settings.Location.Latitude.minutes,
+					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.Location.Latitude.hemisphere[0], settings.Location.Latitude.degrees, settings.Location.Latitude.minutes,
 						settings.Location.Latitude.seconds);
 
 					cumulus.Longitude = settings.Location.Longitude.degrees + (settings.Location.Longitude.minutes / 60.0) + (settings.Location.Longitude.seconds / 3600.0);
@@ -427,57 +428,50 @@ namespace CumulusMX
 						cumulus.Longitude = -cumulus.Longitude;
 					}
 
-					cumulus.LonTxt = String.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.Location.Longitude.hemisphere[0], settings.Location.Longitude.degrees, settings.Location.Longitude.minutes,
+					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.Location.Longitude.hemisphere[0], settings.Location.Longitude.degrees, settings.Location.Longitude.minutes,
 						settings.Location.Longitude.seconds);
 				}
 				catch (Exception ex)
 				{
 					var msg = "Error processing Location settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
 				// Options
 				try
 				{
-					cumulus.UseZeroBearing = settings.Options.usezerobearing;
-					cumulus.UseWind10MinAve = settings.Options.calcwindaverage;
-					cumulus.UseSpeedForAvgCalc = settings.Options.usespeedforavg;
-					cumulus.Humidity98Fix = settings.Options.use100for98hum;
-					cumulus.CalculatedDP = settings.Options.calculatedewpoint;
-					cumulus.CalculatedWC = settings.Options.calculatewindchill;
-					cumulus.SyncTime = settings.Options.syncstationclock;
-					cumulus.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
-					cumulus.ForceVPBarUpdate = settings.Options.vp1minbarupdate;
-					cumulus.LogExtraSensors = settings.Options.extrasensors;
-					cumulus.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
-					cumulus.RoundWindSpeed = settings.Options.roundwindspeeds;
-					cumulus.SyncFOReads = settings.Options.synchroniseforeads;
-					cumulus.logging = settings.Options.debuglogging;
-					cumulus.DataLogging = settings.Options.datalogging;
-					cumulus.WarnMultiple = settings.Options.stopsecondinstance;
-					cumulus.DavisReadReceptionStats = settings.Options.readreceptionstats;
+					cumulus.StationOptions.UseZeroBearing = settings.Options.usezerobearing;
+					cumulus.StationOptions.UseWind10MinAve = settings.Options.calcwindaverage;
+					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.usespeedforavg;
+					cumulus.StationOptions.Humidity98Fix = settings.Options.use100for98hum;
+					cumulus.StationOptions.CalculatedDP = settings.Options.calculatedewpoint;
+					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
+					cumulus.StationOptions.SyncTime = settings.Options.syncstationclock;
+					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
+					cumulus.StationOptions.ForceVPBarUpdate = settings.Options.vp1minbarupdate;
+					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
+					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
+					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
+					cumulus.StationOptions.SyncFOReads = settings.Options.synchroniseforeads;
+					cumulus.StationOptions.DebugLogging = settings.Options.debuglogging;
+					cumulus.StationOptions.DataLogging = settings.Options.datalogging;
+					cumulus.StationOptions.WarnMultiple = settings.Options.stopsecondinstance;
+					cumulus.StationOptions.DavisReadReceptionStats = settings.Options.readreceptionstats;
 				}
 				catch (Exception ex)
 				{
 					var msg = "Error processing Options settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
 				// Log rollover
 				try
 				{
-					if (settings.logrollover.time == "9am")
-					{
-						cumulus.RolloverHour = 9;
-					}
-					else
-					{
-						cumulus.RolloverHour = 0;
-					}
+					cumulus.RolloverHour = settings.logrollover.time == "9am" ? 9 : 0;
 
 					cumulus.Use10amInSummer = settings.logrollover.summer10am;
 				}
@@ -485,7 +479,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Log rollover settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -548,7 +542,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing WLL settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -561,7 +555,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Log interval setting: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -575,7 +569,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing COM port setting: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -591,7 +585,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Davis settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -605,7 +599,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing GW1000 settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -622,7 +616,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Units settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -640,7 +634,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Station Type setting: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -654,44 +648,38 @@ namespace CumulusMX
 				return ex.Message;
 			}
 
-			if (context.Response.StatusCode == 200)
-				return "success";
-			else
-				return ErrorMsg;
+			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
 		public string FtpNow()
 		{
-			if (!string.IsNullOrEmpty(cumulus.ftp_host))
-			{
-				if (cumulus.WebUpdating == 1)
-				{
-					cumulus.LogMessage("Warning, manual FTP, a previous web update is still in progress, first chance, skipping attempt");
-					return "{\"result\":\"A web update is already in progress\"}";
-				}
-				else if (cumulus.WebUpdating >= 2)
-				{
-					cumulus.LogMessage("Warning, manual FTP, a previous web update is still in progress,second chance, aborting connection");
-					if (cumulus.ftpThread.ThreadState == System.Threading.ThreadState.Running)
-						cumulus.ftpThread.Abort();
-					cumulus.LogMessage("Trying new web update");
-					cumulus.WebUpdating = 1;
-					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
-					cumulus.ftpThread.Start();
-					return "{\"result\":\"Am existing FTP process was aborted, and a new FTP process invoked\"}";
-				}
-				else
-				{
-					cumulus.WebUpdating = 1;
-					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
-					cumulus.ftpThread.Start();
-					return "{\"result\":\"FTP process invoked\"}";
-				}
-			}
-			else
-			{
+			if (string.IsNullOrEmpty(cumulus.FtpHostname))
 				return "{\"result\":\"No FTP host defined\"}";
+
+
+			if (cumulus.WebUpdating == 1)
+			{
+				cumulus.LogMessage("Warning, manual FTP, a previous web update is still in progress, first chance, skipping attempt");
+				return "{\"result\":\"A web update is already in progress\"}";
 			}
+
+			if (cumulus.WebUpdating >= 2)
+			{
+				cumulus.LogMessage("Warning, manual FTP, a previous web update is still in progress,second chance, aborting connection");
+				if (cumulus.ftpThread.ThreadState == System.Threading.ThreadState.Running)
+					cumulus.ftpThread.Abort();
+				cumulus.LogMessage("Trying new web update");
+				cumulus.WebUpdating = 1;
+				cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
+				cumulus.ftpThread.Start();
+				return "{\"result\":\"Am existing FTP process was aborted, and a new FTP process invoked\"}";
+			}
+
+			cumulus.WebUpdating = 1;
+			cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
+			cumulus.ftpThread.Start();
+			return "{\"result\":\"FTP process invoked\"}";
+
 		}
 
 		public string GetWSport()
@@ -927,5 +915,6 @@ namespace CumulusMX
 		public bool graphInHumVis { get; set; }
 		public bool graphUvVis { get; set; }
 		public bool graphSolarVis { get; set; }
+		public bool graphSunshineVis { get; set; }
 	}
 }

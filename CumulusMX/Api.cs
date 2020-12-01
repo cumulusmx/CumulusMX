@@ -8,7 +8,6 @@ using System.Web;
 using Unosquare.Labs.EmbedIO;
 using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
-using System.Threading;
 
 namespace CumulusMX
 {
@@ -26,51 +25,6 @@ namespace CumulusMX
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
 
-		public static string Utf16ToUtf8(string utf16String)
-		{
-			/**************************************************************
-			* Every .NET string will store text with the UTF16 encoding, *
-			* known as Encoding.Unicode. Other encodings may exist as    *
-			* Byte-Array or incorrectly stored with the UTF16 encoding.  *
-			*                                                            *
-			* UTF8 = 1 bytes per char                                    *
-			*    ["100" for the ansi 'd']                                *
-			*    ["206" and "186" for the russian 'κ']                   *
-			*                                                            *
-			* UTF16 = 2 bytes per char                                   *
-			*    ["100, 0" for the ansi 'd']                             *
-			*    ["186, 3" for the russian 'κ']                          *
-			*                                                            *
-			* UTF8 inside UTF16                                          *
-			*    ["100, 0" for the ansi 'd']                             *
-			*    ["206, 0" and "186, 0" for the russian 'κ']             *
-			*                                                            *
-			* We can use the convert encoding function to convert an     *
-			* UTF16 Byte-Array to an UTF8 Byte-Array. When we use UTF8   *
-			* encoding to string method now, we will get a UTF16 string. *
-			*                                                            *
-			* So we imitate UTF16 by filling the second byte of a char   *
-			* with a 0 byte (binary 0) while creating the string.        *
-			**************************************************************/
-
-			// Storage for the UTF8 string
-			string utf8String = String.Empty;
-
-			// Get UTF16 bytes and convert UTF16 bytes to UTF8 bytes
-			byte[] utf16Bytes = Encoding.Unicode.GetBytes(utf16String);
-			byte[] utf8Bytes = Encoding.Convert(Encoding.Unicode, Encoding.UTF8, utf16Bytes);
-
-			// Fill UTF8 bytes inside UTF8 string
-			for (int i = 0; i < utf8Bytes.Length; i++)
-			{
-				// Because char always saves 2 bytes, fill char with 0
-				byte[] utf8Container = new byte[2] { utf8Bytes[i], 0 };
-				utf8String += BitConverter.ToChar(utf8Container, 0);
-			}
-
-			// Return UTF8
-			return utf8String;
-		}
 
 		private static string EscapeUnicode(string input)
 		{
@@ -274,7 +228,6 @@ namespace CumulusMX
 
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					var date = query["date"];
-					var year = query["year"];
 					var month = query["month"];
 					var draw = query["draw"];
 					int start = Convert.ToInt32(query["start"]);
@@ -426,6 +379,8 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(Station.GetUnits());
 						case "graphconfig.json":
 							return await this.JsonResponseAsync(Station.GetGraphConfig());
+						case "airqualitydata.json":
+							return await this.JsonResponseAsync(Station.GetAqGraphData());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -435,6 +390,46 @@ namespace CumulusMX
 					return await HandleError(ex, 404);
 				}
 			}
+
+
+			[WebApiHandler(HttpVerbs.Get, RelativePath + "dailygraphdata/*")]
+			public async Task<bool> GetDailyGraphData()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					var lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "tempdata.json":
+							return await this.JsonResponseAsync(Station.GetAllDailyTempGraphData());
+						case "winddata.json":
+							return await this.JsonResponseAsync(Station.GetAllDailyWindGraphData());
+						case "raindata.json":
+							return await this.JsonResponseAsync(Station.GetAllDailyRainGraphData());
+						case "pressdata.json":
+							return await this.JsonResponseAsync(Station.GetAllDailyPressGraphData());
+						//case "wdirdata.json":
+						//	return await this.JsonResponseAsync(Station.GetAllDailyWindDirGraphData());
+						case "humdata.json":
+							return await this.JsonResponseAsync(Station.GetAllDailyHumGraphData());
+						case "solardata.json":
+							return await this.JsonResponseAsync(Station.GetAllDailySolarGraphData());
+						case "units.json":
+							return await this.JsonResponseAsync(Station.GetUnits());
+						case "graphconfig.json":
+							return await this.JsonResponseAsync(Station.GetGraphConfig());
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
 
 			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{

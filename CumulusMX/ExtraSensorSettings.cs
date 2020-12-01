@@ -43,8 +43,7 @@ namespace CumulusMX
 				apiSecret = cumulus.AirLinkApiSecret,
 				autoUpdateIp = cumulus.AirLinkAutoUpdateIpAddress,
 				indoor = indoor,
-				outdoor = outdoor,
-				aqi = cumulus.airQualityIndex
+				outdoor = outdoor
 			};
 
 			var bl = new JsonExtraSensorBlakeLarsen()
@@ -76,6 +75,8 @@ namespace CumulusMX
 
 			var data = new JsonExtraSensorSettings()
 			{
+				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
+				aqi = cumulus.airQualityIndex,
 				airLink = airlink,
 				blakeLarsen = bl,
 				rg11 = rg11
@@ -86,7 +87,7 @@ namespace CumulusMX
 
 		public string UpdateExtraSensorConfig(IHttpContext context)
 		{
-			var ErrorMsg = "";
+			var errorMsg = "";
 			context.Response.StatusCode = 200;
 
 			try
@@ -100,6 +101,20 @@ namespace CumulusMX
 				var settings = json.FromJson<JsonExtraSensorSettings>();
 				// process the settings
 				cumulus.LogMessage("Updating extra sensor settings");
+
+				// General settings
+				try
+				{
+					cumulus.StationOptions.PrimaryAqSensor = settings.primaryaqsensor;
+					cumulus.airQualityIndex = settings.aqi;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing General settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
 
 				// AirLink settings
 				try
@@ -125,14 +140,12 @@ namespace CumulusMX
 					{
 						cumulus.AirLinkOutStationId = cumulus.WllStationId;
 					}
-
-					cumulus.airQualityIndex = settings.airLink.aqi;
 				}
 				catch (Exception ex)
 				{
 					var msg = "Error processing AirLink settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -145,7 +158,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing Blake-Larsen settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -168,7 +181,7 @@ namespace CumulusMX
 				{
 					var msg = "Error processing RG-11 settings: " + ex.Message;
 					cumulus.LogMessage(msg);
-					ErrorMsg += msg + "\n\n";
+					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
@@ -183,10 +196,7 @@ namespace CumulusMX
 			// Save the settings
 			cumulus.WriteIniFile();
 
-			if (context.Response.StatusCode == 200)
-				return "success";
-			else
-				return ErrorMsg;
+			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
 
@@ -211,6 +221,9 @@ namespace CumulusMX
 
 	public class JsonExtraSensorSettings
 	{
+		public int primaryaqsensor { get; set; }
+		public int aqi { get; set; }
+
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
 		public JsonExtraSensorRG11 rg11 { get; set; }
@@ -223,7 +236,6 @@ namespace CumulusMX
 		public bool autoUpdateIp { get; set; }
 		public JsonExtraSensorAirLinkDevice indoor { get; set; }
 		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
-		public int aqi { get; set; }
 	}
 
 	public class JsonExtraSensorAirLinkDevice

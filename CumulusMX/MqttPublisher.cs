@@ -13,7 +13,7 @@ namespace CumulusMX
 		private static MqttClient mqttClient;
 		private static string dataupdateTemplateFile;
 		private static string dataupdateTemplateContent;
-		public static bool configured = false;
+		public static bool configured;
 
 		public static void Setup(Cumulus cumulus)
 		{
@@ -25,14 +25,14 @@ namespace CumulusMX
 
 			var clientId = Guid.NewGuid().ToString();
 
-			MQTTnet.Client.Options.MqttClientTcpOptions mqttTcpOptions = new MQTTnet.Client.Options.MqttClientTcpOptions
+			var mqttTcpOptions = new MQTTnet.Client.Options.MqttClientTcpOptions
 			{
-				Server = cumulus.MQTTServer,
-				Port = cumulus.MQTTPort,
-				TlsOptions = new MQTTnet.Client.Options.MqttClientTlsOptions { UseTls = cumulus.MQTTUseTLS }
+				Server = cumulus.MQTT.Server,
+				Port = cumulus.MQTT.Port,
+				TlsOptions = new MQTTnet.Client.Options.MqttClientTlsOptions { UseTls = cumulus.MQTT.UseTLS }
 			};
 
-			switch (cumulus.MQTTIpVersion)
+			switch (cumulus.MQTT.IpVersion)
 			{
 				case 4:
 					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
@@ -45,11 +45,19 @@ namespace CumulusMX
 					break;
 			}
 
-			var mqttOptions = new MQTTnet.Client.Options.MqttClientOptions();
-			mqttOptions.ChannelOptions = mqttTcpOptions;
-			mqttOptions.ClientId = clientId;
-			mqttOptions.Credentials = String.IsNullOrEmpty(cumulus.MQTTPassword) ? null : new MQTTnet.Client.Options.MqttClientCredentials { Username = cumulus.MQTTUsername, Password = System.Text.Encoding.UTF8.GetBytes(cumulus.MQTTPassword) };
-			mqttOptions.CleanSession = true;
+			var mqttOptions = new MQTTnet.Client.Options.MqttClientOptions
+			{
+				ChannelOptions = mqttTcpOptions,
+				ClientId = clientId,
+				Credentials = string.IsNullOrEmpty(cumulus.MQTT.Password)
+					? null
+					: new MQTTnet.Client.Options.MqttClientCredentials
+					{
+						Username = cumulus.MQTT.Username,
+						Password = System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)
+					},
+				CleanSession = true
+			};
 
 			Connect(mqttOptions);
 
@@ -74,7 +82,7 @@ namespace CumulusMX
 		}
 
 
-		public static async Task SendMessageAsync(string topic, string message, bool retain)
+		private static async Task SendMessageAsync(string topic, string message, bool retain)
 		{
 			cumulus.LogDataMessage($"MQTT: publishing to topic '{topic}', message '{message}'");
 			var mqttMsg = new MqttApplicationMessageBuilder()
@@ -102,22 +110,22 @@ namespace CumulusMX
 
 		public static void UpdateMQTTfeed(string feedType)
 		{
-			string message, topic;
+			string topic;
 			var template = "mqtt/";
 
 			if (feedType == "Interval")
 			{
-				template += cumulus.MQTTIntervalTemplate;
-				topic = cumulus.MQTTIntervalTopic;
+				template += cumulus.MQTT.IntervalTemplate;
+				topic = cumulus.MQTT.IntervalTopic;
 			}
 			else
 			{
-				template += cumulus.MQTTUpdateTemplate;
-				topic = cumulus.MQTTUpdateTopic;
+				template += cumulus.MQTT.UpdateTemplate;
+				topic = cumulus.MQTT.UpdateTopic;
 
 				// Refresh our copy of the template contents if the filename has changed
 				// We want to avoid reading the template file every few seconds if possible.
-				if (cumulus.MQTTUpdateTemplate != dataupdateTemplateFile)
+				if (cumulus.MQTT.UpdateTemplate != dataupdateTemplateFile)
 				{
 					if (File.Exists(template))
 					{
@@ -133,7 +141,7 @@ namespace CumulusMX
 							cumulus.LogMessage($"MQTT: Error reading template file {template} - {e.Message}");
 							return;
 						}
-						dataupdateTemplateFile = cumulus.MQTTUpdateTemplate;
+						dataupdateTemplateFile = cumulus.MQTT.UpdateTemplate;
 					}
 					else
 					{
@@ -143,30 +151,30 @@ namespace CumulusMX
 				}
 			}
 
-			if (File.Exists(template))
-			{
-				// use template file
-				cumulus.LogDebugMessage($"MQTT: Using template - {template}");
-				bool retain;
-				var mqttTokenParser = new TokenParser();
-				mqttTokenParser.encoding = new System.Text.UTF8Encoding(false);
-				mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
-				if (feedType == "Interval")
-				{
-					mqttTokenParser.SourceFile = template;
-					message = mqttTokenParser.ToString();
-					retain = cumulus.MQTTIntervalRetained;
-				}
-				else
-				{
-					mqttTokenParser.InputText = dataupdateTemplateContent;
-					message = mqttTokenParser.ToStringFromString();
-					retain = cumulus.MQTTUpdateRetained;
-				}
+			if (!File.Exists(template))
+				return;
 
-				// send the message
-				_ = SendMessageAsync(topic, message, retain);
+			// use template file
+			cumulus.LogDebugMessage($"MQTT: Using template - {template}");
+			bool retain;
+			var mqttTokenParser = new TokenParser {Encoding = new System.Text.UTF8Encoding(false)};
+			mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
+			string message;
+			if (feedType == "Interval")
+			{
+				mqttTokenParser.SourceFile = template;
+				message = mqttTokenParser.ToString();
+				retain = cumulus.MQTT.IntervalRetained;
 			}
+			else
+			{
+				mqttTokenParser.InputText = dataupdateTemplateContent;
+				message = mqttTokenParser.ToStringFromString();
+				retain = cumulus.MQTT.UpdateRetained;
+			}
+
+			// send the message
+			_ = SendMessageAsync(topic, message, retain);
 		}
 	}
 }

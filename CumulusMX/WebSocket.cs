@@ -34,11 +34,11 @@ namespace CumulusMX
 		/// Defines a very simple web socket server
 		/// </summary>
 		[WebSocketHandler("/ws")]
-		public class MySocketServer : WebSocketsServer
+		private class MySocketServer : WebSocketsServer
 		{
 			public MySocketServer() : base(true, 0)
 			{
-				WebSocket.socketServer = this;
+				socketServer = this;
 			}
 
 			/// <inheritdoc />
@@ -70,7 +70,7 @@ namespace CumulusMX
 
 			public void SendMessage(string message)
 			{
-				this.Broadcast(message);
+				Broadcast(message);
 			}
 		}
 	}

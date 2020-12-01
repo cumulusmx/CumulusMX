@@ -189,7 +189,7 @@ namespace CumulusMX
         // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into
         // an Int16 (16-bit integer).  When a single byte is all that's needed, I just convert it to an Int32.
         // In the end, all integers are cast to Int32 for return.
-        public void Load(Byte[] byteArray)
+        public void Load(byte[] byteArray)
         {
             PressureTrend = Convert.ToInt32((sbyte) byteArray[3]); // Sbyte - signed byte
             Pressure = (double) (BitConverter.ToInt16(byteArray, 7))/1000; // Uint16
@@ -301,7 +301,7 @@ namespace CumulusMX
             return (outputString.ToString());
         }
 
-        public string WindDirectionText()
+        private string WindDirectionText()
         {
             string windDirString;
 
@@ -328,7 +328,7 @@ namespace CumulusMX
             return windDirString;
         }
 
-        public string PressureTrendText()
+        private string PressureTrendText()
         {
             // The barometric trend is in signed integer values.  Convert these to something meaningful.
             switch (PressureTrend)
@@ -863,7 +863,7 @@ namespace CumulusMX
         // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into
         // an Int16 (16-bit integer).  When a single byte is all that's needed, I just convert it to an Int32.
         // In the end, all integers are cast to Int32 for return.
-        public void Load(Byte[] byteArray)
+        public void Load(byte[] byteArray)
         {
             CurrentWindSpeed = Convert.ToInt32(byteArray[14]); // Byte - unsigned byte
             WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16

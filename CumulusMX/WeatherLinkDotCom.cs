@@ -1,7 +1,4 @@
-﻿//using Newtonsoft.Json;
-using ServiceStack.Text;
-using System;
-//using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -16,7 +13,7 @@ namespace CumulusMX
 			/*
 			 Calculate the HMAC SHA-256 hash that will be used as the API Signature.
 			 */
-			string apiSignatureString = null;
+			string apiSignatureString;
 			using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(apiSecret)))
 			{
 				byte[] apiSignatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));

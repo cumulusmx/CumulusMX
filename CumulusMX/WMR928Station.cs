@@ -21,7 +21,7 @@ namespace CumulusMX
 		private int currentPacketLength;
 		private int currentPacketType;
 
-		private bool stop = false;
+		private bool stop;
 
 		private readonly int[] WMR928PacketLength = {11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255};
 
