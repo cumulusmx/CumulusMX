@@ -6982,12 +6982,12 @@ namespace CumulusMX
 								cumulus.LogMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
 								cumulus.LogMessage("Please edit the file to correct the error");
 								errorCount++;
-								if (errorCount >= 10)
+								if (errorCount >= 20)
 								{
-									cumulus.LogMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of recent daily data");
+									cumulus.LogMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data");
 								}
 							}
-						} while (!(sr.EndOfStream || errorCount >= 10));
+						} while (!(sr.EndOfStream || errorCount >= 20));
 					}
 
 					watch.Stop();

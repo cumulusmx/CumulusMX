@@ -31,7 +31,7 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.2-beta2";
+		public string Version = "3.9.2";
 		public string Build = "3097";
 		/////////////////////////////////
 
