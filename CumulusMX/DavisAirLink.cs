@@ -794,6 +794,14 @@ namespace CumulusMX
 								//cumulus.airLinkDataIn.pct_nowcast = rec.Value<int>("pct_pm_data_nowcast");
 
 								DoAqi(cumulus.airLinkDataIn);
+
+								// If we are the primary AQ sensor,
+								// and we are not linked to a WLL,
+								// then add the PM data into the graphdata list
+								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
+								{
+									UpdateGraphDataAqEntry(FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
+								}
 							}
 							else
 							{
@@ -816,15 +824,14 @@ namespace CumulusMX
 								//cumulus.airLinkDataOut.pct_nowcast = rec.Value<int>("pct_pm_data_nowcast");
 
 								DoAqi(cumulus.airLinkDataOut);
-							}
 
-							// If we are the primary AQ sensor,
-							// and we are not linked to a WLL,
-							// and we are outdoor,
-							// then add the PM data into the graphdata list
-							if (cumulus.StationOptions.PrimaryAqSensor == 0 && standaloneHistory && !indoor)
-							{
-								UpdateGraphDataAqEntry(FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+								// If we are the primary AQ sensor,
+								// and we are not linked to a WLL,
+								// then add the PM data into the graphdata list
+								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
+								{
+									UpdateGraphDataAqEntry(FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+								}
 							}
 						}
 						catch (Exception ex)

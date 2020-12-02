@@ -1,3 +1,11 @@
+3.9.3 - b3098 - test1
+—————————————
+- Fix: Records check was triggering for very small value changes in derived values such as feels like temps
+- Fix: Catch uncaught exception on SFTP disconnect
+
+
+
+
 3.9.2 - b3097
 —————————————
 - Fix: Change log messages for number of SQL rows affected to Debug only messages

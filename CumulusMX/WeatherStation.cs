@@ -977,7 +977,10 @@ namespace CumulusMX
 			{
 				bool recordbroken;
 
-				double epsilon = 0.001; // required difference for new record
+				// Make the delta relate to the precision for dervied values such as feels like
+				string[] derivedVals = { "HighHeatIndex", "HighAppTemp", "LowAppTemp", "LowChill", "HighHumidex", "HighDewPoint", "LowDewPoint", "HighFeelsLike", "LowFeelsLike"};
+
+				double epsilon = derivedVals.Contains(index) ? Math.Pow(10, -cumulus.TempDPlaces) : 0.001; // required difference for new record
 
 				int month;
 				int day;
@@ -1020,12 +1023,12 @@ namespace CumulusMX
 				if (higher)
 				{
 					// check new value is higher than existing record
-					recordbroken = (value - oldvalue > epsilon);
+					recordbroken = (value - oldvalue >= epsilon);
 				}
 				else
 				{
 					// check new value is lower than existing record
-					recordbroken = (oldvalue - value > epsilon);
+					recordbroken = (oldvalue - value >= epsilon);
 				}
 
 				if (recordbroken)
@@ -2594,8 +2597,9 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
-			// Check if we are to generate AQ data at all
-			if (cumulus.StationOptions.PrimaryAqSensor >= 0)
+			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
+			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
+				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				sb.Append("\"pm2p5\":[");
 				lock (GraphDataList)
@@ -2609,7 +2613,7 @@ namespace CumulusMX
 					}
 					sb.Append("]");
 					// Only the AirLink provides PM10 values at the moment
-					if (cumulus.StationOptions.PrimaryAqSensor == 0)
+					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor || cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 					{
 						sb.Append(",\"pm10\":[");
 						for (var i = 0; i < GraphDataList.Count; i++)
@@ -5983,23 +5987,30 @@ namespace CumulusMX
 			// Check for Air Quality readings
 			switch (cumulus.StationOptions.PrimaryAqSensor)
 			{
-				case 0: // Davis AirLink Outdoor
+				case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 					if (cumulus.airLinkDataOut != null)
 					{
 						pm2p5 = cumulus.airLinkDataOut.pm2p5;
 						pm10 = cumulus.airLinkDataOut.pm10;
 					}
 					break;
-				case 1: // Ecowitt sensor 1
+				case (int)Cumulus.PrimaryAqSensor.AirLinkIndoor:
+					if (cumulus.airLinkDataIn != null)
+					{
+						pm2p5 = cumulus.airLinkDataIn.pm2p5;
+						pm10 = cumulus.airLinkDataIn.pm10;
+					}
+					break;
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
 					pm2p5 = AirQuality1;
 					break;
-				case 2: // Ecowitt sensor 2
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
 					pm2p5 = AirQuality2;
 					break;
-				case 3: // Ecowitt sensor 3
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
 					pm2p5 = AirQuality3;
 					break;
-				case 4: // Ecowitt sensor 4
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 					pm2p5 = AirQuality3;
 					break;
 				default: // Not enabled, use invalid values
@@ -6662,7 +6673,8 @@ namespace CumulusMX
 
 			cumulus.LogMessage($"LoadAqGraphData: Attempting to load {cumulus.GraphHours} hours of entries to Air Quality graph data");
 
-			if (cumulus.StationOptions.PrimaryAqSensor == 0) // AirLinkOutdoor
+			if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
+				|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				logFile = cumulus.GetAirLinkLogFileName(filedate);
 			}
@@ -6672,7 +6684,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"LoadAqGraphData: Error - The primary AQ sensor is not set to a valid value [0-4], currently={cumulus.StationOptions.PrimaryAqSensor}");
+				cumulus.LogMessage($"LoadAqGraphData: Error - The primary AQ sensor is not set to a valid value [0-5], currently={cumulus.StationOptions.PrimaryAqSensor}");
 				return;
 			}
 
@@ -6701,9 +6713,15 @@ namespace CumulusMX
 									{
 										// entry is from required period
 										double pm2p5, pm10;
-										if (cumulus.StationOptions.PrimaryAqSensor == 0)
+										if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 										{
-											// AirLink
+											// AirLink Indoor
+											pm2p5 = Convert.ToDouble(st[5]);
+											pm10 = Convert.ToDouble(st[10]);
+										}
+										else if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor)
+										{
+											// AirLink Outdoor
 											pm2p5 = Convert.ToDouble(st[32]);
 											pm10 = Convert.ToDouble(st[37]);
 										}
@@ -6723,12 +6741,12 @@ namespace CumulusMX
 									cumulus.LogMessage($"LoadAqGraphData: Error at line {linenum} of {logFile} : {e.Message}");
 									cumulus.LogMessage("Please edit the file to correct the error");
 									errorCount++;
-									if (errorCount >= 10)
+									if (errorCount >= 20)
 									{
 										cumulus.LogMessage($"LoadAqGraphData: Too many errors reading {logFile} - aborting load of graph data");
 									}
 								}
-							} while (!(sr.EndOfStream || entrydate >= dateto || errorCount >= 10));
+							} while (!(sr.EndOfStream || entrydate >= dateto || errorCount >= 20));
 						}
 					}
 					catch (Exception e)
@@ -6745,7 +6763,8 @@ namespace CumulusMX
 				else
 				{
 					filedate = filedate.AddMonths(1);
-					if (cumulus.StationOptions.PrimaryAqSensor == 0) // AirLinkOutdoor
+					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
+						|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor) // AirLink
 					{
 						logFile = cumulus.GetAirLinkLogFileName(filedate);
 					}
@@ -9003,7 +9022,7 @@ namespace CumulusMX
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case 0: // Davis AirLink Outdoor
+					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							sb.Append($"&AqPM1={cumulus.airLinkDataOut.pm1:F1}");
@@ -9013,19 +9032,19 @@ namespace CumulusMX
 							sb.Append($"&AqPM10_avg_24h={cumulus.airLinkDataOut.pm10_24hr:F1}");
 						}
 						break;
-					case 1: // Ecowitt sensor 1
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
 						sb.Append($"&AqPM2.5={AirQuality1:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg1:F1}");
 						break;
-					case 2: // Ecowitt sensor 2
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
 						sb.Append($"&AqPM2.5={AirQuality2:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg2:F1}");
 						break;
-					case 3: // Ecowitt sensor 3
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
 						sb.Append($"&AqPM2.5={AirQuality3:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg3:F1}");
 						break;
-					case 4: // Ecowitt sensor 4
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 						sb.Append($"&AqPM2.5={AirQuality4:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg4:F1}");
 						break;
@@ -9120,26 +9139,26 @@ namespace CumulusMX
 			if (cumulus.Wund.SendLeafWetness2)
 				Data.Append($"&leafwetness2={LeafWetness2}");
 
-			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor >= 0)
+			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined)
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case 0: //AirLink Outdoor
+					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							Data.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}&AqPM10={cumulus.airLinkDataOut.pm10:F1}");
 						}
 						break;
-					case 1: // Ecowitt sensor 1
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
 						Data.Append($"&AqPM2.5={AirQuality1:F1}");
 						break;
-					case 2: // Ecowitt sensor 2
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
 						Data.Append($"&AqPM2.5={AirQuality2:F1}");
 						break;
-					case 3: // Ecowitt sensor 4
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
 						Data.Append($"&AqPM2.5={AirQuality3:F1}");
 						break;
-					case 4: // Ecowitt sensor 4
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 						Data.Append($"&AqPM2.5={AirQuality4:F1}");
 						break;
 				}
