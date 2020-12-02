@@ -5815,7 +5815,7 @@ namespace CumulusMX
 				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);
 				file.Write(timestamp.ToString("HH:mm") + ListSeparator);
 
-				if (AirLinkInEnabled)
+				if (AirLinkInEnabled && airLinkDataIn != null)
 				{
 					file.Write(airLinkDataIn.temperature.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataIn.humidity + ListSeparator);
@@ -5870,7 +5870,7 @@ namespace CumulusMX
 					}
 				}
 
-				if (AirLinkOutEnabled)
+				if (AirLinkOutEnabled && airLinkDataOut != null)
 				{
 					file.Write(airLinkDataOut.temperature.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataOut.humidity + ListSeparator);
