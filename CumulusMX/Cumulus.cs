@@ -5813,7 +5813,7 @@ namespace CumulusMX
 				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);
 				file.Write(timestamp.ToString("HH:mm") + ListSeparator);
 
-				if (AirLinkInEnabled)
+				if (AirLinkInEnabled && airLinkDataIn != null)
 				{
 					file.Write(airLinkDataIn.temperature.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataIn.humidity + ListSeparator);
@@ -5868,7 +5868,7 @@ namespace CumulusMX
 					}
 				}
 
-				if (AirLinkOutEnabled)
+				if (AirLinkOutEnabled && airLinkDataOut != null)
 				{
 					file.Write(airLinkDataOut.temperature.ToString("F1") + ListSeparator);
 					file.Write(airLinkDataOut.humidity + ListSeparator);
@@ -5900,7 +5900,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					// write zero values - subtract 1 for firmware version, wifi RSSI - subtract 1 for end field
+					// write zero values - subtract 2 for firmware version, wifi RSSI - subtract 1 for end field
 					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
 					{
 						file.Write("0" + ListSeparator);
