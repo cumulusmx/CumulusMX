@@ -5900,7 +5900,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					// write zero values - subtract 1 for firmware version, wifi RSSI - subtract 1 for end field
+					// write zero values - subtract 2 for firmware version, wifi RSSI - subtract 1 for end field
 					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
 					{
 						file.Write("0" + ListSeparator);
