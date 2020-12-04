@@ -8510,7 +8510,7 @@ namespace CumulusMX
 
 		public string GetWCloudURL(out string pwstring, DateTime timestamp)
 		{
-			pwstring = cumulus.WCloud.PW;
+			pwstring = WebUtility.UrlEncode(cumulus.WCloud.PW);
 			StringBuilder sb = new StringBuilder($"http://api.weathercloud.net/v01/set?wid={cumulus.WCloud.ID}&key={pwstring}");
 
 			//Temperature
@@ -9072,7 +9072,7 @@ namespace CumulusMX
 				URL.Append("http://weatherstation.wunderground.com/weatherstation/updateweatherstation.php?ID=");
 			}
 
-			pwstring = $"&PASSWORD={cumulus.Wund.PW}";
+			pwstring = $"&PASSWORD={WebUtility.UrlEncode(cumulus.Wund.PW)}";
 			URL.Append(cumulus.Wund.ID);
 			URL.Append(pwstring);
 			URL.Append($"&dateutc={dateUTC}");
@@ -9251,7 +9251,7 @@ namespace CumulusMX
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
 			StringBuilder URL = new StringBuilder("http://www.pwsweather.com/pwsupdate/pwsupdate.php?ID=", 1024);
 
-			pwstring = "&PASSWORD=" + cumulus.PWS.PW;
+			pwstring = "&PASSWORD=" + WebUtility.UrlEncode(cumulus.PWS.PW);
 			URL.Append(cumulus.PWS.ID + pwstring);
 			URL.Append("&dateutc=" + dateUTC);
 
@@ -9300,7 +9300,7 @@ namespace CumulusMX
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
 			StringBuilder URL = new StringBuilder("http://wow.metoffice.gov.uk/automaticreading?siteid=", 1024);
 
-			pwstring = "&siteAuthenticationKey=" + cumulus.WOW.PW;
+			pwstring = "&siteAuthenticationKey=" + WebUtility.UrlEncode(cumulus.WOW.PW);
 			URL.Append(cumulus.WOW.ID);
 			URL.Append(pwstring);
 			URL.Append("&dateutc=" + dateUTC);

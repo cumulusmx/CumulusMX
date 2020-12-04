@@ -999,18 +999,18 @@ namespace CumulusMX
 
 			localGraphdataFiles = new[]
 				{
-					"web" + DirectorySeparator + "graphconfig.json",
-					"web" + DirectorySeparator + "tempdata.json",
-					"web" + DirectorySeparator + "pressdata.json",
-					"web" + DirectorySeparator + "winddata.json",
-					"web" + DirectorySeparator + "wdirdata.json",
-					"web" + DirectorySeparator + "humdata.json",
-					"web" + DirectorySeparator + "raindata.json",
-					"web" + DirectorySeparator + "dailyrain.json",
-					"web" + DirectorySeparator + "dailytemp.json",
-					"web" + DirectorySeparator + "solardata.json",
-					"web" + DirectorySeparator + "sunhours.json",
-					"web" + DirectorySeparator + "airquality.json"
+					"web" + DirectorySeparator + "graphconfig.json",	// 0
+					"web" + DirectorySeparator + "tempdata.json",		// 1
+					"web" + DirectorySeparator + "pressdata.json",		// 2
+					"web" + DirectorySeparator + "winddata.json",		// 3
+					"web" + DirectorySeparator + "wdirdata.json",		// 4
+					"web" + DirectorySeparator + "humdata.json",		// 5
+					"web" + DirectorySeparator + "raindata.json",		// 6
+					"web" + DirectorySeparator + "dailyrain.json",		// 7
+					"web" + DirectorySeparator + "dailytemp.json",		// 8
+					"web" + DirectorySeparator + "solardata.json",		// 9
+					"web" + DirectorySeparator + "sunhours.json",		// 10
+					"web" + DirectorySeparator + "airquality.json"		// 11
 				};
 
 			remoteGraphdataFiles = new[]
@@ -1031,13 +1031,12 @@ namespace CumulusMX
 
 			localDailyGraphdataFiles = new[]
 			{
-				"web" + DirectorySeparator + "alldailytempdata.json",
-				"web" + DirectorySeparator + "alldailypressdata.json",
-				"web" + DirectorySeparator + "alldailywinddata.json",
-				"web" + DirectorySeparator + "alldailyhumdata.json",
-				"web" + DirectorySeparator + "alldailyraindata.json",
-				"web" + DirectorySeparator + "alldailydailytemp.json",
-				"web" + DirectorySeparator + "alldailysolardata.json"
+				"web" + DirectorySeparator + "alldailytempdata.json",	// 0
+				"web" + DirectorySeparator + "alldailypressdata.json",	// 1
+				"web" + DirectorySeparator + "alldailywinddata.json",	// 2
+				"web" + DirectorySeparator + "alldailyhumdata.json",	// 3
+				"web" + DirectorySeparator + "alldailyraindata.json",	// 4
+				"web" + DirectorySeparator + "alldailysolardata.json"	// 5
 			};
 
 			remoteDailyGraphdataFiles = new[]
@@ -1047,7 +1046,6 @@ namespace CumulusMX
 				"alldailywinddata.json",
 				"alldailyhumdata.json",
 				"alldailyraindata.json",
-				"alldailydailytemp.json",
 				"alldailysolardata.json"
 			};
 
@@ -2331,8 +2329,9 @@ namespace CumulusMX
 			}
 			else
 			{
-				filepath = FtpDirectory + "/realtime.txt";
-				gaugesfilepath = FtpDirectory + "/realtimegauges.txt";
+				var remotePath = (FtpDirectory.EndsWith("/") ? FtpDirectory : FtpDirectory + "/");
+				filepath = remotePath + "/realtime.txt";
+				gaugesfilepath = remotePath + "/realtimegauges.txt";
 			}
 
 			if (RealtimeTxtFTP)
@@ -5299,7 +5298,7 @@ namespace CumulusMX
 		private byte RealtimeCycleCounter;
 		private readonly string[] localGraphdataFiles;
 		private readonly string[] remoteGraphdataFiles;
-		private readonly string[] localDailyGraphdataFiles;
+		public readonly string[] localDailyGraphdataFiles;
 		private readonly string[] remoteDailyGraphdataFiles;
 		public string exceptional = "Exceptional Weather";
 //		private WebSocketServer wsServer;
@@ -6911,7 +6910,12 @@ namespace CumulusMX
 
 					if (conn.IsConnected)
 					{
-						string remotePath = (FtpDirectory.EndsWith("/") ? FtpDirectory : FtpDirectory + "/");
+						string remotePath = "";
+						if (FtpDirectory.Length > 0)
+						{
+							remotePath = (FtpDirectory.EndsWith("/") ? FtpDirectory : FtpDirectory + "/");
+						}
+
 						if (NOAANeedFTP)
 						{
 							try
@@ -6947,7 +6951,7 @@ namespace CumulusMX
 							if ((uploadfile.Length > 0) &&
 								(remotefile.Length > 0) &&
 								!ExtraFiles[i].realtime &&
-								EODfilesNeedFTP == ExtraFiles[i].endofday &&
+								(EODfilesNeedFTP || (EODfilesNeedFTP == ExtraFiles[i].endofday)) &&
 								ExtraFiles[i].FTP)
 							{
 								// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
@@ -6961,6 +6965,10 @@ namespace CumulusMX
 								{
 									uploadfile = GetExtraLogFileName(logDay);
 								}
+								else if (uploadfile == "<airlinklogfile")
+								{
+									uploadfile = GetAirLinkLogFileName(logDay);
+								}
 
 								if (File.Exists(uploadfile))
 								{
@@ -6971,6 +6979,10 @@ namespace CumulusMX
 									else if (remotefile.Contains("<currentextralogfile>"))
 									{
 										remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDay)));
+									}
+									else if (remotefile.Contains("<airlinklogfile"))
+									{
+										remotefile = remotefile.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(logDay)));
 									}
 
 									// all checks OK, file needs to be uploaded

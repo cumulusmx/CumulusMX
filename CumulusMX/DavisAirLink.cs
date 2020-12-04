@@ -36,6 +36,7 @@ namespace CumulusMX
 		private bool updateInProgress;
 		private readonly bool indoor;
 		private readonly string locationStr;
+		private readonly bool standalone;
 		private readonly bool standaloneHistory; // Used to flag if we need to get history data on catch-up
 
 		private DateTime airLinkLastUpdateTime;
@@ -50,11 +51,13 @@ namespace CumulusMX
 			airLinkLastUpdateTime = cumulus.LastUpdateTime;
 
 			// Working out if we are standalone or integrated with WLL is a bit tricky.
-			// Easist to see if we are a node of a WLL station, and the station id is same
-			var standalone = !(
+			// Easist to see if we are a node of a WLL station
+			standalone = !(
 				cumulus.StationType == StationTypes.WLL &&
 				(this.indoor ? cumulus.AirLinkInIsNode : cumulus.AirLinkOutIsNode) &&
-				(this.indoor ? cumulus.AirLinkInStationId == cumulus.WllStationId : cumulus.AirLinkOutStationId == cumulus.WllStationId)
+				!string.IsNullOrEmpty(cumulus.WllApiKey) &&
+				!string.IsNullOrEmpty(cumulus.WllApiSecret) &&
+				!string.IsNullOrEmpty(cumulus.WllStationId)
 			);
 
 			// If we are standalone, are we configured to read history data?
@@ -868,27 +871,46 @@ namespace CumulusMX
 		{
 			WlHistory histObj;
 
-			var stationId = indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId;
+			string apiKey;
+			string apiSecret;
+			string stationId;
 
-			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");
-
-			if (cumulus.AirLinkApiKey == string.Empty || cumulus.AirLinkApiSecret == string.Empty)
+			// Are we standalone?
+			if (standalone)
 			{
-				cumulus.LogMessage("AirLinkHealth: Missing WeatherLink API data in the cumulus.ini file, aborting!");
-				return;
-			}
-
-			if (stationId == string.Empty || int.Parse(stationId) < 10)
-			{
-				var msg = "No WeatherLink API station ID in the cumulus.ini file";
-				cumulus.LogMessage("AirLinkHealth: " + msg);
-				cumulus.LogConsoleMessage(msg);
-
-				if (!GetAvailableStationIds())
+				if (cumulus.AirLinkApiKey == string.Empty || cumulus.AirLinkApiSecret == string.Empty)
 				{
+					var msg = "Missing AirLink WeatherLink API key/secret in the cumulus.ini file";
+					cumulus.LogConsoleMessage(msg);
+					cumulus.LogMessage("AirLinkHealth: " + msg);
 					return;
 				}
+				apiKey = cumulus.AirLinkApiKey;
+				apiSecret = cumulus.AirLinkApiSecret;
+
+				if ((indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId) == string.Empty)
+				{
+					var msg = "Missing AirLink WeatherLink API station Id in the cumulus.ini file");
+					cumulus.LogConsoleMessage(msg);
+					cumulus.LogMessage("AirLinkHealth: " + msg);
+					GetAvailableStationIds();
+					return;
+				}
+				stationId = indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId;
 			}
+			else
+			{
+				if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty || cumulus.WllStationId == string.Empty)
+				{
+					cumulus.LogMessage("AirLinkHealth: Missing WLL WeatherLink API key/secret/station Id in the cumulus.ini file, aborting!");
+					return;
+				}
+				apiKey = cumulus.WllApiKey;
+				apiSecret = cumulus.WllApiSecret;
+				stationId = cumulus.WllStationId;
+			}
+
+			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");
 
 			var unixDateTime = ToUnixTime(DateTime.Now);
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
@@ -898,7 +920,7 @@ namespace CumulusMX
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
-				{ "api-key", cumulus.AirLinkApiKey },
+				{ "api-key", apiKey },
 				{ "station-id", stationId },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
@@ -914,7 +936,7 @@ namespace CumulusMX
 
 			string data = dataStringBuilder.ToString();
 
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.AirLinkApiSecret, data);
+			var apiSignature = WlDotCom.CalculateApiSignature(apiSecret, data);
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
@@ -931,7 +953,7 @@ namespace CumulusMX
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
 
-			var logUrl = historicUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
+			var logUrl = historicUrl.ToString().Replace(apiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"AirLinkHealth: WeatherLink URL = {logUrl}");
 
 			try

@@ -2,8 +2,11 @@
 —————————————
 - Fix: Records check was triggering for very small value changes in derived values such as feels like temps
 - Fix: Catch uncaught exception on SFTP disconnect
+- Fix: FTP inconsistent in empty remote server folder handling for real-time and interval files
+- Fix: Adds URL encoding for passwords on WCloud, Wunderground, PWS, WOW   **** ?DO WE KEEP THIS, IS IT A PROBLEM? ****
+- Fix: AirLink was not using the local vs WLL API data correctly
 
-
+- New: You can now use "<airlinklogfile>" in the extra files local filename to copy/upload the latest AirLink data log file
 
 
 3.9.2 - b3097
