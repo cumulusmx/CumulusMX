@@ -1991,7 +1991,7 @@ namespace CumulusMX
 			var json = GetGraphConfig();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "graphconfig.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[0], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -1999,14 +1999,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing graphconfig.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[0]}: {ex.Message}");
 			}
 
 			// Temperature
 			json = GetTempGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "tempdata.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[1], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2014,14 +2014,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing tempdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[1]}: {ex.Message}");
 			}
 
 			// Pressure
 			json = GetPressGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "pressdata.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[2], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2029,14 +2029,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing pressdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[2]}: {ex.Message}");
 			}
 
 			// Wind
 			json = GetWindGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "winddata.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[3], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2044,14 +2044,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing winddata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[3]}: {ex.Message}");
 			}
 
 			// Wind direction
 			json = GetWindDirGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "wdirdata.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[4], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2059,14 +2059,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing wdirdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[4]}: {ex.Message}");
 			}
 
 			// Humidity
 			json = GetHumGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "humdata.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[5], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2074,14 +2074,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing humdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[5]}: {ex.Message}");
 			}
 
 			// Rain
 			json = GetRainGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "raindata.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[6], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2089,29 +2089,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing raindata.json: " + ex.Message);
-			}
-
-			// Solar
-			json = GetSolarGraphData();
-			try
-			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "solardata.json", false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage("Error writing solardata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[6]}: {ex.Message}");
 			}
 
 			// Daily rain
 			json = GetDailyRainGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "dailyrain.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[7], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2119,14 +2104,44 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing dailyrain.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[7]}: {ex.Message}");
+			}
+
+			// Daily temp
+			json = GetDailyTempGraphData();
+			try
+			{
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[8], false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[8]}: {ex.Message}");
+			}
+
+			// Solar
+			json = GetSolarGraphData();
+			try
+			{
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[9], false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[9]}: {ex.Message}");
 			}
 
 			// Sun hours
 			json = GetSunHoursGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "sunhours.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[10], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2134,30 +2149,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing sunhours.json: " + ex.Message);
-			}
-
-
-			// Daily temp
-			json = GetDailyTempGraphData();
-			try
-			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "dailytemp.json", false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage("Error writing dailytemp.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[10]}: {ex.Message}");
 			}
 
 			// Air Quality
 			json = GetAqGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "airquality.json", false))
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[11], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2165,7 +2164,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing airquality.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[11]}: {ex.Message}");
 			}
 		}
 
@@ -2177,7 +2176,7 @@ namespace CumulusMX
 			json = GetAllDailyTempGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "alldailytempdata.json", false))
+				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[0], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2185,14 +2184,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alldailytempdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[0]}: {ex.Message}");
 			}
 
 			// Pressure
 			json = GetAllDailyPressGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "alldailypressdata.json", false))
+				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[1], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2200,14 +2199,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alldailypressdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[1]}: {ex.Message}");
 			}
 
 			// Wind
 			json = GetAllDailyWindGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "alldailywinddata.json", false))
+				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[2], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2215,14 +2214,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alldaily.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[2]}: {ex.Message}");
 			}
 
 			// Humidity
 			json = GetAllDailyHumGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "alldailyhumdata.json", false))
+				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[3], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2230,14 +2229,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alldailyhumdata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[3]}: {ex.Message}");
 			}
 
 			// Rain
 			json = GetAllDailyRainGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "alldailyraindata.json", false))
+				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[4], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2245,14 +2244,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alldailyraindata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[4]}: {ex.Message}");
 			}
 
 			// Solar
 			json = GetAllDailySolarGraphData();
 			try
 			{
-				using (var file = new StreamWriter("web" + cumulus.DirectorySeparator + "alldailysolardata.json", false))
+				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[5], false))
 				{
 					file.WriteLine(json);
 					file.Close();
@@ -2260,7 +2259,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alldailysolardata.json: " + ex.Message);
+				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[5]}: {ex.Message}");
 			}
 		}
 

@@ -997,22 +997,6 @@ namespace CumulusMX
 
 			GC.Collect();
 
-			localGraphdataFiles = new[]
-				{
-					"web" + DirectorySeparator + "graphconfig.json",	// 0
-					"web" + DirectorySeparator + "tempdata.json",		// 1
-					"web" + DirectorySeparator + "pressdata.json",		// 2
-					"web" + DirectorySeparator + "winddata.json",		// 3
-					"web" + DirectorySeparator + "wdirdata.json",		// 4
-					"web" + DirectorySeparator + "humdata.json",		// 5
-					"web" + DirectorySeparator + "raindata.json",		// 6
-					"web" + DirectorySeparator + "dailyrain.json",		// 7
-					"web" + DirectorySeparator + "dailytemp.json",		// 8
-					"web" + DirectorySeparator + "solardata.json",		// 9
-					"web" + DirectorySeparator + "sunhours.json",		// 10
-					"web" + DirectorySeparator + "airquality.json"		// 11
-				};
-
 			remoteGraphdataFiles = new[]
 				{
 					"graphconfig.json",
@@ -1029,15 +1013,21 @@ namespace CumulusMX
 					"airquality.json"
 				};
 
-			localDailyGraphdataFiles = new[]
-			{
-				"web" + DirectorySeparator + "alldailytempdata.json",	// 0
-				"web" + DirectorySeparator + "alldailypressdata.json",	// 1
-				"web" + DirectorySeparator + "alldailywinddata.json",	// 2
-				"web" + DirectorySeparator + "alldailyhumdata.json",	// 3
-				"web" + DirectorySeparator + "alldailyraindata.json",	// 4
-				"web" + DirectorySeparator + "alldailysolardata.json"	// 5
-			};
+			localGraphdataFiles = new[]
+				{
+					"web" + DirectorySeparator + remoteGraphdataFiles[0],	// 0
+					"web" + DirectorySeparator + remoteGraphdataFiles[1],	// 1
+					"web" + DirectorySeparator + remoteGraphdataFiles[2],	// 2
+					"web" + DirectorySeparator + remoteGraphdataFiles[3],	// 3
+					"web" + DirectorySeparator + remoteGraphdataFiles[4],	// 4
+					"web" + DirectorySeparator + remoteGraphdataFiles[5],	// 5
+					"web" + DirectorySeparator + remoteGraphdataFiles[6],	// 6
+					"web" + DirectorySeparator + remoteGraphdataFiles[7],	// 7
+					"web" + DirectorySeparator + remoteGraphdataFiles[8],	// 8
+					"web" + DirectorySeparator + remoteGraphdataFiles[9],	// 9
+					"web" + DirectorySeparator + remoteGraphdataFiles[10],	// 10
+					"web" + DirectorySeparator + remoteGraphdataFiles[11]	// 11
+				};
 
 			remoteDailyGraphdataFiles = new[]
 			{
@@ -1047,6 +1037,16 @@ namespace CumulusMX
 				"alldailyhumdata.json",
 				"alldailyraindata.json",
 				"alldailysolardata.json"
+			};
+
+			localDailyGraphdataFiles = new[]
+			{
+				"web" + DirectorySeparator + remoteDailyGraphdataFiles[0],	// 0
+				"web" + DirectorySeparator + remoteDailyGraphdataFiles[1],	// 1
+				"web" + DirectorySeparator + remoteDailyGraphdataFiles[2],	// 2
+				"web" + DirectorySeparator + remoteDailyGraphdataFiles[3],	// 3
+				"web" + DirectorySeparator + remoteDailyGraphdataFiles[4],	// 4
+				"web" + DirectorySeparator + remoteDailyGraphdataFiles[5]	// 5
 			};
 
 
@@ -5296,7 +5296,7 @@ namespace CumulusMX
 		private volatile bool RealtimeFtpInProgress;
 		private volatile bool RealtimeCopyInProgress;
 		private byte RealtimeCycleCounter;
-		private readonly string[] localGraphdataFiles;
+		public readonly string[] localGraphdataFiles;
 		private readonly string[] remoteGraphdataFiles;
 		public readonly string[] localDailyGraphdataFiles;
 		private readonly string[] remoteDailyGraphdataFiles;
