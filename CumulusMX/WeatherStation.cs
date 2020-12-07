@@ -2267,7 +2267,6 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
-			var append = false;
 
 			lock (GraphDataList)
 			{
@@ -2281,16 +2280,15 @@ namespace CumulusMX
 							sb.Append(",");
 					}
 					sb.Append("]");
-					append = true;
-				}
-
-				if (append)
-				{
-					sb.Append(",");
 				}
 
 				if (cumulus.GraphOptions.SolarVisible)
 				{
+					if (cumulus.GraphOptions.UVVisible)
+					{
+						sb.Append(",");
+					}
+
 					sb.Append("\"SolarRad\":[");
 					for (var i = 0; i < GraphDataList.Count; i++)
 					{

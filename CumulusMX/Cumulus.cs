@@ -6763,6 +6763,7 @@ namespace CumulusMX
 										// we've already processed the file
 										uploadfile += "tmp";
 									}
+
 									try
 									{
 										UploadFile(conn, uploadfile, remotefile, -1);
@@ -6809,35 +6810,43 @@ namespace CumulusMX
 
 						if (IncludeGraphDataFiles)
 						{
-							try
+							LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
+							for (int i = 0; i < localGraphdataFiles.Length; i++)
 							{
-								LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
-								for (int i = 0; i < localGraphdataFiles.Length; i++)
-								{
-									var uploadfile = localGraphdataFiles[i];
-									var remotefile = remotePath + remoteGraphdataFiles[i];
+								var uploadfile = localGraphdataFiles[i];
+								var remotefile = remotePath + remoteGraphdataFiles[i];
 
+								try
+								{
 									UploadFile(conn, uploadfile, remotefile, -1);
 								}
-								LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
-
-								if (DailyGraphDataFilesNeedFTP)
+								catch (Exception e)
 								{
-									LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
-									for (int i = 0; i < localDailyGraphdataFiles.Length; i++)
-									{
-										var uploadfile = localDailyGraphdataFiles[i];
-										var remotefile = remotePath + remoteDailyGraphdataFiles[i];
-
-										UploadFile(conn, uploadfile, remotefile, -1);
-									}
-									DailyGraphDataFilesNeedFTP = false;
-									LogFtpMessage("SFTP[Int]: Done uploading daily graph data files");
+									LogFtpMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
+									LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
 								}
 							}
-							catch (Exception e)
+							LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
+
+							if (DailyGraphDataFilesNeedFTP)
 							{
-								LogMessage($"SFTP[Int]: Error uploading graph file - {e.Message}");
+								LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
+								for (int i = 0; i < localDailyGraphdataFiles.Length; i++)
+								{
+									var uploadfile = localDailyGraphdataFiles[i];
+									var remotefile = remotePath + remoteDailyGraphdataFiles[i];
+									try
+									{
+										UploadFile(conn, uploadfile, remotefile, -1);
+									}
+									catch (Exception e)
+									{
+										LogFtpMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
+										LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
+									}
+								}
+								DailyGraphDataFilesNeedFTP = false;
+								LogFtpMessage("SFTP[Int]: Done uploading daily graph data files");
 							}
 						}
 
@@ -6991,6 +7000,7 @@ namespace CumulusMX
 										// we've already processed the file
 										uploadfile += "tmp";
 									}
+
 									try
 									{
 										UploadFile(conn, uploadfile, remotefile);
@@ -7015,54 +7025,63 @@ namespace CumulusMX
 						{
 							string uploadfile = "";
 							LogFtpDebugMessage("FTP[Int]: Uploading standard files");
-							try
+							for (int i = 0; i < localWebTextFiles.Length; i++)
 							{
-								for (int i = 0; i < localWebTextFiles.Length; i++)
-								{
-									uploadfile = localWebTextFiles[i];
-									var remotefile = remotePath + remoteWebTextFiles[i];
+								uploadfile = localWebTextFiles[i];
+								var remotefile = remotePath + remoteWebTextFiles[i];
 
+								try
+								{
 									UploadFile(conn, uploadfile, remotefile);
 								}
-								//LogDebugMessage("Done uploading standard files");
+								catch (Exception e)
+								{
+									LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}");
+								}
 							}
-							catch (Exception e)
-							{
-								LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}");
-							}
+							//LogDebugMessage("Done uploading standard files");
 						}
 
 						if (IncludeGraphDataFiles)
 						{
-							try
+							LogFtpDebugMessage("FTP[Int]: Uploading graph data files");
+							for (int i = 0; i < localGraphdataFiles.Length; i++)
 							{
-								LogFtpDebugMessage("FTP[Int]: Uploading graph data files");
-								for (int i = 0; i < localGraphdataFiles.Length; i++)
-								{
-									var uploadfile = localGraphdataFiles[i];
-									var remotefile = remotePath + remoteGraphdataFiles[i];
+								var uploadfile = localGraphdataFiles[i];
+								var remotefile = remotePath + remoteGraphdataFiles[i];
 
+								try
+								{
 									UploadFile(conn, uploadfile, remotefile);
 								}
-								//LogDebugMessage("Done uploading graph data files");
-
-								if (DailyGraphDataFilesNeedFTP)
+								catch (Exception e)
 								{
-									LogFtpMessage("FTP[Int]: Uploading daily graph data files");
-									for (int i = 0; i < localDailyGraphdataFiles.Length; i++)
-									{
-										var uploadfile = localDailyGraphdataFiles[i];
-										var remotefile = remotePath + remoteDailyGraphdataFiles[i];
-
-										UploadFile(conn, uploadfile, remotefile);
-									}
-									LogFtpMessage("FTP[Int]: Done uploading daily graph data files");
-									DailyGraphDataFilesNeedFTP = false;
+									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{uploadfile}]");
+									LogFtpMessage($"FTP[Int]: Error = {e.Message}");
 								}
 							}
-							catch (Exception e)
+							//LogDebugMessage("Done uploading graph data files");
+
+							if (DailyGraphDataFilesNeedFTP)
 							{
-								LogMessage($"FTP[Int]: Error uploading graph file - {e.Message}");
+								LogFtpMessage("FTP[Int]: Uploading daily graph data files");
+								for (int i = 0; i < localDailyGraphdataFiles.Length; i++)
+								{
+									var uploadfile = localDailyGraphdataFiles[i];
+									var remotefile = remotePath + remoteDailyGraphdataFiles[i];
+
+									try
+									{
+										UploadFile(conn, uploadfile, remotefile);
+									}
+									catch (Exception e)
+									{
+										LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{uploadfile}]");
+										LogFtpMessage($"FTP[Int]: Error = {e.Message}");
+									}
+								}
+								LogFtpMessage("FTP[Int]: Done uploading daily graph data files");
+								DailyGraphDataFilesNeedFTP = false;
 							}
 						}
 

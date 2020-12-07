@@ -890,7 +890,7 @@ namespace CumulusMX
 
 				if ((indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId) == string.Empty)
 				{
-					var msg = "Missing AirLink WeatherLink API station Id in the cumulus.ini file");
+					var msg = "Missing AirLink WeatherLink API station Id in the cumulus.ini file";
 					cumulus.LogConsoleMessage(msg);
 					cumulus.LogMessage("AirLinkHealth: " + msg);
 					GetAvailableStationIds();
@@ -1678,6 +1678,5 @@ namespace CumulusMX
 		public string firmwareVersion { get; set; }
 		public int wifiRssi { get; set; }
 	}
-
 
 }
