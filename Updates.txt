@@ -8,6 +8,8 @@
 - Fix: Default web site temperature Trends graph yAxis issue
 - Fix: Broken logfile, extralogfile, and dayfile editors in b3096
 - Fix: Improve Instromet stations error handling of out of sequence responses
+- Fix: Extra files without the EOD flag were not being transferred during the EOD upload period (first after rollover)
+
 
 - Adds Notifications to Alarms
 	Note: Cumulus notifications only work by default if you run the browser on the same machine as Cumulus and connect using the
