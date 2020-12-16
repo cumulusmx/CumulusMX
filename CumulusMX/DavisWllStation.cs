@@ -336,27 +336,29 @@ namespace CumulusMX
 
 						cumulus.LogDebugMessage($"GetWllRealtime: Sending GET realtime request to WLL: {urlRealtime} ...");
 
+						string responseBody;
+
 						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlRealtime))
 						{
-							var responseBody = await response.Content.ReadAsStringAsync();
+							responseBody = await response.Content.ReadAsStringAsync();
 							responseBody = responseBody.TrimEnd('\r', '\n');
 
 							cumulus.LogDataMessage("GetWllRealtime: WLL response: " + responseBody);
+						}
 
-							var respJson = responseBody.FromJson<WllBroadcastReqResponse>();
-							var err = string.IsNullOrEmpty(respJson.error) ? "OK" : respJson.error;
-							port = respJson.data.broadcast_port;
-							duration = respJson.data.duration;
-							cumulus.LogDebugMessage($"GetWllRealtime: GET response Code: {err}, Port: {port}");
-							if (cumulus.WllBroadcastDuration != duration)
-							{
-								cumulus.LogMessage($"GetWllRealtime: WLL broadcast duration {duration} does not match requested duration {cumulus.WllBroadcastDuration}, continuing to use {cumulus.WllBroadcastDuration}");
-							}
-							if (cumulus.WllBroadcastPort != port)
-							{
-								cumulus.LogMessage($"GetWllRealtime: WLL broadcast port {port} does not match default {cumulus.WllBroadcastPort}, resetting to {port}");
-								cumulus.WllBroadcastPort = port;
-							}
+						var respJson = responseBody.FromJson<WllBroadcastReqResponse>();
+						var err = string.IsNullOrEmpty(respJson.error) ? "OK" : respJson.error;
+						port = respJson.data.broadcast_port;
+						duration = respJson.data.duration;
+						cumulus.LogDebugMessage($"GetWllRealtime: GET response Code: {err}, Port: {port}");
+						if (cumulus.WllBroadcastDuration != duration)
+						{
+							cumulus.LogMessage($"GetWllRealtime: WLL broadcast duration {duration} does not match requested duration {cumulus.WllBroadcastDuration}, continuing to use {cumulus.WllBroadcastDuration}");
+						}
+						if (cumulus.WllBroadcastPort != port)
+						{
+							cumulus.LogMessage($"GetWllRealtime: WLL broadcast port {port} does not match default {cumulus.WllBroadcastPort}, resetting to {port}");
+							cumulus.WllBroadcastPort = port;
 						}
 					}
 					else
@@ -403,28 +405,31 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"GetWllCurrent: Sending GET current conditions request {retry} to WLL: {urlCurrent} ...");
 					try
 					{
-						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlCurrent))
-						{
-							response.EnsureSuccessStatusCode();
-							var responseBody = await response.Content.ReadAsStringAsync();
-							cumulus.LogDataMessage($"GetWllCurrent: response - {responseBody}");
 
-							try
+						string responseBody;
+						try
+						{
+							using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlCurrent))
 							{
-								DecodeCurrent(responseBody);
-								if (startupDayResetIfRequired)
-								{
-									DoDayResetIfNeeded();
-									startupDayResetIfRequired = false;
-								}
+								response.EnsureSuccessStatusCode();
+								responseBody = await response.Content.ReadAsStringAsync();
+								cumulus.LogDataMessage($"GetWllCurrent: response - {responseBody}");
 							}
-							catch (Exception ex)
+
+							DecodeCurrent(responseBody);
+							if (startupDayResetIfRequired)
 							{
-								cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
-								cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
+								DoDayResetIfNeeded();
+								startupDayResetIfRequired = false;
 							}
-							retry = 9;
 						}
+						catch (Exception ex)
+						{
+							cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
+							cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
+						}
+						retry = 9;
+
 					}
 					catch (Exception exp)
 					{
@@ -1440,69 +1445,73 @@ namespace CumulusMX
 
 			try
 			{
+				string responseBody;
+				int responseCode;
+
 				// we want to do this synchronously, so .Result
 				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
-					var responseBody = response.Content.ReadAsStringAsync().Result;
-					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {response.StatusCode}");
+					responseBody = responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int)response.StatusCode;
+					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {responseCode}");
 					cumulus.LogDataMessage($"GetWlHistoricData: WeatherLink API Historic Response: {responseBody}");
+				}
 
-					if ((int)response.StatusCode != 200)
+				if (responseCode != 200)
+				{
+					var historyError = responseBody.FromJson<WlErrorResponse>();
+					cumulus.LogMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
+					cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}");
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
+					return;
+				}
+
+				histObj = responseBody.FromJson<WlHistory>();
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
+					cumulus.LogConsoleMessage(" - No historic data available");
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
+					return;
+				}
+				else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+				{
+					// get the sensor data
+					int idxOfSensorWithMostRecs = 0;
+					for (var i = 0; i < histObj.sensors.Count; i++)
 					{
-						var historyError = responseBody.FromJson<WlErrorResponse>();
-						cumulus.LogMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-						cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}");
-						cumulus.LastUpdateTime = FromUnixTime(endTime);
-						return;
+						// Find the WLL baro, or internal temp/hum sensors
+						if (histObj.sensors[i].sensor_type == 242 && histObj.sensors[i].data_structure_type == 13)
+						{
+							var recs = histObj.sensors[i].data.Count;
+							if (recs > noOfRecs)
+							{
+								noOfRecs = recs;
+								idxOfSensorWithMostRecs = i;
+							}
+						}
 					}
+					sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
 
-					histObj = responseBody.FromJson<WlHistory>();
-
-					if (responseBody == "{}")
+					if (noOfRecs == 0)
 					{
-						cumulus.LogMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
+						cumulus.LogMessage("GetWlHistoricData: No historic data available");
 						cumulus.LogConsoleMessage(" - No historic data available");
 						cumulus.LastUpdateTime = FromUnixTime(endTime);
 						return;
 					}
-					else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+					else
 					{
-						// get the sensor data
-						int idxOfSensorWithMostRecs = 0;
-						for (var i = 0; i < histObj.sensors.Count; i++)
-						{
-							// Find the WLL baro, or internal temp/hum sensors
-							if (histObj.sensors[i].sensor_type == 242 && histObj.sensors[i].data_structure_type == 13)
-							{
-								var recs = histObj.sensors[i].data.Count;
-								if (recs > noOfRecs)
-								{
-									noOfRecs = recs;
-									idxOfSensorWithMostRecs = i;
-								}
-							}
-						}
-						sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
-
-						if (noOfRecs == 0)
-						{
-							cumulus.LogMessage("GetWlHistoricData: No historic data available");
-							cumulus.LogConsoleMessage(" - No historic data available");
-							cumulus.LastUpdateTime = FromUnixTime(endTime);
-							return;
-						}
-						else
-						{
-							cumulus.LogMessage($"GetWlHistoricData: Found {noOfRecs} historic records to process");
-						}
+						cumulus.LogMessage($"GetWlHistoricData: Found {noOfRecs} historic records to process");
 					}
-					else // No idea what we got, dump it to the log
-					{
-						cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
-						cumulus.LogDataMessage("GetWlHistoricData: Received: " + responseBody);
-						cumulus.LastUpdateTime = FromUnixTime(endTime);
-						return;
-					}
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
+					cumulus.LogDataMessage("GetWlHistoricData: Received: " + responseBody);
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
+					return;
 				}
 			}
 			catch (Exception ex)
@@ -2523,35 +2532,39 @@ namespace CumulusMX
 			{
 				// we want to do this synchronously, so .Result
 				WlHistory histObj;
+				string responseBody;
+				int responseCode;
+
 				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
-					var responseBody = response.Content.ReadAsStringAsync().Result;
-					cumulus.LogDataMessage($"WLL Health: WeatherLink API Response: {response.StatusCode} - {responseBody}");
-
-					if ((int)response.StatusCode != 200)
-					{
-						var errObj = responseBody.FromJson<WlErrorResponse>();
-						cumulus.LogMessage($"WLL Health: WeatherLink API Error: {errObj.code}, {errObj.message}");
-						return;
-					}
-
-					if (responseBody == "{}")
-					{
-						cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
-						cumulus.LastUpdateTime = FromUnixTime(endTime);
-						return;
-					}
-
-					if (!responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
-					{
-						// No idea what we got, dump it to the log
-						cumulus.LogMessage("WLL Health: Invalid historic message received");
-						cumulus.LogDataMessage("WLL Health: Received: " + responseBody);
-						return;
-					}
-
-					histObj = responseBody.FromJson<WlHistory>();
+					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int)response.StatusCode;
+					cumulus.LogDataMessage($"WLL Health: WeatherLink API Response: {responseCode} - {responseBody}");
 				}
+
+				if (responseCode != 200)
+				{
+					var errObj = responseBody.FromJson<WlErrorResponse>();
+					cumulus.LogMessage($"WLL Health: WeatherLink API Error: {errObj.code}, {errObj.message}");
+					return;
+				}
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
+					cumulus.LastUpdateTime = FromUnixTime(endTime);
+					return;
+				}
+
+				if (!responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+				{
+					// No idea what we got, dump it to the log
+					cumulus.LogMessage("WLL Health: Invalid historic message received");
+					cumulus.LogDataMessage("WLL Health: Received: " + responseBody);
+					return;
+				}
+
+				histObj = responseBody.FromJson<WlHistory>();
 
 				// get the sensor data
 				if (histObj.sensors.Count == 0)
@@ -2664,11 +2677,17 @@ namespace CumulusMX
 			try
 			{
 				// We want to do this synchronously
-				var response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result;
-				var responseBody = response.Content.ReadAsStringAsync().Result;
-				cumulus.LogDebugMessage("WLLStations: WeatherLink API Response: " + response.StatusCode + ": " + responseBody);
+				string responseBody;
+				int responseCode;
 
-				if ((int)response.StatusCode != 200)
+				using (HttpResponseMessage response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				{
+					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int)response.StatusCode;
+					cumulus.LogDebugMessage($"WLLStations: WeatherLink API Response: {responseCode}: {responseBody}");
+				}
+
+				if (responseCode != 200)
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"WLLStations: WeatherLink API Error: {errObj.code} - {errObj.message}");
@@ -2770,11 +2789,17 @@ namespace CumulusMX
 			try
 			{
 				// We want to do this synchronously
-				var response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result;
-				var responseBody = response.Content.ReadAsStringAsync().Result;
-				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API Response: " + response.StatusCode + ": " + responseBody);
+				string responseBody;
+				int responseCode;
 
-				if ((int)response.StatusCode != 200)
+				using (HttpResponseMessage response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				{
+					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int)response.StatusCode;
+					cumulus.LogDebugMessage($"GetAvailableSensors: WeatherLink API Response: {responseCode}: {responseBody}");
+				}
+
+				if (responseCode != 200)
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");

@@ -3820,6 +3820,16 @@ namespace CumulusMX
 			return "0";
 		}
 
+		private string TagUpgradeAlarm(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.UpgradeAlarm.Enabled)
+			{
+				return cumulus.UpgradeAlarm.Triggered ? "1" : "0";
+			}
+
+			return "0";
+		}
+
 		// Monthly highs and lows - values
 		private string TagMonthTempH(Dictionary<string,string> tagParams)
 		{
@@ -5416,6 +5426,7 @@ namespace CumulusMX
 				{ "HighWindSpeedAlarm", TagHighWindSpeedAlarm },
 				{ "BatteryLowAlarm", TagBatteryLowAlarm },
 				{ "DataSpikeAlarm", TagDataSpikeAlarm },
+				{ "UpgradeAlarm", TagUpgradeAlarm },
 				{ "RG11RainToday", TagRg11RainToday },
 				{ "RG11RainYest", TagRg11RainYest },
 				{ "AirLinkFirmwareVersionIn", TagAirLinkFirmwareVersionIn },

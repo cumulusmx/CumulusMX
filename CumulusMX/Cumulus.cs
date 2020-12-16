@@ -31,7 +31,7 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.3-test1";
+		public string Version = "3.9.3";
 		public string Build = "3098";
 		/////////////////////////////////
 
@@ -618,6 +618,7 @@ namespace CumulusMX
 		public AlarmChange TempChangeAlarm = new AlarmChange();
 		public Alarm HighTempAlarm = new Alarm();
 		public Alarm LowTempAlarm = new Alarm();
+		public Alarm UpgradeAlarm = new Alarm();
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
@@ -1389,6 +1390,14 @@ namespace CumulusMX
 			{
 				station.StartLoop();
 			}
+
+			// If enabled generate the daily graph data files, and upload at first opportunity
+			if (IncludeGraphDataFiles)
+			{
+				station.CreateEodGraphDataFiles();
+				DailyGraphDataFilesNeedFTP = true;
+			}
+
 			LogDebugMessage("Lock: Cumulus releasing the lock");
 			syncInit.Release();
 		}
@@ -3853,6 +3862,13 @@ namespace CumulusMX
 			SpikeAlarm.Latch = ini.GetValue("Alarms", "SpikeAlarmLatch", true);
 			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "SpikeAlarmLatchHours", 12);
 
+			UpgradeAlarm.Enabled = ini.GetValue("Alarms", "UpgradeAlarmSet", true);
+			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", true);
+			UpgradeAlarm.SoundFile = ini.GetValue("Alarms", "UpgradeAlarmSoundFile", DefaultSoundFile);
+			UpgradeAlarm.Notify = ini.GetValue("Alarms", "UpgradeAlarmNotify", true);
+			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
+			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 0);
+
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
 			Calib.Hum.Offset = ini.GetValue("Offsets", "HumOffset", 0);
@@ -4463,6 +4479,13 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataSpikeAlarmNotify", SpikeAlarm.Notify);
 			ini.SetValue("Alarms", "DataSpikeAlarmLatch", SpikeAlarm.Latch);
 			ini.SetValue("Alarms", "DataSpikeAlarmHours", SpikeAlarm.LatchHours);
+
+			ini.SetValue("Alarms", "UpgradeAlarmSet", UpgradeAlarm.Enabled);
+			ini.SetValue("Alarms", "UpgradeAlarmSound", UpgradeAlarm.Sound);
+			ini.SetValue("Alarms", "UpgradeAlarmSoundFile", UpgradeAlarm.SoundFile);
+			ini.SetValue("Alarms", "UpgradeAlarmNotify", UpgradeAlarm.Notify);
+			ini.SetValue("Alarms", "UpgradeAlarmLatch", UpgradeAlarm.Latch);
+			ini.SetValue("Alarms", "UpgradeAlarmHours", UpgradeAlarm.LatchHours);
 
 			ini.SetValue("Offsets", "PressOffset", Calib.Press.Offset);
 			ini.SetValue("Offsets", "TempOffset", Calib.Temp.Offset);
@@ -7023,7 +7046,7 @@ namespace CumulusMX
 						// standard files
 						if (IncludeStandardFiles)
 						{
-							string uploadfile = "";
+							string uploadfile;
 							LogFtpDebugMessage("FTP[Int]: Uploading standard files");
 							for (int i = 0; i < localWebTextFiles.Length; i++)
 							{
@@ -7117,6 +7140,12 @@ namespace CumulusMX
 			if (FTPlogging) FtpTrace.WriteLine("");
 			try
 			{
+				if (!File.Exists(localfile))
+				{
+					LogMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
+					return;
+				}
+
 				if (DeleteBeforeUpload)
 				{
 					// delete the existing file
@@ -7185,6 +7214,12 @@ namespace CumulusMX
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+
+			if (!File.Exists(localfile))
+			{
+				LogMessage($"SFTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
+				return;
+			}
 
 			try
 			{
@@ -8081,7 +8116,7 @@ namespace CumulusMX
 				LogMessage($"SFTP[{cycle}]: Attempting realtime SFTP connect to host {FtpHostname} on port {FtpHostPort}");
 				try
 				{
-					// BUILD 3092 - added alternate SFTP authenication options
+					// BUILD 3092 - added alternate SFTP authentication options
 					ConnectionInfo connectionInfo;
 					PrivateKeyFile pskFile;
 					if (SshftpAuthentication == "password")
@@ -8106,6 +8141,7 @@ namespace CumulusMX
 						LogMessage($"SFTP[{cycle}]: Invalid SshftpAuthentication specified [{SshftpAuthentication}]");
 						return;
 					}
+
 					RealtimeSSH = new SftpClient(connectionInfo);
 
 					//if (RealtimeSSH != null) RealtimeSSH.Dispose();
@@ -8301,16 +8337,18 @@ namespace CumulusMX
 			{
 				var retVal = await http.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");
 				var latestUri = retVal.RequestMessage.RequestUri.AbsolutePath;
-				LatestBuild = new String(latestUri.Split('/').Last().Where(Char.IsDigit).ToArray());
+				LatestBuild = new string(latestUri.Split('/').Last().Where(char.IsDigit).ToArray());
 				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
 					var msg = $"You are not running the latest version of CumulusMX, build {LatestBuild} is available.";
 					LogConsoleMessage(msg);
 					LogMessage(msg);
+					UpgradeAlarm.Triggered = true;
 				}
 				else
 				{
 					LogMessage("This Cumulus MX instance is running the latest version");
+					UpgradeAlarm.Triggered = false;
 				}
 			}
 			catch (Exception ex)
