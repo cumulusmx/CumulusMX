@@ -3207,9 +3207,6 @@ namespace CumulusMX
 				// replace the edited line
 				var newLine = String.Join(cumulus.ListSeparator, newData.data);
 				lines[lineNum] = newLine;
-
-				// update the in-memory copy
-				station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
 			}
 			else if (newData.action == "Delete")
 			{
@@ -3218,9 +3215,6 @@ namespace CumulusMX
 				if (lineData[0] == newData.data[0])
 				{
 					lines.RemoveAt(lineNum);
-
-					// and delete the in-memory copy
-					station.DayFile.RemoveAt(lineNum);
 				}
 				else
 				{

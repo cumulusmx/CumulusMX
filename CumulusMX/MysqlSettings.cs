@@ -167,11 +167,6 @@ namespace CumulusMX
 				cumulus.SetRealtimeSqlCreateString();
 				cumulus.SetStartOfRealtimeInsertSQL();
 
-				if (!string.IsNullOrEmpty(cumulus.MySqlRealtimeRetention))
-				{
-					cumulus.DeleteRealtimeSQL = $"DELETE IGNORE FROM {cumulus.MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB(NOW(), INTERVAL {cumulus.MySqlRealtimeRetention})";
-				}
-
 				cumulus.CustomMysqlSecondsConn.Host = cumulus.MySqlHost;
 				cumulus.CustomMysqlSecondsConn.Port = cumulus.MySqlPort;
 				cumulus.CustomMysqlSecondsConn.UserId = cumulus.MySqlUser;

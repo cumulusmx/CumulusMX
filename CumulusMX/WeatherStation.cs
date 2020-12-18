@@ -977,7 +977,10 @@ namespace CumulusMX
 			{
 				bool recordbroken;
 
-				double epsilon = 0.001; // required difference for new record
+				// Make the delta relate to the precision for dervied values such as feels like
+				string[] derivedVals = { "HighHeatIndex", "HighAppTemp", "LowAppTemp", "LowChill", "HighHumidex", "HighDewPoint", "LowDewPoint", "HighFeelsLike", "LowFeelsLike"};
+
+				double epsilon = derivedVals.Contains(index) ? Math.Pow(10, -cumulus.TempDPlaces) : 0.001; // required difference for new record
 
 				int month;
 				int day;
@@ -1020,12 +1023,12 @@ namespace CumulusMX
 				if (higher)
 				{
 					// check new value is higher than existing record
-					recordbroken = (value - oldvalue > epsilon);
+					recordbroken = (value - oldvalue >= epsilon);
 				}
 				else
 				{
 					// check new value is lower than existing record
-					recordbroken = (oldvalue - value > epsilon);
+					recordbroken = (oldvalue - value >= epsilon);
 				}
 
 				if (recordbroken)
@@ -1460,7 +1463,7 @@ namespace CumulusMX
 						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 						cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 						cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
-						cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm"),
+						cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm"),
 						HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("HH:mm"));
 
 					//var json = jss.Serialize(data);
@@ -1565,6 +1568,9 @@ namespace CumulusMX
 
 			if (cumulus.SpikeAlarm.Triggered && DateTime.Now > cumulus.SpikeAlarm.TriggeredTime.AddHours(cumulus.SpikeAlarm.LatchHours))
 				cumulus.SpikeAlarm.Triggered = false;
+
+			if (cumulus.UpgradeAlarm.Triggered && DateTime.Now > cumulus.UpgradeAlarm.TriggeredTime.AddHours(cumulus.UpgradeAlarm.LatchHours))
+				cumulus.UpgradeAlarm.Triggered = false;
 
 			if (cumulus.HighWindAlarm.Triggered && DateTime.Now > cumulus.HighWindAlarm.TriggeredTime.AddHours(cumulus.HighWindAlarm.LatchHours))
 				cumulus.HighWindAlarm.Triggered = false;
@@ -2264,7 +2270,6 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
-			var append = false;
 
 			lock (GraphDataList)
 			{
@@ -2278,16 +2283,15 @@ namespace CumulusMX
 							sb.Append(",");
 					}
 					sb.Append("]");
-					append = true;
-				}
-
-				if (append)
-				{
-					sb.Append(",");
 				}
 
 				if (cumulus.GraphOptions.SolarVisible)
 				{
+					if (cumulus.GraphOptions.UVVisible)
+					{
+						sb.Append(",");
+					}
+
 					sb.Append("\"SolarRad\":[");
 					for (var i = 0; i < GraphDataList.Count; i++)
 					{
@@ -2593,8 +2597,9 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
-			// Check if we are to generate AQ data at all
-			if (cumulus.StationOptions.PrimaryAqSensor >= 0)
+			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
+			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
+				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				sb.Append("\"pm2p5\":[");
 				lock (GraphDataList)
@@ -2608,7 +2613,7 @@ namespace CumulusMX
 					}
 					sb.Append("]");
 					// Only the AirLink provides PM10 values at the moment
-					if (cumulus.StationOptions.PrimaryAqSensor == 0)
+					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor || cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 					{
 						sb.Append(",\"pm10\":[");
 						for (var i = 0; i < GraphDataList.Count; i++)
@@ -5982,23 +5987,30 @@ namespace CumulusMX
 			// Check for Air Quality readings
 			switch (cumulus.StationOptions.PrimaryAqSensor)
 			{
-				case 0: // Davis AirLink Outdoor
+				case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 					if (cumulus.airLinkDataOut != null)
 					{
 						pm2p5 = cumulus.airLinkDataOut.pm2p5;
 						pm10 = cumulus.airLinkDataOut.pm10;
 					}
 					break;
-				case 1: // Ecowitt sensor 1
+				case (int)Cumulus.PrimaryAqSensor.AirLinkIndoor:
+					if (cumulus.airLinkDataIn != null)
+					{
+						pm2p5 = cumulus.airLinkDataIn.pm2p5;
+						pm10 = cumulus.airLinkDataIn.pm10;
+					}
+					break;
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
 					pm2p5 = AirQuality1;
 					break;
-				case 2: // Ecowitt sensor 2
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
 					pm2p5 = AirQuality2;
 					break;
-				case 3: // Ecowitt sensor 3
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
 					pm2p5 = AirQuality3;
 					break;
-				case 4: // Ecowitt sensor 4
+				case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 					pm2p5 = AirQuality3;
 					break;
 				default: // Not enabled, use invalid values
@@ -6661,7 +6673,8 @@ namespace CumulusMX
 
 			cumulus.LogMessage($"LoadAqGraphData: Attempting to load {cumulus.GraphHours} hours of entries to Air Quality graph data");
 
-			if (cumulus.StationOptions.PrimaryAqSensor == 0) // AirLinkOutdoor
+			if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
+				|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				logFile = cumulus.GetAirLinkLogFileName(filedate);
 			}
@@ -6671,7 +6684,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"LoadAqGraphData: Error - The primary AQ sensor is not set to a valid value [0-4], currently={cumulus.StationOptions.PrimaryAqSensor}");
+				cumulus.LogMessage($"LoadAqGraphData: Error - The primary AQ sensor is not set to a valid value [0-5], currently={cumulus.StationOptions.PrimaryAqSensor}");
 				return;
 			}
 
@@ -6700,9 +6713,15 @@ namespace CumulusMX
 									{
 										// entry is from required period
 										double pm2p5, pm10;
-										if (cumulus.StationOptions.PrimaryAqSensor == 0)
+										if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 										{
-											// AirLink
+											// AirLink Indoor
+											pm2p5 = Convert.ToDouble(st[5]);
+											pm10 = Convert.ToDouble(st[10]);
+										}
+										else if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor)
+										{
+											// AirLink Outdoor
 											pm2p5 = Convert.ToDouble(st[32]);
 											pm10 = Convert.ToDouble(st[37]);
 										}
@@ -6722,12 +6741,12 @@ namespace CumulusMX
 									cumulus.LogMessage($"LoadAqGraphData: Error at line {linenum} of {logFile} : {e.Message}");
 									cumulus.LogMessage("Please edit the file to correct the error");
 									errorCount++;
-									if (errorCount >= 10)
+									if (errorCount >= 20)
 									{
 										cumulus.LogMessage($"LoadAqGraphData: Too many errors reading {logFile} - aborting load of graph data");
 									}
 								}
-							} while (!(sr.EndOfStream || entrydate >= dateto || errorCount >= 10));
+							} while (!(sr.EndOfStream || entrydate >= dateto || errorCount >= 20));
 						}
 					}
 					catch (Exception e)
@@ -6744,7 +6763,8 @@ namespace CumulusMX
 				else
 				{
 					filedate = filedate.AddMonths(1);
-					if (cumulus.StationOptions.PrimaryAqSensor == 0) // AirLinkOutdoor
+					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
+						|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor) // AirLink
 					{
 						logFile = cumulus.GetAirLinkLogFileName(filedate);
 					}
@@ -9002,7 +9022,7 @@ namespace CumulusMX
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case 0: // Davis AirLink Outdoor
+					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							sb.Append($"&AqPM1={cumulus.airLinkDataOut.pm1:F1}");
@@ -9012,19 +9032,19 @@ namespace CumulusMX
 							sb.Append($"&AqPM10_avg_24h={cumulus.airLinkDataOut.pm10_24hr:F1}");
 						}
 						break;
-					case 1: // Ecowitt sensor 1
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
 						sb.Append($"&AqPM2.5={AirQuality1:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg1:F1}");
 						break;
-					case 2: // Ecowitt sensor 2
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
 						sb.Append($"&AqPM2.5={AirQuality2:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg2:F1}");
 						break;
-					case 3: // Ecowitt sensor 3
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
 						sb.Append($"&AqPM2.5={AirQuality3:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg3:F1}");
 						break;
-					case 4: // Ecowitt sensor 4
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 						sb.Append($"&AqPM2.5={AirQuality4:F1}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg4:F1}");
 						break;
@@ -9119,26 +9139,26 @@ namespace CumulusMX
 			if (cumulus.Wund.SendLeafWetness2)
 				Data.Append($"&leafwetness2={LeafWetness2}");
 
-			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor >= 0)
+			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined)
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case 0: //AirLink Outdoor
+					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							Data.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}&AqPM10={cumulus.airLinkDataOut.pm10:F1}");
 						}
 						break;
-					case 1: // Ecowitt sensor 1
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
 						Data.Append($"&AqPM2.5={AirQuality1:F1}");
 						break;
-					case 2: // Ecowitt sensor 2
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
 						Data.Append($"&AqPM2.5={AirQuality2:F1}");
 						break;
-					case 3: // Ecowitt sensor 4
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
 						Data.Append($"&AqPM2.5={AirQuality3:F1}");
 						break;
-					case 4: // Ecowitt sensor 4
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 						Data.Append($"&AqPM2.5={AirQuality4:F1}");
 						break;
 				}
@@ -10671,17 +10691,17 @@ namespace CumulusMX
 					var recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 					// lo temp
 					minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
-					if (i <len)
-						minTemp.Append(",");
 					// hi temp
-						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
-					if (i <len)
-						maxTemp.Append(",");
-
+					maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
 					// avg temp
-						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
+					avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
+
 					if (i < len)
+					{
+						minTemp.Append(",");
+						maxTemp.Append(",");
 						avgTemp.Append(",");
+					}
 
 					if (cumulus.GraphOptions.HIVisible)
 					{
@@ -10690,6 +10710,7 @@ namespace CumulusMX
 							heatIdx.Append($"[{recDate},{DayFile[i].HighHeatIndex.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							heatIdx.Append($"[{recDate},null]");
+
 						if (i < len)
 							heatIdx.Append(",");
 					}
@@ -10700,11 +10721,13 @@ namespace CumulusMX
 							maxApp.Append($"[{recDate},{DayFile[i].HighAppTemp.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							maxApp.Append($"[{recDate},null]");
+
 						// lo app temp
 						if (DayFile[i].LowAppTemp < 999)
 							minApp.Append($"[{recDate},{DayFile[i].LowAppTemp.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							minApp.Append($"[{recDate},null]");
+
 						if (i < len)
 						{
 							maxApp.Append(",");
@@ -10718,6 +10741,7 @@ namespace CumulusMX
 							windChill.Append($"[{recDate},{DayFile[i].LowWindChill.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							windChill.Append($"[{recDate},null]");
+
 						if (i < len)
 							windChill.Append(",");
 					}
@@ -10729,11 +10753,13 @@ namespace CumulusMX
 							maxDew.Append($"[{recDate},{DayFile[i].HighDewPoint.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							maxDew.Append($"[{recDate},null]");
+
 						// lo dewpt
 						if (DayFile[i].LowDewPoint < 999)
 							minDew.Append($"[{recDate},{DayFile[i].LowDewPoint.ToString(cumulus.TempFormat, InvC)}]");
 						else
-							maxDew.Append($"[{recDate},null]");
+							minDew.Append($"[{recDate},null]");
+
 						if (i < len)
 						{
 							maxDew.Append(",");
@@ -10748,11 +10774,13 @@ namespace CumulusMX
 							maxFeels.Append($"[{recDate},{DayFile[i].HighFeelsLike.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							maxFeels.Append($"[{recDate},null]");
+
 						// lo feels like
 						if (DayFile[i].LowFeelsLike < 999)
 							minFeels.Append($"[{recDate},{DayFile[i].LowFeelsLike.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							minFeels.Append($"[{recDate},null]");
+
 						if (i < len)
 						{
 							maxFeels.Append(",");
@@ -10767,9 +10795,10 @@ namespace CumulusMX
 							humidex.Append($"[{recDate},{DayFile[i].HighHumidex.ToString(cumulus.TempFormat, InvC)}]");
 						else
 							humidex.Append($"[{recDate},null]");
+
+						if (i < len)
+							humidex.Append(",");
 					}
-					if (i < len)
-						humidex.Append(",");
 				}
 			}
 			sb.Append("\"minTemp\":" + minTemp.ToString() + "],");
@@ -10796,6 +10825,7 @@ namespace CumulusMX
 			}
 			if (cumulus.GraphOptions.HumidexVisible)
 				sb.Append(",\"humidex\":" + humidex.ToString() + "]");
+
 			sb.Append("}");
 
 			return sb.ToString();
@@ -10829,18 +10859,17 @@ namespace CumulusMX
 
 					// hi gust
 					maxGust.Append($"[{recDate},{DayFile[i].HighGust.ToString(cumulus.WindFormat, InvC)}]");
-					if (i < len)
-						maxGust.Append(",");
-
 					// hi wind run
 					windRun.Append($"[{recDate},{DayFile[i].WindRun.ToString(cumulus.WindRunFormat, InvC)}]");
-					if (i < len)
-						windRun.Append(",");
-
 					// hi wind
 					maxWind.Append($"[{recDate},{DayFile[i].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)}]");
+
 					if (i < len)
+					{
+						maxGust.Append(",");
+						windRun.Append(",");
 						maxWind.Append(",");
+					}
 				}
 			}
 			sb.Append("\"maxGust\":" + maxGust.ToString() + "],");
@@ -10879,13 +10908,14 @@ namespace CumulusMX
 
 					// hi rain rate
 					maxRRate.Append($"[{recDate},{DayFile[i].HighRainRate.ToString(cumulus.RainFormat, InvC)}]");
-					if (i < len)
-						maxRRate.Append(",");
-
 					// total rain
 					rain.Append($"[{recDate},{DayFile[i].TotalRain.ToString(cumulus.RainFormat, InvC)}]");
+
 					if (i < len)
+					{
+						maxRRate.Append(",");
 						rain.Append(",");
+					}
 				}
 			}
 			sb.Append("\"maxRainRate\":" + maxRRate.ToString() + "],");
@@ -10924,13 +10954,14 @@ namespace CumulusMX
 
 					// lo baro
 					minBaro.Append($"[{recDate},{DayFile[i].LowPress.ToString(cumulus.PressFormat, InvC)}]");
-					if (i < len)
-						minBaro.Append(",");
-
 					// hi baro
 					maxBaro.Append($"[{recDate},{DayFile[i].HighPress.ToString(cumulus.PressFormat, InvC)}]");
+
 					if (i < len)
+					{
 						maxBaro.Append(",");
+						minBaro.Append(",");
+					}
 				}
 			}
 			sb.Append("\"minBaro\":" + minBaro.ToString() + "],");
@@ -11096,16 +11127,20 @@ namespace CumulusMX
 			}
 			if (cumulus.GraphOptions.SunshineVisible)
 				sb.Append("\"sunHours\":" + sunHours.ToString() + "]");
+
 			if (cumulus.GraphOptions.SolarVisible)
 			{
 				if (cumulus.GraphOptions.SunshineVisible)
 					sb.Append(",");
+
 				sb.Append("\"solarRad\":" + solarRad.ToString() + "]");
 			}
+
 			if (cumulus.GraphOptions.UVVisible)
 			{
 				if (cumulus.GraphOptions.SunshineVisible || cumulus.GraphOptions.SolarVisible)
 					sb.Append(",");
+
 				sb.Append("\"uvi\":" + uvi.ToString() + "]");
 			}
 			sb.Append("}");
@@ -11143,7 +11178,7 @@ namespace CumulusMX
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 				cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
-				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered,
+				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm:ss"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm:ss"),
 				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("HH:mm:ss"));
 

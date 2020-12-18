@@ -116,8 +116,19 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Fine Offset station not found");
+				cumulus.LogMessage("*** Fine Offset station not found ***");
 				cumulus.LogConsoleMessage("Fine Offset station not found");
+				cumulus.LogMessage("Found the following USB HID Devices...");
+				int cnt = 0;
+				foreach (HidDevice device in devicelist.GetHidDevices())
+				{
+					cumulus.LogMessage($"   {device}");
+					cnt++;
+				}
+				if (cnt == 0)
+				{
+					cumulus.LogMessage("No USB HID devices found!");
+				}
 			}
 		}
 

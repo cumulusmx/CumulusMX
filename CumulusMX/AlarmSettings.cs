@@ -135,7 +135,14 @@ namespace CumulusMX
 				spikeSound = cumulus.SpikeAlarm.SoundFile,
 				spikeNotify = cumulus.SpikeAlarm.Notify,
 				spikeLatches = cumulus.SpikeAlarm.Latch,
-				spikeLatchHrs = cumulus.SpikeAlarm.LatchHours
+				spikeLatchHrs = cumulus.SpikeAlarm.LatchHours,
+
+				upgradeEnabled = cumulus.UpgradeAlarm.Enabled,
+				upgradeSoundEnabled = cumulus.UpgradeAlarm.Sound,
+				upgradeSound = cumulus.UpgradeAlarm.SoundFile,
+				upgradeNotify = cumulus.UpgradeAlarm.Notify,
+				upgradeLatches = cumulus.UpgradeAlarm.Latch,
+				upgradeLatchHrs = cumulus.UpgradeAlarm.LatchHours,
 			};
 
 			var retObject = new JsonAlarmSettings()
@@ -274,6 +281,13 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.Latch = settings.spikeLatches;
 				cumulus.SpikeAlarm.LatchHours = settings.spikeLatchHrs;
 
+				cumulus.UpgradeAlarm.Enabled = settings.upgradeEnabled;
+				cumulus.UpgradeAlarm.Sound = settings.upgradeSoundEnabled;
+				cumulus.UpgradeAlarm.SoundFile = settings.upgradeSound;
+				cumulus.UpgradeAlarm.Notify = settings.upgradeNotify;
+				cumulus.UpgradeAlarm.Latch = settings.upgradeLatches;
+				cumulus.UpgradeAlarm.LatchHours = settings.upgradeLatchHrs;
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -398,6 +412,14 @@ namespace CumulusMX
 		public bool spikeNotify { get; set; }
 		public bool spikeLatches { get; set; }
 		public int spikeLatchHrs { get; set; }
+
+		public bool upgradeEnabled { get; set; }
+		public bool upgradeSoundEnabled { get; set; }
+		public string upgradeSound { get; set; }
+		public bool upgradeNotify { get; set; }
+		public bool upgradeLatches { get; set; }
+		public int upgradeLatchHrs { get; set; }
+
 	}
 
 	public class JsonAlarmUnits
