@@ -9,6 +9,7 @@
 - Fix: Removes redundant alldailywdirdata.json file from daily uploads
 - Fix: Corrects incorrect/invalid JSON being created in the alldailytempdata.json file when the dayfile contains blank entry's for dew point
 - Fix: Attempted FTP uploads of files that do not exist caused the FTP session to become non-functional
+- Fix: The monthly data log file editor erroring with 404
 
 - New: You can now use "<airlinklogfile>" in the extra files local filename to copy/upload the latest AirLink data log file
 - New: You can now define your Indoor AirLink as the primary AQ sensor. Note this only applies to the admin interface, its data will not be

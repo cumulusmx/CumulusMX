@@ -3639,14 +3639,20 @@ namespace CumulusMX
 		private double ConvertRainClicksToUser(double clicks)
 		{
 			// One click is either 0.01 inches or 0.2 mm
-			if (cumulus.VPrainGaugeType == -1)
+			switch (cumulus.VPrainGaugeType)
 			{
-				// Rain gauge type not configured, assume from units
-				return cumulus.RainUnit == 0 ? clicks * 0.2 : clicks * 0.01;
-			}
+				case 0:
+					// Rain gauge is metric, convert to user unit
+					return ConvertRainMMToUser(clicks * 0.2);
 
-			// Rain gauge is metric, convert to user unit
-			return ConvertRainMMToUser(cumulus.VPrainGaugeType == 0 ? clicks * 0.2 : clicks * 0.01);
+				case 1:
+					// Rain gauge is imperial, convert to user unit
+					return ConvertRainINToUser(clicks * 0.01);
+
+				default:
+					// Rain gauge type not configured, assume it is the same as the station units
+					return cumulus.RainUnit == 0 ? clicks * 0.2 : clicks * 0.01;
+			}
 		}
 
 		/*private string[] forecastStrings =
