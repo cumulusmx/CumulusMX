@@ -1519,7 +1519,7 @@ namespace CumulusMX
 
         public static string CreateMoonImage(double phaseAngle, double latitude, int size)
         {
-	        Bitmap bmp;
+            Bitmap bmp;
             // we need to reverse a couple of settings beyond full moon
             double corr = -1;
 

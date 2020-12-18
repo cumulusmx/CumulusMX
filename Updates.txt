@@ -1,3 +1,26 @@
+3.9.3 - b3098
+—————————————
+- Fix: Records check was triggering for very small value changes in derived values such as feels like temps
+- Fix: Catch uncaught exception on SFTP disconnect
+- Fix: FTP was inconsistent in empty remote server folder handling for real-time and interval files
+- Fix: AirLink was not using the local vs WLL API data correctly
+- Fix: EU CAQI AQI index calculations (based on the City/Urban scale)
+- Fix: US EPA AQI calculation error of values between 51 and 100
+- Fix: Removes redundant alldailywdirdata.json file from daily uploads
+- Fix: Corrects incorrect/invalid JSON being created in the alldailytempdata.json file when the dayfile contains blank entry's for dew point
+- Fix: Attempted FTP uploads of files that do not exist caused the FTP session to become non-functional
+- Fix: The monthly data log file editor erroring with 404
+
+- New: You can now use "<airlinklogfile>" in the extra files local filename to copy/upload the latest AirLink data log file
+- New: You can now define your Indoor AirLink as the primary AQ sensor. Note this only applies to the admin interface, its data will not be
+       uploaded to the default web site
+- New: Adds Cumulus MX update available alarm to the dashboard - enabled by default. This also has an associated web tag <#UpgradeAlarm>
+- New: If enabled, the daily graph data files are now created at start-up and uploaded at first interval FTP.
+       Previously you had to wait for the first EOD rollover.
+- New: If a FineOffset station is not found, MX now dumps a list of all the USB devices it can see to the MXdiags log
+
+
+
 3.9.2 - b3097
 —————————————
 - Fix: Change log messages for number of SQL rows affected to Debug only messages

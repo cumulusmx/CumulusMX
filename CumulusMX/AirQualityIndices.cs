@@ -9,60 +9,60 @@ namespace CumulusMX
 		 * https://www.airnow.gov/sites/default/files/2018-05/aqi-technical-assistance-document-may2016.pdf
 		 */
 
-		public static double US_EPApm2p5(double pmVal)
+		public static int US_EPApm2p5(double pmVal)
 		{
-			//double Clow, Chigh, Ilow, Ihigh;
+			double retVal;
 
-			if (pmVal > 500.4)
+			if (pmVal >= 500.4)
 				return 500;
 
-			if (pmVal >= 350.5)
+			if (pmVal >= 350.4)
 			{
 				//Clow = 350.5;
 				//Chigh = 500.4;
 				//Ilow = 401;
 				//Ihigh = 500;
-				return 401 + Interpolate(350.5, 500.4, pmVal) * 99;
+				retVal = 400 + Interpolate(350.4, 500.4, pmVal) * 100;
 			}
-			else if (pmVal >= 250.5)
+			else if (pmVal >= 250.4)
 			{
 				//Clow = 250.5;
 				//Chigh = 350.4;
 				//Ilow = 301;
 				//Ihigh = 400;
-				return 301 + Interpolate(250.5, 350.4, pmVal) * 99;
+				retVal = 300 + Interpolate(250.4, 350.4, pmVal) * 100;
 			}
-			else if (pmVal >= 150.5)
+			else if (pmVal >= 150.4)
 			{
 				//Clow = 150.5;
 				//Chigh = 250.4;
 				//Ilow = 201;
 				//Ihigh = 300;
-				return 201 + Interpolate(150.5, 250.4, pmVal) * 99;
+				retVal = 200 + Interpolate(150.4, 250.4, pmVal) * 100;
 			}
-			else if (pmVal >= 55.5)
+			else if (pmVal >= 55.4)
 			{
 				//Clow = 55.5;
 				//Chigh = 150.4;
 				//Ilow = 151;
 				//Ihigh = 200;
-				return 151 + Interpolate(55.5, 150.4, pmVal) * 49;
+				retVal = 150 + Interpolate(55.4, 150.4, pmVal) * 50;
 			}
-			else if (pmVal >= 35.5)
+			else if (pmVal >= 35.4)
 			{
 				//Clow = 35.5;
 				//Chigh = 55.4;
 				//Ilow = 101;
 				//Ihigh = 150;
-				return 101 + Interpolate(35.5, 55.4, pmVal) * 49;
+				retVal = 100 + Interpolate(35.4, 55.4, pmVal) * 50;
 			}
-			else if (pmVal >= 12.1)
+			else if (pmVal >= 12)
 			{
 				//Clow = 12.1;
 				//Chigh = 35.4;
 				//Ilow = 51;
 				//Ihigh = 100;
-				return 51 + Interpolate(12.1, 35.4, pmVal) * 49;
+				retVal = 50 + Interpolate(12, 35.4, pmVal) * 50;
 			}
 			else
 			{
@@ -70,9 +70,10 @@ namespace CumulusMX
 				//Chigh = 12;
 				//Ilow = 0;
 				//Ihigh = 50;
-				return Interpolate(0, 12, pmVal) * 50;
+				retVal = Interpolate(0, 12, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
+			return (int)Math.Round(retVal);
 		}
 
 		/*
@@ -80,60 +81,60 @@ namespace CumulusMX
 		 * https://www.airnow.gov/sites/default/files/2018-05/aqi-technical-assistance-document-may2016.pdf
 		 */
 
-		public static double US_EPApm10(double pmVal)
+		public static int US_EPApm10(double pmVal)
 		{
-			//int Clow, Chigh, Ilow, Ihigh;
+			double retVal;
 
-			if (pmVal > 604)
+			if (pmVal >= 604)
 				return 500;
 
-			if (pmVal >= 505)
+			if (pmVal >= 504)
 			{
 				//Clow = 505;
 				//Chigh = 604;
 				//Ilow = 401;
 				//Ihigh = 500;
-				return 401 + Interpolate(505, 604, pmVal) * 99;
+				retVal = 400 + Interpolate(504, 604, pmVal) * 100;
 			}
-			else if (pmVal >= 425)
+			else if (pmVal >= 424)
 			{
 				//Clow = 425;
 				//Chigh = 504;
 				//Ilow = 301;
 				//Ihigh = 400;
-				return 301 + Interpolate(425, 504, pmVal) * 99;
+				retVal = 300 + Interpolate(424, 504, pmVal) * 100;
 			}
-			else if (pmVal >= 355)
+			else if (pmVal >= 354)
 			{
 				//Clow = 355;
 				//Chigh = 424;
 				//Ilow = 201;
 				//Ihigh = 300;
-				return 201 + Interpolate(355, 424, pmVal) * 99;
+				retVal = 200 + Interpolate(354, 424, pmVal) * 100;
 			}
-			else if (pmVal >= 255)
+			else if (pmVal >= 254)
 			{
 				//Clow = 255;
 				//Chigh = 354;
 				//Ilow = 151;
 				//Ihigh = 200;
-				return 151 + Interpolate(255, 3544, pmVal) * 49;
+				retVal = 150 + Interpolate(254, 354, pmVal) * 50;
 			}
-			else if (pmVal >= 155)
+			else if (pmVal >= 154)
 			{
 				//Clow = 155;
 				//Chigh = 254;
 				//Ilow = 101;
 				//Ihigh = 150;
-				return 101 + Interpolate(155, 254, pmVal) * 49;
+				retVal = 100 + Interpolate(154, 254, pmVal) * 50;
 			}
-			else if (pmVal >= 55)
+			else if (pmVal >= 54)
 			{
 				//Clow = 55;
 				//Chigh = 154;
 				//Ilow = 51;
 				//Ihigh = 100;
-				return 51 + Interpolate(55, 154, pmVal) * 99;
+				retVal = 50 + Interpolate(54, 154, pmVal) * 50;
 			}
 			else
 			{
@@ -141,9 +142,10 @@ namespace CumulusMX
 				//Chigh = 54;
 				//Ilow = 0;
 				//Ihigh = 50;
-				return Interpolate(0, 54, pmVal) * 50;
+				retVal = Interpolate(0, 54, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
+			return (int)Math.Round(retVal);
 		}
 
 
@@ -296,37 +298,39 @@ namespace CumulusMX
 		 * https://www.airqualitynow.eu/download/CITEAIR-Comparing_Urban_Air_Quality_across_Borders.pdf
 		 * PM10
 		 * Use 101 to indicate >100
+		 * Uses the Urban background scale
 		 */
 		public static double EU_CAQI10h1(double pmVal)
 		{
 			if (pmVal > 180)
 				return 101;
-			else if (pmVal >= 90) // AQI 75
+			else if (pmVal >= 90) // AQI 75-100
 				return 75 + Interpolate(90, 180, pmVal) * 25;
-			else if (pmVal >= 50) // AQI 50
-				return 50 + Interpolate(50, 75, pmVal) * 25;
-			else if (pmVal >= 25) // AQI 25
-				return 25 + Interpolate(25, 75, pmVal) * 25;
-			else
-				return 1 + Interpolate(0, 25, pmVal) * 24;
+			else if (pmVal >= 50) // AQI 50-75
+				return 50 + Interpolate(50, 90, pmVal) * 25;
+			else if (pmVal >= 26) // AQI 25-50
+				return 25 + Interpolate(26, 50, pmVal) * 25;
+			else                  // AQI 1-25
+				return 1 + Interpolate(0, 26, pmVal) * 24;
 		}
 		/*
 		 * EU Common Air Quality Index - CAQI - 0-100 scale
 		 * https://www.airqualitynow.eu/download/CITEAIR-Comparing_Urban_Air_Quality_across_Borders.pdf
 		 * PM10
 		 * Use 101 to indicate >100
+		 * Uses the Urban background scale
 		 */
 		public static double EU_CAQI10h24(double pmVal)
 		{
 			if (pmVal > 100)
 				return 101;
-			else if (pmVal >= 50) // AQI 75
+			else if (pmVal >= 50) // AQI 75-100
 				return 75 + Interpolate(50, 100, pmVal) * 25;
-			else if (pmVal >= 30) // AQI 50
+			else if (pmVal >= 30) // AQI 50-75
 				return 50 + Interpolate(30, 50, pmVal) * 25;
-			else if (pmVal >= 15) // AQI 25
+			else if (pmVal >= 15) // AQI 25-50
 				return 25 + Interpolate(15, 30, pmVal) * 25;
-			else
+			else                  // AQI 1-25
 				return 1 + Interpolate(0, 15, pmVal) * 24;
 		}
 		/*
@@ -334,18 +338,19 @@ namespace CumulusMX
 		 * https://www.airqualitynow.eu/download/CITEAIR-Comparing_Urban_Air_Quality_across_Borders.pdf
 		 * PM2.5
 		 * Use 101 to indicate >100
+		 * Uses the Urban background scale
 		 */
 		public static double EU_CAQI2p5h1(double pmVal)
 		{
 			if (pmVal > 110)
 				return 101;
-			else if (pmVal >= 55) // AQI 75
+			else if (pmVal >= 55) // AQI 75-100
 				return 75 + Interpolate(55, 110, pmVal) * 25;
-			else if (pmVal >= 30) // AQI 50
+			else if (pmVal >= 30) // AQI 50-75
 				return 50 + Interpolate(30, 55, pmVal) * 25;
-			else if (pmVal >= 15) // AQI 25
-				return 15 + Interpolate(15, 30, pmVal) * 25;
-			else
+			else if (pmVal >= 15) // AQI 25-50
+				return 25 + Interpolate(15, 30, pmVal) * 25;
+			else                  // AQI 1-25
 				return 1 + Interpolate(0, 15, pmVal) * 24;
 		}
 		/*
@@ -353,18 +358,19 @@ namespace CumulusMX
 		 * https://www.airqualitynow.eu/download/CITEAIR-Comparing_Urban_Air_Quality_across_Borders.pdf
 		 * PM2.5
 		 * Use 101 to indicate >100
+		 * Uses the Urban background scale
 		 */
 		public static double EU_CAQI2p5h24(double pmVal)
 		{
 			if (pmVal > 60)
 				return 101;
-			else if (pmVal >= 30) // AQI 75
+			else if (pmVal >= 30) // AQI 75-100
 				return 75 + Interpolate(30, 60, pmVal) * 25;
-			else if (pmVal >= 20) // AQI 50
+			else if (pmVal >= 20) // AQI 50-75
 				return 50 + Interpolate(20, 30, pmVal) * 25;
-			else if (pmVal >= 10) // AQI 25
+			else if (pmVal >= 10) // AQI 25-50
 				return 25 + Interpolate(10, 20, pmVal) * 25;
-			else
+			else                  // AQI 1-25
 				return 1 + Interpolate(0, 10, pmVal) * 24;
 		}
 
