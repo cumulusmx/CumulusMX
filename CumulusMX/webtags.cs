@@ -4610,9 +4610,8 @@ namespace CumulusMX
 		{
 			try
 			{
-				var upTime = new PerformanceCounter("System", "System Up Time");
-				upTime.NextValue();
-				TimeSpan ts = TimeSpan.FromSeconds(upTime.NextValue());
+				TimeSpan ts = TimeSpan.FromSeconds(cumulus.UpTime.NextValue());
+
 				return string.Format($"{ts.Days} days {ts.Hours} hours");
 			}
 			catch (Exception ex)

@@ -26,40 +26,37 @@ namespace CumulusMX
 		{
 			// Build the settings data, convert to JSON, and return it
 			var options = new JsonStationSettingsOptions()
-						  {
-							  usezerobearing = cumulus.StationOptions.UseZeroBearing,
-							  calcwindaverage = cumulus.StationOptions.UseWind10MinAve,
-							  usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
-							  use100for98hum = cumulus.StationOptions.Humidity98Fix,
-							  calculatedewpoint = cumulus.StationOptions.CalculatedDP,
-							  calculatewindchill = cumulus.StationOptions.CalculatedWC,
-							  syncstationclock = cumulus.StationOptions.SyncTime,
-							  cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
-							  vp1minbarupdate = cumulus.StationOptions.ForceVPBarUpdate,
-							  extrasensors = cumulus.StationOptions.LogExtraSensors,
-							  ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
-							  roundwindspeeds = cumulus.StationOptions.RoundWindSpeed,
-							  synchroniseforeads = cumulus.StationOptions.SyncFOReads,
-							  debuglogging = cumulus.StationOptions.DebugLogging,
-							  datalogging = cumulus.StationOptions.DataLogging,
-							  stopsecondinstance = cumulus.StationOptions.WarnMultiple,
-							  readreceptionstats = cumulus.StationOptions.DavisReadReceptionStats
-						  };
+			{
+				usezerobearing = cumulus.StationOptions.UseZeroBearing,
+				calcwindaverage = cumulus.StationOptions.UseWind10MinAve,
+				usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
+				use100for98hum = cumulus.StationOptions.Humidity98Fix,
+				calculatedewpoint = cumulus.StationOptions.CalculatedDP,
+				calculatewindchill = cumulus.StationOptions.CalculatedWC,
+				syncstationclock = cumulus.StationOptions.SyncTime,
+				cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
+				vp1minbarupdate = cumulus.StationOptions.ForceVPBarUpdate,
+				extrasensors = cumulus.StationOptions.LogExtraSensors,
+				ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
+				roundwindspeeds = cumulus.StationOptions.RoundWindSpeed,
+				synchroniseforeads = cumulus.StationOptions.SyncFOReads,
+				readreceptionstats = cumulus.StationOptions.DavisReadReceptionStats
+			};
 
 			var units = new JsonStationSettingsUnits()
-						{
-							wind = cumulus.WindUnit,
-							pressure = cumulus.PressUnit,
-							temp = cumulus.TempUnit,
-							rain = cumulus.RainUnit
-						};
+			{
+				wind = cumulus.WindUnit,
+				pressure = cumulus.PressUnit,
+				temp = cumulus.TempUnit,
+				rain = cumulus.RainUnit
+			};
 
 			var tcpsettings = new JsonStationSettingsTCPsettings()
-							  {
-								  ipaddress = cumulus.VP2IPAddr,
-								  tcpport = cumulus.VP2TCPPort,
-								  disconperiod = cumulus.VP2PeriodicDisconnectInterval
-							  };
+			{
+				ipaddress = cumulus.VP2IPAddr,
+				tcpport = cumulus.VP2TCPPort,
+				disconperiod = cumulus.VP2PeriodicDisconnectInterval
+			};
 
 			var davisconn = new JsonStationSettingsDavisConn() {conntype = cumulus.VP2ConnectionType, tcpsettings = tcpsettings};
 
@@ -84,14 +81,14 @@ namespace CumulusMX
 			var longitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
 			var location = new JsonStationSettingsLocation()
-							{
-								altitude = (int) cumulus.Altitude,
-								altitudeunit = "metres",
-								description = cumulus.LocationDesc,
-								Latitude = latitude,
-								Longitude = longitude,
-								sitename = cumulus.LocationName
-							};
+			{
+				altitude = (int) cumulus.Altitude,
+				altitudeunit = "metres",
+				description = cumulus.LocationDesc,
+				Latitude = latitude,
+				Longitude = longitude,
+				sitename = cumulus.LocationName
+			};
 
 			if (cumulus.AltitudeInFeet)
 			{
@@ -99,13 +96,13 @@ namespace CumulusMX
 			}
 
 			var forecast = new JsonStationSettingsForecast()
-							{
-								highpressureextreme = cumulus.FChighpress,
-								lowpressureextreme = cumulus.FClowpress,
-								pressureunit = "mb/hPa",
-								updatehourly = cumulus.HourlyForecast,
-								usecumulusforecast = cumulus.UseCumulusForecast
-							};
+			{
+				highpressureextreme = cumulus.FChighpress,
+				lowpressureextreme = cumulus.FClowpress,
+				pressureunit = "mb/hPa",
+				updatehourly = cumulus.HourlyForecast,
+				usecumulusforecast = cumulus.UseCumulusForecast
+			};
 
 			if (!cumulus.FCpressinMB)
 			{
@@ -113,13 +110,13 @@ namespace CumulusMX
 			}
 
 			var solar = new JsonStationSettingsSolar()
-						{
-							solarmin = cumulus.SolarMinimum,
-							transfactor = cumulus.RStransfactor,
-							sunthreshold = cumulus.SunThreshold,
-							solarcalc = cumulus.SolarCalc,
-							turbidity = cumulus.BrasTurbidity
-						};
+			{
+				solarmin = cumulus.SolarMinimum,
+				transfactor = cumulus.RStransfactor,
+				sunthreshold = cumulus.SunThreshold,
+				solarcalc = cumulus.SolarCalc,
+				turbidity = cumulus.BrasTurbidity
+			};
 
 			var annualrainfall = new JsonStationSettingsAnnualRainfall() {rainseasonstart = cumulus.RainSeasonStart, ytdamount = cumulus.YTDrain, ytdyear = cumulus.YTDrainyear};
 
@@ -223,7 +220,7 @@ namespace CumulusMX
 			};
 
 			var data = new JsonStationSettingsData()
-				{
+			{
 				stationtype = cumulus.StationType,
 				units = units,
 				davisconn = davisconn,
@@ -309,7 +306,6 @@ namespace CumulusMX
 			d = secs / 60;
 		}
 
-		//public string UpdateStationConfig(HttpListenerContext context)
 		public string UpdateStationConfig(IHttpContext context)
 		{
 			var errorMsg = "";
@@ -325,8 +321,8 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				//var settings = JsonConvert.DeserializeObject<JsonStationSettingsData>(json);
 				var settings = JsonSerializer.DeserializeFromString<JsonStationSettingsData>(json);
+
 				// process the settings
 
 				// Graph Config
@@ -455,9 +451,6 @@ namespace CumulusMX
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
 					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
 					cumulus.StationOptions.SyncFOReads = settings.Options.synchroniseforeads;
-					cumulus.StationOptions.DebugLogging = settings.Options.debuglogging;
-					cumulus.StationOptions.DataLogging = settings.Options.datalogging;
-					cumulus.StationOptions.WarnMultiple = settings.Options.stopsecondinstance;
 					cumulus.StationOptions.DavisReadReceptionStats = settings.Options.readreceptionstats;
 				}
 				catch (Exception ex)

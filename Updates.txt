@@ -1,3 +1,21 @@
+3.9.4 - b3099
+—————————————
+- Fix: WMR100 stations generated empty daily graph data files on start-up
+
+- New: Settings page: Program Settings. Moved Debug and Data logging options and Prevent Second Instance here from Station Settings.
+       Note that these setting still remain in the [Station] section of the Cumulus.ini file for backwards compatibility
+- New: Two settings to delay the start-up of Cumulus MX. Both added to the new Program Settings page.
+       Start-up Host PING:- specify a remote hostname or IP address, Cumulus will wait for a successful PING from this address before continuing
+       Start-up Delay:- specify a fixed time in seconds to delay the start-up. The delay will be executed after the PING check is one is specified
+	   Start-up Delay Max Uptime:- specify a maximum system uptime in seconds after which the delay will no longer be applied. Set to zero to always delay
+	New section in Cumulus.ini:
+	[Program]
+	StartupDelaySecs=0		// Default is no delay = 0
+	StartupPingHost=		// Default is no remote host - enter a host name or IP address
+
+
+
+
 3.9.3 - b3098
 —————————————
 - Fix: Records check was triggering for very small value changes in derived values such as feels like temps

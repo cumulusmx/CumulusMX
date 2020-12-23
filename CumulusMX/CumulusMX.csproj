@@ -211,6 +211,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="SQLite.cs" />
+    <Compile Include="ProgramSettings.cs" />
     <Compile Include="StationSettings.cs" />
     <Compile Include="SunriseSunset.cs" />
     <Compile Include="TokenParser.cs" />

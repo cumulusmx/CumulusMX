@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
@@ -31,8 +32,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.3";
-		public string Build = "3098";
+		public string Version = "3.9.4";
+		public string Build = "3099";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -196,6 +197,8 @@ namespace CumulusMX
 		public int airLinkOutLsid;
 
 		public DateTime LastUpdateTime;
+
+		public PerformanceCounter UpTime = new PerformanceCounter("System", "System Up Time");
 
 		private readonly WebTags webtags;
 		private readonly TokenParser tokenParser;
@@ -512,6 +515,8 @@ namespace CumulusMX
 		/// </summary>
 		public Spikes Spike = new Spikes();
 
+		public ProgramOptions ProgramOptions = new ProgramOptions();
+
 		public StationOptions StationOptions = new StationOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
@@ -604,6 +609,7 @@ namespace CumulusMX
 		public bool IsOSX;
 		public double CPUtemp = -999;
 
+		// Alarms
 		public Alarm DataStoppedAlarm = new Alarm();
 		public Alarm BatteryLowAlarm = new Alarm();
 		public Alarm SensorAlarm = new Alarm();
@@ -987,13 +993,72 @@ namespace CumulusMX
 
 			ReadIniFile();
 
-			if (StationOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
+			// Do we prevent more than one copy of CumulusMX running?
+			if (ProgramOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
 			{
 				LogConsoleMessage("Cumulus is already running - terminating");
 				LogConsoleMessage("Program exit");
 				LogMessage("Cumulus is already running - terminating");
 				LogMessage("Program exit");
 				Environment.Exit(1);
+			}
+
+			// Do we wait for a ping response from a remote host before starting?
+			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
+			{
+				var msg1 = $"Waiting for PING reply from {ProgramOptions.StartupPingHost}";
+				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
+				LogConsoleMessage(msg1);
+				LogMessage(msg1);
+				using (var ping = new Ping())
+				{
+					PingReply reply;
+					try
+					{
+						do
+						{
+							reply = ping.Send(ProgramOptions.StartupPingHost, 5000);  // 5 second timeout
+						} while (reply.Status != IPStatus.Success);
+					}
+					catch(Exception e)
+					{
+						LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
+					}
+				}
+				LogConsoleMessage(msg2);
+				LogMessage(msg2);
+			}
+			else
+			{
+				LogMessage("No start-up PING");
+			}
+
+			// Do we delay the start of Cumulus MX for a fixed period?
+			if (ProgramOptions.StartupDelaySecs > 0)
+			{
+				// Check uptime
+				UpTime.NextValue();
+				TimeSpan ts = TimeSpan.FromSeconds(UpTime.NextValue());
+
+				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts.TotalSeconds)
+				{
+					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
+					var msg2 = $"Start-up delay complete, continuing...";
+					LogConsoleMessage(msg1);
+					LogMessage(msg1);
+					Thread.Sleep(ProgramOptions.StartupDelaySecs * 1000);
+					LogConsoleMessage(msg2);
+					LogMessage(msg2);
+				}
+				else
+				{
+					LogMessage("No start-up delay, max uptime exceeded");
+				}
+			}
+			else
+			{
+				LogMessage("No start-up delay - disabled");
 			}
 
 			GC.Collect();
@@ -1085,8 +1150,8 @@ namespace CumulusMX
 
 			Backupdata(false, DateTime.Now);
 
-			LogMessage("Debug logging is " + (StationOptions.DebugLogging ? "enabled" : "disabled"));
-			LogMessage("Data logging is " + (StationOptions.DataLogging ? "enabled" : "disabled"));
+			LogMessage("Debug logging is " + (ProgramOptions.DebugLogging ? "enabled" : "disabled"));
+			LogMessage("Data logging is " + (ProgramOptions.DataLogging ? "enabled" : "disabled"));
 			LogMessage("FTP logging is " + (FTPlogging ? "enabled" : "disabled"));
 			LogMessage("Spike logging is " + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
@@ -1316,6 +1381,7 @@ namespace CumulusMX
 			// Set up the API web server
 			Api.Setup(httpServer);
 			Api.Station = station;
+			Api.programSettings = new ProgramSettings(this);
 			Api.stationSettings = new StationSettings(this);
 			Api.internetSettings = new InternetSettings(this);
 			Api.extraSensorSettings = new ExtraSensorSettings(this);
@@ -1394,6 +1460,7 @@ namespace CumulusMX
 			// If enabled generate the daily graph data files, and upload at first opportunity
 			if (IncludeGraphDataFiles)
 			{
+				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
 				DailyGraphDataFilesNeedFTP = true;
 			}
@@ -3154,6 +3221,21 @@ namespace CumulusMX
 				}
 			}
 
+			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", "");
+			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
+			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
+			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
+			if (DebuggingEnabled)
+			{
+				ProgramOptions.DebugLogging = true;
+				ProgramOptions.DataLogging = true;
+			}
+			else
+			{
+				ProgramOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
+				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
+			}
+
 			StationType = ini.GetValue("Station", "Type", -1);
 
 			StationModel = ini.GetValue("Station", "Model", "");
@@ -3430,22 +3512,9 @@ namespace CumulusMX
 			special_logging = ini.GetValue("Station", "SpecialLog", false);
 			solar_logging = ini.GetValue("Station", "SolarLog", false);
 
-			if (DebuggingEnabled)
-			{
-				StationOptions.DebugLogging = true;
-				StationOptions.DataLogging = true;
-			}
-			else
-			{
-				StationOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
-				StationOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
-			}
-
 			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
-
-			StationOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 
 			VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 
@@ -4072,6 +4141,12 @@ namespace CumulusMX
 
 			IniFile ini = new IniFile("Cumulus.ini");
 
+			ini.SetValue("Program", "StartupPingHost", ProgramOptions.StartupPingHost);
+			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
+			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
+			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
+
+
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
 			ini.SetValue("Station", "ComportName", ComportName);
@@ -4122,7 +4197,6 @@ namespace CumulusMX
 			ini.SetValue("Station", "VP2ConnectionType", VP2ConnectionType);
 			ini.SetValue("Station", "VP2TCPPort", VP2TCPPort);
 			ini.SetValue("Station", "VP2IPAddr", VP2IPAddr);
-			ini.SetValue("Station", "WarnMultiple", StationOptions.WarnMultiple);
 			ini.SetValue("Station", "RoundWindSpeed", StationOptions.RoundWindSpeed);
 			ini.SetValue("Station", "PrimaryAqSensor", StationOptions.PrimaryAqSensor);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", VP2PeriodicDisconnectInterval);
@@ -7293,7 +7367,7 @@ namespace CumulusMX
 
 		public void LogDebugMessage(string message)
 		{
-			if (StationOptions.DebugLogging || StationOptions.DataLogging)
+			if (ProgramOptions.DebugLogging || ProgramOptions.DataLogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -7301,7 +7375,7 @@ namespace CumulusMX
 
 		public void LogDataMessage(string message)
 		{
-			if (StationOptions.DataLogging)
+			if (ProgramOptions.DataLogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -8711,6 +8785,17 @@ namespace CumulusMX
 		public double snowDepth { get; set; }
 	}
 
+	public class ProgramOptions
+	{
+		public string StartupPingHost { get; set; }
+		public int StartupDelaySecs { get; set; }
+		public int StartupDelayMaxUptime { get; set; }
+		public bool DebugLogging { get; set; }
+		public bool DataLogging { get; set; }
+		public bool WarnMultiple { get; set; }
+	}
+
+
 	public class StationOptions
 	{
 		public bool UseZeroBearing { get; set; }
@@ -8726,9 +8811,6 @@ namespace CumulusMX
 		public bool WS2300IgnoreStationClock { get; set; }
 		public bool RoundWindSpeed { get; set; }
 		public bool SyncFOReads { get; set; }
-		public bool DebugLogging { get; set; }
-		public bool DataLogging { get; set; }
-		public bool WarnMultiple { get; set; }
 		public bool DavisReadReceptionStats { get; set; }
 		public int PrimaryAqSensor { get; set; }
 }
