@@ -1,18 +1,21 @@
 3.9.4 - b3099
 —————————————
 - Fix: WMR100 stations generated empty daily graph data files on start-up
+- Fix: System uptime web tag for Linux systems - maybe!
+- Fix: Historic charts wind run tooltip suffix
 
-- New: Settings page: Program Settings. Moved Debug and Data logging options and Prevent Second Instance here from Station Settings.
-       Note that these setting still remain in the [Station] section of the Cumulus.ini file for backwards compatibility
+- New: Settings page: Program Settings. Moved Debug/Data logging options and Prevent Second Instance to here from Station Settings.
+	Note: These settings still remain in the [Station] section of the Cumulus.ini file for backwards compatibility
 - New: Two settings to delay the start-up of Cumulus MX. Both added to the new Program Settings page.
-       Start-up Host PING:- specify a remote hostname or IP address, Cumulus will wait for a successful PING from this address before continuing
-       Start-up Delay:- specify a fixed time in seconds to delay the start-up. The delay will be executed after the PING check is one is specified
-	   Start-up Delay Max Uptime:- specify a maximum system uptime in seconds after which the delay will no longer be applied. Set to zero to always delay
+	Start-up Host PING:        Specify a remote hostname or IP address, Cumulus will wait for a successful PING from this address before continuing
+	Start-up Delay:            Specify a fixed time in seconds to delay the start-up. The delay will be executed after the PING check is one is specified
+	Start-up Delay Max Uptime: Specify a maximum system uptime in seconds after which the delay will no longer be applied. Set to zero to always delay
 	New section in Cumulus.ini:
 	[Program]
-	StartupDelaySecs=0		// Default is no delay = 0
-	StartupPingHost=		// Default is no remote host - enter a host name or IP address
-
+	StartupPingHost=            // Default is no remote host - enter a host name or IP address
+	StartupDelaySecs=0          // Default is no delay = 0
+	StartupDelayMaxUptime=300   // Default is 300 seconds (5 minutes)
+- New: FTP Now - Adds a new option to regenerate the daily graph data files (if enabled), and include them in the manually invoked FTP session
 
 
 

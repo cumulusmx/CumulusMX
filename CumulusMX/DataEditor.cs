@@ -1098,11 +1098,13 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
+		/*
 		private static DateTime GetDateTime(DateTime date, string time)
 		{
 			var tim = time.Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
 			return new DateTime(date.Year, date.Month, date.Day, int.Parse(tim[0]), int.Parse(tim[1]), 0);
 		}
+		*/
 
 		internal string EditAllTimeRecs(IHttpContext context)
 		{

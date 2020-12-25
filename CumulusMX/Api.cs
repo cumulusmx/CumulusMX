@@ -16,7 +16,7 @@ namespace CumulusMX
 		private const string RelativePath = "/api/";
 		internal static WeatherStation Station;
 		public static ProgramSettings programSettings;
-		public static StationSettings stationSettings;
+		internal static StationSettings stationSettings;
 		public static InternetSettings internetSettings;
 		public static ExtraSensorSettings extraSensorSettings;
 		public static CalibrationSettings calibrationSettings;
@@ -836,7 +836,7 @@ namespace CumulusMX
 						case "updatealarmconfig.json":
 							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
 						case "ftpnow.json":
-							return await this.JsonResponseAsync(stationSettings.FtpNow());
+							return await this.JsonResponseAsync(stationSettings.FtpNow(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

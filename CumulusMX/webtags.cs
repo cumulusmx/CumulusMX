@@ -4610,7 +4610,20 @@ namespace CumulusMX
 		{
 			try
 			{
-				TimeSpan ts = TimeSpan.FromSeconds(cumulus.UpTime.NextValue());
+				double upTime = 0;
+				if (cumulus.Platform.Substring(0, 3) == "Win")
+				{
+					cumulus.UpTime.NextValue();
+					upTime = cumulus.UpTime.NextValue();
+				}
+				else if (File.Exists(@"/proc/uptime"))
+				{
+					var text = File.ReadAllText(@"/proc/uptime");
+					var strTime = text.Split(' ')[0];
+					double.TryParse(strTime, out upTime);
+				}
+
+				TimeSpan ts = TimeSpan.FromSeconds(upTime);
 
 				return string.Format($"{ts.Days} days {ts.Hours} hours");
 			}

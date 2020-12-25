@@ -198,7 +198,7 @@ namespace CumulusMX
 
 		public DateTime LastUpdateTime;
 
-		public PerformanceCounter UpTime = new PerformanceCounter("System", "System Up Time");
+		public PerformanceCounter UpTime;
 
 		private readonly WebTags webtags;
 		private readonly TokenParser tokenParser;
@@ -905,14 +905,19 @@ namespace CumulusMX
 
 			LogMessage("OS version: " + Environment.OSVersion);
 
-			GetLatestVersion();
-
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
 					LogMessage("Mono version: "+displayName.Invoke(null, null));
+			}
+
+			// determine system uptime based on OS
+			if (Platform.Substring(0, 3) == "Win")
+			{
+				// Windows enable the performance counter method
+				UpTime = new PerformanceCounter("System", "System Up Time");
 			}
 
 			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
@@ -1037,11 +1042,22 @@ namespace CumulusMX
 			if (ProgramOptions.StartupDelaySecs > 0)
 			{
 				// Check uptime
-				UpTime.NextValue();
-				TimeSpan ts = TimeSpan.FromSeconds(UpTime.NextValue());
+				double ts = 0;
+				if (Platform.Substring(0, 3) == "Win")
+				{
+					UpTime.NextValue();
+					ts = UpTime.NextValue();
+				}
+				else if (File.Exists(@"/proc/uptime"))
+				{
+					var text = File.ReadAllText(@"/proc/uptime");
+					var strTime = text.Split(' ')[0];
+					double.TryParse(strTime, out ts);
+				}
 
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
-				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts.TotalSeconds)
+				LogMessage($"System uptime = {(int)ts} secs");
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts)
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
 					var msg2 = $"Start-up delay complete, continuing...";
@@ -1061,39 +1077,41 @@ namespace CumulusMX
 				LogMessage("No start-up delay - disabled");
 			}
 
+			GetLatestVersion();
+
 			GC.Collect();
 
 			remoteGraphdataFiles = new[]
-				{
-					"graphconfig.json",
-					"tempdata.json",
-					"pressdata.json",
-					"winddata.json",
-					"wdirdata.json",
-					"humdata.json",
-					"raindata.json",
-					"dailyrain.json",
-					"dailytemp.json",
-					"solardata.json",
-					"sunhours.json",
-					"airquality.json"
-				};
+			{
+				"graphconfig.json",
+				"tempdata.json",
+				"pressdata.json",
+				"winddata.json",
+				"wdirdata.json",
+				"humdata.json",
+				"raindata.json",
+				"dailyrain.json",
+				"dailytemp.json",
+				"solardata.json",
+				"sunhours.json",
+				"airquality.json"
+			};
 
 			localGraphdataFiles = new[]
-				{
-					"web" + DirectorySeparator + remoteGraphdataFiles[0],	// 0
-					"web" + DirectorySeparator + remoteGraphdataFiles[1],	// 1
-					"web" + DirectorySeparator + remoteGraphdataFiles[2],	// 2
-					"web" + DirectorySeparator + remoteGraphdataFiles[3],	// 3
-					"web" + DirectorySeparator + remoteGraphdataFiles[4],	// 4
-					"web" + DirectorySeparator + remoteGraphdataFiles[5],	// 5
-					"web" + DirectorySeparator + remoteGraphdataFiles[6],	// 6
-					"web" + DirectorySeparator + remoteGraphdataFiles[7],	// 7
-					"web" + DirectorySeparator + remoteGraphdataFiles[8],	// 8
-					"web" + DirectorySeparator + remoteGraphdataFiles[9],	// 9
-					"web" + DirectorySeparator + remoteGraphdataFiles[10],	// 10
-					"web" + DirectorySeparator + remoteGraphdataFiles[11]	// 11
-				};
+			{
+				"web" + DirectorySeparator + remoteGraphdataFiles[0],	// 0
+				"web" + DirectorySeparator + remoteGraphdataFiles[1],	// 1
+				"web" + DirectorySeparator + remoteGraphdataFiles[2],	// 2
+				"web" + DirectorySeparator + remoteGraphdataFiles[3],	// 3
+				"web" + DirectorySeparator + remoteGraphdataFiles[4],	// 4
+				"web" + DirectorySeparator + remoteGraphdataFiles[5],	// 5
+				"web" + DirectorySeparator + remoteGraphdataFiles[6],	// 6
+				"web" + DirectorySeparator + remoteGraphdataFiles[7],	// 7
+				"web" + DirectorySeparator + remoteGraphdataFiles[8],	// 8
+				"web" + DirectorySeparator + remoteGraphdataFiles[9],	// 9
+				"web" + DirectorySeparator + remoteGraphdataFiles[10],	// 10
+				"web" + DirectorySeparator + remoteGraphdataFiles[11]	// 11
+			};
 
 			remoteDailyGraphdataFiles = new[]
 			{
@@ -1382,7 +1400,7 @@ namespace CumulusMX
 			Api.Setup(httpServer);
 			Api.Station = station;
 			Api.programSettings = new ProgramSettings(this);
-			Api.stationSettings = new StationSettings(this);
+			Api.stationSettings = new StationSettings(this, station);
 			Api.internetSettings = new InternetSettings(this);
 			Api.extraSensorSettings = new ExtraSensorSettings(this);
 			Api.calibrationSettings = new CalibrationSettings(this);
