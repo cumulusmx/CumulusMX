@@ -3,6 +3,8 @@
 - Fix: WMR100 stations generated empty daily graph data files on start-up
 - Fix: System uptime web tag for Linux systems - maybe!
 - Fix: Historic charts wind run tooltip suffix
+- Fix: High Min Temp and Low Max Temp records editors were not displaying and allowing input of the time
+- Fix: This Month/This Year records editors were showing records for the entire day file rather than the specific period
 
 - New: Settings page: Program Settings. Moved Debug/Data logging options and Prevent Second Instance to here from Station Settings.
 	Note: These settings still remain in the [Station] section of the Cumulus.ini file for backwards compatibility

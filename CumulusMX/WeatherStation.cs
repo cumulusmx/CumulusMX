@@ -307,6 +307,8 @@ namespace CumulusMX
 
 		public double SolarElevation;
 
+		public double SolarFactor = -1;  // used to adjust solar transmission factor (range 0-1), disabled = -1
+
 		public bool WindReadyToPlot = false;
 		public bool TempReadyToPlot = false;
 		private bool first_temp = true;
@@ -1531,6 +1533,7 @@ namespace CumulusMX
 			if (now.Hour == 0)
 			{
 				ResetMidnightRain(now);
+				//RecalcSolarFactor(now);
 			}
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
@@ -2802,6 +2805,29 @@ namespace CumulusMX
 			StartOfDaySunHourCounter = SunHourCounter;
 			WriteYesterdayFile();
 		}
+
+		/*
+		private void RecalcSolarFactor(DateTime now) // called at midnight irrespective of rollover time
+		{
+			if (cumulus.SolarFactorSummer > 0 && cumulus.SolarFactorWinter > 0)
+			{
+				// Calculate the solar factor from the day of the year
+				// Use a cosine of the difference between summer and winter values
+				int doy = now.DayOfYear;
+				// take summer solistice as June 21 or December 21 (N & S hemispheres) - ignore leap years
+				// sol = day 172 (North)
+				// sol = day 355 (South)
+				int sol = cumulus.Latitude >= 0 ? 172 : 355;
+				int daysSinceSol = (doy - sol) % 365;
+				double multiplier = Math.Cos((daysSinceSol / 365) * 2 * Math.PI);  // range +1/-1
+				SolarFactor = (multiplier + 1) / 2;  // bring it into the range 0-1
+			}
+			else
+			{
+				SolarFactor = -1;
+			}
+		}
+		*/
 
 		public void SwitchToNormalRunning()
 		{
@@ -6422,6 +6448,7 @@ namespace CumulusMX
 			{
 				ResetMidnightRain(DateTime.Now);
 				ResetSunshineHours();
+				//RecalcSolarFactor(DateTime.Now);
 			}
 		}
 

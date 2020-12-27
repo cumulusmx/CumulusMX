@@ -3995,6 +3995,8 @@ namespace CumulusMX
 			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
 			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
 			BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+			//SolarFactorSummer = ini.GetValue("Solar", "SolarFactorSummer", -1);
+			//SolarFactorWinter = ini.GetValue("Solar", "SolarFactorWinter", -1);
 
 			NOAAname = ini.GetValue("NOAA", "Name", " ");
 			NOAAcity = ini.GetValue("NOAA", "City", " ");
@@ -5038,6 +5040,9 @@ namespace CumulusMX
 		public int SolarCalc { get; set; }
 
 		public double BrasTurbidity { get; set; }
+
+		//public double SolarFactorSummer { get; set; }
+		//public double SolarFactorWinter { get; set; }
 
 		public int xapPort { get; set; }
 

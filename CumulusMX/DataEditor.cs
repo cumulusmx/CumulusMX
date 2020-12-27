@@ -163,8 +163,8 @@ namespace CumulusMX
 			json.Append($"\"highHumidexTime\":\"{station.AllTime.HighHumidex.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"lowWindChillTime\":\"{station.AllTime.LowChill.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"highHeatIndexTime\":\"{station.AllTime.HighHeatIndex.Ts.ToString(timeStampFormat)}\",");
-			json.Append($"\"highMinTempTime\":\"{station.AllTime.HighMinTemp.Ts.ToString(dateStampFormat)}\",");
-			json.Append($"\"lowMaxTempTime\":\"{station.AllTime.LowMaxTemp.Ts.ToString(dateStampFormat)}\",");
+			json.Append($"\"highMinTempTime\":\"{station.AllTime.HighMinTemp.Ts.ToString(timeStampFormat)}\",");
+			json.Append($"\"lowMaxTempTime\":\"{station.AllTime.LowMaxTemp.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"highDailyTempRangeTime\":\"{station.AllTime.HighDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 			json.Append($"\"lowDailyTempRangeTime\":\"{station.AllTime.LowDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 			// Records - Humidity values
@@ -304,7 +304,7 @@ namespace CumulusMX
 			if (station.DayFile.Count() > 0)
 			{
 				var data = station.DayFile.Where(r => r.Date >= startDate).ToList();
-				foreach (var rec in station.DayFile)
+				foreach (var rec in data)
 				{
 					// This assumes the day file is in date order!
 					if (thisDate.Month != rec.Date.Month)
@@ -341,13 +341,13 @@ namespace CumulusMX
 					if (rec.LowTemp > highMinTempVal)
 					{
 						highMinTempVal = rec.LowTemp;
-						highMinTempTime = rec.Date;
+						highMinTempTime = rec.LowTempTime;
 					}
 					// lo max temp
 					if (rec.HighTemp < lowMaxTempVal)
 					{
 						lowMaxTempVal = rec.HighTemp;
-						lowMaxTempTime = rec.Date;
+						lowMaxTempTime = rec.HighTempTime;
 					}
 					// hi temp range
 					if ((rec.HighTemp - rec.LowTemp) > highTempRangeVal)
@@ -549,9 +549,9 @@ namespace CumulusMX
 				json.Append($"\"highHeatIndexValDayfile\":\"{highHeatIndVal.ToString(cumulus.TempFormat)}\",");
 				json.Append($"\"highHeatIndexTimeDayfile\":\"{highHeatIndTime.ToString(timeStampFormat)}\",");
 				json.Append($"\"highMinTempValDayfile\":\"{highMinTempVal.ToString(cumulus.TempFormat)}\",");
-				json.Append($"\"highMinTempTimeDayfile\":\"{highMinTempTime.ToString(dateStampFormat)}\",");
+				json.Append($"\"highMinTempTimeDayfile\":\"{highMinTempTime.ToString(timeStampFormat)}\",");
 				json.Append($"\"lowMaxTempValDayfile\":\"{lowMaxTempVal.ToString(cumulus.TempFormat)}\",");
-				json.Append($"\"lowMaxTempTimeDayfile\":\"{lowMaxTempTime.ToString(dateStampFormat)}\",");
+				json.Append($"\"lowMaxTempTimeDayfile\":\"{lowMaxTempTime.ToString(timeStampFormat)}\",");
 				json.Append($"\"highDailyTempRangeValDayfile\":\"{highTempRangeVal.ToString(cumulus.TempFormat)}\",");
 				json.Append($"\"highDailyTempRangeTimeDayfile\":\"{highTempRangeTime.ToString(dateStampFormat)}\",");
 				json.Append($"\"lowDailyTempRangeValDayfile\":\"{lowTempRangeVal.ToString(cumulus.TempFormat)}\",");
@@ -629,12 +629,6 @@ namespace CumulusMX
 			var finished = false;
 			var lastentrydate = datefrom;
 
-			var currentDay = datefrom;
-			double dayHighTemp = -999;
-			double dayLowTemp = 999;
-			double dayWindRun = 0;
-			double dayRain = 0;
-
 			var isDryNow = false;
 			var currentDryPeriod = 0;
 			var currentWetPeriod = 0;
@@ -700,6 +694,15 @@ namespace CumulusMX
 			var highRainMonthTime = highTempTime;
 			var dryPeriodTime = highTempTime;
 			var wetPeriodTime = highTempTime;
+
+			var currentDay = datefrom;
+			var dayHighTemp = highTempVal;
+			DateTime dayHighTempTime = highTempTime;
+			double dayLowTemp = lowTempVal;
+			DateTime dayLowTempTime = highTempTime;
+			double dayWindRun = 0;
+			double dayRain = 0;
+
 
 			var thisDateDry = highTempTime;
 			var thisDateWet = highTempTime;
@@ -878,10 +881,16 @@ namespace CumulusMX
 							if (currentDay.Day == metoDate.Day && currentDay.Month == metoDate.Month && currentDay.Year == metoDate.Year)
 							{
 								if (outsidetemp > dayHighTemp)
+								{
 									dayHighTemp = outsidetemp;
+									dayHighTempTime = entrydate;
+								}
 
 								if (outsidetemp < dayLowTemp)
+								{
 									dayLowTemp = outsidetemp;
+									dayLowTempTime = entrydate;
+								}
 
 								if (dayRain < raintoday)
 									dayRain = raintoday;
@@ -893,12 +902,12 @@ namespace CumulusMX
 								if (dayHighTemp < lowMaxTempVal)
 								{
 									lowMaxTempVal = dayHighTemp;
-									lowMaxTempTime = currentDay;
+									lowMaxTempTime = dayHighTempTime;
 								}
 								if (dayLowTemp > highMinTempVal)
 								{
 									highMinTempVal = dayLowTemp;
-									highMinTempTime = currentDay;
+									highMinTempTime = dayLowTempTime;
 								}
 								if (dayHighTemp - dayLowTemp > highTempRangeVal)
 								{
@@ -1047,9 +1056,9 @@ namespace CumulusMX
 			json.Append($"\"highHeatIndexValLogfile\":\"{highHeatIndVal.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highHeatIndexTimeLogfile\":\"{highHeatIndTime.ToString(timeStampFormat)}\",");
 			json.Append($"\"highMinTempValLogfile\":\"{highMinTempVal.ToString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTimeLogfile\":\"{highMinTempTime.ToString(dateStampFormat)}\",");
+			json.Append($"\"highMinTempTimeLogfile\":\"{highMinTempTime.ToString(timeStampFormat)}\",");
 			json.Append($"\"lowMaxTempValLogfile\":\"{lowMaxTempVal.ToString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTimeLogfile\":\"{lowMaxTempTime.ToString(dateStampFormat)}\",");
+			json.Append($"\"lowMaxTempTimeLogfile\":\"{lowMaxTempTime.ToString(timeStampFormat)}\",");
 			json.Append($"\"highDailyTempRangeValLogfile\":\"{highTempRangeVal.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highDailyTempRangeTimeLogfile\":\"{highTempRangeTime.ToString(dateStampFormat)}\",");
 			json.Append($"\"lowDailyTempRangeValLogfile\":\"{lowTempRangeVal.ToString(cumulus.TempFormat)}\",");
@@ -1206,13 +1215,15 @@ namespace CumulusMX
 						station.SetAlltime(station.AllTime.HighMinTemp, double.Parse(value), station.AllTime.HighMinTemp.Ts);
 						break;
 					case "highMinTempTime":
-						station.SetAlltime(station.AllTime.HighMinTemp, station.AllTime.HighMinTemp.Val, station.ddmmyyStrToDate(value));
+						dt = value.Split('+');
+						station.SetAlltime(station.AllTime.HighMinTemp, station.AllTime.HighMinTemp.Val, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
 						break;
 					case "lowMaxTempVal":
 						station.SetAlltime(station.AllTime.LowMaxTemp, double.Parse(value), station.AllTime.LowMaxTemp.Ts);
 						break;
 					case "lowMaxTempTime":
-						station.SetAlltime(station.AllTime.LowMaxTemp, station.AllTime.LowMaxTemp.Val, station.ddmmyyStrToDate(value));
+						dt = value.Split('+');
+						station.SetAlltime(station.AllTime.LowMaxTemp, station.AllTime.LowMaxTemp.Val, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
 						break;
 					case "highDailyTempRangeVal":
 						station.SetAlltime(station.AllTime.HighDailyTempRange, double.Parse(value), station.AllTime.HighDailyTempRange.Ts);
@@ -1430,13 +1441,15 @@ namespace CumulusMX
 							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighMinTemp, double.Parse(value), station.MonthlyRecs[month].HighMinTemp.Ts);
 							break;
 						case "highMinTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighMinTemp, station.MonthlyRecs[month].HighMinTemp.Val, station.ddmmyyStrToDate(value));
+							dt = value.Split('+');
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighMinTemp, station.MonthlyRecs[month].HighMinTemp.Val, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
 							break;
 						case "lowMaxTempVal":
 							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowMaxTemp, double.Parse(value), station.MonthlyRecs[month].LowMaxTemp.Ts);
 							break;
 						case "lowMaxTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowMaxTemp, station.MonthlyRecs[month].LowMaxTemp.Val, station.ddmmyyStrToDate(value));
+							dt = value.Split('+');
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowMaxTemp, station.MonthlyRecs[month].LowMaxTemp.Val, station.ddmmyyhhmmStrToDate(dt[0], dt[1]));
 							break;
 						case "highDailyTempRangeVal":
 							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDailyTempRange, double.Parse(value), station.MonthlyRecs[month].HighDailyTempRange.Ts);
@@ -1587,8 +1600,8 @@ namespace CumulusMX
 				json.Append($"\"{m}-highHumidexTime\":\"{station.MonthlyRecs[m].HighHumidex.Ts.ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-lowWindChillTime\":\"{station.MonthlyRecs[m].LowChill.Ts.ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highHeatIndexTime\":\"{station.MonthlyRecs[m].HighHeatIndex.Ts.ToString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMinTempTime\":\"{station.MonthlyRecs[m].HighMinTemp.Ts.ToString(dateStampFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempTime\":\"{station.MonthlyRecs[m].LowMaxTemp.Ts.ToString(dateStampFormat)}\",");
+				json.Append($"\"{m}-highMinTempTime\":\"{station.MonthlyRecs[m].HighMinTemp.Ts.ToString(timeStampFormat)}\",");
+				json.Append($"\"{m}-lowMaxTempTime\":\"{station.MonthlyRecs[m].LowMaxTemp.Ts.ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highDailyTempRangeTime\":\"{station.MonthlyRecs[m].HighDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 				json.Append($"\"{m}-lowDailyTempRangeTime\":\"{station.MonthlyRecs[m].LowDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 				// Records - Humidity values
@@ -1754,7 +1767,7 @@ namespace CumulusMX
 					if (station.DayFile[i].LowTemp > highMinTempVal[monthOffset])
 					{
 						highMinTempVal[monthOffset] = station.DayFile[i].LowTemp;
-						highMinTempTime[monthOffset] = loggedDate;
+						highMinTempTime[monthOffset] = station.DayFile[i].LowTempTime;
 					}
 					// hi temp
 					if (station.DayFile[i].HighTemp > highTempVal[monthOffset])
@@ -1766,7 +1779,7 @@ namespace CumulusMX
 					if (station.DayFile[i].HighTemp < lowMaxTempVal[monthOffset])
 					{
 						lowMaxTempVal[monthOffset] = station.DayFile[i].HighTemp;
-						lowMaxTempTime[monthOffset] = loggedDate;
+						lowMaxTempTime[monthOffset] = station.DayFile[i].HighTempTime;
 					}
 
 					// temp ranges
@@ -1973,9 +1986,9 @@ namespace CumulusMX
 					json.Append($"\"{m}-highHeatIndexValDayfile\":\"{highHeatIndVal[i].ToString(cumulus.TempFormat)}\",");
 					json.Append($"\"{m}-highHeatIndexTimeDayfile\":\"{highHeatIndTime[i].ToString(timeStampFormat)}\",");
 					json.Append($"\"{m}-highMinTempValDayfile\":\"{highMinTempVal[i].ToString(cumulus.TempFormat)}\",");
-					json.Append($"\"{m}-highMinTempTimeDayfile\":\"{highMinTempTime[i].ToString(dateStampFormat)}\",");
+					json.Append($"\"{m}-highMinTempTimeDayfile\":\"{highMinTempTime[i].ToString(timeStampFormat)}\",");
 					json.Append($"\"{m}-lowMaxTempValDayfile\":\"{lowMaxTempVal[i].ToString(cumulus.TempFormat)}\",");
-					json.Append($"\"{m}-lowMaxTempTimeDayfile\":\"{lowMaxTempTime[i].ToString(dateStampFormat)}\",");
+					json.Append($"\"{m}-lowMaxTempTimeDayfile\":\"{lowMaxTempTime[i].ToString(timeStampFormat)}\",");
 					json.Append($"\"{m}-highDailyTempRangeValDayfile\":\"{highTempRangeVal[i].ToString(cumulus.TempFormat)}\",");
 					json.Append($"\"{m}-highDailyTempRangeTimeDayfile\":\"{highTempRangeTime[i].ToString(dateStampFormat)}\",");
 					json.Append($"\"{m}-lowDailyTempRangeValDayfile\":\"{lowTempRangeVal[i].ToString(cumulus.TempFormat)}\",");
@@ -2034,12 +2047,6 @@ namespace CumulusMX
 			var started = false;
 			var finished = false;
 			var lastentrydate = datefrom;
-
-			var currentDay = datefrom;
-			double dayHighTemp = -999;
-			double dayLowTemp = 999;
-			double dayWindRun = 0;
-			double dayRain = 0;
 
 			var isDryNow = false;
 			var currentDryPeriod = 0;
@@ -2110,6 +2117,14 @@ namespace CumulusMX
 
 			var thisDateDry = thisDate;
 			var thisDateWet = thisDate;
+
+			var currentDay = datefrom;
+			double dayHighTemp = -999;
+			var dayHighTempTime = thisDate;
+			double dayLowTemp = 999;
+			var dayLowTempTime = thisDate;
+			double dayWindRun = 0;
+			double dayRain = 0;
 
 			var monthlyRain = 0.0;
 
@@ -2292,10 +2307,16 @@ namespace CumulusMX
 							if (currentDay.Day == metoDate.Day && currentDay.Month == metoDate.Month && currentDay.Year == metoDate.Year)
 							{
 								if (outsidetemp > dayHighTemp)
+								{
 									dayHighTemp = outsidetemp;
+									dayHighTempTime = entrydate;
+								}
 
 								if (outsidetemp < dayLowTemp)
+								{
 									dayLowTemp = outsidetemp;
+									dayLowTempTime = entrydate;
+								}
 
 								if (dayRain < raintoday)
 									dayRain = raintoday;
@@ -2308,12 +2329,12 @@ namespace CumulusMX
 								if (dayHighTemp < lowMaxTempVal[lastEntryMonthOffset])
 								{
 									lowMaxTempVal[lastEntryMonthOffset] = dayHighTemp;
-									lowMaxTempTime[lastEntryMonthOffset] = currentDay;
+									lowMaxTempTime[lastEntryMonthOffset] = dayHighTempTime;
 								}
 								if (dayLowTemp > highMinTempVal[lastEntryMonthOffset])
 								{
 									highMinTempVal[lastEntryMonthOffset] = dayLowTemp;
-									highMinTempTime[lastEntryMonthOffset] = currentDay;
+									highMinTempTime[lastEntryMonthOffset] = dayLowTempTime;
 								}
 								if (dayHighTemp - dayLowTemp > highTempRangeVal[lastEntryMonthOffset])
 								{
@@ -2468,9 +2489,9 @@ namespace CumulusMX
 				json.Append($"\"{m}-highHeatIndexValLogfile\":\"{highHeatIndVal[i].ToString(cumulus.TempFormat)}\",");
 				json.Append($"\"{m}-highHeatIndexTimeLogfile\":\"{highHeatIndTime[i].ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highMinTempValLogfile\":\"{highMinTempVal[i].ToString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highMinTempTimeLogfile\":\"{highMinTempTime[i].ToString(dateStampFormat)}\",");
+				json.Append($"\"{m}-highMinTempTimeLogfile\":\"{highMinTempTime[i].ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-lowMaxTempValLogfile\":\"{lowMaxTempVal[i].ToString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempTimeLogfile\":\"{lowMaxTempTime[i].ToString(dateStampFormat)}\",");
+				json.Append($"\"{m}-lowMaxTempTimeLogfile\":\"{lowMaxTempTime[i].ToString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highDailyTempRangeValLogfile\":\"{highTempRangeVal[i].ToString(cumulus.TempFormat)}\",");
 				json.Append($"\"{m}-highDailyTempRangeTimeLogfile\":\"{highTempRangeTime[i].ToString(dateStampFormat)}\",");
 				json.Append($"\"{m}-lowDailyTempRangeValLogfile\":\"{lowTempRangeVal[i].ToString(cumulus.TempFormat)}\",");
@@ -2543,9 +2564,9 @@ namespace CumulusMX
 			json.Append($"\"highHeatIndexVal\":\"{station.ThisMonth.HighHeatIndex.Val.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highHeatIndexTime\":\"{station.ThisMonth.HighHeatIndex.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"highMinTempVal\":\"{station.ThisMonth.HighMinTemp.Val.ToString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTime\":\"{station.ThisMonth.HighMinTemp.Ts.ToString(dateStampFormat)}\",");
+			json.Append($"\"highMinTempTime\":\"{station.ThisMonth.HighMinTemp.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"lowMaxTempVal\":\"{station.ThisMonth.LowMaxTemp.Val.ToString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTime\":\"{station.ThisMonth.LowMaxTemp.Ts.ToString(dateStampFormat)}\",");
+			json.Append($"\"lowMaxTempTime\":\"{station.ThisMonth.LowMaxTemp.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"highDailyTempRangeVal\":\"{station.ThisMonth.HighDailyTempRange.Val.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highDailyTempRangeTime\":\"{station.ThisMonth.HighDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 			json.Append($"\"lowDailyTempRangeVal\":\"{station.ThisMonth.LowDailyTempRange.Val.ToString(cumulus.TempFormat)}\",");
@@ -2684,13 +2705,15 @@ namespace CumulusMX
 						station.ThisMonth.HighMinTemp.Val = double.Parse(value);
 						break;
 					case "highMinTempTime":
-						station.ThisMonth.HighMinTemp.Ts = station.ddmmyyStrToDate(value);
+						dt = value.Split('+');
+						station.ThisMonth.HighMinTemp.Ts = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "lowMaxTempVal":
 						station.ThisMonth.LowMaxTemp.Val = double.Parse(value);
 						break;
 					case "lowMaxTempTime":
-						station.ThisMonth.LowMaxTemp.Ts = station.ddmmyyStrToDate(value);
+						dt = value.Split('+');
+						station.ThisMonth.LowMaxTemp.Ts = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "highDailyTempRangeVal":
 						station.ThisMonth.HighDailyTempRange.Val = double.Parse(value);
@@ -2827,9 +2850,9 @@ namespace CumulusMX
 			json.Append($"\"highHeatIndexVal\":\"{station.ThisYear.HighHeatIndex.Val.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highHeatIndexTime\":\"{station.ThisYear.HighHeatIndex.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"highMinTempVal\":\"{station.ThisYear.HighMinTemp.Val.ToString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTime\":\"{station.ThisYear.HighMinTemp.Ts.ToString(dateStampFormat)}\",");
+			json.Append($"\"highMinTempTime\":\"{station.ThisYear.HighMinTemp.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"lowMaxTempVal\":\"{station.ThisYear.LowMaxTemp.Val.ToString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTime\":\"{station.ThisYear.LowMaxTemp.Ts.ToString(dateStampFormat)}\",");
+			json.Append($"\"lowMaxTempTime\":\"{station.ThisYear.LowMaxTemp.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"highDailyTempRangeVal\":\"{station.ThisYear.HighDailyTempRange.Val.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"highDailyTempRangeTime\":\"{station.ThisYear.HighDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 			json.Append($"\"lowDailyTempRangeVal\":\"{station.ThisYear.LowDailyTempRange.Val.ToString(cumulus.TempFormat)}\",");
@@ -2970,13 +2993,15 @@ namespace CumulusMX
 						station.ThisYear.HighMinTemp.Val = double.Parse(value);
 						break;
 					case "highMinTempTime":
-						station.ThisYear.HighMinTemp.Ts = station.ddmmyyStrToDate(value);
+						dt = value.Split('+');
+						station.ThisYear.HighMinTemp.Ts = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "lowMaxTempVal":
 						station.ThisYear.LowMaxTemp.Val = double.Parse(value);
 						break;
 					case "lowMaxTempTime":
-						station.ThisYear.LowMaxTemp.Ts = station.ddmmyyStrToDate(value);
+						dt = value.Split('+');
+						station.ThisYear.LowMaxTemp.Ts = station.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "highDailyTempRangeVal":
 						station.ThisYear.HighDailyTempRange.Val = double.Parse(value);
