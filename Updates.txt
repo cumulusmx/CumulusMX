@@ -18,6 +18,8 @@
 	StartupDelaySecs=0          // Default is no delay = 0
 	StartupDelayMaxUptime=300   // Default is 300 seconds (5 minutes)
 - New: FTP Now - Adds a new option to regenerate the daily graph data files (if enabled), and include them in the manually invoked FTP session
+- New: Adds support for OpenWeatherMap uploads (and catch-up). Using an existing station if the id is supplied, or your API key only has one station defined.
+	If no stations are defined CMX automatically creates a new one using your station details and starts uploading to it.
 
 
 

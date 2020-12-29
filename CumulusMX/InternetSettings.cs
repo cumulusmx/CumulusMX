@@ -302,6 +302,26 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// OpenWeatherMap
+				try
+				{
+					cumulus.OpenWeatherMap.Enabled = settings.openweathermap.enabled;
+					cumulus.OpenWeatherMap.CatchUp = settings.openweathermap.catchup;
+					cumulus.OpenWeatherMap.PW = settings.openweathermap.apikey;
+					cumulus.OpenWeatherMap.ID = settings.openweathermap.stationid;
+					cumulus.OpenWeatherMap.Interval = settings.openweathermap.interval;
+					cumulus.OpenWeatherMap.SynchronisedUpdate = (60 % cumulus.OpenWeatherMap.Interval == 0);
+
+					cumulus.OpenWeatherMap.Enabled = cumulus.OpenWeatherMap.Enabled && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.PW);
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing OpenWeatherMap settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// MQTT
 				try
 				{
@@ -397,6 +417,9 @@ namespace CumulusMX
 
 				// Save the settings
 				cumulus.WriteIniFile();
+
+				// Do OpenWeatherMap setup
+				cumulus.EnableOpenWeatherMap();
 
 				cumulus.SetUpHttpProxy();
 				//cumulus.SetFtpLogging(cumulus.FTPlogging);
@@ -572,6 +595,14 @@ namespace CumulusMX
 				server = cumulus.APRS.Server
 			};
 
+			var openweathermapsettings = new JsonInternetSettingsOpenweatherMap()
+			{
+				enabled = cumulus.OpenWeatherMap.Enabled,
+				catchup = cumulus.OpenWeatherMap.CatchUp,
+				apikey = cumulus.OpenWeatherMap.PW,
+				stationid = cumulus.OpenWeatherMap.ID,
+				interval = cumulus.OpenWeatherMap.Interval
+			};
 
 			var mqttUpdate = new JsonInternetSettingsMqttDataupdate()
 			{
@@ -653,6 +684,7 @@ namespace CumulusMX
 				pwsweather = pwssettings,
 				wow = wowsettings,
 				cwop = cwopsettings,
+				openweathermap = openweathermapsettings,
 				mqtt = mqttsettings,
 				moonimage = moonimagesettings,
 				proxies = proxy,
@@ -788,6 +820,7 @@ namespace CumulusMX
 		public JsonInternetSettingsCwop cwop { get; set; }
 		public JsonInternetSettingsAwekas awekas { get; set; }
 		public JsonInternetSettingsWCloud weathercloud { get; set; }
+		public JsonInternetSettingsOpenweatherMap openweathermap { get; set; }
 		public JsonInternetSettingsMqtt mqtt { get; set; }
 		public JsonInternetSettingsMoonImage moonimage { get; set; }
 		public JsonInternetSettingsProxySettings proxies { get; set; }
@@ -929,6 +962,16 @@ namespace CumulusMX
 		public int port { get; set; }
 		public int interval { get; set; }
 	}
+
+	public class JsonInternetSettingsOpenweatherMap
+	{
+		public bool enabled { get; set; }
+		public string apikey { get; set; }
+		public string stationid { get; set; }
+		public int interval { get; set; }
+		public bool catchup { get; set; }
+	}
+
 
 	public class JsonInternetSettingsMqtt
 	{

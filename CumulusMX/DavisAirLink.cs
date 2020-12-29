@@ -239,7 +239,7 @@ namespace CumulusMX
 
 				// The WLL sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the WLL clock being correct, we will use our local time
-				//var dateTime = FromUnixTime(data.Value<int>("ts"));
+				//var dateTime = Utils.FromUnixTime(data.Value<int>("ts"));
 
 				// The current conditions is sent as an array, even though it only contains 1 record
 				var rec = json.data.conditions.First();
@@ -470,8 +470,8 @@ namespace CumulusMX
 			//int passCount;
 			//const int maxPasses = 4;
 
-			var unixDateTime = ToUnixTime(DateTime.Now);
-			var startTime = ToUnixTime(airLinkLastUpdateTime);
+			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
+			var startTime = Utils.ToUnixTime(airLinkLastUpdateTime);
 			int endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
 
@@ -483,8 +483,8 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {FromUnixTime(endTime):s}");
-			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {FromUnixTime(endTime):s}");
+			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
+			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
@@ -549,7 +549,7 @@ namespace CumulusMX
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"GetWlHistoricData: WeatherLink API Historic Error: {errObj.code}, {errObj.message}");
 					cumulus.LogConsoleMessage($" - Error {errObj.code}: {errObj.message}");
-					airLinkLastUpdateTime = FromUnixTime(endTime);
+					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
 
@@ -557,7 +557,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					cumulus.LogConsoleMessage(" - No historic data available");
-					airLinkLastUpdateTime = FromUnixTime(endTime);
+					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
 
@@ -565,7 +565,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
 					cumulus.LogDataMessage("GetWlHistoricData: Received: " + responseBody);
-					airLinkLastUpdateTime = FromUnixTime(endTime);
+					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
 
@@ -592,7 +592,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("GetWlHistoricData: No historic data available");
 					cumulus.LogConsoleMessage(" - No historic data available");
-					airLinkLastUpdateTime = FromUnixTime(endTime);
+					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
 
@@ -601,7 +601,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("GetWlHistoricData:  Exception: " + ex.Message);
-				airLinkLastUpdateTime = FromUnixTime(endTime);
+				airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 				return;
 			}
 
@@ -811,7 +811,7 @@ namespace CumulusMX
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
 								{
-									UpdateGraphDataAqEntry(FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
+									UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
 								}
 							}
 							else
@@ -841,7 +841,7 @@ namespace CumulusMX
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
 								{
-									UpdateGraphDataAqEntry(FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+									UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
 								}
 							}
 						}
@@ -920,11 +920,11 @@ namespace CumulusMX
 
 			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");
 
-			var unixDateTime = ToUnixTime(DateTime.Now);
+			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			int endTime = unixDateTime;
 
-			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {FromUnixTime(startTime):s} to: {FromUnixTime(endTime):s}");
+			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
@@ -987,7 +987,7 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogMessage("AirLinkHealth: WeatherLink API: No data was returned. Check your Device Id.");
-					airLinkLastUpdateTime = FromUnixTime(endTime);
+					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
 
@@ -1088,7 +1088,7 @@ namespace CumulusMX
 					try
 					{
 						// Davis are changing the API, from air_quality_firmware_version to firmware_version
-						var dat = FromUnixTime(data.air_quality_firmware_version ?? data.firmware_version.Value);
+						var dat = Utils.FromUnixTime(data.air_quality_firmware_version ?? data.firmware_version.Value);
 						if (indoor)
 							cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 						else
@@ -1191,7 +1191,7 @@ namespace CumulusMX
 		{
 			WlStationList stationsObj;
 
-			var unixDateTime = ToUnixTime(DateTime.Now);
+			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
 			// Are we using the same WL APIv2 as a WLL device?
 			if (cumulus.StationType == 11 && cumulus.WllApiKey == cumulus.AirLinkApiKey)
@@ -1296,7 +1296,7 @@ namespace CumulusMX
 		{
 			WlSensorList sensorsObj;
 
-			var unixDateTime = ToUnixTime(DateTime.Now);
+			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
@@ -1469,18 +1469,6 @@ namespace CumulusMX
 			//Check each substring checking that parses to byte
 			byte result;
 			return arrOctets.All(strOctet => byte.TryParse(strOctet, out result));
-		}
-
-		private static DateTime FromUnixTime(long unixTime)
-		{
-			// WWL uses UTC ticks, convert to local time
-			var utcTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTime);
-			return utcTime.ToLocalTime();
-		}
-
-		private static int ToUnixTime(DateTime dateTime)
-		{
-			return (int)dateTime.ToUniversalTime().ToUnixEpochDate();
 		}
 
 		private void DoAqi(AirLinkData data)

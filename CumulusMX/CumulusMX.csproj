@@ -217,6 +217,7 @@
     <Compile Include="TokenParser.cs" />
     <Compile Include="Trig.cs" />
     <Compile Include="DavisStation.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="WeatherData.cs" />
     <Compile Include="WeatherDataCollection.cs" />
     <Compile Include="WeatherLink.cs" />

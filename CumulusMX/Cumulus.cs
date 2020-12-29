@@ -496,6 +496,7 @@ namespace CumulusMX
 		private List<string> WindyList = new List<string>();
 		private List<string> PWSList = new List<string>();
 		private List<string> WOWList = new List<string>();
+		private List<string> OWMList = new List<string>();
 
 		private List<string> MySqlList = new List<string>();
 
@@ -552,6 +553,9 @@ namespace CumulusMX
 
 		// WeatherCloud settings
 		public WebUploadService WCloud = new WebUploadService();
+
+		// OpenWeatherMap settings
+		public WebUploadService OpenWeatherMap = new WebUploadService();
 
 
 		// MQTT settings
@@ -995,6 +999,7 @@ namespace CumulusMX
 			APRS.DefaultInterval = 9;
 			AWEKAS.DefaultInterval = 15 * 60;
 			WCloud.DefaultInterval = 10;
+			OpenWeatherMap.DefaultInterval = 15;
 
 			ReadIniFile();
 
@@ -1435,6 +1440,7 @@ namespace CumulusMX
 			AwekasTimer.Elapsed += AwekasTimerTick;
 			WCloudTimer.Elapsed += WCloudTimerTick;
 			APRStimer.Elapsed += APRSTimerTick;
+			OpenWeatherMapTimer.Elapsed += OpenWeatherMapTimerTick;
 			WebTimer.Elapsed += WebTimerTick;
 
 			xapsource = "sanday.cumulus." + Environment.MachineName;
@@ -1990,6 +1996,12 @@ namespace CumulusMX
 				UpdateWCloud(DateTime.Now);
 		}
 
+		private void OpenWeatherMapTimerTick(object sender, ElapsedEventArgs e)
+		{
+			if (!string.IsNullOrWhiteSpace(OpenWeatherMap.ID) && !string.IsNullOrWhiteSpace(OpenWeatherMap.PW))
+				UpdateOpenWeatherMap(DateTime.Now);
+		}
+
 		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
 		{
 			MqttPublisher.UpdateMQTTfeed("Interval");
@@ -2210,11 +2222,11 @@ namespace CumulusMX
 				{
 					HttpResponseMessage response = await WCloudhttpClient.GetAsync(url);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
 				}
 				catch (Exception ex)
 				{
-					LogMessage("WeatherCloud update: " + ex.Message);
+					LogDebugMessage("WeatherCloud update: " + ex.Message);
 				}
 				finally
 				{
@@ -2223,6 +2235,160 @@ namespace CumulusMX
 			}
 		}
 
+
+		internal async void UpdateOpenWeatherMap(DateTime timestamp)
+		{
+			if (!OpenWeatherMap.Updating)
+			{
+				OpenWeatherMap.Updating = true;
+
+				string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
+				string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
+
+				string jsonData = station.GetOpenWeatherMapData(timestamp);
+
+				LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
+				LogDataMessage("OpenWeatherMap: Body = " + jsonData);
+
+				try
+				{
+					using (var client = new HttpClient())
+					{
+						var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+						HttpResponseMessage response = await client.PostAsync(url, data);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+						if (response.StatusCode != HttpStatusCode.NoContent)
+							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage("OpenWeatherMap: Update error = " + ex.Message);
+				}
+				finally
+				{
+					OpenWeatherMap.Updating = false;
+				}
+			}
+		}
+
+		// Find all stations associated with the users API key
+		internal OpenWeatherMapStation[] GetOpenWeatherMapStations()
+		{
+			OpenWeatherMapStation[] retVal = new OpenWeatherMapStation[0];
+			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
+			try
+			{
+				using (var client = new HttpClient())
+				{
+					HttpResponseMessage response = client.GetAsync(url).Result;
+					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
+					LogDataMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+
+					if (responseBodyAsText.Length > 10)
+					{
+						var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapStation[]>(responseBodyAsText);
+						retVal = respJson;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("OpenWeatherMap: Get stations - " + ex.Message);
+			}
+
+			return retVal;
+		}
+
+		// Create a new OpenWeatherMap station
+		internal void CreateOpenWeatherMapStation()
+		{
+			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
+			try
+			{
+				var datestr = DateTime.Now.ToUniversalTime().ToString("yyMMddHHmm");
+				StringBuilder sb = new StringBuilder($"{{\"external_id\":\"CMX-{datestr}\",");
+				sb.Append($"\"name\":\"{LocationName}\",");
+				sb.Append($"\"latitude\":{Latitude},");
+				sb.Append($"\"longitude\":{Longitude},");
+				sb.Append($"\"altitude\":{(int)station.AltitudeM(Altitude)}}}");
+
+				LogMessage($"OpenWeatherMap: Creating new station");
+				LogMessage($"OpenWeatherMap: - {sb}");
+
+
+				using (var client = new HttpClient())
+				{
+					var data = new StringContent(sb.ToString(), Encoding.UTF8, "application/json");
+
+					HttpResponseMessage response = client.PostAsync(url, data).Result;
+					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
+					var status = response.StatusCode == HttpStatusCode.Created ? "OK" : "Error";  // Returns a 201 reponse for OK
+					LogDebugMessage($"OpenWeatherMap: Create station response code = {status} - {response.StatusCode}");
+					LogDataMessage($"OpenWeatherMap: Create station response data = {responseBodyAsText}");
+
+					if (response.StatusCode == HttpStatusCode.Created)
+					{
+						// It worked, save the result
+						var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapNewStation>(responseBodyAsText);
+
+						LogMessage($"OpenWeatherMap: Created new station, id = {respJson.ID}, name = {respJson.name}");
+						OpenWeatherMap.ID = respJson.ID;
+						WriteIniFile();
+					}
+					else
+					{
+						LogMessage($"OpenWeatherMap: Failed to create new station. Error - {response.StatusCode}, text - {responseBodyAsText}");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("OpenWeatherMap: Create station - " + ex.Message);
+			}
+		}
+
+		internal void EnableOpenWeatherMap()
+		{
+			if (OpenWeatherMap.Enabled && string.IsNullOrWhiteSpace(OpenWeatherMap.ID))
+			{
+				// oh, oh! OpenWeatherMap is enabled, but we do not have a station id
+				// first check if one already exists
+				var stations = GetOpenWeatherMapStations();
+
+				if (stations.Length == 0)
+				{
+					// No stations defined, we will create one
+					LogMessage($"OpenWeatherMap: No station defined, attempting to create one");
+					CreateOpenWeatherMapStation();
+				}
+				else if (stations.Length == 1)
+				{
+					// We have one station defined, lets use it!
+					LogMessage($"OpenWeatherMap: No station defined, but found one associated with this API key, using this station - {stations[0].id} : {stations[0].name}");
+					OpenWeatherMap.ID = stations[0].id;
+					// save the setting
+					WriteIniFile();
+				}
+				else
+				{
+					// multiple stations defined, the user must select which one to use
+					var msg = $"Multiple OpenWeatherMap stations found, please select the correct station id and enter it into your configuration";
+					Console.WriteLine(msg);
+					LogMessage("OpenWeatherMap: " + msg);
+					foreach (var station in stations)
+					{
+						msg = $"  Station Id = {station.id}, Name = {station.name}";
+						Console.WriteLine(msg);
+						LogMessage("OpenWeatherMap: " + msg);
+					}
+				}
+
+				OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
+			}
+		}
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
@@ -3733,7 +3899,7 @@ namespace CumulusMX
 			//WindyHTTPLogging = ini.GetValue("Windy", "Logging", false);
 			Windy.SendUV = ini.GetValue("Windy", "SendUV", false);
 			Windy.SendSolar = ini.GetValue("Windy", "SendSolar", false);
-			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", true);
+			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", false);
 
 			Windy.SynchronisedUpdate = (60 % Windy.Interval == 0);
 
@@ -3810,6 +3976,14 @@ namespace CumulusMX
 			APRS.SendSolar = ini.GetValue("APRS", "SendSR", false);
 
 			APRS.SynchronisedUpdate = (60 % APRS.Interval == 0);
+
+			OpenWeatherMap.Enabled = ini.GetValue("OpenWeatherMap", "Enabled", false);
+			OpenWeatherMap.CatchUp = ini.GetValue("OpenWeatherMap", "CatchUp", true);
+			OpenWeatherMap.PW = ini.GetValue("OpenWeatherMap", "APIkey", "");
+			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", "");
+			OpenWeatherMap.Interval = ini.GetValue("OpenWeatherMap", "Interval", OpenWeatherMap.DefaultInterval);
+
+			OpenWeatherMap.SynchronisedUpdate = (60 % OpenWeatherMap.Interval == 0);
 
 			MQTT.Server = ini.GetValue("MQTT", "Server", "");
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883);
@@ -4450,6 +4624,11 @@ namespace CumulusMX
 			ini.SetValue("APRS", "SendSR", APRS.SendSolar);
 			ini.SetValue("APRS", "APRSHumidityCutoff", APRS.HumidityCutoff);
 
+			ini.SetValue("OpenWeatherMap", "Enabled", OpenWeatherMap.Enabled);
+			ini.SetValue("OpenWeatherMap", "CatchUp", OpenWeatherMap.CatchUp);
+			ini.SetValue("OpenWeatherMap", "APIkey", OpenWeatherMap.PW);
+			ini.SetValue("OpenWeatherMap", "StationId", OpenWeatherMap.ID);
+			ini.SetValue("OpenWeatherMap", "Interval", OpenWeatherMap.Interval);
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
 			ini.SetValue("MQTT", "Port", MQTT.Port);
@@ -5376,6 +5555,7 @@ namespace CumulusMX
 		public Timer TwitterTimer = new Timer();
 		public Timer AwekasTimer = new Timer();
 		public Timer WCloudTimer = new Timer();
+		public Timer OpenWeatherMapTimer = new Timer();
 		public Timer MQTTTimer = new Timer();
 		//public Timer AirLinkTimer = new Timer();
 
@@ -6581,6 +6761,7 @@ namespace CumulusMX
 				TwitterTimer.Stop();
 				AwekasTimer.Stop();
 				WCloudTimer.Stop();
+				OpenWeatherMapTimer.Stop();
 				MQTTTimer.Stop();
 				//AirLinkTimer.Stop();
 				CustomHttpSecondsTimer.Stop();
@@ -7787,6 +7968,8 @@ namespace CumulusMX
 
 			WCloudTimer.Interval = WCloud.Interval * 60 * 1000;
 
+			OpenWeatherMapTimer.Interval = OpenWeatherMap.Interval * 60 * 1000;
+
 			MQTTTimer.Interval = MQTT.IntervalTime * 1000; // secs to millisecs
 
 
@@ -7881,6 +8064,24 @@ namespace CumulusMX
 				WOWCatchUp();
 			}
 
+			if (OWMList == null)
+			{
+				// we've already been through here
+				// do nothing
+			}
+			else if (OWMList.Count == 0)
+			{
+				// No archived entries to upload
+				OWMList = null;
+				OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
+			}
+			else
+			{
+				// start the archive upload thread
+				OpenWeatherMap.CatchingUp = true;
+				OpenWeatherMapCatchUp();
+			}
+
 			if (MySqlList == null)
 			{
 				// we've already been through here
@@ -7911,6 +8112,8 @@ namespace CumulusMX
 			WebTimer.Enabled = WebAutoUpdate && !SynchronisedWebUpdate;
 
 			AwekasTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
+
+			EnableOpenWeatherMap();
 
 			LogMessage("Normal running");
 			LogConsoleMessage("Normal running");
@@ -8364,6 +8567,49 @@ namespace CumulusMX
 			WOW.Updating = false;
 		}
 
+		/// <summary>
+		/// Process the list of OpenWeatherMap updates created at startup from logger entries
+		/// </summary>
+		private async void OpenWeatherMapCatchUp()
+		{
+			OpenWeatherMap.Updating = true;
+
+			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
+			string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
+
+			using (var client = new HttpClient())
+			{
+				for (int i = 0; i < OWMList.Count; i++)
+				{
+					LogMessage("Uploading OpenWeatherMap archive #" + (i + 1));
+					LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
+					LogDataMessage("OpenWeatherMap: Body = " + OWMList[i]);
+
+					try
+					{
+						var data = new StringContent(OWMList[i], Encoding.UTF8, "application/json");
+						HttpResponseMessage response = await client.PostAsync(url, data);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+						if (response.StatusCode != HttpStatusCode.NoContent)
+							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+					}
+					catch (Exception ex)
+					{
+						LogMessage("OpenWeatherMap: Update error = " + ex.Message);
+					}
+				}
+			}
+
+			LogMessage("End of OpenWeatherMap archive upload");
+			OWMList.Clear();
+			OpenWeatherMap.CatchingUp = false;
+			OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
+			OpenWeatherMap.Updating = false;
+		}
+
+
 		public async void UpdatePWSweather(DateTime timestamp)
 		{
 			if (!PWS.Updating)
@@ -8554,6 +8800,7 @@ namespace CumulusMX
 			AddToWindyList(timestamp);
 			AddToPWSList(timestamp);
 			AddToWOWList(timestamp);
+			AddToOpenWeatherMapList(timestamp);
 		}
 
 		/// <summary>
@@ -8631,6 +8878,16 @@ namespace CumulusMX
 				LogMessage("Creating WOW URL #" + WOWList.Count);
 
 				LogMessage(LogURL);
+			}
+		}
+
+		private void AddToOpenWeatherMapList(DateTime timestamp)
+		{
+			if (OpenWeatherMap.Enabled && OpenWeatherMap.CatchUp)
+			{
+				OWMList.Add(station.GetOpenWeatherMapData(timestamp));
+
+				LogMessage("Creating OpenWeatherMap data #" + OWMList.Count);
 			}
 		}
 
@@ -8920,6 +9177,33 @@ namespace CumulusMX
 		public int leafwetness1 { get; set; }
 		public int leafwetness2 { get; set; }
 		public int report { get; set; }
+	}
+
+	public class OpenWeatherMapStation
+	{
+		public string id { get; set; }
+		public string created_at { get; set; }
+		public string updated_at { get; set; }
+		public string external_id { get; set; }
+		public string name { get; set; }
+		public double longitude { get; set; }
+		public double latitude { get; set; }
+		public int altitude { get; set; }
+		public int rank { get; set; }
+	}
+
+	public class OpenWeatherMapNewStation
+	{
+		public string ID { get; set; }
+		public string created_at { get; set; }
+		public string updated_at { get; set; }
+		public string user_id { get; set; }
+		public string external_id { get; set; }
+		public string name { get; set; }
+		public double longitude { get; set; }
+		public double latitude { get; set; }
+		public int altitude { get; set; }
+		public int source_type { get; set; }
 	}
 
 	public class Alarm
