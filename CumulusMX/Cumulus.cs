@@ -2258,7 +2258,7 @@ namespace CumulusMX
 						HttpResponseMessage response = await client.PostAsync(url, data);
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
-						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+						LogMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 						if (response.StatusCode != HttpStatusCode.NoContent)
 							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
 					}

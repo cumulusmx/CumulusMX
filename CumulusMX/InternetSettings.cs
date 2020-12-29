@@ -222,8 +222,8 @@ namespace CumulusMX
 					cumulus.WCloud.SendUV = settings.weathercloud.includeuv;
 					cumulus.WCloud.SynchronisedUpdate = (60 % cumulus.WCloud.Interval == 0);
 
-					//cumulus.WCloudTimer.Interval = cumulus.WCloudInterval * 60 * 1000;
-					//cumulus.WCloudTimer.Enabled = cumulus.WCloudEnabled && !cumulus.SynchronisedWCloudUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloudWid) && !String.IsNullOrWhiteSpace(cumulus.WCloudKey);
+					cumulus.WCloudTimer.Interval = cumulus.WCloud.Interval * 60 * 1000;
+					cumulus.WCloudTimer.Enabled = cumulus.WCloud.Enabled && !cumulus.WCloud.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloud.ID) && !String.IsNullOrWhiteSpace(cumulus.WCloud.PW);
 				}
 				catch (Exception ex)
 				{
@@ -312,7 +312,8 @@ namespace CumulusMX
 					cumulus.OpenWeatherMap.Interval = settings.openweathermap.interval;
 					cumulus.OpenWeatherMap.SynchronisedUpdate = (60 % cumulus.OpenWeatherMap.Interval == 0);
 
-					cumulus.OpenWeatherMap.Enabled = cumulus.OpenWeatherMap.Enabled && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.PW);
+					cumulus.OpenWeatherMapTimer.Interval = cumulus.OpenWeatherMap.Interval * 60 * 1000;
+					cumulus.OpenWeatherMapTimer.Enabled = cumulus.OpenWeatherMap.Enabled && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.PW);
 				}
 				catch (Exception ex)
 				{
