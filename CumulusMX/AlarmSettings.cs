@@ -154,7 +154,6 @@ namespace CumulusMX
 			return retObject.ToJson();
 		}
 
-		//public string UpdateNoaaConfig(HttpListenerContext context)
 		public string UpdateAlarmSettings(IHttpContext context)
 		{
 			try

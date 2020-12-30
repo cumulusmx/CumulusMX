@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Unosquare.Labs.EmbedIO;
-using Unosquare.Labs.EmbedIO.Modules;
 using Unosquare.Labs.EmbedIO.Constants;
+using Unosquare.Labs.EmbedIO.Modules;
 
 namespace CumulusMX
 {
@@ -15,7 +15,8 @@ namespace CumulusMX
 	{
 		private const string RelativePath = "/api/";
 		internal static WeatherStation Station;
-		public static StationSettings stationSettings;
+		public static ProgramSettings programSettings;
+		internal static StationSettings stationSettings;
 		public static InternetSettings internetSettings;
 		public static ExtraSensorSettings extraSensorSettings;
 		public static CalibrationSettings calibrationSettings;
@@ -48,22 +49,21 @@ namespace CumulusMX
 			server.Module<WebApiModule>().RegisterController<RecordsController>();
 			server.Module<WebApiModule>().RegisterController<TodayYestDataController>();
 			server.Module<WebApiModule>().RegisterController<ExtraDataController>();
-			server.Module<WebApiModule>().RegisterController<GetSettingsController>();
-			server.Module<WebApiModule>().RegisterController<SetSettingsController>();
-			server.Module<WebApiModule>().RegisterController<EditControllerGet>();
-			server.Module<WebApiModule>().RegisterController<EditControllerPost>();
+			server.Module<WebApiModule>().RegisterController<SettingsController>();
+			server.Module<WebApiModule>().RegisterController<EditController>();
 			server.Module<WebApiModule>().RegisterController<ReportsController>();
 			server.Module<WebApiModule>().RegisterController<TagController>();
 		}
 
-		public class EditControllerGet : WebApiController
+		// Get/Post Edit data
+		public class EditController : WebApiController
 		{
-			public EditControllerGet(IHttpContext context) : base(context)
+			public EditController(IHttpContext context) : base(context)
 			{
 			}
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "edit/*")]
-			public async Task<bool> EditData()
+			public async Task<bool> GetEditData()
 			{
 				try
 				{
@@ -126,28 +126,8 @@ namespace CumulusMX
 				}
 			}
 
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				this.Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
-			}
-		}
-
-		public class EditControllerPost : WebApiController
-		{
-			public EditControllerPost(IHttpContext context) : base(context)
-			{
-			}
-
 			[WebApiHandler(HttpVerbs.Post, RelativePath + "edit/*")]
-			public async Task<bool> EditData()
+			public async Task<bool> PostEditData()
 			{
 				try
 				{
@@ -212,6 +192,8 @@ namespace CumulusMX
 			}
 		}
 
+
+		// Get log and diary Data
 		public class DataController : WebApiController
 		{
 			public DataController(IHttpContext context) : base(context)
@@ -272,7 +254,7 @@ namespace CumulusMX
 			}
 		}
 
-
+		// Get/Post Tag body data
 		public class TagController : WebApiController
 		{
 			public TagController(IHttpContext context) : base(context)
@@ -323,8 +305,6 @@ namespace CumulusMX
 				}
 			}
 
-
-
 			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
@@ -339,6 +319,7 @@ namespace CumulusMX
 			}
 		}
 
+		// Get recent/daily graph data
 		public class GraphDataController : WebApiController
 		{
 			public GraphDataController(IHttpContext context) : base(context)
@@ -391,7 +372,6 @@ namespace CumulusMX
 				}
 			}
 
-
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "dailygraphdata/*")]
 			public async Task<bool> GetDailyGraphData()
 			{
@@ -430,7 +410,6 @@ namespace CumulusMX
 				}
 			}
 
-
 			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
@@ -445,6 +424,7 @@ namespace CumulusMX
 			}
 		}
 
+		// Get Records data
 		public class RecordsController : WebApiController
 		{
 			public RecordsController(IHttpContext context) : base(context)
@@ -587,6 +567,7 @@ namespace CumulusMX
 			}
 		}
 
+		// Get today/yesterday data
 		public class TodayYestDataController : WebApiController
 		{
 			public TodayYestDataController(IHttpContext context) : base(context) {}
@@ -637,6 +618,7 @@ namespace CumulusMX
 			}
 		}
 
+		// Get Extra data
 		public class ExtraDataController : WebApiController
 		{
 			public ExtraDataController(IHttpContext context) : base(context) { }
@@ -709,71 +691,10 @@ namespace CumulusMX
 			}
 		}
 
-		public class SetSettingsController : WebApiController
+		// Get/Post settings data
+		public class SettingsController : WebApiController
 		{
-			public SetSettingsController(IHttpContext context) : base(context) { }
-
-			[WebApiHandler(HttpVerbs.Post, RelativePath + "setsettings/*")]
-			public async Task<bool> SettingsSet()
-			{
-				try
-				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
-					{
-						case "updatestationconfig.json":
-							return await this.JsonResponseAsync(stationSettings.UpdateStationConfig(this));
-						case "updateinternetconfig.json":
-							return await this.JsonResponseAsync(internetSettings.UpdateInternetConfig(this));
-						case "updateextrasensorconfig.json":
-							return await this.JsonResponseAsync(extraSensorSettings.UpdateExtraSensorConfig(this));
-						case "updatecalibrationconfig.json":
-							return await this.JsonResponseAsync(calibrationSettings.UpdateCalibrationConfig(this));
-						case "updatenoaaconfig.json":
-							return await this.JsonResponseAsync(noaaSettings.UpdateNoaaConfig(this));
-						case "updateextrawebfiles.html":
-							return await this.JsonResponseAsync(internetSettings.UpdateExtraWebFiles(this));
-						case "updatemysqlconfig.json":
-							return await this.JsonResponseAsync(mySqlSettings.UpdateMysqlConfig(this));
-						case "createmonthlysql.json":
-							return await this.JsonResponseAsync(mySqlSettings.CreateMonthlySQL(this));
-						case "createdayfilesql.json":
-							return await this.JsonResponseAsync(mySqlSettings.CreateDayfileSQL(this));
-						case "createrealtimesql.json":
-							return await this.JsonResponseAsync(mySqlSettings.CreateRealtimeSQL(this));
-						case "updatealarmconfig.json":
-							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
-						case "ftpnow.json":
-							return await this.JsonResponseAsync(stationSettings.FtpNow());
-					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
-				}
-				catch (Exception ex)
-				{
-					return await HandleError(ex, 404);
-				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				this.Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
-			}
-		}
-
-		public class GetSettingsController : WebApiController
-		{
-			public GetSettingsController(IHttpContext context) : base(context) { }
+			public SettingsController(IHttpContext context) : base(context) { }
 
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "settings/*")]
 			public async Task<bool> SettingsGet()
@@ -811,6 +732,13 @@ namespace CumulusMX
 
 					switch (lastSegment)
 					{
+						case "programdata.json":
+							return await this.JsonResponseAsync(programSettings.GetProgramAlpacaFormData());
+						case "programoptions.json":
+							return await this.JsonResponseAsync(programSettings.GetProgramAlpacaFormOptions());
+						case "programschema.json":
+							return await this.JsonResponseAsync(programSettings.GetProgramAlpacaFormSchema());
+
 						case "stationdata.json":
 							return await this.JsonResponseAsync(stationSettings.GetStationAlpacaFormData());
 						case "stationoptions.json":
@@ -872,6 +800,53 @@ namespace CumulusMX
 				}
 			}
 
+			[WebApiHandler(HttpVerbs.Post, RelativePath + "setsettings/*")]
+			public async Task<bool> SettingsSet()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					var lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "updateprogramconfig.json":
+							return await this.JsonResponseAsync(programSettings.UpdateProgramConfig(this));
+
+						case "updatestationconfig.json":
+							return await this.JsonResponseAsync(stationSettings.UpdateStationConfig(this));
+						case "updateinternetconfig.json":
+							return await this.JsonResponseAsync(internetSettings.UpdateInternetConfig(this));
+						case "updateextrasensorconfig.json":
+							return await this.JsonResponseAsync(extraSensorSettings.UpdateExtraSensorConfig(this));
+						case "updatecalibrationconfig.json":
+							return await this.JsonResponseAsync(calibrationSettings.UpdateCalibrationConfig(this));
+						case "updatenoaaconfig.json":
+							return await this.JsonResponseAsync(noaaSettings.UpdateNoaaConfig(this));
+						case "updateextrawebfiles.html":
+							return await this.JsonResponseAsync(internetSettings.UpdateExtraWebFiles(this));
+						case "updatemysqlconfig.json":
+							return await this.JsonResponseAsync(mySqlSettings.UpdateMysqlConfig(this));
+						case "createmonthlysql.json":
+							return await this.JsonResponseAsync(mySqlSettings.CreateMonthlySQL(this));
+						case "createdayfilesql.json":
+							return await this.JsonResponseAsync(mySqlSettings.CreateDayfileSQL(this));
+						case "createrealtimesql.json":
+							return await this.JsonResponseAsync(mySqlSettings.CreateRealtimeSQL(this));
+						case "updatealarmconfig.json":
+							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
+						case "ftpnow.json":
+							return await this.JsonResponseAsync(stationSettings.FtpNow(this));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
 			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
 				var errorResponse = new
@@ -886,6 +861,7 @@ namespace CumulusMX
 			}
 		}
 
+		// Get reports data
 		public class ReportsController : WebApiController
 		{
 			public ReportsController(IHttpContext context) : base(context)

@@ -577,6 +577,7 @@ namespace CumulusMX
 
 					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999, gustLastCal = -999;
 					int windDirLast = -999;
+					double outdoortemp = -999;
 
 					bool batteryLow = false;
 
@@ -592,7 +593,8 @@ namespace CumulusMX
 								break;
 							case 0x02: //Outdoor Temperature (℃)
 								tempInt16 = ConvertBigEndianInt16(data, idx);
-								DoOutdoorTemp(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
+								// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
+								outdoortemp = tempInt16 / 10.0;
 								idx += 2;
 								break;
 							case 0x03: //Dew point (℃)
@@ -868,6 +870,10 @@ namespace CumulusMX
 								break;
 						}
 					} while (idx < size);
+
+					// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
+					if (outdoortemp > -999)
+						DoOutdoorTemp(ConvertTempCToUser(outdoortemp), dateTime);
 
 					if (tenMinuteChanged) tenMinuteChanged = false;
 

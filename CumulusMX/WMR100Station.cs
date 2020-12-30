@@ -56,6 +56,8 @@ namespace CumulusMX
 				WMR200ExtraHumValues = new double[11];
 				WMR200ChannelPresent = new bool[11];
 				WMR200ExtraDPValues = new double[11];
+
+				LoadLastHoursFromDataLogs(DateTime.Now);
 			}
 			else
 			{
@@ -72,7 +74,6 @@ namespace CumulusMX
 		public override void Start()
 		{
 			DoDayResetIfNeeded();
-			LoadLastHoursFromDataLogs(DateTime.Now);
 			DoTrendValues(DateTime.Now);
 			cumulus.StartTimersAndSensors();
 

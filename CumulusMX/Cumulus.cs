@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
@@ -31,8 +32,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.3";
-		public string Build = "3098";
+		public string Version = "3.9.4";
+		public string Build = "3099";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -196,6 +197,8 @@ namespace CumulusMX
 		public int airLinkOutLsid;
 
 		public DateTime LastUpdateTime;
+
+		public PerformanceCounter UpTime;
 
 		private readonly WebTags webtags;
 		private readonly TokenParser tokenParser;
@@ -493,6 +496,7 @@ namespace CumulusMX
 		private List<string> WindyList = new List<string>();
 		private List<string> PWSList = new List<string>();
 		private List<string> WOWList = new List<string>();
+		private List<string> OWMList = new List<string>();
 
 		private List<string> MySqlList = new List<string>();
 
@@ -511,6 +515,8 @@ namespace CumulusMX
 		/// User spike limit settings
 		/// </summary>
 		public Spikes Spike = new Spikes();
+
+		public ProgramOptions ProgramOptions = new ProgramOptions();
 
 		public StationOptions StationOptions = new StationOptions();
 
@@ -547,6 +553,9 @@ namespace CumulusMX
 
 		// WeatherCloud settings
 		public WebUploadService WCloud = new WebUploadService();
+
+		// OpenWeatherMap settings
+		public WebUploadService OpenWeatherMap = new WebUploadService();
 
 
 		// MQTT settings
@@ -604,6 +613,7 @@ namespace CumulusMX
 		public bool IsOSX;
 		public double CPUtemp = -999;
 
+		// Alarms
 		public Alarm DataStoppedAlarm = new Alarm();
 		public Alarm BatteryLowAlarm = new Alarm();
 		public Alarm SensorAlarm = new Alarm();
@@ -899,14 +909,19 @@ namespace CumulusMX
 
 			LogMessage("OS version: " + Environment.OSVersion);
 
-			GetLatestVersion();
-
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
 					LogMessage("Mono version: "+displayName.Invoke(null, null));
+			}
+
+			// determine system uptime based on OS
+			if (Platform.Substring(0, 3) == "Win")
+			{
+				// Windows enable the performance counter method
+				UpTime = new PerformanceCounter("System", "System Up Time");
 			}
 
 			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
@@ -984,10 +999,12 @@ namespace CumulusMX
 			APRS.DefaultInterval = 9;
 			AWEKAS.DefaultInterval = 15 * 60;
 			WCloud.DefaultInterval = 10;
+			OpenWeatherMap.DefaultInterval = 15;
 
 			ReadIniFile();
 
-			if (StationOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
+			// Do we prevent more than one copy of CumulusMX running?
+			if (ProgramOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
 			{
 				LogConsoleMessage("Cumulus is already running - terminating");
 				LogConsoleMessage("Program exit");
@@ -996,39 +1013,110 @@ namespace CumulusMX
 				Environment.Exit(1);
 			}
 
+			// Do we wait for a ping response from a remote host before starting?
+			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
+			{
+				var msg1 = $"Waiting for PING reply from {ProgramOptions.StartupPingHost}";
+				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
+				LogConsoleMessage(msg1);
+				LogMessage(msg1);
+				using (var ping = new Ping())
+				{
+					PingReply reply;
+					try
+					{
+						do
+						{
+							reply = ping.Send(ProgramOptions.StartupPingHost, 5000);  // 5 second timeout
+						} while (reply.Status != IPStatus.Success);
+					}
+					catch(Exception e)
+					{
+						LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
+					}
+				}
+				LogConsoleMessage(msg2);
+				LogMessage(msg2);
+			}
+			else
+			{
+				LogMessage("No start-up PING");
+			}
+
+			// Do we delay the start of Cumulus MX for a fixed period?
+			if (ProgramOptions.StartupDelaySecs > 0)
+			{
+				// Check uptime
+				double ts = 0;
+				if (Platform.Substring(0, 3) == "Win")
+				{
+					UpTime.NextValue();
+					ts = UpTime.NextValue();
+				}
+				else if (File.Exists(@"/proc/uptime"))
+				{
+					var text = File.ReadAllText(@"/proc/uptime");
+					var strTime = text.Split(' ')[0];
+					double.TryParse(strTime, out ts);
+				}
+
+				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
+				LogMessage($"System uptime = {(int)ts} secs");
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts)
+				{
+					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
+					var msg2 = $"Start-up delay complete, continuing...";
+					LogConsoleMessage(msg1);
+					LogMessage(msg1);
+					Thread.Sleep(ProgramOptions.StartupDelaySecs * 1000);
+					LogConsoleMessage(msg2);
+					LogMessage(msg2);
+				}
+				else
+				{
+					LogMessage("No start-up delay, max uptime exceeded");
+				}
+			}
+			else
+			{
+				LogMessage("No start-up delay - disabled");
+			}
+
+			GetLatestVersion();
+
 			GC.Collect();
 
 			remoteGraphdataFiles = new[]
-				{
-					"graphconfig.json",
-					"tempdata.json",
-					"pressdata.json",
-					"winddata.json",
-					"wdirdata.json",
-					"humdata.json",
-					"raindata.json",
-					"dailyrain.json",
-					"dailytemp.json",
-					"solardata.json",
-					"sunhours.json",
-					"airquality.json"
-				};
+			{
+				"graphconfig.json",
+				"tempdata.json",
+				"pressdata.json",
+				"winddata.json",
+				"wdirdata.json",
+				"humdata.json",
+				"raindata.json",
+				"dailyrain.json",
+				"dailytemp.json",
+				"solardata.json",
+				"sunhours.json",
+				"airquality.json"
+			};
 
 			localGraphdataFiles = new[]
-				{
-					"web" + DirectorySeparator + remoteGraphdataFiles[0],	// 0
-					"web" + DirectorySeparator + remoteGraphdataFiles[1],	// 1
-					"web" + DirectorySeparator + remoteGraphdataFiles[2],	// 2
-					"web" + DirectorySeparator + remoteGraphdataFiles[3],	// 3
-					"web" + DirectorySeparator + remoteGraphdataFiles[4],	// 4
-					"web" + DirectorySeparator + remoteGraphdataFiles[5],	// 5
-					"web" + DirectorySeparator + remoteGraphdataFiles[6],	// 6
-					"web" + DirectorySeparator + remoteGraphdataFiles[7],	// 7
-					"web" + DirectorySeparator + remoteGraphdataFiles[8],	// 8
-					"web" + DirectorySeparator + remoteGraphdataFiles[9],	// 9
-					"web" + DirectorySeparator + remoteGraphdataFiles[10],	// 10
-					"web" + DirectorySeparator + remoteGraphdataFiles[11]	// 11
-				};
+			{
+				"web" + DirectorySeparator + remoteGraphdataFiles[0],	// 0
+				"web" + DirectorySeparator + remoteGraphdataFiles[1],	// 1
+				"web" + DirectorySeparator + remoteGraphdataFiles[2],	// 2
+				"web" + DirectorySeparator + remoteGraphdataFiles[3],	// 3
+				"web" + DirectorySeparator + remoteGraphdataFiles[4],	// 4
+				"web" + DirectorySeparator + remoteGraphdataFiles[5],	// 5
+				"web" + DirectorySeparator + remoteGraphdataFiles[6],	// 6
+				"web" + DirectorySeparator + remoteGraphdataFiles[7],	// 7
+				"web" + DirectorySeparator + remoteGraphdataFiles[8],	// 8
+				"web" + DirectorySeparator + remoteGraphdataFiles[9],	// 9
+				"web" + DirectorySeparator + remoteGraphdataFiles[10],	// 10
+				"web" + DirectorySeparator + remoteGraphdataFiles[11]	// 11
+			};
 
 			remoteDailyGraphdataFiles = new[]
 			{
@@ -1085,8 +1173,8 @@ namespace CumulusMX
 
 			Backupdata(false, DateTime.Now);
 
-			LogMessage("Debug logging is " + (StationOptions.DebugLogging ? "enabled" : "disabled"));
-			LogMessage("Data logging is " + (StationOptions.DataLogging ? "enabled" : "disabled"));
+			LogMessage("Debug logging is " + (ProgramOptions.DebugLogging ? "enabled" : "disabled"));
+			LogMessage("Data logging is " + (ProgramOptions.DataLogging ? "enabled" : "disabled"));
 			LogMessage("FTP logging is " + (FTPlogging ? "enabled" : "disabled"));
 			LogMessage("Spike logging is " + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
@@ -1316,7 +1404,8 @@ namespace CumulusMX
 			// Set up the API web server
 			Api.Setup(httpServer);
 			Api.Station = station;
-			Api.stationSettings = new StationSettings(this);
+			Api.programSettings = new ProgramSettings(this);
+			Api.stationSettings = new StationSettings(this, station);
 			Api.internetSettings = new InternetSettings(this);
 			Api.extraSensorSettings = new ExtraSensorSettings(this);
 			Api.calibrationSettings = new CalibrationSettings(this);
@@ -1351,6 +1440,7 @@ namespace CumulusMX
 			AwekasTimer.Elapsed += AwekasTimerTick;
 			WCloudTimer.Elapsed += WCloudTimerTick;
 			APRStimer.Elapsed += APRSTimerTick;
+			OpenWeatherMapTimer.Elapsed += OpenWeatherMapTimerTick;
 			WebTimer.Elapsed += WebTimerTick;
 
 			xapsource = "sanday.cumulus." + Environment.MachineName;
@@ -1394,6 +1484,7 @@ namespace CumulusMX
 			// If enabled generate the daily graph data files, and upload at first opportunity
 			if (IncludeGraphDataFiles)
 			{
+				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
 				DailyGraphDataFilesNeedFTP = true;
 			}
@@ -1905,6 +1996,12 @@ namespace CumulusMX
 				UpdateWCloud(DateTime.Now);
 		}
 
+		private void OpenWeatherMapTimerTick(object sender, ElapsedEventArgs e)
+		{
+			if (!string.IsNullOrWhiteSpace(OpenWeatherMap.ID) && !string.IsNullOrWhiteSpace(OpenWeatherMap.PW))
+				UpdateOpenWeatherMap(DateTime.Now);
+		}
+
 		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
 		{
 			MqttPublisher.UpdateMQTTfeed("Interval");
@@ -2125,11 +2222,11 @@ namespace CumulusMX
 				{
 					HttpResponseMessage response = await WCloudhttpClient.GetAsync(url);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
 				}
 				catch (Exception ex)
 				{
-					LogMessage("WeatherCloud update: " + ex.Message);
+					LogDebugMessage("WeatherCloud update: " + ex.Message);
 				}
 				finally
 				{
@@ -2138,6 +2235,160 @@ namespace CumulusMX
 			}
 		}
 
+
+		internal async void UpdateOpenWeatherMap(DateTime timestamp)
+		{
+			if (!OpenWeatherMap.Updating)
+			{
+				OpenWeatherMap.Updating = true;
+
+				string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
+				string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
+
+				string jsonData = station.GetOpenWeatherMapData(timestamp);
+
+				LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
+				LogDataMessage("OpenWeatherMap: Body = " + jsonData);
+
+				try
+				{
+					using (var client = new HttpClient())
+					{
+						var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+						HttpResponseMessage response = await client.PostAsync(url, data);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+						LogMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+						if (response.StatusCode != HttpStatusCode.NoContent)
+							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage("OpenWeatherMap: Update error = " + ex.Message);
+				}
+				finally
+				{
+					OpenWeatherMap.Updating = false;
+				}
+			}
+		}
+
+		// Find all stations associated with the users API key
+		internal OpenWeatherMapStation[] GetOpenWeatherMapStations()
+		{
+			OpenWeatherMapStation[] retVal = new OpenWeatherMapStation[0];
+			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
+			try
+			{
+				using (var client = new HttpClient())
+				{
+					HttpResponseMessage response = client.GetAsync(url).Result;
+					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
+					LogDataMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+
+					if (responseBodyAsText.Length > 10)
+					{
+						var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapStation[]>(responseBodyAsText);
+						retVal = respJson;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("OpenWeatherMap: Get stations - " + ex.Message);
+			}
+
+			return retVal;
+		}
+
+		// Create a new OpenWeatherMap station
+		internal void CreateOpenWeatherMapStation()
+		{
+			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
+			try
+			{
+				var datestr = DateTime.Now.ToUniversalTime().ToString("yyMMddHHmm");
+				StringBuilder sb = new StringBuilder($"{{\"external_id\":\"CMX-{datestr}\",");
+				sb.Append($"\"name\":\"{LocationName}\",");
+				sb.Append($"\"latitude\":{Latitude},");
+				sb.Append($"\"longitude\":{Longitude},");
+				sb.Append($"\"altitude\":{(int)station.AltitudeM(Altitude)}}}");
+
+				LogMessage($"OpenWeatherMap: Creating new station");
+				LogMessage($"OpenWeatherMap: - {sb}");
+
+
+				using (var client = new HttpClient())
+				{
+					var data = new StringContent(sb.ToString(), Encoding.UTF8, "application/json");
+
+					HttpResponseMessage response = client.PostAsync(url, data).Result;
+					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
+					var status = response.StatusCode == HttpStatusCode.Created ? "OK" : "Error";  // Returns a 201 reponse for OK
+					LogDebugMessage($"OpenWeatherMap: Create station response code = {status} - {response.StatusCode}");
+					LogDataMessage($"OpenWeatherMap: Create station response data = {responseBodyAsText}");
+
+					if (response.StatusCode == HttpStatusCode.Created)
+					{
+						// It worked, save the result
+						var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapNewStation>(responseBodyAsText);
+
+						LogMessage($"OpenWeatherMap: Created new station, id = {respJson.ID}, name = {respJson.name}");
+						OpenWeatherMap.ID = respJson.ID;
+						WriteIniFile();
+					}
+					else
+					{
+						LogMessage($"OpenWeatherMap: Failed to create new station. Error - {response.StatusCode}, text - {responseBodyAsText}");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("OpenWeatherMap: Create station - " + ex.Message);
+			}
+		}
+
+		internal void EnableOpenWeatherMap()
+		{
+			if (OpenWeatherMap.Enabled && string.IsNullOrWhiteSpace(OpenWeatherMap.ID))
+			{
+				// oh, oh! OpenWeatherMap is enabled, but we do not have a station id
+				// first check if one already exists
+				var stations = GetOpenWeatherMapStations();
+
+				if (stations.Length == 0)
+				{
+					// No stations defined, we will create one
+					LogMessage($"OpenWeatherMap: No station defined, attempting to create one");
+					CreateOpenWeatherMapStation();
+				}
+				else if (stations.Length == 1)
+				{
+					// We have one station defined, lets use it!
+					LogMessage($"OpenWeatherMap: No station defined, but found one associated with this API key, using this station - {stations[0].id} : {stations[0].name}");
+					OpenWeatherMap.ID = stations[0].id;
+					// save the setting
+					WriteIniFile();
+				}
+				else
+				{
+					// multiple stations defined, the user must select which one to use
+					var msg = $"Multiple OpenWeatherMap stations found, please select the correct station id and enter it into your configuration";
+					Console.WriteLine(msg);
+					LogMessage("OpenWeatherMap: " + msg);
+					foreach (var station in stations)
+					{
+						msg = $"  Station Id = {station.id}, Name = {station.name}";
+						Console.WriteLine(msg);
+						LogMessage("OpenWeatherMap: " + msg);
+					}
+				}
+
+				OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
+			}
+		}
 
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
@@ -3154,6 +3405,21 @@ namespace CumulusMX
 				}
 			}
 
+			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", "");
+			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
+			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
+			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
+			if (DebuggingEnabled)
+			{
+				ProgramOptions.DebugLogging = true;
+				ProgramOptions.DataLogging = true;
+			}
+			else
+			{
+				ProgramOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
+				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
+			}
+
 			StationType = ini.GetValue("Station", "Type", -1);
 
 			StationModel = ini.GetValue("Station", "Model", "");
@@ -3430,22 +3696,9 @@ namespace CumulusMX
 			special_logging = ini.GetValue("Station", "SpecialLog", false);
 			solar_logging = ini.GetValue("Station", "SolarLog", false);
 
-			if (DebuggingEnabled)
-			{
-				StationOptions.DebugLogging = true;
-				StationOptions.DataLogging = true;
-			}
-			else
-			{
-				StationOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
-				StationOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
-			}
-
 			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
-
-			StationOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 
 			VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 
@@ -3646,7 +3899,7 @@ namespace CumulusMX
 			//WindyHTTPLogging = ini.GetValue("Windy", "Logging", false);
 			Windy.SendUV = ini.GetValue("Windy", "SendUV", false);
 			Windy.SendSolar = ini.GetValue("Windy", "SendSolar", false);
-			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", true);
+			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", false);
 
 			Windy.SynchronisedUpdate = (60 % Windy.Interval == 0);
 
@@ -3723,6 +3976,14 @@ namespace CumulusMX
 			APRS.SendSolar = ini.GetValue("APRS", "SendSR", false);
 
 			APRS.SynchronisedUpdate = (60 % APRS.Interval == 0);
+
+			OpenWeatherMap.Enabled = ini.GetValue("OpenWeatherMap", "Enabled", false);
+			OpenWeatherMap.CatchUp = ini.GetValue("OpenWeatherMap", "CatchUp", true);
+			OpenWeatherMap.PW = ini.GetValue("OpenWeatherMap", "APIkey", "");
+			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", "");
+			OpenWeatherMap.Interval = ini.GetValue("OpenWeatherMap", "Interval", OpenWeatherMap.DefaultInterval);
+
+			OpenWeatherMap.SynchronisedUpdate = (60 % OpenWeatherMap.Interval == 0);
 
 			MQTT.Server = ini.GetValue("MQTT", "Server", "");
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883);
@@ -3908,6 +4169,8 @@ namespace CumulusMX
 			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
 			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
 			BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+			//SolarFactorSummer = ini.GetValue("Solar", "SolarFactorSummer", -1);
+			//SolarFactorWinter = ini.GetValue("Solar", "SolarFactorWinter", -1);
 
 			NOAAname = ini.GetValue("NOAA", "Name", " ");
 			NOAAcity = ini.GetValue("NOAA", "City", " ");
@@ -4072,6 +4335,12 @@ namespace CumulusMX
 
 			IniFile ini = new IniFile("Cumulus.ini");
 
+			ini.SetValue("Program", "StartupPingHost", ProgramOptions.StartupPingHost);
+			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
+			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
+			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
+
+
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
 			ini.SetValue("Station", "ComportName", ComportName);
@@ -4122,7 +4391,6 @@ namespace CumulusMX
 			ini.SetValue("Station", "VP2ConnectionType", VP2ConnectionType);
 			ini.SetValue("Station", "VP2TCPPort", VP2TCPPort);
 			ini.SetValue("Station", "VP2IPAddr", VP2IPAddr);
-			ini.SetValue("Station", "WarnMultiple", StationOptions.WarnMultiple);
 			ini.SetValue("Station", "RoundWindSpeed", StationOptions.RoundWindSpeed);
 			ini.SetValue("Station", "PrimaryAqSensor", StationOptions.PrimaryAqSensor);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", VP2PeriodicDisconnectInterval);
@@ -4356,6 +4624,11 @@ namespace CumulusMX
 			ini.SetValue("APRS", "SendSR", APRS.SendSolar);
 			ini.SetValue("APRS", "APRSHumidityCutoff", APRS.HumidityCutoff);
 
+			ini.SetValue("OpenWeatherMap", "Enabled", OpenWeatherMap.Enabled);
+			ini.SetValue("OpenWeatherMap", "CatchUp", OpenWeatherMap.CatchUp);
+			ini.SetValue("OpenWeatherMap", "APIkey", OpenWeatherMap.PW);
+			ini.SetValue("OpenWeatherMap", "StationId", OpenWeatherMap.ID);
+			ini.SetValue("OpenWeatherMap", "Interval", OpenWeatherMap.Interval);
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
 			ini.SetValue("MQTT", "Port", MQTT.Port);
@@ -4947,6 +5220,9 @@ namespace CumulusMX
 
 		public double BrasTurbidity { get; set; }
 
+		//public double SolarFactorSummer { get; set; }
+		//public double SolarFactorWinter { get; set; }
+
 		public int xapPort { get; set; }
 
 		public string xapUID { get; set; }
@@ -5279,6 +5555,7 @@ namespace CumulusMX
 		public Timer TwitterTimer = new Timer();
 		public Timer AwekasTimer = new Timer();
 		public Timer WCloudTimer = new Timer();
+		public Timer OpenWeatherMapTimer = new Timer();
 		public Timer MQTTTimer = new Timer();
 		//public Timer AirLinkTimer = new Timer();
 
@@ -6484,6 +6761,7 @@ namespace CumulusMX
 				TwitterTimer.Stop();
 				AwekasTimer.Stop();
 				WCloudTimer.Stop();
+				OpenWeatherMapTimer.Stop();
 				MQTTTimer.Stop();
 				//AirLinkTimer.Stop();
 				CustomHttpSecondsTimer.Stop();
@@ -7293,7 +7571,7 @@ namespace CumulusMX
 
 		public void LogDebugMessage(string message)
 		{
-			if (StationOptions.DebugLogging || StationOptions.DataLogging)
+			if (ProgramOptions.DebugLogging || ProgramOptions.DataLogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -7301,7 +7579,7 @@ namespace CumulusMX
 
 		public void LogDataMessage(string message)
 		{
-			if (StationOptions.DataLogging)
+			if (ProgramOptions.DataLogging)
 			{
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
@@ -7690,6 +7968,8 @@ namespace CumulusMX
 
 			WCloudTimer.Interval = WCloud.Interval * 60 * 1000;
 
+			OpenWeatherMapTimer.Interval = OpenWeatherMap.Interval * 60 * 1000;
+
 			MQTTTimer.Interval = MQTT.IntervalTime * 1000; // secs to millisecs
 
 
@@ -7784,6 +8064,24 @@ namespace CumulusMX
 				WOWCatchUp();
 			}
 
+			if (OWMList == null)
+			{
+				// we've already been through here
+				// do nothing
+			}
+			else if (OWMList.Count == 0)
+			{
+				// No archived entries to upload
+				OWMList = null;
+				OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
+			}
+			else
+			{
+				// start the archive upload thread
+				OpenWeatherMap.CatchingUp = true;
+				OpenWeatherMapCatchUp();
+			}
+
 			if (MySqlList == null)
 			{
 				// we've already been through here
@@ -7814,6 +8112,8 @@ namespace CumulusMX
 			WebTimer.Enabled = WebAutoUpdate && !SynchronisedWebUpdate;
 
 			AwekasTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
+
+			EnableOpenWeatherMap();
 
 			LogMessage("Normal running");
 			LogConsoleMessage("Normal running");
@@ -8267,6 +8567,49 @@ namespace CumulusMX
 			WOW.Updating = false;
 		}
 
+		/// <summary>
+		/// Process the list of OpenWeatherMap updates created at startup from logger entries
+		/// </summary>
+		private async void OpenWeatherMapCatchUp()
+		{
+			OpenWeatherMap.Updating = true;
+
+			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
+			string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
+
+			using (var client = new HttpClient())
+			{
+				for (int i = 0; i < OWMList.Count; i++)
+				{
+					LogMessage("Uploading OpenWeatherMap archive #" + (i + 1));
+					LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
+					LogDataMessage("OpenWeatherMap: Body = " + OWMList[i]);
+
+					try
+					{
+						var data = new StringContent(OWMList[i], Encoding.UTF8, "application/json");
+						HttpResponseMessage response = await client.PostAsync(url, data);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+						if (response.StatusCode != HttpStatusCode.NoContent)
+							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+					}
+					catch (Exception ex)
+					{
+						LogMessage("OpenWeatherMap: Update error = " + ex.Message);
+					}
+				}
+			}
+
+			LogMessage("End of OpenWeatherMap archive upload");
+			OWMList.Clear();
+			OpenWeatherMap.CatchingUp = false;
+			OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
+			OpenWeatherMap.Updating = false;
+		}
+
+
 		public async void UpdatePWSweather(DateTime timestamp)
 		{
 			if (!PWS.Updating)
@@ -8457,6 +8800,7 @@ namespace CumulusMX
 			AddToWindyList(timestamp);
 			AddToPWSList(timestamp);
 			AddToWOWList(timestamp);
+			AddToOpenWeatherMapList(timestamp);
 		}
 
 		/// <summary>
@@ -8534,6 +8878,16 @@ namespace CumulusMX
 				LogMessage("Creating WOW URL #" + WOWList.Count);
 
 				LogMessage(LogURL);
+			}
+		}
+
+		private void AddToOpenWeatherMapList(DateTime timestamp)
+		{
+			if (OpenWeatherMap.Enabled && OpenWeatherMap.CatchUp)
+			{
+				OWMList.Add(station.GetOpenWeatherMapData(timestamp));
+
+				LogMessage("Creating OpenWeatherMap data #" + OWMList.Count);
 			}
 		}
 
@@ -8711,6 +9065,17 @@ namespace CumulusMX
 		public double snowDepth { get; set; }
 	}
 
+	public class ProgramOptions
+	{
+		public string StartupPingHost { get; set; }
+		public int StartupDelaySecs { get; set; }
+		public int StartupDelayMaxUptime { get; set; }
+		public bool DebugLogging { get; set; }
+		public bool DataLogging { get; set; }
+		public bool WarnMultiple { get; set; }
+	}
+
+
 	public class StationOptions
 	{
 		public bool UseZeroBearing { get; set; }
@@ -8726,9 +9091,6 @@ namespace CumulusMX
 		public bool WS2300IgnoreStationClock { get; set; }
 		public bool RoundWindSpeed { get; set; }
 		public bool SyncFOReads { get; set; }
-		public bool DebugLogging { get; set; }
-		public bool DataLogging { get; set; }
-		public bool WarnMultiple { get; set; }
 		public bool DavisReadReceptionStats { get; set; }
 		public int PrimaryAqSensor { get; set; }
 }
@@ -8815,6 +9177,33 @@ namespace CumulusMX
 		public int leafwetness1 { get; set; }
 		public int leafwetness2 { get; set; }
 		public int report { get; set; }
+	}
+
+	public class OpenWeatherMapStation
+	{
+		public string id { get; set; }
+		public string created_at { get; set; }
+		public string updated_at { get; set; }
+		public string external_id { get; set; }
+		public string name { get; set; }
+		public double longitude { get; set; }
+		public double latitude { get; set; }
+		public int altitude { get; set; }
+		public int rank { get; set; }
+	}
+
+	public class OpenWeatherMapNewStation
+	{
+		public string ID { get; set; }
+		public string created_at { get; set; }
+		public string updated_at { get; set; }
+		public string user_id { get; set; }
+		public string external_id { get; set; }
+		public string name { get; set; }
+		public double longitude { get; set; }
+		public double latitude { get; set; }
+		public int altitude { get; set; }
+		public int source_type { get; set; }
 	}
 
 	public class Alarm

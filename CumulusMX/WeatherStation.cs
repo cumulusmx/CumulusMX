@@ -307,6 +307,8 @@ namespace CumulusMX
 
 		public double SolarElevation;
 
+		public double SolarFactor = -1;  // used to adjust solar transmission factor (range 0-1), disabled = -1
+
 		public bool WindReadyToPlot = false;
 		public bool TempReadyToPlot = false;
 		private bool first_temp = true;
@@ -1531,6 +1533,7 @@ namespace CumulusMX
 			if (now.Hour == 0)
 			{
 				ResetMidnightRain(now);
+				//RecalcSolarFactor(now);
 			}
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
@@ -1752,6 +1755,11 @@ namespace CumulusMX
 					if (cumulus.WCloud.Enabled && (now.Minute % cumulus.WCloud.Interval == 0) && cumulus.WCloud.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloud.ID))
 					{
 						cumulus.UpdateWCloud(now);
+					}
+
+					if (cumulus.OpenWeatherMap.Enabled && (now.Minute % cumulus.OpenWeatherMap.Interval == 0) && cumulus.OpenWeatherMap.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.ID))
+					{
+						cumulus.UpdateOpenWeatherMap(now);
 					}
 
 					if (cumulus.PWS.Enabled && (now.Minute % cumulus.PWS.Interval == 0) && cumulus.PWS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.PWS.ID) && !String.IsNullOrWhiteSpace(cumulus.PWS.PW))
@@ -2802,6 +2810,29 @@ namespace CumulusMX
 			StartOfDaySunHourCounter = SunHourCounter;
 			WriteYesterdayFile();
 		}
+
+		/*
+		private void RecalcSolarFactor(DateTime now) // called at midnight irrespective of rollover time
+		{
+			if (cumulus.SolarFactorSummer > 0 && cumulus.SolarFactorWinter > 0)
+			{
+				// Calculate the solar factor from the day of the year
+				// Use a cosine of the difference between summer and winter values
+				int doy = now.DayOfYear;
+				// take summer solistice as June 21 or December 21 (N & S hemispheres) - ignore leap years
+				// sol = day 172 (North)
+				// sol = day 355 (South)
+				int sol = cumulus.Latitude >= 0 ? 172 : 355;
+				int daysSinceSol = (doy - sol) % 365;
+				double multiplier = Math.Cos((daysSinceSol / 365) * 2 * Math.PI);  // range +1/-1
+				SolarFactor = (multiplier + 1) / 2;  // bring it into the range 0-1
+			}
+			else
+			{
+				SolarFactor = -1;
+			}
+		}
+		*/
 
 		public void SwitchToNormalRunning()
 		{
@@ -6422,6 +6453,7 @@ namespace CumulusMX
 			{
 				ResetMidnightRain(DateTime.Now);
 				ResetSunshineHours();
+				//RecalcSolarFactor(DateTime.Now);
 			}
 		}
 
@@ -8578,249 +8610,6 @@ namespace CumulusMX
 			return hex.ToString();
 		}
 
-		/*
-		public string GetAwekasURL(out string pwstring, DateTime timestamp)
-		{
-			var InvC = new CultureInfo("");
-			byte[] hashPW;
-			string sep = ";";
-
-			// password is sent as MD5 hash
-			using (MD5 md5 = MD5.Create())
-			{
-				hashPW = md5.ComputeHash(Encoding.ASCII.GetBytes(cumulus.AwekasPW));
-			}
-
-			pwstring = ByteArrayToString(hashPW);
-
-			int presstrend;
-
-			double threeHourlyPressureChangeMb = 0;
-
-			switch (cumulus.PressUnit)
-			{
-				case 0:
-				case 1:
-					threeHourlyPressureChangeMb = presstrendval * 3;
-					break;
-				case 2:
-					threeHourlyPressureChangeMb = presstrendval * 3 / 0.0295333727;
-					break;
-			}
-
-			if (threeHourlyPressureChangeMb > 6) presstrend = 2;
-			else if (threeHourlyPressureChangeMb > 3.5) presstrend = 2;
-			else if (threeHourlyPressureChangeMb > 1.5) presstrend = 1;
-			else if (threeHourlyPressureChangeMb > 0.1) presstrend = 1;
-			else if (threeHourlyPressureChangeMb > -0.1) presstrend = 0;
-			else if (threeHourlyPressureChangeMb > -1.5) presstrend = -1;
-			else if (threeHourlyPressureChangeMb > -3.5) presstrend = -1;
-			else if (threeHourlyPressureChangeMb > -6) presstrend = -2;
-			else
-				presstrend = -2;
-
-			double AvgTemp;
-			if (tempsamplestoday > 0)
-				AvgTemp = TempTotalToday / tempsamplestoday;
-			else
-				AvgTemp = 0;
-
-			StringBuilder sb = new StringBuilder("http://data.awekas.at/eingabe_pruefung.php?val=");
-			sb.Append(cumulus.AwekasUser + sep); // 1
-			sb.Append(pwstring + sep); //2
-			sb.Append(timestamp.ToString("dd'.'MM'.'yyyy';'HH':'mm") + sep); // 3 + 4
-			sb.Append(ConvertUserTempToC(OutdoorTemperature).ToString("F1", InvC) + sep); // 5
-			sb.Append(OutdoorHumidity + sep); // 6
-			sb.Append(ConvertUserPressToMB(Pressure).ToString("F1", InvC) + sep); // 7
-			sb.Append(ConvertUserRainToMM(RainToday).ToString("F1", InvC) + sep); // 8
-			sb.Append(ConvertUserWindToKPH(WindAverage).ToString("F1", InvC) + sep); // 9
-			sb.Append(AvgBearing + sep); // 10
-			sb.Append(sep + sep + sep); // 11/12/13 - condition and warning, snow height
-			sb.Append(cumulus.AwekasLang + sep); // 14
-			sb.Append(presstrend + sep); // 15
-			sb.Append(ConvertUserWindToKPH(RecentMaxGust).ToString("F1", InvC) + sep); // 16
-
-			if (cumulus.SendSolarToAwekas)
-			{
-				sb.Append(SolarRad.ToString("F1", InvC) + sep); // 17
-			}
-			else
-			{
-				sb.Append(sep);
-			}
-
-			if (cumulus.SendUVToAwekas)
-			{
-				sb.Append(UV.ToString("F1", InvC) + sep); // 18
-			}
-			else
-			{
-				sb.Append(sep);
-			}
-
-			if (cumulus.SendSolarToAwekas)
-			{
-				if (cumulus.StationType == StationTypes.FineOffsetSolar) {
-					sb.Append(LightValue.ToString("F0", InvC) + sep); // 19
-				}
-				else
-				{
-					sb.Append(sep);
-				}
-
-				sb.Append(SunshineHours.ToString("F0", InvC) + sep); // 20
-			}
-			else
-			{
-				sb.Append(sep + sep);
-			}
-
-			if (cumulus.SendSoilTempToAwekas)
-			{
-				sb.Append(ConvertUserTempToC(SoilTemp1).ToString("F1", InvC) + sep); // 21
-			}
-			else
-			{
-				sb.Append(sep);
-			}
-
-			sb.Append(ConvertUserRainToMM(RainRate).ToString("F1", InvC) + sep); // 22
-
-			sb.Append("Cum_" + cumulus.Version + sep); //23
-
-			sb.Append(sep + sep); // 24/25 location for mobile
-
-			sb.Append(ConvertUserTempToC(HiLoToday.LowTemp).ToString("F1", InvC) + sep); // 26
-
-			sb.Append(ConvertUserTempToC(AvgTemp).ToString("F1", InvC) + sep); // 27
-
-			sb.Append(ConvertUserTempToC(HiLoToday.HighTemp).ToString("F1", InvC) + sep); // 28
-
-			sb.Append(ConvertUserTempToC(ThisMonthRecs.LowTemp.Val).ToString("F1", InvC) + sep); // 29
-
-			sb.Append(sep); // 30 avg temp this month
-
-			sb.Append(ConvertUserTempToC(ThisMonthRecs.HighTemp.Val).ToString("F1", InvC) + sep); // 31
-
-			sb.Append(ConvertUserTempToC(ThisYear.LowTemp.Val).ToString("F1", InvC) + sep); // 32
-
-			sb.Append(sep); // 33 avg temp this year
-
-			sb.Append(ConvertUserTempToC(ThisYear.HighTemp.Val).ToString("F1", InvC) + sep); // 34
-
-			sb.Append(HiLoToday.LowHumidity + sep); // 35
-
-			sb.Append(sep); // 36 avg hum today
-
-			sb.Append(HiLoToday.HighHumidity + sep); // 37
-
-			sb.Append(ThisMonthRecs.LowHumidity.Val + sep); // 38
-
-			sb.Append(sep); // 39 avg hum this month
-
-			sb.Append(ThisMonthRecs.HighHumidity.Val + sep); // 40
-
-			sb.Append(ThisYear.LowHumidity.Val + sep); // 41
-
-			sb.Append(sep); // 42 avg hum this year
-
-			sb.Append(ThisYear.HighHumidity.Val + sep); // 43
-
-			sb.Append(ConvertUserPressToMB(HiLoToday.LowPress).ToString("F1", InvC) + sep); // 44
-
-			sb.Append(sep); // 45 avg press today
-
-			sb.Append(ConvertUserPressToMB(HiLoToday.HighPress).ToString("F1", InvC) + sep); // 46
-
-			sb.Append(ConvertUserPressToMB(ThisMonthRecs.LowPress.Val).ToString("F1", InvC) + sep); // 47
-
-			sb.Append(sep); // 48 avg press this month
-
-			sb.Append(ConvertUserPressToMB(ThisMonthRecs.HighPress.Val).ToString("F1", InvC) + sep); // 49
-
-			sb.Append(ConvertUserPressToMB(ThisYear.LowPress.Val).ToString("F1", InvC) + sep); // 50
-
-			sb.Append(sep); // 51 avg press this year
-
-			sb.Append(ConvertUserPressToMB(ThisYear.HighPress.Val).ToString("F1", InvC) + sep); // 52
-
-			sb.Append(sep + sep); // 53/54 min/avg wind today
-
-			sb.Append(ConvertUserWindToKPH(HiLoToday.HighWind).ToString("F1", InvC) + sep); // 55
-
-			sb.Append(sep + sep); // 56/57 min/avg wind this month
-
-			sb.Append(ConvertUserWindToKPH(ThisMonthRecs.HighWind.Val).ToString("F1", InvC) + sep); // 58
-
-			sb.Append(sep + sep); // 59/60 min/avg wind this year
-
-			sb.Append(ConvertUserWindToKPH(ThisYear.HighWind.Val).ToString("F1", InvC) + sep); // 61
-
-			sb.Append(sep + sep); // 62/63 min/avg gust today
-
-			sb.Append(ConvertUserWindToKPH(HiLoToday.HighGust).ToString("F1", InvC) + sep); // 64
-
-			sb.Append(sep + sep); // 65/66 min/avg gust this month
-
-			sb.Append(ConvertUserWindToKPH(ThisMonthRecs.HighGust.Val).ToString("F1", InvC) + sep); // 67
-
-			sb.Append(sep + sep); // 68/69 min/avg gust this year
-
-			sb.Append(ConvertUserWindToKPH(ThisYear.HighGust.Val).ToString("F1", InvC) + sep); // 70
-
-			sb.Append(sep + sep + sep); // 71/72/73 avg wind bearing today/month/year
-
-			sb.Append(ConvertUserRainToMM(RainLast24Hour).ToString("F1", InvC) + sep); // 74
-
-			sb.Append(ConvertUserRainToMM(RainMonth).ToString("F1", InvC) + sep); // 75
-
-			sb.Append(ConvertUserRainToMM(RainYear).ToString("F1", InvC) + sep); // 76
-
-			sb.Append(sep); // 77 avg rain rate today
-
-			sb.Append(ConvertUserRainToMM(HiLoToday.HighRain).ToString("F1", InvC) + sep); // 78
-
-			sb.Append(sep); // 79 avg rain rate this month
-
-			sb.Append(ConvertUserRainToMM(ThisMonthRecs.HighRainRate.Val).ToString("F1", InvC) + sep); // 80
-
-			sb.Append(sep); // 81 avg rain rate this year
-
-			sb.Append(ConvertUserRainToMM(ThisYear.HighRainRate.Val).ToString("F1", InvC) + sep); // 82
-
-			sb.Append(sep); // 83 avg solar today
-
-			sb.Append(HiLoToday.HighSolar.ToString("F1", InvC)); // 84
-
-			sb.Append(sep); // 85 avg solar this month
-
-			sb.Append(sep); // 86 high solar this month
-
-			sb.Append(sep); // 87 avg solar this year
-
-			sb.Append(sep); // 88 high solar this year
-
-			sb.Append(sep); // 89 avg uv today
-
-			sb.Append(HiLoToday.HighUv.ToString("F1", InvC)); // 90
-
-			sb.Append(sep); // 91 avg uv this month
-
-			sb.Append(sep); // 92 high uv this month
-
-			sb.Append(sep); // 93 avg uv this year
-
-			sb.Append(sep); // 94 high uv this year
-
-			sb.Append(sep + sep + sep + sep + sep + sep); // 95/96/97/98/99/100 avg/max lux today/month/year
-
-			sb.Append(sep + sep); // 101/102 sun hours this month/year
-
-			sb.Append(sep + sep + sep + sep + sep + sep + sep + sep + sep); //103-111 min/avg/max Soil temp today/month/year
-
-			return sb.ToString();
-		}
-		*/
 
 		public string GetAwekasURLv4(out string pwstring, DateTime timestamp)
 		{
@@ -9204,6 +8993,24 @@ namespace CumulusMX
 			URL.Append(Data);
 
 			return URL.ToString();
+		}
+
+		public string GetOpenWeatherMapData(DateTime timestamp)
+		{
+			StringBuilder sb = new StringBuilder($"[{{\"station_id\":\"{cumulus.OpenWeatherMap.ID}\",");
+
+			sb.Append($"\"dt\":{Utils.ToUnixTime(timestamp)},");
+			sb.Append($"\"temperature\":{Math.Round(ConvertUserTempToC(OutdoorTemperature), 1)},");
+			sb.Append($"\"wind_deg\":{AvgBearing},");
+			sb.Append($"\"wind_speed\":{Math.Round(ConvertUserWindToMS(WindAverage), 1)},");
+			sb.Append($"\"wind_gust\":{Math.Round(ConvertUserWindToMS(RecentMaxGust), 1)},");
+			sb.Append($"\"pressure\":{Math.Round(PressureHPa(Pressure), 1)},");
+			sb.Append($"\"humidity\":{OutdoorHumidity},");
+			sb.Append($"\"rain_1h\":{Math.Round(ConvertUserRainToMM(RainLastHour), 1)},");
+			sb.Append($"\"rain_24h\":{Math.Round(ConvertUserRainToMM(RainLast24Hour), 1)}");
+			sb.Append("}]");
+
+			return sb.ToString();
 		}
 
 		private string PressINstr(double pressure)
