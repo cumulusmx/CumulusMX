@@ -1482,7 +1482,7 @@ namespace CumulusMX
 			}
 
 			// If enabled generate the daily graph data files, and upload at first opportunity
-			if (IncludeGraphDataFiles)
+			if ((station != null) && IncludeGraphDataFiles)
 			{
 				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
