@@ -667,6 +667,8 @@ namespace CumulusMX
 						case "airLinkPctIn.json":
 							return await this.JsonResponseAsync(Station.GetAirLinkPctIn());
 
+						case "co2sensor.json":
+							return await this.JsonResponseAsync(Station.GetCO2sensor());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

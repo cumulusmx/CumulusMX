@@ -1,3 +1,16 @@
+3.9.5 - b3100
+—————————————
+- Fix: Alarms being cleared after their defined latch time even if latching was disabled
+- Fix: Adds missing dew point calculation for GW1000 extra T/H sensors 1-8
+
+- New: More comprehensive support for the Ecowitt WH45 CO₂ sensor...
+	- Added to Extra Sensors page
+	- Added to Strings.ini
+	- Can be selected as the primary AQ sensor
+	- New web tags:
+		<#CO2-pm2p5>, <#CO2-pm2p5-24h>, <#CO2-pm10>, <#CO2-pm10-24h>, <#CO2-temp>, <#CO2-hum>
+
+
 3.9.4 - b3099
 —————————————
 - Fix: WMR100 stations generated empty daily graph data files on start-up
