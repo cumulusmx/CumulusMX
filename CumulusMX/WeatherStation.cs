@@ -1314,6 +1314,12 @@ namespace CumulusMX
 
 		public int CO2 { get; set; }
 		public int CO2_24h { get; set; }
+		public double CO2_pm2p5 { get; set; }
+		public double CO2_pm2p5_24h { get; set; }
+		public double CO2_pm10 { get; set; }
+		public double CO2_pm10_24h { get; set; }
+		public double CO2_temperature { get; set; }
+		public double CO2_humidity { get; set; }
 
 		public int LeakSensor1 { get; set; }
 		public int LeakSensor2 { get; set; }
@@ -1560,55 +1566,55 @@ namespace CumulusMX
 
 		private void ClearAlarms()
 		{
-			if (cumulus.DataStoppedAlarm.Triggered && DateTime.Now > cumulus.DataStoppedAlarm.TriggeredTime.AddHours(cumulus.DataStoppedAlarm.LatchHours))
+			if (cumulus.DataStoppedAlarm.Latch && cumulus.DataStoppedAlarm.Triggered && DateTime.Now > cumulus.DataStoppedAlarm.TriggeredTime.AddHours(cumulus.DataStoppedAlarm.LatchHours))
 				cumulus.DataStoppedAlarm.Triggered = false;
 
-			if (cumulus.BatteryLowAlarm.Triggered && DateTime.Now > cumulus.BatteryLowAlarm.TriggeredTime.AddHours(cumulus.BatteryLowAlarm.LatchHours))
+			if (cumulus.BatteryLowAlarm.Latch && cumulus.BatteryLowAlarm.Triggered && DateTime.Now > cumulus.BatteryLowAlarm.TriggeredTime.AddHours(cumulus.BatteryLowAlarm.LatchHours))
 				cumulus.BatteryLowAlarm.Triggered = false;
 
-			if (cumulus.SensorAlarm.Triggered && DateTime.Now > cumulus.SensorAlarm.TriggeredTime.AddHours(cumulus.SensorAlarm.LatchHours))
+			if (cumulus.SensorAlarm.Latch && cumulus.SensorAlarm.Triggered && DateTime.Now > cumulus.SensorAlarm.TriggeredTime.AddHours(cumulus.SensorAlarm.LatchHours))
 				cumulus.SensorAlarm.Triggered = false;
 
-			if (cumulus.SpikeAlarm.Triggered && DateTime.Now > cumulus.SpikeAlarm.TriggeredTime.AddHours(cumulus.SpikeAlarm.LatchHours))
+			if (cumulus.SpikeAlarm.Latch && cumulus.SpikeAlarm.Triggered && DateTime.Now > cumulus.SpikeAlarm.TriggeredTime.AddHours(cumulus.SpikeAlarm.LatchHours))
 				cumulus.SpikeAlarm.Triggered = false;
 
-			if (cumulus.UpgradeAlarm.Triggered && DateTime.Now > cumulus.UpgradeAlarm.TriggeredTime.AddHours(cumulus.UpgradeAlarm.LatchHours))
+			if (cumulus.UpgradeAlarm.Latch && cumulus.UpgradeAlarm.Triggered && DateTime.Now > cumulus.UpgradeAlarm.TriggeredTime.AddHours(cumulus.UpgradeAlarm.LatchHours))
 				cumulus.UpgradeAlarm.Triggered = false;
 
-			if (cumulus.HighWindAlarm.Triggered && DateTime.Now > cumulus.HighWindAlarm.TriggeredTime.AddHours(cumulus.HighWindAlarm.LatchHours))
+			if (cumulus.HighWindAlarm.Latch && cumulus.HighWindAlarm.Triggered && DateTime.Now > cumulus.HighWindAlarm.TriggeredTime.AddHours(cumulus.HighWindAlarm.LatchHours))
 				cumulus.HighWindAlarm.Triggered = false;
 
-			if (cumulus.HighGustAlarm.Triggered && DateTime.Now > cumulus.HighGustAlarm.TriggeredTime.AddHours(cumulus.HighGustAlarm.LatchHours))
+			if (cumulus.HighGustAlarm.Latch && cumulus.HighGustAlarm.Triggered && DateTime.Now > cumulus.HighGustAlarm.TriggeredTime.AddHours(cumulus.HighGustAlarm.LatchHours))
 				cumulus.HighGustAlarm.Triggered = false;
 
-			if (cumulus.HighRainRateAlarm.Triggered && DateTime.Now > cumulus.HighRainRateAlarm.TriggeredTime.AddHours(cumulus.HighRainRateAlarm.LatchHours))
+			if (cumulus.HighRainRateAlarm.Latch && cumulus.HighRainRateAlarm.Triggered && DateTime.Now > cumulus.HighRainRateAlarm.TriggeredTime.AddHours(cumulus.HighRainRateAlarm.LatchHours))
 				cumulus.HighRainRateAlarm.Triggered = false;
 
-			if (cumulus.HighRainTodayAlarm.Triggered && DateTime.Now > cumulus.HighRainTodayAlarm.TriggeredTime.AddHours(cumulus.HighRainTodayAlarm.LatchHours))
+			if (cumulus.HighRainTodayAlarm.Latch && cumulus.HighRainTodayAlarm.Triggered && DateTime.Now > cumulus.HighRainTodayAlarm.TriggeredTime.AddHours(cumulus.HighRainTodayAlarm.LatchHours))
 				cumulus.HighRainTodayAlarm.Triggered = false;
 
-			if (cumulus.HighPressAlarm.Triggered && DateTime.Now > cumulus.HighPressAlarm.TriggeredTime.AddHours(cumulus.HighPressAlarm.LatchHours))
+			if (cumulus.HighPressAlarm.Latch && cumulus.HighPressAlarm.Triggered && DateTime.Now > cumulus.HighPressAlarm.TriggeredTime.AddHours(cumulus.HighPressAlarm.LatchHours))
 				cumulus.HighPressAlarm.Triggered = false;
 
-			if (cumulus.LowPressAlarm.Triggered && DateTime.Now > cumulus.LowPressAlarm.TriggeredTime.AddHours(cumulus.LowPressAlarm.LatchHours))
+			if (cumulus.LowPressAlarm.Latch && cumulus.LowPressAlarm.Triggered && DateTime.Now > cumulus.LowPressAlarm.TriggeredTime.AddHours(cumulus.LowPressAlarm.LatchHours))
 				cumulus.LowPressAlarm.Triggered = false;
 
-			if (cumulus.HighTempAlarm.Triggered && DateTime.Now > cumulus.HighTempAlarm.TriggeredTime.AddHours(cumulus.HighTempAlarm.LatchHours))
+			if (cumulus.HighTempAlarm.Latch && cumulus.HighTempAlarm.Triggered && DateTime.Now > cumulus.HighTempAlarm.TriggeredTime.AddHours(cumulus.HighTempAlarm.LatchHours))
 				cumulus.HighTempAlarm.Triggered = false;
 
-			if (cumulus.LowTempAlarm.Triggered && DateTime.Now > cumulus.LowTempAlarm.TriggeredTime.AddHours(cumulus.LowTempAlarm.LatchHours))
+			if (cumulus.LowTempAlarm.Latch && cumulus.LowTempAlarm.Triggered && DateTime.Now > cumulus.LowTempAlarm.TriggeredTime.AddHours(cumulus.LowTempAlarm.LatchHours))
 				cumulus.LowTempAlarm.Triggered = false;
 
-			if (cumulus.TempChangeAlarm.UpTriggered && DateTime.Now > cumulus.TempChangeAlarm.UpTriggeredTime.AddHours(cumulus.TempChangeAlarm.LatchHours))
+			if (cumulus.TempChangeAlarm.Latch && cumulus.TempChangeAlarm.UpTriggered && DateTime.Now > cumulus.TempChangeAlarm.UpTriggeredTime.AddHours(cumulus.TempChangeAlarm.LatchHours))
 				cumulus.TempChangeAlarm.UpTriggered = false;
 
-			if (cumulus.TempChangeAlarm.DownTriggered && DateTime.Now > cumulus.TempChangeAlarm.DownTriggeredTime.AddHours(cumulus.TempChangeAlarm.LatchHours))
+			if (cumulus.TempChangeAlarm.Latch && cumulus.TempChangeAlarm.DownTriggered && DateTime.Now > cumulus.TempChangeAlarm.DownTriggeredTime.AddHours(cumulus.TempChangeAlarm.LatchHours))
 				cumulus.TempChangeAlarm.DownTriggered = false;
 
-			if (cumulus.PressChangeAlarm.UpTriggered && DateTime.Now > cumulus.PressChangeAlarm.UpTriggeredTime.AddHours(cumulus.PressChangeAlarm.LatchHours))
+			if (cumulus.PressChangeAlarm.Latch && cumulus.PressChangeAlarm.UpTriggered && DateTime.Now > cumulus.PressChangeAlarm.UpTriggeredTime.AddHours(cumulus.PressChangeAlarm.LatchHours))
 				cumulus.PressChangeAlarm.UpTriggered = false;
 
-			if (cumulus.PressChangeAlarm.DownTriggered && DateTime.Now > cumulus.PressChangeAlarm.DownTriggeredTime.AddHours(cumulus.PressChangeAlarm.LatchHours))
+			if (cumulus.PressChangeAlarm.Latch && cumulus.PressChangeAlarm.DownTriggered && DateTime.Now > cumulus.PressChangeAlarm.DownTriggeredTime.AddHours(cumulus.PressChangeAlarm.LatchHours))
 				cumulus.PressChangeAlarm.DownTriggered = false;
 		}
 
@@ -2620,8 +2626,10 @@ namespace CumulusMX
 							sb.Append(",");
 					}
 					sb.Append("]");
-					// Only the AirLink provides PM10 values at the moment
-					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor || cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+					// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
+					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+						cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+						cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2)
 					{
 						sb.Append(",\"pm10\":[");
 						for (var i = 0; i < GraphDataList.Count; i++)
@@ -6044,6 +6052,11 @@ namespace CumulusMX
 				case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
 					pm2p5 = AirQuality3;
 					break;
+				case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+					pm2p5 = CO2_pm2p5;
+					pm10 = CO2_pm10;
+					break;
+
 				default: // Not enabled, use invalid values
 					break;
 			}
@@ -9682,6 +9695,20 @@ namespace CumulusMX
 			json.Append($"[\"{cumulus.AirQualityAvgCaptions[2]}\",\"{AirQualityAvg2:F1}\",\"{cumulus.AirQualityUnitText}\"],");
 			json.Append($"[\"{cumulus.AirQualityAvgCaptions[3]}\",\"{AirQualityAvg3:F1}\",\"{cumulus.AirQualityUnitText}\"],");
 			json.Append($"[\"{cumulus.AirQualityAvgCaptions[4]}\",\"{AirQualityAvg4:F1}\",\"{cumulus.AirQualityUnitText}\"]");
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetCO2sensor()
+		{
+			var json = new StringBuilder("{\"data\":[", 1024);
+
+			json.Append($"[\"{cumulus.CO2_CurrentCaption}\",\"{CO2}\",\"{cumulus.CO2UnitText}\"],");
+			json.Append($"[\"{cumulus.CO2_24HourCaption}\",\"{CO2_24h}\",\"{cumulus.CO2UnitText}\"],");
+			json.Append($"[\"{cumulus.CO2_pm2p5Caption}\",\"{CO2_pm2p5:F1}\",\"{cumulus.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h:F1}\",\"{cumulus.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.AirQualityUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}

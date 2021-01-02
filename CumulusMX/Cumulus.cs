@@ -104,7 +104,8 @@ namespace CumulusMX
 			Ecowitt2 = 2,
 			Ecowitt3 = 3,
 			Ecowitt4 = 4,
-			AirLinkIndoor = 5
+			AirLinkIndoor = 5,
+			EcowittCO2 = 6
 		}
 
 		private readonly string[] sshAuthenticationVals = { "password", "psk", "password_psk" };
@@ -235,6 +236,7 @@ namespace CumulusMX
 
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
+		public string CO2UnitText = "ppm";
 
 		public volatile int WebUpdating;
 
@@ -5136,6 +5138,14 @@ namespace CumulusMX
 				AirQualityAvgCaptions[3] = ini.GetValue("AirQualityCaptions", "SensorAvg3", AirQualityAvgCaptions[3]);
 				AirQualityAvgCaptions[4] = ini.GetValue("AirQualityCaptions", "SensorAvg4", AirQualityAvgCaptions[4]);
 
+				// CO2 captions - Ecowitt WH45 sensor
+				CO2_CurrentCaption = ini.GetValue("CO2Captions", "CO2-Current", CO2_CurrentCaption);
+				CO2_24HourCaption = ini.GetValue("CO2Captions", "CO2-24hr", CO2_24HourCaption);
+				CO2_pm2p5Caption = ini.GetValue("CO2Captions", "CO2-Pm2p5", CO2_pm2p5Caption);
+				CO2_pm2p5_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm2p5-24hr", CO2_pm2p5_24hrCaption);
+				CO2_pm10Caption = ini.GetValue("CO2Captions", "CO2-Pm10", CO2_pm10Caption);
+				CO2_pm10_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm10-24hr", CO2_pm10_24hrCaption);
+
 				// User temperature captions (for Extra Sensor Data screen)
 				UserTempCaptions[1] = ini.GetValue("UserTempCaptions", "Sensor1", UserTempCaptions[1]);
 				UserTempCaptions[2] = ini.GetValue("UserTempCaptions", "Sensor2", UserTempCaptions[2]);
@@ -5614,6 +5624,13 @@ namespace CumulusMX
 		public string[] UserTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8" };
 		private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
 		private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
+		// WH45 CO2 sensor captions
+		public string CO2_CurrentCaption = "CO&#8322 Current";
+		public string CO2_24HourCaption = "CO&#8322 24h avg";
+		public string CO2_pm2p5Caption = "PM 2.5";
+		public string CO2_pm2p5_24hrCaption = "PM 2.5 24h avg";
+		public string CO2_pm10Caption = "PM 10";
+		public string CO2_pm10_24hrCaption = "PM 10 24h avg";
 
 		/*
 		public string Getversion()
@@ -8683,15 +8700,19 @@ namespace CumulusMX
 				LatestBuild = new string(latestUri.Split('/').Last().Where(char.IsDigit).ToArray());
 				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
-					var msg = $"You are not running the latest version of CumulusMX, build {LatestBuild} is available.";
+					var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
 					LogConsoleMessage(msg);
 					LogMessage(msg);
 					UpgradeAlarm.Triggered = true;
 				}
-				else
+				else if (int.Parse(Build) == int.Parse(LatestBuild))
 				{
 					LogMessage("This Cumulus MX instance is running the latest version");
 					UpgradeAlarm.Triggered = false;
+				}
+				else
+				{
+					LogMessage($"Could not determine if you are running the latest Cumulus MX build or not. This build = {Build}, latest build = {LatestBuild}");
 				}
 			}
 			catch (Exception ex)
