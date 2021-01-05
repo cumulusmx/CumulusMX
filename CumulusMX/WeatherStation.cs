@@ -487,13 +487,18 @@ namespace CumulusMX
 			int D = Convert.ToInt32(date[0]);
 			int M = Convert.ToInt32(date[1]);
 			int Y = Convert.ToInt32(date[2]);
-			if (Y > 70)
+
+			// Double check - just in case we get a four digit year!
+			if (Y < 1970)
 			{
-				Y += 1900;
-			}
-			else
-			{
-				Y += 2000;
+				if (Y > 70)
+				{
+					Y += 1900;
+				}
+				else
+				{
+					Y += 2000;
+				}
 			}
 			int h = Convert.ToInt32(time[0]);
 			int m = Convert.ToInt32(time[1]);
@@ -6723,13 +6728,14 @@ namespace CumulusMX
 			{
 				logFile = cumulus.GetAirLinkLogFileName(filedate);
 			}
-			else if (cumulus.StationOptions.PrimaryAqSensor > 0 && cumulus.StationOptions.PrimaryAqSensor <= 4) // Ecowitt
+			else if ((cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4) ||
+					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
 			{
 				logFile = cumulus.GetExtraLogFileName(filedate);
 			}
 			else
 			{
-				cumulus.LogMessage($"LoadAqGraphData: Error - The primary AQ sensor is not set to a valid value [0-5], currently={cumulus.StationOptions.PrimaryAqSensor}");
+				cumulus.LogMessage($"LoadAqGraphData: Error - The primary AQ sensor is not set to a valid value, currently={cumulus.StationOptions.PrimaryAqSensor}");
 				return;
 			}
 
@@ -6770,11 +6776,17 @@ namespace CumulusMX
 											pm2p5 = Convert.ToDouble(st[32]);
 											pm10 = Convert.ToDouble(st[37]);
 										}
-										else
+										else if (cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
 										{
-											// Ecowitt sensor 1
+											// Ecowitt sensor 1-4
 											pm2p5 = Convert.ToDouble(st[66 + cumulus.StationOptions.PrimaryAqSensor]);
 											pm10 = -1;
+										}
+										else
+										{
+											// Ecowitt CO2 sensor
+											pm2p5 = Convert.ToDouble(st[86]);
+											pm10 = Convert.ToDouble(st[88]);
 										}
 
 										UpdateGraphDataAqEntry(entrydate, pm2p5, pm10);
@@ -10328,14 +10340,12 @@ namespace CumulusMX
 				// Get a timestamp, use 15th day to avoid wrap issues
 				var ts = new DateTime(year, month, 15);
 
-				var logfile = (extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
-				var numFields = (extra ? Cumulus.NumExtraLogFileFields : Cumulus.NumLogFileFields);
-
+				var logfile = extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts);
+				var numFields = extra ? Cumulus.NumExtraLogFileFields : Cumulus.NumLogFileFields;
 
 				var allLines = File.ReadAllLines(logfile);
 				var total = allLines.Length;
 				var lines = allLines.Skip(start).Take(length);
-
 
 				//var total = File.ReadLines(logfile).Count();
 				var json = new StringBuilder(220 * lines.Count());

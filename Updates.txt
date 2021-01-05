@@ -2,6 +2,8 @@
 —————————————
 - Fix: Alarms being cleared after their defined latch time even if latching was disabled
 - Fix: Adds missing dew point calculation for GW1000 extra T/H sensors 1-8
+- Fix: Potential Object reference not set to an instance of an object fault on initial configuration [Goran Devic]
+- Fix: Failed connections to some SFTP servers - Renchi.SshNet library reverted to older version
 
 - New: More comprehensive support for the Ecowitt WH45 CO₂ sensor...
 	- Added to Extra Sensors page
@@ -9,6 +11,13 @@
 	- Can be selected as the primary AQ sensor
 	- New web tags:
 		<#CO2-pm2p5>, <#CO2-pm2p5-24h>, <#CO2-pm10>, <#CO2-pm10-24h>, <#CO2-temp>, <#CO2-hum>
+	- Added to ExtraLog file, columns for: CO2, CO2Avg, pm2.5, pm2.5Avg, pm10, pm10Avg, Temp, Hum
+- New: Improved GW-1000 device auto-discovery, if multiple potential devices are found they are now listed and the user must select which to use
+- New: Adds a browser cache time limit of 5 minutes to the Admin interface static files
+- New: NOAA reports settings now have an option for force "dot" decimal points, this overrides your locale setting
+	New Cumulus.ini setting:
+	[NOAA]
+	UseDotDecimal=0
 
 
 3.9.4 - b3099

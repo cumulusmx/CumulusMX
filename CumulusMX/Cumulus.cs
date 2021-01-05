@@ -32,8 +32,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.4";
-		public string Build = "3099";
+		public string Version = "3.9.5";
+		public string Build = "3100";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -604,6 +604,7 @@ namespace CumulusMX
 		public string NOAALatestMonthlyReport;
 		public string NOAALatestYearlyReport;
 		public bool NOAAUseUTF8;
+		public bool NOAAUseDotDecimal;
 
 		public double[] NOAATempNorms = new double[13];
 
@@ -1400,8 +1401,9 @@ namespace CumulusMX
 
 			LogMessage("HTML root path = " + htmlRootPath);
 
-			httpServer.RegisterModule(new StaticFilesModule(htmlRootPath));
+			httpServer.RegisterModule(new StaticFilesModule(htmlRootPath, new Dictionary<string, string>(){{"Cache-Control", "max-age=300"}}));
 			httpServer.Module<StaticFilesModule>().UseRamCache = true;
+
 
 			// Set up the API web server
 			Api.Setup(httpServer);
@@ -1508,6 +1510,15 @@ namespace CumulusMX
 				WOWhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				WOWhttpHandler.UseProxy = true;
 
+				AwekashttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				AwekashttpHandler.UseProxy = true;
+
+				WindyhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				WindyhttpHandler.UseProxy = true;
+
+				WCloudhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				WCloudhttpHandler.UseProxy = true;
+
 				customHttpSecondsHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				customHttpSecondsHandler.UseProxy = true;
 
@@ -1522,6 +1533,9 @@ namespace CumulusMX
 					WUhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					PWShttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					WOWhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					AwekashttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					WindyhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					WCloudhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpSecondsHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpMinutesHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpRolloverHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
@@ -4235,6 +4249,7 @@ namespace CumulusMX
 			NOAAYearFileFormat = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAFTPDirectory = ini.GetValue("NOAA", "FTPDirectory", "");
 			NOAAUseUTF8 = ini.GetValue("NOAA", "NOAAUseUTF8", false);
+			NOAAUseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
 
 			NOAATempNorms[1] = ini.GetValue("NOAA", "NOAATempNormJan", -1000.0);
 			NOAATempNorms[2] = ini.GetValue("NOAA", "NOAATempNormFeb", -1000.0);
@@ -4819,6 +4834,7 @@ namespace CumulusMX
 			ini.SetValue("NOAA", "YearFileFormat", NOAAYearFileFormat);
 			ini.SetValue("NOAA", "FTPDirectory", NOAAFTPDirectory);
 			ini.SetValue("NOAA", "NOAAUseUTF8", NOAAUseUTF8);
+			ini.SetValue("NOAA", "UseDotDecimal", NOAAUseDotDecimal);
 
 			ini.SetValue("NOAA", "NOAATempNormJan", NOAATempNorms[1]);
 			ini.SetValue("NOAA", "NOAATempNormFeb", NOAATempNorms[2]);
@@ -5960,7 +5976,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 84;
+		public const int NumExtraLogFileFields = 92;
 
 		public void DoExtraLogFile(DateTime timestamp)
 		{
@@ -5970,15 +5986,23 @@ namespace CumulusMX
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
-			// 31-34 Soil temp 1-4
-			// 35-38 Soil moisture 1-4
-			// 39-40 Leaf temp 1-2
-			// 41-42 Leaf wetness 1-2
-			// 43-59 Soil temp 5-16
-			// 60-76 Soil moisture 5-16
-			// 77-81 Air quality 1-4
-			// 82-86 Air quality avg 1-4
-			// 87-95 User temperature 1-8
+			// 31-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
 
 			var filename = GetExtraLogFileName(timestamp);
 
@@ -6056,7 +6080,16 @@ namespace CumulusMX
 				{
 					file.Write(station.UserTemp[i].ToString(TempFormat) + ListSeparator);
 				}
-				file.Write(station.UserTemp[8].ToString(TempFormat));
+				file.Write(station.UserTemp[8].ToString(TempFormat) + ListSeparator);
+
+				file.Write(station.CO2 + ListSeparator);
+				file.Write(station.CO2_24h + ListSeparator);
+				file.Write(station.CO2_pm2p5.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_pm2p5_24h.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_pm10.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_pm10_24h.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_temperature.ToString(TempFormat) + ListSeparator);
+				file.Write(station.CO2_humidity);
 
 				file.WriteLine();
 				file.Close();
