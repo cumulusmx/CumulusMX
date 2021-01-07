@@ -25,14 +25,14 @@ namespace DavisStation
 
        private string _configurationSectionName;
        public string ConfigurationSectionName
-        {
+       {
             get => _configurationSectionName;
             set
             {
                 _configurationSectionName = value;
                 SettingsFactory.PopulateProperties(this, _baseConfiguration.GetSection(_configurationSectionName));
             }
-        }
+       }
 
         [ExtensionSetting("The USB device Vendor Id", "", 123)]
         public int VendorId { get; set; }

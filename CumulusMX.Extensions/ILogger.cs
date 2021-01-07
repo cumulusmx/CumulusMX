@@ -16,6 +16,8 @@ namespace CumulusMX.Extensions
         void Info(string message, Exception ex);
         void Warn(string message);
         void Warn(string message, Exception ex);
+        void Data(string message);
+        void Data(string message, Exception ex);
         string GetFileName();
     }
 }

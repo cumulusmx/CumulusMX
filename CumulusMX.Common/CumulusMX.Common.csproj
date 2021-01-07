@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="StringTemplate4" Version="4.0.8" />
     <PackageReference Include="UnitsNet" Version="4.62.0" />

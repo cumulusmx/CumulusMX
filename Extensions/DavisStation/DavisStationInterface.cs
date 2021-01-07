@@ -9,10 +9,14 @@ namespace DavisStation
     public abstract class DavisStationInterface
     {
         protected readonly ILogger _log;
-        protected readonly log4net.ILog _dataLog = 
+        protected readonly log4net.ILog _dataLog =
             log4net.LogManager.GetLogger("cumulusData", System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected const int ACK = 6;
+        protected const int NACK = 33;
+        protected const int CANCEL = 24;
+        protected const int CR = 13;
+        protected const int LF = 10;
         protected const int LOOP_DATA_LENGTH = 99;
         protected const int LOOP_2_DATA_LENGTH = 99;
 
@@ -28,6 +32,7 @@ namespace DavisStation
         internal abstract void Connect();
         internal abstract string GetFirmwareVersion();
         internal abstract void GetReceptionStats();
+        internal abstract void CheckLoggerInterval();
         internal abstract void SetTime();
         internal abstract DateTime GetTime();
         internal abstract void CloseConnection();
@@ -45,10 +50,10 @@ namespace DavisStation
 
             string receptionStats;
             if (lastLF <= 15) return;
-            
+
             var len = lastLF - 5;
             receptionStats = response.Substring(6, len);
-            
+
             try
             {
                 var vals = receptionStats.Split(' ');

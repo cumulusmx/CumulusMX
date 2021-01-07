@@ -22,7 +22,7 @@ namespace CumulusMX.Common
 
         public void Debug(string message, Exception ex)
         {
-            _log.Debug(message,ex);
+            _log.Debug(message, ex);
         }
 
         public void Error(string message)
@@ -32,7 +32,7 @@ namespace CumulusMX.Common
 
         public void Error(string message, Exception ex)
         {
-            _log.Error(message,ex);
+            _log.Error(message, ex);
         }
 
         public void Fatal(string message)
@@ -42,7 +42,7 @@ namespace CumulusMX.Common
 
         public void Fatal(string message, Exception ex)
         {
-            _log.Fatal(message,ex);
+            _log.Fatal(message, ex);
         }
 
         public void Info(string message)
@@ -52,7 +52,7 @@ namespace CumulusMX.Common
 
         public void Info(string message, Exception ex)
         {
-            _log.Info(message,ex);
+            _log.Info(message, ex);
         }
 
         public void Warn(string message)
@@ -62,12 +62,24 @@ namespace CumulusMX.Common
 
         public void Warn(string message, Exception ex)
         {
-            _log.Warn(message,ex);
+            _log.Warn(message, ex);
+        }
+
+        //TODO: add these logging types properly
+        public void Data(string message)
+        {
+            // if Data logging enabled
+            _log.Debug(message);
+        }
+
+        public void Data(string message, Exception ex)
+        {
+            // if Data logging enabled
+            _log.Debug(message, ex);
         }
 
         public string GetFileName()
         {
-           
             return _log.Logger.Repository.GetAppenders().OfType<FileAppender>()
                 .FirstOrDefault().File;
         }
