@@ -253,6 +253,8 @@ namespace DavisStation
             return (outputString.ToString());
         }
 
+        //TODO: These should not be hard coded strings - allow localisation like MX
+
         public string WindDirectionText()
         {
             string windDirString;
@@ -280,6 +282,7 @@ namespace DavisStation
             return windDirString;
         }
 
+        //TODO: These should not be hard coded strings - allow localisation like MX
         public string PressureTrendText()
         {
             // The barometric trend is in signed integer values.  Convert these to something meaningful.
