@@ -392,7 +392,6 @@ namespace CumulusMX
 
 			if (CheckIpValid(ip))
 			{
-
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
 				cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
@@ -405,39 +404,32 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"GetWllCurrent: Sending GET current conditions request {retry} to WLL: {urlCurrent} ...");
 					try
 					{
-
 						string responseBody;
-						try
+						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlCurrent))
 						{
-							using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlCurrent))
-							{
-								response.EnsureSuccessStatusCode();
-								responseBody = await response.Content.ReadAsStringAsync();
-								cumulus.LogDataMessage($"GetWllCurrent: response - {responseBody}");
-							}
-
-							DecodeCurrent(responseBody);
-							if (startupDayResetIfRequired)
-							{
-								DoDayResetIfNeeded();
-								startupDayResetIfRequired = false;
-							}
+							response.EnsureSuccessStatusCode();
+							responseBody = await response.Content.ReadAsStringAsync();
+							cumulus.LogDataMessage($"GetWllCurrent: response - {responseBody}");
 						}
-						catch (Exception ex)
+
+						DecodeCurrent(responseBody);
+						if (startupDayResetIfRequired)
 						{
-							cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
-							cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
+							DoDayResetIfNeeded();
+							startupDayResetIfRequired = false;
 						}
-						retry = 9;
-
 					}
-					catch (Exception exp)
+					catch (Exception ex)
 					{
 						retry++;
-						cumulus.LogDebugMessage("GetWllCurrent(): Exception Caught!");
-						cumulus.LogDebugMessage("Message: " + exp.Message);
+						cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
+						if (ex.InnerException == null)
+							cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
+						else
+							cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
 						Thread.Sleep(1000);
 					}
+					retry = 9;
 				} while (retry < 3);
 
 				cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");

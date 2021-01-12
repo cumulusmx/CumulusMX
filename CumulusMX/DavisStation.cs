@@ -416,7 +416,7 @@ namespace CumulusMX
 
 			if (bytesRead > 0 && readBuffer[0] != cumulus.logints[cumulus.DataLogInterval])
 			{
-				var msg = $"** WARNING: Your station logger interval {readBuffer[0]} mins does not match your Cumulus MX loggung interval {cumulus.logints[cumulus.DataLogInterval]} mins";
+				var msg = $"** WARNING: Your station logger interval {readBuffer[0]} mins does not match your Cumulus MX logging interval {cumulus.logints[cumulus.DataLogInterval]} mins";
 				cumulus.LogConsoleMessage(msg);
 				cumulus.LogMessage("CheckLoggerInterval: " + msg);
 			}
@@ -1569,7 +1569,7 @@ namespace CumulusMX
 				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
 				//cumulus.LogDebugMessage("TX batt=" + TxBatText);
 
-				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || loopData.ConBatVoltage < 4.0;
+				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || loopData.ConBatVoltage <= 3.5;
 
 
 				if (cumulus.StationOptions.LogExtraSensors)

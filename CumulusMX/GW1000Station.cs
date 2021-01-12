@@ -7,19 +7,20 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Timers;
-using System.Runtime.Remoting.Messaging;
 using System.Collections.Generic;
 
 namespace CumulusMX
 {
 	internal class GW1000Station : WeatherStation
 	{
-		private readonly string ipaddr;
+		private string ipaddr;
+		private string macaddr;
 		private const int AtPort = 45000;
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
 		private TcpClient socket;
+		private NetworkStream stream;
 		private bool connectedOk = false;
 		private bool dataReceived = false;
 
@@ -230,53 +231,10 @@ namespace CumulusMX
 			cumulus.StationOptions.CalculatedDP = true;
 
 			ipaddr = cumulus.Gw1000IpAddress;
+			macaddr = cumulus.Gw1000MacAddress;
 
-			if (cumulus.Gw1000AutoUpdateIpAddress)
+			if (!DoDiscovery())
 			{
-				List<string> names;
-				var discoveredIps = DiscoverGW1000(out names);
-
-				if (discoveredIps.Count == 1 && discoveredIps[0] != ipaddr)
-				{
-					cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
-					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredIps[0]}");
-					ipaddr = discoveredIps[0];
-					cumulus.Gw1000IpAddress = ipaddr;
-					cumulus.WriteIniFile();
-				}
-				else if (discoveredIps.Count > 1)
-				{
-					string iplist = "";
-					var match = false;
-
-					for (var i = 0; i < discoveredIps.Count; i++)
-					{
-						iplist += discoveredIps[i] + "-" + names[i] + " ";
-						if (discoveredIps[i] == ipaddr)
-							match = true;
-					}
-
-					if (match)
-					{
-						cumulus.LogMessage("Matching GW-1000 IP address found on the network");
-					}
-					else
-					{
-						var msg = "Discovered more than one potential GW1000 device. Please select the IP adress from the list and enter it manually into the configuration";
-						cumulus.LogMessage(msg);
-						Console.WriteLine(msg);
-						msg = "  discovered IPs = " + iplist;
-						cumulus.LogMessage(msg);
-						Console.WriteLine(msg);
-					}
-				}
-			}
-
-			if (string.IsNullOrWhiteSpace(ipaddr))
-			{
-				var msg = "No IP address configured of discovered for your GW1000, please remedy and restart Cumulus MX";
-				cumulus.LogMessage(msg);
-				Console.WriteLine(msg);
 				return;
 			}
 
@@ -288,7 +246,6 @@ namespace CumulusMX
 			if (connectedOk)
 			{
 				cumulus.LogMessage("Connected OK");
-				//Console.WriteLine("Connected to station");
 				cumulus.LogConsoleMessage("Connected to station");
 			}
 			else
@@ -335,6 +292,12 @@ namespace CumulusMX
 
 					if (!client.Connected)
 					{
+						try
+						{
+							client.Close();
+						}
+						catch
+						{ }
 						client = null;
 					}
 
@@ -349,7 +312,8 @@ namespace CumulusMX
 			// Set the timeout of the underlying stream
 			if (client != null)
 			{
-				client.GetStream().ReadTimeout = 2500;
+				stream = client.GetStream();
+				stream.ReadTimeout = 2500;
 				cumulus.LogDebugMessage("GW1000 reconnected");
 			}
 			else
@@ -447,11 +411,10 @@ namespace CumulusMX
 			Cumulus.syncInit.Release();
 		}
 
-		private List<string> DiscoverGW1000(out List<string> names)
+		private Discovery DiscoverGW1000()
 		{
-			var ipaddresses = new List<string>();
-
-			names = new List<string>();
+			// We only want unique IP addresses
+			var discovered = new Discovery();
 
 			try
 			{
@@ -463,38 +426,51 @@ namespace CumulusMX
 
 					var receiveEp = new IPEndPoint(IPAddress.Any, clientPort);
 
-					socket.ReceiveTimeout = 1000;
+					socket.ReceiveTimeout = 500;
 					socket.Bind(receiveEp);
 
 					var groupEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
 					var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
 
+					var receivedBytes = new byte[35];
+
+					var endTime = DateTime.Now.AddSeconds(5);
+
 					udp.EnableBroadcast = true;
 					udp.Send(sendBytes, sendBytes.Length, groupEp);
 
-					var receivedBytes = new byte[35];
-
-					var endTime = DateTime.Now.AddSeconds(2);
-
 					do
 					{
-						socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
-						string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
-						int nameLen = receivedBytes[17];
-						var nameArr = new byte[nameLen];
-						Array.Copy(receivedBytes, 18, nameArr, 0, nameLen);
-						var name = Encoding.Default.GetString(nameArr);
-
-						if (ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+						try
 						{
-							IPAddress ipAddr2;
-							if (IPAddress.TryParse(ipAddr, out ipAddr2))
+							socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
+							string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
+							int nameLen = receivedBytes[17];
+							var nameArr = new byte[nameLen];
+							var macArr = new byte[6];
+
+							Array.Copy(receivedBytes, 18, nameArr, 0, nameLen);
+							var name = Encoding.Default.GetString(nameArr);
+
+							Array.Copy(receivedBytes, 5, macArr, 0, 6);
+							var macHex = BitConverter.ToString(macArr).Replace('-', ':');
+
+							if (name.StartsWith("GW1000") && ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
 							{
-								ipaddresses.Add(ipAddr);
-								names.Add(name);
-								cumulus.LogDebugMessage($"Discovered GW1000 device: IP={ipAddr}, name={name}");
+								IPAddress ipAddr2;
+								if (IPAddress.TryParse(ipAddr, out ipAddr2))
+								{
+									if (!discovered.IP.Contains(ipAddr))
+									{
+										cumulus.LogDebugMessage($"Discovered GW1000 device: Name={name}, IP={ipAddr}, MAC={macHex}");
+										discovered.IP.Add(ipAddr);
+										discovered.Name.Add(name);
+										discovered.Mac.Add(macHex);
+									}
+								}
 							}
 						}
+						catch { }
 					} while (DateTime.Now < endTime);
 				}
 			}
@@ -504,7 +480,86 @@ namespace CumulusMX
 				cumulus.LogMessage("Error: " + ex.Message);
 			}
 
-			return ipaddresses;
+			return discovered;
+		}
+
+		private bool DoDiscovery()
+		{
+			if (cumulus.Gw1000AutoUpdateIpAddress)
+			{
+				var msg = "Running GW-1000 auto-discovery...";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+
+				var discoveredDevices = DiscoverGW1000();
+
+				if (discoveredDevices.IP.Count == 0)
+				{
+					// We didn't find anything on the network
+					msg = "Failed to discover any GW1000 devices";
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+				}
+				else if (discoveredDevices.IP.Count == 1 && (string.IsNullOrEmpty(macaddr) || discoveredDevices.Mac[0] == macaddr))
+				{
+					// If only one device is discovered, and its MAC address matches (or our MAC is blank), then just use it
+					cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
+					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
+					ipaddr = discoveredDevices.IP[0];
+					cumulus.Gw1000IpAddress = ipaddr;
+					if (discoveredDevices.Mac[0] != macaddr)
+					{
+						cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
+					}
+					cumulus.WriteIniFile();
+				}
+				else if (discoveredDevices.Mac.Contains(macaddr))
+				{
+					// Multiple devices discovered, but we have a MAC address match
+
+					cumulus.LogDebugMessage("Matching GW-1000 MAC address found on the network");
+
+					var idx = discoveredDevices.Mac.IndexOf(macaddr);
+
+					if (discoveredDevices.IP[idx] != ipaddr)
+					{
+						cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
+						cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[idx]}");
+						ipaddr = discoveredDevices.IP[idx];
+						cumulus.Gw1000IpAddress = ipaddr;
+						cumulus.WriteIniFile();
+					}
+				}
+				else 
+				{
+					// Multiple devices discovered, and we do not have a clue!
+
+					string iplist = "";
+					msg = "Discovered more than one potential GW1000 device.";
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+					msg = "Please select the IP adress from the list and enter it manually into the configuration";
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+					for (var i = 0; i < discoveredDevices.IP.Count; i++)
+					{
+						iplist += discoveredDevices.IP[i] + " ";
+					}
+					msg = "  discovered IPs = " + iplist;
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+				}
+			}
+
+			if (string.IsNullOrWhiteSpace(ipaddr))
+			{
+				var msg = "No IP address configured or discovered for your GW1000, please remedy and restart Cumulus MX";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+				return false;
+			}
+
+			return true;
 		}
 
 		private string GetFirmwareVersion()
@@ -1011,7 +1066,6 @@ namespace CumulusMX
 
 			try
 			{
-				var stream = socket.GetStream();
 				stream.Write(bytes, 0, bytes.Length);
 
 				tmrComm.Start(1000);
@@ -1024,9 +1078,12 @@ namespace CumulusMX
 						{
 							// Read the current character
 							var ch = stream.ReadByte();
-							buffer[bytesRead] = (byte)ch;
-							bytesRead++;
-							//cumulus.LogMessage("Received " + ch.ToString("X2"));
+							if (ch > -1)
+							{
+								buffer[bytesRead] = (byte)ch;
+								bytesRead++;
+								//cumulus.LogMessage("Received " + ch.ToString("X2"));
+							}
 						}
 						tmrComm.Stop();
 					}
@@ -1035,6 +1092,7 @@ namespace CumulusMX
 						Thread.Sleep(20);
 					}
 				}
+
 				// Check the response is to our command and checksum is OK
 				if (bytesRead == 0 || buffer[2] != command || !ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
 				{
@@ -1400,6 +1458,20 @@ namespace CumulusMX
 		}
 		*/
 
+		private class Discovery
+		{
+			public List<string> IP { get; set; }
+			public List<string> Name { get; set; }
+			public List<string> Mac { get; set; }
+
+			public Discovery()
+			{
+				IP = new List<string>();
+				Name = new List<string>();
+				Mac = new List<string>();
+			}
+		}
+
 		private bool ChecksumOk(byte[] data, int lengthBytes)
 		{
 			ushort size;
@@ -1465,6 +1537,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.Triggered = true;
+				DoDiscovery();
 			}
 		}
 	}

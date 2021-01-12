@@ -884,6 +884,9 @@ namespace CumulusMX
 			// Set up the diagnostic tracing
 			loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
 
+			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
+			Program.svcTextListener.Flush();
+
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
@@ -2392,12 +2395,12 @@ namespace CumulusMX
 				{
 					// multiple stations defined, the user must select which one to use
 					var msg = $"Multiple OpenWeatherMap stations found, please select the correct station id and enter it into your configuration";
-					Console.WriteLine(msg);
+					LogConsoleMessage(msg);
 					LogMessage("OpenWeatherMap: " + msg);
 					foreach (var station in stations)
 					{
 						msg = $"  Station Id = {station.id}, Name = {station.name}";
-						Console.WriteLine(msg);
+						LogConsoleMessage(msg);
 						LogMessage("OpenWeatherMap: " + msg);
 					}
 				}
@@ -3774,6 +3777,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
+			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 
 			// AirLink settings
@@ -4483,6 +4487,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
+			ini.SetValue("GW1000", "MACAddress", Gw1000MacAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 
 			// AirLink settings
@@ -5570,6 +5575,7 @@ namespace CumulusMX
 		public int airQualityIndex = -1;
 
 		public string Gw1000IpAddress;
+		public string Gw1000MacAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
 
 		public Timer WundTimer = new Timer();
@@ -7488,13 +7494,13 @@ namespace CumulusMX
 					}
 				}
 
+				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
+
 				using (Stream ostream = conn.OpenWrite(remotefilename))
 				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				{
 					try
 					{
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
-
 						var buffer = new byte[4096];
 						int read;
 						while ((read = istream.Read(buffer, 0, buffer.Length)) > 0)
@@ -7640,7 +7646,7 @@ namespace CumulusMX
 			LogMessage(message);
 			if (FTPlogging)
 			{
-				FtpTraceListener.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
 
@@ -7649,21 +7655,19 @@ namespace CumulusMX
 			if (FTPlogging)
 			{
 				LogDebugMessage(message);
-				FtpTraceListener.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
 
 		public void LogConsoleMessage(string message)
 		{
-			if (Program.service)
-			{
-				Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-				Program.svcTextListener.Flush();
-			}
-			else
+			if (!Program.service)
 			{
 				Console.WriteLine(message);
 			}
+
+			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			Program.svcTextListener.Flush();
 		}
 
 		/*

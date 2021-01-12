@@ -716,7 +716,7 @@ namespace CumulusMX
 		public string GetExtraWebFilesData()
 		{
 			var json = new StringBuilder(10240);
-			json.Append("{\"metadata\":[{\"name\":\"local\",\"label\":\"LOCAL FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"REMOTE FILENAME\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"PROCESS\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"REALTIME\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"BINARY\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"END OF DAY\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[");
+			json.Append("{\"metadata\":[{\"name\":\"local\",\"label\":\"Local Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"Remote Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"Process\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"Realtime\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF-8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"Binary\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"End of day\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[");
 
 			for (int i = 0; i < Cumulus.numextrafiles; i++)
 			{

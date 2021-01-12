@@ -29,9 +29,18 @@ namespace CumulusMX
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 
+            var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
+            if (File.Exists(logfile))
+                File.Delete(logfile);
+            svcTextListener = new TextWriterTraceListener(logfile);
+            svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Starting on " + (windows ? "Windows" : "Linux"));
+            svcTextListener.Flush();
+
             if (!windows)
             {
                 // Use reflection, so no attempt to load Mono dll on Windows
+                svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating SIGTERM monitor");
+                svcTextListener.Flush();
 
                 var posixAsm = Assembly.Load("Mono.Posix, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756");
                 var unixSignalType = posixAsm.GetType("Mono.Unix.UnixSignal");
@@ -162,23 +171,33 @@ namespace CumulusMX
             using (appMutex = new Mutex(false, "Global\\" + AppGuid))
             {
                 // Interactive seems to be always false under mono :(
-                // So we need the no service flag & mono
-                if (Environment.UserInteractive || (!service && !windows))
+
+                if (windows && !Environment.UserInteractive)
                 {
-                    service = false;
-                    RunAsAConsole(httpport, debug);
+                    // Windows and not interactive - must be a service
+                    svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
+                    svcTextListener.Flush();
+                    service = true;
+                    // Launch as a Windows Service
+                    ServiceBase.Run(new CumulusService());
                 }
                 else
                 {
-                    var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
-                    svcTextListener = new TextWriterTraceListener(logfile);
-                    service = true;
-                    if (File.Exists(logfile))
+                    if (Environment.UserInteractive ||(!windows && !service))
                     {
-                        File.Delete(logfile);
+                        // Windows interactive or Linux and no service flag
+                        svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
+                        service = false;
                     }
-                    svcTextListener = new TextWriterTraceListener(logfile);
-                    ServiceBase.Run(new CumulusService());
+                    else
+                    {
+                        // Must be a Linux service
+                        svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Linux service");
+                        service = true;
+                    }
+                    svcTextListener.Flush();
+                    // Lauch normally - Linux Service runs like this too
+                    RunAsAConsole(httpport, debug);
                 }
 
                 while (!exitSystem)
@@ -209,6 +228,9 @@ namespace CumulusMX
             //Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
             if (Type.GetType("Mono.Runtime") == null)
             {
+                svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating Windows Exit Handler");
+                svcTextListener.Flush();
+
                 _ = new ExitHandler();
             }
 
