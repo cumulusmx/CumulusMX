@@ -1314,19 +1314,6 @@ namespace CumulusMX
 			syncInit.Wait();
 			LogDebugMessage("Lock: Cumulus has lock");
 
-			LogMessage("Creating extra sensors");
-			if (AirLinkInEnabled)
-			{
-				airLinkDataIn = new AirLinkData();
-				airLinkIn = new DavisAirLink(this, true);
-			}
-			if (AirLinkOutEnabled)
-			{
-				airLinkDataOut = new AirLinkData();
-				airLinkOut = new DavisAirLink(this, false);
-			}
-
-
 			LogMessage("Opening station");
 
 			switch (StationType)
@@ -1383,6 +1370,21 @@ namespace CumulusMX
 					break;
 			}
 
+			if (station != null)
+			{
+				LogMessage("Creating extra sensors");
+				if (AirLinkInEnabled)
+				{
+					airLinkDataIn = new AirLinkData();
+					airLinkIn = new DavisAirLink(this, true, station);
+				}
+				if (AirLinkOutEnabled)
+				{
+					airLinkDataOut = new AirLinkData();
+					airLinkOut = new DavisAirLink(this, false, station);
+				}
+
+			}
 
 			webtags = new WebTags(this, station);
 			webtags.InitialiseWebtags();

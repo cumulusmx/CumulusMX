@@ -28,6 +28,7 @@
 	[NOAA]
 	UseDotDecimal=0
 - Tweaks the charts for both the admin interface and the default web site
+- Rework of Airlink sensor implementation - no functional changes
 
 
 3.9.4 - b3099

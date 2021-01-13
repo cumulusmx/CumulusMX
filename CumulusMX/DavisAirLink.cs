@@ -15,8 +15,11 @@ using Unosquare.Swan;
 
 namespace CumulusMX
 {
-	internal class DavisAirLink : WeatherStation
+	internal class DavisAirLink
 	{
+		private Cumulus cumulus;
+		private WeatherStation station;
+
 		private string ipaddr;
 		private readonly System.Timers.Timer tmrCurrent;
 		private System.Timers.Timer tmrHealth;
@@ -42,9 +45,12 @@ namespace CumulusMX
 		private DateTime airLinkLastUpdateTime;
 
 
-		public DavisAirLink(Cumulus cumulus, bool indoor) : base(cumulus)
+		public DavisAirLink(Cumulus cumulus, bool indoor, WeatherStation station)
 		{
 			this.indoor = indoor;
+			this.cumulus = cumulus;
+			this.station = station;
+
 
 			locationStr = this.indoor ? "Indoor" : "Outdoor";
 
@@ -110,7 +116,7 @@ namespace CumulusMX
 			}
 		}
 
-		public override void Start()
+		public void Start()
 		{
 			cumulus.LogMessage($"AirLink {locationStr} Starting up");
 			try
@@ -142,7 +148,7 @@ namespace CumulusMX
 			cumulus.LogMessage($"AirLink {locationStr} Started");
 		}
 
-		public override void Stop()
+		public void Stop()
 		{
 			try
 			{
@@ -201,7 +207,7 @@ namespace CumulusMX
 							DecodeAlCurrent(responseBody);
 							if (startupDayResetIfRequired)
 							{
-								DoDayResetIfNeeded();
+								station.DoDayResetIfNeeded();
 								startupDayResetIfRequired = false;
 							}
 						}
@@ -267,11 +273,11 @@ namespace CumulusMX
 
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.temperature = ConvertTempFToUser(rec.temp);
+								cumulus.airLinkDataIn.temperature = station.ConvertTempFToUser(rec.temp);
 							}
 							else
 							{
-								cumulus.airLinkDataOut.temperature = ConvertTempFToUser(rec.temp);
+								cumulus.airLinkDataOut.temperature = station.ConvertTempFToUser(rec.temp);
 							}
 						}
 						catch (Exception ex)
@@ -523,7 +529,7 @@ namespace CumulusMX
 
 			string logUrl = historicUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {logUrl}");
-			lastDataReadTime = airLinkLastUpdateTime;
+			station.lastDataReadTime = airLinkLastUpdateTime;
 
 			WlHistory histObj;
 			WlHistorySensor sensorWithMostRecs;
@@ -749,11 +755,11 @@ namespace CumulusMX
 							{
 								if (indoor)
 								{
-									cumulus.airLinkDataIn.temperature = ConvertTempFToUser(data17.temp_avg);
+									cumulus.airLinkDataIn.temperature = station.ConvertTempFToUser(data17.temp_avg);
 								}
 								else
 								{
-									cumulus.airLinkDataOut.temperature = ConvertTempFToUser(data17.temp_avg);
+									cumulus.airLinkDataOut.temperature = station.ConvertTempFToUser(data17.temp_avg);
 								}
 							}
 						}
@@ -811,7 +817,7 @@ namespace CumulusMX
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
 								{
-									UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
+									station.UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
 								}
 							}
 							else
@@ -841,7 +847,7 @@ namespace CumulusMX
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
 								{
-									UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+									station.UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
 								}
 							}
 						}
@@ -1397,10 +1403,6 @@ namespace CumulusMX
 			{
 				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API exception: " + ex.Message);
 			}
-		}
-
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
 		}
 
 		private void OnServiceChanged(object sender, ServiceAnnouncementEventArgs e)
