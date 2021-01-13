@@ -417,10 +417,12 @@ namespace CumulusMX
 
 			if (midnightrainfound)
 			{
-				if ((logdate.Substring(0, 2) == "01") && (logdate.Substring(3, 2) == "01") && (cumulus.Manufacturer == cumulus.DAVIS))
+				if ((logdate.Substring(0, 2) == "01") && (logdate.Substring(3, 2) == cumulus.RainSeasonStart.ToString("D2")) && (cumulus.Manufacturer == cumulus.DAVIS))
 				{
 					// special case: rain counter is about to be reset
-					cumulus.LogMessage("Special case, Davis station on 1st Jan. Set midnight rain count to zero");
+					//TODO: MC: Hmm are there issues here, what if the console clock is wrong and it does not reset for another hour, or it already reset and we have had rain since?
+					var month = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(cumulus.RainSeasonStart);
+					cumulus.LogMessage($"Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
 					midnightraincount = 0;
 				}
 				else
@@ -435,12 +437,14 @@ namespace CumulusMX
 				midnightraincount = raindaystart;
 			}
 
-			if (cumulus.RolloverHour == 0)
+			// If we do not have a rain counter value for start of day from Today.ini, then use the midnight counter
+			if (initialiseRainCounterOnFirstData)
 			{
 				Raincounter = midnightraincount + (RainToday / cumulus.Calib.Rain.Mult);
 			}
 			else
 			{
+				// Otherwise use the counter value from today.ini plus total so far today to infer the counter value
 				Raincounter = raindaystart + (RainToday / cumulus.Calib.Rain.Mult);
 			}
 
@@ -662,11 +666,12 @@ namespace CumulusMX
 			HiLoToday.HighHourlyRain = ini.GetValue("Rain", "HourlyHigh", 0.0);
 			HiLoToday.HighHourlyRainTime = ini.GetValue("Rain", "HHourlyTime", new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0));
 			raindaystart = ini.GetValue("Rain", "Start", -1.0);
+			cumulus.LogMessage($"ReadTodayfile: Rain day start = {raindaystart}");
 			RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
 			if (raindaystart >= 0)
 			{
-				cumulus.LogMessage("ReadTodayfile: set notraininit false");
-				notraininit = false;
+				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData false");
+				initialiseRainCounterOnFirstData = false;
 			}
 			// humidity
 			HiLoToday.LowHumidity = ini.GetValue("Humidity", "Low", 100);
@@ -3579,165 +3584,166 @@ namespace CumulusMX
 				}
 			}
 
-			if (total - Raincounter > raintipthreshold)
-			{
-				// rain has occurred
-				LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
-			}
-
 			Raincounter = total;
 
 			//first_rain = false;
-			if (notraininit)
+			if (initialiseRainCounterOnFirstData)
 			{
 				raindaystart = Raincounter;
 				midnightraincount = Raincounter;
 				cumulus.LogMessage(" First rain data, raindaystart = " + raindaystart);
 
-				notraininit = false;
+				initialiseRainCounterOnFirstData = false;
 				WriteTodayFile(timestamp, false);
+				HaveReadData = true;
+				return;
 			}
-			else
+
+			// Has the rain total in the station been reset?
+			// raindaystart greater than current total, allow for rounding
+			if (raindaystart - Raincounter > 0.1)
 			{
-				// Has the rain total in the station been reset?
-				// raindaystart greater than current total, allow for rounding
-				if (raindaystart - Raincounter > 0.1)
+				if (FirstChanceRainReset)
+				// second consecutive reading with reset value
 				{
-					if (FirstChanceRainReset)
-					// second consecutive reading with reset value
-					{
-						cumulus.LogMessage(" ****Rain counter reset confirmed: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
+					cumulus.LogMessage(" ****Rain counter reset confirmed: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
 
-						// set the start of day figure so it reflects the rain
-						// so far today
-						raindaystart = Raincounter - (RainToday / cumulus.Calib.Rain.Mult);
-						cumulus.LogMessage("Setting raindaystart to " + raindaystart);
+					// set the start of day figure so it reflects the rain
+					// so far today
+					raindaystart = Raincounter - (RainToday / cumulus.Calib.Rain.Mult);
+					cumulus.LogMessage("Setting raindaystart to " + raindaystart);
 
-						midnightraincount = Raincounter;
+					midnightraincount = Raincounter;
 
-						FirstChanceRainReset = false;
-					}
-					else
-					{
-						cumulus.LogMessage(" ****Rain reset? First chance: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
-
-						// reset the counter to ignore this reading
-						Raincounter = previoustotal;
-						cumulus.LogMessage("Leaving counter at " + Raincounter);
-
-						FirstChanceRainReset = true;
-					}
+					FirstChanceRainReset = false;
 				}
 				else
 				{
-					FirstChanceRainReset = false;
-				}
+					cumulus.LogMessage(" ****Rain reset? First chance: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
 
-				if (rate > -1)
-				// Do rain rate
+					// reset the counter to ignore this reading
+					Raincounter = previoustotal;
+					cumulus.LogMessage("Leaving counter at " + Raincounter);
+
+					FirstChanceRainReset = true;
+				}
+			}
+			else
+			{
+				FirstChanceRainReset = false;
+			}
+
+			if (rate > -1)
+			// Do rain rate
+			{
+				// scale rainfall rate
+				RainRate = rate * cumulus.Calib.Rain.Mult;
+
+				if (RainRate > AllTime.HighRainRate.Val)
+					SetAlltime(AllTime.HighRainRate, RainRate, timestamp);
+
+				CheckMonthlyAlltime("HighRainRate", RainRate, true, timestamp);
+
+				cumulus.HighRainRateAlarm.Triggered = DoAlarm(RainRate, cumulus.HighRainRateAlarm.Value, cumulus.HighRainRateAlarm.Enabled, true);
+
+				if (RainRate > HiLoToday.HighRainRate)
 				{
-					// scale rainfall rate
-					RainRate = rate * cumulus.Calib.Rain.Mult;
-
-					if (RainRate > AllTime.HighRainRate.Val)
-						SetAlltime(AllTime.HighRainRate, RainRate, timestamp);
-
-					CheckMonthlyAlltime("HighRainRate", RainRate, true, timestamp);
-
-					cumulus.HighRainRateAlarm.Triggered = DoAlarm(RainRate, cumulus.HighRainRateAlarm.Value, cumulus.HighRainRateAlarm.Enabled, true);
-
-					if (RainRate > HiLoToday.HighRainRate)
-					{
-						HiLoToday.HighRainRate = RainRate;
-						HiLoToday.HighRainRateTime = timestamp;
-						WriteTodayFile(timestamp, false);
-					}
-
-					if (RainRate > ThisMonth.HighRainRate.Val)
-					{
-						ThisMonth.HighRainRate.Val = RainRate;
-						ThisMonth.HighRainRate.Ts = timestamp;
-						WriteMonthIniFile();
-					}
-
-					if (RainRate > ThisYear.HighRainRate.Val)
-					{
-						ThisYear.HighRainRate.Val = RainRate;
-						ThisYear.HighRainRate.Ts = timestamp;
-						WriteYearIniFile();
-					}
+					HiLoToday.HighRainRate = RainRate;
+					HiLoToday.HighRainRateTime = timestamp;
+					WriteTodayFile(timestamp, false);
 				}
 
-				if (!FirstChanceRainReset)
+				if (RainRate > ThisMonth.HighRainRate.Val)
 				{
-					// Calculate today"s rainfall
-					RainToday = Raincounter - raindaystart;
-
-					// scale for calibration
-					RainToday *= cumulus.Calib.Rain.Mult;
-
-					// Calculate rain since midnight for Wunderground etc
-					double trendval = Raincounter - midnightraincount;
-
-					// Round value as some values may have been read from log file and already rounded
-					trendval = Math.Round(trendval, cumulus.RainDPlaces);
-
-					if (trendval < 0)
-					{
-						RainSinceMidnight = 0;
-					}
-					else
-					{
-						RainSinceMidnight = trendval * cumulus.Calib.Rain.Mult;
-					}
-
-					// rain this month so far
-					RainMonth = rainthismonth + RainToday;
-
-					// get correct date for rain records
-					var offsetdate = timestamp.AddHours(cumulus.GetHourInc());
-
-					// rain this year so far
-					RainYear = rainthisyear + RainToday;
-
-					if (RainToday > AllTime.DailyRain.Val)
-						SetAlltime(AllTime.DailyRain, RainToday, offsetdate);
-
-					CheckMonthlyAlltime("DailyRain", RainToday, true, timestamp);
-
-					if (RainToday > ThisMonth.DailyRain.Val)
-					{
-						ThisMonth.DailyRain.Val = RainToday;
-						ThisMonth.DailyRain.Ts = offsetdate;
-						WriteMonthIniFile();
-					}
-
-					if (RainToday > ThisYear.DailyRain.Val)
-					{
-						ThisYear.DailyRain.Val = RainToday;
-						ThisYear.DailyRain.Ts = offsetdate;
-						WriteYearIniFile();
-					}
-
-					if (RainMonth > ThisYear.MonthlyRain.Val)
-					{
-						ThisYear.MonthlyRain.Val = RainMonth;
-						ThisYear.MonthlyRain.Ts = offsetdate;
-						WriteYearIniFile();
-					}
-
-					if (RainMonth > AllTime.MonthlyRain.Val)
-						SetAlltime(AllTime.MonthlyRain, RainMonth, offsetdate);
-
-					CheckMonthlyAlltime("MonthlyRain", RainMonth, true, timestamp);
-
-					cumulus.HighRainTodayAlarm.Triggered = DoAlarm(RainToday, cumulus.HighRainTodayAlarm.Value, cumulus.HighRainTodayAlarm.Enabled, true);
-
-					// Yesterday"s rain - Scale for units
-					// rainyest = rainyesterday * RainMult;
-
-					//RainReadyToPlot = true;
+					ThisMonth.HighRainRate.Val = RainRate;
+					ThisMonth.HighRainRate.Ts = timestamp;
+					WriteMonthIniFile();
 				}
+
+				if (RainRate > ThisYear.HighRainRate.Val)
+				{
+					ThisYear.HighRainRate.Val = RainRate;
+					ThisYear.HighRainRate.Ts = timestamp;
+					WriteYearIniFile();
+				}
+			}
+
+			if (!FirstChanceRainReset)
+			{
+				// Has a tip occured?
+				if (total - previoustotal > raintipthreshold)
+				{
+					// rain has occurred
+					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
+				}
+
+				// Calculate today"s rainfall
+				RainToday = Raincounter - raindaystart;
+
+				// scale for calibration
+				RainToday *= cumulus.Calib.Rain.Mult;
+
+				// Calculate rain since midnight for Wunderground etc
+				double trendval = Raincounter - midnightraincount;
+
+				// Round value as some values may have been read from log file and already rounded
+				trendval = Math.Round(trendval, cumulus.RainDPlaces);
+
+				if (trendval < 0)
+				{
+					RainSinceMidnight = 0;
+				}
+				else
+				{
+					RainSinceMidnight = trendval * cumulus.Calib.Rain.Mult;
+				}
+
+				// rain this month so far
+				RainMonth = rainthismonth + RainToday;
+
+				// get correct date for rain records
+				var offsetdate = timestamp.AddHours(cumulus.GetHourInc());
+
+				// rain this year so far
+				RainYear = rainthisyear + RainToday;
+
+				if (RainToday > AllTime.DailyRain.Val)
+					SetAlltime(AllTime.DailyRain, RainToday, offsetdate);
+
+				CheckMonthlyAlltime("DailyRain", RainToday, true, timestamp);
+
+				if (RainToday > ThisMonth.DailyRain.Val)
+				{
+					ThisMonth.DailyRain.Val = RainToday;
+					ThisMonth.DailyRain.Ts = offsetdate;
+					WriteMonthIniFile();
+				}
+
+				if (RainToday > ThisYear.DailyRain.Val)
+				{
+					ThisYear.DailyRain.Val = RainToday;
+					ThisYear.DailyRain.Ts = offsetdate;
+					WriteYearIniFile();
+				}
+
+				if (RainMonth > ThisYear.MonthlyRain.Val)
+				{
+					ThisYear.MonthlyRain.Val = RainMonth;
+					ThisYear.MonthlyRain.Ts = offsetdate;
+					WriteYearIniFile();
+				}
+
+				if (RainMonth > AllTime.MonthlyRain.Val)
+					SetAlltime(AllTime.MonthlyRain, RainMonth, offsetdate);
+
+				CheckMonthlyAlltime("MonthlyRain", RainMonth, true, timestamp);
+
+				cumulus.HighRainTodayAlarm.Triggered = DoAlarm(RainToday, cumulus.HighRainTodayAlarm.Value, cumulus.HighRainTodayAlarm.Enabled, true);
+
+				// Yesterday"s rain - Scale for units
+				// rainyest = rainyesterday * RainMult;
+
+				//RainReadyToPlot = true;
 			}
 			HaveReadData = true;
 		}
@@ -4403,7 +4409,7 @@ namespace CumulusMX
 
 		//private bool first_rain = true;
 		private bool FirstChanceRainReset = false;
-		public bool notraininit = true;
+		public bool initialiseRainCounterOnFirstData = true;
 		//private bool RainReadyToPlot = false;
 		private double rainthismonth = 0;
 		private double rainthisyear = 0;

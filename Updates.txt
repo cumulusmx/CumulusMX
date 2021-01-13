@@ -7,6 +7,7 @@
 - Fix: Improved accessibility of the "Extra web files" page
 - Fix: Tweak to Sunshine hours counter reset logic (primarily for Imet stations during a power cycle)
 - Fix: Davis Console battery low threshold changed from 4.0 V to 3.5 V
+- Fix: Rework station rain counter reset logic. Cope with Davis station start-up on the first day of new rain season which is not January
 
 - New: More comprehensive support for the Ecowitt WH45 CO₂ sensor...
 	- Added to Extra Sensors page
@@ -21,12 +22,12 @@
 	New Cumulus.ini setting:
 	[GW1000]
 	MACAddress=
-
 - New: Adds a browser cache time limit of 5 minutes to the Admin interface static files
 - New: NOAA reports settings now have an option to force "dot" decimal points, this overrides your locale setting
 	New Cumulus.ini setting:
 	[NOAA]
 	UseDotDecimal=0
+- Tweaks the charts for both the admin interface and the default web site
 
 
 3.9.4 - b3099
