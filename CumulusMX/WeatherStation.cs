@@ -562,8 +562,8 @@ namespace CumulusMX
 			if (cumulus.YTDrainyear == Convert.ToInt32(Today.Substring(6, 2)) + 2000)
 			{
 				cumulus.LogMessage("Adding YTD rain: " + cumulus.YTDrain);
-
 				rainthisyear += cumulus.YTDrain;
+				cumulus.LogMessage("Rainthisyear: " + rainthisyear);
 			}
 		}
 
@@ -3533,6 +3533,8 @@ namespace CumulusMX
 		{
 			DateTime readingTS = timestamp.AddHours(cumulus.GetHourInc());
 
+			//cumulus.LogDebugMessage($"DoRain: counter={total}, rate={rate}; RainToday={RainToday}, StartOfDay={raindaystart}");
+
 			// Spike removal is in mm
 			var rainRateMM = ConvertUserRainToMM(rate);
 			if (rainRateMM > cumulus.Spike.MaxRainRate)
@@ -3679,6 +3681,7 @@ namespace CumulusMX
 
 				// Calculate today"s rainfall
 				RainToday = Raincounter - raindaystart;
+				//cumulus.LogDebugMessage("Uncalibrated RainToday = " + RainToday);
 
 				// scale for calibration
 				RainToday *= cumulus.Calib.Rain.Mult;

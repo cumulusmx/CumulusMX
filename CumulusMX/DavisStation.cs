@@ -665,7 +665,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Archive reading thread apparently terminated with an error: "+e.Error.Message);
 			}
-			cumulus.LogMessage("Updating highs and lows");
+			//cumulus.LogMessage("Updating highs and lows");
 			//using (cumulusEntities dataContext = new cumulusEntities())
 			//{
 			//    UpdateHighsAndLows(dataContext);
