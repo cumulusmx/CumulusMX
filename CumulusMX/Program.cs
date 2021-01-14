@@ -29,6 +29,13 @@ namespace CumulusMX
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 
+            if (windows)
+            {
+                // set the working path to the exe location
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+            }
+
+
             var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
             if (File.Exists(logfile))
                 File.Delete(logfile);
@@ -76,11 +83,6 @@ namespace CumulusMX
                     exitSystem = true;
                 };
 
-            }
-            else
-            {
-                // set the working path to the exe location
-                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             }
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;

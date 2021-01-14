@@ -1,7 +1,7 @@
 3.9.6 - b3101
 —————————————
 - Fix: NOAA monthly report min temp/rain not formatting in dot decimal correctly
-
+- Fix: Windows console log no longer being created
 
 
 3.9.5 - b3100
