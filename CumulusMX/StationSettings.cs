@@ -62,7 +62,7 @@ namespace CumulusMX
 
 			var davisconn = new JsonStationSettingsDavisConn() {conntype = cumulus.VP2ConnectionType, tcpsettings = tcpsettings};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress };
+			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
 
 			var logrollover = new JsonStationSettingsLogRollover() {time = "midnight",summer10am = cumulus.Use10amInSummer};
 
@@ -589,6 +589,7 @@ namespace CumulusMX
 				{
 					cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
 					cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
+					cumulus.Gw1000MacAddress = settings.gw1000.macaddress;
 				}
 				catch (Exception ex)
 				{
@@ -783,6 +784,7 @@ namespace CumulusMX
 	{
 		public string ipaddress { get; set; }
 		public bool autoDiscover { get; set; }
+		public string macaddress { get; set; }
 	}
 
 	internal class JsonStationSettingsLogRollover

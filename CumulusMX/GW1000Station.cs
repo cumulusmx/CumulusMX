@@ -7,18 +7,20 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Timers;
-using System.Runtime.Remoting.Messaging;
+using System.Collections.Generic;
 
 namespace CumulusMX
 {
 	internal class GW1000Station : WeatherStation
 	{
-		private readonly string ipaddr;
+		private string ipaddr;
+		private string macaddr;
 		private const int AtPort = 45000;
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
 		private TcpClient socket;
+		private NetworkStream stream;
 		private bool connectedOk = false;
 		private bool dataReceived = false;
 
@@ -229,19 +231,11 @@ namespace CumulusMX
 			cumulus.StationOptions.CalculatedDP = true;
 
 			ipaddr = cumulus.Gw1000IpAddress;
+			macaddr = cumulus.Gw1000MacAddress;
 
-			if (cumulus.Gw1000AutoUpdateIpAddress)
+			if (!DoDiscovery())
 			{
-				var discoveredIp = DiscoverGW1000();
-
-				if (discoveredIp != "0" && discoveredIp != ipaddr)
-				{
-					cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
-					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredIp}");
-					ipaddr = discoveredIp;
-					cumulus.Gw1000IpAddress = ipaddr;
-					cumulus.WriteIniFile();
-				}
+				return;
 			}
 
 			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
@@ -252,7 +246,6 @@ namespace CumulusMX
 			if (connectedOk)
 			{
 				cumulus.LogMessage("Connected OK");
-				//Console.WriteLine("Connected to station");
 				cumulus.LogConsoleMessage("Connected to station");
 			}
 			else
@@ -299,6 +292,12 @@ namespace CumulusMX
 
 					if (!client.Connected)
 					{
+						try
+						{
+							client.Close();
+						}
+						catch
+						{ }
 						client = null;
 					}
 
@@ -313,7 +312,8 @@ namespace CumulusMX
 			// Set the timeout of the underlying stream
 			if (client != null)
 			{
-				client.GetStream().ReadTimeout = 2500;
+				stream = client.GetStream();
+				stream.ReadTimeout = 2500;
 				cumulus.LogDebugMessage("GW1000 reconnected");
 			}
 			else
@@ -411,52 +411,67 @@ namespace CumulusMX
 			Cumulus.syncInit.Release();
 		}
 
-		private string DiscoverGW1000()
+		private Discovery DiscoverGW1000()
 		{
+			// We only want unique IP addresses
+			var discovered = new Discovery();
+
 			try
 			{
-				var udp = new UdpClient();
-				const int broadcastPort = 46000;
-				const int clientPort = 59387;
-
-				var receiveEp = new IPEndPoint(IPAddress.Any, clientPort);
-				//var client = new UdpClient(ClientPort);
-
-				var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-				socket.ReceiveTimeout = 2000;
-				socket.Bind(receiveEp);
-				//socket.Listen(1);
-
-				var groupEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
-				var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
-
-				udp.EnableBroadcast = true;
-				udp.Send(sendBytes, sendBytes.Length, groupEp);
-
-				var receivedBytes = new byte[35];
-				socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
-
-				string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
-
-				udp.Close();
-				socket.Close();
-
-				if (ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+				using (var udp = new UdpClient())
+				using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
 				{
-					IPAddress ipAddr2;
-					if (IPAddress.TryParse(ipAddr, out ipAddr2))
+					const int broadcastPort = 46000;
+					const int clientPort = 59387;
+
+					var receiveEp = new IPEndPoint(IPAddress.Any, clientPort);
+
+					socket.ReceiveTimeout = 500;
+					socket.Bind(receiveEp);
+
+					var groupEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
+					var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
+
+					var receivedBytes = new byte[35];
+
+					var endTime = DateTime.Now.AddSeconds(5);
+
+					udp.EnableBroadcast = true;
+					udp.Send(sendBytes, sendBytes.Length, groupEp);
+
+					do
 					{
-						cumulus.LogMessage($"Discovered a GW1000 at address {ipaddr}");
-						return ipAddr;
-					}
-					else
-					{
-						return "0";
-					}
-				}
-				else
-				{
-					return "0";
+						try
+						{
+							socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
+							string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
+							int nameLen = receivedBytes[17];
+							var nameArr = new byte[nameLen];
+							var macArr = new byte[6];
+
+							Array.Copy(receivedBytes, 18, nameArr, 0, nameLen);
+							var name = Encoding.Default.GetString(nameArr);
+
+							Array.Copy(receivedBytes, 5, macArr, 0, 6);
+							var macHex = BitConverter.ToString(macArr).Replace('-', ':');
+
+							if (name.StartsWith("GW1000") && ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+							{
+								IPAddress ipAddr2;
+								if (IPAddress.TryParse(ipAddr, out ipAddr2))
+								{
+									if (!discovered.IP.Contains(ipAddr))
+									{
+										cumulus.LogDebugMessage($"Discovered GW1000 device: Name={name}, IP={ipAddr}, MAC={macHex}");
+										discovered.IP.Add(ipAddr);
+										discovered.Name.Add(name);
+										discovered.Mac.Add(macHex);
+									}
+								}
+							}
+						}
+						catch { }
+					} while (DateTime.Now < endTime);
 				}
 			}
 			catch (Exception ex)
@@ -464,7 +479,87 @@ namespace CumulusMX
 				cumulus.LogMessage("An error occured during GW1000 auto-discovery");
 				cumulus.LogMessage("Error: " + ex.Message);
 			}
-			return "0";
+
+			return discovered;
+		}
+
+		private bool DoDiscovery()
+		{
+			if (cumulus.Gw1000AutoUpdateIpAddress)
+			{
+				var msg = "Running GW-1000 auto-discovery...";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+
+				var discoveredDevices = DiscoverGW1000();
+
+				if (discoveredDevices.IP.Count == 0)
+				{
+					// We didn't find anything on the network
+					msg = "Failed to discover any GW1000 devices";
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+				}
+				else if (discoveredDevices.IP.Count == 1 && (string.IsNullOrEmpty(macaddr) || discoveredDevices.Mac[0] == macaddr))
+				{
+					// If only one device is discovered, and its MAC address matches (or our MAC is blank), then just use it
+					cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
+					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
+					ipaddr = discoveredDevices.IP[0];
+					cumulus.Gw1000IpAddress = ipaddr;
+					if (discoveredDevices.Mac[0] != macaddr)
+					{
+						cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
+					}
+					cumulus.WriteIniFile();
+				}
+				else if (discoveredDevices.Mac.Contains(macaddr))
+				{
+					// Multiple devices discovered, but we have a MAC address match
+
+					cumulus.LogDebugMessage("Matching GW-1000 MAC address found on the network");
+
+					var idx = discoveredDevices.Mac.IndexOf(macaddr);
+
+					if (discoveredDevices.IP[idx] != ipaddr)
+					{
+						cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
+						cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[idx]}");
+						ipaddr = discoveredDevices.IP[idx];
+						cumulus.Gw1000IpAddress = ipaddr;
+						cumulus.WriteIniFile();
+					}
+				}
+				else 
+				{
+					// Multiple devices discovered, and we do not have a clue!
+
+					string iplist = "";
+					msg = "Discovered more than one potential GW1000 device.";
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+					msg = "Please select the IP adress from the list and enter it manually into the configuration";
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+					for (var i = 0; i < discoveredDevices.IP.Count; i++)
+					{
+						iplist += discoveredDevices.IP[i] + " ";
+					}
+					msg = "  discovered IPs = " + iplist;
+					cumulus.LogMessage(msg);
+					cumulus.LogConsoleMessage(msg);
+				}
+			}
+
+			if (string.IsNullOrWhiteSpace(ipaddr))
+			{
+				var msg = "No IP address configured or discovered for your GW1000, please remedy and restart Cumulus MX";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+				return false;
+			}
+
+			return true;
 		}
 
 		private string GetFirmwareVersion()
@@ -548,11 +643,12 @@ namespace CumulusMX
 				tenMinuteChanged = (minute % 10) == 0;
 			}
 
-			var data = DoCommand((byte)Commands.CMD_GW1000_LIVEDATA);
+			byte[] data = DoCommand((byte)Commands.CMD_GW1000_LIVEDATA);
 
 			// sample data = in-temp, in-hum, abs-baro, rel-baro, temp, hum, dir, speed, gust, light, UV uW, UV-I, rain-rate, rain-day, rain-week, rain-month, rain-year, PM2.5, PM-ch1, Soil-1, temp-2, hum-2, temp-3, hum-3, batt
 			//byte[] data = new byte[] { 0xFF,0xFF,0x27,0x00,0x5D,0x01,0x00,0x83,0x06,0x55,0x08,0x26,0xE7,0x09,0x26,0xDC,0x02,0x00,0x5D,0x07,0x61,0x0A,0x00,0x89,0x0B,0x00,0x19,0x0C,0x00,0x25,0x15,0x00,0x00,0x00,0x00,0x16,0x00,0x00,0x17,0x00,0x0E,0x00,0x3C,0x10,0x00,0x1E,0x11,0x01,0x4A,0x12,0x00,0x00,0x02,0x68,0x13,0x00,0x00,0x14,0xDC,0x2A,0x01,0x90,0x4D,0x00,0xE3,0x2C,0x34,0x1B,0x00,0xD3,0x23,0x3C,0x1C,0x00,0x60,0x24,0x5A,0x4C,0x04,0x00,0x00,0x00,0xFF,0x5C,0xFF,0x00,0xF4,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0xBA };
 			//byte[] data = new byte[] { 0xFF, 0xFF, 0x27, 0x00, 0x6D, 0x01, 0x00, 0x96, 0x06, 0x3C, 0x08, 0x27, 0x00, 0x09, 0x27, 0x49, 0x02, 0x00, 0x16, 0x07, 0x61, 0x0A, 0x00, 0x62, 0x0B, 0x00, 0x00, 0x0C, 0x00, 0x06, 0x15, 0x00, 0x01, 0x7D, 0x40, 0x16, 0x00, 0x00, 0x17, 0x00, 0x0E, 0x00, 0x00, 0x10, 0x00, 0x00, 0x11, 0x00, 0xF7, 0x12, 0x00, 0x00, 0x01, 0x5C, 0x13, 0x00, 0x00, 0x15, 0x54, 0x2A, 0x06, 0x40, 0x4D, 0x00, 0xAB, 0x1A, 0xFF, 0x3E, 0x22, 0x39, 0x1B, 0x00, 0x3D, 0x23, 0x51, 0x1C, 0x00, 0xA0, 0x24, 0x45, 0x1D, 0x00, 0xA4, 0x25, 0x3C, 0x1E, 0x00, 0x9D, 0x26, 0x3E, 0x4C, 0x04, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xA4, 0x00, 0xF4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x19, 0x00, 0x1A, 0x8F };
+			//byte[] data = new byte[] { 0xFF, 0xFF, 0x27, 0x00, 0x6D, 0x01, 0x00, 0xF8, 0x06, 0x35, 0x08, 0x27, 0xD6, 0x09, 0x27, 0xE1, 0x02, 0x00, 0xD2, 0x07, 0x5E, 0x0A, 0x00, 0x79, 0x0B, 0x00, 0x05, 0x0C, 0x00, 0x05, 0x15, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x02, 0x17, 0x00, 0x2A, 0x01, 0x71, 0x4D, 0x00, 0xC4, 0x1A, 0x00, 0xE4, 0x22, 0x3B, 0x4C, 0x05, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x06, 0xF5, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x19, 0x00, 0x33, 0x0E, 0x00, 0x00, 0x10, 0x00, 0x00, 0x11, 0x00, 0x0D, 0x12, 0x00, 0x00, 0x01, 0x0B, 0x13, 0x00, 0x00, 0x3A, 0x62, 0x0D, 0x00, 0x00, 0x70, 0x00, 0xED, 0x3A, 0x00, 0x2B, 0x00, 0x11, 0x00, 0x1E, 0x00, 0x0D, 0x03, 0x7B, 0x03, 0xD2, 0x06, 0x02 };
 
 			// expected response
 			// 0 - 0xff - header
@@ -565,7 +661,7 @@ namespace CumulusMX
 
 			try
 			{
-				if (null != data && data.Length > 20 )
+				if (null != data && data.Length > 20)
 				{
 					// now decode it
 					Int16 tempInt16;
@@ -608,7 +704,7 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x05: //Heat index (℃)
-								// cumulus calculates this
+									   // cumulus calculates this
 								idx += 2;
 								break;
 							case 0x06: //Indoor Humidity(%)
@@ -642,7 +738,7 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x0D: //Rain Event (mm)
-							//TODO: add rain event total
+									   //TODO: add rain event total
 								idx += 2;
 								break;
 							case 0x0E: //Rain Rate (mm/h)
@@ -669,7 +765,7 @@ namespace CumulusMX
 								idx += 4;
 								break;
 							case 0x15: //Light (lux)
-								// Save the Lux value
+									   // Save the Lux value
 								LightValue = ConvertBigEndianUInt32(data, idx) / 10.0;
 								// convert Lux to W/m2 - approximately!
 								DoSolarRad((int)(LightValue * cumulus.LuxToWM2), dateTime);
@@ -729,7 +825,7 @@ namespace CumulusMX
 							case 0x45: //Soil Temperature14 (℃)
 							case 0x47: //Soil Temperature15 (℃)
 							case 0x49: //Soil Temperature16 (℃)
-								// figure out the channel number
+									   // figure out the channel number
 								chan = data[idx - 1] - 0x2B + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
 								tempInt16 = ConvertBigEndianInt16(data, idx);
@@ -752,14 +848,14 @@ namespace CumulusMX
 							case 0x46: //Soil Moisture14 (%)
 							case 0x48: //Soil Moisture15 (%)
 							case 0x4A: //Soil Moisture16 (%)
-								// figure out the channel number
+									   // figure out the channel number
 								chan = data[idx - 1] - 0x2C + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
 								DoSoilMoisture(data[idx], chan);
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
-								//TODO: battery status, do we need to know which sensors are attached?
+									   //TODO: battery status, do we need to know which sensors are attached?
 								if (tenMinuteChanged)
 								{
 									batteryLow = batteryLow || DoBatteryStatus(data, idx);
@@ -797,12 +893,12 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x60: //Lightning dist (1-40km)
-								// Sends a default value of 255km until the first strike is detected
+									   // Sends a default value of 255km until the first strike is detected
 								LightningDistance = data[idx] == 0xFF ? 999 : ConvertKmtoUserUnits(data[idx]);
 								idx += 1;
 								break;
 							case 0x61: //Lightning time (UTC)
-								// Sends a default value until the first strike is detected of 0xFFFFFFFF
+									   // Sends a default value until the first strike is detected of 0xFFFFFFFF
 								tempUint32 = ConvertBigEndianUInt32(data, idx);
 								if (tempUint32 == 0xFFFFFFFF)
 								{
@@ -871,13 +967,24 @@ namespace CumulusMX
 						}
 					} while (idx < size);
 
+					// Now do the stuff that requires more than one input parameter
+
 					// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
 					if (outdoortemp > -999)
 						DoOutdoorTemp(ConvertTempCToUser(outdoortemp), dateTime);
 
+					// Same for extra T/H sensors
+					for (var i = 1; i <= 8; i++)
+					{
+						if (ExtraHum[i] > 0)
+						{
+							var dp = MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[i]), ExtraHum[i]);
+							ExtraDewPoint[i] = ConvertTempCToUser(dp);
+						}
+					}
+
 					if (tenMinuteChanged) tenMinuteChanged = false;
 
-					// Now do the stuff that requires more than one input parameter
 
 					cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
@@ -959,7 +1066,6 @@ namespace CumulusMX
 
 			try
 			{
-				var stream = socket.GetStream();
 				stream.Write(bytes, 0, bytes.Length);
 
 				tmrComm.Start(1000);
@@ -972,9 +1078,12 @@ namespace CumulusMX
 						{
 							// Read the current character
 							var ch = stream.ReadByte();
-							buffer[bytesRead] = (byte)ch;
-							bytesRead++;
-							//cumulus.LogMessage("Received " + ch.ToString("X2"));
+							if (ch > -1)
+							{
+								buffer[bytesRead] = (byte)ch;
+								bytesRead++;
+								//cumulus.LogMessage("Received " + ch.ToString("X2"));
+							}
 						}
 						tmrComm.Stop();
 					}
@@ -983,6 +1092,7 @@ namespace CumulusMX
 						Thread.Sleep(20);
 					}
 				}
+
 				// Check the response is to our command and checksum is OK
 				if (bytesRead == 0 || buffer[2] != command || !ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
 				{
@@ -1026,23 +1136,23 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 			//CO2Data co2Data = (CO2Data)RawDeserialize(data, index, typeof(CO2Data));
 
-			var temp = ConvertBigEndianInt16(data, idx) / 10;
+			CO2_temperature = ConvertTempCToUser(ConvertBigEndianInt16(data, idx) / 10.0);
 			idx += 2;
-			int hum = data[idx++];
-			int pm10 = ConvertBigEndianUInt16(data, idx) / 10;
+			CO2_humidity = data[idx++];
+			CO2_pm10 = ConvertBigEndianUInt16(data, idx) / 10.0;
 			idx += 2;
-			int pm1024H = ConvertBigEndianUInt16(data, idx) / 10;
+			CO2_pm10_24h = ConvertBigEndianUInt16(data, idx) / 10.0;
 			idx += 2;
-			int pm2P5 = ConvertBigEndianUInt16(data, idx) / 10;
+			CO2_pm2p5 = ConvertBigEndianUInt16(data, idx) / 10.0;
 			idx += 2;
-			int pm2P524H = ConvertBigEndianUInt16(data, idx) / 10;
+			CO2_pm2p5_24h = ConvertBigEndianUInt16(data, idx) / 10.0;
 			idx += 2;
 			CO2 = ConvertBigEndianUInt16(data, idx);
 			idx += 2;
 			CO2_24h = ConvertBigEndianUInt16(data, idx);
 			idx += 2;
 			var batt = TestBattery3(data[idx]);
-			var msg = $"WH45 CO₂: temp={temp.ToString(cumulus.TempFormat)}, hum={hum}, pm10={pm10:F1}, pm10_24h={pm1024H:F1}, pm2.5={pm2P5:F1}, pm2.5_24h={pm2P524H:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
+			var msg = $"WH45 CO₂: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
 			if (tenMinuteChanged)
 			{
 				if (batt == "Low")
@@ -1348,6 +1458,20 @@ namespace CumulusMX
 		}
 		*/
 
+		private class Discovery
+		{
+			public List<string> IP { get; set; }
+			public List<string> Name { get; set; }
+			public List<string> Mac { get; set; }
+
+			public Discovery()
+			{
+				IP = new List<string>();
+				Name = new List<string>();
+				Mac = new List<string>();
+			}
+		}
+
 		private bool ChecksumOk(byte[] data, int lengthBytes)
 		{
 			ushort size;
@@ -1413,6 +1537,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.Triggered = true;
+				DoDiscovery();
 			}
 		}
 	}

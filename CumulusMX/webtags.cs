@@ -3604,6 +3604,36 @@ namespace CumulusMX
 			return station.CO2_24h.ToString();
 		}
 
+		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CO2_pm2p5.ToString(cumulus.AirQualityFormat), tagParams);
+		}
+
+		private string TagCO2_pm2p5_24h(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CO2_pm2p5_24h.ToString(cumulus.AirQualityFormat), tagParams);
+		}
+
+		private string TagCO2_pm10(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CO2_pm10.ToString(cumulus.AirQualityFormat), tagParams);
+		}
+
+		private string TagCO2_pm10_24h(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CO2_pm10_24h.ToString(cumulus.AirQualityFormat), tagParams);
+		}
+
+		private string TagC02_temp(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CO2_temperature.ToString(cumulus.TempFormat), tagParams);
+		}
+
+		private string TagC02_hum(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CO2_humidity.ToString(cumulus.HumFormat), tagParams);
+		}
+
 		private string TagLeafTemp1(Dictionary<string,string> tagParams)
 		{
 			return CheckRc(station.LeafTemp1.ToString(cumulus.TempFormat), tagParams);
@@ -5409,6 +5439,12 @@ namespace CumulusMX
 				{ "AirQualityAvg4", TagAirQualityAvg4 },
 				{ "CO2", TagCo2 },
 				{ "CO2-24h", TagCO2_24h },
+				{ "CO2-pm2p5", TagCO2_pm2p5 },
+				{ "CO2-pm2p5-24h", TagCO2_pm2p5_24h },
+				{ "CO2-pm10", TagCO2_pm10 },
+				{ "CO2-pm10-24h", TagCO2_pm10_24h },
+				{ "CO2-temp", TagC02_temp },
+				{ "CO2-hum", TagC02_hum },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },
@@ -5441,6 +5477,7 @@ namespace CumulusMX
 				{ "UpgradeAlarm", TagUpgradeAlarm },
 				{ "RG11RainToday", TagRg11RainToday },
 				{ "RG11RainYest", TagRg11RainYest },
+
 				{ "AirLinkFirmwareVersionIn", TagAirLinkFirmwareVersionIn },
 				{ "AirLinkWifiRssiIn", TagAirLinkWifiRssiIn },
 				{ "AirLinkTempIn", TagAirLinkTempIn },
@@ -5456,6 +5493,7 @@ namespace CumulusMX
 				{ "AirLinkPm10_3hrIn", TagAirLinkPm10_3hrIn },
 				{ "AirLinkPm10_24hrIn", TagAirLinkPm10_24hrIn },
 				{ "AirLinkPm10_NowcastIn", TagAirLinkPm10_NowcastIn },
+
 				{ "AirLinkFirmwareVersionOut", TagAirLinkFirmwareVersionOut },
 				{ "AirLinkWifiRssiOut", TagAirLinkWifiRssiOut },
 				{ "AirLinkTempOut", TagAirLinkTempOut },

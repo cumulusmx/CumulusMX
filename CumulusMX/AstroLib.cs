@@ -93,8 +93,7 @@ namespace CumulusMX
 			const double Rad2Deg = 180.0 / Math.PI;
 			// Number of days from J2000.0.
 			double julianDate = 367 * dateTime.Year -
-				(int)((7.0 / 4.0) * (dateTime.Year +
-				(int)((dateTime.Month + 9.0) / 12.0))) +
+				(int)((7.0 / 4.0) * (dateTime.Year + (int)((dateTime.Month + 9.0) / 12.0))) +
 				(int)((275.0 * dateTime.Month) / 9.0) +
 				dateTime.Day - 730531.5;
 

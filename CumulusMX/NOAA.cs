@@ -202,6 +202,8 @@ namespace CumulusMX
 		{
 			var output = new List<string>();
 
+			CultureInfo culture = cumulus.NOAAUseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
+
 			Tdaysummary[] dayList = new Tdaysummary[32];
 
 			for (int i = 1; i < 32; i++)
@@ -588,10 +590,10 @@ namespace CumulusMX
 					}
 					else
 					{
-						repLine.Append(string.Format("{0,6:F1}",dayList[i].meantemp));
+						repLine.Append(string.Format(culture, "{0,6:F1}",dayList[i].meantemp));
 					}
 					;
-					repLine.Append(string.Format("{0,6:F1}", dayList[i].maxtemp));
+					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].maxtemp));
 					string timestr;
 					if (cumulus.NOAA12hourformat)
 					{
@@ -619,17 +621,17 @@ namespace CumulusMX
 					}
 					else
 					{
-						repLine.Append(string.Format("{0,6:F1}", dayList[i].heatingdegdays));
-						repLine.Append(string.Format("{0,6:F1}", dayList[i].coolingdegdays));
+						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].heatingdegdays));
+						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].coolingdegdays));
 					}
-					repLine.Append(string.Format("{0,6}", dayList[i].rain.ToString(cumulus.RainFormat)));
+					repLine.Append(string.Format(culture, "{0,6}", dayList[i].rain.ToString(cumulus.RainFormat)));
 
 					if (dayList[i].avgwindspeed < -999)
 						repLine.Append("  ----");
 					else
-						repLine.Append(string.Format("{0,6:F1}", dayList[i].avgwindspeed));
+						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].avgwindspeed));
 
-					repLine.Append(string.Format("{0,6:F1}", dayList[i].highwindspeed));
+					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].highwindspeed));
 					if (cumulus.NOAA12hourformat)
 					{
 						timestr = dayList[i].highwindtimestamp.ToString("h:mmtt");
@@ -653,7 +655,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				repLine.Append(string.Format("{0,8:F1}", totalmeantemp/daycount));
+				repLine.Append(string.Format(culture, "{0,8:F1}", totalmeantemp/daycount));
 			}
 
 			if (maxtempday == 0)
@@ -662,8 +664,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				repLine.Append(string.Format("{0,6:F1}", maxtemp));
-				repLine.Append(string.Format("{0,6:D}", maxtempday));
+				repLine.Append(string.Format(culture, "{0,6:F1}", maxtemp));
+				repLine.Append(string.Format(culture, "{0,6:D}", maxtempday));
 			}
 
 			if (mintempday == 0)
@@ -672,14 +674,14 @@ namespace CumulusMX
 			}
 			else
 			{
-				repLine.Append(string.Format("{0,8:F1}", mintemp));
-				repLine.Append(string.Format("{0,6:D}", mintempday));
+				repLine.Append(string.Format(culture, "{0,8:F1}", mintemp));
+				repLine.Append(string.Format(culture, "{0,6:D}", mintempday));
 			}
 
-			repLine.Append(string.Format("{0,8:F1}", totalheating));
-			repLine.Append(string.Format("{0,6:F1}", totalcooling));
+			repLine.Append(string.Format(culture, "{0,8:F1}", totalheating));
+			repLine.Append(string.Format(culture, "{0,6:F1}", totalcooling));
 
-			repLine.Append(string.Format("{0,6}", totalrain.ToString(cumulus.RainFormat)));
+			repLine.Append(string.Format("{0,6}", totalrain.ToString(cumulus.RainFormat, culture)));
 
 			if (avgwindspeed < -999)
 			{
@@ -687,12 +689,12 @@ namespace CumulusMX
 			}
 			else
 			{
-				repLine.Append(string.Format("{0,6:F1}", avgwindspeed));
+				repLine.Append(string.Format(culture, "{0,6:F1}", avgwindspeed));
 			}
 			;
 
-			repLine.Append(string.Format("{0,6:F1}", highwind));
-			repLine.Append(string.Format("{0,6:D}", highwindday));
+			repLine.Append(string.Format(culture, "{0,6:F1}", highwind));
+			repLine.Append(string.Format(culture, "{0,6:D}", highwindday));
 
 			repLine.Append(string.Format("{0,8}", CompassPoint(overalldomdir)));
 
@@ -701,15 +703,15 @@ namespace CumulusMX
 			output.Add("");
 
 			// now do the max/min/days of rain items
-			output.Add(string.Format("Max >={0,6:F1}{1,3:D}", cumulus.NOAAmaxtempcomp1, maxtempcount1));
-			output.Add(string.Format("Max <={0,6:F1}{1,3:D}", cumulus.NOAAmaxtempcomp2, maxtempcount2));
-			output.Add(string.Format("Min <={0,6:F1}{1,3:D}", cumulus.NOAAmintempcomp1, mintempcount1));
-			output.Add(string.Format("Min <={0,6:F1}{1,3:D}", cumulus.NOAAmintempcomp2, mintempcount2));
+			output.Add(string.Format(culture, "Max >={0,6:F1}{1,3:D}", cumulus.NOAAmaxtempcomp1, maxtempcount1));
+			output.Add(string.Format(culture, "Max <={0,6:F1}{1,3:D}", cumulus.NOAAmaxtempcomp2, maxtempcount2));
+			output.Add(string.Format(culture, "Min <={0,6:F1}{1,3:D}", cumulus.NOAAmintempcomp1, mintempcount1));
+			output.Add(string.Format(culture, "Min <={0,6:F1}{1,3:D}", cumulus.NOAAmintempcomp2, mintempcount2));
 
-			output.Add($"Max Rain: {maxrain.ToString(cumulus.RainFormat)} on day {maxrainday}");
+			output.Add($"Max Rain: {maxrain.ToString(cumulus.RainFormat, culture)} on day {maxrainday}");
 
-			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat)} {cumulus.RainUnitText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat)} {cumulus.RainUnitText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat)} {cumulus.RainUnitText})");
-			output.Add($"Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat)}  Method: Integration");
+			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})");
+			output.Add($"Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}  Method: Integration");
 
 			return output;
 		}
@@ -717,6 +719,8 @@ namespace CumulusMX
 		public List<string> CreateYearlyReport(DateTime thedate)
 		{
 			var output = new List<string>();
+
+			CultureInfo culture = cumulus.NOAAUseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
 
 			string listSep = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 			StringBuilder repLine = new StringBuilder(200);
@@ -933,11 +937,11 @@ namespace CumulusMX
 
 			output.Add($"Elevation: {elev}  Lat: {string.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec)}   Lon: {string.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec)}");
 			output.Add("");
-			output.Add($"                  Temperature ({cumulus.TempUnitText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat)}");
+			output.Add($"                  Temperature ({cumulus.TempUnitText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}");
 			output.Add("                          Dep.  Heat  Cool                       Max  Max  Min  Min");
 			output.Add("        Mean  Mean        From  Deg   Deg                        >=   <=   <=   <=");
 			//@ Unsupported function or procedure: 'Format'
-			output.Add($" YR MO  Max   Min   Mean  Norm  Days  Days  Hi  Date  Low  Date{string.Format("{0,5:F1}{1,5:F1}{2,5:F1}{3,6:F1}", cumulus.NOAAmaxtempcomp1, cumulus.NOAAmaxtempcomp2, cumulus.NOAAmintempcomp1, cumulus.NOAAmintempcomp2)}");
+			output.Add($" YR MO  Max   Min   Mean  Norm  Days  Days  Hi  Date  Low  Date{string.Format(culture, "{0,5:F1}{1,5:F1}{2,5:F1}{3,6:F1}", cumulus.NOAAmaxtempcomp1, cumulus.NOAAmaxtempcomp2, cumulus.NOAAmintempcomp1, cumulus.NOAAmintempcomp2)}");
 			output.Add("------------------------------------------------------------------------------------");
 			for (month = 1; month <= 12; month++)
 			{
@@ -954,7 +958,7 @@ namespace CumulusMX
 						MonthList[month].meanmaxtemp = MonthList[month].totalmaxtemp/MonthList[month].samples;
 						MonthList[month].meanmintemp = MonthList[month].totalmintemp/MonthList[month].samples;
 						MonthList[month].meantemp = MonthList[month].totaltemp/MonthList[month].samples;
-						repLine.Append(string.Format("{0,6:F1}{1,6:F1}{2,6:F1}", MonthList[month].meanmaxtemp, MonthList[month].meanmintemp, MonthList[month].meantemp));
+						repLine.Append(string.Format(culture, "{0,6:F1}{1,6:F1}{2,6:F1}", MonthList[month].meanmaxtemp, MonthList[month].meanmintemp, MonthList[month].meantemp));
 					}
 					if (cumulus.NOAATempNorms[month] < -999)
 					{
@@ -963,13 +967,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						repLine.Append(string.Format("{0,6}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month]).ToString(cumulus.TempFormat)));
+						repLine.Append(string.Format("{0,6}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month]).ToString(cumulus.TempFormat, culture)));
 						totalnormtemp += cumulus.NOAATempNorms[month];
 						normtempsamples++;
 					}
-					repLine.Append(string.Format("{0,6:D}{1,6:D}", Convert.ToInt64(MonthList[month].heatingdegdays), Convert.ToInt64(MonthList[month].coolingdegdays)));
-					repLine.Append(string.Format("{0,6:F1}{1,4:D}{2,6:F1}{3,5:D}", MonthList[month].maxtemp, MonthList[month].maxtempday, MonthList[month].mintemp, MonthList[month].mintempday));
-					repLine.Append(string.Format("{0,5:D}{1,5:D}{2,5:D}{3,5:D}", MonthList[month].maxtempcount1, MonthList[month].maxtempcount2, MonthList[month].mintempcount1, MonthList[month].mintempcount2));
+					repLine.Append(string.Format(culture, "{0,6:D}{1,6:D}", Convert.ToInt64(MonthList[month].heatingdegdays), Convert.ToInt64(MonthList[month].coolingdegdays)));
+					repLine.Append(string.Format(culture, "{0,6:F1}{1,4:D}{2,6:F1}{3,5:D}", MonthList[month].maxtemp, MonthList[month].maxtempday, MonthList[month].mintemp, MonthList[month].mintempday));
+					repLine.Append(string.Format(culture, "{0,5:D}{1,5:D}{2,5:D}{3,5:D}", MonthList[month].maxtempcount1, MonthList[month].maxtempcount2, MonthList[month].mintempcount1, MonthList[month].mintempcount2));
 				}
 				output.Add(repLine.ToString());
 			}
@@ -1011,28 +1015,28 @@ namespace CumulusMX
 				double meanmax = totalmeanmaxtemp/samples;
 				double meanmin = totalmeanmintemp/samples;
 				double meantemp = totalmeantemp/samples;
-				repLine.Append(string.Format("{0,12:F1}{1,6:F1}{2,6:F1}", meanmax, meanmin, meantemp));
+				repLine.Append(string.Format(culture, "{0,12:F1}{1,6:F1}{2,6:F1}", meanmax, meanmin, meantemp));
 				if (normtempsamples == 0)
 					// dummy value for "departure from norm"
 					repLine.Append("   0.0");
 				else
 				{
-					repLine.Append(string.Format("{0,6}", (meantemp - (totalnormtemp/normtempsamples)).ToString(cumulus.TempFormat)));
+					repLine.Append(string.Format("{0,6}", (meantemp - (totalnormtemp/normtempsamples)).ToString(cumulus.TempFormat, culture)));
 				}
-				repLine.Append(string.Format("{0,6:D}{1,6:D}", (int) (totalheating), (int) (totalcooling)));
+				repLine.Append(string.Format(culture, "{0,6:D}{1,6:D}", (int) (totalheating), (int) (totalcooling)));
 				if (maxtempmonth == 0)
 				{
-					repLine.Append(string.Format("{0,6:F1}{1,4}", maxtemp, "---"));
+					repLine.Append(string.Format(culture, "{0,6:F1}{1,4}", maxtemp, "---"));
 				}
 				else
 				{
-					repLine.Append(string.Format("{0,6:F1}{1,4}", maxtemp, CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(maxtempmonth)));
+					repLine.Append(string.Format(culture, "{0,6:F1}{1,4}", maxtemp, CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(maxtempmonth)));
 				}
 				if (mintempmonth == 0)
-					repLine.Append(string.Format("{0,6:F1}{1,5}", mintemp, "---"));
+					repLine.Append(string.Format(culture, "{0,6:F1}{1,5}", mintemp, "---"));
 				else
 				{
-					repLine.Append(string.Format("{0,6:F1}{1,5}", mintemp, CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(mintempmonth)));
+					repLine.Append(string.Format(culture, "{0,6:F1}{1,5}", mintemp, CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(mintempmonth)));
 				}
 				repLine.Append(string.Format("{0,5:D}{1,5:D}{2,5:D}{3,5:D}", maxtempcount1, maxtempcount2, mintempcount1, mintempcount2));
 				output.Add(repLine.ToString());
@@ -1049,8 +1053,8 @@ namespace CumulusMX
 			output.Add("              Dep.   Max        Days of Rain");
 			output.Add("              From   Obs.           >=");
 			output.Add(" YR MO Total  Norm   Day Date" +
-					   string.Format("{0,5}{1,5}{2,5}", cumulus.NOAAraincomp1.ToString(cumulus.RainFormat), cumulus.NOAAraincomp2.ToString(cumulus.RainFormat),
-						   cumulus.NOAAraincomp3.ToString(cumulus.RainFormat)));
+					   string.Format("{0,5}{1,5}{2,5}", cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture), cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture),
+						   cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)));
 			output.Add("---------------------------------------------");
 
 			// Rain section details
@@ -1062,7 +1066,7 @@ namespace CumulusMX
 				if (!MonthList[m].valid)
 					continue;
 
-				repLine.Append(string.Format("{0,6}", MonthList[m].totrain.ToString(cumulus.RainFormat)));
+				repLine.Append(string.Format("{0,6}", MonthList[m].totrain.ToString(cumulus.RainFormat, culture)));
 				totalrain += MonthList[m].totrain;
 
 				if (MonthList[m].maxrain > maxrain)
@@ -1076,11 +1080,11 @@ namespace CumulusMX
 					repLine.Append("   0.0");
 				else
 				{
-					repLine.Append(string.Format("{0,6}", (MonthList[m].totrain - cumulus.NOAARainNorms[m]).ToString(cumulus.RainFormat)));
+					repLine.Append(string.Format("{0,6}", (MonthList[m].totrain - cumulus.NOAARainNorms[m]).ToString(cumulus.RainFormat, culture)));
 					totalnormrain += cumulus.NOAARainNorms[m];
 				}
 
-				repLine.Append(string.Format("{0,6}", MonthList[m].maxrain.ToString(cumulus.RainFormat)));
+				repLine.Append(string.Format("{0,6}", MonthList[m].maxrain.ToString(cumulus.RainFormat, culture)));
 				repLine.Append(string.Format("{0,4:D}", MonthList[m].maxrainday));
 				repLine.Append(string.Format("{0,6:D}{1,5:D}{2,5:D}", MonthList[m].raincount1, MonthList[m].raincount2, MonthList[m].raincount3));
 
@@ -1098,7 +1102,7 @@ namespace CumulusMX
 			if (samples > 0)
 			{
 				repLine.Clear();
-				repLine.Append(string.Format("{0,12}", totalrain.ToString(cumulus.RainFormat)));
+				repLine.Append(string.Format("{0,12}", totalrain.ToString(cumulus.RainFormat, culture)));
 
 				if (totalnormrain == 0)
 				{
@@ -1107,10 +1111,10 @@ namespace CumulusMX
 				}
 				else
 				{
-					repLine.Append(string.Format("{0,6}", (totalrain - totalnormrain).ToString(cumulus.RainFormat)));
+					repLine.Append(string.Format("{0,6}", (totalrain - totalnormrain).ToString(cumulus.RainFormat, culture)));
 				}
 
-				repLine.Append(string.Format("{0,6}", maxrain.ToString(cumulus.RainFormat)));
+				repLine.Append(string.Format("{0,6}", maxrain.ToString(cumulus.RainFormat, culture)));
 				if (maxrainmonth == 0)
 				{
 					repLine.Append(string.Format("{0,5}", "---"));
@@ -1154,13 +1158,13 @@ namespace CumulusMX
 					else
 					{
 						// String.Format the average into the display line
-						repLine.Append(string.Format("{0,6:F1}", MonthList[m].avgwindspeed));
+						repLine.Append(string.Format(culture, "{0,6:F1}", MonthList[m].avgwindspeed));
 						totalavgwind += MonthList[m].avgwindspeed * MonthList[m].samples;
 						avgwindcount += MonthList[m].samples;
 					}
 
 					// String.Format the high wind speed and dominant direction into the display line
-					repLine.Append(string.Format("{0,6:F1}{1,5:D}", MonthList[m].highwindspeed, MonthList[m].highwindday));
+					repLine.Append(string.Format(culture, "{0,6:F1}{1,5:D}", MonthList[m].highwindspeed, MonthList[m].highwindday));
 					repLine.Append(string.Format("{0,6}", CompassPoint(MonthList[m].winddomdir)));
 
 					// check for highest annual wind speed
@@ -1187,9 +1191,9 @@ namespace CumulusMX
 			if (avgwindcount == 0)
 				repLine.Append("        ----");
 			else
-				repLine.Append(string.Format("{0,12:F1}", totalavgwind / avgwindcount));
+				repLine.Append(string.Format(culture, "{0,12:F1}", totalavgwind / avgwindcount));
 
-			repLine.Append(string.Format("{0,6:F1}", highwind));
+			repLine.Append(string.Format(culture, "{0,6:F1}", highwind));
 			if (highwindmonth == 0)
 			{
 				repLine.Append(string.Format("{0,5}", "---"));

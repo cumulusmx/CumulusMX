@@ -32,8 +32,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.4";
-		public string Build = "3099";
+		public string Version = "3.9.5";
+		public string Build = "3100";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -104,7 +104,8 @@ namespace CumulusMX
 			Ecowitt2 = 2,
 			Ecowitt3 = 3,
 			Ecowitt4 = 4,
-			AirLinkIndoor = 5
+			AirLinkIndoor = 5,
+			EcowittCO2 = 6
 		}
 
 		private readonly string[] sshAuthenticationVals = { "password", "psk", "password_psk" };
@@ -235,6 +236,7 @@ namespace CumulusMX
 
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
+		public string CO2UnitText = "ppm";
 
 		public volatile int WebUpdating;
 
@@ -602,6 +604,7 @@ namespace CumulusMX
 		public string NOAALatestMonthlyReport;
 		public string NOAALatestYearlyReport;
 		public bool NOAAUseUTF8;
+		public bool NOAAUseDotDecimal;
 
 		public double[] NOAATempNorms = new double[13];
 
@@ -880,6 +883,9 @@ namespace CumulusMX
 
 			// Set up the diagnostic tracing
 			loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+
+			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
+			Program.svcTextListener.Flush();
 
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
@@ -1308,19 +1314,6 @@ namespace CumulusMX
 			syncInit.Wait();
 			LogDebugMessage("Lock: Cumulus has lock");
 
-			LogMessage("Creating extra sensors");
-			if (AirLinkInEnabled)
-			{
-				airLinkDataIn = new AirLinkData();
-				airLinkIn = new DavisAirLink(this, true);
-			}
-			if (AirLinkOutEnabled)
-			{
-				airLinkDataOut = new AirLinkData();
-				airLinkOut = new DavisAirLink(this, false);
-			}
-
-
 			LogMessage("Opening station");
 
 			switch (StationType)
@@ -1377,6 +1370,21 @@ namespace CumulusMX
 					break;
 			}
 
+			if (station != null)
+			{
+				LogMessage("Creating extra sensors");
+				if (AirLinkInEnabled)
+				{
+					airLinkDataIn = new AirLinkData();
+					airLinkIn = new DavisAirLink(this, true, station);
+				}
+				if (AirLinkOutEnabled)
+				{
+					airLinkDataOut = new AirLinkData();
+					airLinkOut = new DavisAirLink(this, false, station);
+				}
+
+			}
 
 			webtags = new WebTags(this, station);
 			webtags.InitialiseWebtags();
@@ -1398,8 +1406,9 @@ namespace CumulusMX
 
 			LogMessage("HTML root path = " + htmlRootPath);
 
-			httpServer.RegisterModule(new StaticFilesModule(htmlRootPath));
+			httpServer.RegisterModule(new StaticFilesModule(htmlRootPath, new Dictionary<string, string>(){{"Cache-Control", "max-age=300"}}));
 			httpServer.Module<StaticFilesModule>().UseRamCache = true;
+
 
 			// Set up the API web server
 			Api.Setup(httpServer);
@@ -1506,6 +1515,15 @@ namespace CumulusMX
 				WOWhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				WOWhttpHandler.UseProxy = true;
 
+				AwekashttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				AwekashttpHandler.UseProxy = true;
+
+				WindyhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				WindyhttpHandler.UseProxy = true;
+
+				WCloudhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				WCloudhttpHandler.UseProxy = true;
+
 				customHttpSecondsHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
 				customHttpSecondsHandler.UseProxy = true;
 
@@ -1520,6 +1538,9 @@ namespace CumulusMX
 					WUhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					PWShttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					WOWhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					AwekashttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					WindyhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					WCloudhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpSecondsHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpMinutesHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 					customHttpRolloverHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
@@ -2376,12 +2397,12 @@ namespace CumulusMX
 				{
 					// multiple stations defined, the user must select which one to use
 					var msg = $"Multiple OpenWeatherMap stations found, please select the correct station id and enter it into your configuration";
-					Console.WriteLine(msg);
+					LogConsoleMessage(msg);
 					LogMessage("OpenWeatherMap: " + msg);
 					foreach (var station in stations)
 					{
 						msg = $"  Station Id = {station.id}, Name = {station.name}";
-						Console.WriteLine(msg);
+						LogConsoleMessage(msg);
 						LogMessage("OpenWeatherMap: " + msg);
 					}
 				}
@@ -3758,6 +3779,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
+			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 
 			// AirLink settings
@@ -4233,6 +4255,7 @@ namespace CumulusMX
 			NOAAYearFileFormat = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAFTPDirectory = ini.GetValue("NOAA", "FTPDirectory", "");
 			NOAAUseUTF8 = ini.GetValue("NOAA", "NOAAUseUTF8", false);
+			NOAAUseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
 
 			NOAATempNorms[1] = ini.GetValue("NOAA", "NOAATempNormJan", -1000.0);
 			NOAATempNorms[2] = ini.GetValue("NOAA", "NOAATempNormFeb", -1000.0);
@@ -4466,6 +4489,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
+			ini.SetValue("GW1000", "MACAddress", Gw1000MacAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 
 			// AirLink settings
@@ -4817,6 +4841,7 @@ namespace CumulusMX
 			ini.SetValue("NOAA", "YearFileFormat", NOAAYearFileFormat);
 			ini.SetValue("NOAA", "FTPDirectory", NOAAFTPDirectory);
 			ini.SetValue("NOAA", "NOAAUseUTF8", NOAAUseUTF8);
+			ini.SetValue("NOAA", "UseDotDecimal", NOAAUseDotDecimal);
 
 			ini.SetValue("NOAA", "NOAATempNormJan", NOAATempNorms[1]);
 			ini.SetValue("NOAA", "NOAATempNormFeb", NOAATempNorms[2]);
@@ -5135,6 +5160,14 @@ namespace CumulusMX
 				AirQualityAvgCaptions[2] = ini.GetValue("AirQualityCaptions", "SensorAvg2", AirQualityAvgCaptions[2]);
 				AirQualityAvgCaptions[3] = ini.GetValue("AirQualityCaptions", "SensorAvg3", AirQualityAvgCaptions[3]);
 				AirQualityAvgCaptions[4] = ini.GetValue("AirQualityCaptions", "SensorAvg4", AirQualityAvgCaptions[4]);
+
+				// CO2 captions - Ecowitt WH45 sensor
+				CO2_CurrentCaption = ini.GetValue("CO2Captions", "CO2-Current", CO2_CurrentCaption);
+				CO2_24HourCaption = ini.GetValue("CO2Captions", "CO2-24hr", CO2_24HourCaption);
+				CO2_pm2p5Caption = ini.GetValue("CO2Captions", "CO2-Pm2p5", CO2_pm2p5Caption);
+				CO2_pm2p5_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm2p5-24hr", CO2_pm2p5_24hrCaption);
+				CO2_pm10Caption = ini.GetValue("CO2Captions", "CO2-Pm10", CO2_pm10Caption);
+				CO2_pm10_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm10-24hr", CO2_pm10_24hrCaption);
 
 				// User temperature captions (for Extra Sensor Data screen)
 				UserTempCaptions[1] = ini.GetValue("UserTempCaptions", "Sensor1", UserTempCaptions[1]);
@@ -5544,6 +5577,7 @@ namespace CumulusMX
 		public int airQualityIndex = -1;
 
 		public string Gw1000IpAddress;
+		public string Gw1000MacAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
 
 		public Timer WundTimer = new Timer();
@@ -5614,6 +5648,13 @@ namespace CumulusMX
 		public string[] UserTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8" };
 		private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
 		private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
+		// WH45 CO2 sensor captions
+		public string CO2_CurrentCaption = "CO&#8322 Current";
+		public string CO2_24HourCaption = "CO&#8322 24h avg";
+		public string CO2_pm2p5Caption = "PM 2.5";
+		public string CO2_pm2p5_24hrCaption = "PM 2.5 24h avg";
+		public string CO2_pm10Caption = "PM 10";
+		public string CO2_pm10_24hrCaption = "PM 10 24h avg";
 
 		/*
 		public string Getversion()
@@ -5943,7 +5984,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 84;
+		public const int NumExtraLogFileFields = 92;
 
 		public void DoExtraLogFile(DateTime timestamp)
 		{
@@ -5953,15 +5994,23 @@ namespace CumulusMX
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
-			// 31-34 Soil temp 1-4
-			// 35-38 Soil moisture 1-4
-			// 39-40 Leaf temp 1-2
-			// 41-42 Leaf wetness 1-2
-			// 43-59 Soil temp 5-16
-			// 60-76 Soil moisture 5-16
-			// 77-81 Air quality 1-4
-			// 82-86 Air quality avg 1-4
-			// 87-95 User temperature 1-8
+			// 31-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
 
 			var filename = GetExtraLogFileName(timestamp);
 
@@ -6039,7 +6088,16 @@ namespace CumulusMX
 				{
 					file.Write(station.UserTemp[i].ToString(TempFormat) + ListSeparator);
 				}
-				file.Write(station.UserTemp[8].ToString(TempFormat));
+				file.Write(station.UserTemp[8].ToString(TempFormat) + ListSeparator);
+
+				file.Write(station.CO2 + ListSeparator);
+				file.Write(station.CO2_24h + ListSeparator);
+				file.Write(station.CO2_pm2p5.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_pm2p5_24h.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_pm10.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_pm10_24h.ToString("F1") + ListSeparator);
+				file.Write(station.CO2_temperature.ToString(TempFormat) + ListSeparator);
+				file.Write(station.CO2_humidity);
 
 				file.WriteLine();
 				file.Close();
@@ -7438,13 +7496,13 @@ namespace CumulusMX
 					}
 				}
 
+				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
+
 				using (Stream ostream = conn.OpenWrite(remotefilename))
 				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				{
 					try
 					{
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
-
 						var buffer = new byte[4096];
 						int read;
 						while ((read = istream.Read(buffer, 0, buffer.Length)) > 0)
@@ -7590,7 +7648,7 @@ namespace CumulusMX
 			LogMessage(message);
 			if (FTPlogging)
 			{
-				FtpTraceListener.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
 
@@ -7599,21 +7657,19 @@ namespace CumulusMX
 			if (FTPlogging)
 			{
 				LogDebugMessage(message);
-				FtpTraceListener.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
 
 		public void LogConsoleMessage(string message)
 		{
-			if (Program.service)
-			{
-				Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-				Program.svcTextListener.Flush();
-			}
-			else
+			if (!Program.service)
 			{
 				Console.WriteLine(message);
 			}
+
+			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			Program.svcTextListener.Flush();
 		}
 
 		/*
@@ -8683,15 +8739,19 @@ namespace CumulusMX
 				LatestBuild = new string(latestUri.Split('/').Last().Where(char.IsDigit).ToArray());
 				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
-					var msg = $"You are not running the latest version of CumulusMX, build {LatestBuild} is available.";
+					var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
 					LogConsoleMessage(msg);
 					LogMessage(msg);
 					UpgradeAlarm.Triggered = true;
 				}
-				else
+				else if (int.Parse(Build) == int.Parse(LatestBuild))
 				{
 					LogMessage("This Cumulus MX instance is running the latest version");
 					UpgradeAlarm.Triggered = false;
+				}
+				else
+				{
+					LogMessage($"Could not determine if you are running the latest Cumulus MX build or not. This build = {Build}, latest build = {LatestBuild}");
 				}
 			}
 			catch (Exception ex)

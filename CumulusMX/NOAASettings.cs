@@ -64,6 +64,7 @@ namespace CumulusMX
 						   monthfileformat = cumulus.NOAAMonthFileFormat,
 						   yearfileformat = cumulus.NOAAYearFileFormat,
 						   utf8 = cumulus.NOAAUseUTF8,
+						   dotdecimal = cumulus.NOAAUseDotDecimal,
 						   autosave = cumulus.NOAAAutoSave,
 						   autoftp = cumulus.NOAAAutoFTP,
 						   ftpdirectory = cumulus.NOAAFTPDirectory,
@@ -123,6 +124,7 @@ namespace CumulusMX
 				cumulus.NOAAMonthFileFormat = settings.monthfileformat;
 				cumulus.NOAAYearFileFormat = settings.yearfileformat;
 				cumulus.NOAAUseUTF8 = settings.utf8;
+				cumulus.NOAAUseDotDecimal = settings.dotdecimal;
 				cumulus.NOAAAutoSave = settings.autosave;
 				cumulus.NOAAAutoFTP = settings.autoftp;
 				cumulus.NOAAFTPDirectory = settings.ftpdirectory;
@@ -188,6 +190,7 @@ namespace CumulusMX
 		public string monthfileformat {get; set; }
 		public string yearfileformat {get; set; }
 		public bool utf8 {get; set; }
+		public bool dotdecimal { get; set; }
 		public bool autosave {get; set; }
 		public bool autoftp {get; set; }
 		public string ftpdirectory {get; set; }
