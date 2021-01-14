@@ -604,7 +604,7 @@ namespace CumulusMX
 						timestr = dayList[i].maxtemptimestamp.ToString("HH:mm");
 					}
 					repLine.Append(string.Format("{0,8}", timestr));
-					repLine.Append(string.Format("{0,6:F1}",dayList[i].mintemp));
+					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].mintemp));
 					if (cumulus.NOAA12hourformat)
 					{
 						timestr = dayList[i].mintemptimestamp.ToString("h:mmtt");
@@ -624,7 +624,7 @@ namespace CumulusMX
 						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].heatingdegdays));
 						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].coolingdegdays));
 					}
-					repLine.Append(string.Format(culture, "{0,6}", dayList[i].rain.ToString(cumulus.RainFormat)));
+					repLine.Append(string.Format("{0,6}", dayList[i].rain.ToString(cumulus.RainFormat, culture)));
 
 					if (dayList[i].avgwindspeed < -999)
 						repLine.Append("  ----");

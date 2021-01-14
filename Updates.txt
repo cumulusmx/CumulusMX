@@ -1,3 +1,9 @@
+3.9.6 - b3101
+—————————————
+- Fix: NOAA monthly report min temp/rain not formatting in dot decimal correctly
+
+
+
 3.9.5 - b3100
 —————————————
 - Fix: Alarms being cleared after their defined latch time even if latching was disabled
