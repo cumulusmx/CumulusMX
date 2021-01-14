@@ -2,7 +2,7 @@
 —————————————
 - Fix: NOAA monthly report min temp/rain not formatting in dot decimal correctly
 - Fix: Windows console log no longer being created
-
+- Fix: Fix for exit handlers being called before cumulus instance is initialised causing an unhandled exception
 
 3.9.5 - b3100
 —————————————
