@@ -104,7 +104,7 @@ namespace CumulusMX
 			if (discovered.IP.Count == 0)
 			{
 				// We didn't find anything on the network
-				msg = "Failed to discover any GW1000 devices";
+				msg = "Failed to discover any Airlink devices";
 				cumulus.LogMessage(msg);
 				cumulus.LogConsoleMessage(msg);
 			}
@@ -127,8 +127,8 @@ namespace CumulusMX
 				{
 					writeConfig = true;
 
-					cumulus.LogMessage("Discovered a new IP address for the Airlink that does not match our current one");
-					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discovered.IP[0]}");
+					cumulus.LogMessage($"Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
 
 					ipaddr = discovered.IP[0];
 
@@ -144,19 +144,42 @@ namespace CumulusMX
 			else if (discovered.Hostname.Contains(hostname))
 			{
 				// Multiple devices discovered, but we have a Hostname match
-				cumulus.LogDebugMessage("Matching Airlink hostname found on the network");
+				cumulus.LogDebugMessage($"Matching {locationStr} Airlink hostname found on the network");
 
 				var idx = discovered.Hostname.IndexOf(hostname);
 
 				if (discovered.IP[idx] != ipaddr)
 				{
-					cumulus.LogMessage("Discovered a new IP address for the Airlink that does not match our current one");
-					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discovered.IP[idx]}");
+					cumulus.LogMessage($"Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
 					ipaddr = discovered.IP[idx];
 					if (indoor)
 						cumulus.AirLinkInIPAddr = ipaddr;
 					else
 						cumulus.AirLinkOutIPAddr = ipaddr;
+
+					cumulus.WriteIniFile();
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"{locationStr} Airlink IP address has not changed");
+				}
+			}
+			else if (discovered.IP.Contains(ipaddr))
+			{
+				// Multiple devices discovered, no hostname match but we have an IP match
+				cumulus.LogDebugMessage($"Matching {locationStr} Airlink IP address found on the network");
+
+				var idx = discovered.IP.IndexOf(ipaddr);
+
+				if (discovered.Hostname[idx] != hostname)
+				{
+					cumulus.LogDebugMessage($"Changing previous {locationStr} hostname '{hostname}' to '{discovered.Hostname[idx]}'");
+					hostname = discovered.Hostname[idx];
+					if (indoor)
+						cumulus.AirLinkInHostName = hostname;
+					else
+						cumulus.AirLinkOutHostName = hostname;
 
 					cumulus.WriteIniFile();
 				}
