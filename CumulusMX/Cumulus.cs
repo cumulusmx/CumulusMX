@@ -194,8 +194,10 @@ namespace CumulusMX
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid;
+		public string AirLinkInHostName;
 		internal DavisAirLink airLinkOut;
 		public int airLinkOutLsid;
+		public string AirLinkOutHostName;
 
 		public DateTime LastUpdateTime;
 
@@ -3740,8 +3742,8 @@ namespace CumulusMX
 			// WeatherLink Live device settings
 			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", "");
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
-			WllStationId = ini.GetValue("WLL", "WLStationId", "");
-			if (WllStationId == "-1") WllStationId = "";
+			WllStationId = ini.GetValue("WLL", "WLStationId", -1);
+			//if (WllStationId == "-1") WllStationId = "";
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 1200);     // Readonly setting, default 20 minutes
 			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);            // Readonly setting, default 22222
@@ -3789,13 +3791,16 @@ namespace CumulusMX
 			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
 			AirLinkInIsNode = ini.GetValue("AirLink", "In-IsNode", false);
-			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", "");
-			if (AirLinkInStationId == "" && AirLinkInIsNode) AirLinkInStationId = WllStationId;
+			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", -1);
+			if (AirLinkInStationId == -1 && AirLinkInIsNode) AirLinkInStationId = WllStationId;
+			AirLinkInHostName = ini.GetValue("AirLink", "In-Hostname", "");
+
 			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
 			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
 			AirLinkOutIsNode = ini.GetValue("AirLink", "Out-IsNode", false);
-			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", "");
-			if (AirLinkOutStationId == "" && AirLinkOutIsNode) AirLinkOutStationId = WllStationId;
+			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", -1);
+			if (AirLinkOutStationId == -1 && AirLinkOutIsNode) AirLinkOutStationId = WllStationId;
+			AirLinkOutHostName = ini.GetValue("AirLink", "Out-Hostname", "");
 
 			airQualityIndex = ini.GetValue("AirLink", "AQIformula", 0);
 
@@ -4500,10 +4505,13 @@ namespace CumulusMX
 			ini.SetValue("AirLink", "In-IPAddress", AirLinkInIPAddr);
 			ini.SetValue("AirLink", "In-IsNode", AirLinkInIsNode);
 			ini.SetValue("AirLink", "In-WLStationId", AirLinkInStationId);
+			ini.SetValue("AirLink", "In-Hostname", AirLinkInHostName);
+
 			ini.SetValue("AirLink", "Out-Enabled", AirLinkOutEnabled);
 			ini.SetValue("AirLink", "Out-IPAddress", AirLinkOutIPAddr);
 			ini.SetValue("AirLink", "Out-IsNode", AirLinkOutIsNode);
 			ini.SetValue("AirLink", "Out-WLStationId", AirLinkOutStationId);
+			ini.SetValue("AirLink", "Out-Hostname", AirLinkOutHostName);
 			ini.SetValue("AirLink", "AQIformula", airQualityIndex);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
@@ -4775,14 +4783,14 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataSpikeAlarmSoundFile", SpikeAlarm.SoundFile);
 			ini.SetValue("Alarms", "DataSpikeAlarmNotify", SpikeAlarm.Notify);
 			ini.SetValue("Alarms", "DataSpikeAlarmLatch", SpikeAlarm.Latch);
-			ini.SetValue("Alarms", "DataSpikeAlarmHours", SpikeAlarm.LatchHours);
+			ini.SetValue("Alarms", "DataSpikeAlarmLatchHours", SpikeAlarm.LatchHours);
 
 			ini.SetValue("Alarms", "UpgradeAlarmSet", UpgradeAlarm.Enabled);
 			ini.SetValue("Alarms", "UpgradeAlarmSound", UpgradeAlarm.Sound);
 			ini.SetValue("Alarms", "UpgradeAlarmSoundFile", UpgradeAlarm.SoundFile);
 			ini.SetValue("Alarms", "UpgradeAlarmNotify", UpgradeAlarm.Notify);
 			ini.SetValue("Alarms", "UpgradeAlarmLatch", UpgradeAlarm.Latch);
-			ini.SetValue("Alarms", "UpgradeAlarmHours", UpgradeAlarm.LatchHours);
+			ini.SetValue("Alarms", "UpgradeAlarmLatchHours", UpgradeAlarm.LatchHours);
 
 			ini.SetValue("Offsets", "PressOffset", Calib.Press.Offset);
 			ini.SetValue("Offsets", "TempOffset", Calib.Temp.Offset);
@@ -5526,7 +5534,7 @@ namespace CumulusMX
 		// WeatherLink Live transmitter Ids and indexes
 		public string WllApiKey;
 		public string WllApiSecret;
-		public string WllStationId;
+		public int WllStationId;
 		public int WllParentId;
 
 		public int WllBroadcastDuration = 300;
@@ -5569,9 +5577,9 @@ namespace CumulusMX
 		public bool AirLinkInIsNode;
 		public string AirLinkApiKey;
 		public string AirLinkApiSecret;
-		public string AirLinkInStationId;
+		public int AirLinkInStationId;
 		public bool AirLinkOutIsNode;
-		public string AirLinkOutStationId;
+		public int AirLinkOutStationId;
 		public bool AirLinkAutoUpdateIpAddress = true;
 
 		public int airQualityIndex = -1;
