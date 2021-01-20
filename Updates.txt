@@ -9,7 +9,7 @@
 - Fix: SampleStrings.ini changes/fixes. The following entries should not longer be quoted - Davis Forecast strings and CO₂ captions
 
 - Change: Recent graph hours now defaults for new installs to 72 hours instead of 24
-
+- Change: All alarm latch hours now default to 24 hours
 
 
 3.9.5 - b3100

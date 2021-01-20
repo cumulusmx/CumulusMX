@@ -4148,14 +4148,14 @@ namespace CumulusMX
 			SpikeAlarm.SoundFile = ini.GetValue("Alarms", "DataSpikeAlarmSoundFile", DefaultSoundFile);
 			SpikeAlarm.Notify = ini.GetValue("Alarms", "SpikeAlarmNotify", true);
 			SpikeAlarm.Latch = ini.GetValue("Alarms", "SpikeAlarmLatch", true);
-			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "SpikeAlarmLatchHours", 12);
+			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "SpikeAlarmLatchHours", 24);
 
 			UpgradeAlarm.Enabled = ini.GetValue("Alarms", "UpgradeAlarmSet", true);
 			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", true);
 			UpgradeAlarm.SoundFile = ini.GetValue("Alarms", "UpgradeAlarmSoundFile", DefaultSoundFile);
 			UpgradeAlarm.Notify = ini.GetValue("Alarms", "UpgradeAlarmNotify", true);
 			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
-			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 0);
+			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24);
 
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
