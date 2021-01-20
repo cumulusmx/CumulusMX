@@ -25,6 +25,7 @@ namespace CumulusMX
 			{
 				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
+				hostname = cumulus.AirLinkInHostName,
 				isNode = cumulus.AirLinkInIsNode,
 				stationId = cumulus.AirLinkInStationId
 			};
@@ -33,6 +34,7 @@ namespace CumulusMX
 			{
 				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
+				hostname = cumulus.AirLinkOutHostName,
 				isNode = cumulus.AirLinkOutIsNode,
 				stationId = cumulus.AirLinkOutStationId
 			};
@@ -126,8 +128,9 @@ namespace CumulusMX
 					cumulus.AirLinkInEnabled = settings.airLink.indoor.enabled;
 					cumulus.AirLinkInIsNode = settings.airLink.indoor.isNode;
 					cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
+					cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
 					cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
-					if (string.IsNullOrEmpty(cumulus.AirLinkInStationId) && cumulus.AirLinkInIsNode)
+					if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkInIsNode)
 					{
 						cumulus.AirLinkInStationId = cumulus.WllStationId;
 					}
@@ -135,8 +138,9 @@ namespace CumulusMX
 					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
 					cumulus.AirLinkOutIsNode = settings.airLink.outdoor.isNode;
 					cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
+					cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
 					cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
-					if (string.IsNullOrEmpty(cumulus.AirLinkOutStationId) && cumulus.AirLinkOutIsNode)
+					if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkOutIsNode)
 					{
 						cumulus.AirLinkOutStationId = cumulus.WllStationId;
 					}
@@ -242,8 +246,9 @@ namespace CumulusMX
 	{
 		public bool enabled { get; set; }
 		public string ipAddress { get; set; }
+		public string hostname { get; set; }
 		public bool isNode { get; set; }
-		public string stationId { get; set; }
+		public int stationId { get; set; }
 	}
 
 	public class JsonExtraSensorBlakeLarsen

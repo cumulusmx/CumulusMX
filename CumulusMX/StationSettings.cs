@@ -484,7 +484,7 @@ namespace CumulusMX
 					cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
 					cumulus.WllApiKey = settings.daviswll.api.apiKey;
 					cumulus.WllApiSecret = settings.daviswll.api.apiSecret;
-					cumulus.WllStationId = settings.daviswll.api.apiStationId == "-1" ? "" : settings.daviswll.api.apiStationId;
+					cumulus.WllStationId = settings.daviswll.api.apiStationId;
 
 					cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
 					cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
@@ -848,7 +848,7 @@ namespace CumulusMX
 	{
 		public string apiKey { get; set; }
 		public string apiSecret { get; set; }
-		public string apiStationId { get; set; }
+		public int apiStationId { get; set; }
 	}
 
 	internal class JsonStationSettingsWllPrimary

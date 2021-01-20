@@ -44,6 +44,7 @@ namespace CumulusMX
 
 		private DateTime airLinkLastUpdateTime;
 
+		private DiscoveredDevices discovered = new DiscoveredDevices();
 
 		public DavisAirLink(Cumulus cumulus, bool indoor, WeatherStation station)
 		{
@@ -63,14 +64,14 @@ namespace CumulusMX
 				(this.indoor ? cumulus.AirLinkInIsNode : cumulus.AirLinkOutIsNode) &&
 				!string.IsNullOrEmpty(cumulus.WllApiKey) &&
 				!string.IsNullOrEmpty(cumulus.WllApiSecret) &&
-				!string.IsNullOrEmpty(cumulus.WllStationId)
+				!(cumulus.WllStationId < 10)
 			);
 
 			// If we are standalone, are we configured to read history data?
 			standaloneHistory = standalone &&
 								!string.IsNullOrEmpty(cumulus.AirLinkApiKey) &&
 								!string.IsNullOrEmpty(cumulus.AirLinkApiSecret) &&
-								!(this.indoor ? string.IsNullOrEmpty(cumulus.AirLinkInStationId) : string.IsNullOrEmpty(cumulus.AirLinkOutStationId));
+								!(this.indoor ? cumulus.AirLinkInStationId < 10 : cumulus.AirLinkOutStationId < 10);
 
 			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({locationStr}) - standalone={standalone}");
 
@@ -94,6 +95,113 @@ namespace CumulusMX
 
 			// short wait for zero-config
 			Thread.Sleep(1000);
+
+			// Process the discovered device list
+			ipaddr = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
+			var hostname = indoor ? cumulus.AirLinkInHostName : cumulus.AirLinkOutHostName;
+			string msg;
+
+			if (discovered.IP.Count == 0)
+			{
+				// We didn't find anything on the network
+				msg = "Failed to discover any Airlink devices";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+			}
+			else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname))
+			{
+				var writeConfig = false;
+
+				// If only one device is discovered, and its Hostname address matches (or our Hostname is blank), then just use it
+				if (string.IsNullOrEmpty(hostname))
+				{
+					writeConfig = true;
+
+					if (indoor)
+						cumulus.AirLinkInHostName = discovered.Hostname[0];
+					else
+						cumulus.AirLinkOutHostName = discovered.Hostname[0];
+				}
+
+				if (discovered.IP.ToString() != ipaddr)
+				{
+					writeConfig = true;
+
+					cumulus.LogMessage($"Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
+
+					ipaddr = discovered.IP[0];
+
+					if (indoor)
+						cumulus.AirLinkInIPAddr = ipaddr;
+					else
+						cumulus.AirLinkOutIPAddr = ipaddr;
+				}
+
+				if (writeConfig)
+					cumulus.WriteIniFile();
+			}
+			else if (discovered.Hostname.Contains(hostname))
+			{
+				// Multiple devices discovered, but we have a Hostname match
+				cumulus.LogDebugMessage($"Matching {locationStr} Airlink hostname found on the network");
+
+				var idx = discovered.Hostname.IndexOf(hostname);
+
+				if (discovered.IP[idx] != ipaddr)
+				{
+					cumulus.LogMessage($"Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
+					ipaddr = discovered.IP[idx];
+					if (indoor)
+						cumulus.AirLinkInIPAddr = ipaddr;
+					else
+						cumulus.AirLinkOutIPAddr = ipaddr;
+
+					cumulus.WriteIniFile();
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"{locationStr} Airlink IP address has not changed");
+				}
+			}
+			else if (discovered.IP.Contains(ipaddr))
+			{
+				// Multiple devices discovered, no hostname match but we have an IP match
+				cumulus.LogDebugMessage($"Matching {locationStr} Airlink IP address found on the network");
+
+				var idx = discovered.IP.IndexOf(ipaddr);
+
+				if (discovered.Hostname[idx] != hostname)
+				{
+					cumulus.LogDebugMessage($"Changing previous {locationStr} hostname '{hostname}' to '{discovered.Hostname[idx]}'");
+					hostname = discovered.Hostname[idx];
+					if (indoor)
+						cumulus.AirLinkInHostName = hostname;
+					else
+						cumulus.AirLinkOutHostName = hostname;
+
+					cumulus.WriteIniFile();
+				}
+			}
+			else
+			{
+				// Multiple devices discovered, and we do not have a clue!
+				string list = "";
+				msg = "*** Discovered more than one potential Airlink device.";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+				msg = "*** Please select the Hostname/IP address from the list and enter it manually into the configuration";
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+				for (var i = 0; i < discovered.IP.Count; i++)
+				{
+					list += discovered.Hostname[i] + "/" + discovered.IP[i] + " ";
+				}
+				msg = "***   Discovered AirLinks = " + list;
+				cumulus.LogMessage(msg);
+				cumulus.LogConsoleMessage(msg);
+			}
 
 			wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
@@ -346,19 +454,19 @@ namespace CumulusMX
 								cumulus.airLinkDataIn.pm2p5_nowcast = rec.pm_2p5_nowcast;
 								if (type == 5)
 								{
-									cumulus.airLinkDataIn.pm10 = (double)rec.pm_10p0;
-									cumulus.airLinkDataIn.pm10_1hr = (double)rec.pm_10p0_last_1_hour;
-									cumulus.airLinkDataIn.pm10_3hr = (double)rec.pm_10p0_last_3_hours;
-									cumulus.airLinkDataIn.pm10_24hr = (double)rec.pm_10p0_last_24_hours;
-									cumulus.airLinkDataIn.pm10_nowcast = (double)rec.pm_10p0_nowcast;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10p0;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10p0_last_1_hour;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10p0_last_3_hours;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10p0_last_24_hours;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10p0_nowcast;
 								}
 								else
 								{
-									cumulus.airLinkDataIn.pm10 = (double)rec.pm_10;
-									cumulus.airLinkDataIn.pm10_1hr = (double)rec.pm_10_last_1_hour;
-									cumulus.airLinkDataIn.pm10_3hr = (double)rec.pm_10_last_3_hours;
-									cumulus.airLinkDataIn.pm10_24hr = (double)rec.pm_10_last_24_hours;
-									cumulus.airLinkDataIn.pm10_nowcast = (double)rec.pm_10_nowcast;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10_last_1_hour;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10_last_3_hours;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10_last_24_hours;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10_nowcast;
 								}
 								cumulus.airLinkDataIn.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataIn.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -378,19 +486,19 @@ namespace CumulusMX
 								cumulus.airLinkDataOut.pm2p5_nowcast = rec.pm_2p5_nowcast;
 								if (type == 5)
 								{
-									cumulus.airLinkDataOut.pm10 = (double)rec.pm_10p0;
-									cumulus.airLinkDataOut.pm10_1hr = (double)rec.pm_10p0_last_1_hour;
-									cumulus.airLinkDataOut.pm10_3hr = (double)rec.pm_10p0_last_3_hours;
-									cumulus.airLinkDataOut.pm10_24hr = (double)rec.pm_10p0_last_24_hours;
-									cumulus.airLinkDataOut.pm10_nowcast = (double)rec.pm_10p0_nowcast;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10p0;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10p0_last_1_hour;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10p0_last_3_hours;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10p0_last_24_hours;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10p0_nowcast;
 								}
 								else
 								{
-									cumulus.airLinkDataOut.pm10 = (double)rec.pm_10;
-									cumulus.airLinkDataOut.pm10_1hr = (double)rec.pm_10_last_1_hour;
-									cumulus.airLinkDataOut.pm10_3hr = (double)rec.pm_10_last_3_hours;
-									cumulus.airLinkDataOut.pm10_24hr = (double)rec.pm_10_last_24_hours;
-									cumulus.airLinkDataOut.pm10_nowcast = (double)rec.pm_10_nowcast;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10_last_1_hour;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10_last_3_hours;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10_last_24_hours;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10_nowcast;
 								}
 								cumulus.airLinkDataOut.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataOut.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -465,7 +573,7 @@ namespace CumulusMX
 				return;
 			}
 
-			if (stationId == string.Empty || int.Parse(stationId) < 10)
+			if (stationId < 10)
 			{
 				var msg = "No AirLink WeatherLink API station ID in the configuration";
 				cumulus.LogMessage(msg);
@@ -495,7 +603,7 @@ namespace CumulusMX
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
 				{ "api-key", cumulus.AirLinkApiKey },
-				{ "station-id", stationId },
+				{ "station-id", stationId.ToString() },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
 				{ "end-timestamp", endTime.ToString() }
@@ -887,7 +995,7 @@ namespace CumulusMX
 
 			string apiKey;
 			string apiSecret;
-			string stationId;
+			int stationId;
 
 			// Are we standalone?
 			if (standalone)
@@ -902,7 +1010,7 @@ namespace CumulusMX
 				apiKey = cumulus.AirLinkApiKey;
 				apiSecret = cumulus.AirLinkApiSecret;
 
-				if ((indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId) == string.Empty)
+				if ((indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId) < 10)
 				{
 					var msg = "Missing AirLink WeatherLink API station Id in the cumulus.ini file";
 					cumulus.LogConsoleMessage(msg);
@@ -914,7 +1022,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty || cumulus.WllStationId == string.Empty)
+				if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty || cumulus.WllStationId < 10)
 				{
 					cumulus.LogMessage("AirLinkHealth: Missing WLL WeatherLink API key/secret/station Id in the cumulus.ini file, aborting!");
 					return;
@@ -935,7 +1043,7 @@ namespace CumulusMX
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
 				{ "api-key", apiKey },
-				{ "station-id", stationId },
+				{ "station-id", stationId.ToString() },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
 				{ "end-timestamp", endTime.ToString() }
@@ -1265,7 +1373,7 @@ namespace CumulusMX
 						cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
 					}
 
-					if ((station.station_id == int.Parse(cumulus.AirLinkInStationId) || station.station_id == int.Parse(cumulus.AirLinkOutStationId)) && station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
+					if ((station.station_id == cumulus.AirLinkInStationId || station.station_id == cumulus.AirLinkOutStationId) && station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
 					{
 						cumulus.LogMessage($" - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 					}
@@ -1280,11 +1388,11 @@ namespace CumulusMX
 					cumulus.LogMessage($"Only found 1 WeatherLink station, using id = {stationsObj.stations[0].station_id}");
 					if (indoor)
 					{
-						cumulus.AirLinkInStationId = stationsObj.stations[0].station_id.ToString();
+						cumulus.AirLinkInStationId = stationsObj.stations[0].station_id;
 					}
 					else
 					{
-						cumulus.AirLinkOutStationId = stationsObj.stations[0].station_id.ToString();
+						cumulus.AirLinkOutStationId = stationsObj.stations[0].station_id;
 					}
 					// And save it to the config file
 					cumulus.WriteIniFile();
@@ -1310,7 +1418,7 @@ namespace CumulusMX
 				return;
 			}
 
-			if (cumulus.WllStationId == string.Empty || int.Parse(cumulus.WllStationId) < 10)
+			if (cumulus.WllStationId < 10)
 			{
 				cumulus.LogMessage($"GetAvailableSensors: No WeatherLink API station ID has been configured, aborting!");
 				return;
@@ -1386,12 +1494,12 @@ namespace CumulusMX
 					{
 						wl_sensor = new WlSensor(sensor.sensor_type, sensor.lsid, sensor.parent_device_id, sensor.product_name, sensor.parent_device_name);
 						sensorList.Add(wl_sensor);
-						if (wl_sensor.SensorType == 323 && sensor.station_id == int.Parse(cumulus.AirLinkOutStationId))
+						if (wl_sensor.SensorType == 323 && sensor.station_id == cumulus.AirLinkOutStationId)
 						{
 							cumulus.LogDebugMessage($"GetAvailableSensors: Setting AirLink Outdoor LSID to {wl_sensor.LSID}");
 							cumulus.airLinkOutLsid = wl_sensor.LSID;
 						}
-						else if (wl_sensor.SensorType == 326 && sensor.station_id == int.Parse(cumulus.AirLinkInStationId))
+						else if (wl_sensor.SensorType == 326 && sensor.station_id == cumulus.AirLinkInStationId)
 						{
 							cumulus.LogDebugMessage($"GetAvailableSensors: Setting AirLink Indoor LSID to {wl_sensor.LSID}");
 							cumulus.airLinkInLsid = wl_sensor.LSID;
@@ -1407,12 +1515,24 @@ namespace CumulusMX
 
 		private void OnServiceChanged(object sender, ServiceAnnouncementEventArgs e)
 		{
-			PrintService('~', e.Announcement);
+			cumulus.LogMessage($"ZeroConfig Service: AirLink {e.Announcement.Hostname} service has changed!");
+			if (discovered.Hostname.Contains(e.Announcement.Hostname))
+			{
+				var idx = discovered.Hostname.IndexOf(e.Announcement.Hostname);
+				cumulus.LogDebugMessage($"Changing Airlink {e.Announcement.Hostname}  IP address from {discovered.IP[idx]} to {e.Announcement.Addresses[0]}");
+				discovered.IP[idx] = e.Announcement.Addresses[0].ToString();
+			}
 		}
 
 		private void OnServiceRemoved(object sender, ServiceAnnouncementEventArgs e)
 		{
-			cumulus.LogMessage("ZeroConfig Service: AirLink service has been removed!");
+			cumulus.LogMessage($"ZeroConfig Service: AirLink {e.Announcement.Hostname} service has been removed!");
+			if (discovered.Hostname.Contains(e.Announcement.Hostname))
+			{
+				cumulus.LogDebugMessage($"ZeroConfig Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
+				discovered.Hostname.Remove(e.Announcement.Hostname);
+				discovered.IP.Remove(e.Announcement.Addresses[0].ToString());
+			}
 		}
 
 		private void OnServiceAdded(object sender, ServiceAnnouncementEventArgs e)
@@ -1425,7 +1545,8 @@ namespace CumulusMX
 			cumulus.LogDebugMessage($"ZeroConf Service: {startChar} '{service.Instance}' on {service.NetworkInterface.Name}");
 			cumulus.LogDebugMessage($"\tHost: {service.Hostname} ({string.Join(", ", service.Addresses)})");
 
-			var currIpAddr = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
+			//var currIpAddr = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
+			//var hostname = indoor ? cumulus.airLinkInHostName : cumulus.airLinkInHostName;
 
 			lock (threadSafer)
 			{
@@ -1434,8 +1555,17 @@ namespace CumulusMX
 					return;
 				}
 				ipaddr = service.Addresses[0].ToString();
-				cumulus.LogMessage($"AirLink found, reporting its IP address as: {ipaddr}");
-				if (currIpAddr != ipaddr)
+				cumulus.LogMessage($"ZeroConfig Service: AirLink found '{service.Hostname}', reporting its IP address as: {ipaddr}");
+
+				if (!discovered.Hostname.Contains(service.Hostname))
+				{
+					cumulus.LogDebugMessage($"ZeroConfig Service: Adding Airlink {service.Hostname} to list of discovered devices");
+					discovered.IP.Add(ipaddr);
+					discovered.Hostname.Add(service.Hostname);
+				}
+
+				/*
+				if (currIpAddr != ipaddr && service.Hostname == hostname)
 				{
 					cumulus.LogMessage($"AirLink IP address has changed from {currIpAddr} to {ipaddr}");
 					if (cumulus.AirLinkAutoUpdateIpAddress)
@@ -1456,6 +1586,7 @@ namespace CumulusMX
 						cumulus.LogMessage($"AirLink ignoring new IP address {ipaddr} due to setting AirLinkAutoUpdateIpAddress");
 					}
 				}
+				*/
 			}
 		}
 
@@ -1640,22 +1771,34 @@ namespace CumulusMX
 			public double pm_2p5_nowcast { get; set; }
 
 
-			public double? pm_10 { get; set; }		// Type 6
-			public double? pm_10p0 { get; set; }	// Type 5
+			public double pm_10 { get; set; }		// Type 6
+			public double pm_10p0 { get; set; }	// Type 5
 			public double pm_10_last { get; set; }
-			public double? pm_10_last_1_hour { get; set; }		// Type 6
-			public double? pm_10p0_last_1_hour { get; set; }	// Type 5
-			public double? pm_10_last_3_hours { get; set; }		// Type 6
-			public double? pm_10p0_last_3_hours { get; set; }   // Type 5
-			public double? pm_10_last_24_hours { get; set; }	// Type 6
-			public double? pm_10p0_last_24_hours { get; set; }  // Type 5
-			public double? pm_10_nowcast { get; set; }		// Type 6
-			public double? pm_10p0_nowcast { get; set; }	// Type 5
+			public double pm_10_last_1_hour { get; set; }		// Type 6
+			public double pm_10p0_last_1_hour { get; set; }	// Type 5
+			public double pm_10_last_3_hours { get; set; }		// Type 6
+			public double pm_10p0_last_3_hours { get; set; }   // Type 5
+			public double pm_10_last_24_hours { get; set; }	// Type 6
+			public double pm_10p0_last_24_hours { get; set; }  // Type 5
+			public double pm_10_nowcast { get; set; }		// Type 6
+			public double pm_10p0_nowcast { get; set; }	// Type 5
 
 			public int pct_pm_data_last_1_hour { get; set; }
 			public int pct_pm_data_last_3_hours { get; set; }
 			public int pct_pm_data_last_24_hours { get; set; }
 			public int pct_pm_data_nowcast { get; set; }
+		}
+
+		private class DiscoveredDevices
+		{
+			public List<string> IP { get; set; }
+			public List<string> Hostname { get; set; }
+
+			public DiscoveredDevices()
+			{
+				IP = new List<string>();
+				Hostname = new List<string>();
+			}
 		}
 	}
 
@@ -1691,5 +1834,4 @@ namespace CumulusMX
 		public string firmwareVersion { get; set; }
 		public int wifiRssi { get; set; }
 	}
-
 }

@@ -9826,9 +9826,9 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 256);
 			if (cumulus.airLinkIn != null)
 			{
-				json.Append($"[\"1 μm\",\"{cumulus.airLinkDataIn.pm1}\",\"--\",\"--\",\"--\",\"--\"],");
-				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataIn.pm2p5}\",\"{cumulus.airLinkDataIn.pm2p5_1hr}\",\"{cumulus.airLinkDataIn.pm2p5_3hr}\",\"{cumulus.airLinkDataIn.pm2p5_24hr}\",\"{cumulus.airLinkDataIn.pm2p5_nowcast}\"],");
-				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataIn.pm10}\",\"{cumulus.airLinkDataIn.pm10_1hr}\",\"{cumulus.airLinkDataIn.pm10_3hr}\",\"{cumulus.airLinkDataIn.pm10_24hr}\",\"{cumulus.airLinkDataIn.pm10_nowcast}\"]");
+				json.Append($"[\"1 μm\",\"{cumulus.airLinkDataIn.pm1:F1}\",\"--\",\"--\",\"--\",\"--\"],");
+				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataIn.pm2p5:F1}\",\"{cumulus.airLinkDataIn.pm2p5_1hr:F1}\",\"{cumulus.airLinkDataIn.pm2p5_3hr:F1}\",\"{cumulus.airLinkDataIn.pm2p5_24hr:F1}\",\"{cumulus.airLinkDataIn.pm2p5_nowcast:F1}\"],");
+				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataIn.pm10:F1}\",\"{cumulus.airLinkDataIn.pm10_1hr:F1}\",\"{cumulus.airLinkDataIn.pm10_3hr:F1}\",\"{cumulus.airLinkDataIn.pm10_24hr:F1}\",\"{cumulus.airLinkDataIn.pm10_nowcast:F1}\"]");
 			}
 			else
 			{

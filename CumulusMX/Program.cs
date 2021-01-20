@@ -29,6 +29,13 @@ namespace CumulusMX
             //var ci = new CultureInfo("en-GB");
             //System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 
+            if (windows)
+            {
+                // set the working path to the exe location
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+            }
+
+
             var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
             if (File.Exists(logfile))
                 File.Delete(logfile);
@@ -57,7 +64,10 @@ namespace CumulusMX
                         // Wait for a signal to be delivered
                         unixSignalWaitAny?.Invoke(null, new object[] {signals});
 
-                        cumulus.LogConsoleMessage("\nExiting system due to external SIGTERM signal");
+                        if (cumulus != null)
+                        {
+                            cumulus.LogConsoleMessage("\nExiting system due to external SIGTERM signal");
+                        }
 
                         exitSystem = true;
                     }
@@ -68,19 +78,17 @@ namespace CumulusMX
                 // Now we need to catch the console Ctrl-C
                 Console.CancelKeyPress += (s, ev) =>
                 {
-                    cumulus.LogConsoleMessage("Ctrl+C pressed");
-                    cumulus.LogConsoleMessage("\nCumulus terminating");
-                    cumulus.Stop();
+                    if (cumulus != null)
+                    {
+                        cumulus.LogConsoleMessage("Ctrl+C pressed");
+                        cumulus.LogConsoleMessage("\nCumulus terminating");
+                        cumulus.Stop();
+                    }
                     Trace.WriteLine("Cumulus has shutdown");
                     ev.Cancel = true;
                     exitSystem = true;
                 };
 
-            }
-            else
-            {
-                // set the working path to the exe location
-                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             }
 
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
@@ -299,12 +307,14 @@ namespace CumulusMX
         private static bool Handler(CtrlType sig)
         {
             var reason = new[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
-            //Console.WriteLine("Cumulus terminating");
-            Program.cumulus.LogConsoleMessage("Cumulus terminating");
 
             Trace.WriteLine("Exiting system due to external: " + reason[(int)sig]);
 
-            Program.cumulus.Stop();
+            if (Program.cumulus != null)
+            {
+                Program.cumulus.LogConsoleMessage("Cumulus terminating");
+                Program.cumulus.Stop();
+            }
 
             Trace.WriteLine("Cumulus has shutdown");
             Console.WriteLine("Cumulus stopped");

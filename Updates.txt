@@ -1,3 +1,17 @@
+3.9.6 - b3101
+—————————————
+- Fix: NOAA monthly report min temp/rain not formatting in dot decimal correctly
+- Fix: Windows console log no longer being created
+- Fix: Fix for exit handlers being called before cumulus instance is initialised causing an unhandled exception
+- Fix: Airlink auto-discovery/update when you have more than one Airlink device
+- Fix: Upgrade & Spike alarm latch hours not being saved/read correctly. You will need to check the values after installing this release.
+- Fix: Rework both the interface graphs and default web site graphs JavaScript files
+- Fix: SampleStrings.ini changes/fixes. The following entries should not longer be quoted - Davis Forecast strings and CO₂ captions
+
+- Change: Recent graph hours now defaults for new installs to 72 hours instead of 24
+- Change: All alarm latch hours now default to 24 hours
+
+
 3.9.5 - b3100
 —————————————
 - Fix: Alarms being cleared after their defined latch time even if latching was disabled

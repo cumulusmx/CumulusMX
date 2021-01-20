@@ -530,7 +530,7 @@ namespace CumulusMX
 						cumulus.WriteIniFile();
 					}
 				}
-				else 
+				else
 				{
 					// Multiple devices discovered, and we do not have a clue!
 
@@ -538,7 +538,7 @@ namespace CumulusMX
 					msg = "Discovered more than one potential GW1000 device.";
 					cumulus.LogMessage(msg);
 					cumulus.LogConsoleMessage(msg);
-					msg = "Please select the IP adress from the list and enter it manually into the configuration";
+					msg = "Please select the IP address from the list and enter it manually into the configuration";
 					cumulus.LogMessage(msg);
 					cumulus.LogConsoleMessage(msg);
 					for (var i = 0; i < discoveredDevices.IP.Count; i++)

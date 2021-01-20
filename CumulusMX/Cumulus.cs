@@ -32,8 +32,8 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.5";
-		public string Build = "3100";
+		public string Version = "3.9.6";
+		public string Build = "3101";
 		/////////////////////////////////
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
@@ -194,8 +194,10 @@ namespace CumulusMX
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid;
+		public string AirLinkInHostName;
 		internal DavisAirLink airLinkOut;
 		public int airLinkOutLsid;
+		public string AirLinkOutHostName;
 
 		public DateTime LastUpdateTime;
 
@@ -3740,8 +3742,8 @@ namespace CumulusMX
 			// WeatherLink Live device settings
 			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", "");
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
-			WllStationId = ini.GetValue("WLL", "WLStationId", "");
-			if (WllStationId == "-1") WllStationId = "";
+			WllStationId = ini.GetValue("WLL", "WLStationId", -1);
+			//if (WllStationId == "-1") WllStationId = "";
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 1200);     // Readonly setting, default 20 minutes
 			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);            // Readonly setting, default 22222
@@ -3789,13 +3791,16 @@ namespace CumulusMX
 			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
 			AirLinkInIsNode = ini.GetValue("AirLink", "In-IsNode", false);
-			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", "");
-			if (AirLinkInStationId == "" && AirLinkInIsNode) AirLinkInStationId = WllStationId;
+			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", -1);
+			if (AirLinkInStationId == -1 && AirLinkInIsNode) AirLinkInStationId = WllStationId;
+			AirLinkInHostName = ini.GetValue("AirLink", "In-Hostname", "");
+
 			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
 			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
 			AirLinkOutIsNode = ini.GetValue("AirLink", "Out-IsNode", false);
-			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", "");
-			if (AirLinkOutStationId == "" && AirLinkOutIsNode) AirLinkOutStationId = WllStationId;
+			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", -1);
+			if (AirLinkOutStationId == -1 && AirLinkOutIsNode) AirLinkOutStationId = WllStationId;
+			AirLinkOutHostName = ini.GetValue("AirLink", "Out-Hostname", "");
 
 			airQualityIndex = ini.GetValue("AirLink", "AQIformula", 0);
 
@@ -3869,7 +3874,7 @@ namespace CumulusMX
 			CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
 
 			GraphDays = ini.GetValue("Graphs", "ChartMaxDays", 31);
-			GraphHours = ini.GetValue("Graphs", "GraphHours", 24);
+			GraphHours = ini.GetValue("Graphs", "GraphHours", 72);
 			MoonImageEnabled = ini.GetValue("Graphs", "MoonImageEnabled", false);
 			MoonImageSize = ini.GetValue("Graphs", "MoonImageSize", 100);
 			MoonImageFtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
@@ -4143,14 +4148,14 @@ namespace CumulusMX
 			SpikeAlarm.SoundFile = ini.GetValue("Alarms", "DataSpikeAlarmSoundFile", DefaultSoundFile);
 			SpikeAlarm.Notify = ini.GetValue("Alarms", "SpikeAlarmNotify", true);
 			SpikeAlarm.Latch = ini.GetValue("Alarms", "SpikeAlarmLatch", true);
-			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "SpikeAlarmLatchHours", 12);
+			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "SpikeAlarmLatchHours", 24);
 
 			UpgradeAlarm.Enabled = ini.GetValue("Alarms", "UpgradeAlarmSet", true);
 			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", true);
 			UpgradeAlarm.SoundFile = ini.GetValue("Alarms", "UpgradeAlarmSoundFile", DefaultSoundFile);
 			UpgradeAlarm.Notify = ini.GetValue("Alarms", "UpgradeAlarmNotify", true);
 			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
-			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 0);
+			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24);
 
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
@@ -4500,10 +4505,13 @@ namespace CumulusMX
 			ini.SetValue("AirLink", "In-IPAddress", AirLinkInIPAddr);
 			ini.SetValue("AirLink", "In-IsNode", AirLinkInIsNode);
 			ini.SetValue("AirLink", "In-WLStationId", AirLinkInStationId);
+			ini.SetValue("AirLink", "In-Hostname", AirLinkInHostName);
+
 			ini.SetValue("AirLink", "Out-Enabled", AirLinkOutEnabled);
 			ini.SetValue("AirLink", "Out-IPAddress", AirLinkOutIPAddr);
 			ini.SetValue("AirLink", "Out-IsNode", AirLinkOutIsNode);
 			ini.SetValue("AirLink", "Out-WLStationId", AirLinkOutStationId);
+			ini.SetValue("AirLink", "Out-Hostname", AirLinkOutHostName);
 			ini.SetValue("AirLink", "AQIformula", airQualityIndex);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
@@ -4775,14 +4783,14 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataSpikeAlarmSoundFile", SpikeAlarm.SoundFile);
 			ini.SetValue("Alarms", "DataSpikeAlarmNotify", SpikeAlarm.Notify);
 			ini.SetValue("Alarms", "DataSpikeAlarmLatch", SpikeAlarm.Latch);
-			ini.SetValue("Alarms", "DataSpikeAlarmHours", SpikeAlarm.LatchHours);
+			ini.SetValue("Alarms", "DataSpikeAlarmLatchHours", SpikeAlarm.LatchHours);
 
 			ini.SetValue("Alarms", "UpgradeAlarmSet", UpgradeAlarm.Enabled);
 			ini.SetValue("Alarms", "UpgradeAlarmSound", UpgradeAlarm.Sound);
 			ini.SetValue("Alarms", "UpgradeAlarmSoundFile", UpgradeAlarm.SoundFile);
 			ini.SetValue("Alarms", "UpgradeAlarmNotify", UpgradeAlarm.Notify);
 			ini.SetValue("Alarms", "UpgradeAlarmLatch", UpgradeAlarm.Latch);
-			ini.SetValue("Alarms", "UpgradeAlarmHours", UpgradeAlarm.LatchHours);
+			ini.SetValue("Alarms", "UpgradeAlarmLatchHours", UpgradeAlarm.LatchHours);
 
 			ini.SetValue("Offsets", "PressOffset", Calib.Press.Offset);
 			ini.SetValue("Offsets", "TempOffset", Calib.Temp.Offset);
@@ -5183,52 +5191,52 @@ namespace CumulusMX
 				thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", thereWillBeMinSMoreDaylightTomorrow);
 
 				DavisForecast1[0] = ini.GetValue("DavisForecast1", "forecast1", DavisForecast1[0]);
-				DavisForecast1[1] = ini.GetValue("DavisForecast1", "forecast2", DavisForecast1[1]);
-				DavisForecast1[2] = ini.GetValue("DavisForecast1", "forecast3", DavisForecast1[2]);
-				DavisForecast1[3] = ini.GetValue("DavisForecast1", "forecast4", DavisForecast1[3]);
-				DavisForecast1[4] = ini.GetValue("DavisForecast1", "forecast5", DavisForecast1[4]);
-				DavisForecast1[5] = ini.GetValue("DavisForecast1", "forecast6", DavisForecast1[5]);
-				DavisForecast1[6] = ini.GetValue("DavisForecast1", "forecast7", DavisForecast1[6]);
-				DavisForecast1[7] = ini.GetValue("DavisForecast1", "forecast8", DavisForecast1[7]);
-				DavisForecast1[8] = ini.GetValue("DavisForecast1", "forecast9", DavisForecast1[8]);
-				DavisForecast1[9] = ini.GetValue("DavisForecast1", "forecast10", DavisForecast1[9]);
-				DavisForecast1[10] = ini.GetValue("DavisForecast1", "forecast11", DavisForecast1[10]);
-				DavisForecast1[11] = ini.GetValue("DavisForecast1", "forecast12", DavisForecast1[11]);
-				DavisForecast1[12] = ini.GetValue("DavisForecast1", "forecast13", DavisForecast1[12]);
-				DavisForecast1[13] = ini.GetValue("DavisForecast1", "forecast14", DavisForecast1[13]);
-				DavisForecast1[14] = ini.GetValue("DavisForecast1", "forecast15", DavisForecast1[14]);
-				DavisForecast1[15] = ini.GetValue("DavisForecast1", "forecast16", DavisForecast1[15]);
-				DavisForecast1[16] = ini.GetValue("DavisForecast1", "forecast17", DavisForecast1[16]);
-				DavisForecast1[17] = ini.GetValue("DavisForecast1", "forecast18", DavisForecast1[17]);
-				DavisForecast1[18] = ini.GetValue("DavisForecast1", "forecast19", DavisForecast1[18]);
-				DavisForecast1[19] = ini.GetValue("DavisForecast1", "forecast20", DavisForecast1[19]);
-				DavisForecast1[20] = ini.GetValue("DavisForecast1", "forecast21", DavisForecast1[20]);
-				DavisForecast1[21] = ini.GetValue("DavisForecast1", "forecast22", DavisForecast1[21]);
-				DavisForecast1[22] = ini.GetValue("DavisForecast1", "forecast23", DavisForecast1[22]);
-				DavisForecast1[23] = ini.GetValue("DavisForecast1", "forecast24", DavisForecast1[23]);
-				DavisForecast1[24] = ini.GetValue("DavisForecast1", "forecast25", DavisForecast1[24]);
-				DavisForecast1[25] = ini.GetValue("DavisForecast1", "forecast26", DavisForecast1[25]);
+				DavisForecast1[1] = ini.GetValue("DavisForecast1", "forecast2", DavisForecast1[1]) + " ";
+				DavisForecast1[2] = ini.GetValue("DavisForecast1", "forecast3", DavisForecast1[2]) + " ";
+				DavisForecast1[3] = ini.GetValue("DavisForecast1", "forecast4", DavisForecast1[3]) + " ";
+				DavisForecast1[4] = ini.GetValue("DavisForecast1", "forecast5", DavisForecast1[4]) + " ";
+				DavisForecast1[5] = ini.GetValue("DavisForecast1", "forecast6", DavisForecast1[5]) + " ";
+				DavisForecast1[6] = ini.GetValue("DavisForecast1", "forecast7", DavisForecast1[6]) + " ";
+				DavisForecast1[7] = ini.GetValue("DavisForecast1", "forecast8", DavisForecast1[7]) + " ";
+				DavisForecast1[8] = ini.GetValue("DavisForecast1", "forecast9", DavisForecast1[8]) + " ";
+				DavisForecast1[9] = ini.GetValue("DavisForecast1", "forecast10", DavisForecast1[9]) + " ";
+				DavisForecast1[10] = ini.GetValue("DavisForecast1", "forecast11", DavisForecast1[10]) + " ";
+				DavisForecast1[11] = ini.GetValue("DavisForecast1", "forecast12", DavisForecast1[11]) + " ";
+				DavisForecast1[12] = ini.GetValue("DavisForecast1", "forecast13", DavisForecast1[12]) + " ";
+				DavisForecast1[13] = ini.GetValue("DavisForecast1", "forecast14", DavisForecast1[13]) + " ";
+				DavisForecast1[14] = ini.GetValue("DavisForecast1", "forecast15", DavisForecast1[14]) + " ";
+				DavisForecast1[15] = ini.GetValue("DavisForecast1", "forecast16", DavisForecast1[15]) + " ";
+				DavisForecast1[16] = ini.GetValue("DavisForecast1", "forecast17", DavisForecast1[16]) + " ";
+				DavisForecast1[17] = ini.GetValue("DavisForecast1", "forecast18", DavisForecast1[17]) + " ";
+				DavisForecast1[18] = ini.GetValue("DavisForecast1", "forecast19", DavisForecast1[18]) + " ";
+				DavisForecast1[19] = ini.GetValue("DavisForecast1", "forecast20", DavisForecast1[19]) + " ";
+				DavisForecast1[20] = ini.GetValue("DavisForecast1", "forecast21", DavisForecast1[20]) + " ";
+				DavisForecast1[21] = ini.GetValue("DavisForecast1", "forecast22", DavisForecast1[21]) + " ";
+				DavisForecast1[22] = ini.GetValue("DavisForecast1", "forecast23", DavisForecast1[22]) + " ";
+				DavisForecast1[23] = ini.GetValue("DavisForecast1", "forecast24", DavisForecast1[23]) + " ";
+				DavisForecast1[24] = ini.GetValue("DavisForecast1", "forecast25", DavisForecast1[24]) + " ";
+				DavisForecast1[25] = ini.GetValue("DavisForecast1", "forecast26", DavisForecast1[25]) + " ";
 				DavisForecast1[26] = ini.GetValue("DavisForecast1", "forecast27", DavisForecast1[26]);
 
 				DavisForecast2[0] = ini.GetValue("DavisForecast2", "forecast1", DavisForecast2[0]);
-				DavisForecast2[1] = ini.GetValue("DavisForecast2", "forecast2", DavisForecast2[1]);
-				DavisForecast2[2] = ini.GetValue("DavisForecast2", "forecast3", DavisForecast2[2]);
-				DavisForecast2[3] = ini.GetValue("DavisForecast2", "forecast4", DavisForecast2[3]);
-				DavisForecast2[4] = ini.GetValue("DavisForecast2", "forecast5", DavisForecast2[5]);
-				DavisForecast2[5] = ini.GetValue("DavisForecast2", "forecast6", DavisForecast2[5]);
-				DavisForecast2[6] = ini.GetValue("DavisForecast2", "forecast7", DavisForecast2[6]);
-				DavisForecast2[7] = ini.GetValue("DavisForecast2", "forecast8", DavisForecast2[7]);
-				DavisForecast2[8] = ini.GetValue("DavisForecast2", "forecast9", DavisForecast2[8]);
-				DavisForecast2[9] = ini.GetValue("DavisForecast2", "forecast10", DavisForecast2[9]);
-				DavisForecast2[10] = ini.GetValue("DavisForecast2", "forecast11", DavisForecast2[10]);
-				DavisForecast2[11] = ini.GetValue("DavisForecast2", "forecast12", DavisForecast2[11]);
-				DavisForecast2[12] = ini.GetValue("DavisForecast2", "forecast13", DavisForecast2[12]);
-				DavisForecast2[13] = ini.GetValue("DavisForecast2", "forecast14", DavisForecast2[13]);
-				DavisForecast2[14] = ini.GetValue("DavisForecast2", "forecast15", DavisForecast2[14]);
-				DavisForecast2[15] = ini.GetValue("DavisForecast2", "forecast16", DavisForecast2[15]);
-				DavisForecast2[16] = ini.GetValue("DavisForecast2", "forecast17", DavisForecast2[16]);
-				DavisForecast2[17] = ini.GetValue("DavisForecast2", "forecast18", DavisForecast2[17]);
-				DavisForecast2[18] = ini.GetValue("DavisForecast2", "forecast19", DavisForecast2[18]);
+				DavisForecast2[1] = ini.GetValue("DavisForecast2", "forecast2", DavisForecast2[1]) + " ";
+				DavisForecast2[2] = ini.GetValue("DavisForecast2", "forecast3", DavisForecast2[2]) + " ";
+				DavisForecast2[3] = ini.GetValue("DavisForecast2", "forecast4", DavisForecast2[3]) + " ";
+				DavisForecast2[4] = ini.GetValue("DavisForecast2", "forecast5", DavisForecast2[5]) + " ";
+				DavisForecast2[5] = ini.GetValue("DavisForecast2", "forecast6", DavisForecast2[5]) + " ";
+				DavisForecast2[6] = ini.GetValue("DavisForecast2", "forecast7", DavisForecast2[6]) + " ";
+				DavisForecast2[7] = ini.GetValue("DavisForecast2", "forecast8", DavisForecast2[7]) + " ";
+				DavisForecast2[8] = ini.GetValue("DavisForecast2", "forecast9", DavisForecast2[8]) + " ";
+				DavisForecast2[9] = ini.GetValue("DavisForecast2", "forecast10", DavisForecast2[9]) + " ";
+				DavisForecast2[10] = ini.GetValue("DavisForecast2", "forecast11", DavisForecast2[10]) + " ";
+				DavisForecast2[11] = ini.GetValue("DavisForecast2", "forecast12", DavisForecast2[11]) + " ";
+				DavisForecast2[12] = ini.GetValue("DavisForecast2", "forecast13", DavisForecast2[12]) + " ";
+				DavisForecast2[13] = ini.GetValue("DavisForecast2", "forecast14", DavisForecast2[13]) + " ";
+				DavisForecast2[14] = ini.GetValue("DavisForecast2", "forecast15", DavisForecast2[14]) + " ";
+				DavisForecast2[15] = ini.GetValue("DavisForecast2", "forecast16", DavisForecast2[15]) + " ";
+				DavisForecast2[16] = ini.GetValue("DavisForecast2", "forecast17", DavisForecast2[16]) + " ";
+				DavisForecast2[17] = ini.GetValue("DavisForecast2", "forecast18", DavisForecast2[17]) + " ";
+				DavisForecast2[18] = ini.GetValue("DavisForecast2", "forecast19", DavisForecast2[18]) + " ";
 
 				DavisForecast3[0] = ini.GetValue("DavisForecast3", "forecast1", DavisForecast3[0]);
 				DavisForecast3[1] = ini.GetValue("DavisForecast3", "forecast2", DavisForecast3[1]);
@@ -5526,7 +5534,7 @@ namespace CumulusMX
 		// WeatherLink Live transmitter Ids and indexes
 		public string WllApiKey;
 		public string WllApiSecret;
-		public string WllStationId;
+		public int WllStationId;
 		public int WllParentId;
 
 		public int WllBroadcastDuration = 300;
@@ -5569,9 +5577,9 @@ namespace CumulusMX
 		public bool AirLinkInIsNode;
 		public string AirLinkApiKey;
 		public string AirLinkApiSecret;
-		public string AirLinkInStationId;
+		public int AirLinkInStationId;
 		public bool AirLinkOutIsNode;
-		public string AirLinkOutStationId;
+		public int AirLinkOutStationId;
 		public bool AirLinkAutoUpdateIpAddress = true;
 
 		public int airQualityIndex = -1;
@@ -7755,67 +7763,67 @@ namespace CumulusMX
 				{
 					var InvC = new CultureInfo("");
 
-					file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss ")); // 1, 2
-					file.Write(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' '); // 3
-					file.Write(station.OutdoorHumidity.ToString() + ' '); // 4
-					file.Write(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' '); // 5
-					file.Write(station.WindAverage.ToString(WindAvgFormat, InvC) + ' '); // 6
-					file.Write(station.WindLatest.ToString(WindFormat, InvC) + ' '); // 7
-					file.Write(station.Bearing.ToString() + ' '); // 8
-					file.Write(station.RainRate.ToString(RainFormat, InvC) + ' '); // 9
-					file.Write(station.RainToday.ToString(RainFormat, InvC) + ' '); // 10
-					file.Write(station.Pressure.ToString(PressFormat, InvC) + ' '); // 11
-					file.Write(station.CompassPoint(station.Bearing) + ' '); // 12
-					file.Write(Beaufort(station.WindAverage) + ' '); // 13
-					file.Write(WindUnitText + ' '); // 14
-					file.Write(TempUnitText[1].ToString() + ' '); // 15
-					file.Write(PressUnitText + ' '); // 16
-					file.Write(RainUnitText + ' '); // 17
-					file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' '); // 18
+					file.Write(timestamp.ToString("dd/MM/yy HH:mm:ss "));                          // 1, 2
+					file.Write(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' ');       // 3
+					file.Write(station.OutdoorHumidity.ToString() + ' ');                          // 4
+					file.Write(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' ');          // 5
+					file.Write(station.WindAverage.ToString(WindAvgFormat, InvC) + ' ');           // 6
+					file.Write(station.WindLatest.ToString(WindFormat, InvC) + ' ');               // 7
+					file.Write(station.Bearing.ToString() + ' ');                                  // 8
+					file.Write(station.RainRate.ToString(RainFormat, InvC) + ' ');                 // 9
+					file.Write(station.RainToday.ToString(RainFormat, InvC) + ' ');                // 10
+					file.Write(station.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
+					file.Write(station.CompassPoint(station.Bearing) + ' ');                       // 12
+					file.Write(Beaufort(station.WindAverage) + ' ');                               // 13
+					file.Write(WindUnitText + ' ');                                                // 14
+					file.Write(TempUnitText[1].ToString() + ' ');                                  // 15
+					file.Write(PressUnitText + ' ');                                               // 16
+					file.Write(RainUnitText + ' ');                                                // 17
+					file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
 					if (station.presstrendval > 0)
 						file.Write('+' + station.presstrendval.ToString(PressFormat, InvC) + ' '); // 19
 					else
 						file.Write(station.presstrendval.ToString(PressFormat, InvC) + ' ');
-					file.Write(station.RainMonth.ToString(RainFormat, InvC) + ' '); // 20
-					file.Write(station.RainYear.ToString(RainFormat, InvC) + ' '); // 21
-					file.Write(station.RainYesterday.ToString(RainFormat, InvC) + ' '); // 22
-					file.Write(station.IndoorTemperature.ToString(TempFormat, InvC) + ' '); // 23
-					file.Write(station.IndoorHumidity.ToString() + ' '); // 24
-					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' '); // 25
-					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' '); // 26
-					file.Write(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ' '); // 27
-					file.Write(station.HiLoToday.HighTempTime.ToString("HH:mm ") ); // 28
-					file.Write(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ' '); // 29
-					file.Write(station.HiLoToday.LowTempTime.ToString("HH:mm ")); // 30
-					file.Write(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' '); // 31
-					file.Write(station.HiLoToday.HighWindTime.ToString("HH:mm ")); // 32
-					file.Write(station.HiLoToday.HighGust.ToString(WindFormat, InvC) + ' '); // 33
-					file.Write(station.HiLoToday.HighGustTime.ToString("HH:mm ")); // 34
-					file.Write(station.HiLoToday.HighPress.ToString(PressFormat, InvC) + ' '); // 35
-					file.Write(station.HiLoToday.HighPressTime.ToString("HH:mm ")); // 36
-					file.Write(station.HiLoToday.LowPress.ToString(PressFormat, InvC) + ' '); // 37
-					file.Write(station.HiLoToday.LowPressTime.ToString("HH:mm ")); // 38
-					file.Write(Version + ' '); // 39
-					file.Write(Build + ' '); // 40
-					file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' '); // 41
-					file.Write(station.HeatIndex.ToString(TempFormat, InvC) + ' '); // 42
-					file.Write(station.Humidex.ToString(TempFormat, InvC) + ' '); // 43
-					file.Write(station.UV.ToString(UVFormat, InvC) + ' '); // 44
-					file.Write(station.ET.ToString(ETFormat, InvC) + ' '); // 45
-					file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' '); // 46
-					file.Write(station.AvgBearing.ToString() + ' '); // 47
-					file.Write(station.RainLastHour.ToString(RainFormat, InvC) + ' '); // 48
-					file.Write(station.Forecastnumber.ToString() + ' '); // 49
-					file.Write(IsDaylight() ? "1 " : "0 ");
-					file.Write(station.SensorContactLost ? "1 " : "0 ");
-					file.Write(station.CompassPoint(station.AvgBearing) + ' '); // 52
-					file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' '); // 53
-					file.Write(CloudBaseInFeet ? "ft " : "m ");
-					file.Write(station.ApparentTemperature.ToString(TempFormat, InvC) + ' '); // 55
-					file.Write(station.SunshineHours.ToString(SunFormat, InvC) + ' '); // 56
-					file.Write(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' '); // 57
-					file.Write(station.IsSunny ? "1 " : "0 "); // 58
-					file.WriteLine(station.FeelsLike.ToString(TempFormat, InvC)); // 59
+					file.Write(station.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
+					file.Write(station.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
+					file.Write(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
+					file.Write(station.IndoorTemperature.ToString(TempFormat, InvC) + ' ');        // 23
+					file.Write(station.IndoorHumidity.ToString() + ' ');                           // 24
+					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' ');                // 25
+					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' ');        // 26
+					file.Write(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ' ');       // 27
+					file.Write(station.HiLoToday.HighTempTime.ToString("HH:mm ") );                // 28
+					file.Write(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ' ');        // 29
+					file.Write(station.HiLoToday.LowTempTime.ToString("HH:mm "));                  // 30
+					file.Write(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' ');    // 31
+					file.Write(station.HiLoToday.HighWindTime.ToString("HH:mm "));                 // 32
+					file.Write(station.HiLoToday.HighGust.ToString(WindFormat, InvC) + ' ');       // 33
+					file.Write(station.HiLoToday.HighGustTime.ToString("HH:mm "));                 // 34
+					file.Write(station.HiLoToday.HighPress.ToString(PressFormat, InvC) + ' ');     // 35
+					file.Write(station.HiLoToday.HighPressTime.ToString("HH:mm "));                // 36
+					file.Write(station.HiLoToday.LowPress.ToString(PressFormat, InvC) + ' ');      // 37
+					file.Write(station.HiLoToday.LowPressTime.ToString("HH:mm "));                 // 38
+					file.Write(Version + ' ');                                                     // 39
+					file.Write(Build + ' ');                                                       // 40
+					file.Write(station.RecentMaxGust.ToString(WindFormat, InvC) + ' ');            // 41
+					file.Write(station.HeatIndex.ToString(TempFormat, InvC) + ' ');                // 42
+					file.Write(station.Humidex.ToString(TempFormat, InvC) + ' ');                  // 43
+					file.Write(station.UV.ToString(UVFormat, InvC) + ' ');                         // 44
+					file.Write(station.ET.ToString(ETFormat, InvC) + ' ');                         // 45
+					file.Write((Convert.ToInt32(station.SolarRad)).ToString() + ' ');              // 46
+					file.Write(station.AvgBearing.ToString() + ' ');                               // 47
+					file.Write(station.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
+					file.Write(station.Forecastnumber.ToString() + ' ');                           // 49
+					file.Write(IsDaylight() ? "1 " : "0 ");                                        // 50
+					file.Write(station.SensorContactLost ? "1 " : "0 ");                           // 51
+					file.Write(station.CompassPoint(station.AvgBearing) + ' ');                    // 52
+					file.Write((Convert.ToInt32(station.CloudBase)).ToString() + ' ');             // 53
+					file.Write(CloudBaseInFeet ? "ft " : "m ");                                    // 54
+					file.Write(station.ApparentTemperature.ToString(TempFormat, InvC) + ' ');      // 55
+					file.Write(station.SunshineHours.ToString(SunFormat, InvC) + ' ');             // 56
+					file.Write(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' ');         // 57
+					file.Write(station.IsSunny ? "1 " : "0 ");                                     // 58
+					file.WriteLine(station.FeelsLike.ToString(TempFormat, InvC));                  // 59
 
 				file.Close();
 				}
