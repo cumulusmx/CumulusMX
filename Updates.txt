@@ -1,3 +1,8 @@
+3.9.7 - b3102
+—————————————
+
+
+
 3.9.6 - b3101
 —————————————
 - Fix: NOAA monthly report min temp/rain not formatting in dot decimal correctly
