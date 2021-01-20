@@ -454,19 +454,19 @@ namespace CumulusMX
 								cumulus.airLinkDataIn.pm2p5_nowcast = rec.pm_2p5_nowcast;
 								if (type == 5)
 								{
-									cumulus.airLinkDataIn.pm10 = (double)rec.pm_10p0;
-									cumulus.airLinkDataIn.pm10_1hr = (double)rec.pm_10p0_last_1_hour;
-									cumulus.airLinkDataIn.pm10_3hr = (double)rec.pm_10p0_last_3_hours;
-									cumulus.airLinkDataIn.pm10_24hr = (double)rec.pm_10p0_last_24_hours;
-									cumulus.airLinkDataIn.pm10_nowcast = (double)rec.pm_10p0_nowcast;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10p0;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10p0_last_1_hour;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10p0_last_3_hours;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10p0_last_24_hours;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10p0_nowcast;
 								}
 								else
 								{
-									cumulus.airLinkDataIn.pm10 = (double)rec.pm_10;
-									cumulus.airLinkDataIn.pm10_1hr = (double)rec.pm_10_last_1_hour;
-									cumulus.airLinkDataIn.pm10_3hr = (double)rec.pm_10_last_3_hours;
-									cumulus.airLinkDataIn.pm10_24hr = (double)rec.pm_10_last_24_hours;
-									cumulus.airLinkDataIn.pm10_nowcast = (double)rec.pm_10_nowcast;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10_last_1_hour;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10_last_3_hours;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10_last_24_hours;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10_nowcast;
 								}
 								cumulus.airLinkDataIn.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataIn.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -486,19 +486,19 @@ namespace CumulusMX
 								cumulus.airLinkDataOut.pm2p5_nowcast = rec.pm_2p5_nowcast;
 								if (type == 5)
 								{
-									cumulus.airLinkDataOut.pm10 = (double)rec.pm_10p0;
-									cumulus.airLinkDataOut.pm10_1hr = (double)rec.pm_10p0_last_1_hour;
-									cumulus.airLinkDataOut.pm10_3hr = (double)rec.pm_10p0_last_3_hours;
-									cumulus.airLinkDataOut.pm10_24hr = (double)rec.pm_10p0_last_24_hours;
-									cumulus.airLinkDataOut.pm10_nowcast = (double)rec.pm_10p0_nowcast;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10p0;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10p0_last_1_hour;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10p0_last_3_hours;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10p0_last_24_hours;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10p0_nowcast;
 								}
 								else
 								{
-									cumulus.airLinkDataOut.pm10 = (double)rec.pm_10;
-									cumulus.airLinkDataOut.pm10_1hr = (double)rec.pm_10_last_1_hour;
-									cumulus.airLinkDataOut.pm10_3hr = (double)rec.pm_10_last_3_hours;
-									cumulus.airLinkDataOut.pm10_24hr = (double)rec.pm_10_last_24_hours;
-									cumulus.airLinkDataOut.pm10_nowcast = (double)rec.pm_10_nowcast;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10_last_1_hour;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10_last_3_hours;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10_last_24_hours;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10_nowcast;
 								}
 								cumulus.airLinkDataOut.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataOut.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -1771,17 +1771,17 @@ namespace CumulusMX
 			public double pm_2p5_nowcast { get; set; }
 
 
-			public double? pm_10 { get; set; }		// Type 6
-			public double? pm_10p0 { get; set; }	// Type 5
+			public double pm_10 { get; set; }		// Type 6
+			public double pm_10p0 { get; set; }	// Type 5
 			public double pm_10_last { get; set; }
-			public double? pm_10_last_1_hour { get; set; }		// Type 6
-			public double? pm_10p0_last_1_hour { get; set; }	// Type 5
-			public double? pm_10_last_3_hours { get; set; }		// Type 6
-			public double? pm_10p0_last_3_hours { get; set; }   // Type 5
-			public double? pm_10_last_24_hours { get; set; }	// Type 6
-			public double? pm_10p0_last_24_hours { get; set; }  // Type 5
-			public double? pm_10_nowcast { get; set; }		// Type 6
-			public double? pm_10p0_nowcast { get; set; }	// Type 5
+			public double pm_10_last_1_hour { get; set; }		// Type 6
+			public double pm_10p0_last_1_hour { get; set; }	// Type 5
+			public double pm_10_last_3_hours { get; set; }		// Type 6
+			public double pm_10p0_last_3_hours { get; set; }   // Type 5
+			public double pm_10_last_24_hours { get; set; }	// Type 6
+			public double pm_10p0_last_24_hours { get; set; }  // Type 5
+			public double pm_10_nowcast { get; set; }		// Type 6
+			public double pm_10p0_nowcast { get; set; }	// Type 5
 
 			public int pct_pm_data_last_1_hour { get; set; }
 			public int pct_pm_data_last_3_hours { get; set; }
