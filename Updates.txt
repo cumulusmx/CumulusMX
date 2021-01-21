@@ -1,6 +1,6 @@
 3.9.7 - b3102
 —————————————
-
+- Fix: Unhandled exception in ProcessTemplateFile if output file cannot be written to
 
 
 3.9.6 - b3101

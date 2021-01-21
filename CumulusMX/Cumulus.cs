@@ -7964,11 +7964,17 @@ namespace CumulusMX
 				parser.SourceFile = template;
 				var output = parser.ToString();
 
-				using (StreamWriter file = new StreamWriter(outputfile, false, encoding))
+				try
 				{
-					file.Write(output);
-
-					file.Close();
+					using (StreamWriter file = new StreamWriter(outputfile, false, encoding))
+					{
+						file.Write(output);
+						file.Close();
+					}
+				}
+				catch (Exception e)
+				{
+					LogMessage($"ProcessTemplateFile: Error writing to file '{outputfile}', error was - {e}");
 				}
 			}
 		}
