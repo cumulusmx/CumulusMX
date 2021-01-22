@@ -2,6 +2,9 @@
 —————————————
 - Fix: Unhandled exception in ProcessTemplateFile if output file cannot be written to
 
+- New: Adds a SelectaChart for recent data so you cam plot different data on the same chart
+- New: Adds hot link to the Upgrade alarm on the dashboard
+
 
 3.9.6 - b3101
 —————————————

@@ -10438,6 +10438,97 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
+		public string GetAvailGraphData()
+		{
+			var json = new StringBuilder(200);
+
+			// Temp values
+			json.Append("{\"Temperature\":[");
+
+			if (cumulus.GraphOptions.TempVisible)
+				json.Append("\"Temperature\",");
+
+			if (cumulus.GraphOptions.InTempVisible)
+				json.Append("\"Indoor Temp\",");
+
+			if (cumulus.GraphOptions.HIVisible)
+				json.Append("\"Heat Index\",");
+
+			if (cumulus.GraphOptions.DPVisible)
+				json.Append("\"Dew Point\",");
+
+			if (cumulus.GraphOptions.WCVisible)
+				json.Append("\"Wind Chill\",");
+
+			if (cumulus.GraphOptions.AppTempVisible)
+				json.Append("\"Apparent Temp\",");
+
+			if (cumulus.GraphOptions.FeelsLikeVisible)
+				json.Append("\"Feels Like\",");
+
+			//if (cumulus.GraphOptions.HumidexVisible)
+			//	json.Append("\"Humidex\",");
+
+			if (json.ToString().EndsWith(","))
+				json.Length--;
+
+			// humidity values
+			json.Append("],\"Humidity\":[");
+
+			if (cumulus.GraphOptions.OutHumVisible)
+				json.Append("\"Humidity\",");
+
+			if (cumulus.GraphOptions.InHumVisible)
+				json.Append("\"Indoor Hum\",");
+
+			if (json.ToString().EndsWith(","))
+				json.Length--;
+
+			// solar values
+			json.Append("],\"Solar\":[");
+
+			if (cumulus.GraphOptions.SolarVisible)
+				json.Append("\"Solar Rad\",");
+
+			if (cumulus.GraphOptions.UVVisible)
+				json.Append("\"UV Index\",");
+
+			if (json.ToString().EndsWith(","))
+				json.Length--;
+
+			// air quality
+			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
+			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
+				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+			{
+				json.Append("],\"Air Quality\":[");
+				json.Append("\"PM 2.5\"");
+
+				// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
+				if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2)
+				{
+					json.Append(",\"PM 10\"");
+				}
+			}
+
+
+			// fixed values
+			// pressure
+			json.Append("],\"Pressure\":[\"Pressure\"],");
+
+			// wind
+			json.Append("\"Wind\":[\"Wind Speed\",\"Wind Gust\",\"Wind Bearing\"],");
+
+			// rain
+			json.Append("\"Rain\":[\"Rainfall\",\"Rainfall Rate\"]");
+
+			json.Append("}");
+			return json.ToString();
+		}
+
+
 		public string GetDailyRainGraphData()
 		{
 			var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);

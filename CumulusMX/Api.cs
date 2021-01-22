@@ -362,6 +362,8 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(Station.GetGraphConfig());
 						case "airqualitydata.json":
 							return await this.JsonResponseAsync(Station.GetAqGraphData());
+						case "availabledata.json":
+							return await this.JsonResponseAsync(Station.GetAvailGraphData());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
