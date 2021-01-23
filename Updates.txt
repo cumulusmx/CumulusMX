@@ -1,9 +1,10 @@
 3.9.7 - b3102
 —————————————
-- Fix: Unhandled exception in ProcessTemplateFile if output file cannot be written to
+- Fix: Unhandled exception in ProcessTemplateFile if cumulus cannot write to the output file
+- Fix: Davis IP logger prevents Cumulus exiting if no station is found on the network
 
 - New: Adds a SelectaChart for recent data so you cam plot different data on the same chart
-- New: Adds hot link to the Upgrade alarm on the dashboard
+- New: Adds a hot link to the Upgrade alarm on the dashboard
 
 
 3.9.6 - b3101

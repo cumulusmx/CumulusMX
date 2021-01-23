@@ -534,7 +534,7 @@ namespace CumulusMX
 			int attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
-			while (attempt < 5 && client == null)
+			while (attempt < 5 && client == null && !stop)
 			{
 				attempt++;
 				cumulus.LogDebugMessage("OpenTcpPort: TCP Logger Connect attempt " + attempt);
