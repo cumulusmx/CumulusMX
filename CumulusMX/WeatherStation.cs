@@ -19,6 +19,7 @@ using Devart.Data.MySql;
 using SQLite;
 using Timer = System.Timers.Timer;
 using System.Security.Cryptography;
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -10484,36 +10485,6 @@ namespace CumulusMX
 			if (json.ToString().EndsWith(","))
 				json.Length--;
 
-			// solar values
-			json.Append("],\"Solar\":[");
-
-			if (cumulus.GraphOptions.SolarVisible)
-				json.Append("\"Solar Rad\",");
-
-			if (cumulus.GraphOptions.UVVisible)
-				json.Append("\"UV Index\",");
-
-			if (json.ToString().EndsWith(","))
-				json.Length--;
-
-			// air quality
-			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
-			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
-				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
-			{
-				json.Append("],\"Air Quality\":[");
-				json.Append("\"PM 2.5\"");
-
-				// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-				if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2)
-				{
-					json.Append(",\"PM 10\"");
-				}
-			}
-
-
 			// fixed values
 			// pressure
 			json.Append("],\"Pressure\":[\"Pressure\"],");
@@ -10524,12 +10495,54 @@ namespace CumulusMX
 			// rain
 			json.Append("\"Rain\":[\"Rainfall\",\"Rainfall Rate\"]");
 
+			// solar values
+			if (cumulus.GraphOptions.SolarVisible || cumulus.GraphOptions.UVVisible)
+			{
+				json.Append(",\"Solar\":[");
+
+				if (cumulus.GraphOptions.SolarVisible)
+					json.Append("\"Solar Rad\",");
+
+				if (cumulus.GraphOptions.UVVisible)
+					json.Append("\"UV Index\",");
+
+				if (json.ToString().EndsWith(","))
+					json.Length--;
+
+				json.Append("]");
+			}
+
+
+			// air quality
+			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
+			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
+				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+			{
+				json.Append(",\"Air Quality\":[");
+				json.Append("\"PM 2.5\"");
+
+				// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
+				if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2)
+				{
+					json.Append(",\"PM 10\"");
+				}
+				json.Append("]");
+			}
+
 			json.Append("}");
 			return json.ToString();
 		}
 
 
-		public string GetDailyRainGraphData()
+		public string GetSelectaChartOptions()
+		{
+			return JsonSerializer.SerializeToString(cumulus.SelectaChartOptions);
+		}
+
+
+	public string GetDailyRainGraphData()
 		{
 			var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);
 

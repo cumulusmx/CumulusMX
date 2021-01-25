@@ -32,9 +32,12 @@ namespace CumulusMX
 	public class Cumulus
 	{
 		/////////////////////////////////
-		public string Version = "3.9.7";
-		public string Build = "3102";
+		/// Now derived from app properties
+		public string Version;
+		public string Build;
 		/////////////////////////////////
+
+
 
 		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
 
@@ -520,11 +523,13 @@ namespace CumulusMX
 		/// </summary>
 		public Spikes Spike = new Spikes();
 
-		public ProgramOptions ProgramOptions = new ProgramOptions();
+		public ProgramOptionsClass ProgramOptions = new ProgramOptionsClass();
 
 		public StationOptions StationOptions = new StationOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
+
+		public SelectaChartOptions SelectaChartOptions = new SelectaChartOptions();
 
 		public bool ListWebTags;
 
@@ -871,6 +876,10 @@ namespace CumulusMX
 
 		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
+			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
+			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
+			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
+
 			DirectorySeparator = Path.DirectorySeparatorChar;
 
 			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
@@ -1026,25 +1035,44 @@ namespace CumulusMX
 			{
 				var msg1 = $"Waiting for PING reply from {ProgramOptions.StartupPingHost}";
 				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
+				var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
 				LogConsoleMessage(msg1);
 				LogMessage(msg1);
 				using (var ping = new Ping())
 				{
-					PingReply reply;
-					try
+					var endTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+					PingReply reply = null;
+
+					do
 					{
-						do
+						try
 						{
-							reply = ping.Send(ProgramOptions.StartupPingHost, 5000);  // 5 second timeout
-						} while (reply.Status != IPStatus.Success);
-					}
-					catch(Exception e)
+
+							reply = ping.Send(ProgramOptions.StartupPingHost, 2000);  // 2 second timeout
+						}
+						catch (Exception e)
+						{
+							LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
+						}
+
+						if (reply == null || reply.Status != IPStatus.Success)
+						{
+							// no response wait 10 seconds before trying again
+							Thread.Sleep(10000);
+						}
+					} while ((reply == null || reply.Status != IPStatus.Success) && DateTime.Now < endTime);
+
+					if (DateTime.Now >= endTime)
 					{
-						LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
+						LogConsoleMessage(msg3);
+						LogMessage(msg3);
+					}
+					else
+					{
+						LogConsoleMessage(msg2);
+						LogMessage(msg2);
 					}
 				}
-				LogConsoleMessage(msg2);
-				LogMessage(msg2);
 			}
 			else
 			{
@@ -3429,6 +3457,7 @@ namespace CumulusMX
 			}
 
 			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", "");
+			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
@@ -4355,6 +4384,13 @@ namespace CumulusMX
 			// Http - custom rollover
 			CustomHttpRolloverString = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
 			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
+
+			// Select-a-Chart settings
+			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
+			{
+				SelectaChartOptions.series[i] = ini.GetValue("Select-a-Chart", "Series" + i, "0");
+				SelectaChartOptions.colours[i] = ini.GetValue("Select-a-Chart", "Colour" + i, "");
+			}
 		}
 
 		internal void WriteIniFile()
@@ -4364,6 +4400,8 @@ namespace CumulusMX
 			IniFile ini = new IniFile("Cumulus.ini");
 
 			ini.SetValue("Program", "StartupPingHost", ProgramOptions.StartupPingHost);
+			ini.SetValue("Program", "StartupPingEscapeTime", ProgramOptions.StartupPingEscapeTime);
+
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
@@ -4937,6 +4975,13 @@ namespace CumulusMX
 			ini.SetValue("HTTP", "CustomHttpSecondsInterval", CustomHttpSecondsInterval);
 			ini.SetValue("HTTP", "CustomHttpMinutesIntervalIndex", CustomHttpMinutesIntervalIndex);
 
+			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
+			{
+				ini.SetValue("Select-a-Chart", "Series" + i, SelectaChartOptions.series[i]);
+				ini.SetValue("Select-a-Chart", "Colour" + i, SelectaChartOptions.colours[i]);
+			}
+
+
 			ini.Flush();
 
 			LogMessage("Completed writing Cumulus.ini file");
@@ -5460,6 +5505,7 @@ namespace CumulusMX
 		public int[] PressDPlace = { 1, 1, 2 };
 		public int[] RainDPlace = { 1, 2 };
 		public const int numextrafiles = 99;
+		public const int numOfSelectaChartSeries = 6;
 
 		public int RainUnit { get; set; }
 
@@ -9139,9 +9185,10 @@ namespace CumulusMX
 		public double snowDepth { get; set; }
 	}
 
-	public class ProgramOptions
+	public class ProgramOptionsClass
 	{
 		public string StartupPingHost { get; set; }
+		public int StartupPingEscapeTime { get; set; }
 		public int StartupDelaySecs { get; set; }
 		public int StartupDelayMaxUptime { get; set; }
 		public bool DebugLogging { get; set; }
@@ -9184,6 +9231,18 @@ namespace CumulusMX
 		public bool UVVisible { get; set; }
 		public bool SolarVisible { get; set; }
 		public bool SunshineVisible { get; set; }
+	}
+
+	public class SelectaChartOptions
+	{
+		public string[] series { get; set; }
+		public string[] colours { get; set; }
+
+		public SelectaChartOptions()
+		{
+			series = new string[6];
+			colours = new string[6];
+		}
 	}
 
 	public class AwekasResponse
