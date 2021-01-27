@@ -489,11 +489,13 @@ namespace CumulusMX
 		private readonly string webRecordFile;
 		private readonly string webTrendsFile;
 		private readonly string webHistoricFile;
+		private readonly string webSelectaChartFile;
 		private readonly string webGaugesFile;
 		private readonly string webThisMonthFile;
 		private readonly string webThisYearFile;
 		private readonly string MonthlyRecordFile;
 
+		private readonly string[] localWebTemplateFiles;
 		private readonly string[] localWebTextFiles;
 		private readonly string[] remoteWebTextFiles;
 
@@ -992,6 +994,7 @@ namespace CumulusMX
 			ThisYearTFile = WebPath + "thisyearT.htm";
 			MonthlyRecordTFile = WebPath + "monthlyrecordT.htm";
 			HistoricTFile = WebPath + "historicT.htm";
+			SelectaChartTFile = WebPath + "selectachartT.htm";
 			RealtimeGaugesTxtTFile = WebPath + "realtimegaugesT.txt";
 
 			webIndexFile = WebPath + "index.htm";
@@ -1004,10 +1007,12 @@ namespace CumulusMX
 			webThisYearFile = WebPath + "thisyear.htm";
 			MonthlyRecordFile = WebPath + "monthlyrecord.htm";
 			webHistoricFile = WebPath + "historic.htm";
+			webSelectaChartFile = WebPath + "selectachart.htm";
 			RealtimeGaugesTxtFile = WebPath + "realtimegauges.txt";
 
-			localWebTextFiles = new[] { webIndexFile, webTodayFile, webYesterFile, webRecordFile, webTrendsFile, webGaugesFile, webThisMonthFile, webThisYearFile, MonthlyRecordFile, webHistoricFile };
-			remoteWebTextFiles = new[] { "index.htm", "today.htm", "yesterday.htm", "record.htm", "trends.htm", "gauges.htm", "thismonth.htm", "thisyear.htm", "monthlyrecord.htm", "historic.htm" };
+			localWebTemplateFiles = new[] { IndexTFile, TodayTFile, YesterdayTFile, RecordTFile, TrendsTFile, GaugesTFile, ThisMonthTFile, ThisYearTFile, MonthlyRecordTFile, HistoricTFile, SelectaChartTFile };
+			localWebTextFiles = new[] { webIndexFile, webTodayFile, webYesterFile, webRecordFile, webTrendsFile, webGaugesFile, webThisMonthFile, webThisYearFile, MonthlyRecordFile, webHistoricFile, webSelectaChartFile };
+			remoteWebTextFiles = new[] { "index.htm", "today.htm", "yesterday.htm", "record.htm", "trends.htm", "gauges.htm", "thismonth.htm", "thisyear.htm", "monthlyrecord.htm", "historic.htm", "selectachart.htm" };
 
 			// Set the default upload intervals for web services
 			Wund.DefaultInterval = 15;
@@ -1124,18 +1129,19 @@ namespace CumulusMX
 
 			remoteGraphdataFiles = new[]
 			{
-				"graphconfig.json",
-				"tempdata.json",
-				"pressdata.json",
-				"winddata.json",
-				"wdirdata.json",
-				"humdata.json",
-				"raindata.json",
-				"dailyrain.json",
-				"dailytemp.json",
-				"solardata.json",
-				"sunhours.json",
-				"airquality.json"
+				"graphconfig.json",		// 0
+				"tempdata.json",		// 1
+				"pressdata.json",		// 2
+				"winddata.json",		// 3
+				"wdirdata.json",		// 4
+				"humdata.json",			// 5
+				"raindata.json",		// 6
+				"dailyrain.json",		// 7
+				"dailytemp.json",		// 8
+				"solardata.json",		// 9
+				"sunhours.json",		// 10
+				"airquality.json",		// 11
+				"availabledata.json"	// 12
 			};
 
 			localGraphdataFiles = new[]
@@ -1151,7 +1157,8 @@ namespace CumulusMX
 				"web" + DirectorySeparator + remoteGraphdataFiles[8],	// 8
 				"web" + DirectorySeparator + remoteGraphdataFiles[9],	// 9
 				"web" + DirectorySeparator + remoteGraphdataFiles[10],	// 10
-				"web" + DirectorySeparator + remoteGraphdataFiles[11]	// 11
+				"web" + DirectorySeparator + remoteGraphdataFiles[11],	// 11
+				"web" + DirectorySeparator + remoteGraphdataFiles[12]	// 12
 			};
 
 			remoteDailyGraphdataFiles = new[]
@@ -1332,11 +1339,14 @@ namespace CumulusMX
 
 			SetupUnitText();
 
-			LogMessage("WindUnit=" + WindUnitText + " RainUnit=" + RainUnitText + " TempUnit=" + TempUnitText + " PressureUnit=" + PressUnitText);
-			LogMessage("YTDRain=" + YTDrain.ToString("F3") + " Year=" + YTDrainyear);
-			LogMessage("RainDayThreshold=" + RainDayThreshold.ToString("F3"));
+			LogMessage($"WindUnit={WindUnitText} RainUnit={RainUnitText} TempUnit={TempUnitText} PressureUnit={PressUnitText}");
+			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
+			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
+			LogMessage($"Roll over hour={RolloverHour}");
 
 			LogOffsetsMultipliers();
+
+			LogPrimaryAqSensor();
 
 			LogMessage("Cumulus Starting");
 
@@ -1397,6 +1407,7 @@ namespace CumulusMX
 					break;
 				default:
 					LogConsoleMessage("Station type not set");
+					LogMessage("Station type not set");
 					break;
 			}
 
@@ -1413,7 +1424,6 @@ namespace CumulusMX
 					airLinkDataOut = new AirLinkData();
 					airLinkOut = new DavisAirLink(this, false, station);
 				}
-
 			}
 
 			webtags = new WebTags(this, station);
@@ -5669,6 +5679,7 @@ namespace CumulusMX
 		private readonly string MonthlyRecordTFile;
 		private readonly string TrendsTFile;
 		private readonly string HistoricTFile;
+		private readonly string SelectaChartTFile;
 		private readonly string ThisMonthTFile;
 		private readonly string ThisYearTFile;
 		private readonly string GaugesTFile;
@@ -6048,7 +6059,7 @@ namespace CumulusMX
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
-			// 31-35 Soil temp 1-4
+			// 32-35 Soil temp 1-4
 			// 36-39 Soil moisture 1-4
 			// 40-41 Leaf temp 1-2
 			// 42-43 Leaf wetness 1-2
@@ -6071,87 +6082,87 @@ namespace CumulusMX
 			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
 			using (StreamWriter file = new StreamWriter(fs))
 			{
-				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);
-				file.Write(timestamp.ToString("HH:mm") + ListSeparator);
+				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);						//0
+				file.Write(timestamp.ToString("HH:mm") + ListSeparator);						//1
 
 				for (int i = 1; i < 11; i++)
 				{
-					file.Write(station.ExtraTemp[i].ToString(TempFormat) + ListSeparator);
+					file.Write(station.ExtraTemp[i].ToString(TempFormat) + ListSeparator);		//2-11
 				}
 				for (int i = 1; i < 11; i++)
 				{
-					file.Write(station.ExtraHum[i].ToString(HumFormat) + ListSeparator);
+					file.Write(station.ExtraHum[i].ToString(HumFormat) + ListSeparator);		//12-21
 				}
 				for (int i = 1; i < 11; i++)
 				{
-					file.Write(station.ExtraDewPoint[i].ToString(TempFormat) + ListSeparator);
+					file.Write(station.ExtraDewPoint[i].ToString(TempFormat) + ListSeparator);	//22-31
 				}
 
-				file.Write(station.SoilTemp1.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp2.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp3.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp4.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp1.ToString(TempFormat) + ListSeparator);		//32
+				file.Write(station.SoilTemp2.ToString(TempFormat) + ListSeparator);		//33
+				file.Write(station.SoilTemp3.ToString(TempFormat) + ListSeparator);		//34
+				file.Write(station.SoilTemp4.ToString(TempFormat) + ListSeparator);		//35
 
-				file.Write(station.SoilMoisture1 + ListSeparator);
-				file.Write(station.SoilMoisture2 + ListSeparator);
-				file.Write(station.SoilMoisture3 + ListSeparator);
-				file.Write(station.SoilMoisture4 + ListSeparator);
+				file.Write(station.SoilMoisture1 + ListSeparator);						//36
+				file.Write(station.SoilMoisture2 + ListSeparator);						//37
+				file.Write(station.SoilMoisture3 + ListSeparator);						//38
+				file.Write(station.SoilMoisture4 + ListSeparator);						//39
 
-				file.Write(station.LeafTemp1.ToString(TempFormat) + ListSeparator);
-				file.Write(station.LeafTemp2.ToString(TempFormat) + ListSeparator);
+				file.Write(station.LeafTemp1.ToString(TempFormat) + ListSeparator);		//40
+				file.Write(station.LeafTemp2.ToString(TempFormat) + ListSeparator);		//41
 
-				file.Write(station.LeafWetness1 + ListSeparator);
-				file.Write(station.LeafWetness2 + ListSeparator);
+				file.Write(station.LeafWetness1 + ListSeparator);						//42
+				file.Write(station.LeafWetness2 + ListSeparator);						//43
 
-				file.Write(station.SoilTemp5.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp6.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp7.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp8.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp9.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp10.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp11.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp12.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp13.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp14.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp15.ToString(TempFormat) + ListSeparator);
-				file.Write(station.SoilTemp16.ToString(TempFormat) + ListSeparator);
+				file.Write(station.SoilTemp5.ToString(TempFormat) + ListSeparator);		//44
+				file.Write(station.SoilTemp6.ToString(TempFormat) + ListSeparator);		//45
+				file.Write(station.SoilTemp7.ToString(TempFormat) + ListSeparator);		//46
+				file.Write(station.SoilTemp8.ToString(TempFormat) + ListSeparator);		//47
+				file.Write(station.SoilTemp9.ToString(TempFormat) + ListSeparator);		//48
+				file.Write(station.SoilTemp10.ToString(TempFormat) + ListSeparator);	//49
+				file.Write(station.SoilTemp11.ToString(TempFormat) + ListSeparator);	//50
+				file.Write(station.SoilTemp12.ToString(TempFormat) + ListSeparator);	//51
+				file.Write(station.SoilTemp13.ToString(TempFormat) + ListSeparator);	//52
+				file.Write(station.SoilTemp14.ToString(TempFormat) + ListSeparator);	//53
+				file.Write(station.SoilTemp15.ToString(TempFormat) + ListSeparator);	//54
+				file.Write(station.SoilTemp16.ToString(TempFormat) + ListSeparator);	//55
 
-				file.Write(station.SoilMoisture5 + ListSeparator);
-				file.Write(station.SoilMoisture6 + ListSeparator);
-				file.Write(station.SoilMoisture7 + ListSeparator);
-				file.Write(station.SoilMoisture8 + ListSeparator);
-				file.Write(station.SoilMoisture9 + ListSeparator);
-				file.Write(station.SoilMoisture10 + ListSeparator);
-				file.Write(station.SoilMoisture11 + ListSeparator);
-				file.Write(station.SoilMoisture12 + ListSeparator);
-				file.Write(station.SoilMoisture13 + ListSeparator);
-				file.Write(station.SoilMoisture14 + ListSeparator);
-				file.Write(station.SoilMoisture15 + ListSeparator);
-				file.Write(station.SoilMoisture16 + ListSeparator);
+				file.Write(station.SoilMoisture5 + ListSeparator);		//56
+				file.Write(station.SoilMoisture6 + ListSeparator);		//57
+				file.Write(station.SoilMoisture7 + ListSeparator);		//58
+				file.Write(station.SoilMoisture8 + ListSeparator);		//59
+				file.Write(station.SoilMoisture9 + ListSeparator);		//60
+				file.Write(station.SoilMoisture10 + ListSeparator);		//61
+				file.Write(station.SoilMoisture11 + ListSeparator);		//62
+				file.Write(station.SoilMoisture12 + ListSeparator);		//63
+				file.Write(station.SoilMoisture13 + ListSeparator);		//64
+				file.Write(station.SoilMoisture14 + ListSeparator);		//65
+				file.Write(station.SoilMoisture15 + ListSeparator);		//66
+				file.Write(station.SoilMoisture16 + ListSeparator);		//67
 
-				file.Write(station.AirQuality1.ToString("F1") + ListSeparator);
-				file.Write(station.AirQuality2.ToString("F1") + ListSeparator);
-				file.Write(station.AirQuality3.ToString("F1") + ListSeparator);
-				file.Write(station.AirQuality4.ToString("F1") + ListSeparator);
-				file.Write(station.AirQualityAvg1.ToString("F1") + ListSeparator);
-				file.Write(station.AirQualityAvg2.ToString("F1") + ListSeparator);
-				file.Write(station.AirQualityAvg3.ToString("F1") + ListSeparator);
-				file.Write(station.AirQualityAvg4.ToString("F1") + ListSeparator);
+				file.Write(station.AirQuality1.ToString("F1") + ListSeparator);		//68
+				file.Write(station.AirQuality2.ToString("F1") + ListSeparator);		//69
+				file.Write(station.AirQuality3.ToString("F1") + ListSeparator);		//70
+				file.Write(station.AirQuality4.ToString("F1") + ListSeparator);		//71
+				file.Write(station.AirQualityAvg1.ToString("F1") + ListSeparator);	//72
+				file.Write(station.AirQualityAvg2.ToString("F1") + ListSeparator);	//73
+				file.Write(station.AirQualityAvg3.ToString("F1") + ListSeparator);	//74
+				file.Write(station.AirQualityAvg4.ToString("F1") + ListSeparator);	//75
 
 				for (int i = 1; i < 8; i++)
 				{
-					file.Write(station.UserTemp[i].ToString(TempFormat) + ListSeparator);
+					file.Write(station.UserTemp[i].ToString(TempFormat) + ListSeparator);	//76-82
 				}
-				file.Write(station.UserTemp[8].ToString(TempFormat) + ListSeparator);
+				file.Write(station.UserTemp[8].ToString(TempFormat) + ListSeparator);		//83
 
-				file.Write(station.CO2 + ListSeparator);
-				file.Write(station.CO2_24h + ListSeparator);
-				file.Write(station.CO2_pm2p5.ToString("F1") + ListSeparator);
-				file.Write(station.CO2_pm2p5_24h.ToString("F1") + ListSeparator);
-				file.Write(station.CO2_pm10.ToString("F1") + ListSeparator);
-				file.Write(station.CO2_pm10_24h.ToString("F1") + ListSeparator);
-				file.Write(station.CO2_temperature.ToString(TempFormat) + ListSeparator);
-				file.Write(station.CO2_humidity);
+				file.Write(station.CO2 + ListSeparator);									//84
+				file.Write(station.CO2_24h + ListSeparator);								//85
+				file.Write(station.CO2_pm2p5.ToString("F1") + ListSeparator);				//86
+				file.Write(station.CO2_pm2p5_24h.ToString("F1") + ListSeparator);			//87
+				file.Write(station.CO2_pm10.ToString("F1") + ListSeparator);				//88
+				file.Write(station.CO2_pm10_24h.ToString("F1") + ListSeparator);			//89
+				file.Write(station.CO2_temperature.ToString(TempFormat) + ListSeparator);	//90
+				file.Write(station.CO2_humidity);											//91
 
 				file.WriteLine();
 				file.Close();
@@ -6936,23 +6947,21 @@ namespace CumulusMX
 					CreateRealtimeFile(999);
 				}
 
-				//LogDebugMessage("Creating standard HTML files");
-				ProcessTemplateFile(IndexTFile, webIndexFile, tokenParser);
-				ProcessTemplateFile(TodayTFile, webTodayFile, tokenParser);
-				ProcessTemplateFile(YesterdayTFile, webYesterFile, tokenParser);
-				ProcessTemplateFile(RecordTFile, webRecordFile, tokenParser);
-				ProcessTemplateFile(MonthlyRecordTFile, MonthlyRecordFile, tokenParser);
-				ProcessTemplateFile(TrendsTFile, webTrendsFile, tokenParser);
-				ProcessTemplateFile(HistoricTFile, webHistoricFile, tokenParser);
-				ProcessTemplateFile(ThisMonthTFile, webThisMonthFile, tokenParser);
-				ProcessTemplateFile(ThisYearTFile, webThisYearFile, tokenParser);
-				ProcessTemplateFile(GaugesTFile, webGaugesFile, tokenParser);
-				//LogDebugMessage("Done creating standard HTML files");
+				if (IncludeStandardFiles)
+				{
+					LogDebugMessage("Creating standard HTML files");
+					for (var i = 0; i < localWebTextFiles.Length; i++)
+					{
+						ProcessTemplateFile(localWebTemplateFiles[i], localWebTextFiles[i], tokenParser);
+					}
+					LogDebugMessage("Done creating standard HTML files");
+				}
+
 				if (IncludeGraphDataFiles)
 				{
-					//LogDebugMessage("Creating graph data files");
+					LogDebugMessage("Creating graph data files");
 					station.CreateGraphDataFiles();
-					//LogDebugMessage("Done creating graph data files");
+					LogDebugMessage("Done creating graph data files");
 				}
 
 				//LogDebugMessage("Creating extra files");
@@ -9119,6 +9128,31 @@ namespace CumulusMX
 			LogMessage("Limits:");
 			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} GH={Limit.WindHigh:F3}");
 
+		}
+
+		private void LogPrimaryAqSensor()
+		{
+			switch (StationOptions.PrimaryAqSensor)
+			{
+				case (int)PrimaryAqSensor.Undefined:
+					LogMessage("Primary AQ Sensor = Undefined");
+					break;
+				case (int)PrimaryAqSensor.Ecowitt1:
+				case (int)PrimaryAqSensor.Ecowitt2:
+				case (int)PrimaryAqSensor.Ecowitt3:
+				case (int)PrimaryAqSensor.Ecowitt4:
+					LogMessage("Primary AQ Sensor = Ecowitt" + StationOptions.PrimaryAqSensor);
+					break;
+				case (int)PrimaryAqSensor.EcowittCO2:
+					LogMessage("Primary AQ Sensor = Ecowitt CO2");
+					break;
+				case (int)PrimaryAqSensor.AirLinkIndoor:
+					LogMessage("Primary AQ Sensor = Airlink Indoor");
+					break;
+				case (int)PrimaryAqSensor.AirLinkOutdoor:
+					LogMessage("Primary AQ Sensor = Airlink Outdoor");
+					break;
+			}
 		}
 	}
 

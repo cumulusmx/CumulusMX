@@ -1,40 +1,16 @@
-3.9.7 - b3104
+3.9.7 - b3105
 —————————————
 - Fix: Unhandled exception in ProcessTemplateFile if cumulus cannot write to the output file
 - Fix: Davis IP logger prevents Cumulus exiting if no station is found on the network
+- Fix: Ecowitt AQ sensors not loading graph data from the log files on start-up
 
-- New: Adds a Select-a-Chart for recent data so you can plot different data on the same chart
+- New: Adds a Select-a-Chart to the dashboard for recent data so you can plot different data on the same chart
+- New: Adds a Select-a-Chart to the default web site for recent data
+	- Creates a new json data file - availabledata.json - that is uploaded to the remote site
 - New: Adds a hot link to the Upgrade alarm on the dashboard
 - New: Adds a start-up host ping escape time. Allows Cumulus to continue loading even if no ping response is received for the specified time
 
-TESTING
-b3 - Changed series order in dropdown
-b3 - Now 6 series dropdowns
-b3 - Colours now selectable
-b3 - "Select Series" changes to "Clear Series" and vice versa
-b3 - Settings now saved to Cumulus.ini
-	[Select-a-Chart]
-	Series0=0
-	Colour0=
-	Series1=0
-	Colour1=
-	Series2=0
-	Colour2=
-	Series3=0
-	Colour3=
-	Series4=0
-	Colour4=
-	Series5=0
-	Colour5=
-
-b4 - Fixes y-axis balancing
-b4 - Fixes dropdowns with values on page load still showing "Select Series" rather than "Clear Series"
-b4 - Fixes first time page load not setting the default colours
-
-b5 - Fixes random issues on initial page load
-b5 - Fixes left-hand y-Axis label alignment issues
-b5 - Adds a start-up host ping escape time.
-
+- Change: If you do not enable "Include standard files" in the Web/FTP settings, the default web site template files will no longer be processed locally
 
 
 3.9.6 - b3101

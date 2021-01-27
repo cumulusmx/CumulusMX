@@ -2187,6 +2187,22 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[11]}: {ex.Message}");
 			}
+
+			// Available graph data
+			json = GetAvailGraphData();
+			try
+			{
+				using (var file = new StreamWriter(cumulus.localGraphdataFiles[12], false))
+				{
+					file.WriteLine(json);
+					file.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[12]}: {ex.Message}");
+			}
+
 		}
 
 		public void CreateEodGraphDataFiles()
@@ -6782,8 +6798,8 @@ namespace CumulusMX
 										}
 										else if (cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
 										{
-											// Ecowitt sensor 1-4
-											pm2p5 = Convert.ToDouble(st[66 + cumulus.StationOptions.PrimaryAqSensor]);
+											// Ecowitt sensor 1-4 - fields 68 -> 71
+											pm2p5 = Convert.ToDouble(st[67 + cumulus.StationOptions.PrimaryAqSensor]);
 											pm10 = -1;
 										}
 										else
@@ -6829,7 +6845,9 @@ namespace CumulusMX
 					{
 						logFile = cumulus.GetAirLinkLogFileName(filedate);
 					}
-					else if (cumulus.StationOptions.PrimaryAqSensor > 0 && cumulus.StationOptions.PrimaryAqSensor <= 4) // Ecowitt
+					else if ((cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1
+						&& cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
+						|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
 					{
 						logFile = cumulus.GetExtraLogFileName(filedate);
 					}
