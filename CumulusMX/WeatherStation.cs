@@ -5260,6 +5260,22 @@ namespace CumulusMX
 					cumulus.LogMessage("NOAA reports will be uploaded at next web update");
 				}
 
+				// Do the End of day Extra files
+				// This will set a flag to transfer on next FTP if required
+				cumulus.DoExtraEndOfDayFiles();
+				if (cumulus.EODfilesNeedFTP)
+				{
+					cumulus.LogMessage("Extra files will be uploaded at next web update");
+				}
+
+				// Do the Daily graph data files
+				CreateEodGraphDataFiles();
+				if (cumulus.IncludeGraphDataFiles)
+				{
+					cumulus.DailyGraphDataFilesNeedFTP = true;
+					cumulus.LogMessage("Daily graph data files will be uploaded at next web update");
+				}
+
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
 					cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + cumulus.DailyParams);
@@ -5281,24 +5297,6 @@ namespace CumulusMX
 						cumulus.LogMessage("Error executing external program: " + ex.Message);
 					}
 				}
-
-				// Do the End of day Extra files
-				// This will set a flag to transfer on next FTP if required
-				cumulus.DoExtraEndOfDayFiles();
-				if (cumulus.EODfilesNeedFTP)
-				{
-					cumulus.LogMessage("Extra files will be uploaded at next web update");
-				}
-
-				// Do the Daily graph data files
-				if (cumulus.IncludeGraphDataFiles)
-				{
-					//LogDebugMessage("Creating daily graph data files");
-					CreateEodGraphDataFiles();
-					cumulus.DailyGraphDataFilesNeedFTP = true;
-					//LogDebugMessage("Done creating daily graph data files");
-				}
-
 
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
@@ -7109,165 +7107,166 @@ namespace CumulusMX
 		public dayfilerec ParseDayFileRec(string data)
 		{
 			var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-			string[] time;
 			double varDbl;
 			int varInt;
+			int idx = 0;
 
 			var rec = new dayfilerec();
+			try
+			{
+				rec.Date = ddmmyyStrToDate(st[idx++]);
+				rec.HighGust = Convert.ToDouble(st[idx++]);
+				rec.HighGustBearing = Convert.ToInt32(st[idx++]);
+				rec.HighGustTime = GetDateTime(rec.Date, st[idx++]);
+				rec.LowTemp = Convert.ToDouble(st[idx++]);
+				rec.LowTempTime = GetDateTime(rec.Date, st[idx++]);
+				rec.HighTemp = Convert.ToDouble(st[idx++]);
+				rec.HighTempTime = GetDateTime(rec.Date, st[idx++]);
+				rec.LowPress = Convert.ToDouble(st[idx++]);
+				rec.LowPressTime = GetDateTime(rec.Date, st[idx++]);
+				rec.HighPress = Convert.ToDouble(st[idx++]);
+				rec.HighPressTime = GetDateTime(rec.Date, st[idx++]);
+				rec.HighRainRate = Convert.ToDouble(st[idx++]);
+				rec.HighRainRateTime = GetDateTime(rec.Date, st[idx++]);
+				rec.TotalRain = Convert.ToDouble(st[idx++]);
+				rec.AvgTemp = Convert.ToDouble(st[idx++]);
 
-			rec.Date = ddmmyyStrToDate(st[0]);
-			rec.HighGust = Convert.ToDouble(st[1]);
-			rec.HighGustBearing = Convert.ToInt32(st[2]);
-			time = st[3].Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
-			rec.HighGustTime = rec.Date.AddHours(Convert.ToInt32(time[0]) + Convert.ToInt32(time[1]) / 60);
-			rec.LowTemp = Convert.ToDouble(st[4]);
-			time = st[5].Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
-			rec.LowTempTime = rec.Date.AddHours(Convert.ToInt32(time[0]) + Convert.ToInt32(time[1]) / 60);
-			rec.HighTemp = Convert.ToDouble(st[6]);
-			time = st[7].Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
-			rec.HighTempTime = rec.Date.AddHours(Convert.ToInt32(time[0]) + Convert.ToInt32(time[1]) / 60);
-			rec.LowPress = Convert.ToDouble(st[8]);
-			time = st[9].Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
-			rec.LowPressTime = rec.Date.AddHours(Convert.ToInt32(time[0]) + Convert.ToInt32(time[1]) / 60);
-			rec.HighPress = Convert.ToDouble(st[10]);
-			time = st[11].Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
-			rec.HighPressTime = rec.Date.AddHours(Convert.ToInt32(time[0]) + Convert.ToInt32(time[1]) / 60);
-			rec.HighRainRate = Convert.ToDouble(st[12]);
-			time = st[13].Split(CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator.ToCharArray()[0]);
-			rec.HighRainRateTime = rec.Date.AddHours(Convert.ToInt32(time[0]) + Convert.ToInt32(time[1]) / 60);
-			rec.TotalRain = Convert.ToDouble(st[14]);
-			rec.AvgTemp = Convert.ToDouble(st[15]);
+				if (st.Count > idx++ && double.TryParse(st[16], out varDbl))
+					rec.WindRun = varDbl;
 
-			if (st.Count > 16 && double.TryParse(st[16], out varDbl))
-				rec.WindRun = varDbl;
+				if (st.Count > idx++ && double.TryParse(st[17], out varDbl))
+					rec.HighAvgWind = varDbl;
 
-			if (st.Count > 17 && double.TryParse(st[17], out varDbl))
-				rec.HighAvgWind = varDbl;
+				if (st.Count > idx++ && st[18].Length == 5)
+					rec.HighAvgWindTime = GetDateTime(rec.Date, st[18]);
 
-			if (st.Count > 18 && st[18].Length == 5)
-				rec.HighAvgWindTime = GetDateTime(rec.Date, st[18]);
+				if (st.Count > idx++ && int.TryParse(st[19], out varInt))
+					rec.LowHumidity = varInt;
+				else
+					rec.LowHumidity = 9999;
 
-			if (st.Count > 19 && int.TryParse(st[19], out varInt))
-				rec.LowHumidity = varInt;
-			else
-				rec.LowHumidity = 9999;
+				if (st.Count > idx++ && st[20].Length == 5)
+					rec.LowHumidityTime = GetDateTime(rec.Date, st[20]);
 
-			if (st.Count > 20 && st[20].Length == 5)
-				rec.LowHumidityTime = GetDateTime(rec.Date, st[18]);
+				if (st.Count > idx++ && int.TryParse(st[21], out varInt))
+					rec.HighHumidity = varInt;
+				else
+					rec.HighHumidity = -9999;
 
-			if (st.Count > 21 && int.TryParse(st[21], out varInt))
-				rec.HighHumidity = varInt;
-			else
-				rec.HighHumidity = -9999;
+				if (st.Count > idx++ && st[22].Length == 5)
+					rec.HighHumidityTime = GetDateTime(rec.Date, st[22]);
 
-			if (st.Count > 22 && st[22].Length == 5)
-				rec.HighHumidityTime = GetDateTime(rec.Date, st[22]);
+				if (st.Count > idx++ && double.TryParse(st[23], out varDbl))
+					rec.ET = varDbl;
 
-			if (st.Count > 23 && double.TryParse(st[23], out varDbl))
-				rec.ET = varDbl;
+				if (st.Count > idx++ && double.TryParse(st[24], out varDbl))
+					rec.SunShineHours = varDbl;
 
-			if (st.Count > 24 && double.TryParse(st[24], out varDbl))
-				rec.SunShineHours = varDbl;
+				if (st.Count > idx++ && double.TryParse(st[25], out varDbl))
+					rec.HighHeatIndex = varDbl;
+				else
+					rec.HighHeatIndex = -9999;
 
-			if (st.Count > 25 && double.TryParse(st[25], out varDbl))
-				rec.HighHeatIndex = varDbl;
-			else
-				rec.HighHeatIndex = -9999;
+				if (st.Count > idx++ && st[26].Length == 5)
+					rec.HighHeatIndexTime = GetDateTime(rec.Date, st[26]);
 
-			if (st.Count > 26 && st[26].Length == 5)
-				rec.HighHeatIndexTime = GetDateTime(rec.Date, st[26]);
+				if (st.Count > idx++ && double.TryParse(st[27], out varDbl))
+					rec.HighAppTemp = varDbl;
+				else
+					rec.HighAppTemp = -9999;
 
-			if (st.Count > 27 && double.TryParse(st[27], out varDbl))
-				rec.HighAppTemp = varDbl;
-			else
-				rec.HighAppTemp = -9999;
+				if (st.Count > idx++ && st[28].Length == 5)
+					rec.HighAppTempTime = GetDateTime(rec.Date, st[28]);
 
-			if (st.Count > 28 && st[28].Length == 5)
-				rec.HighAppTempTime = GetDateTime(rec.Date, st[28]);
+				if (st.Count > idx++ && double.TryParse(st[29], out varDbl))
+					rec.LowAppTemp = varDbl;
+				else
+					rec.LowAppTemp = 9999;
 
-			if (st.Count > 29 && double.TryParse(st[29], out varDbl))
-				rec.LowAppTemp = varDbl;
-			else
-				rec.LowAppTemp = 9999;
+				if (st.Count > idx++ && st[30].Length == 5)
+					rec.LowAppTempTime = GetDateTime(rec.Date, st[30]);
 
-			if (st.Count > 30 && st[30].Length == 5)
-				rec.LowAppTempTime = GetDateTime(rec.Date, st[30]);
+				if (st.Count > idx++ && double.TryParse(st[31], out varDbl))
+					rec.HighHourlyRain = varDbl;
 
-			if (st.Count > 31 && double.TryParse(st[31], out varDbl))
-				rec.HighHourlyRain = varDbl;
+				if (st.Count > idx++ && st[32].Length == 5)
+					rec.HighHourlyRainTime = GetDateTime(rec.Date, st[32]);
 
-			if (st.Count > 32 && st[32].Length == 5)
-				rec.HighHourlyRainTime = GetDateTime(rec.Date, st[32]);
+				if (st.Count > idx++ && double.TryParse(st[33], out varDbl))
+					rec.LowWindChill = varDbl;
+				else
+					rec.LowWindChill = 9999;
 
-			if (st.Count > 33 && double.TryParse(st[33], out varDbl))
-				rec.LowWindChill = varDbl;
-			else
-				rec.LowWindChill = 9999;
+				if (st.Count > idx++ && st[34].Length == 5)
+					rec.LowWindChillTime = GetDateTime(rec.Date, st[34]);
 
-			if (st.Count > 34 && st[34].Length == 5)
-				rec.LowWindChillTime = GetDateTime(rec.Date, st[34]);
+				if (st.Count > idx++ && double.TryParse(st[35], out varDbl))
+					rec.HighDewPoint = varDbl;
+				else
+					rec.HighDewPoint = -9999;
 
-			if (st.Count > 35 && double.TryParse(st[35], out varDbl))
-				rec.HighDewPoint = varDbl;
-			else
-				rec.HighDewPoint = -9999;
+				if (st.Count > idx++ && st[36].Length == 5)
+					rec.HighDewPointTime = GetDateTime(rec.Date, st[36]);
 
-			if (st.Count > 36 && st[36].Length == 5)
-				rec.HighDewPointTime = GetDateTime(rec.Date, st[36]);
+				if (st.Count > idx++ && double.TryParse(st[37], out varDbl))
+					rec.LowDewPoint = varDbl;
+				else
+					rec.LowDewPoint = 9999;
 
-			if (st.Count > 37 && double.TryParse(st[37], out varDbl))
-				rec.LowDewPoint = varDbl;
-			else
-				rec.LowDewPoint = 9999;
+				if (st.Count > idx++ && st[38].Length == 5)
+					rec.LowDewPointTime = GetDateTime(rec.Date, st[38]);
 
-			if (st.Count > 38 && st[38].Length == 5)
-				rec.LowDewPointTime = GetDateTime(rec.Date, st[38]);
+				if (st.Count > idx++ && int.TryParse(st[39], out varInt))
+					rec.DominantWindBearing = varInt;
 
-			if (st.Count > 39 && int.TryParse(st[39], out varInt))
-				rec.DominantWindBearing = varInt;
+				if (st.Count > idx++ && double.TryParse(st[40], out varDbl))
+					rec.HeatingDegreeDays = varDbl;
 
-			if (st.Count > 40 && double.TryParse(st[40], out varDbl))
-				rec.HeatingDegreeDays = varDbl;
+				if (st.Count > idx++ && double.TryParse(st[41], out varDbl))
+					rec.CoolingDegreeDays = varDbl;
 
-			if (st.Count > 41 && double.TryParse(st[41], out varDbl))
-				rec.CoolingDegreeDays = varDbl;
+				if (st.Count > idx++ && int.TryParse(st[42], out varInt))
+					rec.HighSolar = varInt;
 
-			if (st.Count > 42 && int.TryParse(st[42], out varInt))
-				rec.HighSolar = varInt;
+				if (st.Count > idx++ && st[43].Length == 5)
+					rec.HighSolarTime = GetDateTime(rec.Date, st[43]);
 
-			if (st.Count > 43 && st[43].Length == 5)
-				rec.HighSolarTime = GetDateTime(rec.Date, st[43]);
+				if (st.Count > idx++ && double.TryParse(st[44], out varDbl))
+					rec.HighUv = varDbl;
 
-			if (st.Count > 44 && double.TryParse(st[44], out varDbl))
-				rec.HighUv = varDbl;
+				if (st.Count > idx++ && st[45].Length == 5)
+					rec.HighUvTime = GetDateTime(rec.Date, st[45]);
 
-			if (st.Count > 45 && st[45].Length == 5)
-				rec.HighUvTime = GetDateTime(rec.Date, st[45]);
+				if (st.Count > idx++ && double.TryParse(st[46], out varDbl))
+					rec.HighFeelsLike = varDbl;
+				else
+					rec.HighFeelsLike = -9999;
 
-			if (st.Count > 46 && double.TryParse(st[46], out varDbl))
-				rec.HighFeelsLike = varDbl;
-			else
-				rec.HighFeelsLike = -9999;
+				if (st.Count > idx++ && st[47].Length == 5)
+					rec.HighFeelsLikeTime = GetDateTime(rec.Date, st[47]);
 
-			if (st.Count > 47 && st[47].Length == 5)
-				rec.HighFeelsLikeTime = GetDateTime(rec.Date, st[47]);
+				if (st.Count > idx++ && double.TryParse(st[48], out varDbl))
+					rec.LowFeelsLike = varDbl;
+				else
+					rec.LowFeelsLike = 9999;
 
-			if (st.Count > 48 && double.TryParse(st[48], out varDbl))
-				rec.LowFeelsLike = varDbl;
-			else
-				rec.LowFeelsLike = 9999;
+				if (st.Count > idx++ && st[49].Length == 5)
+					rec.LowFeelsLikeTime = GetDateTime(rec.Date, st[49]);
 
-			if (st.Count > 49 && st[49].Length == 5)
-				rec.LowFeelsLikeTime = GetDateTime(rec.Date, st[49]);
+				if (st.Count > idx++ && double.TryParse(st[50], out varDbl))
+					rec.HighHumidex = varDbl;
+				else
+					rec.HighHumidex = -9999;
 
-			if (st.Count > 50 && double.TryParse(st[50], out varDbl))
-				rec.HighHumidex = varDbl;
-			else
-				rec.HighHumidex = -9999;
-
-			if (st.Count > 51 && st[51].Length == 5)
-				rec.HighHumidexTime = GetDateTime(rec.Date, st[51]);
-
+				if (st.Count > idx++ && st[51].Length == 5)
+					rec.HighHumidexTime = GetDateTime(rec.Date, st[51]);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogDebugMessage($"ParseDayFileRec: Error at record {idx} - {ex.Message}");
+				var e = new Exception($"Error at record {idx} = \"{st[idx-1]}\" - {ex.Message}");
+				throw e;
+			}
 			return rec;
 		}
 

@@ -225,6 +225,9 @@ namespace CumulusMX
 			cumulus.StationOptions.UseWind10MinAve = true;
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
+			LightningTime = DateTime.MinValue;
+			LightningDistance = 999;
+
 			tmrDataWatchdog = new System.Timers.Timer();
 
 			// GW1000 does not send DP, so force MX to calculate it
@@ -677,6 +680,10 @@ namespace CumulusMX
 
 					bool batteryLow = false;
 
+					// We check the new value against what we have already, if older then ignore it!
+					double newLightningDistance = 999;
+					var newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
 					do
 					{
 						int chan;
@@ -894,7 +901,7 @@ namespace CumulusMX
 								break;
 							case 0x60: //Lightning dist (1-40km)
 									   // Sends a default value of 255km until the first strike is detected
-								LightningDistance = data[idx] == 0xFF ? 999 : ConvertKmtoUserUnits(data[idx]);
+								newLightningDistance = data[idx] == 0xFF ? 999 : ConvertKmtoUserUnits(data[idx]);
 								idx += 1;
 								break;
 							case 0x61: //Lightning time (UTC)
@@ -902,14 +909,14 @@ namespace CumulusMX
 								tempUint32 = ConvertBigEndianUInt32(data, idx);
 								if (tempUint32 == 0xFFFFFFFF)
 								{
-									LightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+									newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 								}
 								else
 								{
 									var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 									dtDateTime = dtDateTime.AddSeconds(tempUint32).ToLocalTime();
 									//cumulus.LogDebugMessage($"Lightning time={dtDateTime}");
-									LightningTime = dtDateTime;
+									newLightningTime = dtDateTime;
 								}
 								idx += 4;
 								break;
@@ -968,6 +975,14 @@ namespace CumulusMX
 					} while (idx < size);
 
 					// Now do the stuff that requires more than one input parameter
+
+					// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
+					if (newLightningTime > LightningTime)
+					{
+						LightningTime = newLightningTime;
+						if (newLightningDistance != 999)
+							LightningDistance = newLightningDistance;
+					}
 
 					// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
 					if (outdoortemp > -999)

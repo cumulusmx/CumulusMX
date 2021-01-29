@@ -1531,11 +1531,11 @@ namespace CumulusMX
 			}
 
 			// If enabled generate the daily graph data files, and upload at first opportunity
-			if ((station != null) && IncludeGraphDataFiles)
+			if (station != null)
 			{
 				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
-				DailyGraphDataFilesNeedFTP = true;
+				DailyGraphDataFilesNeedFTP = IncludeGraphDataFiles;
 			}
 
 			LogDebugMessage("Lock: Cumulus releasing the lock");
@@ -6947,22 +6947,23 @@ namespace CumulusMX
 					CreateRealtimeFile(999);
 				}
 
-				if (IncludeStandardFiles)
-				{
+				//TODO: Sort out the mess of options for generating and FTPing all the standard files.
+				//if (IncludeStandardFiles)
+				//{
 					LogDebugMessage("Creating standard HTML files");
 					for (var i = 0; i < localWebTextFiles.Length; i++)
 					{
 						ProcessTemplateFile(localWebTemplateFiles[i], localWebTextFiles[i], tokenParser);
 					}
 					LogDebugMessage("Done creating standard HTML files");
-				}
+				//}
 
-				if (IncludeGraphDataFiles)
-				{
+				//if (IncludeGraphDataFiles)
+				//{
 					LogDebugMessage("Creating graph data files");
 					station.CreateGraphDataFiles();
 					LogDebugMessage("Done creating graph data files");
-				}
+				//}
 
 				//LogDebugMessage("Creating extra files");
 				// handle any extra files

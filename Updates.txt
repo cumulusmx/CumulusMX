@@ -1,8 +1,11 @@
-3.9.7 - b3105
+3.9.7 - b3107
 —————————————
 - Fix: Unhandled exception in ProcessTemplateFile if cumulus cannot write to the output file
 - Fix: Davis IP logger prevents Cumulus exiting if no station is found on the network
 - Fix: Ecowitt AQ sensors not loading graph data from the log files on start-up
+- Fix: Bug in dayfile parser that was using the time of highest wind speed as time of lowest humidity.
+	- The dayfile parser now outputs the first field number in a line that has failed to parse along with the field contents
+- Fix: THe GW1000 retains the previous lightning time/distance if the station resets the values to defaults
 
 - New: Adds a Select-a-Chart to the dashboard for recent data so you can plot different data on the same chart
 - New: Adds a Select-a-Chart to the default web site for recent data
@@ -10,7 +13,8 @@
 - New: Adds a hot link to the Upgrade alarm on the dashboard
 - New: Adds a start-up host ping escape time. Allows Cumulus to continue loading even if no ping response is received for the specified time
 
-- Change: If you do not enable "Include standard files" in the Web/FTP settings, the default web site template files will no longer be processed locally
+- Change: The default web site gets a CSS change that dynamically alters the "content" width depending on the screen size. On smaller screens the white space either side will reduce in size.
+- Change: The graph JSON data files are now always created locally, regardless of the Include Graph Data Files setting. That now setting only controls FTP like the standard files.
 
 
 3.9.6 - b3101
