@@ -228,6 +228,7 @@ namespace CumulusMX
 				{
 					using (var udpClient = new UdpClient())
 					{
+						udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 						udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
 						udpClient.Client.ReceiveTimeout = 4000;  // We should get a message every 2.5 seconds
 						var from = new IPEndPoint(0, 0);

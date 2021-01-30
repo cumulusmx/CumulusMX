@@ -5,7 +5,9 @@
 - Fix: Ecowitt AQ sensors not loading graph data from the log files on start-up
 - Fix: Bug in dayfile parser that was using the time of highest wind speed as time of lowest humidity.
 	- The dayfile parser now outputs the first field number in a line that has failed to parse along with the field contents
-- Fix: THe GW1000 retains the previous lightning time/distance if the station resets the values to defaults
+- Fix: The GW1000 retains the previous lightning time/distance if the station resets the values to defaults
+- Fix: Now opens the Davis WLL multi-cast listening port in shared mode to allow multiple copies of Cumulus to run on the same computer.
+       Only tested on Windows, may not work on macOS.
 
 - New: Adds a Select-a-Chart to the dashboard for recent data so you can plot different data on the same chart
 - New: Adds a Select-a-Chart to the default web site for recent data
