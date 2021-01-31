@@ -26,6 +26,7 @@ namespace CumulusMX
 			var options = new JsonProgramSettingsOptions()
 			{
 				startuphostping = cumulus.ProgramOptions.StartupPingHost,
+				startuppingescape = cumulus.ProgramOptions.StartupPingEscapeTime,
 				startupdelay = cumulus.ProgramOptions.StartupDelaySecs,
 				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime,
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
@@ -78,6 +79,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.ProgramOptions.StartupPingHost = settings.startuphostping;
+					cumulus.ProgramOptions.StartupPingEscapeTime = settings.startuppingescape;
 					cumulus.ProgramOptions.StartupDelaySecs = settings.startupdelay;
 					cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startupdelaymaxuptime;
 					cumulus.ProgramOptions.DebugLogging = settings.debuglogging;
@@ -109,6 +111,7 @@ namespace CumulusMX
 	public class JsonProgramSettingsOptions
 	{
 		public string startuphostping { get; set; }
+		public int startuppingescape { get; set; }
 		public int startupdelay { get; set; }
 		public int startupdelaymaxuptime { get; set; }
 		public bool debuglogging { get; set; }

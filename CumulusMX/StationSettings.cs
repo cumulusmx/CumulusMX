@@ -709,6 +709,50 @@ namespace CumulusMX
 			}
 		}
 
+		internal string SetSelectaChartOptions(IHttpContext context)
+		{
+			var errorMsg = "";
+			context.Response.StatusCode = 200;
+			// get the response
+			try
+			{
+				cumulus.LogMessage("Updating select-a-chart settings");
+
+				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+				var json = WebUtility.UrlDecode(data);
+
+				// de-serialize it to the settings structure
+				var settings = JsonSerializer.DeserializeFromString<JsonSelectaChartSettings>(json);
+
+				// process the settings
+				try
+				{
+					cumulus.SelectaChartOptions.series = settings.series;
+					cumulus.SelectaChartOptions.colours = settings.colours;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error select-a-chart Options: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Save the settings
+				cumulus.WriteIniFile();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage(ex.Message);
+				context.Response.StatusCode = 500;
+				return ex.Message;
+			}
+
+			return context.Response.StatusCode == 200 ? "success" : errorMsg;
+		}
+
+
 		internal string GetWSport()
 		{
 			return "{\"wsport\":\"" + cumulus.wsPort + "\"}";
@@ -944,5 +988,11 @@ namespace CumulusMX
 		public bool graphUvVis { get; set; }
 		public bool graphSolarVis { get; set; }
 		public bool graphSunshineVis { get; set; }
+	}
+
+	public class JsonSelectaChartSettings
+	{
+		public string[] series { get; set; }
+		public string[] colours { get; set; }
 	}
 }

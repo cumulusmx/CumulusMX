@@ -362,6 +362,34 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(Station.GetGraphConfig());
 						case "airqualitydata.json":
 							return await this.JsonResponseAsync(Station.GetAqGraphData());
+						case "availabledata.json":
+							return await this.JsonResponseAsync(Station.GetAvailGraphData());
+
+						case "selectachart.json":
+							return await this.JsonResponseAsync(Station.GetSelectaChartOptions());
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+			[WebApiHandler(HttpVerbs.Post, RelativePath + "graphdata/*")]
+			public async Task<bool> SetGraphData()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					var lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "selectachart.json":
+							return await this.JsonResponseAsync(stationSettings.SetSelectaChartOptions(this));
+
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -409,6 +437,7 @@ namespace CumulusMX
 					return await HandleError(ex, 404);
 				}
 			}
+
 
 			private async Task<bool> HandleError(Exception ex, int statusCode)
 			{
