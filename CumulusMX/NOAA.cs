@@ -967,7 +967,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						repLine.Append(string.Format("{0,6}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month]).ToString(cumulus.TempFormat, culture)));
+						repLine.Append(string.Format(culture, "{0,6:F1}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month])));
 						totalnormtemp += cumulus.NOAATempNorms[month];
 						normtempsamples++;
 					}
@@ -1021,7 +1021,7 @@ namespace CumulusMX
 					repLine.Append("   0.0");
 				else
 				{
-					repLine.Append(string.Format("{0,6}", (meantemp - (totalnormtemp/normtempsamples)).ToString(cumulus.TempFormat, culture)));
+					repLine.Append(string.Format(culture, "{0,6F1}", (meantemp - (totalnormtemp/normtempsamples))));
 				}
 				repLine.Append(string.Format(culture, "{0,6:D}{1,6:D}", (int) (totalheating), (int) (totalcooling)));
 				if (maxtempmonth == 0)
