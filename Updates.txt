@@ -1,3 +1,14 @@
+3.10.0 - b3108
+——————————————
+- Change: The following configuration items are now available via the settings screens
+	Davis
+	UseDavisLoop2
+	DavisInitWaitTime
+	DavisIPResponseTime
+
+
+
+
 3.9.7 - b3107
 —————————————
 - Fix: Unhandled exception in ProcessTemplateFile if cumulus cannot write to the output file

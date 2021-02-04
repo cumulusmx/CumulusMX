@@ -315,6 +315,11 @@ namespace CumulusMX
                 Program.cumulus.LogConsoleMessage("Cumulus terminating");
                 Program.cumulus.Stop();
             }
+            else
+            {
+                Trace.WriteLine("Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
+                Environment.Exit(2);
+            }
 
             Trace.WriteLine("Cumulus has shutdown");
             Console.WriteLine("Cumulus stopped");

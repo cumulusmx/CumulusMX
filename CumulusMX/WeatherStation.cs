@@ -603,7 +603,7 @@ namespace CumulusMX
 
 			FOSensorClockTime = ini.GetValue("FineOffset", "FOSensorClockTime", DateTime.MinValue);
 			FOStationClockTime = ini.GetValue("FineOffset", "FOStationClockTime", DateTime.MinValue);
-			if (cumulus.StationOptions.SyncFOReads)
+			if (cumulus.FineOffsetOptions.FineOffsetSyncReads)
 			{
 				cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString());
 				cumulus.LogMessage("Station clock " + FOStationClockTime.ToLongTimeString());
@@ -952,7 +952,7 @@ namespace CumulusMX
 		{
 			double threeHourlyPressureChangeMb = 0;
 
-			switch (cumulus.PressUnit)
+			switch (cumulus.Units.Press)
 			{
 				case 0:
 				case 1:
@@ -1461,10 +1461,10 @@ namespace CumulusMX
 					var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
 						Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
 						RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString("HH:mm"), HiLoToday.HighWind,
-						HiLoToday.HighGustBearing, cumulus.WindUnitText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
+						HiLoToday.HighGustBearing, cumulus.Units.WindText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
 						HiLoToday.HighTempTime.ToString("HH:mm"), HiLoToday.LowTempTime.ToString("HH:mm"), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString("HH:mm"),
 						HiLoToday.LowPressTime.ToString("HH:mm"), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString("HH:mm"), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
-						HiLoToday.HighHumidityTime.ToString("HH:mm"), HiLoToday.LowHumidityTime.ToString("HH:mm"), cumulus.PressUnitText, cumulus.TempUnitText, cumulus.RainUnitText,
+						HiLoToday.HighHumidityTime.ToString("HH:mm"), HiLoToday.LowHumidityTime.ToString("HH:mm"), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
 						HiLoToday.HighDewPoint, HiLoToday.LowDewPoint, HiLoToday.HighDewPointTime.ToString("HH:mm"), HiLoToday.LowDewPointTime.ToString("HH:mm"), HiLoToday.LowWindChill,
 						HiLoToday.LowWindChillTime.ToString("HH:mm"), (int)SolarRad, (int)HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString("HH:mm"), UV, HiLoToday.HighUv,
 						HiLoToday.HighUvTime.ToString("HH:mm"), forecaststr, getTimeString(cumulus.SunRiseTime), getTimeString(cumulus.SunSetTime),
@@ -1629,11 +1629,11 @@ namespace CumulusMX
 			if (!DataStopped)
 			{
 				CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.RStransfactor, cumulus.BrasTurbidity, cumulus.SolarCalc);
-				if (((Pressure > 0) && TempReadyToPlot && WindReadyToPlot) || cumulus.NoSensorCheck)
+				if (((Pressure > 0) && TempReadyToPlot && WindReadyToPlot) || cumulus.StationOptions.NoSensorCheck)
 				{
 					// increment wind run by one minute's worth of average speed
 
-					WindRunToday += (WindAverage * WindRunHourMult[cumulus.WindUnit] / 60.0);
+					WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] / 60.0);
 
 					CheckForWindrunHighLow(now);
 
@@ -1862,7 +1862,7 @@ namespace CumulusMX
 				{
 					var raw = File.ReadAllText(@"/sys/class/thermal/thermal_zone0/temp");
 					cumulus.CPUtemp = ConvertTempCToUser(double.Parse(raw) / 1000);
-					cumulus.LogDebugMessage($"Current CPU temp = {cumulus.CPUtemp.ToString(cumulus.TempFormat)}{cumulus.TempUnitText}");
+					cumulus.LogDebugMessage($"Current CPU temp = {cumulus.CPUtemp.ToString(cumulus.TempFormat)}{cumulus.Units.TempText}");
 				}
 				catch (Exception ex)
 				{
@@ -2812,7 +2812,7 @@ namespace CumulusMX
 
 		public double ConvertUserWindToMPH(double value)
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0:
 					return value * 2.23693629;
@@ -3451,7 +3451,7 @@ namespace CumulusMX
 			Pressure = sl * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
 			if (cumulus.Manufacturer == cumulus.DAVIS)
 			{
-				if (!cumulus.UseDavisLoop2)
+				if (!cumulus.DavisOptions.UseLoop2)
 				{
 					// Loop2 data not available, just use sea level (for now, anyway)
 					AltimeterPressure = Pressure;
@@ -3576,7 +3576,7 @@ namespace CumulusMX
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
 				// If the bucket size is set, use that, otherwise infer from rain units
-				var bucketSize = cumulus.VPrainGaugeType == -1 ? cumulus.RainUnit : cumulus.VPrainGaugeType;
+				var bucketSize = cumulus.DavisOptions.RainGaugeType == -1 ? cumulus.RainUnit : cumulus.DavisOptions.RainGaugeType;
 
 				if (bucketSize == 0) // 0.2 mm tips
 				{
@@ -3915,7 +3915,7 @@ namespace CumulusMX
 		/// <returns></returns>
 		public double PressureHPa(double value)
 		{
-			if (cumulus.PressUnit == 2)
+			if (cumulus.Units.Press == 2)
 				return value / 0.0295333727;
 			else
 				return value;
@@ -5767,7 +5767,7 @@ namespace CumulusMX
 		/// <returns>Wind in configured units</returns>
 		public double ConvertWindMSToUser(double value)
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0:
 					return value;
@@ -5789,7 +5789,7 @@ namespace CumulusMX
 		/// <returns>Wind in configured units</returns>
 		public double ConvertWindMPHToUser(double value)
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0:
 					return value * 0.44704;
@@ -5811,7 +5811,7 @@ namespace CumulusMX
 		/// <returns></returns>
 		public virtual double ConvertUserWindToMS(double value)
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0:
 					return value;
@@ -5833,7 +5833,7 @@ namespace CumulusMX
 		/// <returns>Wind in configured units</returns>
 		public double ConvertKmtoUserUnits(double val)
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0: // m/s
 				case 2: // km/h
@@ -5853,7 +5853,7 @@ namespace CumulusMX
 		/// <returns>Wind in km</returns>
 		public virtual double ConvertWindRunToKm(double value)
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0: // m/s
 				case 2: // km/h
@@ -5867,9 +5867,9 @@ namespace CumulusMX
 			}
 		}
 
-		public double ConvertUserWindToKPH(double wind) // input is in WindUnit units, convert to km/h
+		public double ConvertUserWindToKPH(double wind) // input is in Units.Wind units, convert to km/h
 		{
-			switch (cumulus.WindUnit)
+			switch (cumulus.Units.Wind)
 			{
 				case 0: // m/s
 					return wind * 3.6;
@@ -5921,7 +5921,7 @@ namespace CumulusMX
 		/// <returns>pressure in configured units</returns>
 		public double ConvertPressMBToUser(double value)
 		{
-			return cumulus.PressUnit == 2 ? value * 0.0295333727 : value;
+			return cumulus.Units.Press == 2 ? value * 0.0295333727 : value;
 		}
 
 		/// <summary>
@@ -5931,7 +5931,7 @@ namespace CumulusMX
 		/// <returns>pressure in configured units</returns>
 		public double ConvertPressINHGToUser(double value)
 		{
-			return cumulus.PressUnit == 2 ? value : value * 33.8638866667;
+			return cumulus.Units.Press == 2 ? value : value * 33.8638866667;
 		}
 
 		/// <summary>
@@ -5941,7 +5941,7 @@ namespace CumulusMX
 		/// <returns>pressure in mb</returns>
 		public double ConvertUserPressToMB(double value)
 		{
-			return cumulus.PressUnit == 2 ? value / 0.0295333727 : value;
+			return cumulus.Units.Press == 2 ? value / 0.0295333727 : value;
 		}
 
 		/// <summary>
@@ -5951,7 +5951,7 @@ namespace CumulusMX
 		/// <returns>pressure in mb</returns>
 		public double ConvertUserPressToIN(double value)
 		{
-			return cumulus.PressUnit == 2 ? value : value * 0.0295333727;
+			return cumulus.Units.Press == 2 ? value : value * 0.0295333727;
 		}
 
 		public string CompassPoint(int bearing)
@@ -8675,7 +8675,7 @@ namespace CumulusMX
 
 			double threeHourlyPressureChangeMb = 0;
 
-			switch (cumulus.PressUnit)
+			switch (cumulus.Units.Press)
 			{
 				case 0:
 				case 1:
@@ -9225,21 +9225,21 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
 
-			json.Append(alltimejsonformat(AllTime.HighTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighDewPoint, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowDewPoint, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighAppTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowAppTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighFeelsLike, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowFeelsLike, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
 			json.Append(alltimejsonformat(AllTime.HighHumidex, "&nbsp;", cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowChill, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighHeatIndex, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighMinTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowMaxTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighDailyTempRange, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D") + ",");
-			json.Append(alltimejsonformat(AllTime.LowDailyTempRange, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(alltimejsonformat(AllTime.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(AllTime.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D") + ",");
+			json.Append(alltimejsonformat(AllTime.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9259,9 +9259,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighPress, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(alltimejsonformat(AllTime.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AllTime.LowPress, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(alltimejsonformat(AllTime.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9270,11 +9270,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighGust, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(alltimejsonformat(AllTime.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AllTime.HighWind, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
+			json.Append(alltimejsonformat(AllTime.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AllTime.HighWindRun, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
+			json.Append(alltimejsonformat(AllTime.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9283,13 +9283,13 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighRainRate, cumulus.RainUnitText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(alltimejsonformat(AllTime.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AllTime.HourlyRain, cumulus.RainUnitText, cumulus.RainFormat, "f"));
+			json.Append(alltimejsonformat(AllTime.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AllTime.DailyRain, cumulus.RainUnitText, cumulus.RainFormat, "D"));
+			json.Append(alltimejsonformat(AllTime.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
-			json.Append(alltimejsonformat(AllTime.MonthlyRain, cumulus.RainUnitText, cumulus.RainFormat, "Y"));
+			json.Append(alltimejsonformat(AllTime.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(",");
 			json.Append(alltimejsonformat(AllTime.LongestDryPeriod, "days", "f0", "D"));
 			json.Append(",");
@@ -9307,35 +9307,35 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighDewPoint, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowDewPoint, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighAppTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowAppTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighFeelsLike, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowFeelsLike, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
 			json.Append(monthlyjsonformat(MonthlyRecs[month].HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowChill, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighHeatIndex, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighMinTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowMaxTemp, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighDailyTempRange, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowDailyTempRange, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9355,9 +9355,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighPress, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowPress, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9366,11 +9366,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighGust, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWind, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWindRun, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9379,13 +9379,13 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighRainRate, cumulus.RainUnitText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HourlyRain, cumulus.RainUnitText, cumulus.RainFormat, "f"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].DailyRain, cumulus.RainUnitText, cumulus.RainFormat, "D"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
-			json.Append(monthlyjsonformat(MonthlyRecs[month].MonthlyRain, cumulus.RainUnitText, cumulus.RainFormat, "Y"));
+			json.Append(monthlyjsonformat(MonthlyRecs[month].MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(",");
 			json.Append(monthlyjsonformat(MonthlyRecs[month].LongestDryPeriod, "days", "f0", "D"));
 			json.Append(",");
@@ -9403,35 +9403,35 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighTemp.Desc, ThisMonth.HighTemp.Val, ThisMonth.HighTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighTemp.Desc, ThisMonth.HighTemp.Val, ThisMonth.HighTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowTemp.Desc, ThisMonth.LowTemp.Val, ThisMonth.LowTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowTemp.Desc, ThisMonth.LowTemp.Val, ThisMonth.LowTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighDewPoint.Desc, ThisMonth.HighDewPoint.Val, ThisMonth.HighDewPoint.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighDewPoint.Desc, ThisMonth.HighDewPoint.Val, ThisMonth.HighDewPoint.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowDewPoint.Desc, ThisMonth.LowDewPoint.Val, ThisMonth.LowDewPoint.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowDewPoint.Desc, ThisMonth.LowDewPoint.Val, ThisMonth.LowDewPoint.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighAppTemp.Desc, ThisMonth.HighAppTemp.Val, ThisMonth.HighAppTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighAppTemp.Desc, ThisMonth.HighAppTemp.Val, ThisMonth.HighAppTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowAppTemp.Desc, ThisMonth.LowAppTemp.Val, ThisMonth.LowAppTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowAppTemp.Desc, ThisMonth.LowAppTemp.Val, ThisMonth.LowAppTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighFeelsLike.Desc, ThisMonth.HighFeelsLike.Val, ThisMonth.HighFeelsLike.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighFeelsLike.Desc, ThisMonth.HighFeelsLike.Val, ThisMonth.HighFeelsLike.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowFeelsLike.Desc, ThisMonth.LowFeelsLike.Val, ThisMonth.LowFeelsLike.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowFeelsLike.Desc, ThisMonth.LowFeelsLike.Val, ThisMonth.LowFeelsLike.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(ThisMonth.HighHumidex.Desc, ThisMonth.HighHumidex.Val, ThisMonth.HighHumidex.Ts, "&nbsp;", cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowChill.Desc, ThisMonth.LowChill.Val, ThisMonth.LowChill.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowChill.Desc, ThisMonth.LowChill.Val, ThisMonth.LowChill.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighHeatIndex.Desc, ThisMonth.HighHeatIndex.Val, ThisMonth.HighHeatIndex.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighHeatIndex.Desc, ThisMonth.HighHeatIndex.Val, ThisMonth.HighHeatIndex.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighMinTemp.Desc, ThisMonth.HighMinTemp.Val, ThisMonth.HighMinTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighMinTemp.Desc, ThisMonth.HighMinTemp.Val, ThisMonth.HighMinTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowMaxTemp.Desc, ThisMonth.LowMaxTemp.Val, ThisMonth.LowMaxTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowMaxTemp.Desc, ThisMonth.LowMaxTemp.Val, ThisMonth.LowMaxTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighDailyTempRange.Desc, ThisMonth.HighDailyTempRange.Val, ThisMonth.HighDailyTempRange.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(ThisMonth.HighDailyTempRange.Desc, ThisMonth.HighDailyTempRange.Val, ThisMonth.HighDailyTempRange.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowDailyTempRange.Desc, ThisMonth.LowDailyTempRange.Val, ThisMonth.LowDailyTempRange.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(ThisMonth.LowDailyTempRange.Desc, ThisMonth.LowDailyTempRange.Val, ThisMonth.LowDailyTempRange.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9451,9 +9451,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighPress.Desc, ThisMonth.HighPress.Val, ThisMonth.HighPress.Ts, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighPress.Desc, ThisMonth.HighPress.Val, ThisMonth.HighPress.Ts, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.LowPress.Desc, ThisMonth.LowPress.Val, ThisMonth.LowPress.Ts, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.LowPress.Desc, ThisMonth.LowPress.Val, ThisMonth.LowPress.Ts, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9462,11 +9462,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighGust.Desc, ThisMonth.HighGust.Val, ThisMonth.HighGust.Ts, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighGust.Desc, ThisMonth.HighGust.Val, ThisMonth.HighGust.Ts, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighWind.Desc, ThisMonth.HighWind.Val, ThisMonth.HighWind.Ts, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighWind.Desc, ThisMonth.HighWind.Val, ThisMonth.HighWind.Ts, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HighWindRun.Desc, ThisMonth.HighWindRun.Val, ThisMonth.HighWindRun.Ts, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
+			json.Append(monthyearjsonformat(ThisMonth.HighWindRun.Desc, ThisMonth.HighWindRun.Val, ThisMonth.HighWindRun.Ts, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9475,13 +9475,13 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighRainRate.Desc, ThisMonth.HighRainRate.Val, ThisMonth.HighRainRate.Ts, cumulus.RainUnitText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HighRainRate.Desc, ThisMonth.HighRainRate.Val, ThisMonth.HighRainRate.Ts, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.HourlyRain.Desc, ThisMonth.HourlyRain.Val, ThisMonth.HourlyRain.Ts, cumulus.RainUnitText, cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(ThisMonth.HourlyRain.Desc, ThisMonth.HourlyRain.Val, ThisMonth.HourlyRain.Ts, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisMonth.DailyRain.Desc, ThisMonth.DailyRain.Val, ThisMonth.DailyRain.Ts, cumulus.RainUnitText, cumulus.RainFormat, "D"));
+			json.Append(monthyearjsonformat(ThisMonth.DailyRain.Desc, ThisMonth.DailyRain.Val, ThisMonth.DailyRain.Ts, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
-			//json.Append(monthyearjsonformat(ThisMonth.WetMonth.Desc, month, cumulus.RainUnitText, cumulus.RainFormat, "Y"));
+			//json.Append(monthyearjsonformat(ThisMonth.WetMonth.Desc, month, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			//json.Append(",");
 			json.Append(monthyearjsonformat(ThisMonth.LongestDryPeriod.Desc, ThisMonth.LongestDryPeriod.Val, ThisMonth.LongestDryPeriod.Ts, "days", "f0", "D"));
 			json.Append(",");
@@ -9494,35 +9494,35 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append(monthyearjsonformat(ThisYear.HighTemp.Desc, ThisYear.HighTemp.Val, ThisYear.HighTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighTemp.Desc, ThisYear.HighTemp.Val, ThisYear.HighTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowTemp.Desc, ThisYear.LowTemp.Val, ThisYear.LowTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowTemp.Desc, ThisYear.LowTemp.Val, ThisYear.LowTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighDewPoint.Desc, ThisYear.HighDewPoint.Val, ThisYear.HighDewPoint.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighDewPoint.Desc, ThisYear.HighDewPoint.Val, ThisYear.HighDewPoint.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowDewPoint.Desc, ThisYear.LowDewPoint.Val, ThisYear.LowDewPoint.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowDewPoint.Desc, ThisYear.LowDewPoint.Val, ThisYear.LowDewPoint.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighAppTemp.Desc, ThisYear.HighAppTemp.Val, ThisYear.HighAppTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighAppTemp.Desc, ThisYear.HighAppTemp.Val, ThisYear.HighAppTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowAppTemp.Desc, ThisYear.LowAppTemp.Val, ThisYear.LowAppTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowAppTemp.Desc, ThisYear.LowAppTemp.Val, ThisYear.LowAppTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighFeelsLike.Desc, ThisYear.HighFeelsLike.Val, ThisYear.HighFeelsLike.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighFeelsLike.Desc, ThisYear.HighFeelsLike.Val, ThisYear.HighFeelsLike.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowFeelsLike.Desc, ThisYear.LowFeelsLike.Val, ThisYear.LowFeelsLike.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowFeelsLike.Desc, ThisYear.LowFeelsLike.Val, ThisYear.LowFeelsLike.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(ThisYear.HighHumidex.Desc, ThisYear.HighHumidex.Val, ThisYear.HighHumidex.Ts, "&nbsp;", cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowChill.Desc, ThisYear.LowChill.Val, ThisYear.LowChill.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowChill.Desc, ThisYear.LowChill.Val, ThisYear.LowChill.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighHeatIndex.Desc, ThisYear.HighHeatIndex.Val, ThisYear.HighHeatIndex.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighHeatIndex.Desc, ThisYear.HighHeatIndex.Val, ThisYear.HighHeatIndex.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighMinTemp.Desc, ThisYear.HighMinTemp.Val, ThisYear.HighMinTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighMinTemp.Desc, ThisYear.HighMinTemp.Val, ThisYear.HighMinTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowMaxTemp.Desc, ThisYear.LowMaxTemp.Val, ThisYear.LowMaxTemp.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowMaxTemp.Desc, ThisYear.LowMaxTemp.Val, ThisYear.LowMaxTemp.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighDailyTempRange.Desc, ThisYear.HighDailyTempRange.Val, ThisYear.HighDailyTempRange.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(ThisYear.HighDailyTempRange.Desc, ThisYear.HighDailyTempRange.Val, ThisYear.HighDailyTempRange.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowDailyTempRange.Desc, ThisYear.LowDailyTempRange.Val, ThisYear.LowDailyTempRange.Ts, "&deg;" + cumulus.TempUnitText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(ThisYear.LowDailyTempRange.Desc, ThisYear.LowDailyTempRange.Val, ThisYear.LowDailyTempRange.Ts, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9542,9 +9542,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisYear.HighPress.Desc, ThisYear.HighPress.Val, ThisYear.HighPress.Ts, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighPress.Desc, ThisYear.HighPress.Val, ThisYear.HighPress.Ts, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.LowPress.Desc, ThisYear.LowPress.Val, ThisYear.LowPress.Ts, cumulus.PressUnitText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.LowPress.Desc, ThisYear.LowPress.Val, ThisYear.LowPress.Ts, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9553,11 +9553,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisYear.HighGust.Desc, ThisYear.HighGust.Val, ThisYear.HighGust.Ts, cumulus.WindUnitText, cumulus.WindFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighGust.Desc, ThisYear.HighGust.Val, ThisYear.HighGust.Ts, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighWind.Desc, ThisYear.HighWind.Val, ThisYear.HighWind.Ts, cumulus.WindUnitText, cumulus.WindAvgFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighWind.Desc, ThisYear.HighWind.Val, ThisYear.HighWind.Ts, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HighWindRun.Desc, ThisYear.HighWindRun.Val, ThisYear.HighWindRun.Ts, cumulus.WindRunUnitText, cumulus.WindRunFormat, "D"));
+			json.Append(monthyearjsonformat(ThisYear.HighWindRun.Desc, ThisYear.HighWindRun.Val, ThisYear.HighWindRun.Ts, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9566,13 +9566,13 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(monthyearjsonformat(ThisYear.HighRainRate.Desc, ThisYear.HighRainRate.Val, ThisYear.HighRainRate.Ts, cumulus.RainUnitText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HighRainRate.Desc, ThisYear.HighRainRate.Val, ThisYear.HighRainRate.Ts, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.HourlyRain.Desc, ThisYear.HourlyRain.Val, ThisYear.HourlyRain.Ts, cumulus.RainUnitText, cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(ThisYear.HourlyRain.Desc, ThisYear.HourlyRain.Val, ThisYear.HourlyRain.Ts, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.DailyRain.Desc, ThisYear.DailyRain.Val, ThisYear.DailyRain.Ts, cumulus.RainUnitText, cumulus.RainFormat, "D"));
+			json.Append(monthyearjsonformat(ThisYear.DailyRain.Desc, ThisYear.DailyRain.Val, ThisYear.DailyRain.Ts, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
-			json.Append(monthyearjsonformat(ThisYear.MonthlyRain.Desc, ThisYear.MonthlyRain.Val, ThisYear.MonthlyRain.Ts, cumulus.RainUnitText, cumulus.RainFormat, "Y"));
+			json.Append(monthyearjsonformat(ThisYear.MonthlyRain.Desc, ThisYear.MonthlyRain.Val, ThisYear.MonthlyRain.Ts, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(ThisYear.LongestDryPeriod.Desc, ThisYear.LongestDryPeriod.Val, ThisYear.LongestDryPeriod.Ts, "days", "f0", "D"));
 			json.Append(",");
@@ -9592,7 +9592,7 @@ namespace CumulusMX
 				json.Append("\",\"");
 				json.Append(ExtraTemp[sensor].ToString(cumulus.TempFormat));
 				json.Append("\",\"&deg;");
-				json.Append(cumulus.TempUnitText[1].ToString());
+				json.Append(cumulus.Units.TempText[1].ToString());
 				json.Append("\"]");
 
 				if (sensor < 10)
@@ -9616,7 +9616,7 @@ namespace CumulusMX
 				json.Append("\",\"");
 				json.Append(UserTemp[sensor].ToString(cumulus.TempFormat));
 				json.Append("\",\"&deg;");
-				json.Append(cumulus.TempUnitText[1].ToString());
+				json.Append(cumulus.Units.TempText[1].ToString());
 				json.Append("\"]");
 
 				if (sensor < 8)
@@ -9662,7 +9662,7 @@ namespace CumulusMX
 				json.Append("\",\"");
 				json.Append(ExtraDewPoint[sensor].ToString(cumulus.TempFormat));
 				json.Append("\",\"&deg;");
-				json.Append(cumulus.TempUnitText[1].ToString());
+				json.Append(cumulus.Units.TempText[1].ToString());
 				json.Append("\"]");
 
 				if (sensor < 10)
@@ -9679,22 +9679,22 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
 
-			json.Append($"[\"{cumulus.SoilTempCaptions[1]}\",\"{SoilTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[2]}\",\"{SoilTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[3]}\",\"{SoilTemp3.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[4]}\",\"{SoilTemp4.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[5]}\",\"{SoilTemp5.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[6]}\",\"{SoilTemp6.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[7]}\",\"{SoilTemp7.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[8]}\",\"{SoilTemp8.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[9]}\",\"{SoilTemp9.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[10]}\",\"{SoilTemp10.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[11]}\",\"{SoilTemp11.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[12]}\",\"{SoilTemp12.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[13]}\",\"{SoilTemp13.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[14]}\",\"{SoilTemp14.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[15]}\",\"{SoilTemp15.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[16]}\",\"{SoilTemp16.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"]");
+			json.Append($"[\"{cumulus.SoilTempCaptions[1]}\",\"{SoilTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[2]}\",\"{SoilTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[3]}\",\"{SoilTemp3.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[4]}\",\"{SoilTemp4.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[5]}\",\"{SoilTemp5.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[6]}\",\"{SoilTemp6.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[7]}\",\"{SoilTemp7.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[8]}\",\"{SoilTemp8.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[9]}\",\"{SoilTemp9.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[10]}\",\"{SoilTemp10.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[11]}\",\"{SoilTemp11.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[12]}\",\"{SoilTemp12.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[13]}\",\"{SoilTemp13.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[14]}\",\"{SoilTemp14.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[15]}\",\"{SoilTemp15.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.SoilTempCaptions[16]}\",\"{SoilTemp16.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9757,7 +9757,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"Distance to last strike\",\"{LightningDistance.ToString(cumulus.WindRunFormat)}\",\"{cumulus.WindRunUnitText}\"],");
+			json.Append($"[\"Distance to last strike\",\"{LightningDistance.ToString(cumulus.WindRunFormat)}\",\"{cumulus.Units.WindRunText}\"],");
 			json.Append($"[\"Time of last strike\",\"{LightningTime}\",\"\"],");
 			json.Append($"[\"Number of strikes today\",\"{LightningStrikesToday}\",\"\"]");
 			json.Append("]}");
@@ -9768,8 +9768,8 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.TempUnitText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 			json.Append($"[\"{cumulus.LeafCaptions[3]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
 			json.Append($"[\"{cumulus.LeafCaptions[4]}\",\"{LeafWetness2}\",\"&nbsp;\"]");
 			json.Append("]}");
@@ -9780,10 +9780,10 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness1}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness2}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[3]}\",\"{LeafTemp3.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness3}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[4]}\",\"{LeafTemp4.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.TempUnitText[1]}\",\"{LeafWetness4}\"]");
+			json.Append($"[\"{cumulus.LeafCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness1}\"],");
+			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness2}\"],");
+			json.Append($"[\"{cumulus.LeafCaptions[3]}\",\"{LeafTemp3.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness3}\"],");
+			json.Append($"[\"{cumulus.LeafCaptions[4]}\",\"{LeafTemp4.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness4}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9905,7 +9905,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 2048);
 			var sepStr = "\",\"";
 			var closeStr = "\"],";
-			var tempUnitStr = "&nbsp;&deg;" + cumulus.TempUnitText[1].ToString() + sepStr;
+			var tempUnitStr = "&nbsp;&deg;" + cumulus.Units.TempText[1].ToString() + sepStr;
 
 			json.Append("[\"High Temperature\",\"");
 			json.Append(HiLoToday.HighTemp.ToString(cumulus.TempFormat));
@@ -10062,7 +10062,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 			var sepStr = "\",\"";
-			var unitStr = "&nbsp;" + cumulus.RainUnitText;
+			var unitStr = "&nbsp;" + cumulus.Units.RainText;
 
 			json.Append("[\"Total Rain\",\"");
 			json.Append(RainToday.ToString(cumulus.RainFormat));
@@ -10111,36 +10111,36 @@ namespace CumulusMX
 
 			json.Append("[\"Highest Gust\",\"");
 			json.Append(HiLoToday.HighGust.ToString(cumulus.WindFormat));
-			json.Append("&nbsp;" + cumulus.WindUnitText);
+			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
 			json.Append(HiLoToday.HighGustTime.ToShortTimeString());
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighGust.ToString(cumulus.WindFormat));
-			json.Append("&nbsp;" + cumulus.WindUnitText);
+			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighGustTime.ToShortTimeString());
 			json.Append("\"],");
 
 			json.Append("[\"Highest Speed\",\"");
 			json.Append(HiLoToday.HighWind.ToString(cumulus.WindAvgFormat));
-			json.Append("&nbsp;" + cumulus.WindUnitText);
+			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
 			json.Append(HiLoToday.HighWindTime.ToShortTimeString());
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighWind.ToString(cumulus.WindAvgFormat));
-			json.Append("&nbsp;" + cumulus.WindUnitText);
+			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighWindTime.ToShortTimeString());
 			json.Append("\"],");
 
 			json.Append("[\"Wind Run\",\"");
 			json.Append(WindRunToday.ToString(cumulus.WindRunFormat));
-			json.Append("&nbsp;" + cumulus.WindRunUnitText);
+			json.Append("&nbsp;" + cumulus.Units.WindRunText);
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append(sepStr);
 			json.Append(YesterdayWindRun.ToString(cumulus.WindRunFormat));
-			json.Append("&nbsp;" + cumulus.WindRunUnitText);
+			json.Append("&nbsp;" + cumulus.Units.WindRunText);
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append("\"],");
@@ -10165,7 +10165,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 			var sepStr = "\",\"";
-			var unitStr = "&nbsp;" + cumulus.PressUnitText;
+			var unitStr = "&nbsp;" + cumulus.Units.PressText;
 
 			json.Append("[\"High Pressure\",\"");
 			json.Append(HiLoToday.HighPress.ToString(cumulus.PressFormat));
@@ -10439,17 +10439,17 @@ namespace CumulusMX
 
 		public string GetUnits()
 		{
-			return $"{{\"temp\":\"{cumulus.TempUnitText[1]}\",\"wind\":\"{cumulus.WindUnitText}\",\"rain\":\"{cumulus.RainUnitText}\",\"press\":\"{cumulus.PressUnitText}\"}}";
+			return $"{{\"temp\":\"{cumulus.Units.TempText[1]}\",\"wind\":\"{cumulus.Units.WindText}\",\"rain\":\"{cumulus.Units.RainText}\",\"press\":\"{cumulus.Units.PressText}\"}}";
 		}
 
 		public string GetGraphConfig()
 		{
 			var json = new StringBuilder(200);
 			json.Append("{");
-			json.Append($"\"temp\":{{\"units\":\"{cumulus.TempUnitText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
-			json.Append($"\"wind\":{{\"units\":\"{cumulus.WindUnitText}\",\"decimals\":{cumulus.WindAvgDPlaces},\"rununits\":\"{cumulus.WindRunUnitText}\"}},");
-			json.Append($"\"rain\":{{\"units\":\"{cumulus.RainUnitText}\",\"decimals\":{cumulus.RainDPlaces}}},");
-			json.Append($"\"press\":{{\"units\":\"{cumulus.PressUnitText}\",\"decimals\":{cumulus.PressDPlaces}}},");
+			json.Append($"\"temp\":{{\"units\":\"{cumulus.Units.TempText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
+			json.Append($"\"wind\":{{\"units\":\"{cumulus.Units.WindText}\",\"decimals\":{cumulus.WindAvgDPlaces},\"rununits\":\"{cumulus.Units.WindRunText}\"}},");
+			json.Append($"\"rain\":{{\"units\":\"{cumulus.Units.RainText}\",\"decimals\":{cumulus.RainDPlaces}}},");
+			json.Append($"\"press\":{{\"units\":\"{cumulus.Units.PressText}\",\"decimals\":{cumulus.PressDPlaces}}},");
 			json.Append($"\"hum\":{{\"decimals\":{cumulus.HumDPlaces}}},");
 			json.Append($"\"uv\":{{\"decimals\":{cumulus.UVDPlaces}}}");
 			json.Append("}");
@@ -11145,10 +11145,10 @@ namespace CumulusMX
 			var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
 				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
 				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString("HH:mm"), HiLoToday.HighWind,
-				HiLoToday.HighGustBearing, cumulus.WindUnitText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
+				HiLoToday.HighGustBearing, cumulus.Units.WindText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
 				HiLoToday.HighTempTime.ToString("HH:mm"), HiLoToday.LowTempTime.ToString("HH:mm"), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString("HH:mm"),
 				HiLoToday.LowPressTime.ToString("HH:mm"), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString("HH:mm"), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
-				HiLoToday.HighHumidityTime.ToString("HH:mm"), HiLoToday.LowHumidityTime.ToString("HH:mm"), cumulus.PressUnitText, cumulus.TempUnitText, cumulus.RainUnitText,
+				HiLoToday.HighHumidityTime.ToString("HH:mm"), HiLoToday.LowHumidityTime.ToString("HH:mm"), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
 				HiLoToday.HighDewPoint, HiLoToday.LowDewPoint, HiLoToday.HighDewPointTime.ToString("HH:mm"), HiLoToday.LowDewPointTime.ToString("HH:mm"), HiLoToday.LowWindChill,
 				HiLoToday.LowWindChillTime.ToString("HH:mm"), (int)SolarRad, (int)HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString("HH:mm"), UV, HiLoToday.HighUv,
 				HiLoToday.HighUvTime.ToString("HH:mm"), forecaststr, getTimeString(cumulus.SunRiseTime), getTimeString(cumulus.SunSetTime),
@@ -11419,7 +11419,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// input is in WindUnit units, convert to mph for APRS
+		/// input is in Units.Wind units, convert to mph for APRS
 		/// and return 3 digits
 		/// </summary>
 		/// <param name="wind"></param>
@@ -11431,7 +11431,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// input is in PressUnit units, convert to tenths of mb for APRS
+		/// input is in Units.Press units, convert to tenths of mb for APRS
 		/// return 5 digit string
 		/// </summary>
 		/// <param name="press"></param>

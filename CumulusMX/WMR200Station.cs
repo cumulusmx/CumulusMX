@@ -1446,7 +1446,7 @@ namespace CumulusMX
 			DoWind(ConvertWindMSToUser(gust),bearing,ConvertWindMSToUser(average),timestamp);
 
 			// add in 'interval' minutes worth of wind speed to windrun
-			WindRunToday += (WindAverage*WindRunHourMult[cumulus.WindUnit]*interval*60)/1000.0;
+			WindRunToday += (WindAverage*WindRunHourMult[cumulus.Units.Wind]*interval*60)/1000.0;
 			// update dominant wind bearing
 			CalculateDominantWindBearing(Bearing, WindAverage, interval);
 			int sensorcount = packetBuffer[32];

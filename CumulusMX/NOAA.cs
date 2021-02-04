@@ -569,7 +569,7 @@ namespace CumulusMX
 
 			output.Add($"Elevation: {elev}  Lat: {string.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec)}   Lon: {string.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec)}");
 			output.Add("");
-			output.Add($"                  Temperature ({cumulus.TempUnitText}), Rain ({cumulus.RainUnitText}), Wind Speed ({cumulus.WindUnitText})");
+			output.Add($"                  Temperature ({cumulus.Units.TempText}), Rain ({cumulus.Units.RainText}), Wind Speed ({cumulus.Units.WindText})");
 			output.Add("");
 			output.Add("                                      Heat  Cool        Avg");
 			output.Add("    Mean                              Deg   Deg         Wind                 Dom");
@@ -710,7 +710,7 @@ namespace CumulusMX
 
 			output.Add($"Max Rain: {maxrain.ToString(cumulus.RainFormat, culture)} on day {maxrainday}");
 
-			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})");
+			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})");
 			output.Add($"Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}  Method: Integration");
 
 			return output;
@@ -937,7 +937,7 @@ namespace CumulusMX
 
 			output.Add($"Elevation: {elev}  Lat: {string.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec)}   Lon: {string.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec)}");
 			output.Add("");
-			output.Add($"                  Temperature ({cumulus.TempUnitText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}");
+			output.Add($"                  Temperature ({cumulus.Units.TempText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}");
 			output.Add("                          Dep.  Heat  Cool                       Max  Max  Min  Min");
 			output.Add("        Mean  Mean        From  Deg   Deg                        >=   <=   <=   <=");
 			//@ Unsupported function or procedure: 'Format'
@@ -1048,7 +1048,7 @@ namespace CumulusMX
 
 			// Rain section header
 			output.Add("");
-			output.Add("                                Precipitation (" + cumulus.RainUnitText + ")");
+			output.Add("                                Precipitation (" + cumulus.Units.RainText + ")");
 			output.Add("");
 			output.Add("              Dep.   Max        Days of Rain");
 			output.Add("              From   Obs.           >=");
@@ -1134,7 +1134,7 @@ namespace CumulusMX
 			}
 
 			output.Add("");
-			output.Add($"                                Wind Speed ({cumulus.WindUnitText})");
+			output.Add($"                                Wind Speed ({cumulus.Units.WindText})");
 			output.Add("                          Dom");
 			output.Add(" YR MO   Avg.  Hi   Date  Dir");
 			output.Add("------------------------------");

@@ -116,8 +116,8 @@ namespace CumulusMX
 		/*
 		public struct Dataunits
 		{
-			public pressunits pressunit;
-			public windunits windunit;
+			public Units.Presss Units.Press;
+			public Units.Winds Units.Wind;
 			public tempunits tempunit;
 			public rainunits rainunit;
 		}
@@ -217,27 +217,6 @@ namespace CumulusMX
 
 		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
 
-		/// <summary>
-		/// Temperature unit currently in use
-		/// </summary>
-		public string TempUnitText;
-
-		/// <summary>
-		/// Temperature trend unit in use, eg "°C/hr"
-		/// </summary>
-		public string TempTrendUnitText;
-
-		public string RainUnitText;
-
-		public string RainTrendUnitText;
-
-		public string PressUnitText;
-
-		public string PressTrendUnitText;
-
-		public string WindUnitText;
-
-		public string WindRunUnitText;
 
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
@@ -369,9 +348,7 @@ namespace CumulusMX
 		internal int[] FactorsOf60 = { 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60 };
 
 		public TimeSpan AvgSpeedTime { get; set; }
-		public int AvgSpeedMinutes = 10;
 
-		public int PeakGustMinutes = 10;
 		public TimeSpan PeakGustTime { get; set; }
 		public TimeSpan AvgBearingTime { get; set; }
 
@@ -391,14 +368,13 @@ namespace CumulusMX
 		internal int AirQualityDPlaces = 1;
 		public string AirQualityFormat;
 
-		private int WindRunDPlaces = 1;
+		public int WindRunDPlaces = 1;
 		public string WindRunFormat;
 
 		public int RainDPlaces = 1;
 		public string RainFormat;
 
 		internal int PressDPlaces = 1;
-		internal bool davisIncrementPressureDP;
 		public string PressFormat;
 
 		internal int SunshineDPlaces = 1;
@@ -409,12 +385,8 @@ namespace CumulusMX
 
 		public string ETFormat;
 
-		public int VPrainGaugeType = -1;
-
 		public string ComportName;
 		public string DefaultComportName;
-		public int ImetBaudRate;
-		public int DavisBaudRate;
 
 		public int vendorID;
 		public int productID;
@@ -450,9 +422,6 @@ namespace CumulusMX
 		internal int wsPort;
 		private readonly bool DebuggingEnabled;
 
-		public bool UseDavisLoop2 = true;
-		public int DavisReadTimeout;
-
 		public SerialPort cmprtRG11;
 		public SerialPort cmprt2RG11;
 
@@ -466,8 +435,6 @@ namespace CumulusMX
 
 		private readonly string twitterKey = "lQiGNdtlYUJ4wS3d7souPw";
 		private readonly string twitterSecret = "AoB7OqimfoaSfGQAd47Hgatqdv3YeTTiqpinkje6Xg";
-
-		public int FineOffsetReadTime;
 
 		public string AlltimeIniFile;
 		public string Alltimelogfile;
@@ -528,6 +495,13 @@ namespace CumulusMX
 		public ProgramOptionsClass ProgramOptions = new ProgramOptionsClass();
 
 		public StationOptions StationOptions = new StationOptions();
+
+		public StationUnits Units = new StationUnits();
+
+		public DavisOptions DavisOptions = new DavisOptions();
+		public FineOffsetOptions FineOffsetOptions = new FineOffsetOptions();
+		public ImetOptions ImetOptions = new ImetOptions();
+		public EasyWeatherOptions EwOptions = new EasyWeatherOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
 
@@ -939,8 +913,16 @@ namespace CumulusMX
 			// determine system uptime based on OS
 			if (Platform.Substring(0, 3) == "Win")
 			{
-				// Windows enable the performance counter method
-				UpTime = new PerformanceCounter("System", "System Up Time");
+				try
+				{
+					// Windows enable the performance counter method
+					UpTime = new PerformanceCounter("System", "System Up Time");
+				}
+				catch (Exception e)
+				{
+					LogMessage("Error: Unable to acces the System Up Time performance counter. System up time will not be available");
+					LogDebugMessage($"Error: {e}");
+				}
 			}
 
 			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
@@ -1089,7 +1071,7 @@ namespace CumulusMX
 			{
 				// Check uptime
 				double ts = 0;
-				if (Platform.Substring(0, 3) == "Win")
+				if (Platform.Substring(0, 3) == "Win" && UpTime != null)
 				{
 					UpTime.NextValue();
 					ts = UpTime.NextValue();
@@ -1222,7 +1204,7 @@ namespace CumulusMX
 			LogMessage("Spike logging is " + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
 			LogMessage("Real time interval = " + RealtimeInterval / 1000 + " secs");
-			LogMessage("NoSensorCheck = " + (NoSensorCheck ? "1" : "0"));
+			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "1" : "0"));
 
 			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
@@ -1339,7 +1321,7 @@ namespace CumulusMX
 
 			SetupUnitText();
 
-			LogMessage($"WindUnit={WindUnitText} RainUnit={RainUnitText} TempUnit={TempUnitText} PressureUnit={PressUnitText}");
+			LogMessage($"Units.Wind={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
 			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
 			LogMessage($"Roll over hour={RolloverHour}");
@@ -1597,7 +1579,7 @@ namespace CumulusMX
 		{
 			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlRealtimeTable + " (" +
 				"LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press," +
-				"currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit," +
+				"currentwdir,beaufortnumber,Units.Wind,tempunitnodeg,Units.Press,rainunit," +
 				"windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend," +
 				"tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM," +
 				"pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex," +
@@ -1620,9 +1602,9 @@ namespace CumulusMX
 				"press decimal(6," + PressDPlaces +") NOT NULL," +
 				"currentwdir varchar(3) NOT NULL," +
 				"beaufortnumber varchar(2) NOT NULL," +
-				"windunit varchar(4) NOT NULL," +
+				"Units.Wind varchar(4) NOT NULL," +
 				"tempunitnodeg varchar(1) NOT NULL," +
-				"pressunit varchar(3) NOT NULL," +
+				"Units.Press varchar(3) NOT NULL," +
 				"rainunit varchar(2) NOT NULL," +
 				"windrun decimal(4," + WindRunDPlaces + ") NOT NULL," +
 				"presstrendval varchar(6) NOT NULL," +
@@ -1696,60 +1678,60 @@ namespace CumulusMX
 			switch (TempUnit)
 			{
 				case 0:
-					TempUnitText = "°C";
-					TempTrendUnitText = "°C/hr";
+					Units.TempText = "°C";
+					Units.TempTrendText = "°C/hr";
 					break;
 				case 1:
-					TempUnitText = "°F";
-					TempTrendUnitText = "°F/hr";
+					Units.TempText = "°F";
+					Units.TempTrendText = "°F/hr";
 					break;
 			}
 
 			switch (RainUnit)
 			{
 				case 0:
-					RainUnitText = "mm";
-					RainTrendUnitText = "mm/hr";
+					Units.RainText = "mm";
+					Units.RainTrendText = "mm/hr";
 					break;
 				case 1:
-					RainUnitText = "in";
-					RainTrendUnitText = "in/hr";
+					Units.RainText = "in";
+					Units.RainTrendText = "in/hr";
 					break;
 			}
 
-			switch (PressUnit)
+			switch (Units.Press)
 			{
 				case 0:
-					PressUnitText = "mb";
-					PressTrendUnitText = "mb/hr";
+					Units.PressText = "mb";
+					Units.PressTrendText = "mb/hr";
 					break;
 				case 1:
-					PressUnitText = "hPa";
-					PressTrendUnitText = "hPa/hr";
+					Units.PressText = "hPa";
+					Units.PressTrendText = "hPa/hr";
 					break;
 				case 2:
-					PressUnitText = "in";
-					PressTrendUnitText = "in/hr";
+					Units.PressText = "in";
+					Units.PressTrendText = "in/hr";
 					break;
 			}
 
-			switch (WindUnit)
+			switch (Units.Wind)
 			{
 				case 0:
-					WindUnitText = "m/s";
-					WindRunUnitText = "km";
+					Units.WindText = "m/s";
+					Units.WindRunText = "km";
 					break;
 				case 1:
-					WindUnitText = "mph";
-					WindRunUnitText = "miles";
+					Units.WindText = "mph";
+					Units.WindRunText = "miles";
 					break;
 				case 2:
-					WindUnitText = "km/h";
-					WindRunUnitText = "km";
+					Units.WindText = "km/h";
+					Units.WindRunText = "km";
 					break;
 				case 3:
-					WindUnitText = "kts";
-					WindRunUnitText = "nm";
+					Units.WindText = "kts";
+					Units.WindRunText = "nm";
 					break;
 			}
 		}
@@ -1991,10 +1973,10 @@ namespace CumulusMX
 				else
 				{
 					// default message
-					status.Append($"Wind {station.WindAverage.ToString(WindAvgFormat)} {WindUnitText} {station.AvgBearingText}.");
-					status.Append($" Barometer {station.Pressure.ToString(PressFormat)} {PressUnitText}, {station.Presstrendstr}.");
-					status.Append($" Temperature {station.OutdoorTemperature.ToString(TempFormat)} {TempUnitText}.");
-					status.Append($" Rain today {station.RainToday.ToString(RainFormat)}{RainUnitText}.");
+					status.Append($"Wind {station.WindAverage.ToString(WindAvgFormat)} {Units.WindText} {station.AvgBearingText}.");
+					status.Append($" Barometer {station.Pressure.ToString(PressFormat)} {Units.PressText}, {station.Presstrendstr}.");
+					status.Append($" Temperature {station.OutdoorTemperature.ToString(TempFormat)} {Units.TempText}.");
+					status.Append($" Rain today {station.RainToday.ToString(RainFormat)}{Units.RainText}.");
 					status.Append($" Humidity {station.OutdoorHumidity}%");
 				}
 
@@ -3447,7 +3429,7 @@ namespace CumulusMX
 		private void ReadIniFile()
 		{
 			var DavisBaudRates = new List<int> { 1200, 2400, 4800, 9600, 14400, 19200 };
-			var ImetBaudRates = new List<int> { 19200, 115200 };
+			ImetOptions.BaudRates = new List<int> { 19200, 115200 };
 
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
@@ -3482,44 +3464,46 @@ namespace CumulusMX
 				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
 			}
 
-			StationType = ini.GetValue("Station", "Type", -1);
+			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
 
+			StationType = ini.GetValue("Station", "Type", -1);
 			StationModel = ini.GetValue("Station", "Model", "");
 
 			FineOffsetStation = (StationType == StationTypes.FineOffset || StationType == StationTypes.FineOffsetSolar);
 			DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
 
-			UseDavisLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
-			StationOptions.DavisReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
-			DavisInitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 2000);
-			DavisIPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 500);
-			DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000);
-			davisIncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", false);
+			// Davis Options
+			DavisOptions.UseLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
+			DavisOptions.ReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
+			DavisOptions.SetLoggerInterval = ini.GetValue("Station", "DavisSetLoggerInterval", false);
+			DavisOptions.InitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 2000);
+			DavisOptions.IPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 500);
+			//StationOptions.DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000); // Not currently used
+			DavisOptions.IncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", false);
 			if (StationType == StationTypes.VantagePro)
 			{
-				UseDavisLoop2 = false;
+				DavisOptions.UseLoop2 = false;
 			}
-
-			serial_port = ini.GetValue("Station", "Port", 0);
-
-			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
-			ImetBaudRate = ini.GetValue("Station", "ImetBaudRate", 19200);
+			DavisOptions.BaudRate = ini.GetValue("Station", "DavisBaudRate", 19200);
 			// Check we have a valid value
-			if (!ImetBaudRates.Contains(ImetBaudRate))
+			if (!DavisBaudRates.Contains(DavisOptions.BaudRate))
 			{
 				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for ImetBaudRate in the ini file " + ImetBaudRate + " is not valid, using default 19200.");
-				ImetBaudRate = 19200;
+				LogMessage("Error, the value for DavisBaudRate in the ini file " + DavisOptions.BaudRate + " is not valid, using default 19200.");
+				DavisOptions.BaudRate = 19200;
 			}
+			DavisOptions.ForceVPBarUpdate = ini.GetValue("Station", "ForceVPBarUpdate", false);
+			//DavisUseDLLBarCalData = ini.GetValue("Station", "DavisUseDLLBarCalData", false);
+			//DavisCalcAltPress = ini.GetValue("Station", "DavisCalcAltPress", true);
+			//DavisConsoleHighGust = ini.GetValue("Station", "DavisConsoleHighGust", false);
+			DavisOptions.RainGaugeType = ini.GetValue("Station", "VPrainGaugeType", -1);
+			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
+			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
+			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+			//VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
+			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
+			DavisOptions.PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
 
-			DavisBaudRate = ini.GetValue("Station", "DavisBaudRate", 19200);
-			// Check we have a valid value
-			if (!DavisBaudRates.Contains(DavisBaudRate))
-			{
-				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for DavisBaudRate in the ini file " + DavisBaudRate + " is not valid, using default 19200.");
-				DavisBaudRate = 19200;
-			}
 
 			vendorID = ini.GetValue("Station", "VendorID", -1);
 			productID = ini.GetValue("Station", "ProductID", -1);
@@ -3551,44 +3535,44 @@ namespace CumulusMX
 			StationOptions.UseWind10MinAve = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 
-			AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
-			if (AvgBearingMinutes > 120)
+			StationOptions.AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
+			if (StationOptions.AvgBearingMinutes > 120)
 			{
-				AvgBearingMinutes = 120;
+				StationOptions.AvgBearingMinutes = 120;
 			}
-			if (AvgBearingMinutes == 0)
+			if (StationOptions.AvgBearingMinutes == 0)
 			{
-				AvgBearingMinutes = 1;
-			}
-
-			AvgBearingTime = new TimeSpan(AvgBearingMinutes / 60, AvgBearingMinutes % 60, 0);
-
-			AvgSpeedMinutes = ini.GetValue("Station", "AvgSpeedMinutes", 10);
-			if (AvgSpeedMinutes > 120)
-			{
-				AvgSpeedMinutes = 120;
-			}
-			if (AvgSpeedMinutes == 0)
-			{
-				AvgSpeedMinutes = 1;
+				StationOptions.AvgBearingMinutes = 1;
 			}
 
-			AvgSpeedTime = new TimeSpan(AvgSpeedMinutes / 60, AvgSpeedMinutes % 60, 0);
+			AvgBearingTime = new TimeSpan(StationOptions.AvgBearingMinutes / 60, StationOptions.AvgBearingMinutes % 60, 0);
 
-			LogMessage("ASM=" + AvgSpeedMinutes + " AST=" + AvgSpeedTime.ToString());
-
-			PeakGustMinutes = ini.GetValue("Station", "PeakGustMinutes", 10);
-			if (PeakGustMinutes > 120)
+			StationOptions.AvgSpeedMinutes = ini.GetValue("Station", "AvgSpeedMinutes", 10);
+			if (StationOptions.AvgSpeedMinutes > 120)
 			{
-				PeakGustMinutes = 120;
+				StationOptions.AvgSpeedMinutes = 120;
+			}
+			if (StationOptions.AvgSpeedMinutes == 0)
+			{
+				StationOptions.AvgSpeedMinutes = 1;
 			}
 
-			if (PeakGustMinutes == 0)
+			AvgSpeedTime = new TimeSpan(StationOptions.AvgSpeedMinutes / 60, StationOptions.AvgSpeedMinutes % 60, 0);
+
+			LogMessage("AvgSpdMins=" + StationOptions.AvgSpeedMinutes + " AvgSpdTime=" + AvgSpeedTime.ToString());
+
+			StationOptions.PeakGustMinutes = ini.GetValue("Station", "PeakGustMinutes", 10);
+			if (StationOptions.PeakGustMinutes > 120)
 			{
-				PeakGustMinutes = 1;
+				StationOptions.PeakGustMinutes = 120;
 			}
 
-			PeakGustTime = new TimeSpan(PeakGustMinutes / 60, PeakGustMinutes % 60, 0);
+			if (StationOptions.PeakGustMinutes == 0)
+			{
+				StationOptions.PeakGustMinutes = 1;
+			}
+
+			PeakGustTime = new TimeSpan(StationOptions.PeakGustMinutes / 60, StationOptions.PeakGustMinutes % 60, 0);
 
 			if ((StationType == StationTypes.VantagePro) || (StationType == StationTypes.VantagePro2))
 			{
@@ -3601,23 +3585,24 @@ namespace CumulusMX
 
 			UVdecimals = ini.GetValue("Station", "UVdecimals", UVdecimaldefault);
 
-			NoSensorCheck = ini.GetValue("Station", "NoSensorCheck", false);
+			StationOptions.NoSensorCheck = ini.GetValue("Station", "NoSensorCheck", false);
 
 			StationOptions.CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
 			StationOptions.CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
 			RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
 			Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
-			ConfirmClose = ini.GetValue("Station", "ConfirmClose", false);
-			CloseOnSuspend = ini.GetValue("Station", "CloseOnSuspend", false);
-			RestartIfUnplugged = ini.GetValue("Station", "RestartIfUnplugged", false);
-			RestartIfDataStops = ini.GetValue("Station", "RestartIfDataStops", false);
+			//ConfirmClose = ini.GetValue("Station", "ConfirmClose", false);
+			//CloseOnSuspend = ini.GetValue("Station", "CloseOnSuspend", false);
+			//RestartIfUnplugged = ini.GetValue("Station", "RestartIfUnplugged", false);
+			//RestartIfDataStops = ini.GetValue("Station", "RestartIfDataStops", false);
 			StationOptions.SyncTime = ini.GetValue("Station", "SyncDavisClock", false);
-			ClockSettingHour = ini.GetValue("Station", "ClockSettingHour", 4);
+			StationOptions.ClockSettingHour = ini.GetValue("Station", "ClockSettingHour", 4);
 			StationOptions.WS2300IgnoreStationClock = ini.GetValue("Station", "WS2300IgnoreStationClock", false);
+			//WS2300Sync = ini.GetValue("Station", "WS2300Sync", false);
 			StationOptions.LogExtraSensors = ini.GetValue("Station", "LogExtraSensors", false);
 			ReportDataStoppedErrors = ini.GetValue("Station", "ReportDataStoppedErrors", true);
 			ReportLostSensorContact = ini.GetValue("Station", "ReportLostSensorContact", true);
-			NoFlashWetDryDayRecords = ini.GetValue("Station", "NoFlashWetDryDayRecords", false);
+			//NoFlashWetDryDayRecords = ini.GetValue("Station", "NoFlashWetDryDayRecords", false);
 			ErrorLogSpikeRemoval = ini.GetValue("Station", "ErrorLogSpikeRemoval", true);
 			DataLogInterval = ini.GetValue("Station", "DataLogInterval", 2);
 			// this is now an index
@@ -3626,35 +3611,35 @@ namespace CumulusMX
 				DataLogInterval = 2;
 			}
 
-			StationOptions.SyncFOReads = ini.GetValue("Station", "SyncFOReads", true);
-			FOReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
-			FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
+			FineOffsetOptions.FineOffsetSyncReads = ini.GetValue("Station", "SyncFOReads", true);
+			FineOffsetOptions.FineOffsetReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
+			FineOffsetOptions.FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
 
-			WS2300Sync = ini.GetValue("Station", "WS2300Sync", false);
-			WindUnit = ini.GetValue("Station", "WindUnit", 0);
-			PressUnit = ini.GetValue("Station", "PressureUnit", 0);
+			Units.Wind = ini.GetValue("Station", "Units.Wind", 0);
+			Units.Press = ini.GetValue("Station", "PressureUnit", 0);
 
-			RainUnit = ini.GetValue("Station", "RainUnit", 0);
-			TempUnit = ini.GetValue("Station", "TempUnit", 0);
+			Units.Rain = ini.GetValue("Station", "RainUnit", 0);
+			Units.Temp = ini.GetValue("Station", "TempUnit", 0);
 
 			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1);
 
 
 			// Unit decimals
-			RainDPlaces = RainDPlace[RainUnit];
-			TempDPlaces = TempDPlace[TempUnit];
-			PressDPlaces = PressDPlace[PressUnit];
-			WindDPlaces = StationOptions.RoundWindSpeed ? 0 : WindDPlace[WindUnit];
+			RainDPlaces = RainDPlaceDefaults[RainUnit];
+			TempDPlaces = TempDPlaceDefaults[TempUnit];
+			PressDPlaces = PressDPlaceDefaults[Units.Press];
+			WindDPlaces = StationOptions.RoundWindSpeed ? 0 : WindDPlaceDefaults[Units.Wind];
 			WindAvgDPlaces = WindDPlaces;
+			AirQualityDPlaces = 1;
 
-			// Unit decimal overrides - readonly
+			// Unit decimal overrides
 			WindDPlaces = ini.GetValue("Station", "WindSpeedDecimals", WindDPlaces);
 			WindAvgDPlaces = ini.GetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
 			WindRunDPlaces = ini.GetValue("Station", "WindRunDecimals", WindRunDPlaces);
 			SunshineDPlaces = ini.GetValue("Station", "SunshineHrsDecimals", 1);
 
-			if ((StationType == 0 || StationType == 1) && davisIncrementPressureDP)
+			if ((StationType == 0 || StationType == 1) && DavisOptions.IncrementPressureDP)
 			{
 				// Use one more DP for Davis stations
 				++PressDPlaces;
@@ -3672,11 +3657,15 @@ namespace CumulusMX
 			YTDrain = ini.GetValue("Station", "YTDrain", 0.0);
 			YTDrainyear = ini.GetValue("Station", "YTDrainyear", 0);
 
-			EWInterval = ini.GetValue("Station", "EWInterval", 1.0);
-			EWFile = ini.GetValue("Station", "EWFile", "");
-			EWallowFF = ini.GetValue("Station", "EWFF", false);
-			EWdisablecheckinit = ini.GetValue("Station", "EWdisablecheckinit", false);
-			EWduplicatecheck = ini.GetValue("Station", "EWduplicatecheck", true);
+			EwOptions.Interval = ini.GetValue("Station", "EWInterval", 1.0);
+			EwOptions.Filename = ini.GetValue("Station", "EWFile", "");
+			//EWallowFF = ini.GetValue("Station", "EWFF", false);
+			//EWdisablecheckinit = ini.GetValue("Station", "EWdisablecheckinit", false);
+			//EWduplicatecheck = ini.GetValue("Station", "EWduplicatecheck", true);
+			EwOptions.MinPressMB = ini.GetValue("Station", "EWminpressureMB", 900);
+			EwOptions.MaxPressMB = ini.GetValue("Station", "EWmaxpressureMB", 1200);
+			EwOptions.MaxRainTipDiff = ini.GetValue("Station", "EWMaxRainTipDiff", 30);
+			EwOptions.PressOffset = ini.GetValue("Station", "EWpressureoffset", 9999.0);
 
 			Spike.TempDiff = ini.GetValue("Station", "EWtempdiff", 999.0);
 			Spike.PressDiff = ini.GetValue("Station", "EWpressurediff", 999.0);
@@ -3686,28 +3675,23 @@ namespace CumulusMX
 			Spike.MaxRainRate = ini.GetValue("Station", "EWmaxRainRate", 999.0);
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 
-			EWminpressureMB = ini.GetValue("Station", "EWminpressureMB", 900);
-			EWmaxpressureMB = ini.GetValue("Station", "EWmaxpressureMB", 1200);
-
-			EWMaxRainTipDiff = ini.GetValue("Station", "EWMaxRainTipDiff", 30);
-
-			EWpressureoffset = ini.GetValue("Station", "EWpressureoffset", 9999.0);
-
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
-
-			StationOptions.ForceVPBarUpdate = ini.GetValue("Station", "ForceVPBarUpdate", false);
-			DavisUseDLLBarCalData = ini.GetValue("Station", "DavisUseDLLBarCalData", false);
-			DavisCalcAltPress = ini.GetValue("Station", "DavisCalcAltPress", true);
-			DavisConsoleHighGust = ini.GetValue("Station", "DavisConsoleHighGust", false);
-			VPrainGaugeType = ini.GetValue("Station", "VPrainGaugeType", -1);
 
 			RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
 
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
-			ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);					// readonly setting - delay to wait for a reply to a command
-			ImetReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);					// readonly setting - delay between sending read live data commands
-			ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);	// readonly setting - keep the logger pointer pointing at last data read
+			ImetOptions.ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);			// delay to wait for a reply to a command
+			ImetOptions.ImetReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);			// delay between sending read live data commands
+			ImetOptions.ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);   // keep the logger pointer pointing at last data read
+			ImetOptions.ImetBaudRate = ini.GetValue("Station", "ImetOptions.ImetBaudRate", 19200);
+			// Check we have a valid value
+			if (!ImetOptions.BaudRates.Contains(ImetOptions.ImetBaudRate))
+			{
+				// nope, that isn't allowed, set the default
+				LogMessage("Error, the value for ImetOptions.ImetBaudRate in the ini file " + ImetOptions.ImetBaudRate + " is not valid, using default 19200.");
+				ImetOptions.ImetBaudRate = 19200;
+			}
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
@@ -3728,6 +3712,8 @@ namespace CumulusMX
 			FCPressureThreshold = ini.GetValue("Station", "FCPressureThreshold", -1.0);
 
 			RainSeasonStart = ini.GetValue("Station", "RainSeasonStart", 1);
+			if (RainSeasonStart < 1 || RainSeasonStart > 12)
+				RainSeasonStart = 1;
 			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
 
@@ -3752,29 +3738,20 @@ namespace CumulusMX
 
 			if (FCPressureThreshold < 0)
 			{
-				FCPressureThreshold = PressUnit == 2 ? 0.00295333727 : 0.1;
+				FCPressureThreshold = Units.Press == 2 ? 0.00295333727 : 0.1;
 			}
 
 			special_logging = ini.GetValue("Station", "SpecialLog", false);
 			solar_logging = ini.GetValue("Station", "SolarLog", false);
 
-			VP2ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
-			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
-			VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
-			VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
-
-			VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
-
-			VP2PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
-
-			RTdisconnectcount = ini.GetValue("Station", "RTdisconnectcount", 0);
+			//RTdisconnectcount = ini.GetValue("Station", "RTdisconnectcount", 0);
 
 			WMR928TempChannel = ini.GetValue("Station", "WMR928TempChannel", 0);
 
 			WMR200TempChannel = ini.GetValue("Station", "WMR200TempChannel", 1);
 
-			CreateWxnowTxt = ini.GetValue("Station", "CreateWxnowTxt", true);
+			CreateWxnowTxt = ini.GetValue("Station", "CreateWxnowTxt", false);
 
 			ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 
@@ -4429,32 +4406,61 @@ namespace CumulusMX
 			ini.SetValue("Station", "Humidity98Fix", StationOptions.Humidity98Fix);
 			ini.SetValue("Station", "Wind10MinAverage", StationOptions.UseWind10MinAve);
 			ini.SetValue("Station", "UseSpeedForAvgCalc", StationOptions.UseSpeedForAvgCalc);
-			ini.SetValue("Station", "DavisReadReceptionStats", StationOptions.DavisReadReceptionStats);
+			ini.SetValue("Station", "AvgBearingMinutes", StationOptions.AvgBearingMinutes);
+			ini.SetValue("Station", "AvgSpeedMinutes", StationOptions.AvgSpeedMinutes);
+			ini.SetValue("Station", "PeakGustMinutes", StationOptions.PeakGustMinutes);
+
+			ini.SetValue("Station", "DavisReadReceptionStats", DavisOptions.ReadReceptionStats);
+			ini.SetValue("Station", "DavisSetLoggerInterval", DavisOptions.SetLoggerInterval);
+			ini.SetValue("Station", "UseDavisLoop2", DavisOptions.UseLoop2);
+			ini.SetValue("Station", "DavisInitWaitTime", DavisOptions.InitWaitTime);
+			ini.SetValue("Station", "DavisIPResponseTime", DavisOptions.IPResponseTime);
+			ini.SetValue("Station", "DavisBaudRate", DavisOptions.BaudRate);
+			ini.SetValue("Station", "VPrainGaugeType", DavisOptions.RainGaugeType);
+			ini.SetValue("Station", "VP2ConnectionType", DavisOptions.ConnectionType);
+			ini.SetValue("Station", "VP2TCPPort", DavisOptions.TCPPort);
+			ini.SetValue("Station", "VP2IPAddr", DavisOptions.IPAddr);
+			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", DavisOptions.PeriodicDisconnectInterval);
+
+			ini.SetValue("Station", "NoSensorCheck", StationOptions.NoSensorCheck);
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
 			ini.SetValue("Station", "CalculatedWC", StationOptions.CalculatedWC);
 			ini.SetValue("Station", "RolloverHour", RolloverHour);
 			ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
-			ini.SetValue("Station", "ConfirmClose", ConfirmClose);
-			ini.SetValue("Station", "CloseOnSuspend", CloseOnSuspend);
-			ini.SetValue("Station", "RestartIfUnplugged", RestartIfUnplugged);
-			ini.SetValue("Station", "RestartIfDataStops", RestartIfDataStops);
+			//ini.SetValue("Station", "ConfirmClose", ConfirmClose);
+			//ini.SetValue("Station", "CloseOnSuspend", CloseOnSuspend);
+			//ini.SetValue("Station", "RestartIfUnplugged", RestartIfUnplugged);
+			//ini.SetValue("Station", "RestartIfDataStops", RestartIfDataStops);
 			ini.SetValue("Station", "SyncDavisClock", StationOptions.SyncTime);
-			ini.SetValue("Station", "ClockSettingHour", ClockSettingHour);
-			ini.SetValue("Station", "SyncFOReads", StationOptions.SyncFOReads);
+			ini.SetValue("Station", "ClockSettingHour", StationOptions.ClockSettingHour);
+			ini.SetValue("Station", "SyncFOReads", FineOffsetOptions.FineOffsetSyncReads);
+			ini.SetValue("Station", "FOReadAvoidPeriod", FineOffsetOptions.FineOffsetReadAvoidPeriod);
+			ini.SetValue("Station", "FineOffsetReadTime", FineOffsetOptions.FineOffsetReadTime);
 			ini.SetValue("Station", "WS2300IgnoreStationClock", StationOptions.WS2300IgnoreStationClock);
 			ini.SetValue("Station", "LogExtraSensors", StationOptions.LogExtraSensors);
 			ini.SetValue("Station", "DataLogInterval", DataLogInterval);
-			ini.SetValue("Station", "WindUnit", WindUnit);
-			ini.SetValue("Station", "PressureUnit", PressUnit);
-			ini.SetValue("Station", "RainUnit", RainUnit);
-			ini.SetValue("Station", "TempUnit", TempUnit);
+
+			ini.SetValue("Station", "WindUnit", Units.Wind);
+			ini.SetValue("Station", "PressureUnit", Units.Press);
+			ini.SetValue("Station", "RainUnit", Units.Rain);
+			ini.SetValue("Station", "TempUnit", Units.Temp);
+
+			ini.SetValue("Station", "WindSpeedDecimals", WindDPlaces);
+			ini.SetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
+			ini.SetValue("Station", "WindRunDecimals", WindRunDPlaces);
+			ini.SetValue("Station", "SunshineHrsDecimals", SunshineDPlaces);
+			ini.SetValue("Station", "PressDecimals", PressDPlaces);
+			ini.SetValue("Station", "RainDecimals", RainDPlaces);
+			ini.SetValue("Station", "TempDecimals", TempDPlaces);
+			ini.SetValue("Station", "UVDecimals", UVDPlaces);
+			ini.SetValue("Station", "AirQualityDecimals", AirQualityDPlaces);
+
+
 			ini.SetValue("Station", "LocName", LocationName);
 			ini.SetValue("Station", "LocDesc", LocationDesc);
 			ini.SetValue("Station", "StartDate", RecordsBeganDate);
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
-			ini.SetValue("Station", "EWInterval", EWInterval);
-			ini.SetValue("Station", "EWFile", EWFile);
 			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
 			ini.SetValue("Station", "UseCumulusForecast", UseCumulusForecast);
 			ini.SetValue("Station", "HourlyForecast", HourlyForecast);
@@ -4462,14 +4468,18 @@ namespace CumulusMX
 			ini.SetValue("Station", "FCpressinMB", FCpressinMB);
 			ini.SetValue("Station", "FClowpress", FClowpress);
 			ini.SetValue("Station", "FChighpress", FChighpress);
-			ini.SetValue("Station", "ForceVPBarUpdate", StationOptions.ForceVPBarUpdate);
+			ini.SetValue("Station", "ForceVPBarUpdate", DavisOptions.ForceVPBarUpdate);
 			ini.SetValue("Station", "UseZeroBearing", StationOptions.UseZeroBearing);
-			ini.SetValue("Station", "VP2ConnectionType", VP2ConnectionType);
-			ini.SetValue("Station", "VP2TCPPort", VP2TCPPort);
-			ini.SetValue("Station", "VP2IPAddr", VP2IPAddr);
 			ini.SetValue("Station", "RoundWindSpeed", StationOptions.RoundWindSpeed);
 			ini.SetValue("Station", "PrimaryAqSensor", StationOptions.PrimaryAqSensor);
-			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", VP2PeriodicDisconnectInterval);
+
+			ini.SetValue("Station", "EWInterval", EwOptions.Interval);
+			ini.SetValue("Station", "EWFile", EwOptions.Filename);
+			ini.SetValue("Station", "EWminpressureMB", EwOptions.MinPressMB);
+			ini.SetValue("Station", "EWmaxpressureMB", EwOptions.MaxPressMB);
+			ini.SetValue("Station", "EWMaxRainTipDiff", EwOptions.MaxRainTipDiff);
+			ini.SetValue("Station", "EWpressureoffset", EwOptions.PressOffset);
+
 			ini.SetValue("Station", "EWtempdiff", Spike.TempDiff);
 			ini.SetValue("Station", "EWpressurediff", Spike.PressDiff);
 			ini.SetValue("Station", "EWhumiditydiff", Spike.HumidityDiff);
@@ -4478,16 +4488,15 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWmaxHourlyRain", Spike.MaxHourlyRain);
 			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate);
 
-			ini.SetValue("Station", "EWminpressureMB", EWminpressureMB);
-			ini.SetValue("Station", "EWmaxpressureMB", EWmaxpressureMB);
-
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
 			ini.SetValue("Station", "RainDayThreshold", RainDayThreshold);
 
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
-			//ini.SetValue("Station", "ImetBaudRate", ImetBaudRate);
-			//ini.SetValue("Station", "DavisBaudRate", DavisBaudRate);
+			ini.SetValue("Station", "ImetOptions.ImetBaudRate", ImetOptions.ImetBaudRate);
+			ini.SetValue("Station", "ImetWaitTime", ImetOptions.ImetWaitTime);					// delay to wait for a reply to a command
+			ini.SetValue("Station", "ImetReadDelay", ImetOptions.ImetReadDelay);				// delay between sending read live data commands
+			ini.SetValue("Station", "ImetUpdateLogPointer", ImetOptions.ImetUpdateLogPointer);	// keep the logger pointer pointing at last data read
 
 			ini.SetValue("Station", "RG11Enabled", RG11Enabled);
 			ini.SetValue("Station", "RG11portName", RG11Port);
@@ -5391,21 +5400,14 @@ namespace CumulusMX
 
 		public int RTdisconnectcount { get; set; }
 
-		public int VP2PeriodicDisconnectInterval { get; set; }
+		//public int VP2SleepInterval { get; set; }
 
-		public int VP2SleepInterval { get; set; }
-
-		public int VPClosedownTime { get; set; }
-		public string VP2IPAddr { get; set; }
+		//public int VPClosedownTime { get; set; }
 		public string AirLinkInIPAddr { get; set; }
 		public string AirLinkOutIPAddr { get; set; }
 
 		public bool AirLinkInEnabled { get; set; }
 		public bool AirLinkOutEnabled { get; set; }
-
-		public int VP2TCPPort { get; set; }
-
-		public int VP2ConnectionType { get; set; }
 
 		public bool solar_logging { get; set; }
 
@@ -5460,12 +5462,6 @@ namespace CumulusMX
 
 		public bool UseDataLogger { get; set; }
 
-		public int ImetWaitTime { get; set; }
-
-		public int ImetReadDelay { get; set; }
-
-		public bool ImetUpdateLogPointer { get; set; }
-
 		public bool DavisConsoleHighGust { get; set; }
 
 		public bool DavisCalcAltPress { get; set; }
@@ -5474,25 +5470,13 @@ namespace CumulusMX
 
 		public int LCMaxWind { get; set; }
 
-		public double EWpressureoffset { get; set; }
-
-		public int EWMaxRainTipDiff { get; set; }
-
-		public int EWmaxpressureMB { get; set; }
-
-		public int EWminpressureMB { get; set; }
-
-		public bool EWduplicatecheck { get; set; }
+		//public bool EWduplicatecheck { get; set; }
 
 		public string RecordsBeganDate { get; set; }
 
-		public bool EWdisablecheckinit { get; set; }
+		//public bool EWdisablecheckinit { get; set; }
 
-		public bool EWallowFF { get; set; }
-
-		public string EWFile { get; set; }
-
-		public double EWInterval { get; set; }
+		//public bool EWallowFF { get; set; }
 
 		public int YTDrainyear { get; set; }
 
@@ -5510,46 +5494,35 @@ namespace CumulusMX
 
 		public string HTTPProxyName { get; set; }
 
-		public int[] WindDPlace = { 1, 1, 1, 1 };
-		public int[] TempDPlace = { 1, 1 };
-		public int[] PressDPlace = { 1, 1, 2 };
-		public int[] RainDPlace = { 1, 2 };
+		public int[] WindDPlaceDefaults = { 1, 1, 1, 1 };
+		public int[] TempDPlaceDefaults = { 1, 1 };
+		public int[] PressDPlaceDefaults = { 1, 1, 2 };
+		public int[] RainDPlaceDefaults = { 1, 2 };
 		public const int numextrafiles = 99;
 		public const int numOfSelectaChartSeries = 6;
 
 		public int RainUnit { get; set; }
 
-		public int PressUnit { get; set; }
 
-		public int WindUnit { get; set; }
-
-		public bool WS2300Sync { get; set; }
-
-		public int FOReadAvoidPeriod { get; set; }
+		//public bool WS2300Sync { get; set; }
 
 		public bool ErrorLogSpikeRemoval { get; set; }
 
-		public bool NoFlashWetDryDayRecords { get; set; }
+		//public bool NoFlashWetDryDayRecords { get; set; }
 
 		public bool ReportLostSensorContact { get; set; }
 
 		public bool ReportDataStoppedErrors { get; set; }
 
-		public int ClockSettingHour { get; set; }
+		//public bool RestartIfDataStops { get; set; }
 
-		public bool RestartIfDataStops { get; set; }
+		//public bool RestartIfUnplugged { get; set; }
 
-		public bool RestartIfUnplugged { get; set; }
+		//public bool CloseOnSuspend { get; set; }
 
-		public bool CloseOnSuspend { get; set; }
-
-		public bool ConfirmClose { get; set; }
+		//public bool ConfirmClose { get; set; }
 
 		public int DataLogInterval { get; set; }
-
-		public bool NoSensorCheck { get; set; }
-
-		public int serial_port { get; set; }
 
 		public int UVdecimals { get; set; }
 
@@ -5558,8 +5531,6 @@ namespace CumulusMX
 		public string LonTxt { get; set; }
 
 		public string LatTxt { get; set; }
-
-		public int AvgBearingMinutes { get; set; }
 
 		public int TempUnit { get; set; }
 
@@ -5583,8 +5554,6 @@ namespace CumulusMX
 		public DateTime Dawn;
 		public DateTime Dusk;
 		public TimeSpan DaylightLength { get; set; }
-		public int DavisInitWaitTime { get; set; }
-		public int DavisIPResponseTime { get; set; }
 		public int GraphHours { get; set; }
 
 		// WeatherLink Live transmitter Ids and indexes
@@ -7831,10 +7800,10 @@ namespace CumulusMX
 					file.Write(station.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
 					file.Write(station.CompassPoint(station.Bearing) + ' ');                       // 12
 					file.Write(Beaufort(station.WindAverage) + ' ');                               // 13
-					file.Write(WindUnitText + ' ');                                                // 14
-					file.Write(TempUnitText[1].ToString() + ' ');                                  // 15
-					file.Write(PressUnitText + ' ');                                               // 16
-					file.Write(RainUnitText + ' ');                                                // 17
+					file.Write(Units.WindText + ' ');                                                // 14
+					file.Write(Units.TempText[1].ToString() + ' ');                                  // 15
+					file.Write(Units.PressText + ' ');                                               // 16
+					file.Write(Units.RainText + ' ');                                                // 17
 					file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
 					if (station.presstrendval > 0)
 						file.Write('+' + station.presstrendval.ToString(PressFormat, InvC) + ' '); // 19
@@ -7909,10 +7878,10 @@ namespace CumulusMX
 				values.Append(station.Pressure.ToString(PressFormat, InvC) + ",'");
 				values.Append(station.CompassPoint(station.Bearing) + "','");
 				values.Append(Beaufort(station.WindAverage) + "','");
-				values.Append(WindUnitText + "','");
-				values.Append(TempUnitText[1].ToString() + "','");
-				values.Append(PressUnitText + "','");
-				values.Append(RainUnitText + "',");
+				values.Append(Units.WindText + "','");
+				values.Append(Units.TempText[1].ToString() + "','");
+				values.Append(Units.PressText + "','");
+				values.Append(Units.RainText + "',");
 				values.Append(station.WindRunToday.ToString(WindRunFormat, InvC) + ",'");
 				values.Append((station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "',");
 				values.Append(station.RainMonth.ToString(RainFormat, InvC) + ',');
@@ -9231,6 +9200,33 @@ namespace CumulusMX
 		public bool WarnMultiple { get; set; }
 	}
 
+	public class StationUnits
+	{
+		public int Wind { get; set; }
+		public int Press { get; set; }
+		public int Rain { get; set; }
+		public int Temp { get; set; }
+
+		public string WindText { get; set; }
+		public string PressText { get; set; }
+		public string RainText { get; set; }
+		public string TempText { get; set; }
+
+		public string TempTrendText { get; set; }
+		public string RainTrendText { get; set; }
+		public string PressTrendText { get; set; }
+		public string WindRunText { get; set; }
+		public string AirQualityUnitText { get; set; }
+		public string SoilMoistureUnitText { get; set; }
+		public string CO2UnitText { get; set; }
+
+		public StationUnits()
+		{
+			AirQualityUnitText = "µg/m³";
+			SoilMoistureUnitText = "cb";
+			CO2UnitText = "ppm";
+		}
+	}
 
 	public class StationOptions
 	{
@@ -9241,15 +9237,61 @@ namespace CumulusMX
 		public bool CalculatedDP { get; set; }
 		public bool CalculatedWC { get; set; }
 		public bool SyncTime { get; set; }
+		public int ClockSettingHour { get; set; }
 		public bool UseCumulusPresstrendstr { get; set; }
-		public bool ForceVPBarUpdate { get; set; }
 		public bool LogExtraSensors { get; set; }
 		public bool WS2300IgnoreStationClock { get; set; }
 		public bool RoundWindSpeed { get; set; }
-		public bool SyncFOReads { get; set; }
-		public bool DavisReadReceptionStats { get; set; }
 		public int PrimaryAqSensor { get; set; }
-}
+		public bool NoSensorCheck { get; set; }
+		public int AvgBearingMinutes { get; set; }
+		public int AvgSpeedMinutes { get; set; }
+		public int PeakGustMinutes { get; set; }
+	}
+
+	public class DavisOptions
+	{
+		public bool ForceVPBarUpdate { get; set; }
+		public bool ReadReceptionStats { get; set; }
+		public bool SetLoggerInterval { get; set; }
+		public bool UseLoop2 { get; set; }
+		public int InitWaitTime { get; set; }
+		public int IPResponseTime { get; set; }
+		public int ReadTimeout { get; set; }
+		public bool IncrementPressureDP { get; set; }
+		public int BaudRate { get; set; }
+		public int RainGaugeType { get; set; }
+		public int ConnectionType { get; set; }
+		public int TCPPort { get; set; }
+		public string IPAddr { get; set; }
+		public int PeriodicDisconnectInterval { get; set; }
+	}
+
+	public class FineOffsetOptions
+	{
+		public bool FineOffsetSyncReads { get; set; }
+		public int FineOffsetReadAvoidPeriod { get; set; }
+		public int FineOffsetReadTime { get; set; }
+	}
+
+	public class ImetOptions
+	{
+		public List<int> BaudRates { get; set; }
+		public int ImetBaudRate { get; set; }
+		public int ImetWaitTime { get; set; }
+		public int ImetReadDelay { get; set; }
+		public bool ImetUpdateLogPointer { get; set; }
+	}
+
+	public class EasyWeatherOptions
+	{
+		public double Interval { get; set; }
+		public string Filename { get; set; }
+		public int MinPressMB { get; set; }
+		public int MaxPressMB { get; set; }
+		public int MaxRainTipDiff { get; set; }
+		public double PressOffset { get; set; }
+	}
 
 	public class GraphOptions
 	{

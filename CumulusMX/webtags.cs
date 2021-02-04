@@ -2882,32 +2882,32 @@ namespace CumulusMX
 
 		private string Tagtempunit(Dictionary<string,string> tagParams)
 		{
-			return EncodeForWeb(cumulus.TempUnitText);
+			return EncodeForWeb(cumulus.Units.TempText);
 		}
 
 		private string Tagtempunitnodeg(Dictionary<string,string> tagParams)
 		{
-			return EncodeForWeb(cumulus.TempUnitText.Substring(1,1));
+			return EncodeForWeb(cumulus.Units.TempText.Substring(1,1));
 		}
 
 		private string Tagwindunit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.WindUnitText;
+			return cumulus.Units.WindText;
 		}
 
 		private string Tagwindrununit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.WindRunUnitText;
+			return cumulus.Units.WindRunText;
 		}
 
 		private string Tagpressunit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.PressUnitText;
+			return cumulus.Units.PressText;
 		}
 
 		private string Tagrainunit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.RainUnitText;
+			return cumulus.Units.RainText;
 		}
 
 		private string Taginterval(Dictionary<string,string> tagParams)
@@ -4643,8 +4643,15 @@ namespace CumulusMX
 				double upTime = 0;
 				if (cumulus.Platform.Substring(0, 3) == "Win")
 				{
-					cumulus.UpTime.NextValue();
-					upTime = cumulus.UpTime.NextValue();
+					try
+					{
+						cumulus.UpTime.NextValue();
+						upTime = cumulus.UpTime.NextValue();
+					}
+					catch
+					{
+						// do nothing, already set to zero
+					}
 				}
 				else if (File.Exists(@"/proc/uptime"))
 				{

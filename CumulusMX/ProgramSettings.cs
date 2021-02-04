@@ -23,20 +23,29 @@ namespace CumulusMX
 		public string GetProgramAlpacaFormData()
 		{
 			// Build the settings data, convert to JSON, and return it
-			var options = new JsonProgramSettingsOptions()
+			var startup = new JsonProgramSettingsStartupOptions()
 			{
 				startuphostping = cumulus.ProgramOptions.StartupPingHost,
 				startuppingescape = cumulus.ProgramOptions.StartupPingEscapeTime,
 				startupdelay = cumulus.ProgramOptions.StartupDelaySecs,
-				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime,
+				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime
+			};
+
+			var options = new JsonProgramSettingsGeneralOptions()
+			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple
 			};
 
+			var settings = new JsonProgramSettings()
+			{
+				startup = startup,
+				options = options
+			};
 
 			//return JsonConvert.SerializeObject(data);
-			return JsonSerializer.SerializeToString(options);
+			return JsonSerializer.SerializeToString(settings);
 		}
 
 		public string GetProgramAlpacaFormOptions()
@@ -73,18 +82,18 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonSerializer.DeserializeFromString<JsonProgramSettingsOptions>(json);
+				var settings = JsonSerializer.DeserializeFromString<JsonProgramSettings>(json);
 
 				// process the settings
 				try
 				{
-					cumulus.ProgramOptions.StartupPingHost = settings.startuphostping;
-					cumulus.ProgramOptions.StartupPingEscapeTime = settings.startuppingescape;
-					cumulus.ProgramOptions.StartupDelaySecs = settings.startupdelay;
-					cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startupdelaymaxuptime;
-					cumulus.ProgramOptions.DebugLogging = settings.debuglogging;
-					cumulus.ProgramOptions.DataLogging = settings.datalogging;
-					cumulus.ProgramOptions.WarnMultiple = settings.stopsecondinstance;
+					cumulus.ProgramOptions.StartupPingHost = settings.startup.startuphostping;
+					cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
+					cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
+					cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
+					cumulus.ProgramOptions.DebugLogging = settings.options.debuglogging;
+					cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
+					cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				}
 				catch (Exception ex)
 				{
@@ -108,12 +117,22 @@ namespace CumulusMX
 		}
 	}
 
-	public class JsonProgramSettingsOptions
+	public class JsonProgramSettings
+	{
+		public JsonProgramSettingsStartupOptions startup { get; set; }
+		public JsonProgramSettingsGeneralOptions options { get; set; }
+	}
+
+	public class JsonProgramSettingsStartupOptions
 	{
 		public string startuphostping { get; set; }
 		public int startuppingescape { get; set; }
 		public int startupdelay { get; set; }
 		public int startupdelaymaxuptime { get; set; }
+	}
+
+	public class JsonProgramSettingsGeneralOptions
+	{
 		public bool debuglogging { get; set; }
 		public bool datalogging { get; set; }
 		public bool stopsecondinstance { get; set; }

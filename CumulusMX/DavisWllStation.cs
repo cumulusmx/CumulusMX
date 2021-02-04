@@ -67,12 +67,12 @@ namespace CumulusMX
 			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
 
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
-			if (cumulus.PeakGustMinutes == 10)
+			if (cumulus.StationOptions.PeakGustMinutes == 10)
 			{
 				CalcRecentMaxGust = false;
 				checkWllGustValues = false;
 			}
-			else if (cumulus.PeakGustMinutes > 10)
+			else if (cumulus.StationOptions.PeakGustMinutes > 10)
 			{
 				// If the user period is greater that 10 minutes, then Cumulus must calculate Gust values
 				// but we can check the WLL 10 min gust value in case we missed a gust
@@ -328,7 +328,7 @@ namespace CumulusMX
 
 					lock (threadSafer)
 					{
-						ip = cumulus.VP2IPAddr;
+						ip = cumulus.DavisOptions.IPAddr;
 					}
 
 					if (CheckIpValid(ip))
@@ -388,7 +388,7 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				ip = cumulus.VP2IPAddr;
+				ip = cumulus.DavisOptions.IPAddr;
 			}
 
 			if (CheckIpValid(ip))
@@ -419,6 +419,7 @@ namespace CumulusMX
 							DoDayResetIfNeeded();
 							startupDayResetIfRequired = false;
 						}
+						retry = 9;
 					}
 					catch (Exception ex)
 					{
@@ -430,7 +431,6 @@ namespace CumulusMX
 							cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
 						Thread.Sleep(1000);
 					}
-					retry = 9;
 				} while (retry < 3);
 
 				cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");
@@ -1147,13 +1147,13 @@ namespace CumulusMX
 			{
 				ipaddr = service.Addresses[0].ToString();
 				cumulus.LogMessage($"WLL found, reporting its IP address as: {ipaddr}");
-				if (cumulus.VP2IPAddr != ipaddr)
+				if (cumulus.DavisOptions.IPAddr != ipaddr)
 				{
-					cumulus.LogMessage($"WLL IP address has changed from {cumulus.VP2IPAddr} to {ipaddr}");
+					cumulus.LogMessage($"WLL IP address has changed from {cumulus.DavisOptions.IPAddr} to {ipaddr}");
 					if (cumulus.WLLAutoUpdateIpAddress)
 					{
 						cumulus.LogMessage($"WLL changing Cumulus config to the new IP address {ipaddr}");
-						cumulus.VP2IPAddr = ipaddr;
+						cumulus.DavisOptions.IPAddr = ipaddr;
 						cumulus.WriteIniFile();
 					}
 					else
@@ -1178,7 +1178,7 @@ namespace CumulusMX
 				case 4:
 					return ConvertRainINToUser(clicks * 0.001);
 				default:
-					switch (cumulus.VPrainGaugeType)
+					switch (cumulus.DavisOptions.RainGaugeType)
 					{
 						// Hmm, no valid tip size from WLL...
 						// One click is normally either 0.01 inches or 0.2 mm
@@ -1846,7 +1846,7 @@ namespace CumulusMX
 
 								// add in 'archivePeriod' minutes worth of wind speed to windrun
 								int interval = data11.arch_int / 60;
-								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.WindUnit] * interval) / 60.0);
+								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 							}
 							catch (Exception ex)
 							{
