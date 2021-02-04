@@ -768,10 +768,10 @@ namespace CumulusMX
 		public string[] StationDesc =
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000"
+			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000", "WeatherFlow Tempest"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt","Tempest" };
 
 		public string loggingfile;
 
@@ -1405,6 +1405,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
+				case StationTypes.Tempest:
+                    Manufacturer = WEATHERFLOW;
+                    station = new TempestStation(this);
+                    break;
 				default:
 					LogConsoleMessage("Station type not set");
 					LogMessage("Station type not set");
@@ -5664,6 +5668,7 @@ namespace CumulusMX
 		public int OREGONUSB = 4;
 		public int INSTROMET = 5;
 		public int ECOWITT = 6;
+		public int WEATHERFLOW = 7;
 		//public bool startingup = true;
 		public bool StartOfDayBackupNeeded;
 		public string ReportPath;
@@ -9187,7 +9192,8 @@ namespace CumulusMX
 		public const int Instromet = 10;
 		public const int WLL = 11;
 		public const int GW1000 = 12;
-	}
+        public const int Tempest = 13;
+    }
 
 	/*
 	public static class AirQualityIndex
