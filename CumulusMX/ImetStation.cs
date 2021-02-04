@@ -873,7 +873,7 @@ namespace CumulusMX
 			{
 				previousminute = min;
 
-				if (cumulus.StationOptions.SyncTime && (h == cumulus.ClockSettingHour) && (min == 0))
+				if (cumulus.StationOptions.SyncTime && (h == cumulus.ClockSettingHour) && (min == 2))
 				{
 					// It's 0400, set the station clock
 					SetStationClock();

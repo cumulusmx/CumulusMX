@@ -1222,7 +1222,7 @@ namespace CumulusMX
 				if (min != previousMinuteSetClock)
 				{
 					previousMinuteSetClock = min;
-					if (cumulus.StationOptions.SyncTime && DateTime.Now.Hour == cumulus.ClockSettingHour && min == 0)
+					if (cumulus.StationOptions.SyncTime && DateTime.Now.Hour == cumulus.ClockSettingHour && min == 2)
 					{
 						// set the console clock
 						clockSetNeeded = true;

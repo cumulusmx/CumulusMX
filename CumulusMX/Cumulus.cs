@@ -939,8 +939,16 @@ namespace CumulusMX
 			// determine system uptime based on OS
 			if (Platform.Substring(0, 3) == "Win")
 			{
-				// Windows enable the performance counter method
-				UpTime = new PerformanceCounter("System", "System Up Time");
+				try
+				{
+					// Windows enable the performance counter method
+					UpTime = new PerformanceCounter("System", "System Up Time");
+				}
+				catch (Exception e)
+				{
+					LogMessage("Error: Unable to acces the System Up Time performance counter. System up time will not be available");
+					LogDebugMessage($"Error: {e}");
+				}
 			}
 
 			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
@@ -1089,7 +1097,7 @@ namespace CumulusMX
 			{
 				// Check uptime
 				double ts = 0;
-				if (Platform.Substring(0, 3) == "Win")
+				if (Platform.Substring(0, 3) == "Win" && UpTime != null)
 				{
 					UpTime.NextValue();
 					ts = UpTime.NextValue();

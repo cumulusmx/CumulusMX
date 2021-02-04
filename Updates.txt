@@ -1,3 +1,12 @@
+3.9.8 - b3108
+—————————————
+- Fix: Catch error creating System Uptime counter on Windows
+
+- Change: Creation of the wxnow.txt file is now disabled by default for new installs
+- Change: Clock sync (Davis VP2 & Instromet) now occurs at 2 minutes past the hour selected
+
+
+
 3.9.7 - b3107
 —————————————
 - Fix: Unhandled exception in ProcessTemplateFile if cumulus cannot write to the output file
