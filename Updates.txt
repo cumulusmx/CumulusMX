@@ -1,10 +1,8 @@
-3.10.0 - b3108
+3.10.0 - b3109
 ——————————————
-- Change: The following configuration items are now available via the settings screens
-	Davis
-	UseDavisLoop2
-	DavisInitWaitTime
-	DavisIPResponseTime
+- Change: All the settings screens revamped and reorganised.
+	- Many of the settings are now context senstive, only showing items relevant to your station and configuration
+	- Most of the previously config file "read-only" settings are now available in an Advanced section relevant to the configuration item. These settings are now read/write.
 
 
 

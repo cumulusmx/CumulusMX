@@ -388,9 +388,6 @@ namespace CumulusMX
 		public string ComportName;
 		public string DefaultComportName;
 
-		public int vendorID;
-		public int productID;
-
 		//public string IPaddress;
 
 		//public int TCPport;
@@ -3504,10 +3501,6 @@ namespace CumulusMX
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
 			DavisOptions.PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
 
-
-			vendorID = ini.GetValue("Station", "VendorID", -1);
-			productID = ini.GetValue("Station", "ProductID", -1);
-
 			Latitude = ini.GetValue("Station", "Latitude", 0.0);
 			if (Latitude > 90 || Latitude < -90)
 			{
@@ -3614,6 +3607,9 @@ namespace CumulusMX
 			FineOffsetOptions.FineOffsetSyncReads = ini.GetValue("Station", "SyncFOReads", true);
 			FineOffsetOptions.FineOffsetReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
 			FineOffsetOptions.FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
+			FineOffsetOptions.VendorID = ini.GetValue("Station", "VendorID", -1);
+			FineOffsetOptions.ProductID = ini.GetValue("Station", "ProductID", -1);
+
 
 			Units.Wind = ini.GetValue("Station", "Units.Wind", 0);
 			Units.Press = ini.GetValue("Station", "PressureUnit", 0);
@@ -4421,6 +4417,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "VP2TCPPort", DavisOptions.TCPPort);
 			ini.SetValue("Station", "VP2IPAddr", DavisOptions.IPAddr);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", DavisOptions.PeriodicDisconnectInterval);
+			ini.SetValue("Station", "ForceVPBarUpdate", DavisOptions.ForceVPBarUpdate);
 
 			ini.SetValue("Station", "NoSensorCheck", StationOptions.NoSensorCheck);
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
@@ -4434,11 +4431,15 @@ namespace CumulusMX
 			ini.SetValue("Station", "SyncDavisClock", StationOptions.SyncTime);
 			ini.SetValue("Station", "ClockSettingHour", StationOptions.ClockSettingHour);
 			ini.SetValue("Station", "SyncFOReads", FineOffsetOptions.FineOffsetSyncReads);
-			ini.SetValue("Station", "FOReadAvoidPeriod", FineOffsetOptions.FineOffsetReadAvoidPeriod);
-			ini.SetValue("Station", "FineOffsetReadTime", FineOffsetOptions.FineOffsetReadTime);
 			ini.SetValue("Station", "WS2300IgnoreStationClock", StationOptions.WS2300IgnoreStationClock);
 			ini.SetValue("Station", "LogExtraSensors", StationOptions.LogExtraSensors);
 			ini.SetValue("Station", "DataLogInterval", DataLogInterval);
+
+			ini.SetValue("Station", "FOReadAvoidPeriod", FineOffsetOptions.FineOffsetReadAvoidPeriod);
+			ini.SetValue("Station", "FineOffsetReadTime", FineOffsetOptions.FineOffsetReadTime);
+			ini.SetValue("Station", "VendorID", FineOffsetOptions.VendorID);
+			ini.SetValue("Station", "ProductID", FineOffsetOptions.ProductID);
+
 
 			ini.SetValue("Station", "WindUnit", Units.Wind);
 			ini.SetValue("Station", "PressureUnit", Units.Press);
@@ -4468,7 +4469,6 @@ namespace CumulusMX
 			ini.SetValue("Station", "FCpressinMB", FCpressinMB);
 			ini.SetValue("Station", "FClowpress", FClowpress);
 			ini.SetValue("Station", "FChighpress", FChighpress);
-			ini.SetValue("Station", "ForceVPBarUpdate", DavisOptions.ForceVPBarUpdate);
 			ini.SetValue("Station", "UseZeroBearing", StationOptions.UseZeroBearing);
 			ini.SetValue("Station", "RoundWindSpeed", StationOptions.RoundWindSpeed);
 			ini.SetValue("Station", "PrimaryAqSensor", StationOptions.PrimaryAqSensor);
@@ -9272,7 +9272,9 @@ namespace CumulusMX
 		public bool FineOffsetSyncReads { get; set; }
 		public int FineOffsetReadAvoidPeriod { get; set; }
 		public int FineOffsetReadTime { get; set; }
-	}
+		public int VendorID { get; set; }
+		public int ProductID { get; set; }
+}
 
 	public class ImetOptions
 	{

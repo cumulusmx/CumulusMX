@@ -123,11 +123,18 @@ namespace CumulusMX
 				logrollover.time = "9am";
 			}
 
+			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
+			{
+				readtime = cumulus.FineOffsetOptions.FineOffsetReadTime,
+				vid = cumulus.FineOffsetOptions.VendorID,
+				pid = cumulus.FineOffsetOptions.ProductID
+			};
+
 			var fineoffset = new JsonStationSettingsFineOffset()
 			{
 				syncreads = cumulus.FineOffsetOptions.FineOffsetSyncReads,
-				readtime = cumulus.FineOffsetOptions.FineOffsetReadTime,
-				readavoid = cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod
+				readavoid = cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod,
+				advanced = fineoffsetadvanced
 			};
 
 			var easyweather = new JsonStationSettingsEasyWeather()
@@ -785,8 +792,10 @@ namespace CumulusMX
 					if (settings.fineoffset != null)
 					{
 						cumulus.FineOffsetOptions.FineOffsetSyncReads = settings.fineoffset.syncreads;
-						cumulus.FineOffsetOptions.FineOffsetReadTime = settings.fineoffset.readtime;
 						cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod = settings.fineoffset.readavoid;
+						cumulus.FineOffsetOptions.FineOffsetReadTime = settings.fineoffset.advanced.readtime;
+						cumulus.FineOffsetOptions.VendorID = settings.fineoffset.advanced.vid;
+						cumulus.FineOffsetOptions.ProductID = settings.fineoffset.advanced.pid;
 					}
 				}
 				catch (Exception ex)
@@ -1111,11 +1120,18 @@ namespace CumulusMX
 		public int baudrate { get; set; }
 	}
 
+	internal class JsonStationSettingsFineOffsetAdvanced
+	{
+		public int readtime { get; set; }
+		public int vid { get; set; }
+		public int pid { get; set; }
+	}
+
 	internal class JsonStationSettingsFineOffset
 	{
 		public bool syncreads { get; set; }
 		public int readavoid { get; set; }
-		public int readtime { get; set; }
+		public JsonStationSettingsFineOffsetAdvanced advanced { get; set; }
 	}
 
 	internal class JsonStationSettingsEasyWeather

@@ -72,8 +72,8 @@ namespace CumulusMX
 
 			var devicelist = DeviceList.Local;
 
-			int vid = (cumulus.vendorID < 0 ? DefaultVid : cumulus.vendorID);
-			int pid = (cumulus.productID < 0 ? DefaultPid : cumulus.productID);
+			int vid = (cumulus.FineOffsetOptions.VendorID < 0 ? DefaultVid : cumulus.FineOffsetOptions.VendorID);
+			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
 
 			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+vid.ToString("X4")+" ProductID=0x"+pid.ToString("X4"));
 			cumulus.LogConsoleMessage("Looking for Fine Offset station");
