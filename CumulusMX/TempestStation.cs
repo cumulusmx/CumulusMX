@@ -155,14 +155,26 @@ namespace CumulusMX.Tempest
 
         private async void ListenForPackets(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                while (!token.IsCancellationRequested && Available == 0) await Task.Delay(10);
-                while (!token.IsCancellationRequested && Available > 0)
+                while (!token.IsCancellationRequested)
                 {
-                    IPEndPoint endPoint = null;
-                    var data = Receive(ref endPoint);
-                    PacketReceived?.Invoke(this, new PacketReceivedArgs(data));
+                    while (!token.IsCancellationRequested && Available == 0) await Task.Delay(10);
+                    while (!token.IsCancellationRequested && Available > 0)
+                    {
+                        IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
+                        var data = Receive(ref endPoint);
+                        PacketReceived?.Invoke(this, new PacketReceivedArgs(data));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                var ex = e;
+                while (ex != null)
+                {
+                    Console.WriteLine($"TempestExceptions:{ex.GetType()}:{ex.Message}:{ex.StackTrace}");
+                    ex = ex.InnerException;
                 }
             }
         }
@@ -230,7 +242,7 @@ namespace CumulusMX.Tempest
             if (e.Packet.Length > 0)
             {
                 var s = Encoding.ASCII.GetString(e.Packet);
-                //Debug.WriteLine(s);
+                Console.WriteLine(s);
                 WeatherPacket wp = null;
                 try
                 {
