@@ -269,16 +269,18 @@ namespace CumulusMX
                         DoFeelsLike(ts);
                         DoWindChill(userTemp,ts);
                         DoHumidex(ts);
-                        DoForecast(string.Empty,false);
-
-                        UpdatePressureTrendString();
+                        DoPressTrend(null);
                         UpdateStatusPanel(ts);
                         UpdateMQTT();
                         DoForecast(string.Empty, false);
                         break;
                     case WeatherPacket.MessageType.RapidWind:
                         var rw = wp.RapidWind;
-                        ts = rw.Timestamp;
+                        DoWind(ConvertWindMSToUser((double) rw.WindSpeed),
+                            rw.WindDirection,
+                            ConvertWindMSToUser((double) rw.WindSpeed),
+                            rw.Timestamp);
+                        UpdateStatusPanel(rw.Timestamp);
 
                         break;
 
