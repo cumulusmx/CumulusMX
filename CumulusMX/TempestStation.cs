@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -23,7 +24,9 @@ namespace CumulusMX
 
             cumulus.LogMessage("Station type = Tempest");
             LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
-            StartLoop();
+
+            Task.Run(getAndProcessHistoryData);// grab old data, then start the station
+
         }
 
         public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -31,12 +34,208 @@ namespace CumulusMX
             // not used
         }
 
+        public override void getAndProcessHistoryData()
+        {
+            cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+            Cumulus.syncInit.Wait();
+            cumulus.LogDebugMessage("Lock: Station has the lock");
+            try
+            {
+                var stTime = cumulus.LastUpdateTime;
+                if (FirstRun) stTime = DateTime.Now.AddDays(-30);
+
+                var recs = StationListener.GetRestPacket(StationListener.REST_URL,
+                    cumulus.WFToken, cumulus.WFDeviceId,
+                    stTime, DateTime.Now);
+
+                ProcessHistoryData(recs);
+            }
+            catch (Exception ex)
+            {
+                cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+            }
+            cumulus.LogDebugMessage("Lock: Station releasing the lock");
+            Cumulus.syncInit.Release();
+            StartLoop();
+        }
+
+        private void ProcessHistoryData(List<Observation> datalist)
+        {
+            var totalentries = datalist.Count;
+
+            cumulus.LogMessage("Processing history data, number of entries = " + totalentries);
+            cumulus.LogConsoleMessage($"Processing history data for {totalentries} records. {DateTime.Now.ToShortTimeString()}");
+
+            var rollHour = Math.Abs(cumulus.GetHourInc());
+            var luhour = cumulus.LastUpdateTime.Hour;
+            var rolloverdone = luhour == rollHour;
+            var midnightraindone = luhour == 0;
+
+            foreach (var historydata in datalist)
+            {
+                var timestamp = historydata.Timestamp;
+
+                cumulus.LogMessage("Processing data for " + timestamp);
+
+                var h = timestamp.Hour;
+
+                //  if outside rollover hour, rollover yet to be done
+                if (h != rollHour) rolloverdone = false;
+
+                // In rollover hour and rollover not yet done
+                if (h == rollHour && !rolloverdone)
+                {
+                    // do rollover
+                    cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
+                    DayReset(timestamp);
+
+                    rolloverdone = true;
+                }
+
+                // Not in midnight hour, midnight rain yet to be done
+                if (h != 0) midnightraindone = false;
+
+                // In midnight hour and midnight rain (and sun) not yet done
+                if (h == 0 && !midnightraindone)
+                {
+                    ResetMidnightRain(timestamp);
+                    ResetSunshineHours();
+                    midnightraindone = true;
+                }
+
+                // Pressure =============================================================
+                var alt = AltitudeM(cumulus.Altitude);
+                var seaLevel = GetSeaLevelPressure(alt, (double) historydata.StationPressure);
+                DoPressure(ConvertPressMBToUser(seaLevel), timestamp);
+
+                // Outdoor Humidity =====================================================
+                DoOutdoorHumidity((int) historydata.Humidity, timestamp);
+
+                // Wind =================================================================
+                DoWind(ConvertWindMSToUser((double) historydata.WindGust), historydata.WindDirection,
+                    ConvertWindMSToUser((double) historydata.WindAverage), timestamp);
+
+                // Outdoor Temperature ==================================================
+                DoOutdoorTemp(ConvertTempCToUser((double) historydata.Temperature), timestamp);
+                // add in 'archivePeriod' minutes worth of temperature to the temp samples
+                tempsamplestoday += historydata.ReportInterval;
+                TempTotalToday += OutdoorTemperature * historydata.ReportInterval;
+
+                // update chill hours
+                if (OutdoorTemperature < cumulus.ChillHourThreshold)
+                    // add 1 minute to chill hours
+                    ChillHours += historydata.ReportInterval / 60.0;
+
+                //var raindiff = prevraintotal == -1 ? 0 : historydata.rainCounter - prevraintotal;
+
+                double rainrate;
+
+                /*if (raindiff > 100)
+                {
+                    cumulus.LogMessage("Warning: large increase in rain gauge tip count: " + raindiff);
+                    rainrate = 0;
+                }
+                else
+                {
+                    if (historydata.interval > 0)
+                    {
+                        rainrate = ConvertRainMMToUser((raindiff * 0.3) * (60.0 / historydata.interval));
+                    }
+                    else
+                    {
+                        rainrate = 0;
+                    }
+                }*/
+
+                DoRain(ConvertRainMMToUser((double) historydata.Precipitation), 0, timestamp);
+
+                //prevraintotal = historydata.rainCounter;
+
+                OutdoorDewpoint =
+                    ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
+
+                CheckForDewpointHighLow(timestamp);
+
+                // calculate wind chill
+
+                if (ConvertUserWindToMS(WindAverage) < 1.5)
+                    DoWindChill(OutdoorTemperature, timestamp);
+                else
+                    // calculate wind chill from calibrated C temp and calibrated win in KPH
+                    DoWindChill(
+                        ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature),
+                            ConvertUserWindToKPH(WindAverage))), timestamp);
+
+                DoApparentTemp(timestamp);
+                DoFeelsLike(timestamp);
+                DoHumidex(timestamp);
+
+
+                DoUV((double) historydata.UV, timestamp);
+
+                DoSolarRad(historydata.SolarRadiation, timestamp);
+
+                // add in archive period worth of sunshine, if sunny
+                if (SolarRad > CurrentSolarMax * cumulus.SunThreshold / 100 &&
+                    SolarRad >= cumulus.SolarMinimum)
+                    SunshineHours += historydata.ReportInterval / 60.0;
+
+                LightValue = historydata.Illuminance;
+
+
+                // add in 'following interval' minutes worth of wind speed to windrun
+                cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.WindUnitText +
+                                   " for " + historydata.ReportInterval + " minutes = " +
+                                   (WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.ReportInterval / 60.0)
+                                   .ToString(cumulus.WindRunFormat) + cumulus.WindRunUnitText);
+
+                WindRunToday += WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.ReportInterval / 60.0;
+
+                // update heating/cooling degree days
+                UpdateDegreeDays(historydata.ReportInterval);
+
+                // update dominant wind bearing
+                CalculateDominantWindBearing(Bearing, WindAverage, historydata.ReportInterval);
+
+                CheckForWindrunHighLow(timestamp);
+
+                bw?.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
+
+                //UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
+
+                cumulus.DoLogFile(timestamp, false);
+                if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(timestamp);
+
+                AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
+                AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint,
+                    ApparentTemperature, WindChill, HeatIndex,
+                    IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity,
+                    IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
+                AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
+                AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
+                    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+                    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+                RemoveOldLHData(timestamp);
+                RemoveOldL3HData(timestamp);
+                RemoveOldGraphData(timestamp);
+                DoTrendValues(timestamp);
+                UpdatePressureTrendString();
+                UpdateStatusPanel(timestamp);
+                cumulus.AddToWebServiceLists(timestamp);
+            }
+
+            cumulus.LogMessage("End processing history data");
+            cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToShortTimeString()}");
+
+        }
+
+
         public override void Start()
         {
 
             cumulus.CurrentActivity = "Normal running";
             StationListener.WeatherPacketReceived = WeatherPacketReceived;
-            StationListener.Start();
+            StationListener.Start(cumulus);
             DoDayResetIfNeeded();
             DoTrendValues(DateTime.Now);
             
@@ -201,14 +400,16 @@ namespace CumulusMX.Tempest
     public static class StationListener
     {
         private static EventClient _udpListener;
+        private static Cumulus cumulus;
 
         public delegate void WPReceived(WeatherPacket wp);
 
         public static WPReceived WeatherPacketReceived { get; set; }
 
-        public static void Start()
+        public static void Start(Cumulus c)
         {
-            Task.Run(() => { StartUdpListen(); });
+            cumulus=c;
+            Task.Run(StartUdpListen);
         }
 
         public static void Stop()
@@ -222,7 +423,7 @@ namespace CumulusMX.Tempest
             {
                 try
                 {
-                    _udpListener = new EventClient(50222);
+                    _udpListener = new EventClient(cumulus.WFTcpPort);
                 }
                 catch (Exception e)
                 {
@@ -242,7 +443,7 @@ namespace CumulusMX.Tempest
             if (e.Packet.Length > 0)
             {
                 var s = Encoding.ASCII.GetString(e.Packet);
-                Console.WriteLine(s);
+                Debug.WriteLine(s);
                 WeatherPacket wp = null;
                 try
                 {
@@ -264,13 +465,84 @@ namespace CumulusMX.Tempest
                 {
                     object o = wp.obs;
                 }
+
+                if ((wp?.timestamp ?? 0) != 0) Debug.WriteLine(wp?.PacketTime.ToString());
             }
+        }
+
+        public const string REST_URL = "https://swd.weatherflow.com/swd/rest/observations/";
+
+        public static List<Observation> GetRestPacket(string url, string token,int deviceId, DateTime start, DateTime end)
+        {
+            List<Observation> ret = new List<Observation>();
+
+            
+            using (var httpClient = new HttpClient())
+            {
+                var tpStart = start;
+                var tpEnd = end;
+                double ts = tpEnd.Subtract(tpStart).TotalDays;
+
+                while (ts  > 0)
+                {
+                    long st;
+                    long end_time;
+                    st = WeatherPacket.ToUnixTimeSeconds(tpStart);
+                    end_time = WeatherPacket.ToUnixTimeSeconds(end);
+                    if (ts > 4)// load max 4 days at a time
+                    {
+                        tpStart = tpStart.AddDays(4);
+                        end_time = WeatherPacket.ToUnixTimeSeconds(tpStart)-1;// subtract a second so we don't overlap
+                        ts = tpEnd.Subtract(tpStart).TotalDays;
+                    }
+                    else
+                    {
+                        ts = 0;
+                    }
+                    
+                    
+                    using (var response =
+                        httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}")
+                    )
+                    {
+                        string apiResponse = response.Result.Content.ReadAsStringAsync().Result;
+                        var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
+                        if (rp != null && rp.status.status_message.Equals("SUCCESS") && rp.obs != null)
+                        {
+                            foreach (var ob in rp.obs)
+                            {
+                                ret.Add(new Observation(ob));
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            return ret;
         }
     }
 
     #endregion
 
     #region Packets
+    public class RestPacket
+    {
+        public class Status
+        {
+            public int status_code { get; set; }
+            public string status_message { get; set; }
+        }
+
+        public Status status { get; set; }
+        public int device_id { get; set; }
+        public string type { get; set; }
+        public int bucket_step_minutes { get; set; }
+        public string source { get; set; }
+        public List<List<decimal?>> obs { get; set; }
+
+    }
+
     public class WeatherPacket
     {
         public enum MessageType
@@ -380,6 +652,12 @@ namespace CumulusMX.Tempest
             System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             dtDateTime = dtDateTime.AddSeconds( epoch ).ToLocalTime();
             return dtDateTime;
+        }
+
+        public static long ToUnixTimeSeconds(DateTime dt)
+        {
+            TimeSpan t = dt.ToUniversalTime() - new DateTime(1970, 1, 1);
+            return (long)t.TotalSeconds;
         }
 
         public static decimal GetDecimal(decimal? d)
@@ -554,43 +832,59 @@ namespace CumulusMX.Tempest
                 var ex = e.Message;
             }
 
-            if (packet.obs[0].Length == 18)
+            if (packet.obs[0].Length >= 18)
             {
-                var ob = packet.obs[0];
-                Timestamp = WeatherPacket.FromUnixTimeSeconds(WeatherPacket.Getlong(ob[0]));
-                WindLull = WeatherPacket.GetDecimal(ob[1]);
-                WindAverage = WeatherPacket.GetDecimal(ob[2]);
-                WindGust = WeatherPacket.GetDecimal(ob[3]);
-                WindDirection = WeatherPacket.GetInt(ob[4]);
-                WindSampleInt = WeatherPacket.GetInt(ob[5]);
-                StationPressure = WeatherPacket.GetDecimal(ob[6]);
-                Temperature = WeatherPacket.GetDecimal(ob[7]);
-                Humidity = WeatherPacket.GetDecimal(ob[8]);
-                Illuminance = WeatherPacket.GetInt(ob[9]);
-                UV = WeatherPacket.GetDecimal(ob[10]);
-                SolarRadiation = WeatherPacket.GetInt(ob[11]);
-                Precipitation = WeatherPacket.GetDecimal(ob[12]);
+                //var ob = packet.obs[0];
+                LoadObservation(this, packet.obs[0]);
+            }
+        }
 
-                switch (WeatherPacket.GetInt(ob[13]))
-                {
-                    case 0:
-                        PrecipType = WeatherPacket.PrecipType.None;
-                        break;
-                    case 1:
-                        PrecipType = WeatherPacket.PrecipType.Rain;
-                        break;
-                    case 2:
-                        PrecipType = WeatherPacket.PrecipType.Hail;
-                        break;
-                    default:
-                        PrecipType = WeatherPacket.PrecipType.None;
-                        break;
-                }
+        public Observation(List<decimal?> obs)
+        {
+            LoadObservation(this,obs.ToArray());
+        }
 
-                LightningAvgDist = WeatherPacket.GetInt(ob[14]);
-                LightningCount = WeatherPacket.GetInt(ob[15]);
-                BatteryVoltage = WeatherPacket.GetDecimal(ob[16]);
-                ReportInterval = WeatherPacket.GetInt(ob[17]);
+        private static void LoadObservation(Observation o, decimal?[] ob)
+        {
+            o.Timestamp = WeatherPacket.FromUnixTimeSeconds(WeatherPacket.Getlong(ob[0]));
+            o.WindLull = WeatherPacket.GetDecimal(ob[1]);
+            o.WindAverage = WeatherPacket.GetDecimal(ob[2]);
+            o.WindGust = WeatherPacket.GetDecimal(ob[3]);
+            o.WindDirection = WeatherPacket.GetInt(ob[4]);
+            o.WindSampleInt = WeatherPacket.GetInt(ob[5]);
+            o.StationPressure = WeatherPacket.GetDecimal(ob[6]);
+            o.Temperature = WeatherPacket.GetDecimal(ob[7]);
+            o.Humidity = WeatherPacket.GetDecimal(ob[8]);
+            o.Illuminance = WeatherPacket.GetInt(ob[9]);
+            o.UV = WeatherPacket.GetDecimal(ob[10]);
+            o.SolarRadiation = WeatherPacket.GetInt(ob[11]);
+            o.Precipitation = WeatherPacket.GetDecimal(ob[12]);
+
+            switch (WeatherPacket.GetInt(ob[13]))
+            {
+                case 0:
+                    o.PrecipType = WeatherPacket.PrecipType.None;
+                    break;
+                case 1:
+                    o.PrecipType = WeatherPacket.PrecipType.Rain;
+                    break;
+                case 2:
+                    o.PrecipType = WeatherPacket.PrecipType.Hail;
+                    break;
+                default:
+                    o.PrecipType = WeatherPacket.PrecipType.None;
+                    break;
+            }
+            o.LightningAvgDist = WeatherPacket.GetInt(ob[14]);
+            o.LightningCount = WeatherPacket.GetInt(ob[15]);
+            o.BatteryVoltage = WeatherPacket.GetDecimal(ob[16]);
+            o.ReportInterval = WeatherPacket.GetInt(ob[17]);
+
+            if (ob.Length >= 21)
+            {
+                o.LocalDayRain = WeatherPacket.GetInt(ob[18]);
+                o.FinalRainChecked = WeatherPacket.GetInt(ob[19]);
+                o.LocalRainChecked = WeatherPacket.GetInt(ob[20]);
             }
         }
 
@@ -616,6 +910,10 @@ namespace CumulusMX.Tempest
         public int LightningCount { get; set; }
         public decimal BatteryVoltage { get; set; }
         public int ReportInterval { get; set; } // minutes
+        public int LocalDayRain { get; set; }// mm
+        public int FinalRainChecked { get; set; }// mm
+        public int LocalRainChecked { get; set; }// mm
+
     }
     public class PrecipEvent
     {

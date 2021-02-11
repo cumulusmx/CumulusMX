@@ -5,6 +5,7 @@ using System.Threading;
 using ServiceStack.Text;
 using Unosquare.Labs.EmbedIO;
 using System.Reflection;
+using Exception = System.Exception;
 
 namespace CumulusMX
 {
@@ -61,6 +62,9 @@ namespace CumulusMX
 			};
 
 			var davisconn = new JsonStationSettingsDavisConn() {conntype = cumulus.VP2ConnectionType, tcpsettings = tcpsettings};
+
+            var weatherflow = new JsonStationSettingsWeatherFlow()
+                {deviceid = cumulus.WFDeviceId, tcpport = cumulus.WFTcpPort, token = cumulus.WFToken};
 
 			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
 
@@ -228,6 +232,7 @@ namespace CumulusMX
 				davisconn = davisconn,
 				daviswll = wll,
 				gw1000 = gw1000,
+				weatherflow = weatherflow,
 				comportname = cumulus.ComportName,
 				loginterval = cumulus.DataLogInterval,
 				logrollover = logrollover,
@@ -599,6 +604,21 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// weatherflow connection details
+                try
+                {
+                    cumulus.WFDeviceId = settings.weatherflow.deviceid;
+                    cumulus.WFTcpPort = settings.weatherflow.tcpport;
+                    cumulus.WFToken = settings.weatherflow.token;
+                }
+                catch (Exception ex)
+                {
+                    var msg = $"Error processing WeatherFlow settings: {ex.Message}";
+                    cumulus.LogMessage(msg);
+                    errorMsg += msg + "\n\n";
+                    context.Response.StatusCode = 500;
+                }
+
 				// Units
 				try
 				{
@@ -770,6 +790,7 @@ namespace CumulusMX
 		public JsonStationSettingsUnits units { get; set; }
 		public JsonStationSettingsDavisConn davisconn { set; get; }
 		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
 		public string comportname { get; set; }
 		public int loginterval { get; set; }
@@ -823,6 +844,13 @@ namespace CumulusMX
 		public int conntype { get; set; }
 		public JsonStationSettingsTCPsettings tcpsettings { get; set; }
 	}
+
+    internal class JsonStationSettingsWeatherFlow
+    {
+		public int tcpport { get; set; }
+		public int deviceid { get; set; }
+		public string token { get; set; }
+    }
 
 	internal class JSonStationSettingsGw1000Conn
 	{

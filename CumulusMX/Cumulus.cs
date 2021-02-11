@@ -3766,6 +3766,10 @@ namespace CumulusMX
 			VP2TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			VP2IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
+            WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+            WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
+            WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
+
 			VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 
 			VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
@@ -4995,6 +4999,11 @@ namespace CumulusMX
 				ini.SetValue("Select-a-Chart", "Colour" + i, SelectaChartOptions.colours[i]);
 			}
 
+            ini.SetValue("Station", "WeatherFlowDeviceId", WFDeviceId);
+            ini.SetValue("Station", "WeatherFlowTcpPort", WFTcpPort);
+            ini.SetValue("Station", "WeatherFlowToken", WFToken);
+
+
 
 			ini.Flush();
 
@@ -5410,6 +5419,10 @@ namespace CumulusMX
 		public int VP2TCPPort { get; set; }
 
 		public int VP2ConnectionType { get; set; }
+
+		public int WFDeviceId { get; set; }
+		public int WFTcpPort { get; set; }
+		public string WFToken { get; set; }
 
 		public bool solar_logging { get; set; }
 
