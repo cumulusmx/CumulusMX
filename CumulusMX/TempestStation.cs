@@ -64,7 +64,8 @@ namespace CumulusMX
             var totalentries = datalist.Count;
 
             cumulus.LogMessage("Processing history data, number of entries = " + totalentries);
-            cumulus.LogConsoleMessage($"Processing history data for {totalentries} records. {DateTime.Now.ToShortTimeString()}");
+            cumulus.LogConsoleMessage(
+                $"Processing history data for {totalentries} records. {DateTime.Now.ToLongTimeString()}");
 
             var rollHour = Math.Abs(cumulus.GetHourInc());
             var luhour = cumulus.LastUpdateTime.Hour;
@@ -126,33 +127,14 @@ namespace CumulusMX
                     // add 1 minute to chill hours
                     ChillHours += historydata.ReportInterval / 60.0;
 
-                //var raindiff = prevraintotal == -1 ? 0 : historydata.rainCounter - prevraintotal;
+                double rainrate = (double) (ConvertRainMMToUser((double) historydata.Precipitation) *
+                                            (60d / historydata.ReportInterval));
 
-                double rainrate;
-
-                /*if (raindiff > 100)
-                {
-                    cumulus.LogMessage("Warning: large increase in rain gauge tip count: " + raindiff);
-                    rainrate = 0;
-                }
-                else
-                {
-                    if (historydata.interval > 0)
-                    {
-                        rainrate = ConvertRainMMToUser((raindiff * 0.3) * (60.0 / historydata.interval));
-                    }
-                    else
-                    {
-                        rainrate = 0;
-                    }
-                }*/
-
-                DoRain(ConvertRainMMToUser((double) historydata.Precipitation), 0, timestamp);
-
-                //prevraintotal = historydata.rainCounter;
+                DoRain(ConvertRainMMToUser((double) historydata.Precipitation), rainrate, timestamp);
 
                 OutdoorDewpoint =
-                    ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
+                    ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature),
+                        OutdoorHumidity));
 
                 CheckForDewpointHighLow(timestamp);
 
@@ -184,12 +166,16 @@ namespace CumulusMX
 
 
                 // add in 'following interval' minutes worth of wind speed to windrun
-                cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.WindUnitText +
+                cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) +
+                                   cumulus.WindUnitText +
                                    " for " + historydata.ReportInterval + " minutes = " +
-                                   (WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.ReportInterval / 60.0)
+                                   (WindAverage * WindRunHourMult[cumulus.WindUnit] *
+                                    historydata.ReportInterval /
+                                    60.0)
                                    .ToString(cumulus.WindRunFormat) + cumulus.WindRunUnitText);
 
-                WindRunToday += WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.ReportInterval / 60.0;
+                WindRunToday += WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.ReportInterval /
+                                60.0;
 
                 // update heating/cooling degree days
                 UpdateDegreeDays(historydata.ReportInterval);
@@ -207,9 +193,11 @@ namespace CumulusMX
                 if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(timestamp);
 
                 AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-                AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint,
+                AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature,
+                    OutdoorDewpoint,
                     ApparentTemperature, WindChill, HeatIndex,
-                    IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity,
+                    IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing,
+                    OutdoorHumidity,
                     IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
                 AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
                 AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
@@ -222,10 +210,11 @@ namespace CumulusMX
                 UpdatePressureTrendString();
                 UpdateStatusPanel(timestamp);
                 cumulus.AddToWebServiceLists(timestamp);
+
             }
 
             cumulus.LogMessage("End processing history data");
-            cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToShortTimeString()}");
+            cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}");
 
         }
 
@@ -270,7 +259,10 @@ namespace CumulusMX
 
                         DoSolarRad(wp.Observation.SolarRadiation, ts);
                         DoUV((double) wp.Observation.UV, ts);
-                        DoRain(ConvertRainMMToUser((double) wp.Observation.Precipitation), -1, ts);
+                        double rainrate = (double) (ConvertRainMMToUser((double) wp.Observation.Precipitation) *
+                                                    (60d / wp.Observation.ReportInterval));
+
+                        DoRain(ConvertRainMMToUser((double) wp.Observation.Precipitation), rainrate, ts);
                         
                         DoOutdoorHumidity((int)wp.Observation.Humidity,ts);
                         DoApparentTemp(ts);
