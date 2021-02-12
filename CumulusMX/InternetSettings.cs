@@ -53,6 +53,17 @@ namespace CumulusMX
 					cumulus.SshftpAuthentication = settings.website.sshAuth ?? string.Empty;
 					cumulus.SshftpPskFile = settings.website.pskFile ?? string.Empty;
 					cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty;
+
+					if (cumulus.Sslftp == Cumulus.FtpProtocols.FTP || cumulus.Sslftp == Cumulus.FtpProtocols.FTPS) {
+						cumulus.ActiveFTPMode = settings.website.advanced.activeftp;
+						cumulus.DisableFtpsEPSV = settings.website.advanced.disableftpsepsv;
+					}
+
+					if (cumulus.Sslftp == Cumulus.FtpProtocols.FTPS)
+					{
+						cumulus.DisableFtpsExplicit = settings.website.advanced.disableftpsexplicit;
+					}
+
 				}
 				catch (Exception ex)
 				{
@@ -65,26 +76,57 @@ namespace CumulusMX
 				// web settings
 				try
 				{
-					cumulus.ActiveFTPMode = settings.websettings.activeftp;
-					cumulus.WebAutoUpdate = settings.websettings.autoupdate;
-					cumulus.RealtimeEnabled = settings.websettings.enablerealtime;
-					cumulus.RealtimeFTPEnabled = settings.websettings.enablerealtimeftp;
-					cumulus.RealtimeTxtFTP = settings.websettings.realtimetxtftp;
-					cumulus.RealtimeGaugesTxtFTP = settings.websettings.realtimegaugestxtftp;
-					cumulus.RealtimeInterval = settings.websettings.realtimeinterval * 1000;
-					cumulus.DeleteBeforeUpload = settings.websettings.ftpdelete;
-					cumulus.UpdateInterval = settings.websettings.ftpinterval;
-					cumulus.FTPRename = settings.websettings.ftprename;
-					cumulus.IncludeStandardFiles = settings.websettings.includestdfiles;
-					cumulus.IncludeGraphDataFiles = settings.websettings.includegraphdatafiles;
-					cumulus.UTF8encode = settings.websettings.utf8encode;
-					if (settings.websettings.ftplogging != cumulus.FTPlogging)
+					cumulus.DeleteBeforeUpload = settings.websettings.general.ftpdelete;
+					cumulus.FTPRename = settings.websettings.general.ftprename;
+					cumulus.UTF8encode = settings.websettings.general.utf8encode;
+					if (settings.websettings.general.ftplogging != cumulus.FTPlogging)
 					{
-						cumulus.FTPlogging = settings.websettings.ftplogging;
+						cumulus.FTPlogging = settings.websettings.general.ftplogging;
 						cumulus.SetFtpLogging(cumulus.FTPlogging);
 					}
-					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeEnabled;
 
+					cumulus.RealtimeEnabled = settings.websettings.realtime.enabled;
+					if (cumulus.RealtimeEnabled)
+					{
+						cumulus.RealtimeFTPEnabled = settings.websettings.realtime.enablerealtimeftp;
+						cumulus.RealtimeInterval = settings.websettings.realtime.realtimeinterval * 1000;
+
+						for (var i = 0; i < cumulus.RealtimeFiles.Length; i++)
+						{
+							cumulus.RealtimeFiles[i].Create = settings.websettings.realtime.files[i].create;
+							cumulus.RealtimeFiles[i].FTP = settings.websettings.realtime.files[i].ftp;
+						}
+					}
+					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeEnabled;
+					if (!cumulus.RealtimeTimer.Enabled || !cumulus.RealtimeFTPEnabled)
+					{
+						cumulus.RealtimeFTPDisconnect();
+					}
+
+					cumulus.WebIntervalEnabled = settings.websettings.interval.enabled;
+					if (cumulus.WebIntervalEnabled)
+					{
+						cumulus.WebAutoUpdate = settings.websettings.interval.autoupdate;
+						cumulus.UpdateInterval = settings.websettings.interval.ftpinterval;
+
+						for (var i = 0; i < cumulus.StdWebFiles.Length; i++)
+						{
+							cumulus.StdWebFiles[i].Create = settings.websettings.interval.stdfiles.files[i].create;
+							cumulus.StdWebFiles[i].FTP = cumulus.StdWebFiles[i].Create && settings.websettings.interval.stdfiles.files[i].ftp;
+						}
+
+						for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
+						{
+							cumulus.GraphDataFiles[i].Create = settings.websettings.interval.graphfiles.files[i].create;
+							cumulus.GraphDataFiles[i].FTP = settings.websettings.interval.graphfiles.files[i].ftp;
+						}
+
+						for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
+						{
+							cumulus.GraphDataEodFiles[i].Create = settings.websettings.interval.graphfileseod.files[i].create;
+							cumulus.GraphDataEodFiles[i].FTP = settings.websettings.interval.graphfileseod.files[i].ftp;
+						}
+					}
 				}
 				catch (Exception ex)
 				{
@@ -508,6 +550,13 @@ namespace CumulusMX
 
 		public string GetInternetAlpacaFormData()
 		{
+			var websettingsadvanced = new JsonInternetSettingsWebsiteAdvanced()
+			{
+				activeftp = cumulus.ActiveFTPMode,
+				disableftpsepsv = cumulus.DisableFtpsEPSV,
+				disableftpsexplicit = cumulus.DisableFtpsExplicit
+			};
+
 			// Build the settings data, convert to JSON, and return it
 			var websitesettings = new JsonInternetSettingsWebsite()
 			{
@@ -520,26 +569,100 @@ namespace CumulusMX
 				username = cumulus.FtpUsername,
 				sshAuth = cumulus.SshftpAuthentication,
 				pskFile = cumulus.SshftpPskFile,
-				webcamurl = cumulus.WebcamURL
+				webcamurl = cumulus.WebcamURL,
+				advanced = websettingsadvanced
 			};
 
-			var websettings = new JsonInternetSettingsWebSettings()
+			var websettingsgeneral = new JsonInternetSettingsWebSettingsGeneral()
 			{
-				activeftp = cumulus.ActiveFTPMode,
-				autoupdate = cumulus.WebAutoUpdate,
-				enablerealtime = cumulus.RealtimeEnabled,
-				enablerealtimeftp = cumulus.RealtimeFTPEnabled,
-				realtimetxtftp = cumulus.RealtimeTxtFTP,
-				realtimegaugestxtftp = cumulus.RealtimeGaugesTxtFTP,
-				realtimeinterval = cumulus.RealtimeInterval / 1000,
 				ftpdelete = cumulus.DeleteBeforeUpload,
-				ftpinterval = cumulus.UpdateInterval,
 				ftprename = cumulus.FTPRename,
-				includestdfiles = cumulus.IncludeStandardFiles,
-				includegraphdatafiles = cumulus.IncludeGraphDataFiles,
 				utf8encode = cumulus.UTF8encode,
 				ftplogging = cumulus.FTPlogging
 			};
+
+			var websettingsintervalstd = new JsonInternetSettingsWebSettingsIntervalFiles()
+			{
+				files = new JsonInternetSettingsFileSettings[cumulus.StdWebFiles.Length]
+			};
+
+			var websettingsintervalgraph = new JsonInternetSettingsWebSettingsIntervalFiles()
+			{
+				files = new JsonInternetSettingsFileSettings[cumulus.GraphDataFiles.Length]
+			};
+
+			var websettingsintervaleodgraph = new JsonInternetSettingsWebSettingsIntervalFiles()
+			{
+				files = new JsonInternetSettingsFileSettings[cumulus.GraphDataEodFiles.Length]
+			};
+
+			var websettingsinterval = new JsonInternetSettingsWebSettingsInterval()
+			{
+				enabled = cumulus.WebIntervalEnabled,
+				autoupdate = cumulus.WebAutoUpdate,
+				ftpinterval = cumulus.UpdateInterval,
+				stdfiles = websettingsintervalstd,
+				graphfiles = websettingsintervalgraph,
+				graphfileseod = websettingsintervaleodgraph
+			};
+
+			for (var i = 0; i < cumulus.StdWebFiles.Length; i++)
+			{
+				websettingsinterval.stdfiles.files[i] = new JsonInternetSettingsFileSettings()
+				{
+					filename = cumulus.StdWebFiles[i].LocalFileName,
+					create = cumulus.StdWebFiles[i].Create,
+					ftp = cumulus.StdWebFiles[i].FTP
+				};
+			}
+
+			for (var i =0; i < cumulus.GraphDataFiles.Length; i++)
+			{
+				websettingsinterval.graphfiles.files[i] = new JsonInternetSettingsFileSettings()
+				{
+					filename = cumulus.GraphDataFiles[i].LocalFileName,
+					create = cumulus.GraphDataFiles[i].Create,
+					ftp = cumulus.GraphDataFiles[i].FTP
+				};
+			}
+
+			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
+			{
+				websettingsinterval.graphfileseod.files[i] = new JsonInternetSettingsFileSettings()
+				{
+					filename = cumulus.GraphDataEodFiles[i].LocalFileName,
+					create = cumulus.GraphDataEodFiles[i].Create,
+					ftp = cumulus.GraphDataEodFiles[i].FTP
+				};
+			}
+
+			var websettingsrealtime = new JsonInternetSettingsWebSettingsRealtime()
+			{
+				enabled = cumulus.RealtimeEnabled,
+				enablerealtimeftp = cumulus.RealtimeFTPEnabled,
+				realtimeinterval = cumulus.RealtimeInterval / 1000,
+				files = new JsonInternetSettingsFileSettings[cumulus.RealtimeFiles.Length]
+			};
+
+			for (var i = 0; i < cumulus.RealtimeFiles.Length; i++)
+			{
+				websettingsrealtime.files[i] = new JsonInternetSettingsFileSettings()
+				{
+					filename = cumulus.RealtimeFiles[i].LocalFileName,
+					create = cumulus.RealtimeFiles[i].Create,
+					ftp = cumulus.RealtimeFiles[i].FTP
+				};
+			}
+
+			var websettings = new JsonInternetSettingsWebSettings()
+			{
+				stdwebsite = false,
+				general = websettingsgeneral,
+				interval = websettingsinterval,
+				realtime = websettingsrealtime
+			};
+
+
 
 			var externalprograms = new JsonInternetSettingsExternalPrograms()
 			{
@@ -876,6 +999,13 @@ namespace CumulusMX
 		public JsonInternetSettingsCustomHttpSettings customhttp { get; set; }
 	}
 
+	public class JsonInternetSettingsWebsiteAdvanced
+	{
+		public bool activeftp { get; set; }
+		public bool disableftpsepsv { get; set; }
+		public bool disableftpsexplicit { get; set; }
+	}
+
 	public class JsonInternetSettingsWebsite
 	{
 		public string hostname { get; set; }
@@ -888,25 +1018,57 @@ namespace CumulusMX
 		public string pskFile { get; set; }
 		public string forumurl { get; set; }
 		public string webcamurl { get; set; }
+		public JsonInternetSettingsWebsiteAdvanced advanced { get; set; }
 	}
 
 	public class JsonInternetSettingsWebSettings
 	{
-		public bool autoupdate { get; set; }
-		public bool includestdfiles { get; set; }
-		public bool includegraphdatafiles { get; set; }
-		public bool activeftp { get; set; }
+		public bool stdwebsite { get; set; }
+		public JsonInternetSettingsWebSettingsGeneral general { get; set; }
+		public JsonInternetSettingsWebSettingsInterval interval { get; set; }
+		public JsonInternetSettingsWebSettingsRealtime realtime { get; set; }
+
+	}
+
+	public class JsonInternetSettingsWebSettingsGeneral
+	{
 		public bool ftprename { get; set; }
 		public bool ftpdelete { get; set; }
 		public bool utf8encode { get; set; }
 		public bool ftplogging { get; set; }
-		public int ftpinterval { get; set; }
-		public bool enablerealtime { get; set; }
-		public bool enablerealtimeftp { get; set; }
-		public bool realtimetxtftp { get; set; }
-		public bool realtimegaugestxtftp { get; set; }
-		public int realtimeinterval { get; set; }
 	}
+
+	public class JsonInternetSettingsFileSettings
+	{
+		public string filename { get; set; }
+		public bool create { get; set; }
+		public bool ftp { get; set; }
+	}
+
+	public class JsonInternetSettingsWebSettingsInterval
+	{
+		public bool enabled { get; set; }
+		public bool autoupdate { get; set; }
+		public int ftpinterval { get; set; }
+		public JsonInternetSettingsWebSettingsIntervalFiles stdfiles { get; set; }
+		public JsonInternetSettingsWebSettingsIntervalFiles graphfiles { get; set; }
+		public JsonInternetSettingsWebSettingsIntervalFiles graphfileseod { get; set; }
+	}
+
+	public class JsonInternetSettingsWebSettingsIntervalFiles
+	{
+		public JsonInternetSettingsFileSettings[] files { get; set; }
+
+	}
+
+	public class JsonInternetSettingsWebSettingsRealtime
+	{
+		public bool enabled { get; set; }
+		public bool enablerealtimeftp { get; set; }
+		public int realtimeinterval { get; set; }
+		public JsonInternetSettingsFileSettings[] files { get; set; }
+	}
+
 
 	public class JsonInternetSettingsExternalPrograms
 	{

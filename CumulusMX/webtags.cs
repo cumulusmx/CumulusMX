@@ -2867,7 +2867,7 @@ namespace CumulusMX
 				return string.Empty;
 			}
 
-			return @":<a href=""" + cumulus.ForumURL + @""">forum</a>:";
+			return $":<a href=\\\\\"{cumulus.ForumURL}\\\\\">forum</a>:";
 		}
 
 		private string Tagwebcam(Dictionary<string,string> tagParams)

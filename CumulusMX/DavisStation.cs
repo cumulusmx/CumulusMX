@@ -3733,7 +3733,7 @@ namespace CumulusMX
 
 				default:
 					// Rain gauge type not configured, assume it is the same as the station units
-					return cumulus.RainUnit == 0 ? clicks * 0.2 : clicks * 0.01;
+					return cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01;
 			}
 		}
 

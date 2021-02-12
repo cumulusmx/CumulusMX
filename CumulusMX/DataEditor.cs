@@ -12,19 +12,28 @@ namespace CumulusMX
 {
 	internal class DataEditor
 	{
-		private readonly WeatherStation station;
-		private readonly Cumulus cumulus;
-		private readonly WebTags webtags;
+		private WeatherStation station;
+		private Cumulus cumulus;
+		private WebTags webtags;
 
 		private readonly List<LastHourRainLog> hourRainLog = new List<LastHourRainLog>();
 
-		internal DataEditor(Cumulus cumulus, WeatherStation station, WebTags webtags)
+		//internal DataEditor(Cumulus cumulus, WeatherStation station, WebTags webtags)
+		internal DataEditor(Cumulus cumulus)
 		{
-			this.station = station;
+			//this.station = station;
 			this.cumulus = cumulus;
-			this.webtags = webtags;
 		}
 
+		internal void SetStation(WeatherStation station)
+		{
+			this.station = station;
+		}
+
+		internal void SetWebTags(WebTags webtags)
+		{
+			this.webtags = webtags;
+		}
 		//internal string EditRainToday(HttpListenerContext context)
 		internal string EditRainToday(IHttpContext context)
 		{

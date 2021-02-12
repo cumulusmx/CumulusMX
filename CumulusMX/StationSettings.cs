@@ -11,17 +11,23 @@ namespace CumulusMX
 	internal class StationSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly WeatherStation station;
+		private WeatherStation station;
 		private readonly string stationOptionsFile;
 		private readonly string stationSchemaFile;
 
-		internal StationSettings(Cumulus cumulus, WeatherStation station)
+		//internal StationSettings(Cumulus cumulus, WeatherStation station)
+		internal StationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			this.station = station;
+			//this.station = station;
 
 			stationOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
 			stationSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
+		}
+
+		internal void SetStation(WeatherStation station)
+		{
+			this.station = station;
 		}
 
 		internal string GetStationAlpacaFormData()
@@ -69,8 +75,8 @@ namespace CumulusMX
 			{
 				wind = cumulus.Units.Wind,
 				pressure = cumulus.Units.Press,
-				temp = cumulus.TempUnit,
-				rain = cumulus.RainUnit,
+				temp = cumulus.Units.Temp,
+				rain = cumulus.Units.Rain,
 				advanced = unitsAdv
 			};
 
@@ -221,7 +227,10 @@ namespace CumulusMX
 				graphWindChillVis = cumulus.GraphOptions.WCVisible,
 				graphAppTempVis = cumulus.GraphOptions.AppTempVisible,
 				graphFeelsLikeVis = cumulus.GraphOptions.FeelsLikeVisible,
-				graphHumidexVis = cumulus.GraphOptions.HumidexVisible
+				graphHumidexVis = cumulus.GraphOptions.HumidexVisible,
+				graphDailyAvgTempVis = cumulus.GraphOptions.DailyAvgTempVisible,
+				graphDailyMaxTempVis = cumulus.GraphOptions.DailyMaxTempVisible,
+				graphDailyMinTempVis = cumulus.GraphOptions.DailyMinTempVisible,
 			};
 
 			var graphDataHum = new JsonStationSettingsGraphDataHumidity()
@@ -465,6 +474,9 @@ namespace CumulusMX
 					cumulus.GraphOptions.UVVisible = settings.Graphs.datavisibility.solar.graphUvVis;
 					cumulus.GraphOptions.SolarVisible = settings.Graphs.datavisibility.solar.graphSolarVis;
 					cumulus.GraphOptions.SunshineVisible = settings.Graphs.datavisibility.solar.graphSunshineVis;
+					cumulus.GraphOptions.DailyAvgTempVisible = settings.Graphs.datavisibility.temperature.graphDailyAvgTempVis;
+					cumulus.GraphOptions.DailyMaxTempVisible = settings.Graphs.datavisibility.temperature.graphDailyMaxTempVis;
+					cumulus.GraphOptions.DailyMinTempVisible = settings.Graphs.datavisibility.temperature.graphDailyMinTempVis;
 				}
 				catch (Exception ex)
 				{
@@ -830,8 +842,8 @@ namespace CumulusMX
 				{
 					cumulus.Units.Wind = settings.general.units.wind;
 					cumulus.Units.Press = settings.general.units.pressure;
-					cumulus.TempUnit = settings.general.units.temp;
-					cumulus.RainUnit = settings.general.units.rain;
+					cumulus.Units.Temp = settings.general.units.temp;
+					cumulus.Units.Rain = settings.general.units.rain;
 					cumulus.SetupUnitText();
 
 					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
@@ -872,6 +884,13 @@ namespace CumulusMX
 
 				// Save the settings
 				cumulus.WriteIniFile();
+
+				// Graph configs may have changed, so re-create and upload the json files - just flag everything!
+				for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
+				{
+					cumulus.GraphDataFiles[i].CreateRequired = true;
+					cumulus.GraphDataFiles[i].FtpRequired = true;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -885,6 +904,11 @@ namespace CumulusMX
 
 		internal string FtpNow(IHttpContext context)
 		{
+			if (station == null)
+			{
+				return "{\"result\":\"Not possible, station is not initialised\"}";
+			}
+
 			try
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
@@ -909,13 +933,18 @@ namespace CumulusMX
 					if (cumulus.ftpThread.ThreadState == ThreadState.Running)
 						cumulus.ftpThread.Abort();
 
-					// If enabled (re)generate the daily graph data files, and upload
-					if (includeGraphs && cumulus.IncludeGraphDataFiles)
+					// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
+					for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 					{
-						cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files");
-						station.CreateEodGraphDataFiles();
-						cumulus.DailyGraphDataFilesNeedFTP = true;
+						cumulus.GraphDataFiles[i].CreateRequired = true;
+						cumulus.GraphDataFiles[i].FtpRequired = true;
 					}
+					cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
+					station.CreateGraphDataFiles();
+
+					// (re)generate the daily graph data files, and upload if required
+					cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
+					station.CreateEodGraphDataFiles();
 
 					cumulus.LogMessage("FTP Now: Trying new web update");
 					cumulus.WebUpdating = 1;
@@ -924,13 +953,9 @@ namespace CumulusMX
 					return "{\"result\":\"An existing FTP process was aborted, and a new FTP process invoked\"}";
 				}
 
-				// If enabled (re)generate the daily graph data files, and upload
-				if (includeGraphs && cumulus.IncludeGraphDataFiles)
-				{
-					cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files");
-					station.CreateEodGraphDataFiles();
-					cumulus.DailyGraphDataFilesNeedFTP = true;
-				}
+				// (re)generate the daily graph data files, and upload if required
+				cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
+				station.CreateEodGraphDataFiles();
 
 				cumulus.WebUpdating = 1;
 				cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
@@ -1329,6 +1354,9 @@ namespace CumulusMX
 		public bool graphAppTempVis { get; set; }
 		public bool graphFeelsLikeVis { get; set; }
 		public bool graphHumidexVis { get; set; }
+		public bool graphDailyAvgTempVis { get; set; }
+		public bool graphDailyMaxTempVis { get; set; }
+		public bool graphDailyMinTempVis { get; set; }
 	}
 
 	public class JsonStationSettingsGraphDataHumidity

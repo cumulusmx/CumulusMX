@@ -1,18 +1,22 @@
-3.10.0 - b3109
+3.10.0 - b310x
 ——————————————
-- Change: All the settings screens revamped and reorganised.
-	- Many of the settings are now context senstive, only showing items relevant to your station and configuration
-	- Most of the previously config file "read-only" settings are now available in an Advanced section relevant to the configuration item. These settings are now read/write.
-
-
-
-3.9.8 - b3108
-—————————————
 - Fix: Catch error creating System Uptime counter on Windows
+- Fix: The Local web server is now brought up before initialising the station. This allows you to correct a misconfigured station without resorting to editing the Cumulus.ini file.
 
+- New: The previous Console log file is now copied to an "-old" file on start-up
+
+- Change: All the settings screens revamped, reorganised and extended.
+	- Many of the settings are now context sensitive, only showing items relevant to your station and configuration.
+	- Most of the previously config file "read-only" settings are now available in an Advanced section relevant to the configuration item. These settings are now read/write.
+	- Many new Cumulus.ini configuration entries, and some now depreciated.
+	- Virtually all the standard files that can be generated can now be controlled for enabling/disabling generation and FTP transfer independently.
+	- Added more graph data series controls.
+- Change: The two graph config files availabledata.json and graphconfig.json are now only uploaded on program start-up and when the station config is changed.
+- Change: Dayfile, Monthly Log, and Extra log file editors now have a selectable page length, and a goto-page feature
+- Change: The default web site is now driven by a single data file (plus realtimegauges.txt), rather than every page being updated and uploaded each interval.
+- Change: The various charting pages now hide buttons for graphs that do not contain any data - both on the dashboard and default web site.
 - Change: Creation of the wxnow.txt file is now disabled by default for new installs
 - Change: Clock sync (Davis VP2 & Instromet) now occurs at 2 minutes past the hour selected
-
 
 
 3.9.7 - b3107

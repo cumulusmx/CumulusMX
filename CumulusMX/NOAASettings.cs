@@ -53,21 +53,36 @@ namespace CumulusMX
 				oct = Math.Round(cumulus.NOAARainNorms[10], cumulus.RainDPlaces),
 				nov = Math.Round(cumulus.NOAARainNorms[11], cumulus.RainDPlaces),
 				dec = Math.Round(cumulus.NOAARainNorms[12], cumulus.RainDPlaces)
-				};
+			};
 
-			var data = new JsonNOAASettingsData()
+			var site = new JsonNOAASettingsSite()
 			{
 				sitename = cumulus.NOAAname,
 				city = cumulus.NOAAcity,
-				state = cumulus.NOAAstate,
-				timeformat = cumulus.NOAA12hourformat?0:1,
+				state = cumulus.NOAAstate
+			};
+
+			var files = new JsonNOAASettingsOutput()
+			{
 				monthfileformat = cumulus.NOAAMonthFileFormat,
-				yearfileformat = cumulus.NOAAYearFileFormat,
+				yearfileformat = cumulus.NOAAYearFileFormat
+			};
+
+			var options = new JsonNOAASettingsOptions()
+			{
+				timeformat = cumulus.NOAA12hourformat ? 1 : 0,
 				utf8 = cumulus.NOAAUseUTF8,
-				dotdecimal = cumulus.NOAAUseDotDecimal,
-				autosave = cumulus.NOAAAutoSave,
+				dotdecimal = cumulus.NOAAUseDotDecimal
+			};
+
+			var ftp = new JsonNOAASettingsFtp()
+			{
 				autoftp = cumulus.NOAAAutoFTP,
-				ftpdirectory = cumulus.NOAAFTPDirectory,
+				ftpdirectory = cumulus.NOAAFTPDirectory
+			};
+
+			var thresh = new JsonNOAASettingsThresholds()
+			{
 				heatingthreshold = Math.Round(cumulus.NOAAheatingthreshold,cumulus.TempDPlaces),
 				coolingthreshold = Math.Round(cumulus.NOAAcoolingthreshold,cumulus.TempDPlaces),
 				maxtempcomp1 = Math.Round(cumulus.NOAAmaxtempcomp1,cumulus.RainDPlaces),
@@ -76,7 +91,18 @@ namespace CumulusMX
 				mintempcomp2 = Math.Round(cumulus.NOAAmintempcomp2,cumulus.RainDPlaces),
 				raincomp1 = Math.Round(cumulus.NOAAraincomp1,cumulus.RainDPlaces),
 				raincomp2 = Math.Round(cumulus.NOAAraincomp2,cumulus.RainDPlaces),
-				raincomp3 = Math.Round(cumulus.NOAAraincomp3, cumulus.RainDPlaces),
+				raincomp3 = Math.Round(cumulus.NOAAraincomp3, cumulus.RainDPlaces)
+			};
+
+			var data = new JsonNOAASettingsData()
+			{
+				autosave = cumulus.NOAAAutoSave,
+
+				sitedetails = site,
+				outputfiles = files,
+				options = options,
+				ftp = ftp,
+				thresholds = thresh,
 				normalmeantemps = normalmeantemps,
 				normalrain = normalrain
 			};
@@ -120,25 +146,29 @@ namespace CumulusMX
 				cumulus.NOAAAutoSave = settings.autosave;
 				if (cumulus.NOAAAutoSave)
 				{
-					cumulus.NOAAname = settings.sitename;
-					cumulus.NOAAcity = settings.city;
-					cumulus.NOAAstate = settings.state;
-					cumulus.NOAA12hourformat = settings.timeformat == 0;
-					cumulus.NOAAMonthFileFormat = settings.monthfileformat;
-					cumulus.NOAAYearFileFormat = settings.yearfileformat;
-					cumulus.NOAAUseUTF8 = settings.utf8;
-					cumulus.NOAAUseDotDecimal = settings.dotdecimal;
-					cumulus.NOAAAutoFTP = settings.autoftp;
-					cumulus.NOAAFTPDirectory = settings.ftpdirectory;
-					cumulus.NOAAheatingthreshold = settings.heatingthreshold;
-					cumulus.NOAAcoolingthreshold = settings.coolingthreshold;
-					cumulus.NOAAmaxtempcomp1 = settings.maxtempcomp1;
-					cumulus.NOAAmaxtempcomp2 = settings.maxtempcomp2;
-					cumulus.NOAAmintempcomp1 = settings.mintempcomp1;
-					cumulus.NOAAmintempcomp2 = settings.mintempcomp2;
-					cumulus.NOAAraincomp1 = settings.raincomp1;
-					cumulus.NOAAraincomp2 = settings.raincomp2;
-					cumulus.NOAAraincomp3 = settings.raincomp3;
+					cumulus.NOAAname = settings.sitedetails.sitename;
+					cumulus.NOAAcity = settings.sitedetails.city;
+					cumulus.NOAAstate = settings.sitedetails.state;
+
+					cumulus.NOAAMonthFileFormat = settings.outputfiles.monthfileformat;
+					cumulus.NOAAYearFileFormat = settings.outputfiles.yearfileformat;
+
+					cumulus.NOAA12hourformat = settings.options.timeformat == 1;
+					cumulus.NOAAUseUTF8 = settings.options.utf8;
+					cumulus.NOAAUseDotDecimal = settings.options.dotdecimal;
+
+					cumulus.NOAAAutoFTP = settings.ftp.autoftp;
+					cumulus.NOAAFTPDirectory = settings.ftp.ftpdirectory;
+
+					cumulus.NOAAheatingthreshold = settings.thresholds.heatingthreshold;
+					cumulus.NOAAcoolingthreshold = settings.thresholds.coolingthreshold;
+					cumulus.NOAAmaxtempcomp1 = settings.thresholds.maxtempcomp1;
+					cumulus.NOAAmaxtempcomp2 = settings.thresholds.maxtempcomp2;
+					cumulus.NOAAmintempcomp1 = settings.thresholds.mintempcomp1;
+					cumulus.NOAAmintempcomp2 = settings.thresholds.mintempcomp2;
+					cumulus.NOAAraincomp1 = settings.thresholds.raincomp1;
+					cumulus.NOAAraincomp2 = settings.thresholds.raincomp2;
+					cumulus.NOAAraincomp3 = settings.thresholds.raincomp3;
 
 					// normal mean temps
 					cumulus.NOAATempNorms[1] = settings.normalmeantemps.jan;
@@ -186,28 +216,53 @@ namespace CumulusMX
 
 	public class JsonNOAASettingsData
 	{
+		public bool autosave {get; set; }
+		public JsonNOAASettingsSite sitedetails { get; set; }
+		public JsonNOAASettingsOutput outputfiles { get; set; }
+		public JsonNOAASettingsOptions options { get; set; }
+		public JsonNOAASettingsFtp ftp { get; set; }
+		public JsonNOAASettingsThresholds thresholds { get; set; }
+		public JsonNOAASettingsNormalMeanTemps normalmeantemps {get; set; }
+		public JsonNOAASettingsNormalRain normalrain {get; set; }
+	}
+
+	public class JsonNOAASettingsSite
+	{
 		public string sitename {get; set; }
 		public string city {get; set; }
 		public string state {get; set; }
-		public int timeformat {get; set; }
+	}
+
+	public class JsonNOAASettingsOutput
+	{
 		public string monthfileformat {get; set; }
 		public string yearfileformat {get; set; }
-		public bool utf8 {get; set; }
+	}
+
+	public class JsonNOAASettingsOptions
+	{
+		public int timeformat { get; set; }
+		public bool utf8 { get; set; }
 		public bool dotdecimal { get; set; }
-		public bool autosave {get; set; }
-		public bool autoftp {get; set; }
-		public string ftpdirectory {get; set; }
-		public double heatingthreshold {get; set; }
-		public double coolingthreshold {get; set; }
-		public double maxtempcomp1 {get; set; }
-		public double maxtempcomp2 {get; set; }
-		public double mintempcomp1 {get; set; }
-		public double mintempcomp2 {get; set; }
-		public double raincomp1 {get; set; }
-		public double raincomp2 {get; set; }
-		public double raincomp3 {get; set; }
-		public JsonNOAASettingsNormalMeanTemps normalmeantemps {get; set; }
-		public JsonNOAASettingsNormalRain normalrain {get; set; }
+	}
+
+	public class JsonNOAASettingsFtp
+	{
+		public bool autoftp { get; set; }
+		public string ftpdirectory { get; set; }
+	}
+
+	public class JsonNOAASettingsThresholds
+	{
+		public double heatingthreshold { get; set; }
+		public double coolingthreshold { get; set; }
+		public double maxtempcomp1 { get; set; }
+		public double maxtempcomp2 { get; set; }
+		public double mintempcomp1 { get; set; }
+		public double mintempcomp2 { get; set; }
+		public double raincomp1 { get; set; }
+		public double raincomp2 { get; set; }
+		public double raincomp3 { get; set; }
 	}
 
 	public class JsonNOAASettingsNormalMeanTemps

@@ -239,7 +239,31 @@ namespace CumulusMX
 			}
 		}
 
-		// *** Encode byte array ***
+		internal bool ValueExists(string SectionName, string Key)
+		{
+			// *** Lazy loading ***
+			if (m_Lazy)
+			{
+				m_Lazy = false;
+				Refresh();
+			}
+
+			lock (m_Lock)
+			{
+				// *** Check if the section exists ***
+				Dictionary<string, string> Section;
+				if (!m_Sections.TryGetValue(SectionName, out Section)) return false;
+
+				// *** Check if the key exists ***
+				string Value;
+				if (Section.TryGetValue(Key, out Value))
+					return true;
+				else
+					return false;
+			}
+		}
+
+			// *** Encode byte array ***
 		private string EncodeByteArray(byte[] Value)
 		{
 			if (Value == null) return null;

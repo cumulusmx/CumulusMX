@@ -1719,7 +1719,7 @@ namespace CumulusMX
 						cumulus.CustomHttpMinutesUpdate();
 					}
 
-					if (cumulus.WebAutoUpdate && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
+					if (cumulus.WebIntervalEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
 						if (cumulus.WebUpdating == 1)
 						{
@@ -1837,7 +1837,8 @@ namespace CumulusMX
 						}
 					}
 
-					if (cumulus.CreateWxnowTxt)
+					var wxfile = cumulus.StdWebFiles.SingleOrDefault(item => item.LocalFileName == "wxnow.txt");
+					if (wxfile.Create)
 					{
 						CreateWxnowFile();
 					}
@@ -2008,295 +2009,125 @@ namespace CumulusMX
 		public void CreateGraphDataFiles()
 		{
 			// Chart data for Highcharts graphs
-			// config
-			var json = GetGraphConfig();
-			try
+			string json = "";
+			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[0], false))
+				// We double up the meaning of .FtpRequired to creation as well.
+				// The FtpRequired flag is only cleared for the config files that are pretty static so it is pointless
+				// recreating them every update too.
+				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
 				{
-					file.WriteLine(json);
-					file.Close();
+					switch (cumulus.GraphDataFiles[i].LocalFileName)
+					{
+						case "graphconfig.json":
+							json = GetGraphConfig();
+							break;
+						case "availabledata.json":
+							json = GetAvailGraphData();
+							break;
+						case "tempdata.json":
+							json = GetTempGraphData();
+							break;
+						case "pressdata.json":
+							json = GetPressGraphData();
+							break;
+						case "winddata.json":
+							json = GetWindGraphData();
+							break;
+						case "wdirdata.json":
+							json = GetWindDirGraphData();
+							break;
+						case "humdata.json":
+							json = GetHumGraphData();
+							break;
+						case "raindata.json":
+							json = GetRainGraphData();
+							break;
+						case "dailyrain.json":
+							json = GetDailyRainGraphData();
+							break;
+						case "dailytemp.json":
+							json = GetDailyTempGraphData();
+							break;
+						case "solardata.json":
+							json = GetSolarGraphData();
+							break;
+						case "sunhours.json":
+							json = GetSunHoursGraphData();
+							break;
+						case "airquality.json":
+							json = GetAqGraphData();
+							break;
+					}
+
+					try
+					{
+						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
+						using (var file = new StreamWriter(dest, false))
+						{
+							file.WriteLine(json);
+							file.Close();
+						}
+
+						// The config files only need creating once per change
+						if (cumulus.GraphDataFiles[i].LocalFileName == "availabledata.json" || cumulus.GraphDataFiles[i].LocalFileName == "graphconfig.json")
+						{
+							cumulus.GraphDataFiles[i].CreateRequired = false;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+					}
 				}
 			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[0]}: {ex.Message}");
-			}
-
-			// Temperature
-			json = GetTempGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[1], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[1]}: {ex.Message}");
-			}
-
-			// Pressure
-			json = GetPressGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[2], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[2]}: {ex.Message}");
-			}
-
-			// Wind
-			json = GetWindGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[3], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[3]}: {ex.Message}");
-			}
-
-			// Wind direction
-			json = GetWindDirGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[4], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[4]}: {ex.Message}");
-			}
-
-			// Humidity
-			json = GetHumGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[5], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[5]}: {ex.Message}");
-			}
-
-			// Rain
-			json = GetRainGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[6], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[6]}: {ex.Message}");
-			}
-
-			// Daily rain
-			json = GetDailyRainGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[7], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[7]}: {ex.Message}");
-			}
-
-			// Daily temp
-			json = GetDailyTempGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[8], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[8]}: {ex.Message}");
-			}
-
-			// Solar
-			json = GetSolarGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[9], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[9]}: {ex.Message}");
-			}
-
-			// Sun hours
-			json = GetSunHoursGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[10], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[10]}: {ex.Message}");
-			}
-
-			// Air Quality
-			json = GetAqGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[11], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[11]}: {ex.Message}");
-			}
-
-			// Available graph data
-			json = GetAvailGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localGraphdataFiles[12], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localGraphdataFiles[12]}: {ex.Message}");
-			}
-
 		}
 
 		public void CreateEodGraphDataFiles()
 		{
-			string json;
-
-			// Temperature
-			json = GetAllDailyTempGraphData();
-			try
+			string json = "";
+			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 			{
-				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[0], false))
+				if (cumulus.GraphDataEodFiles[i].Create)
 				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[0]}: {ex.Message}");
-			}
+					switch (cumulus.GraphDataEodFiles[i].LocalFileName)
+					{
+						case "alldailytempdata.json":
+							json = GetAllDailyTempGraphData();
+							break;
+						case "alldailypressdata.json":
+							json = GetAllDailyPressGraphData();
+							break;
+						case "alldailywinddata.json":
+							json = GetAllDailyWindGraphData();
+							break;
+						case "alldailyhumdata.json":
+							json = GetAllDailyHumGraphData();
+							break;
+						case "alldailyraindata.json":
+							json = GetAllDailyRainGraphData();
+							break;
+						case "alldailysolardata.json":
+							json = GetAllDailySolarGraphData();
+							break;
+					}
 
-			// Pressure
-			json = GetAllDailyPressGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[1], false))
-				{
-					file.WriteLine(json);
-					file.Close();
+					try
+					{
+						var dest = cumulus.GraphDataEodFiles[i].LocalPath + cumulus.GraphDataEodFiles[i].LocalFileName;
+						using (var file = new StreamWriter(dest, false))
+						{
+							file.WriteLine(json);
+							file.Close();
+						}
+						// Now set the flag that upload is required (if enabled)
+						cumulus.GraphDataEodFiles[i].FtpRequired = true;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}");
+					}
 				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[1]}: {ex.Message}");
-			}
-
-			// Wind
-			json = GetAllDailyWindGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[2], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[2]}: {ex.Message}");
-			}
-
-			// Humidity
-			json = GetAllDailyHumGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[3], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[3]}: {ex.Message}");
-			}
-
-			// Rain
-			json = GetAllDailyRainGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[4], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[4]}: {ex.Message}");
-			}
-
-			// Solar
-			json = GetAllDailySolarGraphData();
-			try
-			{
-				using (var file = new StreamWriter(cumulus.localDailyGraphdataFiles[5], false))
-				{
-					file.WriteLine(json);
-					file.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage($"Error writing {cumulus.localDailyGraphdataFiles[5]}: {ex.Message}");
 			}
 		}
 
@@ -2717,7 +2548,7 @@ namespace CumulusMX
 			// h61 - humidity 61% (00 = 100%)
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
 
-			var filename = cumulus.AppDir + cumulus.wxnowfile;
+			var filename = cumulus.AppDir + cumulus.WxnowFile;
 			var timestamp = DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
 
 			int mphwind = Convert.ToInt32(ConvertUserWindToMPH(WindAverage));
@@ -2777,7 +2608,7 @@ namespace CumulusMX
 			// and return three digits
 			int num;
 
-			if (cumulus.TempUnit == 0)
+			if (cumulus.Units.Rain == 0)
 			{
 				num = Convert.ToInt32(((temp * 1.8) + 32));
 			}
@@ -2800,7 +2631,7 @@ namespace CumulusMX
 
 		private double ConvertUserRainToIn(double value)
 		{
-			if (cumulus.RainUnit == 1)
+			if (cumulus.Units.Rain == 1)
 			{
 				return value;
 			}
@@ -3576,22 +3407,22 @@ namespace CumulusMX
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
 				// If the bucket size is set, use that, otherwise infer from rain units
-				var bucketSize = cumulus.DavisOptions.RainGaugeType == -1 ? cumulus.RainUnit : cumulus.DavisOptions.RainGaugeType;
+				var bucketSize = cumulus.DavisOptions.RainGaugeType == -1 ? cumulus.Units.Rain : cumulus.DavisOptions.RainGaugeType;
 
 				if (bucketSize == 0) // 0.2 mm tips
 				{
 					// mm/mm (0.2) or mm/in (0.00787)
-					raintipthreshold = cumulus.RainUnit == 0 ? 0.19 : 0.006;
+					raintipthreshold = cumulus.Units.Rain == 0 ? 0.19 : 0.006;
 				}
 				else // 0.01 inch tips
 				{
 					// in/mm (0.254) or in/in (0.01)
-					raintipthreshold = cumulus.RainUnit == 0 ? 0.2 : 0.009;
+					raintipthreshold = cumulus.Units.Rain == 0 ? 0.2 : 0.009;
 				}
 			}
 			else
 			{
-				if (cumulus.RainUnit == 0)
+				if (cumulus.Units.Rain == 0)
 				{
 					// mm
 					raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.009 : 0.09;
@@ -4644,7 +4475,7 @@ namespace CumulusMX
 				if (cumulus.RainDayThreshold < 0)
 				// default
 				{
-					if (cumulus.RainUnit == 0)
+					if (cumulus.Units.Rain == 0)
 					{
 						rdthresh1000 = 200; // 0.2mm *1000
 					}
@@ -5270,11 +5101,8 @@ namespace CumulusMX
 
 				// Do the Daily graph data files
 				CreateEodGraphDataFiles();
-				if (cumulus.IncludeGraphDataFiles)
-				{
-					cumulus.DailyGraphDataFilesNeedFTP = true;
-					cumulus.LogMessage("Daily graph data files will be uploaded at next web update");
-				}
+				cumulus.LogMessage("If required the daily graph data files will be uploaded at next web update");
+
 
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
@@ -5695,7 +5523,7 @@ namespace CumulusMX
 		/// <returns>Temp in configured units</returns>
 		public double ConvertTempCToUser(double value)
 		{
-			if (cumulus.TempUnit == 1)
+			if (cumulus.Units.Rain == 1)
 			{
 				return MeteoLib.CToF(value);
 			}
@@ -5713,7 +5541,7 @@ namespace CumulusMX
 		/// <returns>Temp in configured units</returns>
 		public double ConvertTempFToUser(double value)
 		{
-			if (cumulus.TempUnit == 0)
+			if (cumulus.Units.Rain == 0)
 			{
 				return MeteoLib.FtoC(value);
 			}
@@ -5731,7 +5559,7 @@ namespace CumulusMX
 		/// <returns>Temp in C</returns>
 		public double ConvertUserTempToC(double value)
 		{
-			if (cumulus.TempUnit == 1)
+			if (cumulus.Units.Rain == 1)
 			{
 				return MeteoLib.FtoC(value);
 			}
@@ -5749,7 +5577,7 @@ namespace CumulusMX
 		/// <returns>Temp in F</returns>
 		public double ConvertUserTempToF(double value)
 		{
-			if (cumulus.TempUnit == 1)
+			if (cumulus.Units.Rain == 1)
 			{
 				return value;
 			}
@@ -5891,7 +5719,7 @@ namespace CumulusMX
 		/// <returns>Rain in configured units</returns>
 		public virtual double ConvertRainMMToUser(double value)
 		{
-			return cumulus.RainUnit == 1 ? value * 0.0393700787 : value;
+			return cumulus.Units.Rain == 1 ? value * 0.0393700787 : value;
 		}
 
 		/// <summary>
@@ -5901,7 +5729,7 @@ namespace CumulusMX
 		/// <returns>Rain in configured units</returns>
 		public virtual double ConvertRainINToUser(double value)
 		{
-			return cumulus.RainUnit == 1 ? value : value * 25.4;
+			return cumulus.Units.Rain == 1 ? value : value * 25.4;
 		}
 
 		/// <summary>
@@ -5911,7 +5739,7 @@ namespace CumulusMX
 		/// <returns>Rain in mm</returns>
 		public virtual double ConvertUserRainToMM(double value)
 		{
-			return cumulus.RainUnit == 1 ? value / 0.0393700787 : value;
+			return cumulus.Units.Rain == 1 ? value / 0.0393700787 : value;
 		}
 
 		/// <summary>
@@ -8269,6 +8097,7 @@ namespace CumulusMX
 
 		public void WriteMonthIniFile()
 		{
+			cumulus.LogDebugMessage("Writing to Month.ini file");
 			lock (monthIniThreadLock)
 			{
 				try
@@ -8351,6 +8180,7 @@ namespace CumulusMX
 					cumulus.LogMessage("Error writing month.ini file: " + ex.Message);
 				}
 			}
+			cumulus.LogDebugMessage("End writing to Month.ini file");
 		}
 
 		public void ReadYearIniFile()
@@ -9206,7 +9036,7 @@ namespace CumulusMX
 
 		public double ConvertUserRainToIN(double rain)
 		{
-			if (cumulus.RainUnit == 0)
+			if (cumulus.Units.Rain == 0)
 			{
 				return rain * 0.0393700787;
 			}
@@ -10512,6 +10342,24 @@ namespace CumulusMX
 			// rain
 			json.Append("\"Rain\":[\"Rainfall\",\"Rainfall Rate\"]");
 
+			if (cumulus.GraphOptions.DailyAvgTempVisible || cumulus.GraphOptions.DailyMaxTempVisible || cumulus.GraphOptions.DailyMinTempVisible)
+			{
+				json.Append(",\"DailyTemps\":[");
+
+				if (cumulus.GraphOptions.DailyAvgTempVisible)
+					json.Append("\"AvgTemp\",");
+				if (cumulus.GraphOptions.DailyMaxTempVisible)
+					json.Append("\"MaxTemp\",");
+				if (cumulus.GraphOptions.DailyMinTempVisible)
+					json.Append("\"MinTemp\",");
+
+				if (json.ToString().EndsWith(","))
+					json.Length--;
+
+				json.Append("]");
+			}
+
+
 			// solar values
 			if (cumulus.GraphOptions.SolarVisible || cumulus.GraphOptions.UVVisible)
 			{
@@ -10529,13 +10377,18 @@ namespace CumulusMX
 				json.Append("]");
 			}
 
+			// Sunshine
+			if (cumulus.GraphOptions.SunshineVisible)
+			{
+				json.Append(",\"Sunshine\":[\"sunhours\"]");
+			}
 
 			// air quality
 			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
 			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
 				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
-				json.Append(",\"Air Quality\":[");
+				json.Append(",\"AirQuality\":[");
 				json.Append("\"PM 2.5\"");
 
 				// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
@@ -10582,7 +10435,7 @@ namespace CumulusMX
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{", 10000);
-			if (cumulus.GraphOptions.SolarVisible)
+			if (cumulus.GraphOptions.SunshineVisible)
 			{
 				var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);
 				var data = DayFile.Where(rec => rec.Date >= datefrom).ToList();
@@ -10607,33 +10460,59 @@ namespace CumulusMX
 			var InvC = new CultureInfo("");
 			var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);
 			var data = DayFile.Where(rec => rec.Date >= datefrom).ToList();
+			var append = false;
+			StringBuilder sb = new StringBuilder("{");
 
-			StringBuilder sb = new StringBuilder("{\"mintemp\":[");
-
-			for (var i = 0; i < data.Count; i++)
+			if (cumulus.GraphOptions.DailyMinTempVisible)
 			{
-				sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
-				if (i < data.Count - 1)
-					sb.Append(",");
+				sb.Append("\"mintemp\":[");
+
+				for (var i = 0; i < data.Count; i++)
+				{
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
+					if (i < data.Count - 1)
+						sb.Append(",");
+				}
+
+				sb.Append("]");
+				append = true;
 			}
 
-			sb.Append("],\"maxtemp\":[");
-			for (var i = 0; i < data.Count; i++)
+			if (cumulus.GraphOptions.DailyMaxTempVisible)
 			{
-				sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
-				if (i < data.Count - 1)
+				if (append)
 					sb.Append(",");
+
+				sb.Append("\"maxtemp\":[");
+
+				for (var i = 0; i < data.Count; i++)
+				{
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
+					if (i < data.Count - 1)
+						sb.Append(",");
+				}
+
+				sb.Append("]");
+				append = true;
 			}
 
-			sb.Append("],\"avgtemp\":[");
-			for (var i = 0; i < data.Count; i++)
+			if (cumulus.GraphOptions.DailyAvgTempVisible)
 			{
-				sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
-				if (i < data.Count - 1)
+				if (append)
 					sb.Append(",");
+
+				sb.Append("\"avgtemp\":[");
+				for (var i = 0; i < data.Count; i++)
+				{
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
+					if (i < data.Count - 1)
+						sb.Append(",");
+				}
+
+				sb.Append("]");
 			}
 
-			sb.Append("]}");
+			sb.Append("}");
 			return sb.ToString();
 		}
 
@@ -10671,11 +10550,14 @@ namespace CumulusMX
 				{
 					var recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 					// lo temp
-					minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
+					if (cumulus.GraphOptions.DailyMinTempVisible)
+						minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
 					// hi temp
-					maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
+					if (cumulus.GraphOptions.DailyMaxTempVisible)
+						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
 					// avg temp
-					avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
+					if (cumulus.GraphOptions.DailyAvgTempVisible)
+						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
 
 					if (i < len)
 					{
@@ -10782,31 +10664,35 @@ namespace CumulusMX
 					}
 				}
 			}
-			sb.Append("\"minTemp\":" + minTemp.ToString() + "],");
-			sb.Append("\"maxTemp\":" + maxTemp.ToString() + "],");
-			sb.Append("\"avgTemp\":" + avgTemp.ToString() + "]");
+			if (cumulus.GraphOptions.DailyMinTempVisible)
+				sb.Append("\"minTemp\":" + minTemp.ToString() + "],");
+			if (cumulus.GraphOptions.DailyMaxTempVisible)
+				sb.Append("\"maxTemp\":" + maxTemp.ToString() + "],");
+			if (cumulus.GraphOptions.DailyAvgTempVisible)
+				sb.Append("\"avgTemp\":" + avgTemp.ToString() + "],");
 			if (cumulus.GraphOptions.HIVisible)
-				sb.Append(",\"heatIndex\":" + heatIdx.ToString() + "]");
+				sb.Append("\"heatIndex\":" + heatIdx.ToString() + "],");
 			if (cumulus.GraphOptions.AppTempVisible)
 			{
-				sb.Append(",\"maxApp\":" + maxApp.ToString() + "]");
-				sb.Append(",\"minApp\":" + minApp.ToString() + "]");
+				sb.Append("\"maxApp\":" + maxApp.ToString() + "],");
+				sb.Append("\"minApp\":" + minApp.ToString() + "],");
 			}
 			if (cumulus.GraphOptions.WCVisible)
-				sb.Append(",\"windChill\":" + windChill.ToString() + "]");
+				sb.Append("\"windChill\":" + windChill.ToString() + "],");
 			if (cumulus.GraphOptions.DPVisible)
 			{
-				sb.Append(",\"maxDew\":" + maxDew.ToString() + "]");
-				sb.Append(",\"minDew\":" + minDew.ToString() + "]");
+				sb.Append("\"maxDew\":" + maxDew.ToString() + "],");
+				sb.Append("\"minDew\":" + minDew.ToString() + "],");
 			}
 			if (cumulus.GraphOptions.FeelsLikeVisible)
 			{
-				sb.Append(",\"maxFeels\":" + maxFeels.ToString() + "]");
-				sb.Append(",\"minFeels\":" + minFeels.ToString() + "]");
+				sb.Append("\"maxFeels\":" + maxFeels.ToString() + "],");
+				sb.Append("\"minFeels\":" + minFeels.ToString() + "],");
 			}
 			if (cumulus.GraphOptions.HumidexVisible)
-				sb.Append(",\"humidex\":" + humidex.ToString() + "]");
+				sb.Append("\"humidex\":" + humidex.ToString() + "],");
 
+			sb.Length--;
 			sb.Append("}");
 
 			return sb.ToString();

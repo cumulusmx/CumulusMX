@@ -9,17 +9,20 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus;
 		private readonly TokenParser tokenParser;
-		private readonly WebTags webtags;
+		private WebTags webtags;
 
-		internal ApiTagProcessor(Cumulus cumulus, WebTags webtags)
+		internal ApiTagProcessor(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			this.webtags = webtags;
 			tokenParser = new TokenParser();
 			tokenParser.OnToken += cumulus.TokenParserOnToken;
 			tokenParser.Encoding = new UTF8Encoding(false);
 		}
 
+		internal void SetWebTags(WebTags webtags)
+		{
+			this.webtags = webtags;
+		}
 
 		// Output the processed response as a JSON string
 		public string ProcessJson(string query)

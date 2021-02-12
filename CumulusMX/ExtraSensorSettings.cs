@@ -25,7 +25,6 @@ namespace CumulusMX
 			{
 				ipAddress = cumulus.AirLinkInIPAddr,
 				hostname = cumulus.AirLinkInHostName,
-				isNode = cumulus.AirLinkInIsNode,
 				stationId = cumulus.AirLinkInStationId
 			};
 
@@ -33,12 +32,12 @@ namespace CumulusMX
 			{
 				ipAddress = cumulus.AirLinkOutIPAddr,
 				hostname = cumulus.AirLinkOutHostName,
-				isNode = cumulus.AirLinkOutIsNode,
 				stationId = cumulus.AirLinkOutStationId
 			};
 
 			var airlink = new JsonExtraSensorAirLinkSettings()
 			{
+				isNode = cumulus.AirLinkIsNode,
 				apiKey = cumulus.AirLinkApiKey,
 				apiSecret = cumulus.AirLinkApiSecret,
 				autoUpdateIp = cumulus.AirLinkAutoUpdateIpAddress,
@@ -77,10 +76,15 @@ namespace CumulusMX
 				port2 = rg11port2
 			};
 
-			var data = new JsonExtraSensorSettings()
+			var aq = new JsonExtraSensorAirQuality()
 			{
 				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
 				aqi = cumulus.airQualityIndex,
+			};
+
+			var data = new JsonExtraSensorSettings()
+			{
+				airquality = aq,
 				airLink = airlink,
 				blakeLarsen = bl,
 				rg11 = rg11
@@ -109,8 +113,8 @@ namespace CumulusMX
 				// General settings
 				try
 				{
-					cumulus.StationOptions.PrimaryAqSensor = settings.primaryaqsensor;
-					cumulus.airQualityIndex = settings.aqi;
+					cumulus.StationOptions.PrimaryAqSensor = settings.airquality.primaryaqsensor;
+					cumulus.airQualityIndex = settings.airquality.aqi;
 				}
 				catch (Exception ex)
 				{
@@ -123,6 +127,7 @@ namespace CumulusMX
 				// AirLink settings
 				try
 				{
+					cumulus.AirLinkIsNode = settings.airLink.isNode;
 					cumulus.AirLinkApiKey = settings.airLink.apiKey;
 					cumulus.AirLinkApiSecret = settings.airLink.apiSecret;
 					cumulus.AirLinkAutoUpdateIpAddress = settings.airLink.autoUpdateIp;
@@ -130,11 +135,10 @@ namespace CumulusMX
 					cumulus.AirLinkInEnabled = settings.airLink.indoorenabled;
 					if (cumulus.AirLinkInEnabled && settings.airLink.indoor != null)
 					{
-						cumulus.AirLinkInIsNode = settings.airLink.indoor.isNode;
 						cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
 						cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
 						cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
-						if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkInIsNode)
+						if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkIsNode)
 						{
 							cumulus.AirLinkInStationId = cumulus.WllStationId;
 						}
@@ -142,11 +146,10 @@ namespace CumulusMX
 					cumulus.AirLinkOutEnabled = settings.airLink.outdoorenabled;
 					if (cumulus.AirLinkOutEnabled && settings.airLink.outdoor != null)
 					{
-						cumulus.AirLinkOutIsNode = settings.airLink.outdoor.isNode;
 						cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
 						cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
 						cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
-						if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkOutIsNode)
+						if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkIsNode)
 						{
 							cumulus.AirLinkOutStationId = cumulus.WllStationId;
 						}
@@ -240,16 +243,22 @@ namespace CumulusMX
 
 	public class JsonExtraSensorSettings
 	{
-		public int primaryaqsensor { get; set; }
-		public int aqi { get; set; }
-
+		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
 		public JsonExtraSensorRG11 rg11 { get; set; }
-}
+	}
+
+	public class JsonExtraSensorAirQuality
+	{
+		public int primaryaqsensor { get; set; }
+		public int aqi { get; set; }
+	}
+
 
 	public class JsonExtraSensorAirLinkSettings
 	{
+		public bool isNode { get; set; }
 		public string apiKey { get; set; }
 		public string apiSecret { get; set; }
 		public bool autoUpdateIp { get; set; }
@@ -263,7 +272,6 @@ namespace CumulusMX
 	{
 		public string ipAddress { get; set; }
 		public string hostname { get; set; }
-		public bool isNode { get; set; }
 		public int stationId { get; set; }
 	}
 

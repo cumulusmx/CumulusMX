@@ -237,9 +237,11 @@ namespace CumulusMX
 						{
 							try
 							{
+								var jsonBtye = udpClient.Receive(ref from);
+								var jsonStr = Encoding.UTF8.GetString(jsonBtye);
 								if (!stop) // we may be waiting for a broadcast when a shutdown is started
 								{
-									DecodeBroadcast(Encoding.UTF8.GetString(udpClient.Receive(ref from)));
+									DecodeBroadcast(jsonStr);
 								}
 							}
 							catch (SocketException exp)
@@ -452,7 +454,6 @@ namespace CumulusMX
 				if (broadcastJson.StartsWith("{\"did\":"))
 				{
 					var json = broadcastJson.FromJson<WllBroadcast>();
-
 					// The WLL sends the timestamp in Unix ticks, and in UTC
 					// rather than rely on the WLL clock being correct, we will use our local time
 					var dateTime = DateTime.Now;
@@ -550,6 +551,8 @@ namespace CumulusMX
 							cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
 						}
 					}
+
+					json = null;
 
 					UpdateStatusPanel(DateTime.Now);
 					UpdateMQTT();
@@ -1184,7 +1187,7 @@ namespace CumulusMX
 						// One click is normally either 0.01 inches or 0.2 mm
 						// Try the setting in Cumulus.ini
 						// Rain gauge type not configured, assume from units
-						case -1 when cumulus.RainUnit == 0:
+						case -1 when cumulus.Units.Rain == 0:
 							return clicks * 0.2;
 						case -1:
 							return clicks * 0.01;

@@ -37,8 +37,13 @@ namespace CumulusMX
 
 
             var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
+            var logfileOld = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog-Old.txt";
+            if (File.Exists(logfileOld))
+                File.Delete(logfileOld);
+
             if (File.Exists(logfile))
-                File.Delete(logfile);
+                File.Move(logfile, logfileOld);
+
             svcTextListener = new TextWriterTraceListener(logfile);
             svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Starting on " + (windows ? "Windows" : "Linux"));
             svcTextListener.Flush();

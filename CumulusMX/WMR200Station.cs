@@ -737,7 +737,7 @@ namespace CumulusMX
 		private double ConvertWMR200Rain(double value)
 		{
 			double num;
-			if (cumulus.RainUnit == 0)
+			if (cumulus.Units.Rain == 0)
 			{
 				// mm
 				num = value*25.4;
@@ -875,7 +875,7 @@ namespace CumulusMX
 				if ((packetBuffer[13] & 0x80) == 0x80)
 					wc = -wc;
 
-				if (cumulus.TempUnit == 0)
+				if (cumulus.Units.Rain == 0)
 				{
 					// convert to C
 					wc = MeteoLib.FtoC(wc);
@@ -1570,7 +1570,7 @@ namespace CumulusMX
 				// wind chill is in Fahrenheit!
 				var wc = MeteoLib.FtoC((packetBuffer[25] + (packetBuffer[26] & 0xF)*256)/10.0);
 
-				if (cumulus.TempUnit == 0)
+				if (cumulus.Units.Rain == 0)
 				{
 					wc = MeteoLib.FtoC(wc);
 				}
