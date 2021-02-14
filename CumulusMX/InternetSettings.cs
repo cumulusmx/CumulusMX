@@ -22,7 +22,6 @@ namespace CumulusMX
 			internetSchemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
 		}
 
-		//public string UpdateInternetConfig(HttpListenerContext context)
 		public string UpdateInternetConfig(IHttpContext context)
 		{
 			var errorMsg = "";

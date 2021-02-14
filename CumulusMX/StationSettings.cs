@@ -15,11 +15,9 @@ namespace CumulusMX
 		private readonly string stationOptionsFile;
 		private readonly string stationSchemaFile;
 
-		//internal StationSettings(Cumulus cumulus, WeatherStation station)
 		internal StationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			//this.station = station;
 
 			stationOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
 			stationSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
@@ -48,8 +46,6 @@ namespace CumulusMX
 				use100for98hum = cumulus.StationOptions.Humidity98Fix,
 				calculatedewpoint = cumulus.StationOptions.CalculatedDP,
 				calculatewindchill = cumulus.StationOptions.CalculatedWC,
-				syncstationclock = cumulus.StationOptions.SyncTime,
-				syncclockhour = cumulus.StationOptions.ClockSettingHour,
 				cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
 				extrasensors = cumulus.StationOptions.LogExtraSensors,
 				ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
@@ -83,46 +79,41 @@ namespace CumulusMX
 			var tcpsettings = new JsonStationSettingsTCPsettings()
 			{
 				ipaddress = cumulus.DavisOptions.IPAddr,
-				tcpport = cumulus.DavisOptions.TCPPort,
 				disconperiod = cumulus.DavisOptions.PeriodicDisconnectInterval
 			};
 
-			var davisconn = new JsonStationSettingsDavisConn()
-			{
-				conntype = cumulus.DavisOptions.ConnectionType,
-				tcpsettings = tcpsettings
-			};
-
-			var davisCommonAdvanced = new JsonStationSettingsDavisCommonAdvanced()
-			{
-				raingaugetype = cumulus.DavisOptions.RainGaugeType
-			};
-
-			var davisCommon = new JsonStationSettingsDavisCommon()
-			{
-				 davisconn = davisconn,
-				 advanced = davisCommonAdvanced
-			};
 
 			var davisvp2advanced = new JsonStationSettingsDavisVp2Advanced()
 			{
+				syncstationclock = cumulus.StationOptions.SyncTime,
+				syncclockhour = cumulus.StationOptions.ClockSettingHour,
 				useloop2 = cumulus.DavisOptions.UseLoop2,
+				raingaugetype = cumulus.DavisOptions.RainGaugeType,
 				vp1minbarupdate = cumulus.DavisOptions.ForceVPBarUpdate,
 				initwaittime = cumulus.DavisOptions.InitWaitTime,
 				ipresponsetime = cumulus.DavisOptions.IPResponseTime,
-				baudrate = cumulus.DavisOptions.BaudRate
+				baudrate = cumulus.DavisOptions.BaudRate,
+				readreceptionstats = cumulus.DavisOptions.ReadReceptionStats,
+				tcpport = cumulus.DavisOptions.TCPPort,
+				setloggerinterval = cumulus.DavisOptions.SetLoggerInterval
+			};
+
+			var davisvp2conn = new JsonStationSettingsDavisVp2Connection()
+			{
+				conntype = cumulus.DavisOptions.ConnectionType,
+				comportname = cumulus.ComportName,
+				tcpsettings = tcpsettings
 			};
 
 			var davisvp2 = new JsonStationSettingsDavisVp2()
 			{
-				readreceptionstats = cumulus.DavisOptions.ReadReceptionStats,
-				setloggerinterval = cumulus.DavisOptions.SetLoggerInterval,
+				davisconn = davisvp2conn,
 				advanced = davisvp2advanced
 			};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn() {ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
+			var gw1000 = new JSonStationSettingsGw1000Conn() { ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
 
-			var logrollover = new JsonStationSettingsLogRollover() {time = "midnight",summer10am = cumulus.Use10amInSummer};
+			var logrollover = new JsonStationSettingsLogRollover() { time = "midnight",summer10am = cumulus.Use10amInSummer };
 
 			if (cumulus.RolloverHour == 9)
 			{
@@ -155,6 +146,8 @@ namespace CumulusMX
 
 			var imetAdvanced = new JsonStationSettingsImetAdvanced()
 			{
+				syncstationclock = cumulus.StationOptions.SyncTime,
+				syncclockhour = cumulus.StationOptions.ClockSettingHour,
 				readdelay = cumulus.ImetOptions.ImetReadDelay,
 				waittime = cumulus.ImetOptions.ImetWaitTime,
 				updatelogpointer = cumulus.ImetOptions.ImetUpdateLogPointer
@@ -162,6 +155,7 @@ namespace CumulusMX
 
 			var imet = new JsonStationSettingsImet()
 			{
+				comportname = cumulus.ComportName,
 				baudrate = cumulus.ImetOptions.ImetBaudRate,
 				advanced = imetAdvanced
 			};
@@ -262,7 +256,14 @@ namespace CumulusMX
 
 			var wllNetwork = new JsonStationSettingsWLLNetwork()
 			{
-				autoDiscover = cumulus.WLLAutoUpdateIpAddress
+				autoDiscover = cumulus.WLLAutoUpdateIpAddress,
+				ipaddress = cumulus.DavisOptions.IPAddr
+			};
+
+			var wllAdvanced = new JsonStationSettingsWLLAdvanced()
+			{
+				raingaugetype = cumulus.DavisOptions.RainGaugeType,
+				tcpport = cumulus.DavisOptions.TCPPort
 			};
 
 			var wllApi = new JsonStationSettingsWLLApi()
@@ -337,13 +338,13 @@ namespace CumulusMX
 				api = wllApi,
 				primary = wllPrimary,
 				soilLeaf = wllSoilLeaf,
-				extraTemp = wllExtraTemp
+				extraTemp = wllExtraTemp,
+				advanced = wllAdvanced
 			};
 
 			var general = new JsonStationGeneral()
 			{
 				stationtype = cumulus.StationType,
-				comportname = cumulus.ComportName,
 				loginterval = cumulus.DataLogInterval,
 				logrollover = logrollover,
 				units = units,
@@ -354,7 +355,6 @@ namespace CumulusMX
 			{
 				stationid = cumulus.StationType,
 				general = general,
-				daviscommon = davisCommon,
 				davisvp2 = davisvp2,
 				daviswll = wll,
 				gw1000 = gw1000,
@@ -586,8 +586,6 @@ namespace CumulusMX
 					cumulus.StationOptions.Humidity98Fix = settings.Options.use100for98hum;
 					cumulus.StationOptions.CalculatedDP = settings.Options.calculatedewpoint;
 					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
-					cumulus.StationOptions.SyncTime = settings.Options.syncstationclock;
-					cumulus.StationOptions.ClockSettingHour = settings.Options.syncclockhour;
 					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
 					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
@@ -626,13 +624,31 @@ namespace CumulusMX
 				{
 					if (settings.davisvp2 != null)
 					{
-						cumulus.DavisOptions.ReadReceptionStats = settings.davisvp2.readreceptionstats;
-						cumulus.DavisOptions.SetLoggerInterval = settings.davisvp2.setloggerinterval;
+						cumulus.DavisOptions.ConnectionType = settings.davisvp2.davisconn.conntype;
+						if (settings.davisvp2.davisconn.tcpsettings != null)
+						{
+							cumulus.DavisOptions.IPAddr = settings.davisvp2.davisconn.tcpsettings.ipaddress ?? string.Empty;
+							cumulus.DavisOptions.PeriodicDisconnectInterval = settings.davisvp2.davisconn.tcpsettings.disconperiod;
+						}
+						cumulus.DavisOptions.ReadReceptionStats = settings.davisvp2.advanced.readreceptionstats;
+						cumulus.DavisOptions.SetLoggerInterval = settings.davisvp2.advanced.setloggerinterval;
 						cumulus.DavisOptions.UseLoop2 = settings.davisvp2.advanced.useloop2;
 						cumulus.DavisOptions.ForceVPBarUpdate = settings.davisvp2.advanced.vp1minbarupdate;
-						cumulus.DavisOptions.InitWaitTime = settings.davisvp2.advanced.initwaittime;
-						cumulus.DavisOptions.IPResponseTime = settings.davisvp2.advanced.ipresponsetime;
-						cumulus.DavisOptions.BaudRate = settings.davisvp2.advanced.baudrate;
+						cumulus.DavisOptions.RainGaugeType = settings.davisvp2.advanced.raingaugetype;
+						cumulus.StationOptions.SyncTime = settings.davisvp2.advanced.syncstationclock;
+						cumulus.StationOptions.ClockSettingHour = settings.davisvp2.advanced.syncclockhour;
+						if (cumulus.DavisOptions.ConnectionType == 0)
+						{
+							cumulus.ComportName = settings.davisvp2.davisconn.comportname;
+							cumulus.DavisOptions.BaudRate = settings.davisvp2.advanced.baudrate;
+						}
+						else // TCP/IP
+						{
+							cumulus.DavisOptions.InitWaitTime = settings.davisvp2.advanced.initwaittime;
+							cumulus.DavisOptions.IPResponseTime = settings.davisvp2.advanced.ipresponsetime;
+							cumulus.DavisOptions.TCPPort = settings.davisvp2.advanced.tcpport;
+						}
+
 					}
 				}
 				catch (Exception ex)
@@ -648,7 +664,10 @@ namespace CumulusMX
 				{
 					if (settings.daviswll != null)
 					{
+						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
 						cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
+						cumulus.DavisOptions.IPAddr = settings.daviswll.network.ipaddress ?? string.Empty;
+
 						cumulus.WllApiKey = settings.daviswll.api.apiKey;
 						cumulus.WllApiSecret = settings.daviswll.api.apiSecret;
 						cumulus.WllStationId = settings.daviswll.api.apiStationId;
@@ -699,6 +718,9 @@ namespace CumulusMX
 						cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx6;
 						cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx7;
 						cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx8;
+
+						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
+						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
 					}
 				}
 				catch (Exception ex)
@@ -717,43 +739,6 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Log interval setting: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-
-				// com port
-				try
-				{
-					cumulus.ComportName = settings.general.comportname ?? cumulus.ComportName;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing COM port setting: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// Davis Common details
-				try
-				{
-					if (settings.daviscommon != null)
-					{
-						cumulus.DavisOptions.ConnectionType = settings.daviscommon.davisconn.conntype;
-						if (settings.daviscommon.davisconn.tcpsettings != null)
-						{
-						cumulus.DavisOptions.IPAddr = settings.daviscommon.davisconn.tcpsettings.ipaddress ?? string.Empty;
-						cumulus.DavisOptions.TCPPort = settings.daviscommon.davisconn.tcpsettings.tcpport;
-						cumulus.DavisOptions.PeriodicDisconnectInterval = settings.daviscommon.davisconn.tcpsettings.disconperiod;
-						cumulus.DavisOptions.RainGaugeType = settings.daviscommon.advanced.raingaugetype;
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Davis settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -823,7 +808,10 @@ namespace CumulusMX
 				{
 					if (settings.imet != null)
 					{
+						cumulus.ComportName = settings.imet.comportname ?? cumulus.ComportName;
 						cumulus.ImetOptions.ImetBaudRate = settings.imet.baudrate;
+						cumulus.StationOptions.SyncTime = settings.imet.advanced.syncstationclock;
+						cumulus.StationOptions.ClockSettingHour = settings.imet.advanced.syncclockhour;
 						cumulus.ImetOptions.ImetReadDelay = settings.imet.advanced.readdelay;
 						cumulus.ImetOptions.ImetWaitTime = settings.imet.advanced.waittime;
 						cumulus.ImetOptions.ImetUpdateLogPointer = settings.imet.advanced.updatelogpointer;
@@ -1029,7 +1017,6 @@ namespace CumulusMX
 	{
 		public int stationid { get; set; }
 		public JsonStationGeneral general { get; set; }
-		public JsonStationSettingsDavisCommon daviscommon { set; get; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
 		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
@@ -1046,7 +1033,6 @@ namespace CumulusMX
 	internal class JsonStationGeneral
 	{
 		public int stationtype { get; set; }
-		public string comportname { get; set; }
 		public int loginterval { get; set; }
 		public JsonStationSettingsLogRollover logrollover { get; set; }
 		public JsonStationSettingsUnits units { get; set; }
@@ -1092,8 +1078,6 @@ namespace CumulusMX
 		public bool use100for98hum { get; set; }
 		public bool calculatedewpoint { get; set; }
 		public bool calculatewindchill { get; set; }
-		public bool syncstationclock { get; set; }
-		public int syncclockhour { get; set; }
 		public bool cumuluspresstrendnames { get; set; }
 		public bool roundwindspeeds { get; set; }
 		public bool ignorelacrosseclock { get; set; }
@@ -1108,41 +1092,37 @@ namespace CumulusMX
 	internal class JsonStationSettingsTCPsettings
 	{
 		public string ipaddress { get; set; }
-		public int tcpport { get; set; }
 		public int disconperiod { get; set; }
 	}
 
-	internal class JsonStationSettingsDavisCommon
-	{
-		public JsonStationSettingsDavisConn davisconn { get; set; }
-		public JsonStationSettingsDavisCommonAdvanced advanced { get; set; }
-	}
-
-	internal class JsonStationSettingsDavisConn
+	internal class JsonStationSettingsDavisVp2Connection
 	{
 		public int conntype { get; set; }
+		public string comportname { get; set; }
 		public JsonStationSettingsTCPsettings tcpsettings { get; set; }
-	}
-
-	internal class JsonStationSettingsDavisCommonAdvanced
-	{
-		public int raingaugetype { get; set; }
 	}
 
 	internal class JsonStationSettingsDavisVp2
 	{
-		public bool readreceptionstats { get; set; }
-		public bool setloggerinterval { get; set; }
+		public JsonStationSettingsDavisVp2Connection davisconn { get; set; }
+
 		public JsonStationSettingsDavisVp2Advanced advanced { get; set; }
 	}
 
 	internal class JsonStationSettingsDavisVp2Advanced
 	{
+		public bool syncstationclock { get; set; }
+		public int syncclockhour { get; set; }
+		public bool readreceptionstats { get; set; }
+		public bool setloggerinterval { get; set; }
 		public bool useloop2 { get; set; }
+		public int raingaugetype { get; set; }
 		public bool vp1minbarupdate { get; set; }
 		public int initwaittime { get; set; }
 		public int ipresponsetime { get; set; }
 		public int baudrate { get; set; }
+		public int tcpport { get; set; }
+
 	}
 
 	internal class JsonStationSettingsFineOffsetAdvanced
@@ -1178,12 +1158,16 @@ namespace CumulusMX
 
 	internal class JsonStationSettingsImet
 	{
+		public string comportname { get; set; }
+
 		public int baudrate { get; set; }
 		public JsonStationSettingsImetAdvanced advanced { get; set; }
 	}
 
 	internal class JsonStationSettingsImetAdvanced
 	{
+		public bool syncstationclock { get; set; }
+		public int syncclockhour { get; set; }
 		public int waittime { get; set; }
 		public int readdelay { get; set; }
 		public bool updatelogpointer { get; set; }
@@ -1239,11 +1223,20 @@ namespace CumulusMX
 		public JsonStationSettingsWllPrimary primary { get; set; }
 		public JsonStationSettingsWllSoilLeaf soilLeaf { get; set; }
 		public JsonStationSettingsWllExtraTemp extraTemp { get; set; }
+		public JsonStationSettingsWLLAdvanced advanced { get; set; }
+	}
+
+	public class JsonStationSettingsWLLAdvanced
+	{
+		public int raingaugetype { get; set; }
+		public int tcpport { get; set; }
 	}
 
 	internal class JsonStationSettingsWLLNetwork
 	{
 		public bool autoDiscover { get; set; }
+		public string ipaddress { get; set; }
+
 	}
 
 	internal class JsonStationSettingsWLLApi

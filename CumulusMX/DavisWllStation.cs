@@ -2584,12 +2584,14 @@ namespace CumulusMX
 							// AirLink Outdoor
 							case 506 when lsid == alOutHealthLsid:
 								// Pass AirLink historic record to the AirLink module to process
-								cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
+								if (cumulus.airLinkOut != null)
+									cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
 								break;
 							// AirLink Indoor
 							case 506 when lsid == alInHealthLsid:
 								// Pass AirLink historic record to the AirLink module to process
-								cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
+								if (cumulus.airLinkIn != null)
+									cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
 								break;
 							default:
 								if (sensorType == 504 || dataStructureType == 11)

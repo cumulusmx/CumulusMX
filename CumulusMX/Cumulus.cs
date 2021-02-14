@@ -3396,7 +3396,7 @@ namespace CumulusMX
 
 			// Davis Options
 			DavisOptions.UseLoop2 = ini.GetValue("Station", "UseDavisLoop2", true);
-			DavisOptions.ReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", false);
+			DavisOptions.ReadReceptionStats = ini.GetValue("Station", "DavisReadReceptionStats", true);
 			DavisOptions.SetLoggerInterval = ini.GetValue("Station", "DavisSetLoggerInterval", false);
 			DavisOptions.InitWaitTime = ini.GetValue("Station", "DavisInitWaitTime", 2000);
 			DavisOptions.IPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 500);
@@ -4252,7 +4252,7 @@ namespace CumulusMX
 			}
 			NOAAYearFileFormat = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAFTPDirectory = ini.GetValue("NOAA", "FTPDirectory", "");
-			NOAAUseUTF8 = ini.GetValue("NOAA", "NOAAUseUTF8", false);
+			NOAAUseUTF8 = ini.GetValue("NOAA", "NOAAUseUTF8", true);
 			NOAAUseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
 
 			NOAATempNorms[1] = ini.GetValue("NOAA", "NOAATempNormJan", -1000.0);
@@ -5497,7 +5497,7 @@ namespace CumulusMX
 
 		public string HTTPProxyName { get; set; }
 
-		public int[] WindDPlaceDefaults = { 1, 1, 1, 1 };
+		public int[] WindDPlaceDefaults = { 1, 0, 0, 0 }; // m/s, mph, km/h, knots
 		public int[] TempDPlaceDefaults = { 1, 1 };
 		public int[] PressDPlaceDefaults = { 1, 1, 2 };
 		public int[] RainDPlaceDefaults = { 1, 2 };
