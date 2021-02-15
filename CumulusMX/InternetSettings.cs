@@ -434,9 +434,10 @@ namespace CumulusMX
 					cumulus.MoonImageEnabled = settings.moonimage.enabled;
 					if (cumulus.MoonImageEnabled)
 					{
-						cumulus.IncludeMoonImage = settings.moonimage.includemoonimage;
 						cumulus.MoonImageSize = settings.moonimage.size;
-						cumulus.MoonImageFtpDest = settings.moonimage.ftpdest;
+						cumulus.IncludeMoonImage = settings.moonimage.includemoonimage;
+						if (cumulus.IncludeMoonImage)
+							cumulus.MoonImageFtpDest = settings.moonimage.ftpdest;
 					}
 				}
 				catch (Exception ex)

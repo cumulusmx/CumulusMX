@@ -3,6 +3,7 @@
 - Fix: Catch error creating System Uptime counter on Windows
 - Fix: The Local web server is now brought up before initialising the station. This allows you to correct a misconfigured station without resorting to editing the Cumulus.ini file.
 - Fix: Diary Editor creating entries on the wrong day
+- Fix: WLL day average temp stats on historic catch-up
 
 - New: The previous Console log file is now copied to an "-old" file on start-up
 

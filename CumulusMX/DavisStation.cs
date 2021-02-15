@@ -3720,19 +3720,28 @@ namespace CumulusMX
 		/// <returns></returns>
 		private double ConvertRainClicksToUser(double clicks)
 		{
-			// One click is either 0.01 inches or 0.2 mm
+			// One click is either 0.01, 0.001 inches or 0.2, 0.1 mm
 			switch (cumulus.DavisOptions.RainGaugeType)
 			{
 				case 0:
-					// Rain gauge is metric, convert to user unit
+					// Rain gauge is metric 0.2 mm
 					return ConvertRainMMToUser(clicks * 0.2);
 
 				case 1:
-					// Rain gauge is imperial, convert to user unit
+					// Rain gauge is imperial 0.01 in
 					return ConvertRainINToUser(clicks * 0.01);
+
+				case 2:
+					// Rain gauge is metric 0.1 mm
+					return ConvertRainMMToUser(clicks * 0.1);
+
+				case 3:
+					// Rain gauge is imperial 0.001 in
+					return ConvertRainMMToUser(clicks * 0.2);
 
 				default:
 					// Rain gauge type not configured, assume it is the same as the station units
+					// Assume standard gauge type of 0.01 in or 0.02 mm
 					return cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01;
 			}
 		}

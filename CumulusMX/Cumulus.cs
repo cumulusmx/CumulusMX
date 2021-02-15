@@ -3419,6 +3419,10 @@ namespace CumulusMX
 			//DavisCalcAltPress = ini.GetValue("Station", "DavisCalcAltPress", true);
 			//DavisConsoleHighGust = ini.GetValue("Station", "DavisConsoleHighGust", false);
 			DavisOptions.RainGaugeType = ini.GetValue("Station", "VPrainGaugeType", -1);
+			if (DavisOptions.RainGaugeType > 3)
+			{
+				DavisOptions.RainGaugeType = -1;
+			}
 			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
@@ -8453,11 +8457,11 @@ namespace CumulusMX
 		{
 			try
 			{
-				if (Sslftp == FtpProtocols.SFTP)
+				if (Sslftp == FtpProtocols.SFTP && RealtimeSSH != null)
 				{
 					RealtimeSSH.Disconnect();
 				}
-				else
+				else if (RealtimeFTP != null)
 				{
 					RealtimeFTP.Disconnect();
 				}

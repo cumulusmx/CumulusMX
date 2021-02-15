@@ -3403,21 +3403,30 @@ namespace CumulusMX
 
 			var previoustotal = Raincounter;
 
-			double raintipthreshold;
+			double raintipthreshold = 0; ;
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
 				// If the bucket size is set, use that, otherwise infer from rain units
 				var bucketSize = cumulus.DavisOptions.RainGaugeType == -1 ? cumulus.Units.Rain : cumulus.DavisOptions.RainGaugeType;
 
-				if (bucketSize == 0) // 0.2 mm tips
+				switch (bucketSize)
 				{
-					// mm/mm (0.2) or mm/in (0.00787)
-					raintipthreshold = cumulus.Units.Rain == 0 ? 0.19 : 0.006;
-				}
-				else // 0.01 inch tips
-				{
-					// in/mm (0.254) or in/in (0.01)
-					raintipthreshold = cumulus.Units.Rain == 0 ? 0.2 : 0.009;
+					case 0: // 0.2 mm tips
+						// mm/mm (0.2) or mm/in (0.00787)
+						raintipthreshold = cumulus.Units.Rain == 0 ? 0.19 : 0.006;
+						break;
+					case 1: // 0.01 inch tips
+						// in/mm (0.254) or in/in (0.01)
+						raintipthreshold = cumulus.Units.Rain == 0 ? 0.2 : 0.009;
+						break;
+					case 2: // 0.01 mm tips
+						// mm/mm (0.1) or mm/in (0.0394)
+						raintipthreshold = cumulus.Units.Rain == 0 ? 0.09 : 0.003;
+						break;
+					case 3: // 0.001 inch tips
+						// in/mm (0.0254) or in/in (0.001)
+						raintipthreshold = cumulus.Units.Rain == 0 ? 0.02 : 0.0009;
+						break;
 				}
 			}
 			else
@@ -10129,7 +10138,7 @@ namespace CumulusMX
 
 			StringBuilder json = new StringBuilder("{\"entry\":\"", 1024);
 
-			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Timestamp) = ? order by Timestamp limit 1", date);
+			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Timestamp,'utc') = ? order by Timestamp limit 1", date);
 
 			if (result.Count > 0)
 			{
@@ -10164,7 +10173,7 @@ namespace CumulusMX
 				for (int i = 0; i < result.Count; i++)
 				{
 					json.Append("\"");
-					json.Append(result[i].Timestamp.ToString("yyy-MM-dd"));
+					json.Append(result[i].Timestamp.ToUniversalTime().ToString("yyy-MM-dd"));
 					json.Append("\",");
 				}
 				json.Remove(json.Length - 1, 1);

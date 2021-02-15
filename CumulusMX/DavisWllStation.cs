@@ -221,8 +221,15 @@ namespace CumulusMX
 				if (port == 0)
 				{
 					cumulus.LogMessage("WLL failed to get broadcast port via realtime request, defaulting to 22222");
-					port = 22222;
+					port = cumulus.DavisOptions.TCPPort;
 				}
+				else if (port != cumulus.DavisOptions.TCPPort)
+				{
+					cumulus.LogMessage($"WLL Discovered broacast port ({port}) is not the same as in the config ({cumulus.DavisOptions.TCPPort}), resetting config to match");
+					cumulus.DavisOptions.TCPPort = port;
+					cumulus.WriteIniFile();
+				}
+
 				// Create a broadcast listener
 				Task.Run(() =>
 				{
@@ -774,7 +781,7 @@ namespace CumulusMX
 							{
 								/*
 								* Available fields:
-								* rec["rain_size"]
+								* rec["rain_size"] - 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
 								* rec["rain_rate_last"], rec["rain_rate_hi"]
 								* rec["rainfall_last_15_min"], rec["rain_rate_hi_last_15_min"]
 								* rec["rainfall_last_60_min"]
@@ -788,6 +795,43 @@ namespace CumulusMX
 
 
 								cumulus.LogDebugMessage($"WLL current: using rain data from TxId {data1.txid}");
+
+								var tipSize = data1.rain_size;
+								switch (tipSize)
+								{
+									case 1:
+										if (cumulus.DavisOptions.RainGaugeType != 1)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.01 in");
+											cumulus.DavisOptions.RainGaugeType = 1;
+											cumulus.WriteIniFile();
+										}
+										break;
+									case 2:
+										if (cumulus.DavisOptions.RainGaugeType != 0)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.2 mm");
+											cumulus.DavisOptions.RainGaugeType = 0;
+											cumulus.WriteIniFile();
+										}
+										break;
+									case 3:
+										if (cumulus.DavisOptions.RainGaugeType != 2)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.1 mm");
+											cumulus.DavisOptions.RainGaugeType = 2;
+											cumulus.WriteIniFile();
+										}
+										break;
+									case 4:
+										if (cumulus.DavisOptions.RainGaugeType != 3)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.001 in");
+											cumulus.DavisOptions.RainGaugeType = 2;
+											cumulus.WriteIniFile();
+										}
+										break;
+								}
 
 								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use storm data
 
@@ -1733,6 +1777,11 @@ namespace CumulusMX
 									DoOutdoorTemp(ConvertTempFToUser(data11.temp_lo), ts);
 									// do last temp
 									DoOutdoorTemp(ConvertTempFToUser(data11.temp_last), recordTs);
+
+									// set the values for daily average, arch_int is in seconds
+									tempsamplestoday += data11.arch_int / 60;
+									TempTotalToday += ConvertTempFToUser(data11.temp_avg) * data11.arch_int / 60;
+
 								}
 							}
 							catch (Exception ex)
