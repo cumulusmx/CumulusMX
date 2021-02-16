@@ -1,9 +1,10 @@
-3.10.0 - b3110
+3.10.0 - b3112
 ——————————————
 - Fix: Catch error creating System Uptime counter on Windows
 - Fix: The Local web server is now brought up before initialising the station. This allows you to correct a misconfigured station without resorting to editing the Cumulus.ini file.
-- Fix: Diary Editor creating entries on the wrong day
+- Fix: Diary Editor creating entries on the wrong day, and revamp the interface a bit
 - Fix: WLL day average temp stats on historic catch-up
+- Fix: GW1000 auto-discovery was triggering an erroneous IP address change
 
 - New: The previous Console log file is now copied to an "-old" file on start-up
 
