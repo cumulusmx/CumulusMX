@@ -6,7 +6,11 @@
 - Fix: WLL day average temp stats on historic catch-up
 - Fix: GW1000 auto-discovery was triggering an erroneous IP address change
 
+- New: Brand new default web site template courtesy of Neil Thomas. The original "legacy" web site is still included, but it has been moved to the /webfiles-legacy folder.
+	- The new web site is now data file driven as opposed to all pages being processed and uploaded. The legacy web site has also been updated to use this method.
 - New: The previous Console log file is now copied to an "-old" file on start-up
+- New: For Davis WLL stations using weatherlink.com, Cumulus now checks and reports the operational status of weatherlink.com on start-up and if an error occurs accessing the service
+- New: Two web tags <#forumurl> and <#webcamurl>, which just return the respective URLs rather than the pre-canned HTML of <#forum> and <#webcam>
 
 - Change: All the settings screens revamped, reorganised and extended.
 	- Many of the settings are now context sensitive, only showing items relevant to your station and configuration.

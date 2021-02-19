@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Net;
@@ -54,6 +55,34 @@ namespace CumulusMX
 			TxBatText = "1-NA 2-NA 3-NA 4-NA 5-NA 6-NA 7-NA 8-NA";
 
 			cumulus.LogMessage("Station type = Davis WLL");
+
+			// Override the ServiceStack Deserialization function
+			// Check which format provided, attempt to parse as datetime or return minValue.
+			// Formats to use for the different date kinds
+			string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
+			string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+
+
+			ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
+			{
+				if (string.IsNullOrWhiteSpace(datetimeStr))
+				{
+					return DateTime.MinValue;
+				}
+
+				if (datetimeStr.EndsWith("Z") &&
+					DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
+				{
+					return resultUtc;
+				}
+				else if (!datetimeStr.EndsWith("Z") &&
+					DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
+				{
+					return resultLocal;
+				}
+
+				return DateTime.MinValue;
+			};
 
 			tmrRealtime = new System.Timers.Timer();
 			tmrCurrent = new System.Timers.Timer();
@@ -112,6 +141,11 @@ namespace CumulusMX
 				useWeatherLinkDotCom = false;
 			}
 
+			if (useWeatherLinkDotCom)
+			{
+				// Get wl.com status
+				GetSystemStatus();
+			}
 
 			// Perform Station ID checks - If we have API deatils!
 			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key
@@ -2579,6 +2613,8 @@ namespace CumulusMX
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"WLL Health: WeatherLink API Error: {errObj.code}, {errObj.message}");
+					// Get wl.com status
+					GetSystemStatus();
 					return;
 				}
 
@@ -2586,6 +2622,8 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+					// Get wl.com status
+					GetSystemStatus();
 					return;
 				}
 
@@ -2920,6 +2958,78 @@ namespace CumulusMX
 			catch
 			{ }
 			return 0;
+		}
+
+		private void GetSystemStatus()
+		{
+			var status = new WlComSystemStatus();
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				cumulus.LogDebugMessage("GetSystemStatus: Getting WeatherLink.com system status");
+
+				// we want to do this synchronously, so .Result
+				using (HttpResponseMessage response = wlHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
+				{
+					responseBody = responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int)response.StatusCode;
+					cumulus.LogDebugMessage($"GetSystemStatus: WeatherLink.com system status Response code: {responseCode}");
+					cumulus.LogDataMessage($"GetSystemStatus: WeatherLink.com system status Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogMessage($"GetSystemStatus: WeatherLink.com system status Error: {responseCode}");
+					cumulus.LogConsoleMessage($" - Error {responseCode}");
+					return;
+				}
+
+				status = responseBody.FromJson<WlComSystemStatus>();
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("GetSystemStatus: WeatherLink.com system status: No data was returned.");
+					return;
+				}
+				else if (status != null)
+				{
+					var msg = $"Weatherlink.com overall System Status: '{status.result.status_overall.status}', Updated: {status.result.status_overall.updated}";
+					if (status.result.status_overall.status_code != 100)
+					{
+						msg += "Error: ";
+						cumulus.LogMessage(msg);
+						Console.WriteLine(msg);
+					}
+					else
+					{
+						cumulus.LogDebugMessage(msg);
+					}
+					// If we are not OK, then find what isn't working
+					if (status.result.status_overall.status_code != 100)
+					{
+						foreach (var subSys in status.result.status)
+						{
+							msg = $"   wl.com system: {subSys.name}, status: {subSys.status}, updated: {subSys.updated}";
+							cumulus.LogMessage(msg);
+							Console.WriteLine(msg);
+						}
+					}
+				}
+				else
+				{
+					cumulus.LogMessage("GetSystemStatus: Something went wrong!");
+				}
+
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("GetSystemStatus:  Exception: " + ex);
+				return;
+			}
+
+			return;
 		}
 
 		private class WllBroadcast

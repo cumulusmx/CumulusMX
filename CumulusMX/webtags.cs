@@ -2870,6 +2870,16 @@ namespace CumulusMX
 			return $":<a href=\\\"{cumulus.ForumURL}\\\">forum</a>:";
 		}
 
+		private string Tagforumurl(Dictionary<string, string> tagParams)
+		{
+			if (string.IsNullOrEmpty(cumulus.ForumURL))
+			{
+				return string.Empty;
+			}
+
+			return cumulus.ForumURL;
+		}
+
 		private string Tagwebcam(Dictionary<string,string> tagParams)
 		{
 			if (string.IsNullOrEmpty(cumulus.WebcamURL))
@@ -2879,6 +2889,16 @@ namespace CumulusMX
 
 			return @":<a href=\""" + cumulus.WebcamURL + @"\"">webcam</a>:";
 		}
+		private string Tagwebcamurl(Dictionary<string, string> tagParams)
+		{
+			if (string.IsNullOrEmpty(cumulus.WebcamURL))
+			{
+				return string.Empty;
+			}
+
+			return cumulus.WebcamURL;
+		}
+
 
 		private string Tagtempunit(Dictionary<string,string> tagParams)
 		{
@@ -5308,7 +5328,9 @@ namespace CumulusMX
 				{ "chillhours", TagChillHours },
 				{ "altitude", Tagaltitude },
 				{ "forum", Tagforum },
+				{ "forumurl", Tagforumurl },
 				{ "webcam", Tagwebcam },
+				{ "webcamurl", Tagwebcamurl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
 				{ "windunit", Tagwindunit },

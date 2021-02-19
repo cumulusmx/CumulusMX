@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace CumulusMX
 {
@@ -80,7 +81,8 @@ namespace CumulusMX
 			{
 				var reportName = noaats.ToString(cumulus.NOAAMonthFileFormat);
 				noaafile = cumulus.ReportPath + reportName;
-				report = File.Exists(noaafile) ? new List<string> (File.ReadAllLines(noaafile)) : new List<string> { "That report does not exist" };
+				var encoding = cumulus.NOAAUseUTF8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
+				report = File.Exists(noaafile) ? new List<string> (File.ReadAllLines(noaafile, encoding)) : new List<string> { "That report does not exist" };
 			}
 			catch
 			{

@@ -4201,47 +4201,47 @@ namespace CumulusMX
 			NOAAstate = ini.GetValue("NOAA", "State", " ");
 			NOAA12hourformat = ini.GetValue("NOAA", "12hourformat", false);
 			NOAAheatingthreshold = ini.GetValue("NOAA", "HeatingThreshold", -1000.0);
-			if (NOAAheatingthreshold < -999)
+			if (NOAAheatingthreshold < -99 || NOAAheatingthreshold > 150)
 			{
 				NOAAheatingthreshold = Units.Temp == 0 ? 18.3 : 65;
 			}
 			NOAAcoolingthreshold = ini.GetValue("NOAA", "CoolingThreshold", -1000.0);
-			if (NOAAcoolingthreshold < -999)
+			if (NOAAcoolingthreshold < -99 || NOAAcoolingthreshold > 150)
 			{
 				NOAAcoolingthreshold = Units.Temp == 0 ? 18.3 : 65;
 			}
 			NOAAmaxtempcomp1 = ini.GetValue("NOAA", "MaxTempComp1", -1000.0);
-			if (NOAAmaxtempcomp1 < -999)
+			if (NOAAmaxtempcomp1 < -99 || NOAAmaxtempcomp1 > 150)
 			{
 				NOAAmaxtempcomp1 = Units.Temp == 0 ? 27 : 80;
 			}
 			NOAAmaxtempcomp2 = ini.GetValue("NOAA", "MaxTempComp2", -1000.0);
-			if (NOAAmaxtempcomp2 < -999)
+			if (NOAAmaxtempcomp2 < -99 || NOAAmaxtempcomp2 > 99)
 			{
 				NOAAmaxtempcomp2 = Units.Temp == 0 ? 0 : 32;
 			}
 			NOAAmintempcomp1 = ini.GetValue("NOAA", "MinTempComp1", -1000.0);
-			if (NOAAmintempcomp1 < -999)
+			if (NOAAmintempcomp1 < -99 || NOAAmintempcomp1 > 99)
 			{
 				NOAAmintempcomp1 = Units.Temp == 0 ? 0 : 32;
 			}
 			NOAAmintempcomp2 = ini.GetValue("NOAA", "MinTempComp2", -1000.0);
-			if (NOAAmintempcomp2 < -999)
+			if (NOAAmintempcomp2 < -99 || NOAAmintempcomp2 > 99)
 			{
 				NOAAmintempcomp2 = Units.Temp == 0 ? -18 : 0;
 			}
 			NOAAraincomp1 = ini.GetValue("NOAA", "RainComp1", -1000.0);
-			if (NOAAraincomp1 < -999)
+			if (NOAAraincomp1 < 0 || NOAAraincomp1 > 99)
 			{
 				NOAAraincomp1 = Units.Rain == 0 ? 0.2 : 0.01;
 			}
 			NOAAraincomp2 = ini.GetValue("NOAA", "RainComp2", -1000.0);
-			if (NOAAraincomp2 < -999)
+			if (NOAAraincomp2 < 0 || NOAAraincomp2 > 99)
 			{
 				NOAAraincomp2 = Units.Rain == 0 ? 2 : 0.1;
 			}
 			NOAAraincomp3 = ini.GetValue("NOAA", "RainComp3", -1000.0);
-			if (NOAAraincomp3 < -999)
+			if (NOAAraincomp3 < 0 || NOAAraincomp3 > 99)
 			{
 				NOAAraincomp3 = Units.Rain == 0 ? 20 : 1;
 			}

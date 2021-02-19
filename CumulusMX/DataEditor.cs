@@ -47,7 +47,6 @@ namespace CumulusMX
 
 				return DateTime.MinValue;
 			};
-
 		}
 
 		internal void SetStation(WeatherStation station)

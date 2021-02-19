@@ -294,7 +294,7 @@ namespace CumulusMX
 							{
 								// read hdd from dayfile.txt
 								dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
-								totalheating += double.Parse(st[40]);
+								totalheating += double.Parse(st[idx]);
 							}
 							else if (meantemp < cumulus.NOAAheatingthreshold)
 							{
@@ -357,7 +357,8 @@ namespace CumulusMX
 						// min temp
 						idx = 4;
 						dayList[daynumber].mintemp = double.Parse(st[idx]);
-						timestr = st[5];
+						idx = 5;
+						timestr = st[idx];
 						hour = Convert.ToInt32(timestr.Substring(0, 2));
 						minute = Convert.ToInt32(timestr.Substring(3, 2));
 						dayList[daynumber].mintemptimestamp = DateTime.MinValue.Date.Add(new TimeSpan(hour, minute, 0));
@@ -401,7 +402,8 @@ namespace CumulusMX
 						// high wind speed
 						idx = 1;
 						dayList[daynumber].highwindspeed = double.Parse(st[idx]);
-						timestr = st[3];
+						idx = 3;
+						timestr = st[idx];
 						hour = Convert.ToInt32(timestr.Substring(0, 2));
 						minute = Convert.ToInt32(timestr.Substring(3, 2));
 						dayList[daynumber].highwindtimestamp = DateTime.MinValue.Date.Add(new TimeSpan(hour, minute, 0));
