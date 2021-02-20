@@ -2962,7 +2962,7 @@ namespace CumulusMX
 
 		private void GetSystemStatus()
 		{
-			var status = new WlComSystemStatus();
+			WlComSystemStatus status;
 			try
 			{
 				string responseBody;

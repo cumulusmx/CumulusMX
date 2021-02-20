@@ -1,4 +1,4 @@
-3.10.0 - b3112
+3.10.0 - b3113
 ——————————————
 - Fix: Catch error creating System Uptime counter on Windows
 - Fix: The Local web server is now brought up before initialising the station. This allows you to correct a misconfigured station without resorting to editing the Cumulus.ini file.

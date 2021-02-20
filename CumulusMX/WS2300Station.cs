@@ -108,12 +108,11 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			int interval;
-			int countdown;
 			Timestamp ts;
 			int numrecs;
 
 			cumulus.LogMessage("Reading history info");
-			int rec = Ws2300ReadHistoryDetails(out interval, out countdown, out ts, out numrecs);
+			int rec = Ws2300ReadHistoryDetails(out interval, out _, out ts, out numrecs);
 
 			if (rec < 0)
 				cumulus.LogMessage("Failed to read history data");
