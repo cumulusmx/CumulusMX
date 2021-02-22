@@ -489,6 +489,8 @@ namespace CumulusMX
 
 		public SelectaChartOptions SelectaChartOptions = new SelectaChartOptions();
 
+		public DisplayOptions DisplayOptions = new DisplayOptions();
+
 		public bool ListWebTags;
 
 		public bool RealtimeEnabled; // The timer is to be started
@@ -1500,7 +1502,7 @@ namespace CumulusMX
 		{
 			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlRealtimeTable + " (" +
 				"LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press," +
-				"currentwdir,beaufortnumber,Units.Wind,tempunitnodeg,Units.Press,rainunit," +
+				"currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit," +
 				"windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend," +
 				"tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM," +
 				"pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex," +
@@ -1520,12 +1522,12 @@ namespace CumulusMX
 				"bearing VARCHAR(3) NOT NULL," +
 				"rrate decimal(4," + RainDPlaces + ") NOT NULL," +
 				"rfall decimal(4," + RainDPlaces + ") NOT NULL," +
-				"press decimal(6," + PressDPlaces +") NOT NULL," +
+				"press decimal(6," + PressDPlaces + ") NOT NULL," +
 				"currentwdir varchar(3) NOT NULL," +
 				"beaufortnumber varchar(2) NOT NULL," +
-				"Units.Wind varchar(4) NOT NULL," +
+				"windunit varchar(4) NOT NULL," +
 				"tempunitnodeg varchar(1) NOT NULL," +
-				"Units.Press varchar(3) NOT NULL," +
+				"pressunit varchar(3) NOT NULL," +
 				"rainunit varchar(2) NOT NULL," +
 				"windrun decimal(4," + WindRunDPlaces + ") NOT NULL," +
 				"presstrendval varchar(6) NOT NULL," +
@@ -4292,6 +4294,9 @@ namespace CumulusMX
 
 			NumWindRosePoints = ini.GetValue("Display", "NumWindRosePoints", 16);
 			WindRoseAngle = 360.0 / NumWindRosePoints;
+			DisplayOptions.UseApparent = ini.GetValue("Display", "UseApparent", false);
+			DisplayOptions.ShowSolar = ini.GetValue("Display", "DisplaySolarData", false);
+			DisplayOptions.ShowUV = ini.GetValue("Display", "DisplayUvData", false);
 
 			// MySQL - common
 			MySqlHost = ini.GetValue("MySQL", "Host", "127.0.0.1");
@@ -4944,6 +4949,9 @@ namespace CumulusMX
 			ini.SetValue("Proxies", "HTTPProxyPassword", HTTPProxyPassword);
 
 			ini.SetValue("Display", "NumWindRosePoints", NumWindRosePoints);
+			ini.SetValue("Display", "UseApparent", DisplayOptions.UseApparent);
+			ini.SetValue("Display", "DisplaySolarData", DisplayOptions.ShowSolar);
+			ini.SetValue("Display", "DisplayUvData", DisplayOptions.ShowUV);
 
 			ini.SetValue("Graphs", "ChartMaxDays", GraphDays);
 			ini.SetValue("Graphs", "GraphHours", GraphHours);
@@ -9632,5 +9640,12 @@ namespace CumulusMX
 	public class WebUploadAprs : WebUploadService
 	{
 		public bool HumidityCutoff;
+	}
+
+	public class DisplayOptions
+	{
+		public bool UseApparent { get; set; }
+		public bool ShowSolar { get; set; }
+		public bool ShowUV { get; set; }
 	}
 }

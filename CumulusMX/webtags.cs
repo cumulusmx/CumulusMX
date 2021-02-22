@@ -5007,6 +5007,21 @@ namespace CumulusMX
 			return ReplaceCommas(TagRecentUv(tagParams));
 		}
 
+		private string TagOption_useApparent(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.UseApparent ? "1" : "0";
+		}
+
+		private string TagOption_showSolar(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.ShowSolar ? "1" : "0";
+		}
+
+		private string TagOption_showUV(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.ShowUV ? "1" : "0";
+		}
+
 		public void InitialiseWebtags()
 		{
 			// create the web tag dictionary
@@ -5843,7 +5858,11 @@ namespace CumulusMX
 				{ "ByMonthLongestDryPeriodT", TagByMonthLongestDryPeriodT },
 				{ "ByMonthLongestWetPeriodT", TagByMonthLongestWetPeriodT },
 				{ "ByMonthLowDailyTempRangeT", TagByMonthLowDailyTempRangeT },
-				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT }
+				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT },
+				//Options
+				{ "Option_useApparent", TagOption_useApparent },
+				{ "Option_showSolar", TagOption_showSolar },
+				{ "Option_showUV", TagOption_showUV }
 			};
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");

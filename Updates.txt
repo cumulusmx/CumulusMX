@@ -1,4 +1,4 @@
-3.10.0 - b3113
+3.10.0 - b3114
 ——————————————
 - Fix: Catch error creating System Uptime counter on Windows
 - Fix: The Local web server is now brought up before initialising the station. This allows you to correct a misconfigured station without resorting to editing the Cumulus.ini file.
@@ -11,6 +11,8 @@
 - New: The previous Console log file is now copied to an "-old" file on start-up
 - New: For Davis WLL stations using weatherlink.com, Cumulus now checks and reports the operational status of weatherlink.com on start-up and if an error occurs accessing the service
 - New: Two web tags <#forumurl> and <#webcamurl>, which just return the respective URLs rather than the pre-canned HTML of <#forum> and <#webcam>
+- New: The start of a Display Options section under Station, which controls what data is displayed on the default web site, implementing some of the Cumulus 1 options
+	- New web tags for this: <#Option_useApparent>, <#Option_showSolar>, <#Option_showUV>
 
 - Change: All the settings screens revamped, reorganised and extended.
 	- Many of the settings are now context sensitive, only showing items relevant to your station and configuration.

@@ -54,6 +54,15 @@ namespace CumulusMX
 				advanced = optionsAdv
 			};
 
+			// Display Options
+			var displayOptions = new JsonDisplayOptions()
+			{
+				windrosepoints = cumulus.NumWindRosePoints,
+				useapparent = cumulus.DisplayOptions.UseApparent,
+				displaysolar = cumulus.DisplayOptions.ShowSolar,
+				displayuv = cumulus.DisplayOptions.ShowUV
+			};
+
 			var unitsAdv = new JsonStationSettingsUnitsAdvanced
 			{
 				airqulaitydp = cumulus.AirQualityDPlaces,
@@ -365,7 +374,8 @@ namespace CumulusMX
 				Forecast = forecast,
 				Solar = solar,
 				AnnualRainfall = annualrainfall,
-				Graphs = graphs
+				Graphs = graphs,
+				DisplayOptions = displayOptions
 			};
 
 			//return JsonConvert.SerializeObject(data);
@@ -599,6 +609,23 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Options settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Display Options
+				try
+				{
+					cumulus.NumWindRosePoints = settings.DisplayOptions.windrosepoints;
+					cumulus.WindRoseAngle = 360.0 / cumulus.NumWindRosePoints;
+					cumulus.DisplayOptions.UseApparent = settings.DisplayOptions.useapparent;
+					cumulus.DisplayOptions.ShowSolar = settings.DisplayOptions.displaysolar;
+					cumulus.DisplayOptions.ShowUV = settings.DisplayOptions.displayuv;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Display Options settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1028,6 +1055,7 @@ namespace CumulusMX
 		public JsonStationSettingsSolar Solar { get; set; }
 		public JsonStationSettingsAnnualRainfall AnnualRainfall { get; set; }
 		public JsonStationSettingsGraphs Graphs { get; set; }
+		public JsonDisplayOptions DisplayOptions { get; set; }
 	}
 
 	internal class JsonStationGeneral
@@ -1369,5 +1397,13 @@ namespace CumulusMX
 	{
 		public string[] series { get; set; }
 		public string[] colours { get; set; }
+	}
+
+	public class JsonDisplayOptions
+	{
+		public int windrosepoints { get; set; }
+		public bool useapparent { get; set; }
+		public bool displaysolar { get; set; }
+		public bool displayuv { get; set; }
 	}
 }
