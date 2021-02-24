@@ -1515,6 +1515,10 @@ namespace CumulusMX
 				{
 					DoOutdoorHumidity(loopData.OutsideHumidity, now);
 				}
+				else
+				{
+					cumulus.LogDebugMessage($"LOOP: Ignoring outdoor humidity data. RH={loopData.OutsideHumidity} %.");
+				}
 
 				if ((loopData.InsideTemperature > -200) && (loopData.InsideTemperature < 300))
 				{
@@ -1525,11 +1529,20 @@ namespace CumulusMX
 				{
 					DoOutdoorTemp(ConvertTempFToUser(loopData.OutsideTemperature), now);
 				}
+				else
+				{
+					cumulus.LogDebugMessage($"LOOP: Ignoring outdoor temp data. Temp={loopData.OutsideTemperature} F.");
+				}
 
-				if ((loopData.Pressure > 0) && (loopData.Pressure < 40))
+				if ((loopData.Pressure >= 20) && (loopData.Pressure < 32.5))
 				{
 					DoPressure(ConvertPressINHGToUser(loopData.Pressure), now);
 				}
+				else
+				{
+					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
+				}
+
 
 				DoPressTrend("Pressure trend");
 
