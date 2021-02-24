@@ -72,6 +72,7 @@ namespace CumulusMX
             var rolloverdone = luhour == rollHour;
             var midnightraindone = luhour == 0;
 
+            var ticks = Environment.TickCount;
             foreach (var historydata in datalist)
             {
                 var timestamp = historydata.Timestamp;
@@ -130,6 +131,8 @@ namespace CumulusMX
                 double rainrate = (double) (ConvertRainMMToUser((double) historydata.Precipitation) *
                                             (60d / historydata.ReportInterval));
 
+                cumulus.LogMessage(
+                    $"TempestDoRainHist: Precip: {historydata.Precipitation}, Type: {historydata.PrecipType}, Rate: {rainrate}, LocalDayRain: {historydata.LocalDayRain}, LocalRainChecked: {historydata.LocalRainChecked}, FinalRainChecked: {historydata.FinalRainChecked}");
                 DoRain(ConvertRainMMToUser((double) historydata.Precipitation), rainrate, timestamp);
 
                 OutdoorDewpoint =
@@ -213,8 +216,10 @@ namespace CumulusMX
 
             }
 
-            cumulus.LogMessage("End processing history data");
-            cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}");
+            ticks = Environment.TickCount - ticks;
+            var rate = ((double)totalentries / ticks) * 1000;
+            cumulus.LogMessage($"End processing history data. Rate: {rate:f2}/second");
+            cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}, Rate: {rate:f2}/second");
 
         }
 
@@ -261,6 +266,8 @@ namespace CumulusMX
                         DoUV((double) wp.Observation.UV, ts);
                         double rainrate = (double) (ConvertRainMMToUser((double) wp.Observation.Precipitation) *
                                                     (60d / wp.Observation.ReportInterval));
+                        cumulus.LogMessage(
+                            $"TempestDoRain: Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
                         DoRain(ConvertRainMMToUser((double) wp.Observation.Precipitation), rainrate, ts);
                         
@@ -876,6 +883,7 @@ namespace CumulusMX.Tempest
 
             if (ob.Length >= 21)
             {
+                // these are only available for history data, not from the UDP message
                 o.LocalDayRain = WeatherPacket.GetInt(ob[18]);
                 o.FinalRainChecked = WeatherPacket.GetInt(ob[19]);
                 o.LocalRainChecked = WeatherPacket.GetInt(ob[20]);
