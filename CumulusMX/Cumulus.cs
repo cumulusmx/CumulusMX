@@ -1043,6 +1043,8 @@ namespace CumulusMX
 						{
 							// no response wait 10 seconds before trying again
 							Thread.Sleep(10000);
+							// Force a DNS refresh
+							Dns.GetHostEntry(ProgramOptions.StartupPingHost);
 						}
 					} while ((reply == null || reply.Status != IPStatus.Success) && DateTime.Now < endTime);
 

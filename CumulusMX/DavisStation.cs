@@ -1593,12 +1593,12 @@ namespace CumulusMX
 				StormRain = ConvertRainClicksToUser(loopData.StormRain);
 				StartOfStorm = loopData.StormRainStart;
 
-				if (loopData.UVIndex >= 0 && loopData.UVIndex < 25)
+				if (loopData.UVIndex >= 0 && loopData.UVIndex < 17)
 				{
 					DoUV(loopData.UVIndex, now);
 				}
 
-				if (loopData.SolarRad >= 0 && loopData.SolarRad < 5000)
+				if (loopData.SolarRad >= 0 && loopData.SolarRad < 1801)
 				{
 					DoSolarRad(loopData.SolarRad, now);
 				}
