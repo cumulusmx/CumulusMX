@@ -241,9 +241,7 @@ namespace CumulusMX
 		/// <param name="buff"></param>
 		private void Parse(List<int> buff)
 		{
-			int csum;
-
-			if (WM918valid(buff, out csum))
+			if (WM918valid(buff, out _))
 			{
 				DateTime now = DateTime.Now;
 

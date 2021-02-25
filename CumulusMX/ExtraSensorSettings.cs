@@ -23,28 +23,27 @@ namespace CumulusMX
 		{
 			var indoor = new JsonExtraSensorAirLinkDevice()
 			{
-				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
 				hostname = cumulus.AirLinkInHostName,
-				isNode = cumulus.AirLinkInIsNode,
 				stationId = cumulus.AirLinkInStationId
 			};
 
 			var outdoor = new JsonExtraSensorAirLinkDevice()
 			{
-				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
 				hostname = cumulus.AirLinkOutHostName,
-				isNode = cumulus.AirLinkOutIsNode,
 				stationId = cumulus.AirLinkOutStationId
 			};
 
 			var airlink = new JsonExtraSensorAirLinkSettings()
 			{
+				isNode = cumulus.AirLinkIsNode,
 				apiKey = cumulus.AirLinkApiKey,
 				apiSecret = cumulus.AirLinkApiSecret,
 				autoUpdateIp = cumulus.AirLinkAutoUpdateIpAddress,
+				indoorenabled = cumulus.AirLinkInEnabled,
 				indoor = indoor,
+				outdoorenabled = cumulus.AirLinkOutEnabled,
 				outdoor = outdoor
 			};
 
@@ -71,14 +70,21 @@ namespace CumulusMX
 
 			var rg11 = new JsonExtraSensorRG11()
 			{
+				dev1enabled = cumulus.RG11Enabled,
 				port1 = rg11port1,
+				dev2enabled = cumulus.RG11Enabled2,
 				port2 = rg11port2
+			};
+
+			var aq = new JsonExtraSensorAirQuality()
+			{
+				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
+				aqi = cumulus.airQualityIndex,
 			};
 
 			var data = new JsonExtraSensorSettings()
 			{
-				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
-				aqi = cumulus.airQualityIndex,
+				airquality = aq,
 				airLink = airlink,
 				blakeLarsen = bl,
 				rg11 = rg11
@@ -107,8 +113,8 @@ namespace CumulusMX
 				// General settings
 				try
 				{
-					cumulus.StationOptions.PrimaryAqSensor = settings.primaryaqsensor;
-					cumulus.airQualityIndex = settings.aqi;
+					cumulus.StationOptions.PrimaryAqSensor = settings.airquality.primaryaqsensor;
+					cumulus.airQualityIndex = settings.airquality.aqi;
 				}
 				catch (Exception ex)
 				{
@@ -121,28 +127,32 @@ namespace CumulusMX
 				// AirLink settings
 				try
 				{
+					cumulus.AirLinkIsNode = settings.airLink.isNode;
 					cumulus.AirLinkApiKey = settings.airLink.apiKey;
 					cumulus.AirLinkApiSecret = settings.airLink.apiSecret;
 					cumulus.AirLinkAutoUpdateIpAddress = settings.airLink.autoUpdateIp;
 
-					cumulus.AirLinkInEnabled = settings.airLink.indoor.enabled;
-					cumulus.AirLinkInIsNode = settings.airLink.indoor.isNode;
-					cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
-					cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
-					cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
-					if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkInIsNode)
+					cumulus.AirLinkInEnabled = settings.airLink.indoorenabled;
+					if (cumulus.AirLinkInEnabled && settings.airLink.indoor != null)
 					{
-						cumulus.AirLinkInStationId = cumulus.WllStationId;
+						cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
+						cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
+						cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
+						if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkIsNode)
+						{
+							cumulus.AirLinkInStationId = cumulus.WllStationId;
+						}
 					}
-
-					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
-					cumulus.AirLinkOutIsNode = settings.airLink.outdoor.isNode;
-					cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
-					cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
-					cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
-					if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkOutIsNode)
+					cumulus.AirLinkOutEnabled = settings.airLink.outdoorenabled;
+					if (cumulus.AirLinkOutEnabled && settings.airLink.outdoor != null)
 					{
-						cumulus.AirLinkOutStationId = cumulus.WllStationId;
+						cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
+						cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
+						cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
+						if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkIsNode)
+						{
+							cumulus.AirLinkOutStationId = cumulus.WllStationId;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -169,17 +179,25 @@ namespace CumulusMX
 				// RG-11 settings
 				try
 				{
-					cumulus.RG11Port = settings.rg11.port1.commPort;
-					cumulus.RG11TBRmode = settings.rg11.port1.tipMode;
-					cumulus.RG11tipsize = settings.rg11.port1.tipSize;
-					cumulus.RG11IgnoreFirst = settings.rg11.port1.ignoreFirst;
-					cumulus.RG11DTRmode = settings.rg11.port1.dtrMode;
+					cumulus.RG11Enabled = settings.rg11.dev1enabled;
+					if (cumulus.RG11Enabled && settings.rg11.port1 != null)
+					{
+						cumulus.RG11Port = settings.rg11.port1.commPort;
+						cumulus.RG11TBRmode = settings.rg11.port1.tipMode;
+						cumulus.RG11tipsize = settings.rg11.port1.tipSize;
+						cumulus.RG11IgnoreFirst = settings.rg11.port1.ignoreFirst;
+						cumulus.RG11DTRmode = settings.rg11.port1.dtrMode;
+					}
 
-					cumulus.RG11Port2 = settings.rg11.port2.commPort;
-					cumulus.RG11TBRmode2 = settings.rg11.port2.tipMode;
-					cumulus.RG11tipsize2 = settings.rg11.port2.tipSize;
-					cumulus.RG11IgnoreFirst2 = settings.rg11.port2.ignoreFirst;
-					cumulus.RG11DTRmode2 = settings.rg11.port2.dtrMode;
+					cumulus.RG11Enabled2 = settings.rg11.dev2enabled;
+					if (cumulus.RG11Enabled2 && settings.rg11.port2 != null)
+					{
+						cumulus.RG11Port2 = settings.rg11.port2.commPort;
+						cumulus.RG11TBRmode2 = settings.rg11.port2.tipMode;
+						cumulus.RG11tipsize2 = settings.rg11.port2.tipSize;
+						cumulus.RG11IgnoreFirst2 = settings.rg11.port2.ignoreFirst;
+						cumulus.RG11DTRmode2 = settings.rg11.port2.dtrMode;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -225,29 +243,35 @@ namespace CumulusMX
 
 	public class JsonExtraSensorSettings
 	{
-		public int primaryaqsensor { get; set; }
-		public int aqi { get; set; }
-
+		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
 		public JsonExtraSensorRG11 rg11 { get; set; }
-}
+	}
+
+	public class JsonExtraSensorAirQuality
+	{
+		public int primaryaqsensor { get; set; }
+		public int aqi { get; set; }
+	}
+
 
 	public class JsonExtraSensorAirLinkSettings
 	{
+		public bool isNode { get; set; }
 		public string apiKey { get; set; }
 		public string apiSecret { get; set; }
 		public bool autoUpdateIp { get; set; }
+		public bool indoorenabled { get; set; }
 		public JsonExtraSensorAirLinkDevice indoor { get; set; }
+		public bool outdoorenabled { get; set; }
 		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
 	}
 
 	public class JsonExtraSensorAirLinkDevice
 	{
-		public bool enabled { get; set; }
 		public string ipAddress { get; set; }
 		public string hostname { get; set; }
-		public bool isNode { get; set; }
 		public int stationId { get; set; }
 	}
 
@@ -259,13 +283,14 @@ namespace CumulusMX
 
 	public class JsonExtraSensorRG11
 	{
+		public bool dev1enabled { get; set; }
 		public JsonExtraSensorRG11device port1 { get; set; }
+		public bool dev2enabled { get; set; }
 		public JsonExtraSensorRG11device port2 { get; set; }
 	}
 
 	public class JsonExtraSensorRG11device
 	{
-		public bool enabled { get; set; }
 		public string commPort { get; set; }
 		public bool tipMode { get; set; }
 		public double tipSize { get; set; }

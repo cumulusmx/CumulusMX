@@ -130,6 +130,8 @@ namespace CumulusMX
 			var logFile = cumulus.GetLogFileName(new DateTime(year, month, 2));
 			if (File.Exists(logFile))
 			{
+				var idx = 0;
+				var st = new List<string>();
 				try
 				{
 					using (FileStream fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -143,13 +145,15 @@ namespace CumulusMX
 
 							var line = sr.ReadLine();
 							linenum++;
-							var st = new List<string>(line.Split(cumulus.ListSeparator[0]));
-							double windspeed = Convert.ToSingle(st[5]);
+							st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+							idx = 5;
+							double windspeed = Convert.ToSingle(st[idx]);
 							// add in wind speed sample for whole month
 							windsamples++;
 							totalwindspeed += windspeed;
 							// add in direction if not done already
-							var winddir = Convert.ToInt32(st[7]);
+							idx = 7;
+							var winddir = Convert.ToInt32(st[idx]);
 							totalwinddirX += (windspeed * Math.Sin((winddir * (Math.PI / 180))));
 							totalwinddirY += (windspeed * Math.Cos((winddir * (Math.PI / 180))));
 							//@ Unsupported property or method(C): 'EndOfStream'
@@ -158,7 +162,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					cumulus.LogMessage("Error at line " + linenum + " of " + logFile + " : " + e.Message);
+					cumulus.LogMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {e}");
 					cumulus.LogMessage("Please edit the file to correct the error");
 				}
 			}
@@ -245,6 +249,8 @@ namespace CumulusMX
 			int year = thedate.Year;
 			int linenum = 0;
 			string line;
+			int idx = 0;
+			List<string> st = new List<string>();
 
 			try
 			{
@@ -255,8 +261,9 @@ namespace CumulusMX
 					{
 						line = sr.ReadLine();
 						linenum++;
-						var st = new List<string>(line.Split(cumulus.ListSeparator[0]));
-						string dateStr = st[0];
+						st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+						idx = 0;
+						string dateStr = st[idx];
 
 						if ((Convert.ToInt32(dateStr.Substring(3, 2)) != month) || (Convert.ToInt32(dateStr.Substring(6, 2)) + 2000 != year))
 							continue;
@@ -276,16 +283,18 @@ namespace CumulusMX
 						// mean temp
 						if ((st.Count > 15) && (st[15].Length > 0))
 						{
-							double meantemp = double.Parse(st[15]);
+							idx = 15;
+							double meantemp = double.Parse(st[idx]);
 							totalmeantemp += meantemp;
 							dayList[daynumber].meantemp = meantemp;
 
 							// heating degree day
-							if ((st.Count > 40) && (st[40].Length > 0))
+							idx = 40;
+							if ((st.Count > idx) && (st[idx].Length > 0))
 							{
 								// read hdd from dayfile.txt
-								dayList[daynumber].heatingdegdays = double.Parse(st[40]);
-								totalheating += double.Parse(st[40]);
+								dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
+								totalheating += double.Parse(st[idx]);
 							}
 							else if (meantemp < cumulus.NOAAheatingthreshold)
 							{
@@ -298,11 +307,12 @@ namespace CumulusMX
 							}
 
 							// cooling degree days
-							if ((st.Count > 41) && (st[41] != string.Empty))
+							idx = 41;
+							if ((st.Count > idx) && (st[idx] != string.Empty))
 							{
 								// read hdd from dayfile.txt
-								dayList[daynumber].coolingdegdays = double.Parse(st[41]);
-								totalcooling += double.Parse(st[41]);
+								dayList[daynumber].coolingdegdays = double.Parse(st[idx]);
+								totalcooling += double.Parse(st[idx]);
 							}
 							else if (meantemp > cumulus.NOAAcoolingthreshold)
 							{
@@ -323,8 +333,10 @@ namespace CumulusMX
 						}
 
 						// max temp
-						dayList[daynumber].maxtemp = double.Parse(st[6]);
-						string timestr = st[7];
+						idx = 6;
+						dayList[daynumber].maxtemp = double.Parse(st[idx]);
+						idx = 7;
+						string timestr = st[idx];
 						int hour = Convert.ToInt32(timestr.Substring(0, 2));
 						int minute = Convert.ToInt32(timestr.Substring(3, 2));
 						dayList[daynumber].maxtemptimestamp = DateTime.MinValue.Date.Add(new TimeSpan(hour, minute, 0));
@@ -343,8 +355,10 @@ namespace CumulusMX
 						}
 
 						// min temp
-						dayList[daynumber].mintemp = double.Parse(st[4]);
-						timestr = st[5];
+						idx = 4;
+						dayList[daynumber].mintemp = double.Parse(st[idx]);
+						idx = 5;
+						timestr = st[idx];
 						hour = Convert.ToInt32(timestr.Substring(0, 2));
 						minute = Convert.ToInt32(timestr.Substring(3, 2));
 						dayList[daynumber].mintemptimestamp = DateTime.MinValue.Date.Add(new TimeSpan(hour, minute, 0));
@@ -363,8 +377,9 @@ namespace CumulusMX
 						}
 
 						// rain
-						dayList[daynumber].rain = double.Parse(st[14]);
-						totalrain += double.Parse(st[14]);
+						idx = 14;
+						dayList[daynumber].rain = double.Parse(st[idx]);
+						totalrain += double.Parse(st[idx]);
 						if (dayList[daynumber].rain > maxrain)
 						{
 							maxrain = dayList[daynumber].rain;
@@ -385,8 +400,10 @@ namespace CumulusMX
 						}
 
 						// high wind speed
-						dayList[daynumber].highwindspeed = double.Parse(st[1]);
-						timestr = st[3];
+						idx = 1;
+						dayList[daynumber].highwindspeed = double.Parse(st[idx]);
+						idx = 3;
+						timestr = st[idx];
 						hour = Convert.ToInt32(timestr.Substring(0, 2));
 						minute = Convert.ToInt32(timestr.Substring(3, 2));
 						dayList[daynumber].highwindtimestamp = DateTime.MinValue.Date.Add(new TimeSpan(hour, minute, 0));
@@ -397,9 +414,10 @@ namespace CumulusMX
 						}
 
 						// dominant wind bearing
-						if ((st.Count > 39) && (st[39] != string.Empty))
+						idx = 39;
+						if ((st.Count > idx) && (st[idx] != string.Empty))
 						{
-							dayList[daynumber].winddomdir = Convert.ToInt32((st[39]));
+							dayList[daynumber].winddomdir = Convert.ToInt32((st[idx]));
 						}
 
 						daycount++;
@@ -409,7 +427,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error at line " + linenum + " of dayfile.txt: " + ex.Message);
+				cumulus.LogMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of dayfile.txt: " + ex.Message);
 				cumulus.LogMessage("Please edit the file to correct the error");
 			}
 
@@ -418,6 +436,8 @@ namespace CumulusMX
 			var logFile = cumulus.GetLogFileName(new DateTime(thedate.Year, thedate.Month, 2));
 
 			if (File.Exists(logFile))
+			{
+				idx = 0;
 				try
 				{
 					using (FileStream fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -430,13 +450,15 @@ namespace CumulusMX
 						{
 							line = sr.ReadLine();
 							linenum++;
-							var st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+							st = new List<string>(line.Split(cumulus.ListSeparator[0]));
 
-							int entryday = Convert.ToInt32(st[0].Substring(0, 2));
-							int entrymonth = Convert.ToInt32(st[0].Substring(3, 2));
-							int entryyear = Convert.ToInt32(st[0].Substring(6, 2));
-							int entryhour = Convert.ToInt32(st[1].Substring(0, 2));
-							int entryminute = Convert.ToInt32(st[1].Substring(3, 2));
+							idx = 0;
+							int entryday = Convert.ToInt32(st[idx].Substring(0, 2));
+							int entrymonth = Convert.ToInt32(st[idx].Substring(3, 2));
+							int entryyear = Convert.ToInt32(st[idx].Substring(6, 2));
+							idx = 1;
+							int entryhour = Convert.ToInt32(st[idx].Substring(0, 2));
+							int entryminute = Convert.ToInt32(st[idx].Substring(3, 2));
 
 							DateTime entrydate = new DateTime(entryyear, entrymonth, entryday, entryhour, entryminute, 0);
 
@@ -447,7 +469,8 @@ namespace CumulusMX
 							if (!dayList[daynumber].valid)
 								continue;
 
-							double windspeed = double.Parse(st[5]);
+							idx = 5;
+							double windspeed = double.Parse(st[idx]);
 
 							// add in wind speed sample for this day
 							dayList[daynumber].windsamples++;
@@ -460,18 +483,20 @@ namespace CumulusMX
 							// add in direction if (not done already
 							if (dayList[daynumber].winddomdir == 0)
 							{
-								int winddir = Convert.ToInt32(st[7]);
-								dayList[daynumber].totalwinddirX += (windspeed*Math.Sin(Trig.DegToRad(winddir)));
-								dayList[daynumber].totalwinddirY += (windspeed*Math.Cos(Trig.DegToRad(winddir)));
+								idx = 7;
+								int winddir = Convert.ToInt32(st[idx]);
+								dayList[daynumber].totalwinddirX += (windspeed * Math.Sin(Trig.DegToRad(winddir)));
+								dayList[daynumber].totalwinddirY += (windspeed * Math.Cos(Trig.DegToRad(winddir)));
 							}
 						} while (!(sr.EndOfStream));
 					}
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error at line " + linenum + " of " + logFile + " : " + ex.Message);
+					cumulus.LogMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {ex}");
 					cumulus.LogMessage("Please edit the file to correct the error");
 				}
+			}
 
 			double avgwindspeed;
 			if (windsamples > 0)
@@ -569,7 +594,7 @@ namespace CumulusMX
 
 			output.Add($"Elevation: {elev}  Lat: {string.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec)}   Lon: {string.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec)}");
 			output.Add("");
-			output.Add($"                  Temperature ({cumulus.TempUnitText}), Rain ({cumulus.RainUnitText}), Wind Speed ({cumulus.WindUnitText})");
+			output.Add($"                  Temperature ({cumulus.Units.TempText}), Rain ({cumulus.Units.RainText}), Wind Speed ({cumulus.Units.WindText})");
 			output.Add("");
 			output.Add("                                      Heat  Cool        Avg");
 			output.Add("    Mean                              Deg   Deg         Wind                 Dom");
@@ -577,6 +602,8 @@ namespace CumulusMX
 			output.Add("----------------------------------------------------------------------------------");
 
 			var repLine = new StringBuilder(200);
+
+			var timeFormat = cumulus.NOAA12hourformat ? "h:mmtt" : "HH:mm";
 
 			for (int i = 1; i <= DateTime.DaysInMonth(year, month); i++)
 			{
@@ -594,25 +621,10 @@ namespace CumulusMX
 					}
 					;
 					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].maxtemp));
-					string timestr;
-					if (cumulus.NOAA12hourformat)
-					{
-						timestr = dayList[i].maxtemptimestamp.ToString("h:mmtt");
-					}
-					else
-					{
-						timestr = dayList[i].maxtemptimestamp.ToString("HH:mm");
-					}
+					string timestr = dayList[i].maxtemptimestamp.ToString(timeFormat);
 					repLine.Append(string.Format("{0,8}", timestr));
 					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].mintemp));
-					if (cumulus.NOAA12hourformat)
-					{
-						timestr = dayList[i].mintemptimestamp.ToString("h:mmtt");
-					}
-					else
-					{
-						timestr = dayList[i].mintemptimestamp.ToString("HH:mm");
-					}
+					timestr = dayList[i].mintemptimestamp.ToString(timeFormat);
 					repLine.Append(string.Format("{0,8}", timestr));
 
 					if (dayList[i].meantemp < -999)
@@ -632,14 +644,7 @@ namespace CumulusMX
 						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].avgwindspeed));
 
 					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].highwindspeed));
-					if (cumulus.NOAA12hourformat)
-					{
-						timestr = dayList[i].highwindtimestamp.ToString("h:mmtt");
-					}
-					else
-					{
-						timestr = dayList[i].highwindtimestamp.ToString("HH:mm");
-					}
+					timestr = dayList[i].highwindtimestamp.ToString(timeFormat);
 					repLine.Append(string.Format("{0,8}", timestr));
 					repLine.Append(string.Format("{0,6}", CompassPoint(dayList[i].winddomdir)));
 					output.Add(repLine.ToString());
@@ -710,7 +715,7 @@ namespace CumulusMX
 
 			output.Add($"Max Rain: {maxrain.ToString(cumulus.RainFormat, culture)} on day {maxrainday}");
 
-			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)} {cumulus.RainUnitText})");
+			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})");
 			output.Add($"Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}  Method: Integration");
 
 			return output;
@@ -937,7 +942,7 @@ namespace CumulusMX
 
 			output.Add($"Elevation: {elev}  Lat: {string.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec)}   Lon: {string.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec)}");
 			output.Add("");
-			output.Add($"                  Temperature ({cumulus.TempUnitText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}");
+			output.Add($"                  Temperature ({cumulus.Units.TempText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}");
 			output.Add("                          Dep.  Heat  Cool                       Max  Max  Min  Min");
 			output.Add("        Mean  Mean        From  Deg   Deg                        >=   <=   <=   <=");
 			//@ Unsupported function or procedure: 'Format'
@@ -967,7 +972,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						repLine.Append(string.Format("{0,6}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month]).ToString(cumulus.TempFormat, culture)));
+						repLine.Append(string.Format(culture, "{0,6:F1}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month])));
 						totalnormtemp += cumulus.NOAATempNorms[month];
 						normtempsamples++;
 					}
@@ -1021,7 +1026,7 @@ namespace CumulusMX
 					repLine.Append("   0.0");
 				else
 				{
-					repLine.Append(string.Format("{0,6}", (meantemp - (totalnormtemp/normtempsamples)).ToString(cumulus.TempFormat, culture)));
+					repLine.Append(string.Format(culture, "{0,6F1}", (meantemp - (totalnormtemp/normtempsamples))));
 				}
 				repLine.Append(string.Format(culture, "{0,6:D}{1,6:D}", (int) (totalheating), (int) (totalcooling)));
 				if (maxtempmonth == 0)
@@ -1048,7 +1053,7 @@ namespace CumulusMX
 
 			// Rain section header
 			output.Add("");
-			output.Add("                                Precipitation (" + cumulus.RainUnitText + ")");
+			output.Add("                                Precipitation (" + cumulus.Units.RainText + ")");
 			output.Add("");
 			output.Add("              Dep.   Max        Days of Rain");
 			output.Add("              From   Obs.           >=");
@@ -1134,7 +1139,7 @@ namespace CumulusMX
 			}
 
 			output.Add("");
-			output.Add($"                                Wind Speed ({cumulus.WindUnitText})");
+			output.Add($"                                Wind Speed ({cumulus.Units.WindText})");
 			output.Add("                          Dom");
 			output.Add(" YR MO   Avg.  Hi   Date  Dir");
 			output.Add("------------------------------");

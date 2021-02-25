@@ -65,6 +65,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "edit/*")]
 			public async Task<bool> GetEditData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -129,6 +134,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Post, RelativePath + "edit/*")]
 			public async Task<bool> PostEditData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -203,6 +213,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "data/*")]
 			public async Task<bool> GetData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -329,6 +344,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "graphdata/*")]
 			public async Task<bool> GetGraphData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -403,6 +423,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "dailygraphdata/*")]
 			public async Task<bool> GetDailyGraphData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -463,6 +488,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/alltime/*")]
 			public async Task<bool> GetAlltimeData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -493,6 +523,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/month/*")]
 			public async Task<bool> GetMonthlyRecordData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -525,6 +560,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/thismonth/*")]
 			public async Task<bool> GetThisMonthRecordData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -555,6 +595,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/thisyear/*")]
 			public async Task<bool> GetThisYearRecordData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -604,6 +649,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "todayyest/*")]
 			public async Task<bool> GetYesterdayData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants
@@ -655,6 +705,11 @@ namespace CumulusMX
 			[WebApiHandler(HttpVerbs.Get, RelativePath + "extra/*")]
 			public async Task<bool> GetExtraData()
 			{
+				if (Station == null)
+				{
+					return await this.JsonResponseAsync("{}");
+				}
+
 				try
 				{
 					// read the last segment of the URL to determine what data the caller wants

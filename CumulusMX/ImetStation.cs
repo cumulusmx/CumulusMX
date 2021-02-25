@@ -22,21 +22,21 @@ namespace CumulusMX
 		public ImetStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = cumulus.INSTROMET;
-			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetUpdateLogPointer);
-			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetWaitTime);
-			cumulus.LogMessage("ImetReadDelay=" + cumulus.ImetReadDelay);
-			cumulus.LogMessage("ImetBaudRate=" + cumulus.ImetBaudRate);
+			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetOptions.ImetUpdateLogPointer);
+			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetOptions.ImetWaitTime);
+			cumulus.LogMessage("ImetReadDelay=" + cumulus.ImetOptions.ImetReadDelay);
+			cumulus.LogMessage("ImetOptions.ImetBaudRate=" + cumulus.ImetOptions.ImetBaudRate);
 			cumulus.LogMessage("Instromet: Attempting to open " + cumulus.ComportName);
 
 			calculaterainrate = true;
 
 			// Change the default dps for rain and sunshine from 1 to 2 for IMet stations
 			cumulus.RainDPlaces = cumulus.SunshineDPlaces = 2;
-			cumulus.RainDPlace[0] = 2;  // mm
-			cumulus.RainDPlace[1] = 3;  // in
+			cumulus.RainDPlaceDefaults[0] = 2;  // mm
+			cumulus.RainDPlaceDefaults[1] = 3;  // in
 			cumulus.RainFormat = cumulus.SunFormat = "F2";
 
-			comport = new SerialPort(cumulus.ComportName, cumulus.ImetBaudRate, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
+			comport = new SerialPort(cumulus.ComportName, cumulus.ImetOptions.ImetBaudRate, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
 
 			try
 			{
@@ -247,7 +247,7 @@ namespace CumulusMX
 			}
 			finally
 			{
-				Thread.Sleep(cumulus.ImetWaitTime);
+				Thread.Sleep(cumulus.ImetOptions.ImetWaitTime);
 			}
 		}
 
@@ -665,7 +665,7 @@ namespace CumulusMX
 								DoWind(windgust, windbearing, windspeed, timestamp);
 
 								// add in "archivePeriod" minutes worth of wind speed to windrun
-								WindRunToday += ((WindAverage*WindRunHourMult[cumulus.WindUnit]*interval)/60.0);
+								WindRunToday += ((WindAverage*WindRunHourMult[cumulus.Units.Wind]*interval)/60.0);
 
 								DateTime windruncheckTS;
 								if ((hour == rollHour) && (minute == 0))
@@ -838,7 +838,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						Thread.Sleep(cumulus.ImetReadDelay);
+						Thread.Sleep(cumulus.ImetOptions.ImetReadDelay);
 					}
 				}
 			}
@@ -873,7 +873,7 @@ namespace CumulusMX
 			{
 				previousminute = min;
 
-				if (cumulus.StationOptions.SyncTime && (h == cumulus.ClockSettingHour) && (min == 0))
+				if (cumulus.StationOptions.SyncTime && (h == cumulus.StationOptions.ClockSettingHour) && (min == 2))
 				{
 					// It's 0400, set the station clock
 					SetStationClock();
@@ -1017,7 +1017,7 @@ namespace CumulusMX
 				cumulus.LogMessage(response);
 			}
 
-			if (!cumulus.ImetUpdateLogPointer || stop)
+			if (!cumulus.ImetOptions.ImetUpdateLogPointer || stop)
 				return;
 
 			// Keep the log pointer current, to avoid large numbers of logs

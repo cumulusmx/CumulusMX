@@ -1,3 +1,37 @@
+3.10.0 - b3115
+——————————————
+- Fix: Catch error creating System Uptime counter on Windows
+- Fix: The Local web server is now brought up before initialising the station. This allows you to correct a misconfigured station without resorting to editing the Cumulus.ini file.
+- Fix: Diary Editor creating entries on the wrong day, and revamp the interface a bit
+- Fix: WLL day average temp stats on historic catch-up
+- Fix: GW1000 auto-discovery was triggering an erroneous IP address change
+- Fix: Cumulus MX shutdown when running as a system service is now orderly
+- Fix: The start-up ping now refreshes the DNS cache before every re-try to avoid using null entries cached before the internet comes up
+
+- New: Brand new default web site template courtesy of Neil Thomas. The original "legacy" web site is still included, but it has been moved to the /webfiles-legacy folder.
+	- The new web site is now data file driven as opposed to all pages being processed and uploaded. The legacy web site has also been updated to use this method.
+- New: The previous Console log file is now copied to an "-old" file on start-up
+- New: For Davis WLL stations using weatherlink.com, Cumulus now checks and reports the operational status of weatherlink.com on start-up and if an error occurs accessing the service
+- New: Two web tags <#forumurl> and <#webcamurl>, which just return the respective URLs rather than the pre-canned HTML of <#forum> and <#webcam>
+- New: The start of a Display Options section under Station, which controls what data is displayed on the default web site, implementing some of the Cumulus 1 options
+	- New web tags for this: <#Option_useApparent>, <#Option_showSolar>, <#Option_showUV>
+
+- Change: All the settings screens revamped, reorganised and extended.
+	- Many of the settings are now context sensitive, only showing items relevant to your station and configuration.
+	- Most of the previously config file "read-only" settings are now available in an Advanced section relevant to the configuration item. These settings are now read/write.
+	- Many new Cumulus.ini configuration entries, and some now depreciated.
+	- Virtually all the standard files that can be generated can now be controlled for enabling/disabling generation and FTP transfer independently.
+	- Added more graph data series controls.
+- Change: The two graph config files availabledata.json and graphconfig.json are now only uploaded on program start-up and when the station config is changed.
+- Change: Dayfile, Monthly Log, and Extra log file editors now have a selectable page length, and a goto-page feature
+- Change: The default web site is now driven by a single data file (plus realtimegauges.txt), rather than every page being updated and uploaded each interval.
+- Change: The various charting pages now hide buttons for graphs that do not contain any data - both on the dashboard and default web site.
+- Change: Creation of the wxnow.txt file is now disabled by default for new installs
+- Change: Clock sync (Davis VP2 & Instromet) now occurs at 2 minutes past the hour selected
+- Change: Davis VP/VP2/Vue ReadReceptionStats now defaults to enabled for new installs
+- Change: The default output file format is now UTF-8 for new installs
+
+
 3.9.7 - b3107
 —————————————
 - Fix: Unhandled exception in ProcessTemplateFile if cumulus cannot write to the output file

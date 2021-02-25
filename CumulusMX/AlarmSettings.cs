@@ -21,10 +21,10 @@ namespace CumulusMX
 
 			var alarmUnits = new JsonAlarmUnits()
 			{
-				tempUnits = cumulus.TempUnitText,
-				pressUnits = cumulus.PressUnitText,
-				rainUnits = cumulus.RainUnitText,
-				windUnits = cumulus.WindUnitText
+				tempUnits = cumulus.Units.TempText,
+				pressUnits = cumulus.Units.PressText,
+				rainUnits = cumulus.Units.RainText,
+				windUnits = cumulus.Units.WindText
 			};
 
 			var data = new JsonAlarmSettingsData()

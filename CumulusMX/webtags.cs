@@ -2867,7 +2867,17 @@ namespace CumulusMX
 				return string.Empty;
 			}
 
-			return @":<a href=""" + cumulus.ForumURL + @""">forum</a>:";
+			return $":<a href=\\\"{cumulus.ForumURL}\\\">forum</a>:";
+		}
+
+		private string Tagforumurl(Dictionary<string, string> tagParams)
+		{
+			if (string.IsNullOrEmpty(cumulus.ForumURL))
+			{
+				return string.Empty;
+			}
+
+			return cumulus.ForumURL;
 		}
 
 		private string Tagwebcam(Dictionary<string,string> tagParams)
@@ -2877,37 +2887,47 @@ namespace CumulusMX
 				return string.Empty;
 			}
 
-			return @":<a href=""" + cumulus.WebcamURL + @""">webcam</a>:";
+			return @":<a href=\""" + cumulus.WebcamURL + @"\"">webcam</a>:";
 		}
+		private string Tagwebcamurl(Dictionary<string, string> tagParams)
+		{
+			if (string.IsNullOrEmpty(cumulus.WebcamURL))
+			{
+				return string.Empty;
+			}
+
+			return cumulus.WebcamURL;
+		}
+
 
 		private string Tagtempunit(Dictionary<string,string> tagParams)
 		{
-			return EncodeForWeb(cumulus.TempUnitText);
+			return EncodeForWeb(cumulus.Units.TempText);
 		}
 
 		private string Tagtempunitnodeg(Dictionary<string,string> tagParams)
 		{
-			return EncodeForWeb(cumulus.TempUnitText.Substring(1,1));
+			return EncodeForWeb(cumulus.Units.TempText.Substring(1,1));
 		}
 
 		private string Tagwindunit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.WindUnitText;
+			return cumulus.Units.WindText;
 		}
 
 		private string Tagwindrununit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.WindRunUnitText;
+			return cumulus.Units.WindRunText;
 		}
 
 		private string Tagpressunit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.PressUnitText;
+			return cumulus.Units.PressText;
 		}
 
 		private string Tagrainunit(Dictionary<string,string> tagParams)
 		{
-			return cumulus.RainUnitText;
+			return cumulus.Units.RainText;
 		}
 
 		private string Taginterval(Dictionary<string,string> tagParams)
@@ -4643,8 +4663,15 @@ namespace CumulusMX
 				double upTime = 0;
 				if (cumulus.Platform.Substring(0, 3) == "Win")
 				{
-					cumulus.UpTime.NextValue();
-					upTime = cumulus.UpTime.NextValue();
+					try
+					{
+						cumulus.UpTime.NextValue();
+						upTime = cumulus.UpTime.NextValue();
+					}
+					catch
+					{
+						// do nothing, already set to zero
+					}
 				}
 				else if (File.Exists(@"/proc/uptime"))
 				{
@@ -4980,6 +5007,21 @@ namespace CumulusMX
 			return ReplaceCommas(TagRecentUv(tagParams));
 		}
 
+		private string TagOption_useApparent(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.UseApparent ? "1" : "0";
+		}
+
+		private string TagOption_showSolar(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.ShowSolar ? "1" : "0";
+		}
+
+		private string TagOption_showUV(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.ShowUV ? "1" : "0";
+		}
+
 		public void InitialiseWebtags()
 		{
 			// create the web tag dictionary
@@ -5301,7 +5343,9 @@ namespace CumulusMX
 				{ "chillhours", TagChillHours },
 				{ "altitude", Tagaltitude },
 				{ "forum", Tagforum },
+				{ "forumurl", Tagforumurl },
 				{ "webcam", Tagwebcam },
+				{ "webcamurl", Tagwebcamurl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
 				{ "windunit", Tagwindunit },
@@ -5814,7 +5858,11 @@ namespace CumulusMX
 				{ "ByMonthLongestDryPeriodT", TagByMonthLongestDryPeriodT },
 				{ "ByMonthLongestWetPeriodT", TagByMonthLongestWetPeriodT },
 				{ "ByMonthLowDailyTempRangeT", TagByMonthLowDailyTempRangeT },
-				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT }
+				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT },
+				//Options
+				{ "Option_useApparent", TagOption_useApparent },
+				{ "Option_showSolar", TagOption_showSolar },
+				{ "Option_showUV", TagOption_showUV }
 			};
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");

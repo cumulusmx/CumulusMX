@@ -404,7 +404,7 @@ namespace CumulusMX
 					// wind chill negative
 					wc = -wc;
 
-				if ((cumulus.TempUnit == 0))
+				if ((cumulus.Units.Rain == 0))
 					// convert to C
 					wc = (wc - 32)/1.8;
 
