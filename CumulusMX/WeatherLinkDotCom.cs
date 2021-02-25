@@ -315,8 +315,8 @@ namespace CumulusMX
 	// Data Structure type 18 = AirLink Health record
 	public class WlHistorySensorDataType18
 	{
-		public long? air_quality_firmware_version { get; set; }	// OLD original incorrect name
-		public long? firmware_version { get; set; }				// NEW correct name
+		public long? air_quality_firmware_version { get; set; } // OLD original incorrect name
+		public long? firmware_version { get; set; }             // NEW correct name
 		public string application_sha { get; set; }
 		public string application_version { get; set; }
 		public long bootloader_version { get; set; }
@@ -357,7 +357,7 @@ namespace CumulusMX
 	{
 		public List<WlSensorListSensor> sensors { get; set; }
 		public long generated_at { get; set; }
-}
+	}
 
 	public class WlSensorListSensor
 	{
@@ -430,4 +430,36 @@ namespace CumulusMX
 		public string Name { get; set; }
 		public string ParentName { get; set; }
 	}
+
+
+	// WeatherLink.com status
+	public class WlComSystemStatus
+	{
+		public WlComSystemStatusResult result {get; set;}
+	}
+
+	public class WlComSystemStatusResult
+	{
+		public WlComStatusOverall status_overall { get; set; }
+		public WlComStatus[] status { get; set; }
+	}
+
+	public class WlComStatusOverall
+	{
+		public DateTime updated { get; set; }
+		public string status { get; set; }
+		public int status_code { get; set; }
+	}
+
+	public class WlComStatus : WlComStatusContainer
+	{
+		public WlComStatusContainer[] containers { get; set; }
+	}
+
+	public class WlComStatusContainer : WlComStatusOverall
+	{
+		public string id { get; set; }
+		public string name { get; set; }
+	}
+
 }

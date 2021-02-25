@@ -44,17 +44,17 @@ namespace CumulusMX
 
 			calculaterainrate = false;
 
-			isSerial = (cumulus.VP2ConnectionType == 0);
+			isSerial = (cumulus.DavisOptions.ConnectionType == 0);
 
 			bool connectedOK;
 
 			cumulus.LogMessage("Station type = Davis");
-			cumulus.LogMessage("LOOP2 " + (cumulus.UseDavisLoop2 ? "enabled" : "disabled"));
+			cumulus.LogMessage("LOOP2 " + (cumulus.DavisOptions.UseLoop2 ? "enabled" : "disabled"));
 
 			if (isSerial)
 			{
 				cumulus.LogMessage("Serial device = " + cumulus.ComportName);
-				cumulus.LogMessage("Serial speed = " + cumulus.DavisBaudRate);
+				cumulus.LogMessage("Serial speed = " + cumulus.DavisOptions.BaudRate);
 
 				InitSerial();
 
@@ -62,11 +62,11 @@ namespace CumulusMX
 			}
 			else
 			{
-				ipaddr = cumulus.VP2IPAddr;
-				port = Convert.ToInt32(cumulus.VP2TCPPort);
+				ipaddr = cumulus.DavisOptions.IPAddr;
+				port = Convert.ToInt32(cumulus.DavisOptions.TCPPort);
 
 				cumulus.LogMessage("IP address = " + ipaddr + " Port = " + port);
-				cumulus.LogMessage("periodic disconnect = " + cumulus.VP2PeriodicDisconnectInterval);
+				cumulus.LogMessage("periodic disconnect = " + cumulus.DavisOptions.PeriodicDisconnectInterval);
 
 				InitTCP();
 
@@ -99,11 +99,11 @@ namespace CumulusMX
 			cumulus.LogMessage("FW version = " + DavisFirmwareVersion);
 			try
 			{
-				if (DavisFirmwareVersion == "???" && cumulus.UseDavisLoop2)
+				if (DavisFirmwareVersion == "???" && cumulus.DavisOptions.UseLoop2)
 				{
 					cumulus.LogMessage("Unable to determine the firmare version, LOOP2 may not be supported");
 				}
-				else if((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.UseDavisLoop2)
+				else if((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.DavisOptions.UseLoop2)
 				{
 					cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
 					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
@@ -114,7 +114,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Error parsing firmware string for version number: " + ex.Message);
 			}
 
-			if (cumulus.StationOptions.DavisReadReceptionStats)
+			if (cumulus.DavisOptions.ReadReceptionStats)
 			{
 				var recepStats = GetReceptionStats();
 				DecodeReceptionStats(recepStats);
@@ -419,8 +419,89 @@ namespace CumulusMX
 				var msg = $"** WARNING: Your station logger interval {readBuffer[0]} mins does not match your Cumulus MX logging interval {cumulus.logints[cumulus.DataLogInterval]} mins";
 				cumulus.LogConsoleMessage(msg);
 				cumulus.LogMessage("CheckLoggerInterval: " + msg);
+
+				if (cumulus.DavisOptions.SetLoggerInterval)
+				{
+					SetLoggerInterval(cumulus.logints[cumulus.DataLogInterval]);
+				}
 			}
 		}
+
+		private void SetLoggerInterval(int interval)
+		{
+			cumulus.LogMessage($"SetLoggerInterval: Seting logger interval to {interval} minutes");
+
+			// response should be just an ACK
+			if (isSerial)
+			{
+				string commandString = $"SETPER {interval}";
+				if (WakeVP(comport))
+				{
+					try
+					{
+						comport.WriteLine(commandString);
+
+						if (!WaitForACK(comport))
+						{
+							cumulus.LogMessage("SetLoggerInterval: No ACK in response to setting logger interval");
+							return;
+						}
+
+						cumulus.LogMessage("SetLoggerInterval: Logger interval changed OK");
+					}
+					catch (TimeoutException)
+					{
+						cumulus.LogMessage("SetLoggerInterval: Timed out waiting for a response");
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("SetLoggerInterval: Error - " + ex.Message);
+						awakeStopWatch.Stop();
+					}
+				}
+			}
+			else
+			{
+				string commandString = $"SETPER {interval}\n";
+				if (WakeVP(socket))
+				{
+					try
+					{
+						NetworkStream stream = socket.GetStream();
+						stream.ReadTimeout = TcpWaitTimeMs;
+						stream.WriteTimeout = TcpWaitTimeMs;
+
+						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
+
+						if (!WaitForACK(stream))
+						{
+							cumulus.LogMessage("SetLoggerInterval: No ACK in response to setting logger interval");
+							return;
+						}
+
+						cumulus.LogMessage("SetLoggerInterval: Logger interval changed OK");
+					}
+					catch (System.IO.IOException ex)
+					{
+						if (ex.Message.Contains("did not properly respond after a period"))
+						{
+							cumulus.LogMessage("SetLoggerInterval: Timed out waiting for a response");
+						}
+						else
+						{
+							cumulus.LogMessage("SetLoggerInterval: Error - " + ex.Message);
+							awakeStopWatch.Stop();
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("SetLoggerInterval: Error - " + ex.Message);
+						awakeStopWatch.Stop();
+					}
+				}
+			}
+		}
+
 
 		private string GetReceptionStats()
 		{
@@ -652,6 +733,7 @@ namespace CumulusMX
 			catch
 			{
 			}
+
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -814,7 +896,7 @@ namespace CumulusMX
 		public override void Start()
 		{
 			cumulus.LogMessage("Start normal reading loop");
-			int loopcount = cumulus.StationOptions.ForceVPBarUpdate ? 20 : 50;
+			int loopcount = cumulus.DavisOptions.ForceVPBarUpdate ? 20 : 50;
 			const int loop2count = 1;
 			bool reconnecting = false;
 
@@ -867,7 +949,7 @@ namespace CumulusMX
 					{
 						if (comport != null && comport.IsOpen)
 						{
-							if (cumulus.UseDavisLoop2 && SendLoopCommand(comport, "LPS 2 " + loop2count))
+							if (cumulus.DavisOptions.UseLoop2 && SendLoopCommand(comport, "LPS 2 " + loop2count))
 							{
 								GetAndProcessLoop2Data(loop2count);
 							}
@@ -909,7 +991,7 @@ namespace CumulusMX
 
 						if (socket != null && socket.Connected)
 						{
-							if (cumulus.UseDavisLoop2 && SendLoopCommand(socket, "LPS 2 " + loop2count + Newline))
+							if (cumulus.DavisOptions.UseLoop2 && SendLoopCommand(socket, "LPS 2 " + loop2count + Newline))
 							{
 								GetAndProcessLoop2Data(loop2count);
 							}
@@ -933,12 +1015,12 @@ namespace CumulusMX
 						}
 					}
 
-					if (cumulus.StationOptions.ForceVPBarUpdate && !stop)
+					if (cumulus.DavisOptions.ForceVPBarUpdate && !stop)
 					{
 						SendBarRead();
 					}
 
-					if (!cumulus.StationOptions.DavisReadReceptionStats || lastRecepStatsTime.AddMinutes(15) >= DateTime.Now || stop)
+					if (!cumulus.DavisOptions.ReadReceptionStats || lastRecepStatsTime.AddMinutes(15) >= DateTime.Now || stop)
 						continue;
 
 					var recepStats = GetReceptionStats();
@@ -1158,7 +1240,7 @@ namespace CumulusMX
 				// flush the input stream
 				stream.WriteByte(10);
 
-				Thread.Sleep(cumulus.DavisIPResponseTime);
+				Thread.Sleep(cumulus.DavisOptions.IPResponseTime);
 
 				while (stream.DataAvailable)
 				{
@@ -1222,7 +1304,7 @@ namespace CumulusMX
 				if (min != previousMinuteSetClock)
 				{
 					previousMinuteSetClock = min;
-					if (cumulus.StationOptions.SyncTime && DateTime.Now.Hour == cumulus.ClockSettingHour && min == 0)
+					if (cumulus.StationOptions.SyncTime && DateTime.Now.Hour == cumulus.StationOptions.ClockSettingHour && min == 2)
 					{
 						// set the console clock
 						clockSetNeeded = true;
@@ -1273,7 +1355,7 @@ namespace CumulusMX
 				else
 				{
 					// See if we need to disconnect to allow Weatherlink IP to upload
-					if (cumulus.VP2PeriodicDisconnectInterval > 0)
+					if (cumulus.DavisOptions.PeriodicDisconnectInterval > 0)
 					{
 						min = DateTime.Now.Minute;
 
@@ -1299,7 +1381,7 @@ namespace CumulusMX
 							}
 
 							// Wait
-							Thread.Sleep(cumulus.VP2PeriodicDisconnectInterval*1000);
+							Thread.Sleep(cumulus.DavisOptions.PeriodicDisconnectInterval *1000);
 
 							cumulus.LogDebugMessage("LOOP: Attempting reconnect to logger");
 							InitTCP();
@@ -1433,6 +1515,10 @@ namespace CumulusMX
 				{
 					DoOutdoorHumidity(loopData.OutsideHumidity, now);
 				}
+				else
+				{
+					cumulus.LogDebugMessage($"LOOP: Ignoring outdoor humidity data. RH={loopData.OutsideHumidity} %.");
+				}
 
 				if ((loopData.InsideTemperature > -200) && (loopData.InsideTemperature < 300))
 				{
@@ -1443,11 +1529,20 @@ namespace CumulusMX
 				{
 					DoOutdoorTemp(ConvertTempFToUser(loopData.OutsideTemperature), now);
 				}
+				else
+				{
+					cumulus.LogDebugMessage($"LOOP: Ignoring outdoor temp data. Temp={loopData.OutsideTemperature} F.");
+				}
 
-				if ((loopData.Pressure > 0) && (loopData.Pressure < 40))
+				if ((loopData.Pressure >= 20) && (loopData.Pressure < 32.5))
 				{
 					DoPressure(ConvertPressINHGToUser(loopData.Pressure), now);
 				}
+				else
+				{
+					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
+				}
+
 
 				DoPressTrend("Pressure trend");
 
@@ -1511,12 +1606,12 @@ namespace CumulusMX
 				StormRain = ConvertRainClicksToUser(loopData.StormRain);
 				StartOfStorm = loopData.StormRainStart;
 
-				if (loopData.UVIndex >= 0 && loopData.UVIndex < 25)
+				if (loopData.UVIndex >= 0 && loopData.UVIndex < 17)
 				{
 					DoUV(loopData.UVIndex, now);
 				}
 
-				if (loopData.SolarRad >= 0 && loopData.SolarRad < 5000)
+				if (loopData.SolarRad >= 0 && loopData.SolarRad < 1801)
 				{
 					DoSolarRad(loopData.SolarRad, now);
 				}
@@ -1907,7 +2002,7 @@ namespace CumulusMX
 				}
 
 				// Check if the station 10 minute gust value is greater than ours - only if our gust period is 10 minutes or more though
-				if (loopData.WindGust10Min < 200 && cumulus.PeakGustMinutes >= 10)
+				if (loopData.WindGust10Min < 200 && cumulus.StationOptions.PeakGustMinutes >= 10)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
 					var gust10min = ConvertWindMPHToUser(loopData.WindGust10Min)*cumulus.Calib.WindGust.Mult;
@@ -2204,7 +2299,7 @@ namespace CumulusMX
 							while (socket.Available < pageSize && responsePasses < 20)
 							{
 								// Wait a short period to let more data load into the buffer
-								Thread.Sleep(cumulus.DavisIPResponseTime);
+								Thread.Sleep(cumulus.DavisOptions.IPResponseTime);
 								responsePasses++;
 							}
 
@@ -2360,7 +2455,7 @@ namespace CumulusMX
 							DoHumidex(timestamp);
 
 							// add in 'archivePeriod' minutes worth of wind speed to windrun
-							WindRunToday += ((WindAverage * WindRunHourMult[cumulus.WindUnit] * interval) / 60.0);
+							WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 
 							DateTime windruncheckTS;
 							if ((h == rollHour) && (timestamp.Minute == 0))
@@ -2873,7 +2968,7 @@ namespace CumulusMX
 							cumulus.LogDebugMessage($"WakeVP: Sending newline ({passCount}/{maxPasses})");
 							stream.WriteByte(LF);
 
-							Thread.Sleep(cumulus.DavisIPResponseTime);
+							Thread.Sleep(cumulus.DavisOptions.IPResponseTime);
 
 							int thisChar;
 							do
@@ -2974,7 +3069,7 @@ namespace CumulusMX
 
 				try
 				{
-					comport = new SerialPort(cumulus.ComportName, cumulus.DavisBaudRate, Parity.None, 8, StopBits.One)
+					comport = new SerialPort(cumulus.ComportName, cumulus.DavisOptions.BaudRate, Parity.None, 8, StopBits.One)
 					{
 						Handshake = Handshake.None,
 						DtrEnable = true,
@@ -3078,12 +3173,12 @@ namespace CumulusMX
 
 				socket = OpenTcpPort();
 
-				if (socket == null)
+				if (socket == null && !stop)
 				{
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
 					Thread.Sleep(30000);
 				}
-			} while (socket == null || !socket.Connected);
+			} while ((socket == null || !socket.Connected) && !stop);
 
 			try
 			{
@@ -3095,7 +3190,7 @@ namespace CumulusMX
 				// stop loop data
 				stream.WriteByte(0x0A);
 
-				Thread.Sleep(cumulus.DavisInitWaitTime);
+				Thread.Sleep(cumulus.DavisOptions.InitWaitTime);
 
 				byte[] buffer1 = new byte[1000];
 				byte[] buffer2 = new byte[buffer1.Length];
@@ -3116,7 +3211,7 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"InitTCP: Sending TEST ({tryCount}) command");
 					stream.Write(Encoding.ASCII.GetBytes("TEST\n"), 0, 5);
 
-					Thread.Sleep(cumulus.DavisInitWaitTime);
+					Thread.Sleep(cumulus.DavisOptions.InitWaitTime);
 
 					while (stream.DataAvailable)
 					{
@@ -3196,7 +3291,7 @@ namespace CumulusMX
 			var readBuffer = new StringBuilder();
 
 			cumulus.LogDebugMessage("WaitForOK: Wait for OK");
-			Thread.Sleep(cumulus.DavisIPResponseTime);
+			Thread.Sleep(cumulus.DavisOptions.IPResponseTime);
 
 			do
 			{
@@ -3298,7 +3393,7 @@ namespace CumulusMX
 			// in the buffer first or no response is given.  If all else fails, try again.
 			cumulus.LogDebugMessage("WaitForACK: Starting");
 
-			Thread.Sleep(cumulus.DavisIPResponseTime);
+			Thread.Sleep(cumulus.DavisOptions.IPResponseTime);
 
 			if (timeoutMs > -1)
 			{
@@ -3638,20 +3733,29 @@ namespace CumulusMX
 		/// <returns></returns>
 		private double ConvertRainClicksToUser(double clicks)
 		{
-			// One click is either 0.01 inches or 0.2 mm
-			switch (cumulus.VPrainGaugeType)
+			// One click is either 0.01, 0.001 inches or 0.2, 0.1 mm
+			switch (cumulus.DavisOptions.RainGaugeType)
 			{
 				case 0:
-					// Rain gauge is metric, convert to user unit
+					// Rain gauge is metric 0.2 mm
 					return ConvertRainMMToUser(clicks * 0.2);
 
 				case 1:
-					// Rain gauge is imperial, convert to user unit
+					// Rain gauge is imperial 0.01 in
 					return ConvertRainINToUser(clicks * 0.01);
+
+				case 2:
+					// Rain gauge is metric 0.1 mm
+					return ConvertRainMMToUser(clicks * 0.1);
+
+				case 3:
+					// Rain gauge is imperial 0.001 in
+					return ConvertRainMMToUser(clicks * 0.2);
 
 				default:
 					// Rain gauge type not configured, assume it is the same as the station units
-					return cumulus.RainUnit == 0 ? clicks * 0.2 : clicks * 0.01;
+					// Assume standard gauge type of 0.01 in or 0.02 mm
+					return cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01;
 			}
 		}
 

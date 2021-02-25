@@ -37,8 +37,13 @@ namespace CumulusMX
 
 
             var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
+            var logfileOld = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog-Old.txt";
+            if (File.Exists(logfileOld))
+                File.Delete(logfileOld);
+
             if (File.Exists(logfile))
-                File.Delete(logfile);
+                File.Move(logfile, logfileOld);
+
             svcTextListener = new TextWriterTraceListener(logfile);
             svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Starting on " + (windows ? "Windows" : "Linux"));
             svcTextListener.Flush();
@@ -64,9 +69,23 @@ namespace CumulusMX
                         // Wait for a signal to be delivered
                         unixSignalWaitAny?.Invoke(null, new object[] {signals});
 
+                        var msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external SIGTERM signal";
+                        Console.WriteLine(msg);
+                        svcTextListener.WriteLine(msg);
+
                         if (cumulus != null)
                         {
-                            cumulus.LogConsoleMessage("\nExiting system due to external SIGTERM signal");
+                            msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating";
+                            Console.WriteLine(msg);
+                            svcTextListener.WriteLine(msg);
+                            cumulus.LogMessage("Exiting system due to external SIGTERM signal");
+                            cumulus.LogMessage("Cumulus terminating");
+                            cumulus.Stop();
+                            //allow main to run off
+                            Thread.Sleep(500);
+                            msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown";
+                            Console.WriteLine(msg);
+                            svcTextListener.WriteLine(msg);
                         }
 
                         exitSystem = true;
@@ -83,6 +102,8 @@ namespace CumulusMX
                         cumulus.LogConsoleMessage("Ctrl+C pressed");
                         cumulus.LogConsoleMessage("\nCumulus terminating");
                         cumulus.Stop();
+                        //allow main to run off
+                        Thread.Sleep(500);
                     }
                     Trace.WriteLine("Cumulus has shutdown");
                     ev.Cancel = true;
@@ -278,6 +299,8 @@ namespace CumulusMX
         }
     }
 
+
+    // Windows ExitHandler
     public class ExitHandler
     {
         [DllImport("Kernel32")]
@@ -314,13 +337,18 @@ namespace CumulusMX
             {
                 Program.cumulus.LogConsoleMessage("Cumulus terminating");
                 Program.cumulus.Stop();
+                //allow main to run off
+                Thread.Sleep(500);
+            }
+            else
+            {
+                Trace.WriteLine("Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
+                Environment.Exit(2);
             }
 
             Trace.WriteLine("Cumulus has shutdown");
             Console.WriteLine("Cumulus stopped");
 
-            //allow main to run off
-            Thread.Sleep(200);
             Program.exitSystem = true;
 
             return true;

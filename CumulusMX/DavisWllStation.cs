@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Net;
@@ -55,6 +56,34 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Station type = Davis WLL");
 
+			// Override the ServiceStack Deserialization function
+			// Check which format provided, attempt to parse as datetime or return minValue.
+			// Formats to use for the different date kinds
+			string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
+			string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+
+
+			ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
+			{
+				if (string.IsNullOrWhiteSpace(datetimeStr))
+				{
+					return DateTime.MinValue;
+				}
+
+				if (datetimeStr.EndsWith("Z") &&
+					DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
+				{
+					return resultUtc;
+				}
+				else if (!datetimeStr.EndsWith("Z") &&
+					DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
+				{
+					return resultLocal;
+				}
+
+				return DateTime.MinValue;
+			};
+
 			tmrRealtime = new System.Timers.Timer();
 			tmrCurrent = new System.Timers.Timer();
 			tmrBroadcastWatchdog = new System.Timers.Timer();
@@ -67,12 +96,12 @@ namespace CumulusMX
 			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
 
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
-			if (cumulus.PeakGustMinutes == 10)
+			if (cumulus.StationOptions.PeakGustMinutes == 10)
 			{
 				CalcRecentMaxGust = false;
 				checkWllGustValues = false;
 			}
-			else if (cumulus.PeakGustMinutes > 10)
+			else if (cumulus.StationOptions.PeakGustMinutes > 10)
 			{
 				// If the user period is greater that 10 minutes, then Cumulus must calculate Gust values
 				// but we can check the WLL 10 min gust value in case we missed a gust
@@ -112,6 +141,11 @@ namespace CumulusMX
 				useWeatherLinkDotCom = false;
 			}
 
+			if (useWeatherLinkDotCom)
+			{
+				// Get wl.com status
+				GetSystemStatus();
+			}
 
 			// Perform Station ID checks - If we have API deatils!
 			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key
@@ -221,8 +255,15 @@ namespace CumulusMX
 				if (port == 0)
 				{
 					cumulus.LogMessage("WLL failed to get broadcast port via realtime request, defaulting to 22222");
-					port = 22222;
+					port = cumulus.DavisOptions.TCPPort;
 				}
+				else if (port != cumulus.DavisOptions.TCPPort)
+				{
+					cumulus.LogMessage($"WLL Discovered broacast port ({port}) is not the same as in the config ({cumulus.DavisOptions.TCPPort}), resetting config to match");
+					cumulus.DavisOptions.TCPPort = port;
+					cumulus.WriteIniFile();
+				}
+
 				// Create a broadcast listener
 				Task.Run(() =>
 				{
@@ -237,9 +278,11 @@ namespace CumulusMX
 						{
 							try
 							{
+								var jsonBtye = udpClient.Receive(ref from);
+								var jsonStr = Encoding.UTF8.GetString(jsonBtye);
 								if (!stop) // we may be waiting for a broadcast when a shutdown is started
 								{
-									DecodeBroadcast(Encoding.UTF8.GetString(udpClient.Receive(ref from)));
+									DecodeBroadcast(jsonStr);
 								}
 							}
 							catch (SocketException exp)
@@ -328,7 +371,7 @@ namespace CumulusMX
 
 					lock (threadSafer)
 					{
-						ip = cumulus.VP2IPAddr;
+						ip = cumulus.DavisOptions.IPAddr;
 					}
 
 					if (CheckIpValid(ip))
@@ -388,7 +431,7 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				ip = cumulus.VP2IPAddr;
+				ip = cumulus.DavisOptions.IPAddr;
 			}
 
 			if (CheckIpValid(ip))
@@ -419,6 +462,7 @@ namespace CumulusMX
 							DoDayResetIfNeeded();
 							startupDayResetIfRequired = false;
 						}
+						retry = 9;
 					}
 					catch (Exception ex)
 					{
@@ -430,7 +474,6 @@ namespace CumulusMX
 							cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
 						Thread.Sleep(1000);
 					}
-					retry = 9;
 				} while (retry < 3);
 
 				cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");
@@ -452,7 +495,6 @@ namespace CumulusMX
 				if (broadcastJson.StartsWith("{\"did\":"))
 				{
 					var json = broadcastJson.FromJson<WllBroadcast>();
-
 					// The WLL sends the timestamp in Unix ticks, and in UTC
 					// rather than rely on the WLL clock being correct, we will use our local time
 					var dateTime = DateTime.Now;
@@ -550,6 +592,8 @@ namespace CumulusMX
 							cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
 						}
 					}
+
+					json = null;
 
 					UpdateStatusPanel(DateTime.Now);
 					UpdateMQTT();
@@ -771,7 +815,7 @@ namespace CumulusMX
 							{
 								/*
 								* Available fields:
-								* rec["rain_size"]
+								* rec["rain_size"] - 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
 								* rec["rain_rate_last"], rec["rain_rate_hi"]
 								* rec["rainfall_last_15_min"], rec["rain_rate_hi_last_15_min"]
 								* rec["rainfall_last_60_min"]
@@ -785,6 +829,43 @@ namespace CumulusMX
 
 
 								cumulus.LogDebugMessage($"WLL current: using rain data from TxId {data1.txid}");
+
+								var tipSize = data1.rain_size;
+								switch (tipSize)
+								{
+									case 1:
+										if (cumulus.DavisOptions.RainGaugeType != 1)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.01 in");
+											cumulus.DavisOptions.RainGaugeType = 1;
+											cumulus.WriteIniFile();
+										}
+										break;
+									case 2:
+										if (cumulus.DavisOptions.RainGaugeType != 0)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.2 mm");
+											cumulus.DavisOptions.RainGaugeType = 0;
+											cumulus.WriteIniFile();
+										}
+										break;
+									case 3:
+										if (cumulus.DavisOptions.RainGaugeType != 2)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.1 mm");
+											cumulus.DavisOptions.RainGaugeType = 2;
+											cumulus.WriteIniFile();
+										}
+										break;
+									case 4:
+										if (cumulus.DavisOptions.RainGaugeType != 3)
+										{
+											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.001 in");
+											cumulus.DavisOptions.RainGaugeType = 2;
+											cumulus.WriteIniFile();
+										}
+										break;
+								}
 
 								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use storm data
 
@@ -1147,13 +1228,13 @@ namespace CumulusMX
 			{
 				ipaddr = service.Addresses[0].ToString();
 				cumulus.LogMessage($"WLL found, reporting its IP address as: {ipaddr}");
-				if (cumulus.VP2IPAddr != ipaddr)
+				if (cumulus.DavisOptions.IPAddr != ipaddr)
 				{
-					cumulus.LogMessage($"WLL IP address has changed from {cumulus.VP2IPAddr} to {ipaddr}");
+					cumulus.LogMessage($"WLL IP address has changed from {cumulus.DavisOptions.IPAddr} to {ipaddr}");
 					if (cumulus.WLLAutoUpdateIpAddress)
 					{
 						cumulus.LogMessage($"WLL changing Cumulus config to the new IP address {ipaddr}");
-						cumulus.VP2IPAddr = ipaddr;
+						cumulus.DavisOptions.IPAddr = ipaddr;
 						cumulus.WriteIniFile();
 					}
 					else
@@ -1178,13 +1259,13 @@ namespace CumulusMX
 				case 4:
 					return ConvertRainINToUser(clicks * 0.001);
 				default:
-					switch (cumulus.VPrainGaugeType)
+					switch (cumulus.DavisOptions.RainGaugeType)
 					{
 						// Hmm, no valid tip size from WLL...
 						// One click is normally either 0.01 inches or 0.2 mm
 						// Try the setting in Cumulus.ini
 						// Rain gauge type not configured, assume from units
-						case -1 when cumulus.RainUnit == 0:
+						case -1 when cumulus.Units.Rain == 0:
 							return clicks * 0.2;
 						case -1:
 							return clicks * 0.01;
@@ -1730,6 +1811,11 @@ namespace CumulusMX
 									DoOutdoorTemp(ConvertTempFToUser(data11.temp_lo), ts);
 									// do last temp
 									DoOutdoorTemp(ConvertTempFToUser(data11.temp_last), recordTs);
+
+									// set the values for daily average, arch_int is in seconds
+									tempsamplestoday += data11.arch_int / 60;
+									TempTotalToday += ConvertTempFToUser(data11.temp_avg) * data11.arch_int / 60;
+
 								}
 							}
 							catch (Exception ex)
@@ -1846,7 +1932,7 @@ namespace CumulusMX
 
 								// add in 'archivePeriod' minutes worth of wind speed to windrun
 								int interval = data11.arch_int / 60;
-								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.WindUnit] * interval) / 60.0);
+								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 							}
 							catch (Exception ex)
 							{
@@ -2527,6 +2613,8 @@ namespace CumulusMX
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"WLL Health: WeatherLink API Error: {errObj.code}, {errObj.message}");
+					// Get wl.com status
+					GetSystemStatus();
 					return;
 				}
 
@@ -2534,6 +2622,8 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+					// Get wl.com status
+					GetSystemStatus();
 					return;
 				}
 
@@ -2581,12 +2671,14 @@ namespace CumulusMX
 							// AirLink Outdoor
 							case 506 when lsid == alOutHealthLsid:
 								// Pass AirLink historic record to the AirLink module to process
-								cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
+								if (cumulus.airLinkOut != null)
+									cumulus.airLinkOut.DecodeWlApiHealth(sensor, true);
 								break;
 							// AirLink Indoor
 							case 506 when lsid == alInHealthLsid:
 								// Pass AirLink historic record to the AirLink module to process
-								cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
+								if (cumulus.airLinkIn != null)
+									cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
 								break;
 							default:
 								if (sensorType == 504 || dataStructureType == 11)
@@ -2866,6 +2958,78 @@ namespace CumulusMX
 			catch
 			{ }
 			return 0;
+		}
+
+		private void GetSystemStatus()
+		{
+			WlComSystemStatus status;
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				cumulus.LogDebugMessage("GetSystemStatus: Getting WeatherLink.com system status");
+
+				// we want to do this synchronously, so .Result
+				using (HttpResponseMessage response = wlHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
+				{
+					responseBody = responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int)response.StatusCode;
+					cumulus.LogDebugMessage($"GetSystemStatus: WeatherLink.com system status Response code: {responseCode}");
+					cumulus.LogDataMessage($"GetSystemStatus: WeatherLink.com system status Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogMessage($"GetSystemStatus: WeatherLink.com system status Error: {responseCode}");
+					cumulus.LogConsoleMessage($" - Error {responseCode}");
+					return;
+				}
+
+				status = responseBody.FromJson<WlComSystemStatus>();
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("GetSystemStatus: WeatherLink.com system status: No data was returned.");
+					return;
+				}
+				else if (status != null)
+				{
+					var msg = $"Weatherlink.com overall System Status: '{status.result.status_overall.status}', Updated: {status.result.status_overall.updated}";
+					if (status.result.status_overall.status_code != 100)
+					{
+						msg += "Error: ";
+						cumulus.LogMessage(msg);
+						Console.WriteLine(msg);
+					}
+					else
+					{
+						cumulus.LogDebugMessage(msg);
+					}
+					// If we are not OK, then find what isn't working
+					if (status.result.status_overall.status_code != 100)
+					{
+						foreach (var subSys in status.result.status)
+						{
+							msg = $"   wl.com system: {subSys.name}, status: {subSys.status}, updated: {subSys.updated}";
+							cumulus.LogMessage(msg);
+							Console.WriteLine(msg);
+						}
+					}
+				}
+				else
+				{
+					cumulus.LogMessage("GetSystemStatus: Something went wrong!");
+				}
+
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("GetSystemStatus:  Exception: " + ex);
+				return;
+			}
+
+			return;
 		}
 
 		private class WllBroadcast

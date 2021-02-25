@@ -72,8 +72,8 @@ namespace CumulusMX
 
 			var devicelist = DeviceList.Local;
 
-			int vid = (cumulus.vendorID < 0 ? DefaultVid : cumulus.vendorID);
-			int pid = (cumulus.productID < 0 ? DefaultPid : cumulus.productID);
+			int vid = (cumulus.FineOffsetOptions.VendorID < 0 ? DefaultVid : cumulus.FineOffsetOptions.VendorID);
+			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
 
 			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+vid.ToString("X4")+" ProductID=0x"+pid.ToString("X4"));
 			cumulus.LogConsoleMessage("Looking for Fine Offset station");
@@ -98,11 +98,11 @@ namespace CumulusMX
 					cumulus.LogMessage("Rel pressure      = " + relpressure);
 					cumulus.LogMessage("Abs pressure      = " + abspressure);
 					cumulus.LogMessage("Calculated Offset = " + pressureOffset);
-					if (cumulus.EWpressureoffset < 9999.0)
+					if (cumulus.EwOptions.PressOffset < 9999.0)
 					{
 						cumulus.LogMessage("Ignoring calculated offset, using offset value from cumulus.ini file");
-						cumulus.LogMessage("EWpressureoffset = " + cumulus.EWpressureoffset);
-						pressureOffset = cumulus.EWpressureoffset;
+						cumulus.LogMessage("EWpressureoffset = " + cumulus.EwOptions.PressOffset);
+						pressureOffset = cumulus.EwOptions.PressOffset;
 					}
 
 					// Read the data from the logger
@@ -365,7 +365,7 @@ namespace CumulusMX
 
 				// Pressure =============================================================
 
-				if ((historydata.pressure < cumulus.EWminpressureMB) || (historydata.pressure > cumulus.EWmaxpressureMB))
+				if ((historydata.pressure < cumulus.EwOptions.MinPressMB) || (historydata.pressure > cumulus.EwOptions.MaxPressMB))
 				{
 					cumulus.LogMessage("Ignoring bad data: pressure = " + historydata.pressure);
 					cumulus.LogMessage("                   offset = " + pressureOffset);
@@ -510,10 +510,10 @@ namespace CumulusMX
 					}
 				}
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.WindUnitText + " for " + historydata.followinginterval + " minutes = " +
-								(WindAverage*WindRunHourMult[cumulus.WindUnit]*historydata.followinginterval/60.0).ToString(cumulus.WindRunFormat) + cumulus.WindRunUnitText);
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.followinginterval + " minutes = " +
+								(WindAverage*WindRunHourMult[cumulus.Units.Wind]*historydata.followinginterval/60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += (WindAverage*WindRunHourMult[cumulus.WindUnit]*historydata.followinginterval/60.0);
+				WindRunToday += (WindAverage*WindRunHourMult[cumulus.Units.Wind]*historydata.followinginterval/60.0);
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(historydata.interval);
@@ -591,7 +591,7 @@ namespace CumulusMX
 
 			//response = device.WriteRead(0x00, request);
 			stream.Write(request);
-			Thread.Sleep(cumulus.FineOffsetReadTime);
+			Thread.Sleep(cumulus.FineOffsetOptions.FineOffsetReadTime);
 			for (int i = 1; i < 5; i++)
 			{
 				//cumulus.LogMessage("Reading 8 bytes");
@@ -660,7 +660,7 @@ namespace CumulusMX
 
 			var data = new byte[32];
 
-			if (cumulus.StationOptions.SyncFOReads && !synchronising)
+			if (cumulus.FineOffsetOptions.FineOffsetSyncReads && !synchronising)
 			{
 				if ((DateTime.Now - FOSensorClockTime).TotalDays > 1)
 				{
@@ -672,21 +672,21 @@ namespace CumulusMX
 				}
 
 				// Check that were not within N seconds of the station updating memory
-				bool sensorclockOK = ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 >= (cumulus.FOReadAvoidPeriod - 1)) &&
-				                     ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 <= (47 - cumulus.FOReadAvoidPeriod));
-				bool stationclockOK = ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 >= (cumulus.FOReadAvoidPeriod - 1)) &&
-				                      ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 <= (59 - cumulus.FOReadAvoidPeriod));
+				bool sensorclockOK = ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 >= (cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod - 1)) &&
+				                     ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 <= (47 - cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod));
+				bool stationclockOK = ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 >= (cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod - 1)) &&
+				                      ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 <= (59 - cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod));
 
 				if (!sensorclockOK || !stationclockOK)
 				{
 					if (!sensorclockOK)
 					{
-						cumulus.LogDebugMessage("Within "+cumulus.FOReadAvoidPeriod+" seconds of sensor data change, skipping read");
+						cumulus.LogDebugMessage("Within "+cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod +" seconds of sensor data change, skipping read");
 					}
 
 					if (!stationclockOK)
 					{
-						cumulus.LogDebugMessage("Within " + cumulus.FOReadAvoidPeriod + " seconds of station clock minute change, skipping read");
+						cumulus.LogDebugMessage("Within " + cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod + " seconds of station clock minute change, skipping read");
 					}
 
 					return;
@@ -809,7 +809,7 @@ namespace CumulusMX
 					// Pressure =========================================================
 					double pressure = (data[7] + ((data[8] & 0x3f)*256))/10.0f + pressureOffset;
 
-					if ((pressure < cumulus.EWminpressureMB) || (pressure > cumulus.EWmaxpressureMB))
+					if ((pressure < cumulus.EwOptions.MinPressMB) || (pressure > cumulus.EwOptions.MaxPressMB))
 					{
 						// bad value
 						cumulus.LogMessage("Ignoring bad data: pressure = " + pressure);
@@ -933,7 +933,7 @@ namespace CumulusMX
 
 						int raindiff = Math.Abs(raintot - prevraintotal);
 
-						if (raindiff > cumulus.EWMaxRainTipDiff)
+						if (raindiff > cumulus.EwOptions.MaxRainTipDiff)
 						{
 							cumulus.LogMessage("Warning: large difference in rain gauge tip count: " + raindiff);
 

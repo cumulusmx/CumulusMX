@@ -108,12 +108,11 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			int interval;
-			int countdown;
 			Timestamp ts;
 			int numrecs;
 
 			cumulus.LogMessage("Reading history info");
-			int rec = Ws2300ReadHistoryDetails(out interval, out countdown, out ts, out numrecs);
+			int rec = Ws2300ReadHistoryDetails(out interval, out _, out ts, out numrecs);
 
 			if (rec < 0)
 				cumulus.LogMessage("Failed to read history data");
@@ -354,10 +353,10 @@ namespace CumulusMX
 				}
 
 				// Wind run ======================================================================
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.WindUnitText + " for " + historydata.interval + " minutes = " +
-								(WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.WindRunUnitText);
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.Units.WindText + " for " + historydata.interval + " minutes = " +
+								(WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += (WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.interval / 60.0);
+				WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0);
 
 				CheckForWindrunHighLow(timestamp);
 

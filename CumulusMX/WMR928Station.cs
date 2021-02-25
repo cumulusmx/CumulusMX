@@ -206,8 +206,6 @@ namespace CumulusMX
 
 		private void Parse(List<int> buff)
 		{
-			int csum;
-
 			string msg = "Packet received: ";
 
 			for (int i = 0; i < buff.Count; i++)
@@ -215,7 +213,7 @@ namespace CumulusMX
 				msg += buff[i].ToString("X2");
 			}
 
-			if (WMR928valid(buff, out csum))
+			if (WMR928valid(buff, out _))
 			{
 				DateTime now = DateTime.Now;
 				switch (buff[2])

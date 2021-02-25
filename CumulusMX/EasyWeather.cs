@@ -83,13 +83,13 @@ namespace CumulusMX
         public override void Start()
         {
             tmrDataRead.Elapsed += EWGetData;
-            tmrDataRead.Interval = cumulus.EWInterval*60*1000;
+            tmrDataRead.Interval = cumulus.EwOptions.Interval*60*1000;
             tmrDataRead.Enabled = true;
 
             DoDayResetIfNeeded();
             DoTrendValues(DateTime.Now);
 
-            if (File.Exists(cumulus.EWFile))
+            if (File.Exists(cumulus.EwOptions.Filename))
             {
                 EWGetData(null, null);
                 cumulus.StartTimersAndSensors();
@@ -104,12 +104,12 @@ namespace CumulusMX
 
         private void EWGetData(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            if (File.Exists(cumulus.EWFile))
+            if (File.Exists(cumulus.EwOptions.Filename))
             {
                 try
                 {
                     string line;
-                    using (FileStream fs = new FileStream(cumulus.EWFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (FileStream fs = new FileStream(cumulus.EwOptions.Filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var sr = new StreamReader(fs))
                     {
                         do

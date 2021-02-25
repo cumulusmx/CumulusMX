@@ -63,11 +63,9 @@ namespace CumulusMX
 		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
 									  out double solarelevation, double transfactor, double turbidity, int method)
 		{
-			double az;
-
 			DateTime utctime = timestamp.ToUniversalTime();
 
-			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out az);
+			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out _);
 			var dEpoch = new DateTime(1990, 1, 1, 0, 0, 0);
 			double erv = CalcSunDistance(utctime, dEpoch);
 

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Unosquare.Labs.EmbedIO;
 using ServiceStack;
 
@@ -12,19 +11,26 @@ namespace CumulusMX
 {
 	internal class DataEditor
 	{
-		private readonly WeatherStation station;
-		private readonly Cumulus cumulus;
-		private readonly WebTags webtags;
+		private WeatherStation station;
+		private Cumulus cumulus;
+		private WebTags webtags;
 
 		private readonly List<LastHourRainLog> hourRainLog = new List<LastHourRainLog>();
 
-		internal DataEditor(Cumulus cumulus, WeatherStation station, WebTags webtags)
+		internal DataEditor(Cumulus cumulus)
 		{
-			this.station = station;
 			this.cumulus = cumulus;
-			this.webtags = webtags;
 		}
 
+		internal void SetStation(WeatherStation station)
+		{
+			this.station = station;
+		}
+
+		internal void SetWebTags(WebTags webtags)
+		{
+			this.webtags = webtags;
+		}
 		//internal string EditRainToday(HttpListenerContext context)
 		internal string EditRainToday(IHttpContext context)
 		{
@@ -80,6 +86,7 @@ namespace CumulusMX
 		{
 			try
 			{
+
 				var request = context.Request;
 				string text;
 
@@ -87,6 +94,33 @@ namespace CumulusMX
 				{
 					text = reader.ReadToEnd();
 				}
+
+				// Formats to use for the different date kinds
+				string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+				string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+
+				// Override the ServiceStack Deserialization function
+				// Check which format provided, attempt to parse as datetime or return minValue.
+				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
+				{
+					if (string.IsNullOrWhiteSpace(datetimeStr))
+					{
+						return DateTime.MinValue;
+					}
+
+					if (datetimeStr.EndsWith("Z") &&
+						DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
+					{
+						return resultUtc;
+					}
+					else if (!datetimeStr.EndsWith("Z") &&
+						DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
+					{
+						return resultLocal;
+					}
+
+					return DateTime.MinValue;
+				};
 
 				var newData = text.FromJson<DiaryData>();
 
@@ -114,6 +148,33 @@ namespace CumulusMX
 				{
 					text = reader.ReadToEnd();
 				}
+
+				// Formats to use for the different date kinds
+				string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+				string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+
+				// Override the ServiceStack Deserialization function
+				// Check which format provided, attempt to parse as datetime or return minValue.
+				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
+				{
+					if (string.IsNullOrWhiteSpace(datetimeStr))
+					{
+						return DateTime.MinValue;
+					}
+
+					if (datetimeStr.EndsWith("Z") &&
+						DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
+					{
+						return resultUtc;
+					}
+					else if (!datetimeStr.EndsWith("Z") &&
+						DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
+					{
+						return resultLocal;
+					}
+
+					return DateTime.MinValue;
+				};
 
 				var record = text.FromJson<DiaryData>();
 

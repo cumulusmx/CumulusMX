@@ -61,7 +61,7 @@ namespace CumulusMX
 			// Easist to see if we are a node of a WLL station
 			standalone = !(
 				cumulus.StationType == StationTypes.WLL &&
-				(this.indoor ? cumulus.AirLinkInIsNode : cumulus.AirLinkOutIsNode) &&
+				cumulus.AirLinkIsNode &&
 				!string.IsNullOrEmpty(cumulus.WllApiKey) &&
 				!string.IsNullOrEmpty(cumulus.WllApiSecret) &&
 				!(cumulus.WllStationId < 10)

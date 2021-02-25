@@ -505,16 +505,20 @@ namespace CumulusMX
 				}
 				else if (discoveredDevices.IP.Count == 1 && (string.IsNullOrEmpty(macaddr) || discoveredDevices.Mac[0] == macaddr))
 				{
+					cumulus.LogDebugMessage("Discovered one GW1000 device");
 					// If only one device is discovered, and its MAC address matches (or our MAC is blank), then just use it
-					cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
-					cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
-					ipaddr = discoveredDevices.IP[0];
-					cumulus.Gw1000IpAddress = ipaddr;
-					if (discoveredDevices.Mac[0] != macaddr)
+					if (cumulus.Gw1000IpAddress != discoveredDevices.IP[0])
 					{
-						cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
+						cumulus.LogMessage("Discovered a new IP address for the GW1000 that does not match our current one");
+						cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
+						ipaddr = discoveredDevices.IP[0].Trim();
+						cumulus.Gw1000IpAddress = ipaddr;
+						if (discoveredDevices.Mac[0] != macaddr)
+						{
+							cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
+						}
+						cumulus.WriteIniFile();
 					}
-					cumulus.WriteIniFile();
 				}
 				else if (discoveredDevices.Mac.Contains(macaddr))
 				{
