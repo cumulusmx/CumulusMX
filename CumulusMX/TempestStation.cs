@@ -45,7 +45,7 @@ namespace CumulusMX
                 if (FirstRun) stTime = DateTime.Now.AddDays(-30);
 
                 var recs = StationListener.GetRestPacket(StationListener.REST_URL,
-                    cumulus.WFToken, cumulus.WFDeviceId,
+                    cumulus.WeatherFlowOptions.WFToken, cumulus.WeatherFlowOptions.WFDeviceId,
                     stTime, DateTime.Now);
 
                 ProcessHistoryData(recs);
@@ -169,16 +169,10 @@ namespace CumulusMX
 
 
                 // add in 'following interval' minutes worth of wind speed to windrun
-                cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) +
-                                   cumulus.WindUnitText +
-                                   " for " + historydata.ReportInterval + " minutes = " +
-                                   (WindAverage * WindRunHourMult[cumulus.WindUnit] *
-                                    historydata.ReportInterval /
-                                    60.0)
-                                   .ToString(cumulus.WindRunFormat) + cumulus.WindRunUnitText);
+                cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.ReportInterval + " minutes = " +
+                                   (WindAverage*WindRunHourMult[cumulus.Units.Wind]*historydata.ReportInterval/60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-                WindRunToday += WindAverage * WindRunHourMult[cumulus.WindUnit] * historydata.ReportInterval /
-                                60.0;
+                WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.ReportInterval / 60.0;
 
                 // update heating/cooling degree days
                 UpdateDegreeDays(historydata.ReportInterval);
@@ -424,7 +418,7 @@ namespace CumulusMX.Tempest
             {
                 try
                 {
-                    _udpListener = new EventClient(cumulus.WFTcpPort);
+                    _udpListener = new EventClient(cumulus.WeatherFlowOptions.WFTcpPort);
                 }
                 catch (Exception e)
                 {

@@ -484,6 +484,7 @@ namespace CumulusMX
 		public FineOffsetOptions FineOffsetOptions = new FineOffsetOptions();
 		public ImetOptions ImetOptions = new ImetOptions();
 		public EasyWeatherOptions EwOptions = new EasyWeatherOptions();
+        public WeatherFlowOptions WeatherFlowOptions = new WeatherFlowOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
 
@@ -720,13 +721,13 @@ namespace CumulusMX
 		public AirLinkData airLinkDataIn;
 		public AirLinkData airLinkDataOut;
 
-		public string[] StationDesc =
-		{
-			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000"
-		};
+        public string[] StationDesc =
+        {
+            "Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
+            "LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000", "WeatherFlow Tempest"
+        };
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
+        public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt","Tempest" };
 
 		public string loggingfile;
 
@@ -1348,6 +1349,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
+                case StationTypes.Tempest:
+                    Manufacturer = WEATHERFLOW;
+                    station = new TempestStation(this);
+                    break;
 				default:
 					LogConsoleMessage("Station type not set");
 					LogMessage("Station type not set");
@@ -3430,6 +3435,11 @@ namespace CumulusMX
 			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+
+            WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+            WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
+            WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
+
 			//VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
 			DavisOptions.PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
@@ -5017,6 +5027,10 @@ namespace CumulusMX
 				ini.SetValue("Select-a-Chart", "Colour" + i, SelectaChartOptions.colours[i]);
 			}
 
+            ini.SetValue("Station", "WeatherFlowDeviceId", WeatherFlowOptions.WFDeviceId);
+            ini.SetValue("Station", "WeatherFlowTcpPort", WeatherFlowOptions.WFTcpPort);
+            ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
+
 
 			ini.Flush();
 
@@ -5644,6 +5658,7 @@ namespace CumulusMX
 		public int OREGONUSB = 4;
 		public int INSTROMET = 5;
 		public int ECOWITT = 6;
+        public int WEATHERFLOW = 7;
 		//public bool startingup = true;
 		public bool StartOfDayBackupNeeded;
 		public string ReportPath;
@@ -9180,6 +9195,7 @@ namespace CumulusMX
 		public const int Instromet = 10;
 		public const int WLL = 11;
 		public const int GW1000 = 12;
+        public const int Tempest = 13;
 	}
 
 	/*
@@ -9307,6 +9323,14 @@ namespace CumulusMX
 		public string IPAddr { get; set; }
 		public int PeriodicDisconnectInterval { get; set; }
 	}
+
+    public class WeatherFlowOptions
+    {
+        public int WFDeviceId { get; set; }
+        public int WFTcpPort { get; set; }
+        public string WFToken { get; set; }
+
+    }
 
 	public class FineOffsetOptions
 	{

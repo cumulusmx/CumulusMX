@@ -120,6 +120,9 @@ namespace CumulusMX
 				advanced = davisvp2advanced
 			};
 
+            var weatherflow = new JsonStationSettingsWeatherFlow()
+                {deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken};
+
 			var gw1000 = new JSonStationSettingsGw1000Conn() { ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
 
 			var logrollover = new JsonStationSettingsLogRollover() { time = "midnight",summer10am = cumulus.Use10amInSummer };
@@ -367,6 +370,7 @@ namespace CumulusMX
 				davisvp2 = davisvp2,
 				daviswll = wll,
 				gw1000 = gw1000,
+                weatherflow = weatherflow,
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
@@ -789,6 +793,21 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+                // weatherflow connection details
+                try
+                {
+                    cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
+                    cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
+                    cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
+                }
+                catch (Exception ex)
+                {
+                    var msg = $"Error processing WeatherFlow settings: {ex.Message}";
+                    cumulus.LogMessage(msg);
+                    errorMsg += msg + "\n\n";
+                    context.Response.StatusCode = 500;
+                }
+
 				// EasyWeather
 				try
 				{
@@ -1046,6 +1065,7 @@ namespace CumulusMX
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
 		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
+        public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
 		public JsonStationSettingsFineOffset fineoffset { get; set; }
 		public JsonStationSettingsEasyWeather easyw { get; set; }
@@ -1176,6 +1196,13 @@ namespace CumulusMX
 		public int raintipdiff { get; set; }
 		public double pressoffset { get; set; }
 	}
+
+    internal class JsonStationSettingsWeatherFlow
+    {
+        public int tcpport { get; set; }
+        public int deviceid { get; set; }
+        public string token { get; set; }
+    }
 
 	internal class JSonStationSettingsGw1000Conn
 	{
