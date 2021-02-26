@@ -2085,79 +2085,92 @@ namespace CumulusMX
 
 				try
 				{
-					HttpResponseMessage response = await AwekashttpClient.GetAsync(url);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
-					LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
-					//var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
-					var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
+					using (HttpResponseMessage response = await AwekashttpClient.GetAsync(url))
+					{
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
+						LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
+						//var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
+						var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
 
-					// Check the status response
-					if (respJson.status == 2)
-						LogMessage("AWEKAS: Data stored OK");
-					else if (respJson.status == 1)
-					{
-						LogMessage("AWEKAS: Data PARIALLY stored");
-						// TODO: Check errors and disabled
-					}
-					else if (respJson.status == 0)  // Authenication error or rate limited
-					{
-						if (respJson.minuploadtime > 0 && respJson.authentication == 0)
+						// Check the status response
+						if (respJson.status == 2)
+							LogMessage("AWEKAS: Data stored OK");
+						else if (respJson.status == 1)
 						{
-							LogMessage("AWEKAS: Authentication error");
-							if (AWEKAS.Interval < 60)
+							LogMessage("AWEKAS: Data PARIALLY stored");
+							// TODO: Check errors and disabled
+						}
+						else if (respJson.status == 0)  // Authenication error or rate limited
+						{
+							if (respJson.minuploadtime > 0 && respJson.authentication == 0)
 							{
-								AWEKAS.RateLimited = true;
-								AWEKAS.OriginalInterval = AWEKAS.Interval;
-								AWEKAS.Interval = 60;
-								AwekasTimer.Enabled = false;
-								AWEKAS.SynchronisedUpdate = true;
-								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to authenication error");
+								LogMessage("AWEKAS: Authentication error");
+								if (AWEKAS.Interval < 300)
+								{
+									AWEKAS.RateLimited = true;
+									AWEKAS.OriginalInterval = AWEKAS.Interval;
+									AWEKAS.Interval = 300;
+									AwekasTimer.Enabled = false;
+									AWEKAS.SynchronisedUpdate = true;
+									LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authenication error");
+								}
+							}
+							else if (respJson.minuploadtime == 0)
+							{
+								LogMessage("AWEKAS: Too many requests, rate limited");
+								// AWEKAS PLus allows minimum of 60 second updates, try that first
+								if (!AWEKAS.RateLimited && AWEKAS.Interval < 60)
+								{
+									AWEKAS.OriginalInterval = AWEKAS.Interval;
+									AWEKAS.RateLimited = true;
+									AWEKAS.Interval = 60;
+									AwekasTimer.Enabled = false;
+									AWEKAS.SynchronisedUpdate = true;
+									LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
+								}
+								// AWEKAS normal allows minimum of 300 second updates, revert to that
+								else
+								{
+									AWEKAS.RateLimited = true;
+									AWEKAS.Interval = 300;
+									AwekasTimer.Interval = AWEKAS.Interval * 1000;
+									AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
+									AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
+									LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
+								}
+							}
+							else
+							{
+								LogMessage("AWEKAS: Unknown error");
 							}
 						}
-						else if (respJson.minuploadtime == 0)
-						{
-							LogMessage("AWEKAS: Too many requests, rate limited");
-							if (AWEKAS.Interval < 60)
-							{
-								AWEKAS.RateLimited = true;
-								AWEKAS.OriginalInterval = AWEKAS.Interval;
-								AWEKAS.Interval = 60;
-								AwekasTimer.Enabled = false;
-								AWEKAS.SynchronisedUpdate = true;
-								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
-							}
-						}
-						else
-						{
-							LogMessage("AWEKAS: Unknown error");
-						}
-					}
 
-					// check the min upload time is greater than our upload time
-					if (respJson.status > 0 && respJson.minuploadtime > AWEKAS.OriginalInterval)
-					{
-						LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AWEKAS.OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
-						AWEKAS.Interval = respJson.minuploadtime;
-						WriteIniFile();
-						AwekasTimer.Interval = AWEKAS.Interval * 1000;
-						AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-						AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-						// we got a successful upload, and reset the interval, so clear the rate limited values
-						AWEKAS.OriginalInterval = AWEKAS.Interval;
-						AWEKAS.RateLimited = false;
-					}
-					else if (AWEKAS.RateLimited && respJson.status > 0)
-					{
-						// We are currently rate limited, it could have been a transient thing because
-						// we just got a valid response, and our interval is >= the minimum allowed.
-						// So we just undo the limit, and resume as before
-						LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {AWEKAS.OriginalInterval} secs");
-						AWEKAS.Interval = AWEKAS.OriginalInterval;
-						AwekasTimer.Interval = AWEKAS.Interval * 1000;
-						AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-						AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-						AWEKAS.RateLimited = false;
+						// check the min upload time is greater than our upload time
+						if (respJson.status > 0 && respJson.minuploadtime > AWEKAS.OriginalInterval)
+						{
+							LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AWEKAS.OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
+							AWEKAS.Interval = respJson.minuploadtime;
+							WriteIniFile();
+							AwekasTimer.Interval = AWEKAS.Interval * 1000;
+							AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
+							AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
+							// we got a successful upload, and reset the interval, so clear the rate limited values
+							AWEKAS.OriginalInterval = AWEKAS.Interval;
+							AWEKAS.RateLimited = false;
+						}
+						else if (AWEKAS.RateLimited && respJson.status > 0)
+						{
+							// We are currently rate limited, it could have been a transient thing because
+							// we just got a valid response, and our interval is >= the minimum allowed.
+							// So we just undo the limit, and resume as before
+							LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {AWEKAS.OriginalInterval} secs");
+							AWEKAS.Interval = AWEKAS.OriginalInterval;
+							AwekasTimer.Interval = AWEKAS.Interval * 1000;
+							AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
+							AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
+							AWEKAS.RateLimited = false;
+						}
 					}
 				}
 				catch (Exception ex)

@@ -1,3 +1,9 @@
+3.10.2 - b3117
+——————————————
+- Fix: Improve the AWEKAS fall back for upload interval to go right back to 5 minutes in two stages
+- Fix: Add additional error logging to NOAA report generation
+
+
 3.10.1 - b3116
 ——————————————
 - Fix: Bug in temperature conversions introduced in v3.10.0
