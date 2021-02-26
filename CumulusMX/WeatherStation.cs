@@ -2608,7 +2608,7 @@ namespace CumulusMX
 			// and return three digits
 			int num;
 
-			if (cumulus.Units.Rain == 0)
+			if (cumulus.Units.Temp == 0)
 			{
 				num = Convert.ToInt32(((temp * 1.8) + 32));
 			}
@@ -5532,7 +5532,7 @@ namespace CumulusMX
 		/// <returns>Temp in configured units</returns>
 		public double ConvertTempCToUser(double value)
 		{
-			if (cumulus.Units.Rain == 1)
+			if (cumulus.Units.Temp == 1)
 			{
 				return MeteoLib.CToF(value);
 			}
@@ -5550,7 +5550,7 @@ namespace CumulusMX
 		/// <returns>Temp in configured units</returns>
 		public double ConvertTempFToUser(double value)
 		{
-			if (cumulus.Units.Rain == 0)
+			if (cumulus.Units.Temp == 0)
 			{
 				return MeteoLib.FtoC(value);
 			}
@@ -5568,7 +5568,7 @@ namespace CumulusMX
 		/// <returns>Temp in C</returns>
 		public double ConvertUserTempToC(double value)
 		{
-			if (cumulus.Units.Rain == 1)
+			if (cumulus.Units.Temp == 1)
 			{
 				return MeteoLib.FtoC(value);
 			}
@@ -5586,7 +5586,7 @@ namespace CumulusMX
 		/// <returns>Temp in F</returns>
 		public double ConvertUserTempToF(double value)
 		{
-			if (cumulus.Units.Rain == 1)
+			if (cumulus.Units.Temp == 1)
 			{
 				return value;
 			}
