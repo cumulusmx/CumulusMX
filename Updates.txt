@@ -3,7 +3,6 @@
 - Fix: Bug in temperature conversions introduced in v3.10.0
 
 
-
 3.10.0 - b3115
 ——————————————
 - Fix: Catch error creating System Uptime counter on Windows
