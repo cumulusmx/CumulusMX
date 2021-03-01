@@ -2574,11 +2574,6 @@ namespace CumulusMX
 					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
 					var localFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
-					{
-						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, localFile, realtimeTokenParser);
-					}
-
 					LogFtpMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
 					if (Sslftp == FtpProtocols.SFTP)
 					{
