@@ -617,6 +617,12 @@ namespace CumulusMX
 				// Display Options
 				try
 				{
+					// bug catch incase user has the old JSON config files that do not work.
+					if (settings.DisplayOptions.windrosepoints == 0)
+						settings.DisplayOptions.windrosepoints = 8;
+					else if (settings.DisplayOptions.windrosepoints == 1)
+						settings.DisplayOptions.windrosepoints = 16;
+
 					cumulus.NumWindRosePoints = settings.DisplayOptions.windrosepoints;
 					cumulus.WindRoseAngle = 360.0 / cumulus.NumWindRosePoints;
 					cumulus.DisplayOptions.UseApparent = settings.DisplayOptions.useapparent;

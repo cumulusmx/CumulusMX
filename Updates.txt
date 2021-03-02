@@ -2,7 +2,20 @@
 ——————————————
 - Fix: Improve the AWEKAS fall back for upload interval to go right back to 5 minutes in two stages
 - Fix: Occasional corrupt files output that have processed web tags in them
-- Fix: Add additional error logging to NOAA report generation
+- Fix: Error creating the NOAA Year report for some people
+- Fix: Missing station location on gauges.htm web site page
+
+- New: Default website now removes the "Current Conditions" element if the value is blank
+- New: Default web site now auto updates the index.htm and today.htm pages every minute
+
+- Change: The current conditions is now HTML encoded in case it contains illegal characters
+
+- Updated default web site files
+	\web\websitedataT.json
+	\webfiles\index.htm
+	\webfiles\gauges.htm
+	\webfiles\js\setpagedata.js
+
 
 
 3.10.1 - b3116

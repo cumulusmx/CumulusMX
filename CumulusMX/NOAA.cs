@@ -1028,7 +1028,7 @@ namespace CumulusMX
 						repLine.Append("   0.0");
 					else
 					{
-						repLine.Append(string.Format(culture, "{0,6F1}", (meantemp - (totalnormtemp / normtempsamples))));
+						repLine.Append(string.Format(culture, "{0,6:F1}", (meantemp - (totalnormtemp / normtempsamples))));
 					}
 					repLine.Append(string.Format(culture, "{0,6:D}{1,6:D}", (int)(totalheating), (int)(totalcooling)));
 					if (maxtempmonth == 0)
@@ -1149,43 +1149,53 @@ namespace CumulusMX
 				// Wind section details
 				for (m = 1; m < 13; m++)
 				{
-					repLine.Clear();
-					repLine.Append(string.Format("{0,3}{1,3:D}", twodigityear, m));
-
-					if (MonthList[m].valid)
+					try
 					{
-						// calculate average wind speed
-						MonthList[m].avgwindspeed = GetAverageWindSpeed(m, year, out domdir);
-						MonthList[m].winddomdir = domdir;
-						if (MonthList[m].avgwindspeed < 0)
-						{
-							// no valid average
-							repLine.Append("  ----");
-						}
-						else
-						{
-							// String.Format the average into the display line
-							repLine.Append(string.Format(culture, "{0,6:F1}", MonthList[m].avgwindspeed));
-							totalavgwind += MonthList[m].avgwindspeed * MonthList[m].samples;
-							avgwindcount += MonthList[m].samples;
-						}
+						repLine.Clear();
+						repLine.Append(string.Format("{0,3}{1,3:D}", twodigityear, m));
 
-						// String.Format the high wind speed and dominant direction into the display line
-						repLine.Append(string.Format(culture, "{0,6:F1}{1,5:D}", MonthList[m].highwindspeed, MonthList[m].highwindday));
-						repLine.Append(string.Format("{0,6}", CompassPoint(MonthList[m].winddomdir)));
-
-						// check for highest annual wind speed
-						if (MonthList[m].highwindspeed > highwind)
+						if (MonthList[m].valid)
 						{
-							highwind = MonthList[m].highwindspeed;
-							highwindmonth = m;
-						}
+							// calculate average wind speed
+							MonthList[m].avgwindspeed = GetAverageWindSpeed(m, year, out domdir);
+							MonthList[m].winddomdir = domdir;
+							if (MonthList[m].avgwindspeed < 0)
+							{
+								// no valid average
+								repLine.Append("  ----");
+							}
+							else
+							{
+								// String.Format the average into the display line
+								repLine.Append(string.Format(culture, "{0,6:F1}", MonthList[m].avgwindspeed));
+								totalavgwind += MonthList[m].avgwindspeed * MonthList[m].samples;
+								avgwindcount += MonthList[m].samples;
+							}
 
-						// increment the total wind vectors for the annual calculation
-						totalwinddirX += (MonthList[m].avgwindspeed * Math.Sin(Trig.DegToRad(domdir))) * MonthList[m].samples;
-						totalwinddirY += (MonthList[m].avgwindspeed * Math.Cos(Trig.DegToRad(domdir))) * MonthList[m].samples;
+							// String.Format the high wind speed and dominant direction into the display line
+							repLine.Append(string.Format(culture, "{0,6:F1}{1,5:D}", MonthList[m].highwindspeed, MonthList[m].highwindday));
+							repLine.Append(string.Format("{0,6}", CompassPoint(MonthList[m].winddomdir)));
+
+							// check for highest annual wind speed
+							if (MonthList[m].highwindspeed > highwind)
+							{
+								highwind = MonthList[m].highwindspeed;
+								highwindmonth = m;
+							}
+
+							// increment the total wind vectors for the annual calculation
+							totalwinddirX += (MonthList[m].avgwindspeed * Math.Sin(Trig.DegToRad(domdir))) * MonthList[m].samples;
+							totalwinddirY += (MonthList[m].avgwindspeed * Math.Cos(Trig.DegToRad(domdir))) * MonthList[m].samples;
+						}
+						output.Add(repLine.ToString());
 					}
-					output.Add(repLine.ToString());
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"CreateYearlyReport: Error creating wind section: {e.Message}");
+						cumulus.LogDebugMessage("CreateYearlyReport: Last line generated was...");
+						cumulus.LogDebugMessage($"CreateYearlyReport: \"{repLine}\"");
+						throw;
+					}
 				}
 
 				output.Add("------------------------------");
@@ -1193,9 +1203,8 @@ namespace CumulusMX
 			catch (Exception e)
 			{
 				cumulus.LogMessage($"CreateYearlyReport: Error creating the report: {e.Message}");
-				cumulus.LogDebugMessage("CreateYearlyReport: Last two lines generated were...");
-				cumulus.LogDebugMessage($"CreateYearlyReport: \"{output[output.Count - 2]}\"");
-				cumulus.LogDebugMessage($"CreateYearlyReport: \"{output[output.Count - 1]}\"");
+				cumulus.LogDebugMessage("CreateYearlyReport: Output generated so far was...");
+				cumulus.LogDebugMessage(string.Join("\n",output));
 				throw;
 			}
 
