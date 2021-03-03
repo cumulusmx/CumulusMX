@@ -351,13 +351,19 @@ namespace CumulusMX
 				advanced = wllAdvanced
 			};
 
+			var generalAdvanced = new JsonStationSettingsAdvanced()
+			{
+				recsbegandate = cumulus.RecordsBeganDate
+			};
+
 			var general = new JsonStationGeneral()
 			{
 				stationtype = cumulus.StationType,
 				loginterval = cumulus.DataLogInterval,
 				logrollover = logrollover,
 				units = units,
-				Location = location
+				Location = location,
+				advanced = generalAdvanced
 			};
 
 			var data = new JsonStationSettingsData()
@@ -885,6 +891,20 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// General Advanced
+				try
+				{
+					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing General Advanced settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// Station type
 				try
 				{
@@ -1071,8 +1091,13 @@ namespace CumulusMX
 		public JsonStationSettingsLogRollover logrollover { get; set; }
 		public JsonStationSettingsUnits units { get; set; }
 		public JsonStationSettingsLocation Location { get; set; }
+		public JsonStationSettingsAdvanced advanced { get; set; }
 	}
 
+	internal class JsonStationSettingsAdvanced
+	{
+		public string recsbegandate { get; set; }
+	}
 
 	internal class JsonStationSettingsUnitsAdvanced
 	{

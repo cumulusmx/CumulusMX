@@ -1,3 +1,8 @@
+3.10.3 - b3118
+——————————————
+- New: Adds Records Began Date to - Station Settings|General|Advanced
+
+
 3.10.2 - b3117
 ——————————————
 - Fix: Improve the AWEKAS fall back for upload interval to go right back to 5 minutes in two stages
