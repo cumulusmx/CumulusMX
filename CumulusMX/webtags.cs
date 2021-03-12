@@ -2786,6 +2786,16 @@ namespace CumulusMX
 			return cumulus.LocationDesc;
 		}
 
+		private string Taglocationenc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForWeb(cumulus.LocationName);
+		}
+
+		private string Taglonglocationenc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForWeb(cumulus.LocationDesc);
+		}
+
 		private string Tagsunrise(Dictionary<string,string> tagParams)
 		{
 			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SunRiseTime), "HH:mm", tagParams);
@@ -3728,6 +3738,27 @@ namespace CumulusMX
 		{
 			return station.LeafWetness4.ToString();
 		}
+
+		private string TagLeafWetness5(Dictionary<string, string> tagParams)
+		{
+			return station.LeafWetness5.ToString();
+		}
+
+		private string TagLeafWetness6(Dictionary<string, string> tagParams)
+		{
+			return station.LeafWetness6.ToString();
+		}
+
+		private string TagLeafWetness7(Dictionary<string, string> tagParams)
+		{
+			return station.LeafWetness7.ToString();
+		}
+
+		private string TagLeafWetness8(Dictionary<string, string> tagParams)
+		{
+			return station.LeafWetness8.ToString();
+		}
+
 
 		// Alarms
 		private string TagLowTempAlarm(Dictionary<string, string> tagParams)
@@ -5328,6 +5359,8 @@ namespace CumulusMX
 				{ "longitude", Taglongitude },
 				{ "location", Taglocation },
 				{ "longlocation", Taglonglocation },
+				{ "locationenc", Taglocationenc },
+				{ "longlocationenc", Taglonglocationenc },
 				{ "sunrise", Tagsunrise },
 				{ "sunset", Tagsunset },
 				{ "daylength", Tagdaylength },

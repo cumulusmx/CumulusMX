@@ -818,10 +818,6 @@ namespace CumulusMX
 			}
 		}
 
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-		}
-
 		public override void Start()
 		{
 			cumulus.LogMessage("Starting Instromet data reading thread");

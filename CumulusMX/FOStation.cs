@@ -551,11 +551,6 @@ namespace CumulusMX
 			cumulus.LogMessage("End processing history data");
 		}
 
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			throw new NotImplementedException();
-		}
-
 		/// <summary>
 		///     Read and process data in a loop, sleeping between reads
 		/// </summary>

@@ -885,14 +885,6 @@ namespace CumulusMX
 		}
 		*/
 
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			//SerialPort port = sender as SerialPort;
-
-			// Obtain the number of bytes waiting in the port's buffer
-			//int bytes = port.BytesToRead;
-		}
-
 		public override void Start()
 		{
 			cumulus.LogMessage("Start normal reading loop");

@@ -66,11 +66,6 @@ namespace CumulusMX
 			}
 		}
 
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			throw new NotImplementedException();
-		}
-
 		public override void Start()
 		{
 			DoDayResetIfNeeded();

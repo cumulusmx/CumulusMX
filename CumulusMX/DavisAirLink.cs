@@ -1529,9 +1529,9 @@ namespace CumulusMX
 			cumulus.LogMessage($"ZeroConfig Service: AirLink {e.Announcement.Hostname} service has been removed!");
 			if (discovered.Hostname.Contains(e.Announcement.Hostname))
 			{
-				cumulus.LogDebugMessage($"ZeroConfig Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
-				discovered.Hostname.Remove(e.Announcement.Hostname);
-				discovered.IP.Remove(e.Announcement.Addresses[0].ToString());
+				//cumulus.LogDebugMessage($"ZeroConfig Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
+				//discovered.Hostname.Remove(e.Announcement.Hostname);
+				//discovered.IP.Remove(e.Announcement.Addresses[0].ToString());
 			}
 		}
 

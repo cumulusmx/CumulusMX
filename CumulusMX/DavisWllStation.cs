@@ -349,10 +349,6 @@ namespace CumulusMX
 			}
 		}
 
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-		}
-
 		private async void GetWllRealtime(object source, ElapsedEventArgs e)
 		{
 			var retry = 2;

@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Net;
 using System.Timers;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CumulusMX
 {
@@ -26,6 +27,8 @@ namespace CumulusMX
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
 		private bool stop = false;
+
+		private Version fwVersion;
 
 		private enum Commands : byte {
 			// General order
@@ -110,6 +113,7 @@ namespace CumulusMX
 			CMD_WRITE_SENSOR_ID = 1,
 			CMD_WRITE_REBOOT = 1,
 			CMD_WRITE_RESET = 1,
+			CMD_READ_SENSOR_ID_NEW = 2
 		}
 
 		[Flags] private enum SigSen : byte
@@ -212,7 +216,15 @@ namespace CumulusMX
 			Wh34Ch6,		// 36
 			Wh34Ch7,		// 37
 			Wh34Ch8,		// 38
-			Wh45			// 39
+			Wh45,			// 39
+			Wh35Ch1,		// 40
+			Wh35Ch2,		// 41
+			Wh35Ch3,		// 42
+			Wh35Ch4,		// 43
+			Wh35Ch5,		// 44
+			Wh35Ch6,		// 45
+			Wh35Ch7,		// 46
+			Wh35Ch8			// 47
 		};
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
@@ -262,8 +274,10 @@ namespace CumulusMX
 				// Get the firmware version as check we are communicating
 				GW1000FirmwareVersion = GetFirmwareVersion();
 				cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
+				var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
+				fwVersion = new Version(fwString[1]);
 
-				GetSensorIds();
+				GetSensorIdsNew();
 			}
 
 			timerStartNeeded = true;
@@ -355,6 +369,17 @@ namespace CumulusMX
 					if (connectedOk)
 					{
 						GetLiveData();
+
+						// at the start of every 10 minutes to trigger battery status check
+						var minute = DateTime.Now.Minute;
+						if (minute != lastMinute)
+						{
+							lastMinute = minute;
+							if ((minute % 10) == 0)
+							{
+								GetSensorIdsNew();
+							}
+						}
 					}
 					else
 					{
@@ -418,35 +443,39 @@ namespace CumulusMX
 		{
 			// We only want unique IP addresses
 			var discovered = new Discovery();
+			const int broadcastPort = 46000;
+			const int clientPort = 59387;
+
 
 			try
 			{
-				using (var udp = new UdpClient())
+				using (var client = new UdpClient())
 				using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
 				{
-					const int broadcastPort = 46000;
-					const int clientPort = 59387;
-
-					var receiveEp = new IPEndPoint(IPAddress.Any, clientPort);
-
-					socket.ReceiveTimeout = 500;
-					socket.Bind(receiveEp);
-
-					var groupEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
+					var recvEp = new IPEndPoint(IPAddress.Any, clientPort);
+					var sendEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
 					var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x03, 0x15 };
 
-					var receivedBytes = new byte[35];
+					socket.ReceiveTimeout = 500;
+					socket.EnableBroadcast = true;
+					socket.Bind(recvEp);
+
+
+					var receivedBytes = new byte[200];
 
 					var endTime = DateTime.Now.AddSeconds(5);
 
-					udp.EnableBroadcast = true;
-					udp.Send(sendBytes, sendBytes.Length, groupEp);
+					client.EnableBroadcast = true;
+					client.Send(sendBytes, sendBytes.Length, sendEp);
+
+					string[] namesToCheck = { "GW1000A", "WH2650A", "EasyWeather", "AMBWeather" };
 
 					do
 					{
 						try
 						{
 							socket.Receive(receivedBytes, 0, receivedBytes.Length, SocketFlags.None);
+							//receivedBytes = client.Receive(ref recvEp);
 							string ipAddr = $"{receivedBytes[11]}.{receivedBytes[12]}.{receivedBytes[13]}.{receivedBytes[14]}";
 							int nameLen = receivedBytes[17];
 							var nameArr = new byte[nameLen];
@@ -458,7 +487,7 @@ namespace CumulusMX
 							Array.Copy(receivedBytes, 5, macArr, 0, 6);
 							var macHex = BitConverter.ToString(macArr).Replace('-', ':');
 
-							if (name.StartsWith("GW1000") && ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+							if (namesToCheck.Contains(name.Split('-')[0]) && ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
 							{
 								IPAddress ipAddr2;
 								if (IPAddress.TryParse(ipAddr, out ipAddr2))
@@ -488,11 +517,10 @@ namespace CumulusMX
 
 		private bool DoDiscovery()
 		{
-			if (cumulus.Gw1000AutoUpdateIpAddress)
+			if (cumulus.Gw1000AutoUpdateIpAddress || string.IsNullOrWhiteSpace(cumulus.Gw1000IpAddress))
 			{
 				var msg = "Running GW-1000 auto-discovery...";
 				cumulus.LogMessage(msg);
-				cumulus.LogConsoleMessage(msg);
 
 				var discoveredDevices = DiscoverGW1000();
 
@@ -615,8 +643,63 @@ namespace CumulusMX
 			}
 		}
 
+		private bool GetSensorIdsNew()
+		{
+			cumulus.LogMessage("Reading sensor ids");
+
+			var data = DoCommand((byte)Commands.CMD_READ_SENSOR_ID_NEW);
+
+			// expected response
+			// 0   - 0xff - header
+			// 1   - 0xff - header
+			// 2   - 0x3C - sensor id command
+			// 3-4 - 0x?? - size of response
+			// 5   - wh65
+			// 6-9 - wh65 id
+			// 10   - wh65 battery
+			// 11  - wh65 signal 0-4
+			// 12  - wh68
+			//       ... etc
+			// (??) - 0x?? - checksum
+
+			var len = ConvertBigEndianUInt16(data, 3);
+
+			var batteryLow = false;
+
+			if (null != data && data.Length > 200)
+			{
+				for (int i = 5; i < len; i += 7)
+				{
+					if (PrintSensorInfoNew(data, i))
+					{
+						batteryLow = true;
+					}
+				}
+
+				cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
 		private void PrintSensorInfo(byte[] data, int idx)
 		{
+			// expected response
+			// 0   - 0xff - header
+			// 1   - 0xff - header
+			// 2   - 0x3A - sensor id command
+			// 3   - 0x?? - size of response
+			// 4   - wh65
+			// 5-8 - wh65 id
+			// 9   - wh65 signal
+			// 10  - wh65 battery
+			// 11  - wh68
+			//       ... etc
+			// (??) - 0x?? - checksum
+
 			var id = ConvertBigEndianUInt32(data, idx + 1);
 			var type = Enum.GetName(typeof(SensorIds), data[idx]);
 
@@ -636,6 +719,86 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[idx+5]} battery = {data[idx+6]}");
 					break;
 			}
+		}
+
+		private bool PrintSensorInfoNew(byte[] data, int idx)
+		{
+			// expected response
+			// 0   - 0xff - header
+			// 1   - 0xff - header
+			// 2   - 0x3C - sensor id command
+			// 3-4 - 0x?? - size of response
+			// 5   - wh65				0
+			// 6-9 - wh65 id			1-4
+			// 10  - wh65 battery		5
+			// 11  - wh65 signal 0-4	6
+			// 12  - wh68
+			//       ... etc
+			// (??) - 0x?? - checksum
+
+			var id = ConvertBigEndianUInt32(data, idx + 1);
+			var type = Enum.GetName(typeof(SensorIds), data[idx]);
+			var battPos = idx + 5;
+			var sigPos = idx + 6;
+			var batteryLow = false;
+			if (string.IsNullOrEmpty(type))
+			{
+				type = $"unknown type = {id}";
+			}
+			switch (id)
+			{
+				case 0xFFFFFFFE:
+					cumulus.LogDebugMessage($" - {type} sensor = disabled");
+					return false;
+				case 0xFFFFFFFF:
+					cumulus.LogDebugMessage($" - {type} sensor = registering");
+					return false;
+				default:
+					//cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {data[battPos]}");
+					break;
+			}
+
+			string batt;
+			switch (type)
+			{
+				case "Wh65":
+				case "Wh40":
+				case "Wh26":
+					batt = TestBattery1(data[battPos], 1);  // 0 or 1
+					break;
+
+				case "Wh68":
+				case "Wh80":
+				case string wh34 when wh34.StartsWith("Wh34"):  // ch 1-8
+				case string wh35 when wh35.StartsWith("Wh35"):  // ch 1-8
+					double battV = data[battPos] * 0.02;
+					batt = $"{battV:f1}V ({TestBattery4S(data[battPos])})";  // volts, low = 1.2V
+					break;
+
+				case string wh31 when wh31.StartsWith("Wh31"):  // ch 1-8
+				case string wh51 when wh51.StartsWith("Wh51"):  // ch 1-8
+					batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
+					break;
+
+				case "Wh25":
+				case "Wh45":
+				case "Wh57":
+				case string wh41 when wh41.StartsWith("Wh41"): // ch 1-4
+				case string wh55 when wh55.StartsWith("Wh55"): // ch 1-4
+					batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5, low = 1
+					break;
+
+				default:
+					batt = "???";
+					break;
+			}
+
+			if (batt.Contains("Low"))
+				batteryLow = true;
+
+			cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {batt}");
+
+			return batteryLow;
 		}
 
 		private void GetLiveData()
@@ -668,7 +831,7 @@ namespace CumulusMX
 
 			try
 			{
-				if (null != data && data.Length > 20)
+				if (null != data && data.Length > 16)
 				{
 					// now decode it
 					Int16 tempInt16;
@@ -866,8 +1029,8 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
-									   //TODO: battery status, do we need to know which sensors are attached?
-								if (tenMinuteChanged)
+									   // This has been deprecated since v1.6.5 - now use CMD_READ_SENSOR_ID_NEW
+								if (tenMinuteChanged && fwVersion.CompareTo("1.6.5") >= 0)
 								{
 									batteryLow = batteryLow || DoBatteryStatus(data, idx);
 								}
@@ -969,7 +1132,26 @@ namespace CumulusMX
 								batteryLow = batteryLow || DoCO2Decode(data, idx);
 								idx += 16;
 								break;
-
+							case 0x71: // Ambient ONLY - AQI
+								//TODO: Not doing anything with this yet
+								//idx += 2; // SEEMS TO BE VARIABLE
+								cumulus.LogDebugMessage("Found a device 0x71 - Ambient AQI. No decode for this yet");
+								// We will have lost our place now, so bail out
+								idx = size;
+								break;
+							case 0x72: // WH35 Leaf Wetness ch1
+							case 0x73: // WH35 Leaf Wetness ch2
+							case 0x74: // WH35 Leaf Wetness ch3
+							case 0x75: // WH35 Leaf Wetness ch4
+							case 0x76: // WH35 Leaf Wetness ch5
+							case 0x77: // WH35 Leaf Wetness ch6
+							case 0x78: // WH35 Leaf Wetness ch7
+							case 0x79: // WH35 Leaf Wetness ch8
+								chan = data[idx - 1] - 0x72 + 2;  // -> 2,4,6,8...
+								chan /= 2;  // -> 1,2,3,4...
+								DoLeafWetness(data[idx], chan);
+								idx += 1;
+								break;
 							default:
 								cumulus.LogDebugMessage($"Error: Unknown sensor id found = {data[idx - 1]}, at position = {idx - 1}");
 								// We will have lost our place now, so bail out
@@ -1005,7 +1187,7 @@ namespace CumulusMX
 					if (tenMinuteChanged) tenMinuteChanged = false;
 
 
-					cumulus.BatteryLowAlarm.Triggered = batteryLow;
+					//cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
 					// No average in the live data, so use last value from cumulus
 					if (windSpeedLast > -999 && windDirLast > -999)
@@ -1033,19 +1215,22 @@ namespace CumulusMX
 						DoRain(rainLast, rainRateLast, dateTime);
 					}
 
-					if (ConvertUserWindToMS(WindAverage) < 1.5)
+					if (outdoortemp > -999)
 					{
-						DoWindChill(OutdoorTemperature, dateTime);
-					}
-					else
-					{
-						// calculate wind chill from calibrated C temp and calibrated wind in KPH
-						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
-					}
+						if (ConvertUserWindToMS(WindAverage) < 1.5)
+						{
+							DoWindChill(OutdoorTemperature, dateTime);
+						}
+						else
+						{
+							// calculate wind chill from calibrated C temp and calibrated wind in KPH
+							DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
+						}
 
-					DoApparentTemp(dateTime);
-					DoFeelsLike(dateTime);
-					DoHumidex(dateTime);
+						DoApparentTemp(dateTime);
+						DoFeelsLike(dateTime);
+						DoHumidex(dateTime);
+					}
 
 					DoForecast("", false);
 
@@ -1065,10 +1250,6 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("GetLiveData: Error - " + ex.Message);
 			}
-		}
-
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
 		}
 
 		private byte[] DoCommand(byte command)
@@ -1282,7 +1463,7 @@ namespace CumulusMX
 			else
 				cumulus.LogDebugMessage(str);
 
-			str = "wh45> " + TestBattery4S(status.wh45) + " - " + TestBattery4V(status.wh45) + "V";
+			str = "wh45> " + TestBattery3(status.wh45);
 			if (str.Contains("Low"))
 			{
 				batteryLow = true;
