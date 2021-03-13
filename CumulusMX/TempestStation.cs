@@ -46,13 +46,19 @@ namespace CumulusMX
 
                 var recs = StationListener.GetRestPacket(StationListener.REST_URL,
                     cumulus.WeatherFlowOptions.WFToken, cumulus.WeatherFlowOptions.WFDeviceId,
-                    stTime, DateTime.Now);
+                    stTime, DateTime.Now, cumulus);
 
                 ProcessHistoryData(recs);
             }
             catch (Exception ex)
             {
                 cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+                Exception te = ex;
+                while (te != null)
+                {
+                    cumulus.LogConsoleMessage($"Error getting history data: {te.Message}");
+                    te = te.InnerException;
+                }
             }
             cumulus.LogDebugMessage("Lock: Station releasing the lock");
             Cumulus.syncInit.Release();
@@ -109,7 +115,7 @@ namespace CumulusMX
                 var alt = AltitudeM(cumulus.Altitude);
                 var seaLevel = GetSeaLevelPressure(alt, (double) historydata.StationPressure);
                 DoPressure(ConvertPressMBToUser(seaLevel), timestamp);
-
+                
                 // Outdoor Humidity =====================================================
                 DoOutdoorHumidity((int) historydata.Humidity, timestamp);
 
@@ -259,6 +265,8 @@ namespace CumulusMX
                         var alt = AltitudeM(cumulus.Altitude);
                         var seaLevel = GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure);
                         DoPressure(ConvertPressMBToUser(seaLevel), ts);
+                        cumulus.LogMessage(
+                            $"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
 
                         DoSolarRad(wp.Observation.SolarRadiation, ts);
                         DoUV((double) wp.Observation.UV, ts);
@@ -274,6 +282,13 @@ namespace CumulusMX
                             $"TempestDoRain: Total Precip for Day: {Raincounter}");
                         
                         DoOutdoorHumidity((int)wp.Observation.Humidity,ts);
+
+                        OutdoorDewpoint =
+                            ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature),
+                                OutdoorHumidity));
+
+                        CheckForDewpointHighLow(ts);
+                        
                         DoApparentTemp(ts);
                         DoFeelsLike(ts);
                         DoWindChill(userTemp,ts);
@@ -298,14 +313,16 @@ namespace CumulusMX
             }
         }
 
-        public double GetSeaLevelPressure(double altitude, double pressure)
+        public static double GetSeaLevelPressure(double altitude, double pressure)
         {
-            double i = 287.05;
-            double a = 9.80665;
-            double r = .0065;
-            double s = 1013.25;
-            double n = 288.15;
-            double l = a / (i * r);
+            /* constants */
+            double i = 287.05;// gas constant for dry air
+            double a = 9.80665;// gravity
+            double r = .0065; //standard atmosphere lapse rate
+            double s = 1013.25;// standard sea level pressure
+            double n = 288.15; // standard sea level temp;
+
+            double l = a / (i * r);//
             double c = i * r / a;
             double u = Math.Pow(1 + Math.Pow(s / pressure, c) * (r * altitude / n), l);
             double d = pressure * u;
@@ -475,10 +492,10 @@ namespace CumulusMX.Tempest
 
         public const string REST_URL = "https://swd.weatherflow.com/swd/rest/observations/";
 
-        public static List<Observation> GetRestPacket(string url, string token,int deviceId, DateTime start, DateTime end)
+        public static List<Observation> GetRestPacket(string url, string token,int deviceId, DateTime start, DateTime end, Cumulus c)
         {
             List<Observation> ret = new List<Observation>();
-
+            cumulus = c;
             
             using (var httpClient = new HttpClient())
             {
@@ -516,6 +533,14 @@ namespace CumulusMX.Tempest
                             {
                                 ret.Add(new Observation(ob));
                             }
+                        }
+                        else
+                        {
+                            var msg = $"Error downloading tempest history: {apiResponse}";
+                            cumulus.LogMessage(msg);
+                            cumulus.LogConsoleMessage(msg);
+                            if (rp.status.status_code==404)cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
+                            if (rp.status.status_code==401)cumulus.LogConsoleMessage("Normally indicates incorrect Token");
                         }
 
                     }
