@@ -113,7 +113,7 @@ namespace CumulusMX
 
                 // Pressure =============================================================
                 var alt = AltitudeM(cumulus.Altitude);
-                var seaLevel = GetSeaLevelPressure(alt, (double) historydata.StationPressure);
+                var seaLevel = GetSeaLevelPressure(alt, (double) historydata.StationPressure, (double)historydata.Temperature);
                 DoPressure(ConvertPressMBToUser(seaLevel), timestamp);
                 
                 // Outdoor Humidity =====================================================
@@ -263,7 +263,8 @@ namespace CumulusMX
                             ts);
 
                         var alt = AltitudeM(cumulus.Altitude);
-                        var seaLevel = GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure);
+                        var seaLevel = GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure,
+                            (double) wp.Observation.Temperature);
                         DoPressure(ConvertPressMBToUser(seaLevel), ts);
                         cumulus.LogMessage(
                             $"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
@@ -313,14 +314,14 @@ namespace CumulusMX
             }
         }
 
-        public static double GetSeaLevelPressure(double altitude, double pressure)
+        public static double GetSeaLevelPressure(double altitude, double pressure, double temp)
         {
             /* constants */
             double i = 287.05;// gas constant for dry air
             double a = 9.80665;// gravity
             double r = .0065; //standard atmosphere lapse rate
             double s = 1013.25;// standard sea level pressure
-            double n = 288.15; // standard sea level temp;
+            double n = 273.15 + temp; //288.15; // standard sea level temp;
 
             double l = a / (i * r);//
             double c = i * r / a;
