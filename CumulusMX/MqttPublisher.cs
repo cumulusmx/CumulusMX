@@ -11,8 +11,6 @@ namespace CumulusMX
 	{
 		private static Cumulus cumulus;
 		private static MqttClient mqttClient;
-		private static string dataupdateTemplateFile;
-		private static string dataupdateTemplateContent;
 		public static bool configured;
 
 		public static void Setup(Cumulus cumulus)

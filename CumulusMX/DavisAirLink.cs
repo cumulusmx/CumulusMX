@@ -123,7 +123,7 @@ namespace CumulusMX
 						cumulus.AirLinkOutHostName = discovered.Hostname[0];
 				}
 
-				if (discovered.IP.ToString() != ipaddr)
+				if (discovered.IP[0] != ipaddr)
 				{
 					writeConfig = true;
 
@@ -1550,18 +1550,17 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				if (service.Addresses.Count > 1)
+				foreach (var ip in service.Addresses)
 				{
-					return;
-				}
-				ipaddr = service.Addresses[0].ToString();
-				cumulus.LogMessage($"ZeroConfig Service: AirLink found '{service.Hostname}', reporting its IP address as: {ipaddr}");
+					//ipaddr = service.Addresses[0].ToString();
+					cumulus.LogMessage($"ZeroConfig Service: AirLink found '{service.Hostname}', reporting its IP address as: {ip}");
 
-				if (!discovered.Hostname.Contains(service.Hostname))
-				{
-					cumulus.LogDebugMessage($"ZeroConfig Service: Adding Airlink {service.Hostname} to list of discovered devices");
-					discovered.IP.Add(ipaddr);
-					discovered.Hostname.Add(service.Hostname);
+					if (!discovered.Hostname.Contains(service.Hostname))
+					{
+						cumulus.LogDebugMessage($"ZeroConfig Service: Adding Airlink {service.Hostname} to list of discovered devices");
+						discovered.IP.Add(ip.ToString());
+						discovered.Hostname.Add(service.Hostname);
+					}
 				}
 
 				/*

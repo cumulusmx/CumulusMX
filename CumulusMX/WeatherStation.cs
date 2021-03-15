@@ -1634,7 +1634,7 @@ namespace CumulusMX
 				{
 					// increment wind run by one minute's worth of average speed
 
-					WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] / 60.0);
+					WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] / 60.0;
 
 					CheckForWindrunHighLow(now);
 
@@ -1653,7 +1653,7 @@ namespace CumulusMX
 					}
 					else if ((SolarRad > (CurrentSolarMax * cumulus.SunThreshold / 100.0)) && (SolarRad >= cumulus.SolarMinimum))
 					{
-						SunshineHours += (1.0 / 60.0);
+						SunshineHours += 1.0 / 60.0;
 					}
 
 					// update heating/cooling degree days
