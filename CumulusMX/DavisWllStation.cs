@@ -1223,19 +1223,19 @@ namespace CumulusMX
 			lock (threadSafer)
 			{
 				ipaddr = service.Addresses[0].ToString();
-				cumulus.LogMessage($"WLL found, reporting its IP address as: {ipaddr}");
+				cumulus.LogMessage($"ZeroConf Service: WLL found, reporting its IP address as: {ipaddr}");
 				if (cumulus.DavisOptions.IPAddr != ipaddr)
 				{
-					cumulus.LogMessage($"WLL IP address has changed from {cumulus.DavisOptions.IPAddr} to {ipaddr}");
+					cumulus.LogMessage($"ZeroConf Service: WLL IP address has changed from {cumulus.DavisOptions.IPAddr} to {ipaddr}");
 					if (cumulus.WLLAutoUpdateIpAddress)
 					{
-						cumulus.LogMessage($"WLL changing Cumulus config to the new IP address {ipaddr}");
+						cumulus.LogMessage($"ZeroConf Service: WLL changing Cumulus config to the new IP address {ipaddr}");
 						cumulus.DavisOptions.IPAddr = ipaddr;
 						cumulus.WriteIniFile();
 					}
 					else
 					{
-						cumulus.LogMessage($"WLL ignoring new IP address {ipaddr} due to setting WLLAutoUpdateIpAddress");
+						cumulus.LogMessage($"ZeroConf Service: WLL ignoring new IP address {ipaddr} due to setting WLLAutoUpdateIpAddress");
 					}
 				}
 			}
