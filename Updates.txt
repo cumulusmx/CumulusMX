@@ -6,6 +6,7 @@
 - Fix: Ecowitt WH45 battery status on firmware levels below 1.6.5
 - Fix: Blake-Larsen sunshine recorder, the SRsunshine.dat file was using user locale decode, it should be fixed dot decimal
 - Fix: MQTT only read the Update template file at start-up or if the filename was changed. It now reads the file at every update
+- Fix: Davis WLL was not calculating chill hours and heating/cooling degree days on catch-up
 
 - Update: You can now use the "data-cmxdata" attribute on any HTML element, not just spans. BUT note, ALL the innerHTML will get replaced with the JSON data.
 
@@ -16,6 +17,7 @@
 	- Note that only channels 1-4 will be displayed on the dashboard
 	- Extends the leaf wetness web tags with <#LeafWetness5> to <#LeafWetness8> added
 	- samplestrings.ini adds leaf wetness captions 5-8
+- New: Experimental - Enables Battery Low alarm for WMR100/WMR928 stations
 
 
 3.10.2 - b3117

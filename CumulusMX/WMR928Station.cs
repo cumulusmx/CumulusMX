@@ -165,6 +165,8 @@ namespace CumulusMX
 						} // end of for loop for available chars
 
 						cumulus.LogDataMessage(datastr);
+
+						CheckBatteryStatus();
 					}
 				}
 			}
@@ -326,6 +328,18 @@ namespace CumulusMX
 
 		private void WMR928Minute(List<int> buff)
 		{
+		}
+
+		private void CheckBatteryStatus()
+		{
+			if (IndoorBattStatus == 4 || WindBattStatus == 4 || RainBattStatus == 4 || TempBattStatus == 4)
+			{
+				cumulus.BatteryLowAlarm.Triggered = true;
+			}
+			else if (cumulus.BatteryLowAlarm.Triggered)
+			{
+				cumulus.BatteryLowAlarm.Triggered = false;
+			}
 		}
 
 		private void WMR928ExtraOutdoor(List<int> buff)

@@ -1808,10 +1808,19 @@ namespace CumulusMX
 									// do last temp
 									DoOutdoorTemp(ConvertTempFToUser(data11.temp_last), recordTs);
 
-									// set the values for daily average, arch_int is in seconds
+									// set the values for daily average, arch_int is in seconds, but always whole minutes
 									tempsamplestoday += data11.arch_int / 60;
 									TempTotalToday += ConvertTempFToUser(data11.temp_avg) * data11.arch_int / 60;
 
+									// update chill hours
+									if (OutdoorTemperature < cumulus.ChillHourThreshold)
+									{
+										// add 1 minute to chill hours
+										ChillHours += (data11.arch_int / 60.0);
+									}
+
+									// update heating/cooling degree days
+									UpdateDegreeDays(data11.arch_int / 60);
 								}
 							}
 							catch (Exception ex)

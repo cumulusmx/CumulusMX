@@ -267,7 +267,7 @@ namespace CumulusMX
 		public int WindBattStatus;
 		public int RainBattStatus;
 		public int TempBattStatus;
-		//public Window1 mainWindow;
+		public int UVBattStatus;
 
 		public double[] WMR200ExtraDPValues { get; set; }
 
@@ -1643,7 +1643,7 @@ namespace CumulusMX
 					if (OutdoorTemperature < cumulus.ChillHourThreshold)
 					{
 						// add 1 minute to chill hours
-						ChillHours += (1.0 / 60.0);
+						ChillHours += 1.0 / 60.0;
 					}
 
 					// update sunshine hours
