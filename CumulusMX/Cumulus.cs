@@ -5249,14 +5249,14 @@ namespace CumulusMX
 				LeafTempCaptions[4] = ini.GetValue("LeafTempCaptions", "Sensor4", LeafTempCaptions[4]);
 
 				// leaf wetness captions (for Extra Sensor Data screen)
-				LeafTempCaptions[1] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[1]);
-				LeafTempCaptions[2] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[2]);
-				LeafTempCaptions[3] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[3]);
-				LeafTempCaptions[4] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[4]);
-				LeafTempCaptions[5] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[5]);
-				LeafTempCaptions[6] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[6]);
-				LeafTempCaptions[7] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[7]);
-				LeafTempCaptions[8] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[8]);
+				LeafWetnessCaptions[1] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[1]);
+				LeafWetnessCaptions[2] = ini.GetValue("LeafWetnessCaptions", "Sensor2", LeafWetnessCaptions[2]);
+				LeafWetnessCaptions[3] = ini.GetValue("LeafWetnessCaptions", "Sensor3", LeafWetnessCaptions[3]);
+				LeafWetnessCaptions[4] = ini.GetValue("LeafWetnessCaptions", "Sensor4", LeafWetnessCaptions[4]);
+				LeafWetnessCaptions[5] = ini.GetValue("LeafWetnessCaptions", "Sensor5", LeafWetnessCaptions[5]);
+				LeafWetnessCaptions[6] = ini.GetValue("LeafWetnessCaptions", "Sensor6", LeafWetnessCaptions[6]);
+				LeafWetnessCaptions[7] = ini.GetValue("LeafWetnessCaptions", "Sensor7", LeafWetnessCaptions[7]);
+				LeafWetnessCaptions[8] = ini.GetValue("LeafWetnessCaptions", "Sensor8", LeafWetnessCaptions[8]);
 
 				// air quality captions (for Extra Sensor Data screen)
 				AirQualityCaptions[1] = ini.GetValue("AirQualityCaptions", "Sensor1", AirQualityCaptions[1]);
