@@ -165,6 +165,8 @@ namespace CumulusMX
 						} // end of for loop for available chars
 
 						cumulus.LogDataMessage(datastr);
+
+						CheckBatteryStatus();
 					}
 				}
 			}
@@ -326,6 +328,18 @@ namespace CumulusMX
 
 		private void WMR928Minute(List<int> buff)
 		{
+		}
+
+		private void CheckBatteryStatus()
+		{
+			if (IndoorBattStatus == 4 || WindBattStatus == 4 || RainBattStatus == 4 || TempBattStatus == 4)
+			{
+				cumulus.BatteryLowAlarm.Triggered = true;
+			}
+			else if (cumulus.BatteryLowAlarm.Triggered)
+			{
+				cumulus.BatteryLowAlarm.Triggered = false;
+			}
 		}
 
 		private void WMR928ExtraOutdoor(List<int> buff)
@@ -580,91 +594,6 @@ namespace CumulusMX
 			}
 
 			DoForecast(forecast, false);
-		}
-
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-	//        SerialPort port = sender as SerialPort;
-
-	//        // Obtain the number of bytes waiting in the port's buffer
-	//        int bytes = port.BytesToRead;
-
-	//        string datastr = "Data: ";
-
-	//        cumulus.LogDebugMessage("Data received, number of bytes = " + bytes);
-
-	//        // Create a byte array buffer to hold the incoming data
-	//        //byte[] buffer = new byte[bytes];
-
-	//        for (int i = 0; i < bytes; i++)
-	//        {
-	//            // Read a byte from the port
-	//            int nextByte = port.ReadByte();
-
-	//            datastr = datastr + " " + nextByte.ToString("X2");
-
-	//            switch (currentPacketLength)
-	//            {
-	//                case 0: // We're looking for the start of a packet
-	//                    if (nextByte == 255)
-	//                        // Possible start of packet
-	//                        currentPacketLength = 1;
-	//                    break;
-	//                case 1: // We're looking for the second start-of-packet character
-	//                    if (nextByte == 255)
-	//                        // Possible continuation
-	//                        currentPacketLength = 2;
-	//                    else
-	//                        // Incorrect sequence, start again
-	//                        currentPacketLength = 0;
-	//                    break;
-	//                case 2: // We're looking for the packet type
-	//                    if (nextByte < 16)
-	//                    {
-	//                        // Success
-	//                        buffer.Add(255);
-	//                        buffer.Add(255);
-	//                        buffer.Add(nextByte);
-	//                        currentPacketLength = 3;
-	//                        currentPacketType = nextByte;
-	//                    }
-	//                    else
-	//                    {
-	//                        // Incorrect sequence
-	//                        if (nextByte == 255)
-	//                            // Might be second start-of-packet character
-	//                            currentPacketLength = 2;
-	//                        else
-	//                            // Start again
-	//                            currentPacketLength = 0;
-	//                    }
-	//                    break;
-	//                default: // We've had the packet header, continue collecting the packet
-	//                    buffer.Add(nextByte);
-	//                    currentPacketLength++;
-
-	//                    if (currentPacketLength == WMR928PacketLength[currentPacketType])
-	//                    {
-	//                        // We've collected a complete packet, process it
-	//                        /* if
-	//                                debug then
-	//                                begin
-	//                                transbuff :=
-	//                                DisplayHex(@buff[1], length(buff));
-	//                                DebugForm.Memo1.Lines.Add(transbuff);
-	//                        end; */
-
-	//                        Parse(buffer);
-	//                        // Get ready for the next packet
-	//                        buffer.Clear();
-	//                        currentPacketLength = 0;
-	//                        currentPacketType = 16;
-	//                    }
-	//                    break;
-	//            } // end of switch for current packet length
-	//        } // end of for loop for available chars
-
-	//        cumulus.LogDebugMessage(datastr);
 		}
 
 		private double ExtractTemp(int byteOne, int byteTwo)

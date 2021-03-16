@@ -91,7 +91,7 @@ namespace CumulusMX
 			//Console.WriteLine($"Browsing for type: {serviceType}");
 			serviceBrowser.StartBrowse(serviceType);
 
-			cumulus.LogMessage("Attempting to find AirLink via zero-config...");
+			cumulus.LogMessage("ZeroConf Service: Attempting to find AirLink via zero-config...");
 
 			// short wait for zero-config
 			Thread.Sleep(1000);
@@ -105,7 +105,7 @@ namespace CumulusMX
 			{
 				// We didn't find anything on the network
 				msg = "Failed to discover any Airlink devices";
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
 			}
 			else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname))
@@ -123,12 +123,12 @@ namespace CumulusMX
 						cumulus.AirLinkOutHostName = discovered.Hostname[0];
 				}
 
-				if (discovered.IP.ToString() != ipaddr)
+				if (discovered.IP[0] != ipaddr)
 				{
 					writeConfig = true;
 
-					cumulus.LogMessage($"Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
-					cumulus.LogMessage($"Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
+					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
 
 					ipaddr = discovered.IP[0];
 
@@ -137,21 +137,28 @@ namespace CumulusMX
 					else
 						cumulus.AirLinkOutIPAddr = ipaddr;
 				}
+				else
+				{
+					cumulus.LogMessage($"ZeroConf Service: Autodiscovery found the AirLink, reporting its IP address as: {ipaddr}");
+				}
 
 				if (writeConfig)
+				{
 					cumulus.WriteIniFile();
+					cumulus.LogMessage($"ZeroConf Service: Autodiscovered Airlink name {discovered.Hostname[0]}, on IP address {ipaddr}");
+				}
 			}
 			else if (discovered.Hostname.Contains(hostname))
 			{
 				// Multiple devices discovered, but we have a Hostname match
-				cumulus.LogDebugMessage($"Matching {locationStr} Airlink hostname found on the network");
+				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} Airlink hostname found on the network");
 
 				var idx = discovered.Hostname.IndexOf(hostname);
 
 				if (discovered.IP[idx] != ipaddr)
 				{
-					cumulus.LogMessage($"Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
-					cumulus.LogMessage($"Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
+					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
 					ipaddr = discovered.IP[idx];
 					if (indoor)
 						cumulus.AirLinkInIPAddr = ipaddr;
@@ -162,19 +169,19 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogDebugMessage($"{locationStr} Airlink IP address has not changed");
+					cumulus.LogDebugMessage($"ZeroConf Service: {locationStr} Airlink IP address has not changed");
 				}
 			}
 			else if (discovered.IP.Contains(ipaddr))
 			{
 				// Multiple devices discovered, no hostname match but we have an IP match
-				cumulus.LogDebugMessage($"Matching {locationStr} Airlink IP address found on the network");
+				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} Airlink IP address found on the network");
 
 				var idx = discovered.IP.IndexOf(ipaddr);
 
 				if (discovered.Hostname[idx] != hostname)
 				{
-					cumulus.LogDebugMessage($"Changing previous {locationStr} hostname '{hostname}' to '{discovered.Hostname[idx]}'");
+					cumulus.LogDebugMessage($"ZeroConf Service: Changing previous {locationStr} hostname '{hostname}' to '{discovered.Hostname[idx]}'");
 					hostname = discovered.Hostname[idx];
 					if (indoor)
 						cumulus.AirLinkInHostName = hostname;
@@ -189,17 +196,17 @@ namespace CumulusMX
 				// Multiple devices discovered, and we do not have a clue!
 				string list = "";
 				msg = "*** Discovered more than one potential Airlink device.";
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
 				msg = "*** Please select the Hostname/IP address from the list and enter it manually into the configuration";
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
 				for (var i = 0; i < discovered.IP.Count; i++)
 				{
 					list += discovered.Hostname[i] + "/" + discovered.IP[i] + " ";
 				}
-				msg = "***   Discovered AirLinks = " + list;
-				cumulus.LogMessage(msg);
+				msg = "*** Discovered AirLinks = " + list;
+				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
 			}
 
@@ -1529,9 +1536,9 @@ namespace CumulusMX
 			cumulus.LogMessage($"ZeroConfig Service: AirLink {e.Announcement.Hostname} service has been removed!");
 			if (discovered.Hostname.Contains(e.Announcement.Hostname))
 			{
-				cumulus.LogDebugMessage($"ZeroConfig Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
-				discovered.Hostname.Remove(e.Announcement.Hostname);
-				discovered.IP.Remove(e.Announcement.Addresses[0].ToString());
+				//cumulus.LogDebugMessage($"ZeroConfig Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
+				//discovered.Hostname.Remove(e.Announcement.Hostname);
+				//discovered.IP.Remove(e.Announcement.Addresses[0].ToString());
 			}
 		}
 
@@ -1550,18 +1557,17 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				if (service.Addresses.Count > 1)
+				foreach (var ip in service.Addresses)
 				{
-					return;
-				}
-				ipaddr = service.Addresses[0].ToString();
-				cumulus.LogMessage($"ZeroConfig Service: AirLink found '{service.Hostname}', reporting its IP address as: {ipaddr}");
+					//ipaddr = service.Addresses[0].ToString();
+					cumulus.LogMessage($"ZeroConfig Service: AirLink found '{service.Hostname}', reporting its IP address as: {ip}");
 
-				if (!discovered.Hostname.Contains(service.Hostname))
-				{
-					cumulus.LogDebugMessage($"ZeroConfig Service: Adding Airlink {service.Hostname} to list of discovered devices");
-					discovered.IP.Add(ipaddr);
-					discovered.Hostname.Add(service.Hostname);
+					if (!discovered.Hostname.Contains(service.Hostname))
+					{
+						cumulus.LogDebugMessage($"ZeroConfig Service: Adding Airlink {service.Hostname} to list of discovered devices");
+						discovered.IP.Add(ip.ToString());
+						discovered.Hostname.Add(service.Hostname);
+					}
 				}
 
 				/*

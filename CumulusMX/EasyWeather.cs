@@ -75,11 +75,6 @@ namespace CumulusMX
             tmrDataRead = new Timer();
         }
 
-        public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         public override void Start()
         {
             tmrDataRead.Elapsed += EWGetData;

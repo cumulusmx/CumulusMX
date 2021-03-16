@@ -731,6 +731,8 @@ namespace CumulusMX
 							return await this.JsonResponseAsync(Station.GetLeaf());
 						case "leaf4.json":
 							return await this.JsonResponseAsync(Station.GetLeaf4());
+						case "leaf8.json":
+							return await this.JsonResponseAsync(Station.GetLeaf8());
 						case "airqual.json":
 							return await this.JsonResponseAsync(Station.GetAirQuality());
 						case "lightning.json":

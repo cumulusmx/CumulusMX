@@ -1,3 +1,25 @@
+3.10.3 - b3119
+——————————————
+- Fix: Problem with setpagedata.js in "/legacy-webfiles"
+- Fix: Ecowitt GW1000 and clone auto-discovery extended to WH2650 and Ambient clones
+- Fix: Ecowitt auto-discovery broken after a recent Ecowitt firmware update
+- Fix: Ecowitt WH45 battery status on firmware levels below 1.6.5
+- Fix: Blake-Larsen sunshine recorder, the SRsunshine.dat file was using user locale decode, it should always use dot decimal
+- Fix: MQTT only read the Update template file at start-up or if the filename was changed. It now reads the file at every update
+- Fix: Davis WLL was not calculating chill hours and heating/cooling degree days on catch-up
+
+- New: Adds Records Began Date to - Station Settings|General|Advanced
+- New: Adds support for GW1000 firmware 1.6.6
+- New: Default web site - You can now use the "data-cmxdata" attribute on any HTML element, not just spans. BUT note, ALL the innerHTML will get replaced with the JSON data.
+- New: Two new web tags that HTML encode the station description strings - <#locationenc>, <#longlocationenc>
+- New: Adds support for the EcoWitt WH35 8 channel leaf wetness sensor
+	- Note that only channels 1-4 will be displayed on the dashboard
+	- Extends the leaf wetness web tags with <#LeafWetness5> to <#LeafWetness8> added
+	- samplestrings.ini adds leaf wetness captions 5-8
+- New: Experimental - Enables Battery Low alarm for WMR100/WMR928 stations
+
+
+
 3.10.2 - b3117
 ——————————————
 - Fix: Improve the AWEKAS fall back for upload interval to go right back to 5 minutes in two stages

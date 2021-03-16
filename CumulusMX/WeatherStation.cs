@@ -267,7 +267,7 @@ namespace CumulusMX
 		public int WindBattStatus;
 		public int RainBattStatus;
 		public int TempBattStatus;
-		//public Window1 mainWindow;
+		public int UVBattStatus;
 
 		public double[] WMR200ExtraDPValues { get; set; }
 
@@ -315,7 +315,6 @@ namespace CumulusMX
 		private bool first_temp = true;
 		public double RG11RainYesterday { get; set; }
 
-		public abstract void portDataReceived(object sender, SerialDataReceivedEventArgs e);
 		public abstract void Start();
 
 		public WeatherStation(Cumulus cumulus)
@@ -1335,20 +1334,22 @@ namespace CumulusMX
 		public int LightningStrikesToday { get; set; }
 
 		public double LeafTemp1 { get; set; }
-
 		public double LeafTemp2 { get; set; }
-
 		public double LeafTemp3 { get; set; }
-
 		public double LeafTemp4 { get; set; }
+		public double LeafTemp5 { get; set; }
+		public double LeafTemp6 { get; set; }
+		public double LeafTemp7 { get; set; }
+		public double LeafTemp8 { get; set; }
 
 		public int LeafWetness1 { get; set; }
-
 		public int LeafWetness2 { get; set; }
-
 		public int LeafWetness3 { get; set; }
-
 		public int LeafWetness4 { get; set; }
+		public int LeafWetness5 { get; set; }
+		public int LeafWetness6 { get; set; }
+		public int LeafWetness7 { get; set; }
+		public int LeafWetness8 { get; set; }
 
 		public double SunshineHours { get; set; } = 0;
 
@@ -1633,7 +1634,7 @@ namespace CumulusMX
 				{
 					// increment wind run by one minute's worth of average speed
 
-					WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] / 60.0);
+					WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] / 60.0;
 
 					CheckForWindrunHighLow(now);
 
@@ -1642,7 +1643,7 @@ namespace CumulusMX
 					if (OutdoorTemperature < cumulus.ChillHourThreshold)
 					{
 						// add 1 minute to chill hours
-						ChillHours += (1.0 / 60.0);
+						ChillHours += 1.0 / 60.0;
 					}
 
 					// update sunshine hours
@@ -1652,7 +1653,7 @@ namespace CumulusMX
 					}
 					else if ((SolarRad > (CurrentSolarMax * cumulus.SunThreshold / 100.0)) && (SolarRad >= cumulus.SolarMinimum))
 					{
-						SunshineHours += (1.0 / 60.0);
+						SunshineHours += 1.0 / 60.0;
 					}
 
 					// update heating/cooling degree days
@@ -1922,7 +1923,7 @@ namespace CumulusMX
 					try
 					{
 						string line = sr.ReadLine();
-						SunshineHours = Double.Parse(line);
+						SunshineHours = double.Parse(line, CultureInfo.InvariantCulture.NumberFormat);
 						sr.ReadLine();
 						sr.ReadLine();
 						line = sr.ReadLine();
@@ -7351,6 +7352,18 @@ namespace CumulusMX
 				case 4:
 					LeafWetness4 = (int)value;
 					break;
+				case 5:
+					LeafWetness5 = (int)value;
+					break;
+				case 6:
+					LeafWetness6 = (int)value;
+					break;
+				case 7:
+					LeafWetness7 = (int)value;
+					break;
+				case 8:
+					LeafWetness8 = (int)value;
+					break;
 			}
 		}
 
@@ -9607,10 +9620,10 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[3]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[4]}\",\"{LeafWetness2}\",\"&nbsp;\"]");
+			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"&nbsp;\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9619,13 +9632,32 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness1}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness2}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[3]}\",\"{LeafTemp3.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness3}\"],");
-			json.Append($"[\"{cumulus.LeafCaptions[4]}\",\"{LeafTemp4.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness4}\"]");
+			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness1}\"],");
+			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness2}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"&nbsp;\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
+
+		public string GetLeaf8()
+		{
+			var json = new StringBuilder("{\"data\":[", 256);
+
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[5]}\",\"{LeafWetness5}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[6]}\",\"{LeafWetness6}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[7]}\",\"{LeafWetness7}\",\"&nbsp;\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[8]}\",\"{LeafWetness8}\",\"&nbsp;\"]");
+			json.Append("]}");
+			return json.ToString();
+		}
+
 
 		public string GetAirLinkCountsOut()
 		{

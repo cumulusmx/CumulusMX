@@ -849,13 +849,28 @@ namespace CumulusMX
     //    Total Length                    99
     public class VPLoop2Data
     {
+        //public int BarTrend { get; private set; }
+        //public int IndoorHum { get; private set; }
+        //public double Temperature { get; private set; }
         public int CurrentWindSpeed { get; private set; }
         public int WindDirection { get; private set; }
-        public int WindAverage { get; private set; }
+        //public double WindAverage { get; private set; }
+        //public double WindAverage2Min { get; private set; }
         public int WindGust10Min { get; private set; }
         public int WindGustDir { get; private set; }
-        public int WindChill { get; private set; }
+        //public int Humidity { get; private set; }
+        //public int HeatIndex { get; private set; }
+        //public int WindChill { get; private set; }
         public int THSWindex { get; private set; }
+        //public int RainRate { get; private set; }
+        //public int UV { get; private set; }
+       // public int Solar { get; private set; }
+        //public int StormRain { get; private set; }
+        //public int DailyRain { get; private set; }
+        //public int Last15mRain { get; private set; }
+        //public int LastHourRain { get; private set; }
+        //public double DailyET { get; private set; }
+        //public int Last24hRain { get; private set; }
         public double AbsolutePressure { get; private set; }
 
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
@@ -865,14 +880,29 @@ namespace CumulusMX
         // In the end, all integers are cast to Int32 for return.
         public void Load(byte[] byteArray)
         {
+            //BarTrend = Convert.ToInt32(byteArray[3]);
+            //IndoorHum = Convert.ToInt32(byteArray[11]);
+            //Temperature = (double)BitConverter.ToInt16(byteArray, 12) / 10;
             CurrentWindSpeed = Convert.ToInt32(byteArray[14]); // Byte - unsigned byte
             WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16
-            WindAverage = Convert.ToInt32(byteArray[18]);
-            WindGust10Min = Convert.ToInt32(byteArray[22]);
+            //WindAverage = (double)BitConverter.ToInt16(byteArray, 18) / 10;
+            //WindAverage2Min = (double)BitConverter.ToInt16(byteArray, 20) / 10;
+            //WindGust10Min = Convert.ToInt32(byteArray[22]);
             WindGustDir = BitConverter.ToInt16(byteArray, 24); // Uint16
-            WindChill = Convert.ToInt32(byteArray[37]);
+            //Humidity = Convert.ToInt32(byteArray[33]);
+            //HeatIndex = BitConverter.ToInt16(byteArray, 35);
+            //WindChill = BitConverter.ToInt16(byteArray, 37);
             THSWindex = BitConverter.ToInt16(byteArray, 39);
-            AbsolutePressure = (double) (BitConverter.ToInt16(byteArray, 67))/1000; // Uint16
+            //RainRate = BitConverter.ToInt16(byteArray, 41);  // clicks per hour
+            //UV = Convert.ToInt32(byteArray[43]);
+            //Solar = BitConverter.ToInt16(byteArray, 44);
+            //StormRain = BitConverter.ToInt16(byteArray, 46);
+            //DailyRain = BitConverter.ToInt16(byteArray, 50);
+            //Last15mRain = BitConverter.ToInt16(byteArray, 52);
+            //LastHourRain = BitConverter.ToInt16(byteArray, 54);
+            //DailyET = (double)BitConverter.ToInt16(byteArray, 56) / 1000;
+            //Last24hRain = BitConverter.ToInt16(byteArray, 58);
+            AbsolutePressure = (double) (BitConverter.ToInt16(byteArray, 67)) / 1000; // Uint16
         }
     }
 }

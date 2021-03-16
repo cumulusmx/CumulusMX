@@ -33,6 +33,7 @@ namespace CumulusMX
 		}
 
 		// Not used - now uses polling in Start() because Mono doesn't support data received events
+		/*
 		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
 		{
 			// Obtain the number of bytes waiting in the port's buffer
@@ -70,14 +71,6 @@ namespace CumulusMX
 						if (currentPacketLength == WM918PacketLength[currentPacketType])
 						{
 							// We've collected a complete packet, process it
-							/* if
-									debug then
-									begin
-									transbuff :=
-									DisplayHex(@buff[1], length(buff));
-									DebugForm.Memo1.Lines.Add(transbuff);
-							end; */
-
 							Parse(buffer);
 							// Get ready for the next packet
 							buffer.Clear();
@@ -88,6 +81,7 @@ namespace CumulusMX
 				} // end of switch for current packet length
 			} // end of for loop for available chars
 		}
+		*/
 
 		public override void Start()
 		{
