@@ -1757,10 +1757,5 @@ namespace CumulusMX
 		{
 			return endTime.Subtract(startTime).Minutes;
 		}
-
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			cumulus.LogMessage("Serial data received for USB station?");
-		}
 	}
 }

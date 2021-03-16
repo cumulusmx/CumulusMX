@@ -11,8 +11,6 @@ namespace CumulusMX
 	{
 		private static Cumulus cumulus;
 		private static MqttClient mqttClient;
-		private static string dataupdateTemplateFile;
-		private static string dataupdateTemplateContent;
 		public static bool configured;
 
 		public static void Setup(Cumulus cumulus)
@@ -112,43 +110,19 @@ namespace CumulusMX
 		{
 			string topic;
 			var template = "mqtt/";
+			bool retain;
 
 			if (feedType == "Interval")
 			{
 				template += cumulus.MQTT.IntervalTemplate;
 				topic = cumulus.MQTT.IntervalTopic;
+				retain = cumulus.MQTT.IntervalRetained;
 			}
 			else
 			{
 				template += cumulus.MQTT.UpdateTemplate;
 				topic = cumulus.MQTT.UpdateTopic;
-
-				// Refresh our copy of the template contents if the filename has changed
-				// We want to avoid reading the template file every few seconds if possible.
-				if (cumulus.MQTT.UpdateTemplate != dataupdateTemplateFile)
-				{
-					if (File.Exists(template))
-					{
-						try
-						{
-							using (TextReader reader = new StreamReader(template, new System.Text.UTF8Encoding(false)))
-							{
-								dataupdateTemplateContent = reader.ReadToEnd();
-							}
-						}
-						catch (Exception e)
-						{
-							cumulus.LogMessage($"MQTT: Error reading template file {template} - {e.Message}");
-							return;
-						}
-						dataupdateTemplateFile = cumulus.MQTT.UpdateTemplate;
-					}
-					else
-					{
-						cumulus.LogMessage($"MQTT: Error, unable to find template file - {template}");
-						return;
-					}
-				}
+				retain = cumulus.MQTT.UpdateRetained;
 			}
 
 			if (!File.Exists(template))
@@ -156,22 +130,11 @@ namespace CumulusMX
 
 			// use template file
 			cumulus.LogDebugMessage($"MQTT: Using template - {template}");
-			bool retain;
+
 			var mqttTokenParser = new TokenParser {Encoding = new System.Text.UTF8Encoding(false)};
 			mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
-			string message;
-			if (feedType == "Interval")
-			{
-				mqttTokenParser.SourceFile = template;
-				message = mqttTokenParser.ToString();
-				retain = cumulus.MQTT.IntervalRetained;
-			}
-			else
-			{
-				mqttTokenParser.InputText = dataupdateTemplateContent;
-				message = mqttTokenParser.ToStringFromString();
-				retain = cumulus.MQTT.UpdateRetained;
-			}
+			mqttTokenParser.SourceFile = template;
+			string message = mqttTokenParser.ToString();
 
 			// send the message
 			_ = SendMessageAsync(topic, message, retain);

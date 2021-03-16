@@ -66,11 +66,6 @@ namespace CumulusMX
 			}
 		}
 
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			throw new NotImplementedException();
-		}
-
 		public override void Start()
 		{
 			DoDayResetIfNeeded();
@@ -168,6 +163,8 @@ namespace CumulusMX
 						cumulus.LogDebugMessage("Data read loop: " + ex.Message);
 					}
 				}
+				CheckBatteryStatus();
+
 				//Thread.Sleep(100);
 			}
 
@@ -328,6 +325,8 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("UV packet");
 			var num = packetBuffer[3] & 0xF;
 
+			UVBattStatus = packetBuffer[0] & 0x4;
+
 			if (num < 0)
 				num = 0;
 
@@ -347,6 +346,9 @@ namespace CumulusMX
 		private void ProcessRainPacket()
 		{
 			cumulus.LogDebugMessage("Rain packet");
+
+			RainBattStatus = packetBuffer[0] & 0x4;
+
 			double counter = ((packetBuffer[9]*256) + packetBuffer[8])/100.0;
 
 			double rate = ((packetBuffer[3]*256) + packetBuffer[2])/100.0;
@@ -369,6 +371,9 @@ namespace CumulusMX
 		private void ProcessWindPacket()
 		{
 			cumulus.LogDebugMessage("Wind packet");
+
+			WindBattStatus = packetBuffer[0] & 0x4;
+
 			DateTime now = DateTime.Now;
 
 			double wc;
@@ -420,6 +425,8 @@ namespace CumulusMX
 
 		private void ProcessTempPacket()
 		{
+			TempBattStatus = packetBuffer[0] & 0x4;
+
 			// which sensor is this for? 0 = indoor, 1 = outdoor, n = extra
 			int sensor = packetBuffer[2] & 0xF;
 			DateTime Now = DateTime.Now;
@@ -608,6 +615,18 @@ namespace CumulusMX
 			}
 
 			stream.Write(reset);
+		}
+
+		private void CheckBatteryStatus()
+		{
+			if (IndoorBattStatus == 4 || WindBattStatus == 4 || RainBattStatus == 4 || TempBattStatus == 4 || UVBattStatus == 4)
+			{
+				cumulus.BatteryLowAlarm.Triggered = true;
+			}
+			else if (cumulus.BatteryLowAlarm.Triggered)
+			{
+				cumulus.BatteryLowAlarm.Triggered = false;
+			}
 		}
 
 		public override void Stop()

@@ -390,8 +390,7 @@ namespace CumulusMX
 				AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
 				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 				RemoveOldLHData(timestamp);
 				RemoveOldL3HData(timestamp);
 				RemoveOldGraphData(timestamp);
@@ -407,11 +406,6 @@ namespace CumulusMX
 		private DateTime ws2300TimestampToDateTime(Timestamp ts)
 		{
 			return new DateTime(ts.year, ts.month, ts.day, ts.hour, ts.minute, 0);
-		}
-
-		public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			throw new NotImplementedException();
 		}
 
 		/// <summary>
