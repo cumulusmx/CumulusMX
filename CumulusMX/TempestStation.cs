@@ -29,11 +29,6 @@ namespace CumulusMX
 
         }
 
-        public override void portDataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            // not used
-        }
-
         public override void getAndProcessHistoryData()
         {
             cumulus.LogDebugMessage("Lock: Station waiting for the lock");
