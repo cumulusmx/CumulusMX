@@ -468,7 +468,7 @@ namespace CumulusMX
 					client.EnableBroadcast = true;
 					client.Send(sendBytes, sendBytes.Length, sendEp);
 
-					string[] namesToCheck = { "GW1000A", "WH2650A", "EasyWeather", "AMBWeather" };
+					string[] namesToCheck = { "GW1000A", "WH2650A", "EasyWeather", "AMBWeather", "WS1900A" };
 
 					do
 					{
@@ -500,6 +500,10 @@ namespace CumulusMX
 										discovered.Mac.Add(macHex);
 									}
 								}
+							}
+							else
+							{
+								cumulus.LogDebugMessage($"Discovered an unsupported device: Name={name}, IP={ipAddr}, MAC={macHex}");
 							}
 						}
 						catch { }
