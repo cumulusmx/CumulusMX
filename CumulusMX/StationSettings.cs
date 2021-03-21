@@ -153,6 +153,11 @@ namespace CumulusMX
 				pressoffset = cumulus.EwOptions.PressOffset
 			};
 
+			var wmr928 = new JsonStationSettingsWMR928()
+			{
+				comportname = cumulus.ComportName
+			};
+
 			var imetAdvanced = new JsonStationSettingsImetAdvanced()
 			{
 				syncstationclock = cumulus.StationOptions.SyncTime,
@@ -376,6 +381,7 @@ namespace CumulusMX
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
+				wmr928 = wmr928,
 				Options = options,
 				Forecast = forecast,
 				Solar = solar,
@@ -864,6 +870,22 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// WMR928
+				try
+				{
+					if (settings.wmr928 != null)
+					{
+						cumulus.ComportName = settings.wmr928.comportname ?? cumulus.ComportName;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing WMR928 settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Units
 				try
 				{
@@ -1076,6 +1098,7 @@ namespace CumulusMX
 		public JsonStationSettingsFineOffset fineoffset { get; set; }
 		public JsonStationSettingsEasyWeather easyw { get; set; }
 		public JsonStationSettingsImet imet { get; set; }
+		public JsonStationSettingsWMR928 wmr928 { get; set; }
 		public JsonStationSettingsOptions Options { get; set; }
 		public JsonStationSettingsForecast Forecast { get; set; }
 		public JsonStationSettingsSolar Solar { get; set; }
@@ -1214,6 +1237,12 @@ namespace CumulusMX
 		public bool autoDiscover { get; set; }
 		public string macaddress { get; set; }
 	}
+
+	internal class JsonStationSettingsWMR928
+	{
+		public string comportname { get; set; }
+	}
+
 
 	internal class JsonStationSettingsImet
 	{
