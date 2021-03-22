@@ -1034,7 +1034,7 @@ namespace CumulusMX
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
 									   // This has been deprecated since v1.6.5 - now use CMD_READ_SENSOR_ID_NEW
-								if (tenMinuteChanged && fwVersion.CompareTo("1.6.5") >= 0)
+								if (tenMinuteChanged && fwVersion.CompareTo(new Version("1.6.5")) >= 0)
 								{
 									batteryLow = batteryLow || DoBatteryStatus(data, idx);
 								}

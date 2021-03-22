@@ -1,3 +1,10 @@
+3.10.4 - b3121
+——————————————
+- Fix: Issue introduced in v3.10.3 decoding Ecowitt live data
+- Fix: Catch real time FTP updates that have hung for more than 5 minutes and restart them.
+
+
+
 3.10.3 - b3120
 ——————————————
 - Fix: Problem with setpagedata.js in "/legacy-webfiles"
