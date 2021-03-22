@@ -293,6 +293,9 @@ namespace CumulusMX
                         UpdateStatusPanel(ts);
                         UpdateMQTT();
                         DoForecast(string.Empty, false);
+
+                        cumulus.BatteryLowAlarm.Triggered = wp.Observation.BatteryVoltage <= 2.355M;
+
                         break;
                     case WeatherPacket.MessageType.RapidWind:
                         var rw = wp.RapidWind;
