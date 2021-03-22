@@ -2382,7 +2382,7 @@ namespace CumulusMX
 				// Process any files
 				if (RealtimeCopyInProgress)
 				{
-					LogDebugMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
+					LogMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
 				}
 				else
 				{
@@ -2396,8 +2396,17 @@ namespace CumulusMX
 						// Is a previous cycle still running?
 						if (RealtimeFtpInProgress)
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Warning, a previous cycle is still trying to connect to FTP server, skip count = {++realtimeFTPRetries}");
-							LogDebugMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
+							LogMessage($"Realtime[{cycle}]: Warning, a previous cycle is still trying to connect to FTP server, skip count = {++realtimeFTPRetries}");
+							// realtimeinvertval is in ms, if a session has been uploading for 5 minutes - abort it and reconnect
+							if (realtimeFTPRetries * RealtimeInterval / 1000 > 5 * 60)
+							{
+								LogMessage($"Realtime[{cycle}]: Realtime has been in progress for more than 5 minutes, attempting to reconnect.");
+								RealtimeFTPConnectionTest(cycle);
+							}
+							else
+							{
+								LogMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
+							}
 						}
 						else
 						{
@@ -2536,7 +2545,7 @@ namespace CumulusMX
 				{
 					RealtimeFTP.Connect();
 				}
-				LogDebugMessage($"Realtime[{cycle}]: Reconnected with server OK");
+				LogMessage($"Realtime[{cycle}]: Reconnected with server OK");
 			}
 			catch (Exception ex)
 			{
