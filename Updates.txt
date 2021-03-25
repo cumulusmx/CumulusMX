@@ -1,3 +1,8 @@
+3.10.5 - b3122
+——————————————
+- New: Now determines the Ecowitt GW1000 device main sensor type (WH65/WH24) and prints system information to the log file
+
+
 3.10.4 - b3121
 ——————————————
 - Fix: Issue introduced in v3.10.3 decoding Ecowitt live data
