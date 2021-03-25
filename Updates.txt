@@ -1,6 +1,7 @@
 3.10.5 - b3122
 ——————————————
 - New: Now determines the Ecowitt GW1000 device main sensor type (WH65/WH24) and prints system information to the log file
+- New: Adds the free text station model to the Station settings page
 
 
 3.10.4 - b3121

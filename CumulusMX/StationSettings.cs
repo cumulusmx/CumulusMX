@@ -364,6 +364,7 @@ namespace CumulusMX
 			var general = new JsonStationGeneral()
 			{
 				stationtype = cumulus.StationType,
+				stationmodel = cumulus.StationModel,
 				loginterval = cumulus.DataLogInterval,
 				logrollover = logrollover,
 				units = units,
@@ -936,6 +937,7 @@ namespace CumulusMX
 						cumulus.LogConsoleMessage("*** Station type changed, restart required ***");
 					}
 					cumulus.StationType = settings.general.stationtype;
+					cumulus.StationModel = settings.general.stationmodel;
 				}
 				catch (Exception ex)
 				{
@@ -1110,6 +1112,7 @@ namespace CumulusMX
 	internal class JsonStationGeneral
 	{
 		public int stationtype { get; set; }
+		public string stationmodel { get; set; }
 		public int loginterval { get; set; }
 		public JsonStationSettingsLogRollover logrollover { get; set; }
 		public JsonStationSettingsUnits units { get; set; }
