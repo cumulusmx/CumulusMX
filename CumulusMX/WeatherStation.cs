@@ -8555,8 +8555,92 @@ namespace CumulusMX
 			else
 				AvgTemp = 0;
 
-			StringBuilder sb = new StringBuilder("http://data.awekas.at/eingabe_pruefung.php?val=");
-			// val
+			StringBuilder sb = new StringBuilder("http://data.awekas.at/eingabe_pruefung.php?");
+
+			var started = false;
+
+			// indoor temp/humidity
+			if (cumulus.AWEKAS.SendIndoor)
+			{
+				sb.Append("indoortemp=" + ConvertUserTempToC(IndoorTemperature).ToString("F1", InvC));
+				sb.Append("&indoorhumidity=" + IndoorHumidity);
+				started = true;
+			}
+
+			if (cumulus.AWEKAS.SendSoilTemp)
+			{
+				if (started) sb.Append("&"); else started = true;
+				sb.Append("soiltemp1=" + ConvertUserTempToC(SoilTemp1).ToString("F1", InvC));
+				sb.Append("&soiltemp2=" + ConvertUserTempToC(SoilTemp2).ToString("F1", InvC));
+				sb.Append("&soiltemp3=" + ConvertUserTempToC(SoilTemp3).ToString("F1", InvC));
+				sb.Append("&soiltemp4=" + ConvertUserTempToC(SoilTemp4).ToString("F1", InvC));
+			}
+
+			if (cumulus.AWEKAS.SendSoilMoisture)
+			{
+				if (started) sb.Append("&"); else started = true;
+				sb.Append("soilmoisture1=" + SoilMoisture1);
+				sb.Append("&soilmoisture2=" + SoilMoisture2);
+				sb.Append("&soilmoisture3=" + SoilMoisture3);
+				sb.Append("&soilmoisture4=" + SoilMoisture4);
+			}
+
+			if (cumulus.AWEKAS.SendLeafWetness)
+			{
+				if (started) sb.Append("&"); else started = true;
+				sb.Append("leafwetness1=" + LeafWetness1);
+				sb.Append("&leafwetness2=" + LeafWetness2);
+				sb.Append("&leafwetness3=" + LeafWetness3);
+				sb.Append("&leafwetness4=" + LeafWetness4);
+			}
+
+			if (cumulus.AWEKAS.SendAirQuality)
+			{
+				if (started) sb.Append("&"); else started = true;
+
+				switch (cumulus.StationOptions.PrimaryAqSensor)
+				{
+					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+						if (cumulus.airLinkDataOut != null)
+						{
+							sb.Append($"AqPM1={cumulus.airLinkDataOut.pm1.ToString("F1", InvC)}");
+							sb.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5.ToString("F1", InvC)}");
+							sb.Append($"&AqPM10={cumulus.airLinkDataOut.pm10.ToString("F1", InvC)}");
+							sb.Append($"&AqPM2.5_avg_24h={cumulus.airLinkDataOut.pm2p5_24hr.ToString("F1", InvC)}");
+							sb.Append($"&AqPM10_avg_24h={cumulus.airLinkDataOut.pm10_24hr.ToString("F1", InvC)}");
+						}
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+						sb.Append($"AqPM2.5={AirQuality1.ToString("F1", InvC)}");
+						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg1.ToString("F1", InvC)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+						sb.Append($"AqPM2.5={AirQuality2.ToString("F1", InvC)}");
+						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg2.ToString("F1", InvC)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+						sb.Append($"AqPM2.5={AirQuality3.ToString("F1", InvC)}");
+						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg3.ToString("F1", InvC)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+						sb.Append($"AqPM2.5={AirQuality4.ToString("F1", InvC)}");
+						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg4.ToString("F1", InvC)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+						sb.Append($"AqPM2.5={CO2_pm2p5.ToString("F1", InvC)}");
+						sb.Append($"&AqPM2.5_avg_24h={CO2_pm2p5_24h.ToString("F1", InvC)}");
+						sb.Append($"&AqPM10={CO2_pm10.ToString("F1", InvC)}");
+						sb.Append($"&AqPM10_avg_24h={CO2_pm10_24h.ToString("F1", InvC)}");
+						break;
+				}
+			}
+
+			if (started) sb.Append("&");
+			sb.Append("output=json&val=");
+
+			//
+			// Start of val
+			//
 			sb.Append(cumulus.AWEKAS.ID + sep);                                             // 1
 			sb.Append(pwstring + sep);                                                      // 2
 			sb.Append(timestamp.ToString("dd'.'MM'.'yyyy';'HH':'mm") + sep);                // 3 + 4
@@ -8672,80 +8756,9 @@ namespace CumulusMX
 			sb.Append(sep + sep + sep + sep + sep + sep);                                   // 95/96/97/98/99/100 avg/max lux today/month/year
 			sb.Append(sep + sep);                                                           // 101/102 sun hours this month/year
 			sb.Append(sep + sep + sep + sep + sep + sep + sep + sep + sep);                 // 103-111 min/avg/max Soil temp today/month/year
-
-			// End of fixed structure
-
-			// indoor temp/humidity
-			if (cumulus.AWEKAS.SendIndoor)
-			{
-				sb.Append("&indoortemp=" + ConvertUserTempToC(IndoorTemperature).ToString("F1", InvC));
-				sb.Append("&indoorhumidity=" + IndoorHumidity);
-			}
-
-			if (cumulus.AWEKAS.SendSoilTemp)
-			{
-				sb.Append("&soiltemp1=" + ConvertUserTempToC(SoilTemp1).ToString("F1", InvC));
-				sb.Append("&soiltemp2=" + ConvertUserTempToC(SoilTemp2).ToString("F1", InvC));
-				sb.Append("&soiltemp3=" + ConvertUserTempToC(SoilTemp3).ToString("F1", InvC));
-				sb.Append("&soiltemp4=" + ConvertUserTempToC(SoilTemp4).ToString("F1", InvC));
-			}
-
-			if (cumulus.AWEKAS.SendSoilMoisture)
-			{
-				sb.Append("&soilmoisture1=" + SoilMoisture1);
-				sb.Append("&soilmoisture2=" + SoilMoisture2);
-				sb.Append("&soilmoisture3=" + SoilMoisture3);
-				sb.Append("&soilmoisture4=" + SoilMoisture4);
-			}
-
-			if (cumulus.AWEKAS.SendLeafWetness)
-			{
-				sb.Append("&leafwetness1=" + LeafWetness1);
-				sb.Append("&leafwetness2=" + LeafWetness2);
-				sb.Append("&leafwetness3=" + LeafWetness3);
-				sb.Append("&leafwetness4=" + LeafWetness4);
-			}
-
-			if (cumulus.AWEKAS.SendAirQuality)
-			{
-				switch (cumulus.StationOptions.PrimaryAqSensor)
-				{
-					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
-						if (cumulus.airLinkDataOut != null)
-						{
-							sb.Append($"&AqPM1={cumulus.airLinkDataOut.pm1:F1}");
-							sb.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}");
-							sb.Append($"&AqPM10={cumulus.airLinkDataOut.pm10:F1}");
-							sb.Append($"&AqPM2.5_avg_24h={cumulus.airLinkDataOut.pm2p5_24hr:F1}");
-							sb.Append($"&AqPM10_avg_24h={cumulus.airLinkDataOut.pm10_24hr:F1}");
-						}
-						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
-						sb.Append($"&AqPM2.5={AirQuality1:F1}");
-						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg1:F1}");
-						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
-						sb.Append($"&AqPM2.5={AirQuality2:F1}");
-						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg2:F1}");
-						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
-						sb.Append($"&AqPM2.5={AirQuality3:F1}");
-						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg3:F1}");
-						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
-						sb.Append($"&AqPM2.5={AirQuality4:F1}");
-						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg4:F1}");
-						break;
-					case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
-						sb.Append($"&AqPM2.5={CO2_pm2p5:F1}");
-						sb.Append($"&AqPM2.5_avg_24h={CO2_pm2p5_24h:F1}");
-						sb.Append($"&AqPM10={CO2_pm10:F1}");
-						sb.Append($"&AqPM10_avg_24h={CO2_pm10_24h:F1}");
-						break;
-				}
-			}
-
-			sb.Append("&output=json");
+			//
+			// End of val fixed structure
+			//
 
 			return sb.ToString();
 		}
@@ -8754,6 +8767,8 @@ namespace CumulusMX
 		public string GetWundergroundURL(out string pwstring, DateTime timestamp, bool catchup)
 		{
 			// API documentation: https://support.weather.com/s/article/PWS-Upload-Protocol?language=en_US
+
+			var invC = new CultureInfo("");
 
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
 			StringBuilder URL = new StringBuilder(1024);
@@ -8774,50 +8789,50 @@ namespace CumulusMX
 			if (cumulus.Wund.SendAverage)
 			{
 				// send average speed and bearing
-				Data.Append($"&winddir={AvgBearing}&windspeedmph={WindMPHStr(WindAverage)}");
+				Data.Append($"&winddir={AvgBearing}&windspeedmph={WindMPHStr(WindAverage).Replace(',', '.')}");
 			}
 			else
 			{
 				// send "instantaneous" speed (i.e. latest) and bearing
-				Data.Append($"&winddir={Bearing}&windspeedmph={WindMPHStr(WindLatest)}");
+				Data.Append($"&winddir={Bearing}&windspeedmph={WindMPHStr(WindLatest).Replace(',', '.')}");
 			}
-			Data.Append($"&windgustmph={WindMPHStr(RecentMaxGust)}");
+			Data.Append($"&windgustmph={WindMPHStr(RecentMaxGust).Replace(',', '.')}");
 			// may not strictly be a 2 min average!
-			Data.Append($"&windspdmph_avg2m={WindMPHStr(WindAverage)}");
+			Data.Append($"&windspdmph_avg2m={WindMPHStr(WindAverage).Replace(',', '.')}");
 			Data.Append($"&winddir_avg2m={AvgBearing}");
 			Data.Append($"&humidity={OutdoorHumidity}");
-			Data.Append($"&tempf={TempFstr(OutdoorTemperature)}");
-			Data.Append($"&rainin={RainINstr(RainLastHour)}");
+			Data.Append($"&tempf={TempFstr(OutdoorTemperature).Replace(',', '.')}");
+			Data.Append($"&rainin={RainINstr(RainLastHour).Replace(',', '.')}");
 			Data.Append("&dailyrainin=");
 			if (cumulus.RolloverHour == 0)
 			{
 				// use today"s rain
-				Data.Append(RainINstr(RainToday));
+				Data.Append(RainINstr(RainToday).Replace(',', '.'));
 			}
 			else
 			{
-				Data.Append(RainINstr(RainSinceMidnight));
+				Data.Append(RainINstr(RainSinceMidnight).Replace(',', '.'));
 			}
-			Data.Append($"&baromin={PressINstr(Pressure)}");
-			Data.Append($"&dewptf={TempFstr(OutdoorDewpoint)}");
+			Data.Append($"&baromin={PressINstr(Pressure).Replace(',', '.')}");
+			Data.Append($"&dewptf={TempFstr(OutdoorDewpoint).Replace(',', '.')}");
 			if (cumulus.Wund.SendUV)
-				Data.Append($"&UV={UV.ToString(cumulus.UVFormat)}");
+				Data.Append($"&UV={UV.ToString(cumulus.UVFormat).Replace(',', '.')}");
 			if (cumulus.Wund.SendSolar)
 				Data.Append($"&solarradiation={SolarRad:F0}");
 			if (cumulus.Wund.SendIndoor)
 			{
-				Data.Append($"&indoortempf={TempFstr(IndoorTemperature)}");
+				Data.Append($"&indoortempf={TempFstr(IndoorTemperature).Replace(',', '.')}");
 				Data.Append($"&indoorhumidity={IndoorHumidity}");
 			}
 			// Davis soil and leaf sensors
 			if (cumulus.Wund.SendSoilTemp1)
-				Data.Append($"&soiltempf={TempFstr(SoilTemp1)}");
+				Data.Append($"&soiltempf={TempFstr(SoilTemp1).Replace(',', '.')}");
 			if (cumulus.Wund.SendSoilTemp2)
-				Data.Append($"&soiltempf2={TempFstr(SoilTemp2)}");
+				Data.Append($"&soiltempf2={TempFstr(SoilTemp2).Replace(',', '.')}");
 			if (cumulus.Wund.SendSoilTemp3)
-				Data.Append($"&soiltempf3={TempFstr(SoilTemp3)}");
+				Data.Append($"&soiltempf3={TempFstr(SoilTemp3).Replace(',', '.')}");
 			if (cumulus.Wund.SendSoilTemp4)
-				Data.Append($"&soiltempf4={TempFstr(SoilTemp4)}");
+				Data.Append($"&soiltempf4={TempFstr(SoilTemp4).Replace(',', '.')}");
 
 			if (cumulus.Wund.SendSoilMoisture1)
 				Data.Append($"&soilmoisture={SoilMoisture1}");
@@ -8840,20 +8855,20 @@ namespace CumulusMX
 					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
-							Data.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}&AqPM10={cumulus.airLinkDataOut.pm10:F1}");
+							Data.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}&AqPM10={cumulus.airLinkDataOut.pm10.ToString("F1", invC)}");
 						}
 						break;
 					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
-						Data.Append($"&AqPM2.5={AirQuality1:F1}");
+						Data.Append($"&AqPM2.5={AirQuality1.ToString("F1", invC)}");
 						break;
 					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
-						Data.Append($"&AqPM2.5={AirQuality2:F1}");
+						Data.Append($"&AqPM2.5={AirQuality2.ToString("F1", invC)}");
 						break;
 					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
-						Data.Append($"&AqPM2.5={AirQuality3:F1}");
+						Data.Append($"&AqPM2.5={AirQuality3.ToString("F1", invC)}");
 						break;
 					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
-						Data.Append($"&AqPM2.5={AirQuality4:F1}");
+						Data.Append($"&AqPM2.5={AirQuality4.ToString("F1", invC)}");
 						break;
 				}
 			}
@@ -8881,16 +8896,16 @@ namespace CumulusMX
 			URL.Append("&dateutc=" + dateUTC);
 			StringBuilder Data = new StringBuilder(1024);
 			Data.Append("&winddir=" + AvgBearing);
-			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage));
-			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust));
-			Data.Append("&tempf=" + TempFstr(OutdoorTemperature));
-			Data.Append("&rainin=" + RainINstr(RainLastHour));
-			Data.Append("&baromin=" + PressINstr(Pressure));
-			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
+			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage).Replace(',', '.'));
+			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust).Replace(',', '.'));
+			Data.Append("&tempf=" + TempFstr(OutdoorTemperature).Replace(',', '.'));
+			Data.Append("&rainin=" + RainINstr(RainLastHour).Replace(',', '.'));
+			Data.Append("&baromin=" + PressINstr(Pressure).Replace(',', '.'));
+			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint).Replace(',', '.'));
 			Data.Append("&humidity=" + OutdoorHumidity);
 
 			if (cumulus.Windy.SendUV)
-				Data.Append("&uv=" + UV.ToString(cumulus.UVFormat));
+				Data.Append("&uv=" + UV.ToString(cumulus.UVFormat).Replace(',', '.'));
 			if (cumulus.Windy.SendSolar)
 				Data.Append("&solarradiation=" + SolarRad.ToString("F0"));
 
@@ -8903,16 +8918,17 @@ namespace CumulusMX
 		public string GetOpenWeatherMapData(DateTime timestamp)
 		{
 			StringBuilder sb = new StringBuilder($"[{{\"station_id\":\"{cumulus.OpenWeatherMap.ID}\",");
+			var invC = new CultureInfo("");
 
 			sb.Append($"\"dt\":{Utils.ToUnixTime(timestamp)},");
-			sb.Append($"\"temperature\":{Math.Round(ConvertUserTempToC(OutdoorTemperature), 1)},");
+			sb.Append($"\"temperature\":{Math.Round(ConvertUserTempToC(OutdoorTemperature), 1).ToString(invC)},");
 			sb.Append($"\"wind_deg\":{AvgBearing},");
-			sb.Append($"\"wind_speed\":{Math.Round(ConvertUserWindToMS(WindAverage), 1)},");
-			sb.Append($"\"wind_gust\":{Math.Round(ConvertUserWindToMS(RecentMaxGust), 1)},");
-			sb.Append($"\"pressure\":{Math.Round(PressureHPa(Pressure), 1)},");
+			sb.Append($"\"wind_speed\":{Math.Round(ConvertUserWindToMS(WindAverage), 1).ToString(invC)},");
+			sb.Append($"\"wind_gust\":{Math.Round(ConvertUserWindToMS(RecentMaxGust), 1).ToString(invC)},");
+			sb.Append($"\"pressure\":{Math.Round(PressureHPa(Pressure), 1).ToString(invC)},");
 			sb.Append($"\"humidity\":{OutdoorHumidity},");
-			sb.Append($"\"rain_1h\":{Math.Round(ConvertUserRainToMM(RainLastHour), 1)},");
-			sb.Append($"\"rain_24h\":{Math.Round(ConvertUserRainToMM(RainLast24Hour), 1)}");
+			sb.Append($"\"rain_1h\":{Math.Round(ConvertUserRainToMM(RainLastHour), 1).ToString(invC)},");
+			sb.Append($"\"rain_24h\":{Math.Round(ConvertUserRainToMM(RainLast24Hour), 1).ToString(invC)}");
 			sb.Append("}]");
 
 			return sb.ToString();
@@ -8971,26 +8987,26 @@ namespace CumulusMX
 
 			// send average speed and bearing
 			Data.Append("&winddir=" + AvgBearing);
-			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage));
-			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust));
+			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage).Replace(',', '.'));
+			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust).Replace(',', '.'));
 			Data.Append("&humidity=" + OutdoorHumidity);
-			Data.Append("&tempf=" + TempFstr(OutdoorTemperature));
-			Data.Append("&rainin=" + RainINstr(RainLastHour));
+			Data.Append("&tempf=" + TempFstr(OutdoorTemperature).Replace(',', '.'));
+			Data.Append("&rainin=" + RainINstr(RainLastHour).Replace(',', '.'));
 			Data.Append("&dailyrainin=");
 			if (cumulus.RolloverHour == 0)
 			{
 				// use today"s rain
-				Data.Append(RainINstr(RainToday));
+				Data.Append(RainINstr(RainToday).Replace(',', '.'));
 			}
 			else
 			{
-				Data.Append(RainINstr(RainSinceMidnight));
+				Data.Append(RainINstr(RainSinceMidnight).Replace(',', '.'));
 			}
-			Data.Append("&baromin=" + PressINstr(Pressure));
-			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
+			Data.Append("&baromin=" + PressINstr(Pressure).Replace(',', '.'));
+			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint).Replace(',', '.'));
 			if (cumulus.PWS.SendUV)
 			{
-				Data.Append("&UV=" + UV.ToString(cumulus.UVFormat));
+				Data.Append("&UV=" + UV.ToString(cumulus.UVFormat).Replace(',', '.'));
 			}
 
 			if (cumulus.PWS.SendSolar)
@@ -9021,26 +9037,26 @@ namespace CumulusMX
 
 			// send average speed and bearing
 			Data.Append("&winddir=" + AvgBearing);
-			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage));
-			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust));
+			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage).Replace(',', '.'));
+			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust).Replace(',', '.'));
 			Data.Append("&humidity=" + OutdoorHumidity);
-			Data.Append("&tempf=" + TempFstr(OutdoorTemperature));
-			Data.Append("&rainin=" + RainINstr(RainLastHour));
+			Data.Append("&tempf=" + TempFstr(OutdoorTemperature).Replace(',', '.'));
+			Data.Append("&rainin=" + RainINstr(RainLastHour).Replace(',', '.'));
 			Data.Append("&dailyrainin=");
 			if (cumulus.RolloverHour == 0)
 			{
 				// use today"s rain
-				Data.Append(RainINstr(RainToday));
+				Data.Append(RainINstr(RainToday).Replace(',', '.'));
 			}
 			else
 			{
-				Data.Append(RainINstr(RainSinceMidnight));
+				Data.Append(RainINstr(RainSinceMidnight).Replace(',', '.'));
 			}
-			Data.Append("&baromin=" + PressINstr(Pressure));
-			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
+			Data.Append("&baromin=" + PressINstr(Pressure).Replace(',', '.'));
+			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint).Replace(',', '.'));
 			if (cumulus.WOW.SendUV)
 			{
-				Data.Append("&UV=" + UV.ToString(cumulus.UVFormat));
+				Data.Append("&UV=" + UV.ToString(cumulus.UVFormat).Replace(',', '.'));
 			}
 			if (cumulus.WOW.SendSolar)
 			{
