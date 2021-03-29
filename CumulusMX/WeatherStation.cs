@@ -10469,7 +10469,7 @@ namespace CumulusMX
 		}
 
 
-	public string GetDailyRainGraphData()
+		public string GetDailyRainGraphData()
 		{
 			var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);
 

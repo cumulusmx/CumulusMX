@@ -5,6 +5,7 @@
 - New: Now determines the Ecowitt GW1000 device main sensor type (WH65/WH24) and prints system information to the log file
 - New: Adds the free text station model to the Station settings page
 - New: Adds a cache buster to default web site webpagedata.json downloads
+- New: All decimal web tag values now accept a dp=N and tc=y overrides for the number of decimal places
 
 
 3.10.4 - b3121
