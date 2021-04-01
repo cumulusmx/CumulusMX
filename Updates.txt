@@ -1,11 +1,16 @@
 3.10.5 - b3122
 ——————————————
 - Fix: Comma decimal issues with OpenWeatherMap and other third party uploads
+- Fix: Occasional GW1000 crash on GetSensorIdsNew response timeout
+- Fix: GW1000, WH40 rain gauge, removed battery status check as it does not send this information
+- Fix: Adds missing WeatherCloud interval setting to Internet Settings
 
 - New: Now determines the Ecowitt GW1000 device main sensor type (WH65/WH24) and prints system information to the log file
 - New: Adds the free text station model to the Station settings page
 - New: Adds a cache buster to default web site webpagedata.json downloads
+- New: Adds optional UV index to Now, Today, Yesterday pages of the default web site
 - New: All decimal web tag values now accept a dp=N and tc=y overrides for the number of decimal places
+- New: Adds option to upload AQ data to WeatherCloud
 
 
 3.10.4 - b3121

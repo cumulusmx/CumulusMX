@@ -708,12 +708,12 @@ namespace CumulusMX
 			//       ... etc
 			// (??) - 0x?? - checksum
 
-			var len = ConvertBigEndianUInt16(data, 3);
-
 			var batteryLow = false;
 
 			if (null != data && data.Length > 200)
 			{
+				var len = ConvertBigEndianUInt16(data, 3);
+
 				for (int i = 5; i < len; i += 7)
 				{
 					if (PrintSensorInfoNew(data, i))
@@ -778,9 +778,12 @@ namespace CumulusMX
 			string batt;
 			switch (type)
 			{
+				case "WH40":  // WH40 does not send any battery info :(
+					batt = "n/a";
+					break;
+
 				case "WH65":
 				case "WH24":
-				case "WH40":
 				case "WH26":
 					batt = TestBattery1(data[battPos], 1);  // 0 or 1
 					break;

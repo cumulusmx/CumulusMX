@@ -8441,7 +8441,7 @@ namespace CumulusMX
 		public string GetWCloudURL(out string pwstring, DateTime timestamp)
 		{
 			pwstring = cumulus.WCloud.PW;
-			StringBuilder sb = new StringBuilder($"http://api.weathercloud.net/v01/set?wid={cumulus.WCloud.ID}&key={pwstring}");
+			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={cumulus.WCloud.ID}&key={pwstring}");
 
 			//Temperature
 			sb.Append("&tempin=" + (int)Math.Round(ConvertUserTempToC(IndoorTemperature) * 10));
@@ -8486,6 +8486,45 @@ namespace CumulusMX
 			if (cumulus.WCloud.SendUV)
 			{
 				sb.Append("&uvi=" + (int)Math.Round(UV * 10));
+			}
+
+			// aq
+			if (cumulus.WCloud.SendAQI)
+			{
+				sb.Append("&");
+
+				switch (cumulus.StationOptions.PrimaryAqSensor)
+				{
+					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+						if (cumulus.airLinkDataOut != null)
+						{
+							sb.Append($"pm25={cumulus.airLinkDataOut.pm2p5:F0}");
+							sb.Append($"&pm10={cumulus.airLinkDataOut.pm10:F0}");
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(cumulus.airLinkDataOut.pm2p5_24hr)}");
+						}
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+						sb.Append($"pm25={AirQuality1:F0}");
+						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg1)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+						sb.Append($"pm25={AirQuality2:F0}");
+						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg2)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+						sb.Append($"pm25={AirQuality3:F0}");
+						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg3)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+						sb.Append($"pm25={AirQuality4:F0}");
+						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg4)}");
+						break;
+					case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+						sb.Append($"pm25={CO2_pm2p5:F0}");
+						sb.Append($"&pm10={CO2_pm10:F0}");
+						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(CO2_pm2p5_24h)}");
+						break;
+				}
 			}
 
 			// time

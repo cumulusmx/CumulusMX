@@ -1118,6 +1118,7 @@ namespace CumulusMX
 			//LogDB.CreateTable<StandardData>();
 
 			// Open diary database (create file if it doesn't exist)
+			//DiaryDB = new SQLiteConnection(diaryfile, flags, true);  // We should be using this - storing datetime as ticks, but historically string storage has been used, so we are stuck with it?
 			DiaryDB = new SQLiteConnection(diaryfile, flags);
 			DiaryDB.CreateTable<DiaryData>();
 
@@ -3971,6 +3972,7 @@ namespace CumulusMX
 			WCloud.Interval = ini.GetValue("WeatherCloud", "Interval", WCloud.DefaultInterval);
 			WCloud.SendUV = ini.GetValue("WeatherCloud", "SendUV", false);
 			WCloud.SendSolar = ini.GetValue("WeatherCloud", "SendSR", false);
+			WCloud.SendAQI = ini.GetValue("WeatherCloud", "SendAQI", false);
 
 			WCloud.SynchronisedUpdate = (60 % WCloud.Interval == 0);
 
@@ -4707,6 +4709,7 @@ namespace CumulusMX
 			ini.SetValue("WeatherCloud", "Interval", WCloud.Interval);
 			ini.SetValue("WeatherCloud", "SendUV", WCloud.SendUV);
 			ini.SetValue("WeatherCloud", "SendSR", WCloud.SendSolar);
+			ini.SetValue("WeatherCloud", "SendAQI", WCloud.SendAQI);
 
 			ini.SetValue("Twitter", "User", Twitter.ID);
 			ini.SetValue("Twitter", "Password", Twitter.PW);
@@ -9621,6 +9624,7 @@ namespace CumulusMX
 		public bool SendUV;
 		public bool SendSolar;
 		public bool SendIndoor;
+		public bool SendAQI;
 		public bool CatchUp;
 		public bool CatchingUp;
 		public bool Updating;
