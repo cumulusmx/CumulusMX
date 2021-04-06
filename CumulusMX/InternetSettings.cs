@@ -275,8 +275,10 @@ namespace CumulusMX
 					{
 						cumulus.WCloud.ID = settings.weathercloud.wid ?? string.Empty;
 						cumulus.WCloud.PW = settings.weathercloud.key ?? string.Empty;
+						cumulus.WCloud.Interval = settings.weathercloud.interval;
 						cumulus.WCloud.SendSolar = settings.weathercloud.includesolar;
 						cumulus.WCloud.SendUV = settings.weathercloud.includeuv;
+						cumulus.WCloud.SendAQI = settings.weathercloud.includeaqi;
 						cumulus.WCloud.SynchronisedUpdate = (60 % cumulus.WCloud.Interval == 0);
 
 						cumulus.WCloudTimer.Interval = cumulus.WCloud.Interval * 60 * 1000;
@@ -727,8 +729,10 @@ namespace CumulusMX
 			var wcloudsettings = new JsonInternetSettingsWCloud()
 			{
 				enabled = cumulus.WCloud.Enabled,
+				interval = cumulus.WCloud.Interval,
 				includesolar = cumulus.WCloud.SendSolar,
 				includeuv = cumulus.WCloud.SendUV,
+				includeaqi = cumulus.WCloud.SendAQI,
 				key = cumulus.WCloud.PW,
 				wid = cumulus.WCloud.ID
 			};
@@ -1134,8 +1138,10 @@ namespace CumulusMX
 	public class JsonInternetSettingsWCloud
 	{
 		public bool enabled { get; set; }
+		public int interval { get; set; }
 		public bool includeuv { get; set; }
 		public bool includesolar { get; set; }
+		public bool includeaqi { get; set; }
 		public string wid { get; set; }
 		public string key { get; set; }
 	}

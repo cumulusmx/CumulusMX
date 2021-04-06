@@ -234,15 +234,8 @@ namespace CumulusMX
 
 					cumulus.LogMessage(msg);
 
-					msg = "Data block: ";
 
-					for (int i = 0; i < numBytes; i++)
-					{
-						msg += data[i].ToString("X2");
-						msg += " ";
-					}
-
-					cumulus.LogDataMessage(msg);
+					cumulus.LogDataMessage("Data block: " + BitConverter.ToString(data, 0, numBytes));
 
 					histData.timestamp = timestamp;
 					histData.interval = interval;
@@ -601,11 +594,9 @@ namespace CumulusMX
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
 				}
 
-				var recData = " Data" + i + ": ";
+				var recData = " Data" + i + ": "  + BitConverter.ToString(response, startByte, responseLength - startByte);
 				for (int j = startByte; j < responseLength; j++)
 				{
-					recData += response[j].ToString("X2");
-					recData += " ";
 					buff[ptr++] = response[j];
 				}
 				cumulus.LogDataMessage(recData);
@@ -759,12 +750,7 @@ namespace CumulusMX
 
 				if ((!synchronising) || ((readCounter%20) == 0))
 				{
-					LatestFOReading = addr.ToString("X4") + ":";
-					for (int i = 0; i < 16; i++)
-					{
-						LatestFOReading = LatestFOReading + " " + data[i].ToString("X2");
-					}
-
+					LatestFOReading = addr.ToString("X4") + ": " + BitConverter.ToString(data, 0, 16);
 					cumulus.LogDataMessage(LatestFOReading);
 
 					// Indoor Humidity ====================================================
