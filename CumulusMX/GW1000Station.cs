@@ -30,6 +30,8 @@ namespace CumulusMX
 
 		private Version fwVersion;
 
+		private string mainSensor;
+
 		private enum Commands : byte {
 			// General order
 			CMD_WRITE_SSID = 0x11,// send router SSID and Password to wifi module
@@ -276,6 +278,8 @@ namespace CumulusMX
 				cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
 				var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
 				fwVersion = new Version(fwString[1]);
+
+				GetSystemInfo();
 
 				GetSensorIdsNew();
 			}
@@ -614,6 +618,7 @@ namespace CumulusMX
 			return response;
 		}
 
+		/*
 		private bool GetSensorIds()
 		{
 			cumulus.LogMessage("Reading sensor ids");
@@ -647,6 +652,43 @@ namespace CumulusMX
 			}
 		}
 
+		private void PrintSensorInfo(byte[] data, int idx)
+		{
+			// expected response
+			// 0   - 0xff - header
+			// 1   - 0xff - header
+			// 2   - 0x3A - sensor id command
+			// 3   - 0x?? - size of response
+			// 4   - wh65
+			// 5-8 - wh65 id
+			// 9   - wh65 signal
+			// 10  - wh65 battery
+			// 11  - wh68
+			//       ... etc
+			// (??) - 0x?? - checksum
+
+			var id = ConvertBigEndianUInt32(data, idx + 1);
+			var type = Enum.GetName(typeof(SensorIds), data[idx]).ToUpper();
+
+			if (string.IsNullOrEmpty(type))
+			{
+				type = $"unknown type = {id}";
+			}
+			switch (id)
+			{
+				case 0xFFFFFFFE:
+					cumulus.LogDebugMessage($" - {type} sensor = disabled");
+					break;
+				case 0xFFFFFFFF:
+					cumulus.LogDebugMessage($" - {type} sensor = registering");
+					break;
+				default:
+					cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[idx+5]} battery = {data[idx+6]}");
+					break;
+			}
+		}
+		*/
+
 		private bool GetSensorIdsNew()
 		{
 			cumulus.LogMessage("Reading sensor ids");
@@ -666,12 +708,12 @@ namespace CumulusMX
 			//       ... etc
 			// (??) - 0x?? - checksum
 
-			var len = ConvertBigEndianUInt16(data, 3);
-
 			var batteryLow = false;
 
 			if (null != data && data.Length > 200)
 			{
+				var len = ConvertBigEndianUInt16(data, 3);
+
 				for (int i = 5; i < len; i += 7)
 				{
 					if (PrintSensorInfoNew(data, i))
@@ -687,41 +729,6 @@ namespace CumulusMX
 			else
 			{
 				return false;
-			}
-		}
-		private void PrintSensorInfo(byte[] data, int idx)
-		{
-			// expected response
-			// 0   - 0xff - header
-			// 1   - 0xff - header
-			// 2   - 0x3A - sensor id command
-			// 3   - 0x?? - size of response
-			// 4   - wh65
-			// 5-8 - wh65 id
-			// 9   - wh65 signal
-			// 10  - wh65 battery
-			// 11  - wh68
-			//       ... etc
-			// (??) - 0x?? - checksum
-
-			var id = ConvertBigEndianUInt32(data, idx + 1);
-			var type = Enum.GetName(typeof(SensorIds), data[idx]);
-
-			if (string.IsNullOrEmpty(type))
-			{
-				type = $"unknown type = {id}";
-			}
-			switch (id)
-			{
-				case 0xFFFFFFFE:
-					cumulus.LogDebugMessage($" - {type} sensor = disabled");
-					break;
-				case 0xFFFFFFFF:
-					cumulus.LogDebugMessage($" - {type} sensor = registering");
-					break;
-				default:
-					cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[idx+5]} battery = {data[idx+6]}");
-					break;
 			}
 		}
 
@@ -741,7 +748,7 @@ namespace CumulusMX
 			// (??) - 0x?? - checksum
 
 			var id = ConvertBigEndianUInt32(data, idx + 1);
-			var type = Enum.GetName(typeof(SensorIds), data[idx]);
+			var type = Enum.GetName(typeof(SensorIds), data[idx]).ToUpper();
 			var battPos = idx + 5;
 			var sigPos = idx + 6;
 			var batteryLow = false;
@@ -749,6 +756,12 @@ namespace CumulusMX
 			{
 				type = $"unknown type = {id}";
 			}
+			// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
+			if (type == "WH65")
+			{
+				type = mainSensor;
+			}
+
 			switch (id)
 			{
 				case 0xFFFFFFFE:
@@ -765,30 +778,34 @@ namespace CumulusMX
 			string batt;
 			switch (type)
 			{
-				case "Wh65":
-				case "Wh40":
-				case "Wh26":
+				case "WH40":  // WH40 does not send any battery info :(
+					batt = "n/a";
+					break;
+
+				case "WH65":
+				case "WH24":
+				case "WH26":
 					batt = TestBattery1(data[battPos], 1);  // 0 or 1
 					break;
 
-				case "Wh68":
-				case "Wh80":
-				case string wh34 when wh34.StartsWith("Wh34"):  // ch 1-8
-				case string wh35 when wh35.StartsWith("Wh35"):  // ch 1-8
+				case "WH68":
+				case "WH80":
+				case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
+				case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 					double battV = data[battPos] * 0.02;
 					batt = $"{battV:f1}V ({TestBattery4S(data[battPos])})";  // volts, low = 1.2V
 					break;
 
-				case string wh31 when wh31.StartsWith("Wh31"):  // ch 1-8
-				case string wh51 when wh51.StartsWith("Wh51"):  // ch 1-8
+				case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
+				case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 					batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
 					break;
 
-				case "Wh25":
-				case "Wh45":
-				case "Wh57":
-				case string wh41 when wh41.StartsWith("Wh41"): // ch 1-4
-				case string wh55 when wh55.StartsWith("Wh55"): // ch 1-4
+				case "WH25":
+				case "WH45":
+				case "WH57":
+				case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
+				case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
 					batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5, low = 1
 					break;
 
@@ -1110,20 +1127,29 @@ namespace CumulusMX
 								chan /= 2; // -> 1,2,3,4...
 								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoUserTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
-								if (tenMinuteChanged)
+
+								// Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
+								if (fwVersion.CompareTo(new Version("1.6.0")) >= 0)
 								{
-									var volts = TestBattery4V(data[idx + 2]);
-									if (volts <= 1.2)
+									if (tenMinuteChanged)
 									{
-										batteryLow = true;
-										cumulus.LogMessage($"WH34 channel #{chan} battery LOW = {volts}V");
+										var volts = TestBattery4V(data[idx + 2]);
+										if (volts <= 1.2)
+										{
+											batteryLow = true;
+											cumulus.LogMessage($"WH34 channel #{chan} battery LOW = {volts}V");
+										}
+										else
+										{
+											cumulus.LogDebugMessage($"WH34 channel #{chan} battery OK = {volts}V");
+										}
 									}
-									else
-									{
-										cumulus.LogDebugMessage($"WH34 channel #{chan} battery OK = {volts}V");
-									}
+									idx += 3;
 								}
-								idx += 3; // Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
+								else
+								{
+									idx += 2;
+								}
 								break;
 							case 0x6B: //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
 								if (tenMinuteChanged)
@@ -1254,6 +1280,40 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("GetLiveData: Error - " + ex.Message);
 			}
+		}
+
+		private void GetSystemInfo()
+		{
+			cumulus.LogMessage("Reading GW1000 system info");
+
+			var data = DoCommand((byte)Commands.CMD_READ_SSSS);
+
+			// expected response
+			// 0   - 0xff - header
+			// 1   - 0xff - header
+			// 2   - 0x30 - system info
+			// 3   - 0x?? - size of response
+			// 4   - frequency - 0=433, 1=868MHz
+			// 5   - sensor type - 0=WH24, 1=WH65
+			// 6-9 - UTC time
+			// 10  - timezone index (?)
+			// 11  - DST 0-1 - false/true
+			// 12  - 0x?? - checksum
+
+			if (data.Length != 13)
+			{
+				cumulus.LogMessage("Unexpected response to Sysetm Info!");
+				return;
+			}
+
+			var freq = data[4] == 0 ? "433MHz" : "868MHz";
+			mainSensor = data[5] == 0 ? "WH24" : "WH65";
+
+			var unix = ConvertBigEndianUInt32(data, 6);
+			var date = Utils.FromUnixTime(unix);
+			var dst = data[11] != 0;
+
+			cumulus.LogMessage($"GW1000 Info: freqency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {dst}");
 		}
 
 		private byte[] DoCommand(byte command)
