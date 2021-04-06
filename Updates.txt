@@ -4,6 +4,7 @@
 - Fix: Occasional GW1000 crash on GetSensorIdsNew response timeout
 - Fix: GW1000, WH40 rain gauge, removed battery status check as it does not send this information
 - Fix: Adds missing WeatherCloud interval setting to Internet Settings
+- Fix: Default web site Monthly NOAA reports before the year 2010
 
 - New: Now determines the Ecowitt GW1000 device main sensor type (WH65/WH24) and prints system information to the log file
 - New: Adds the free text station model to the Station settings page
