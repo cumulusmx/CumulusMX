@@ -35,6 +35,8 @@ namespace CumulusMX
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
+				ftplogging = cumulus.FTPlogging,
+				emaillogging = cumulus.SmtpOptions.Logging,
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple
 			};
 
@@ -93,7 +95,15 @@ namespace CumulusMX
 					cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
 					cumulus.ProgramOptions.DebugLogging = settings.options.debuglogging;
 					cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
+					cumulus.SmtpOptions.Logging = settings.options.emaillogging;
 					cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
+
+					if (settings.options.ftplogging != cumulus.FTPlogging)
+					{
+						cumulus.FTPlogging = settings.options.ftplogging;
+						cumulus.SetFtpLogging(cumulus.FTPlogging);
+					}
+
 				}
 				catch (Exception ex)
 				{
@@ -135,6 +145,8 @@ namespace CumulusMX
 	{
 		public bool debuglogging { get; set; }
 		public bool datalogging { get; set; }
+		public bool ftplogging { get; set; }
+		public bool emaillogging { get; set; }
 		public bool stopsecondinstance { get; set; }
 	}
 }

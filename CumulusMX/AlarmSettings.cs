@@ -34,6 +34,7 @@ namespace CumulusMX
 				tempBelowSoundEnabled = cumulus.LowTempAlarm.Sound,
 				tempBelowSound = cumulus.LowTempAlarm.SoundFile,
 				tempBelowNotify = cumulus.LowTempAlarm.Notify,
+				tempBelowEmail = cumulus.LowTempAlarm.Email,
 				tempBelowLatches = cumulus.LowTempAlarm.Latch,
 				tempBelowLatchHrs = cumulus.LowTempAlarm.LatchHours,
 
@@ -42,6 +43,7 @@ namespace CumulusMX
 				tempAboveSoundEnabled = cumulus.HighTempAlarm.Sound,
 				tempAboveSound = cumulus.HighTempAlarm.SoundFile,
 				tempAboveNotify = cumulus.HighTempAlarm.Notify,
+				tempAboveEmail = cumulus.HighTempAlarm.Email,
 				tempAboveLatches = cumulus.HighTempAlarm.Latch,
 				tempAboveLatchHrs = cumulus.HighTempAlarm.LatchHours,
 
@@ -50,6 +52,7 @@ namespace CumulusMX
 				tempChangeSoundEnabled = cumulus.TempChangeAlarm.Sound,
 				tempChangeSound = cumulus.TempChangeAlarm.SoundFile,
 				tempChangeNotify = cumulus.TempChangeAlarm.Notify,
+				tempChangeEmail = cumulus.TempChangeAlarm.Email,
 				tempChangeLatches = cumulus.TempChangeAlarm.Latch,
 				tempChangeLatchHrs = cumulus.TempChangeAlarm.LatchHours,
 
@@ -58,6 +61,7 @@ namespace CumulusMX
 				pressBelowSoundEnabled = cumulus.LowPressAlarm.Sound,
 				pressBelowSound = cumulus.LowPressAlarm.SoundFile,
 				pressBelowNotify = cumulus.LowPressAlarm.Notify,
+				pressBelowEmail = cumulus.LowPressAlarm.Email,
 				pressBelowLatches = cumulus.LowPressAlarm.Latch,
 				pressBelowLatchHrs = cumulus.LowPressAlarm.LatchHours,
 
@@ -66,6 +70,7 @@ namespace CumulusMX
 				pressAboveSoundEnabled = cumulus.HighPressAlarm.Sound,
 				pressAboveSound = cumulus.HighPressAlarm.SoundFile,
 				pressAboveNotify = cumulus.HighPressAlarm.Notify,
+				pressAboveEmail = cumulus.HighPressAlarm.Email,
 				pressAboveLatches = cumulus.HighPressAlarm.Latch,
 				pressAboveLatchHrs = cumulus.HighPressAlarm.LatchHours,
 
@@ -74,6 +79,7 @@ namespace CumulusMX
 				pressChangeSoundEnabled = cumulus.PressChangeAlarm.Sound,
 				pressChangeSound = cumulus.PressChangeAlarm.SoundFile,
 				pressChangeNotify = cumulus.PressChangeAlarm.Notify,
+				pressChangeEmail = cumulus.PressChangeAlarm.Email,
 				pressChangeLatches = cumulus.PressChangeAlarm.Latch,
 				pressChangeLatchHrs = cumulus.PressChangeAlarm.LatchHours,
 
@@ -82,6 +88,7 @@ namespace CumulusMX
 				rainAboveSoundEnabled = cumulus.HighRainTodayAlarm.Sound,
 				rainAboveSound = cumulus.HighRainTodayAlarm.SoundFile,
 				rainAboveNotify = cumulus.HighRainTodayAlarm.Notify,
+				rainAboveEmail = cumulus.HighRainTodayAlarm.Email,
 				rainAboveLatches = cumulus.HighRainTodayAlarm.Latch,
 				rainAboveLatchHrs = cumulus.HighRainTodayAlarm.LatchHours,
 
@@ -90,6 +97,7 @@ namespace CumulusMX
 				rainRateAboveSoundEnabled = cumulus.HighRainRateAlarm.Sound,
 				rainRateAboveSound = cumulus.HighRainRateAlarm.SoundFile,
 				rainRateAboveNotify = cumulus.HighRainRateAlarm.Notify,
+				rainRateAboveEmail = cumulus.HighRainRateAlarm.Email,
 				rainRateAboveLatches = cumulus.HighRainRateAlarm.Latch,
 				rainRateAboveLatchHrs = cumulus.HighRainRateAlarm.LatchHours,
 
@@ -98,6 +106,7 @@ namespace CumulusMX
 				gustAboveSoundEnabled = cumulus.HighGustAlarm.Sound,
 				gustAboveSound = cumulus.HighGustAlarm.SoundFile,
 				gustAboveNotify = cumulus.HighGustAlarm.Notify,
+				gustAboveEmail = cumulus.HighGustAlarm.Email,
 				gustAboveLatches = cumulus.HighGustAlarm.Latch,
 				gustAboveLatchHrs = cumulus.HighGustAlarm.LatchHours,
 
@@ -106,6 +115,7 @@ namespace CumulusMX
 				windAboveSoundEnabled = cumulus.HighWindAlarm.Sound,
 				windAboveSound = cumulus.HighWindAlarm.SoundFile,
 				windAboveNotify = cumulus.HighWindAlarm.Notify,
+				windAboveEmail = cumulus.HighWindAlarm.Email,
 				windAboveLatches = cumulus.HighWindAlarm.Latch,
 				windAboveLatchHrs = cumulus.HighWindAlarm.LatchHours,
 
@@ -113,6 +123,7 @@ namespace CumulusMX
 				contactLostSoundEnabled = cumulus.SensorAlarm.Sound,
 				contactLostSound = cumulus.SensorAlarm.SoundFile,
 				contactLostNotify = cumulus.SensorAlarm.Notify,
+				contactLostEmail = cumulus.SensorAlarm.Email,
 				contactLostLatches = cumulus.SensorAlarm.Latch,
 				contactLostLatchHrs = cumulus.SensorAlarm.LatchHours,
 
@@ -120,6 +131,7 @@ namespace CumulusMX
 				dataStoppedSoundEnabled = cumulus.DataStoppedAlarm.Sound,
 				dataStoppedSound = cumulus.DataStoppedAlarm.SoundFile,
 				dataStoppedNotify = cumulus.DataStoppedAlarm.Notify,
+				dataStoppedEmail = cumulus.DataStoppedAlarm.Email,
 				dataStoppedLatches = cumulus.DataStoppedAlarm.Latch,
 				dataStoppedLatchHrs = cumulus.DataStoppedAlarm.LatchHours,
 
@@ -127,6 +139,7 @@ namespace CumulusMX
 				batteryLowSoundEnabled = cumulus.BatteryLowAlarm.Sound,
 				batteryLowSound = cumulus.BatteryLowAlarm.SoundFile,
 				batteryLowNotify = cumulus.BatteryLowAlarm.Notify,
+				batteryLowEmail = cumulus.BatteryLowAlarm.Email,
 				batteryLowLatches = cumulus.BatteryLowAlarm.Latch,
 				batteryLowLatchHrs = cumulus.BatteryLowAlarm.LatchHours,
 
@@ -134,6 +147,7 @@ namespace CumulusMX
 				spikeSoundEnabled = cumulus.SpikeAlarm.Sound,
 				spikeSound = cumulus.SpikeAlarm.SoundFile,
 				spikeNotify = cumulus.SpikeAlarm.Notify,
+				spikeEmail = cumulus.SpikeAlarm.Email,
 				spikeLatches = cumulus.SpikeAlarm.Latch,
 				spikeLatchHrs = cumulus.SpikeAlarm.LatchHours,
 
@@ -141,14 +155,22 @@ namespace CumulusMX
 				upgradeSoundEnabled = cumulus.UpgradeAlarm.Sound,
 				upgradeSound = cumulus.UpgradeAlarm.SoundFile,
 				upgradeNotify = cumulus.UpgradeAlarm.Notify,
+				upgradeEmail = cumulus.UpgradeAlarm.Email,
 				upgradeLatches = cumulus.UpgradeAlarm.Latch,
-				upgradeLatchHrs = cumulus.UpgradeAlarm.LatchHours,
+				upgradeLatchHrs = cumulus.UpgradeAlarm.LatchHours
+			};
+
+			var email = new JsonAlarmEmail()
+			{
+				fromEmail = cumulus.AlarmFromEmail,
+				destEmail = cumulus.AlarmDestEmail.Join(";")
 			};
 
 			var retObject = new JsonAlarmSettings()
 			{
 				data = data,
-				units = alarmUnits
+				units = alarmUnits,
+				email = email
 			};
 
 			return retObject.ToJson();
@@ -167,7 +189,8 @@ namespace CumulusMX
 				//var settings = JsonConvert.DeserializeObject<JsonAlarmSettingsData>(json);
 				//var settings = JsonSerializer.DeserializeFromString<JsonAlarmSettingsData>(json);
 
-				var settings = json.FromJson<JsonAlarmSettingsData>();
+				var result = json.FromJson<JsonAlarmSettings>();
+				var settings = result.data;
 				// process the settings
 				cumulus.LogMessage("Updating Alarm settings");
 
@@ -176,6 +199,7 @@ namespace CumulusMX
 				cumulus.LowTempAlarm.Sound = settings.tempBelowSoundEnabled;
 				cumulus.LowTempAlarm.SoundFile = settings.tempBelowSound;
 				cumulus.LowTempAlarm.Notify = settings.tempBelowNotify;
+				cumulus.LowTempAlarm.Email = settings.tempBelowEmail;
 				cumulus.LowTempAlarm.Latch = settings.tempBelowLatches;
 				cumulus.LowTempAlarm.LatchHours = settings.tempBelowLatchHrs;
 
@@ -185,6 +209,7 @@ namespace CumulusMX
 				cumulus.HighTempAlarm.Sound = settings.tempAboveSoundEnabled;
 				cumulus.HighTempAlarm.SoundFile = settings.tempAboveSound;
 				cumulus.HighTempAlarm.Notify = settings.tempAboveNotify;
+				cumulus.HighTempAlarm.Email = settings.tempAboveEmail;
 				cumulus.HighTempAlarm.Latch = settings.tempAboveLatches;
 				cumulus.HighTempAlarm.LatchHours = settings.tempAboveLatchHrs;
 
@@ -193,6 +218,7 @@ namespace CumulusMX
 				cumulus.TempChangeAlarm.Sound = settings.tempChangeSoundEnabled;
 				cumulus.TempChangeAlarm.SoundFile = settings.tempChangeSound;
 				cumulus.TempChangeAlarm.Notify = settings.tempChangeNotify;
+				cumulus.TempChangeAlarm.Email = settings.tempChangeEmail;
 				cumulus.TempChangeAlarm.Latch = settings.tempChangeLatches;
 				cumulus.TempChangeAlarm.LatchHours = settings.tempChangeLatchHrs;
 
@@ -201,6 +227,7 @@ namespace CumulusMX
 				cumulus.LowPressAlarm.Sound = settings.pressBelowSoundEnabled;
 				cumulus.LowPressAlarm.SoundFile = settings.pressBelowSound;
 				cumulus.LowPressAlarm.Notify = settings.pressBelowNotify;
+				cumulus.LowPressAlarm.Email = settings.pressBelowEmail;
 				cumulus.LowPressAlarm.Latch = settings.pressBelowLatches;
 				cumulus.LowPressAlarm.LatchHours = settings.pressBelowLatchHrs;
 
@@ -209,6 +236,7 @@ namespace CumulusMX
 				cumulus.HighPressAlarm.Sound = settings.pressAboveSoundEnabled;
 				cumulus.HighPressAlarm.SoundFile = settings.pressAboveSound;
 				cumulus.HighPressAlarm.Notify = settings.pressAboveNotify;
+				cumulus.HighPressAlarm.Email = settings.pressAboveEmail;
 				cumulus.HighPressAlarm.Latch = settings.pressAboveLatches;
 				cumulus.HighPressAlarm.LatchHours = settings.pressAboveLatchHrs;
 
@@ -217,6 +245,7 @@ namespace CumulusMX
 				cumulus.PressChangeAlarm.Sound = settings.pressChangeSoundEnabled;
 				cumulus.PressChangeAlarm.SoundFile = settings.pressChangeSound;
 				cumulus.PressChangeAlarm.Notify = settings.pressChangeNotify;
+				cumulus.PressChangeAlarm.Email = settings.pressChangeEmail;
 				cumulus.PressChangeAlarm.Latch = settings.pressChangeLatches;
 				cumulus.PressChangeAlarm.LatchHours = settings.pressChangeLatchHrs;
 
@@ -225,6 +254,7 @@ namespace CumulusMX
 				cumulus.HighRainTodayAlarm.Sound = settings.rainAboveSoundEnabled;
 				cumulus.HighRainTodayAlarm.SoundFile = settings.rainAboveSound;
 				cumulus.HighRainTodayAlarm.Notify = settings.rainAboveNotify;
+				cumulus.HighRainTodayAlarm.Email = settings.rainAboveEmail;
 				cumulus.HighRainTodayAlarm.Latch = settings.rainAboveLatches;
 				cumulus.HighRainTodayAlarm.LatchHours = settings.rainAboveLatchHrs;
 
@@ -233,6 +263,7 @@ namespace CumulusMX
 				cumulus.HighRainRateAlarm.Sound = settings.rainRateAboveSoundEnabled;
 				cumulus.HighRainRateAlarm.SoundFile = settings.rainRateAboveSound;
 				cumulus.HighRainRateAlarm.Notify = settings.rainRateAboveNotify;
+				cumulus.HighRainRateAlarm.Email = settings.rainRateAboveEmail;
 				cumulus.HighRainRateAlarm.Latch = settings.rainRateAboveLatches;
 				cumulus.HighRainRateAlarm.LatchHours = settings.rainRateAboveLatchHrs;
 
@@ -241,6 +272,7 @@ namespace CumulusMX
 				cumulus.HighGustAlarm.Sound = settings.gustAboveSoundEnabled;
 				cumulus.HighGustAlarm.SoundFile = settings.gustAboveSound;
 				cumulus.HighGustAlarm.Notify = settings.gustAboveNotify;
+				cumulus.HighGustAlarm.Email = settings.gustAboveEmail;
 				cumulus.HighGustAlarm.Latch = settings.gustAboveLatches;
 				cumulus.HighGustAlarm.LatchHours = settings.gustAboveLatchHrs;
 
@@ -249,6 +281,7 @@ namespace CumulusMX
 				cumulus.HighWindAlarm.Sound = settings.windAboveSoundEnabled;
 				cumulus.HighWindAlarm.SoundFile = settings.windAboveSound;
 				cumulus.HighWindAlarm.Notify = settings.windAboveNotify;
+				cumulus.HighWindAlarm.Email = settings.windAboveEmail;
 				cumulus.HighWindAlarm.Latch = settings.windAboveLatches;
 				cumulus.HighWindAlarm.LatchHours = settings.windAboveLatchHrs;
 
@@ -256,6 +289,7 @@ namespace CumulusMX
 				cumulus.SensorAlarm.Sound = settings.contactLostSoundEnabled;
 				cumulus.SensorAlarm.SoundFile = settings.contactLostSound;
 				cumulus.SensorAlarm.Notify = settings.contactLostNotify;
+				cumulus.SensorAlarm.Email = settings.contactLostEmail;
 				cumulus.SensorAlarm.Latch = settings.contactLostLatches;
 				cumulus.SensorAlarm.LatchHours = settings.contactLostLatchHrs;
 
@@ -263,6 +297,7 @@ namespace CumulusMX
 				cumulus.DataStoppedAlarm.Sound = settings.dataStoppedSoundEnabled;
 				cumulus.DataStoppedAlarm.SoundFile = settings.dataStoppedSound;
 				cumulus.DataStoppedAlarm.Notify = settings.dataStoppedNotify;
+				cumulus.DataStoppedAlarm.Email = settings.dataStoppedEmail;
 				cumulus.DataStoppedAlarm.Latch = settings.dataStoppedLatches;
 				cumulus.DataStoppedAlarm.LatchHours = settings.dataStoppedLatchHrs;
 
@@ -270,6 +305,7 @@ namespace CumulusMX
 				cumulus.BatteryLowAlarm.Sound = settings.batteryLowSoundEnabled;
 				cumulus.BatteryLowAlarm.SoundFile = settings.batteryLowSound;
 				cumulus.BatteryLowAlarm.Notify = settings.batteryLowNotify;
+				cumulus.BatteryLowAlarm.Email = settings.batteryLowEmail;
 				cumulus.BatteryLowAlarm.Latch = settings.batteryLowLatches;
 				cumulus.BatteryLowAlarm.LatchHours = settings.batteryLowLatchHrs;
 
@@ -277,6 +313,7 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.Sound = settings.spikeSoundEnabled;
 				cumulus.SpikeAlarm.SoundFile = settings.spikeSound;
 				cumulus.SpikeAlarm.Notify = settings.spikeNotify;
+				cumulus.SpikeAlarm.Email = settings.spikeEmail;
 				cumulus.SpikeAlarm.Latch = settings.spikeLatches;
 				cumulus.SpikeAlarm.LatchHours = settings.spikeLatchHrs;
 
@@ -284,8 +321,35 @@ namespace CumulusMX
 				cumulus.UpgradeAlarm.Sound = settings.upgradeSoundEnabled;
 				cumulus.UpgradeAlarm.SoundFile = settings.upgradeSound;
 				cumulus.UpgradeAlarm.Notify = settings.upgradeNotify;
+				cumulus.UpgradeAlarm.Email = settings.upgradeEmail;
 				cumulus.UpgradeAlarm.Latch = settings.upgradeLatches;
 				cumulus.UpgradeAlarm.LatchHours = settings.upgradeLatchHrs;
+
+				// validate the from email
+				if (!EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
+				{
+					var msg = "ERROR: Invalid Alarm from email address entered";
+					cumulus.LogMessage(msg);
+					context.Response.StatusCode = 500;
+					return msg;
+				}
+				cumulus.AlarmFromEmail = result.email.fromEmail.Trim();
+
+				// validate the destination email(s)
+				var emails = result.email.destEmail.Trim().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+				for (var i = 0; i < emails.Length; i++)
+				{
+					emails[i] = emails[i].Trim();
+					if (!EmailSender.CheckEmailAddress(emails[i]))
+					{
+						var msg = "ERROR: Invalid Alarm destination email address entered";
+						cumulus.LogMessage(msg);
+						context.Response.StatusCode = 500;
+						return msg;
+					}
+				}
+
+				cumulus.AlarmDestEmail = emails;
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -309,6 +373,7 @@ namespace CumulusMX
 		public bool tempBelowSoundEnabled { get; set; }
 		public string tempBelowSound { get; set; }
 		public bool tempBelowNotify { get; set; }
+		public bool tempBelowEmail { get; set; }
 		public bool tempBelowLatches { get; set; }
 		public int tempBelowLatchHrs { get; set; }
 
@@ -317,6 +382,7 @@ namespace CumulusMX
 		public bool tempAboveSoundEnabled { get; set; }
 		public string tempAboveSound { get; set; }
 		public bool tempAboveNotify { get; set; }
+		public bool tempAboveEmail { get; set; }
 		public bool tempAboveLatches { get; set; }
 		public int tempAboveLatchHrs { get; set; }
 
@@ -324,7 +390,8 @@ namespace CumulusMX
 		public double tempChangeVal { get; set; }
 		public bool tempChangeSoundEnabled { get; set; }
 		public string tempChangeSound { get; set; }
-		public bool tempChangeNotify{ get; set; }
+		public bool tempChangeNotify { get; set; }
+		public bool tempChangeEmail { get; set; }
 		public bool tempChangeLatches { get; set; }
 		public int tempChangeLatchHrs { get; set; }
 
@@ -333,6 +400,7 @@ namespace CumulusMX
 		public bool pressBelowSoundEnabled { get; set; }
 		public string pressBelowSound { get; set; }
 		public bool pressBelowNotify { get; set; }
+		public bool pressBelowEmail { get; set; }
 		public bool pressBelowLatches { get; set; }
 		public int pressBelowLatchHrs { get; set; }
 
@@ -341,6 +409,7 @@ namespace CumulusMX
 		public bool pressAboveSoundEnabled { get; set; }
 		public string pressAboveSound { get; set; }
 		public bool pressAboveNotify { get; set; }
+		public bool pressAboveEmail { get; set; }
 		public bool pressAboveLatches { get; set; }
 		public int pressAboveLatchHrs { get; set; }
 
@@ -349,6 +418,7 @@ namespace CumulusMX
 		public bool pressChangeSoundEnabled { get; set; }
 		public string pressChangeSound { get; set; }
 		public bool pressChangeNotify { get; set; }
+		public bool pressChangeEmail { get; set; }
 		public bool pressChangeLatches { get; set; }
 		public int pressChangeLatchHrs { get; set; }
 
@@ -357,6 +427,7 @@ namespace CumulusMX
 		public bool rainAboveSoundEnabled { get; set; }
 		public string rainAboveSound { get; set; }
 		public bool rainAboveNotify { get; set; }
+		public bool rainAboveEmail { get; set; }
 		public bool rainAboveLatches { get; set; }
 		public int rainAboveLatchHrs { get; set; }
 
@@ -365,6 +436,7 @@ namespace CumulusMX
 		public bool rainRateAboveSoundEnabled { get; set; }
 		public string rainRateAboveSound { get; set; }
 		public bool rainRateAboveNotify { get; set; }
+		public bool rainRateAboveEmail { get; set; }
 		public bool rainRateAboveLatches { get; set; }
 		public int rainRateAboveLatchHrs { get; set; }
 
@@ -373,6 +445,7 @@ namespace CumulusMX
 		public bool gustAboveSoundEnabled { get; set; }
 		public string gustAboveSound { get; set; }
 		public bool gustAboveNotify { get; set; }
+		public bool gustAboveEmail { get; set; }
 		public bool gustAboveLatches { get; set; }
 		public int gustAboveLatchHrs { get; set; }
 
@@ -381,6 +454,7 @@ namespace CumulusMX
 		public bool windAboveSoundEnabled { get; set; }
 		public string windAboveSound { get; set; }
 		public bool windAboveNotify { get; set; }
+		public bool windAboveEmail { get; set; }
 		public bool windAboveLatches { get; set; }
 		public int windAboveLatchHrs { get; set; }
 
@@ -388,6 +462,7 @@ namespace CumulusMX
 		public bool contactLostSoundEnabled { get; set; }
 		public string contactLostSound { get; set; }
 		public bool contactLostNotify { get; set; }
+		public bool contactLostEmail { get; set; }
 		public bool contactLostLatches { get; set; }
 		public int contactLostLatchHrs { get; set; }
 
@@ -395,6 +470,7 @@ namespace CumulusMX
 		public bool dataStoppedSoundEnabled { get; set; }
 		public string dataStoppedSound { get; set; }
 		public bool dataStoppedNotify { get; set; }
+		public bool dataStoppedEmail { get; set; }
 		public bool dataStoppedLatches { get; set; }
 		public int dataStoppedLatchHrs { get; set; }
 
@@ -402,6 +478,7 @@ namespace CumulusMX
 		public bool batteryLowSoundEnabled { get; set; }
 		public string batteryLowSound { get; set; }
 		public bool batteryLowNotify { get; set; }
+		public bool batteryLowEmail { get; set; }
 		public bool batteryLowLatches { get; set; }
 		public int batteryLowLatchHrs { get; set; }
 
@@ -409,6 +486,7 @@ namespace CumulusMX
 		public bool spikeSoundEnabled { get; set; }
 		public string spikeSound { get; set; }
 		public bool spikeNotify { get; set; }
+		public bool spikeEmail { get; set; }
 		public bool spikeLatches { get; set; }
 		public int spikeLatchHrs { get; set; }
 
@@ -416,9 +494,15 @@ namespace CumulusMX
 		public bool upgradeSoundEnabled { get; set; }
 		public string upgradeSound { get; set; }
 		public bool upgradeNotify { get; set; }
+		public bool upgradeEmail { get; set; }
 		public bool upgradeLatches { get; set; }
 		public int upgradeLatchHrs { get; set; }
+	}
 
+	public class JsonAlarmEmail
+	{
+		public string fromEmail { get; set; }
+		public string destEmail { get; set; }
 	}
 
 	public class JsonAlarmUnits
@@ -433,5 +517,6 @@ namespace CumulusMX
 	{
 		public JsonAlarmSettingsData data { get; set; }
 		public JsonAlarmUnits units { get; set; }
+		public JsonAlarmEmail email { get; set; }
 	}
 }

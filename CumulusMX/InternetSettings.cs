@@ -78,11 +78,6 @@ namespace CumulusMX
 					cumulus.DeleteBeforeUpload = settings.websettings.general.ftpdelete;
 					cumulus.FTPRename = settings.websettings.general.ftprename;
 					cumulus.UTF8encode = settings.websettings.general.utf8encode;
-					if (settings.websettings.general.ftplogging != cumulus.FTPlogging)
-					{
-						cumulus.FTPlogging = settings.websettings.general.ftplogging;
-						cumulus.SetFtpLogging(cumulus.FTPlogging);
-					}
 
 					cumulus.RealtimeEnabled = settings.websettings.realtime.enabled;
 					if (cumulus.RealtimeEnabled)
@@ -508,6 +503,29 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// email settings
+				try
+				{
+
+					cumulus.SmtpOptions.Enabled = settings.emailsettings.enabled;
+					if (cumulus.SmtpOptions.Enabled)
+					{
+						cumulus.SmtpOptions.Server = settings.emailsettings.server;
+						cumulus.SmtpOptions.Port = settings.emailsettings.port;
+						cumulus.SmtpOptions.UseSsl = settings.emailsettings.usessl;
+						cumulus.SmtpOptions.RequiresAuthentication = settings.emailsettings.authenticate;
+						cumulus.SmtpOptions.User = settings.emailsettings.user;
+						cumulus.SmtpOptions.Password = settings.emailsettings.password;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Email settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -580,7 +598,6 @@ namespace CumulusMX
 				ftpdelete = cumulus.DeleteBeforeUpload,
 				ftprename = cumulus.FTPRename,
 				utf8encode = cumulus.UTF8encode,
-				ftplogging = cumulus.FTPlogging
 			};
 
 			var websettingsintervalstd = new JsonInternetSettingsWebSettingsIntervalFiles()
@@ -847,6 +864,17 @@ namespace CumulusMX
 
 			var customhttp = new JsonInternetSettingsCustomHttpSettings() { customseconds = customseconds, customminutes = customminutes, customrollover = customrollover };
 
+			var email = new JsonEmailSettings()
+			{
+				enabled = cumulus.SmtpOptions.Enabled,
+				server = cumulus.SmtpOptions.Server,
+				port = cumulus.SmtpOptions.Port,
+				usessl = cumulus.SmtpOptions.UseSsl,
+				authenticate = cumulus.SmtpOptions.RequiresAuthentication,
+				user = cumulus.SmtpOptions.User,
+				password = cumulus.SmtpOptions.Password
+			};
+
 			var data = new JsonInternetSettingsData()
 			{
 				website = websitesettings,
@@ -864,7 +892,8 @@ namespace CumulusMX
 				mqtt = mqttsettings,
 				moonimage = moonimagesettings,
 				proxies = proxy,
-				customhttp = customhttp
+				customhttp = customhttp,
+				emailsettings = email
 			};
 
 			return data.ToJson();
@@ -1001,6 +1030,7 @@ namespace CumulusMX
 		public JsonInternetSettingsMoonImage moonimage { get; set; }
 		public JsonInternetSettingsProxySettings proxies { get; set; }
 		public JsonInternetSettingsCustomHttpSettings customhttp { get; set; }
+		public JsonEmailSettings emailsettings { get; set; }
 	}
 
 	public class JsonInternetSettingsWebsiteAdvanced
@@ -1039,7 +1069,6 @@ namespace CumulusMX
 		public bool ftprename { get; set; }
 		public bool ftpdelete { get; set; }
 		public bool utf8encode { get; set; }
-		public bool ftplogging { get; set; }
 	}
 
 	public class JsonInternetSettingsFileSettings
@@ -1235,6 +1264,17 @@ namespace CumulusMX
 	{
 		public string proxy { get; set; }
 		public int port { get; set; }
+		public string user { get; set; }
+		public string password { get; set; }
+	}
+
+	public class JsonEmailSettings
+	{
+		public bool enabled { get; set; }
+		public string server { get; set; }
+		public int port { get; set; }
+		public bool usessl { get; set; }
+		public bool authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
 	}

@@ -169,7 +169,7 @@ namespace CumulusMX
 
 		// Current values
 
-		public double THWIndex = 0;
+		//public double THWIndex = 0;
 		public double THSWIndex = 0;
 
 		public double raindaystart = 0.0;

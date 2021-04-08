@@ -1,3 +1,30 @@
+3.11.0 - b3123
+——————————————
+- Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
+- Fix: Remove <#THWindex> web tag from Cumulus MX
+- Fix: OpenWeatherMap - create new station was not forcing the use of dot decimals for lat/long values
+
+- New: Adds Email support for Alarms
+	- Creates a new section in Cumulus.ini:
+		[SMTP]
+		ServerName=
+		Port=587
+		UseSSL=0
+		RequiresAuthentication=0
+		User=
+		Password=
+		Logging=0
+	- Adds to the Alarms section in Cumulus.ini
+		[Alarms]
+		xxxxxAlarmEmail=0
+		FromEmail=
+		DestEmail=
+	- Creates a new section in strings.ini, with email text
+		[AlarmEmails]
+
+- Changed: Moved FTP Logging option from Internet Settings to Program Setting to collect all the logging options in one place
+
+
 3.10.5 - b3122
 ——————————————
 - Fix: Comma decimal issues with OpenWeatherMap and other third party uploads

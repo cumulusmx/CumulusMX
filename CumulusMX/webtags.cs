@@ -3133,10 +3133,10 @@ namespace CumulusMX
 			return CheckRcDp(station.SunshineHours, tagParams, cumulus.SunshineDPlaces);
 		}
 
-		private string TagThwIndex(Dictionary<string,string> tagParams)
-		{
-			return CheckRcDp(station.THWIndex, tagParams, 1);
-		}
+		//private string TagThwIndex(Dictionary<string,string> tagParams)
+		//{
+		//	return CheckRcDp(station.THWIndex, tagParams, 1);
+		//}
 
 		private string TagThswIndex(Dictionary<string,string> tagParams)
 		{
@@ -5379,7 +5379,7 @@ namespace CumulusMX
 				{ "IsSunny", TagIsSunny },
 				{ "IsRaining", TagIsRaining },
 				{ "IsFreezing", TagIsFreezing },
-				{ "THWindex", TagThwIndex },
+				//{ "THWindex", TagThwIndex },
 				{ "THSWindex", TagThswIndex },
 				{ "ExtraTemp1", TagExtraTemp1 },
 				{ "ExtraTemp2", TagExtraTemp2 },
