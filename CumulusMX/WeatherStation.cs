@@ -1437,6 +1437,12 @@ namespace CumulusMX
 				}
 
 				MinuteChanged(timeNow);
+
+				if (DataStopped)
+				{
+					// No data coming in, do not do anything else
+					return;
+				}
 			}
 
 			if ((int)timeNow.TimeOfDay.TotalMilliseconds % 2500 <= 500)
@@ -1540,6 +1546,13 @@ namespace CumulusMX
 			{
 				DoForecast("", true);
 			}
+
+			if (DataStopped)
+			{
+				// No data coming in, do not do anything else
+				return;
+			}
+
 
 			if (now.Hour == 0)
 			{
@@ -11263,6 +11276,12 @@ namespace CumulusMX
 
 		public void UpdateAPRS()
 		{
+			if (DataStopped)
+			{
+				// No data coming in, do nothing
+				return;
+			}
+
 			cumulus.LogMessage("Updating CWOP");
 			using (var client = new TcpClient(cumulus.APRS.Server, cumulus.APRS.Port))
 			using (var ns = client.GetStream())

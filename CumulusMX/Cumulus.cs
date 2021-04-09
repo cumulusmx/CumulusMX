@@ -1538,7 +1538,8 @@ namespace CumulusMX
 
 		private void CustomHttpSecondsTimerTick(object sender, ElapsedEventArgs e)
 		{
-			CustomHttpSecondsUpdate();
+			if (!station.DataStopped)
+				CustomHttpSecondsUpdate();
 		}
 
 		internal void SetStartOfRealtimeInsertSQL()
@@ -1866,6 +1867,12 @@ namespace CumulusMX
 
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything else
+				return;
+			}
+
 			if (WebUpdating == 1)
 			{
 				LogMessage("Warning, previous web update is still in progress, first chance, skipping this interval");
@@ -1873,7 +1880,7 @@ namespace CumulusMX
 			}
 			else if (WebUpdating >= 2)
 			{
-				LogMessage("Warning, previous web update is still in progress,second chance, aborting connection");
+				LogMessage("Warning, previous web update is still in progress, second chance, aborting connection");
 				if (ftpThread.ThreadState == System.Threading.ThreadState.Running)
 					ftpThread.Abort();
 				LogMessage("Trying new web update");
@@ -1896,6 +1903,12 @@ namespace CumulusMX
 
 		internal async void UpdateTwitter()
 		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do nothing
+				return;
+			}
+
 			LogDebugMessage("Starting Twitter update");
 			var auth = new XAuthAuthorizer
 			{
@@ -2013,7 +2026,8 @@ namespace CumulusMX
 
 		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
 		{
-			MqttPublisher.UpdateMQTTfeed("Interval");
+			if (!station.DataStopped)
+				MqttPublisher.UpdateMQTTfeed("Interval");
 		}
 
 		/*
@@ -2045,254 +2059,268 @@ namespace CumulusMX
 
 		internal async void UpdateWunderground(DateTime timestamp)
 		{
-			if (!Wund.Updating)
+			if (Wund.Updating || station.DataStopped)
 			{
-				Wund.Updating = true;
+				// No data coming in, do not do anything
+				return;
+			}
 
-				string pwstring;
-				string URL = station.GetWundergroundURL(out pwstring, timestamp, false);
+			Wund.Updating = true;
 
-				string starredpwstring = "&PASSWORD=" + new string('*', Wund.PW.Length);
+			string pwstring;
+			string URL = station.GetWundergroundURL(out pwstring, timestamp, false);
 
-				string logUrl = URL.Replace(pwstring, starredpwstring);
+			string starredpwstring = "&PASSWORD=" + new string('*', Wund.PW.Length);
+
+			string logUrl = URL.Replace(pwstring, starredpwstring);
+			if (!Wund.RapidFireEnabled)
+			{
+				LogDebugMessage("WU URL: " + logUrl);
+			}
+
+			try
+			{
+				HttpResponseMessage response = await WUhttpClient.GetAsync(URL);
+				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				if (!Wund.RapidFireEnabled)
 				{
-					LogDebugMessage("WU URL: " + logUrl);
+					LogMessage("WU Response: " + response.StatusCode + ": " + responseBodyAsText);
 				}
-
-				try
-				{
-					HttpResponseMessage response = await WUhttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (!Wund.RapidFireEnabled)
-					{
-						LogMessage("WU Response: " + response.StatusCode + ": " + responseBodyAsText);
-					}
-				}
-				catch (Exception ex)
-				{
-					LogMessage("WU update: " + ex.Message);
-				}
-				finally
-				{
-					Wund.Updating = false;
-				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("WU update: " + ex.Message);
+			}
+			finally
+			{
+				Wund.Updating = false;
 			}
 		}
 
 		internal async void UpdateWindy(DateTime timestamp)
 		{
-			if (!Windy.Updating)
+			if (Windy.Updating || station.DataStopped)
 			{
-				Windy.Updating = true;
+				// No data coming in, do not do anything
+				return;
+			}
 
-				string apistring;
-				string url = station.GetWindyURL(out apistring, timestamp);
-				string logUrl = url.Replace(apistring, "<<API_KEY>>");
+			Windy.Updating = true;
 
-				LogDebugMessage("Windy URL: " + logUrl);
+			string apistring;
+			string url = station.GetWindyURL(out apistring, timestamp);
+			string logUrl = url.Replace(apistring, "<<API_KEY>>");
 
-				try
-				{
-					HttpResponseMessage response = await WindyhttpClient.GetAsync(url);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("Windy Response: " + response.StatusCode + ": " + responseBodyAsText);
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Windy update: " + ex.Message);
-				}
-				finally
-				{
-					Windy.Updating = false;
-				}
+			LogDebugMessage("Windy URL: " + logUrl);
+
+			try
+			{
+				HttpResponseMessage response = await WindyhttpClient.GetAsync(url);
+				var responseBodyAsText = await response.Content.ReadAsStringAsync();
+				LogMessage("Windy Response: " + response.StatusCode + ": " + responseBodyAsText);
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Windy update: " + ex.Message);
+			}
+			finally
+			{
+				Windy.Updating = false;
 			}
 		}
 
 		internal async void UpdateAwekas(DateTime timestamp)
 		{
-			if (!AWEKAS.Updating)
+			if (AWEKAS.Updating || station.DataStopped)
 			{
-				AWEKAS.Updating = true;
+				// No data coming in, do not do anything
+				return;
+			}
 
-				string pwstring;
-				string url = station.GetAwekasURLv4(out pwstring, timestamp);
+			AWEKAS.Updating = true;
 
-				string starredpwstring = "<password>";
+			string pwstring;
+			string url = station.GetAwekasURLv4(out pwstring, timestamp);
 
-				string logUrl = url.Replace(pwstring, starredpwstring);
+			string starredpwstring = "<password>";
 
-				LogDebugMessage("AWEKAS: URL = " + logUrl);
+			string logUrl = url.Replace(pwstring, starredpwstring);
 
-				try
+			LogDebugMessage("AWEKAS: URL = " + logUrl);
+
+			try
+			{
+				using (HttpResponseMessage response = await AwekashttpClient.GetAsync(url))
 				{
-					using (HttpResponseMessage response = await AwekashttpClient.GetAsync(url))
-					{
-						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
-						LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
-						//var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
-						var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
+					LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
+					//var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
+					var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
 
-						// Check the status response
-						if (respJson.status == 2)
-							LogMessage("AWEKAS: Data stored OK");
-						else if (respJson.status == 1)
+					// Check the status response
+					if (respJson.status == 2)
+						LogMessage("AWEKAS: Data stored OK");
+					else if (respJson.status == 1)
+					{
+						LogMessage("AWEKAS: Data PARIALLY stored");
+						// TODO: Check errors and disabled
+					}
+					else if (respJson.status == 0)  // Authenication error or rate limited
+					{
+						if (respJson.minuploadtime > 0 && respJson.authentication == 0)
 						{
-							LogMessage("AWEKAS: Data PARIALLY stored");
-							// TODO: Check errors and disabled
+							LogMessage("AWEKAS: Authentication error");
+							if (AWEKAS.Interval < 300)
+							{
+								AWEKAS.RateLimited = true;
+								AWEKAS.OriginalInterval = AWEKAS.Interval;
+								AWEKAS.Interval = 300;
+								AwekasTimer.Enabled = false;
+								AWEKAS.SynchronisedUpdate = true;
+								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authenication error");
+							}
 						}
-						else if (respJson.status == 0)  // Authenication error or rate limited
+						else if (respJson.minuploadtime == 0)
 						{
-							if (respJson.minuploadtime > 0 && respJson.authentication == 0)
+							LogMessage("AWEKAS: Too many requests, rate limited");
+							// AWEKAS PLus allows minimum of 60 second updates, try that first
+							if (!AWEKAS.RateLimited && AWEKAS.Interval < 60)
 							{
-								LogMessage("AWEKAS: Authentication error");
-								if (AWEKAS.Interval < 300)
-								{
-									AWEKAS.RateLimited = true;
-									AWEKAS.OriginalInterval = AWEKAS.Interval;
-									AWEKAS.Interval = 300;
-									AwekasTimer.Enabled = false;
-									AWEKAS.SynchronisedUpdate = true;
-									LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authenication error");
-								}
+								AWEKAS.OriginalInterval = AWEKAS.Interval;
+								AWEKAS.RateLimited = true;
+								AWEKAS.Interval = 60;
+								AwekasTimer.Enabled = false;
+								AWEKAS.SynchronisedUpdate = true;
+								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
 							}
-							else if (respJson.minuploadtime == 0)
-							{
-								LogMessage("AWEKAS: Too many requests, rate limited");
-								// AWEKAS PLus allows minimum of 60 second updates, try that first
-								if (!AWEKAS.RateLimited && AWEKAS.Interval < 60)
-								{
-									AWEKAS.OriginalInterval = AWEKAS.Interval;
-									AWEKAS.RateLimited = true;
-									AWEKAS.Interval = 60;
-									AwekasTimer.Enabled = false;
-									AWEKAS.SynchronisedUpdate = true;
-									LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
-								}
-								// AWEKAS normal allows minimum of 300 second updates, revert to that
-								else
-								{
-									AWEKAS.RateLimited = true;
-									AWEKAS.Interval = 300;
-									AwekasTimer.Interval = AWEKAS.Interval * 1000;
-									AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-									AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-									LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
-								}
-							}
+							// AWEKAS normal allows minimum of 300 second updates, revert to that
 							else
 							{
-								LogMessage("AWEKAS: Unknown error");
+								AWEKAS.RateLimited = true;
+								AWEKAS.Interval = 300;
+								AwekasTimer.Interval = AWEKAS.Interval * 1000;
+								AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
+								AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
+								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
 							}
 						}
-
-						// check the min upload time is greater than our upload time
-						if (respJson.status > 0 && respJson.minuploadtime > AWEKAS.OriginalInterval)
+						else
 						{
-							LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AWEKAS.OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
-							AWEKAS.Interval = respJson.minuploadtime;
-							WriteIniFile();
-							AwekasTimer.Interval = AWEKAS.Interval * 1000;
-							AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-							AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-							// we got a successful upload, and reset the interval, so clear the rate limited values
-							AWEKAS.OriginalInterval = AWEKAS.Interval;
-							AWEKAS.RateLimited = false;
-						}
-						else if (AWEKAS.RateLimited && respJson.status > 0)
-						{
-							// We are currently rate limited, it could have been a transient thing because
-							// we just got a valid response, and our interval is >= the minimum allowed.
-							// So we just undo the limit, and resume as before
-							LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {AWEKAS.OriginalInterval} secs");
-							AWEKAS.Interval = AWEKAS.OriginalInterval;
-							AwekasTimer.Interval = AWEKAS.Interval * 1000;
-							AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-							AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-							AWEKAS.RateLimited = false;
+							LogMessage("AWEKAS: Unknown error");
 						}
 					}
+
+					// check the min upload time is greater than our upload time
+					if (respJson.status > 0 && respJson.minuploadtime > AWEKAS.OriginalInterval)
+					{
+						LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AWEKAS.OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
+						AWEKAS.Interval = respJson.minuploadtime;
+						WriteIniFile();
+						AwekasTimer.Interval = AWEKAS.Interval * 1000;
+						AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
+						AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
+						// we got a successful upload, and reset the interval, so clear the rate limited values
+						AWEKAS.OriginalInterval = AWEKAS.Interval;
+						AWEKAS.RateLimited = false;
+					}
+					else if (AWEKAS.RateLimited && respJson.status > 0)
+					{
+						// We are currently rate limited, it could have been a transient thing because
+						// we just got a valid response, and our interval is >= the minimum allowed.
+						// So we just undo the limit, and resume as before
+						LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {AWEKAS.OriginalInterval} secs");
+						AWEKAS.Interval = AWEKAS.OriginalInterval;
+						AwekasTimer.Interval = AWEKAS.Interval * 1000;
+						AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
+						AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
+						AWEKAS.RateLimited = false;
+					}
 				}
-				catch (Exception ex)
-				{
-					LogMessage("AWEKAS: Exception = " + ex.Message);
-				}
-				finally
-				{
-					AWEKAS.Updating = false;
-				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("AWEKAS: Exception = " + ex.Message);
+			}
+			finally
+			{
+				AWEKAS.Updating = false;
 			}
 		}
 
 		internal async void UpdateWCloud(DateTime timestamp)
 		{
-			if (!WCloud.Updating)
+			if (WCloud.Updating || station.DataStopped)
 			{
-				WCloud.Updating = true;
+				// No data coming in, do not do anything
+				return;
+			}
 
-				string pwstring;
-				string url = station.GetWCloudURL(out pwstring, timestamp);
+			WCloud.Updating = true;
 
-				string starredpwstring = "<key>";
+			string pwstring;
+			string url = station.GetWCloudURL(out pwstring, timestamp);
 
-				string logUrl = url.Replace(pwstring, starredpwstring);
+			string starredpwstring = "<key>";
 
-				LogDebugMessage("WeatherCloud URL: " + logUrl);
+			string logUrl = url.Replace(pwstring, starredpwstring);
 
-				try
-				{
-					HttpResponseMessage response = await WCloudhttpClient.GetAsync(url);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
-				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("WeatherCloud update: " + ex.Message);
-				}
-				finally
-				{
-					WCloud.Updating = false;
-				}
+			LogDebugMessage("WeatherCloud URL: " + logUrl);
+
+			try
+			{
+				HttpResponseMessage response = await WCloudhttpClient.GetAsync(url);
+				var responseBodyAsText = await response.Content.ReadAsStringAsync();
+				LogDebugMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+			}
+			catch (Exception ex)
+			{
+				LogDebugMessage("WeatherCloud update: " + ex.Message);
+			}
+			finally
+			{
+				WCloud.Updating = false;
 			}
 		}
 
-
 		internal async void UpdateOpenWeatherMap(DateTime timestamp)
 		{
-			if (!OpenWeatherMap.Updating)
+			if (OpenWeatherMap.Updating || station.DataStopped)
 			{
-				OpenWeatherMap.Updating = true;
+				// No data coming in, do not do anything
+				return;
+			}
 
-				string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
-				string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
+			OpenWeatherMap.Updating = true;
 
-				string jsonData = station.GetOpenWeatherMapData(timestamp);
+			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
+			string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
 
-				LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
-				LogDataMessage("OpenWeatherMap: Body = " + jsonData);
+			string jsonData = station.GetOpenWeatherMapData(timestamp);
 
-				try
+			LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
+			LogDataMessage("OpenWeatherMap: Body = " + jsonData);
+
+			try
+			{
+				using (var client = new HttpClient())
 				{
-					using (var client = new HttpClient())
-					{
-						var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-						HttpResponseMessage response = await client.PostAsync(url, data);
-						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
-						LogMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
-						if (response.StatusCode != HttpStatusCode.NoContent)
-							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
-					}
+					var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+					HttpResponseMessage response = await client.PostAsync(url, data);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+					LogMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+					if (response.StatusCode != HttpStatusCode.NoContent)
+						LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
 				}
-				catch (Exception ex)
-				{
-					LogMessage("OpenWeatherMap: Update error = " + ex.Message);
-				}
-				finally
-				{
-					OpenWeatherMap.Updating = false;
-				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("OpenWeatherMap: Update error = " + ex.Message);
+			}
+			finally
+			{
+				OpenWeatherMap.Updating = false;
 			}
 		}
 
@@ -2418,6 +2446,12 @@ namespace CumulusMX
 		{
 			bool connectionFailed = false;
 			var cycle = RealtimeCycleCounter++;
+
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
 
 			LogDebugMessage($"Realtime[{cycle}]: Start cycle");
 			try
@@ -8370,6 +8404,12 @@ namespace CumulusMX
 
 		private void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
 		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
 			if (!customMySqlSecondsUpdateInProgress)
 			{
 				customMySqlSecondsUpdateInProgress = true;
@@ -8402,6 +8442,12 @@ namespace CumulusMX
 
 		internal void CustomMysqlMinutesTimerTick()
 		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
 			if (!customMySqlMinutesUpdateInProgress)
 			{
 				customMySqlMinutesUpdateInProgress = true;
@@ -8434,6 +8480,12 @@ namespace CumulusMX
 
 		internal void CustomMysqlRolloverTimerTick()
 		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
 			if (!customMySqlRolloverUpdateInProgress)
 			{
 				customMySqlRolloverUpdateInProgress = true;

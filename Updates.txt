@@ -23,6 +23,7 @@
 		[AlarmEmails]
 
 - Changed: Moved FTP Logging option from Internet Settings to Program Setting to collect all the logging options in one place
+- Changed: A Data Stopped state now stops all logging, MySQL and web activity
 
 
 3.10.5 - b3122
