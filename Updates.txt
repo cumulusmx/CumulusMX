@@ -3,6 +3,7 @@
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
 - Fix: Remove <#THWindex> web tag from Cumulus MX
 - Fix: OpenWeatherMap - create new station was not forcing the use of dot decimals for lat/long values
+- Fix: WeatherCloud - date/time of reading should be UTC
 
 - New: Adds Email support for Alarms
 	- Creates a new section in Cumulus.ini:

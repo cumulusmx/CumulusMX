@@ -2271,7 +2271,29 @@ namespace CumulusMX
 			{
 				HttpResponseMessage response = await WCloudhttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogDebugMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+				var msg = "";
+				switch ((int)response.StatusCode)
+				{
+					case 200:
+						msg = "Success";
+						break;
+					case 400:
+						msg = "Bad reuest";
+						break;
+					case 401:
+						msg = "Incorrect WID or Key";
+						break;
+					case 429:
+						msg = "Too many requests";
+						break;
+					case 500:
+						msg = "Server error";
+						break;
+					default:
+						msg = "Unknown error";
+						break;
+				}
+				LogDebugMessage($"WeatherCloud Response: {msg} ({response.StatusCode}): {responseBodyAsText}");
 			}
 			catch (Exception ex)
 			{
@@ -9683,7 +9705,9 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = cumulus.AlarmEmailPreamble + " " + string.Format(EmailMsg, Value, Units);
+#pragma warning disable 4014
 						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, false);
+#pragma warning restore 4014
 					}
 
 
@@ -9737,7 +9761,9 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = Program.cumulus.AlarmEmailPreamble + " " + string.Format(EmailMsgUp, Value, Units);
+#pragma warning disable 4014
 						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, false);
+#pragma warning restore 4014
 					}
 
 					// If we get a new trigger, record the time
@@ -9779,11 +9805,13 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = Program.cumulus.AlarmEmailPreamble + " " + string.Format(EmailMsgDn, Value, Units);
+#pragma warning disable 4014
 						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, false);
+#pragma warning restore 4014
 					}
 
-					// If we get a new trigger, record the time
-					downTriggered = true;
+						// If we get a new trigger, record the time
+						downTriggered = true;
 					DownTriggeredTime = DateTime.Now;
 				}
 				else
