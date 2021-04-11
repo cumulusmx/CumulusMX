@@ -1565,6 +1565,7 @@ namespace CumulusMX
 			if (now.Hour == rollHour)
 			{
 				DayReset(now);
+				cumulus.BackupData(true, now);
 			}
 
 			if (now.Hour == 0)
@@ -5152,8 +5153,6 @@ namespace CumulusMX
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
 				CurrentYear = timestamp.Year;
-				//Backupdata(true, timestamp);
-				cumulus.StartOfDayBackupNeeded = true;
 				cumulus.LogMessage("=== Day reset complete");
 				cumulus.LogMessage("Now recording data for day=" + CurrentDay + " month=" + CurrentMonth + " year=" + CurrentYear);
 			}

@@ -498,6 +498,7 @@ namespace CumulusMX
 		public string AlarmEmailSubject;
 		public string AlarmFromEmail;
 		public string[] AlarmDestEmail;
+		public bool AlarmEmailHtml;
 
 		public bool ListWebTags;
 
@@ -1128,7 +1129,7 @@ namespace CumulusMX
 			DiaryDB = new SQLiteConnection(diaryfile, flags);
 			DiaryDB.CreateTable<DiaryData>();
 
-			Backupdata(false, DateTime.Now);
+			BackupData(false, DateTime.Now);
 
 			LogMessage("Debug logging is " + (ProgramOptions.DebugLogging ? "enabled" : "disabled"));
 			LogMessage("Data logging is " + (ProgramOptions.DataLogging ? "enabled" : "disabled"));
@@ -4294,6 +4295,7 @@ namespace CumulusMX
 
 			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", "");
 			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", "").Split(';');
+			AlarmEmailHtml = ini.GetValue("Alarms", "UseHTML", false);
 
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
@@ -5024,6 +5026,7 @@ namespace CumulusMX
 
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", AlarmDestEmail.Join(";"));
+			ini.SetValue("Alarms", "UseHTML", AlarmEmailHtml);
 
 
 			ini.SetValue("Offsets", "PressOffset", Calib.Press.Offset);
@@ -5847,7 +5850,6 @@ namespace CumulusMX
 		public int INSTROMET = 5;
 		public int ECOWITT = 6;
 		//public bool startingup = true;
-		public bool StartOfDayBackupNeeded;
 		public string ReportPath;
 		public string LatestError;
 		public DateTime LatestErrorTS = DateTime.MinValue;
@@ -6136,12 +6138,6 @@ namespace CumulusMX
 			LastUpdateTime = timestamp;
 			LogMessage("DoLogFile: Written log entry for " + timestamp);
 			station.WriteTodayFile(timestamp, true);
-
-			if (StartOfDayBackupNeeded)
-			{
-				Backupdata(true, timestamp);
-				StartOfDayBackupNeeded = false;
-			}
 
 			if (MonthlyMySqlEnabled)
 			{
@@ -6508,13 +6504,13 @@ namespace CumulusMX
 			}
 		}
 
-		private void Backupdata(bool daily, DateTime timestamp)
+		public void BackupData(bool daily, DateTime timestamp)
 		{
 			string dirpath = daily ? backupPath + "daily" + DirectorySeparator : backupPath;
 
 			if (!Directory.Exists(dirpath))
 			{
-				LogMessage("*** Error - backup folder does not exist - " + dirpath);
+				LogMessage("BackupData: *** Error - backup folder does not exist - " + dirpath);
 			}
 			else
 			{
@@ -6526,7 +6522,7 @@ namespace CumulusMX
 				{
 					if (Path.GetFileName(dirlist[0]) == "daily")
 					{
-						LogMessage("*** Error - the backup folder has unexpected contents");
+						LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
 						break;
 					}
 					else
@@ -6540,7 +6536,7 @@ namespace CumulusMX
 
 				foldername = dirpath + foldername + DirectorySeparator;
 
-				LogMessage("Creating backup folder " + foldername);
+				LogMessage("BackupData: Creating backup folder " + foldername);
 
 				var alltimebackup = foldername + "alltime.ini";
 				var monthlyAlltimebackup = foldername + "monthlyalltime.ini";
@@ -6564,54 +6560,18 @@ namespace CumulusMX
 				if (!Directory.Exists(foldername))
 				{
 					Directory.CreateDirectory(foldername);
-					if (File.Exists(AlltimeIniFile))
-					{
-						File.Copy(AlltimeIniFile, alltimebackup);
-					}
-					if (File.Exists(MonthlyAlltimeIniFile))
-					{
-						File.Copy(MonthlyAlltimeIniFile, monthlyAlltimebackup);
-					}
-					if (File.Exists(DayFileName))
-					{
-						File.Copy(DayFileName, daybackup);
-					}
-					if (File.Exists(TodayIniFile))
-					{
-						File.Copy(TodayIniFile, todaybackup);
-					}
-					if (File.Exists(YesterdayFile))
-					{
-						File.Copy(YesterdayFile, yesterdaybackup);
-					}
-					if (File.Exists(LogFile))
-					{
-						File.Copy(LogFile, logbackup);
-					}
-					if (File.Exists(MonthIniFile))
-					{
-						File.Copy(MonthIniFile, monthbackup);
-					}
-					if (File.Exists(YearIniFile))
-					{
-						File.Copy(YearIniFile, yearbackup);
-					}
-					if (File.Exists(diaryfile))
-					{
-						File.Copy(diaryfile, diarybackup);
-					}
-					if (File.Exists("Cumulus.ini"))
-					{
-						File.Copy("Cumulus.ini", configbackup);
-					}
-					if (File.Exists(extraFile))
-					{
-						File.Copy(extraFile, extraBackup);
-					}
-					if (File.Exists(AirLinkFile))
-					{
-						File.Copy(AirLinkFile, AirLinkBackup);
-					}
+					CopyBackupFile(AlltimeIniFile, alltimebackup);
+					CopyBackupFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
+					CopyBackupFile(DayFileName, daybackup);
+					CopyBackupFile(TodayIniFile, todaybackup);
+					CopyBackupFile(YesterdayFile, yesterdaybackup);
+					CopyBackupFile(LogFile, logbackup);
+					CopyBackupFile(MonthIniFile, monthbackup);
+					CopyBackupFile(YearIniFile, yearbackup);
+					CopyBackupFile(diaryfile, diarybackup);
+					CopyBackupFile("Cumulus.ini", configbackup);
+					CopyBackupFile(extraFile, extraBackup);
+					CopyBackupFile(AirLinkFile, AirLinkBackup);
 					// Do not do this extra backup between 00:00 & Rollover hour on the first of the month
 					// as the month has not yet rolled over - only applies for start-up backups
 					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
@@ -6626,18 +6586,9 @@ namespace CumulusMX
 						var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
 						var AirLinkBackup2 = foldername + AirLinkFile2.Replace(logFilePath, "");
 
-						if (File.Exists(LogFile2))
-						{
-							File.Copy(LogFile2, logbackup2, true);
-						}
-						if (File.Exists(extraFile2))
-						{
-							File.Copy(extraFile2, extraBackup2, true);
-						}
-						if (File.Exists(AirLinkFile2))
-						{
-							File.Copy(AirLinkFile2, AirLinkBackup2, true);
-						}
+						CopyBackupFile(LogFile2, logbackup2, true);
+						CopyBackupFile(extraFile2, extraBackup2, true);
+						CopyBackupFile(AirLinkFile2, AirLinkBackup2, true);
 					}
 
 					LogMessage("Created backup folder " + foldername);
@@ -6646,6 +6597,21 @@ namespace CumulusMX
 				{
 					LogMessage("Backup folder " + foldername + " already exists, skipping backup");
 				}
+			}
+		}
+
+		private void CopyBackupFile(string src, string dest, bool overwrite=false)
+		{
+			try
+			{
+				if (File.Exists(src))
+				{
+					File.Copy(src, dest, overwrite);
+				}
+			}
+			catch (Exception e)
+			{
+				LogMessage($"BackupData: Error copying {src} - {e}");
 			}
 		}
 
@@ -9704,9 +9670,9 @@ namespace CumulusMX
 					if (!triggered && Enabled && Email && cumulus.SmtpOptions.Enabled)
 					{
 						// Construct the message - preamble, plus values
-						var msg = cumulus.AlarmEmailPreamble + " " + string.Format(EmailMsg, Value, Units);
+						var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
 #pragma warning disable 4014
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, false);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 #pragma warning restore 4014
 					}
 
@@ -9760,9 +9726,9 @@ namespace CumulusMX
 					if (!upTriggered && Enabled && Email && cumulus.SmtpOptions.Enabled)
 					{
 						// Construct the message - preamble, plus values
-						var msg = Program.cumulus.AlarmEmailPreamble + " " + string.Format(EmailMsgUp, Value, Units);
+						var msg = Program.cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
 #pragma warning disable 4014
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, false);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 #pragma warning restore 4014
 					}
 
@@ -9804,9 +9770,9 @@ namespace CumulusMX
 					if (!downTriggered && Enabled && Email && cumulus.SmtpOptions.Enabled)
 					{
 						// Construct the message - preamble, plus values
-						var msg = Program.cumulus.AlarmEmailPreamble + " " + string.Format(EmailMsgDn, Value, Units);
+						var msg = Program.cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
 #pragma warning disable 4014
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, false);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 #pragma warning restore 4014
 					}
 

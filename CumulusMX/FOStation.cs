@@ -17,7 +17,7 @@ namespace CumulusMX
 
 		private readonly double pressureOffset;
 		private HidDevice hidDevice;
-		private readonly HidStream stream;
+		private HidStream stream;
 		private List<HistoryData> datalist;
 
 		private readonly int maxHistoryEntries;
@@ -70,66 +70,36 @@ namespace CumulusMX
 				maxHistoryEntries = 4080;
 			}
 
-			var devicelist = DeviceList.Local;
-
-			int vid = (cumulus.FineOffsetOptions.VendorID < 0 ? DefaultVid : cumulus.FineOffsetOptions.VendorID);
-			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
-
-			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+vid.ToString("X4")+" ProductID=0x"+pid.ToString("X4"));
-			cumulus.LogConsoleMessage("Looking for Fine Offset station");
-
-			hidDevice = devicelist.GetHidDeviceOrNull(vendorID: vid, productID: pid);
-
-			if (hidDevice != null)
+			do
 			{
-				cumulus.LogMessage("Fine Offset station found");
-				cumulus.LogConsoleMessage("Fine Offset station found");
-
-				if (hidDevice.TryOpen(out stream))
+				if (OpenHidDevice())
 				{
-					cumulus.LogMessage("Stream opened");
-					cumulus.LogConsoleMessage("Connected to station");
 					// Get the block of data containing the abs and rel pressures
 					cumulus.LogMessage("Reading pressure offset");
-					ReadAddress(0x20, data);
-					double relpressure = (((data[1] & 0x3f)*256) + data[0])/10.0f;
-					double abspressure = (((data[3] & 0x3f)*256) + data[2])/10.0f;
-					pressureOffset = relpressure - abspressure;
-					cumulus.LogMessage("Rel pressure      = " + relpressure);
-					cumulus.LogMessage("Abs pressure      = " + abspressure);
-					cumulus.LogMessage("Calculated Offset = " + pressureOffset);
-					if (cumulus.EwOptions.PressOffset < 9999.0)
-					{
-						cumulus.LogMessage("Ignoring calculated offset, using offset value from cumulus.ini file");
-						cumulus.LogMessage("EWpressureoffset = " + cumulus.EwOptions.PressOffset);
-						pressureOffset = cumulus.EwOptions.PressOffset;
-					}
 
-					// Read the data from the logger
-					startReadingHistoryData();
+					if (ReadAddress(0x20, data))
+					{
+						double relpressure = (((data[1] & 0x3f) * 256) + data[0]) / 10.0f;
+						double abspressure = (((data[3] & 0x3f) * 256) + data[2]) / 10.0f;
+						pressureOffset = relpressure - abspressure;
+						cumulus.LogMessage("Rel pressure      = " + relpressure);
+						cumulus.LogMessage("Abs pressure      = " + abspressure);
+						cumulus.LogMessage("Calculated Offset = " + pressureOffset);
+						if (cumulus.EwOptions.PressOffset < 9999.0)
+						{
+							cumulus.LogMessage("Ignoring calculated offset, using offset value from cumulus.ini file");
+							cumulus.LogMessage("EWpressureoffset = " + cumulus.EwOptions.PressOffset);
+							pressureOffset = cumulus.EwOptions.PressOffset;
+						}
+
+						// Read the data from the logger
+						startReadingHistoryData();
+					}
 				}
-				else
-				{
-					cumulus.LogMessage("Stream open failed");
-					cumulus.LogConsoleMessage("Unable to connect to station");
-				}
-			}
-			else
-			{
-				cumulus.LogMessage("*** Fine Offset station not found ***");
-				cumulus.LogConsoleMessage("Fine Offset station not found");
-				cumulus.LogMessage("Found the following USB HID Devices...");
-				int cnt = 0;
-				foreach (HidDevice device in devicelist.GetHidDevices())
-				{
-					cumulus.LogMessage($"   {device}");
-					cnt++;
-				}
-				if (cnt == 0)
-				{
-					cumulus.LogMessage("No USB HID devices found!");
-				}
-			}
+
+				// pause for 10 seconds then try again
+				Thread.Sleep(10000);
+			} while (hidDevice == null || stream == null || !stream.CanRead);
 		}
 
 		public override void startReadingHistoryData()
@@ -197,14 +167,20 @@ namespace CumulusMX
 			DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
-			ReadAddress(0, data);
+			if (!ReadAddress(0, data))
+			{
+				return;
+			}
 
 			// get address of current location
 			int addr = ((data[31])*256) + data[30];
 			//int previousaddress = addr;
 
 			cumulus.LogMessage("Reading current address " + addr.ToString("X4"));
-			ReadAddress(addr, data);
+			if (!ReadAddress(addr, data))
+			{
+				return;
+			}
 
 			bool moredata = true;
 
@@ -224,7 +200,10 @@ namespace CumulusMX
 					addr -= foEntrysize;
 					if (addr == 0xF0) addr = foMaxAddr; // wrap around
 
-					ReadAddress(addr, data);
+					if (!ReadAddress(addr, data))
+					{
+						return;
+					}
 
 					// add history data to collection
 
@@ -554,12 +533,63 @@ namespace CumulusMX
 			tmrDataRead.Enabled = true;
 		}
 
+		private bool OpenHidDevice()
+		{
+			var devicelist = DeviceList.Local;
+
+			int vid = (cumulus.FineOffsetOptions.VendorID < 0 ? DefaultVid : cumulus.FineOffsetOptions.VendorID);
+			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
+
+			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x" + vid.ToString("X4") + " ProductID=0x" + pid.ToString("X4"));
+			cumulus.LogConsoleMessage("Looking for Fine Offset station");
+
+			hidDevice = devicelist.GetHidDeviceOrNull(vendorID: vid, productID: pid);
+
+			if (hidDevice != null)
+			{
+				cumulus.LogMessage("Fine Offset station found");
+				cumulus.LogConsoleMessage("Fine Offset station found");
+
+				if (hidDevice.TryOpen(out stream))
+				{
+					cumulus.LogMessage("Stream opened");
+					cumulus.LogConsoleMessage("Connected to station");
+					stream.Flush();
+					return true;
+				}
+				else
+				{
+					cumulus.LogMessage("Stream open failed");
+					return false;
+				}
+			}
+			else
+			{
+				cumulus.LogMessage("*** Fine Offset station not found ***");
+				cumulus.LogMessage("Found the following USB HID Devices...");
+				int cnt = 0;
+				foreach (HidDevice device in devicelist.GetHidDevices())
+				{
+					cumulus.LogMessage($"   {device}");
+					cnt++;
+				}
+
+				if (cnt == 0)
+				{
+					cumulus.LogMessage("No USB HID devices found!");
+				}
+
+				return false;
+			}
+		}
+
+
 		/// <summary>
 		///     Read the 32 bytes starting at 'address'
 		/// </summary>
 		/// <param name="address">The address of the data</param>
 		/// <param name="buff">Where to return the data</param>
-		private void ReadAddress(int address, byte[] buff)
+		private bool ReadAddress(int address, byte[] buff)
 		{
 			//cumulus.LogMessage("Reading address " + address.ToString("X6"));
 			var lowbyte = (byte) (address & 0xFF);
@@ -575,10 +605,27 @@ namespace CumulusMX
 			int ptr = 0;
 
 			if (hidDevice == null)
-				return;
+			{
+				DataStopped = true;
+				cumulus.DataStoppedAlarm.Triggered = true;
+				return false;
+			}
 
 			//response = device.WriteRead(0x00, request);
-			stream.Write(request);
+			try
+			{
+				stream.Write(request);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
+				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				DataStopped = true;
+				cumulus.DataStoppedAlarm.Triggered = true;
+				return false;
+			}
+
 			Thread.Sleep(cumulus.FineOffsetOptions.FineOffsetReadTime);
 			for (int i = 1; i < 5; i++)
 			{
@@ -592,6 +639,9 @@ namespace CumulusMX
 					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting");
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
+					DataStopped = true;
+					cumulus.DataStoppedAlarm.Triggered = true;
+					return false;
 				}
 
 				var recData = " Data" + i + ": "  + BitConverter.ToString(response, startByte, responseLength - startByte);
@@ -601,10 +651,31 @@ namespace CumulusMX
 				}
 				cumulus.LogDataMessage(recData);
 			}
+			return true;
 		}
 
 		private void DataReadTimerTick(object state, ElapsedEventArgs elapsedEventArgs)
 		{
+			if (DataStopped)
+			{
+				cumulus.LogMessage("Attempting to reopen the USB device...");
+				// We are not getting any data from the station, try reopening the USB connection
+				if (stream != null)
+				{
+					try
+					{
+						stream.Close();
+					}
+					catch { }
+				}
+
+				if (!OpenHidDevice())
+				{
+					cumulus.LogMessage("Failed to reopen the USB device");
+					return;
+				}
+			}
+
 			if (!readingData)
 			{
 				readingData = true;
@@ -682,7 +753,10 @@ namespace CumulusMX
 			// get the block of memory containing the current data location
 
 			cumulus.LogDataMessage("Reading first block");
-			ReadAddress(0, data);
+			if (!ReadAddress(0, data))
+			{
+				return;
+			}
 
 			int addr = (data[31]*256) + data[30];
 
@@ -704,7 +778,10 @@ namespace CumulusMX
 			{
 				cumulus.LogDataMessage("Reading data, addr = " + addr.ToString("X8"));
 
-				ReadAddress(addr, data);
+				if (!ReadAddress(addr, data))
+				{
+					return;
+				}
 
 				cumulus.LogDataMessage("Data read - " + BitConverter.ToString(data));
 

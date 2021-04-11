@@ -4,6 +4,7 @@
 - Fix: Remove <#THWindex> web tag from Cumulus MX
 - Fix: OpenWeatherMap - create new station was not forcing the use of dot decimals for lat/long values
 - Fix: WeatherCloud - date/time of reading should be UTC
+- Fix: End of day backup now always runs at rollover
 
 - New: Adds Email support for Alarms
 	- Creates a new section in Cumulus.ini:
@@ -25,7 +26,12 @@
 
 - Changed: Moved FTP Logging option from Internet Settings to Program Setting to collect all the logging options in one place
 - Changed: A Data Stopped state now stops all logging, MySQL and web activity
-
+- Changed: Updated various components to latest version...
+	FTP - FluentFTP
+	JSON - ServiceStack.Text
+	Pointers - System.Runtime.CompilerServcies.Unsafe
+	MQTT - MQTTnet
+- Changed: FineOffset stations now attempt to reconnect the USB after a data stopped event. These stations now also keep retrying to connect to the station at start-up
 
 3.10.5 - b3122
 ——————————————
