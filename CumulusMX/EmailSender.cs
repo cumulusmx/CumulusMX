@@ -10,9 +10,9 @@ namespace CumulusMX
 {
 	public class EmailSender
 	{
-		static Regex ValidEmailRegex = CreateValidEmailRegex();
+		static readonly Regex ValidEmailRegex = CreateValidEmailRegex();
 
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 
 		public EmailSender(Cumulus cumulus)
 		{

@@ -26,12 +26,18 @@
 
 - Changed: Moved FTP Logging option from Internet Settings to Program Setting to collect all the logging options in one place
 - Changed: A Data Stopped state now stops all logging, MySQL and web activity
-- Changed: Updated various components to latest version...
-	FTP - FluentFTP
-	JSON - ServiceStack.Text
-	Pointers - System.Runtime.CompilerServcies.Unsafe
-	MQTT - MQTTnet
+- Changed: Updates to various components...
+	- Updated to latest versions:
+		- FTP:		FluentFTP
+		- JSON:		ServiceStack.Text
+		- Pointers:	System.Runtime.CompilerServcies.Unsafe
+		- MQTT:		MQTTnet
+	- Removed/Added
+		- MySQL:	Removed Devart, replaced with MySqlConnector & BouncyCastle.Crypto
 - Changed: FineOffset stations now attempt to reconnect the USB after a data stopped event. These stations now also keep retrying to connect to the station at start-up
+- Changed: The MySQL real time table data retention settings reworked.
+
+
 
 3.10.5 - b3122
 ——————————————

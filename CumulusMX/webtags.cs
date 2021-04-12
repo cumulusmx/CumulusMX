@@ -107,7 +107,7 @@ namespace CumulusMX
 
 		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals)
 		{
-			string ret = "";
+			string ret;
 			try
 			{
 				if (tagParams.Get("tc") == "y")

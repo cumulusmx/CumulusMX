@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using Devart.Data.MySql;
+using MySqlConnector;
 using ServiceStack;
 using Unosquare.Labs.EmbedIO;
 
@@ -36,9 +36,14 @@ namespace CumulusMX
 				table = cumulus.MySqlMonthlyTable
 			};
 
+			var reten = cumulus.MySqlRealtimeRetention.Split(' ');
+			var retenVal = string.IsNullOrEmpty(reten[0]) ? 7 : int.Parse(reten[0]);
+			var retenUnit = reten.Length > 1 && !string.IsNullOrEmpty(reten[1]) ? reten[1].ToUpper().TrimEnd('S') : "DAY";
+
 			var realtime = new JsonMysqlSettingsRealtime()
 			{
-				retention = cumulus.MySqlRealtimeRetention,
+				retentionVal = retenVal,
+				retentionUnit = retenUnit,
 				table = cumulus.MySqlRealtimeTable
 			};
 
@@ -140,7 +145,7 @@ namespace CumulusMX
 				cumulus.RealtimeMySqlEnabled = settings.realtimeenabled;
 				if (cumulus.RealtimeMySqlEnabled)
 				{
-					cumulus.MySqlRealtimeRetention = settings.realtime.retention;
+					cumulus.MySqlRealtimeRetention = settings.realtime.retentionVal + " " + settings.realtime.retentionUnit;
 					cumulus.MySqlRealtimeTable = String.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table;
 				}
 				//dayfile
@@ -181,11 +186,9 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				cumulus.MonthlyMySqlConn.Host = cumulus.MySqlHost;
-				cumulus.MonthlyMySqlConn.Port = cumulus.MySqlPort;
-				cumulus.MonthlyMySqlConn.UserId = cumulus.MySqlUser;
-				cumulus.MonthlyMySqlConn.Password = cumulus.MySqlPass;
-				cumulus.MonthlyMySqlConn.Database = cumulus.MySqlDatabase;
+				var connStr = $"server={cumulus.MySqlHost};port={cumulus.MySqlPort};user={cumulus.MySqlUser};password={cumulus.MySqlPass};database={cumulus.MySqlDatabase}";
+
+				cumulus.MonthlyMySqlConn.ConnectionString = connStr;
 
 				cumulus.SetMonthlySqlCreateString();
 				cumulus.SetStartOfMonthlyInsertSQL();
@@ -193,34 +196,18 @@ namespace CumulusMX
 				cumulus.SetDayfileSqlCreateString();
 				cumulus.SetStartOfDayfileInsertSQL();
 
-				cumulus.RealtimeSqlConn.Host = cumulus.MySqlHost;
-				cumulus.RealtimeSqlConn.Port = cumulus.MySqlPort;
-				cumulus.RealtimeSqlConn.UserId = cumulus.MySqlUser;
-				cumulus.RealtimeSqlConn.Password = cumulus.MySqlPass;
-				cumulus.RealtimeSqlConn.Database = cumulus.MySqlDatabase;
+				cumulus.RealtimeSqlConn.ConnectionString = connStr;
 
 				cumulus.SetRealtimeSqlCreateString();
 				cumulus.SetStartOfRealtimeInsertSQL();
 
-				cumulus.CustomMysqlSecondsConn.Host = cumulus.MySqlHost;
-				cumulus.CustomMysqlSecondsConn.Port = cumulus.MySqlPort;
-				cumulus.CustomMysqlSecondsConn.UserId = cumulus.MySqlUser;
-				cumulus.CustomMysqlSecondsConn.Password = cumulus.MySqlPass;
-				cumulus.CustomMysqlSecondsConn.Database = cumulus.MySqlDatabase;
+				cumulus.CustomMysqlSecondsConn.ConnectionString = connStr;
 				cumulus.CustomMysqlSecondsTimer.Interval = cumulus.CustomMySqlSecondsInterval*1000;
 				cumulus.CustomMysqlSecondsTimer.Enabled = cumulus.CustomMySqlSecondsEnabled;
 
-				cumulus.CustomMysqlMinutesConn.Host = cumulus.MySqlHost;
-				cumulus.CustomMysqlMinutesConn.Port = cumulus.MySqlPort;
-				cumulus.CustomMysqlMinutesConn.UserId = cumulus.MySqlUser;
-				cumulus.CustomMysqlMinutesConn.Password = cumulus.MySqlPass;
-				cumulus.CustomMysqlMinutesConn.Database = cumulus.MySqlDatabase;
+				cumulus.CustomMysqlMinutesConn.ConnectionString = connStr;
 
-				cumulus.CustomMysqlRolloverConn.Host = cumulus.MySqlHost;
-				cumulus.CustomMysqlRolloverConn.Port = cumulus.MySqlPort;
-				cumulus.CustomMysqlRolloverConn.UserId = cumulus.MySqlUser;
-				cumulus.CustomMysqlRolloverConn.Password = cumulus.MySqlPass;
-				cumulus.CustomMysqlRolloverConn.Database = cumulus.MySqlDatabase;
+				cumulus.CustomMysqlRolloverConn.ConnectionString = connStr;
 
 				context.Response.StatusCode = 200;
 			}
@@ -235,16 +222,9 @@ namespace CumulusMX
 
 		private string CreateMySQLTable(string createSQL)
 		{
-			var mySqlConn = new MySqlConnection();
-			mySqlConn.Host = cumulus.MySqlHost;
-			mySqlConn.Port = cumulus.MySqlPort;
-			mySqlConn.UserId = cumulus.MySqlUser;
-			mySqlConn.Password = cumulus.MySqlPass;
-			mySqlConn.Database = cumulus.MySqlDatabase;
+			var mySqlConn = new MySqlConnection($"server={cumulus.MySqlHost};port={cumulus.MySqlPort};user={cumulus.MySqlUser};password={cumulus.MySqlPass};database={cumulus.MySqlDatabase}");
 
-			MySqlCommand cmd = new MySqlCommand();
-			cmd.CommandText = createSQL;
-			cmd.Connection = mySqlConn;
+			MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn);
 			cumulus.LogMessage($"MySQL Create Table: {createSQL}");
 
 			string res;
@@ -268,7 +248,8 @@ namespace CumulusMX
 				{
 					mySqlConn.Close();
 				}
-				catch {}
+				catch
+				{}
 			}
 
 			return res;
@@ -333,7 +314,8 @@ namespace CumulusMX
 	public class JsonMysqlSettingsRealtime
 	{
 		public string table { get; set; }
-		public string retention { get; set; }
+		public int retentionVal { get; set; }
+		public string retentionUnit { get; set; }
 	}
 
 	public class JsonMysqlSettingsDayfile

@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using Devart.Data.MySql;
+using MySqlConnector;
 using SQLite;
 using Timer = System.Timers.Timer;
 using System.Security.Cryptography;
@@ -1725,7 +1725,7 @@ namespace CumulusMX
 					// Custom MySQL update - minutes interval
 					if (cumulus.CustomMySqlMinutesEnabled && now.Minute % cumulus.CustomMySqlMinutesInterval == 0)
 					{
-						cumulus.CustomMysqlMinutesTimerTick();
+						_ = cumulus.CustomMysqlMinutesTimerTick();
 					}
 
 					// Custom HTTP update - minutes interval
@@ -4475,7 +4475,7 @@ namespace CumulusMX
 
 				if (cumulus.CustomMySqlRolloverEnabled)
 				{
-					cumulus.CustomMysqlRolloverTimerTick();
+					_ = cumulus.CustomMysqlRolloverTimerTick();
 				}
 
 				if (cumulus.CustomHttpRolloverEnabled)
@@ -5417,12 +5417,7 @@ namespace CumulusMX
 
 			if (cumulus.DayfileMySqlEnabled)
 			{
-				var mySqlConn = new MySqlConnection();
-				mySqlConn.Host = cumulus.MySqlHost;
-				mySqlConn.Port = cumulus.MySqlPort;
-				mySqlConn.UserId = cumulus.MySqlUser;
-				mySqlConn.Password = cumulus.MySqlPass;
-				mySqlConn.Database = cumulus.MySqlDatabase;
+				var mySqlConn = new MySqlConnection($"server={cumulus.MySqlHost};port={cumulus.MySqlPort};user={cumulus.MySqlUser};password={cumulus.MySqlPass};database={cumulus.MySqlDatabase}");
 
 				var InvC = new CultureInfo("");
 
@@ -5486,33 +5481,7 @@ namespace CumulusMX
 				queryString.Append(")");
 
 				// run the query async so we do not block the main EOD processing
-				Task.Run(() =>
-				{
-					try
-					{
-						MySqlCommand cmd = new MySqlCommand();
-						cmd.CommandText = queryString.ToString();
-						cmd.Connection = mySqlConn;
-						cumulus.LogMessage($"MySQL Dayfile: {cmd.CommandText}");
-
-						mySqlConn.Open();
-						int aff = cmd.ExecuteNonQuery();
-						cumulus.LogMessage($"MySQL Dayfile: Table {cumulus.MySqlDayfileTable} - {aff} rows were affected.");
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("MySQL Dayfile: Error encountered during EOD MySQL operation.");
-						cumulus.LogMessage(ex.Message);
-					}
-					finally
-					{
-						try
-						{
-							mySqlConn.Close();
-						}
-						catch { }
-					}
-				});
+				_ = cumulus.MySqlCommandAsync(queryString.ToString(), mySqlConn, "MySQL Dayfile", true, true);
 			}
 		}
 

@@ -516,6 +516,11 @@ namespace CumulusMX
 						cumulus.SmtpOptions.RequiresAuthentication = settings.emailsettings.authenticate;
 						cumulus.SmtpOptions.User = settings.emailsettings.user;
 						cumulus.SmtpOptions.Password = settings.emailsettings.password;
+
+						if (cumulus.emailer == null)
+						{
+							cumulus.emailer = new EmailSender(cumulus);
+						}
 					}
 				}
 				catch (Exception ex)
