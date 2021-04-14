@@ -295,7 +295,7 @@ namespace CumulusMX
 				}
 
 				// In rollover hour and rollover not yet done
-				if ((h == rollHour) && !rolloverdone)
+				if (h == rollHour && !rolloverdone)
 				{
 					// do rollover
 					cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
@@ -311,7 +311,7 @@ namespace CumulusMX
 				}
 
 				// In midnight hour and midnight rain (and sun) not yet done
-				if ((h == 0) && !midnightraindone)
+				if (h == 0 && !midnightraindone)
 				{
 					ResetMidnightRain(timestamp);
 					ResetSunshineHours();
@@ -319,18 +319,22 @@ namespace CumulusMX
 				}
 
 				// Indoor Humidity ======================================================
-				if ((historydata.inHum > 100) && (historydata.inHum != 255))
-				{
-					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum);
-				}
-				else if ((historydata.inHum > 0) && (historydata.inHum != 255))
+				if (historydata.inHum > 100 || historydata.inHum < 0)
 				{
 					// 255 is the overflow value, when RH gets below 10% - ignore
+					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum);
+				}
+				else
+				{
 					DoIndoorHumidity(historydata.inHum);
 				}
 
 				// Indoor Temperature ===================================================
-				if ((historydata.inTemp > -50) && (historydata.inTemp < 50))
+				if (historydata.inTemp < -50 || historydata.inTemp > 50)
+				{
+					cumulus.LogMessage("Ignoring bad data: intemp = " + historydata.inTemp);
+				}
+				else
 				{
 					DoIndoorTemp(ConvertTempCToUser(historydata.inTemp));
 				}
@@ -354,31 +358,32 @@ namespace CumulusMX
 				else
 				{
 					// Outdoor Humidity =====================================================
-					if ((historydata.outHum > 100) && (historydata.outHum != 255))
-					{
-						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum);
-					}
-					else if ((historydata.outHum > 0) && (historydata.outHum != 255))
+					if (historydata.outHum > 100 || historydata.outHum < 0)
 					{
 						// 255 is the overflow value, when RH gets below 10% - ignore
+						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum);
+					}
+					else
+					{
 						DoOutdoorHumidity(historydata.outHum, timestamp);
 					}
 
 					// Wind =================================================================
-					if ((historydata.windGust > 60) || (historydata.windGust < 0))
+					if (historydata.windGust > 60 || historydata.windGust < 0)
 					{
 						cumulus.LogMessage("Ignoring bad data: gust = " + historydata.windGust);
 					}
-					else if ((historydata.windSpeed > 60) || (historydata.windSpeed < 0))
+					else if (historydata.windSpeed > 60 || historydata.windSpeed < 0)
 					{
 						cumulus.LogMessage("Ignoring bad data: speed = " + historydata.windSpeed);
 					}
+					else
 					{
 						DoWind(ConvertWindMSToUser(historydata.windGust), historydata.windBearing, ConvertWindMSToUser(historydata.windSpeed), timestamp);
 					}
 
 					// Outdoor Temperature ==================================================
-					if ((historydata.outTemp < -50) || (historydata.outTemp > 70))
+					if (historydata.outTemp < -50 || historydata.outTemp > 70)
 					{
 						cumulus.LogMessage("Ignoring bad data: outtemp = " + historydata.outTemp);
 					}
@@ -825,14 +830,14 @@ namespace CumulusMX
 					prevdata[i] = data[i];
 				}
 
-				if ((!synchronising) || ((readCounter%20) == 0))
+				if (!synchronising || (readCounter%20) == 0)
 				{
 					LatestFOReading = addr.ToString("X4") + ": " + BitConverter.ToString(data, 0, 16);
 					cumulus.LogDataMessage(LatestFOReading);
 
 					// Indoor Humidity ====================================================
 					int inhum = data[1];
-					if ((inhum > 100) && (inhum != 255))
+					if (inhum > 100 || inhum < 0)
 					{
 						// bad value
 						cumulus.LogMessage("Ignoring bad data: inhum = " + inhum);
@@ -859,7 +864,11 @@ namespace CumulusMX
 						intemp = -intemp;
 					}
 
-					if ((intemp > -50) && (intemp < 50))
+					if (intemp < -50 || intemp > 50)
+					{
+						cumulus.LogMessage("Ignoring bad data: intemp = " + intemp);
+					}
+					else
 					{
 						DoIndoorTemp(ConvertTempCToUser(intemp));
 					}
@@ -867,7 +876,7 @@ namespace CumulusMX
 					// Pressure =========================================================
 					double pressure = (data[7] + ((data[8] & 0x3f)*256))/10.0f + pressureOffset;
 
-					if ((pressure < cumulus.EwOptions.MinPressMB) || (pressure > cumulus.EwOptions.MaxPressMB))
+					if (pressure < cumulus.EwOptions.MinPressMB || pressure > cumulus.EwOptions.MaxPressMB)
 					{
 						// bad value
 						cumulus.LogMessage("Ignoring bad data: pressure = " + pressure);
@@ -899,7 +908,7 @@ namespace CumulusMX
 
 						// Outdoor Humidity ===================================================
 						int outhum = data[4];
-						if ((outhum > 100) && (outhum != 255))
+						if (outhum > 100 || outhum < 0)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: outhum = " + outhum);
@@ -923,12 +932,12 @@ namespace CumulusMX
 						double windspeed = (data[9] + ((data[11] & 0x0F)*256))/10.0f;
 						var winddir = (int) (data[12]*22.5f);
 
-						if ((gust > 60) || (gust < 0))
+						if (gust > 60 || gust < 0)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: gust = " + gust);
 						}
-						else if ((windspeed > 60) || (windspeed < 0))
+						else if (windspeed > 60 || windspeed < 0)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: speed = " + gust);
@@ -943,7 +952,7 @@ namespace CumulusMX
 						sign = (byte) (data[6] & 0x80);
 						if (sign == 0x80) outtemp = -outtemp;
 
-						if ((outtemp < -50) || (outtemp > 70))
+						if (outtemp < -50 || (outtemp > 70)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: outtemp = " + outtemp);
@@ -959,21 +968,17 @@ namespace CumulusMX
 
 								CheckForDewpointHighLow(now);
 							}
-							;
 
 							// calculate wind chill
-							if ((outtemp > -50) || (outtemp < 70))
-							{
-								// The 'global average speed will have been determined by the call of DoWind
-								// so use that in the wind chill calculation
-								double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
+							// The 'global average speed will have been determined by the call of DoWind
+							// so use that in the wind chill calculation
+							double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
 
-								// windinMPH = calibwind * 2.23693629;
-								// calculate wind chill from calibrated C temp and calibrated win in KPH
-								double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
+							// windinMPH = calibwind * 2.23693629;
+							// calculate wind chill from calibrated C temp and calibrated win in KPH
+							double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
 
-								DoWindChill(ConvertTempCToUser(val), now);
-							}
+							DoWindChill(ConvertTempCToUser(val), now);
 
 							DoApparentTemp(now);
 							DoFeelsLike(now);

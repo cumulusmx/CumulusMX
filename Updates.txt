@@ -5,6 +5,7 @@
 - Fix: OpenWeatherMap - create new station was not forcing the use of dot decimals for lat/long values
 - Fix: WeatherCloud - date/time of reading should be UTC
 - Fix: End of day backup now always runs at rollover
+- Fix: FineOffset stations were not ignoring invalid wind speeds on historic catch up
 
 - New: Adds Email support for Alarms
 	- Creates a new section in Cumulus.ini:
