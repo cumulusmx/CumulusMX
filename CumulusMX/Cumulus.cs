@@ -515,6 +515,9 @@ namespace CumulusMX
 		// Windy.com settings
 		public  WebUploadWindy Windy = new WebUploadWindy();
 
+		// Wind Guru settings
+		public WebUploadWindGuru WindGuru = new WebUploadWindGuru();
+
 		// PWS Weather settings
 		public WebUploadService PWS = new WebUploadService();
 
@@ -528,7 +531,7 @@ namespace CumulusMX
 		public WebUploadAwekas AWEKAS = new WebUploadAwekas();
 
 		// WeatherCloud settings
-		public WebUploadService WCloud = new WebUploadService();
+		public WebUploadWCloud WCloud = new WebUploadWCloud();
 
 		// OpenWeatherMap settings
 		public WebUploadService OpenWeatherMap = new WebUploadService();
@@ -584,6 +587,16 @@ namespace CumulusMX
 
 		public double[] NOAARainNorms = new double[13];
 
+		// Growing Degree Days
+		public double GrowingBase1;
+		public double GrowingBase2;
+		public int GrowingYearStarts;
+		public bool GrowingCap30C;
+
+		public int TempSumYearStarts;
+		public double TempSumBase1;
+		public double TempSumBase2;
+
 		public bool EODfilesNeedFTP;
 
 		public bool IsOSX;
@@ -631,6 +644,9 @@ namespace CumulusMX
 
 		private static readonly HttpClientHandler WindyhttpHandler = new HttpClientHandler();
 		private readonly HttpClient WindyhttpClient = new HttpClient(WindyhttpHandler);
+
+		private static readonly HttpClientHandler WindGuruhttpHandler = new HttpClientHandler();
+		private readonly HttpClient WindGuruhttpClient = new HttpClient(WindGuruhttpHandler);
 
 		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler();
 		private readonly HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
@@ -858,6 +874,7 @@ namespace CumulusMX
 			// Set the default upload intervals for web services
 			Wund.DefaultInterval = 15;
 			Windy.DefaultInterval = 15;
+			WindGuru.DefaultInterval = 1;
 			PWS.DefaultInterval = 15;
 			APRS.DefaultInterval = 9;
 			AWEKAS.DefaultInterval = 15 * 60;
@@ -973,7 +990,7 @@ namespace CumulusMX
 				RemoteFileName = "airquality.json"
 			};
 
-			GraphDataEodFiles = new FileGenerationFtpOptions[6];
+			GraphDataEodFiles = new FileGenerationFtpOptions[8];
 			GraphDataEodFiles[0] = new FileGenerationFtpOptions()
 			{
 				LocalPath = WebPath,
@@ -1010,6 +1027,18 @@ namespace CumulusMX
 				LocalFileName = "alldailysolardata.json",
 				RemoteFileName = "alldailysolardata.json"
 			};
+			GraphDataEodFiles[6] = new FileGenerationFtpOptions()
+			{
+				LocalPath = WebPath,
+				LocalFileName = "alldailydegdaydata.json",
+				RemoteFileName = "alldailydegdaydata.json"
+			};
+			GraphDataEodFiles[7] = new FileGenerationFtpOptions()
+			{
+				LocalPath = WebPath,
+				LocalFileName = "alltempsumdata.json",
+				RemoteFileName = "alltempsumdata.json"
+			};
 
 			ReadIniFile();
 
@@ -1042,6 +1071,7 @@ namespace CumulusMX
 						{
 
 							reply = ping.Send(ProgramOptions.StartupPingHost, 2000);  // 2 second timeout
+							LogMessage($"PING response = {reply.Status}");
 						}
 						catch (Exception e)
 						{
@@ -1052,8 +1082,19 @@ namespace CumulusMX
 						{
 							// no response wait 10 seconds before trying again
 							Thread.Sleep(10000);
-							// Force a DNS refresh
-							Dns.GetHostEntry(ProgramOptions.StartupPingHost);
+							// Force a DNS refresh if not an IPv4 address
+							if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
+							{
+								// catch and ignore IPv6 and invalid hostname for now
+								try
+								{
+									Dns.GetHostEntry(ProgramOptions.StartupPingHost);
+								}
+								catch (Exception ex)
+								{
+									LogMessage($"PING: Error with DNS refresh - {ex.Message}");
+								}
+							}
 						}
 					} while ((reply == null || reply.Status != IPStatus.Success) && DateTime.Now < endTime);
 
@@ -1295,11 +1336,12 @@ namespace CumulusMX
 			httpServer.Module<StaticFilesModule>().UseRamCache = true;
 
 			// Set up the API web server
-			// Soem APi functions require the station, so set them after station initialisation
+			// Some APi functions require the station, so set them after station initialisation
 			Api.Setup(httpServer);
 			Api.programSettings = new ProgramSettings(this);
 			Api.stationSettings = new StationSettings(this);
 			Api.internetSettings = new InternetSettings(this);
+			Api.thirdpartySettings = new ThirdPartySettings(this);
 			Api.extraSensorSettings = new ExtraSensorSettings(this);
 			Api.calibrationSettings = new CalibrationSettings(this);
 			Api.noaaSettings = new NOAASettings(this);
@@ -1414,16 +1456,8 @@ namespace CumulusMX
 
 				SetFtpLogging(FTPlogging);
 
-				TwitterTimer.Elapsed += TwitterTimerTick;
-
 				WundTimer.Elapsed += WundTimerTick;
-				WindyTimer.Elapsed += WindyTimerTick;
-				PWSTimer.Elapsed += PWSTimerTick;
-				WOWTimer.Elapsed += WowTimerTick;
 				AwekasTimer.Elapsed += AwekasTimerTick;
-				WCloudTimer.Elapsed += WCloudTimerTick;
-				APRStimer.Elapsed += APRSTimerTick;
-				OpenWeatherMapTimer.Elapsed += OpenWeatherMapTimerTick;
 				WebTimer.Elapsed += WebTimerTick;
 
 				xapsource = "sanday.cumulus." + Environment.MachineName;
@@ -1704,23 +1738,6 @@ namespace CumulusMX
 			}
 		}
 
-		/*
-		internal string CalculateMD5Hash(string input)
-		{
-			// step 1, calculate MD5 hash from input
-			MD5 md5 = MD5.Create();
-			byte[] inputBytes = Encoding.ASCII.GetBytes(input);
-			byte[] hash = md5.ComputeHash(inputBytes);
-
-			// step 2, convert byte array to hex string
-			StringBuilder sb = new StringBuilder();
-			foreach (var t in hash)
-			{
-				sb.Append(t.ToString("X2"));
-			}
-			return sb.ToString();
-		}
-		*/
 
 		/*
 		private string LocalIPAddress()
@@ -1879,11 +1896,6 @@ namespace CumulusMX
 			}
 		}
 
-		private void TwitterTimerTick(object sender, ElapsedEventArgs e)
-		{
-			UpdateTwitter();
-		}
-
 		internal async void UpdateTwitter()
 		{
 			if (station.DataStopped)
@@ -1983,28 +1995,11 @@ namespace CumulusMX
 				UpdateWunderground(DateTime.Now);
 		}
 
-		private void WindyTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(Windy.ApiKey))
-				UpdateWindy(DateTime.Now);
-		}
 
 		private void AwekasTimerTick(object sender, ElapsedEventArgs e)
 		{
 			if (!string.IsNullOrWhiteSpace(AWEKAS.ID))
 				UpdateAwekas(DateTime.Now);
-		}
-
-		private void WCloudTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(WCloud.ID))
-				UpdateWCloud(DateTime.Now);
-		}
-
-		private void OpenWeatherMapTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(OpenWeatherMap.ID) && !string.IsNullOrWhiteSpace(OpenWeatherMap.PW))
-				UpdateOpenWeatherMap(DateTime.Now);
 		}
 
 		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
@@ -2028,18 +2023,6 @@ namespace CumulusMX
 		}
 		*/
 
-		private void PWSTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(PWS.ID))
-				UpdatePWSweather(DateTime.Now);
-		}
-
-		private void WowTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(WOW.ID))
-				UpdateWOW(DateTime.Now);
-		}
-
 		internal async void UpdateWunderground(DateTime timestamp)
 		{
 			if (Wund.Updating || station.DataStopped)
@@ -2058,21 +2041,21 @@ namespace CumulusMX
 			string logUrl = URL.Replace(pwstring, starredpwstring);
 			if (!Wund.RapidFireEnabled)
 			{
-				LogDebugMessage("WU URL: " + logUrl);
+				LogDebugMessage("Wunderground: URL = " + logUrl);
 			}
 
 			try
 			{
 				HttpResponseMessage response = await WUhttpClient.GetAsync(URL);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				if (!Wund.RapidFireEnabled)
+				if (!Wund.RapidFireEnabled || response.StatusCode != HttpStatusCode.OK)
 				{
-					LogMessage("WU Response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDebugMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
 				}
 			}
 			catch (Exception ex)
 			{
-				LogMessage("WU update: " + ex.Message);
+				LogMessage("Wunderground: ERROR - " + ex.Message);
 			}
 			finally
 			{
@@ -2094,23 +2077,56 @@ namespace CumulusMX
 			string url = station.GetWindyURL(out apistring, timestamp);
 			string logUrl = url.Replace(apistring, "<<API_KEY>>");
 
-			LogDebugMessage("Windy URL: " + logUrl);
+			LogDebugMessage("Windy: URL = " + logUrl);
 
 			try
 			{
 				HttpResponseMessage response = await WindyhttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogMessage("Windy Response: " + response.StatusCode + ": " + responseBodyAsText);
+				LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Windy update: " + ex.Message);
+				LogMessage("Windy: ERROR - " + ex.Message);
 			}
 			finally
 			{
 				Windy.Updating = false;
 			}
 		}
+
+		internal async void UpdateWindGuru(DateTime timestamp)
+		{
+			if (WindGuru.Updating || station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
+			WindGuru.Updating = true;
+
+			string apistring;
+			string url = station.GetWindGuruURL(out apistring, timestamp);
+			string logUrl = url.Replace(apistring, "<<StationUID>>");
+
+			LogDebugMessage("WindGuru: URL = " + logUrl);
+
+			try
+			{
+				HttpResponseMessage response = await WindGuruhttpClient.GetAsync(url);
+				var responseBodyAsText = await response.Content.ReadAsStringAsync();
+				LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
+			}
+			catch (Exception ex)
+			{
+				LogDebugMessage("WindGuru: ERROR - " + ex.Message);
+			}
+			finally
+			{
+				WindGuru.Updating = false;
+			}
+		}
+
 
 		internal async void UpdateAwekas(DateTime timestamp)
 		{
@@ -2143,7 +2159,7 @@ namespace CumulusMX
 
 					// Check the status response
 					if (respJson.status == 2)
-						LogMessage("AWEKAS: Data stored OK");
+						LogDebugMessage("AWEKAS: Data stored OK");
 					else if (respJson.status == 1)
 					{
 						LogMessage("AWEKAS: Data PARIALLY stored");
@@ -2248,7 +2264,7 @@ namespace CumulusMX
 
 			string logUrl = url.Replace(pwstring, starredpwstring);
 
-			LogDebugMessage("WeatherCloud URL: " + logUrl);
+			LogDebugMessage("WeatherCloud: URL = " + logUrl);
 
 			try
 			{
@@ -2276,11 +2292,11 @@ namespace CumulusMX
 						msg = "Unknown error";
 						break;
 				}
-				LogDebugMessage($"WeatherCloud Response: {msg} ({response.StatusCode}): {responseBodyAsText}");
+				LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
 			}
 			catch (Exception ex)
 			{
-				LogDebugMessage("WeatherCloud update: " + ex.Message);
+				LogDebugMessage("WeatherCloud: ERROR - " + ex.Message);
 			}
 			finally
 			{
@@ -2314,14 +2330,14 @@ namespace CumulusMX
 					HttpResponseMessage response = await client.PostAsync(url, data);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
-					LogMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+					LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 					if (response.StatusCode != HttpStatusCode.NoContent)
 						LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
 				}
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OpenWeatherMap: Update error = " + ex.Message);
+				LogMessage("OpenWeatherMap: ERROR - " + ex.Message);
 			}
 			finally
 			{
@@ -2340,7 +2356,7 @@ namespace CumulusMX
 				{
 					HttpResponseMessage response = client.GetAsync(url).Result;
 					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
-					LogDataMessage("WeatherCloud Response: " + response.StatusCode + ": " + responseBodyAsText);
+					LogDataMessage("OpenWeatherMap: Get Stations Response: " + response.StatusCode + ": " + responseBodyAsText);
 
 					if (responseBodyAsText.Length > 10)
 					{
@@ -2351,7 +2367,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OpenWeatherMap: Get stations - " + ex.Message);
+				LogMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message);
 			}
 
 			return retVal;
@@ -2403,7 +2419,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OpenWeatherMap: Create station - " + ex.Message);
+				LogMessage("OpenWeatherMap: Create station ERROR - " + ex.Message);
 			}
 		}
 
@@ -2442,8 +2458,6 @@ namespace CumulusMX
 						LogMessage("OpenWeatherMap: " + msg);
 					}
 				}
-
-				OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
 			}
 		}
 
@@ -3745,6 +3759,8 @@ namespace CumulusMX
 			if (RainSeasonStart < 1 || RainSeasonStart > 12)
 				RainSeasonStart = 1;
 			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
+			if (ChillHourSeasonStart < 1 || ChillHourSeasonStart > 12)
+				ChillHourSeasonStart = 1;
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
 
 			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
@@ -3993,6 +4009,11 @@ namespace CumulusMX
 			GraphOptions.DailyAvgTempVisible = ini.GetValue("Graphs", "DailyAvgTempVisible", true);
 			GraphOptions.DailyMaxTempVisible = ini.GetValue("Graphs", "DailyMaxTempVisible", true);
 			GraphOptions.DailyMinTempVisible = ini.GetValue("Graphs", "DailyMinTempVisible", true);
+			GraphOptions.GrowingDegreeDaysVisible1 = ini.GetValue("Graphs", "GrowingDegreeDaysVisible1", true);
+			GraphOptions.GrowingDegreeDaysVisible2 = ini.GetValue("Graphs", "GrowingDegreeDaysVisible2", true);
+			GraphOptions.TempSumVisible0 = ini.GetValue("Graphs", "TempSumVisible0", true);
+			GraphOptions.TempSumVisible1 = ini.GetValue("Graphs", "TempSumVisible1", true);
+			GraphOptions.TempSumVisible2 = ini.GetValue("Graphs", "TempSumVisible2", true);
 
 
 			Wund.ID = ini.GetValue("Wunderground", "ID", "");
@@ -4018,7 +4039,7 @@ namespace CumulusMX
 			Wund.SendAverage = ini.GetValue("Wunderground", "SendAverage", false);
 			Wund.CatchUp = ini.GetValue("Wunderground", "CatchUp", true);
 
-			Wund.SynchronisedUpdate = (!Wund.RapidFireEnabled) && (60 % Wund.Interval == 0);
+			Wund.SynchronisedUpdate = !Wund.RapidFireEnabled;
 
 			Windy.ApiKey = ini.GetValue("Windy", "APIkey", "");
 			Windy.StationIdx = ini.GetValue("Windy", "StationIdx", 0);
@@ -4029,8 +4050,6 @@ namespace CumulusMX
 			Windy.SendUV = ini.GetValue("Windy", "SendUV", false);
 			Windy.SendSolar = ini.GetValue("Windy", "SendSolar", false);
 			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", false);
-
-			Windy.SynchronisedUpdate = (60 % Windy.Interval == 0);
 
 			AWEKAS.ID = ini.GetValue("Awekas", "User", "");
 			AWEKAS.PW = ini.GetValue("Awekas", "Password", "");
@@ -4049,15 +4068,24 @@ namespace CumulusMX
 
 			AWEKAS.SynchronisedUpdate = (AWEKAS.Interval % 60 == 0);
 
+			WindGuru.ID = ini.GetValue("WindGuru", "StationUID", "");
+			WindGuru.PW = ini.GetValue("WindGuru", "Password", "");
+			WindGuru.Enabled = ini.GetValue("WindGuru", "Enabled", false);
+			WindGuru.Interval = ini.GetValue("WindGuru", "Interval", WindGuru.DefaultInterval);
+			if (WindGuru.Interval < 1) { WindGuru.Interval = 1; }
+			WindGuru.SendRain = ini.GetValue("WindGuru", "SendRain", false);
+
 			WCloud.ID = ini.GetValue("WeatherCloud", "Wid", "");
 			WCloud.PW = ini.GetValue("WeatherCloud", "Key", "");
 			WCloud.Enabled = ini.GetValue("WeatherCloud", "Enabled", false);
 			WCloud.Interval = ini.GetValue("WeatherCloud", "Interval", WCloud.DefaultInterval);
 			WCloud.SendUV = ini.GetValue("WeatherCloud", "SendUV", false);
 			WCloud.SendSolar = ini.GetValue("WeatherCloud", "SendSR", false);
-			WCloud.SendAQI = ini.GetValue("WeatherCloud", "SendAQI", false);
-
-			WCloud.SynchronisedUpdate = (60 % WCloud.Interval == 0);
+			WCloud.SendAirQuality = ini.GetValue("WeatherCloud", "SendAirQuality", false);
+			WCloud.SendSoilMoisture = ini.GetValue("WeatherCloud", "SendSoilMoisture", false);
+			WCloud.SoilMoistureSensor= ini.GetValue("WeatherCloud", "SoilMoistureSensor", 1);
+			WCloud.SendLeafWetness = ini.GetValue("WeatherCloud", "SendLeafWetness", false);
+			WCloud.LeafWetnessSensor = ini.GetValue("WeatherCloud", "LeafWetnessSensor", 1);
 
 			Twitter.ID = ini.GetValue("Twitter", "User", "");
 			Twitter.PW = ini.GetValue("Twitter", "Password", "");
@@ -4067,8 +4095,6 @@ namespace CumulusMX
 			Twitter.OauthToken = ini.GetValue("Twitter", "OauthToken", "unknown");
 			Twitter.OauthTokenSecret = ini.GetValue("Twitter", "OauthTokenSecret", "unknown");
 			Twitter.SendLocation = ini.GetValue("Twitter", "SendLocation", true);
-
-			Twitter.SynchronisedUpdate = (60 % Twitter.Interval == 0);
 
 			//if HTTPLogging then
 			//  MainForm.WUHTTP.IcsLogger = MainForm.HTTPlogger;
@@ -4082,8 +4108,6 @@ namespace CumulusMX
 			PWS.SendSolar = ini.GetValue("PWSweather", "SendSR", false);
 			PWS.CatchUp = ini.GetValue("PWSweather", "CatchUp", true);
 
-			PWS.SynchronisedUpdate = (60 % PWS.Interval == 0);
-
 			WOW.ID = ini.GetValue("WOW", "ID", "");
 			WOW.PW = ini.GetValue("WOW", "Password", "");
 			WOW.Enabled = ini.GetValue("WOW", "Enabled", false);
@@ -4092,8 +4116,6 @@ namespace CumulusMX
 			WOW.SendUV = ini.GetValue("WOW", "SendUV", false);
 			WOW.SendSolar = ini.GetValue("WOW", "SendSR", false);
 			WOW.CatchUp = ini.GetValue("WOW", "CatchUp", true);
-
-			WOW.SynchronisedUpdate = (60 % WOW.Interval == 0);
 
 			APRS.ID = ini.GetValue("APRS", "ID", "");
 			APRS.PW = ini.GetValue("APRS", "pass", "-1");
@@ -4105,15 +4127,11 @@ namespace CumulusMX
 			APRS.HumidityCutoff = ini.GetValue("APRS", "APRSHumidityCutoff", false);
 			APRS.SendSolar = ini.GetValue("APRS", "SendSR", false);
 
-			APRS.SynchronisedUpdate = (60 % APRS.Interval == 0);
-
 			OpenWeatherMap.Enabled = ini.GetValue("OpenWeatherMap", "Enabled", false);
 			OpenWeatherMap.CatchUp = ini.GetValue("OpenWeatherMap", "CatchUp", true);
 			OpenWeatherMap.PW = ini.GetValue("OpenWeatherMap", "APIkey", "");
 			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", "");
 			OpenWeatherMap.Interval = ini.GetValue("OpenWeatherMap", "Interval", OpenWeatherMap.DefaultInterval);
-
-			OpenWeatherMap.SynchronisedUpdate = (60 % OpenWeatherMap.Interval == 0);
 
 			MQTT.Server = ini.GetValue("MQTT", "Server", "");
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883);
@@ -4496,6 +4514,19 @@ namespace CumulusMX
 			SmtpOptions.RequiresAuthentication = ini.GetValue("SMTP", "RequiresAuthentication", false);
 			SmtpOptions.User = ini.GetValue("SMTP", "User", "");
 			SmtpOptions.Password = ini.GetValue("SMTP", "Password", "");
+
+			// Growing Degree Days
+			GrowingBase1 = ini.GetValue("GrowingDD", "BaseTemperature1", (Units.Temp == 0 ? 5.0 : 40.0));
+			GrowingBase2 = ini.GetValue("GrowingDD", "BaseTemperature2", (Units.Temp == 0 ? 10.0 : 50.0));
+			GrowingYearStarts = ini.GetValue("GrowingDD", "YearStarts", (Latitude >= 0 ? 1 : 7));
+			GrowingCap30C = ini.GetValue("GrowingDD", "Cap30C", true);
+
+			// Temperature Sum
+			TempSumYearStarts = ini.GetValue("TempSum", "TempSumYearStart", (Latitude >= 0 ? 1 : 7));
+			if (TempSumYearStarts < 1 || TempSumYearStarts > 12)
+				TempSumYearStarts = 1;
+			TempSumBase1 = ini.GetValue("TempSum", "BaseTemperature1", GrowingBase1);
+			TempSumBase2 = ini.GetValue("TempSum", "BaseTemperature2", GrowingBase2);
 		}
 
 		internal void WriteIniFile()
@@ -4612,6 +4643,9 @@ namespace CumulusMX
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
 			ini.SetValue("Station", "RainDayThreshold", RainDayThreshold);
+
+			ini.SetValue("Station", "ChillHourSeasonStart", ChillHourSeasonStart);
+			ini.SetValue("Station", "ChillHourThreshold", ChillHourThreshold);
 
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
@@ -4820,7 +4854,11 @@ namespace CumulusMX
 			ini.SetValue("WeatherCloud", "Interval", WCloud.Interval);
 			ini.SetValue("WeatherCloud", "SendUV", WCloud.SendUV);
 			ini.SetValue("WeatherCloud", "SendSR", WCloud.SendSolar);
-			ini.SetValue("WeatherCloud", "SendAQI", WCloud.SendAQI);
+			ini.SetValue("WeatherCloud", "SendAQI", WCloud.SendAirQuality);
+			ini.SetValue("WeatherCloud", "SendSoilMoisture", WCloud.SendSoilMoisture);
+			ini.SetValue("WeatherCloud", "SoilMoistureSensor", WCloud.SoilMoistureSensor);
+			ini.SetValue("WeatherCloud", "SendLeafWetness", WCloud.SendLeafWetness);
+			ini.SetValue("WeatherCloud", "LeafWetnessSensor", WCloud.LeafWetnessSensor);
 
 			ini.SetValue("Twitter", "User", Twitter.ID);
 			ini.SetValue("Twitter", "Password", Twitter.PW);
@@ -4860,6 +4898,12 @@ namespace CumulusMX
 			ini.SetValue("OpenWeatherMap", "APIkey", OpenWeatherMap.PW);
 			ini.SetValue("OpenWeatherMap", "StationId", OpenWeatherMap.ID);
 			ini.SetValue("OpenWeatherMap", "Interval", OpenWeatherMap.Interval);
+
+			ini.SetValue("WindGuru", "Enabled", WindGuru.Enabled);
+			ini.SetValue("WindGuru", "StationUID", WindGuru.ID);
+			ini.SetValue("WindGuru", "Password", WindGuru.PW);
+			ini.SetValue("WindGuru", "Interval", WindGuru.Interval);
+			ini.SetValue("WindGuru", "SendRain", WindGuru.SendRain);
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
 			ini.SetValue("MQTT", "Port", MQTT.Port);
@@ -5127,6 +5171,12 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "DailyAvgTempVisible", GraphOptions.DailyAvgTempVisible);
 			ini.SetValue("Graphs", "DailyMaxTempVisible", GraphOptions.DailyMaxTempVisible);
 			ini.SetValue("Graphs", "DailyMinTempVisible", GraphOptions.DailyMinTempVisible);
+			ini.SetValue("Graphs", "GrowingDegreeDaysVisible1", GraphOptions.GrowingDegreeDaysVisible1);
+			ini.SetValue("Graphs", "GrowingDegreeDaysVisible2", GraphOptions.GrowingDegreeDaysVisible2);
+			ini.SetValue("Graphs", "TempSumVisible0", GraphOptions.TempSumVisible0);
+			ini.SetValue("Graphs", "TempSumVisible1", GraphOptions.TempSumVisible1);
+			ini.SetValue("Graphs", "TempSumVisible2", GraphOptions.TempSumVisible2);
+
 
 			ini.SetValue("MySQL", "Host", MySqlHost);
 			ini.SetValue("MySQL", "Port", MySqlPort);
@@ -5176,6 +5226,17 @@ namespace CumulusMX
 			ini.SetValue("SMTP", "RequiresAuthentication", SmtpOptions.RequiresAuthentication);
 			ini.SetValue("SMTP", "User", SmtpOptions.User);
 			ini.SetValue("SMTP", "Password", SmtpOptions.Password);
+
+			// Growing Degree Days
+			ini.SetValue("GrowingDD", "BaseTemperature1", GrowingBase1);
+			ini.SetValue("GrowingDD", "BaseTemperature2", GrowingBase2);
+			ini.SetValue("GrowingDD", "YearStarts", GrowingYearStarts);
+			ini.SetValue("GrowingDD", "Cap30C", GrowingCap30C);
+
+			// Temperature Sum
+			ini.SetValue("TempSum", "TempSumYearStart", TempSumYearStarts);
+			ini.SetValue("TempSum", "BaseTemperature1", TempSumBase1);
+			ini.SetValue("TempSum", "BaseTemperature2", TempSumBase2);
 
 			ini.Flush();
 
@@ -5812,15 +5873,8 @@ namespace CumulusMX
 		public bool Gw1000AutoUpdateIpAddress = true;
 
 		public Timer WundTimer = new Timer();
-		public Timer WindyTimer = new Timer();
-		public Timer PWSTimer = new Timer();
-		public Timer WOWTimer = new Timer();
-		public Timer APRStimer = new Timer();
 		public Timer WebTimer = new Timer();
-		public Timer TwitterTimer = new Timer();
 		public Timer AwekasTimer = new Timer();
-		public Timer WCloudTimer = new Timer();
-		public Timer OpenWeatherMapTimer = new Timer();
 		public Timer MQTTTimer = new Timer();
 		//public Timer AirLinkTimer = new Timer();
 
@@ -6971,15 +7025,8 @@ namespace CumulusMX
 				LogMessage("Stopping timers");
 				RealtimeTimer.Stop();
 				WundTimer.Stop();
-				WindyTimer.Stop();
-				PWSTimer.Stop();
-				WOWTimer.Stop();
-				APRStimer.Stop();
 				WebTimer.Stop();
-				TwitterTimer.Stop();
 				AwekasTimer.Stop();
-				WCloudTimer.Stop();
-				OpenWeatherMapTimer.Stop();
 				MQTTTimer.Stop();
 				//AirLinkTimer.Stop();
 				CustomHttpSecondsTimer.Stop();
@@ -8148,17 +8195,8 @@ namespace CumulusMX
 				WundTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
 			}
 
-			WindyTimer.Interval = Windy.Interval * 60 * 1000; // mins to millisecs
-
-			PWSTimer.Interval = PWS.Interval * 60 * 1000; // mins to millisecs
-
-			WOWTimer.Interval = WOW.Interval * 60 * 1000; // mins to millisecs
 
 			AwekasTimer.Interval = AWEKAS.Interval * 1000;
-
-			WCloudTimer.Interval = WCloud.Interval * 60 * 1000;
-
-			OpenWeatherMapTimer.Interval = OpenWeatherMap.Interval * 60 * 1000;
 
 			MQTTTimer.Interval = MQTT.IntervalTime * 1000; // secs to millisecs
 
@@ -8209,7 +8247,6 @@ namespace CumulusMX
 				// No archived entries to upload
 				WindyList = null;
 				LogDebugMessage("Windylist count is zero");
-				WindyTimer.Enabled = Windy.Enabled && !Windy.SynchronisedUpdate;
 			}
 			else
 			{
@@ -8227,7 +8264,6 @@ namespace CumulusMX
 			{
 				// No archived entries to upload
 				PWSList = null;
-				PWSTimer.Enabled = PWS.Enabled && !PWS.SynchronisedUpdate;
 			}
 			else
 			{
@@ -8245,7 +8281,6 @@ namespace CumulusMX
 			{
 				// No archived entries to upload
 				WOWList = null;
-				WOWTimer.Enabled = WOW.Enabled && !WOW.SynchronisedUpdate;
 			}
 			else
 			{
@@ -8263,7 +8298,6 @@ namespace CumulusMX
 			{
 				// No archived entries to upload
 				OWMList = null;
-				OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
 			}
 			else
 			{
@@ -8291,12 +8325,6 @@ namespace CumulusMX
 				MySqlCatchupThread = new Thread(MySqlCatchup) {IsBackground = true};
 				MySqlCatchupThread.Start();
 			}
-
-			TwitterTimer.Interval = Twitter.Interval * 60 * 1000; // mins to millisecs
-			TwitterTimer.Enabled = Twitter.Enabled && !Twitter.SynchronisedUpdate;
-
-			APRStimer.Interval = APRS.Interval * 60 * 1000; // mins to millisecs
-			APRStimer.Enabled = APRS.Enabled && !APRS.SynchronisedUpdate;
 
 			WebTimer.Interval = UpdateInterval * 60 * 1000; // mins to millisecs
 			WebTimer.Enabled = WebIntervalEnabled && !SynchronisedWebUpdate;
@@ -8652,7 +8680,6 @@ namespace CumulusMX
 			LogMessage("End of Windy archive upload");
 			WindyList.Clear();
 			Windy.CatchingUp = false;
-			WindyTimer.Enabled = Windy.Enabled && !Windy.SynchronisedUpdate;
 			Windy.Updating = false;
 		}
 
@@ -8681,7 +8708,6 @@ namespace CumulusMX
 			LogMessage("End of PWS archive upload");
 			PWSList.Clear();
 			PWS.CatchingUp = false;
-			PWSTimer.Enabled = PWS.Enabled && !PWS.SynchronisedUpdate;
 			PWS.Updating = false;
 		}
 
@@ -8710,7 +8736,6 @@ namespace CumulusMX
 			LogMessage("End of WOW archive upload");
 			WOWList.Clear();
 			WOW.CatchingUp = false;
-			WOWTimer.Enabled = WOW.Enabled && !WOW.SynchronisedUpdate;
 			WOW.Updating = false;
 		}
 
@@ -8752,7 +8777,6 @@ namespace CumulusMX
 			LogMessage("End of OpenWeatherMap archive upload");
 			OWMList.Clear();
 			OpenWeatherMap.CatchingUp = false;
-			OpenWeatherMapTimer.Enabled = OpenWeatherMap.Enabled && !OpenWeatherMap.SynchronisedUpdate;
 			OpenWeatherMap.Updating = false;
 		}
 
@@ -9475,6 +9499,11 @@ namespace CumulusMX
 		public bool DailyMaxTempVisible { get; set; }
 		public bool DailyAvgTempVisible { get; set; }
 		public bool DailyMinTempVisible { get; set; }
+		public bool GrowingDegreeDaysVisible1 { get; set; }
+		public bool GrowingDegreeDaysVisible2 { get; set; }
+		public bool TempSumVisible0 { get; set; }
+		public bool TempSumVisible1 { get; set; }
+		public bool TempSumVisible2 { get; set; }
 	}
 
 	public class SelectaChartOptions
@@ -9605,9 +9634,8 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
-						_ = cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
-
 
 					// If we get a new trigger, record the time
 					triggered = true;
@@ -9659,7 +9687,7 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = Program.cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
-						_ = cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
 
 					// If we get a new trigger, record the time
@@ -9701,11 +9729,11 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = Program.cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
-						_ = cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
 
-						// If we get a new trigger, record the time
-						downTriggered = true;
+					// If we get a new trigger, record the time
+					downTriggered = true;
 					DownTriggeredTime = DateTime.Now;
 				}
 				else
@@ -9748,7 +9776,7 @@ namespace CumulusMX
 		public bool SendUV;
 		public bool SendSolar;
 		public bool SendIndoor;
-		public bool SendAQI;
+		public bool SendAirQuality;
 		public bool CatchUp;
 		public bool CatchingUp;
 		public bool Updating;
@@ -9775,13 +9803,17 @@ namespace CumulusMX
 		public bool SendSoilMoisture4;
 		public bool SendLeafWetness1;
 		public bool SendLeafWetness2;
-		public bool SendAirQuality;
 	}
 
 	public class WebUploadWindy : WebUploadService
 	{
 		public string ApiKey;
 		public int StationIdx;
+	}
+
+	public class WebUploadWindGuru : WebUploadService
+	{
+		public bool SendRain;
 	}
 
 	public class WebUploadAwekas : WebUploadService
@@ -9792,7 +9824,14 @@ namespace CumulusMX
 		public bool SendSoilTemp;
 		public bool SendSoilMoisture;
 		public bool SendLeafWetness;
-		public bool SendAirQuality;
+	}
+
+	public class WebUploadWCloud : WebUploadService
+	{
+		public bool SendSoilMoisture;
+		public int SoilMoistureSensor;
+		public bool SendLeafWetness;
+		public int LeafWetnessSensor;
 	}
 
 	public class WebUploadAprs : WebUploadService

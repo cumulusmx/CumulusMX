@@ -1,4 +1,4 @@
-3.11.0 - b3123
+3.11.0 - b3125
 ——————————————
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
 - Fix: Remove <#THWindex> web tag from Cumulus MX
@@ -6,8 +6,16 @@
 - Fix: WeatherCloud - date/time of reading should be UTC
 - Fix: End of day backup now always runs at rollover
 - Fix: FineOffset stations were not ignoring invalid wind speeds on historic catch up
+- Fix: FineOffset synchronise reads process improvements (attempt)
+- Fix: Catch some errors that could occur in the start-up PING process
+- Fix: MySQL connections that use encryption should now be supported (MySQL 8.0 default)
+- Fix: GW1000 System Information now correctly decodes 915 and 920MHz devices
+- Fix: GW1000 occasional crash when an unexpected response was received
+- Fix: All settings screens error handling messages now no longer display "[object][object]"
 
+- New: Adds support for Windguru uploads
 - New: Adds Email support for Alarms
+	- Configured via Internet Settings (email server config), and Alarm Settings (from/to addresses for alarms, and a Test Email function)
 	- Creates a new section in Cumulus.ini:
 		[SMTP]
 		ServerName=
@@ -24,19 +32,29 @@
 		DestEmail=
 	- Creates a new section in strings.ini, with email text
 		[AlarmEmails]
+- New: WeatherCloud now supports uploading of Air Quality, Soil Moisture, and Leaf Wetness
+- New: Adds support for two sets of Growing Degree Days data
+	- Configured via Station Settings|Growing Degree Days, visibility via Station Settings|Graphs|Data Series Visibility|Degree Days
+- New: Adds support for Temperature Sum - annual running total of daily average temperatures
+	- Configured via Station Settings|Temperature Sum, visibility via Station Settings|Graphs|Data Series Visibility|Temperature Data
+- New: The graphs pages - both dashboard and default web site - now set a page hash value depending on the graph being shown.
+	Benefit = you can now link directly to a particular graph to show on page load
 
-- Changed: Moved FTP Logging option from Internet Settings to Program Setting to collect all the logging options in one place
+- Changed: Moved FTP Logging option from Internet Settings to Program Settings to collect all the logging options in one place
 - Changed: A Data Stopped state now stops all logging, MySQL and web activity
-- Changed: Updates to various components...
+- Changed: Updates to various library components...
 	- Updated to latest versions:
 		- FTP:		FluentFTP
 		- JSON:		ServiceStack.Text
-		- Pointers:	System.Runtime.CompilerServcies.Unsafe
+		- Pointers:	System.Runtime.CompilerServices.Unsafe
 		- MQTT:		MQTTnet
 	- Removed/Added
-		- MySQL:	Removed Devart, replaced with MySqlConnector & BouncyCastle.Crypto
+		- MySQL:	Removed Devart, replaced with MySqlConnector
+		- MailKit:	Added along with supporting packages MimeKit, and Portable.BouncyCastle
 - Changed: FineOffset stations now attempt to reconnect the USB after a data stopped event. These stations now also keep retrying to connect to the station at start-up
 - Changed: The MySQL real time table data retention settings reworked.
+- Changed: Moved all third party web uploads from Internet Settings page to their own Third Party Settings page
+- Changed: Internal optimisations
 
 
 

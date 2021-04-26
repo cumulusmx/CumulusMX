@@ -397,8 +397,10 @@ namespace CumulusMX
 
 					// update chill hours
 					if (OutdoorTemperature < cumulus.ChillHourThreshold)
+					{
 						// add 1 minute to chill hours
 						ChillHours += (historydata.interval / 60.0);
+					}
 
 					var raindiff = prevraintotal == -1 ? 0 : historydata.rainCounter - prevraintotal;
 
@@ -771,13 +773,17 @@ namespace CumulusMX
 			{
 				// location has changed, skip this read to give it chance to update
 				//cumulus.LogMessage("Location changed, skipping");
+				cumulus.LogDebugMessage("Address changed");
+				cumulus.LogDebugMessage("addr=" + addr.ToString("X4") + " previous=" + prevaddr.ToString("X4"));
+
 				if (synchroPhase == 2)
 				{
-					cumulus.LogDebugMessage("Address changed");
-					cumulus.LogDebugMessage("addr=" + addr.ToString("X4") + "previous=" + prevaddr.ToString("X4"));
 					FOStationClockTime = DateTime.Now;
 					StopSynchronising();
 				}
+
+				prevaddr = addr;
+				return;
 			}
 			else
 			{
@@ -888,7 +894,7 @@ namespace CumulusMX
 						// Get station pressure in hPa by subtracting offset and calibrating
 						// EWpressure offset is difference between rel and abs in hPa
 						// PressOffset is user calibration in user units.
-						pressure = (pressure - pressureOffset) * PressureHPa(cumulus.Calib.Press.Mult) + PressureHPa(cumulus.Calib.Press.Offset);
+						pressure = (pressure - pressureOffset) * ConvertUserPressureToHPa(cumulus.Calib.Press.Mult) + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
 						StationPressure = ConvertPressMBToUser(pressure);
 
 						UpdatePressureTrendString();
@@ -952,7 +958,7 @@ namespace CumulusMX
 						sign = (byte) (data[6] & 0x80);
 						if (sign == 0x80) outtemp = -outtemp;
 
-						if (outtemp < -50 || (outtemp > 70)
+						if (outtemp < -50 || outtemp > 70)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: outtemp = " + outtemp);
@@ -1051,8 +1057,6 @@ namespace CumulusMX
 					}
 				}
 			}
-
-			prevaddr = addr;
 		}
 
 		private void StartSynchronising()

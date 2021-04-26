@@ -179,19 +179,35 @@ namespace CumulusMX
 
 		public string UpdateAlarmSettings(IHttpContext context)
 		{
+			var json = "";
+			JsonAlarmSettings result;
+			JsonAlarmSettingsData settings;
+
 			try
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data);
+				json = WebUtility.UrlDecode(data);
 
 				// de-serialize it to the settings structure
 				//var settings = JsonConvert.DeserializeObject<JsonAlarmSettingsData>(json);
 				//var settings = JsonSerializer.DeserializeFromString<JsonAlarmSettingsData>(json);
 
-				var result = json.FromJson<JsonAlarmSettings>();
-				var settings = result.data;
+				result = json.FromJson<JsonAlarmSettings>();
+				settings = result.data;
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing Alarm Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Alarm Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+			try
+			{
 				// process the settings
 				cumulus.LogMessage("Updating Alarm settings");
 
@@ -359,10 +375,63 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
+				cumulus.LogMessage("Error processing Alarm settings: " + ex.Message);
+				cumulus.LogDebugMessage("Alarm Data: " + json);
+				context.Response.StatusCode = 500;
+				return ex.Message;
+			}
+			return "success";
+		}
+
+		public string TestEmail(IHttpContext context)
+		{
+			try
+			{
+
+				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+				// Start at char 5 to skip the "json:" prefix
+				var json = WebUtility.UrlDecode(data);
+
+				var result = json.FromJson<JsonAlarmEmail>();
+				// process the settings
+				cumulus.LogMessage("Sending test email...");
+
+				// validate the from email
+				if (!EmailSender.CheckEmailAddress(result.fromEmail.Trim()))
+				{
+					var msg = "ERROR: Invalid Alarm from email address entered";
+					cumulus.LogMessage(msg);
+					context.Response.StatusCode = 500;
+					return msg;
+				}
+				var from = result.fromEmail.Trim();
+
+				// validate the destination email(s)
+				var dest = result.destEmail.Trim().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+				for (var i = 0; i < dest.Length; i++)
+				{
+					dest[i] = dest[i].Trim();
+					if (!EmailSender.CheckEmailAddress(dest[i]))
+					{
+						var msg = "ERROR: Invalid Alarm destination email address entered";
+						cumulus.LogMessage(msg);
+						context.Response.StatusCode = 500;
+						return msg;
+					}
+				}
+
+				cumulus.emailer.SendTestEmail(dest, from, "Cumulus MX Test Email", "A test email from Cumulus MX.", result.useHtml);
+
+				cumulus.LogMessage("Test email sent without error");
+			}
+			catch (Exception ex)
+			{
 				cumulus.LogMessage(ex.Message);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
+
 			return "success";
 		}
 	}

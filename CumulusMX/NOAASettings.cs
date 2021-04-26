@@ -20,7 +20,7 @@ namespace CumulusMX
 			noaaSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaSchema.json";
 		}
 
-		public string GetNoaaAlpacaFormData()
+		public string GetAlpacaFormData()
 		{
 			//var InvC = new CultureInfo("");
 			var normalmeantemps = new JsonNOAASettingsNormalMeanTemps()
@@ -110,7 +110,7 @@ namespace CumulusMX
 			return data.ToJson();
 		}
 
-		public string GetNoaaAlpacaFormOptions()
+		public string GetAlpacaFormOptions()
 		{
 			using (StreamReader sr = new StreamReader(noaaOptionsFile))
 			{
@@ -119,7 +119,7 @@ namespace CumulusMX
 			}
 		}
 
-		public string GetNoaaAlpacaFormSchema()
+		public string GetAlpacaFormSchema()
 		{
 			using (StreamReader sr = new StreamReader(noaaSchemaFile))
 			{
@@ -129,18 +129,34 @@ namespace CumulusMX
 		}
 
 		//public string UpdateNoaaConfig(HttpListenerContext context)
-		public string UpdateNoaaConfig(IHttpContext context)
+		public string UpdateConfig(IHttpContext context)
 		{
+			var json = "";
+			JsonNOAASettingsData settings;
+
 			try
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = json.FromJson<JsonNOAASettingsData>();
-				// process the settings
+				settings = json.FromJson<JsonNOAASettingsData>();
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing NOAA Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("NOAA Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+
+			// process the settings
+			try
+			{
 				cumulus.LogMessage("Updating NOAA settings");
 
 				cumulus.NOAAAutoSave = settings.autosave;
@@ -206,9 +222,11 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				var msg = "Error processing NOAA settings: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("NOAA data: " + json);
 				context.Response.StatusCode = 500;
-				return ex.Message;
+				return msg;
 			}
 			return "success";
 		}

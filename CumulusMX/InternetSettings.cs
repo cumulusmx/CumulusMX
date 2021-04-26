@@ -12,19 +12,22 @@ namespace CumulusMX
 	public class InternetSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string internetOptionsFile;
-		private readonly string internetSchemaFile;
+		private readonly string optionsFile;
+		private readonly string schemaFile;
 
 		public InternetSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			internetOptionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetOptions.json";
-			internetSchemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
+			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetOptions.json";
+			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
 		}
 
-		public string UpdateInternetConfig(IHttpContext context)
+		public string UpdateConfig(IHttpContext context)
 		{
 			var errorMsg = "";
+			var json = "";
+			JsonInternetSettingsData settings;
+
 			context.Response.StatusCode = 200;
 
 			try
@@ -32,11 +35,24 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = json.FromJson<JsonInternetSettingsData>();
-				// process the settings
+				settings = json.FromJson<JsonInternetSettingsData>();
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing Internet Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Internet Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+
+			// process the settings
+			try
+			{
 				cumulus.LogMessage("Updating internet settings");
 
 				// website settings
@@ -151,245 +167,6 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// twitter
-				try
-				{
-					cumulus.Twitter.Enabled = settings.twitter.enabled;
-					if (cumulus.Twitter.Enabled)
-					{
-						cumulus.Twitter.Interval = settings.twitter.interval;
-						cumulus.Twitter.PW = settings.twitter.password ?? string.Empty;
-						cumulus.Twitter.SendLocation = settings.twitter.sendlocation;
-						cumulus.Twitter.ID = settings.twitter.user ?? string.Empty;
-						cumulus.Twitter.SynchronisedUpdate = (60 % cumulus.Twitter.Interval == 0);
-
-						cumulus.TwitterTimer.Interval = cumulus.Twitter.Interval * 60 * 1000;
-						cumulus.TwitterTimer.Enabled = cumulus.Twitter.Enabled && !cumulus.Twitter.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.Twitter.ID) && !string.IsNullOrWhiteSpace(cumulus.Twitter.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing twitter settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// wunderground
-				try
-				{
-					cumulus.Wund.Enabled = settings.wunderground.enabled;
-					if (cumulus.Wund.Enabled)
-					{
-						cumulus.Wund.SendIndoor = settings.wunderground.includeindoor;
-						cumulus.Wund.SendSolar = settings.wunderground.includesolar;
-						cumulus.Wund.SendUV = settings.wunderground.includeuv;
-						cumulus.Wund.SendAirQuality = settings.wunderground.includeaq;
-						cumulus.Wund.Interval = settings.wunderground.interval;
-						cumulus.Wund.PW = settings.wunderground.password ?? string.Empty;
-						cumulus.Wund.RapidFireEnabled = settings.wunderground.rapidfire;
-						cumulus.Wund.SendAverage = settings.wunderground.sendavgwind;
-						cumulus.Wund.ID = settings.wunderground.stationid ?? string.Empty;
-						cumulus.Wund.CatchUp = settings.wunderground.catchup;
-						cumulus.Wund.SynchronisedUpdate = (!cumulus.Wund.RapidFireEnabled) && (60 % cumulus.Wund.Interval == 0);
-
-						cumulus.WundTimer.Interval = cumulus.Wund.RapidFireEnabled ? 5000 : cumulus.Wund.Interval * 60 * 1000;
-						cumulus.WundTimer.Enabled = cumulus.Wund.Enabled && !cumulus.Wund.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.Wund.ID) && !string.IsNullOrWhiteSpace(cumulus.Wund.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing wunderground settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// Windy
-				try
-				{
-					cumulus.Windy.Enabled = settings.windy.enabled;
-					if (cumulus.Windy.Enabled)
-					{
-						//cumulus.WindySendSolar = settings.windy.includesolar;
-						cumulus.Windy.SendUV = settings.windy.includeuv;
-						cumulus.Windy.Interval = settings.windy.interval;
-						cumulus.Windy.ApiKey = settings.windy.apikey;
-						cumulus.Windy.StationIdx = settings.windy.stationidx;
-						cumulus.Windy.CatchUp = settings.windy.catchup;
-						cumulus.Windy.SynchronisedUpdate = (60 % cumulus.Windy.Interval == 0);
-
-						cumulus.WindyTimer.Interval = cumulus.Windy.Interval * 60 * 1000;
-						cumulus.WindyTimer.Enabled = cumulus.Windy.Enabled && !cumulus.Windy.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.Windy.ApiKey);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Windy settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// Awekas
-				try
-				{
-					cumulus.AWEKAS.Enabled = settings.awekas.enabled;
-					if (cumulus.AWEKAS.Enabled)
-					{
-						cumulus.AWEKAS.Interval = settings.awekas.interval;
-						cumulus.AWEKAS.Lang = settings.awekas.lang;
-						cumulus.AWEKAS.PW = settings.awekas.password ?? string.Empty;
-						cumulus.AWEKAS.ID = settings.awekas.user ?? string.Empty;
-						cumulus.AWEKAS.SendSolar = settings.awekas.includesolar;
-						cumulus.AWEKAS.SendUV = settings.awekas.includeuv;
-						cumulus.AWEKAS.SendSoilTemp = settings.awekas.includesoiltemp;
-						cumulus.AWEKAS.SendSoilMoisture = settings.awekas.includesoilmoisture;
-						cumulus.AWEKAS.SendLeafWetness = settings.awekas.includeleafwetness;
-						cumulus.AWEKAS.SendIndoor = settings.awekas.includeindoor;
-						cumulus.AWEKAS.SendAirQuality = settings.awekas.includeaq;
-						cumulus.AWEKAS.SynchronisedUpdate = (cumulus.AWEKAS.Interval % 60 == 0);
-
-						cumulus.AwekasTimer.Interval = cumulus.AWEKAS.Interval * 1000;
-						cumulus.AwekasTimer.Enabled = cumulus.AWEKAS.Enabled && !cumulus.AWEKAS.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.AWEKAS.ID) && !string.IsNullOrWhiteSpace(cumulus.AWEKAS.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing AWEKAS settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// WeatherCloud
-				try
-				{
-					cumulus.WCloud.Enabled = settings.weathercloud.enabled;
-					if (cumulus.WCloud.Enabled)
-					{
-						cumulus.WCloud.ID = settings.weathercloud.wid ?? string.Empty;
-						cumulus.WCloud.PW = settings.weathercloud.key ?? string.Empty;
-						cumulus.WCloud.Interval = settings.weathercloud.interval;
-						cumulus.WCloud.SendSolar = settings.weathercloud.includesolar;
-						cumulus.WCloud.SendUV = settings.weathercloud.includeuv;
-						cumulus.WCloud.SendAQI = settings.weathercloud.includeaqi;
-						cumulus.WCloud.SynchronisedUpdate = (60 % cumulus.WCloud.Interval == 0);
-
-						cumulus.WCloudTimer.Interval = cumulus.WCloud.Interval * 60 * 1000;
-						cumulus.WCloudTimer.Enabled = cumulus.WCloud.Enabled && !cumulus.WCloud.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloud.ID) && !String.IsNullOrWhiteSpace(cumulus.WCloud.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing WeatherCloud settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// PWS weather
-				try
-				{
-					cumulus.PWS.Enabled = settings.pwsweather.enabled;
-					if (cumulus.PWS.Enabled)
-					{
-						cumulus.PWS.Interval = settings.pwsweather.interval;
-						cumulus.PWS.SendSolar = settings.pwsweather.includesolar;
-						cumulus.PWS.SendUV = settings.pwsweather.includeuv;
-						cumulus.PWS.PW = settings.pwsweather.password ?? string.Empty;
-						cumulus.PWS.ID = settings.pwsweather.stationid ?? string.Empty;
-						cumulus.PWS.CatchUp = settings.pwsweather.catchup;
-						cumulus.PWS.SynchronisedUpdate = (60 % cumulus.PWS.Interval == 0);
-
-						cumulus.PWSTimer.Interval = cumulus.PWS.Interval * 60 * 1000;
-						cumulus.PWSTimer.Enabled = cumulus.PWS.Enabled && !cumulus.PWS.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.PWS.ID) && !string.IsNullOrWhiteSpace(cumulus.PWS.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing PWS weather settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// WOW
-				try
-				{
-					cumulus.WOW.Enabled = settings.wow.enabled;
-					if (cumulus.WOW.Enabled)
-					{
-						cumulus.WOW.SendSolar = settings.wow.includesolar;
-						cumulus.WOW.SendUV = settings.wow.includeuv;
-						cumulus.WOW.Interval = settings.wow.interval;
-						cumulus.WOW.PW = settings.wow.password ?? string.Empty; ;
-						cumulus.WOW.ID = settings.wow.stationid ?? string.Empty; ;
-						cumulus.WOW.CatchUp = settings.wow.catchup;
-						cumulus.WOW.SynchronisedUpdate = (60 % cumulus.WOW.Interval == 0);
-
-						cumulus.WOWTimer.Interval = cumulus.WOW.Interval * 60 * 1000;
-						cumulus.WOWTimer.Enabled = cumulus.WOW.Enabled && !cumulus.WOW.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.WOW.ID) && !string.IsNullOrWhiteSpace(cumulus.WOW.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing WOW settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// CWOP
-				try
-				{
-					cumulus.APRS.Enabled = settings.cwop.enabled;
-					if (cumulus.APRS.Enabled)
-					{
-						cumulus.APRS.ID = settings.cwop.id ?? string.Empty; ;
-						cumulus.APRS.Interval = settings.cwop.interval;
-						cumulus.APRS.SendSolar = settings.cwop.includesolar;
-						cumulus.APRS.PW = settings.cwop.password ?? string.Empty; ;
-						cumulus.APRS.Port = settings.cwop.port;
-						cumulus.APRS.Server = settings.cwop.server ?? string.Empty; ;
-						cumulus.APRS.SynchronisedUpdate = (60 % cumulus.APRS.Interval == 0);
-
-						cumulus.APRStimer.Interval = cumulus.APRS.Interval * 60 * 1000;
-						cumulus.APRStimer.Enabled = cumulus.APRS.Enabled && !cumulus.APRS.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.APRS.ID) && !string.IsNullOrWhiteSpace(cumulus.APRS.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing CWOP settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// OpenWeatherMap
-				try
-				{
-					cumulus.OpenWeatherMap.Enabled = settings.openweathermap.enabled;
-					if (cumulus.OpenWeatherMap.Enabled)
-					{
-						cumulus.OpenWeatherMap.CatchUp = settings.openweathermap.catchup;
-						cumulus.OpenWeatherMap.PW = settings.openweathermap.apikey;
-						cumulus.OpenWeatherMap.ID = settings.openweathermap.stationid;
-						cumulus.OpenWeatherMap.Interval = settings.openweathermap.interval;
-						cumulus.OpenWeatherMap.SynchronisedUpdate = (60 % cumulus.OpenWeatherMap.Interval == 0);
-
-						cumulus.OpenWeatherMapTimer.Interval = cumulus.OpenWeatherMap.Interval * 60 * 1000;
-						cumulus.OpenWeatherMapTimer.Enabled = cumulus.OpenWeatherMap.Enabled && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.PW);
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing OpenWeatherMap settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// MQTT
 				try
 				{
@@ -461,48 +238,6 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// Custom HTTP
-				try
-				{
-					// custom seconds
-					cumulus.CustomHttpSecondsEnabled = settings.customhttp.customseconds.enabled;
-					if (cumulus.CustomHttpSecondsEnabled)
-					{
-						cumulus.CustomHttpSecondsString = settings.customhttp.customseconds.url ?? string.Empty;
-						cumulus.CustomHttpSecondsInterval = settings.customhttp.customseconds.interval;
-						cumulus.CustomHttpSecondsTimer.Interval = cumulus.CustomHttpSecondsInterval * 1000;
-						cumulus.CustomHttpSecondsTimer.Enabled = cumulus.CustomHttpSecondsEnabled;
-					}
-					// custom minutes
-					cumulus.CustomHttpMinutesEnabled = settings.customhttp.customminutes.enabled;
-					if (cumulus.CustomHttpMinutesEnabled)
-					{
-						cumulus.CustomHttpMinutesString = settings.customhttp.customminutes.url ?? string.Empty;
-						cumulus.CustomHttpMinutesIntervalIndex = settings.customhttp.customminutes.intervalindex;
-						if (cumulus.CustomHttpMinutesIntervalIndex >= 0 && cumulus.CustomHttpMinutesIntervalIndex < cumulus.FactorsOf60.Length)
-						{
-							cumulus.CustomHttpMinutesInterval = cumulus.FactorsOf60[cumulus.CustomHttpMinutesIntervalIndex];
-						}
-						else
-						{
-							cumulus.CustomHttpMinutesInterval = 10;
-						}
-					}
-					// custom rollover
-					cumulus.CustomHttpRolloverEnabled = settings.customhttp.customrollover.enabled;
-					if (cumulus.CustomHttpRolloverEnabled)
-					{
-						cumulus.CustomHttpRolloverString = settings.customhttp.customrollover.url ?? string.Empty;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Custom settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// email settings
 				try
 				{
@@ -534,9 +269,6 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				// Do OpenWeatherMap setup
-				cumulus.EnableOpenWeatherMap();
-
 				cumulus.SetUpHttpProxy();
 				//cumulus.SetFtpLogging(cumulus.FTPlogging);
 
@@ -565,15 +297,17 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				var msg = "Error processing Internet settings: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Internet data: " + json);
+				errorMsg += msg;
 				context.Response.StatusCode = 500;
-				return ex.Message;
 			}
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		public string GetInternetAlpacaFormData()
+		public string GetAlpacaFormData()
 		{
 			var websettingsadvanced = new JsonInternetSettingsWebsiteAdvanced()
 			{
@@ -686,8 +420,6 @@ namespace CumulusMX
 				realtime = websettingsrealtime
 			};
 
-
-
 			var externalprograms = new JsonInternetSettingsExternalPrograms()
 			{
 				dailyprogram = cumulus.DailyProgram,
@@ -696,109 +428,6 @@ namespace CumulusMX
 				programparams = cumulus.ExternalParams,
 				realtimeprogram = cumulus.RealtimeProgram,
 				realtimeprogramparams = cumulus.RealtimeParams
-			};
-
-			var twittersettings = new JsonInternetSettingsTwitterSettings()
-			{
-				enabled = cumulus.Twitter.Enabled,
-				interval = cumulus.Twitter.Interval,
-				password = cumulus.Twitter.PW,
-				sendlocation = cumulus.Twitter.SendLocation,
-				user = cumulus.Twitter.ID
-			};
-
-			var wusettings = new JsonInternetSettingsWunderground()
-			{
-				catchup = cumulus.Wund.CatchUp,
-				enabled = cumulus.Wund.Enabled,
-				includeindoor = cumulus.Wund.SendIndoor,
-				includesolar = cumulus.Wund.SendSolar,
-				includeuv = cumulus.Wund.SendUV,
-				interval = cumulus.Wund.Interval,
-				password = cumulus.Wund.PW,
-				rapidfire = cumulus.Wund.RapidFireEnabled,
-				sendavgwind = cumulus.Wund.SendAverage,
-				stationid = cumulus.Wund.ID,
-				includeaq = cumulus.Wund.SendAirQuality
-			};
-
-			var windysettings = new JsonInternetSettingsWindy()
-			{
-				catchup = cumulus.Windy.CatchUp,
-				enabled = cumulus.Windy.Enabled,
-				includeuv = cumulus.Windy.SendUV,
-				interval = cumulus.Windy.Interval,
-				apikey = cumulus.Windy.ApiKey,
-				stationidx = cumulus.Windy.StationIdx
-			};
-
-			var awekassettings = new JsonInternetSettingsAwekas()
-			{
-				enabled = cumulus.AWEKAS.Enabled,
-				includesolar = cumulus.AWEKAS.SendSolar,
-				includesoiltemp = cumulus.AWEKAS.SendSoilTemp,
-				includesoilmoisture = cumulus.AWEKAS.SendSoilMoisture,
-				includeleafwetness = cumulus.AWEKAS.SendLeafWetness,
-				includeindoor = cumulus.AWEKAS.SendIndoor,
-				includeuv = cumulus.AWEKAS.SendUV,
-				includeaq =  cumulus.AWEKAS.SendAirQuality,
-				interval = cumulus.AWEKAS.Interval,
-				lang = cumulus.AWEKAS.Lang,
-				password = cumulus.AWEKAS.PW,
-				user = cumulus.AWEKAS.ID
-			};
-
-			var wcloudsettings = new JsonInternetSettingsWCloud()
-			{
-				enabled = cumulus.WCloud.Enabled,
-				interval = cumulus.WCloud.Interval,
-				includesolar = cumulus.WCloud.SendSolar,
-				includeuv = cumulus.WCloud.SendUV,
-				includeaqi = cumulus.WCloud.SendAQI,
-				key = cumulus.WCloud.PW,
-				wid = cumulus.WCloud.ID
-			};
-
-			var pwssettings = new JsonInternetSettingsPWSweather()
-			{
-				catchup = cumulus.PWS.CatchUp,
-				enabled = cumulus.PWS.Enabled,
-				interval = cumulus.PWS.Interval,
-				includesolar = cumulus.PWS.SendSolar,
-				includeuv = cumulus.PWS.SendUV,
-				password = cumulus.PWS.PW,
-				stationid = cumulus.PWS.ID
-			};
-
-			var wowsettings = new JsonInternetSettingsWOW()
-			{
-				catchup = cumulus.WOW.CatchUp,
-				enabled = cumulus.WOW.Enabled,
-				includesolar = cumulus.WOW.SendSolar,
-				includeuv = cumulus.WOW.SendUV,
-				interval = cumulus.WOW.Interval,
-				password = cumulus.WOW.PW,
-				stationid = cumulus.WOW.ID
-			};
-
-			var cwopsettings = new JsonInternetSettingsCwop()
-			{
-				enabled = cumulus.APRS.Enabled,
-				id = cumulus.APRS.ID,
-				interval = cumulus.APRS.Interval,
-				includesolar = cumulus.APRS.SendSolar,
-				password = cumulus.APRS.PW,
-				port = cumulus.APRS.Port,
-				server = cumulus.APRS.Server
-			};
-
-			var openweathermapsettings = new JsonInternetSettingsOpenweatherMap()
-			{
-				enabled = cumulus.OpenWeatherMap.Enabled,
-				catchup = cumulus.OpenWeatherMap.CatchUp,
-				apikey = cumulus.OpenWeatherMap.PW,
-				stationid = cumulus.OpenWeatherMap.ID,
-				interval = cumulus.OpenWeatherMap.Interval
 			};
 
 			var mqttUpdate = new JsonInternetSettingsMqttDataupdate()
@@ -847,28 +476,6 @@ namespace CumulusMX
 
 			var proxy = new JsonInternetSettingsProxySettings() { httpproxy = httpproxy };
 
-			var customseconds = new JsonInternetSettingsCustomHttpSeconds()
-			{
-				enabled = cumulus.CustomHttpSecondsEnabled,
-				interval = cumulus.CustomHttpSecondsInterval,
-				url = cumulus.CustomHttpSecondsString
-			};
-
-			var customminutes = new JsonInternetSettingsCustomHttpMinutes()
-			{
-				enabled = cumulus.CustomHttpMinutesEnabled,
-				intervalindex = cumulus.CustomHttpMinutesIntervalIndex,
-				url = cumulus.CustomHttpMinutesString
-			};
-
-			var customrollover = new JsonInternetSettingsCustomHttpRollover()
-			{
-				enabled = cumulus.CustomHttpRolloverEnabled,
-				url = cumulus.CustomHttpRolloverString
-			};
-
-			var customhttp = new JsonInternetSettingsCustomHttpSettings() { customseconds = customseconds, customminutes = customminutes, customrollover = customrollover };
-
 			var email = new JsonEmailSettings()
 			{
 				enabled = cumulus.SmtpOptions.Enabled,
@@ -885,37 +492,27 @@ namespace CumulusMX
 				website = websitesettings,
 				websettings = websettings,
 				externalprograms = externalprograms,
-				twitter = twittersettings,
-				wunderground = wusettings,
-				windy = windysettings,
-				awekas = awekassettings,
-				weathercloud = wcloudsettings,
-				pwsweather = pwssettings,
-				wow = wowsettings,
-				cwop = cwopsettings,
-				openweathermap = openweathermapsettings,
 				mqtt = mqttsettings,
 				moonimage = moonimagesettings,
 				proxies = proxy,
-				customhttp = customhttp,
 				emailsettings = email
 			};
 
 			return data.ToJson();
 		}
 
-		public string GetInternetAlpacaFormOptions()
+		public string GetAlpacaFormOptions()
 		{
-			using (StreamReader sr = new StreamReader(internetOptionsFile))
+			using (StreamReader sr = new StreamReader(optionsFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
 			}
 		}
 
-		public string GetInternetAlpacaFormSchema()
+		public string GetAlpacaFormSchema()
 		{
-			using (StreamReader sr = new StreamReader(internetSchemaFile))
+			using (StreamReader sr = new StreamReader(schemaFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
@@ -1022,19 +619,9 @@ namespace CumulusMX
 		public JsonInternetSettingsWebsite website { get; set; }
 		public JsonInternetSettingsWebSettings websettings { get; set; }
 		public JsonInternetSettingsExternalPrograms externalprograms { get; set; }
-		public JsonInternetSettingsTwitterSettings twitter { get; set; }
-		public JsonInternetSettingsWunderground wunderground { get; set; }
-		public JsonInternetSettingsWindy windy { get; set; }
-		public JsonInternetSettingsPWSweather pwsweather { get; set; }
-		public JsonInternetSettingsWOW wow { get; set; }
-		public JsonInternetSettingsCwop cwop { get; set; }
-		public JsonInternetSettingsAwekas awekas { get; set; }
-		public JsonInternetSettingsWCloud weathercloud { get; set; }
-		public JsonInternetSettingsOpenweatherMap openweathermap { get; set; }
 		public JsonInternetSettingsMqtt mqtt { get; set; }
 		public JsonInternetSettingsMoonImage moonimage { get; set; }
 		public JsonInternetSettingsProxySettings proxies { get; set; }
-		public JsonInternetSettingsCustomHttpSettings customhttp { get; set; }
 		public JsonEmailSettings emailsettings { get; set; }
 	}
 
@@ -1107,7 +694,6 @@ namespace CumulusMX
 		public JsonInternetSettingsFileSettings[] files { get; set; }
 	}
 
-
 	public class JsonInternetSettingsExternalPrograms
 	{
 		public string program { get; set; }
@@ -1117,111 +703,6 @@ namespace CumulusMX
 		public string dailyprogram { get; set; }
 		public string dailyprogramparams { get; set; }
 	}
-
-	public class JsonInternetSettingsTwitterSettings
-	{
-		public bool enabled { get; set; }
-		public bool sendlocation { get; set; }
-		public int interval { get; set; }
-		public string user { get; set; }
-		public string password { get; set; }
-	}
-
-	public class JsonInternetSettingsWunderground
-	{
-		public bool enabled { get; set; }
-		public bool includeindoor { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includeaq { get; set; }
-		public bool rapidfire { get; set; }
-		public bool sendavgwind { get; set; }
-		public bool catchup { get; set; }
-		public string stationid { get; set; }
-		public string password { get; set; }
-		public int interval { get; set; }
-	}
-
-	public class JsonInternetSettingsWindy
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		//public bool includesolar { get; set; }
-		public bool catchup { get; set; }
-		public int interval { get; set; }
-		public string apikey { get; set; }
-		public int stationidx { get; set; }
-	}
-
-	public class JsonInternetSettingsAwekas
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includesoiltemp { get; set; }
-		public bool includesoilmoisture { get; set; }
-		public bool includeleafwetness { get; set; }
-		public bool includeindoor { get; set; }
-		public bool includeaq { get; set; }
-		public string user { get; set; }
-		public string password { get; set; }
-		public string lang { get; set; }
-		public int interval { get; set; }
-	}
-
-	public class JsonInternetSettingsWCloud
-	{
-		public bool enabled { get; set; }
-		public int interval { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includeaqi { get; set; }
-		public string wid { get; set; }
-		public string key { get; set; }
-	}
-
-	public class JsonInternetSettingsPWSweather
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool catchup { get; set; }
-		public string stationid { get; set; }
-		public string password { get; set; }
-		public int interval { get; set; }
-	}
-
-	public class JsonInternetSettingsWOW
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool catchup { get; set; }
-		public string stationid { get; set; }
-		public string password { get; set; }
-		public int interval { get; set; }
-	}
-
-	public class JsonInternetSettingsCwop
-	{
-		public bool enabled { get; set; }
-		public bool includesolar { get; set; }
-		public string id { get; set; }
-		public string password { get; set; }
-		public string server { get; set; }
-		public int port { get; set; }
-		public int interval { get; set; }
-	}
-
-	public class JsonInternetSettingsOpenweatherMap
-	{
-		public bool enabled { get; set; }
-		public string apikey { get; set; }
-		public string stationid { get; set; }
-		public int interval { get; set; }
-		public bool catchup { get; set; }
-	}
-
 
 	public class JsonInternetSettingsMqtt
 	{
@@ -1282,32 +763,5 @@ namespace CumulusMX
 		public bool authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
-	}
-
-	public class JsonInternetSettingsCustomHttpSeconds
-	{
-		public string url { get; set; }
-		public bool enabled { get; set; }
-		public int interval { get; set; }
-	}
-
-	public class JsonInternetSettingsCustomHttpMinutes
-	{
-		public string url { get; set; }
-		public bool enabled { get; set; }
-		public int intervalindex { get; set; }
-	}
-
-	public class JsonInternetSettingsCustomHttpRollover
-	{
-		public string url { get; set; }
-		public bool enabled { get; set; }
-	}
-
-	public class JsonInternetSettingsCustomHttpSettings
-	{
-		public JsonInternetSettingsCustomHttpSeconds customseconds { get; set; }
-		public JsonInternetSettingsCustomHttpMinutes customminutes { get; set; }
-		public JsonInternetSettingsCustomHttpRollover customrollover { get; set; }
 	}
 }

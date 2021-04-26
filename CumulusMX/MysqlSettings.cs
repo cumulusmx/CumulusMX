@@ -10,17 +10,17 @@ namespace CumulusMX
 	public class MysqlSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string mySqlOptionsFile;
-		private readonly string mySqlSchemaFile;
+		private readonly string optionsFile;
+		private readonly string schemaFile;
 
 		public MysqlSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			mySqlOptionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlOptions.json";
-			mySqlSchemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlSchema.json";
+			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlOptions.json";
+			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "MySqlSchema.json";
 		}
 
-		public string GetMySqlAlpacaFormData()
+		public string GetAlpacaFormData()
 		{
 			var server = new JsonMysqlSettingsServer()
 			{
@@ -89,18 +89,18 @@ namespace CumulusMX
 			return data.ToJson();
 		}
 
-		public string GetMySqAlpacaFormOptions()
+		public string GetAlpacaFormOptions()
 		{
-			using (StreamReader sr = new StreamReader(mySqlOptionsFile))
+			using (StreamReader sr = new StreamReader(optionsFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
 			}
 		}
 
-		public string GetMySqAlpacaFormSchema()
+		public string GetAlpacaFormSchema()
 		{
-			using (StreamReader sr = new StreamReader(mySqlSchemaFile))
+			using (StreamReader sr = new StreamReader(schemaFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
@@ -108,18 +108,33 @@ namespace CumulusMX
 		}
 
 		//public object UpdateMysqlConfig(HttpListenerContext context)
-		public object UpdateMysqlConfig(IHttpContext context)
+		public object UpdateConfig(IHttpContext context)
 		{
+			string json = "";
+			JsonMysqlSettings settings;
 			try
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = json.FromJson<JsonMysqlSettings>();
-				// process the settings
+				settings = json.FromJson<JsonMysqlSettings>();
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing MySQL Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("MySQL Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+
+			// process the settings
+			try
+			{
 				cumulus.LogMessage("Updating MySQL settings");
 
 				// server
@@ -213,9 +228,10 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				var msg = "Error processing settings: " + ex.Message;
+				cumulus.LogMessage(msg);
 				context.Response.StatusCode = 500;
-				return ex.Message;
+				return msg;
 			}
 			return "success";
 		}

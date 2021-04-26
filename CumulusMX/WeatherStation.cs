@@ -13,13 +13,12 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using MySqlConnector;
 using SQLite;
 using Timer = System.Timers.Timer;
-using System.Security.Cryptography;
 using ServiceStack.Text;
+using System.Web;
 
 namespace CumulusMX
 {
@@ -350,7 +349,7 @@ namespace CumulusMX
 			GetRainCounter();
 			GetRainFallTotals();
 
-			RecentDataDb = new SQLiteConnection(":memory:");
+			RecentDataDb = new SQLiteConnection(":memory:", true);
 			RecentDataDb.CreateTable<RecentData>();
 
 			var rnd = new Random();
@@ -655,6 +654,8 @@ namespace CumulusMX
 			tempsamplestoday = ini.GetValue("Temp", "Samples", 1);
 			HeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			CoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
+			GrowingDegreeDaysThisYear1 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear1", 0.0);
+			GrowingDegreeDaysThisYear2 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear2", 0.0);
 			// PressureHighDewpoint
 			HiLoToday.LowPress = ini.GetValue("Pressure", "Low", 9999.0);
 			HiLoToday.LowPressTime = ini.GetValue("Pressure", "LTime", new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0));
@@ -747,6 +748,8 @@ namespace CumulusMX
 				ini.SetValue("Temp", "ChillHours", ChillHours);
 				ini.SetValue("Temp", "HeatingDegreeDays", HeatingDegreeDays);
 				ini.SetValue("Temp", "CoolingDegreeDays", CoolingDegreeDays);
+				ini.SetValue("Temp", "GrowingDegreeDaysThisYear1", GrowingDegreeDaysThisYear1);
+				ini.SetValue("Temp", "GrowingDegreeDaysThisYear2", GrowingDegreeDaysThisYear2);
 				// Pressure
 				ini.SetValue("Pressure", "Low", HiLoToday.LowPress);
 				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime.ToString("HH:mm"));
@@ -1181,6 +1184,9 @@ namespace CumulusMX
 		public double HeatingDegreeDays { get; set; }
 
 		public double CoolingDegreeDays { get; set; }
+
+		public double GrowingDegreeDaysThisYear1 { get; set; }
+		public double GrowingDegreeDaysThisYear2 { get; set; }
 
 		public int tempsamplestoday { get; set; }
 
@@ -1767,9 +1773,14 @@ namespace CumulusMX
 						cumulus.UpdateWunderground(now);
 					}
 
-					if (cumulus.Windy.Enabled && (now.Minute % cumulus.Windy.Interval == 0) && cumulus.Windy.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.Windy.ApiKey))
+					if (cumulus.Windy.Enabled && (now.Minute % cumulus.Windy.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Windy.ApiKey))
 					{
 						cumulus.UpdateWindy(now);
+					}
+
+					if (cumulus.WindGuru.Enabled && (now.Minute % cumulus.WindGuru.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.WindGuru.ID))
+					{
+						cumulus.UpdateWindGuru(now);
 					}
 
 					if (cumulus.AWEKAS.Enabled && (now.Minute % ((double)cumulus.AWEKAS.Interval / 60) == 0) && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
@@ -1777,32 +1788,32 @@ namespace CumulusMX
 						cumulus.UpdateAwekas(now);
 					}
 
-					if (cumulus.WCloud.Enabled && (now.Minute % cumulus.WCloud.Interval == 0) && cumulus.WCloud.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.WCloud.ID))
+					if (cumulus.WCloud.Enabled && (now.Minute % cumulus.WCloud.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.WCloud.ID))
 					{
 						cumulus.UpdateWCloud(now);
 					}
 
-					if (cumulus.OpenWeatherMap.Enabled && (now.Minute % cumulus.OpenWeatherMap.Interval == 0) && cumulus.OpenWeatherMap.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.ID))
+					if (cumulus.OpenWeatherMap.Enabled && (now.Minute % cumulus.OpenWeatherMap.Interval == 0) && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.ID))
 					{
 						cumulus.UpdateOpenWeatherMap(now);
 					}
 
-					if (cumulus.PWS.Enabled && (now.Minute % cumulus.PWS.Interval == 0) && cumulus.PWS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.PWS.ID) && !String.IsNullOrWhiteSpace(cumulus.PWS.PW))
+					if (cumulus.PWS.Enabled && (now.Minute % cumulus.PWS.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.PWS.ID) && !String.IsNullOrWhiteSpace(cumulus.PWS.PW))
 					{
 						cumulus.UpdatePWSweather(now);
 					}
 
-					if (cumulus.WOW.Enabled && (now.Minute % cumulus.WOW.Interval == 0) && cumulus.WOW.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.WOW.ID) && !String.IsNullOrWhiteSpace(cumulus.WOW.PW))
+					if (cumulus.WOW.Enabled && (now.Minute % cumulus.WOW.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.WOW.ID) && !String.IsNullOrWhiteSpace(cumulus.WOW.PW))
 					{
 						cumulus.UpdateWOW(now);
 					}
 
-					if (cumulus.APRS.Enabled && (now.Minute % cumulus.APRS.Interval == 0) && cumulus.APRS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.APRS.ID))
+					if (cumulus.APRS.Enabled && (now.Minute % cumulus.APRS.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.APRS.ID))
 					{
 						UpdateAPRS();
 					}
 
-					if (cumulus.Twitter.Enabled && (now.Minute % cumulus.Twitter.Interval == 0) && cumulus.Twitter.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.Twitter.ID) && !String.IsNullOrWhiteSpace(cumulus.Twitter.PW))
+					if (cumulus.Twitter.Enabled && (now.Minute % cumulus.Twitter.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Twitter.ID) && !String.IsNullOrWhiteSpace(cumulus.Twitter.PW))
 					{
 						cumulus.UpdateTwitter();
 					}
@@ -2124,6 +2135,12 @@ namespace CumulusMX
 							break;
 						case "alldailysolardata.json":
 							json = GetAllDailySolarGraphData();
+							break;
+						case "alldailydegdaydata.json":
+							json = GetAllDegreeDaysGraphData();
+							break;
+						case "alltempsumdata.json":
+							json = GetAllTempSumGraphData();
 							break;
 					}
 
@@ -2672,6 +2689,24 @@ namespace CumulusMX
 					return 0;
 			}
 		}
+
+		public double ConvertUserWindToKnots(double value)
+		{
+			switch (cumulus.Units.Wind)
+			{
+				case 0:
+					return value * 1.943844;
+				case 1:
+					return value * 0.8689758;
+				case 2:
+					return value * 0.5399565;
+				case 3:
+					return value;
+				default:
+					return 0;
+			}
+		}
+
 
 		public void ResetSunshineHours() // called at midnight irrespective of rollover time
 		{
@@ -3307,7 +3342,7 @@ namespace CumulusMX
 			{
 				if (cumulus.Manufacturer == cumulus.OREGONUSB)
 				{
-					AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+					AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 				}
 				else
 				{
@@ -3725,7 +3760,7 @@ namespace CumulusMX
 					hp = cumulus.FChighpress / 0.0295333727;
 				}
 
-				CumulusForecast = BetelCast(PressureHPa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+				CumulusForecast = BetelCast(ConvertUserPressureToHPa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
 				if (cumulus.UseCumulusForecast)
 				{
@@ -3768,7 +3803,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public double PressureHPa(double value)
+		public double ConvertUserPressureToHPa(double value)
 		{
 			if (cumulus.Units.Press == 2)
 				return value / 0.0295333727;
@@ -4896,7 +4931,9 @@ namespace CumulusMX
 					rainthisyear = 0;
 				}
 				else
+				{
 					rainthisyear += RainYesterday;
+				}
 
 				if ((day == 1) && (month == cumulus.ChillHourSeasonStart))
 				{
@@ -4904,6 +4941,16 @@ namespace CumulusMX
 					cumulus.LogMessage(" Chill hour season starting");
 					ChillHours = 0;
 				}
+
+				if ((day == 1) && (month == cumulus.GrowingYearStarts))
+				{
+					cumulus.LogMessage(" New growing degree day season starting");
+					GrowingDegreeDaysThisYear1 = 0;
+					GrowingDegreeDaysThisYear2 = 0;
+				}
+
+				GrowingDegreeDaysThisYear1 += MeteoLib.GrowingDegreeDays(ConvertUserTempToC(HiLoToday.HighTemp), ConvertUserTempToC(HiLoToday.LowTemp), ConvertUserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
+				GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUserTempToC(HiLoToday.HighTemp), ConvertUserTempToC(HiLoToday.LowTemp), ConvertUserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
 
 				// Now reset all values to the current or default ones
 				// We may be doing a rollover from the first logger entry,
@@ -5249,9 +5296,6 @@ namespace CumulusMX
 			// 50  High Humidex
 			// 51  Time of high Humidex
 
-			// 52  Low Humidex
-			// 53  Time of low Humidex
-
 			double AvgTemp;
 			if (tempsamplestoday > 0)
 				AvgTemp = TempTotalToday / tempsamplestoday;
@@ -5544,7 +5588,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		///  Convert temp supplied in units in use to C
+		///  Convert temp supplied in user units to C
 		/// </summary>
 		/// <param name="value">Temp in configured units</param>
 		/// <returns>Temp in C</returns>
@@ -5562,7 +5606,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		///  Convert temp supplied in units in use to F
+		///  Convert temp supplied in user units to F
 		/// </summary>
 		/// <param name="value">Temp in configured units</param>
 		/// <returns>Temp in F</returns>
@@ -5580,7 +5624,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		///  Converts wind supplied in m/s to units in use
+		///  Converts wind supplied in m/s to user units
 		/// </summary>
 		/// <param name="value">Wind in m/s</param>
 		/// <returns>Wind in configured units</returns>
@@ -5602,7 +5646,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		///  Converts wind supplied in mph to units in use
+		///  Converts wind supplied in mph to user units
 		/// </summary>
 		/// <param name="value">Wind in m/s</param>
 		/// <returns>Wind in configured units</returns>
@@ -5624,7 +5668,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Converts wind in units in use to m/s
+		/// Converts wind in user units to m/s
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
@@ -5666,7 +5710,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		///  Converts windrun supplied in units in use to km
+		///  Converts windrun supplied in user units to km
 		/// </summary>
 		/// <param name="value">Windrun in configured units</param>
 		/// <returns>Wind in km</returns>
@@ -8470,7 +8514,7 @@ namespace CumulusMX
 			}
 
 			// aq
-			if (cumulus.WCloud.SendAQI)
+			if (cumulus.WCloud.SendAirQuality)
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
@@ -8506,6 +8550,110 @@ namespace CumulusMX
 				}
 			}
 
+			// soil moisture
+			if (cumulus.WCloud.SendSoilMoisture)
+			{
+				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
+				int moist = 0;
+
+				switch (cumulus.WCloud.SoilMoistureSensor)
+				{
+					case 1:
+						moist = SoilMoisture1;
+						break;
+					case 2:
+						moist = SoilMoisture2;
+						break;
+					case 3:
+						moist = SoilMoisture3;
+						break;
+					case 4:
+						moist = SoilMoisture4;
+						break;
+					case 5:
+						moist = SoilMoisture5;
+						break;
+					case 6:
+						moist = SoilMoisture6;
+						break;
+					case 7:
+						moist = SoilMoisture7;
+						break;
+					case 8:
+						moist = SoilMoisture8;
+						break;
+					case 9:
+						moist = SoilMoisture9;
+						break;
+					case 10:
+						moist = SoilMoisture10;
+						break;
+					case 11:
+						moist = SoilMoisture11;
+						break;
+					case 12:
+						moist = SoilMoisture12;
+						break;
+					case 13:
+						moist = SoilMoisture13;
+						break;
+					case 14:
+						moist = SoilMoisture14;
+						break;
+					case 15:
+						moist = SoilMoisture15;
+						break;
+					case 16:
+						moist = SoilMoisture16;
+						break;
+				}
+
+				if (cumulus.Manufacturer == cumulus.EW)
+				{
+					// very! approximate conversion from percentage to cb
+					moist = (100 - SoilMoisture1) * 2;
+				}
+
+				sb.Append($"&soilmoist={moist}");
+			}
+
+			// leaf wetness
+			if (cumulus.WCloud.SendLeafWetness)
+			{
+				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
+				int wet = 0;
+
+				switch (cumulus.WCloud.LeafWetnessSensor)
+				{
+					case 1:
+						wet = LeafWetness1;
+						break;
+					case 2:
+						wet = LeafWetness2;
+						break;
+					case 3:
+						wet = LeafWetness3;
+						break;
+					case 4:
+						wet = LeafWetness4;
+						break;
+					case 5:
+						wet = LeafWetness5;
+						break;
+					case 6:
+						wet = LeafWetness6;
+						break;
+					case 7:
+						wet = LeafWetness7;
+						break;
+					case 8:
+						wet = LeafWetness8;
+						break;
+				}
+
+				sb.Append($"&leafwet={wet}");
+			}
+
 			// time - UTC
 			sb.Append("&time=" + timestamp.ToUniversalTime().ToString("HHmm"));
 
@@ -8519,30 +8667,15 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		private string ByteArrayToString(byte[] ba)
-		{
-			StringBuilder hex = new StringBuilder(ba.Length * 2);
-			foreach (byte b in ba)
-				hex.AppendFormat("{0:x2}", b);
-			return hex.ToString();
-		}
-
-
 		public string GetAwekasURLv4(out string pwstring, DateTime timestamp)
 		{
 			var InvC = new CultureInfo("");
-			byte[] hashPW;
 			string sep = ";";
 
-			// password is sent as MD5 hash
-			using (MD5 md5 = MD5.Create())
-			{
-				hashPW = md5.ComputeHash(Encoding.ASCII.GetBytes(cumulus.AWEKAS.PW));
-			}
-
-			pwstring = ByteArrayToString(hashPW);
-
 			int presstrend;
+
+			// password is passed as a MD5 hash - not very secure, but better than plain text I guess
+			pwstring = Utils.GetMd5String(cumulus.AWEKAS.PW);
 
 			double threeHourlyPressureChangeMb = 0;
 
@@ -8934,6 +9067,70 @@ namespace CumulusMX
 			return URL.ToString();
 		}
 
+
+		// Documentation on the API can be found here...
+		// https://stations.windguru.cz/upload_api.php
+		//
+		public string GetWindGuruURL(out string uidstring, DateTime timestamp)
+		{
+			var InvC = new CultureInfo("");
+
+			string salt = timestamp.ToUnixTime().ToString();
+			string hash = Utils.GetMd5String(salt + cumulus.WindGuru.ID + cumulus.WindGuru.PW);
+
+			uidstring = cumulus.WindGuru.ID;
+
+			int numvalues = 0;
+			double totalwind = 0;
+			double maxwind = 0;
+			double minwind = 999;
+			for (int i = 0; i < MaxWindRecent; i++)
+			{
+				if (WindRecent[i].Timestamp >= DateTime.Now.AddMinutes(-cumulus.WindGuru.Interval))
+				{
+					numvalues++;
+					totalwind += WindRecent[i].Gust;
+
+					if (WindRecent[i].Gust > maxwind)
+					{
+						maxwind = WindRecent[i].Gust;
+					}
+
+					if (WindRecent[i].Gust < minwind)
+					{
+						minwind = WindRecent[i].Gust;
+					}
+				}
+			}
+			// average the values
+			double avgwind = totalwind / numvalues * cumulus.Calib.WindSpeed.Mult;
+
+			maxwind *= cumulus.Calib.WindGust.Mult;
+			minwind *= cumulus.Calib.WindGust.Mult;
+
+
+			StringBuilder URL = new StringBuilder("http://www.windguru.cz/upload/api.php?", 1024);
+
+			URL.Append("uid=" + HttpUtility.UrlEncode(cumulus.WindGuru.ID));
+			URL.Append("&salt=" + salt);
+			URL.Append("&hash=" + hash);
+			URL.Append("&interval=" + cumulus.WindGuru.Interval * 60);
+			URL.Append("&wind_avg=" + ConvertUserWindToKnots(avgwind).ToString("F1", InvC));
+			URL.Append("&wind_max=" + ConvertUserWindToKnots(maxwind).ToString("F1", InvC));
+			URL.Append("&wind_min=" + ConvertUserWindToKnots(minwind).ToString("F1", InvC));
+			URL.Append("&wind_direction=" + AvgBearing);
+			URL.Append("&temperature=" + ConvertUserTempToC(OutdoorTemperature).ToString("F1", InvC));
+			URL.Append("&rh=" + OutdoorHumidity);
+			URL.Append("&mslp=" + ConvertUserPressureToHPa(Pressure).ToString("F1", InvC));
+			if (cumulus.WindGuru.SendRain)
+			{
+				URL.Append("&precip=" + ConvertUserRainToMM(RainLastHour).ToString("F1", InvC));
+				URL.Append("&precip_interval=3600");
+			}
+
+			return URL.ToString();
+		}
+
 		public string GetOpenWeatherMapData(DateTime timestamp)
 		{
 			StringBuilder sb = new StringBuilder($"[{{\"station_id\":\"{cumulus.OpenWeatherMap.ID}\",");
@@ -8944,7 +9141,7 @@ namespace CumulusMX
 			sb.Append($"\"wind_deg\":{AvgBearing},");
 			sb.Append($"\"wind_speed\":{Math.Round(ConvertUserWindToMS(WindAverage), 1).ToString(invC)},");
 			sb.Append($"\"wind_gust\":{Math.Round(ConvertUserWindToMS(RecentMaxGust), 1).ToString(invC)},");
-			sb.Append($"\"pressure\":{Math.Round(PressureHPa(Pressure), 1).ToString(invC)},");
+			sb.Append($"\"pressure\":{Math.Round(ConvertUserPressureToHPa(Pressure), 1).ToString(invC)},");
 			sb.Append($"\"humidity\":{OutdoorHumidity},");
 			sb.Append($"\"rain_1h\":{Math.Round(ConvertUserRainToMM(RainLastHour), 1).ToString(invC)},");
 			sb.Append($"\"rain_24h\":{Math.Round(ConvertUserRainToMM(RainLast24Hour), 1).ToString(invC)}");
@@ -10187,7 +10384,7 @@ namespace CumulusMX
 				}
 
 				// trim last ","
-				json.Remove(json.Length - 1, 1);
+				json.Length--;
 				json.Append("]}");
 
 				return json.ToString();
@@ -10243,7 +10440,7 @@ namespace CumulusMX
 					json.Append(result[i].Timestamp.ToUniversalTime().ToString("yyy-MM-dd"));
 					json.Append("\",");
 				}
-				json.Remove(json.Length - 1, 1);
+				json.Length--;
 				json.Append("]}");
 			}
 			else
@@ -10330,7 +10527,7 @@ namespace CumulusMX
 				}
 
 				// trim trailing ","
-				json.Remove(json.Length - 1, 1);
+				json.Length--;
 				json.Append("]}");
 
 				return json.ToString();
@@ -10393,7 +10590,7 @@ namespace CumulusMX
 			//if (cumulus.GraphOptions.HumidexVisible)
 			//	json.Append("\"Humidex\",");
 
-			if (json.ToString().EndsWith(","))
+			if (json[json.Length - 1] == ',')
 				json.Length--;
 
 			// humidity values
@@ -10405,7 +10602,7 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.InHumVisible)
 				json.Append("\"Indoor Hum\",");
 
-			if (json.ToString().EndsWith(","))
+			if (json[json.Length - 1] == ',')
 				json.Length--;
 
 			// fixed values
@@ -10429,7 +10626,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.DailyMinTempVisible)
 					json.Append("\"MinTemp\",");
 
-				if (json.ToString().EndsWith(","))
+				if (json[json.Length - 1] == ',')
 					json.Length--;
 
 				json.Append("]");
@@ -10447,7 +10644,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.UVVisible)
 					json.Append("\"UV Index\",");
 
-				if (json.ToString().EndsWith(","))
+				if (json[json.Length - 1] == ',')
 					json.Length--;
 
 				json.Append("]");
@@ -10474,6 +10671,39 @@ namespace CumulusMX
 				{
 					json.Append(",\"PM 10\"");
 				}
+				json.Append("]");
+			}
+
+			// Degree Days
+			if (cumulus.GraphOptions.GrowingDegreeDaysVisible1 || cumulus.GraphOptions.GrowingDegreeDaysVisible2)
+			{
+				json.Append(",\"DegreeDays\":[");
+				if (cumulus.GraphOptions.GrowingDegreeDaysVisible1)
+					json.Append("\"GDD1\",");
+
+				if (cumulus.GraphOptions.GrowingDegreeDaysVisible2)
+					json.Append("\"GDD2\"");
+
+				if (json[json.Length - 1] == ',')
+					json.Length--;
+
+				json.Append("]");
+			}
+
+			// Temp Sum
+			if (cumulus.GraphOptions.TempSumVisible0 || cumulus.GraphOptions.TempSumVisible1 || cumulus.GraphOptions.TempSumVisible2)
+			{
+				json.Append(",\"TempSum\":[");
+				if (cumulus.GraphOptions.TempSumVisible0)
+					json.Append("\"Sum0\",");
+				if (cumulus.GraphOptions.TempSumVisible1)
+					json.Append("\"Sum1\",");
+				if (cumulus.GraphOptions.TempSumVisible2)
+					json.Append("\"Sum2\"");
+
+				if (json[json.Length - 1] == ',')
+					json.Length--;
+
 				json.Append("]");
 			}
 
@@ -11090,6 +11320,391 @@ namespace CumulusMX
 
 			return sb.ToString();
 		}
+
+		public string GetAllDegreeDaysGraphData()
+		{
+			var InvC = new CultureInfo("");
+
+			StringBuilder sb = new StringBuilder("{");
+			StringBuilder growdegdaysYears1 = new StringBuilder("{", 32768);
+			StringBuilder growdegdaysYears2 = new StringBuilder("{", 32768);
+
+			StringBuilder growYear1 = new StringBuilder("[", 8600);
+			StringBuilder growYear2 = new StringBuilder("[", 8600);
+
+			var options = $"\"options\":{{\"gddBase1\":{cumulus.GrowingBase1},\"gddBase2\":{cumulus.GrowingBase2},\"startMon\":{cumulus.GrowingYearStarts}}}";
+
+			DateTime nextYear;
+
+			// 2000 was a leap year, so make sure February falls in 2000
+			// for Southern hemisphere this means the start year must be 1999
+			var plotYear = cumulus.GrowingYearStarts < 3 ? 2000 : 1999;
+
+			int startYear;
+
+			var annualGrowingDegDays1 = 0.0;
+			var annualGrowingDegDays2 = 0.0;
+
+			// Read the day file list and extract the data from there
+			if (DayFile.Count() > 0 && (cumulus.GraphOptions.GrowingDegreeDaysVisible1 || cumulus.GraphOptions.GrowingDegreeDaysVisible2))
+			{
+				// we have to detect a new growing deg day year is starting
+				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1);
+
+				if (DayFile[0].Date >= nextYear)
+				{
+					nextYear = nextYear.AddYears(1);
+				}
+
+				// are we starting part way through a year that does not start in January?
+				if (DayFile[0].Date.Year == nextYear.Year)
+				{
+					startYear = DayFile[0].Date.Year - 1;
+				}
+				else
+				{
+					startYear = DayFile[0].Date.Year;
+				}
+
+				if (cumulus.GraphOptions.GrowingDegreeDaysVisible1)
+				{
+					growdegdaysYears1.Append($"\"{startYear}\":");
+				}
+				if (cumulus.GraphOptions.GrowingDegreeDaysVisible2)
+				{
+					growdegdaysYears2.Append($"\"{startYear}\":");
+				}
+
+
+				for (var i = 0; i < DayFile.Count(); i++)
+				{
+					// we have rolled over into a new GDD year, write out what we have and reset
+					if (DayFile[i].Date >= nextYear)
+					{
+						if (cumulus.GraphOptions.GrowingDegreeDaysVisible1 && growYear1.Length > 10)
+						{
+							// remove last comma
+							growYear1.Length--;
+							// close the year data
+							growYear1.Append("],");
+							// apend to years array
+							growdegdaysYears1.Append(growYear1);
+
+							growYear1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+						if (cumulus.GraphOptions.GrowingDegreeDaysVisible2 && growYear2.Length > 10)
+						{
+							// remove last comma
+							growYear2.Length--;
+							// close the year data
+							growYear2.Append("],");
+							// apend to years array
+							growdegdaysYears2.Append(growYear2);
+
+							growYear2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+
+						// reset the plot year for Southern hemi
+						plotYear = cumulus.GrowingYearStarts < 3 ? 2000 : 1999;
+
+						annualGrowingDegDays1 = 0;
+						annualGrowingDegDays2 = 0;
+						do
+						{
+							nextYear = nextYear.AddYears(1);
+						}
+						while (DayFile[i].Date >= nextYear);
+					}
+
+					// make all series the same year so they plot together
+					// 2000 was a leap year, so make sure February falls in 2000
+					// for Southern hemisphere this means the start year must be 1999
+					if (cumulus.GrowingYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month == 1)
+					{
+						plotYear++;
+					}
+
+					// make all series the same year so they plot together
+					long recDate = DateTimeToUnix(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day)) * 1000;
+
+					if (cumulus.GraphOptions.GrowingDegreeDaysVisible1)
+					{
+						// growing degree days
+						var gdd = MeteoLib.GrowingDegreeDays(ConvertUserTempToC(DayFile[i].HighTemp), ConvertUserTempToC(DayFile[i].LowTemp), ConvertUserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
+
+						// annual accumulation
+						annualGrowingDegDays1 += gdd;
+
+						growYear1.Append($"[{recDate},{annualGrowingDegDays1.ToString("F1", InvC)}],");
+					}
+
+					if (cumulus.GraphOptions.GrowingDegreeDaysVisible2)
+					{
+						// growing degree days
+						var gdd = MeteoLib.GrowingDegreeDays(ConvertUserTempToC(DayFile[i].HighTemp), ConvertUserTempToC(DayFile[i].LowTemp), ConvertUserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
+
+						// annual accumulation
+						annualGrowingDegDays2 += gdd;
+
+						growYear2.Append($"[{recDate},{annualGrowingDegDays2.ToString("F1", InvC)}],");
+					}
+				}
+			}
+
+			// remove last commas from the years arrays and close them off
+			if (cumulus.GraphOptions.GrowingDegreeDaysVisible1)
+			{
+				if (growYear1[growYear1.Length - 1] == ',')
+				{
+					growYear1.Length--;
+				}
+
+				// have previous years been appended?
+				if (growdegdaysYears1[growdegdaysYears1.Length - 1] == ']')
+				{
+					growdegdaysYears1.Append(",");
+				}
+
+				growdegdaysYears1.Append(growYear1 + "]");
+
+				// add to main json
+				sb.Append("\"GDD1\":" + growdegdaysYears1 + "},");
+			}
+			if (cumulus.GraphOptions.GrowingDegreeDaysVisible2)
+			{
+				if (growYear2[growYear2.Length - 1] == ',')
+				{
+					growYear2.Length--;
+				}
+
+				// have previous years been appended?
+				if (growdegdaysYears2[growdegdaysYears2.Length - 1] == ']')
+				{
+					growdegdaysYears2.Append(",");
+				}
+				growdegdaysYears2.Append(growYear2 + "]");
+
+				// add to main json
+				sb.Append("\"GDD2\":" + growdegdaysYears2 + "},");
+			}
+
+			sb.Append(options);
+
+			sb.Append("}");
+
+			return sb.ToString();
+		}
+
+		public string GetAllTempSumGraphData()
+		{
+			var InvC = new CultureInfo("");
+
+			StringBuilder sb = new StringBuilder("{");
+			StringBuilder tempSumYears0 = new StringBuilder("{", 32768);
+			StringBuilder tempSumYears1 = new StringBuilder("{", 32768);
+			StringBuilder tempSumYears2 = new StringBuilder("{", 32768);
+
+			StringBuilder tempSum0 = new StringBuilder("[", 8600);
+			StringBuilder tempSum1 = new StringBuilder("[", 8600);
+			StringBuilder tempSum2 = new StringBuilder("[", 8600);
+
+			DateTime nextYear;
+
+			// 2000 was a leap year, so make sure February falls in 2000
+			// for Southern hemisphere this means the start year must be 1999
+			var plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
+
+			int startYear;
+			var annualTempSum0 = 0.0;
+			var annualTempSum1 = 0.0;
+			var annualTempSum2 = 0.0;
+
+			var options = $"\"options\":{{\"sumBase1\":{cumulus.TempSumBase1},\"sumBase2\":{cumulus.TempSumBase2},\"startMon\":{cumulus.TempSumYearStarts}}}";
+
+			// Read the day file list and extract the data from there
+			if (DayFile.Count() > 0 && (cumulus.GraphOptions.TempSumVisible0 || cumulus.GraphOptions.TempSumVisible1 || cumulus.GraphOptions.TempSumVisible2))
+			{
+				// we have to detect a new year is starting
+				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1);
+
+				if (DayFile[0].Date >= nextYear)
+				{
+					nextYear = nextYear.AddYears(1);
+				}
+
+				// are we starting part way through a year that does not start in January?
+				if (DayFile[0].Date.Year == nextYear.Year)
+				{
+					startYear = DayFile[0].Date.Year - 1;
+				}
+				else
+				{
+					startYear = DayFile[0].Date.Year;
+				}
+
+				if (cumulus.GraphOptions.TempSumVisible0)
+				{
+					tempSumYears0.Append($"\"{startYear}\":");
+				}
+				if (cumulus.GraphOptions.TempSumVisible1)
+				{
+					tempSumYears1.Append($"\"{startYear}\":");
+				}
+				if (cumulus.GraphOptions.TempSumVisible2)
+				{
+					tempSumYears2.Append($"\"{startYear}\":");
+				}
+
+				for (var i = 0; i < DayFile.Count(); i++)
+				{
+					// we have rolled over into a new GDD year, write out what we have and reset
+					if (DayFile[i].Date >= nextYear)
+					{
+						if (cumulus.GraphOptions.TempSumVisible0 && tempSum0.Length > 10)
+						{
+							// remove last comma
+							tempSum0.Length--;
+							// close the year data
+							tempSum0.Append("],");
+							// apend to years array
+							tempSumYears0.Append(tempSum0);
+
+							tempSum0.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+						if (cumulus.GraphOptions.TempSumVisible1 && tempSum1.Length > 10)
+						{
+							// remove last comma
+							tempSum1.Length--;
+							// close the year data
+							tempSum1.Append("],");
+							// apend to years array
+							tempSumYears1.Append(tempSum1);
+
+							tempSum1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+						if (cumulus.GraphOptions.TempSumVisible2 && tempSum2.Length > 10)
+						{
+							// remove last comma
+							tempSum2.Length--;
+							// close the year data
+							tempSum2.Append("],");
+							// apend to years array
+							tempSumYears2.Append(tempSum2);
+
+							tempSum2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+
+						// reset the plot year for Southern hemi
+						plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
+
+						annualTempSum0 = 0;
+						annualTempSum1 = 0;
+						annualTempSum2 = 0;
+
+						do
+						{
+							nextYear = nextYear.AddYears(1);
+						}
+						while (DayFile[i].Date >= nextYear);
+					}
+					// make all series the same year so they plot together
+					// 2000 was a leap year, so make sure February falls in 2000
+					// for Southern hemisphere this means the start year must be 1999
+					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month == 1)
+					{
+						plotYear++;
+					}
+
+					long recDate = DateTimeToUnix(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day)) * 1000;
+
+					if (cumulus.GraphOptions.TempSumVisible0)
+					{
+						// annual accumulation
+						annualTempSum0 += DayFile[i].AvgTemp;
+						tempSum0.Append($"[{recDate},{annualTempSum0.ToString("F0", InvC)}],");
+					}
+					if (cumulus.GraphOptions.TempSumVisible1)
+					{
+						// annual accumulation
+						annualTempSum1 += DayFile[i].AvgTemp - cumulus.TempSumBase1;
+						tempSum1.Append($"[{recDate},{annualTempSum1.ToString("F0", InvC)}],");
+					}
+					if (cumulus.GraphOptions.TempSumVisible2)
+					{
+						// annual accumulation
+						annualTempSum2 += DayFile[i].AvgTemp - cumulus.TempSumBase2;
+						tempSum2.Append($"[{recDate},{annualTempSum2.ToString("F0", InvC)}],");
+					}
+				}
+			}
+
+			// remove last commas from the years arrays and close them off
+			if (cumulus.GraphOptions.TempSumVisible0)
+			{
+				if (tempSum0[tempSum0.Length - 1] == ',')
+				{
+					tempSum0.Length--;
+				}
+
+				// have previous years been appended?
+				if (tempSumYears0[tempSumYears0.Length - 1] == ']')
+				{
+					tempSumYears0.Append(",");
+				}
+
+				tempSumYears0.Append(tempSum0 + "]");
+
+				// add to main json
+				sb.Append("\"Sum0\":" + tempSumYears0 + "}");
+
+				if (cumulus.GraphOptions.TempSumVisible1 || cumulus.GraphOptions.TempSumVisible2)
+					sb.Append(",");
+			}
+			if (cumulus.GraphOptions.TempSumVisible1)
+			{
+				if (tempSum1[tempSum1.Length - 1] == ',')
+				{
+					tempSum1.Length--;
+				}
+
+				// have previous years been appended?
+				if (tempSumYears1[tempSumYears1.Length - 1] == ']')
+				{
+					tempSumYears1.Append(",");
+				}
+
+				tempSumYears1.Append(tempSum1 + "]");
+
+				// add to main json
+				sb.Append("\"Sum1\":" + tempSumYears1 + "},");
+			}
+			if (cumulus.GraphOptions.TempSumVisible2)
+			{
+				if (tempSum2[tempSum2.Length - 1] == ',')
+				{
+					tempSum2.Length--;
+				}
+
+				// have previous years been appended?
+				if (tempSumYears2[tempSumYears2.Length - 1] == ']')
+				{
+					tempSumYears2.Append(",");
+				}
+
+				tempSumYears2.Append(tempSum2 + "]");
+
+				// add to main json
+				sb.Append("\"Sum2\":" + tempSumYears2 + "},");
+			}
+
+			sb.Append(options);
+
+			sb.Append("}");
+
+			return sb.ToString();
+		}
+
+
 
 		internal string GetCurrentData()
 		{
