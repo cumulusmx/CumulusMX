@@ -74,8 +74,22 @@ namespace CumulusMX
 			{
 				if (OpenHidDevice())
 				{
+					// Get the block of data containing the logging interval
+					cumulus.LogMessage("Reading station logging interval");
+					if (ReadAddress(0x10, data))
+					{
+						int logint = data[0];
+
+						if (logint != cumulus.logints[cumulus.DataLogInterval])
+						{
+							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({cumulus.logints[cumulus.DataLogInterval]} mins)";
+							cumulus.LogConsoleMessage(msg);
+							cumulus.LogMessage(msg);
+						}
+					}
+
 					// Get the block of data containing the abs and rel pressures
-					cumulus.LogMessage("Reading pressure offset");
+					cumulus.LogMessage("Reading station pressure offset");
 
 					if (ReadAddress(0x20, data))
 					{
@@ -173,8 +187,11 @@ namespace CumulusMX
 			}
 
 			// get address of current location
-			int addr = ((data[31])*256) + data[30];
+			int addr = data[31] * 256 + data[30];
 			//int previousaddress = addr;
+
+			// get the number of logger entries the console has recorded
+			int logEntries = data[28] * 256 + data[27];
 
 			cumulus.LogMessage("Reading current address " + addr.ToString("X4"));
 			if (!ReadAddress(addr, data))
@@ -194,11 +211,11 @@ namespace CumulusMX
 				// calculate timestamp of previous history data
 				timestamp = timestamp.AddMinutes(-interval);
 
-				if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < maxHistoryEntries - 2))
+				if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < logEntries))
 				{
 					// Read previous data
 					addr -= foEntrysize;
-					if (addr == 0xF0) addr = foMaxAddr; // wrap around
+					if (addr < 0x100) addr = foMaxAddr; // wrap around
 
 					if (!ReadAddress(addr, data))
 					{

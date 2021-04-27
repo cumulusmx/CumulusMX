@@ -13,14 +13,15 @@ namespace CumulusMX
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="windSpeedKph">Average wind speed in km/h</param>
+		/// <param name="tempCutoff">Use the 10C cutoff</param>
 		/// <returns>Wind Chill in Celcius</returns>
-		public static double WindChill(double tempC, double windSpeedKph)
+		public static double WindChill(double tempC, double windSpeedKph, bool tempCutoff = true)
 		{
 			// see American Meteorological Society Journal
 			// see http://www.msc.ec.gc.ca/education/windchill/science_equations_e.cfm
 			// see http://www.weather.gov/os/windchill/index.shtml
 
-			if ((tempC >= 10.0) || (windSpeedKph <= 4.8))
+			if ((tempC >= 10.0 && tempCutoff) || (windSpeedKph <= 4.8))
 				return tempC;
 
 			double windPow = Math.Pow(windSpeedKph, 0.16);
@@ -62,7 +63,8 @@ namespace CumulusMX
 		public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
 		{
 			// Cannot use the WindChill function as we need the chill above 10 C
-			double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
+			//double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
+			double chill = WindChill(tempC, windSpeedKph, false);
 			double svp = SaturationVapourPressure1980(tempC);   // Saturation Vapour Pressure in hPa
 			double avp = (float)humidity / 100.0 * svp / 10.0;             // Actual Vapour Pressure in kPa
 			if (windSpeedKph > 72) windSpeedKph = 72;           // Windspeed limited to 20 m/s = 72 km/h
@@ -312,7 +314,7 @@ namespace CumulusMX
 
 		/// <summary>
 		/// Calculates the Davis THW Index.
-		/// Uses method described for THSW Index in AN28
+		/// Uses method described for Heat Index and THSW Index in AN28
 		/// </summary>
 		/// <param name="tempC">The current temperature (Celsius)</param>
 		/// <param name="int">The current RH</param>
@@ -323,7 +325,8 @@ namespace CumulusMX
 		{
 			var hindex = HeatIndex(tempC, hum);
 
-			var wind = tempC - WindChill(tempC, windKph);
+			// above 144F/62.22C wind factor is zero
+			var wind = tempC > 62.22 ? 0 : tempC - WindChill(tempC, windKph, false);
 
 			return hindex - wind;
 		}
