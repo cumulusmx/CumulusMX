@@ -309,5 +309,23 @@ namespace CumulusMX
 			}
 			return gdd;
 		}
+
+		/// <summary>
+		/// Calculates the Davis THW Index.
+		/// Uses method described for THSW Index in AN28
+		/// </summary>
+		/// <param name="tempC">The current temperature (Celsius)</param>
+		/// <param name="int">The current RH</param>
+		/// <param name="windKph">The current average wind speed (KPH)</param>
+		/// <returns>THWIndex (Celsius)</returns>
+
+		public static double THWIndex(double tempC, int hum, double windKph)
+		{
+			var hindex = HeatIndex(tempC, hum);
+
+			var wind = tempC - WindChill(tempC, windKph);
+
+			return hindex - wind;
+		}
 	}
 }

@@ -1,7 +1,6 @@
-3.11.0 - b3125
+3.11.0 - b3126
 ——————————————
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
-- Fix: Remove <#THWindex> web tag from Cumulus MX
 - Fix: OpenWeatherMap - create new station was not forcing the use of dot decimals for lat/long values
 - Fix: WeatherCloud - date/time of reading should be UTC
 - Fix: End of day backup now always runs at rollover
@@ -11,8 +10,9 @@
 - Fix: MySQL connections that use encryption should now be supported (MySQL 8.0 default)
 - Fix: GW1000 System Information now correctly decodes 915 and 920MHz devices
 - Fix: GW1000 occasional crash when an unexpected response was received
-- Fix: All settings screens error handling messages now no longer display "[object][object]"
+- Fix: All settings screens error handling messages now no longer display "[object object]"
 
+- New: Adds support for a THW Index calculation. This value is now available for all station types via the web tag <#THWindex>
 - New: Adds support for Windguru uploads
 - New: Adds Email support for Alarms
 	- Configured via Internet Settings (email server config), and Alarm Settings (from/to addresses for alarms, and a Test Email function)

@@ -168,7 +168,7 @@ namespace CumulusMX
 
 		// Current values
 
-		//public double THWIndex = 0;
+		public double THWIndex = 0;
 		public double THSWIndex = 0;
 
 		public double raindaystart = 0.0;
@@ -2893,6 +2893,7 @@ namespace CumulusMX
 			OutdoorTemperature = CalibrateTemp(temp);
 
 			double tempinF = ConvertUserTempToF(OutdoorTemperature);
+			double tempinC = ConvertUserTempToC(OutdoorTemperature);
 
 			first_temp = false;
 
@@ -2955,12 +2956,9 @@ namespace CumulusMX
 			// Calculate temperature range
 			HiLoToday.TempRange = HiLoToday.HighTemp - HiLoToday.LowTemp;
 
-			double tempinC;
-
 			if ((cumulus.StationOptions.CalculatedDP || cumulus.DavisStation) && (OutdoorHumidity != 0) && (!cumulus.FineOffsetStation))
 			{
 				// Calculate DewPoint.
-				tempinC = ConvertUserTempToC(OutdoorTemperature);
 				// dewpoint = TempinC + ((0.13 * TempinC) + 13.6) * Ln(humidity / 100);
 				OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(tempinC, OutdoorHumidity));
 
@@ -2981,7 +2979,6 @@ namespace CumulusMX
 					CloudBase = 0;
 			}
 
-			tempinC = ConvertUserTempToC(OutdoorTemperature);
 			HeatIndex = ConvertTempCToUser(MeteoLib.HeatIndex(tempinC, OutdoorHumidity));
 
 			if (HeatIndex > HiLoToday.HighHeatIndex)
@@ -3038,6 +3035,10 @@ namespace CumulusMX
 			//ConvertTempCToUser(ConvertUserTempToC(OutdoorTemperature) + (0.33 * MeteoLib.ActualVapourPressure(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity)) -
 			//				   (0.7 * ConvertUserWindToMS(WindAverage)) - 4);
 			ApparentTemperature = ConvertTempCToUser(MeteoLib.ApparentTemperature(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToMS(WindAverage), OutdoorHumidity));
+
+
+			// we will tag on the THW Index here
+			THWIndex = ConvertTempCToUser(MeteoLib.THWIndex(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity, ConvertUserWindToKPH(WindAverage)));
 
 			if (ApparentTemperature > HiLoToday.HighAppTemp)
 			{
