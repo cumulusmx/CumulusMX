@@ -42,6 +42,7 @@
 - New: The graphs pages - both dashboard and default web site - now set a page hash value depending on the graph being shown.
 	Benefit = you can now link directly to a particular graph to show on page load
 - New: FineOffset stations now report a warning if the console logger interval does match the Cumulus MX interval
+- New: FineOffset experimental feature to set the console logger interval to match Cumulus logging interval
 
 - Changed: Moved FTP Logging option from Internet Settings to Program Settings to collect all the logging options in one place
 - Changed: A Data Stopped state now stops all logging, MySQL and web activity
@@ -58,6 +59,7 @@
 - Changed: The MySQL real time table data retention settings reworked.
 - Changed: Moved all third party web uploads from Internet Settings page to their own Third Party Settings page
 - Changed: Internal optimisations
+- Changed: JQuery library updated to v3.6.0 for both the Dashboard interface, and the default web site
 
 
 

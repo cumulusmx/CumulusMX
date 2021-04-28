@@ -131,15 +131,16 @@ namespace CumulusMX
 
 			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
 			{
-				readtime = cumulus.FineOffsetOptions.FineOffsetReadTime,
+				readtime = cumulus.FineOffsetOptions.ReadTime,
+				setlogger = cumulus.FineOffsetOptions.SetLoggerInterval,
 				vid = cumulus.FineOffsetOptions.VendorID,
 				pid = cumulus.FineOffsetOptions.ProductID
 			};
 
 			var fineoffset = new JsonStationSettingsFineOffset()
 			{
-				syncreads = cumulus.FineOffsetOptions.FineOffsetSyncReads,
-				readavoid = cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod,
+				syncreads = cumulus.FineOffsetOptions.SyncReads,
+				readavoid = cumulus.FineOffsetOptions.ReadAvoidPeriod,
 				advanced = fineoffsetadvanced
 			};
 
@@ -162,15 +163,15 @@ namespace CumulusMX
 			{
 				syncstationclock = cumulus.StationOptions.SyncTime,
 				syncclockhour = cumulus.StationOptions.ClockSettingHour,
-				readdelay = cumulus.ImetOptions.ImetReadDelay,
-				waittime = cumulus.ImetOptions.ImetWaitTime,
-				updatelogpointer = cumulus.ImetOptions.ImetUpdateLogPointer
+				readdelay = cumulus.ImetOptions.ReadDelay,
+				waittime = cumulus.ImetOptions.WaitTime,
+				updatelogpointer = cumulus.ImetOptions.UpdateLogPointer
 			};
 
 			var imet = new JsonStationSettingsImet()
 			{
 				comportname = cumulus.ComportName,
-				baudrate = cumulus.ImetOptions.ImetBaudRate,
+				baudrate = cumulus.ImetOptions.BaudRate,
 				advanced = imetAdvanced
 			};
 
@@ -915,9 +916,10 @@ namespace CumulusMX
 				{
 					if (settings.fineoffset != null)
 					{
-						cumulus.FineOffsetOptions.FineOffsetSyncReads = settings.fineoffset.syncreads;
-						cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod = settings.fineoffset.readavoid;
-						cumulus.FineOffsetOptions.FineOffsetReadTime = settings.fineoffset.advanced.readtime;
+						cumulus.FineOffsetOptions.SyncReads = settings.fineoffset.syncreads;
+						cumulus.FineOffsetOptions.ReadAvoidPeriod = settings.fineoffset.readavoid;
+						cumulus.FineOffsetOptions.ReadTime = settings.fineoffset.advanced.readtime;
+						cumulus.FineOffsetOptions.SetLoggerInterval = settings.fineoffset.advanced.setlogger;
 						cumulus.FineOffsetOptions.VendorID = settings.fineoffset.advanced.vid;
 						cumulus.FineOffsetOptions.ProductID = settings.fineoffset.advanced.pid;
 					}
@@ -936,12 +938,12 @@ namespace CumulusMX
 					if (settings.imet != null)
 					{
 						cumulus.ComportName = settings.imet.comportname ?? cumulus.ComportName;
-						cumulus.ImetOptions.ImetBaudRate = settings.imet.baudrate;
+						cumulus.ImetOptions.BaudRate = settings.imet.baudrate;
 						cumulus.StationOptions.SyncTime = settings.imet.advanced.syncstationclock;
 						cumulus.StationOptions.ClockSettingHour = settings.imet.advanced.syncclockhour;
-						cumulus.ImetOptions.ImetReadDelay = settings.imet.advanced.readdelay;
-						cumulus.ImetOptions.ImetWaitTime = settings.imet.advanced.waittime;
-						cumulus.ImetOptions.ImetUpdateLogPointer = settings.imet.advanced.updatelogpointer;
+						cumulus.ImetOptions.ReadDelay = settings.imet.advanced.readdelay;
+						cumulus.ImetOptions.WaitTime = settings.imet.advanced.waittime;
+						cumulus.ImetOptions.UpdateLogPointer = settings.imet.advanced.updatelogpointer;
 					}
 				}
 				catch (Exception ex)
@@ -1297,6 +1299,7 @@ namespace CumulusMX
 	internal class JsonStationSettingsFineOffsetAdvanced
 	{
 		public int readtime { get; set; }
+		public bool setlogger { get; set; }
 		public int vid { get; set; }
 		public int pid { get; set; }
 	}

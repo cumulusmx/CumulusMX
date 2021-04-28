@@ -3652,9 +3652,10 @@ namespace CumulusMX
 				DataLogInterval = 2;
 			}
 
-			FineOffsetOptions.FineOffsetSyncReads = ini.GetValue("Station", "SyncFOReads", true);
-			FineOffsetOptions.FineOffsetReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
-			FineOffsetOptions.FineOffsetReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
+			FineOffsetOptions.SyncReads = ini.GetValue("Station", "SyncFOReads", true);
+			FineOffsetOptions.ReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3);
+			FineOffsetOptions.ReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150);
+			FineOffsetOptions.SetLoggerInterval = ini.GetValue("Station", "FineOffsetSetLoggerInterval", false);
 			FineOffsetOptions.VendorID = ini.GetValue("Station", "VendorID", -1);
 			FineOffsetOptions.ProductID = ini.GetValue("Station", "ProductID", -1);
 
@@ -3725,16 +3726,16 @@ namespace CumulusMX
 
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
-			ImetOptions.ImetWaitTime = ini.GetValue("Station", "ImetWaitTime", 500);			// delay to wait for a reply to a command
-			ImetOptions.ImetReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);			// delay between sending read live data commands
-			ImetOptions.ImetUpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);   // keep the logger pointer pointing at last data read
-			ImetOptions.ImetBaudRate = ini.GetValue("Station", "ImetOptions.ImetBaudRate", 19200);
+			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500);			// delay to wait for a reply to a command
+			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);			// delay between sending read live data commands
+			ImetOptions.UpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);   // keep the logger pointer pointing at last data read
+			ImetOptions.BaudRate = ini.GetValue("Station", "ImetBaudRate", 19200);
 			// Check we have a valid value
-			if (!ImetOptions.BaudRates.Contains(ImetOptions.ImetBaudRate))
+			if (!ImetOptions.BaudRates.Contains(ImetOptions.BaudRate))
 			{
 				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for ImetOptions.ImetBaudRate in the ini file " + ImetOptions.ImetBaudRate + " is not valid, using default 19200.");
-				ImetOptions.ImetBaudRate = 19200;
+				LogMessage("Error, the value for ImetOptions.ImetBaudRate in the ini file " + ImetOptions.BaudRate + " is not valid, using default 19200.");
+				ImetOptions.BaudRate = 19200;
 			}
 
 			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
@@ -4583,13 +4584,14 @@ namespace CumulusMX
 			//ini.SetValue("Station", "RestartIfDataStops", RestartIfDataStops);
 			ini.SetValue("Station", "SyncDavisClock", StationOptions.SyncTime);
 			ini.SetValue("Station", "ClockSettingHour", StationOptions.ClockSettingHour);
-			ini.SetValue("Station", "SyncFOReads", FineOffsetOptions.FineOffsetSyncReads);
 			ini.SetValue("Station", "WS2300IgnoreStationClock", StationOptions.WS2300IgnoreStationClock);
 			ini.SetValue("Station", "LogExtraSensors", StationOptions.LogExtraSensors);
 			ini.SetValue("Station", "DataLogInterval", DataLogInterval);
 
-			ini.SetValue("Station", "FOReadAvoidPeriod", FineOffsetOptions.FineOffsetReadAvoidPeriod);
-			ini.SetValue("Station", "FineOffsetReadTime", FineOffsetOptions.FineOffsetReadTime);
+			ini.SetValue("Station", "SyncFOReads", FineOffsetOptions.SyncReads);
+			ini.SetValue("Station", "FOReadAvoidPeriod", FineOffsetOptions.ReadAvoidPeriod);
+			ini.SetValue("Station", "FineOffsetReadTime", FineOffsetOptions.ReadTime);
+			ini.SetValue("Station", "FineOffsetSetLoggerInterval", FineOffsetOptions.SetLoggerInterval);
 			ini.SetValue("Station", "VendorID", FineOffsetOptions.VendorID);
 			ini.SetValue("Station", "ProductID", FineOffsetOptions.ProductID);
 
@@ -4649,10 +4651,10 @@ namespace CumulusMX
 
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
-			ini.SetValue("Station", "ImetOptions.ImetBaudRate", ImetOptions.ImetBaudRate);
-			ini.SetValue("Station", "ImetWaitTime", ImetOptions.ImetWaitTime);					// delay to wait for a reply to a command
-			ini.SetValue("Station", "ImetReadDelay", ImetOptions.ImetReadDelay);				// delay between sending read live data commands
-			ini.SetValue("Station", "ImetUpdateLogPointer", ImetOptions.ImetUpdateLogPointer);	// keep the logger pointer pointing at last data read
+			ini.SetValue("Station", "ImetBaudRate", ImetOptions.BaudRate);
+			ini.SetValue("Station", "ImetWaitTime", ImetOptions.WaitTime);					// delay to wait for a reply to a command
+			ini.SetValue("Station", "ImetReadDelay", ImetOptions.ReadDelay);				// delay between sending read live data commands
+			ini.SetValue("Station", "ImetUpdateLogPointer", ImetOptions.UpdateLogPointer);	// keep the logger pointer pointing at last data read
 
 			ini.SetValue("Station", "RG11Enabled", RG11Enabled);
 			ini.SetValue("Station", "RG11portName", RG11Port);
@@ -9455,9 +9457,10 @@ namespace CumulusMX
 
 	public class FineOffsetOptions
 	{
-		public bool FineOffsetSyncReads { get; set; }
-		public int FineOffsetReadAvoidPeriod { get; set; }
-		public int FineOffsetReadTime { get; set; }
+		public bool SyncReads { get; set; }
+		public int ReadAvoidPeriod { get; set; }
+		public int ReadTime { get; set; }
+		public bool SetLoggerInterval { get; set; }
 		public int VendorID { get; set; }
 		public int ProductID { get; set; }
 }
@@ -9465,10 +9468,10 @@ namespace CumulusMX
 	public class ImetOptions
 	{
 		public List<int> BaudRates { get; set; }
-		public int ImetBaudRate { get; set; }
-		public int ImetWaitTime { get; set; }
-		public int ImetReadDelay { get; set; }
-		public bool ImetUpdateLogPointer { get; set; }
+		public int BaudRate { get; set; }
+		public int WaitTime { get; set; }
+		public int ReadDelay { get; set; }
+		public bool UpdateLogPointer { get; set; }
 	}
 
 	public class EasyWeatherOptions
