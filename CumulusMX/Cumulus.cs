@@ -702,11 +702,8 @@ namespace CumulusMX
 		public MySqlCommand CustomMysqlMinutesCommand = new MySqlCommand();
 		public MySqlConnection CustomMysqlRolloverConn = new MySqlConnection();
 		public MySqlCommand CustomMysqlRolloverCommand = new MySqlCommand();
-		public string MySqlHost;
-		public int MySqlPort;
-		public string MySqlUser;
-		public string MySqlPass;
-		public string MySqlDatabase;
+
+		public MySqlConnectionStringBuilder MySqlConnSettings = new MySqlConnectionStringBuilder();
 
 		public string LatestBuild = "n/a";
 
@@ -1224,11 +1221,9 @@ namespace CumulusMX
 
 			SetUpHttpProxy();
 
-			var sqlConnectionString = $"server={MySqlHost};port={MySqlPort};user={MySqlUser};password={MySqlPass};database={MySqlDatabase}";
-
 			if (MonthlyMySqlEnabled)
 			{
-				MonthlyMySqlConn.ConnectionString = sqlConnectionString;
+				MonthlyMySqlConn.ConnectionString = MySqlConnSettings.ToString();
 
 				SetStartOfMonthlyInsertSQL();
 			}
@@ -1240,23 +1235,23 @@ namespace CumulusMX
 
 			if (RealtimeMySqlEnabled)
 			{
-				RealtimeSqlConn.ConnectionString = sqlConnectionString;
+				RealtimeSqlConn.ConnectionString = MySqlConnSettings.ToString();
 				SetStartOfRealtimeInsertSQL();
 			}
 
 
-			CustomMysqlSecondsConn.ConnectionString = sqlConnectionString;
+			CustomMysqlSecondsConn.ConnectionString = MySqlConnSettings.ToString();
 			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlSecondsCommand.Connection = CustomMysqlSecondsConn;
 			CustomMysqlSecondsTimer = new Timer { Interval = CustomMySqlSecondsInterval * 1000 };
 			CustomMysqlSecondsTimer.Elapsed += CustomMysqlSecondsTimerTick;
 			CustomMysqlSecondsTimer.AutoReset = true;
 
-			CustomMysqlMinutesConn.ConnectionString = sqlConnectionString;
+			CustomMysqlMinutesConn.ConnectionString = MySqlConnSettings.ToString();
 			customMysqlMinutesTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlMinutesCommand.Connection = CustomMysqlMinutesConn;
 
-			CustomMysqlRolloverConn.ConnectionString = sqlConnectionString;
+			CustomMysqlRolloverConn.ConnectionString = MySqlConnSettings.ToString();
 			customMysqlRolloverTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlRolloverCommand.Connection = CustomMysqlRolloverConn;
 
@@ -3993,6 +3988,8 @@ namespace CumulusMX
 			GraphHours = ini.GetValue("Graphs", "GraphHours", 72);
 			MoonImageEnabled = ini.GetValue("Graphs", "MoonImageEnabled", false);
 			MoonImageSize = ini.GetValue("Graphs", "MoonImageSize", 100);
+			if (MoonImageSize < 10)
+				MoonImageSize = 10;
 			MoonImageFtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
 			GraphOptions.TempVisible = ini.GetValue("Graphs", "TempVisible", true);
 			GraphOptions.InTempVisible = ini.GetValue("Graphs", "InTempVisible", true);
@@ -4441,11 +4438,12 @@ namespace CumulusMX
 			DisplayOptions.ShowUV = ini.GetValue("Display", "DisplayUvData", false);
 
 			// MySQL - common
-			MySqlHost = ini.GetValue("MySQL", "Host", "127.0.0.1");
-			MySqlPort = ini.GetValue("MySQL", "Port", 3306);
-			MySqlUser = ini.GetValue("MySQL", "User", "");
-			MySqlPass = ini.GetValue("MySQL", "Pass", "");
-			MySqlDatabase = ini.GetValue("MySQL", "Database", "database");
+			MySqlConnSettings.Server = ini.GetValue("MySQL", "Host", "127.0.0.1");
+			MySqlConnSettings.Port = (uint)ini.GetValue("MySQL", "Port", 3306);
+			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", "");
+			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", "");
+			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "database");
+
 			// MySQL - monthly log file
 			MonthlyMySqlEnabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
 			MySqlMonthlyTable = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
@@ -5180,11 +5178,11 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "TempSumVisible2", GraphOptions.TempSumVisible2);
 
 
-			ini.SetValue("MySQL", "Host", MySqlHost);
-			ini.SetValue("MySQL", "Port", MySqlPort);
-			ini.SetValue("MySQL", "User", MySqlUser);
-			ini.SetValue("MySQL", "Pass", MySqlPass);
-			ini.SetValue("MySQL", "Database", MySqlDatabase);
+			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
+			ini.SetValue("MySQL", "Port", MySqlConnSettings.Port);
+			ini.SetValue("MySQL", "User", MySqlConnSettings.UserID);
+			ini.SetValue("MySQL", "Pass", MySqlConnSettings.Password);
+			ini.SetValue("MySQL", "Database", MySqlConnSettings.Database);
 			ini.SetValue("MySQL", "MonthlyMySqlEnabled", MonthlyMySqlEnabled);
 			ini.SetValue("MySQL", "RealtimeMySqlEnabled", RealtimeMySqlEnabled);
 			ini.SetValue("MySQL", "DayfileMySqlEnabled", DayfileMySqlEnabled);
@@ -8507,9 +8505,10 @@ namespace CumulusMX
 		{
 			try
 			{
-				var mySqlConn = new MySqlConnection($"server={MySqlHost};port={MySqlPort};user={MySqlUser};password={MySqlPass};database={MySqlDatabase}");
-
-				MySqlCommandSync(MySqlList, mySqlConn, "MySQL Archive", true, true);
+				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
+				{
+					MySqlCommandSync(MySqlList, mySqlConn, "MySQL Archive", true, true);
+				}
 			}
 			catch (Exception ex)
 			{

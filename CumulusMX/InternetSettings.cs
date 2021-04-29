@@ -209,6 +209,8 @@ namespace CumulusMX
 					if (cumulus.MoonImageEnabled)
 					{
 						cumulus.MoonImageSize = settings.moonimage.size;
+						if (cumulus.MoonImageSize < 10)
+							cumulus.MoonImageSize = 10;
 						cumulus.IncludeMoonImage = settings.moonimage.includemoonimage;
 						if (cumulus.IncludeMoonImage)
 							cumulus.MoonImageFtpDest = settings.moonimage.ftpdest;

@@ -24,11 +24,11 @@ namespace CumulusMX
 		{
 			var server = new JsonMysqlSettingsServer()
 			{
-				database = cumulus.MySqlDatabase,
-				host = cumulus.MySqlHost,
-				pass = cumulus.MySqlPass,
-				port = cumulus.MySqlPort,
-				user = cumulus.MySqlUser
+				database = cumulus.MySqlConnSettings.Database,
+				host = cumulus.MySqlConnSettings.Server,
+				pass = cumulus.MySqlConnSettings.Password,
+				port = cumulus.MySqlConnSettings.Port,
+				user = cumulus.MySqlConnSettings.UserID
 			};
 
 			var monthly = new JsonMysqlSettingsMonthly()
@@ -138,18 +138,18 @@ namespace CumulusMX
 				cumulus.LogMessage("Updating MySQL settings");
 
 				// server
-				cumulus.MySqlHost = settings.server.host;
+				cumulus.MySqlConnSettings.Server = settings.server.host;
 				if (settings.server.port > 0 && settings.server.port < 65536)
 				{
-					cumulus.MySqlPort = settings.server.port;
+					cumulus.MySqlConnSettings.Port = settings.server.port;
 				}
 				else
 				{
-					cumulus.MySqlPort = 3306;
+					cumulus.MySqlConnSettings.Port = 3306;
 				}
-				cumulus.MySqlDatabase = settings.server.database;
-				cumulus.MySqlUser = settings.server.user;
-				cumulus.MySqlPass = settings.server.pass;
+				cumulus.MySqlConnSettings.Database = settings.server.database;
+				cumulus.MySqlConnSettings.UserID = settings.server.user;
+				cumulus.MySqlConnSettings.Password = settings.server.pass;
 				//monthly
 				cumulus.MonthlyMySqlEnabled = settings.monthenabled;
 				if (cumulus.MonthlyMySqlEnabled)
@@ -201,9 +201,7 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				var connStr = $"server={cumulus.MySqlHost};port={cumulus.MySqlPort};user={cumulus.MySqlUser};password={cumulus.MySqlPass};database={cumulus.MySqlDatabase}";
-
-				cumulus.MonthlyMySqlConn.ConnectionString = connStr;
+				cumulus.MonthlyMySqlConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 
 				cumulus.SetMonthlySqlCreateString();
 				cumulus.SetStartOfMonthlyInsertSQL();
@@ -211,18 +209,18 @@ namespace CumulusMX
 				cumulus.SetDayfileSqlCreateString();
 				cumulus.SetStartOfDayfileInsertSQL();
 
-				cumulus.RealtimeSqlConn.ConnectionString = connStr;
+				cumulus.RealtimeSqlConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 
 				cumulus.SetRealtimeSqlCreateString();
 				cumulus.SetStartOfRealtimeInsertSQL();
 
-				cumulus.CustomMysqlSecondsConn.ConnectionString = connStr;
+				cumulus.CustomMysqlSecondsConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 				cumulus.CustomMysqlSecondsTimer.Interval = cumulus.CustomMySqlSecondsInterval*1000;
 				cumulus.CustomMysqlSecondsTimer.Enabled = cumulus.CustomMySqlSecondsEnabled;
 
-				cumulus.CustomMysqlMinutesConn.ConnectionString = connStr;
+				cumulus.CustomMysqlMinutesConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 
-				cumulus.CustomMysqlRolloverConn.ConnectionString = connStr;
+				cumulus.CustomMysqlRolloverConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 
 				context.Response.StatusCode = 200;
 			}
@@ -238,36 +236,35 @@ namespace CumulusMX
 
 		private string CreateMySQLTable(string createSQL)
 		{
-			var mySqlConn = new MySqlConnection($"server={cumulus.MySqlHost};port={cumulus.MySqlPort};user={cumulus.MySqlUser};password={cumulus.MySqlPass};database={cumulus.MySqlDatabase}");
-
-			MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn);
-			cumulus.LogMessage($"MySQL Create Table: {createSQL}");
-
 			string res;
-
-			try
+			using (var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString()))
+			using (MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn))
 			{
-				mySqlConn.Open();
-				int aff = cmd.ExecuteNonQuery();
-				cumulus.LogMessage($"MySQL Create Table: {aff} items were affected.");
-				res = "Database table created successfully";
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage("MySQL Create Table: Error encountered during MySQL operation.");
-				cumulus.LogMessage(ex.Message);
-				res = "Error: " + ex.Message;
-			}
-			finally
-			{
+				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
+				
 				try
 				{
-					mySqlConn.Close();
+					mySqlConn.Open();
+					int aff = cmd.ExecuteNonQuery();
+					cumulus.LogMessage($"MySQL Create Table: {aff} items were affected.");
+					res = "Database table created successfully";
 				}
-				catch
-				{}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("MySQL Create Table: Error encountered during MySQL operation.");
+					cumulus.LogMessage(ex.Message);
+					res = "Error: " + ex.Message;
+				}
+				finally
+				{
+					try
+					{
+						mySqlConn.Close();
+					}
+					catch
+					{ }
+				}
 			}
-
 			return res;
 		}
 
@@ -316,7 +313,7 @@ namespace CumulusMX
 	public class JsonMysqlSettingsServer
 	{
 		public string host { get; set; }
-		public int port { get; set; }
+		public uint port { get; set; }
 		public string user { get; set; }
 		public string pass { get; set; }
 		public string database { get; set; }

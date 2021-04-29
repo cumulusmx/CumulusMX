@@ -5462,7 +5462,7 @@ namespace CumulusMX
 
 			if (cumulus.DayfileMySqlEnabled)
 			{
-				var mySqlConn = new MySqlConnection($"server={cumulus.MySqlHost};port={cumulus.MySqlPort};user={cumulus.MySqlUser};password={cumulus.MySqlPass};database={cumulus.MySqlDatabase}");
+				var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
 
 				var InvC = new CultureInfo("");
 
