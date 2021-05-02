@@ -48,8 +48,7 @@ namespace CumulusMX
 
 				using (SmtpClient client = new SmtpClient(cumulus.SmtpOptions.Logging ? new ProtocolLogger("MXdiags/smtp.log") : null))
 				{
-					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
-					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
+					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.SslOption);
 
 					// Note: since we don't have an OAuth2 token, disable
 					// the XOAUTH2 authentication mechanism.
@@ -98,7 +97,7 @@ namespace CumulusMX
 
 			using (SmtpClient client = new SmtpClient(cumulus.SmtpOptions.Logging ? new ProtocolLogger("MXdiags/smtp.log") : null))
 			{
-				client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
+				client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
 				//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
 
 				// Note: since we don't have an OAuth2 token, disable
@@ -141,7 +140,7 @@ namespace CumulusMX
 			public int Port;
 			public string User;
 			public string Password;
-			public bool UseSsl;
+			public int SslOption;
 			public bool RequiresAuthentication;
 			public bool Logging;
 		}

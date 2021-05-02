@@ -1,3 +1,22 @@
+b3127 beta changes
+
+- SNMP: The MX Option "Use SSL/TLS" has changed to allow you to select from all the options available. This means MX does not have to second guess which option
+        to use, but does make it more complex to configure.
+        NOTE: After installing this release, YOU MAY HAVE TO ADJUST THIS SETTING, it will revert to "Auto", which should work for most servers
+
+        For example GMail, port 465 is TLS only, port 587 is plain text connection, but then starts TLS
+        The following options work...
+        GMail Port:             465       587
+        ——————————————————————————————————————
+            None                No        No
+            Auto                Yes       Yes
+            TlsOnConnect        Yes       No
+            StartTls            No        Yes
+            StartTlsWhenAvail   No        Yes
+
+- MySQL: Special characters in usernames and passwords are now handled correctly
+
+
 3.11.0 - b3126
 ——————————————
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
@@ -22,7 +41,7 @@
 		[SMTP]
 		ServerName=
 		Port=587
-		UseSSL=0
+		SSLOption=1
 		RequiresAuthentication=0
 		User=
 		Password=

@@ -249,7 +249,7 @@ namespace CumulusMX
 					{
 						cumulus.SmtpOptions.Server = settings.emailsettings.server;
 						cumulus.SmtpOptions.Port = settings.emailsettings.port;
-						cumulus.SmtpOptions.UseSsl = settings.emailsettings.usessl;
+						cumulus.SmtpOptions.SslOption = settings.emailsettings.ssloption;
 						cumulus.SmtpOptions.RequiresAuthentication = settings.emailsettings.authenticate;
 						cumulus.SmtpOptions.User = settings.emailsettings.user;
 						cumulus.SmtpOptions.Password = settings.emailsettings.password;
@@ -483,7 +483,7 @@ namespace CumulusMX
 				enabled = cumulus.SmtpOptions.Enabled,
 				server = cumulus.SmtpOptions.Server,
 				port = cumulus.SmtpOptions.Port,
-				usessl = cumulus.SmtpOptions.UseSsl,
+				ssloption = cumulus.SmtpOptions.SslOption,
 				authenticate = cumulus.SmtpOptions.RequiresAuthentication,
 				user = cumulus.SmtpOptions.User,
 				password = cumulus.SmtpOptions.Password
@@ -761,7 +761,7 @@ namespace CumulusMX
 		public bool enabled { get; set; }
 		public string server { get; set; }
 		public int port { get; set; }
-		public bool usessl { get; set; }
+		public int ssloption { get; set; }
 		public bool authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }

@@ -4509,7 +4509,7 @@ namespace CumulusMX
 			SmtpOptions.Enabled = ini.GetValue("SMTP", "Enabled", false);
 			SmtpOptions.Server = ini.GetValue("SMTP", "ServerName", "");
 			SmtpOptions.Port = ini.GetValue("SMTP", "Port", 587);
-			SmtpOptions.UseSsl = ini.GetValue("SMTP", "UseSSL", false);
+			SmtpOptions.SslOption = ini.GetValue("SMTP", "SSLOption", 1);
 			SmtpOptions.RequiresAuthentication = ini.GetValue("SMTP", "RequiresAuthentication", false);
 			SmtpOptions.User = ini.GetValue("SMTP", "User", "");
 			SmtpOptions.Password = ini.GetValue("SMTP", "Password", "");
@@ -5222,7 +5222,7 @@ namespace CumulusMX
 			ini.SetValue("SMTP", "Enabled", SmtpOptions.Enabled);
 			ini.SetValue("SMTP", "ServerName", SmtpOptions.Server);
 			ini.SetValue("SMTP", "Port", SmtpOptions.Port);
-			ini.SetValue("SMTP", "UseSSL", SmtpOptions.UseSsl);
+			ini.SetValue("SMTP", "SSLOption", SmtpOptions.SslOption);
 			ini.SetValue("SMTP", "RequiresAuthentication", SmtpOptions.RequiresAuthentication);
 			ini.SetValue("SMTP", "User", SmtpOptions.User);
 			ini.SetValue("SMTP", "Password", SmtpOptions.Password);
