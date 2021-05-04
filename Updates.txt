@@ -1,6 +1,17 @@
-b3127 beta changes
+b3128 beta changes
+——————————————————
+- Default web site: Changes to how text is handled to improve accessibility.
+	/js/setpagedata.js
+	/webfiles/webpagedata.js
 
-- SNMP: The MX Option "Use SSL/TLS" has changed to allow you to select from all the options available. This means MX does not have to second guess which option
+- New web tags (see main list below) for JavaScript encoded strings to support the above change
+- Internal improvements in error handling of the CMX API
+- Fix: SMTP Alarm emails. Add locking so only one email is sent concurrently
+
+
+b3127 beta changes
+——————————————————
+- SMTP: The MX Option "Use SSL/TLS" has changed to allow you to select from all the options available. This means MX does not have to second guess which option
         to use, but does make it more complex to configure.
         NOTE: After installing this release, YOU MAY HAVE TO ADJUST THIS SETTING, it will revert to "Auto", which should work for most servers
 
@@ -17,7 +28,7 @@ b3127 beta changes
 - MySQL: Special characters in usernames and passwords are now handled correctly
 
 
-3.11.0 - b3126
+3.11.0 - b3128
 ——————————————
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
 - Fix: OpenWeatherMap - create new station was not forcing the use of dot decimals for lat/long values
@@ -62,6 +73,13 @@ b3127 beta changes
 	Benefit = you can now link directly to a particular graph to show on page load
 - New: FineOffset stations now report a warning if the console logger interval does match the Cumulus MX interval
 - New: FineOffset experimental feature to set the console logger interval to match Cumulus logging interval
+- New: JavaScript encoded web tags. These tags were previously only available as HTML entity encoded strings:
+	<#latitudeJsEnc>, <#longitudeJsEnc>
+	<#locationJsEnc>, <#longlocationJsEnc>
+	<#forecastJsEnc>, <#cumulusforecastJsEnc>, <#wsforecastJsEnc>
+	<#currcondJsEnc>,
+- New: Web tags with no HTML entity encoding:
+	<#tempunitnoenc>, <#altitudenoenc>
 
 - Changed: Moved FTP Logging option from Internet Settings to Program Settings to collect all the logging options in one place
 - Changed: A Data Stopped state now stops all logging, MySQL and web activity
