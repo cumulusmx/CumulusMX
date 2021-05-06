@@ -2703,6 +2703,10 @@ namespace CumulusMX
 					{
 						uploadfile = GetExtraLogFileName(DateTime.Now);
 					}
+					else if (uploadfile == "<airlinklogfile")
+					{
+						uploadfile = GetAirLinkLogFileName(DateTime.Now);
+					}
 
 					if (File.Exists(uploadfile))
 					{
@@ -2713,6 +2717,10 @@ namespace CumulusMX
 						else if (remotefile.Contains("<currentextralogfile>"))
 						{
 							remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(DateTime.Now)));
+						}
+						else if (remotefile.Contains("<airlinklogfile"))
+						{
+							remotefile = remotefile.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(DateTime.Now)));
 						}
 
 						// all checks OK, file needs to be uploaded
@@ -2769,6 +2777,10 @@ namespace CumulusMX
 						{
 							uploadfile = GetExtraLogFileName(DateTime.Now);
 						}
+						else if (uploadfile == "<airlinklogfile")
+						{
+							uploadfile = GetAirLinkLogFileName(DateTime.Now);
+						}
 
 						if (File.Exists(uploadfile))
 						{
@@ -2779,6 +2791,10 @@ namespace CumulusMX
 							else if (remotefile.Contains("<currentextralogfile>"))
 							{
 								remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(DateTime.Now)));
+							}
+							else if (remotefile.Contains("<airlinklogfile"))
+							{
+								remotefile = remotefile.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(DateTime.Now)));
 							}
 
 							if (ExtraFiles[i].process)
@@ -7123,6 +7139,10 @@ namespace CumulusMX
 							{
 								uploadfile = GetExtraLogFileName(DateTime.Now);
 							}
+							else if (uploadfile == "<airlinklogfile")
+							{
+								uploadfile = GetAirLinkLogFileName(DateTime.Now);
+							}
 
 							if (File.Exists(uploadfile))
 							{
@@ -7133,6 +7153,10 @@ namespace CumulusMX
 								else if (remotefile.Contains("<currentextralogfile>"))
 								{
 									remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(DateTime.Now)));
+								}
+								else if (remotefile.Contains("<airlinklogfile"))
+								{
+									remotefile = remotefile.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(DateTime.Now)));
 								}
 
 								if (ExtraFiles[i].process)
@@ -7313,6 +7337,10 @@ namespace CumulusMX
 								{
 									uploadfile = GetExtraLogFileName(logDay);
 								}
+								else if (uploadfile == "<airlinklogfile")
+								{
+									uploadfile = GetAirLinkLogFileName(logDay);
+								}
 
 								if (File.Exists(uploadfile))
 								{
@@ -7323,6 +7351,10 @@ namespace CumulusMX
 									else if (remotefile.Contains("<currentextralogfile>"))
 									{
 										remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDay)));
+									}
+									else if (remotefile.Contains("<airlinklogfile"))
+									{
+										remotefile = remotefile.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(logDay)));
 									}
 
 									// all checks OK, file needs to be uploaded
@@ -8437,6 +8469,10 @@ namespace CumulusMX
 						{
 							uploadfile = GetExtraLogFileName(logDay);
 						}
+						else if (uploadfile == "<airlinklogfile")
+						{
+							uploadfile = GetAirLinkLogFileName(logDay);
+						}
 
 						if (File.Exists(uploadfile))
 						{
@@ -8447,6 +8483,10 @@ namespace CumulusMX
 							else if (remotefile.Contains("<currentextralogfile>"))
 							{
 								remotefile = remotefile.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDay)));
+							}
+							else if (remotefile.Contains("<airlinklogfile"))
+							{
+								remotefile = remotefile.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(logDay)));
 							}
 
 							if (ExtraFiles[i].process)

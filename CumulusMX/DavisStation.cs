@@ -2099,27 +2099,39 @@ namespace CumulusMX
 			}
 			else
 			{
-				stream = socket.GetStream();
-				int retries = 0;
-
-				do
+				try
 				{
-					if (!WakeVP(socket))
-					{
-						cumulus.LogMessage("GetArchiveData: Unable to wake VP");
-					}
+					stream = socket.GetStream();
+					int retries = 0;
 
-					cumulus.LogMessage("GetArchiveData: Sending DMPAFT");
-					const string dmpaft = "DMPAFT\n";
-					stream.Write(Encoding.ASCII.GetBytes(dmpaft), 0, dmpaft.Length);
-
-					ack = WaitForACK(stream);
-					if (!ack)
+					do
 					{
-						cumulus.LogMessage("GetArchiveData: No Ack in response to DMPAFT");
-						retries++;
-					}
-				} while (!ack && retries < 2);
+						if (!WakeVP(socket))
+						{
+							cumulus.LogMessage("GetArchiveData: Unable to wake VP");
+						}
+
+						cumulus.LogMessage("GetArchiveData: Sending DMPAFT");
+						const string dmpaft = "DMPAFT\n";
+						stream.Write(Encoding.ASCII.GetBytes(dmpaft), 0, dmpaft.Length);
+
+						ack = WaitForACK(stream);
+						if (!ack)
+						{
+							cumulus.LogMessage("GetArchiveData: No Ack in response to DMPAFT");
+							retries++;
+						}
+					} while (!ack && retries < 2);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("GetArchiveData: Error sending LOOP command [DMPAFT]: " + ex.Message);
+					cumulus.LogDebugMessage("GetArchiveData: Attempting to reconnect to station");
+					InitTCP();
+					cumulus.LogDebugMessage("GetArchiveData: Reconnected to station");
+
+					return;
+				}
 			}
 
 			if (!ack)
@@ -3389,7 +3401,17 @@ namespace CumulusMX
 
 			if (timeoutMs > -1)
 			{
-				stream.ReadTimeout = timeoutMs;
+				try
+				{
+					stream.ReadTimeout = timeoutMs;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogDebugMessage($"WaitForAck: {tryCount} Error - {ex.Message}");
+					cumulus.LogDebugMessage("WaitForAck: Attempting to reconnect to logger");
+					InitTCP();
+					cumulus.LogDebugMessage("WaitForAck: Reconnected to logger");
+				}
 			}
 
 			do
