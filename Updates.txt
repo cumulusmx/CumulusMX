@@ -1,3 +1,10 @@
+3.11.1 - b3130
+——————————————
+- Fix: Change Test email logging success on failure
+
+- New: Pressure change in last 3 hours web tag - <#PressChangeLast3Hours>
+
+
 3.11.0 - b3129
 ——————————————
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm

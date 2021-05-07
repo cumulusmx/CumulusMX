@@ -421,9 +421,16 @@ namespace CumulusMX
 					}
 				}
 
-				cumulus.emailer.SendTestEmail(dest, from, "Cumulus MX Test Email", "A test email from Cumulus MX.", result.useHtml);
+				var ret = cumulus.emailer.SendTestEmail(dest, from, "Cumulus MX Test Email", "A test email from Cumulus MX.", result.useHtml);
 
-				cumulus.LogMessage("Test email sent without error");
+				if (ret == "OK")
+				{
+					cumulus.LogMessage("Test email sent without error");
+				}
+				else
+				{
+					return ret;
+				}
 			}
 			catch (Exception ex)
 			{
