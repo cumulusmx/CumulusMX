@@ -9,18 +9,18 @@ namespace CumulusMX
 	public class ProgramSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string programOptionsFile;
-		private readonly string programSchemaFile;
+		private readonly string optionsFile;
+		private readonly string schemaFile;
 
 		public ProgramSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
 
-			programOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramOptions.json";
-			programSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramSchema.json";
+			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramOptions.json";
+			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramSchema.json";
 		}
 
-		public string GetProgramAlpacaFormData()
+		public string GetAlpacaFormData()
 		{
 			// Build the settings data, convert to JSON, and return it
 			var startup = new JsonProgramSettingsStartupOptions()
@@ -35,6 +35,8 @@ namespace CumulusMX
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
+				ftplogging = cumulus.FTPlogging,
+				emaillogging = cumulus.SmtpOptions.Logging,
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple
 			};
 
@@ -48,18 +50,18 @@ namespace CumulusMX
 			return JsonSerializer.SerializeToString(settings);
 		}
 
-		public string GetProgramAlpacaFormOptions()
+		public string GetAlpacaFormOptions()
 		{
-			using (StreamReader sr = new StreamReader(programOptionsFile))
+			using (StreamReader sr = new StreamReader(optionsFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
 			}
 		}
 
-		public string GetProgramAlpacaFormSchema()
+		public string GetAlpacaFormSchema()
 		{
-			using (StreamReader sr = new StreamReader(programSchemaFile))
+			using (StreamReader sr = new StreamReader(schemaFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
@@ -67,51 +69,64 @@ namespace CumulusMX
 		}
 
 
-		public string UpdateProgramConfig(IHttpContext context)
+		public string UpdateConfig(IHttpContext context)
 		{
 			var errorMsg = "";
+			var json = "";
+			JsonProgramSettings settings;
 			context.Response.StatusCode = 200;
+
 			// get the response
 			try
 			{
-				cumulus.LogMessage("Updating program settings");
+				cumulus.LogMessage("Updating Program settings");
 
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonSerializer.DeserializeFromString<JsonProgramSettings>(json);
-
-				// process the settings
-				try
-				{
-					cumulus.ProgramOptions.StartupPingHost = settings.startup.startuphostping;
-					cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
-					cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
-					cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
-					cumulus.ProgramOptions.DebugLogging = settings.options.debuglogging;
-					cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
-					cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Program Options: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// Save the settings
-				cumulus.WriteIniFile();
+				settings = JsonSerializer.DeserializeFromString<JsonProgramSettings>(json);
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				var msg = "Error deserializing Program Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Program Data: " + json);
 				context.Response.StatusCode = 500;
-				return ex.Message;
+				return msg;
 			}
+
+			// process the settings
+			try
+			{
+				cumulus.ProgramOptions.StartupPingHost = settings.startup.startuphostping;
+				cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
+				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
+				cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
+				cumulus.ProgramOptions.DebugLogging = settings.options.debuglogging;
+				cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
+				cumulus.SmtpOptions.Logging = settings.options.emaillogging;
+				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
+
+				if (settings.options.ftplogging != cumulus.FTPlogging)
+				{
+					cumulus.FTPlogging = settings.options.ftplogging;
+					cumulus.SetFtpLogging(cumulus.FTPlogging);
+				}
+
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error processing Program Options: " + ex.Message;
+				cumulus.LogMessage(msg);
+				errorMsg += msg + "\n\n";
+				context.Response.StatusCode = 500;
+			}
+
+			// Save the settings
+			cumulus.WriteIniFile();
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
@@ -135,6 +150,8 @@ namespace CumulusMX
 	{
 		public bool debuglogging { get; set; }
 		public bool datalogging { get; set; }
+		public bool ftplogging { get; set; }
+		public bool emaillogging { get; set; }
 		public bool stopsecondinstance { get; set; }
 	}
 }

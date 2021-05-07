@@ -22,10 +22,10 @@ namespace CumulusMX
 		public ImetStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Manufacturer = cumulus.INSTROMET;
-			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetOptions.ImetUpdateLogPointer);
-			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetOptions.ImetWaitTime);
-			cumulus.LogMessage("ImetReadDelay=" + cumulus.ImetOptions.ImetReadDelay);
-			cumulus.LogMessage("ImetOptions.ImetBaudRate=" + cumulus.ImetOptions.ImetBaudRate);
+			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetOptions.UpdateLogPointer);
+			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetOptions.WaitTime);
+			cumulus.LogMessage("ImetReadDelay=" + cumulus.ImetOptions.ReadDelay);
+			cumulus.LogMessage("ImetBaudRate=" + cumulus.ImetOptions.BaudRate);
 			cumulus.LogMessage("Instromet: Attempting to open " + cumulus.ComportName);
 
 			calculaterainrate = true;
@@ -36,7 +36,7 @@ namespace CumulusMX
 			cumulus.RainDPlaceDefaults[1] = 3;  // in
 			cumulus.RainFormat = cumulus.SunFormat = "F2";
 
-			comport = new SerialPort(cumulus.ComportName, cumulus.ImetOptions.ImetBaudRate, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
+			comport = new SerialPort(cumulus.ComportName, cumulus.ImetOptions.BaudRate, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
 
 			try
 			{
@@ -247,7 +247,7 @@ namespace CumulusMX
 			}
 			finally
 			{
-				Thread.Sleep(cumulus.ImetOptions.ImetWaitTime);
+				Thread.Sleep(cumulus.ImetOptions.WaitTime);
 			}
 		}
 
@@ -834,7 +834,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						Thread.Sleep(cumulus.ImetOptions.ImetReadDelay);
+						Thread.Sleep(cumulus.ImetOptions.ReadDelay);
 					}
 				}
 			}
@@ -1013,7 +1013,7 @@ namespace CumulusMX
 				cumulus.LogMessage(response);
 			}
 
-			if (!cumulus.ImetOptions.ImetUpdateLogPointer || stop)
+			if (!cumulus.ImetOptions.UpdateLogPointer || stop)
 				return;
 
 			// Keep the log pointer current, to avoid large numbers of logs

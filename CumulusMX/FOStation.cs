@@ -17,10 +17,10 @@ namespace CumulusMX
 
 		private readonly double pressureOffset;
 		private HidDevice hidDevice;
-		private readonly HidStream stream;
+		private HidStream stream;
 		private List<HistoryData> datalist;
 
-		private readonly int maxHistoryEntries;
+		//private readonly int maxHistoryEntries;
 		private int prevaddr = -1;
 		private int prevraintotal = -1;
 		private int ignoreraincount;
@@ -61,39 +61,48 @@ namespace CumulusMX
 			{
 				foEntrysize = 0x14;
 				foMaxAddr = 0xFFEC;
-				maxHistoryEntries = 3264;
+				//maxHistoryEntries = 3264;
 			}
 			else
 			{
 				foEntrysize = 0x10;
 				foMaxAddr = 0xFFF0;
-				maxHistoryEntries = 4080;
+				//maxHistoryEntries = 4080;
 			}
 
-			var devicelist = DeviceList.Local;
-
-			int vid = (cumulus.FineOffsetOptions.VendorID < 0 ? DefaultVid : cumulus.FineOffsetOptions.VendorID);
-			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
-
-			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x"+vid.ToString("X4")+" ProductID=0x"+pid.ToString("X4"));
-			cumulus.LogConsoleMessage("Looking for Fine Offset station");
-
-			hidDevice = devicelist.GetHidDeviceOrNull(vendorID: vid, productID: pid);
-
-			if (hidDevice != null)
+			do
 			{
-				cumulus.LogMessage("Fine Offset station found");
-				cumulus.LogConsoleMessage("Fine Offset station found");
-
-				if (hidDevice.TryOpen(out stream))
+				if (OpenHidDevice())
 				{
-					cumulus.LogMessage("Stream opened");
-					cumulus.LogConsoleMessage("Connected to station");
+					// Get the block of data containing the logging interval
+					cumulus.LogMessage("Reading station logging interval");
+					if (ReadAddress(0x10, data))
+					{
+						int logint = data[0];
+
+						if (logint != cumulus.logints[cumulus.DataLogInterval])
+						{
+							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({cumulus.logints[cumulus.DataLogInterval]} mins)";
+							cumulus.LogConsoleMessage(msg);
+							cumulus.LogMessage(msg);
+							if (cumulus.FineOffsetOptions.SetLoggerInterval)
+							{
+								WriteAddress(0x10, (byte)cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
+								WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
+								do
+								{
+									Thread.Sleep(1000);  // sleep to let it reconfigure
+									ReadAddress(0x10, data);
+								} while (data[9] != 0);
+							}
+						}
+					}
+
 					// Get the block of data containing the abs and rel pressures
-					cumulus.LogMessage("Reading pressure offset");
-					ReadAddress(0x20, data);
-					double relpressure = (((data[1] & 0x3f)*256) + data[0])/10.0f;
-					double abspressure = (((data[3] & 0x3f)*256) + data[2])/10.0f;
+					cumulus.LogMessage("Reading station pressure offset");
+
+					double relpressure = (((data[17] & 0x3f) * 256) + data[16]) / 10.0f;
+					double abspressure = (((data[19] & 0x3f) * 256) + data[18]) / 10.0f;
 					pressureOffset = relpressure - abspressure;
 					cumulus.LogMessage("Rel pressure      = " + relpressure);
 					cumulus.LogMessage("Abs pressure      = " + abspressure);
@@ -110,26 +119,10 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("Stream open failed");
-					cumulus.LogConsoleMessage("Unable to connect to station");
+					// pause for 10 seconds then try again
+					Thread.Sleep(10000);
 				}
-			}
-			else
-			{
-				cumulus.LogMessage("*** Fine Offset station not found ***");
-				cumulus.LogConsoleMessage("Fine Offset station not found");
-				cumulus.LogMessage("Found the following USB HID Devices...");
-				int cnt = 0;
-				foreach (HidDevice device in devicelist.GetHidDevices())
-				{
-					cumulus.LogMessage($"   {device}");
-					cnt++;
-				}
-				if (cnt == 0)
-				{
-					cumulus.LogMessage("No USB HID devices found!");
-				}
-			}
+			} while (hidDevice == null || stream == null || !stream.CanRead);
 		}
 
 		public override void startReadingHistoryData()
@@ -197,14 +190,25 @@ namespace CumulusMX
 			DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
-			ReadAddress(0, data);
+			cumulus.LogDebugMessage("Reading fixed memory block");
+			if (!ReadAddress(0, data))
+			{
+				return;
+			}
 
 			// get address of current location
-			int addr = ((data[31])*256) + data[30];
-			//int previousaddress = addr;
+			int addr = data[31] * 256 + data[30];
+			int previousaddress = addr;
+
+			// get the number of logger entries the console has recorded
+			int logEntries = data[28] * 256 + data[27];
+			cumulus.LogDebugMessage($"Console has {logEntries} log entries");
 
 			cumulus.LogMessage("Reading current address " + addr.ToString("X4"));
-			ReadAddress(addr, data);
+			if (!ReadAddress(addr, data))
+			{
+				return;
+			}
 
 			bool moredata = true;
 
@@ -214,35 +218,53 @@ namespace CumulusMX
 			{
 				followinginterval = interval;
 				interval = data[0];
+				cumulus.LogDebugMessage($"This logger record interval = {interval} mins");
 
 				// calculate timestamp of previous history data
 				timestamp = timestamp.AddMinutes(-interval);
 
-				if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < maxHistoryEntries - 2))
+				if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < logEntries))
 				{
+					// Test if the current address has changed
+					cumulus.LogDebugMessage("Reading fixed memory block");
+					if (!ReadAddress(0, data))
+					{
+						return;
+					}
+					var newAddr = data[31] * 256 + data[30];
+					if (newAddr != previousaddress)
+					{
+						// The current logger address has changed, pause to allow console to sort itself out
+						cumulus.LogDebugMessage("Console logger location changed, pausing for a sort while");
+						previousaddress = newAddr;
+						Thread.Sleep(2000);
+					}
+
 					// Read previous data
 					addr -= foEntrysize;
-					if (addr == 0xF0) addr = foMaxAddr; // wrap around
+					if (addr < 0x100)
+					{
+						addr = foMaxAddr; // wrap around
+					}
 
-					ReadAddress(addr, data);
+					cumulus.LogMessage("Read logger entry for " + timestamp + " address " + addr.ToString("X4"));
+					if (!ReadAddress(addr, data))
+					{
+						return;
+					}
+					cumulus.LogDebugMessage("Logger Data block: " + BitConverter.ToString(data, 0, foEntrysize));
 
 					// add history data to collection
 
 					var histData = new HistoryData();
-					string msg = "Read logger entry for " + timestamp + " address " + addr.ToString("X4");
-					int numBytes = hasSolar ? 20 : 16;
 
-					cumulus.LogMessage(msg);
-
-
-					cumulus.LogDataMessage("Data block: " + BitConverter.ToString(data, 0, numBytes));
 
 					histData.timestamp = timestamp;
 					histData.interval = interval;
 					histData.followinginterval = followinginterval;
 					histData.inHum = data[1] == 255 ? 10 : data[1];
 					histData.outHum = data[4] == 255 ? 10 : data[4];
-					double outtemp = ((data[5]) + (data[6] & 0x7F)*256)/10.0f;
+					double outtemp = (data[5] + (data[6] & 0x7F)*256)/10.0f;
 					var sign = (byte) (data[6] & 0x80);
 					if (sign == 0x80) outtemp = -outtemp;
 					if (outtemp > -200) histData.outTemp = outtemp;
@@ -252,7 +274,7 @@ namespace CumulusMX
 
 					histData.rainCounter = data[13] + (data[14]*256);
 
-					double intemp = ((data[2]) + (data[3] & 0x7F)*256)/10.0f;
+					double intemp = (data[2] + (data[3] & 0x7F)*256)/10.0f;
 					sign = (byte) (data[3] & 0x80);
 					if (sign == 0x80) intemp = -intemp;
 					histData.inTemp = intemp;
@@ -275,6 +297,7 @@ namespace CumulusMX
 				}
 			}
 
+			cumulus.LogMessage("Completed read of history data from the console");
 			cumulus.LogMessage("Number of history entries = " + datalist.Count);
 
 			if (datalist.Count > 0)
@@ -316,7 +339,7 @@ namespace CumulusMX
 				}
 
 				// In rollover hour and rollover not yet done
-				if ((h == rollHour) && !rolloverdone)
+				if (h == rollHour && !rolloverdone)
 				{
 					// do rollover
 					cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
@@ -332,7 +355,7 @@ namespace CumulusMX
 				}
 
 				// In midnight hour and midnight rain (and sun) not yet done
-				if ((h == 0) && !midnightraindone)
+				if (h == 0 && !midnightraindone)
 				{
 					ResetMidnightRain(timestamp);
 					ResetSunshineHours();
@@ -340,18 +363,22 @@ namespace CumulusMX
 				}
 
 				// Indoor Humidity ======================================================
-				if ((historydata.inHum > 100) && (historydata.inHum != 255))
-				{
-					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum);
-				}
-				else if ((historydata.inHum > 0) && (historydata.inHum != 255))
+				if (historydata.inHum > 100 || historydata.inHum < 0)
 				{
 					// 255 is the overflow value, when RH gets below 10% - ignore
+					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum);
+				}
+				else
+				{
 					DoIndoorHumidity(historydata.inHum);
 				}
 
 				// Indoor Temperature ===================================================
-				if ((historydata.inTemp > -50) && (historydata.inTemp < 50))
+				if (historydata.inTemp < -50 || historydata.inTemp > 50)
+				{
+					cumulus.LogMessage("Ignoring bad data: intemp = " + historydata.inTemp);
+				}
+				else
 				{
 					DoIndoorTemp(ConvertTempCToUser(historydata.inTemp));
 				}
@@ -375,31 +402,32 @@ namespace CumulusMX
 				else
 				{
 					// Outdoor Humidity =====================================================
-					if ((historydata.outHum > 100) && (historydata.outHum != 255))
-					{
-						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum);
-					}
-					else if ((historydata.outHum > 0) && (historydata.outHum != 255))
+					if (historydata.outHum > 100 || historydata.outHum < 0)
 					{
 						// 255 is the overflow value, when RH gets below 10% - ignore
+						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum);
+					}
+					else
+					{
 						DoOutdoorHumidity(historydata.outHum, timestamp);
 					}
 
 					// Wind =================================================================
-					if ((historydata.windGust > 60) || (historydata.windGust < 0))
+					if (historydata.windGust > 60 || historydata.windGust < 0)
 					{
 						cumulus.LogMessage("Ignoring bad data: gust = " + historydata.windGust);
 					}
-					else if ((historydata.windSpeed > 60) || (historydata.windSpeed < 0))
+					else if (historydata.windSpeed > 60 || historydata.windSpeed < 0)
 					{
 						cumulus.LogMessage("Ignoring bad data: speed = " + historydata.windSpeed);
 					}
+					else
 					{
 						DoWind(ConvertWindMSToUser(historydata.windGust), historydata.windBearing, ConvertWindMSToUser(historydata.windSpeed), timestamp);
 					}
 
 					// Outdoor Temperature ==================================================
-					if ((historydata.outTemp < -50) || (historydata.outTemp > 70))
+					if (historydata.outTemp < -50 || historydata.outTemp > 70)
 					{
 						cumulus.LogMessage("Ignoring bad data: outtemp = " + historydata.outTemp);
 					}
@@ -413,8 +441,10 @@ namespace CumulusMX
 
 					// update chill hours
 					if (OutdoorTemperature < cumulus.ChillHourThreshold)
+					{
 						// add 1 minute to chill hours
 						ChillHours += (historydata.interval / 60.0);
+					}
 
 					var raindiff = prevraintotal == -1 ? 0 : historydata.rainCounter - prevraintotal;
 
@@ -554,12 +584,63 @@ namespace CumulusMX
 			tmrDataRead.Enabled = true;
 		}
 
+		private bool OpenHidDevice()
+		{
+			var devicelist = DeviceList.Local;
+
+			int vid = (cumulus.FineOffsetOptions.VendorID < 0 ? DefaultVid : cumulus.FineOffsetOptions.VendorID);
+			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
+
+			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x" + vid.ToString("X4") + " ProductID=0x" + pid.ToString("X4"));
+			cumulus.LogConsoleMessage("Looking for Fine Offset station");
+
+			hidDevice = devicelist.GetHidDeviceOrNull(vendorID: vid, productID: pid);
+
+			if (hidDevice != null)
+			{
+				cumulus.LogMessage("Fine Offset station found");
+				cumulus.LogConsoleMessage("Fine Offset station found");
+
+				if (hidDevice.TryOpen(out stream))
+				{
+					cumulus.LogMessage("Stream opened");
+					cumulus.LogConsoleMessage("Connected to station");
+					stream.Flush();
+					return true;
+				}
+				else
+				{
+					cumulus.LogMessage("Stream open failed");
+					return false;
+				}
+			}
+			else
+			{
+				cumulus.LogMessage("*** Fine Offset station not found ***");
+				cumulus.LogMessage("Found the following USB HID Devices...");
+				int cnt = 0;
+				foreach (HidDevice device in devicelist.GetHidDevices())
+				{
+					cumulus.LogMessage($"   {device}");
+					cnt++;
+				}
+
+				if (cnt == 0)
+				{
+					cumulus.LogMessage("No USB HID devices found!");
+				}
+
+				return false;
+			}
+		}
+
+
 		/// <summary>
 		///     Read the 32 bytes starting at 'address'
 		/// </summary>
 		/// <param name="address">The address of the data</param>
 		/// <param name="buff">Where to return the data</param>
-		private void ReadAddress(int address, byte[] buff)
+		private bool ReadAddress(int address, byte[] buff)
 		{
 			//cumulus.LogMessage("Reading address " + address.ToString("X6"));
 			var lowbyte = (byte) (address & 0xFF);
@@ -575,11 +656,28 @@ namespace CumulusMX
 			int ptr = 0;
 
 			if (hidDevice == null)
-				return;
+			{
+				DataStopped = true;
+				cumulus.DataStoppedAlarm.Triggered = true;
+				return false;
+			}
 
 			//response = device.WriteRead(0x00, request);
-			stream.Write(request);
-			Thread.Sleep(cumulus.FineOffsetOptions.FineOffsetReadTime);
+			try
+			{
+				stream.Write(request);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
+				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				DataStopped = true;
+				cumulus.DataStoppedAlarm.Triggered = true;
+				return false;
+			}
+
+			Thread.Sleep(cumulus.FineOffsetOptions.ReadTime);
 			for (int i = 1; i < 5; i++)
 			{
 				//cumulus.LogMessage("Reading 8 bytes");
@@ -592,6 +690,9 @@ namespace CumulusMX
 					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting");
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
+					DataStopped = true;
+					cumulus.DataStoppedAlarm.Triggered = true;
+					return false;
 				}
 
 				var recData = " Data" + i + ": "  + BitConverter.ToString(response, startByte, responseLength - startByte);
@@ -601,10 +702,61 @@ namespace CumulusMX
 				}
 				cumulus.LogDataMessage(recData);
 			}
+			return true;
+		}
+
+		private bool WriteAddress(int address, byte val)
+		{
+			var addrlowbyte = (byte)(address & 0xFF);
+			var addrhighbyte = (byte)(address >> 8);
+
+			var request = new byte[] { 0, 0xa2, addrhighbyte, addrlowbyte, 0x20, 0xa2, val, 0, 0x20 };
+
+			if (hidDevice == null)
+			{
+				return false;
+			}
+
+			//response = device.WriteRead(0x00, request);
+			try
+			{
+				stream.Write(request);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
+				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				DataStopped = true;
+				cumulus.DataStoppedAlarm.Triggered = true;
+				return false;
+			}
+
+			return true;
 		}
 
 		private void DataReadTimerTick(object state, ElapsedEventArgs elapsedEventArgs)
 		{
+			if (DataStopped)
+			{
+				cumulus.LogMessage("Attempting to reopen the USB device...");
+				// We are not getting any data from the station, try reopening the USB connection
+				if (stream != null)
+				{
+					try
+					{
+						stream.Close();
+					}
+					catch { }
+				}
+
+				if (!OpenHidDevice())
+				{
+					cumulus.LogMessage("Failed to reopen the USB device");
+					return;
+				}
+			}
+
 			if (!readingData)
 			{
 				readingData = true;
@@ -646,7 +798,7 @@ namespace CumulusMX
 
 			var data = new byte[32];
 
-			if (cumulus.FineOffsetOptions.FineOffsetSyncReads && !synchronising)
+			if (cumulus.FineOffsetOptions.SyncReads && !synchronising)
 			{
 				if ((DateTime.Now - FOSensorClockTime).TotalDays > 1)
 				{
@@ -658,21 +810,21 @@ namespace CumulusMX
 				}
 
 				// Check that were not within N seconds of the station updating memory
-				bool sensorclockOK = ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 >= (cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod - 1)) &&
-				                     ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 <= (47 - cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod));
-				bool stationclockOK = ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 >= (cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod - 1)) &&
-				                      ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 <= (59 - cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod));
+				bool sensorclockOK = ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
+				                     ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 <= (47 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
+				bool stationclockOK = ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
+				                      ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 <= (59 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
 
 				if (!sensorclockOK || !stationclockOK)
 				{
 					if (!sensorclockOK)
 					{
-						cumulus.LogDebugMessage("Within "+cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod +" seconds of sensor data change, skipping read");
+						cumulus.LogDebugMessage("Within "+cumulus.FineOffsetOptions.ReadAvoidPeriod +" seconds of sensor data change, skipping read");
 					}
 
 					if (!stationclockOK)
 					{
-						cumulus.LogDebugMessage("Within " + cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod + " seconds of station clock minute change, skipping read");
+						cumulus.LogDebugMessage("Within " + cumulus.FineOffsetOptions.ReadAvoidPeriod + " seconds of station clock minute change, skipping read");
 					}
 
 					return;
@@ -682,29 +834,39 @@ namespace CumulusMX
 			// get the block of memory containing the current data location
 
 			cumulus.LogDataMessage("Reading first block");
-			ReadAddress(0, data);
+			if (!ReadAddress(0, data))
+			{
+				return;
+			}
 
 			int addr = (data[31]*256) + data[30];
 
-			cumulus.LogDataMessage("First block read, addr = " + addr.ToString("X8"));
+			cumulus.LogDataMessage("First block read, addr = " + addr.ToString("X4"));
 
 			if (addr != prevaddr)
 			{
 				// location has changed, skip this read to give it chance to update
 				//cumulus.LogMessage("Location changed, skipping");
+				cumulus.LogDebugMessage("Address changed");
+				cumulus.LogDebugMessage("addr=" + addr.ToString("X4") + " previous=" + prevaddr.ToString("X4"));
+
 				if (synchroPhase == 2)
 				{
-					cumulus.LogDebugMessage("Address changed");
-					cumulus.LogDebugMessage("addr=" + addr.ToString("X4") + "previous=" + prevaddr.ToString("X4"));
 					FOStationClockTime = DateTime.Now;
 					StopSynchronising();
 				}
+
+				prevaddr = addr;
+				return;
 			}
 			else
 			{
-				cumulus.LogDataMessage("Reading data, addr = " + addr.ToString("X8"));
+				cumulus.LogDataMessage("Reading data, addr = " + addr.ToString("X4"));
 
-				ReadAddress(addr, data);
+				if (!ReadAddress(addr, data))
+				{
+					return;
+				}
 
 				cumulus.LogDataMessage("Data read - " + BitConverter.ToString(data));
 
@@ -748,14 +910,14 @@ namespace CumulusMX
 					prevdata[i] = data[i];
 				}
 
-				if ((!synchronising) || ((readCounter%20) == 0))
+				if (!synchronising || (readCounter%20) == 0)
 				{
 					LatestFOReading = addr.ToString("X4") + ": " + BitConverter.ToString(data, 0, 16);
 					cumulus.LogDataMessage(LatestFOReading);
 
 					// Indoor Humidity ====================================================
 					int inhum = data[1];
-					if ((inhum > 100) && (inhum != 255))
+					if (inhum > 100 || inhum < 0)
 					{
 						// bad value
 						cumulus.LogMessage("Ignoring bad data: inhum = " + inhum);
@@ -782,7 +944,11 @@ namespace CumulusMX
 						intemp = -intemp;
 					}
 
-					if ((intemp > -50) && (intemp < 50))
+					if (intemp < -50 || intemp > 50)
+					{
+						cumulus.LogMessage("Ignoring bad data: intemp = " + intemp);
+					}
+					else
 					{
 						DoIndoorTemp(ConvertTempCToUser(intemp));
 					}
@@ -790,7 +956,7 @@ namespace CumulusMX
 					// Pressure =========================================================
 					double pressure = (data[7] + ((data[8] & 0x3f)*256))/10.0f + pressureOffset;
 
-					if ((pressure < cumulus.EwOptions.MinPressMB) || (pressure > cumulus.EwOptions.MaxPressMB))
+					if (pressure < cumulus.EwOptions.MinPressMB || pressure > cumulus.EwOptions.MaxPressMB)
 					{
 						// bad value
 						cumulus.LogMessage("Ignoring bad data: pressure = " + pressure);
@@ -802,7 +968,7 @@ namespace CumulusMX
 						// Get station pressure in hPa by subtracting offset and calibrating
 						// EWpressure offset is difference between rel and abs in hPa
 						// PressOffset is user calibration in user units.
-						pressure = (pressure - pressureOffset) * PressureHPa(cumulus.Calib.Press.Mult) + PressureHPa(cumulus.Calib.Press.Offset);
+						pressure = (pressure - pressureOffset) * ConvertUserPressureToHPa(cumulus.Calib.Press.Mult) + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
 						StationPressure = ConvertPressMBToUser(pressure);
 
 						UpdatePressureTrendString();
@@ -822,7 +988,7 @@ namespace CumulusMX
 
 						// Outdoor Humidity ===================================================
 						int outhum = data[4];
-						if ((outhum > 100) && (outhum != 255))
+						if (outhum > 100 || outhum < 0)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: outhum = " + outhum);
@@ -846,12 +1012,12 @@ namespace CumulusMX
 						double windspeed = (data[9] + ((data[11] & 0x0F)*256))/10.0f;
 						var winddir = (int) (data[12]*22.5f);
 
-						if ((gust > 60) || (gust < 0))
+						if (gust > 60 || gust < 0)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: gust = " + gust);
 						}
-						else if ((windspeed > 60) || (windspeed < 0))
+						else if (windspeed > 60 || windspeed < 0)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: speed = " + gust);
@@ -866,7 +1032,7 @@ namespace CumulusMX
 						sign = (byte) (data[6] & 0x80);
 						if (sign == 0x80) outtemp = -outtemp;
 
-						if ((outtemp < -50) || (outtemp > 70))
+						if (outtemp < -50 || outtemp > 70)
 						{
 							// bad value
 							cumulus.LogMessage("Ignoring bad data: outtemp = " + outtemp);
@@ -882,21 +1048,17 @@ namespace CumulusMX
 
 								CheckForDewpointHighLow(now);
 							}
-							;
 
 							// calculate wind chill
-							if ((outtemp > -50) || (outtemp < 70))
-							{
-								// The 'global average speed will have been determined by the call of DoWind
-								// so use that in the wind chill calculation
-								double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
+							// The 'global average speed will have been determined by the call of DoWind
+							// so use that in the wind chill calculation
+							double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
 
-								// windinMPH = calibwind * 2.23693629;
-								// calculate wind chill from calibrated C temp and calibrated win in KPH
-								double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
+							// windinMPH = calibwind * 2.23693629;
+							// calculate wind chill from calibrated C temp and calibrated win in KPH
+							double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
 
-								DoWindChill(ConvertTempCToUser(val), now);
-							}
+							DoWindChill(ConvertTempCToUser(val), now);
 
 							DoApparentTemp(now);
 							DoFeelsLike(now);
@@ -969,8 +1131,6 @@ namespace CumulusMX
 					}
 				}
 			}
-
-			prevaddr = addr;
 		}
 
 		private void StartSynchronising()

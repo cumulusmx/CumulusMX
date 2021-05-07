@@ -1109,7 +1109,7 @@ namespace CumulusMX
 								StationPressure = ConvertPressINHGToUser(data3.bar_absolute);
 								// Or do we use calibration? The VP2 code doesn't?
 								//StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
-								AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+								AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 							}
 							catch (Exception ex)
 							{
@@ -2286,7 +2286,7 @@ namespace CumulusMX
 									StationPressure = ConvertPressINHGToUser(data13baro.bar_absolute);
 									// Or do we use calibration? The VP2 code doesn't?
 									//StationPressure = ConvertPressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
-									AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(PressureHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+									AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 								catch (Exception ex)
 								{
