@@ -96,6 +96,7 @@ namespace CumulusMX
 
 			var data = new JsonNOAASettingsData()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				autosave = cumulus.NOAAAutoSave,
 
 				sitedetails = site,
@@ -234,6 +235,7 @@ namespace CumulusMX
 
 	public class JsonNOAASettingsData
 	{
+		public bool accessible { get; set; }
 		public bool autosave {get; set; }
 		public JsonNOAASettingsSite sitedetails { get; set; }
 		public JsonNOAASettingsOutput outputfiles { get; set; }

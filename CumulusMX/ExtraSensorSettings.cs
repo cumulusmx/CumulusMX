@@ -84,6 +84,7 @@ namespace CumulusMX
 
 			var data = new JsonExtraSensorSettings()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
 				airLink = airlink,
 				blakeLarsen = bl,
@@ -257,6 +258,7 @@ namespace CumulusMX
 
 	public class JsonExtraSensorSettings
 	{
+		public bool accessible { get; set; }
 		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }

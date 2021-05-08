@@ -71,6 +71,7 @@ namespace CumulusMX
 
 			var data = new JsonMysqlSettings()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				server = server,
 				monthenabled = cumulus.MonthlyMySqlEnabled,
 				monthly = monthly,
@@ -241,7 +242,7 @@ namespace CumulusMX
 			using (MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn))
 			{
 				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
-				
+
 				try
 				{
 					mySqlConn.Open();
@@ -295,6 +296,7 @@ namespace CumulusMX
 
 	public class JsonMysqlSettings
 	{
+		public bool accessible {get; set;}
 		public JsonMysqlSettingsServer server { get; set; }
 		public bool monthenabled { get; set; }
 		public JsonMysqlSettingsMonthly monthly { get; set; }

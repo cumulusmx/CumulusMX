@@ -491,6 +491,7 @@ namespace CumulusMX
 
 			var data = new JsonInternetSettingsData()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				website = websitesettings,
 				websettings = websettings,
 				externalprograms = externalprograms,
@@ -618,6 +619,7 @@ namespace CumulusMX
 
 	public class JsonInternetSettingsData
 	{
+		public bool accessible { get; set; }
 		public JsonInternetSettingsWebsite website { get; set; }
 		public JsonInternetSettingsWebSettings websettings { get; set; }
 		public JsonInternetSettingsExternalPrograms externalprograms { get; set; }
