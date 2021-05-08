@@ -42,6 +42,7 @@ namespace CumulusMX
 
 			var settings = new JsonProgramSettings()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
 				options = options
 			};
@@ -101,6 +102,7 @@ namespace CumulusMX
 			// process the settings
 			try
 			{
+				cumulus.ProgramOptions.EnableAccessibility = settings.accessible;
 				cumulus.ProgramOptions.StartupPingHost = settings.startup.startuphostping;
 				cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
 				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
@@ -134,6 +136,7 @@ namespace CumulusMX
 
 	public class JsonProgramSettings
 	{
+		public bool accessible { get; set; }
 		public JsonProgramSettingsStartupOptions startup { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
 	}

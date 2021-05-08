@@ -80,8 +80,10 @@ namespace CumulusMX
 			}
 		}
 
-		public void SendTestEmail(string[] to, string from, string subject, string message, bool isHTML)
+		public string SendTestEmail(string[] to, string from, string subject, string message, bool isHTML)
 		{
+			string retVal;
+
 			try
 			{
 				cumulus.LogDebugMessage($"SendEmail: Waiting for lock...");
@@ -128,17 +130,21 @@ namespace CumulusMX
 					client.Send(m);
 					client.Disconnect(true);
 				}
+
+				retVal = "OK";
 			}
 			catch (Exception e)
 			{
 				cumulus.LogMessage("SendEmail: Error - " + e);
-
+				retVal = e.Message;
 			}
 			finally
 			{
 				cumulus.LogDebugMessage($"SendEmail: Releasing lock...");
 				_writeLock.Release();
 			}
+
+			return retVal;
 		}
 
 

@@ -167,6 +167,7 @@ namespace CumulusMX
 
 			var data = new JsonCalibrationSettingsData()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				offsets = offsets,
 				multipliers = multipliers,
 				spikeremoval = spikeremoval,
@@ -198,6 +199,7 @@ namespace CumulusMX
 
 	public class JsonCalibrationSettingsData
 	{
+		public bool accessible { get; set; }
 		public JsonCalibrationSettingsOffsets offsets { get; set; }
 		public JsonCalibrationSettingsMultipliers multipliers { get; set; }
 		public JsonCalibrationSettingsSpikeRemoval spikeremoval { get; set; }

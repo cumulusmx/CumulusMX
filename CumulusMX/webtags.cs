@@ -459,10 +459,16 @@ namespace CumulusMX
 			return CheckRcDp(station.presstrendval, tagParams, cumulus.PressDPlaces);
 		}
 
-		private string TagTempChangeLastHour(Dictionary<string,string> tagParams)
+		private string TagPressChangeLast3Hours(Dictionary<string,string> tagParams)
+		{
+			return CheckRcDp(station.presstrendval * 3, tagParams, cumulus.PressDPlaces);
+		}
+
+		private string TagTempChangeLastHour(Dictionary<string, string> tagParams)
 		{
 			return CheckRc(station.TempChangeLastHour.ToString("+##0.0;-##0.0;0"), tagParams);
 		}
+
 
 		private string Tagdew(Dictionary<string,string> tagParams)
 		{
@@ -5139,6 +5145,7 @@ namespace CumulusMX
 				{ "dew", Tagdew },
 				{ "wetbulb", Tagwetbulb },
 				{ "presstrendval", Tagpresstrendval },
+				{ "PressChangeLast3Hours", TagPressChangeLast3Hours },
 				{ "windrunY", TagwindrunY },
 				{ "domwindbearingY", TagdomwindbearingY },
 				{ "domwinddirY", TagdomwinddirY },

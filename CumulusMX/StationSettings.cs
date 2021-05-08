@@ -405,6 +405,7 @@ namespace CumulusMX
 
 			var data = new JsonStationSettingsData()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				stationid = cumulus.StationType,
 				general = general,
 				davisvp2 = davisvp2,
@@ -1030,6 +1031,20 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Accessible
+				try
+				{
+					cumulus.ProgramOptions.EnableAccessibility = settings.accessible;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Accessibility setting: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -1176,6 +1191,7 @@ namespace CumulusMX
 
 	internal class JsonStationSettingsData
 	{
+		public bool accessible { get; set; }
 		public int stationid { get; set; }
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }

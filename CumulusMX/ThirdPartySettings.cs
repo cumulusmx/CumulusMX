@@ -488,6 +488,7 @@ namespace CumulusMX
 
 			var data = new JsonThirdPartySettings()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				twitter = twittersettings,
 				wunderground = wusettings,
 				windy = windysettings,
@@ -526,6 +527,7 @@ namespace CumulusMX
 
 	public class JsonThirdPartySettings
 	{
+		public bool accessible { get; set; }
 		public JsonThirdPartySettingsTwitterSettings twitter { get; set; }
 		public JsonThirdPartySettingsWunderground wunderground { get; set; }
 		public JsonThirdPartySettingsWindy windy { get; set; }

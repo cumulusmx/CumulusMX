@@ -26,6 +26,7 @@ using Unosquare.Labs.EmbedIO.Constants;
 using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
+using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -3498,6 +3499,7 @@ namespace CumulusMX
 				}
 			}
 
+			ProgramOptions.EnableAccessibility = ini.GetValue("Program", "EnableAccessibility", false);
 			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", "");
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
@@ -4549,6 +4551,8 @@ namespace CumulusMX
 			LogMessage("Writing Cumulus.ini file");
 
 			IniFile ini = new IniFile("Cumulus.ini");
+
+			ini.SetValue("Program", "EnableAccessibility", ProgramOptions.EnableAccessibility);
 
 			ini.SetValue("Program", "StartupPingHost", ProgramOptions.StartupPingHost);
 			ini.SetValue("Program", "StartupPingEscapeTime", ProgramOptions.StartupPingEscapeTime);
@@ -9401,6 +9405,7 @@ namespace CumulusMX
 
 	public class ProgramOptionsClass
 	{
+		public bool EnableAccessibility { get; set; }
 		public string StartupPingHost { get; set; }
 		public int StartupPingEscapeTime { get; set; }
 		public int StartupDelaySecs { get; set; }

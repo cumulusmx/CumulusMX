@@ -1,3 +1,23 @@
+3.11.1 - b3130
+——————————————
+- Fix: Fix Test email logging "success" on failure
+- Fix: Rollback FluentFTP package to previous 32.3.1 version due to crashes in Mono with newer versions
+
+- New: Pressure change in last 3 hours web tag - <#PressChangeLast3Hours>
+- New: Enable additional Accessibility feature - configured via either Station Settings or Program Settings
+	The following pages now have some enhanced accessibility features:
+	- Program Settings
+	- Station Settings
+	- Internet Settings
+	- Third Party Settings
+	- Extra Sensor Settings
+	- Calibration Settings
+	- NOAA Settings
+	- MySQL Settings
+	Adds a new entry in Cumulus.ini
+
+
+
 3.11.0 - b3129
 ——————————————
 - Fix: Remove THW Index in /web/websitedataT.json, and default web site index.htm
