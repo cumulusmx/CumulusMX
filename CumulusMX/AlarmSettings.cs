@@ -429,6 +429,7 @@ namespace CumulusMX
 				}
 				else
 				{
+					context.Response.StatusCode = 500;
 					return ret;
 				}
 			}

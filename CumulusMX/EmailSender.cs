@@ -50,7 +50,7 @@ namespace CumulusMX
 
 				m.Body = bodyBuilder.ToMessageBody();
 
-				using (SmtpClient client = new SmtpClient(cumulus.SmtpOptions.Logging ? new ProtocolLogger("MXdiags/smtp.log") : null))
+				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
 					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
 
@@ -112,7 +112,7 @@ namespace CumulusMX
 
 				m.Body = bodyBuilder.ToMessageBody();
 
-				using (SmtpClient client = new SmtpClient(cumulus.SmtpOptions.Logging ? new ProtocolLogger("MXdiags/smtp.log") : null))
+				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
 					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
 					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
