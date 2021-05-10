@@ -3505,17 +3505,16 @@ namespace CumulusMX
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
+			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
 			{
 				ProgramOptions.DebugLogging = true;
 				ProgramOptions.DataLogging = true;
-				SmtpOptions.Logging = true;
 			}
 			else
 			{
 				ProgramOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
 				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
-				SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			}
 
 			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
@@ -4559,8 +4558,8 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
-			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 
+			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
@@ -4577,6 +4576,9 @@ namespace CumulusMX
 			ini.SetValue("Station", "AvgBearingMinutes", StationOptions.AvgBearingMinutes);
 			ini.SetValue("Station", "AvgSpeedMinutes", StationOptions.AvgSpeedMinutes);
 			ini.SetValue("Station", "PeakGustMinutes", StationOptions.PeakGustMinutes);
+
+			ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
+			ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
 
 			ini.SetValue("Station", "DavisReadReceptionStats", DavisOptions.ReadReceptionStats);
 			ini.SetValue("Station", "DavisSetLoggerInterval", DavisOptions.SetLoggerInterval);
@@ -5246,6 +5248,7 @@ namespace CumulusMX
 			ini.SetValue("SMTP", "RequiresAuthentication", SmtpOptions.RequiresAuthentication);
 			ini.SetValue("SMTP", "User", SmtpOptions.User);
 			ini.SetValue("SMTP", "Password", SmtpOptions.Password);
+			ini.SetValue("SMTP", "Logging", SmtpOptions.Logging);
 
 			// Growing Degree Days
 			ini.SetValue("GrowingDD", "BaseTemperature1", GrowingBase1);

@@ -1,6 +1,20 @@
 3.11.2 - b3131
 ——————————————
 - Fix: Send email failing if email logging is not enabled
+- Fix: Solar Rad colour now displays as selected on first load in the Selectachart on the dashboard and default website
+- Fix: Handlebars JS script updated due to severe security risk on previous version
+
+- Change: Setting of ALL logging options via the GUI is now "sticky" - i.e. preserved across runs of Cumulus MX
+- Change: Many of the main settings screens now alert to to the first invalid settings in a message, and the tree containing
+	the error is highlighted in red:
+	- Program Settings
+	- Station Settings
+	- Internet Settings
+	- Third Party Settings
+	- Extra Sensor Settings
+	- Calibration Settings
+	- NOAA Settings
+	- MySQL Settings
 
 
 3.11.1 - b3130
