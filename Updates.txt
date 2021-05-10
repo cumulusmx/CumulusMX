@@ -16,7 +16,8 @@
 	- Calibration Settings
 	- NOAA Settings
 	- MySQL Settings
-
+- Change: If any of the base units (wind, temp, rain, pressure) are changed via Station Settings (for instance during the initial configuration), then all the
+	thresholds and base values associated with that unit are reset back to the defaults for the new unit
 
 3.11.1 - b3130
 ——————————————

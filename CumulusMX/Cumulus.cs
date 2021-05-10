@@ -1716,6 +1716,59 @@ namespace CumulusMX
 			}
 		}
 
+		// If the temperature units are changed, reset NOAA thresholds to defaults
+		internal void ChangeTempUnits()
+		{
+			SetupUnitText();
+
+			NOAAheatingthreshold = Units.Temp == 0 ? 18.3 : 65;
+			NOAAcoolingthreshold = Units.Temp == 0 ? 18.3 : 65;
+			NOAAmaxtempcomp1 = Units.Temp == 0 ? 27 : 80;
+			NOAAmaxtempcomp2 = Units.Temp == 0 ? 0 : 32;
+			NOAAmintempcomp1 = Units.Temp == 0 ? 0 : 32;
+			NOAAmintempcomp2 = Units.Temp == 0 ? -18 : 0;
+
+			ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
+
+			GrowingBase1 = Units.Temp == 0 ? 5.0 : 40.0;
+			GrowingBase2 = Units.Temp == 0 ? 10.0 : 50.0;
+
+			TempChangeAlarm.Units = Units.TempTrendText;
+			HighTempAlarm.Units = Units.TempText;
+			LowTempAlarm.Units = Units.TempText;
+		}
+
+		internal void ChangeRainUnits()
+		{
+			SetupUnitText();
+
+			NOAAraincomp1 = Units.Rain == 0 ? 0.2 : 0.01;
+			NOAAraincomp2 = Units.Rain == 0 ? 2 : 0.1;
+			NOAAraincomp3 = Units.Rain == 0 ? 20 : 1;
+
+			HighRainRateAlarm.Units = Units.RainTrendText;
+			HighRainTodayAlarm.Units = Units.RainText;
+		}
+
+		internal void ChangePressureUnits()
+		{
+			SetupUnitText();
+
+			FCPressureThreshold = Units.Press == 2 ? 0.00295333727 : 0.1;
+
+			PressChangeAlarm.Units = Units.PressTrendText;
+			HighPressAlarm.Units = Units.PressText;
+			LowPressAlarm.Units = Units.PressText;
+		}
+
+		internal void ChangeWindUnits()
+		{
+			SetupUnitText();
+
+			HighWindAlarm.Units = Units.WindText;
+			HighGustAlarm.Units = Units.WindText;
+		}
+
 		public void SetFtpLogging(bool isSet)
 		{
 			try
