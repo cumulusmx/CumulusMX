@@ -1488,7 +1488,9 @@ namespace CumulusMX
 						LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 						cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 						cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
-						cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm"),
+						cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered,
+						cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered,
+						FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm"),
 						HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("HH:mm"));
 
 					//var json = jss.Serialize(data);
@@ -1605,6 +1607,12 @@ namespace CumulusMX
 
 			if (cumulus.UpgradeAlarm.Latch && cumulus.UpgradeAlarm.Triggered && DateTime.Now > cumulus.UpgradeAlarm.TriggeredTime.AddHours(cumulus.UpgradeAlarm.LatchHours))
 				cumulus.UpgradeAlarm.Triggered = false;
+
+			if (cumulus.HttpUploadAlarm.Latch && cumulus.HttpUploadAlarm.Triggered && DateTime.Now > cumulus.HttpUploadAlarm.TriggeredTime.AddHours(cumulus.HttpUploadAlarm.LatchHours))
+				cumulus.HttpUploadAlarm.Triggered = false;
+
+			if (cumulus.MySqlUploadAlarm.Latch && cumulus.MySqlUploadAlarm.Triggered && DateTime.Now > cumulus.MySqlUploadAlarm.TriggeredTime.AddHours(cumulus.MySqlUploadAlarm.LatchHours))
+				cumulus.MySqlUploadAlarm.Triggered = false;
 
 			if (cumulus.HighWindAlarm.Latch && cumulus.HighWindAlarm.Triggered && DateTime.Now > cumulus.HighWindAlarm.TriggeredTime.AddHours(cumulus.HighWindAlarm.LatchHours))
 				cumulus.HighWindAlarm.Triggered = false;
@@ -11737,7 +11745,7 @@ namespace CumulusMX
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 				cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
-				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered,
+				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm:ss"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm:ss"),
 				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("HH:mm:ss"));
 

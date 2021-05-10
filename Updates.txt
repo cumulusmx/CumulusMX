@@ -17,7 +17,12 @@
 	- NOAA Settings
 	- MySQL Settings
 - Change: If any of the base units (wind, temp, rain, pressure) are changed via Station Settings (for instance during the initial configuration), then all the
-	thresholds and base values associated with that unit are reset back to the defaults for the new unit
+	thresholds and base values associated with that unit are reset to the defaults for the new unit
+- Change: The main dashboard page now only shows alarm indicators for enabled alarms
+
+- New: Implements two new alarms for HTTP uploads failing, and MySQL uploads failing
+- New: Web tags - <#HttpUploadAlarm>, <#MySqlUploadAlarm>
+
 
 3.11.1 - b3130
 ——————————————

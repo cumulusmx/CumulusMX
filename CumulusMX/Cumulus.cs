@@ -619,6 +619,8 @@ namespace CumulusMX
 		public Alarm HighTempAlarm = new Alarm();
 		public Alarm LowTempAlarm = new Alarm();
 		public Alarm UpgradeAlarm = new Alarm();
+		public Alarm HttpUploadAlarm = new Alarm();
+		public Alarm MySqlUploadAlarm = new Alarm();
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
@@ -1313,6 +1315,8 @@ namespace CumulusMX
 			LowTempAlarm.cumulus = this;
 			LowTempAlarm.Units = Units.TempText;
 			UpgradeAlarm.cumulus = this;
+			HttpUploadAlarm.cumulus = this;
+			MySqlUploadAlarm.cumulus = this;
 
 			GetLatestVersion();
 
@@ -2028,10 +2032,13 @@ namespace CumulusMX
 					{
 						LogDebugMessage($"Status returned: ({tweet.StatusID}) {tweet.User.Name}, {tweet.Text}, {tweet.CreatedAt}");
 					}
+
+					HttpUploadAlarm.Triggered = false;
 				}
 				catch (Exception ex)
 				{
 					LogMessage($"UpdateTwitter: {ex.Message}");
+					HttpUploadAlarm.Triggered = true;
 				}
 				//if (tweet != null)
 				//    Console.WriteLine("Status returned: " + "(" + tweet.StatusID + ")" + tweet.User.Name + ", " + tweet.Text + "\n");
@@ -2100,11 +2107,17 @@ namespace CumulusMX
 				if (!Wund.RapidFireEnabled || response.StatusCode != HttpStatusCode.OK)
 				{
 					LogDebugMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
+					HttpUploadAlarm.Triggered = true;
+				}
+				else
+				{
+					HttpUploadAlarm.Triggered = false;
 				}
 			}
 			catch (Exception ex)
 			{
 				LogMessage("Wunderground: ERROR - " + ex.Message);
+				HttpUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -2133,10 +2146,19 @@ namespace CumulusMX
 				HttpResponseMessage response = await WindyhttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					HttpUploadAlarm.Triggered = true;
+				}
+				else
+				{
+					HttpUploadAlarm.Triggered = false;
+				}
 			}
 			catch (Exception ex)
 			{
 				LogMessage("Windy: ERROR - " + ex.Message);
+				HttpUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -2165,10 +2187,19 @@ namespace CumulusMX
 				HttpResponseMessage response = await WindGuruhttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					HttpUploadAlarm.Triggered = true;
+				}
+				else
+				{
+					HttpUploadAlarm.Triggered = false;
+				}
 			}
 			catch (Exception ex)
 			{
 				LogDebugMessage("WindGuru: ERROR - " + ex.Message);
+				HttpUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -2203,12 +2234,23 @@ namespace CumulusMX
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
 					LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
+
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						HttpUploadAlarm.Triggered = true;
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
+					}
 					//var respJson = JsonConvert.DeserializeObject<AwekasResponse>(responseBodyAsText);
 					var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
 
 					// Check the status response
 					if (respJson.status == 2)
+					{
 						LogDebugMessage("AWEKAS: Data stored OK");
+					}
 					else if (respJson.status == 1)
 					{
 						LogMessage("AWEKAS: Data PARIALLY stored");
@@ -2256,6 +2298,7 @@ namespace CumulusMX
 						else
 						{
 							LogMessage("AWEKAS: Unknown error");
+							HttpUploadAlarm.Triggered = true;
 						}
 					}
 
@@ -2289,6 +2332,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("AWEKAS: Exception = " + ex.Message);
+				HttpUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -2324,21 +2368,27 @@ namespace CumulusMX
 				{
 					case 200:
 						msg = "Success";
+						HttpUploadAlarm.Triggered = false;
 						break;
 					case 400:
 						msg = "Bad reuest";
+						HttpUploadAlarm.Triggered = true;
 						break;
 					case 401:
 						msg = "Incorrect WID or Key";
+						HttpUploadAlarm.Triggered = true;
 						break;
 					case 429:
 						msg = "Too many requests";
+						HttpUploadAlarm.Triggered = true;
 						break;
 					case 500:
 						msg = "Server error";
+						HttpUploadAlarm.Triggered = true;
 						break;
 					default:
 						msg = "Unknown error";
+						HttpUploadAlarm.Triggered = true;
 						break;
 				}
 				LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
@@ -2346,6 +2396,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogDebugMessage("WeatherCloud: ERROR - " + ex.Message);
+				HttpUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -2381,12 +2432,20 @@ namespace CumulusMX
 					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
 					LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 					if (response.StatusCode != HttpStatusCode.NoContent)
+					{
 						LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+						HttpUploadAlarm.Triggered = true;
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
+					}
 				}
 			}
 			catch (Exception ex)
 			{
 				LogMessage("OpenWeatherMap: ERROR - " + ex.Message);
+				HttpUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -4361,6 +4420,23 @@ namespace CumulusMX
 			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
 			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24);
 
+			HttpUploadAlarm.Enabled = ini.GetValue("Alarms", "HttpUploadStoppedAlarmSet", false);
+			HttpUploadAlarm.Sound = ini.GetValue("Alarms", "HttpUploadStoppedAlarmSound", false);
+			HttpUploadAlarm.SoundFile = ini.GetValue("Alarms", "HttpUploadStoppedAlarmSoundFile", DefaultSoundFile);
+			HttpUploadAlarm.Notify = ini.GetValue("Alarms", "HttpUploadStoppedAlarmNotify", false);
+			HttpUploadAlarm.Email = ini.GetValue("Alarms", "HttpUploadStoppedAlarmEmail", false);
+			HttpUploadAlarm.Latch = ini.GetValue("Alarms", "HttpUploadStoppedAlarmLatch", false);
+			HttpUploadAlarm.LatchHours = ini.GetValue("Alarms", "HttpUploadStoppedAlarmLatchHours", 24);
+
+			MySqlUploadAlarm.Enabled = ini.GetValue("Alarms", "HttpUploadStoppedAlarmSet", false);
+			MySqlUploadAlarm.Sound = ini.GetValue("Alarms", "HttpUploadStoppedAlarmSound", false);
+			MySqlUploadAlarm.SoundFile = ini.GetValue("Alarms", "HttpUploadStoppedAlarmSoundFile", DefaultSoundFile);
+			MySqlUploadAlarm.Notify = ini.GetValue("Alarms", "HttpUploadStoppedAlarmNotify", false);
+			MySqlUploadAlarm.Email = ini.GetValue("Alarms", "HttpUploadStoppedAlarmEmail", false);
+			MySqlUploadAlarm.Latch = ini.GetValue("Alarms", "HttpUploadStoppedAlarmLatch", false);
+			MySqlUploadAlarm.LatchHours = ini.GetValue("Alarms", "HttpUploadStoppedAlarmLatchHours", 24);
+
+
 			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", "");
 			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", "").Split(';');
 			AlarmEmailHtml = ini.GetValue("Alarms", "UseHTML", false);
@@ -5125,6 +5201,22 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "UpgradeAlarmLatch", UpgradeAlarm.Latch);
 			ini.SetValue("Alarms", "UpgradeAlarmLatchHours", UpgradeAlarm.LatchHours);
 
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmSet", HttpUploadAlarm.Enabled);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmSound", HttpUploadAlarm.Sound);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmSoundFile", HttpUploadAlarm.SoundFile);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmNotify", HttpUploadAlarm.Notify);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmEmail", HttpUploadAlarm.Email);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmLatch", HttpUploadAlarm.Latch);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmLatchHours", HttpUploadAlarm.LatchHours);
+
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmSet", MySqlUploadAlarm.Enabled);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmSound", MySqlUploadAlarm.Sound);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmSoundFile", MySqlUploadAlarm.SoundFile);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmNotify", MySqlUploadAlarm.Notify);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmEmail", MySqlUploadAlarm.Email);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmLatch", MySqlUploadAlarm.Latch);
+			ini.SetValue("Alarms", "HttpUploadStoppedAlarmLatchHours", MySqlUploadAlarm.LatchHours);
+
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", AlarmDestEmail.Join(";"));
 			ini.SetValue("Alarms", "UseHTML", AlarmEmailHtml);
@@ -5651,6 +5743,8 @@ namespace CumulusMX
 			BatteryLowAlarm.EmailMsg = ini.GetValue("AlarmEmails", "batteryLow", "A low battery condition has been detected.");
 			SpikeAlarm.EmailMsg = ini.GetValue("AlarmEmails", "dataSpike", "A data spike from your weather station has been suppressed.");
 			UpgradeAlarm.EmailMsg = ini.GetValue("AlarmEmails", "upgrade", "An upgrade to Cumulus MX is now available.");
+			HttpUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "httpStopped", "HTTP uploads are failing.");
+			MySqlUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "mySqlStopped", "MySQL uploads are failing.");
 		}
 
 
@@ -8901,10 +8995,19 @@ namespace CumulusMX
 					HttpResponseMessage response = await PWShttpClient.GetAsync(URL);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					LogDebugMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						HttpUploadAlarm.Triggered = true;
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
+					}
 				}
 				catch (Exception ex)
 				{
 					LogDebugMessage("PWS update: " + ex.Message);
+					HttpUploadAlarm.Triggered = true;
 				}
 				finally
 				{
@@ -8932,10 +9035,19 @@ namespace CumulusMX
 					HttpResponseMessage response = await WOWhttpClient.GetAsync(URL);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						HttpUploadAlarm.Triggered = true;
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
+					}
 				}
 				catch (Exception ex)
 				{
 					LogDebugMessage("WOW update: " + ex.Message);
+					HttpUploadAlarm.Triggered = true;
 				}
 				finally
 				{
@@ -8961,12 +9073,15 @@ namespace CumulusMX
 					int aff = await cmd.ExecuteNonQueryAsync();
 					LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
 				}
+
+				MySqlUploadAlarm.Triggered = false;
 			}
 			catch (Exception ex)
 			{
 				LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
 				LogMessage($"{CallingFunction}: SQL was - \"{Cmd}\"");
 				LogMessage(ex.Message);
+				MySqlUploadAlarm.Triggered = true;
 			}
 			finally
 			{
@@ -9005,12 +9120,15 @@ namespace CumulusMX
 								int aff = cmd.ExecuteNonQuery();
 								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
 							}
+
+							MySqlUploadAlarm.Triggered = false;
 						}
 						catch (Exception ex)
 						{
 							LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
 							LogMessage($"{CallingFunction}: SQL was - \"{Cmds[i]}\"");
 							LogMessage(ex.Message);
+							MySqlUploadAlarm.Triggered = true;
 						}
 					}
 
@@ -9028,6 +9146,7 @@ namespace CumulusMX
 				{
 					LogMessage($"{CallingFunction}: Error opening MySQL Connection");
 					LogMessage(e.Message);
+					MySqlUploadAlarm.Triggered = true;
 				}
 
 				if (ClearCommands)

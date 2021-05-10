@@ -3944,6 +3944,27 @@ namespace CumulusMX
 			return "0";
 		}
 
+		private string TagMySqlUploadAlarm(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.MySqlUploadAlarm.Enabled)
+			{
+				return cumulus.MySqlUploadAlarm.Triggered ? "1" : "0";
+			}
+
+			return "0";
+		}
+
+		private string TagHttpUploadAlarm(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.HttpUploadAlarm.Enabled)
+			{
+				return cumulus.HttpUploadAlarm.Triggered ? "1" : "0";
+			}
+
+			return "0";
+		}
+
+
 		// Monthly highs and lows - values
 		private string TagMonthTempH(Dictionary<string,string> tagParams)
 		{
@@ -5586,6 +5607,7 @@ namespace CumulusMX
 				{ "LeafWetness6", TagLeafWetness6 },
 				{ "LeafWetness7", TagLeafWetness7 },
 				{ "LeafWetness8", TagLeafWetness8 },
+
 				{ "LowTempAlarm", TagLowTempAlarm },
 				{ "HighTempAlarm", TagHighTempAlarm },
 				{ "TempChangeUpAlarm", TagTempChangeUpAlarm },
@@ -5600,7 +5622,10 @@ namespace CumulusMX
 				{ "HighWindSpeedAlarm", TagHighWindSpeedAlarm },
 				{ "BatteryLowAlarm", TagBatteryLowAlarm },
 				{ "DataSpikeAlarm", TagDataSpikeAlarm },
+				{ "MySqlUploadAlarm", TagMySqlUploadAlarm },
+				{ "HttpUploadAlarm", TagHttpUploadAlarm },
 				{ "UpgradeAlarm", TagUpgradeAlarm },
+
 				{ "RG11RainToday", TagRg11RainToday },
 				{ "RG11RainYest", TagRg11RainYest },
 

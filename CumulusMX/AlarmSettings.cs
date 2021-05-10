@@ -157,7 +157,23 @@ namespace CumulusMX
 				upgradeNotify = cumulus.UpgradeAlarm.Notify,
 				upgradeEmail = cumulus.UpgradeAlarm.Email,
 				upgradeLatches = cumulus.UpgradeAlarm.Latch,
-				upgradeLatchHrs = cumulus.UpgradeAlarm.LatchHours
+				upgradeLatchHrs = cumulus.UpgradeAlarm.LatchHours,
+
+				httpStoppedEnabled = cumulus.HttpUploadAlarm.Enabled,
+				httpStoppedSoundEnabled = cumulus.HttpUploadAlarm.Sound,
+				httpStoppedSound = cumulus.HttpUploadAlarm.SoundFile,
+				httpStoppedNotify = cumulus.HttpUploadAlarm.Notify,
+				httpStoppedEmail = cumulus.HttpUploadAlarm.Email,
+				httpStoppedLatches = cumulus.HttpUploadAlarm.Latch,
+				httpStoppedLatchHrs = cumulus.HttpUploadAlarm.LatchHours,
+
+				mySqlStoppedEnabled = cumulus.MySqlUploadAlarm.Enabled,
+				mySqlStoppedSoundEnabled = cumulus.MySqlUploadAlarm.Sound,
+				mySqlStoppedSound = cumulus.MySqlUploadAlarm.SoundFile,
+				mySqlStoppedNotify = cumulus.MySqlUploadAlarm.Notify,
+				mySqlStoppedEmail = cumulus.MySqlUploadAlarm.Email,
+				mySqlStoppedLatches = cumulus.MySqlUploadAlarm.Latch,
+				mySqlStoppedLatchHrs = cumulus.MySqlUploadAlarm.LatchHours
 			};
 
 			var email = new JsonAlarmEmail()
@@ -341,6 +357,22 @@ namespace CumulusMX
 				cumulus.UpgradeAlarm.Email = settings.upgradeEmail;
 				cumulus.UpgradeAlarm.Latch = settings.upgradeLatches;
 				cumulus.UpgradeAlarm.LatchHours = settings.upgradeLatchHrs;
+
+				cumulus.HttpUploadAlarm.Enabled = settings.httpStoppedEnabled;
+				cumulus.HttpUploadAlarm.Sound = settings.httpStoppedSoundEnabled;
+				cumulus.HttpUploadAlarm.SoundFile = settings.httpStoppedSound;
+				cumulus.HttpUploadAlarm.Notify = settings.httpStoppedNotify;
+				cumulus.HttpUploadAlarm.Email = settings.httpStoppedEmail;
+				cumulus.HttpUploadAlarm.Latch = settings.httpStoppedLatches;
+				cumulus.HttpUploadAlarm.LatchHours = settings.httpStoppedLatchHrs;
+
+				cumulus.MySqlUploadAlarm.Enabled = settings.mySqlStoppedEnabled;
+				cumulus.MySqlUploadAlarm.Sound = settings.mySqlStoppedSoundEnabled;
+				cumulus.MySqlUploadAlarm.SoundFile = settings.mySqlStoppedSound;
+				cumulus.MySqlUploadAlarm.Notify = settings.mySqlStoppedNotify;
+				cumulus.MySqlUploadAlarm.Email = settings.mySqlStoppedEmail;
+				cumulus.MySqlUploadAlarm.Latch = settings.mySqlStoppedLatches;
+				cumulus.MySqlUploadAlarm.LatchHours = settings.mySqlStoppedLatchHrs;
 
 				// validate the from email
 				if (!EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
@@ -575,6 +607,22 @@ namespace CumulusMX
 		public bool upgradeEmail { get; set; }
 		public bool upgradeLatches { get; set; }
 		public int upgradeLatchHrs { get; set; }
+
+		public bool httpStoppedEnabled { get; set; }
+		public bool httpStoppedSoundEnabled { get; set; }
+		public string httpStoppedSound { get; set; }
+		public bool httpStoppedNotify { get; set; }
+		public bool httpStoppedEmail { get; set; }
+		public bool httpStoppedLatches { get; set; }
+		public int httpStoppedLatchHrs { get; set; }
+
+		public bool mySqlStoppedEnabled { get; set; }
+		public bool mySqlStoppedSoundEnabled { get; set; }
+		public string mySqlStoppedSound { get; set; }
+		public bool mySqlStoppedNotify { get; set; }
+		public bool mySqlStoppedEmail { get; set; }
+		public bool mySqlStoppedLatches { get; set; }
+		public int mySqlStoppedLatchHrs { get; set; }
 	}
 
 	public class JsonAlarmEmail
