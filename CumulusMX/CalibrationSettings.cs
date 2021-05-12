@@ -10,28 +10,43 @@ namespace CumulusMX
 	public class CalibrationSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string calibrationOptionsFile;
-		private readonly string calibrationSchemaFile;
+		private readonly string optionsFile;
+		private readonly string schemaFile;
 
 		public CalibrationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			calibrationOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationOptions.json";
-			calibrationSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
+			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationOptions.json";
+			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
 		}
 
 		//public string UpdateCalibrationConfig(HttpListenerContext context)
-		public string UpdateCalibrationConfig(IHttpContext context)
+		public string UpdateConfig(IHttpContext context)
 		{
+			var json = "";
+			JsonCalibrationSettingsData settings;
+			var invC = new CultureInfo("");
+
 			try
 			{
-				var invC = new CultureInfo("");
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = json.FromJson<JsonCalibrationSettingsData>();
+				settings = json.FromJson<JsonCalibrationSettingsData>();
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing Calibration Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Calibration Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+			try
+			{
 				// process the settings
 				cumulus.LogMessage("Updating calibration settings");
 
@@ -91,14 +106,15 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Error setting Calibration settings: " + ex.Message);
+				cumulus.LogDebugMessage("Calibration Data: " + json);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
 			return "success";
 		}
 
-		public string GetCalibrationAlpacaFormData()
+		public string GetAlpacaFormData()
 		{
 			//var InvC = new CultureInfo("");
 			var offsets = new JsonCalibrationSettingsOffsets()
@@ -151,6 +167,7 @@ namespace CumulusMX
 
 			var data = new JsonCalibrationSettingsData()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				offsets = offsets,
 				multipliers = multipliers,
 				spikeremoval = spikeremoval,
@@ -161,18 +178,18 @@ namespace CumulusMX
 			return data.ToJson();
 		}
 
-		public string GetCalibrationAlpacaFormOptions()
+		public string GetAlpacaFormOptions()
 		{
-			using (StreamReader sr = new StreamReader(calibrationOptionsFile))
+			using (StreamReader sr = new StreamReader(optionsFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
 			}
 		}
 
-		public string GetCalibrationAlpacaFormSchema()
+		public string GetAlpacaFormSchema()
 		{
-			using (StreamReader sr = new StreamReader(calibrationSchemaFile))
+			using (StreamReader sr = new StreamReader(schemaFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
@@ -182,6 +199,7 @@ namespace CumulusMX
 
 	public class JsonCalibrationSettingsData
 	{
+		public bool accessible { get; set; }
 		public JsonCalibrationSettingsOffsets offsets { get; set; }
 		public JsonCalibrationSettingsMultipliers multipliers { get; set; }
 		public JsonCalibrationSettingsSpikeRemoval spikeremoval { get; set; }

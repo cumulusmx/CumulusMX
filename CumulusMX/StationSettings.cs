@@ -12,15 +12,15 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus;
 		private WeatherStation station;
-		private readonly string stationOptionsFile;
-		private readonly string stationSchemaFile;
+		private readonly string optionsFile;
+		private readonly string schemaFile;
 
 		internal StationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
 
-			stationOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
-			stationSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
+			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
+			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
 		}
 
 		internal void SetStation(WeatherStation station)
@@ -28,7 +28,7 @@ namespace CumulusMX
 			this.station = station;
 		}
 
-		internal string GetStationAlpacaFormData()
+		internal string GetAlpacaFormData()
 		{
 			// Build the settings data, convert to JSON, and return it
 			var optionsAdv = new JsonStationSettingsOptionsAdvanced()
@@ -134,15 +134,16 @@ namespace CumulusMX
 
 			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
 			{
-				readtime = cumulus.FineOffsetOptions.FineOffsetReadTime,
+				readtime = cumulus.FineOffsetOptions.ReadTime,
+				setlogger = cumulus.FineOffsetOptions.SetLoggerInterval,
 				vid = cumulus.FineOffsetOptions.VendorID,
 				pid = cumulus.FineOffsetOptions.ProductID
 			};
 
 			var fineoffset = new JsonStationSettingsFineOffset()
 			{
-				syncreads = cumulus.FineOffsetOptions.FineOffsetSyncReads,
-				readavoid = cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod,
+				syncreads = cumulus.FineOffsetOptions.SyncReads,
+				readavoid = cumulus.FineOffsetOptions.ReadAvoidPeriod,
 				advanced = fineoffsetadvanced
 			};
 
@@ -165,15 +166,15 @@ namespace CumulusMX
 			{
 				syncstationclock = cumulus.StationOptions.SyncTime,
 				syncclockhour = cumulus.StationOptions.ClockSettingHour,
-				readdelay = cumulus.ImetOptions.ImetReadDelay,
-				waittime = cumulus.ImetOptions.ImetWaitTime,
-				updatelogpointer = cumulus.ImetOptions.ImetUpdateLogPointer
+				readdelay = cumulus.ImetOptions.ReadDelay,
+				waittime = cumulus.ImetOptions.WaitTime,
+				updatelogpointer = cumulus.ImetOptions.UpdateLogPointer
 			};
 
 			var imet = new JsonStationSettingsImet()
 			{
 				comportname = cumulus.ComportName,
-				baudrate = cumulus.ImetOptions.ImetBaudRate,
+				baudrate = cumulus.ImetOptions.BaudRate,
 				advanced = imetAdvanced
 			};
 
@@ -227,7 +228,27 @@ namespace CumulusMX
 				turbidity = cumulus.BrasTurbidity
 			};
 
-			var annualrainfall = new JsonStationSettingsAnnualRainfall() {rainseasonstart = cumulus.RainSeasonStart, ytdamount = cumulus.YTDrain, ytdyear = cumulus.YTDrainyear};
+			var annualrainfall = new JsonStationSettingsAnnualRainfall()
+			{
+				rainseasonstart = cumulus.RainSeasonStart,
+				ytdamount = cumulus.YTDrain,
+				ytdyear = cumulus.YTDrainyear
+			};
+
+			var growingdd = new JsonGrowingDDSettings()
+			{
+				basetemp1 = cumulus.GrowingBase1,
+				basetemp2 = cumulus.GrowingBase2,
+				starts = cumulus.GrowingYearStarts,
+				cap30C = cumulus.GrowingCap30C
+			};
+
+			var tempsum = new JsonTempSumSettings()
+			{
+				basetemp1 = cumulus.TempSumBase1,
+				basetemp2 = cumulus.TempSumBase2,
+				starts = cumulus.TempSumYearStarts
+			};
 
 			var graphDataTemp = new JsonStationSettingsGraphDataTemperature()
 			{
@@ -242,6 +263,9 @@ namespace CumulusMX
 				graphDailyAvgTempVis = cumulus.GraphOptions.DailyAvgTempVisible,
 				graphDailyMaxTempVis = cumulus.GraphOptions.DailyMaxTempVisible,
 				graphDailyMinTempVis = cumulus.GraphOptions.DailyMinTempVisible,
+				graphTempSumVis0 = cumulus.GraphOptions.TempSumVisible0,
+				graphTempSumVis1 = cumulus.GraphOptions.TempSumVisible1,
+				graphTempSumVis2 = cumulus.GraphOptions.TempSumVisible2
 			};
 
 			var graphDataHum = new JsonStationSettingsGraphDataHumidity()
@@ -257,11 +281,18 @@ namespace CumulusMX
 				graphSunshineVis = cumulus.GraphOptions.SunshineVisible
 			};
 
+			var graphDataDegreeDays = new JsonStationSettingsGraphDataDegreeDays()
+			{
+				graphGrowingDegreeDaysVis1 = cumulus.GraphOptions.GrowingDegreeDaysVisible1,
+				graphGrowingDegreeDaysVis2 = cumulus.GraphOptions.GrowingDegreeDaysVisible2
+			};
+
 			var graphDataVis = new JsonStationSettingsGraphVisibility()
 			{
 				temperature = graphDataTemp,
 				humidity = graphDataHum,
-				solar = graphDataSolar
+				solar = graphDataSolar,
+				degreedays = graphDataDegreeDays
 			};
 
 			var graphs = new JsonStationSettingsGraphs()
@@ -377,6 +408,7 @@ namespace CumulusMX
 
 			var data = new JsonStationSettingsData()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				stationid = cumulus.StationType,
 				general = general,
 				davisvp2 = davisvp2,
@@ -391,6 +423,8 @@ namespace CumulusMX
 				Forecast = forecast,
 				Solar = solar,
 				AnnualRainfall = annualrainfall,
+				GrowingDD = growingdd,
+				TempSum = tempsum,
 				Graphs = graphs,
 				DisplayOptions = displayOptions
 			};
@@ -399,18 +433,18 @@ namespace CumulusMX
 			return JsonSerializer.SerializeToString(data);
 		}
 
-		internal string GetStationAlpacaFormOptions()
+		internal string GetAlpacaFormOptions()
 		{
-			using (StreamReader sr = new StreamReader(stationOptionsFile))
+			using (StreamReader sr = new StreamReader(optionsFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
 			}
 		}
 
-		internal string GetStationAlpacaFormSchema()
+		internal string GetAlpacaFormSchema()
 		{
-			using (StreamReader sr = new StreamReader(stationSchemaFile))
+			using (StreamReader sr = new StreamReader(schemaFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
@@ -464,10 +498,13 @@ namespace CumulusMX
 			d = secs / 60;
 		}
 
-		internal string UpdateStationConfig(IHttpContext context)
+		internal string UpdateConfig(IHttpContext context)
 		{
 			var errorMsg = "";
+			var json = "";
 			context.Response.StatusCode = 200;
+			JsonStationSettingsData settings;
+
 			// get the response
 			try
 			{
@@ -475,14 +512,24 @@ namespace CumulusMX
 
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
-				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				// Start at char 5 to skip the "json=" prefix
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = JsonSerializer.DeserializeFromString<JsonStationSettingsData>(json);
+				settings = JsonSerializer.DeserializeFromString<JsonStationSettingsData>(json);
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing Station Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Station Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
 
-				// process the settings
-
+			// process the settings
+			try
+			{
 				// Graph Config
 				try
 				{
@@ -504,6 +551,11 @@ namespace CumulusMX
 					cumulus.GraphOptions.DailyAvgTempVisible = settings.Graphs.datavisibility.temperature.graphDailyAvgTempVis;
 					cumulus.GraphOptions.DailyMaxTempVisible = settings.Graphs.datavisibility.temperature.graphDailyMaxTempVis;
 					cumulus.GraphOptions.DailyMinTempVisible = settings.Graphs.datavisibility.temperature.graphDailyMinTempVis;
+					cumulus.GraphOptions.TempSumVisible0 = settings.Graphs.datavisibility.temperature.graphTempSumVis0;
+					cumulus.GraphOptions.TempSumVisible1 = settings.Graphs.datavisibility.temperature.graphTempSumVis1;
+					cumulus.GraphOptions.TempSumVisible2 = settings.Graphs.datavisibility.temperature.graphTempSumVis2;
+					cumulus.GraphOptions.GrowingDegreeDaysVisible1 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis1;
+					cumulus.GraphOptions.GrowingDegreeDaysVisible2 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis2;
 				}
 				catch (Exception ex)
 				{
@@ -523,6 +575,37 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Rainfall settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Growing Degree Day
+				try
+				{
+					cumulus.GrowingBase1 = settings.GrowingDD.basetemp1;
+					cumulus.GrowingBase2 = settings.GrowingDD.basetemp2;
+					cumulus.GrowingYearStarts = settings.GrowingDD.starts;
+					cumulus.GrowingCap30C = settings.GrowingDD.cap30C;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Growing Degree Day settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Temp Sum
+				try
+				{
+					cumulus.TempSumBase1 = settings.TempSum.basetemp1;
+					cumulus.TempSumBase2 = settings.TempSum.basetemp2;
+					cumulus.TempSumYearStarts = settings.TempSum.starts;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Temperature Sum settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -853,9 +936,10 @@ namespace CumulusMX
 				{
 					if (settings.fineoffset != null)
 					{
-						cumulus.FineOffsetOptions.FineOffsetSyncReads = settings.fineoffset.syncreads;
-						cumulus.FineOffsetOptions.FineOffsetReadAvoidPeriod = settings.fineoffset.readavoid;
-						cumulus.FineOffsetOptions.FineOffsetReadTime = settings.fineoffset.advanced.readtime;
+						cumulus.FineOffsetOptions.SyncReads = settings.fineoffset.syncreads;
+						cumulus.FineOffsetOptions.ReadAvoidPeriod = settings.fineoffset.readavoid;
+						cumulus.FineOffsetOptions.ReadTime = settings.fineoffset.advanced.readtime;
+						cumulus.FineOffsetOptions.SetLoggerInterval = settings.fineoffset.advanced.setlogger;
 						cumulus.FineOffsetOptions.VendorID = settings.fineoffset.advanced.vid;
 						cumulus.FineOffsetOptions.ProductID = settings.fineoffset.advanced.pid;
 					}
@@ -874,12 +958,12 @@ namespace CumulusMX
 					if (settings.imet != null)
 					{
 						cumulus.ComportName = settings.imet.comportname ?? cumulus.ComportName;
-						cumulus.ImetOptions.ImetBaudRate = settings.imet.baudrate;
+						cumulus.ImetOptions.BaudRate = settings.imet.baudrate;
 						cumulus.StationOptions.SyncTime = settings.imet.advanced.syncstationclock;
 						cumulus.StationOptions.ClockSettingHour = settings.imet.advanced.syncclockhour;
-						cumulus.ImetOptions.ImetReadDelay = settings.imet.advanced.readdelay;
-						cumulus.ImetOptions.ImetWaitTime = settings.imet.advanced.waittime;
-						cumulus.ImetOptions.ImetUpdateLogPointer = settings.imet.advanced.updatelogpointer;
+						cumulus.ImetOptions.ReadDelay = settings.imet.advanced.readdelay;
+						cumulus.ImetOptions.WaitTime = settings.imet.advanced.waittime;
+						cumulus.ImetOptions.UpdateLogPointer = settings.imet.advanced.updatelogpointer;
 					}
 				}
 				catch (Exception ex)
@@ -966,6 +1050,20 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Accessible
+				try
+				{
+					cumulus.ProgramOptions.EnableAccessibility = settings.accessible;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Accessibility setting: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -978,9 +1076,11 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				var msg = "Error processing Station settings: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Station Data: " + json);
+				errorMsg += msg;
 				context.Response.StatusCode = 500;
-				return ex.Message;
 			}
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
@@ -1097,7 +1197,6 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-
 		internal string GetWSport()
 		{
 			return "{\"wsport\":\"" + cumulus.wsPort + "\"}";
@@ -1111,6 +1210,7 @@ namespace CumulusMX
 
 	internal class JsonStationSettingsData
 	{
+		public bool accessible { get; set; }
 		public int stationid { get; set; }
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
@@ -1125,6 +1225,8 @@ namespace CumulusMX
 		public JsonStationSettingsForecast Forecast { get; set; }
 		public JsonStationSettingsSolar Solar { get; set; }
 		public JsonStationSettingsAnnualRainfall AnnualRainfall { get; set; }
+		public JsonGrowingDDSettings GrowingDD { get; set; }
+		public JsonTempSumSettings TempSum { get; set; }
 		public JsonStationSettingsGraphs Graphs { get; set; }
 		public JsonDisplayOptions DisplayOptions { get; set; }
 	}
@@ -1233,6 +1335,7 @@ namespace CumulusMX
 	internal class JsonStationSettingsFineOffsetAdvanced
 	{
 		public int readtime { get; set; }
+		public bool setlogger { get; set; }
 		public int vid { get; set; }
 		public int pid { get; set; }
 	}
@@ -1272,7 +1375,6 @@ namespace CumulusMX
 	{
 		public string comportname { get; set; }
 	}
-
 
 	internal class JsonStationSettingsImet
 	{
@@ -1453,6 +1555,7 @@ namespace CumulusMX
 		public JsonStationSettingsGraphDataTemperature temperature { get; set; }
 		public JsonStationSettingsGraphDataHumidity humidity { get; set; }
 		public JsonStationSettingsGraphDataSolar solar { get; set; }
+		public JsonStationSettingsGraphDataDegreeDays degreedays { get; set; }
 	}
 
 	public class JsonStationSettingsGraphDataTemperature
@@ -1468,6 +1571,9 @@ namespace CumulusMX
 		public bool graphDailyAvgTempVis { get; set; }
 		public bool graphDailyMaxTempVis { get; set; }
 		public bool graphDailyMinTempVis { get; set; }
+		public bool graphTempSumVis0 { get; set; }
+		public bool graphTempSumVis1 { get; set; }
+		public bool graphTempSumVis2 { get; set; }
 	}
 
 	public class JsonStationSettingsGraphDataHumidity
@@ -1483,6 +1589,12 @@ namespace CumulusMX
 		public bool graphSunshineVis { get; set; }
 	}
 
+	public class JsonStationSettingsGraphDataDegreeDays
+	{
+		public bool graphGrowingDegreeDaysVis1 { get; set; }
+		public bool graphGrowingDegreeDaysVis2 { get; set; }
+	}
+
 	public class JsonSelectaChartSettings
 	{
 		public string[] series { get; set; }
@@ -1496,4 +1608,20 @@ namespace CumulusMX
 		public bool displaysolar { get; set; }
 		public bool displayuv { get; set; }
 	}
+
+	public class JsonGrowingDDSettings
+	{
+		public double basetemp1 { get; set; }
+		public double basetemp2 { get; set; }
+		public int starts { get; set; }
+		public bool cap30C { get; set; }
+	}
+
+	public class JsonTempSumSettings
+	{
+		public int starts { get; set; }
+		public double basetemp1 { get; set; }
+		public double basetemp2 { get; set; }
+	}
+
 }

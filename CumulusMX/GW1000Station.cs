@@ -610,7 +610,7 @@ namespace CumulusMX
 			var response = "???";
 			cumulus.LogMessage("Reading firmware version");
 
-			var data = DoCommand((byte)Commands.CMD_READ_FIRMWARE_VERSION);
+			var data = DoCommand(Commands.CMD_READ_FIRMWARE_VERSION);
 			if (null != data && data.Length > 0)
 			{
 				response = Encoding.ASCII.GetString(data, 5, data[4]);
@@ -623,7 +623,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Reading sensor ids");
 
-			var data = DoCommand((byte)Commands.CMD_READ_SENSOR_ID);
+			var data = DoCommand(Commands.CMD_READ_SENSOR_ID);
 
 			// expected response
 			// 0   - 0xff - header
@@ -693,7 +693,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Reading sensor ids");
 
-			var data = DoCommand((byte)Commands.CMD_READ_SENSOR_ID_NEW);
+			var data = DoCommand(Commands.CMD_READ_SENSOR_ID_NEW);
 
 			// expected response
 			// 0   - 0xff - header
@@ -747,77 +747,85 @@ namespace CumulusMX
 			//       ... etc
 			// (??) - 0x?? - checksum
 
-			var id = ConvertBigEndianUInt32(data, idx + 1);
-			var type = Enum.GetName(typeof(SensorIds), data[idx]).ToUpper();
-			var battPos = idx + 5;
-			var sigPos = idx + 6;
 			var batteryLow = false;
-			if (string.IsNullOrEmpty(type))
+
+			try
 			{
-				type = $"unknown type = {id}";
+				var id = ConvertBigEndianUInt32(data, idx + 1);
+				var type = Enum.GetName(typeof(SensorIds), data[idx]).ToUpper();
+				var battPos = idx + 5;
+				var sigPos = idx + 6;
+				if (string.IsNullOrEmpty(type))
+				{
+					type = $"unknown type = {id}";
+				}
+				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
+				if (type == "WH65")
+				{
+					type = mainSensor;
+				}
+
+				switch (id)
+				{
+					case 0xFFFFFFFE:
+						cumulus.LogDebugMessage($" - {type} sensor = disabled");
+						return false;
+					case 0xFFFFFFFF:
+						cumulus.LogDebugMessage($" - {type} sensor = registering");
+						return false;
+					default:
+						//cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {data[battPos]}");
+						break;
+				}
+
+				string batt;
+				switch (type)
+				{
+					case "WH40":  // WH40 does not send any battery info :(
+						batt = "n/a";
+						break;
+
+					case "WH65":
+					case "WH24":
+					case "WH26":
+						batt = TestBattery1(data[battPos], 1);  // 0 or 1
+						break;
+
+					case "WH68":
+					case "WH80":
+					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
+					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
+						double battV = data[battPos] * 0.02;
+						batt = $"{battV:f1}V ({TestBattery4S(data[battPos])})";  // volts, low = 1.2V
+						break;
+
+					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
+					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
+						batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
+						break;
+
+					case "WH25":
+					case "WH45":
+					case "WH57":
+					case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
+					case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
+						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5, low = 1
+						break;
+
+					default:
+						batt = "???";
+						break;
+				}
+
+				if (batt.Contains("Low"))
+					batteryLow = true;
+
+				cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {batt}");
 			}
-			// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
-			if (type == "WH65")
+			catch (Exception ex)
 			{
-				type = mainSensor;
+				cumulus.LogMessage("PrintSensorInfoNew: Error - " + ex.Message);
 			}
-
-			switch (id)
-			{
-				case 0xFFFFFFFE:
-					cumulus.LogDebugMessage($" - {type} sensor = disabled");
-					return false;
-				case 0xFFFFFFFF:
-					cumulus.LogDebugMessage($" - {type} sensor = registering");
-					return false;
-				default:
-					//cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {data[battPos]}");
-					break;
-			}
-
-			string batt;
-			switch (type)
-			{
-				case "WH40":  // WH40 does not send any battery info :(
-					batt = "n/a";
-					break;
-
-				case "WH65":
-				case "WH24":
-				case "WH26":
-					batt = TestBattery1(data[battPos], 1);  // 0 or 1
-					break;
-
-				case "WH68":
-				case "WH80":
-				case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
-				case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
-					double battV = data[battPos] * 0.02;
-					batt = $"{battV:f1}V ({TestBattery4S(data[battPos])})";  // volts, low = 1.2V
-					break;
-
-				case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
-				case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
-					batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
-					break;
-
-				case "WH25":
-				case "WH45":
-				case "WH57":
-				case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
-				case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
-					batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5, low = 1
-					break;
-
-				default:
-					batt = "???";
-					break;
-			}
-
-			if (batt.Contains("Low"))
-				batteryLow = true;
-
-			cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {batt}");
 
 			return batteryLow;
 		}
@@ -834,7 +842,7 @@ namespace CumulusMX
 				tenMinuteChanged = (minute % 10) == 0;
 			}
 
-			byte[] data = DoCommand((byte)Commands.CMD_GW1000_LIVEDATA);
+			byte[] data = DoCommand(Commands.CMD_GW1000_LIVEDATA);
 
 			// sample data = in-temp, in-hum, abs-baro, rel-baro, temp, hum, dir, speed, gust, light, UV uW, UV-I, rain-rate, rain-day, rain-week, rain-month, rain-year, PM2.5, PM-ch1, Soil-1, temp-2, hum-2, temp-3, hum-3, batt
 			//byte[] data = new byte[] { 0xFF,0xFF,0x27,0x00,0x5D,0x01,0x00,0x83,0x06,0x55,0x08,0x26,0xE7,0x09,0x26,0xDC,0x02,0x00,0x5D,0x07,0x61,0x0A,0x00,0x89,0x0B,0x00,0x19,0x0C,0x00,0x25,0x15,0x00,0x00,0x00,0x00,0x16,0x00,0x00,0x17,0x00,0x0E,0x00,0x3C,0x10,0x00,0x1E,0x11,0x01,0x4A,0x12,0x00,0x00,0x02,0x68,0x13,0x00,0x00,0x14,0xDC,0x2A,0x01,0x90,0x4D,0x00,0xE3,0x2C,0x34,0x1B,0x00,0xD3,0x23,0x3C,0x1C,0x00,0x60,0x24,0x5A,0x4C,0x04,0x00,0x00,0x00,0xFF,0x5C,0xFF,0x00,0xF4,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0xBA };
@@ -1286,14 +1294,14 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Reading GW1000 system info");
 
-			var data = DoCommand((byte)Commands.CMD_READ_SSSS);
+			var data = DoCommand(Commands.CMD_READ_SSSS);
 
 			// expected response
 			// 0   - 0xff - header
 			// 1   - 0xff - header
 			// 2   - 0x30 - system info
 			// 3   - 0x?? - size of response
-			// 4   - frequency - 0=433, 1=868MHz
+			// 4   - frequency - 0=433, 1=868MHz, 2=915MHz, 3=920MHz
 			// 5   - sensor type - 0=WH24, 1=WH65
 			// 6-9 - UTC time
 			// 10  - timezone index (?)
@@ -1302,26 +1310,42 @@ namespace CumulusMX
 
 			if (data.Length != 13)
 			{
-				cumulus.LogMessage("Unexpected response to Sysetm Info!");
+				cumulus.LogMessage("Unexpected response to System Info!");
 				return;
 			}
+			try
+			{
+				string freq;
+				if (data[4] == 0)
+					freq = "433MHz";
+				else if (data[4] == 1)
+					freq = "868MHz";
+				else if (data[4] == 2)
+					freq = "915MHz";
+				else if (data[4] == 3)
+					freq = "920MHz";
+				else
+					freq = $"Unknown [{data[4]}]";
 
-			var freq = data[4] == 0 ? "433MHz" : "868MHz";
-			mainSensor = data[5] == 0 ? "WH24" : "WH65";
+				mainSensor = data[5] == 0 ? "WH24" : "WH65";
 
-			var unix = ConvertBigEndianUInt32(data, 6);
-			var date = Utils.FromUnixTime(unix);
-			var dst = data[11] != 0;
+				var unix = ConvertBigEndianUInt32(data, 6);
+				var date = Utils.FromUnixTime(unix);
+				var dst = data[11] != 0;
 
-			cumulus.LogMessage($"GW1000 Info: freqency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {dst}");
+				cumulus.LogMessage($"GW1000 Info: freqency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {dst}");
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error processing System Info: " + ex.Message);
+			}
 		}
 
-		private byte[] DoCommand(byte command)
+		private byte[] DoCommand(Commands command)
 		{
 			var buffer = new byte[2028];
 			var bytesRead = 0;
-
-			var cmdName = Enum.GetName(typeof(Commands), command);
+			var cmdName = command.ToString();
 
 			var payload = new CommandPayload(command);
 			var tmrComm = new CommTimer();
@@ -1358,7 +1382,7 @@ namespace CumulusMX
 				}
 
 				// Check the response is to our command and checksum is OK
-				if (bytesRead == 0 || buffer[2] != command || !ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
+				if (bytesRead == 0 || buffer[2] != (byte)command || !ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
 				{
 					if (bytesRead > 0)
 					{
@@ -1370,6 +1394,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage($"DoCommand({cmdName}): No response received");
 					}
+					return null;
 				}
 				else
 				{
@@ -1400,36 +1425,43 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 			//CO2Data co2Data = (CO2Data)RawDeserialize(data, index, typeof(CO2Data));
 
-			CO2_temperature = ConvertTempCToUser(ConvertBigEndianInt16(data, idx) / 10.0);
-			idx += 2;
-			CO2_humidity = data[idx++];
-			CO2_pm10 = ConvertBigEndianUInt16(data, idx) / 10.0;
-			idx += 2;
-			CO2_pm10_24h = ConvertBigEndianUInt16(data, idx) / 10.0;
-			idx += 2;
-			CO2_pm2p5 = ConvertBigEndianUInt16(data, idx) / 10.0;
-			idx += 2;
-			CO2_pm2p5_24h = ConvertBigEndianUInt16(data, idx) / 10.0;
-			idx += 2;
-			CO2 = ConvertBigEndianUInt16(data, idx);
-			idx += 2;
-			CO2_24h = ConvertBigEndianUInt16(data, idx);
-			idx += 2;
-			var batt = TestBattery3(data[idx]);
-			var msg = $"WH45 CO₂: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
-			if (tenMinuteChanged)
+			try
 			{
-				if (batt == "Low")
+				CO2_temperature = ConvertTempCToUser(ConvertBigEndianInt16(data, idx) / 10.0);
+				idx += 2;
+				CO2_humidity = data[idx++];
+				CO2_pm10 = ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm10_24h = ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm2p5 = ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm2p5_24h = ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2 = ConvertBigEndianUInt16(data, idx);
+				idx += 2;
+				CO2_24h = ConvertBigEndianUInt16(data, idx);
+				idx += 2;
+				var batt = TestBattery3(data[idx]);
+				var msg = $"WH45 CO₂: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
+				if (tenMinuteChanged)
 				{
-					batteryLow = true;
-					msg += $", Battery={batt}";
+					if (batt == "Low")
+					{
+						batteryLow = true;
+						msg += $", Battery={batt}";
+					}
+					else
+					{
+						msg += $", Battery={batt}";
+					}
 				}
-				else
-				{
-					msg += $", Battery={batt}";
-				}
+				cumulus.LogDebugMessage(msg);
 			}
-			cumulus.LogDebugMessage(msg);
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("DoCO2Decode: Error - " + ex.Message);
+			}
 
 			return batteryLow;
 		}
@@ -1621,11 +1653,11 @@ namespace CumulusMX
 			private readonly byte Checksum;
 
 			//public CommandPayload(byte command, byte[] data) : this()
-			public CommandPayload(byte command) : this()
+			public CommandPayload(Commands command) : this()
 			{
 				//ushort header;
 				Header = 0xffff;
-				Command = command;
+				Command = (byte)command;
 				Size = (byte)(Marshal.SizeOf(typeof(CommandPayload)) - 3);
 				Checksum = (byte)(Command + Size);
 			}

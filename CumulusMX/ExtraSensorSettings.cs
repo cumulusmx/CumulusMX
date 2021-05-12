@@ -9,17 +9,17 @@ namespace CumulusMX
 	public class ExtraSensorSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string extraSensorOptionsFile;
-		private readonly string extraSensorSchemaFile;
+		private readonly string optionsFile;
+		private readonly string schemaFile;
 
 		public ExtraSensorSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			extraSensorOptionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ExtraSensorOptions.json";
-			extraSensorSchemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ExtraSensorSchema.json";
+			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ExtraSensorOptions.json";
+			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ExtraSensorSchema.json";
 		}
 
-		public string GetExtraSensorAlpacaFormData()
+		public string GetAlpacaFormData()
 		{
 			var indoor = new JsonExtraSensorAirLinkDevice()
 			{
@@ -84,6 +84,7 @@ namespace CumulusMX
 
 			var data = new JsonExtraSensorSettings()
 			{
+				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
 				airLink = airlink,
 				blakeLarsen = bl,
@@ -93,9 +94,11 @@ namespace CumulusMX
 			return data.ToJson();
 		}
 
-		public string UpdateExtraSensorConfig(IHttpContext context)
+		public string UpdateConfig(IHttpContext context)
 		{
 			var errorMsg = "";
+			var json = "";
+			JsonExtraSensorSettings settings;
 			context.Response.StatusCode = 200;
 
 			try
@@ -103,11 +106,23 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				var json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				var settings = json.FromJson<JsonExtraSensorSettings>();
-				// process the settings
+				settings = json.FromJson<JsonExtraSensorSettings>();
+			}
+			catch (Exception ex)
+			{
+				var msg = "Error deserializing ExtraSensor Settings JSON: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("ExtraSensor Data: " + json);
+				context.Response.StatusCode = 500;
+				return msg;
+			}
+
+			// process the settings
+			try
+			{
 				cumulus.LogMessage("Updating extra sensor settings");
 
 				// General settings
@@ -207,33 +222,33 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Save the settings
+				cumulus.WriteIniFile();
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				var msg = "Error processing Extra Sensor settings: " + ex.Message;
+				cumulus.LogMessage(msg);
+				cumulus.LogDebugMessage("Extra Sensor Data: " + json);
+				errorMsg += msg;
 				context.Response.StatusCode = 500;
-				return ex.Message;
 			}
-
-			// Save the settings
-			cumulus.WriteIniFile();
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-
-		public string GetExtraSensorAlpacaFormOptions()
+		public string GetAlpacaFormOptions()
 		{
-			using (StreamReader sr = new StreamReader(extraSensorOptionsFile))
+			using (StreamReader sr = new StreamReader(optionsFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
 			}
 		}
 
-		public string GetExtraSensorAlpacaFormSchema()
+		public string GetAlpacaFormSchema()
 		{
-			using (StreamReader sr = new StreamReader(extraSensorSchemaFile))
+			using (StreamReader sr = new StreamReader(schemaFile))
 			{
 				string json = sr.ReadToEnd();
 				return json;
@@ -243,6 +258,7 @@ namespace CumulusMX
 
 	public class JsonExtraSensorSettings
 	{
+		public bool accessible { get; set; }
 		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
@@ -254,7 +270,6 @@ namespace CumulusMX
 		public int primaryaqsensor { get; set; }
 		public int aqi { get; set; }
 	}
-
 
 	public class JsonExtraSensorAirLinkSettings
 	{
@@ -279,7 +294,6 @@ namespace CumulusMX
 	{
 		public bool enabled { get; set; }
 	}
-
 
 	public class JsonExtraSensorRG11
 	{

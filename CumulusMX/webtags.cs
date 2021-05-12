@@ -107,7 +107,7 @@ namespace CumulusMX
 
 		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals)
 		{
-			string ret = "";
+			string ret;
 			try
 			{
 				if (tagParams.Get("tc") == "y")
@@ -182,9 +182,15 @@ namespace CumulusMX
 
 		private static string EncodeForWeb(string aStr)
 		{
-			string result = HttpUtility.HtmlEncode(aStr);
-			return result;
+			return HttpUtility.HtmlEncode(aStr);
 		}
+
+		private static string EncodeForJs(string aStr)
+		{
+			var str = HttpUtility.HtmlDecode(aStr);
+			return HttpUtility.JavaScriptStringEncode(str);
+		}
+
 
 		private DateTime GetRecentTs(Dictionary<string,string> tagParams)
 		{
@@ -453,10 +459,16 @@ namespace CumulusMX
 			return CheckRcDp(station.presstrendval, tagParams, cumulus.PressDPlaces);
 		}
 
-		private string TagTempChangeLastHour(Dictionary<string,string> tagParams)
+		private string TagPressChangeLast3Hours(Dictionary<string,string> tagParams)
+		{
+			return CheckRcDp(station.presstrendval * 3, tagParams, cumulus.PressDPlaces);
+		}
+
+		private string TagTempChangeLastHour(Dictionary<string, string> tagParams)
 		{
 			return CheckRc(station.TempChangeLastHour.ToString("+##0.0;-##0.0;0"), tagParams);
 		}
+
 
 		private string Tagdew(Dictionary<string,string> tagParams)
 		{
@@ -611,24 +623,14 @@ namespace CumulusMX
 			return DateTime.Now.ToString("mm");
 		}
 
-		private string Tagforecast(Dictionary<string,string> tagParams)
-		{
-			return station.forecaststr;
-		}
-
 		private string Tagforecastnumber(Dictionary<string,string> tagParams)
 		{
 			return station.Forecastnumber.ToString();
 		}
 
-		private string Tagcumulusforecast(Dictionary<string,string> tagParams)
+		private string Tagforecast(Dictionary<string,string> tagParams)
 		{
-			return station.CumulusForecast;
-		}
-
-		private string Tagwsforecast(Dictionary<string,string> tagParams)
-		{
-			return station.wsforecast;
+			return station.forecaststr;
 		}
 
 		private string Tagforecastenc(Dictionary<string,string> tagParams)
@@ -636,15 +638,41 @@ namespace CumulusMX
 			return EncodeForWeb(station.forecaststr);
 		}
 
-		private string Tagcumulusforecastenc(Dictionary<string,string> tagParams)
+		private string TagforecastJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(station.forecaststr);
+		}
+
+		private string Tagcumulusforecast(Dictionary<string,string> tagParams)
+		{
+			return station.CumulusForecast;
+		}
+
+		private string Tagcumulusforecastenc(Dictionary<string, string> tagParams)
 		{
 			return EncodeForWeb(station.CumulusForecast);
+		}
+
+		private string TagcumulusforecastJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(station.CumulusForecast);
+		}
+
+		private string Tagwsforecast(Dictionary<string,string> tagParams)
+		{
+			return station.wsforecast;
 		}
 
 		private string Tagwsforecastenc(Dictionary<string,string> tagParams)
 		{
 			return EncodeForWeb(station.wsforecast);
 		}
+
+		private string TagwsforecastJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(station.wsforecast);
+		}
+
 
 		private string Tagtemp(Dictionary<string,string> tagParams)
 		{
@@ -1854,6 +1882,12 @@ namespace CumulusMX
 			return EncodeForWeb(GetCurrCondText());
 		}
 
+		private string TagcurrcondJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(GetCurrCondText());
+		}
+
+
 		private string TagtempYh(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.HiLoYest.HighTemp, tagParams, cumulus.TempDPlaces);
@@ -2702,12 +2736,40 @@ namespace CumulusMX
 			return cumulus.StationType == -1 ? "undefined" : cumulus.StationDesc[cumulus.StationType];
 		}
 
+		private string TagstationtypeJsEnc(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.StationModel != string.Empty)
+			{
+				return EncodeForJs(cumulus.StationModel);
+			}
+
+			return cumulus.StationType == -1 ? "undefined" : EncodeForJs(cumulus.StationDesc[cumulus.StationType]);
+		}
+
 		private string Taglatitude(Dictionary<string,string> tagParams)
 		{
 			var dpstr = tagParams.Get("dp");
 			if (dpstr == null)
 			{
 				return cumulus.LatTxt;
+			}
+
+			try
+			{
+				return CheckRcDp(cumulus.Latitude, tagParams, 2);
+			}
+			catch
+			{
+				return "error";
+			}
+		}
+
+		private string TaglatitudeJsEnc(Dictionary<string, string> tagParams)
+		{
+			var dpstr = tagParams.Get("dp");
+			if (dpstr == null)
+			{
+				return EncodeForJs(cumulus.LatTxt);
 			}
 
 			try
@@ -2739,14 +2801,14 @@ namespace CumulusMX
 			}
 		}
 
+		private string TaglongitudeJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(cumulus.LonTxt);
+		}
+
 		private string Taglocation(Dictionary<string,string> tagParams)
 		{
 			return cumulus.LocationName;
-		}
-
-		private string Taglonglocation(Dictionary<string,string> tagParams)
-		{
-			return cumulus.LocationDesc;
 		}
 
 		private string Taglocationenc(Dictionary<string, string> tagParams)
@@ -2754,9 +2816,25 @@ namespace CumulusMX
 			return EncodeForWeb(cumulus.LocationName);
 		}
 
+		private string TaglocationJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(cumulus.LocationName);
+		}
+
+
+		private string Taglonglocation(Dictionary<string,string> tagParams)
+		{
+			return cumulus.LocationDesc;
+		}
+
 		private string Taglonglocationenc(Dictionary<string, string> tagParams)
 		{
 			return EncodeForWeb(cumulus.LocationDesc);
+		}
+
+		private string TaglonglocationJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(cumulus.LocationDesc);
 		}
 
 		private string Tagsunrise(Dictionary<string,string> tagParams)
@@ -2833,6 +2911,11 @@ namespace CumulusMX
 			return cumulus.Altitude + (cumulus.AltitudeInFeet ? "&nbsp;ft" :"&nbsp;m");
 		}
 
+		private string Tagaltitudenoenc(Dictionary<string, string> tagParams)
+		{
+			return cumulus.Altitude + (cumulus.AltitudeInFeet ? " ft" : " m");
+		}
+
 		private string Tagforum(Dictionary<string,string> tagParams)
 		{
 			if (string.IsNullOrEmpty(cumulus.ForumURL))
@@ -2878,9 +2961,14 @@ namespace CumulusMX
 			return EncodeForWeb(cumulus.Units.TempText);
 		}
 
+		private string Tagtempunitnoenc(Dictionary<string, string> tagParams)
+		{
+			return cumulus.Units.TempText;
+		}
+
 		private string Tagtempunitnodeg(Dictionary<string,string> tagParams)
 		{
-			return EncodeForWeb(cumulus.Units.TempText.Substring(1,1));
+			return cumulus.Units.TempText.Substring(1,1);
 		}
 
 		private string Tagwindunit(Dictionary<string,string> tagParams)
@@ -3105,7 +3193,7 @@ namespace CumulusMX
 
 		private string TagEt(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(station.ET, tagParams, cumulus.RainDPlaces + 1);
+			return CheckRcDp(station.ET, tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagLight(Dictionary<string,string> tagParams)
@@ -5023,13 +5111,16 @@ namespace CumulusMX
 				{ "shortyear", TagShortyear },
 				{ "hour", TagHour },
 				{ "minute", TagMinute },
-				{ "forecast", Tagforecast },
 				{ "forecastnumber", Tagforecastnumber },
-				{ "cumulusforecast", Tagcumulusforecast },
-				{ "wsforecast", Tagwsforecast },
+				{ "forecast", Tagforecast },
 				{ "forecastenc", Tagforecastenc },
+				{ "forecastJsEnc", TagforecastJsEnc },
+				{ "cumulusforecast", Tagcumulusforecast },
 				{ "cumulusforecastenc", Tagcumulusforecastenc },
+				{ "cumulusforecastJsEnc", TagcumulusforecastJsEnc },
+				{ "wsforecast", Tagwsforecast },
 				{ "wsforecastenc", Tagwsforecastenc },
+				{ "wsforecastJsEnc", TagwsforecastJsEnc },
 				{ "temp", Tagtemp },
 				{ "apptemp", Tagapptemp },
 				{ "feelslike", Tagfeelsliketemp },
@@ -5054,6 +5145,7 @@ namespace CumulusMX
 				{ "dew", Tagdew },
 				{ "wetbulb", Tagwetbulb },
 				{ "presstrendval", Tagpresstrendval },
+				{ "PressChangeLast3Hours", TagPressChangeLast3Hours },
 				{ "windrunY", TagwindrunY },
 				{ "domwindbearingY", TagdomwindbearingY },
 				{ "domwinddirY", TagdomwinddirY },
@@ -5195,6 +5287,7 @@ namespace CumulusMX
 				{ "rollovertime", Tagrollovertime },
 				{ "currcond", Tagcurrcond },
 				{ "currcondenc", Tagcurrcondenc },
+				{ "currcondJsEnc", TagcurrcondJsEnc },
 				{ "tempYH", TagtempYh },
 				{ "TtempYH", TagTtempYh },
 				{ "tempYL", TagtempYl },
@@ -5300,12 +5393,17 @@ namespace CumulusMX
 				{ "THighDailyTempRange", TagTHighDailyTempRange },
 				{ "graphperiod", Taggraphperiod },
 				{ "stationtype", Tagstationtype },
+				{ "stationtypeJsEnc", TagstationtypeJsEnc },
 				{ "latitude", Taglatitude },
+				{ "latitudeJsEnc", TaglatitudeJsEnc },
 				{ "longitude", Taglongitude },
+				{ "longitudeJsEnc", TaglongitudeJsEnc },
 				{ "location", Taglocation },
-				{ "longlocation", Taglonglocation },
 				{ "locationenc", Taglocationenc },
+				{ "locationJsEnc", TaglocationJsEnc },
+				{ "longlocation", Taglonglocation },
 				{ "longlocationenc", Taglonglocationenc },
+				{ "longlocationJsEnc", TaglonglocationJsEnc },
 				{ "sunrise", Tagsunrise },
 				{ "sunset", Tagsunset },
 				{ "daylength", Tagdaylength },
@@ -5320,12 +5418,14 @@ namespace CumulusMX
 				{ "moonphase", Tagmoonphase },
 				{ "chillhours", TagChillHours },
 				{ "altitude", Tagaltitude },
+				{ "altitudenoenc", Tagaltitudenoenc },
 				{ "forum", Tagforum },
 				{ "forumurl", Tagforumurl },
 				{ "webcam", Tagwebcam },
 				{ "webcamurl", Tagwebcamurl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
+				{ "tempunitnoenc", Tagtempunitnoenc },
 				{ "windunit", Tagwindunit },
 				{ "windrununit", Tagwindrununit },
 				{ "pressunit", Tagpressunit },

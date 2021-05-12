@@ -13,19 +13,20 @@ namespace CumulusMX
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="windSpeedKph">Average wind speed in km/h</param>
+		/// <param name="tempCutoff">Use the 10C cutoff</param>
 		/// <returns>Wind Chill in Celcius</returns>
-		public static double WindChill(double tempC, double windSpeedKph)
+		public static double WindChill(double tempC, double windSpeedKph, bool tempCutoff = true)
 		{
 			// see American Meteorological Society Journal
 			// see http://www.msc.ec.gc.ca/education/windchill/science_equations_e.cfm
 			// see http://www.weather.gov/os/windchill/index.shtml
 
-			if ((tempC >= 10.0) || (windSpeedKph <= 4.8))
+			if ((tempC >= 10.0 && tempCutoff) || (windSpeedKph <= 4.8))
 				return tempC;
 
 			double windPow = Math.Pow(windSpeedKph, 0.16);
 
-			double wc = 13.12 + (0.6215*tempC) - (11.37*windPow) + (0.3965*tempC*windPow);
+			double wc = 13.12 + (0.6215 * tempC) - (11.37 * windPow) + (0.3965 * tempC * windPow);
 
 			if (wc > tempC) return tempC;
 
@@ -44,9 +45,9 @@ namespace CumulusMX
 		/// <returns>Apparent temperature in Celcius</returns>
 		public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
 		{
-			double avp = (humidity/100.0)*6.105*Math.Exp(17.27*tempC/(237.7 + tempC)); // hPa
-			//double avp = ActualVapourPressure(tempC, humidity);
-			return tempC + (0.33*avp) - (0.7*windspeedMS) - 4.0;
+			double avp = (humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC)); // hPa
+																								 //double avp = ActualVapourPressure(tempC, humidity);
+			return tempC + (0.33 * avp) - (0.7 * windspeedMS) - 4.0;
 		}
 
 		/// <summary>
@@ -62,7 +63,8 @@ namespace CumulusMX
 		public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
 		{
 			// Cannot use the WindChill function as we need the chill above 10 C
-			double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
+			//double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
+			double chill = WindChill(tempC, windSpeedKph, false);
 			double svp = SaturationVapourPressure1980(tempC);   // Saturation Vapour Pressure in hPa
 			double avp = (float)humidity / 100.0 * svp / 10.0;             // Actual Vapour Pressure in kPa
 			if (windSpeedKph > 72) windSpeedKph = 72;           // Windspeed limited to 20 m/s = 72 km/h
@@ -108,24 +110,24 @@ namespace CumulusMX
 			}
 			else
 			{
-				double tempSqrd = tempF*tempF;
+				double tempSqrd = tempF * tempF;
 
-				double humSqrd = humidity*humidity;
+				double humSqrd = humidity * humidity;
 
-				var result = FtoC(0 - 42.379 + (2.04901523*tempF) + (10.14333127*humidity) - (0.22475541*tempF*humidity) - (0.00683783*tempSqrd) - (0.05481717*humSqrd) +
-					(0.00122874*tempSqrd*humidity) + (0.00085282*tempF*humSqrd) - (0.00000199*tempSqrd*humSqrd));
+				var result = FtoC(0 - 42.379 + (2.04901523 * tempF) + (10.14333127 * humidity) - (0.22475541 * tempF * humidity) - (0.00683783 * tempSqrd) - (0.05481717 * humSqrd) +
+					(0.00122874 * tempSqrd * humidity) + (0.00085282 * tempF * humSqrd) - (0.00000199 * tempSqrd * humSqrd));
 
-			  // Rothfusz adjustments
-			  if ((humidity < 13) && (tempF >= 80) && (tempF <= 112))
-			  {
-				result -= ((13 - humidity) / 4.0) * Math.Sqrt((17 - Math.Abs(tempF - 95)) / 17.0);
-			  }
-			  else if ((humidity > 85) && (tempF >= 80) && (tempF <= 87))
-			  {
-				result += ((humidity - 85) / 10.0) * ((87 - tempF) / 5.0);
-			  }
+				// Rothfusz adjustments
+				if ((humidity < 13) && (tempF >= 80) && (tempF <= 112))
+				{
+					result -= ((13 - humidity) / 4.0) * Math.Sqrt((17 - Math.Abs(tempF - 95)) / 17.0);
+				}
+				else if ((humidity > 85) && (tempF >= 80) && (tempF <= 87))
+				{
+					result += ((humidity - 85) / 10.0) * ((87 - tempF) / 5.0);
+				}
 
-			  return result;
+				return result;
 			}
 		}
 
@@ -166,7 +168,7 @@ namespace CumulusMX
 			if (humidity == 100)
 				return tempC;
 
-			return tempC * Math.Atan(0.151977 * Math.Sqrt(humidity + 8.313659)) + Math.Atan(tempC + humidity) - Math.Atan(humidity - 1.676331) + 0.00391838 * Math.Pow(humidity, 3/2) * Math.Atan(0.023101 * humidity) - 4.686035;
+			return tempC * Math.Atan(0.151977 * Math.Sqrt(humidity + 8.313659)) + Math.Atan(tempC + humidity) - Math.Atan(humidity - 1.676331) + 0.00391838 * Math.Pow(humidity, 3 / 2) * Math.Atan(0.023101 * humidity) - 4.686035;
 		}
 
 
@@ -204,7 +206,7 @@ namespace CumulusMX
 
 		private static double Sqr(double num)
 		{
-			return num*num;
+			return num * num;
 		}
 
 		/// <summary>
@@ -223,7 +225,7 @@ namespace CumulusMX
 				return tempC;
 
 			// Davis algorithm
-			double lnVapor = Math.Log(ActualVapourPressure2008(tempC, (int) humidity));
+			double lnVapor = Math.Log(ActualVapourPressure2008(tempC, (int)humidity));
 			return ((243.12 * lnVapor) - 440.1) / (19.43 - lnVapor);
 		}
 
@@ -252,7 +254,7 @@ namespace CumulusMX
 		/// <returns>SVP in hPa</returns>
 		public static double SaturationVapourPressure2008(double tempC)
 		{
-			return 6.112*Math.Exp((17.62*tempC)/(243.12 + tempC));
+			return 6.112 * Math.Exp((17.62 * tempC) / (243.12 + tempC));
 		}
 
 		private static double ActualVapourPressure2008(double tempC, int humidity)
@@ -280,12 +282,53 @@ namespace CumulusMX
 
 		public static double CToF(double tempC)
 		{
-			return ((tempC*9.0)/5.0) + 32;
+			return ((tempC * 9.0) / 5.0) + 32;
 		}
 
 		public static double FtoC(double tempF)
 		{
-			return ((tempF - 32)*5.0)/9.0;
+			return ((tempF - 32) * 5.0) / 9.0;
+		}
+
+		/// <summary>
+		/// Calculates the Growing Degree Days.
+		/// Uses method A - https://en.wikipedia.org/wiki/Growing_degree-day
+		/// </summary>
+		/// <param name="maxC">The days maximum temperature (Celsius)</param>
+		/// <param name="minC">The days minimum temperature (Celsius)</param>
+		/// <param name="baseC">The GDD base temperature (Celsius)</param>
+		/// <returns>GrowingDegreeDay (Celsius)</returns>
+		public static double GrowingDegreeDays(double maxC, double minC, double baseC, bool cap30C)
+		{
+
+			var hiC = cap30C && maxC > 30 ? 30 : maxC;
+			var loC = cap30C && minC > 30 ? 30 : minC;
+			var avgC = (hiC + loC) / 2;
+			var gdd = 0.0;
+			if (avgC > baseC)
+			{
+				gdd = avgC - baseC;
+			}
+			return gdd;
+		}
+
+		/// <summary>
+		/// Calculates the Davis THW Index.
+		/// Uses method described for Heat Index and THSW Index in AN28
+		/// </summary>
+		/// <param name="tempC">The current temperature (Celsius)</param>
+		/// <param name="int">The current RH</param>
+		/// <param name="windKph">The current average wind speed (KPH)</param>
+		/// <returns>THWIndex (Celsius)</returns>
+
+		public static double THWIndex(double tempC, int hum, double windKph)
+		{
+			var hindex = HeatIndex(tempC, hum);
+
+			// above 144F/62.22C wind factor is zero
+			var wind = tempC > 62.22 ? 0 : tempC - WindChill(tempC, windKph, false);
+
+			return hindex - wind;
 		}
 	}
 }
