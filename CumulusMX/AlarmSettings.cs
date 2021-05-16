@@ -29,151 +29,189 @@ namespace CumulusMX
 
 			var data = new JsonAlarmSettingsData()
 			{
-				tempBelowEnabled = cumulus.LowTempAlarm.Enabled,
-				tempBelowVal = cumulus.LowTempAlarm.Value,
-				tempBelowSoundEnabled = cumulus.LowTempAlarm.Sound,
-				tempBelowSound = cumulus.LowTempAlarm.SoundFile,
-				tempBelowNotify = cumulus.LowTempAlarm.Notify,
-				tempBelowEmail = cumulus.LowTempAlarm.Email,
-				tempBelowLatches = cumulus.LowTempAlarm.Latch,
-				tempBelowLatchHrs = cumulus.LowTempAlarm.LatchHours,
-
-				tempAboveEnabled = cumulus.HighTempAlarm.Enabled,
-				tempAboveVal = cumulus.HighTempAlarm.Value,
-				tempAboveSoundEnabled = cumulus.HighTempAlarm.Sound,
-				tempAboveSound = cumulus.HighTempAlarm.SoundFile,
-				tempAboveNotify = cumulus.HighTempAlarm.Notify,
-				tempAboveEmail = cumulus.HighTempAlarm.Email,
-				tempAboveLatches = cumulus.HighTempAlarm.Latch,
-				tempAboveLatchHrs = cumulus.HighTempAlarm.LatchHours,
-
-				tempChangeEnabled = cumulus.TempChangeAlarm.Enabled,
-				tempChangeVal = cumulus.TempChangeAlarm.Value,
-				tempChangeSoundEnabled = cumulus.TempChangeAlarm.Sound,
-				tempChangeSound = cumulus.TempChangeAlarm.SoundFile,
-				tempChangeNotify = cumulus.TempChangeAlarm.Notify,
-				tempChangeEmail = cumulus.TempChangeAlarm.Email,
-				tempChangeLatches = cumulus.TempChangeAlarm.Latch,
-				tempChangeLatchHrs = cumulus.TempChangeAlarm.LatchHours,
-
-				pressBelowEnabled = cumulus.LowPressAlarm.Enabled,
-				pressBelowVal = cumulus.LowPressAlarm.Value,
-				pressBelowSoundEnabled = cumulus.LowPressAlarm.Sound,
-				pressBelowSound = cumulus.LowPressAlarm.SoundFile,
-				pressBelowNotify = cumulus.LowPressAlarm.Notify,
-				pressBelowEmail = cumulus.LowPressAlarm.Email,
-				pressBelowLatches = cumulus.LowPressAlarm.Latch,
-				pressBelowLatchHrs = cumulus.LowPressAlarm.LatchHours,
-
-				pressAboveEnabled = cumulus.HighPressAlarm.Enabled,
-				pressAboveVal = cumulus.HighPressAlarm.Value,
-				pressAboveSoundEnabled = cumulus.HighPressAlarm.Sound,
-				pressAboveSound = cumulus.HighPressAlarm.SoundFile,
-				pressAboveNotify = cumulus.HighPressAlarm.Notify,
-				pressAboveEmail = cumulus.HighPressAlarm.Email,
-				pressAboveLatches = cumulus.HighPressAlarm.Latch,
-				pressAboveLatchHrs = cumulus.HighPressAlarm.LatchHours,
-
-				pressChangeEnabled = cumulus.PressChangeAlarm.Enabled,
-				pressChangeVal = cumulus.PressChangeAlarm.Value,
-				pressChangeSoundEnabled = cumulus.PressChangeAlarm.Sound,
-				pressChangeSound = cumulus.PressChangeAlarm.SoundFile,
-				pressChangeNotify = cumulus.PressChangeAlarm.Notify,
-				pressChangeEmail = cumulus.PressChangeAlarm.Email,
-				pressChangeLatches = cumulus.PressChangeAlarm.Latch,
-				pressChangeLatchHrs = cumulus.PressChangeAlarm.LatchHours,
-
-				rainAboveEnabled = cumulus.HighRainTodayAlarm.Enabled,
-				rainAboveVal = cumulus.HighRainTodayAlarm.Value,
-				rainAboveSoundEnabled = cumulus.HighRainTodayAlarm.Sound,
-				rainAboveSound = cumulus.HighRainTodayAlarm.SoundFile,
-				rainAboveNotify = cumulus.HighRainTodayAlarm.Notify,
-				rainAboveEmail = cumulus.HighRainTodayAlarm.Email,
-				rainAboveLatches = cumulus.HighRainTodayAlarm.Latch,
-				rainAboveLatchHrs = cumulus.HighRainTodayAlarm.LatchHours,
-
-				rainRateAboveEnabled = cumulus.HighRainRateAlarm.Enabled,
-				rainRateAboveVal = cumulus.HighRainRateAlarm.Value,
-				rainRateAboveSoundEnabled = cumulus.HighRainRateAlarm.Sound,
-				rainRateAboveSound = cumulus.HighRainRateAlarm.SoundFile,
-				rainRateAboveNotify = cumulus.HighRainRateAlarm.Notify,
-				rainRateAboveEmail = cumulus.HighRainRateAlarm.Email,
-				rainRateAboveLatches = cumulus.HighRainRateAlarm.Latch,
-				rainRateAboveLatchHrs = cumulus.HighRainRateAlarm.LatchHours,
-
-				gustAboveEnabled = cumulus.HighGustAlarm.Enabled,
-				gustAboveVal = cumulus.HighGustAlarm.Value,
-				gustAboveSoundEnabled = cumulus.HighGustAlarm.Sound,
-				gustAboveSound = cumulus.HighGustAlarm.SoundFile,
-				gustAboveNotify = cumulus.HighGustAlarm.Notify,
-				gustAboveEmail = cumulus.HighGustAlarm.Email,
-				gustAboveLatches = cumulus.HighGustAlarm.Latch,
-				gustAboveLatchHrs = cumulus.HighGustAlarm.LatchHours,
-
-				windAboveEnabled = cumulus.HighWindAlarm.Enabled,
-				windAboveVal = cumulus.HighWindAlarm.Value,
-				windAboveSoundEnabled = cumulus.HighWindAlarm.Sound,
-				windAboveSound = cumulus.HighWindAlarm.SoundFile,
-				windAboveNotify = cumulus.HighWindAlarm.Notify,
-				windAboveEmail = cumulus.HighWindAlarm.Email,
-				windAboveLatches = cumulus.HighWindAlarm.Latch,
-				windAboveLatchHrs = cumulus.HighWindAlarm.LatchHours,
-
-				contactLostEnabled = cumulus.SensorAlarm.Enabled,
-				contactLostSoundEnabled = cumulus.SensorAlarm.Sound,
-				contactLostSound = cumulus.SensorAlarm.SoundFile,
-				contactLostNotify = cumulus.SensorAlarm.Notify,
-				contactLostEmail = cumulus.SensorAlarm.Email,
-				contactLostLatches = cumulus.SensorAlarm.Latch,
-				contactLostLatchHrs = cumulus.SensorAlarm.LatchHours,
-
-				dataStoppedEnabled = cumulus.DataStoppedAlarm.Enabled,
-				dataStoppedSoundEnabled = cumulus.DataStoppedAlarm.Sound,
-				dataStoppedSound = cumulus.DataStoppedAlarm.SoundFile,
-				dataStoppedNotify = cumulus.DataStoppedAlarm.Notify,
-				dataStoppedEmail = cumulus.DataStoppedAlarm.Email,
-				dataStoppedLatches = cumulus.DataStoppedAlarm.Latch,
-				dataStoppedLatchHrs = cumulus.DataStoppedAlarm.LatchHours,
-
-				batteryLowEnabled = cumulus.BatteryLowAlarm.Enabled,
-				batteryLowSoundEnabled = cumulus.BatteryLowAlarm.Sound,
-				batteryLowSound = cumulus.BatteryLowAlarm.SoundFile,
-				batteryLowNotify = cumulus.BatteryLowAlarm.Notify,
-				batteryLowEmail = cumulus.BatteryLowAlarm.Email,
-				batteryLowLatches = cumulus.BatteryLowAlarm.Latch,
-				batteryLowLatchHrs = cumulus.BatteryLowAlarm.LatchHours,
-
-				spikeEnabled = cumulus.SpikeAlarm.Enabled,
-				spikeSoundEnabled = cumulus.SpikeAlarm.Sound,
-				spikeSound = cumulus.SpikeAlarm.SoundFile,
-				spikeNotify = cumulus.SpikeAlarm.Notify,
-				spikeEmail = cumulus.SpikeAlarm.Email,
-				spikeLatches = cumulus.SpikeAlarm.Latch,
-				spikeLatchHrs = cumulus.SpikeAlarm.LatchHours,
-
-				upgradeEnabled = cumulus.UpgradeAlarm.Enabled,
-				upgradeSoundEnabled = cumulus.UpgradeAlarm.Sound,
-				upgradeSound = cumulus.UpgradeAlarm.SoundFile,
-				upgradeNotify = cumulus.UpgradeAlarm.Notify,
-				upgradeEmail = cumulus.UpgradeAlarm.Email,
-				upgradeLatches = cumulus.UpgradeAlarm.Latch,
-				upgradeLatchHrs = cumulus.UpgradeAlarm.LatchHours,
-
-				httpStoppedEnabled = cumulus.HttpUploadAlarm.Enabled,
-				httpStoppedSoundEnabled = cumulus.HttpUploadAlarm.Sound,
-				httpStoppedSound = cumulus.HttpUploadAlarm.SoundFile,
-				httpStoppedNotify = cumulus.HttpUploadAlarm.Notify,
-				httpStoppedEmail = cumulus.HttpUploadAlarm.Email,
-				httpStoppedLatches = cumulus.HttpUploadAlarm.Latch,
-				httpStoppedLatchHrs = cumulus.HttpUploadAlarm.LatchHours,
-
-				mySqlStoppedEnabled = cumulus.MySqlUploadAlarm.Enabled,
-				mySqlStoppedSoundEnabled = cumulus.MySqlUploadAlarm.Sound,
-				mySqlStoppedSound = cumulus.MySqlUploadAlarm.SoundFile,
-				mySqlStoppedNotify = cumulus.MySqlUploadAlarm.Notify,
-				mySqlStoppedEmail = cumulus.MySqlUploadAlarm.Email,
-				mySqlStoppedLatches = cumulus.MySqlUploadAlarm.Latch,
-				mySqlStoppedLatchHrs = cumulus.MySqlUploadAlarm.LatchHours
+				tempBelow = new JsonAlarmValues()
+				{
+					Enabled = cumulus.LowTempAlarm.Enabled,
+					Val = cumulus.LowTempAlarm.Value,
+					SoundEnabled = cumulus.LowTempAlarm.Sound,
+					Sound = cumulus.LowTempAlarm.SoundFile,
+					Notify = cumulus.LowTempAlarm.Notify,
+					Email = cumulus.LowTempAlarm.Email,
+					Latches = cumulus.LowTempAlarm.Latch,
+					LatchHrs = cumulus.LowTempAlarm.LatchHours
+				},
+				tempAbove = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HighTempAlarm.Enabled,
+					Val = cumulus.HighTempAlarm.Value,
+					SoundEnabled = cumulus.HighTempAlarm.Sound,
+					Sound = cumulus.HighTempAlarm.SoundFile,
+					Notify = cumulus.HighTempAlarm.Notify,
+					Email = cumulus.HighTempAlarm.Email,
+					Latches = cumulus.HighTempAlarm.Latch,
+					LatchHrs = cumulus.HighTempAlarm.LatchHours
+				},
+				tempChange = new JsonAlarmValues()
+				{
+					Enabled = cumulus.TempChangeAlarm.Enabled,
+					Val = cumulus.TempChangeAlarm.Value,
+					SoundEnabled = cumulus.TempChangeAlarm.Sound,
+					Sound = cumulus.TempChangeAlarm.SoundFile,
+					Notify = cumulus.TempChangeAlarm.Notify,
+					Email = cumulus.TempChangeAlarm.Email,
+					Latches = cumulus.TempChangeAlarm.Latch,
+					LatchHrs = cumulus.TempChangeAlarm.LatchHours
+				},
+				pressBelow = new JsonAlarmValues()
+				{
+					Enabled = cumulus.LowPressAlarm.Enabled,
+					Val = cumulus.LowPressAlarm.Value,
+					SoundEnabled = cumulus.LowPressAlarm.Sound,
+					Sound = cumulus.LowPressAlarm.SoundFile,
+					Notify = cumulus.LowPressAlarm.Notify,
+					Email = cumulus.LowPressAlarm.Email,
+					Latches = cumulus.LowPressAlarm.Latch,
+					LatchHrs = cumulus.LowPressAlarm.LatchHours
+				},
+				pressAbove = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HighPressAlarm.Enabled,
+					Val = cumulus.HighPressAlarm.Value,
+					SoundEnabled = cumulus.HighPressAlarm.Sound,
+					Sound = cumulus.HighPressAlarm.SoundFile,
+					Notify = cumulus.HighPressAlarm.Notify,
+					Email = cumulus.HighPressAlarm.Email,
+					Latches = cumulus.HighPressAlarm.Latch,
+					LatchHrs = cumulus.HighPressAlarm.LatchHours
+				},
+				pressChange = new JsonAlarmValues()
+				{
+					Enabled = cumulus.PressChangeAlarm.Enabled,
+					Val = cumulus.PressChangeAlarm.Value,
+					SoundEnabled = cumulus.PressChangeAlarm.Sound,
+					Sound = cumulus.PressChangeAlarm.SoundFile,
+					Notify = cumulus.PressChangeAlarm.Notify,
+					Email = cumulus.PressChangeAlarm.Email,
+					Latches = cumulus.PressChangeAlarm.Latch,
+					LatchHrs = cumulus.PressChangeAlarm.LatchHours
+				},
+				rainAbove = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HighRainTodayAlarm.Enabled,
+					Val = cumulus.HighRainTodayAlarm.Value,
+					SoundEnabled = cumulus.HighRainTodayAlarm.Sound,
+					Sound = cumulus.HighRainTodayAlarm.SoundFile,
+					Notify = cumulus.HighRainTodayAlarm.Notify,
+					Email = cumulus.HighRainTodayAlarm.Email,
+					Latches = cumulus.HighRainTodayAlarm.Latch,
+					LatchHrs = cumulus.HighRainTodayAlarm.LatchHours
+				},
+				rainRateAbove = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HighRainRateAlarm.Enabled,
+					Val = cumulus.HighRainRateAlarm.Value,
+					SoundEnabled = cumulus.HighRainRateAlarm.Sound,
+					Sound = cumulus.HighRainRateAlarm.SoundFile,
+					Notify = cumulus.HighRainRateAlarm.Notify,
+					Email = cumulus.HighRainRateAlarm.Email,
+					Latches = cumulus.HighRainRateAlarm.Latch,
+					LatchHrs = cumulus.HighRainRateAlarm.LatchHours
+				},
+				gustAbove = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HighGustAlarm.Enabled,
+					Val = cumulus.HighGustAlarm.Value,
+					SoundEnabled = cumulus.HighGustAlarm.Sound,
+					Sound = cumulus.HighGustAlarm.SoundFile,
+					Notify = cumulus.HighGustAlarm.Notify,
+					Email = cumulus.HighGustAlarm.Email,
+					Latches = cumulus.HighGustAlarm.Latch,
+					LatchHrs = cumulus.HighGustAlarm.LatchHours
+				},
+				windAbove = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HighWindAlarm.Enabled,
+					Val = cumulus.HighWindAlarm.Value,
+					SoundEnabled = cumulus.HighWindAlarm.Sound,
+					Sound = cumulus.HighWindAlarm.SoundFile,
+					Notify = cumulus.HighWindAlarm.Notify,
+					Email = cumulus.HighWindAlarm.Email,
+					Latches = cumulus.HighWindAlarm.Latch,
+					LatchHrs = cumulus.HighWindAlarm.LatchHours
+				},
+				contactLost = new JsonAlarmValues()
+				{
+					Enabled = cumulus.SensorAlarm.Enabled,
+					SoundEnabled = cumulus.SensorAlarm.Sound,
+					Sound = cumulus.SensorAlarm.SoundFile,
+					Notify = cumulus.SensorAlarm.Notify,
+					Email = cumulus.SensorAlarm.Email,
+					Latches = cumulus.SensorAlarm.Latch,
+					LatchHrs = cumulus.SensorAlarm.LatchHours
+				},
+				dataStopped = new JsonAlarmValues()
+				{
+					Enabled = cumulus.DataStoppedAlarm.Enabled,
+					SoundEnabled = cumulus.DataStoppedAlarm.Sound,
+					Sound = cumulus.DataStoppedAlarm.SoundFile,
+					Notify = cumulus.DataStoppedAlarm.Notify,
+					Email = cumulus.DataStoppedAlarm.Email,
+					Latches = cumulus.DataStoppedAlarm.Latch,
+					LatchHrs = cumulus.DataStoppedAlarm.LatchHours
+				},
+				batteryLow = new JsonAlarmValues()
+				{
+					Enabled = cumulus.BatteryLowAlarm.Enabled,
+					SoundEnabled = cumulus.BatteryLowAlarm.Sound,
+					Sound = cumulus.BatteryLowAlarm.SoundFile,
+					Notify = cumulus.BatteryLowAlarm.Notify,
+					Email = cumulus.BatteryLowAlarm.Email,
+					Latches = cumulus.BatteryLowAlarm.Latch,
+					LatchHrs = cumulus.BatteryLowAlarm.LatchHours
+				},
+				spike = new JsonAlarmValues()
+				{
+					Enabled = cumulus.SpikeAlarm.Enabled,
+					SoundEnabled = cumulus.SpikeAlarm.Sound,
+					Sound = cumulus.SpikeAlarm.SoundFile,
+					Notify = cumulus.SpikeAlarm.Notify,
+					Email = cumulus.SpikeAlarm.Email,
+					Latches = cumulus.SpikeAlarm.Latch,
+					LatchHrs = cumulus.SpikeAlarm.LatchHours,
+					Threshold = cumulus.SpikeAlarm.TriggerThreshold
+				},
+				upgrade = new JsonAlarmValues()
+				{
+					Enabled = cumulus.UpgradeAlarm.Enabled,
+					SoundEnabled = cumulus.UpgradeAlarm.Sound,
+					Sound = cumulus.UpgradeAlarm.SoundFile,
+					Notify = cumulus.UpgradeAlarm.Notify,
+					Email = cumulus.UpgradeAlarm.Email,
+					Latches = cumulus.UpgradeAlarm.Latch,
+					LatchHrs = cumulus.UpgradeAlarm.LatchHours
+				},
+				httpUpload = new JsonAlarmValues()
+				{
+					Enabled = cumulus.HttpUploadAlarm.Enabled,
+					SoundEnabled = cumulus.HttpUploadAlarm.Sound,
+					Sound = cumulus.HttpUploadAlarm.SoundFile,
+					Notify = cumulus.HttpUploadAlarm.Notify,
+					Email = cumulus.HttpUploadAlarm.Email,
+					Latches = cumulus.HttpUploadAlarm.Latch,
+					LatchHrs = cumulus.HttpUploadAlarm.LatchHours,
+					Threshold = cumulus.HttpUploadAlarm.TriggerThreshold
+				},
+				mySqlUpload = new JsonAlarmValues()
+				{
+					Enabled = cumulus.MySqlUploadAlarm.Enabled,
+					SoundEnabled = cumulus.MySqlUploadAlarm.Sound,
+					Sound = cumulus.MySqlUploadAlarm.SoundFile,
+					Notify = cumulus.MySqlUploadAlarm.Notify,
+					Email = cumulus.MySqlUploadAlarm.Email,
+					Latches = cumulus.MySqlUploadAlarm.Latch,
+					LatchHrs = cumulus.MySqlUploadAlarm.LatchHours,
+					Threshold = cumulus.MySqlUploadAlarm.TriggerThreshold
+				}
 			};
 
 			var email = new JsonAlarmEmail()
@@ -227,152 +265,155 @@ namespace CumulusMX
 				// process the settings
 				cumulus.LogMessage("Updating Alarm settings");
 
-				cumulus.LowTempAlarm.Enabled = settings.tempBelowEnabled;
-				cumulus.LowTempAlarm.Value = settings.tempBelowVal;
-				cumulus.LowTempAlarm.Sound = settings.tempBelowSoundEnabled;
-				cumulus.LowTempAlarm.SoundFile = settings.tempBelowSound;
-				cumulus.LowTempAlarm.Notify = settings.tempBelowNotify;
-				cumulus.LowTempAlarm.Email = settings.tempBelowEmail;
-				cumulus.LowTempAlarm.Latch = settings.tempBelowLatches;
-				cumulus.LowTempAlarm.LatchHours = settings.tempBelowLatchHrs;
+				cumulus.LowTempAlarm.Enabled = settings.tempBelow.Enabled;
+				cumulus.LowTempAlarm.Value = settings.tempBelow.Val;
+				cumulus.LowTempAlarm.Sound = settings.tempBelow.SoundEnabled;
+				cumulus.LowTempAlarm.SoundFile = settings.tempBelow.Sound;
+				cumulus.LowTempAlarm.Notify = settings.tempBelow.Notify;
+				cumulus.LowTempAlarm.Email = settings.tempBelow.Email;
+				cumulus.LowTempAlarm.Latch = settings.tempBelow.Latches;
+				cumulus.LowTempAlarm.LatchHours = settings.tempBelow.LatchHrs;
 
 
-				cumulus.HighTempAlarm.Enabled = settings.tempAboveEnabled;
-				cumulus.HighTempAlarm.Value = settings.tempAboveVal;
-				cumulus.HighTempAlarm.Sound = settings.tempAboveSoundEnabled;
-				cumulus.HighTempAlarm.SoundFile = settings.tempAboveSound;
-				cumulus.HighTempAlarm.Notify = settings.tempAboveNotify;
-				cumulus.HighTempAlarm.Email = settings.tempAboveEmail;
-				cumulus.HighTempAlarm.Latch = settings.tempAboveLatches;
-				cumulus.HighTempAlarm.LatchHours = settings.tempAboveLatchHrs;
+				cumulus.HighTempAlarm.Enabled = settings.tempAbove.Enabled;
+				cumulus.HighTempAlarm.Value = settings.tempAbove.Val;
+				cumulus.HighTempAlarm.Sound = settings.tempAbove.SoundEnabled;
+				cumulus.HighTempAlarm.SoundFile = settings.tempAbove.Sound;
+				cumulus.HighTempAlarm.Notify = settings.tempAbove.Notify;
+				cumulus.HighTempAlarm.Email = settings.tempAbove.Email;
+				cumulus.HighTempAlarm.Latch = settings.tempAbove.Latches;
+				cumulus.HighTempAlarm.LatchHours = settings.tempAbove.LatchHrs;
 
-				cumulus.TempChangeAlarm.Enabled = settings.tempChangeEnabled;
-				cumulus.TempChangeAlarm.Value = settings.tempChangeVal;
-				cumulus.TempChangeAlarm.Sound = settings.tempChangeSoundEnabled;
-				cumulus.TempChangeAlarm.SoundFile = settings.tempChangeSound;
-				cumulus.TempChangeAlarm.Notify = settings.tempChangeNotify;
-				cumulus.TempChangeAlarm.Email = settings.tempChangeEmail;
-				cumulus.TempChangeAlarm.Latch = settings.tempChangeLatches;
-				cumulus.TempChangeAlarm.LatchHours = settings.tempChangeLatchHrs;
+				cumulus.TempChangeAlarm.Enabled = settings.tempChange.Enabled;
+				cumulus.TempChangeAlarm.Value = settings.tempChange.Val;
+				cumulus.TempChangeAlarm.Sound = settings.tempChange.SoundEnabled;
+				cumulus.TempChangeAlarm.SoundFile = settings.tempChange.Sound;
+				cumulus.TempChangeAlarm.Notify = settings.tempChange.Notify;
+				cumulus.TempChangeAlarm.Email = settings.tempChange.Email;
+				cumulus.TempChangeAlarm.Latch = settings.tempChange.Latches;
+				cumulus.TempChangeAlarm.LatchHours = settings.tempChange.LatchHrs;
 
-				cumulus.LowPressAlarm.Enabled = settings.pressBelowEnabled;
-				cumulus.LowPressAlarm.Value = settings.pressBelowVal;
-				cumulus.LowPressAlarm.Sound = settings.pressBelowSoundEnabled;
-				cumulus.LowPressAlarm.SoundFile = settings.pressBelowSound;
-				cumulus.LowPressAlarm.Notify = settings.pressBelowNotify;
-				cumulus.LowPressAlarm.Email = settings.pressBelowEmail;
-				cumulus.LowPressAlarm.Latch = settings.pressBelowLatches;
-				cumulus.LowPressAlarm.LatchHours = settings.pressBelowLatchHrs;
+				cumulus.LowPressAlarm.Enabled = settings.pressBelow.Enabled;
+				cumulus.LowPressAlarm.Value = settings.pressBelow.Val;
+				cumulus.LowPressAlarm.Sound = settings.pressBelow.SoundEnabled;
+				cumulus.LowPressAlarm.SoundFile = settings.pressBelow.Sound;
+				cumulus.LowPressAlarm.Notify = settings.pressBelow.Notify;
+				cumulus.LowPressAlarm.Email = settings.pressBelow.Email;
+				cumulus.LowPressAlarm.Latch = settings.pressBelow.Latches;
+				cumulus.LowPressAlarm.LatchHours = settings.pressBelow.LatchHrs;
 
-				cumulus.HighPressAlarm.Enabled = settings.pressAboveEnabled;
-				cumulus.HighPressAlarm.Value = settings.pressAboveVal;
-				cumulus.HighPressAlarm.Sound = settings.pressAboveSoundEnabled;
-				cumulus.HighPressAlarm.SoundFile = settings.pressAboveSound;
-				cumulus.HighPressAlarm.Notify = settings.pressAboveNotify;
-				cumulus.HighPressAlarm.Email = settings.pressAboveEmail;
-				cumulus.HighPressAlarm.Latch = settings.pressAboveLatches;
-				cumulus.HighPressAlarm.LatchHours = settings.pressAboveLatchHrs;
+				cumulus.HighPressAlarm.Enabled = settings.pressAbove.Enabled;
+				cumulus.HighPressAlarm.Value = settings.pressAbove.Val;
+				cumulus.HighPressAlarm.Sound = settings.pressAbove.SoundEnabled;
+				cumulus.HighPressAlarm.SoundFile = settings.pressAbove.Sound;
+				cumulus.HighPressAlarm.Notify = settings.pressAbove.Notify;
+				cumulus.HighPressAlarm.Email = settings.pressAbove.Email;
+				cumulus.HighPressAlarm.Latch = settings.pressAbove.Latches;
+				cumulus.HighPressAlarm.LatchHours = settings.pressAbove.LatchHrs;
 
-				cumulus.PressChangeAlarm.Enabled = settings.pressChangeEnabled;
-				cumulus.PressChangeAlarm.Value = settings.pressChangeVal;
-				cumulus.PressChangeAlarm.Sound = settings.pressChangeSoundEnabled;
-				cumulus.PressChangeAlarm.SoundFile = settings.pressChangeSound;
-				cumulus.PressChangeAlarm.Notify = settings.pressChangeNotify;
-				cumulus.PressChangeAlarm.Email = settings.pressChangeEmail;
-				cumulus.PressChangeAlarm.Latch = settings.pressChangeLatches;
-				cumulus.PressChangeAlarm.LatchHours = settings.pressChangeLatchHrs;
+				cumulus.PressChangeAlarm.Enabled = settings.pressChange.Enabled;
+				cumulus.PressChangeAlarm.Value = settings.pressChange.Val;
+				cumulus.PressChangeAlarm.Sound = settings.pressChange.SoundEnabled;
+				cumulus.PressChangeAlarm.SoundFile = settings.pressChange.Sound;
+				cumulus.PressChangeAlarm.Notify = settings.pressChange.Notify;
+				cumulus.PressChangeAlarm.Email = settings.pressChange.Email;
+				cumulus.PressChangeAlarm.Latch = settings.pressChange.Latches;
+				cumulus.PressChangeAlarm.LatchHours = settings.pressChange.LatchHrs;
 
-				cumulus.HighRainTodayAlarm.Enabled = settings.rainAboveEnabled;
-				cumulus.HighRainTodayAlarm.Value = settings.rainAboveVal;
-				cumulus.HighRainTodayAlarm.Sound = settings.rainAboveSoundEnabled;
-				cumulus.HighRainTodayAlarm.SoundFile = settings.rainAboveSound;
-				cumulus.HighRainTodayAlarm.Notify = settings.rainAboveNotify;
-				cumulus.HighRainTodayAlarm.Email = settings.rainAboveEmail;
-				cumulus.HighRainTodayAlarm.Latch = settings.rainAboveLatches;
-				cumulus.HighRainTodayAlarm.LatchHours = settings.rainAboveLatchHrs;
+				cumulus.HighRainTodayAlarm.Enabled = settings.rainAbove.Enabled;
+				cumulus.HighRainTodayAlarm.Value = settings.rainAbove.Val;
+				cumulus.HighRainTodayAlarm.Sound = settings.rainAbove.SoundEnabled;
+				cumulus.HighRainTodayAlarm.SoundFile = settings.rainAbove.Sound;
+				cumulus.HighRainTodayAlarm.Notify = settings.rainAbove.Notify;
+				cumulus.HighRainTodayAlarm.Email = settings.rainAbove.Email;
+				cumulus.HighRainTodayAlarm.Latch = settings.rainAbove.Latches;
+				cumulus.HighRainTodayAlarm.LatchHours = settings.rainAbove.LatchHrs;
 
-				cumulus.HighRainRateAlarm.Enabled = settings.rainRateAboveEnabled;
-				cumulus.HighRainRateAlarm.Value = settings.rainRateAboveVal;
-				cumulus.HighRainRateAlarm.Sound = settings.rainRateAboveSoundEnabled;
-				cumulus.HighRainRateAlarm.SoundFile = settings.rainRateAboveSound;
-				cumulus.HighRainRateAlarm.Notify = settings.rainRateAboveNotify;
-				cumulus.HighRainRateAlarm.Email = settings.rainRateAboveEmail;
-				cumulus.HighRainRateAlarm.Latch = settings.rainRateAboveLatches;
-				cumulus.HighRainRateAlarm.LatchHours = settings.rainRateAboveLatchHrs;
+				cumulus.HighRainRateAlarm.Enabled = settings.rainRateAbove.Enabled;
+				cumulus.HighRainRateAlarm.Value = settings.rainRateAbove.Val;
+				cumulus.HighRainRateAlarm.Sound = settings.rainRateAbove.SoundEnabled;
+				cumulus.HighRainRateAlarm.SoundFile = settings.rainRateAbove.Sound;
+				cumulus.HighRainRateAlarm.Notify = settings.rainRateAbove.Notify;
+				cumulus.HighRainRateAlarm.Email = settings.rainRateAbove.Email;
+				cumulus.HighRainRateAlarm.Latch = settings.rainRateAbove.Latches;
+				cumulus.HighRainRateAlarm.LatchHours = settings.rainRateAbove.LatchHrs;
 
-				cumulus.HighGustAlarm.Enabled = settings.gustAboveEnabled;
-				cumulus.HighGustAlarm.Value = settings.gustAboveVal;
-				cumulus.HighGustAlarm.Sound = settings.gustAboveSoundEnabled;
-				cumulus.HighGustAlarm.SoundFile = settings.gustAboveSound;
-				cumulus.HighGustAlarm.Notify = settings.gustAboveNotify;
-				cumulus.HighGustAlarm.Email = settings.gustAboveEmail;
-				cumulus.HighGustAlarm.Latch = settings.gustAboveLatches;
-				cumulus.HighGustAlarm.LatchHours = settings.gustAboveLatchHrs;
+				cumulus.HighGustAlarm.Enabled = settings.gustAbove.Enabled;
+				cumulus.HighGustAlarm.Value = settings.gustAbove.Val;
+				cumulus.HighGustAlarm.Sound = settings.gustAbove.SoundEnabled;
+				cumulus.HighGustAlarm.SoundFile = settings.gustAbove.Sound;
+				cumulus.HighGustAlarm.Notify = settings.gustAbove.Notify;
+				cumulus.HighGustAlarm.Email = settings.gustAbove.Email;
+				cumulus.HighGustAlarm.Latch = settings.gustAbove.Latches;
+				cumulus.HighGustAlarm.LatchHours = settings.gustAbove.LatchHrs;
 
-				cumulus.HighWindAlarm.Enabled = settings.windAboveEnabled;
-				cumulus.HighWindAlarm.Value = settings.windAboveVal;
-				cumulus.HighWindAlarm.Sound = settings.windAboveSoundEnabled;
-				cumulus.HighWindAlarm.SoundFile = settings.windAboveSound;
-				cumulus.HighWindAlarm.Notify = settings.windAboveNotify;
-				cumulus.HighWindAlarm.Email = settings.windAboveEmail;
-				cumulus.HighWindAlarm.Latch = settings.windAboveLatches;
-				cumulus.HighWindAlarm.LatchHours = settings.windAboveLatchHrs;
+				cumulus.HighWindAlarm.Enabled = settings.windAbove.Enabled;
+				cumulus.HighWindAlarm.Value = settings.windAbove.Val;
+				cumulus.HighWindAlarm.Sound = settings.windAbove.SoundEnabled;
+				cumulus.HighWindAlarm.SoundFile = settings.windAbove.Sound;
+				cumulus.HighWindAlarm.Notify = settings.windAbove.Notify;
+				cumulus.HighWindAlarm.Email = settings.windAbove.Email;
+				cumulus.HighWindAlarm.Latch = settings.windAbove.Latches;
+				cumulus.HighWindAlarm.LatchHours = settings.windAbove.LatchHrs;
 
-				cumulus.SensorAlarm.Enabled = settings.contactLostEnabled;
-				cumulus.SensorAlarm.Sound = settings.contactLostSoundEnabled;
-				cumulus.SensorAlarm.SoundFile = settings.contactLostSound;
-				cumulus.SensorAlarm.Notify = settings.contactLostNotify;
-				cumulus.SensorAlarm.Email = settings.contactLostEmail;
-				cumulus.SensorAlarm.Latch = settings.contactLostLatches;
-				cumulus.SensorAlarm.LatchHours = settings.contactLostLatchHrs;
+				cumulus.SensorAlarm.Enabled = settings.contactLost.Enabled;
+				cumulus.SensorAlarm.Sound = settings.contactLost.SoundEnabled;
+				cumulus.SensorAlarm.SoundFile = settings.contactLost.Sound;
+				cumulus.SensorAlarm.Notify = settings.contactLost.Notify;
+				cumulus.SensorAlarm.Email = settings.contactLost.Email;
+				cumulus.SensorAlarm.Latch = settings.contactLost.Latches;
+				cumulus.SensorAlarm.LatchHours = settings.contactLost.LatchHrs;
 
-				cumulus.DataStoppedAlarm.Enabled = settings.dataStoppedEnabled;
-				cumulus.DataStoppedAlarm.Sound = settings.dataStoppedSoundEnabled;
-				cumulus.DataStoppedAlarm.SoundFile = settings.dataStoppedSound;
-				cumulus.DataStoppedAlarm.Notify = settings.dataStoppedNotify;
-				cumulus.DataStoppedAlarm.Email = settings.dataStoppedEmail;
-				cumulus.DataStoppedAlarm.Latch = settings.dataStoppedLatches;
-				cumulus.DataStoppedAlarm.LatchHours = settings.dataStoppedLatchHrs;
+				cumulus.DataStoppedAlarm.Enabled = settings.dataStopped.Enabled;
+				cumulus.DataStoppedAlarm.Sound = settings.dataStopped.SoundEnabled;
+				cumulus.DataStoppedAlarm.SoundFile = settings.dataStopped.Sound;
+				cumulus.DataStoppedAlarm.Notify = settings.dataStopped.Notify;
+				cumulus.DataStoppedAlarm.Email = settings.dataStopped.Email;
+				cumulus.DataStoppedAlarm.Latch = settings.dataStopped.Latches;
+				cumulus.DataStoppedAlarm.LatchHours = settings.dataStopped.LatchHrs;
 
-				cumulus.BatteryLowAlarm.Enabled = settings.batteryLowEnabled;
-				cumulus.BatteryLowAlarm.Sound = settings.batteryLowSoundEnabled;
-				cumulus.BatteryLowAlarm.SoundFile = settings.batteryLowSound;
-				cumulus.BatteryLowAlarm.Notify = settings.batteryLowNotify;
-				cumulus.BatteryLowAlarm.Email = settings.batteryLowEmail;
-				cumulus.BatteryLowAlarm.Latch = settings.batteryLowLatches;
-				cumulus.BatteryLowAlarm.LatchHours = settings.batteryLowLatchHrs;
+				cumulus.BatteryLowAlarm.Enabled = settings.batteryLow.Enabled;
+				cumulus.BatteryLowAlarm.Sound = settings.batteryLow.SoundEnabled;
+				cumulus.BatteryLowAlarm.SoundFile = settings.batteryLow.Sound;
+				cumulus.BatteryLowAlarm.Notify = settings.batteryLow.Notify;
+				cumulus.BatteryLowAlarm.Email = settings.batteryLow.Email;
+				cumulus.BatteryLowAlarm.Latch = settings.batteryLow.Latches;
+				cumulus.BatteryLowAlarm.LatchHours = settings.batteryLow.LatchHrs;
 
-				cumulus.SpikeAlarm.Enabled = settings.spikeEnabled;
-				cumulus.SpikeAlarm.Sound = settings.spikeSoundEnabled;
-				cumulus.SpikeAlarm.SoundFile = settings.spikeSound;
-				cumulus.SpikeAlarm.Notify = settings.spikeNotify;
-				cumulus.SpikeAlarm.Email = settings.spikeEmail;
-				cumulus.SpikeAlarm.Latch = settings.spikeLatches;
-				cumulus.SpikeAlarm.LatchHours = settings.spikeLatchHrs;
+				cumulus.SpikeAlarm.Enabled = settings.spike.Enabled;
+				cumulus.SpikeAlarm.Sound = settings.spike.SoundEnabled;
+				cumulus.SpikeAlarm.SoundFile = settings.spike.Sound;
+				cumulus.SpikeAlarm.Notify = settings.spike.Notify;
+				cumulus.SpikeAlarm.Email = settings.spike.Email;
+				cumulus.SpikeAlarm.Latch = settings.spike.Latches;
+				cumulus.SpikeAlarm.LatchHours = settings.spike.LatchHrs;
+				cumulus.SpikeAlarm.TriggerThreshold = settings.spike.Threshold;
 
-				cumulus.UpgradeAlarm.Enabled = settings.upgradeEnabled;
-				cumulus.UpgradeAlarm.Sound = settings.upgradeSoundEnabled;
-				cumulus.UpgradeAlarm.SoundFile = settings.upgradeSound;
-				cumulus.UpgradeAlarm.Notify = settings.upgradeNotify;
-				cumulus.UpgradeAlarm.Email = settings.upgradeEmail;
-				cumulus.UpgradeAlarm.Latch = settings.upgradeLatches;
-				cumulus.UpgradeAlarm.LatchHours = settings.upgradeLatchHrs;
+				cumulus.UpgradeAlarm.Enabled = settings.upgrade.Enabled;
+				cumulus.UpgradeAlarm.Sound = settings.upgrade.SoundEnabled;
+				cumulus.UpgradeAlarm.SoundFile = settings.upgrade.Sound;
+				cumulus.UpgradeAlarm.Notify = settings.upgrade.Notify;
+				cumulus.UpgradeAlarm.Email = settings.upgrade.Email;
+				cumulus.UpgradeAlarm.Latch = settings.upgrade.Latches;
+				cumulus.UpgradeAlarm.LatchHours = settings.upgrade.LatchHrs;
 
-				cumulus.HttpUploadAlarm.Enabled = settings.httpStoppedEnabled;
-				cumulus.HttpUploadAlarm.Sound = settings.httpStoppedSoundEnabled;
-				cumulus.HttpUploadAlarm.SoundFile = settings.httpStoppedSound;
-				cumulus.HttpUploadAlarm.Notify = settings.httpStoppedNotify;
-				cumulus.HttpUploadAlarm.Email = settings.httpStoppedEmail;
-				cumulus.HttpUploadAlarm.Latch = settings.httpStoppedLatches;
-				cumulus.HttpUploadAlarm.LatchHours = settings.httpStoppedLatchHrs;
+				cumulus.HttpUploadAlarm.Enabled = settings.httpUpload.Enabled;
+				cumulus.HttpUploadAlarm.Sound = settings.httpUpload.SoundEnabled;
+				cumulus.HttpUploadAlarm.SoundFile = settings.httpUpload.Sound;
+				cumulus.HttpUploadAlarm.Notify = settings.httpUpload.Notify;
+				cumulus.HttpUploadAlarm.Email = settings.httpUpload.Email;
+				cumulus.HttpUploadAlarm.Latch = settings.httpUpload.Latches;
+				cumulus.HttpUploadAlarm.LatchHours = settings.httpUpload.LatchHrs;
+				cumulus.HttpUploadAlarm.TriggerThreshold = settings.httpUpload.Threshold;
 
-				cumulus.MySqlUploadAlarm.Enabled = settings.mySqlStoppedEnabled;
-				cumulus.MySqlUploadAlarm.Sound = settings.mySqlStoppedSoundEnabled;
-				cumulus.MySqlUploadAlarm.SoundFile = settings.mySqlStoppedSound;
-				cumulus.MySqlUploadAlarm.Notify = settings.mySqlStoppedNotify;
-				cumulus.MySqlUploadAlarm.Email = settings.mySqlStoppedEmail;
-				cumulus.MySqlUploadAlarm.Latch = settings.mySqlStoppedLatches;
-				cumulus.MySqlUploadAlarm.LatchHours = settings.mySqlStoppedLatchHrs;
+				cumulus.MySqlUploadAlarm.Enabled = settings.mySqlUpload.Enabled;
+				cumulus.MySqlUploadAlarm.Sound = settings.mySqlUpload.SoundEnabled;
+				cumulus.MySqlUploadAlarm.SoundFile = settings.mySqlUpload.Sound;
+				cumulus.MySqlUploadAlarm.Notify = settings.mySqlUpload.Notify;
+				cumulus.MySqlUploadAlarm.Email = settings.mySqlUpload.Email;
+				cumulus.MySqlUploadAlarm.Latch = settings.mySqlUpload.Latches;
+				cumulus.MySqlUploadAlarm.LatchHours = settings.mySqlUpload.LatchHrs;
+				cumulus.MySqlUploadAlarm.TriggerThreshold = settings.mySqlUpload.Threshold;
 
 				// validate the from email
 				if (!EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
@@ -478,151 +519,36 @@ namespace CumulusMX
 
 	public class JsonAlarmSettingsData
 	{
-		public bool tempBelowEnabled { get; set; }
-		public double tempBelowVal { get; set; }
-		public bool tempBelowSoundEnabled { get; set; }
-		public string tempBelowSound { get; set; }
-		public bool tempBelowNotify { get; set; }
-		public bool tempBelowEmail { get; set; }
-		public bool tempBelowLatches { get; set; }
-		public int tempBelowLatchHrs { get; set; }
+		public JsonAlarmValues tempBelow { get; set; }
+		public JsonAlarmValues tempAbove { get; set; }
+		public JsonAlarmValues tempChange { get; set; }
+		public JsonAlarmValues pressBelow { get; set; }
+		public JsonAlarmValues pressAbove { get; set; }
+		public JsonAlarmValues pressChange { get; set; }
+		public JsonAlarmValues rainAbove { get; set; }
+		public JsonAlarmValues rainRateAbove { get; set; }
+		public JsonAlarmValues gustAbove { get; set; }
+		public JsonAlarmValues windAbove { get; set; }
+		public JsonAlarmValues contactLost { get; set; }
+		public JsonAlarmValues dataStopped { get; set; }
+		public JsonAlarmValues batteryLow { get; set; }
+		public JsonAlarmValues spike { get; set; }
+		public JsonAlarmValues upgrade { get; set; }
+		public JsonAlarmValues httpUpload { get; set; }
+		public JsonAlarmValues mySqlUpload { get; set; }
+	}
 
-		public bool tempAboveEnabled { get; set; }
-		public double tempAboveVal { get; set; }
-		public bool tempAboveSoundEnabled { get; set; }
-		public string tempAboveSound { get; set; }
-		public bool tempAboveNotify { get; set; }
-		public bool tempAboveEmail { get; set; }
-		public bool tempAboveLatches { get; set; }
-		public int tempAboveLatchHrs { get; set; }
-
-		public bool tempChangeEnabled { get; set; }
-		public double tempChangeVal { get; set; }
-		public bool tempChangeSoundEnabled { get; set; }
-		public string tempChangeSound { get; set; }
-		public bool tempChangeNotify { get; set; }
-		public bool tempChangeEmail { get; set; }
-		public bool tempChangeLatches { get; set; }
-		public int tempChangeLatchHrs { get; set; }
-
-		public bool pressBelowEnabled { get; set; }
-		public double pressBelowVal { get; set; }
-		public bool pressBelowSoundEnabled { get; set; }
-		public string pressBelowSound { get; set; }
-		public bool pressBelowNotify { get; set; }
-		public bool pressBelowEmail { get; set; }
-		public bool pressBelowLatches { get; set; }
-		public int pressBelowLatchHrs { get; set; }
-
-		public bool pressAboveEnabled { get; set; }
-		public double pressAboveVal { get; set; }
-		public bool pressAboveSoundEnabled { get; set; }
-		public string pressAboveSound { get; set; }
-		public bool pressAboveNotify { get; set; }
-		public bool pressAboveEmail { get; set; }
-		public bool pressAboveLatches { get; set; }
-		public int pressAboveLatchHrs { get; set; }
-
-		public bool pressChangeEnabled { get; set; }
-		public double pressChangeVal { get; set; }
-		public bool pressChangeSoundEnabled { get; set; }
-		public string pressChangeSound { get; set; }
-		public bool pressChangeNotify { get; set; }
-		public bool pressChangeEmail { get; set; }
-		public bool pressChangeLatches { get; set; }
-		public int pressChangeLatchHrs { get; set; }
-
-		public bool rainAboveEnabled { get; set; }
-		public double rainAboveVal { get; set; }
-		public bool rainAboveSoundEnabled { get; set; }
-		public string rainAboveSound { get; set; }
-		public bool rainAboveNotify { get; set; }
-		public bool rainAboveEmail { get; set; }
-		public bool rainAboveLatches { get; set; }
-		public int rainAboveLatchHrs { get; set; }
-
-		public bool rainRateAboveEnabled { get; set; }
-		public double rainRateAboveVal { get; set; }
-		public bool rainRateAboveSoundEnabled { get; set; }
-		public string rainRateAboveSound { get; set; }
-		public bool rainRateAboveNotify { get; set; }
-		public bool rainRateAboveEmail { get; set; }
-		public bool rainRateAboveLatches { get; set; }
-		public int rainRateAboveLatchHrs { get; set; }
-
-		public bool gustAboveEnabled { get; set; }
-		public double gustAboveVal { get; set; }
-		public bool gustAboveSoundEnabled { get; set; }
-		public string gustAboveSound { get; set; }
-		public bool gustAboveNotify { get; set; }
-		public bool gustAboveEmail { get; set; }
-		public bool gustAboveLatches { get; set; }
-		public int gustAboveLatchHrs { get; set; }
-
-		public bool windAboveEnabled { get; set; }
-		public double windAboveVal { get; set; }
-		public bool windAboveSoundEnabled { get; set; }
-		public string windAboveSound { get; set; }
-		public bool windAboveNotify { get; set; }
-		public bool windAboveEmail { get; set; }
-		public bool windAboveLatches { get; set; }
-		public int windAboveLatchHrs { get; set; }
-
-		public bool contactLostEnabled { get; set; }
-		public bool contactLostSoundEnabled { get; set; }
-		public string contactLostSound { get; set; }
-		public bool contactLostNotify { get; set; }
-		public bool contactLostEmail { get; set; }
-		public bool contactLostLatches { get; set; }
-		public int contactLostLatchHrs { get; set; }
-
-		public bool dataStoppedEnabled { get; set; }
-		public bool dataStoppedSoundEnabled { get; set; }
-		public string dataStoppedSound { get; set; }
-		public bool dataStoppedNotify { get; set; }
-		public bool dataStoppedEmail { get; set; }
-		public bool dataStoppedLatches { get; set; }
-		public int dataStoppedLatchHrs { get; set; }
-
-		public bool batteryLowEnabled { get; set; }
-		public bool batteryLowSoundEnabled { get; set; }
-		public string batteryLowSound { get; set; }
-		public bool batteryLowNotify { get; set; }
-		public bool batteryLowEmail { get; set; }
-		public bool batteryLowLatches { get; set; }
-		public int batteryLowLatchHrs { get; set; }
-
-		public bool spikeEnabled { get; set; }
-		public bool spikeSoundEnabled { get; set; }
-		public string spikeSound { get; set; }
-		public bool spikeNotify { get; set; }
-		public bool spikeEmail { get; set; }
-		public bool spikeLatches { get; set; }
-		public int spikeLatchHrs { get; set; }
-
-		public bool upgradeEnabled { get; set; }
-		public bool upgradeSoundEnabled { get; set; }
-		public string upgradeSound { get; set; }
-		public bool upgradeNotify { get; set; }
-		public bool upgradeEmail { get; set; }
-		public bool upgradeLatches { get; set; }
-		public int upgradeLatchHrs { get; set; }
-
-		public bool httpStoppedEnabled { get; set; }
-		public bool httpStoppedSoundEnabled { get; set; }
-		public string httpStoppedSound { get; set; }
-		public bool httpStoppedNotify { get; set; }
-		public bool httpStoppedEmail { get; set; }
-		public bool httpStoppedLatches { get; set; }
-		public int httpStoppedLatchHrs { get; set; }
-
-		public bool mySqlStoppedEnabled { get; set; }
-		public bool mySqlStoppedSoundEnabled { get; set; }
-		public string mySqlStoppedSound { get; set; }
-		public bool mySqlStoppedNotify { get; set; }
-		public bool mySqlStoppedEmail { get; set; }
-		public bool mySqlStoppedLatches { get; set; }
-		public int mySqlStoppedLatchHrs { get; set; }
+	public class JsonAlarmValues
+	{
+		public bool Enabled { get; set; }
+		public double Val { get; set; }
+		public bool SoundEnabled { get; set; }
+		public string Sound { get; set; }
+		public bool Notify { get; set; }
+		public bool Email { get; set; }
+		public bool Latches { get; set; }
+		public int LatchHrs { get; set; }
+		public int Threshold { get; set; }
 	}
 
 	public class JsonAlarmEmail

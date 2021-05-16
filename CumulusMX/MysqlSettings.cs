@@ -44,7 +44,8 @@ namespace CumulusMX
 			{
 				retentionVal = retenVal,
 				retentionUnit = retenUnit,
-				table = cumulus.MySqlRealtimeTable
+				table = cumulus.MySqlRealtimeTable,
+				limit1min = cumulus.RealtimeMySql1MinLimit
 			};
 
 			var dayfile = new JsonMysqlSettingsDayfile()
@@ -163,6 +164,7 @@ namespace CumulusMX
 				{
 					cumulus.MySqlRealtimeRetention = settings.realtime.retentionVal + " " + settings.realtime.retentionUnit;
 					cumulus.MySqlRealtimeTable = String.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table;
+					cumulus.RealtimeMySql1MinLimit = settings.realtime.limit1min;
 				}
 				//dayfile
 				cumulus.DayfileMySqlEnabled = settings.dayenabled;
@@ -331,6 +333,7 @@ namespace CumulusMX
 		public string table { get; set; }
 		public int retentionVal { get; set; }
 		public string retentionUnit { get; set; }
+		public bool limit1min { get; set; }
 	}
 
 	public class JsonMysqlSettingsDayfile

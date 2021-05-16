@@ -3,7 +3,9 @@
 - Fix: Send email failing if email logging is not enabled
 - Fix: Solar Rad colour now displays as selected on first load in the Selectachart on the dashboard and default website
 - Fix: Handlebars JS script updated due to severe security risk on previous version
-- Fix: GW1000 for 433, 868, 915 Mhz variants
+- Fix: GW1000 for 433, 868, 915 MHz variants
+- Fix: Bug in MySQL catch-up
+
 
 - Change: Setting of ALL logging options via the GUI is now "sticky" - i.e. preserved across runs of Cumulus MX
 - Change: Many of the main settings screens now alert to to the first invalid settings in a message, and the tree containing
@@ -19,9 +21,25 @@
 - Change: If any of the base units (wind, temp, rain, pressure) are changed via Station Settings (for instance during the initial configuration), then all the
 	thresholds and base values associated with that unit are reset to the defaults for the new unit
 - Change: The main dashboard page now only shows alarm indicators for enabled alarms
+- Change: Alarm Settings page now has added screen reader attributes (not visible on the page)
+- Change: All HighCharts based pages (Dashboard and default web site) now use the latest stable release of HighCharts
 
 - New: Implements two new alarms for HTTP uploads failing, and MySQL uploads failing
+	- These plus Data Spike, have an additional setting via Cumulus.ini (for now) to set a trigger threshold.
+	  This defaults to 1, so the alarm will trigger immediately. If set to 5, then it will take 5 trigger events happen within the Latch time to set the alarm.
+	  The idea is to prevent an occasional error from triggering the alarm
+	  Cumulus.ini settings:
+		[Alarms]
+		SpikeAlarmTriggerCount=1
+		HttpUploadAlarmTriggerCount=1
+		MySqlUploadAlarmTriggerCount=1
 - New: Web tags - <#HttpUploadAlarm>, <#MySqlUploadAlarm>
+- New: Data Stopped, Data Spike,HTTP upload, MySQL upload emails now also report the error that triggered the alarm in the email text
+- New: Adds two new variables for Extra Web Files - <noaayearfile> & <noaamonthfile> to upload the last year and month reports. Like the day file variable
+	it only makes sense to use these with the EOD option
+- New: You can now limit the real time MySQL table inserts to once a minute. Useful if you run a short real time interval (say 5 seconds), and do not want to
+	flood your MySQL real time table with many rows that hardly change.
+
 
 
 3.11.1 - b3130

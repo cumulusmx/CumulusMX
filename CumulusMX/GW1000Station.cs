@@ -710,24 +710,34 @@ namespace CumulusMX
 
 			var batteryLow = false;
 
-			if (null != data && data.Length > 200)
+			try
 			{
-				var len = ConvertBigEndianUInt16(data, 3);
-
-				for (int i = 5; i < len; i += 7)
+				if (null != data && data.Length > 200)
 				{
-					if (PrintSensorInfoNew(data, i))
+					var len = ConvertBigEndianUInt16(data, 3);
+
+					// Only loop as far as last record (7 bytes) minus the checksum byte
+					for (int i = 5; i < len - 7; i += 7)
 					{
-						batteryLow = true;
+						if (PrintSensorInfoNew(data, i))
+						{
+							batteryLow = true;
+						}
 					}
+
+					cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
+					return true;
 				}
-
-				cumulus.BatteryLowAlarm.Triggered = batteryLow;
-
-				return true;
+				else
+				{
+					return false;
+				}
 			}
-			else
+			catch (Exception ex)
 			{
+				cumulus.LogMessage("GetSensorIdsNew: Unexpected error - " + ex.Message);
+				// no idea, so report battery as good
 				return false;
 			}
 		}
@@ -1832,6 +1842,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				DataStopped = true;
+				cumulus.DataStoppedAlarm.LastError = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
 				DoDiscovery();
 			}
