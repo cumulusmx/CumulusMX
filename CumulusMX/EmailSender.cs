@@ -4,6 +4,9 @@ using MimeKit;
 using System.Text.RegularExpressions;
 using MailKit;
 using System.Threading;
+using System.IO;
+using System.CodeDom.Compiler;
+using System.CodeDom;
 
 namespace CumulusMX
 {
@@ -28,7 +31,9 @@ namespace CumulusMX
 				await _writeLock.WaitAsync();
 				cumulus.LogDebugMessage($"SendEmail: Has the lock");
 
-				cumulus.LogDebugMessage($"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{subject}], body [{message}]...");
+				var logMessage = ToLiteral(message);
+
+				cumulus.LogMessage($"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{subject}], body [{logMessage}]...");
 
 				var m = new MimeMessage();
 				m.From.Add(new MailboxAddress("", from));
@@ -50,7 +55,7 @@ namespace CumulusMX
 
 				m.Body = bodyBuilder.ToMessageBody();
 
-				using (SmtpClient client = new SmtpClient(cumulus.SmtpOptions.Logging ? new ProtocolLogger("MXdiags/smtp.log") : null))
+				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
 					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
 
@@ -112,7 +117,7 @@ namespace CumulusMX
 
 				m.Body = bodyBuilder.ToMessageBody();
 
-				using (SmtpClient client = new SmtpClient(cumulus.SmtpOptions.Logging ? new ProtocolLogger("MXdiags/smtp.log") : null))
+				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
 					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
 					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
@@ -155,6 +160,18 @@ namespace CumulusMX
 				+ @"@[a-z0-9][\w\.-]*[a-z0-9]\.[a-z][a-z\.]*[a-z]$";
 
 			return new Regex(validEmailPattern, RegexOptions.IgnoreCase);
+		}
+
+		private static string ToLiteral(string input)
+		{
+			using (var writer = new StringWriter())
+			{
+				using (var provider = CodeDomProvider.CreateProvider("CSharp"))
+				{
+					provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
+					return writer.ToString();
+				}
+			}
 		}
 
 		public static bool CheckEmailAddress(string email)

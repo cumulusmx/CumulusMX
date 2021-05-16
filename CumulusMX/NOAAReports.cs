@@ -107,5 +107,72 @@ namespace CumulusMX
 			}
 			return report;
 		}
+
+		public string GetLastNoaaYearReportFilename(DateTime dat, bool fullPath)
+		{
+			// First determine the date for the logfile.
+			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// before 'Now'
+			// This assumes that the caller has already subtracted a day if required
+			DateTime logfiledate;
+
+			if (cumulus.RolloverHour == 0)
+			{
+				logfiledate = dat.AddDays(-1);
+			}
+			else
+			{
+				TimeZone tz = TimeZone.CurrentTimeZone;
+
+				if (cumulus.Use10amInSummer && tz.IsDaylightSavingTime(dat))
+				{
+					// Locale is currently on Daylight (summer) time
+					logfiledate = dat.AddHours(-10);
+				}
+				else
+				{
+					// Locale is currently on Standard time or unknown
+					logfiledate = dat.AddHours(-9);
+				}
+			}
+
+			if (fullPath)
+				return cumulus.ReportPath + logfiledate.ToString(cumulus.NOAAYearFileFormat);
+			else
+				return logfiledate.ToString(cumulus.NOAAYearFileFormat);
+		}
+
+		public string GetLastNoaaMonthReportFilename (DateTime dat, bool fullPath)
+		{
+			// First determine the date for the logfile.
+			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// before 'Now'
+			// This assumes that the caller has already subtracted a day if required
+			DateTime logfiledate;
+
+			if (cumulus.RolloverHour == 0)
+			{
+				logfiledate = dat.AddDays(-1);
+			}
+			else
+			{
+				TimeZone tz = TimeZone.CurrentTimeZone;
+
+				if (cumulus.Use10amInSummer && tz.IsDaylightSavingTime(dat))
+				{
+					// Locale is currently on Daylight (summer) time
+					logfiledate = dat.AddHours(-10);
+				}
+				else
+				{
+					// Locale is currently on Standard time or unknown
+					logfiledate = dat.AddHours(-9);
+				}
+			}
+			if (fullPath)
+				return cumulus.ReportPath + logfiledate.AddHours(-1).ToString(cumulus.NOAAMonthFileFormat);
+			else
+				return logfiledate.AddHours(-1).ToString(cumulus.NOAAMonthFileFormat);
+		}
 	}
 }

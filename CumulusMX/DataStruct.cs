@@ -23,6 +23,7 @@ namespace CumulusMX
 							bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain, bool alarmLowTemp,
 							bool alarmHighTemp, bool alarmTempUp, bool alarmTempDown, bool alarmRain, bool alarmRainRate, bool alarmLowPress, bool alarmHighPress,
 							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery, bool alarmSpike, bool alarmUpgrade,
+							bool alarmHttp, bool alarmMySql,
 							double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime,
 							double highHumidexToday, string highHumidexTodayTime)
 		{
@@ -141,6 +142,8 @@ namespace CumulusMX
 			AlarmBattery = alarmBattery;
 			AlarmSpike = alarmSpike;
 			AlarmUpgrade = alarmUpgrade;
+			AlarmHttp = alarmHttp;
+			AlarmMySql = alarmMySql;
 		}
 
 		[IgnoreDataMember]
@@ -819,5 +822,12 @@ namespace CumulusMX
 
 		[DataMember]
 		public bool AlarmUpgrade { get; set; }
+
+		[DataMember]
+		public bool AlarmHttp { get; set; }
+
+		[DataMember]
+		public bool AlarmMySql { get; set; }
+
 	}
 }
