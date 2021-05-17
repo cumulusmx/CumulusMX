@@ -1069,6 +1069,28 @@ namespace SQLite
 		/// <param name="objects">
 		/// An <see cref="IEnumerable"/> of the objects to insert.
 		/// </param>
+		/// <returns>
+		/// The number of rows added to the table.
+		/// </returns>
+		public int InsertAllOrIgnore(System.Collections.IEnumerable objects)
+		{
+			var c = 0;
+			RunInTransaction(() => {
+				foreach (var r in objects)
+				{
+					c += InsertOrIgnore(r);
+				}
+			});
+			return c;
+		}
+
+
+		/// <summary>
+		/// Inserts all specified objects.
+		/// </summary>
+		/// <param name="objects">
+		/// An <see cref="IEnumerable"/> of the objects to insert.
+		/// </param>
 		/// <param name="extra">
 		/// Literal SQL code that gets placed into the command. INSERT {extra} INTO ...
 		/// </param>
@@ -1125,6 +1147,29 @@ namespace SQLite
 				return 0;
 			}
 			return Insert (obj, "", obj.GetType ());
+		}
+
+
+		/// <summary>
+		/// Inserts the given object and retrieves its
+		/// auto incremented primary key if it has one.
+		/// If a UNIQUE constraint violation occurs with
+		/// some pre-existing object, this function deletes
+		/// the old object.
+		/// </summary>
+		/// <param name="obj">
+		/// The object to insert.
+		/// </param>
+		/// <returns>
+		/// The number of rows modified.
+		/// </returns>
+		public int InsertOrIgnore(object obj)
+		{
+			if (obj == null)
+			{
+				return 0;
+			}
+			return Insert(obj, "OR IGNORE", obj.GetType());
 		}
 
 		/// <summary>
