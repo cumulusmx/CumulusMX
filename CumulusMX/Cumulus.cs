@@ -2114,7 +2114,7 @@ namespace CumulusMX
 					// Flag the error immediately if no rapid fire
 					// Flag error after every 12 rapid fire failures (1 minute)
 					Wund.ErrorFlagCount++;
-					if (!Wund.RapidFireEnabled || (Wund.RapidFireEnabled && Wund.ErrorFlagCount >= 12))
+					if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
 					{
 						LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
 						HttpUploadAlarm.LastError = "Wunderground: HTTP response - " + response.StatusCode;
