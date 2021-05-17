@@ -181,6 +181,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AirQualityIndices.cs" />
+    <Compile Include="Alarm.cs" />
     <Compile Include="Api.cs" />
     <Compile Include="ApiTagProcessor.cs" />
     <Compile Include="AstroLib.cs" />
@@ -275,9 +276,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /y/e Y:\CumulusMX-DistributionFiles C:\Users\dougl\source\repos\jokerboy\CumulusMX\CumulusMX\bin\Debug</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

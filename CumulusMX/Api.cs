@@ -941,7 +941,7 @@ namespace CumulusMX
 						case "ftpnow.json":
 							return await this.JsonResponseAsync(stationSettings.FtpNow(this));
 						case "testemail.json":
-							return await this.JsonResponseAsync(alarmSettings.TestEmail(this));
+							return await this.StringResponseAsync(alarmSettings.TestEmail(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

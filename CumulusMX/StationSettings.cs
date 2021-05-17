@@ -993,11 +993,26 @@ namespace CumulusMX
 				// Units
 				try
 				{
-					cumulus.Units.Wind = settings.general.units.wind;
-					cumulus.Units.Press = settings.general.units.pressure;
-					cumulus.Units.Temp = settings.general.units.temp;
-					cumulus.Units.Rain = settings.general.units.rain;
-					cumulus.SetupUnitText();
+					if (cumulus.Units.Wind != settings.general.units.wind)
+					{
+						cumulus.Units.Wind = settings.general.units.wind;
+						cumulus.ChangeWindUnits();
+					}
+					if (cumulus.Units.Press != settings.general.units.pressure)
+					{
+						cumulus.Units.Press = settings.general.units.pressure;
+						cumulus.ChangePressureUnits();
+					}
+					if (cumulus.Units.Temp != settings.general.units.temp)
+					{
+						cumulus.Units.Temp = settings.general.units.temp;
+						cumulus.ChangeTempUnits();
+					}
+					if (cumulus.Units.Rain != settings.general.units.rain)
+					{
+						cumulus.Units.Rain = settings.general.units.rain;
+						cumulus.ChangeRainUnits();
+					}
 
 					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
 					cumulus.PressDPlaces = settings.general.units.advanced.pressdp;
