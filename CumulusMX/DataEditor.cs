@@ -357,9 +357,23 @@ namespace CumulusMX
 			var thisDateWet = highTempTime;
 			var json = new StringBuilder("{", 2048);
 
-			double rainThreshold = 0;
-			if (cumulus.RainDayThreshold > -1)
-				rainThreshold = cumulus.RainDayThreshold;
+			int rainThreshold;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				rainThreshold = Convert.ToInt32(cumulus.RainDayThreshold * 1000);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					rainThreshold = 200; // 0.2mm *1000
+				}
+				else
+				{
+					rainThreshold = 10;  // 0.01in *1000
+				}
+			}
 
 			// Read the dayfile list extract the records from there
 			if (station.DayFile.Count() > 0)
@@ -451,7 +465,7 @@ namespace CumulusMX
 					rainThisMonth += rec.TotalRain;
 
 					// dry/wet period
-					if (rec.TotalRain > rainThreshold)
+					if (Convert.ToInt32(rec.TotalRain * 1000) >= rainThreshold)
 					{
 						if (isDryNow)
 						{
@@ -694,9 +708,23 @@ namespace CumulusMX
 			var currentDryPeriod = 0;
 			var currentWetPeriod = 0;
 
-			var rainThreshold = 0.0;
-			if (cumulus.RainDayThreshold > -1)
-				rainThreshold = cumulus.RainDayThreshold;
+			int rainThreshold;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				rainThreshold = Convert.ToInt32(cumulus.RainDayThreshold * 1000);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					rainThreshold = 200; // 0.2mm *1000
+				}
+				else
+				{
+					rainThreshold = 10;  // 0.01in *1000
+				}
+			}
 
 			var highTempVal = -999.0;
 			var lowTempVal = 999.0;
@@ -993,7 +1021,7 @@ namespace CumulusMX
 								monthlyRain += dayRain;
 
 								// dry/wet period
-								if (dayRain > rainThreshold)
+								if (Convert.ToInt32(dayRain * 1000) >= rainThreshold)
 								{
 									if (isDryNow)
 									{
@@ -1779,9 +1807,24 @@ namespace CumulusMX
 			var firstEntry = true;
 			var json = new StringBuilder("{", 25500);
 
-			var rainThreshold = 0.0;
-			if (cumulus.RainDayThreshold > -1)
-				rainThreshold = cumulus.RainDayThreshold;
+			int rainThreshold;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				rainThreshold = Convert.ToInt32(cumulus.RainDayThreshold * 1000);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					rainThreshold = 200; // 0.2mm *1000
+				}
+				else
+				{
+					rainThreshold = 10;  // 0.01in *1000
+				}
+			}
+
 
 			// Read the day file list and extract the records from there
 			if (station.DayFile.Count() > 0)
@@ -1886,7 +1929,7 @@ namespace CumulusMX
 					rainThisMonth += station.DayFile[i].TotalRain;
 
 					// dry/wet period
-					if (station.DayFile[i].TotalRain > rainThreshold)
+					if (Convert.ToInt32(station.DayFile[i].TotalRain * 100) >= rainThreshold)
 					{
 						if (isDryNow)
 						{
@@ -2113,9 +2156,24 @@ namespace CumulusMX
 			var currentDryPeriod = 0;
 			var currentWetPeriod = 0;
 
-			var rainThreshold = 0.0;
-			if (cumulus.RainDayThreshold > -1)
-				rainThreshold = cumulus.RainDayThreshold;
+			int rainThreshold;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				rainThreshold = Convert.ToInt32(cumulus.RainDayThreshold * 1000);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					rainThreshold = 200; // 0.2mm *1000
+				}
+				else
+				{
+					rainThreshold = 10;  // 0.01in *1000
+				}
+			}
+
 
 			var highTempVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
 			var lowTempVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
@@ -2419,7 +2477,7 @@ namespace CumulusMX
 								}
 
 								// dry/wet period
-								if (dayRain > rainThreshold)
+								if (Convert.ToInt32(dayRain * 1000) >= rainThreshold)
 								{
 									if (isDryNow)
 									{

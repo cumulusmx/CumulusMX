@@ -1,7 +1,22 @@
+3.12.0 - bxxxx
+——————————————
+- Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
+	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
+	If Cumulus MX is offline for a prolonged period, data for that period will obviously still be at the station logging interval resolution
+
+- New: Adds more "advanced" options to the GUI configuration:
+	- Max wind speed in Station > Common Options > Advanced options
+	- Record set timeout in Station > Common Options > Advanced options
+	- Snow depth hour in Station > Common Options > Advanced options
+	- Rain day threshold in Station > Common Options > Advanced options
+	- List web tags in Program Settings > Program General Options
+
+
+
 3.11.3 - b3132
 ——————————————
 - Fix: HTTP Alarm alerting for WUnderground successful uploads
-- Fix: Davis WLL setting dewpoint to zero on processing teh first history record if Cumulus Calculates Dewpoint is selected
+- Fix: Davis WLL setting dewpoint to zero on processing the first history record if Cumulus Calculates Dewpoint is selected
 
 
 3.11.2 - b3131

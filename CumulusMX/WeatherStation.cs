@@ -4581,7 +4581,11 @@ namespace CumulusMX
 				//RemoveOldRecentDailyData();
 
 				int rdthresh1000;
-				if (cumulus.RainDayThreshold < 0)
+				if (cumulus.RainDayThreshold > 0)
+				{
+					rdthresh1000 = Convert.ToInt32(cumulus.RainDayThreshold * 1000.0);
+				}
+				else
 				// default
 				{
 					if (cumulus.Units.Rain == 0)
@@ -4592,10 +4596,6 @@ namespace CumulusMX
 					{
 						rdthresh1000 = 10; // 0.01in *1000
 					}
-				}
-				else
-				{
-					rdthresh1000 = Convert.ToInt32(cumulus.RainDayThreshold * 1000.0);
 				}
 
 				// set up rain yesterday * 1000 for comparison

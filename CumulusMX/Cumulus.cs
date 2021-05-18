@@ -500,8 +500,6 @@ namespace CumulusMX
 		public string[] AlarmDestEmail;
 		public bool AlarmEmailHtml;
 
-		public bool ListWebTags;
-
 		public bool RealtimeEnabled; // The timer is to be started
 		public bool RealtimeFTPEnabled; // The FTP connection is to be established
 		private int realtimeFTPRetries; // Count of failed realtime FTP attempts
@@ -3612,6 +3610,7 @@ namespace CumulusMX
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
+			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
 			{
@@ -3861,7 +3860,7 @@ namespace CumulusMX
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
-			UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false);
+			//UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false);
 			RecordSetTimeoutHrs = ini.GetValue("Station", "RecordSetTimeoutHrs", 24);
 
 			SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 0);
@@ -3916,8 +3915,6 @@ namespace CumulusMX
 			WMR928TempChannel = ini.GetValue("Station", "WMR928TempChannel", 0);
 
 			WMR200TempChannel = ini.GetValue("Station", "WMR200TempChannel", 1);
-
-			ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 
 			// WeatherLink Live device settings
 			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", "");
@@ -4689,6 +4686,8 @@ namespace CumulusMX
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
+			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
+
 
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
@@ -4705,6 +4704,9 @@ namespace CumulusMX
 			ini.SetValue("Station", "AvgBearingMinutes", StationOptions.AvgBearingMinutes);
 			ini.SetValue("Station", "AvgSpeedMinutes", StationOptions.AvgSpeedMinutes);
 			ini.SetValue("Station", "PeakGustMinutes", StationOptions.PeakGustMinutes);
+			ini.SetValue("Station", "LCMaxWind", LCMaxWind);
+			ini.SetValue("Station", "RecordSetTimeoutHrs", RecordSetTimeoutHrs);
+			ini.SetValue("Station", "SnowDepthHour", SnowDepthHour);
 
 			ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
 			ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
@@ -5890,7 +5892,7 @@ namespace CumulusMX
 
 		public int SnowDepthHour { get; set; }
 
-		public bool UseWindChillCutoff { get; set; }
+		//public bool UseWindChillCutoff { get; set; }
 
 		public bool HourlyForecast { get; set; }
 
@@ -9595,6 +9597,7 @@ namespace CumulusMX
 		public bool DebugLogging { get; set; }
 		public bool DataLogging { get; set; }
 		public bool WarnMultiple { get; set; }
+		public bool ListWebTags { get; set; }
 	}
 
 	public class StationUnits

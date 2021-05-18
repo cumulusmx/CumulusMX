@@ -5974,7 +5974,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");
 
-			if (!cumulus.ListWebTags) return;
+			if (!cumulus.ProgramOptions.ListWebTags) return;
 
 			using (StreamWriter file = new StreamWriter(cumulus.WebTagFile))
 			{

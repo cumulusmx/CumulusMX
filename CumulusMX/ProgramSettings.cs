@@ -37,7 +37,8 @@ namespace CumulusMX
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				ftplogging = cumulus.FTPlogging,
 				emaillogging = cumulus.SmtpOptions.Logging,
-				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple
+				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
+				listwebtags = cumulus.ProgramOptions.ListWebTags
 			};
 
 			var settings = new JsonProgramSettings()
@@ -111,6 +112,7 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
 				cumulus.SmtpOptions.Logging = settings.options.emaillogging;
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
+				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 
 				if (settings.options.ftplogging != cumulus.FTPlogging)
 				{
@@ -156,5 +158,6 @@ namespace CumulusMX
 		public bool ftplogging { get; set; }
 		public bool emaillogging { get; set; }
 		public bool stopsecondinstance { get; set; }
+		public bool listwebtags { get; set; }
 	}
 }
