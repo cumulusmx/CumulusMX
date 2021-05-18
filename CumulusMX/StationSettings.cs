@@ -1141,6 +1141,15 @@ namespace CumulusMX
 					return "{\"result\":\"An existing FTP process was aborted, and a new FTP process invoked\"}";
 				}
 
+				// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
+				for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
+				{
+					cumulus.GraphDataFiles[i].CreateRequired = true;
+					cumulus.GraphDataFiles[i].FtpRequired = true;
+				}
+				cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
+				station.CreateGraphDataFiles();
+
 				// (re)generate the daily graph data files, and upload if required
 				cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
 				station.CreateEodGraphDataFiles();
