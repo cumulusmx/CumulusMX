@@ -1784,6 +1784,23 @@ namespace CumulusMX
 
 							try
 							{
+								// do high humidty
+								ts = Utils.FromUnixTime(data11.hum_hi_at);
+								DoOutdoorHumidity(Convert.ToInt32(data11.hum_hi), ts);
+								// do low humidity
+								ts = Utils.FromUnixTime(data11.hum_lo_at);
+								DoOutdoorHumidity(Convert.ToInt32(data11.hum_lo), ts);
+								// do current humidity
+								DoOutdoorHumidity(Convert.ToInt32(data11.hum_last), recordTs);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing Primary humidity value on TxId {data11.tx_id}. Error: {ex.Message}");
+							}
+
+							// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
+							try
+							{
 								if (data11.temp_last == -99)
 								{
 									cumulus.LogMessage($"WL.com historic: no valid Primary temperature value found [-99] on TxId {data11.tx_id}");
@@ -1821,21 +1838,6 @@ namespace CumulusMX
 								cumulus.LogMessage($"WL.com historic: Error processing Primary temperature value on TxId {data11.tx_id}. Error: {ex.Message}");
 							}
 
-							try
-							{
-								// do high humidty
-								ts = Utils.FromUnixTime(data11.hum_hi_at);
-								DoOutdoorHumidity(Convert.ToInt32(data11.hum_hi), ts);
-								// do low humidity
-								ts = Utils.FromUnixTime(data11.hum_lo_at);
-								DoOutdoorHumidity(Convert.ToInt32(data11.hum_lo), ts);
-								// do current humidity
-								DoOutdoorHumidity(Convert.ToInt32(data11.hum_last), recordTs);
-							}
-							catch (Exception ex)
-							{
-								cumulus.LogMessage($"WL.com historic: Error processing Primary humidity value on TxId {data11.tx_id}. Error: {ex.Message}");
-							}
 
 							try
 							{

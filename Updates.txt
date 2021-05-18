@@ -1,3 +1,9 @@
+3.11.3 - b3132
+——————————————
+- Fix: HTTP Alarm alerting for WUnderground successful uploads
+- Fix: Davis WLL setting dewpoint to zero on processing teh first history record if Cumulus Calculates Dewpoint is selected
+
+
 3.11.2 - b3131
 ——————————————
 - Fix: Send email failing if email logging is not enabled
