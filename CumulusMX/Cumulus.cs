@@ -26,7 +26,6 @@ using Unosquare.Labs.EmbedIO.Constants;
 using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
-using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -632,6 +631,8 @@ namespace CumulusMX
 
 		private const string DefaultSoundFile = "alarm.mp3";
 		private const string DefaultSoundFileOld = "alert.wav";
+
+		public const int RecentDataDays = 7;
 
 		public int RealtimeInterval;
 
@@ -6729,6 +6730,7 @@ namespace CumulusMX
 				var yearbackup = foldername + "year.ini";
 				var diarybackup = foldername + "diary.db";
 				var configbackup = foldername + "Cumulus.ini";
+				var dbBackup = foldername + "cumulusmx.db";
 
 				var LogFile = GetLogFileName(timestamp);
 				var logbackup = foldername + LogFile.Replace(logFilePath, "");
@@ -6752,6 +6754,7 @@ namespace CumulusMX
 					CopyBackupFile(YearIniFile, yearbackup);
 					CopyBackupFile(diaryfile, diarybackup);
 					CopyBackupFile("Cumulus.ini", configbackup);
+					CopyBackupFile(dbfile, dbBackup);
 					CopyBackupFile(extraFile, extraBackup);
 					CopyBackupFile(AirLinkFile, AirLinkBackup);
 					// Do not do this extra backup between 00:00 & Rollover hour on the first of the month

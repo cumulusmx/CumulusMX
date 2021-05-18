@@ -2624,16 +2624,10 @@ namespace CumulusMX
 								cumulus.DoExtraLogFile(timestamp);
 							}
 
-							AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-							//AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-							//	IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-							AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
-							RemoveOldLHData(timestamp);
-							RemoveOldL3HData(timestamp);
-							RemoveOldGraphData(timestamp);
+							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
+							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
 

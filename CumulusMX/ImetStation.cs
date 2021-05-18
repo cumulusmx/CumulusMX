@@ -769,13 +769,6 @@ namespace CumulusMX
 
 							cumulus.DoLogFile(timestamp, false);
 
-							AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-							RemoveOldLHData(timestamp);
-							//AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-							//	IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-							//RemoveOldGraphData(timestamp);
-							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-							RemoveOldL3HData(timestamp);
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
