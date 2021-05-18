@@ -1,7 +1,9 @@
 3.11.3 - b3132
 ——————————————
 - Fix: HTTP Alarm alerting for WUnderground successful uploads
-- Fix: Davis WLL setting dewpoint to zero on processing teh first history record if Cumulus Calculates Dewpoint is selected
+- Fix: Davis WLL setting dewpoint to zero on processing the first history record if Cumulus Calculates Dewpoint is selected
+- Fix: FTP Now did not always update all the Graph JSON files and flag them for FTP
+
 
 
 3.11.2 - b3131
@@ -11,7 +13,6 @@
 - Fix: Handlebars JS script updated due to severe security risk on previous version
 - Fix: GW1000 for 433, 868, 915 MHz variants
 - Fix: Bug in MySQL catch-up
-
 
 - Change: Setting of ALL logging options via the GUI is now "sticky" - i.e. preserved across runs of Cumulus MX
 - Change: Many of the main settings screens now alert to to the first invalid settings in a message, and the tree containing
