@@ -7925,8 +7925,11 @@ namespace CumulusMX
 						if (ex.Message.Contains("Permission denied")) // Non-fatal
 							return;
 
+						if (ex.InnerException != null)
+							LogFtpMessage($"SFTP[{cycleStr}]: Base exception : {ex.GetBaseException().Message}");
+
 						// Lets start again anyway! Too hard to tell if the error is recoverable
-						conn.Dispose();
+							conn.Dispose();
 						return;
 					}
 				}
@@ -7943,6 +7946,9 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage($"SFTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
+						if (ex.InnerException != null)
+							LogFtpMessage($"SFTP[{cycleStr}]: Base exception : {ex.GetBaseException().Message}");
+
 						return;
 					}
 				}
@@ -7951,6 +7957,8 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} - {ex.Message}");
+				if (ex.InnerException != null)
+					LogFtpMessage($"SFTP[{cycleStr}]: Base exception : {ex.GetBaseException().Message}");
 			}
 		}
 
