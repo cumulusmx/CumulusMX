@@ -237,6 +237,7 @@
     <Compile Include="WeatherStation.cs" />
     <Compile Include="WebSocket.cs" />
     <Compile Include="WebTags.cs" />
+    <Compile Include="Wizard.cs" />
     <Compile Include="WM918Station.cs" />
     <Compile Include="WMR100Station.cs" />
     <Compile Include="WMR200Station.cs" />

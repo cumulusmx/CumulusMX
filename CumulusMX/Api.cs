@@ -23,6 +23,7 @@ namespace CumulusMX
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
+		public static Wizard wizard;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
@@ -860,6 +861,9 @@ namespace CumulusMX
 
 						case "alarms.json":
 							return await this.JsonResponseAsync(alarmSettings.GetAlarmSettings());
+
+						case "wizard.json":
+							return await this.JsonResponseAsync(wizard.GetAlpacaFormData());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -885,32 +889,48 @@ namespace CumulusMX
 
 						case "updatestationconfig.json":
 							return await this.JsonResponseAsync(stationSettings.UpdateConfig(this));
+
 						case "updateinternetconfig.json":
 							return await this.JsonResponseAsync(internetSettings.UpdateConfig(this));
+
 						case "updatethirdpartyconfig.json":
 							return await this.JsonResponseAsync(thirdpartySettings.UpdateConfig(this));
+
 						case "updateextrasensorconfig.json":
 							return await this.JsonResponseAsync(extraSensorSettings.UpdateConfig(this));
+
 						case "updatecalibrationconfig.json":
 							return await this.JsonResponseAsync(calibrationSettings.UpdateConfig(this));
+
 						case "updatenoaaconfig.json":
 							return await this.JsonResponseAsync(noaaSettings.UpdateConfig(this));
+
 						case "updateextrawebfiles.html":
 							return await this.JsonResponseAsync(internetSettings.UpdateExtraWebFiles(this));
+
 						case "updatemysqlconfig.json":
 							return await this.JsonResponseAsync(mySqlSettings.UpdateConfig(this));
+
 						case "createmonthlysql.json":
 							return await this.JsonResponseAsync(mySqlSettings.CreateMonthlySQL(this));
+
 						case "createdayfilesql.json":
 							return await this.JsonResponseAsync(mySqlSettings.CreateDayfileSQL(this));
+
 						case "createrealtimesql.json":
 							return await this.JsonResponseAsync(mySqlSettings.CreateRealtimeSQL(this));
+
 						case "updatealarmconfig.json":
 							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
+
 						case "ftpnow.json":
 							return await this.JsonResponseAsync(stationSettings.FtpNow(this));
+
 						case "testemail.json":
 							return await this.StringResponseAsync(alarmSettings.TestEmail(this));
+
+						case "wizard.json":
+							return await this.StringResponseAsync(wizard.UpdateConfig(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

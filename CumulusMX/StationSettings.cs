@@ -119,14 +119,19 @@ namespace CumulusMX
 				advanced = davisvp2advanced
 			};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn() { ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
-
-			var logrollover = new JsonStationSettingsLogRollover() { time = "midnight",summer10am = cumulus.Use10amInSummer };
-
-			if (cumulus.RolloverHour == 9)
+			var gw1000 = new JSonStationSettingsGw1000Conn()
 			{
-				logrollover.time = "9am";
-			}
+				ipaddress = cumulus.Gw1000IpAddress,
+				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
+				macaddress = cumulus.Gw1000MacAddress
+			};
+
+			var logrollover = new JsonStationSettingsLogRollover()
+			{
+				time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
+				summer10am = cumulus.Use10amInSummer
+			};
+
 
 			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
 			{
@@ -189,17 +194,12 @@ namespace CumulusMX
 			var location = new JsonStationSettingsLocation()
 			{
 				altitude = (int) cumulus.Altitude,
-				altitudeunit = "metres",
+				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
 				description = cumulus.LocationDesc,
 				Latitude = latitude,
 				Longitude = longitude,
 				sitename = cumulus.LocationName
 			};
-
-			if (cumulus.AltitudeInFeet)
-			{
-				location.altitudeunit = "feet";
-			}
 
 			var forecast = new JsonStationSettingsForecast()
 			{

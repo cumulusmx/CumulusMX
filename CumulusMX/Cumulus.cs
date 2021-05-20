@@ -1352,6 +1352,7 @@ namespace CumulusMX
 			Api.mySqlSettings = new MysqlSettings(this);
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
+			Api.wizard = new Wizard(this);
 
 			// Set up the Web Socket server
 			WebSocket.Setup(httpServer, this);
