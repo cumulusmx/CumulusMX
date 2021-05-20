@@ -1359,9 +1359,33 @@ namespace CumulusMX
 
 			httpServer.RunAsync();
 
-			LogConsoleMessage("Cumulus running at: " + httpServer.Listener.Prefixes.First());
-			LogConsoleMessage("  (Replace * with any IP address on this machine, or localhost)");
-			LogConsoleMessage("  Open the admin interface by entering this URL in a browser.");
+			// get the local v4 IP addresses
+			Console.WriteLine();
+			var ips = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+			LogConsoleMessage($"Cumulus running at: http://localhost:{HTTPport}/");
+			foreach (var ip in ips)
+			{
+				if (ip.AddressFamily == AddressFamily.InterNetwork)
+				{
+					LogConsoleMessage($"                or: http://{ip}:{HTTPport}/");
+				}
+
+			}
+
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.WriteLine();
+			if (File.Exists("Cumulus.ini"))
+			{
+				LogConsoleMessage("  Open the admin interface by entering the above URLs into a browser.");
+			}
+			else
+			{
+				LogConsoleMessage("  Leave this window open, then...");
+				LogConsoleMessage("  Run the First Time Configuration Wizard by entering one of the URLs above plus \"wizard.html\" into your browser");
+				LogConsoleMessage($"  e.g. http://localhost:{HTTPport}/wizard.html");
+			}
+			Console.ResetColor();
+			Console.WriteLine();
 
 			LogDebugMessage("Lock: Cumulus waiting for the lock");
 			syncInit.Wait();
