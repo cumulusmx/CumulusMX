@@ -12,14 +12,10 @@ namespace CumulusMX
 	public class InternetSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public InternetSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetOptions.json";
-			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "InternetSchema.json";
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -100,6 +96,8 @@ namespace CumulusMX
 					{
 						cumulus.RealtimeFTPEnabled = settings.websettings.realtime.enablerealtimeftp;
 						cumulus.RealtimeInterval = settings.websettings.realtime.realtimeinterval * 1000;
+						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
+							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
 
 						for (var i = 0; i < cumulus.RealtimeFiles.Length; i++)
 						{
@@ -118,6 +116,8 @@ namespace CumulusMX
 					{
 						cumulus.WebAutoUpdate = settings.websettings.interval.autoupdate;
 						cumulus.UpdateInterval = settings.websettings.interval.ftpinterval;
+						if (cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
+							cumulus.WebTimer.Interval = cumulus.UpdateInterval * 60 * 1000;
 
 						for (var i = 0; i < cumulus.StdWebFiles.Length; i++)
 						{
@@ -502,24 +502,6 @@ namespace CumulusMX
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 
 		public string GetExtraWebFilesData()

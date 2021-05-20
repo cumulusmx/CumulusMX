@@ -12,15 +12,10 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus;
 		private WeatherStation station;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		internal StationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-
-			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
-			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
 		}
 
 		internal void SetStation(WeatherStation station)
@@ -431,24 +426,6 @@ namespace CumulusMX
 
 			//return JsonConvert.SerializeObject(data);
 			return JsonSerializer.SerializeToString(data);
-		}
-
-		internal string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		internal string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 
 		private void LongToDMS(double longitude, out int d, out int m, out int s, out string hem)

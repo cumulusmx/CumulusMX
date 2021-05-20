@@ -10,14 +10,10 @@ namespace CumulusMX
 	public class CalibrationSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public CalibrationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationOptions.json";
-			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
 		}
 
 		//public string UpdateCalibrationConfig(HttpListenerContext context)
@@ -176,24 +172,6 @@ namespace CumulusMX
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 	}
 

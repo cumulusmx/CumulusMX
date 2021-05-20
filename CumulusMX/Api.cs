@@ -827,67 +827,36 @@ namespace CumulusMX
 					{
 						case "programdata.json":
 							return await this.JsonResponseAsync(programSettings.GetAlpacaFormData());
-						case "programoptions.json":
-							return await this.JsonResponseAsync(programSettings.GetAlpacaFormOptions());
-						case "programschema.json":
-							return await this.JsonResponseAsync(programSettings.GetAlpacaFormSchema());
 
 						case "stationdata.json":
 							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormData());
-						case "stationoptions.json":
-							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormOptions());
-						case "stationschema.json":
-							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormSchema());
 
 						case "internetdata.json":
 							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormData());
-						case "internetoptions.json":
-							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormOptions());
-						case "internetschema.json":
-							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormSchema());
 
 						case "thirdpartydata.json":
 							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormData());
-						case "thirdpartyoptions.json":
-							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormOptions());
-						case "thirdpartyschema.json":
-							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormSchema());
 
 						case "extrasensordata.json":
 							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormData());
-						case "extrasensoroptions.json":
-							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormOptions());
-						case "extrasensorschema.json":
-							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormSchema());
 
 						case "extrawebfiles.json":
 							return await this.JsonResponseAsync(internetSettings.GetExtraWebFilesData());
 
 						case "calibrationdata.json":
 							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormData());
-						case "calibrationoptions.json":
-							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormOptions());
-						case "calibrationschema.json":
-							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormSchema());
 
 						case "noaadata.json":
 							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormData());
-						case "noaaoptions.json":
-							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormOptions());
-						case "noaaschema.json":
-							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormSchema());
 
 						case "wsport.json":
 							return await this.JsonResponseAsync(stationSettings.GetWSport());
+
 						case "version.json":
 							return await this.JsonResponseAsync(stationSettings.GetVersion());
 
 						case "mysqldata.json":
 							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormData());
-						case "mysqloptions.json":
-							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormOptions());
-						case "mysqlschema.json":
-							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormSchema());
 
 						case "alarms.json":
 							return await this.JsonResponseAsync(alarmSettings.GetAlarmSettings());

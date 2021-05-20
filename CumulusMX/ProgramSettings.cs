@@ -9,15 +9,10 @@ namespace CumulusMX
 	public class ProgramSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public ProgramSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-
-			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramOptions.json";
-			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramSchema.json";
 		}
 
 		public string GetAlpacaFormData()
@@ -51,25 +46,6 @@ namespace CumulusMX
 			//return JsonConvert.SerializeObject(data);
 			return JsonSerializer.SerializeToString(settings);
 		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
 
 		public string UpdateConfig(IHttpContext context)
 		{

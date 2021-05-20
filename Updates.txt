@@ -1,5 +1,8 @@
 3.12.0 - bxxxx
 ——————————————
+- Fix: The Realtime FTP - particularly SFTP - reconnection code has been rewritten to make it more robust
+
+
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
 	If Cumulus MX is offline for a prolonged period, data for that period will obviously still be at the station logging interval resolution
@@ -10,7 +13,7 @@
 	- Snow depth hour in Station > Common Options > Advanced options
 	- Rain day threshold in Station > Common Options > Advanced options
 	- List web tags in Program Settings > Program General Options
-
+- New: Realtime and Web Interval settings changed via the dashboard now have immediate effect, a restart is no longer required.
 
 
 3.11.3 - b3132

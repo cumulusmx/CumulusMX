@@ -9,14 +9,10 @@ namespace CumulusMX
 	public class ThirdPartySettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public ThirdPartySettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ThirdPartyOptions.json";
-			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ThirdPartySchema.json";
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -503,24 +499,6 @@ namespace CumulusMX
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 	}
 

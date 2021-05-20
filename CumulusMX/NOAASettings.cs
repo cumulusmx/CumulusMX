@@ -10,14 +10,10 @@ namespace CumulusMX
 	public class NOAASettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string noaaOptionsFile;
-		private readonly string noaaSchemaFile;
 
 		public NOAASettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			noaaOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaOptions.json";
-			noaaSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaSchema.json";
 		}
 
 		public string GetAlpacaFormData()
@@ -109,24 +105,6 @@ namespace CumulusMX
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(noaaOptionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(noaaSchemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 
 		//public string UpdateNoaaConfig(HttpListenerContext context)
