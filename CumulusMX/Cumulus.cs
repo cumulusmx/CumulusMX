@@ -2114,15 +2114,23 @@ namespace CumulusMX
 			{
 				HttpResponseMessage response = await WUhttpClient.GetAsync(URL);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				if (!Wund.RapidFireEnabled || response.StatusCode != HttpStatusCode.OK)
+				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
-					HttpUploadAlarm.LastError = "Wunderground: HTTP response - " + response.StatusCode;
-					HttpUploadAlarm.Triggered = true;
+					// Flag the error immediately if no rapid fire
+					// Flag error after every 12 rapid fire failures (1 minute)
+					Wund.ErrorFlagCount++;
+					if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
+					{
+						LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
+						HttpUploadAlarm.LastError = "Wunderground: HTTP response - " + response.StatusCode;
+						HttpUploadAlarm.Triggered = true;
+						Wund.ErrorFlagCount = 0;
+					}
 				}
 				else
 				{
 					HttpUploadAlarm.Triggered = false;
+					Wund.ErrorFlagCount = 0;
 				}
 			}
 			catch (Exception ex)
@@ -7923,8 +7931,11 @@ namespace CumulusMX
 						if (ex.Message.Contains("Permission denied")) // Non-fatal
 							return;
 
+						if (ex.InnerException != null)
+							LogFtpMessage($"SFTP[{cycleStr}]: Base exception : {ex.GetBaseException().Message}");
+
 						// Lets start again anyway! Too hard to tell if the error is recoverable
-						conn.Dispose();
+							conn.Dispose();
 						return;
 					}
 				}
@@ -7941,6 +7952,9 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage($"SFTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
+						if (ex.InnerException != null)
+							LogFtpMessage($"SFTP[{cycleStr}]: Base exception : {ex.GetBaseException().Message}");
+
 						return;
 					}
 				}
@@ -7949,6 +7963,8 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} - {ex.Message}");
+				if (ex.InnerException != null)
+					LogFtpMessage($"SFTP[{cycleStr}]: Base exception : {ex.GetBaseException().Message}");
 			}
 		}
 
@@ -9890,6 +9906,7 @@ namespace CumulusMX
 		public bool SendSoilMoisture4;
 		public bool SendLeafWetness1;
 		public bool SendLeafWetness2;
+		public int ErrorFlagCount;
 	}
 
 	public class WebUploadWindy : WebUploadService
