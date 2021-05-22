@@ -1082,8 +1082,8 @@ namespace CumulusMX
 				// Dead simple (dirty), there is only one setting at present!
 				var includeGraphs = json.Contains("true");
 
-				if (string.IsNullOrEmpty(cumulus.FtpHostname))
-					return "{\"result\":\"No FTP host defined\"}";
+				if (!cumulus.FtpOptions.Enabled)
+					return "{\"result\":\"FTP is not enabled!\"}";
 
 
 				if (cumulus.WebUpdating == 1)

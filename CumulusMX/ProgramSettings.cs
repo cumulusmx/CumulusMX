@@ -30,7 +30,7 @@ namespace CumulusMX
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
-				ftplogging = cumulus.FTPlogging,
+				ftplogging = cumulus.FtpOptions.Logging,
 				emaillogging = cumulus.SmtpOptions.Logging,
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
 				listwebtags = cumulus.ProgramOptions.ListWebTags
@@ -90,10 +90,10 @@ namespace CumulusMX
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 
-				if (settings.options.ftplogging != cumulus.FTPlogging)
+				if (settings.options.ftplogging != cumulus.FtpOptions.Logging)
 				{
-					cumulus.FTPlogging = settings.options.ftplogging;
-					cumulus.SetFtpLogging(cumulus.FTPlogging);
+					cumulus.FtpOptions.Logging = settings.options.ftplogging;
+					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
 
 			}

@@ -54,25 +54,32 @@ namespace CumulusMX
 				// website settings
 				try
 				{
-					cumulus.FtpDirectory = settings.website.directory ?? string.Empty;
-					cumulus.ForumURL = settings.website.forumurl ?? string.Empty;
-					cumulus.FtpHostPort = settings.website.ftpport;
-					cumulus.FtpHostname = settings.website.hostname ?? string.Empty;
-					cumulus.Sslftp = (Cumulus.FtpProtocols)settings.website.sslftp;
-					cumulus.FtpPassword = settings.website.password ?? string.Empty;
-					cumulus.FtpUsername = settings.website.username ?? string.Empty;
-					cumulus.SshftpAuthentication = settings.website.sshAuth ?? string.Empty;
-					cumulus.SshftpPskFile = settings.website.pskFile ?? string.Empty;
-					cumulus.WebcamURL = settings.website.webcamurl ?? string.Empty;
-
-					if (cumulus.Sslftp == Cumulus.FtpProtocols.FTP || cumulus.Sslftp == Cumulus.FtpProtocols.FTPS) {
-						cumulus.ActiveFTPMode = settings.website.advanced.activeftp;
-						cumulus.DisableFtpsEPSV = settings.website.advanced.disableftpsepsv;
-					}
-
-					if (cumulus.Sslftp == Cumulus.FtpProtocols.FTPS)
+					cumulus.FtpOptions.Enabled = settings.website.enabled;
+					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.DisableFtpsExplicit = settings.website.advanced.disableftpsexplicit;
+						cumulus.FtpOptions.Directory = settings.website.directory ?? string.Empty;
+						cumulus.FtpOptions.Port = settings.website.ftpport;
+						cumulus.FtpOptions.Hostname = settings.website.hostname ?? string.Empty;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.website.sslftp;
+						cumulus.FtpOptions.Password = settings.website.password ?? string.Empty;
+						cumulus.FtpOptions.Username = settings.website.username ?? string.Empty;
+						cumulus.FtpOptions.SshAuthen = settings.website.sshAuth ?? string.Empty;
+						cumulus.FtpOptions.SshPskFile = settings.website.pskFile ?? string.Empty;
+
+						cumulus.DeleteBeforeUpload = settings.website.general.ftpdelete;
+						cumulus.FTPRename = settings.website.general.ftprename;
+						cumulus.UTF8encode = settings.website.general.utf8encode;
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
+						{
+							cumulus.FtpOptions.ActiveMode = settings.website.advanced.activeftp;
+							cumulus.FtpOptions.DisableEPSV = settings.website.advanced.disableftpsepsv;
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
+						{
+							cumulus.FtpOptions.DisableExplicit = settings.website.advanced.disableftpsexplicit;
+						}
 					}
 
 				}
@@ -87,14 +94,10 @@ namespace CumulusMX
 				// web settings
 				try
 				{
-					cumulus.DeleteBeforeUpload = settings.websettings.general.ftpdelete;
-					cumulus.FTPRename = settings.websettings.general.ftprename;
-					cumulus.UTF8encode = settings.websettings.general.utf8encode;
-
-					cumulus.RealtimeEnabled = settings.websettings.realtime.enabled;
-					if (cumulus.RealtimeEnabled)
+					cumulus.RealtimeIntervalEnabled = settings.websettings.realtime.enabled;
+					if (cumulus.RealtimeIntervalEnabled)
 					{
-						cumulus.RealtimeFTPEnabled = settings.websettings.realtime.enablerealtimeftp;
+						cumulus.FtpOptions.RealtimeEnabled = settings.websettings.realtime.enablerealtimeftp;
 						cumulus.RealtimeInterval = settings.websettings.realtime.realtimeinterval * 1000;
 						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
 							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
@@ -105,8 +108,8 @@ namespace CumulusMX
 							cumulus.RealtimeFiles[i].FTP = settings.websettings.realtime.files[i].ftp;
 						}
 					}
-					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeEnabled;
-					if (!cumulus.RealtimeTimer.Enabled || !cumulus.RealtimeFTPEnabled)
+					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeIntervalEnabled;
+					if (!cumulus.RealtimeTimer.Enabled || !cumulus.FtpOptions.RealtimeEnabled)
 					{
 						cumulus.RealtimeFTPDisconnect();
 					}
@@ -268,6 +271,21 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// misc settings
+				try
+				{
+					cumulus.WebcamURL = settings.misc.webcamurl ?? string.Empty;
+					cumulus.ForumURL = settings.misc.forumurl ?? string.Empty;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Misc settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -311,27 +329,13 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
+			// Build the settings data, convert to JSON, and return it
+
 			var websettingsadvanced = new JsonInternetSettingsWebsiteAdvanced()
 			{
-				activeftp = cumulus.ActiveFTPMode,
-				disableftpsepsv = cumulus.DisableFtpsEPSV,
-				disableftpsexplicit = cumulus.DisableFtpsExplicit
-			};
-
-			// Build the settings data, convert to JSON, and return it
-			var websitesettings = new JsonInternetSettingsWebsite()
-			{
-				directory = cumulus.FtpDirectory,
-				forumurl = cumulus.ForumURL,
-				ftpport = cumulus.FtpHostPort,
-				sslftp = (int)cumulus.Sslftp,
-				hostname = cumulus.FtpHostname,
-				password = cumulus.FtpPassword,
-				username = cumulus.FtpUsername,
-				sshAuth = cumulus.SshftpAuthentication,
-				pskFile = cumulus.SshftpPskFile,
-				webcamurl = cumulus.WebcamURL,
-				advanced = websettingsadvanced
+				activeftp = cumulus.FtpOptions.ActiveMode,
+				disableftpsepsv = cumulus.FtpOptions.DisableEPSV,
+				disableftpsexplicit = cumulus.FtpOptions.DisableExplicit
 			};
 
 			var websettingsgeneral = new JsonInternetSettingsWebSettingsGeneral()
@@ -339,6 +343,21 @@ namespace CumulusMX
 				ftpdelete = cumulus.DeleteBeforeUpload,
 				ftprename = cumulus.FTPRename,
 				utf8encode = cumulus.UTF8encode,
+			};
+
+			var websitesettings = new JsonInternetSettingsWebsite()
+			{
+				enabled = cumulus.FtpOptions.Enabled,
+				directory = cumulus.FtpOptions.Directory,
+				ftpport = cumulus.FtpOptions.Port,
+				sslftp = (int)cumulus.FtpOptions.FtpMode,
+				hostname = cumulus.FtpOptions.Hostname,
+				password = cumulus.FtpOptions.Password,
+				username = cumulus.FtpOptions.Username,
+				sshAuth = cumulus.FtpOptions.SshAuthen,
+				pskFile = cumulus.FtpOptions.SshPskFile,
+				general = websettingsgeneral,
+				advanced = websettingsadvanced
 			};
 
 			var websettingsintervalstd = new JsonInternetSettingsWebSettingsIntervalFiles()
@@ -398,8 +417,8 @@ namespace CumulusMX
 
 			var websettingsrealtime = new JsonInternetSettingsWebSettingsRealtime()
 			{
-				enabled = cumulus.RealtimeEnabled,
-				enablerealtimeftp = cumulus.RealtimeFTPEnabled,
+				enabled = cumulus.RealtimeIntervalEnabled,
+				enablerealtimeftp = cumulus.FtpOptions.RealtimeEnabled,
 				realtimeinterval = cumulus.RealtimeInterval / 1000,
 				files = new JsonInternetSettingsFileSettings[cumulus.RealtimeFiles.Length]
 			};
@@ -417,7 +436,6 @@ namespace CumulusMX
 			var websettings = new JsonInternetSettingsWebSettings()
 			{
 				stdwebsite = false,
-				general = websettingsgeneral,
 				interval = websettingsinterval,
 				realtime = websettingsrealtime
 			};
@@ -489,6 +507,12 @@ namespace CumulusMX
 				password = cumulus.SmtpOptions.Password
 			};
 
+			var misc = new JsonInternetSettingsMisc()
+			{
+				forumurl = cumulus.ForumURL,
+				webcamurl = cumulus.WebcamURL
+			};
+
 			var data = new JsonInternetSettingsData()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -498,7 +522,8 @@ namespace CumulusMX
 				mqtt = mqttsettings,
 				moonimage = moonimagesettings,
 				proxies = proxy,
-				emailsettings = email
+				emailsettings = email,
+				misc = misc
 			};
 
 			return data.ToJson();
@@ -609,6 +634,7 @@ namespace CumulusMX
 		public JsonInternetSettingsMoonImage moonimage { get; set; }
 		public JsonInternetSettingsProxySettings proxies { get; set; }
 		public JsonEmailSettings emailsettings { get; set; }
+		public JsonInternetSettingsMisc misc { get; set; }
 	}
 
 	public class JsonInternetSettingsWebsiteAdvanced
@@ -620,6 +646,7 @@ namespace CumulusMX
 
 	public class JsonInternetSettingsWebsite
 	{
+		public bool enabled { get; set; }
 		public string hostname { get; set; }
 		public int ftpport { get; set; }
 		public int sslftp { get; set; }
@@ -628,15 +655,13 @@ namespace CumulusMX
 		public string password { get; set; }
 		public string sshAuth { get; set; }
 		public string pskFile { get; set; }
-		public string forumurl { get; set; }
-		public string webcamurl { get; set; }
+		public JsonInternetSettingsWebSettingsGeneral general { get; set; }
 		public JsonInternetSettingsWebsiteAdvanced advanced { get; set; }
 	}
 
 	public class JsonInternetSettingsWebSettings
 	{
 		public bool stdwebsite { get; set; }
-		public JsonInternetSettingsWebSettingsGeneral general { get; set; }
 		public JsonInternetSettingsWebSettingsInterval interval { get; set; }
 		public JsonInternetSettingsWebSettingsRealtime realtime { get; set; }
 
@@ -749,5 +774,11 @@ namespace CumulusMX
 		public bool authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
+	}
+
+	public class JsonInternetSettingsMisc
+	{
+		public string forumurl { get; set; }
+		public string webcamurl { get; set; }
 	}
 }

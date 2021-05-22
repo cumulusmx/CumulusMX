@@ -614,7 +614,14 @@ namespace CumulusMX
 				reset = new byte[] { 0x00, 0x20, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00 };
 			}
 
-			stream.Write(reset);
+			try
+			{
+				stream.Write(reset);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"SendReset: Error - {ex.Message}");
+			}
 		}
 
 		private void CheckBatteryStatus()

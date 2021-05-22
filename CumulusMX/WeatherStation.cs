@@ -712,6 +712,10 @@ namespace CumulusMX
 
 			// Records
 			AlltimeRecordTimestamp = ini.GetValue("Records", "Alltime", DateTime.MinValue);
+
+			// Lightning (GW1000 for now)
+			LightningDistance = ini.GetValue("Lightning", "Distance", -1);
+			LightningTime = ini.GetValue("Lightning", "LastStrike", DateTime.MinValue);
 		}
 
 		public void WriteTodayFile(DateTime timestamp, bool Log)
@@ -822,6 +826,11 @@ namespace CumulusMX
 
 				// Records
 				ini.SetValue("Records", "Alltime", AlltimeRecordTimestamp);
+
+				// Lightning (GW1000 for now)
+				ini.SetValue("Lightning", "Distance", LightningDistance);
+				ini.SetValue("Lightning", "LastStrike", LightningTime);
+
 
 				if (Log)
 				{
@@ -1735,7 +1744,7 @@ namespace CumulusMX
 					// Custom MySQL update - minutes interval
 					if (cumulus.CustomMySqlMinutesEnabled && now.Minute % cumulus.CustomMySqlMinutesInterval == 0)
 					{
-						_ = cumulus.CustomMysqlMinutesTimerTick();
+						cumulus.CustomMysqlMinutesTimerTick();
 					}
 
 					// Custom HTTP update - minutes interval
@@ -4560,7 +4569,7 @@ namespace CumulusMX
 
 				if (cumulus.CustomMySqlRolloverEnabled)
 				{
-					_ = cumulus.CustomMysqlRolloverTimerTick();
+					cumulus.CustomMysqlRolloverTimerTick();
 				}
 
 				if (cumulus.CustomHttpRolloverEnabled)
@@ -5575,7 +5584,7 @@ namespace CumulusMX
 				queryString.Append(")");
 
 				// run the query async so we do not block the main EOD processing
-				_ = cumulus.MySqlCommandAsync(queryString.ToString(), mySqlConn, "MySQL Dayfile", true, true);
+				cumulus.MySqlCommandAsync(queryString.ToString(), "MySQL Dayfile");
 			}
 		}
 

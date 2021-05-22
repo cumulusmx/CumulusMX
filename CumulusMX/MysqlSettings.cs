@@ -182,26 +182,17 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				cumulus.MonthlyMySqlConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
-
 				cumulus.SetMonthlySqlCreateString();
 				cumulus.SetStartOfMonthlyInsertSQL();
 
 				cumulus.SetDayfileSqlCreateString();
 				cumulus.SetStartOfDayfileInsertSQL();
 
-				cumulus.RealtimeSqlConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
-
 				cumulus.SetRealtimeSqlCreateString();
 				cumulus.SetStartOfRealtimeInsertSQL();
 
-				cumulus.CustomMysqlSecondsConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 				cumulus.CustomMysqlSecondsTimer.Interval = cumulus.CustomMySqlSecondsInterval*1000;
 				cumulus.CustomMysqlSecondsTimer.Enabled = cumulus.CustomMySqlSecondsEnabled;
-
-				cumulus.CustomMysqlMinutesConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
-
-				cumulus.CustomMysqlRolloverConn.ConnectionString = cumulus.MySqlConnSettings.ToString();
 
 				context.Response.StatusCode = 200;
 			}

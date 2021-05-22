@@ -2034,9 +2034,9 @@ namespace CumulusMX
 
 		private void GetArchiveData()
 		{
-			cumulus.LogMessage("Get Archive Data");
+			cumulus.LogMessage("GetArchiveData: Downloading Archive Data");
 
-			cumulus.LogConsoleMessage("Downloading Archive Data");
+			Console.WriteLine("Downloading Archive Data");
 
 			const int ACK = 6;
 			const int NAK = 0x21;
@@ -2222,7 +2222,7 @@ namespace CumulusMX
 			if (numPages == 513)
 			{
 				cumulus.LogMessage("GetArchiveData: Downloading entire logger contents!");
-				cumulus.LogConsoleMessage(" - Downloading entire logger contents!");
+				Console.WriteLine(" - Downloading entire logger contents!");
 			}
 
 			// keep track of how many records processed for percentage display
@@ -2232,8 +2232,8 @@ namespace CumulusMX
 
 			if (numtodo == 0)
 			{
-				cumulus.LogMessage("GetArchiveData: No historic data available");
-				cumulus.LogConsoleMessage(" - No historic data available");
+				cumulus.LogMessage("GetArchiveData: No Archive data available");
+				Console.WriteLine(" - No Arichive data available");
 			}
 			else
 			{

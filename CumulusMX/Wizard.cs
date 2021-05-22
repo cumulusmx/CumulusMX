@@ -126,14 +126,15 @@ namespace CumulusMX
 
 			var internet = new JsonWiazrdInternet()
 			{
-				directory = cumulus.FtpDirectory,
-				ftpport = cumulus.FtpHostPort,
-				sslftp = (int)cumulus.Sslftp,
-				hostname = cumulus.FtpHostname,
-				password = cumulus.FtpPassword,
-				username = cumulus.FtpUsername,
-				sshAuth = cumulus.SshftpAuthentication,
-				pskFile = cumulus.SshftpPskFile
+				enabled = cumulus.FtpOptions.Enabled,
+				directory = cumulus.FtpOptions.Directory,
+				ftpport = cumulus.FtpOptions.Port,
+				sslftp = (int)cumulus.FtpOptions.FtpMode,
+				hostname = cumulus.FtpOptions.Hostname,
+				password = cumulus.FtpOptions.Password,
+				username = cumulus.FtpOptions.Username,
+				sshAuth = cumulus.FtpOptions.SshAuthen,
+				pskFile = cumulus.FtpOptions.SshPskFile
 			};
 
 			var website = new JsonWizardWebSite()
@@ -146,8 +147,8 @@ namespace CumulusMX
 				},
 				realtime = new JsonWizardWebRealtime()
 				{
-					enabled = cumulus.RealtimeEnabled,
-					enablerealtimeftp = cumulus.RealtimeFTPEnabled,
+					enabled = cumulus.RealtimeIntervalEnabled,
+					enablerealtimeftp = cumulus.FtpOptions.RealtimeEnabled,
 					realtimeinterval = cumulus.RealtimeInterval / 1000
 				}
 			};
@@ -202,14 +203,18 @@ namespace CumulusMX
 				// website settings
 				try
 				{
-					cumulus.FtpDirectory = settings.internet.directory ?? string.Empty;
-					cumulus.FtpHostPort = settings.internet.ftpport;
-					cumulus.FtpHostname = settings.internet.hostname ?? string.Empty;
-					cumulus.Sslftp = (Cumulus.FtpProtocols)settings.internet.sslftp;
-					cumulus.FtpPassword = settings.internet.password ?? string.Empty;
-					cumulus.FtpUsername = settings.internet.username ?? string.Empty;
-					cumulus.SshftpAuthentication = settings.internet.sshAuth ?? string.Empty;
-					cumulus.SshftpPskFile = settings.internet.pskFile ?? string.Empty;
+					cumulus.FtpOptions.Enabled = settings.internet.enabled;
+					if (cumulus.FtpOptions.Enabled)
+					{
+						cumulus.FtpOptions.Directory = settings.internet.directory ?? string.Empty;
+						cumulus.FtpOptions.Port = settings.internet.ftpport;
+						cumulus.FtpOptions.Hostname = settings.internet.hostname ?? string.Empty;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.sslftp;
+						cumulus.FtpOptions.Password = settings.internet.password ?? string.Empty;
+						cumulus.FtpOptions.Username = settings.internet.username ?? string.Empty;
+						cumulus.FtpOptions.SshAuthen = settings.internet.sshAuth ?? string.Empty;
+						cumulus.FtpOptions.SshPskFile = settings.internet.pskFile ?? string.Empty;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -222,16 +227,16 @@ namespace CumulusMX
 				// web settings
 				try
 				{
-					cumulus.RealtimeEnabled = settings.website.realtime.enabled;
-					if (cumulus.RealtimeEnabled)
+					cumulus.RealtimeIntervalEnabled = settings.website.realtime.enabled;
+					if (cumulus.RealtimeIntervalEnabled)
 					{
-						cumulus.RealtimeFTPEnabled = settings.website.realtime.enablerealtimeftp;
+						cumulus.FtpOptions.RealtimeEnabled = settings.website.realtime.enablerealtimeftp;
 						cumulus.RealtimeInterval = settings.website.realtime.realtimeinterval * 1000;
 						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
 							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
 					}
-					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeEnabled;
-					if (!cumulus.RealtimeTimer.Enabled || !cumulus.RealtimeFTPEnabled)
+					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeIntervalEnabled;
+					if (!cumulus.RealtimeTimer.Enabled || !cumulus.FtpOptions.RealtimeEnabled)
 					{
 						cumulus.RealtimeFTPDisconnect();
 					}
@@ -597,6 +602,7 @@ namespace CumulusMX
 
 	internal class JsonWiazrdInternet
 	{
+		public bool enabled { get; set; }
 		public string hostname { get; set; }
 		public int ftpport { get; set; }
 		public int sslftp { get; set; }

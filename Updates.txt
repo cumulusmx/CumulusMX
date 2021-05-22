@@ -1,7 +1,7 @@
 3.12.0 - bxxxx
 ——————————————
 - Fix: The Realtime FTP - particularly SFTP - reconnection code has been rewritten to make it more robust
-
+- Fix: Crash in MySQL connections - "Adding the specified count to the semaphore would cause it to exceed its maximum count"
 
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
@@ -14,6 +14,11 @@
 	- Rain day threshold in Station > Common Options > Advanced options
 	- List web tags in Program Settings > Program General Options
 - New: Realtime and Web Interval settings changed via the dashboard now have immediate effect, a restart is no longer required.
+- New: Adds Lightning distance and last strike time to Today.ini to preserve the values across CMX runs when the GW-1000 has 'forgotten' them
+	[Lightning]
+	Distance=-1
+	LastStrike=0001-01-01T00:00:00
+
 
 
 3.11.3 - b3132
