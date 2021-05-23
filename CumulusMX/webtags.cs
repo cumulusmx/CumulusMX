@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Web;
 using Unosquare.Swan;
@@ -3221,6 +3222,62 @@ namespace CumulusMX
 			return CheckRcDp(station.SunshineHours, tagParams, cumulus.SunshineDPlaces);
 		}
 
+		private string TagSunshineHoursMonth(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var month = tagParams.Get("m");
+			var rel = tagParams.Get("r"); // relative month, -1, -2, etc
+			DateTime start;
+			DateTime end;
+
+			if (year != null && month != null)
+			{
+				start = new DateTime(int.Parse(year), int.Parse(month), 1);
+				end = start.AddMonths(1);
+			}
+			else if (rel != null)
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, end.Month, 1).AddMonths(int.Parse(rel));
+				end = start.AddMonths(1);
+			}
+			else
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, end.Month, 1);
+			}
+
+			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours), tagParams, 1);
+		}
+
+		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var rel = tagParams.Get("r"); // relative year, -1, -2, etc
+			DateTime start;
+			DateTime end;
+
+			if (year != null)
+			{
+				start = new DateTime(int.Parse(year), 1, 1);
+				end = start.AddYears(1);
+			}
+			else if (rel != null)
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, 1, 1).AddYears(int.Parse(rel));
+				end = start.AddYears(1);
+			}
+			else
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, 1, 1);
+			}
+
+			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours), tagParams, 1);
+		}
+
+
 		private string TagThwIndex(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.THWIndex, tagParams, 1);
@@ -5497,6 +5554,8 @@ namespace CumulusMX
 				{ "CurrentSolarMax", TagCurrentSolarMax },
 				{ "SunshineHours", TagSunshineHours },
 				{ "YSunshineHours", TagYSunshineHours },
+				{ "SunshineHoursMonth", TagSunshineHoursMonth },
+				{ "SunshineHoursYear", TagSunshineHoursYear },
 				{ "IsSunny", TagIsSunny },
 				{ "IsRaining", TagIsRaining },
 				{ "IsFreezing", TagIsFreezing },

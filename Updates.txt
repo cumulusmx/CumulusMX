@@ -18,6 +18,22 @@
 	[Lightning]
 	Distance=-1
 	LastStrike=0001-01-01T00:00:00
+- New: Two new web tags for sunshine hours
+	<#SunshineHoursMonth> <#SunshineHoursYear>
+	- When used without parameters these return the total sunshine hours for this month so far, and this year so far.
+	- The Month tag accepts three parameters:
+		y=nnnn & m=nn - use these to specify a specific month you want the total for. Example - <#SunshineHoursMonth y=2021 m=1> for the January 2021 total
+		r=-nn - use this parameter to specify a relative month, -1 = last month, -2 = month before last etc. Example <#SunshineHoursMonth r=-1> for last months total
+	- The Year tag accepts two parameters:
+		y=nnnn - specify the year you want the total. Example <#SunshineHoursYear y=2020>
+		r=-nn - specify a relative year, -1 = last year etc. Example <#SunshineHoursYear r=-2> total for the year before last
+	- The tags also accept the usual rc=y and dp=n parameters
+
+
+
+3.11.4 - b3133
+——————————————
+- Fix: MySQL crash - "Adding the specified count to the semaphore would cause it to exceed its maximum count"
 
 
 

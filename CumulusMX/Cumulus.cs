@@ -696,15 +696,6 @@ namespace CumulusMX
 		public string xapHeartbeat;
 		public string xapsource;
 
-		//public MySqlConnection MonthlyMySqlConn = new MySqlConnection();
-		//public MySqlConnection RealtimeSqlConn = new MySqlConnection();
-		//public MySqlConnection CustomMysqlSecondsConn = new MySqlConnection();
-		//public MySqlCommand CustomMysqlSecondsCommand = new MySqlCommand();
-		//public MySqlConnection CustomMysqlMinutesConn = new MySqlConnection();
-		//public MySqlCommand CustomMysqlMinutesCommand = new MySqlCommand();
-		//public MySqlConnection CustomMysqlRolloverConn = new MySqlConnection();
-		//public MySqlCommand CustomMysqlRolloverCommand = new MySqlCommand();
-
 		public MySqlConnectionStringBuilder MySqlConnSettings = new MySqlConnectionStringBuilder();
 
 		public string LatestBuild = "n/a";
@@ -9056,67 +9047,6 @@ namespace CumulusMX
 		{
 			_= RunMySqlAsync(Cmds, CallingFunction, ClearCommands);
 		}
-
-		/*
-		public void MySqlCommandSync(List<string> Cmds, MySqlConnection Connection, string CallingFunction, bool OpenConnection, bool CloseConnection, bool ClearCommands=false)
-		{
-			try
-			{
-				if (OpenConnection)
-				{
-					LogDebugMessage($"{CallingFunction}: Opening MySQL Connection");
-					Connection.Open();
-				}
-
-				for (var i = 0; i < Cmds.Count; i++)
-				{
-					try
-					{
-						using (MySqlCommand cmd = new MySqlCommand(Cmds[i], Connection))
-						{
-							LogDebugMessage($"{CallingFunction}: MySQL executing[{i + 1}] - {Cmds[i]}");
-
-							int aff = cmd.ExecuteNonQuery();
-							LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-						}
-
-						MySqlUploadAlarm.Triggered = false;
-					}
-					catch (Exception ex)
-					{
-						LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
-						LogMessage($"{CallingFunction}: SQL was - \"{Cmds[i]}\"");
-						LogMessage(ex.Message);
-						MySqlUploadAlarm.LastError = ex.Message;
-						MySqlUploadAlarm.Triggered = true;
-					}
-				}
-
-				if (CloseConnection)
-				{
-					try
-					{
-						Connection.Close();
-					}
-					catch
-					{ }
-				}
-			}
-			catch (Exception e)
-			{
-				LogMessage($"{CallingFunction}: Error opening MySQL Connection");
-				LogMessage(e.Message);
-				MySqlUploadAlarm.LastError = e.Message;
-				MySqlUploadAlarm.Triggered = true;
-			}
-
-			if (ClearCommands)
-			{
-				Cmds.Clear();
-			}
-		}
-		*/
-
 
 		public async Task RunMySqlAsync(List<string> Cmds, string CallingFunction, bool ClearCommands = false)
 		{

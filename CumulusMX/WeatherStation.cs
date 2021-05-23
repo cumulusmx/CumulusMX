@@ -5520,8 +5520,6 @@ namespace CumulusMX
 
 			if (cumulus.DayfileMySqlEnabled)
 			{
-				var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
-
 				var InvC = new CultureInfo("");
 
 				StringBuilder queryString = new StringBuilder(cumulus.StartOfDayfileInsertSQL, 1024);
