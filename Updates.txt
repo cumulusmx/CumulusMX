@@ -1,3 +1,9 @@
+3.11.4 - b3133
+——————————————
+- Fix: MySQL crash - "Adding the specified count to the semaphore would cause it to exceed its maximum count"
+
+
+
 3.11.3 - b3132
 ——————————————
 - Fix: HTTP Alarm alerting for WUnderground successful uploads
