@@ -1739,7 +1739,7 @@ namespace CumulusMX
 					// Custom MySQL update - minutes interval
 					if (cumulus.CustomMySqlMinutesEnabled && now.Minute % cumulus.CustomMySqlMinutesInterval == 0)
 					{
-						_ = cumulus.CustomMysqlMinutesTimerTick();
+						cumulus.CustomMysqlMinutesTimerTick();
 					}
 
 					// Custom HTTP update - minutes interval
@@ -4526,7 +4526,7 @@ namespace CumulusMX
 
 				if (cumulus.CustomMySqlRolloverEnabled)
 				{
-					_ = cumulus.CustomMysqlRolloverTimerTick();
+					cumulus.CustomMysqlRolloverTimerTick();
 				}
 
 				if (cumulus.CustomHttpRolloverEnabled)
@@ -5477,8 +5477,6 @@ namespace CumulusMX
 
 			if (cumulus.DayfileMySqlEnabled)
 			{
-				var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
-
 				var InvC = new CultureInfo("");
 
 				StringBuilder queryString = new StringBuilder(cumulus.StartOfDayfileInsertSQL, 1024);
@@ -5541,7 +5539,7 @@ namespace CumulusMX
 				queryString.Append(")");
 
 				// run the query async so we do not block the main EOD processing
-				_ = cumulus.MySqlCommandAsync(queryString.ToString(), mySqlConn, "MySQL Dayfile", true, true);
+				cumulus.MySqlCommandAsync(queryString.ToString(), "MySQL Dayfile");
 			}
 		}
 

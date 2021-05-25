@@ -698,14 +698,14 @@ namespace CumulusMX
 		public string xapHeartbeat;
 		public string xapsource;
 
-		public MySqlConnection MonthlyMySqlConn = new MySqlConnection();
-		public MySqlConnection RealtimeSqlConn = new MySqlConnection();
-		public MySqlConnection CustomMysqlSecondsConn = new MySqlConnection();
-		public MySqlCommand CustomMysqlSecondsCommand = new MySqlCommand();
-		public MySqlConnection CustomMysqlMinutesConn = new MySqlConnection();
-		public MySqlCommand CustomMysqlMinutesCommand = new MySqlCommand();
-		public MySqlConnection CustomMysqlRolloverConn = new MySqlConnection();
-		public MySqlCommand CustomMysqlRolloverCommand = new MySqlCommand();
+		//public MySqlConnection MonthlyMySqlConn = new MySqlConnection();
+		//public MySqlConnection RealtimeSqlConn = new MySqlConnection();
+		//public MySqlConnection CustomMysqlSecondsConn = new MySqlConnection();
+		//public MySqlCommand CustomMysqlSecondsCommand = new MySqlCommand();
+		//public MySqlConnection CustomMysqlMinutesConn = new MySqlConnection();
+		//public MySqlCommand CustomMysqlMinutesCommand = new MySqlCommand();
+		//public MySqlConnection CustomMysqlRolloverConn = new MySqlConnection();
+		//public MySqlCommand CustomMysqlRolloverCommand = new MySqlCommand();
 
 		public MySqlConnectionStringBuilder MySqlConnSettings = new MySqlConnectionStringBuilder();
 
@@ -1231,8 +1231,6 @@ namespace CumulusMX
 
 			if (MonthlyMySqlEnabled)
 			{
-				MonthlyMySqlConn.ConnectionString = MySqlConnSettings.ToString();
-
 				SetStartOfMonthlyInsertSQL();
 			}
 
@@ -1243,25 +1241,18 @@ namespace CumulusMX
 
 			if (RealtimeMySqlEnabled)
 			{
-				RealtimeSqlConn.ConnectionString = MySqlConnSettings.ToString();
 				SetStartOfRealtimeInsertSQL();
 			}
 
 
-			CustomMysqlSecondsConn.ConnectionString = MySqlConnSettings.ToString();
 			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
-			CustomMysqlSecondsCommand.Connection = CustomMysqlSecondsConn;
 			CustomMysqlSecondsTimer = new Timer { Interval = CustomMySqlSecondsInterval * 1000 };
 			CustomMysqlSecondsTimer.Elapsed += CustomMysqlSecondsTimerTick;
 			CustomMysqlSecondsTimer.AutoReset = true;
 
-			CustomMysqlMinutesConn.ConnectionString = MySqlConnSettings.ToString();
 			customMysqlMinutesTokenParser.OnToken += TokenParserOnToken;
-			CustomMysqlMinutesCommand.Connection = CustomMysqlMinutesConn;
 
-			CustomMysqlRolloverConn.ConnectionString = MySqlConnSettings.ToString();
 			customMysqlRolloverTokenParser.OnToken += TokenParserOnToken;
-			CustomMysqlRolloverCommand.Connection = CustomMysqlRolloverConn;
 
 			CustomHttpSecondsTimer = new Timer { Interval = CustomHttpSecondsInterval * 1000 };
 			CustomHttpSecondsTimer.Elapsed += CustomHttpSecondsTimerTick;
@@ -6278,7 +6269,7 @@ namespace CumulusMX
 
 		public const int NumLogFileFields = 29;
 
-		public async void DoLogFile(DateTime timestamp, bool live)
+		public void DoLogFile(DateTime timestamp, bool live)
 		{
 			// Writes an entry to the n-minute logfile. Fields are comma-separated:
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
@@ -6399,7 +6390,7 @@ namespace CumulusMX
 				if (live)
 				{
 					// do the update
-					await MySqlCommandAsync(queryString, MonthlyMySqlConn, "DoLogFile", true, true);
+					MySqlCommandAsync(queryString, "DoLogFile");
 				}
 				else
 				{
@@ -8261,11 +8252,11 @@ namespace CumulusMX
 
 			if (!string.IsNullOrEmpty(MySqlRealtimeRetention))
 			{
-				cmds.Add($"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB('{DateTime.Now:yyyy-MM-dd HH:mm:ss}', INTERVAL {MySqlRealtimeRetention});");
+				cmds.Add($"DELETE IGNORE FROM {MySqlRealtimeTable} WHERE LogDateTime < DATE_SUB('{DateTime.Now:yyyy-MM-dd HH:mm}', INTERVAL {MySqlRealtimeRetention});");
 			}
 
 			// do the update
-			_ = MySqlCommandAsync(cmds, RealtimeSqlConn, $"Realtime[{cycle}]", true, true);
+			MySqlCommandAsync(cmds, $"Realtime[{cycle}]", true);
 		}
 
 		private void ProcessTemplateFile(string template, string outputfile, TokenParser parser)
@@ -8494,11 +8485,6 @@ namespace CumulusMX
 				return;
 			}
 
-			_ = CustomMysqlSecondsWork();
-		}
-
-		private async Task CustomMysqlSecondsWork()
-		{
 			if (station.DataStopped)
 			{
 				// No data coming in, do not do anything
@@ -8510,16 +8496,15 @@ namespace CumulusMX
 				customMySqlSecondsUpdateInProgress = true;
 
 				customMysqlSecondsTokenParser.InputText = CustomMySqlSecondsCommandString;
-				CustomMysqlSecondsCommand.CommandText = customMysqlSecondsTokenParser.ToStringFromString();
 
-				await MySqlCommandAsync(CustomMysqlSecondsCommand.CommandText, CustomMysqlSecondsConn, "CustomSqlSecs", true, true);
+				MySqlCommandAsync(customMysqlSecondsTokenParser.ToStringFromString(), "CustomSqlSecs");
 
 				customMySqlSecondsUpdateInProgress = false;
 			}
 		}
 
 
-		internal async Task CustomMysqlMinutesTimerTick()
+		internal void CustomMysqlMinutesTimerTick()
 		{
 			if (station.DataStopped)
 			{
@@ -8532,15 +8517,14 @@ namespace CumulusMX
 				customMySqlMinutesUpdateInProgress = true;
 
 				customMysqlMinutesTokenParser.InputText = CustomMySqlMinutesCommandString;
-				CustomMysqlMinutesCommand.CommandText = customMysqlMinutesTokenParser.ToStringFromString();
 
-				await MySqlCommandAsync(CustomMysqlMinutesCommand.CommandText, CustomMysqlMinutesConn, "CustomSqlMins", true, true);
+				MySqlCommandAsync(customMysqlMinutesTokenParser.ToStringFromString(), "CustomSqlMins");
 
 				customMySqlMinutesUpdateInProgress = false;
 			}
 		}
 
-		internal async Task CustomMysqlRolloverTimerTick()
+		internal void CustomMysqlRolloverTimerTick()
 		{
 			if (station.DataStopped)
 			{
@@ -8553,9 +8537,8 @@ namespace CumulusMX
 				customMySqlRolloverUpdateInProgress = true;
 
 				customMysqlRolloverTokenParser.InputText = CustomMySqlRolloverCommandString;
-				CustomMysqlRolloverCommand.CommandText = customMysqlRolloverTokenParser.ToStringFromString();
 
-				await MySqlCommandAsync(CustomMysqlRolloverCommand.CommandText, CustomMysqlRolloverConn, "CustomSqlRollover", true, true);
+				MySqlCommandAsync(customMysqlRolloverTokenParser.ToStringFromString(), "CustomSqlRollover");
 
 				customMySqlRolloverUpdateInProgress = false;
 			}
@@ -8640,8 +8623,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-				_= MySqlCommandAsync(MySqlList, mySqlConn, "MySQL Archive", true, true, true);
+				MySqlCommandAsync(MySqlList, "MySQL Archive", true);
 			}
 			catch (Exception ex)
 			{
@@ -8998,72 +8980,18 @@ namespace CumulusMX
 			}
 		}
 
-		public async Task MySqlCommandAsync(string Cmd, MySqlConnection Connection, string CallingFunction, bool OpenConnection, bool CloseConnection)
+		public void MySqlCommandAsync(string Cmd, string CallingFunction)
 		{
 			var Cmds = new List<string>() { Cmd };
-			await MySqlCommandAsync(Cmds, Connection, CallingFunction, OpenConnection, CloseConnection, true);
+			_= RunMySqlAsync(Cmds, CallingFunction, true);
 		}
 
-		public async Task MySqlCommandAsync(List<string> Cmds, MySqlConnection Connection, string CallingFunction, bool OpenConnection, bool CloseConnection, bool ClearCommands = false)
+		public void MySqlCommandAsync(List<string> Cmds, string CallingFunction, bool ClearCommands = false)
 		{
-			int errorCount = 10;
-			try
-			{
-				if (OpenConnection)
-				{
-					LogDebugMessage($"{CallingFunction}: Opening MySQL Connection");
-					await Connection.OpenAsync();
-				}
-
-				for (var i = 0; i < Cmds.Count; i++)
-				{
-					try
-					{
-						using (MySqlCommand cmd = new MySqlCommand(Cmds[i], Connection))
-						{
-							LogDebugMessage($"{CallingFunction}: MySQL executing - {Cmds[i]}");
-
-							int aff = await cmd.ExecuteNonQueryAsync();
-							LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-						}
-
-						MySqlUploadAlarm.Triggered = false;
-					}
-					catch (Exception ex)
-					{
-						LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
-						LogMessage($"{CallingFunction}: SQL was - \"{Cmds[i]}\"");
-						LogMessage(ex.Message);
-						MySqlUploadAlarm.LastError = ex.Message;
-						MySqlUploadAlarm.Triggered = true;
-						if (--errorCount <=0)
-						{
-							LogMessage($"{CallingFunction}: Too many errors, aborting!");
-							return;
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
-				LogMessage(ex.Message);
-				MySqlUploadAlarm.LastError = ex.Message;
-				MySqlUploadAlarm.Triggered = true;
-			}
-			finally
-			{
-				if (CloseConnection)
-				{
-					try
-					{
-						Connection.Close();
-					}
-					catch { }
-				}
-			}
+			_= RunMySqlAsync(Cmds, CallingFunction, ClearCommands);
 		}
 
+		/*
 		public void MySqlCommandSync(List<string> Cmds, MySqlConnection Connection, string CallingFunction, bool OpenConnection, bool CloseConnection, bool ClearCommands=false)
 		{
 			try
@@ -9121,6 +9049,67 @@ namespace CumulusMX
 				Cmds.Clear();
 			}
 		}
+		*/
+
+
+		public async Task RunMySqlAsync(List<string> Cmds, string CallingFunction, bool ClearCommands = false)
+		{
+			await Task.Run(() =>
+			{
+				int errorCount = 10;
+				try
+				{
+					using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
+					{
+						mySqlConn.Open();
+
+						for (var i = 0; i < Cmds.Count; i++)
+						{
+							try
+							{
+								using (MySqlCommand cmd = new MySqlCommand(Cmds[i], mySqlConn))
+								{
+									LogDebugMessage($"{CallingFunction}: MySQL executing - {Cmds[i]}");
+
+									int aff = cmd.ExecuteNonQuery();
+									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+								}
+
+								MySqlUploadAlarm.Triggered = false;
+							}
+							catch (Exception ex)
+							{
+								LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
+								LogMessage($"{CallingFunction}: SQL was - \"{Cmds[i]}\"");
+								LogMessage(ex.Message);
+								MySqlUploadAlarm.LastError = ex.Message;
+								MySqlUploadAlarm.Triggered = true;
+								if (--errorCount <= 0)
+								{
+									LogMessage($"{CallingFunction}: Too many errors, aborting!");
+									return;
+								}
+							}
+						}
+
+						mySqlConn.Close();
+
+						if (ClearCommands)
+						{
+							Cmds.Clear();
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
+					LogMessage(ex.Message);
+					MySqlUploadAlarm.LastError = ex.Message;
+					MySqlUploadAlarm.Triggered = true;
+				}
+			});
+		}
+
 
 		public async void GetLatestVersion()
 		{
