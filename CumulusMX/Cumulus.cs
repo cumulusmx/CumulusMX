@@ -1344,12 +1344,15 @@ namespace CumulusMX
 			// get the local v4 IP addresses
 			Console.WriteLine();
 			var ips = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-			LogConsoleMessage($"Cumulus running at: http://localhost:{HTTPport}/");
+			LogMessage($"Cumulus running at: http://localhost:{HTTPport}/");
+			Console.Write("Cumulus running at: ");
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.WriteLine($"http://localhost:{HTTPport}/");
 			foreach (var ip in ips)
 			{
 				if (ip.AddressFamily == AddressFamily.InterNetwork)
 				{
-					LogConsoleMessage($"                or: http://{ip}:{HTTPport}/");
+					LogConsoleMessage($"                    http://{ip}:{HTTPport}/");
 				}
 
 			}
@@ -1358,7 +1361,7 @@ namespace CumulusMX
 			Console.WriteLine();
 			if (File.Exists("Cumulus.ini"))
 			{
-				LogConsoleMessage("  Open the admin interface by entering the above URLs into a browser.");
+				LogConsoleMessage("  Open the admin interface by entering one of the above URLs into a web browser.");
 			}
 			else
 			{
@@ -6354,43 +6357,56 @@ namespace CumulusMX
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor, BrasTurbidity, SolarCalc);
 			var filename = GetLogFileName(timestamp);
 
-			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
-			using (StreamWriter file = new StreamWriter(fs))
+			try
 			{
-				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);
-				file.Write(timestamp.ToString("HH:mm") + ListSeparator);
-				file.Write(station.OutdoorTemperature.ToString(TempFormat) + ListSeparator);
-				file.Write(station.OutdoorHumidity + ListSeparator);
-				file.Write(station.OutdoorDewpoint.ToString(TempFormat) + ListSeparator);
-				file.Write(station.WindAverage.ToString(WindAvgFormat) + ListSeparator);
-				file.Write(station.RecentMaxGust.ToString(WindFormat) + ListSeparator);
-				file.Write(station.AvgBearing + ListSeparator);
-				file.Write(station.RainRate.ToString(RainFormat) + ListSeparator);
-				file.Write(station.RainToday.ToString(RainFormat) + ListSeparator);
-				file.Write(station.Pressure.ToString(PressFormat) + ListSeparator);
-				file.Write(station.Raincounter.ToString(RainFormat) + ListSeparator);
-				file.Write(station.IndoorTemperature.ToString(TempFormat) + ListSeparator);
-				file.Write(station.IndoorHumidity + ListSeparator);
-				file.Write(station.WindLatest.ToString(WindFormat) + ListSeparator);
-				file.Write(station.WindChill.ToString(TempFormat) + ListSeparator);
-				file.Write(station.HeatIndex.ToString(TempFormat) + ListSeparator);
-				file.Write(station.UV.ToString(UVFormat) + ListSeparator);
-				file.Write(station.SolarRad + ListSeparator);
-				file.Write(station.ET.ToString(ETFormat) + ListSeparator);
-				file.Write(station.AnnualETTotal.ToString(ETFormat) + ListSeparator);
-				file.Write(station.ApparentTemperature.ToString(TempFormat) + ListSeparator);
-				file.Write((Math.Round(station.CurrentSolarMax)) + ListSeparator);
-				file.Write(station.SunshineHours.ToString(SunFormat) + ListSeparator);
-				file.Write(station.Bearing + ListSeparator);
-				file.Write(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
-				file.Write(station.RainSinceMidnight.ToString(RainFormat) + ListSeparator);
-				file.Write(station.FeelsLike.ToString(TempFormat) + ListSeparator);
-				file.WriteLine(station.Humidex.ToString(TempFormat));
-				file.Close();
+				var sb = new StringBuilder(256);
+				sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
+				sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
+				sb.Append(station.OutdoorTemperature.ToString(TempFormat) + ListSeparator);
+				sb.Append(station.OutdoorHumidity + ListSeparator);
+				sb.Append(station.OutdoorDewpoint.ToString(TempFormat) + ListSeparator);
+				sb.Append(station.WindAverage.ToString(WindAvgFormat) + ListSeparator);
+				sb.Append(station.RecentMaxGust.ToString(WindFormat) + ListSeparator);
+				sb.Append(station.AvgBearing + ListSeparator);
+				sb.Append(station.RainRate.ToString(RainFormat) + ListSeparator);
+				sb.Append(station.RainToday.ToString(RainFormat) + ListSeparator);
+				sb.Append(station.Pressure.ToString(PressFormat) + ListSeparator);
+				sb.Append(station.Raincounter.ToString(RainFormat) + ListSeparator);
+				sb.Append(station.IndoorTemperature.ToString(TempFormat) + ListSeparator);
+				sb.Append(station.IndoorHumidity + ListSeparator);
+				sb.Append(station.WindLatest.ToString(WindFormat) + ListSeparator);
+				sb.Append(station.WindChill.ToString(TempFormat) + ListSeparator);
+				sb.Append(station.HeatIndex.ToString(TempFormat) + ListSeparator);
+				sb.Append(station.UV.ToString(UVFormat) + ListSeparator);
+				sb.Append(station.SolarRad + ListSeparator);
+				sb.Append(station.ET.ToString(ETFormat) + ListSeparator);
+				sb.Append(station.AnnualETTotal.ToString(ETFormat) + ListSeparator);
+				sb.Append(station.ApparentTemperature.ToString(TempFormat) + ListSeparator);
+				sb.Append((Math.Round(station.CurrentSolarMax)) + ListSeparator);
+				sb.Append(station.SunshineHours.ToString(SunFormat) + ListSeparator);
+				sb.Append(station.Bearing + ListSeparator);
+				sb.Append(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
+				sb.Append(station.RainSinceMidnight.ToString(RainFormat) + ListSeparator);
+				sb.Append(station.FeelsLike.ToString(TempFormat) + ListSeparator);
+				sb.Append(station.Humidex.ToString(TempFormat));
+
+				using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
+				using (StreamWriter file = new StreamWriter(fs))
+				{
+					file.WriteLine(sb);
+					file.Close();
+					fs.Close();
+				}
+
+				LastUpdateTime = timestamp;
+				LogMessage($"DoLogFile: log entry for {timestamp} written");
+			}
+			catch (Exception ex)
+			{
+				LogErrorMessage($"DoLogFile: Error writing entry for {timestamp} - {ex.Message}");
 			}
 
-			LastUpdateTime = timestamp;
-			LogMessage("DoLogFile: Written log entry for " + timestamp);
+
 			station.WriteTodayFile(timestamp, true);
 
 			if (MonthlyMySqlEnabled)
@@ -6476,93 +6492,105 @@ namespace CumulusMX
 
 			var filename = GetExtraLogFileName(timestamp);
 
-			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
-			using (StreamWriter file = new StreamWriter(fs))
+			try
 			{
-				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);						//0
-				file.Write(timestamp.ToString("HH:mm") + ListSeparator);						//1
+				LogDebugMessage($"DoExtraLogFile: Writing log entry for {timestamp}");
+
+				var sb = new StringBuilder(512);
+				sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);                     //0
+				sb.Append(timestamp.ToString("HH:mm") + ListSeparator);                        //1
 
 				for (int i = 1; i < 11; i++)
 				{
-					file.Write(station.ExtraTemp[i].ToString(TempFormat) + ListSeparator);		//2-11
+					sb.Append(station.ExtraTemp[i].ToString(TempFormat) + ListSeparator);      //2-11
 				}
 				for (int i = 1; i < 11; i++)
 				{
-					file.Write(station.ExtraHum[i].ToString(HumFormat) + ListSeparator);		//12-21
+					sb.Append(station.ExtraHum[i].ToString(HumFormat) + ListSeparator);        //12-21
 				}
 				for (int i = 1; i < 11; i++)
 				{
-					file.Write(station.ExtraDewPoint[i].ToString(TempFormat) + ListSeparator);	//22-31
+					sb.Append(station.ExtraDewPoint[i].ToString(TempFormat) + ListSeparator);  //22-31
 				}
 
-				file.Write(station.SoilTemp1.ToString(TempFormat) + ListSeparator);		//32
-				file.Write(station.SoilTemp2.ToString(TempFormat) + ListSeparator);		//33
-				file.Write(station.SoilTemp3.ToString(TempFormat) + ListSeparator);		//34
-				file.Write(station.SoilTemp4.ToString(TempFormat) + ListSeparator);		//35
+				sb.Append(station.SoilTemp1.ToString(TempFormat) + ListSeparator);     //32
+				sb.Append(station.SoilTemp2.ToString(TempFormat) + ListSeparator);     //33
+				sb.Append(station.SoilTemp3.ToString(TempFormat) + ListSeparator);     //34
+				sb.Append(station.SoilTemp4.ToString(TempFormat) + ListSeparator);     //35
 
-				file.Write(station.SoilMoisture1 + ListSeparator);						//36
-				file.Write(station.SoilMoisture2 + ListSeparator);						//37
-				file.Write(station.SoilMoisture3 + ListSeparator);						//38
-				file.Write(station.SoilMoisture4 + ListSeparator);						//39
+				sb.Append(station.SoilMoisture1 + ListSeparator);                      //36
+				sb.Append(station.SoilMoisture2 + ListSeparator);                      //37
+				sb.Append(station.SoilMoisture3 + ListSeparator);                      //38
+				sb.Append(station.SoilMoisture4 + ListSeparator);                      //39
 
-				file.Write(station.LeafTemp1.ToString(TempFormat) + ListSeparator);		//40
-				file.Write(station.LeafTemp2.ToString(TempFormat) + ListSeparator);		//41
+				sb.Append(station.LeafTemp1.ToString(TempFormat) + ListSeparator);     //40
+				sb.Append(station.LeafTemp2.ToString(TempFormat) + ListSeparator);     //41
 
-				file.Write(station.LeafWetness1 + ListSeparator);						//42
-				file.Write(station.LeafWetness2 + ListSeparator);						//43
+				sb.Append(station.LeafWetness1 + ListSeparator);                       //42
+				sb.Append(station.LeafWetness2 + ListSeparator);                       //43
 
-				file.Write(station.SoilTemp5.ToString(TempFormat) + ListSeparator);		//44
-				file.Write(station.SoilTemp6.ToString(TempFormat) + ListSeparator);		//45
-				file.Write(station.SoilTemp7.ToString(TempFormat) + ListSeparator);		//46
-				file.Write(station.SoilTemp8.ToString(TempFormat) + ListSeparator);		//47
-				file.Write(station.SoilTemp9.ToString(TempFormat) + ListSeparator);		//48
-				file.Write(station.SoilTemp10.ToString(TempFormat) + ListSeparator);	//49
-				file.Write(station.SoilTemp11.ToString(TempFormat) + ListSeparator);	//50
-				file.Write(station.SoilTemp12.ToString(TempFormat) + ListSeparator);	//51
-				file.Write(station.SoilTemp13.ToString(TempFormat) + ListSeparator);	//52
-				file.Write(station.SoilTemp14.ToString(TempFormat) + ListSeparator);	//53
-				file.Write(station.SoilTemp15.ToString(TempFormat) + ListSeparator);	//54
-				file.Write(station.SoilTemp16.ToString(TempFormat) + ListSeparator);	//55
+				sb.Append(station.SoilTemp5.ToString(TempFormat) + ListSeparator);     //44
+				sb.Append(station.SoilTemp6.ToString(TempFormat) + ListSeparator);     //45
+				sb.Append(station.SoilTemp7.ToString(TempFormat) + ListSeparator);     //46
+				sb.Append(station.SoilTemp8.ToString(TempFormat) + ListSeparator);     //47
+				sb.Append(station.SoilTemp9.ToString(TempFormat) + ListSeparator);     //48
+				sb.Append(station.SoilTemp10.ToString(TempFormat) + ListSeparator);    //49
+				sb.Append(station.SoilTemp11.ToString(TempFormat) + ListSeparator);    //50
+				sb.Append(station.SoilTemp12.ToString(TempFormat) + ListSeparator);    //51
+				sb.Append(station.SoilTemp13.ToString(TempFormat) + ListSeparator);    //52
+				sb.Append(station.SoilTemp14.ToString(TempFormat) + ListSeparator);    //53
+				sb.Append(station.SoilTemp15.ToString(TempFormat) + ListSeparator);    //54
+				sb.Append(station.SoilTemp16.ToString(TempFormat) + ListSeparator);    //55
 
-				file.Write(station.SoilMoisture5 + ListSeparator);		//56
-				file.Write(station.SoilMoisture6 + ListSeparator);		//57
-				file.Write(station.SoilMoisture7 + ListSeparator);		//58
-				file.Write(station.SoilMoisture8 + ListSeparator);		//59
-				file.Write(station.SoilMoisture9 + ListSeparator);		//60
-				file.Write(station.SoilMoisture10 + ListSeparator);		//61
-				file.Write(station.SoilMoisture11 + ListSeparator);		//62
-				file.Write(station.SoilMoisture12 + ListSeparator);		//63
-				file.Write(station.SoilMoisture13 + ListSeparator);		//64
-				file.Write(station.SoilMoisture14 + ListSeparator);		//65
-				file.Write(station.SoilMoisture15 + ListSeparator);		//66
-				file.Write(station.SoilMoisture16 + ListSeparator);		//67
+				sb.Append(station.SoilMoisture5 + ListSeparator);      //56
+				sb.Append(station.SoilMoisture6 + ListSeparator);      //57
+				sb.Append(station.SoilMoisture7 + ListSeparator);      //58
+				sb.Append(station.SoilMoisture8 + ListSeparator);      //59
+				sb.Append(station.SoilMoisture9 + ListSeparator);      //60
+				sb.Append(station.SoilMoisture10 + ListSeparator);     //61
+				sb.Append(station.SoilMoisture11 + ListSeparator);     //62
+				sb.Append(station.SoilMoisture12 + ListSeparator);     //63
+				sb.Append(station.SoilMoisture13 + ListSeparator);     //64
+				sb.Append(station.SoilMoisture14 + ListSeparator);     //65
+				sb.Append(station.SoilMoisture15 + ListSeparator);     //66
+				sb.Append(station.SoilMoisture16 + ListSeparator);     //67
 
-				file.Write(station.AirQuality1.ToString("F1") + ListSeparator);		//68
-				file.Write(station.AirQuality2.ToString("F1") + ListSeparator);		//69
-				file.Write(station.AirQuality3.ToString("F1") + ListSeparator);		//70
-				file.Write(station.AirQuality4.ToString("F1") + ListSeparator);		//71
-				file.Write(station.AirQualityAvg1.ToString("F1") + ListSeparator);	//72
-				file.Write(station.AirQualityAvg2.ToString("F1") + ListSeparator);	//73
-				file.Write(station.AirQualityAvg3.ToString("F1") + ListSeparator);	//74
-				file.Write(station.AirQualityAvg4.ToString("F1") + ListSeparator);	//75
+				sb.Append(station.AirQuality1.ToString("F1") + ListSeparator);     //68
+				sb.Append(station.AirQuality2.ToString("F1") + ListSeparator);     //69
+				sb.Append(station.AirQuality3.ToString("F1") + ListSeparator);     //70
+				sb.Append(station.AirQuality4.ToString("F1") + ListSeparator);     //71
+				sb.Append(station.AirQualityAvg1.ToString("F1") + ListSeparator);  //72
+				sb.Append(station.AirQualityAvg2.ToString("F1") + ListSeparator);  //73
+				sb.Append(station.AirQualityAvg3.ToString("F1") + ListSeparator);  //74
+				sb.Append(station.AirQualityAvg4.ToString("F1") + ListSeparator);  //75
 
 				for (int i = 1; i < 8; i++)
 				{
-					file.Write(station.UserTemp[i].ToString(TempFormat) + ListSeparator);	//76-82
+					sb.Append(station.UserTemp[i].ToString(TempFormat) + ListSeparator);   //76-82
 				}
-				file.Write(station.UserTemp[8].ToString(TempFormat) + ListSeparator);		//83
+				sb.Append(station.UserTemp[8].ToString(TempFormat) + ListSeparator);       //83
 
-				file.Write(station.CO2 + ListSeparator);									//84
-				file.Write(station.CO2_24h + ListSeparator);								//85
-				file.Write(station.CO2_pm2p5.ToString("F1") + ListSeparator);				//86
-				file.Write(station.CO2_pm2p5_24h.ToString("F1") + ListSeparator);			//87
-				file.Write(station.CO2_pm10.ToString("F1") + ListSeparator);				//88
-				file.Write(station.CO2_pm10_24h.ToString("F1") + ListSeparator);			//89
-				file.Write(station.CO2_temperature.ToString(TempFormat) + ListSeparator);	//90
-				file.Write(station.CO2_humidity);											//91
+				sb.Append(station.CO2 + ListSeparator);                                    //84
+				sb.Append(station.CO2_24h + ListSeparator);                                //85
+				sb.Append(station.CO2_pm2p5.ToString("F1") + ListSeparator);               //86
+				sb.Append(station.CO2_pm2p5_24h.ToString("F1") + ListSeparator);           //87
+				sb.Append(station.CO2_pm10.ToString("F1") + ListSeparator);                //88
+				sb.Append(station.CO2_pm10_24h.ToString("F1") + ListSeparator);            //89
+				sb.Append(station.CO2_temperature.ToString(TempFormat) + ListSeparator);   //90
+				sb.Append(station.CO2_humidity);                                           //91
 
-				file.WriteLine();
-				file.Close();
+				using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
+				using (StreamWriter file = new StreamWriter(fs))
+				{
+					file.WriteLine(sb);
+					file.Close();
+					fs.Close();
+					LogDebugMessage($"DoExtraLogFile: Log entry for {timestamp} written");
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"DoExtraLogFile: Error writing log entry {timestamp} - {ex.Message}");
 			}
 		}
 
@@ -6628,56 +6656,59 @@ namespace CumulusMX
 
 			var filename = GetAirLinkLogFileName(timestamp);
 
-			using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
-			using (StreamWriter file = new StreamWriter(fs))
+			try
 			{
-				file.Write(timestamp.ToString("dd/MM/yy") + ListSeparator);
-				file.Write(timestamp.ToString("HH:mm") + ListSeparator);
+				LogDebugMessage($"DoAirLinkLogFile: Writing log entry for {timestamp}");
+
+				var sb = new StringBuilder(256);
+
+				sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
+				sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
 
 				if (AirLinkInEnabled && airLinkDataIn != null)
 				{
-					file.Write(airLinkDataIn.temperature.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.humidity + ListSeparator);
-					file.Write(airLinkDataIn.pm1.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm2p5_nowcast.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm10.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm10_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm10_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm10_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pm10_nowcast.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataIn.pct_1hr + ListSeparator);
-					file.Write(airLinkDataIn.pct_3hr + ListSeparator);
-					file.Write(airLinkDataIn.pct_24hr + ListSeparator);
-					file.Write(airLinkDataIn.pct_nowcast + ListSeparator);
+					sb.Append(airLinkDataIn.temperature.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.humidity + ListSeparator);
+					sb.Append(airLinkDataIn.pm1.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm2p5.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm2p5_1hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm2p5_3hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm2p5_24hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm2p5_nowcast.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm10.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm10_1hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm10_3hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm10_24hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pm10_nowcast.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataIn.pct_1hr + ListSeparator);
+					sb.Append(airLinkDataIn.pct_3hr + ListSeparator);
+					sb.Append(airLinkDataIn.pct_24hr + ListSeparator);
+					sb.Append(airLinkDataIn.pct_nowcast + ListSeparator);
 					if (AirQualityDPlaces > 0)
 					{
-						file.Write(airLinkDataIn.aqiPm2p5.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm2p5_1hr.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm2p5_3hr.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm2p5_24hr.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm2p5_nowcast.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm10.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm10_1hr.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm10_3hr.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm10_24hr.ToString(AirQualityFormat) + ListSeparator);
-						file.Write(airLinkDataIn.aqiPm10_nowcast.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm2p5.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm2p5_1hr.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm2p5_3hr.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm2p5_24hr.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm2p5_nowcast.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm10.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm10_1hr.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm10_3hr.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm10_24hr.ToString(AirQualityFormat) + ListSeparator);
+						sb.Append(airLinkDataIn.aqiPm10_nowcast.ToString(AirQualityFormat) + ListSeparator);
 					}
 					else // Zero decimals - trucate value rather than round
 					{
-						file.Write((int)airLinkDataIn.aqiPm2p5 + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm2p5_3hr + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm2p5_24hr + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm2p5_nowcast + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm10 + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm10_1hr + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm10_3hr + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm10_24hr + ListSeparator);
-						file.Write((int)airLinkDataIn.aqiPm10_nowcast + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm2p5 + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm2p5_3hr + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm2p5_24hr + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm2p5_nowcast + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm10 + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm10_1hr + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm10_3hr + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm10_24hr + ListSeparator);
+						sb.Append((int)airLinkDataIn.aqiPm10_nowcast + ListSeparator);
 					}
 				}
 				else
@@ -6685,52 +6716,62 @@ namespace CumulusMX
 					// write zero values - subtract 2 for firmware version, wifi RSSI
 					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 2; i++)
 					{
-						file.Write("0" + ListSeparator);
+						sb.Append("0" + ListSeparator);
 					}
 				}
 
 				if (AirLinkOutEnabled && airLinkDataOut != null)
 				{
-					file.Write(airLinkDataOut.temperature.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.humidity + ListSeparator);
-					file.Write(airLinkDataOut.pm1.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm2p5_nowcast.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm10.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm10_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm10_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm10_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pm10_nowcast.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.pct_1hr + ListSeparator);
-					file.Write(airLinkDataOut.pct_3hr + ListSeparator);
-					file.Write(airLinkDataOut.pct_24hr + ListSeparator);
-					file.Write(airLinkDataOut.pct_nowcast + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm2p5_nowcast.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_1hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_3hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_24hr.ToString("F1") + ListSeparator);
-					file.Write(airLinkDataOut.aqiPm10_nowcast.ToString("F1"));
+					sb.Append(airLinkDataOut.temperature.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.humidity + ListSeparator);
+					sb.Append(airLinkDataOut.pm1.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm2p5.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm2p5_1hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm2p5_3hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm2p5_24hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm2p5_nowcast.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm10.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm10_1hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm10_3hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm10_24hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pm10_nowcast.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.pct_1hr + ListSeparator);
+					sb.Append(airLinkDataOut.pct_3hr + ListSeparator);
+					sb.Append(airLinkDataOut.pct_24hr + ListSeparator);
+					sb.Append(airLinkDataOut.pct_nowcast + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm2p5.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm2p5_1hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm2p5_3hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm2p5_24hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm2p5_nowcast.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm10.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm10_1hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm10_3hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm10_24hr.ToString("F1") + ListSeparator);
+					sb.Append(airLinkDataOut.aqiPm10_nowcast.ToString("F1"));
 				}
 				else
 				{
 					// write zero values - subtract 2 for firmware version, wifi RSSI - subtract 1 for end field
 					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
 					{
-						file.Write("0" + ListSeparator);
+						sb.Append("0" + ListSeparator);
 					}
-					file.Write("0");
+					sb.Append("0");
 				}
 
-				file.WriteLine();
-				file.Close();
+				using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
+				using (StreamWriter file = new StreamWriter(fs))
+				{
+					file.WriteLine(sb);
+					file.Close();
+					fs.Close();
+					LogDebugMessage($"DoAirLinkLogFile: Log entry for {timestamp} written");
+				}
+			}
+			catch(Exception ex)
+			{
+				LogDebugMessage($"DoAirLinkLogFile: Error writing log entry for {timestamp} - {ex.Message}");
 			}
 		}
 
@@ -7953,6 +7994,7 @@ namespace CumulusMX
 
 						conn.OperationTimeout = TimeSpan.FromSeconds(15);
 						conn.UploadFile(istream, remotefilename, true);
+						istream.Close();
 
 						LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploaded {localfile}");
 					}

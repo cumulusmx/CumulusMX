@@ -111,6 +111,8 @@ namespace CumulusMX
                         {
                             line = sr.ReadLine();
                         } while (!sr.EndOfStream);
+                        sr.Close();
+                        fs.Close();
                     }
                     cumulus.LogDataMessage("Data: " + line);
 

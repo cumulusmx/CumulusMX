@@ -5450,6 +5450,7 @@ namespace CumulusMX
 
 						file.WriteLine(strb.ToString());
 						file.Close();
+						fs.Close();
 					}
 				}
 			}
@@ -6748,6 +6749,7 @@ namespace CumulusMX
 								}
 							}
 						} while (!(sr.EndOfStream || errorCount >= 20));
+						sr.Close();
 					}
 
 					watch.Stop();
