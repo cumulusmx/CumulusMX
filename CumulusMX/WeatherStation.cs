@@ -3919,7 +3919,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
 				cumulus.LogSpikeRemoval($"Wind: NewVal={windAvgMS:F1} OldVal={previousWind:F1} SpikeWindDiff={cumulus.Spike.WindDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Wind or gust difference greater than spike value - Gust: NewVal={windGustMS:F1}m/s OldVal={previousGust:F1}m/s - Wind: NewVal={windAvgMS:F1}m/s OldVal={previousWind:F1}m/s";
+				cumulus.SpikeAlarm.LastError = $"Wind or gust difference greater than spike/limit value - Gust: NewVal={windGustMS:F1}m/s OldVal={previousGust:F1}m/s - Wind: NewVal={windAvgMS:F1}m/s OldVal={previousWind:F1}m/s";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -4425,6 +4425,7 @@ namespace CumulusMX
 			ini.SetValue("Temp", "LTime", HiLoYest.LowTempTime.ToString("HH:mm"));
 			ini.SetValue("Temp", "High", HiLoYest.HighTemp);
 			ini.SetValue("Temp", "HTime", HiLoYest.HighTempTime.ToString("HH:mm"));
+			ini.SetValue("Temp", "ChillHours", YestChillHours);
 			ini.SetValue("Temp", "HeatingDegreeDays", YestHeatingDegreeDays);
 			ini.SetValue("Temp", "CoolingDegreeDays", YestCoolingDegreeDays);
 			ini.SetValue("Temp", "AvgTemp", YestAvgTemp);
@@ -4501,6 +4502,7 @@ namespace CumulusMX
 			HiLoYest.LowTempTime = ini.GetValue("Temp", "LTime", DateTime.MinValue);
 			HiLoYest.HighTemp = ini.GetValue("Temp", "High", 0.0);
 			HiLoYest.HighTempTime = ini.GetValue("Temp", "HTime", DateTime.MinValue);
+			YestChillHours = ini.GetValue("Temp", "ChillHours", 0);
 			YestHeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			YestCoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			YestAvgTemp = ini.GetValue("Temp", "AvgTemp", 0.0);
@@ -5092,6 +5094,7 @@ namespace CumulusMX
 				DominantWindBearingY = 0;
 				DominantWindBearingMinutes = 0;
 
+				YestChillHours = ChillHours;
 				YestHeatingDegreeDays = HeatingDegreeDays;
 				YestCoolingDegreeDays = CoolingDegreeDays;
 				HeatingDegreeDays = 0;
@@ -6332,6 +6335,7 @@ namespace CumulusMX
 		public string ConSupplyVoltageText { get; set; }
 		public string TxBatText { get; set; }
 
+		public double YestChillHours { get; set; }
 		public double YestHeatingDegreeDays { get; set; }
 		public double YestCoolingDegreeDays { get; set; }
 		public double TempChangeLastHour { get; set; }

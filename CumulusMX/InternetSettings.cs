@@ -181,20 +181,16 @@ namespace CumulusMX
 					cumulus.MQTT.EnableDataUpdate = settings.mqtt.dataUpdate.enabled;
 					if (cumulus.MQTT.EnableDataUpdate)
 					{
-						cumulus.MQTT.UpdateTopic = settings.mqtt.dataUpdate.topic ?? string.Empty;
 						cumulus.MQTT.UpdateTemplate = settings.mqtt.dataUpdate.template ?? string.Empty;
-						cumulus.MQTT.UpdateRetained = settings.mqtt.dataUpdate.retained;
 					}
 					cumulus.MQTT.EnableInterval = settings.mqtt.interval.enabled;
 					if (cumulus.MQTT.EnableInterval)
 					{
 						cumulus.MQTT.IntervalTime = settings.mqtt.interval.time;
-						cumulus.MQTT.IntervalTopic = settings.mqtt.interval.topic ?? string.Empty;
 						cumulus.MQTT.IntervalTemplate = settings.mqtt.interval.template ?? string.Empty;
-						cumulus.MQTT.IntervalRetained = settings.mqtt.interval.retained;
 
 						cumulus.MQTTTimer.Interval = cumulus.MQTT.IntervalTime * 1000;
-						cumulus.MQTTTimer.Enabled = cumulus.MQTT.EnableInterval && !string.IsNullOrWhiteSpace(cumulus.MQTT.IntervalTopic) && !string.IsNullOrWhiteSpace(cumulus.MQTT.IntervalTemplate);
+						cumulus.MQTTTimer.Enabled = cumulus.MQTT.EnableInterval && !string.IsNullOrWhiteSpace(cumulus.MQTT.IntervalTemplate);
 					}
 				}
 				catch (Exception ex)
@@ -453,18 +449,14 @@ namespace CumulusMX
 			var mqttUpdate = new JsonInternetSettingsMqttDataupdate()
 			{
 				enabled = cumulus.MQTT.EnableDataUpdate,
-				topic = cumulus.MQTT.UpdateTopic,
-				template = cumulus.MQTT.UpdateTemplate,
-				retained = cumulus.MQTT.UpdateRetained
+				template = cumulus.MQTT.UpdateTemplate
 			};
 
 			var mqttInterval = new JsonInternetSettingsMqttInterval()
 			{
 				enabled = cumulus.MQTT.EnableInterval,
 				time = cumulus.MQTT.IntervalTime,
-				topic = cumulus.MQTT.IntervalTopic,
-				template = cumulus.MQTT.IntervalTemplate,
-				retained = cumulus.MQTT.UpdateRetained
+				template = cumulus.MQTT.IntervalTemplate
 			};
 
 			var mqttsettings = new JsonInternetSettingsMqtt()
@@ -729,9 +721,7 @@ namespace CumulusMX
 	public class JsonInternetSettingsMqttDataupdate
 	{
 		public bool enabled { get; set; }
-		public string topic { get; set; }
 		public string template { get; set; }
-		public bool retained { get; set; }
 	}
 
 	public class JsonInternetSettingsMqttInterval

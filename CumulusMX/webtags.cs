@@ -3293,6 +3293,11 @@ namespace CumulusMX
 			return CheckRcDp(station.ChillHours, tagParams, 1);
 		}
 
+		private string TagYChillHours(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.YestChillHours, tagParams, 1);
+		}
+
 		private string TagYSunshineHours(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.YestSunshineHours, tagParams, cumulus.SunshineDPlaces);
@@ -5495,6 +5500,7 @@ namespace CumulusMX
 				{ "moonset", Tagmoonset },
 				{ "moonphase", Tagmoonphase },
 				{ "chillhours", TagChillHours },
+				{ "Ychillhours", TagYChillHours },
 				{ "altitude", Tagaltitude },
 				{ "altitudenoenc", Tagaltitudenoenc },
 				{ "forum", Tagforum },

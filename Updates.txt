@@ -6,7 +6,33 @@
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
 	If Cumulus MX is offline for a prolonged period, data for that period will obviously still be at the station logging interval resolution
-- Change: all log writing routines rewritten to minimise the time the file is open and add error handling where it is missing
+- Change: All log writing routines rewritten to minimise the time the file is open and add error handling where it is missing
+- Change: MQTT now allows multiple topics for both Update and Interval data.
+	- The format of the MQTT template files has changed to accommodate this
+	- The template must now be formatted as JSON, however the payload data for each topic can still be in whatever format you like so long as you construct
+	  a valid string - i.e. escape quotation marks
+	- The default interval template (the update template is similar) now looks like this...
+		{"topics": [
+			{
+				"topic": "CumulusMX/Interval",
+				"data": "{\"time\":\"<#timehhmmss>\",\"temp\":<#temp rc=y>,\"humidity\":<#hum>,\"wgust\":<#wgust rc=y>}",
+				"retain": false
+			}
+		]}
+		Where the topic name is "CumulusMX/Interval", and the payload is the string "{\"time\":\"<#timehhmmss>\",\"te...rc=y>}" which is formatted as JSON text
+	- To create a template with multiple topics, use this format...
+		{"topics": [
+			{"topic": "MyName/Topic1", "data": "<#timehhmmss>,<#temp rc=y>", "retain": false},
+			{"topic": "MyName/Topic2", "data": "<humidity><val><#hum></val></humidity>", "retain": true}
+		]}
+		Where Topic1 is formatted as CSV and is not retained on the server, and Topic2 as XML and is retained
+	- The following Cumulus.ini file settings are no longer used:
+		[MQTT]
+		UpdateTopic=CumulusMX/DataUpdate
+		UpdateRetained=0
+		IntervalTopic=CumulusMX/interval
+		IntervalRetained=0
+
 
 - New: Adds more "advanced" options to the GUI configuration:
 	- Max wind speed in Station > Common Options > Advanced options
@@ -30,6 +56,7 @@
 		r=-nn - specify a relative year, -1 = last year etc. Example <#SunshineHoursYear r=-2> total for the year before last
 	- The tags also accept the usual rc=y and dp=n parameters
 - New: Add New Record timeout value to Station Settings > General > Advanced
+- New: Adds Chill hours to yesterday.ini, and adds a new web tag for chill hours total yesterday <#Ychillhours>
 
 
 

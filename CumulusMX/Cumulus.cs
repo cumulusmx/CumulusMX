@@ -545,14 +545,10 @@ namespace CumulusMX
 			public string Username;
 			public string Password;
 			public bool EnableDataUpdate;
-			public string UpdateTopic;
 			public string UpdateTemplate;
-			public bool UpdateRetained;
 			public bool EnableInterval;
 			public int IntervalTime;
-			public string IntervalTopic;
 			public string IntervalTemplate;
-			public bool IntervalRetained;
 		}
 		public MqttSettings MQTT;
 
@@ -4331,14 +4327,10 @@ namespace CumulusMX
 			MQTT.Username = ini.GetValue("MQTT", "Username", "");
 			MQTT.Password = ini.GetValue("MQTT", "Password", "");
 			MQTT.EnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
-			MQTT.UpdateTopic = ini.GetValue("MQTT", "UpdateTopic", "CumulusMX/DataUpdate");
 			MQTT.UpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
-			MQTT.UpdateRetained = ini.GetValue("MQTT", "UpdateRetained", false);
 			MQTT.EnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
 			MQTT.IntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 10 minutes
-			MQTT.IntervalTopic = ini.GetValue("MQTT", "IntervalTopic", "CumulusMX/Interval");
 			MQTT.IntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
-			MQTT.IntervalRetained = ini.GetValue("MQTT", "IntervalRetained", false);
 
 			LowTempAlarm.Value = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
 			LowTempAlarm.Enabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
@@ -5135,14 +5127,10 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "Username", MQTT.Username);
 			ini.SetValue("MQTT", "Password", MQTT.Password);
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTT.EnableDataUpdate);
-			ini.SetValue("MQTT", "UpdateTopic", MQTT.UpdateTopic);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTT.UpdateTemplate);
-			ini.SetValue("MQTT", "UpdateRetained", MQTT.UpdateRetained);
 			ini.SetValue("MQTT", "EnableInterval", MQTT.EnableInterval);
 			ini.SetValue("MQTT", "IntervalTime", MQTT.IntervalTime);
-			ini.SetValue("MQTT", "IntervalTopic", MQTT.IntervalTopic);
 			ini.SetValue("MQTT", "IntervalTemplate", MQTT.IntervalTemplate);
-			ini.SetValue("MQTT", "IntervalRetained", MQTT.IntervalRetained);
 
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarm.Value);
 			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarm.Enabled);
@@ -10009,5 +9997,17 @@ namespace CumulusMX
 		public string BatteryLow { get; set; }
 		public string DataSpike { get; set; }
 		public string Upgrade { get; set; }
+	}
+
+	public class MqttTemplate
+	{
+		public List<MqttTemplateMember> topics { get; set; }
+	}
+
+	public class MqttTemplateMember
+	{
+		public string topic { get; set; }
+		public string data { get; set; }
+		public bool retain { get; set; }
 	}
 }
