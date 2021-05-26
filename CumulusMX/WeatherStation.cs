@@ -117,6 +117,7 @@ namespace CumulusMX
 			public DateTime LowFeelsLikeTime;
 			public double HighHumidex;
 			public DateTime HighHumidexTime;
+			public double ChillHours;
 		}
 
 		public List<dayfilerec> DayFile = new List<dayfilerec>();
@@ -4502,7 +4503,7 @@ namespace CumulusMX
 			HiLoYest.LowTempTime = ini.GetValue("Temp", "LTime", DateTime.MinValue);
 			HiLoYest.HighTemp = ini.GetValue("Temp", "High", 0.0);
 			HiLoYest.HighTempTime = ini.GetValue("Temp", "HTime", DateTime.MinValue);
-			YestChillHours = ini.GetValue("Temp", "ChillHours", 0);
+			YestChillHours = ini.GetValue("Temp", "ChillHours", -1.0);
 			YestHeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			YestCoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			YestAvgTemp = ini.GetValue("Temp", "AvgTemp", 0.0);
@@ -5430,7 +5431,8 @@ namespace CumulusMX
 			strb.Append(HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat) + cumulus.ListSeparator);
 			strb.Append(HiLoToday.LowFeelsLikeTime.ToString("HH:mm") + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighHumidex.ToString(cumulus.TempFormat) + cumulus.ListSeparator);
-			strb.Append(HiLoToday.HighHumidexTime.ToString("HH:mm"));
+			strb.Append(HiLoToday.HighHumidexTime.ToString("HH:mm") + cumulus.ListSeparator);
+			strb.Append(ChillHours.ToString(cumulus.TempFormat));
 
 			cumulus.LogMessage("Dayfile.txt entry:");
 			cumulus.LogMessage(strb.ToString());
@@ -5463,60 +5465,63 @@ namespace CumulusMX
 			}
 
 			// Add a new record to the in memory dayfile data
-			var newRec = new dayfilerec();
 			var tim = timestamp.AddDays(-1);
-			newRec.Date = new DateTime(tim.Year, tim.Month, tim.Day);
-			newRec.HighGust = HiLoToday.HighGust;
-			newRec.HighGustBearing = HiLoToday.HighGustBearing;
-			newRec.HighGustTime = HiLoToday.HighGustTime;
-			newRec.LowTemp = HiLoToday.LowTemp;
-			newRec.LowTempTime = HiLoToday.LowTempTime;
-			newRec.HighTemp = HiLoToday.HighTemp;
-			newRec.HighTempTime = HiLoToday.HighTempTime;
-			newRec.LowPress = HiLoToday.LowPress;
-			newRec.LowPressTime = HiLoToday.LowPressTime;
-			newRec.HighPress = HiLoToday.HighPress;
-			newRec.HighPressTime = HiLoToday.HighPressTime;
-			newRec.HighRainRate = HiLoToday.HighRainRate;
-			newRec.HighRainRateTime = HiLoToday.HighRainRateTime;
-			newRec.TotalRain = RainToday;
-			newRec.AvgTemp = AvgTemp;
-			newRec.WindRun = WindRunToday;
-			newRec.HighAvgWind = HiLoToday.HighWind;
-			newRec.HighAvgWindTime = HiLoToday.HighWindTime;
-			newRec.LowHumidity = HiLoToday.LowHumidity;
-			newRec.LowHumidityTime = HiLoToday.LowHumidityTime;
-			newRec.HighHumidity = HiLoToday.HighHumidity;
-			newRec.HighHumidityTime = HiLoToday.HighHumidityTime;
-			newRec.ET = ET;
-			newRec.SunShineHours = cumulus.RolloverHour == 0 ? SunshineHours : SunshineToMidnight;
-			newRec.HighHeatIndex = HiLoToday.HighHeatIndex;
-			newRec.HighHeatIndexTime = HiLoToday.HighHeatIndexTime;
-			newRec.HighAppTemp = HiLoToday.HighAppTemp;
-			newRec.HighAppTempTime = HiLoToday.HighAppTempTime;
-			newRec.LowAppTemp = HiLoToday.LowAppTemp;
-			newRec.LowAppTempTime = HiLoToday.LowAppTempTime;
-			newRec.HighHourlyRain = HiLoToday.HighHourlyRain;
-			newRec.HighHourlyRainTime = HiLoToday.HighHourlyRainTime;
-			newRec.LowWindChill = HiLoToday.LowWindChill;
-			newRec.LowWindChillTime = HiLoToday.LowWindChillTime;
-			newRec.HighDewPoint = HiLoToday.HighDewPoint;
-			newRec.HighDewPointTime = HiLoToday.HighDewPointTime;
-			newRec.LowDewPoint = HiLoToday.LowDewPoint;
-			newRec.LowDewPointTime = HiLoToday.LowDewPointTime;
-			newRec.DominantWindBearing = DominantWindBearing;
-			newRec.HeatingDegreeDays = HeatingDegreeDays;
-			newRec.CoolingDegreeDays = CoolingDegreeDays;
-			newRec.HighSolar = (int)HiLoToday.HighSolar;
-			newRec.HighSolarTime = HiLoToday.HighSolarTime;
-			newRec.HighUv = HiLoToday.HighUv;
-			newRec.HighUvTime = HiLoToday.HighUvTime;
-			newRec.HighFeelsLike = HiLoToday.HighFeelsLike;
-			newRec.HighFeelsLikeTime = HiLoToday.HighFeelsLikeTime;
-			newRec.LowFeelsLike = HiLoToday.LowFeelsLike;
-			newRec.LowFeelsLikeTime = HiLoToday.LowFeelsLikeTime;
-			newRec.HighHumidex = HiLoToday.HighHumidex;
-			newRec.HighHumidexTime = HiLoToday.HighHumidexTime;
+			var newRec = new dayfilerec()
+			{
+				Date = new DateTime(tim.Year, tim.Month, tim.Day),
+				HighGust = HiLoToday.HighGust,
+				HighGustBearing = HiLoToday.HighGustBearing,
+				HighGustTime = HiLoToday.HighGustTime,
+				LowTemp = HiLoToday.LowTemp,
+				LowTempTime = HiLoToday.LowTempTime,
+				HighTemp = HiLoToday.HighTemp,
+				HighTempTime = HiLoToday.HighTempTime,
+				LowPress = HiLoToday.LowPress,
+				LowPressTime = HiLoToday.LowPressTime,
+				HighPress = HiLoToday.HighPress,
+				HighPressTime = HiLoToday.HighPressTime,
+				HighRainRate = HiLoToday.HighRainRate,
+				HighRainRateTime = HiLoToday.HighRainRateTime,
+				TotalRain = RainToday,
+				AvgTemp = AvgTemp,
+				WindRun = WindRunToday,
+				HighAvgWind = HiLoToday.HighWind,
+				HighAvgWindTime = HiLoToday.HighWindTime,
+				LowHumidity = HiLoToday.LowHumidity,
+				LowHumidityTime = HiLoToday.LowHumidityTime,
+				HighHumidity = HiLoToday.HighHumidity,
+				HighHumidityTime = HiLoToday.HighHumidityTime,
+				ET = ET,
+				SunShineHours = cumulus.RolloverHour == 0 ? SunshineHours : SunshineToMidnight,
+				HighHeatIndex = HiLoToday.HighHeatIndex,
+				HighHeatIndexTime = HiLoToday.HighHeatIndexTime,
+				HighAppTemp = HiLoToday.HighAppTemp,
+				HighAppTempTime = HiLoToday.HighAppTempTime,
+				LowAppTemp = HiLoToday.LowAppTemp,
+				LowAppTempTime = HiLoToday.LowAppTempTime,
+				HighHourlyRain = HiLoToday.HighHourlyRain,
+				HighHourlyRainTime = HiLoToday.HighHourlyRainTime,
+				LowWindChill = HiLoToday.LowWindChill,
+				LowWindChillTime = HiLoToday.LowWindChillTime,
+				HighDewPoint = HiLoToday.HighDewPoint,
+				HighDewPointTime = HiLoToday.HighDewPointTime,
+				LowDewPoint = HiLoToday.LowDewPoint,
+				LowDewPointTime = HiLoToday.LowDewPointTime,
+				DominantWindBearing = DominantWindBearing,
+				HeatingDegreeDays = HeatingDegreeDays,
+				CoolingDegreeDays = CoolingDegreeDays,
+				HighSolar = (int)HiLoToday.HighSolar,
+				HighSolarTime = HiLoToday.HighSolarTime,
+				HighUv = HiLoToday.HighUv,
+				HighUvTime = HiLoToday.HighUvTime,
+				HighFeelsLike = HiLoToday.HighFeelsLike,
+				HighFeelsLikeTime = HiLoToday.HighFeelsLikeTime,
+				LowFeelsLike = HiLoToday.LowFeelsLike,
+				LowFeelsLikeTime = HiLoToday.LowFeelsLikeTime,
+				HighHumidex = HiLoToday.HighHumidex,
+				HighHumidexTime = HiLoToday.HighHumidexTime,
+				ChillHours = ChillHours
+			};
 
 			DayFile.Add(newRec);
 
@@ -6930,6 +6935,9 @@ namespace CumulusMX
 
 				if (st.Count > idx++ && st[51].Length == 5)
 					rec.HighHumidexTime = GetDateTime(rec.Date, st[51]);
+
+				if (st.Count > idx++ && double.TryParse(st[52], out varDbl))
+					rec.ChillHours = varDbl;
 			}
 			catch (Exception ex)
 			{

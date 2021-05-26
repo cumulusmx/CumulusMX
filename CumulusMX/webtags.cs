@@ -3293,6 +3293,43 @@ namespace CumulusMX
 			return CheckRcDp(station.ChillHours, tagParams, 1);
 		}
 
+		private string TagChillHoursToday(Dictionary<string, string> tagParams)
+		{
+			if (station.YestChillHours == -1)
+				return "n/a";
+
+			// subtract today from yesterday, unless it has been reset, then its just today
+			var hrs = station.ChillHours > station.YestChillHours ? station.ChillHours - station.YestChillHours : station.ChillHours;
+			return CheckRcDp(hrs, tagParams, 1);
+		}
+
+		private string TagChillHoursYesterday(Dictionary<string, string> tagParams)
+		{
+			var dayb4yest = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(-2);
+			WeatherStation.dayfilerec rec;
+			try
+			{
+				rec = station.DayFile.Where(r => r.Date == dayb4yest).Single();
+			}
+			catch
+			{
+				return "n/a";
+			}
+
+
+			double hrs;
+			if (station.YestChillHours == -1)
+				return "n/a";
+
+			if (station.YestChillHours > rec.ChillHours)
+				hrs = station.YestChillHours - rec.ChillHours;
+			else
+				hrs = station.YestChillHours;
+
+			return CheckRcDp(hrs, tagParams, 1);
+		}
+
+
 		private string TagYChillHours(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(station.YestChillHours, tagParams, 1);
@@ -5500,7 +5537,9 @@ namespace CumulusMX
 				{ "moonset", Tagmoonset },
 				{ "moonphase", Tagmoonphase },
 				{ "chillhours", TagChillHours },
+				{ "chillhoursToday", TagChillHoursToday },
 				{ "Ychillhours", TagYChillHours },
+				{ "chillhoursYest", TagChillHoursYesterday },
 				{ "altitude", Tagaltitude },
 				{ "altitudenoenc", Tagaltitudenoenc },
 				{ "forum", Tagforum },

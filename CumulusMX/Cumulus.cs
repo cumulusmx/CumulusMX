@@ -8824,6 +8824,7 @@ namespace CumulusMX
 
 					RealtimeSSH.Connect();
 					RealtimeSSH.ConnectionInfo.Timeout = TimeSpan.FromSeconds(15);  // 15 seconds to match FTP default timeout
+					RealtimeSSH.KeepAliveInterval = new TimeSpan(0, 0, 31);         // 31 second keep-alive
 					LogMessage("RealtimeSSHLogin: Realtime SFTP connected");
 				}
 				catch (Exception ex)
