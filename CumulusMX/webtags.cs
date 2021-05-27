@@ -1801,13 +1801,13 @@ namespace CumulusMX
 		private string TagwindAvg(Dictionary<string, string> tagParams)
 		{
 			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * (DateTime.Now - DateTime.Today.AddHours(cumulus.GetHourInc())).TotalHours;
-			return CheckRcDp(station.WindRunToday / timeToday, tagParams, cumulus.WindAvgDPlaces);;
+			return CheckRcDp(station.WindRunToday / timeToday, tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagwindAvgY(Dictionary<string, string> tagParams)
 		{
 			var timeYest = station.WindRunHourMult[cumulus.Units.Wind] * 24;
-			return CheckRcDp(station.YesterdayWindRun / timeYest, tagParams, cumulus.WindAvgDPlaces); ;
+			return CheckRcDp(station.YesterdayWindRun / timeYest, tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagrrateTm(Dictionary<string,string> tagParams)
