@@ -2,6 +2,7 @@
 ——————————————
 - Fix: The Realtime FTP - particularly SFTP - reconnection code has been rewritten to make it more robust
 - Fix SteelSeries gauges data mouseovers not working on the dashboard interface
+- Fix: Bug in Davis WLL Chill Hours calculation during archive data catch-up. Each interval increment was 60x larger than it should be
 
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
@@ -33,7 +34,6 @@
 		IntervalTopic=CumulusMX/interval
 		IntervalRetained=0
 
-
 - New: Adds more "advanced" options to the GUI configuration:
 	- Max wind speed in Station > Common Options > Advanced options
 	- Record set timeout in Station > Common Options > Advanced options
@@ -56,7 +56,10 @@
 		r=-nn - specify a relative year, -1 = last year etc. Example <#SunshineHoursYear r=-2> total for the year before last
 	- The tags also accept the usual rc=y and dp=n parameters
 - New: Add New Record timeout value to Station Settings > General > Advanced
-- New: Adds Chill hours to yesterday.ini, and adds a new web tag for chill hours total yesterday <#Ychillhours>
+- New: Adds Chill hours to yesterday.ini, and adds a new web tag for chill hours total yesterday
+	<#Ychillhours>
+- New: Add new web tags for average wind speed today and yesterday
+	<#windAvg>, <#windAvgY>
 
 
 

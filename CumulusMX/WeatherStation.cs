@@ -346,6 +346,7 @@ namespace CumulusMX
 			ReadMonthlyAlltimeIniFile();
 			ReadMonthIniFile();
 			ReadYearIniFile();
+			LoadDayFile();
 
 			GetRainCounter();
 			GetRainFallTotals();
@@ -511,7 +512,6 @@ namespace CumulusMX
 			cumulus.LogMessage("Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
 			rainthismonth = 0;
 			rainthisyear = 0;
-			int linenum = 0;
 			// get today"s date for month check; allow for 0900 rollover
 			var hourInc = cumulus.GetHourInc();
 			var ModifiedNow = DateTime.Now.AddHours(hourInc);
@@ -521,45 +521,30 @@ namespace CumulusMX
 			// get today's date offset by rain season start for year check
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 
-			if (File.Exists(cumulus.DayFileName))
+			try
 			{
-				try
+				foreach (var rec in DayFile)
 				{
-					using (var sr = new StreamReader(cumulus.DayFileName))
+					int offsetLoggedYear = rec.Date.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
+					// This year?
+					if (offsetLoggedYear == offsetYearToday)
 					{
-						do
-						{
-							string Line = sr.ReadLine();
-							linenum++;
-							var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-
-							if (st.Count > 0)
-							{
-								string datestr = st[0];
-								DateTime loggedDate = ddmmyyStrToDate(datestr);
-								int offsetLoggedYear = loggedDate.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
-								// This year?
-								if (offsetLoggedYear == offsetYearToday)
-								{
-									rainthisyear += Double.Parse(st[14]);
-								}
-								// This month?
-								if ((loggedDate.Month == ModifiedNow.Month) && (loggedDate.Year == ModifiedNow.Year))
-								{
-									rainthismonth += Double.Parse(st[14]);
-								}
-							}
-						} while (!sr.EndOfStream);
+						rainthisyear += rec.TotalRain;
+					}
+					// This month?
+					if ((rec.Date.Month == ModifiedNow.Month) && (rec.Date.Year == ModifiedNow.Year))
+					{
+						rainthismonth += rec.TotalRain;
 					}
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage("GetRainfallTotals: Error on line " + linenum + " of dayfile.txt: " + ex.Message);
-				}
-
-				cumulus.LogMessage("Rainthismonth from dayfile.txt: " + rainthismonth);
-				cumulus.LogMessage("Rainthisyear from dayfile.txt: " + rainthisyear);
 			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("GetRainfallTotals: Error - " + ex.Message);
+			}
+
+			cumulus.LogMessage("Rainthismonth from dayfile: " + rainthismonth);
+			cumulus.LogMessage("Rainthisyear from dayfile: " + rainthisyear);
 
 			// Add in year-to-date rain (if necessary)
 			if (cumulus.YTDrainyear == Convert.ToInt32(Today.Substring(6, 2)) + 2000)
@@ -4388,7 +4373,7 @@ namespace CumulusMX
 		private int DayResetDay = 0;
 		protected bool FirstRun = false;
 		public const int MaxWindRecent = 720;
-		protected readonly double[] WindRunHourMult = { 3.6, 1.0, 1.0, 1.0 };
+		public readonly double[] WindRunHourMult = { 3.6, 1.0, 1.0, 1.0 };
 		public DateTime LastDataReadTimestamp = DateTime.MinValue;
 		public DateTime SavedLastDataReadTimestamp = DateTime.MinValue;
 		// Create arrays with 9 entries, 0 = VP2, 1-8 = WLL TxIds
@@ -6358,7 +6343,6 @@ namespace CumulusMX
 			LoadRecentFromDataLogs(ts);
 			LoadRecentAqFromDataLogs(ts);
 			LoadLast3HourData(ts);
-			LoadDayFile();
 			LoadRecentWindRose();
 		}
 

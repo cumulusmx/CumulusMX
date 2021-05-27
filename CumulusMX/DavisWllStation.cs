@@ -1825,8 +1825,8 @@ namespace CumulusMX
 									// update chill hours
 									if (OutdoorTemperature < cumulus.ChillHourThreshold)
 									{
-										// add 1 minute to chill hours
-										ChillHours += (data11.arch_int / 60.0);
+										// add interval minutes to chill hours - arch_int in seconds
+										ChillHours += (data11.arch_int / 3600.0);
 									}
 
 									// update heating/cooling degree days

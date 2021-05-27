@@ -191,7 +191,7 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
-		public const int DayfileFields = 52;
+		public const int DayfileFields = 53;
 
 		private readonly WeatherStation station;
 
@@ -3942,6 +3942,10 @@ namespace CumulusMX
 			if (ChillHourSeasonStart < 1 || ChillHourSeasonStart > 12)
 				ChillHourSeasonStart = 1;
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
+			if (ChillHourThreshold < -998)
+			{
+				ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
+			}
 
 			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
 			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
@@ -3956,11 +3960,6 @@ namespace CumulusMX
 			RG11tipsize2 = ini.GetValue("Station", "RG11tipsize2", 0.0);
 			RG11IgnoreFirst2 = ini.GetValue("Station", "RG11IgnoreFirst2", false);
 			RG11DTRmode2 = ini.GetValue("Station", "RG11DTRmode2", true);
-
-			if (ChillHourThreshold < -998)
-			{
-				ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
-			}
 
 			if (FCPressureThreshold < 0)
 			{
