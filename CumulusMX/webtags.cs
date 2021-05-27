@@ -397,6 +397,17 @@ namespace CumulusMX
 			return CheckRcDp(station.RecentMaxGust, tagParams, cumulus.WindDPlaces);
 		}
 
+		private string TagwindAvg(Dictionary<string, string> tagParams)
+		{
+			// we add on the meteo day start hour to 00:00 today
+			var startOfDay = DateTime.Today.AddHours(-cumulus.GetHourInc());
+			// then if that is later than now we are still in the previous day, so subtract a day
+			if (startOfDay > DateTime.Now)
+				startOfDay = startOfDay.AddDays(-1);
+			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * (DateTime.Now - startOfDay).TotalHours;
+			return CheckRcDp(station.WindRunToday / timeToday, tagParams, cumulus.WindAvgDPlaces);
+		}
+
 		private string Tagwchill(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.WindChill, tagParams, cumulus.TempDPlaces);
@@ -434,6 +445,13 @@ namespace CumulusMX
 		{
 			return CheckRcDp(station.YesterdayWindRun, tagParams, cumulus.WindRunDPlaces);
 		}
+
+		private string TagwindAvgY(Dictionary<string, string> tagParams)
+		{
+			var timeYest = station.WindRunHourMult[cumulus.Units.Wind] * 24;
+			return CheckRcDp(station.YesterdayWindRun / timeYest, tagParams, cumulus.WindAvgDPlaces);
+		}
+
 
 		private string Tagheatdegdays(Dictionary<string,string> tagParams)
 		{
@@ -1796,18 +1814,6 @@ namespace CumulusMX
 		private string TagdirectionTm(Dictionary<string, string> tagParams)
 		{
 			return station.CompassPoint(station.HiLoToday.HighGustBearing);
-		}
-
-		private string TagwindAvg(Dictionary<string, string> tagParams)
-		{
-			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * (DateTime.Now - DateTime.Today.AddHours(cumulus.GetHourInc())).TotalHours;
-			return CheckRcDp(station.WindRunToday / timeToday, tagParams, cumulus.WindAvgDPlaces);
-		}
-
-		private string TagwindAvgY(Dictionary<string, string> tagParams)
-		{
-			var timeYest = station.WindRunHourMult[cumulus.Units.Wind] * 24;
-			return CheckRcDp(station.YesterdayWindRun / timeYest, tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagrrateTm(Dictionary<string,string> tagParams)
