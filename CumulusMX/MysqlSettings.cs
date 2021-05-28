@@ -29,6 +29,7 @@ namespace CumulusMX
 
 			var monthly = new JsonMysqlSettingsMonthly()
 			{
+				enabled = cumulus.MonthlyMySqlEnabled,
 				table = cumulus.MySqlMonthlyTable
 			};
 
@@ -38,6 +39,7 @@ namespace CumulusMX
 
 			var realtime = new JsonMysqlSettingsRealtime()
 			{
+				enabled = cumulus.RealtimeMySqlEnabled,
 				retentionVal = retenVal,
 				retentionUnit = retenUnit,
 				table = cumulus.MySqlRealtimeTable,
@@ -46,41 +48,40 @@ namespace CumulusMX
 
 			var dayfile = new JsonMysqlSettingsDayfile()
 			{
+				enabled = cumulus.DayfileMySqlEnabled,
 				table = cumulus.MySqlDayfileTable
 			};
 
 			var customseconds = new JsonMysqlSettingsCustomSeconds()
 			{
+				enabled = cumulus.CustomMySqlSecondsEnabled,
 				command = cumulus.CustomMySqlSecondsCommandString,
 				interval = cumulus.CustomMySqlSecondsInterval
 			};
 
 			var customminutes = new JsonMysqlSettingsCustomMinutes()
 			{
+				enabled = cumulus.CustomMySqlMinutesEnabled,
 				command = cumulus.CustomMySqlMinutesCommandString,
 				intervalindex = cumulus.CustomMySqlMinutesIntervalIndex
 			};
 
 			var customrollover = new JsonMysqlSettingsCustomRollover()
 			{
+				enabled = cumulus.CustomMySqlRolloverEnabled,
 				command = cumulus.CustomMySqlRolloverCommandString,
 			};
 
 			var data = new JsonMysqlSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
+				updateonedit = cumulus.MySqlUpdateOnEdit,
 				server = server,
-				monthenabled = cumulus.MonthlyMySqlEnabled,
 				monthly = monthly,
-				realtimeenabled = cumulus.RealtimeMySqlEnabled,
 				realtime = realtime,
-				dayenabled = cumulus.DayfileMySqlEnabled,
 				dayfile = dayfile,
-				custsecsenabled = cumulus.CustomMySqlSecondsEnabled,
 				customseconds = customseconds,
-				custminsenabled = cumulus.CustomMySqlMinutesEnabled,
 				customminutes = customminutes,
-				custrollenabled = cumulus.CustomMySqlRolloverEnabled,
 				customrollover = customrollover
 			};
 
@@ -130,14 +131,17 @@ namespace CumulusMX
 				cumulus.MySqlConnSettings.Database = settings.server.database;
 				cumulus.MySqlConnSettings.UserID = settings.server.user;
 				cumulus.MySqlConnSettings.Password = settings.server.pass;
+				//update on edit
+				cumulus.MySqlUpdateOnEdit = settings.updateonedit;
+
 				//monthly
-				cumulus.MonthlyMySqlEnabled = settings.monthenabled;
+				cumulus.MonthlyMySqlEnabled = settings.monthly.enabled;
 				if (cumulus.MonthlyMySqlEnabled)
 				{
 					cumulus.MySqlMonthlyTable = String.IsNullOrWhiteSpace(settings.monthly.table) ? "Monthly" : settings.monthly.table;
 				}
 				//realtime
-				cumulus.RealtimeMySqlEnabled = settings.realtimeenabled;
+				cumulus.RealtimeMySqlEnabled = settings.realtime.enabled;
 				if (cumulus.RealtimeMySqlEnabled)
 				{
 					cumulus.MySqlRealtimeRetention = settings.realtime.retentionVal + " " + settings.realtime.retentionUnit;
@@ -145,20 +149,20 @@ namespace CumulusMX
 					cumulus.RealtimeMySql1MinLimit = settings.realtime.limit1min;
 				}
 				//dayfile
-				cumulus.DayfileMySqlEnabled = settings.dayenabled;
+				cumulus.DayfileMySqlEnabled = settings.dayfile.enabled;
 				if (cumulus.DayfileMySqlEnabled)
 				{
 					cumulus.MySqlDayfileTable = String.IsNullOrWhiteSpace(settings.dayfile.table) ? "Dayfile" : settings.dayfile.table;
 				}
 				// custom seconds
-				cumulus.CustomMySqlSecondsEnabled = settings.custsecsenabled;
+				cumulus.CustomMySqlSecondsEnabled = settings.customseconds.enabled;
 				if (cumulus.CustomMySqlSecondsEnabled)
 				{
 					cumulus.CustomMySqlSecondsCommandString = settings.customseconds.command;
 					cumulus.CustomMySqlSecondsInterval = settings.customseconds.interval;
 				}
 				// custom minutes
-				cumulus.CustomMySqlMinutesEnabled = settings.custminsenabled;
+				cumulus.CustomMySqlMinutesEnabled = settings.customminutes.enabled;
 				if (cumulus.CustomMySqlMinutesEnabled)
 				{
 					cumulus.CustomMySqlMinutesCommandString = settings.customminutes.command;
@@ -173,7 +177,7 @@ namespace CumulusMX
 					}
 				}
 				// custom rollover
-				cumulus.CustomMySqlRolloverEnabled = settings.custrollenabled;
+				cumulus.CustomMySqlRolloverEnabled = settings.customrollover.enabled;
 				if (cumulus.CustomMySqlRolloverEnabled)
 				{
 					cumulus.CustomMySqlRolloverCommandString = settings.customrollover.command;
@@ -268,18 +272,13 @@ namespace CumulusMX
 	public class JsonMysqlSettings
 	{
 		public bool accessible {get; set;}
+		public bool updateonedit { get; set; }
 		public JsonMysqlSettingsServer server { get; set; }
-		public bool monthenabled { get; set; }
 		public JsonMysqlSettingsMonthly monthly { get; set; }
-		public bool realtimeenabled { get; set; }
 		public JsonMysqlSettingsRealtime realtime { get; set; }
-		public bool dayenabled { get; set; }
 		public JsonMysqlSettingsDayfile dayfile { get; set; }
-		public bool custsecsenabled { get; set; }
 		public JsonMysqlSettingsCustomSeconds customseconds { get; set; }
-		public bool custminsenabled { get; set; }
 		public JsonMysqlSettingsCustomMinutes customminutes { get; set; }
-		public bool custrollenabled { get; set; }
 		public JsonMysqlSettingsCustomRollover customrollover { get; set; }
 	}
 
@@ -294,11 +293,13 @@ namespace CumulusMX
 
 	public class JsonMysqlSettingsMonthly
 	{
+		public bool enabled { get; set; }
 		public string table { get; set; }
 	}
 
 	public class JsonMysqlSettingsRealtime
 	{
+		public bool enabled { get; set; }
 		public string table { get; set; }
 		public int retentionVal { get; set; }
 		public string retentionUnit { get; set; }
@@ -307,23 +308,27 @@ namespace CumulusMX
 
 	public class JsonMysqlSettingsDayfile
 	{
+		public bool enabled { get; set; }
 		public string table { get; set; }
 	}
 
 	public class JsonMysqlSettingsCustomSeconds
 	{
+		public bool enabled { get; set; }
 		public string command { get; set; }
 		public int interval { get; set; }
 	}
 
 	public class JsonMysqlSettingsCustomMinutes
 	{
+		public bool enabled { get; set; }
 		public string command { get; set; }
 		public int intervalindex { get; set; }
 	}
 
 	public class JsonMysqlSettingsCustomRollover
 	{
+		public bool enabled { get; set; }
 		public string command { get; set; }
 	}
 }

@@ -246,6 +246,12 @@ namespace CumulusMX
 				starts = cumulus.TempSumYearStarts
 			};
 
+			var chillhrs = new JsonChillHours()
+			{
+				threshold = cumulus.ChillHourThreshold,
+				month = cumulus.ChillHourSeasonStart
+			};
+
 			var graphDataTemp = new JsonStationSettingsGraphDataTemperature()
 			{
 				graphTempVis = cumulus.GraphOptions.TempVisible,
@@ -421,6 +427,7 @@ namespace CumulusMX
 				AnnualRainfall = annualrainfall,
 				GrowingDD = growingdd,
 				TempSum = tempsum,
+				ChillHrs = chillhrs,
 				Graphs = graphs,
 				DisplayOptions = displayOptions
 			};
@@ -584,6 +591,20 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Temperature Sum settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Chill Hours
+				try
+				{
+					cumulus.ChillHourThreshold = settings.ChillHrs.threshold;
+					cumulus.ChillHourSeasonStart = settings.ChillHrs.month;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Chill Hours settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1218,6 +1239,7 @@ namespace CumulusMX
 		public JsonStationSettingsAnnualRainfall AnnualRainfall { get; set; }
 		public JsonGrowingDDSettings GrowingDD { get; set; }
 		public JsonTempSumSettings TempSum { get; set; }
+		public JsonChillHours ChillHrs { get; set; }
 		public JsonStationSettingsGraphs Graphs { get; set; }
 		public JsonDisplayOptions DisplayOptions { get; set; }
 	}
@@ -1613,4 +1635,9 @@ namespace CumulusMX
 		public double basetemp2 { get; set; }
 	}
 
+	public class JsonChillHours
+	{
+		public double threshold { get; set; }
+		public int month { get; set; }
+	}
 }

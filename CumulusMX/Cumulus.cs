@@ -706,6 +706,7 @@ namespace CumulusMX
 		public string MySqlMonthlyTable;
 		public string MySqlDayfileTable;
 		public string MySqlRealtimeTable;
+		public bool MySqlUpdateOnEdit;
 		public string MySqlRealtimeRetention;
 		public string StartOfMonthlyInsertSQL;
 		public string StartOfDayfileInsertSQL;
@@ -3938,7 +3939,7 @@ namespace CumulusMX
 			RainSeasonStart = ini.GetValue("Station", "RainSeasonStart", 1);
 			if (RainSeasonStart < 1 || RainSeasonStart > 12)
 				RainSeasonStart = 1;
-			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", 10);
+			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", Latitude >= 0 ? 10 : 4);
 			if (ChillHourSeasonStart < 1 || ChillHourSeasonStart > 12)
 				ChillHourSeasonStart = 1;
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
@@ -4646,6 +4647,7 @@ namespace CumulusMX
 			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", "");
 			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", "");
 			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "database");
+			MySqlUpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
 
 			// MySQL - monthly log file
 			MonthlyMySqlEnabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
@@ -5414,6 +5416,8 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "RealtimeMySqlEnabled", RealtimeMySqlEnabled);
 			ini.SetValue("MySQL", "RealtimeMySql1MinLimit", RealtimeMySql1MinLimit);
 			ini.SetValue("MySQL", "DayfileMySqlEnabled", DayfileMySqlEnabled);
+			ini.SetValue("MySQL", "UpdateOnEdit", MySqlUpdateOnEdit);
+
 			ini.SetValue("MySQL", "MonthlyTable", MySqlMonthlyTable);
 			ini.SetValue("MySQL", "DayfileTable", MySqlDayfileTable);
 			ini.SetValue("MySQL", "RealtimeTable", MySqlRealtimeTable);
@@ -9134,6 +9138,70 @@ namespace CumulusMX
 					MySqlUploadAlarm.Triggered = true;
 				}
 			});
+		}
+
+		public void MySqlCommandSync(string Cmd, string CallingFunction)
+		{
+			var Cmds = new List<string>() { Cmd };
+			MySqlCommandSync(Cmds, CallingFunction, true);
+		}
+
+		public bool MySqlCommandSync(List<string> Cmds, string CallingFunction, bool ClearCommands = false)
+		{
+			int errorCount = 10;
+			try
+			{
+				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
+				{
+					mySqlConn.Open();
+
+					for (var i = 0; i < Cmds.Count; i++)
+					{
+						try
+						{
+							using (MySqlCommand cmd = new MySqlCommand(Cmds[i], mySqlConn))
+							{
+								LogDebugMessage($"{CallingFunction}: MySQL executing - {Cmds[i]}");
+
+								int aff = cmd.ExecuteNonQuery();
+								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+							}
+
+							MySqlUploadAlarm.Triggered = false;
+						}
+						catch (Exception ex)
+						{
+							LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
+							LogMessage($"{CallingFunction}: SQL was - \"{Cmds[i]}\"");
+							LogMessage(ex.Message);
+							MySqlUploadAlarm.LastError = ex.Message;
+							MySqlUploadAlarm.Triggered = true;
+							if (--errorCount <= 0)
+							{
+								LogMessage($"{CallingFunction}: Too many errors, aborting!");
+								return false;
+							}
+						}
+					}
+
+					mySqlConn.Close();
+
+					if (ClearCommands)
+					{
+						Cmds.Clear();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
+				LogMessage(ex.Message);
+				MySqlUploadAlarm.LastError = ex.Message;
+				MySqlUploadAlarm.Triggered = true;
+				throw;
+			}
+
+			return true;
 		}
 
 

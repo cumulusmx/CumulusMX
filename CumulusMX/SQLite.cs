@@ -43,6 +43,7 @@ using Sqlite3Statement = Sqlite.Statement;
 #else
 using Sqlite3DatabaseHandle = System.IntPtr;
 using Sqlite3Statement = System.IntPtr;
+using System.CodeDom.Compiler;
 #endif
 
 namespace SQLite
@@ -62,6 +63,7 @@ namespace SQLite
 		}
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class NotNullConstraintViolationException : SQLiteException
 	{
 		public IEnumerable<TableMapping.Column> Columns { get; protected set; }
@@ -123,6 +125,7 @@ namespace SQLite
 	/// <summary>
 	/// Represents an open connection to a SQLite database.
 	/// </summary>
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public partial class SQLiteConnection : IDisposable
 	{
 		private bool _open;
@@ -1693,6 +1696,7 @@ namespace SQLite
 	{
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class TableMapping
 	{
 		public Type MappedType { get; private set; }
@@ -2049,6 +2053,7 @@ namespace SQLite
 		}
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public partial class SQLiteCommand
 	{
 		SQLiteConnection _conn;
@@ -2356,6 +2361,7 @@ namespace SQLite
 	/// <summary>
 	/// Since the insert never changed, we only need to prepare once.
 	/// </summary>
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class PreparedSqlLiteInsertCommand : IDisposable
 	{
 		public bool Initialized { get; set; }
@@ -2449,6 +2455,7 @@ namespace SQLite
 		}
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class TableQuery<T> : BaseTableQuery, IEnumerable<T>
 	{
 		public SQLiteConnection Connection { get; private set; }

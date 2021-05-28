@@ -42,7 +42,13 @@ namespace CumulusMX
 			}
 
 			/// <inheritdoc />
-			public override string ServerName => nameof(MySocketServer);
+			public override string ServerName
+			{
+				get
+				{
+					return nameof(MySocketServer);
+				}
+			}
 
 			/// <inheritdoc />
 			protected override void OnClientConnected(IWebSocketContext context, IPEndPoint localEndPoint, IPEndPoint remoteEndPoint)

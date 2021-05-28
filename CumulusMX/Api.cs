@@ -199,7 +199,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -266,7 +266,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -331,7 +331,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -479,7 +479,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -642,7 +642,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -698,7 +698,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -780,7 +780,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -950,7 +950,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -1037,7 +1037,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}

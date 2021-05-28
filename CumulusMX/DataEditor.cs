@@ -3280,11 +3280,93 @@ namespace CumulusMX
 				try
 				{
 					station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
+
+					// write dayfile back again
+					File.WriteAllLines(cumulus.DayFileName, lines);
 				}
 				catch
 				{
 					return "{\"result\":\"Failed, new data does not match required values\"}";
 				}
+
+				// Update the MySQL record
+				if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
+					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
+					cumulus.MySqlUpdateOnEdit
+					)
+				{
+					try
+					{
+						var InvC = new CultureInfo("");
+						var updt = new StringBuilder(1024);
+
+						updt.Append($"UPDATE {cumulus.MySqlDayfileTable} SET ");
+						updt.Append($"HighWindGust={station.DayFile[lineNum].HighGust.ToString(cumulus.WindFormat, InvC)},");
+						updt.Append($"HWindGBear={station.DayFile[lineNum].HighGustBearing},");
+						updt.Append($"THWindG={station.DayFile[lineNum].HighGustTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MinTemp={station.DayFile[lineNum].LowTemp.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TMinTemp={station.DayFile[lineNum].LowTempTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MaxTemp={station.DayFile[lineNum].HighTemp.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TMaxTemp={station.DayFile[lineNum].HighTempTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MinPress={station.DayFile[lineNum].LowPress.ToString(cumulus.PressFormat, InvC)},");
+						updt.Append($"TMinPress={station.DayFile[lineNum].LowPressTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MaxPress={station.DayFile[lineNum].HighPress.ToString(cumulus.PressFormat, InvC)},");
+						updt.Append($"TMaxPress={station.DayFile[lineNum].HighPressTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MaxRainRate={station.DayFile[lineNum].HighRainRate.ToString(cumulus.RainFormat, InvC)},");
+						updt.Append($"TMaxRR={station.DayFile[lineNum].HighRainRateTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"TotRainFall={station.DayFile[lineNum].TotalRain.ToString(cumulus.RainFormat, InvC)},");
+						updt.Append($"AvgTemp={station.DayFile[lineNum].AvgTemp.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TotWindRun={station.DayFile[lineNum].WindRun.ToString("F1", InvC)},");
+						updt.Append($"HighAvgWSpeed{station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
+						updt.Append($"THAvgWSpeed={station.DayFile[lineNum].HighAvgWindTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"LowHum={station.DayFile[lineNum].LowHumidity},");
+						updt.Append($"TLowHum={station.DayFile[lineNum].LowHumidityTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"HighHum={station.DayFile[lineNum].HighHumidity},");
+						updt.Append($"THighHum{station.DayFile[lineNum].HighHumidityTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"TotalEvap{station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
+						updt.Append($"HoursSun={station.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
+						updt.Append($"HighHeatInd={station.DayFile[lineNum].HighHeatIndex.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"THighHeatInd={station.DayFile[lineNum].HighHeatIndexTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"HighAppTemp={station.DayFile[lineNum].HighAppTemp.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"THighAppTemp{station.DayFile[lineNum].HighAppTempTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"LowAppTemp={station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TLowAppTemp={station.DayFile[lineNum].LowAppTempTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
+						updt.Append($"THighHourRain={station.DayFile[lineNum].HighHourlyRainTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"LowWindChill={station.DayFile[lineNum].LowWindChill.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TLowWindChill={station.DayFile[lineNum].LowWindChillTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"HighDewPoint={station.DayFile[lineNum].HighDewPoint.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"THighDewPoint={station.DayFile[lineNum].HighDewPointTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"LowDewPoint={station.DayFile[lineNum].LowDewPoint.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TLowDewPoint={station.DayFile[lineNum].LowDewPointTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"DomWindDir={station.DayFile[lineNum].DominantWindBearing},");
+						updt.Append($"HeatDegDays={station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC)},");
+						updt.Append($"CoolDegDays={station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC)},");
+						updt.Append($"HighSolarRad={station.DayFile[lineNum].HighSolar},");
+						updt.Append($"THighSolarRad={station.DayFile[lineNum].HighSolarTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"HighUV={station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC)},");
+						updt.Append($"THighUV={station.DayFile[lineNum].HighUvTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
+						updt.Append($"HWindGBearSym={station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
+						updt.Append($"MaxFeelsLike={station.DayFile[lineNum].HighFeelsLike.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TMaxFeelsLike={station.DayFile[lineNum].HighFeelsLikeTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MinFeelsLike={station.DayFile[lineNum].LowFeelsLike.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TMinFeelsLike={station.DayFile[lineNum].LowFeelsLikeTime.ToString("\\'HH:mm\\'")},");
+						updt.Append($"MaxHumidex={station.DayFile[lineNum].HighHumidex.ToString(cumulus.TempFormat, InvC)},");
+						updt.Append($"TMaxHumidex={station.DayFile[lineNum].HighFeelsLikeTime.ToString("\\'HH:mm\\'")} ");
+
+						updt.Append($"WHERE LogDate={station.DayFile[lineNum].Date.ToString("yy-MM-dd")};");
+
+						cumulus.MySqlCommandSync(updt.ToString(), "EditDayFile");
+					}
+					catch
+					{
+						return "{\"result\":\"Updated the dayfile OK, but failed, to update MySQL\"}";
+					}
+				}
+
 			}
 			else if (newData.action == "Delete")
 			{
@@ -3295,6 +3377,9 @@ namespace CumulusMX
 					lines.RemoveAt(lineNum);
 					// Update the in memory record
 					station.DayFile.RemoveAt(lineNum);
+
+					// write dayfile back again
+					File.WriteAllLines(cumulus.DayFileName, lines);
 				}
 				else
 				{
@@ -3307,8 +3392,6 @@ namespace CumulusMX
 				//throw("Failed, unrecognised action");
 				return "{\"result\":\"Failed, unrecognised action\"}";
 			}
-			// write dayfile back again
-			File.WriteAllLines(cumulus.DayFileName, lines);
 
 			// return the updated record
 			var rec = new List<string>(newData.data);
@@ -3353,6 +3436,70 @@ namespace CumulusMX
 				// replace the edited line
 				var newLine = String.Join(cumulus.ListSeparator, newData.data);
 				lines[lineNum] = newLine;
+
+				// write logfile back again
+				File.WriteAllLines(logfile, lines);
+
+				// Update the MySQL record
+				if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
+					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
+					cumulus.MySqlUpdateOnEdit
+					)
+				{
+					// Only the monhtly log file is stored in MySQL
+					if (!newData.extra)
+					{
+						try
+						{
+							var InvC = new CultureInfo("");
+							var updt = new StringBuilder(1024);
+
+							var LogRec = station.ParseLogFileRec(newLine);
+
+							updt.Append($"UPDATE {cumulus.MySqlMonthlyTable} SET ");
+							updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"Humidity={ LogRec.OutdoorHumidity},");
+							updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
+							updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
+							updt.Append($"Windbearing={LogRec.AvgBearing},");
+							updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
+							updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
+							updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
+							updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
+							updt.Append($"InsideTemp={LogRec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"InsideHumidity={LogRec.IndoorHumidity},");
+							updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
+							updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
+							updt.Append($"SolarRad={LogRec.SolarRad},");
+							updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
+							updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
+							updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
+							updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
+							updt.Append($"CurrWindBearing={LogRec.Bearing},");
+							updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
+							updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
+							updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
+							updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
+							updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
+							updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
+
+							updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
+
+							cumulus.MySqlCommandSync(updt.ToString(), "EditLogFile");
+						}
+						catch
+						{
+							return "{\"result\":\"Log file updated OK, but failed, to update MySQL\"}";
+						}
+
+					}
+				}
 			}
 			else if (newData.action == "Delete")
 			{
@@ -3361,6 +3508,8 @@ namespace CumulusMX
 				if (lineData[0] == newData.data[0])
 				{
 					lines.RemoveAt(lineNum);
+					// write logfile back again
+					File.WriteAllLines(logfile, lines);
 				}
 				else
 				{
@@ -3369,8 +3518,6 @@ namespace CumulusMX
 				}
 			}
 
-			// write logfile back again
-			File.WriteAllLines(logfile, lines);
 
 			// return the updated record
 			var rec = new List<string>(newData.data);

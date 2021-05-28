@@ -1111,10 +1111,10 @@ namespace CumulusMX
             return (180.0/Math.PI)*Math.Asin(c);
         }
 
-        private double acosd(double c)
-        {
-            return (180.0/Math.PI)*Math.Acos(c);
-        }
+        //private double acosd(double c)
+        //{
+        //    return (180.0/Math.PI)*Math.Acos(c);
+        //}
 
         private static double atan2d(double y, double x)
         {

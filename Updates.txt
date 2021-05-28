@@ -58,8 +58,11 @@
 - New: Add New Record timeout value to Station Settings > General > Advanced
 - New: Adds Chill hours to yesterday.ini, and adds a new web tag for chill hours total yesterday
 	<#Ychillhours>
+- New: Adds the Chill Hours configuration values to the Station Settings screen
 - New: Add new web tags for average wind speed today and yesterday
 	<#windAvg>, <#windAvgY>
+- New: Adds the ability to edit the corresponding entries in the Dayfile and Monthly MySQL tables when using the log file editors in the dashboard
+	- You can enable/disable this feature via a setting in MySQL settings
 
 
 

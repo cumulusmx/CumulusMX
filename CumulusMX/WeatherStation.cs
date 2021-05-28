@@ -63,6 +63,38 @@ namespace CumulusMX
 			}
 		}
 
+		public struct logfilerec
+		{
+			public DateTime Date;
+			public double OutdoorTemperature;
+			public int OutdoorHumidity;
+			public double OutdoorDewpoint;
+			public double WindAverage;
+			public double RecentMaxGust;
+			public int AvgBearing;
+			public double RainRate;
+			public double RainToday;
+			public double Pressure;
+			public double Raincounter;
+			public double IndoorTemperature;
+			public int IndoorHumidity;
+			public double WindLatest;
+			public double WindChill;
+			public double HeatIndex;
+			public double UV;
+			public double SolarRad;
+			public double ET;
+			public double AnnualETTotal;
+			public double ApparentTemperature;
+			public double CurrentSolarMax;
+			public double SunshineHours;
+			public int Bearing;
+			public double RG11RainToday;
+			public double RainSinceMidnight;
+			public double FeelsLike;
+			public double Humidex;
+		}
+
 		public struct dayfilerec
 		{
 			public DateTime Date;
@@ -6932,6 +6964,83 @@ namespace CumulusMX
 			return rec;
 		}
 
+		public logfilerec ParseLogFileRec(string data)
+		{
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2  Current temperature
+			// 3  Current humidity
+			// 4  Current dewpoint
+			// 5  Current wind speed
+			// 6  Recent (10-minute) high gust
+			// 7  Average wind bearing
+			// 8  Current rainfall rate
+			// 9  Total rainfall today so far
+			// 10  Current sea level pressure
+			// 11  Total rainfall counter as held by the station
+			// 12  Inside temperature
+			// 13  Inside humidity
+			// 14  Current gust (i.e. 'Latest')
+			// 15  Wind chill
+			// 16  Heat Index
+			// 17  UV Index
+			// 18  Solar Radiation
+			// 19  Evapotranspiration
+			// 20  Annual Evapotranspiration
+			// 21  Apparent temperature
+			// 22  Current theoretical max solar radiation
+			// 23  Hours of sunshine so far today
+			// 24  Current wind bearing
+			// 25  RG-11 rain total
+			// 26  Rain since midnight
+			// 27  Feels like
+			// 28  Humidex
+
+			try
+			{
+				var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+
+				var rec = new logfilerec()
+				{
+					Date = ddmmyyhhmmStrToDate(st[0], st[1]),
+					OutdoorTemperature = Convert.ToDouble(st[2]),
+					OutdoorHumidity = Convert.ToInt32(st[3]),
+					OutdoorDewpoint = Convert.ToDouble(st[4]),
+					WindAverage = Convert.ToDouble(st[5]),
+					RecentMaxGust = Convert.ToDouble(st[6]),
+					AvgBearing = Convert.ToInt32(st[7]),
+					RainRate = Convert.ToDouble(st[8]),
+					RainToday = Convert.ToDouble(st[9]),
+					Pressure = Convert.ToDouble(st[10]),
+					Raincounter = Convert.ToDouble(st[11]),
+					IndoorTemperature = Convert.ToDouble(st[12]),
+					IndoorHumidity = Convert.ToInt32(st[13]),
+					WindLatest = Convert.ToDouble(st[14]),
+					WindChill = Convert.ToDouble(st[15]),
+					HeatIndex = Convert.ToDouble(st[16]),
+					UV = st.Count > 17 ? Convert.ToDouble(st[17]) : 0,
+					SolarRad = st.Count > 18 ? Convert.ToDouble(st[18]) : 0,
+					ET = st.Count > 19 ? Convert.ToDouble(st[19]) : 0,
+					AnnualETTotal = st.Count > 20 ? Convert.ToDouble(st[20]) : 0,
+					ApparentTemperature = st.Count > 21 ? Convert.ToDouble(st[21]) : 0,
+					CurrentSolarMax = st.Count > 22 ? Convert.ToDouble(st[22]) : 0,
+					SunshineHours = st.Count > 23 ? Convert.ToDouble(st[23]) : 0,
+					Bearing = st.Count > 24 ? Convert.ToInt32(st[24]) : 0,
+					RG11RainToday = st.Count > 25 ? Convert.ToDouble(st[25]) : 0,
+					RainSinceMidnight = st.Count > 26 ? Convert.ToDouble(st[26]) : 0,
+					FeelsLike = st.Count > 27 ? Convert.ToDouble(st[27]) : 0,
+					Humidex = st.Count > 28 ? Convert.ToDouble(st[28]) : 0
+				};
+
+				return rec;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Error parsing log file record: " + ex.Message);
+				cumulus.LogDataMessage("Log record: " + data);
+				throw ex;
+			}
+		}
 
 		protected void UpdateStatusPanel(DateTime timestamp)
 		{
