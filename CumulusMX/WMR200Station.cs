@@ -1600,6 +1600,7 @@ namespace CumulusMX
 			DoHumidex(timestamp);
 
 			cumulus.DoLogFile(timestamp,false);
+			cumulus.MySqlRealtimeFile(999, false, timestamp);
 
 			if (cumulus.StationOptions.LogExtraSensors)
 			{

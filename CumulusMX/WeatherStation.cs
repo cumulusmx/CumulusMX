@@ -413,36 +413,34 @@ namespace CumulusMX
 				int linenum = 0;
 				try
 				{
-					using (var sr = new StreamReader(LogFile))
+					var lines = File.ReadAllLines(LogFile);
+
+					foreach (var line in lines)
 					{
 						// now process each record to get the last "raintoday" figure
-						do
+						linenum++;
+						var st = new List<string>(Regex.Split(line, listSep));
+						if (st.Count > 0)
 						{
-							string Line = sr.ReadLine();
-							linenum++;
-							var st = new List<string>(Regex.Split(Line, listSep));
-							if (st.Count > 0)
+							RainToday = Double.Parse(st[9]);
+							// get date of this entry
+							logdate = st[0];
+							if (!midnightrainfound)
 							{
-								RainToday = Double.Parse(st[9]);
-								// get date of this entry
-								logdate = st[0];
-								if (!midnightrainfound)
+								if (logdate != prevlogdate)
 								{
-									if (logdate != prevlogdate)
+									if (todaydatestring == logdate)
 									{
-										if (todaydatestring == logdate)
-										{
-											// this is the first entry of a new day AND the new day is today
-											midnightrainfound = true;
-											cumulus.LogMessage("Midnight rain found in the following entry:");
-											cumulus.LogMessage(Line);
-											raincount = Double.Parse(st[11]);
-										}
+										// this is the first entry of a new day AND the new day is today
+										midnightrainfound = true;
+										cumulus.LogMessage("Midnight rain found in the following entry:");
+										cumulus.LogMessage(line);
+										raincount = Double.Parse(st[11]);
 									}
 								}
-								prevlogdate = logdate;
 							}
-						} while (!sr.EndOfStream);
+							prevlogdate = logdate;
+						}
 					}
 				}
 				catch (Exception E)
@@ -1760,7 +1758,7 @@ namespace CumulusMX
 					}
 
 					// Custom MySQL update - minutes interval
-					if (cumulus.CustomMySqlMinutesEnabled && now.Minute % cumulus.CustomMySqlMinutesInterval == 0)
+					if (cumulus.MySqlSettings.CustomMins.Enabled && now.Minute % cumulus.MySqlSettings.CustomMins.Interval == 0)
 					{
 						cumulus.CustomMysqlMinutesTimerTick();
 					}
@@ -4587,7 +4585,7 @@ namespace CumulusMX
 				int month = timestamp.Month;
 				DayResetDay = drday;
 
-				if (cumulus.CustomMySqlRolloverEnabled)
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
 				{
 					cumulus.CustomMysqlRolloverTimerTick();
 				}
@@ -5544,7 +5542,7 @@ namespace CumulusMX
 
 
 
-			if (cumulus.DayfileMySqlEnabled)
+			if (cumulus.MySqlSettings.Dayfile.Enabled)
 			{
 				var InvC = new CultureInfo("");
 
@@ -5608,7 +5606,7 @@ namespace CumulusMX
 				queryString.Append(")");
 
 				// run the query async so we do not block the main EOD processing
-				cumulus.MySqlCommandAsync(queryString.ToString(), "MySQL Dayfile");
+				_ = cumulus.MySqlCommandAsync(queryString.ToString(), "MySQL Dayfile");
 			}
 		}
 
@@ -6381,7 +6379,7 @@ namespace CumulusMX
 		private void LoadRecentFromDataLogs(DateTime ts)
 		{
 			// Recent data goes back a week
-			var datefrom = ts.AddDays(-Cumulus.RecentDataDays);
+			var datefrom = ts.AddDays(-cumulus.RecentDataDays);
 			var dateto = ts;
 			var entrydate = datefrom;
 			var filedate = datefrom;
@@ -6391,7 +6389,7 @@ namespace CumulusMX
 
 			var rowsToAdd = new List<RecentData>();
 
-			cumulus.LogMessage($"LoadRecent: Attempting to load {Cumulus.RecentDataDays} days of entries to recent data list");
+			cumulus.LogMessage($"LoadRecent: Attempting to load {cumulus.RecentDataDays} days of entries to recent data list");
 
 			// try and find the first entry in the db that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
@@ -6416,86 +6414,60 @@ namespace CumulusMX
 
 					try
 					{
-						using (var sr = new StreamReader(logFile))
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
 						{
-							do
+							try
 							{
-								try
-								{
-									// process each record in the file
-									linenum++;
-									string Line = sr.ReadLine();
-									var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-									entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
+								// process each record in the file
+								linenum++;
 
-									if (entrydate >= datefrom && entrydate <= dateto)
-									{
-										// entry is from required period
-										var outsidetemp = Convert.ToDouble(st[2]);
-										var hum = Convert.ToInt32(st[3]);
-										var dewpoint = Convert.ToDouble(st[4]);
-										var speed = Convert.ToDouble(st[5]);
-										var gust = Convert.ToDouble(st[6]);
-										var avgbearing = Convert.ToInt32(st[7]);
-										var rainrate = Convert.ToDouble(st[8]);
-										var raintoday = Convert.ToDouble(st[9]);
-										var pressure = Convert.ToDouble(st[10]);
-										var raincounter = Convert.ToDouble(st[11]);
-										var intemp = Convert.ToDouble(st[12]);
-										var inhum = Convert.ToInt32(st[13]);
-										var wlatest = Convert.ToDouble(st[14]);
-										var chill = Convert.ToDouble(st[15]);
-										var heat = Convert.ToDouble(st[16]);
-										var uv = Convert.ToDouble(st[17]);
-										var solar = Convert.ToDouble(st[18]);
-										var bearing = Convert.ToInt32(st[24]);
-										var apptemp = st.Count > 21 ? Convert.ToDouble(st[21]) : 0;
-										var solarmax = st.Count > 22 ? Convert.ToDouble(st[22]) : 0;
-										var feelslike = st.Count > 27 ? Convert.ToDouble(st[27]) : 0;
-										var humidex = st.Count > 28 ? Convert.ToDouble(st[28]) : 0;
+								var rec = ParseLogFileRec(line, false);
 
-										rowsToAdd.Add(new RecentData()
-										{
-											Timestamp = entrydate,
-											DewPoint = dewpoint,
-											HeatIndex = heat,
-											Humidity = hum,
-											OutsideTemp = outsidetemp,
-											Pressure = pressure,
-											RainToday = raintoday,
-											SolarRad = (int)solar,
-											UV = uv,
-											WindAvgDir = avgbearing,
-											WindGust = gust,
-											WindLatest = wlatest,
-											WindChill = chill,
-											WindDir = bearing,
-											WindSpeed = speed,
-											raincounter = raincounter,
-											FeelsLike = feelslike,
-											Humidex = humidex,
-											AppTemp = apptemp,
-											IndoorTemp = intemp,
-											IndoorHumidity = inhum,
-											SolarMax = (int)solarmax,
-											RainRate = rainrate,
-											Pm2p5 = -1,
-											Pm10 = -1
-										});
-										++numadded;
-									}
-								}
-								catch (Exception e)
+								if (rec.Date >= datefrom && entrydate <= dateto)
 								{
-									cumulus.LogMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}");
-									cumulus.LogMessage("Please edit the file to correct the error");
-									errorCount++;
-									if (errorCount >= 10)
+									rowsToAdd.Add(new RecentData()
 									{
-										cumulus.LogMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of graph data");
-									}
+										Timestamp = rec.Date,
+										DewPoint = rec.OutdoorDewpoint,
+										HeatIndex = rec.HeatIndex,
+										Humidity = rec.OutdoorHumidity,
+										OutsideTemp = rec.OutdoorTemperature,
+										Pressure = rec.Pressure,
+										RainToday = rec.RainToday,
+										SolarRad = (int)rec.SolarRad,
+										UV = rec.UV,
+										WindAvgDir = rec.AvgBearing,
+										WindGust = rec.RecentMaxGust,
+										WindLatest = rec.WindLatest,
+										WindChill = rec.WindChill,
+										WindDir = rec.Bearing,
+										WindSpeed = rec.WindAverage,
+										raincounter = rec.Raincounter,
+										FeelsLike = rec.FeelsLike,
+										Humidex = rec.Humidex,
+										AppTemp = rec.ApparentTemperature,
+										IndoorTemp = rec.IndoorTemperature,
+										IndoorHumidity = rec.IndoorHumidity,
+										SolarMax = (int)rec.CurrentSolarMax,
+										RainRate = rec.RainRate,
+										Pm2p5 = -1,
+										Pm10 = -1
+									});
+									++numadded;
 								}
-							} while (!(sr.EndOfStream || entrydate >= dateto || errorCount >= 10));
+							}
+							catch (Exception e)
+							{
+								cumulus.LogMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of graph data");
+								}
+							}
 						}
 					}
 					catch (Exception e)
@@ -6531,7 +6503,7 @@ namespace CumulusMX
 
 		private void LoadRecentAqFromDataLogs(DateTime ts)
 		{
-			var datefrom = ts.AddDays(-Cumulus.RecentDataDays);
+			var datefrom = ts.AddDays(-cumulus.RecentDataDays);
 			var dateto = ts;
 			var entrydate = datefrom;
 			var filedate = datefrom;
@@ -6556,7 +6528,7 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
 
-			cumulus.LogMessage($"LoadRecentAqFromDataLogs: Attempting to load {Cumulus.RecentDataDays} days of entries to Air Quality recent data");
+			cumulus.LogMessage($"LoadRecentAqFromDataLogs: Attempting to load {cumulus.RecentDataDays} days of entries to Air Quality recent data");
 
 			if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
 				|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
@@ -6584,65 +6556,64 @@ namespace CumulusMX
 					try
 					{
 						RecentDataDb.BeginTransaction();
-						using (var sr = new StreamReader(logFile))
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
 						{
-							do
+							try
 							{
-								try
-								{
-									// process each record in the file
-									linenum++;
-									string Line = sr.ReadLine();
-									var st = new List<string>(Regex.Split(Line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-									entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
 
-									if (entrydate >= datefrom && entrydate <= dateto)
-									{
-										// entry is from required period
-										double pm2p5, pm10;
-										if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
-										{
-											// AirLink Indoor
-											pm2p5 = Convert.ToDouble(st[5]);
-											pm10 = Convert.ToDouble(st[10]);
-										}
-										else if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor)
-										{
-											// AirLink Outdoor
-											pm2p5 = Convert.ToDouble(st[32]);
-											pm10 = Convert.ToDouble(st[37]);
-										}
-										else if (cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
-										{
-											// Ecowitt sensor 1-4 - fields 68 -> 71
-											pm2p5 = Convert.ToDouble(st[67 + cumulus.StationOptions.PrimaryAqSensor]);
-											pm10 = -1;
-										}
-										else
-										{
-											// Ecowitt CO2 sensor
-											pm2p5 = Convert.ToDouble(st[86]);
-											pm10 = Convert.ToDouble(st[88]);
-										}
-
-										//UpdateGraphDataAqEntry(entrydate, pm2p5, pm10);
-										UpdateRecentDataAqEntry(entrydate, pm2p5, pm10);
-										updatedCount++;
-									}
-								}
-								catch (Exception e)
+								if (entrydate >= datefrom && entrydate <= dateto)
 								{
-									cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error at line {linenum} of {logFile} : {e.Message}");
-									cumulus.LogMessage("Please edit the file to correct the error");
-									errorCount++;
-									if (errorCount >= 20)
+									// entry is from required period
+									double pm2p5, pm10;
+									if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 									{
-										cumulus.LogMessage($"LoadRecentAqFromDataLogs: Too many errors reading {logFile} - aborting load of graph data");
+										// AirLink Indoor
+										pm2p5 = Convert.ToDouble(st[5]);
+										pm10 = Convert.ToDouble(st[10]);
 									}
+									else if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor)
+									{
+										// AirLink Outdoor
+										pm2p5 = Convert.ToDouble(st[32]);
+										pm10 = Convert.ToDouble(st[37]);
+									}
+									else if (cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
+									{
+										// Ecowitt sensor 1-4 - fields 68 -> 71
+										pm2p5 = Convert.ToDouble(st[67 + cumulus.StationOptions.PrimaryAqSensor]);
+										pm10 = -1;
+									}
+									else
+									{
+										// Ecowitt CO2 sensor
+										pm2p5 = Convert.ToDouble(st[86]);
+										pm10 = Convert.ToDouble(st[88]);
+									}
+
+									//UpdateGraphDataAqEntry(entrydate, pm2p5, pm10);
+									UpdateRecentDataAqEntry(entrydate, pm2p5, pm10);
+									updatedCount++;
 								}
-							} while (!(sr.EndOfStream || entrydate >= dateto || errorCount >= 20));
-							RecentDataDb.Commit();
+							}
+							catch (Exception e)
+							{
+								cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 20)
+								{
+									cumulus.LogMessage($"LoadRecentAqFromDataLogs: Too many errors reading {logFile} - aborting load of graph data");
+								}
+							}
 						}
+
+						RecentDataDb.Commit();
 					}
 					catch (Exception e)
 					{
@@ -6964,7 +6935,7 @@ namespace CumulusMX
 			return rec;
 		}
 
-		public logfilerec ParseLogFileRec(string data)
+		public logfilerec ParseLogFileRec(string data, bool minMax)
 		{
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -6998,6 +6969,13 @@ namespace CumulusMX
 
 			try
 			{
+				var notPresent = 0.0;
+
+				// is the record going to be used for min/max record determination?
+				if (minMax)
+				{
+					notPresent = -99999;
+				}
 				var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
 
 				var rec = new logfilerec()
@@ -7016,20 +6994,20 @@ namespace CumulusMX
 					IndoorTemperature = Convert.ToDouble(st[12]),
 					IndoorHumidity = Convert.ToInt32(st[13]),
 					WindLatest = Convert.ToDouble(st[14]),
-					WindChill = Convert.ToDouble(st[15]),
-					HeatIndex = Convert.ToDouble(st[16]),
-					UV = st.Count > 17 ? Convert.ToDouble(st[17]) : 0,
-					SolarRad = st.Count > 18 ? Convert.ToDouble(st[18]) : 0,
-					ET = st.Count > 19 ? Convert.ToDouble(st[19]) : 0,
-					AnnualETTotal = st.Count > 20 ? Convert.ToDouble(st[20]) : 0,
-					ApparentTemperature = st.Count > 21 ? Convert.ToDouble(st[21]) : 0,
-					CurrentSolarMax = st.Count > 22 ? Convert.ToDouble(st[22]) : 0,
-					SunshineHours = st.Count > 23 ? Convert.ToDouble(st[23]) : 0,
+					WindChill = st.Count > 15 ? Convert.ToDouble(st[15]) : notPresent,
+					HeatIndex = st.Count > 16 ? Convert.ToDouble(st[16]) : notPresent,
+					UV = st.Count > 17 ? Convert.ToDouble(st[17]) : notPresent,
+					SolarRad = st.Count > 18 ? Convert.ToDouble(st[18]) : notPresent,
+					ET = st.Count > 19 ? Convert.ToDouble(st[19]) : notPresent,
+					AnnualETTotal = st.Count > 20 ? Convert.ToDouble(st[20]) : notPresent,
+					ApparentTemperature = st.Count > 21 ? Convert.ToDouble(st[21]) : notPresent,
+					CurrentSolarMax = st.Count > 22 ? Convert.ToDouble(st[22]) : notPresent,
+					SunshineHours = st.Count > 23 ? Convert.ToDouble(st[23]) : notPresent,
 					Bearing = st.Count > 24 ? Convert.ToInt32(st[24]) : 0,
-					RG11RainToday = st.Count > 25 ? Convert.ToDouble(st[25]) : 0,
-					RainSinceMidnight = st.Count > 26 ? Convert.ToDouble(st[26]) : 0,
-					FeelsLike = st.Count > 27 ? Convert.ToDouble(st[27]) : 0,
-					Humidex = st.Count > 28 ? Convert.ToDouble(st[28]) : 0
+					RG11RainToday = st.Count > 25 ? Convert.ToDouble(st[25]) : notPresent,
+					RainSinceMidnight = st.Count > 26 ? Convert.ToDouble(st[26]) : notPresent,
+					FeelsLike = st.Count > 27 ? Convert.ToDouble(st[27]) : notPresent,
+					Humidex = st.Count > 28 ? Convert.ToDouble(st[28]) : notPresent
 				};
 
 				return rec;

@@ -2615,9 +2615,9 @@ namespace CumulusMX
 
 							lastDataReadTime = timestamp;
 
-							//UpdateDatabase(now, interval, false);
 							cumulus.DoLogFile(timestamp, false);
 							cumulus.LogMessage("GetArchiveData: Log file entry written");
+							cumulus.MySqlRealtimeFile(999, false, timestamp);
 
 							if (cumulus.StationOptions.LogExtraSensors)
 							{

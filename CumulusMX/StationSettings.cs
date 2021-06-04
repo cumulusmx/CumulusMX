@@ -519,6 +519,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.GraphHours = settings.Graphs.graphhours;
+					cumulus.RecentDataDays = (int)Math.Ceiling(Math.Max(7, cumulus.GraphHours / 24.0));
 					cumulus.GraphDays = settings.Graphs.graphdays;
 					cumulus.GraphOptions.TempVisible = settings.Graphs.datavisibility.temperature.graphTempVis;
 					cumulus.GraphOptions.InTempVisible = settings.Graphs.datavisibility.temperature.graphInTempVis;

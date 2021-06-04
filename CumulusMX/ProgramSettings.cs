@@ -26,12 +26,16 @@ namespace CumulusMX
 				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime
 			};
 
-			var options = new JsonProgramSettingsGeneralOptions()
+			var logging = new JsonProgramSettingsLoggingOptions()
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				ftplogging = cumulus.FtpOptions.Logging,
-				emaillogging = cumulus.SmtpOptions.Logging,
+				emaillogging = cumulus.SmtpOptions.Logging
+			};
+
+			var options = new JsonProgramSettingsGeneralOptions()
+			{
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
 				listwebtags = cumulus.ProgramOptions.ListWebTags
 			};
@@ -40,6 +44,7 @@ namespace CumulusMX
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
+				logging = logging,
 				options = options
 			};
 
@@ -84,15 +89,15 @@ namespace CumulusMX
 				cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
 				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
 				cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
-				cumulus.ProgramOptions.DebugLogging = settings.options.debuglogging;
-				cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
-				cumulus.SmtpOptions.Logging = settings.options.emaillogging;
+				cumulus.ProgramOptions.DebugLogging = settings.logging.debuglogging;
+				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
+				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 
-				if (settings.options.ftplogging != cumulus.FtpOptions.Logging)
+				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
-					cumulus.FtpOptions.Logging = settings.options.ftplogging;
+					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
 					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
 
@@ -116,6 +121,7 @@ namespace CumulusMX
 	{
 		public bool accessible { get; set; }
 		public JsonProgramSettingsStartupOptions startup { get; set; }
+		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
 	}
 
@@ -127,12 +133,15 @@ namespace CumulusMX
 		public int startupdelaymaxuptime { get; set; }
 	}
 
-	public class JsonProgramSettingsGeneralOptions
+	public class JsonProgramSettingsLoggingOptions
 	{
 		public bool debuglogging { get; set; }
 		public bool datalogging { get; set; }
 		public bool ftplogging { get; set; }
 		public bool emaillogging { get; set; }
+	}
+	public class JsonProgramSettingsGeneralOptions
+	{
 		public bool stopsecondinstance { get; set; }
 		public bool listwebtags { get; set; }
 	}

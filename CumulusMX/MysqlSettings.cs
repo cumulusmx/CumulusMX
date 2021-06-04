@@ -29,53 +29,54 @@ namespace CumulusMX
 
 			var monthly = new JsonMysqlSettingsMonthly()
 			{
-				enabled = cumulus.MonthlyMySqlEnabled,
-				table = cumulus.MySqlMonthlyTable
+				enabled = cumulus.MySqlSettings.Monthly.Enabled,
+				table = cumulus.MySqlSettings.Monthly.TableName
 			};
 
-			var reten = cumulus.MySqlRealtimeRetention.Split(' ');
+			var reten = cumulus.MySqlSettings.RealtimeRetention.Split(' ');
 			var retenVal = string.IsNullOrEmpty(reten[0]) ? 7 : int.Parse(reten[0]);
 			var retenUnit = reten.Length > 1 && !string.IsNullOrEmpty(reten[1]) ? reten[1].ToUpper().TrimEnd('S') : "DAY";
 
 			var realtime = new JsonMysqlSettingsRealtime()
 			{
-				enabled = cumulus.RealtimeMySqlEnabled,
+				enabled = cumulus.MySqlSettings.Realtime.Enabled,
 				retentionVal = retenVal,
 				retentionUnit = retenUnit,
-				table = cumulus.MySqlRealtimeTable,
-				limit1min = cumulus.RealtimeMySql1MinLimit
+				table = cumulus.MySqlSettings.Realtime.TableName,
+				limit1min = cumulus.MySqlSettings.RealtimeLimit1Minute
 			};
 
 			var dayfile = new JsonMysqlSettingsDayfile()
 			{
-				enabled = cumulus.DayfileMySqlEnabled,
-				table = cumulus.MySqlDayfileTable
+				enabled = cumulus.MySqlSettings.Dayfile.Enabled,
+				table = cumulus.MySqlSettings.Dayfile.TableName
 			};
 
 			var customseconds = new JsonMysqlSettingsCustomSeconds()
 			{
-				enabled = cumulus.CustomMySqlSecondsEnabled,
-				command = cumulus.CustomMySqlSecondsCommandString,
-				interval = cumulus.CustomMySqlSecondsInterval
+				enabled = cumulus.MySqlSettings.CustomSecs.Enabled,
+				command = cumulus.MySqlSettings.CustomSecs.Command,
+				interval = cumulus.MySqlSettings.CustomSecs.Interval
 			};
 
 			var customminutes = new JsonMysqlSettingsCustomMinutes()
 			{
-				enabled = cumulus.CustomMySqlMinutesEnabled,
-				command = cumulus.CustomMySqlMinutesCommandString,
+				enabled = cumulus.MySqlSettings.CustomMins.Enabled,
+				command = cumulus.MySqlSettings.CustomMins.Command,
 				intervalindex = cumulus.CustomMySqlMinutesIntervalIndex
 			};
 
 			var customrollover = new JsonMysqlSettingsCustomRollover()
 			{
-				enabled = cumulus.CustomMySqlRolloverEnabled,
-				command = cumulus.CustomMySqlRolloverCommandString,
+				enabled = cumulus.MySqlSettings.CustomRollover.Enabled,
+				command = cumulus.MySqlSettings.CustomRollover.Command,
 			};
 
 			var data = new JsonMysqlSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
-				updateonedit = cumulus.MySqlUpdateOnEdit,
+				updateonedit = cumulus.MySqlSettings.UpdateOnEdit,
+				bufferonerror = cumulus.MySqlSettings.BufferOnfailure,
 				server = server,
 				monthly = monthly,
 				realtime = realtime,
@@ -132,55 +133,57 @@ namespace CumulusMX
 				cumulus.MySqlConnSettings.UserID = settings.server.user;
 				cumulus.MySqlConnSettings.Password = settings.server.pass;
 				//update on edit
-				cumulus.MySqlUpdateOnEdit = settings.updateonedit;
+				cumulus.MySqlSettings.UpdateOnEdit = settings.updateonedit;
+				//buffer on error
+				cumulus.MySqlSettings.BufferOnfailure = settings.bufferonerror;
 
 				//monthly
-				cumulus.MonthlyMySqlEnabled = settings.monthly.enabled;
-				if (cumulus.MonthlyMySqlEnabled)
+				cumulus.MySqlSettings.Monthly.Enabled = settings.monthly.enabled;
+				if (cumulus.MySqlSettings.Monthly.Enabled)
 				{
-					cumulus.MySqlMonthlyTable = String.IsNullOrWhiteSpace(settings.monthly.table) ? "Monthly" : settings.monthly.table;
+					cumulus.MySqlSettings.Monthly.TableName = String.IsNullOrWhiteSpace(settings.monthly.table) ? "Monthly" : settings.monthly.table;
 				}
 				//realtime
-				cumulus.RealtimeMySqlEnabled = settings.realtime.enabled;
-				if (cumulus.RealtimeMySqlEnabled)
+				cumulus.MySqlSettings.Realtime.Enabled = settings.realtime.enabled;
+				if (cumulus.MySqlSettings.Realtime.Enabled)
 				{
-					cumulus.MySqlRealtimeRetention = settings.realtime.retentionVal + " " + settings.realtime.retentionUnit;
-					cumulus.MySqlRealtimeTable = String.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table;
-					cumulus.RealtimeMySql1MinLimit = settings.realtime.limit1min;
+					cumulus.MySqlSettings.RealtimeRetention = settings.realtime.retentionVal + " " + settings.realtime.retentionUnit;
+					cumulus.MySqlSettings.Realtime.TableName = String.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table;
+					cumulus.MySqlSettings.RealtimeLimit1Minute = settings.realtime.limit1min;
 				}
 				//dayfile
-				cumulus.DayfileMySqlEnabled = settings.dayfile.enabled;
-				if (cumulus.DayfileMySqlEnabled)
+				cumulus.MySqlSettings.Dayfile.Enabled = settings.dayfile.enabled;
+				if (cumulus.MySqlSettings.Dayfile.Enabled)
 				{
-					cumulus.MySqlDayfileTable = String.IsNullOrWhiteSpace(settings.dayfile.table) ? "Dayfile" : settings.dayfile.table;
+					cumulus.MySqlSettings.Dayfile.TableName = String.IsNullOrWhiteSpace(settings.dayfile.table) ? "Dayfile" : settings.dayfile.table;
 				}
 				// custom seconds
-				cumulus.CustomMySqlSecondsEnabled = settings.customseconds.enabled;
-				if (cumulus.CustomMySqlSecondsEnabled)
+				cumulus.MySqlSettings.CustomSecs.Enabled = settings.customseconds.enabled;
+				if (cumulus.MySqlSettings.CustomSecs.Enabled)
 				{
-					cumulus.CustomMySqlSecondsCommandString = settings.customseconds.command;
-					cumulus.CustomMySqlSecondsInterval = settings.customseconds.interval;
+					cumulus.MySqlSettings.CustomSecs.Command = settings.customseconds.command;
+					cumulus.MySqlSettings.CustomSecs.Interval = settings.customseconds.interval;
 				}
 				// custom minutes
-				cumulus.CustomMySqlMinutesEnabled = settings.customminutes.enabled;
-				if (cumulus.CustomMySqlMinutesEnabled)
+				cumulus.MySqlSettings.CustomMins.Enabled = settings.customminutes.enabled;
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
 				{
-					cumulus.CustomMySqlMinutesCommandString = settings.customminutes.command;
+					cumulus.MySqlSettings.CustomMins.Command = settings.customminutes.command;
 					cumulus.CustomMySqlMinutesIntervalIndex = settings.customminutes.intervalindex;
 					if (cumulus.CustomMySqlMinutesIntervalIndex >= 0 && cumulus.CustomMySqlMinutesIntervalIndex < cumulus.FactorsOf60.Length)
 					{
-						cumulus.CustomMySqlMinutesInterval = cumulus.FactorsOf60[cumulus.CustomMySqlMinutesIntervalIndex];
+						cumulus.MySqlSettings.CustomMins.Interval = cumulus.FactorsOf60[cumulus.CustomMySqlMinutesIntervalIndex];
 					}
 					else
 					{
-						cumulus.CustomMySqlMinutesInterval = 10;
+						cumulus.MySqlSettings.CustomMins.Interval = 10;
 					}
 				}
 				// custom rollover
-				cumulus.CustomMySqlRolloverEnabled = settings.customrollover.enabled;
-				if (cumulus.CustomMySqlRolloverEnabled)
+				cumulus.MySqlSettings.CustomRollover.Enabled = settings.customrollover.enabled;
+				if (cumulus.MySqlSettings.CustomRollover.Enabled)
 				{
-					cumulus.CustomMySqlRolloverCommandString = settings.customrollover.command;
+					cumulus.MySqlSettings.CustomRollover.Command = settings.customrollover.command;
 				}
 
 				// Save the settings
@@ -195,8 +198,8 @@ namespace CumulusMX
 				cumulus.SetRealtimeSqlCreateString();
 				cumulus.SetStartOfRealtimeInsertSQL();
 
-				cumulus.CustomMysqlSecondsTimer.Interval = cumulus.CustomMySqlSecondsInterval*1000;
-				cumulus.CustomMysqlSecondsTimer.Enabled = cumulus.CustomMySqlSecondsEnabled;
+				cumulus.CustomMysqlSecondsTimer.Interval = cumulus.MySqlSettings.CustomSecs.Interval * 1000;
+				cumulus.CustomMysqlSecondsTimer.Enabled = cumulus.MySqlSettings.CustomSecs.Enabled;
 
 				context.Response.StatusCode = 200;
 			}
@@ -273,6 +276,7 @@ namespace CumulusMX
 	{
 		public bool accessible {get; set;}
 		public bool updateonedit { get; set; }
+		public bool bufferonerror { get; set; }
 		public JsonMysqlSettingsServer server { get; set; }
 		public JsonMysqlSettingsMonthly monthly { get; set; }
 		public JsonMysqlSettingsRealtime realtime { get; set; }
