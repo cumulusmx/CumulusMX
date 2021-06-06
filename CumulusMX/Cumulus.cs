@@ -4634,6 +4634,7 @@ namespace CumulusMX
 			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", "");
 			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "database");
 			MySqlSettings.UpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
+			MySqlSettings.BufferOnfailure = ini.GetValue("MySQL", "BufferOnFailure", false);
 
 			// MySQL - monthly log file
 			MySqlSettings.Monthly.Enabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
@@ -5403,6 +5404,8 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "RealtimeMySql1MinLimit", MySqlSettings.RealtimeLimit1Minute);
 			ini.SetValue("MySQL", "DayfileMySqlEnabled", MySqlSettings.Dayfile.Enabled);
 			ini.SetValue("MySQL", "UpdateOnEdit", MySqlSettings.UpdateOnEdit);
+			ini.SetValue("MySQL", "BufferOnFailure", MySqlSettings.BufferOnfailure);
+
 
 			ini.SetValue("MySQL", "MonthlyTable", MySqlSettings.Monthly.TableName);
 			ini.SetValue("MySQL", "DayfileTable", MySqlSettings.Dayfile.TableName);
