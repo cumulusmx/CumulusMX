@@ -3,6 +3,7 @@
 - Fix: The Realtime FTP - particularly SFTP - reconnection code has been rewritten to make it more robust
 - Fix SteelSeries gauges data mouseovers not working on the dashboard interface
 - Fix: Bug in Davis WLL Chill Hours calculation during archive data catch-up. Each interval increment was 60x larger than it should be
+- Fix: Ecowitt 0.1mm rain tippers would take 3 tips in an interval to register "last rained" when using Inches as the rain unit
 
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
