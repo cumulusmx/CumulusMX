@@ -556,33 +556,7 @@ namespace CumulusMX
 		public MqttSettings MQTT;
 
 		// NOAA report settings
-		public string NOAAname;
-		public string NOAAcity;
-		public string NOAAstate;
-		public double NOAAheatingthreshold;
-		public double NOAAcoolingthreshold;
-		public double NOAAmaxtempcomp1;
-		public double NOAAmaxtempcomp2;
-		public double NOAAmintempcomp1;
-		public double NOAAmintempcomp2;
-		public double NOAAraincomp1;
-		public double NOAAraincomp2;
-		public double NOAAraincomp3;
-		public bool NOAA12hourformat;
-		public bool NOAAAutoSave;
-		public bool NOAAAutoFTP;
-		public bool NOAANeedFTP;
-		public string NOAAMonthFileFormat;
-		public string NOAAYearFileFormat;
-		public string NOAAFTPDirectory;
-		public string NOAALatestMonthlyReport;
-		public string NOAALatestYearlyReport;
-		public bool NOAAUseUTF8;
-		public bool NOAAUseDotDecimal;
-
-		public double[] NOAATempNorms = new double[13];
-
-		public double[] NOAARainNorms = new double[13];
+		public NOAAconfig NOAAconf = new NOAAconfig();
 
 		// Growing Degree Days
 		public double GrowingBase1;
@@ -1720,12 +1694,12 @@ namespace CumulusMX
 		{
 			SetupUnitText();
 
-			NOAAheatingthreshold = Units.Temp == 0 ? 18.3 : 65;
-			NOAAcoolingthreshold = Units.Temp == 0 ? 18.3 : 65;
-			NOAAmaxtempcomp1 = Units.Temp == 0 ? 27 : 80;
-			NOAAmaxtempcomp2 = Units.Temp == 0 ? 0 : 32;
-			NOAAmintempcomp1 = Units.Temp == 0 ? 0 : 32;
-			NOAAmintempcomp2 = Units.Temp == 0 ? -18 : 0;
+			NOAAconf.HeatThreshold = Units.Temp == 0 ? 18.3 : 65;
+			NOAAconf.CoolThreshold = Units.Temp == 0 ? 18.3 : 65;
+			NOAAconf.MaxTempComp1 = Units.Temp == 0 ? 27 : 80;
+			NOAAconf.MaxTempComp2 = Units.Temp == 0 ? 0 : 32;
+			NOAAconf.MinTempComp1 = Units.Temp == 0 ? 0 : 32;
+			NOAAconf.MinTempComp2 = Units.Temp == 0 ? -18 : 0;
 
 			ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
 
@@ -1741,9 +1715,9 @@ namespace CumulusMX
 		{
 			SetupUnitText();
 
-			NOAAraincomp1 = Units.Rain == 0 ? 0.2 : 0.01;
-			NOAAraincomp2 = Units.Rain == 0 ? 2 : 0.1;
-			NOAAraincomp3 = Units.Rain == 0 ? 20 : 1;
+			NOAAconf.RainComp1 = Units.Rain == 0 ? 0.2 : 0.01;
+			NOAAconf.RainComp2 = Units.Rain == 0 ? 2 : 0.1;
+			NOAAconf.RainComp3 = Units.Rain == 0 ? 20 : 1;
 
 			HighRainRateAlarm.Units = Units.RainTrendText;
 			HighRainTodayAlarm.Units = Units.RainText;
@@ -2624,6 +2598,11 @@ namespace CumulusMX
 
 					MySqlRealtimeFile(cycle, true);
 
+					if (FtpOptions.LocalCopyEnabled)
+					{
+						RealtimeLocalCopy(cycle);
+					}
+
 					if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled && !RealtimeFtpReconnecting)
 					{
 						// Is a previous cycle still running?
@@ -2842,6 +2821,32 @@ namespace CumulusMX
 				LogMessage("RealtimeReconnect: Realtime FTP operations will be restarted");
 			});
 		}
+
+		private void RealtimeLocalCopy(byte cycle)
+		{
+			var dstPath = "";
+			var folderSep1 = Path.DirectorySeparatorChar.ToString();
+			var folderSep2 = Path.AltDirectorySeparatorChar.ToString();
+
+
+			if (FtpOptions.LocalCopyFolder.Length > 0)
+			{
+				dstPath = (FtpOptions.Directory.EndsWith(folderSep1) || FtpOptions.Directory.EndsWith(folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + folderSep1);
+			}
+
+			for (var i = 0; i < RealtimeFiles.Length; i++)
+			{
+				if (RealtimeFiles[i].Create && RealtimeFiles[i].Copy)
+				{
+					var dstFile = dstPath + RealtimeFiles[i].RemoteFileName;
+					var srcFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
+
+					LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
+					File.Copy(srcFile, dstFile, true);
+				}
+			}
+		}
+
 
 		private void RealtimeFTPUpload(byte cycle)
 		{
@@ -3161,15 +3166,16 @@ namespace CumulusMX
 
 		internal void DoMoonImage()
 		{
-			if (MoonImageEnabled)
+			if (MoonImage.Enabled)
 			{
 				LogDebugMessage("Generating new Moon image");
-				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, Latitude, MoonImageSize);
+				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, Latitude, MoonImage.Size);
 
 				if (ret == "OK")
 				{
 					// set a flag to show file is ready for FTP
-					MoonImageReady = true;
+					MoonImage.ReadyToFtp = true;
+					MoonImage.ReadyToCopy = true;
 				}
 				else
 				{
@@ -3237,13 +3243,7 @@ namespace CumulusMX
 
 		public TimeSpan MoonRiseTime { get; set; }
 
-		public bool MoonImageEnabled;
-
-		public int MoonImageSize;
-
-		public string MoonImageFtpDest;
-
-		private bool MoonImageReady;
+		public MoonImageOptionsClass MoonImage = new MoonImageOptionsClass();
 
 		private void GetSunriseSunset(DateTime time, out DateTime sunrise, out DateTime sunset, out bool alwaysUp, out bool alwaysDown)
 		{
@@ -4067,10 +4067,29 @@ namespace CumulusMX
 			RealtimeIntervalEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
 			FtpOptions.RealtimeEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
 
+			// Local Copy Options
+			FtpOptions.LocalCopyEnabled = ini.GetValue("FTP site", "EnableLocalCopy", false);
+			//FtpOptions.LocalCopyRealtimeEnabled = ini.GetValue("FTP site", "EnableRealtimeLocalCopy", false);
+			FtpOptions.LocalCopyFolder = ini.GetValue("Ftp site", "LocalCopyFolder", "");
+			var sep1 = Path.DirectorySeparatorChar.ToString();
+			var sep2 = Path.AltDirectorySeparatorChar.ToString();
+			if (FtpOptions.LocalCopyFolder.Length > 1 &&
+				!(FtpOptions.LocalCopyFolder.EndsWith(sep1) || FtpOptions.LocalCopyFolder.EndsWith(sep2))
+				)
+			{
+				FtpOptions.LocalCopyFolder += sep1;
+			}
+
+			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
+			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", true);
+
+
 			RealtimeFiles[0].Create = ini.GetValue("FTP site", "RealtimeTxtCreate", false);
 			RealtimeFiles[0].FTP = RealtimeFiles[0].Create && ini.GetValue("FTP site", "RealtimeTxtFTP", false);
+			RealtimeFiles[0].Copy = RealtimeFiles[0].Create && ini.GetValue("FTP site", "RealtimeTxtCopy", false);
 			RealtimeFiles[1].Create = ini.GetValue("FTP site", "RealtimeGaugesTxtCreate", false);
 			RealtimeFiles[1].FTP = RealtimeFiles[1].Create && ini.GetValue("FTP site", "RealtimeGaugesTxtFTP", false);
+			RealtimeFiles[1].Copy = RealtimeFiles[1].Create && ini.GetValue("FTP site", "RealtimeGaugesTxtCopy", false);
 
 			RealtimeInterval = ini.GetValue("FTP site", "RealtimeInterval", 30000);
 			if (RealtimeInterval < 1) { RealtimeInterval = 1; }
@@ -4100,8 +4119,10 @@ namespace CumulusMX
 			{
 				var keyNameCreate = "Create-" + StdWebFiles[i].LocalFileName.Split('.')[0];
 				var keyNameFTP = "Ftp-" + StdWebFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + StdWebFiles[i].LocalFileName.Split('.')[0];
 				StdWebFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeStandardFiles);
 				StdWebFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeStandardFiles);
+				StdWebFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeStandardFiles);
 			}
 
 			var IncludeGraphDataFiles = false;
@@ -4113,18 +4134,20 @@ namespace CumulusMX
 			{
 				var keyNameCreate = "Create-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
 				var keyNameFTP = "Ftp-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
 				GraphDataFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeGraphDataFiles);
 				GraphDataFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeGraphDataFiles);
+				GraphDataFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
 			for (var i = 0; i < GraphDataEodFiles.Length; i++)
 			{
 				var keyNameCreate = "Create-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
 				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
 				GraphDataEodFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeGraphDataFiles);
 				GraphDataEodFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeGraphDataFiles);
+				GraphDataEodFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
-
-			IncludeMoonImage = ini.GetValue("FTP site", "IncludeMoonImage", false);
 
 			FTPRename = ini.GetValue("FTP site", "FTPRename", false);
 			UTF8encode = ini.GetValue("FTP site", "UTF8encode", true);
@@ -4159,11 +4182,12 @@ namespace CumulusMX
 			GraphDays = ini.GetValue("Graphs", "ChartMaxDays", 31);
 			GraphHours = ini.GetValue("Graphs", "GraphHours", 72);
 			RecentDataDays = (int)Math.Ceiling(Math.Max(7, GraphHours / 24.0));
-			MoonImageEnabled = ini.GetValue("Graphs", "MoonImageEnabled", false);
-			MoonImageSize = ini.GetValue("Graphs", "MoonImageSize", 100);
-			if (MoonImageSize < 10)
-				MoonImageSize = 10;
-			MoonImageFtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
+			MoonImage.Enabled = ini.GetValue("Graphs", "MoonImageEnabled", false);
+			MoonImage.Size = ini.GetValue("Graphs", "MoonImageSize", 100);
+			if (MoonImage.Size < 10)
+				MoonImage.Size = 10;
+			MoonImage.FtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
+			MoonImage.CopyDest = ini.GetValue("Graphs", "MoonImageCopyDest", FtpOptions.LocalCopyFolder + "images" + sep1 + "moon.png");
 			GraphOptions.TempVisible = ini.GetValue("Graphs", "TempVisible", true);
 			GraphOptions.InTempVisible = ini.GetValue("Graphs", "InTempVisible", true);
 			GraphOptions.HIVisible = ini.GetValue("Graphs", "HIVisible", true);
@@ -4527,94 +4551,97 @@ namespace CumulusMX
 			//SolarFactorSummer = ini.GetValue("Solar", "SolarFactorSummer", -1);
 			//SolarFactorWinter = ini.GetValue("Solar", "SolarFactorWinter", -1);
 
-			NOAAname = ini.GetValue("NOAA", "Name", " ");
-			NOAAcity = ini.GetValue("NOAA", "City", " ");
-			NOAAstate = ini.GetValue("NOAA", "State", " ");
-			NOAA12hourformat = ini.GetValue("NOAA", "12hourformat", false);
-			NOAAheatingthreshold = ini.GetValue("NOAA", "HeatingThreshold", -1000.0);
-			if (NOAAheatingthreshold < -99 || NOAAheatingthreshold > 150)
+			NOAAconf.Name = ini.GetValue("NOAA", "Name", " ");
+			NOAAconf.City = ini.GetValue("NOAA", "City", " ");
+			NOAAconf.State = ini.GetValue("NOAA", "State", " ");
+			NOAAconf.Use12hour = ini.GetValue("NOAA", "12hourformat", false);
+			NOAAconf.HeatThreshold = ini.GetValue("NOAA", "HeatingThreshold", -1000.0);
+			if (NOAAconf.HeatThreshold < -99 || NOAAconf.HeatThreshold > 150)
 			{
-				NOAAheatingthreshold = Units.Temp == 0 ? 18.3 : 65;
+				NOAAconf.HeatThreshold = Units.Temp == 0 ? 18.3 : 65;
 			}
-			NOAAcoolingthreshold = ini.GetValue("NOAA", "CoolingThreshold", -1000.0);
-			if (NOAAcoolingthreshold < -99 || NOAAcoolingthreshold > 150)
+			NOAAconf.CoolThreshold = ini.GetValue("NOAA", "CoolingThreshold", -1000.0);
+			if (NOAAconf.CoolThreshold < -99 || NOAAconf.CoolThreshold > 150)
 			{
-				NOAAcoolingthreshold = Units.Temp == 0 ? 18.3 : 65;
+				NOAAconf.CoolThreshold = Units.Temp == 0 ? 18.3 : 65;
 			}
-			NOAAmaxtempcomp1 = ini.GetValue("NOAA", "MaxTempComp1", -1000.0);
-			if (NOAAmaxtempcomp1 < -99 || NOAAmaxtempcomp1 > 150)
+			NOAAconf.MaxTempComp1 = ini.GetValue("NOAA", "MaxTempComp1", -1000.0);
+			if (NOAAconf.MaxTempComp1 < -99 || NOAAconf.MaxTempComp1 > 150)
 			{
-				NOAAmaxtempcomp1 = Units.Temp == 0 ? 27 : 80;
+				NOAAconf.MaxTempComp1 = Units.Temp == 0 ? 27 : 80;
 			}
-			NOAAmaxtempcomp2 = ini.GetValue("NOAA", "MaxTempComp2", -1000.0);
-			if (NOAAmaxtempcomp2 < -99 || NOAAmaxtempcomp2 > 99)
+			NOAAconf.MaxTempComp2 = ini.GetValue("NOAA", "MaxTempComp2", -1000.0);
+			if (NOAAconf.MaxTempComp2 < -99 || NOAAconf.MaxTempComp2 > 99)
 			{
-				NOAAmaxtempcomp2 = Units.Temp == 0 ? 0 : 32;
+				NOAAconf.MaxTempComp2 = Units.Temp == 0 ? 0 : 32;
 			}
-			NOAAmintempcomp1 = ini.GetValue("NOAA", "MinTempComp1", -1000.0);
-			if (NOAAmintempcomp1 < -99 || NOAAmintempcomp1 > 99)
+			NOAAconf.MinTempComp1 = ini.GetValue("NOAA", "MinTempComp1", -1000.0);
+			if (NOAAconf.MinTempComp1 < -99 || NOAAconf.MinTempComp1 > 99)
 			{
-				NOAAmintempcomp1 = Units.Temp == 0 ? 0 : 32;
+				NOAAconf.MinTempComp1 = Units.Temp == 0 ? 0 : 32;
 			}
-			NOAAmintempcomp2 = ini.GetValue("NOAA", "MinTempComp2", -1000.0);
-			if (NOAAmintempcomp2 < -99 || NOAAmintempcomp2 > 99)
+			NOAAconf.MinTempComp2 = ini.GetValue("NOAA", "MinTempComp2", -1000.0);
+			if (NOAAconf.MinTempComp2 < -99 || NOAAconf.MinTempComp2 > 99)
 			{
-				NOAAmintempcomp2 = Units.Temp == 0 ? -18 : 0;
+				NOAAconf.MinTempComp2 = Units.Temp == 0 ? -18 : 0;
 			}
-			NOAAraincomp1 = ini.GetValue("NOAA", "RainComp1", -1000.0);
-			if (NOAAraincomp1 < 0 || NOAAraincomp1 > 99)
+			NOAAconf.RainComp1 = ini.GetValue("NOAA", "RainComp1", -1000.0);
+			if (NOAAconf.RainComp1 < 0 || NOAAconf.RainComp1 > 99)
 			{
-				NOAAraincomp1 = Units.Rain == 0 ? 0.2 : 0.01;
+				NOAAconf.RainComp1 = Units.Rain == 0 ? 0.2 : 0.01;
 			}
-			NOAAraincomp2 = ini.GetValue("NOAA", "RainComp2", -1000.0);
-			if (NOAAraincomp2 < 0 || NOAAraincomp2 > 99)
+			NOAAconf.RainComp2 = ini.GetValue("NOAA", "RainComp2", -1000.0);
+			if (NOAAconf.RainComp2 < 0 || NOAAconf.RainComp2 > 99)
 			{
-				NOAAraincomp2 = Units.Rain == 0 ? 2 : 0.1;
+				NOAAconf.RainComp2 = Units.Rain == 0 ? 2 : 0.1;
 			}
-			NOAAraincomp3 = ini.GetValue("NOAA", "RainComp3", -1000.0);
-			if (NOAAraincomp3 < 0 || NOAAraincomp3 > 99)
+			NOAAconf.RainComp3 = ini.GetValue("NOAA", "RainComp3", -1000.0);
+			if (NOAAconf.RainComp3 < 0 || NOAAconf.RainComp3 > 99)
 			{
-				NOAAraincomp3 = Units.Rain == 0 ? 20 : 1;
+				NOAAconf.RainComp3 = Units.Rain == 0 ? 20 : 1;
 			}
 
-			NOAAAutoSave = ini.GetValue("NOAA", "AutoSave", false);
-			NOAAAutoFTP = ini.GetValue("NOAA", "AutoFTP", false);
-			NOAAMonthFileFormat = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
+			NOAAconf.Create = ini.GetValue("NOAA", "AutoSave", false);
+			NOAAconf.AutoFtp = ini.GetValue("NOAA", "AutoFTP", false);
+			NOAAconf.FtpFolder = ini.GetValue("NOAA", "FTPDirectory", "");
+			NOAAconf.AutoCopy = ini.GetValue("NOAA", "AutoCopy", false);
+			NOAAconf.CopyFolder = ini.GetValue("NOAA", "CopyDirectory", "");
+			NOAAconf.MonthFile = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
 			// Check for Cumulus 1 default format - and update
-			if (NOAAMonthFileFormat == "'NOAAMO'mmyy'.txt'" || NOAAMonthFileFormat == "\"NOAAMO\"mmyy\".txt\"")
+			if (NOAAconf.MonthFile == "'NOAAMO'mmyy'.txt'" || NOAAconf.MonthFile == "\"NOAAMO\"mmyy\".txt\"")
 			{
-				NOAAMonthFileFormat = "'NOAAMO'MMyy'.txt'";
+				NOAAconf.MonthFile = "'NOAAMO'MMyy'.txt'";
 			}
-			NOAAYearFileFormat = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
-			NOAAFTPDirectory = ini.GetValue("NOAA", "FTPDirectory", "");
-			NOAAUseUTF8 = ini.GetValue("NOAA", "NOAAUseUTF8", true);
-			NOAAUseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
+			NOAAconf.YearFile = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
+			NOAAconf.UseUtf8 = ini.GetValue("NOAA", "NOAAUseUTF8", true);
+			NOAAconf.UseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
+			NOAAconf.UseMinMaxAvg = ini.GetValue("NOAA", "UseMinMaxAvg", false);
 
-			NOAATempNorms[1] = ini.GetValue("NOAA", "NOAATempNormJan", -1000.0);
-			NOAATempNorms[2] = ini.GetValue("NOAA", "NOAATempNormFeb", -1000.0);
-			NOAATempNorms[3] = ini.GetValue("NOAA", "NOAATempNormMar", -1000.0);
-			NOAATempNorms[4] = ini.GetValue("NOAA", "NOAATempNormApr", -1000.0);
-			NOAATempNorms[5] = ini.GetValue("NOAA", "NOAATempNormMay", -1000.0);
-			NOAATempNorms[6] = ini.GetValue("NOAA", "NOAATempNormJun", -1000.0);
-			NOAATempNorms[7] = ini.GetValue("NOAA", "NOAATempNormJul", -1000.0);
-			NOAATempNorms[8] = ini.GetValue("NOAA", "NOAATempNormAug", -1000.0);
-			NOAATempNorms[9] = ini.GetValue("NOAA", "NOAATempNormSep", -1000.0);
-			NOAATempNorms[10] = ini.GetValue("NOAA", "NOAATempNormOct", -1000.0);
-			NOAATempNorms[11] = ini.GetValue("NOAA", "NOAATempNormNov", -1000.0);
-			NOAATempNorms[12] = ini.GetValue("NOAA", "NOAATempNormDec", -1000.0);
+			NOAAconf.TempNorms[1] = ini.GetValue("NOAA", "NOAATempNormJan", -1000.0);
+			NOAAconf.TempNorms[2] = ini.GetValue("NOAA", "NOAATempNormFeb", -1000.0);
+			NOAAconf.TempNorms[3] = ini.GetValue("NOAA", "NOAATempNormMar", -1000.0);
+			NOAAconf.TempNorms[4] = ini.GetValue("NOAA", "NOAATempNormApr", -1000.0);
+			NOAAconf.TempNorms[5] = ini.GetValue("NOAA", "NOAATempNormMay", -1000.0);
+			NOAAconf.TempNorms[6] = ini.GetValue("NOAA", "NOAATempNormJun", -1000.0);
+			NOAAconf.TempNorms[7] = ini.GetValue("NOAA", "NOAATempNormJul", -1000.0);
+			NOAAconf.TempNorms[8] = ini.GetValue("NOAA", "NOAATempNormAug", -1000.0);
+			NOAAconf.TempNorms[9] = ini.GetValue("NOAA", "NOAATempNormSep", -1000.0);
+			NOAAconf.TempNorms[10] = ini.GetValue("NOAA", "NOAATempNormOct", -1000.0);
+			NOAAconf.TempNorms[11] = ini.GetValue("NOAA", "NOAATempNormNov", -1000.0);
+			NOAAconf.TempNorms[12] = ini.GetValue("NOAA", "NOAATempNormDec", -1000.0);
 
-			NOAARainNorms[1] = ini.GetValue("NOAA", "NOAARainNormJan", -1000.0);
-			NOAARainNorms[2] = ini.GetValue("NOAA", "NOAARainNormFeb", -1000.0);
-			NOAARainNorms[3] = ini.GetValue("NOAA", "NOAARainNormMar", -1000.0);
-			NOAARainNorms[4] = ini.GetValue("NOAA", "NOAARainNormApr", -1000.0);
-			NOAARainNorms[5] = ini.GetValue("NOAA", "NOAARainNormMay", -1000.0);
-			NOAARainNorms[6] = ini.GetValue("NOAA", "NOAARainNormJun", -1000.0);
-			NOAARainNorms[7] = ini.GetValue("NOAA", "NOAARainNormJul", -1000.0);
-			NOAARainNorms[8] = ini.GetValue("NOAA", "NOAARainNormAug", -1000.0);
-			NOAARainNorms[9] = ini.GetValue("NOAA", "NOAARainNormSep", -1000.0);
-			NOAARainNorms[10] = ini.GetValue("NOAA", "NOAARainNormOct", -1000.0);
-			NOAARainNorms[11] = ini.GetValue("NOAA", "NOAARainNormNov", -1000.0);
-			NOAARainNorms[12] = ini.GetValue("NOAA", "NOAARainNormDec", -1000.0);
+			NOAAconf.RainNorms[1] = ini.GetValue("NOAA", "NOAARainNormJan", -1000.0);
+			NOAAconf.RainNorms[2] = ini.GetValue("NOAA", "NOAARainNormFeb", -1000.0);
+			NOAAconf.RainNorms[3] = ini.GetValue("NOAA", "NOAARainNormMar", -1000.0);
+			NOAAconf.RainNorms[4] = ini.GetValue("NOAA", "NOAARainNormApr", -1000.0);
+			NOAAconf.RainNorms[5] = ini.GetValue("NOAA", "NOAARainNormMay", -1000.0);
+			NOAAconf.RainNorms[6] = ini.GetValue("NOAA", "NOAARainNormJun", -1000.0);
+			NOAAconf.RainNorms[7] = ini.GetValue("NOAA", "NOAARainNormJul", -1000.0);
+			NOAAconf.RainNorms[8] = ini.GetValue("NOAA", "NOAARainNormAug", -1000.0);
+			NOAAconf.RainNorms[9] = ini.GetValue("NOAA", "NOAARainNormSep", -1000.0);
+			NOAAconf.RainNorms[10] = ini.GetValue("NOAA", "NOAARainNormOct", -1000.0);
+			NOAAconf.RainNorms[11] = ini.GetValue("NOAA", "NOAARainNormNov", -1000.0);
+			NOAAconf.RainNorms[12] = ini.GetValue("NOAA", "NOAARainNormDec", -1000.0);
 
 			HTTPProxyName = ini.GetValue("Proxies", "HTTPProxyName", "");
 			HTTPProxyPort = ini.GetValue("Proxies", "HTTPProxyPort", 0);
@@ -4952,8 +4979,11 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "RealtimeFTPEnabled", FtpOptions.RealtimeEnabled);
 			ini.SetValue("FTP site", "RealtimeTxtCreate", RealtimeFiles[0].Create);
 			ini.SetValue("FTP site", "RealtimeTxtFTP", RealtimeFiles[0].FTP);
+			ini.SetValue("FTP site", "RealtimeTxtCopy", RealtimeFiles[0].Copy);
+
 			ini.SetValue("FTP site", "RealtimeGaugesTxtCreate", RealtimeFiles[1].Create);
 			ini.SetValue("FTP site", "RealtimeGaugesTxtFTP", RealtimeFiles[1].FTP);
+			ini.SetValue("FTP site", "RealtimeGaugesTxtCopy", RealtimeFiles[1].Copy);
 
 			ini.SetValue("FTP site", "IntervalEnabled", WebIntervalEnabled);
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
@@ -4961,27 +4991,34 @@ namespace CumulusMX
 			{
 				var keyNameCreate = "Create-" + StdWebFiles[i].LocalFileName.Split('.')[0];
 				var keyNameFTP = "Ftp-" + StdWebFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + StdWebFiles[i].LocalFileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, StdWebFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, StdWebFiles[i].FTP);
+				ini.SetValue("FTP site", keyNameCopy, StdWebFiles[i].Copy);
 			}
 
 			for (var i = 0; i < GraphDataFiles.Length; i++)
 			{
 				var keyNameCreate = "Create-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
 				var keyNameFTP = "Ftp-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, GraphDataFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, GraphDataFiles[i].FTP);
+				ini.SetValue("FTP site", keyNameCopy, GraphDataFiles[i].Copy);
 			}
 
 			for (var i = 0; i < GraphDataEodFiles.Length; i++)
 			{
 				var keyNameCreate = "Create-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
 				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, GraphDataEodFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, GraphDataEodFiles[i].FTP);
+				ini.SetValue("FTP site", keyNameCopy, GraphDataEodFiles[i].Copy);
 			}
 
-			ini.SetValue("FTP site", "IncludeMoonImage", IncludeMoonImage);
+			ini.SetValue("FTP site", "IncludeMoonImage", MoonImage.Ftp);
+			ini.SetValue("FTP site", "CopyMoonImage", MoonImage.Copy);
 			ini.SetValue("FTP site", "FTPRename", FTPRename);
 			ini.SetValue("FTP site", "DeleteBeforeUpload", DeleteBeforeUpload);
 			ini.SetValue("FTP site", "ActiveFTP", FtpOptions.ActiveMode);
@@ -5007,6 +5044,12 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "ExternalParams", ExternalParams);
 			ini.SetValue("FTP site", "RealtimeParams", RealtimeParams);
 			ini.SetValue("FTP site", "DailyParams", DailyParams);
+
+			// Local Copy Options
+			ini.SetValue("FTP site", "EnableLocalCopy", FtpOptions.LocalCopyEnabled);
+			ini.SetValue("FTP site", "EnableRealtimeLocalCopy", FtpOptions.LocalCopyRealtimeEnabled);
+			ini.SetValue("Ftp site", "LocalCopyFolder", FtpOptions.LocalCopyFolder);
+
 
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);
 
@@ -5309,52 +5352,55 @@ namespace CumulusMX
 			ini.SetValue("Solar", "SolarCalc", SolarCalc);
 			ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
 
-			ini.SetValue("NOAA", "Name", NOAAname);
-			ini.SetValue("NOAA", "City", NOAAcity);
-			ini.SetValue("NOAA", "State", NOAAstate);
-			ini.SetValue("NOAA", "12hourformat", NOAA12hourformat);
-			ini.SetValue("NOAA", "HeatingThreshold", NOAAheatingthreshold);
-			ini.SetValue("NOAA", "CoolingThreshold", NOAAcoolingthreshold);
-			ini.SetValue("NOAA", "MaxTempComp1", NOAAmaxtempcomp1);
-			ini.SetValue("NOAA", "MaxTempComp2", NOAAmaxtempcomp2);
-			ini.SetValue("NOAA", "MinTempComp1", NOAAmintempcomp1);
-			ini.SetValue("NOAA", "MinTempComp2", NOAAmintempcomp2);
-			ini.SetValue("NOAA", "RainComp1", NOAAraincomp1);
-			ini.SetValue("NOAA", "RainComp2", NOAAraincomp2);
-			ini.SetValue("NOAA", "RainComp3", NOAAraincomp3);
-			ini.SetValue("NOAA", "AutoSave", NOAAAutoSave);
-			ini.SetValue("NOAA", "AutoFTP", NOAAAutoFTP);
-			ini.SetValue("NOAA", "MonthFileFormat", NOAAMonthFileFormat);
-			ini.SetValue("NOAA", "YearFileFormat", NOAAYearFileFormat);
-			ini.SetValue("NOAA", "FTPDirectory", NOAAFTPDirectory);
-			ini.SetValue("NOAA", "NOAAUseUTF8", NOAAUseUTF8);
-			ini.SetValue("NOAA", "UseDotDecimal", NOAAUseDotDecimal);
+			ini.SetValue("NOAA", "Name", NOAAconf.Name);
+			ini.SetValue("NOAA", "City", NOAAconf.City);
+			ini.SetValue("NOAA", "State", NOAAconf.State);
+			ini.SetValue("NOAA", "12hourformat", NOAAconf.Use12hour);
+			ini.SetValue("NOAA", "HeatingThreshold", NOAAconf.HeatThreshold);
+			ini.SetValue("NOAA", "CoolingThreshold", NOAAconf.CoolThreshold);
+			ini.SetValue("NOAA", "MaxTempComp1", NOAAconf.MaxTempComp1);
+			ini.SetValue("NOAA", "MaxTempComp2", NOAAconf.MaxTempComp2);
+			ini.SetValue("NOAA", "MinTempComp1", NOAAconf.MinTempComp1);
+			ini.SetValue("NOAA", "MinTempComp2", NOAAconf.MinTempComp2);
+			ini.SetValue("NOAA", "RainComp1", NOAAconf.RainComp1);
+			ini.SetValue("NOAA", "RainComp2", NOAAconf.RainComp2);
+			ini.SetValue("NOAA", "RainComp3", NOAAconf.RainComp3);
+			ini.SetValue("NOAA", "AutoSave", NOAAconf.Create);
+			ini.SetValue("NOAA", "AutoFTP", NOAAconf.AutoFtp);
+			ini.SetValue("NOAA", "FTPDirectory", NOAAconf.FtpFolder);
+			ini.SetValue("NOAA", "AutoCopy", NOAAconf.AutoCopy);
+			ini.SetValue("NOAA", "CopyDirectory", NOAAconf.CopyFolder);
+			ini.SetValue("NOAA", "MonthFileFormat", NOAAconf.MonthFile);
+			ini.SetValue("NOAA", "YearFileFormat", NOAAconf.YearFile);
+			ini.SetValue("NOAA", "NOAAUseUTF8", NOAAconf.UseUtf8);
+			ini.SetValue("NOAA", "UseDotDecimal", NOAAconf.UseDotDecimal);
+			ini.SetValue("NOAA", "UseMinMaxAvg", NOAAconf.UseMinMaxAvg);
 
-			ini.SetValue("NOAA", "NOAATempNormJan", NOAATempNorms[1]);
-			ini.SetValue("NOAA", "NOAATempNormFeb", NOAATempNorms[2]);
-			ini.SetValue("NOAA", "NOAATempNormMar", NOAATempNorms[3]);
-			ini.SetValue("NOAA", "NOAATempNormApr", NOAATempNorms[4]);
-			ini.SetValue("NOAA", "NOAATempNormMay", NOAATempNorms[5]);
-			ini.SetValue("NOAA", "NOAATempNormJun", NOAATempNorms[6]);
-			ini.SetValue("NOAA", "NOAATempNormJul", NOAATempNorms[7]);
-			ini.SetValue("NOAA", "NOAATempNormAug", NOAATempNorms[8]);
-			ini.SetValue("NOAA", "NOAATempNormSep", NOAATempNorms[9]);
-			ini.SetValue("NOAA", "NOAATempNormOct", NOAATempNorms[10]);
-			ini.SetValue("NOAA", "NOAATempNormNov", NOAATempNorms[11]);
-			ini.SetValue("NOAA", "NOAATempNormDec", NOAATempNorms[12]);
+			ini.SetValue("NOAA", "NOAATempNormJan", NOAAconf.TempNorms[1]);
+			ini.SetValue("NOAA", "NOAATempNormFeb", NOAAconf.TempNorms[2]);
+			ini.SetValue("NOAA", "NOAATempNormMar", NOAAconf.TempNorms[3]);
+			ini.SetValue("NOAA", "NOAATempNormApr", NOAAconf.TempNorms[4]);
+			ini.SetValue("NOAA", "NOAATempNormMay", NOAAconf.TempNorms[5]);
+			ini.SetValue("NOAA", "NOAATempNormJun", NOAAconf.TempNorms[6]);
+			ini.SetValue("NOAA", "NOAATempNormJul", NOAAconf.TempNorms[7]);
+			ini.SetValue("NOAA", "NOAATempNormAug", NOAAconf.TempNorms[8]);
+			ini.SetValue("NOAA", "NOAATempNormSep", NOAAconf.TempNorms[9]);
+			ini.SetValue("NOAA", "NOAATempNormOct", NOAAconf.TempNorms[10]);
+			ini.SetValue("NOAA", "NOAATempNormNov", NOAAconf.TempNorms[11]);
+			ini.SetValue("NOAA", "NOAATempNormDec", NOAAconf.TempNorms[12]);
 
-			ini.SetValue("NOAA", "NOAARainNormJan", NOAARainNorms[1]);
-			ini.SetValue("NOAA", "NOAARainNormFeb", NOAARainNorms[2]);
-			ini.SetValue("NOAA", "NOAARainNormMar", NOAARainNorms[3]);
-			ini.SetValue("NOAA", "NOAARainNormApr", NOAARainNorms[4]);
-			ini.SetValue("NOAA", "NOAARainNormMay", NOAARainNorms[5]);
-			ini.SetValue("NOAA", "NOAARainNormJun", NOAARainNorms[6]);
-			ini.SetValue("NOAA", "NOAARainNormJul", NOAARainNorms[7]);
-			ini.SetValue("NOAA", "NOAARainNormAug", NOAARainNorms[8]);
-			ini.SetValue("NOAA", "NOAARainNormSep", NOAARainNorms[9]);
-			ini.SetValue("NOAA", "NOAARainNormOct", NOAARainNorms[10]);
-			ini.SetValue("NOAA", "NOAARainNormNov", NOAARainNorms[11]);
-			ini.SetValue("NOAA", "NOAARainNormDec", NOAARainNorms[12]);
+			ini.SetValue("NOAA", "NOAARainNormJan", NOAAconf.RainNorms[1]);
+			ini.SetValue("NOAA", "NOAARainNormFeb", NOAAconf.RainNorms[2]);
+			ini.SetValue("NOAA", "NOAARainNormMar", NOAAconf.RainNorms[3]);
+			ini.SetValue("NOAA", "NOAARainNormApr", NOAAconf.RainNorms[4]);
+			ini.SetValue("NOAA", "NOAARainNormMay", NOAAconf.RainNorms[5]);
+			ini.SetValue("NOAA", "NOAARainNormJun", NOAAconf.RainNorms[6]);
+			ini.SetValue("NOAA", "NOAARainNormJul", NOAAconf.RainNorms[7]);
+			ini.SetValue("NOAA", "NOAARainNormAug", NOAAconf.RainNorms[8]);
+			ini.SetValue("NOAA", "NOAARainNormSep", NOAAconf.RainNorms[9]);
+			ini.SetValue("NOAA", "NOAARainNormOct", NOAAconf.RainNorms[10]);
+			ini.SetValue("NOAA", "NOAARainNormNov", NOAAconf.RainNorms[11]);
+			ini.SetValue("NOAA", "NOAARainNormDec", NOAAconf.RainNorms[12]);
 
 			ini.SetValue("Proxies", "HTTPProxyName", HTTPProxyName);
 			ini.SetValue("Proxies", "HTTPProxyPort", HTTPProxyPort);
@@ -5368,9 +5414,10 @@ namespace CumulusMX
 
 			ini.SetValue("Graphs", "ChartMaxDays", GraphDays);
 			ini.SetValue("Graphs", "GraphHours", GraphHours);
-			ini.SetValue("Graphs", "MoonImageEnabled", MoonImageEnabled);
-			ini.SetValue("Graphs", "MoonImageSize", MoonImageSize);
-			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImageFtpDest);
+			ini.SetValue("Graphs", "MoonImageEnabled", MoonImage.Enabled);
+			ini.SetValue("Graphs", "MoonImageSize", MoonImage.Size);
+			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImage.FtpDest);
+			ini.SetValue("Graphs", "MoonImageCopyDest", MoonImage.CopyDest);
 			ini.SetValue("Graphs", "TempVisible", GraphOptions.TempVisible);
 			ini.SetValue("Graphs", "InTempVisible", GraphOptions.InTempVisible);
 			ini.SetValue("Graphs", "HIVisible", GraphOptions.HIVisible);
@@ -6094,7 +6141,6 @@ namespace CumulusMX
 		public string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
 		private readonly string TwitterTxtFile;
-		public bool IncludeMoonImage;
 		private readonly FtpClient RealtimeFTP = new FtpClient();
 		private SftpClient RealtimeSSH;
 		private volatile bool RealtimeFtpInProgress;
@@ -7431,16 +7477,151 @@ namespace CumulusMX
 
 				//LogDebugMessage("Done creating extra files");
 
-				if (FtpOptions.Enabled)
-				{
-					DoFTPLogin();
-				}
+				DoLocalCopy();
+
+				DoFTPLogin();
 			}
 			finally
 			{
 				WebUpdating = 0;
 			}
 		}
+
+		public void DoLocalCopy()
+		{
+			var remotePath = "";
+			var folderSep1 = Path.DirectorySeparatorChar.ToString();
+			var folderSep2 = Path.AltDirectorySeparatorChar.ToString();
+
+			if (!FtpOptions.LocalCopyEnabled)
+				return;
+
+			if (FtpOptions.LocalCopyFolder.Length > 0)
+			{
+				remotePath = (FtpOptions.LocalCopyFolder.EndsWith(folderSep1) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + folderSep1);
+			}
+
+			var srcfile = "";
+			var dstfile = "";
+
+			if (NOAAconf.NeedCopy)
+			{
+				try
+				{
+					// upload NOAA reports
+					LogDebugMessage("LocalCopy: Copying NOAA reports");
+
+					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
+
+					srcfile = ReportPath + NOAAconf.LatestMonthReport;
+					dstfile = dstPath + folderSep1 + NOAAconf.LatestMonthReport;
+
+					File.Copy(srcfile, dstfile, true);
+
+					srcfile = ReportPath + NOAAconf.LatestYearReport;
+					dstfile = dstPath + folderSep1 + NOAAconf.LatestYearReport;
+
+					File.Copy(srcfile, dstfile, true);
+
+					NOAAconf.NeedCopy = false;
+
+					LogDebugMessage("LocalCopy: Done copying NOAA reports");
+				}
+				catch (Exception e)
+				{
+					LogMessage($"LocalCopy: Error copying file {srcfile} - {e.Message}");
+				}
+			}
+
+			// standard files
+			LogDebugMessage("LocalCopy: Uploading standard web files");
+			for (var i = 0; i < StdWebFiles.Length; i++)
+			{
+				if (StdWebFiles[i].Copy && StdWebFiles[i].CopyRequired)
+				{
+					try
+					{
+						srcfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+						dstfile = remotePath + StdWebFiles[i].RemoteFileName;
+						File.Copy(srcfile, dstfile, true);
+					}
+					catch (Exception e)
+					{
+						LogMessage($"LocalCopy: Error copying standard data file [{StdWebFiles[i].LocalFileName}]");
+						LogMessage($"LocalCopy: Error = {e}");
+					}
+				}
+			}
+			LogDebugMessage("LocalCopy: Done copying standard web files");
+
+			LogDebugMessage("LocalCopy: Copying graph data files");
+			for (int i = 0; i < GraphDataFiles.Length; i++)
+			{
+				if (GraphDataFiles[i].Copy && GraphDataFiles[i].CopyRequired)
+				{
+					srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+					dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
+
+					try
+					{
+						File.Copy(srcfile, dstfile, true);
+						// The config files only need uploading once per change
+						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
+							GraphDataFiles[i].LocalFileName == "graphconfig.json")
+						{
+							GraphDataFiles[i].CopyRequired = false;
+						}
+					}
+					catch (Exception e)
+					{
+						LogMessage($"LocalCopy: Error copying graph data file [{srcfile}]");
+						LogMessage($"LocalCopy: Error = {e}");
+					}
+				}
+			}
+			LogDebugMessage("LocalCopy: Done copying graph data files");
+
+			LogDebugMessage("LocalCopy: Copying daily graph data files");
+			for (int i = 0; i < GraphDataEodFiles.Length; i++)
+			{
+				if (GraphDataEodFiles[i].Copy && GraphDataEodFiles[i].CopyRequired)
+				{
+					srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+					dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+					try
+					{
+						File.Copy(srcfile, dstfile, true);
+						// Uploaded OK, reset the upload required flag
+						GraphDataEodFiles[i].CopyRequired = false;
+					}
+					catch (Exception e)
+					{
+						LogMessage($"LocalCopy: Error copying daily graph data file [{srcfile}]");
+						LogMessage($"LocalCopy: Error = {e}");
+					}
+				}
+			}
+			LogDebugMessage("LocalCopy: Done copying daily graph data files");
+
+			if (MoonImage.Ftp && MoonImage.ReadyToCopy)
+			{
+				try
+				{
+					LogDebugMessage("LocalCopy: Copying Moon image file");
+					File.Copy("web" + DirectorySeparator + "moon.png", MoonImage.CopyDest, true);
+					LogDebugMessage("LocalCopy: Done copying Moon image file");
+					// clear the image ready for FTP flag, only upload once an hour
+					MoonImage.ReadyToCopy = false;
+				}
+				catch (Exception e)
+				{
+					LogMessage($"LocalCopy: Error copying moon image - {e.Message}");
+				}
+			}
+
+			LogDebugMessage("LocalCopy: Copy process complete");
+		}
+
 
 		public void DoFTPLogin()
 		{
@@ -7496,20 +7677,20 @@ namespace CumulusMX
 
 					if (conn.IsConnected)
 					{
-						if (NOAANeedFTP)
+						if (NOAAconf.NeedFtp)
 						{
 							try
 							{
 								// upload NOAA reports
 								LogFtpDebugMessage("SFTP[Int]: Uploading NOAA reports");
 
-								var uploadfile = ReportPath + NOAALatestMonthlyReport;
-								var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
+								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
 								UploadFile(conn, uploadfile, remotefile, -1);
 
-								uploadfile = ReportPath + NOAALatestYearlyReport;
-								remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
+								uploadfile = ReportPath + NOAAconf.LatestYearReport;
+								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
 								UploadFile(conn, uploadfile, remotefile, -1);
 
@@ -7519,7 +7700,7 @@ namespace CumulusMX
 							{
 								LogFtpMessage($"SFTP[Int]: Error uploading file - {e.Message}");
 							}
-							NOAANeedFTP = false;
+							NOAAconf.NeedFtp = false;
 						}
 
 						LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
@@ -7644,15 +7825,15 @@ namespace CumulusMX
 						}
 						LogFtpMessage("SFTP[Int]: Done uploading daily graph data files");
 
-						if (IncludeMoonImage && MoonImageReady)
+						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 						{
 							try
 							{
 								LogFtpMessage("SFTP[Int]: Uploading Moon image file");
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImageFtpDest, -1);
+								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest, -1);
 								LogFtpMessage("SFTP[Int]: Done uploading Moon image file");
 								// clear the image ready for FTP flag, only upload once an hour
-								MoonImageReady = false;
+								MoonImage.ReadyToFtp = false;
 							}
 							catch (Exception e)
 							{
@@ -7713,20 +7894,20 @@ namespace CumulusMX
 
 					if (conn.IsConnected)
 					{
-						if (NOAANeedFTP)
+						if (NOAAconf.NeedFtp)
 						{
 							try
 							{
 								// upload NOAA reports
 								LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports");
 
-								var uploadfile = ReportPath + NOAALatestMonthlyReport;
-								var remotefile = NOAAFTPDirectory + '/' + NOAALatestMonthlyReport;
+								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
 								UploadFile(conn, uploadfile, remotefile);
 
-								uploadfile = ReportPath + NOAALatestYearlyReport;
-								remotefile = NOAAFTPDirectory + '/' + NOAALatestYearlyReport;
+								uploadfile = ReportPath + NOAAconf.LatestYearReport;
+								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
 								UploadFile(conn, uploadfile, remotefile);
 								LogFtpDebugMessage("FTP[Int]: Upload of NOAA reports complete");
@@ -7735,7 +7916,7 @@ namespace CumulusMX
 							{
 								LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}");
 							}
-							NOAANeedFTP = false;
+							NOAAconf.NeedFtp = false;
 						}
 
 						// Extra files
@@ -7847,14 +8028,14 @@ namespace CumulusMX
 						}
 						LogFtpMessage("FTP[Int]: Done uploading daily graph data files");
 
-						if (IncludeMoonImage && MoonImageReady)
+						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 						{
 							try
 							{
 								LogFtpDebugMessage("FTP[Int]: Uploading Moon image file");
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImageFtpDest);
+								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest);
 								// clear the image ready for FTP flag, only upload once an hour
-								MoonImageReady = false;
+								MoonImage.ReadyToFtp = false;
 							}
 							catch (Exception e)
 							{
@@ -9706,6 +9887,7 @@ namespace CumulusMX
 	}
 	*/
 
+
 	public static class StationTypes
 	{
 		public const int Undefined = -1;
@@ -9835,6 +10017,10 @@ namespace CumulusMX
 		public bool ActiveMode { get; set; }
 		public bool DisableEPSV { get; set; }
 		public bool DisableExplicit { get; set; }
+
+		public bool LocalCopyEnabled { get; set; }
+		public bool LocalCopyRealtimeEnabled { get; set; }
+		public string LocalCopyFolder { get; set; }
 	}
 
 	public class FileGenerationFtpOptions
@@ -9845,13 +10031,28 @@ namespace CumulusMX
 		public string RemoteFileName { get; set; }
 		public bool Create { get; set; }
 		public bool FTP { get; set; }
+		public bool Copy { get; set; }
 		public bool FtpRequired { get; set; }
+		public bool CopyRequired { get; set; }
 		public bool CreateRequired { get; set; }
 		public FileGenerationFtpOptions()
 		{
 			CreateRequired = true;
 			FtpRequired = true;
+			CopyRequired = true;
 		}
+	}
+
+	public class MoonImageOptionsClass
+	{
+		public bool Enabled { get; set; }
+		public int Size { get; set; }
+		public bool Ftp { get; set; }
+		public string FtpDest { get; set; }
+		public bool Copy { get; set; }
+		public string CopyDest { get; set; }
+		public bool ReadyToFtp { get; set; }
+		public bool ReadyToCopy { get; set; }
 	}
 
 	public class DavisOptions
@@ -10181,4 +10382,44 @@ namespace CumulusMX
 		public string Command { get; set; }
 		public int Interval { get; set; }
 	}
+
+	public class NOAAconfig
+	{
+		public string Name { get; set; }
+		public string City { get; set; }
+		public string State { get; set; }
+		public string MonthFile { get; set; }
+		public string YearFile { get; set; }
+		public bool Use12hour { get; set; }
+		public bool UseUtf8 { get; set; }
+		public bool UseMinMaxAvg { get; set; }
+		public bool UseDotDecimal { get; set; }
+		public bool Create { get; set; }
+		public bool AutoFtp { get; set; }
+		public bool AutoCopy { get; set; }
+		public bool NeedFtp { get; set; }
+		public bool NeedCopy { get; set; }
+		public string FtpFolder { get; set; }
+		public string CopyFolder { get; set; }
+		public double[] TempNorms { get; set; }
+		public double[] RainNorms { get; set; }
+		public double HeatThreshold { get; set; }
+		public double CoolThreshold { get; set; }
+		public double MaxTempComp1 { get; set; }
+		public double MaxTempComp2 { get; set; }
+		public double MinTempComp1 { get; set; }
+		public double MinTempComp2 { get; set; }
+		public double RainComp1 { get; set; }
+		public double RainComp2 { get; set; }
+		public double RainComp3 { get; set; }
+		public string LatestMonthReport { get; set; }
+		public string LatestYearReport { get; set; }
+
+		public NOAAconfig()
+		{
+			TempNorms = new double[13];
+			RainNorms = new double[13];
+		}
+	}
+
 }

@@ -4,6 +4,7 @@
 - Fix SteelSeries gauges data mouseovers not working on the dashboard interface
 - Fix: Bug in Davis WLL Chill Hours calculation during archive data catch-up. Each interval increment was 60x larger than it should be
 - Fix: Ecowitt 0.1mm rain tippers would take 3 tips in an interval to register "last rained" when using Inches as the rain unit
+- Fix: Instromet Increment Logger Pointer was not saving correctly from the Station Settings screen
 
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
@@ -28,12 +29,6 @@
 			{"topic": "MyName/Topic2", "data": "<humidity><val><#hum></val></humidity>", "retain": true}
 		]}
 		Where Topic1 is formatted as CSV and is not retained on the server, and Topic2 as XML and is retained
-	- The following Cumulus.ini file settings are no longer used:
-		[MQTT]
-		UpdateTopic=CumulusMX/DataUpdate
-		UpdateRetained=0
-		IntervalTopic=CumulusMX/interval
-		IntervalRetained=0
 	- The Dashboard Internet > MQTT settings have been updated to reflect these changes
 - Change: Moves the FTP Rename/Delete/UTF-8 Encode settings from Internet Settings|Web Settings|General, to Internet Settings|Web Site|General
 - Change: Moves the Forum URL and Webcam URL settings from Internet Settings|Web Site to Internet Settings|Miscellaneous
@@ -73,18 +68,65 @@
 - New: Adds the ability to update the corresponding entries in the Dayfile and Monthly MySQL tables when using the log file editors in the dashboard
 	- You can enable/disable this feature via a setting in MySQL settings
 	- It only applies to Edit, Delete does not delete the entry in MySQL
-		- Cumulus.ini
-		[MySQL]
-		UpdateOnEdit=1
 - New: Catch-up from a station logger with (standard) MySQL enabled, now also adds each archive entry to the Realtime table
 - New: Adds the ability to buffer failed MySQL commands until the MySQL server becomes available again, or Cumulus MX is restarted
 	- Enabled via an option in MySQL Settings
 	- Note: Whilst Realtime updates are buffered, the uploading of failed queries is only performed by the Log updates
-	- Cumulus.ini
-		[MySQL]
-		BufferOnFailure=0
 - New: FineOffset stations now log the progress of archive data loading to the console
+- New: NOAA Reports now have an option to calculate the mean temperatures using the traditional method (max + min) / 2
+	- Note: This does apply to heating/cooling degree days, they will still use the integrated method
 
+- Summary of Cumulus.ini changes:
+	>> NEW >>
+		[FTP site]
+		Enabled=1
+		EnableLocalCopy=0
+		LocalCopyFolder=
+		CopyMoonImage=0
+		RealtimeTxtCopy=0
+		RealtimeGaugesTxtCopy=0
+		Copy-websitedata=0
+		Copy-wxnow=0
+		Copy-graphconfig=0
+		Copy-availabledata=0
+		Copy-tempdata=0
+		Copy-pressdata=0
+		Copy-winddata=0
+		Copy-wdirdata=0
+		Copy-humdata=0
+		Copy-raindata=0
+		Copy-dailyrain=0
+		Copy-dailytemp=0
+		Copy-solardata=0
+		Copy-sunhours=0
+		Copy-airquality=0
+		Copy-alldailytempdata=0
+		Copy-alldailypressdata=0
+		Copy-alldailywinddata=0
+		Copy-alldailyhumdata=0
+		Copy-alldailyraindata=0
+		Copy-alldailysolardata=0
+		Copy-alldailydegdaydata=0
+		Copy-alltempsumdata=0
+
+		[MySQL]
+		UpdateOnEdit=1
+		BufferOnFailure=0
+
+		[Graphs]
+		MoonImageCopyDest=images/moon.png
+
+		[NOAA]
+		AutoCopy=0
+		CopyDirectory=
+		UseMinMaxAvg=0
+
+	>> NO LONGER USED >>
+		[MQTT]
+		UpdateTopic=CumulusMX/DataUpdate
+		UpdateRetained=0
+		IntervalTopic=CumulusMX/interval
+		IntervalRetained=0
 
 
 

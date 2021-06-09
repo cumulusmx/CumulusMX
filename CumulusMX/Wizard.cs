@@ -126,6 +126,8 @@ namespace CumulusMX
 
 			var internet = new JsonWiazrdInternet()
 			{
+				localcopy = cumulus.FtpOptions.LocalCopyEnabled,
+				localcopyfolder = cumulus.FtpOptions.LocalCopyFolder,
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
@@ -215,6 +217,48 @@ namespace CumulusMX
 						cumulus.FtpOptions.SshAuthen = settings.internet.sshAuth ?? string.Empty;
 						cumulus.FtpOptions.SshPskFile = settings.internet.pskFile ?? string.Empty;
 					}
+
+					cumulus.FtpOptions.LocalCopyEnabled = settings.internet.localcopy;
+					if (cumulus.FtpOptions.LocalCopyEnabled)
+					{
+						cumulus.FtpOptions.LocalCopyFolder = settings.internet.localcopyfolder;
+					}
+
+					// Now flag all the standard files to FTP/Copy or not
+					for (var i = 0; i < cumulus.StdWebFiles.Length; i++)
+					{
+						cumulus.StdWebFiles[i].FTP = cumulus.FtpOptions.Enabled;
+						cumulus.StdWebFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+					}
+					// and graph data files
+					for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
+					{
+						cumulus.GraphDataFiles[i].FTP = cumulus.FtpOptions.Enabled;
+						cumulus.GraphDataFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+					}
+					// and EOD data files
+					for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
+					{
+						cumulus.GraphDataEodFiles[i].FTP = cumulus.FtpOptions.Enabled;
+						cumulus.GraphDataEodFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+					}
+					// and Realtime files
+					cumulus.RealtimeFiles[0].FTP = cumulus.FtpOptions.Enabled;
+					cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+					cumulus.RealtimeFiles[1].FTP = cumulus.FtpOptions.Enabled;
+					cumulus.RealtimeFiles[1].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+					// and Moon image
+					cumulus.MoonImage.Enabled = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
+					cumulus.MoonImage.Ftp = cumulus.FtpOptions.Enabled;
+					cumulus.MoonImage.Copy = cumulus.FtpOptions.LocalCopyEnabled;
+					if (cumulus.MoonImage.Enabled)
+						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images/moonpng";
+					// and NOAA reports
+					cumulus.NOAAconf.Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
+					cumulus.NOAAconf.AutoFtp = cumulus.FtpOptions.Enabled;
+					cumulus.NOAAconf.AutoCopy = cumulus.FtpOptions.LocalCopyEnabled;
+					if (cumulus.NOAAconf.AutoCopy)
+						cumulus.NOAAconf.CopyFolder = cumulus.FtpOptions.LocalCopyFolder;
 				}
 				catch (Exception ex)
 				{
@@ -602,6 +646,8 @@ namespace CumulusMX
 
 	internal class JsonWiazrdInternet
 	{
+		public bool localcopy { get; set; }
+		public string localcopyfolder { get; set; }
 		public bool enabled { get; set; }
 		public string hostname { get; set; }
 		public int ftpport { get; set; }

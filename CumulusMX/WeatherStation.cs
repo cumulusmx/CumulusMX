@@ -638,8 +638,8 @@ namespace CumulusMX
 			ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
 
 			// NOAA report names
-			cumulus.NOAALatestMonthlyReport = ini.GetValue("NOAA", "LatestMonthlyReport", "");
-			cumulus.NOAALatestYearlyReport = ini.GetValue("NOAA", "LatestYearlyReport", "");
+			cumulus.NOAAconf.LatestMonthReport = ini.GetValue("NOAA", "LatestMonthlyReport", "");
+			cumulus.NOAAconf.LatestYearReport = ini.GetValue("NOAA", "LatestYearlyReport", "");
 
 			// Solar
 			HiLoToday.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0.0);
@@ -826,8 +826,8 @@ namespace CumulusMX
 				ini.SetValue("Dewpoint", "HTime", HiLoToday.HighDewPointTime.ToString("HH:mm"));
 
 				// NOAA report names
-				ini.SetValue("NOAA", "LatestMonthlyReport", cumulus.NOAALatestMonthlyReport);
-				ini.SetValue("NOAA", "LatestYearlyReport", cumulus.NOAALatestYearlyReport);
+				ini.SetValue("NOAA", "LatestMonthlyReport", cumulus.NOAAconf.LatestMonthReport);
+				ini.SetValue("NOAA", "LatestYearlyReport", cumulus.NOAAconf.LatestYearReport);
 
 				// Solar
 				ini.SetValue("Solar", "HighSolarRad", HiLoToday.HighSolar);
@@ -1237,13 +1237,13 @@ namespace CumulusMX
 
 		public void UpdateDegreeDays(int interval)
 		{
-			if (OutdoorTemperature < cumulus.NOAAheatingthreshold)
+			if (OutdoorTemperature < cumulus.NOAAconf.HeatThreshold)
 			{
-				HeatingDegreeDays += (((cumulus.NOAAheatingthreshold - OutdoorTemperature) * interval) / 1440);
+				HeatingDegreeDays += (((cumulus.NOAAconf.HeatThreshold - OutdoorTemperature) * interval) / 1440);
 			}
-			if (OutdoorTemperature > cumulus.NOAAcoolingthreshold)
+			if (OutdoorTemperature > cumulus.NOAAconf.CoolThreshold)
 			{
-				CoolingDegreeDays += (((OutdoorTemperature - cumulus.NOAAcoolingthreshold) * interval) / 1440);
+				CoolingDegreeDays += (((OutdoorTemperature - cumulus.NOAAconf.CoolThreshold) * interval) / 1440);
 			}
 		}
 
@@ -1769,7 +1769,7 @@ namespace CumulusMX
 						cumulus.CustomHttpMinutesUpdate();
 					}
 
-					if (cumulus.WebIntervalEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
+					if (cumulus.FtpOptions.IntervalEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
 						if (cumulus.WebUpdating == 1)
 						{
@@ -1795,6 +1795,13 @@ namespace CumulusMX
 							cumulus.ftpThread.IsBackground = true;
 							cumulus.ftpThread.Start();
 						}
+					}
+					// We also want to kick off DoHTMLFiles if local copy is enabled
+					else if (cumulus.FtpOptions.LocalCopyEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
+					{
+						cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+						cumulus.ftpThread.IsBackground = true;
+						cumulus.ftpThread.Start();
 					}
 
 					if (cumulus.Wund.Enabled && (now.Minute % cumulus.Wund.Interval == 0) && cumulus.Wund.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.Wund.ID))
@@ -2183,6 +2190,7 @@ namespace CumulusMX
 						}
 						// Now set the flag that upload is required (if enabled)
 						cumulus.GraphDataEodFiles[i].FtpRequired = true;
+						cumulus.GraphDataEodFiles[i].CopyRequired = true;
 					}
 					catch (Exception ex)
 					{
@@ -5198,13 +5206,13 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, true);
 				WriteYesterdayFile();
 
-				if (cumulus.NOAAAutoSave)
+				if (cumulus.NOAAconf.Create)
 				{
 					try
 					{
 						NOAA noaa = new NOAA(cumulus);
 						var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-						var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+						var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 
 						List<string> report;
 
@@ -5213,16 +5221,16 @@ namespace CumulusMX
 						// do monthly NOAA report
 						cumulus.LogMessage("Creating NOAA monthly report for " + noaats.ToLongDateString());
 						report = noaa.CreateMonthlyReport(noaats);
-						cumulus.NOAALatestMonthlyReport = FormatDateTime(cumulus.NOAAMonthFileFormat, noaats);
-						string noaafile = cumulus.ReportPath + cumulus.NOAALatestMonthlyReport;
+						cumulus.NOAAconf.LatestMonthReport = FormatDateTime(cumulus.NOAAconf.MonthFile, noaats);
+						string noaafile = cumulus.ReportPath + cumulus.NOAAconf.LatestMonthReport;
 						cumulus.LogMessage("Saving monthly report as " + noaafile);
 						File.WriteAllLines(noaafile, report, encoding);
 
 						// do yearly NOAA report
 						cumulus.LogMessage("Creating NOAA yearly report");
 						report = noaa.CreateYearlyReport(noaats);
-						cumulus.NOAALatestYearlyReport = FormatDateTime(cumulus.NOAAYearFileFormat, noaats);
-						noaafile = cumulus.ReportPath + cumulus.NOAALatestYearlyReport;
+						cumulus.NOAAconf.LatestYearReport = FormatDateTime(cumulus.NOAAconf.YearFile, noaats);
+						noaafile = cumulus.ReportPath + cumulus.NOAAconf.LatestYearReport;
 						cumulus.LogMessage("Saving yearly report as " + noaafile);
 						File.WriteAllLines(noaafile, report, encoding);
 					}
@@ -5233,9 +5241,10 @@ namespace CumulusMX
 				}
 
 				// Do we need to upload NOAA reports on next FTP?
-				cumulus.NOAANeedFTP = cumulus.NOAAAutoFTP;
+				cumulus.NOAAconf.NeedFtp = cumulus.NOAAconf.AutoFtp;
+				cumulus.NOAAconf.NeedCopy = cumulus.NOAAconf.AutoCopy;
 
-				if (cumulus.NOAANeedFTP)
+				if (cumulus.NOAAconf.NeedFtp || cumulus.NOAAconf.NeedCopy)
 				{
 					cumulus.LogMessage("NOAA reports will be uploaded at next web update");
 				}
