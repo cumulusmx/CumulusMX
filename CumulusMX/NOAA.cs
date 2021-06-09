@@ -202,7 +202,7 @@ namespace CumulusMX
 		{
 			var output = new List<string>();
 
-			CultureInfo culture = cumulus.NOAAUseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
+			CultureInfo culture = cumulus.NOAAconf.UseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
 
 			Tdaysummary[] dayList = new Tdaysummary[32];
 
@@ -228,6 +228,7 @@ namespace CumulusMX
 			int highwindday = 0;
 			double maxtemp = -999;
 			double mintemp = 999;
+			double meantemp;
 			double highwind = 0;
 			double totalwinddirX = 0;
 			double totalwinddirY = 0;
@@ -273,58 +274,6 @@ namespace CumulusMX
 
 					// havent had this entry yet
 
-					// mean temp
-					if ((st.Count > 15) && (st[15].Length > 0))
-					{
-						idx = 15;
-						double meantemp = double.Parse(st[idx]);
-						totalmeantemp += meantemp;
-						dayList[daynumber].meantemp = meantemp;
-
-						// heating degree day
-						idx = 40;
-						if ((st.Count > idx) && (st[idx].Length > 0))
-						{
-							// read hdd from dayfile.txt
-							dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
-							totalheating += double.Parse(st[idx]);
-						}
-						else if (meantemp < cumulus.NOAAheatingthreshold)
-						{
-							dayList[daynumber].heatingdegdays = cumulus.NOAAheatingthreshold - meantemp;
-							totalheating += cumulus.NOAAheatingthreshold - meantemp;
-						}
-						else
-						{
-							dayList[daynumber].heatingdegdays = 0;
-						}
-
-						// cooling degree days
-						idx = 41;
-						if ((st.Count > idx) && (st[idx] != string.Empty))
-						{
-							// read hdd from dayfile.txt
-							dayList[daynumber].coolingdegdays = double.Parse(st[idx]);
-							totalcooling += double.Parse(st[idx]);
-						}
-						else if (meantemp > cumulus.NOAAcoolingthreshold)
-						{
-							dayList[daynumber].coolingdegdays = meantemp - cumulus.NOAAcoolingthreshold;
-							totalcooling += meantemp - cumulus.NOAAcoolingthreshold;
-						}
-						else
-						{
-							dayList[daynumber].coolingdegdays = 0;
-						}
-					}
-					else
-					{
-						// average temp field not present
-						dayList[daynumber].meantemp = -1000;
-						dayList[daynumber].heatingdegdays = 0;
-						dayList[daynumber].coolingdegdays = 0;
-					}
-
 					// max temp
 					idx = 6;
 					dayList[daynumber].maxtemp = double.Parse(st[idx]);
@@ -338,11 +287,11 @@ namespace CumulusMX
 						maxtemp = dayList[daynumber].maxtemp;
 						maxtempday = daynumber;
 					}
-					if (GreaterThanOrEqual(dayList[daynumber].maxtemp, cumulus.NOAAmaxtempcomp1))
+					if (GreaterThanOrEqual(dayList[daynumber].maxtemp, cumulus.NOAAconf.MaxTempComp1))
 					{
 						maxtempcount1++;
 					}
-					if (LessThanOrEqual(dayList[daynumber].maxtemp, cumulus.NOAAmaxtempcomp2))
+					if (LessThanOrEqual(dayList[daynumber].maxtemp, cumulus.NOAAconf.MaxTempComp2))
 					{
 						maxtempcount2++;
 					}
@@ -360,13 +309,75 @@ namespace CumulusMX
 						mintemp = dayList[daynumber].mintemp;
 						mintempday = daynumber;
 					}
-					if (LessThanOrEqual(dayList[daynumber].mintemp, cumulus.NOAAmintempcomp1))
+					if (LessThanOrEqual(dayList[daynumber].mintemp, cumulus.NOAAconf.MinTempComp1))
 					{
 						mintempcount1++;
 					}
-					if (LessThanOrEqual(dayList[daynumber].mintemp, cumulus.NOAAmintempcomp2))
+					if (LessThanOrEqual(dayList[daynumber].mintemp, cumulus.NOAAconf.MinTempComp2))
 					{
 						mintempcount2++;
+					}
+
+					// mean temp
+					if (cumulus.NOAAconf.UseMinMaxAvg)
+					{
+						meantemp = (dayList[daynumber].maxtemp + dayList[daynumber].mintemp) / 2.0;
+						totalmeantemp += meantemp;
+						dayList[daynumber].meantemp = meantemp;
+					}
+					else if ((st.Count > 15) && (st[15].Length > 0))
+					{
+						idx = 15;
+						meantemp = double.Parse(st[idx]);
+						totalmeantemp += meantemp;
+						dayList[daynumber].meantemp = meantemp;
+					}
+					else
+					{
+						// average temp field not present
+						meantemp = -1000;
+						dayList[daynumber].meantemp = -1000;
+						dayList[daynumber].heatingdegdays = 0;
+						dayList[daynumber].coolingdegdays = 0;
+					}
+
+					if (meantemp > -1000)
+					{
+						// heating degree day
+						idx = 40;
+						if ((st.Count > idx) && (st[idx].Length > 0))
+						{
+							// read hdd from dayfile.txt
+							dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
+							totalheating += double.Parse(st[idx]);
+						}
+						else if (meantemp < cumulus.NOAAconf.HeatThreshold)
+						{
+							dayList[daynumber].heatingdegdays = cumulus.NOAAconf.HeatThreshold - meantemp;
+							totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
+						}
+						else
+						{
+							dayList[daynumber].heatingdegdays = 0;
+						}
+
+						// cooling degree days
+						idx = 41;
+						if ((st.Count > idx) && (st[idx] != string.Empty))
+						{
+							// read hdd from dayfile.txt
+							dayList[daynumber].coolingdegdays = double.Parse(st[idx]);
+							totalcooling += double.Parse(st[idx]);
+						}
+						else if (meantemp > cumulus.NOAAconf.CoolThreshold)
+						{
+							dayList[daynumber].coolingdegdays = meantemp - cumulus.NOAAconf.CoolThreshold;
+							totalcooling += meantemp - cumulus.NOAAconf.CoolThreshold;
+						}
+						else
+						{
+							dayList[daynumber].coolingdegdays = 0;
+						}
 					}
 
 					// rain
@@ -379,15 +390,15 @@ namespace CumulusMX
 						maxrainday = daynumber;
 					}
 
-					if (GreaterThanOrEqual(dayList[daynumber].rain, cumulus.NOAAraincomp1))
+					if (GreaterThanOrEqual(dayList[daynumber].rain, cumulus.NOAAconf.RainComp1))
 					{
 						raincount1++;
 					}
-					if (GreaterThanOrEqual(dayList[daynumber].rain, cumulus.NOAAraincomp2))
+					if (GreaterThanOrEqual(dayList[daynumber].rain, cumulus.NOAAconf.RainComp2))
 					{
 						raincount2++;
 					}
-					if (GreaterThanOrEqual(dayList[daynumber].rain, cumulus.NOAAraincomp3))
+					if (GreaterThanOrEqual(dayList[daynumber].rain, cumulus.NOAAconf.RainComp3))
 					{
 						raincount3++;
 					}
@@ -554,7 +565,7 @@ namespace CumulusMX
 
 			output.Add($"                   Monthly Climatological Summary for {thedate:MMM} {year}");
 			output.Add("");
-			output.Add($"Name: {cumulus.NOAAname}   City: {cumulus.NOAAcity}   State: {cumulus.NOAAstate}");
+			output.Add($"Name: {cumulus.NOAAconf.Name}   City: {cumulus.NOAAconf.City}   State: {cumulus.NOAAconf.State}");
 			string elev;
 			if (cumulus.AltitudeInFeet)
 			{
@@ -591,7 +602,7 @@ namespace CumulusMX
 
 			var repLine = new StringBuilder(200);
 
-			var timeFormat = cumulus.NOAA12hourformat ? "h:mmtt" : "HH:mm";
+			var timeFormat = cumulus.NOAAconf.Use12hour ? "h:mmtt" : "HH:mm";
 
 			for (int i = 1; i <= DateTime.DaysInMonth(year, month); i++)
 			{
@@ -696,15 +707,15 @@ namespace CumulusMX
 			output.Add("");
 
 			// now do the max/min/days of rain items
-			output.Add(string.Format(culture, "Max >={0,6:F1}{1,3:D}", cumulus.NOAAmaxtempcomp1, maxtempcount1));
-			output.Add(string.Format(culture, "Max <={0,6:F1}{1,3:D}", cumulus.NOAAmaxtempcomp2, maxtempcount2));
-			output.Add(string.Format(culture, "Min <={0,6:F1}{1,3:D}", cumulus.NOAAmintempcomp1, mintempcount1));
-			output.Add(string.Format(culture, "Min <={0,6:F1}{1,3:D}", cumulus.NOAAmintempcomp2, mintempcount2));
+			output.Add(string.Format(culture, "Max >={0,6:F1}{1,3:D}", cumulus.NOAAconf.MaxTempComp1, maxtempcount1));
+			output.Add(string.Format(culture, "Max <={0,6:F1}{1,3:D}", cumulus.NOAAconf.MaxTempComp2, maxtempcount2));
+			output.Add(string.Format(culture, "Min <={0,6:F1}{1,3:D}", cumulus.NOAAconf.MinTempComp1, mintempcount1));
+			output.Add(string.Format(culture, "Min <={0,6:F1}{1,3:D}", cumulus.NOAAconf.MinTempComp2, mintempcount2));
 
 			output.Add($"Max Rain: {maxrain.ToString(cumulus.RainFormat, culture)} on day {maxrainday}");
 
-			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount2} (>= {cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount3} (>= {cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})");
-			output.Add($"Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}  Method: Integration");
+			output.Add($"Days of Rain: {raincount1} (>= {cumulus.NOAAconf.RainComp1.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount2} (>= {cumulus.NOAAconf.RainComp2.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})  {raincount3} (>= {cumulus.NOAAconf.RainComp3.ToString(cumulus.RainFormat, culture)} {cumulus.Units.RainText})");
+			output.Add($"Heat Base: {cumulus.NOAAconf.HeatThreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAconf.CoolThreshold.ToString(cumulus.TempFormat, culture)}  Method: Integration");
 
 			return output;
 		}
@@ -713,7 +724,7 @@ namespace CumulusMX
 		{
 			var output = new List<string>();
 
-			CultureInfo culture = cumulus.NOAAUseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
+			CultureInfo culture = cumulus.NOAAconf.UseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
 
 			string listSep = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 			StringBuilder repLine = new StringBuilder(200);
@@ -803,25 +814,25 @@ namespace CumulusMX
 						// entry is for this year
 						var day = Convert.ToInt32(dateStr.Substring(0, 2));
 						month = Convert.ToInt32(dateStr.Substring(3, 2));
-						MonthList[month].valid = true;
-						MonthList[month].samples ++;
-						var meantemp = Convert.ToDouble(st[15]);
-						MonthList[month].totaltemp += meantemp;
 						var maxval = Convert.ToDouble(st[6]);
 						var minval = Convert.ToDouble(st[4]);
 						MonthList[month].totalmaxtemp += maxval;
 						MonthList[month].totalmintemp += minval;
+						var meantemp = cumulus.NOAAconf.UseMinMaxAvg ? (maxval + minval) / 2.0 : Convert.ToDouble(st[15]);
+						MonthList[month].valid = true;
+						MonthList[month].samples ++;
+						MonthList[month].totaltemp += meantemp;
 						// Max temp?
 						if (maxval > MonthList[month].maxtemp)
 						{
 							MonthList[month].maxtemp = maxval;
 							MonthList[month].maxtempday = day;
 						}
-						if (GreaterThanOrEqual(maxval, cumulus.NOAAmaxtempcomp1))
+						if (GreaterThanOrEqual(maxval, cumulus.NOAAconf.MaxTempComp1))
 						{
 							MonthList[month].maxtempcount1 ++;
 						}
-						if (LessThanOrEqual(maxval, cumulus.NOAAmaxtempcomp2))
+						if (LessThanOrEqual(maxval, cumulus.NOAAconf.MaxTempComp2))
 						{
 							MonthList[month].maxtempcount2 ++;
 						}
@@ -831,11 +842,11 @@ namespace CumulusMX
 							MonthList[month].mintemp = minval;
 							MonthList[month].mintempday = day;
 						}
-						if (LessThanOrEqual(minval, cumulus.NOAAmintempcomp1))
+						if (LessThanOrEqual(minval, cumulus.NOAAconf.MinTempComp1))
 						{
 							MonthList[month].mintempcount1 ++;
 						}
-						if (LessThanOrEqual(minval, cumulus.NOAAmintempcomp2))
+						if (LessThanOrEqual(minval, cumulus.NOAAconf.MinTempComp2))
 						{
 							MonthList[month].mintempcount2 ++;
 						}
@@ -846,10 +857,10 @@ namespace CumulusMX
 							MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + Convert.ToDouble(st[40]);
 							totalheating += Convert.ToDouble(st[40]);
 						}
-						else if (meantemp < cumulus.NOAAheatingthreshold)
+						else if (meantemp < cumulus.NOAAconf.HeatThreshold)
 						{
-							MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + cumulus.NOAAheatingthreshold - meantemp;
-							totalheating += cumulus.NOAAheatingthreshold - meantemp;
+							MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + cumulus.NOAAconf.HeatThreshold - meantemp;
+							totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
 						}
 						// cooling degree days
 						if ((st.Count > 41) && (st[41].Length > 0))
@@ -858,23 +869,23 @@ namespace CumulusMX
 							MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + Convert.ToDouble(st[41]);
 							totalcooling += Convert.ToDouble(st[41]);
 						}
-						else if (meantemp > cumulus.NOAAcoolingthreshold)
+						else if (meantemp > cumulus.NOAAconf.CoolThreshold)
 						{
-							MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + meantemp - cumulus.NOAAcoolingthreshold;
-							totalcooling += meantemp - cumulus.NOAAcoolingthreshold;
+							MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + meantemp - cumulus.NOAAconf.CoolThreshold;
+							totalcooling += meantemp - cumulus.NOAAconf.CoolThreshold;
 						}
 						// Rain days
 						var rainvalue = Convert.ToDouble(st[14]);
 						MonthList[month].totrain = MonthList[month].totrain + rainvalue;
-						if (GreaterThanOrEqual(rainvalue, cumulus.NOAAraincomp1))
+						if (GreaterThanOrEqual(rainvalue, cumulus.NOAAconf.RainComp1))
 						{
 							MonthList[month].raincount1 ++;
 						}
-						if (GreaterThanOrEqual(rainvalue, cumulus.NOAAraincomp2))
+						if (GreaterThanOrEqual(rainvalue, cumulus.NOAAconf.RainComp2))
 						{
 							MonthList[month].raincount2 ++;
 						}
-						if (GreaterThanOrEqual(rainvalue, cumulus.NOAAraincomp3))
+						if (GreaterThanOrEqual(rainvalue, cumulus.NOAAconf.RainComp3))
 						{
 							MonthList[month].raincount3 ++;
 						}
@@ -905,7 +916,7 @@ namespace CumulusMX
 				output.Clear();
 				output.Add($"                   Annual Climatological Summary for {year}");
 				output.Add("");
-				output.Add($"Name: {cumulus.NOAAname}   City: {cumulus.NOAAcity}   State: {cumulus.NOAAstate}");
+				output.Add($"Name: {cumulus.NOAAconf.Name}   City: {cumulus.NOAAconf.City}   State: {cumulus.NOAAconf.State}");
 				string elev;
 				if (cumulus.AltitudeInFeet)
 				{
@@ -932,11 +943,11 @@ namespace CumulusMX
 
 				output.Add($"Elevation: {elev}  Lat: {string.Format("{0} {1,2:D2}° {2,2:D2}' {3,2:D2}\"", lathem, latdeg, latmin, latsec)}   Lon: {string.Format("{0} {1,3:D3}° {2,2:D2}' {3,2:D2}\"", lonhem, londeg, lonmin, lonsec)}");
 				output.Add("");
-				output.Add($"                  Temperature ({cumulus.Units.TempText}), Heat Base: {cumulus.NOAAheatingthreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAcoolingthreshold.ToString(cumulus.TempFormat, culture)}");
+				output.Add($"                  Temperature ({cumulus.Units.TempText}), Heat Base: {cumulus.NOAAconf.HeatThreshold.ToString(cumulus.TempFormat, culture)}  Cool Base: {cumulus.NOAAconf.CoolThreshold.ToString(cumulus.TempFormat, culture)}");
 				output.Add("                          Dep.  Heat  Cool                       Max  Max  Min  Min");
 				output.Add("        Mean  Mean        From  Deg   Deg                        >=   <=   <=   <=");
 				//@ Unsupported function or procedure: 'Format'
-				output.Add($" YR MO  Max   Min   Mean  Norm  Days  Days  Hi  Date  Low  Date{string.Format(culture, "{0,5:F1}{1,5:F1}{2,5:F1}{3,6:F1}", cumulus.NOAAmaxtempcomp1, cumulus.NOAAmaxtempcomp2, cumulus.NOAAmintempcomp1, cumulus.NOAAmintempcomp2)}");
+				output.Add($" YR MO  Max   Min   Mean  Norm  Days  Days  Hi  Date  Low  Date{string.Format(culture, "{0,5:F1}{1,5:F1}{2,5:F1}{3,6:F1}", cumulus.NOAAconf.MaxTempComp1, cumulus.NOAAconf.MaxTempComp2, cumulus.NOAAconf.MinTempComp1, cumulus.NOAAconf.MinTempComp2)}");
 				output.Add("------------------------------------------------------------------------------------");
 				for (month = 1; month <= 12; month++)
 				{
@@ -955,15 +966,15 @@ namespace CumulusMX
 							MonthList[month].meantemp = MonthList[month].totaltemp / MonthList[month].samples;
 							repLine.Append(string.Format(culture, "{0,6:F1}{1,6:F1}{2,6:F1}", MonthList[month].meanmaxtemp, MonthList[month].meanmintemp, MonthList[month].meantemp));
 						}
-						if (cumulus.NOAATempNorms[month] < -999)
+						if (cumulus.NOAAconf.TempNorms[month] < -999)
 						{
 							// dummy value for 'departure from norm'
 							repLine.Append("   0.0");
 						}
 						else
 						{
-							repLine.Append(string.Format(culture, "{0,6:F1}", (MonthList[month].meantemp - cumulus.NOAATempNorms[month])));
-							totalnormtemp += cumulus.NOAATempNorms[month];
+							repLine.Append(string.Format(culture, "{0,6:F1}", (MonthList[month].meantemp - cumulus.NOAAconf.TempNorms[month])));
+							totalnormtemp += cumulus.NOAAconf.TempNorms[month];
 							normtempsamples++;
 						}
 						repLine.Append(string.Format(culture, "{0,6:D}{1,6:D}", Convert.ToInt64(MonthList[month].heatingdegdays), Convert.ToInt64(MonthList[month].coolingdegdays)));
@@ -1048,8 +1059,8 @@ namespace CumulusMX
 				output.Add("              Dep.   Max        Days of Rain");
 				output.Add("              From   Obs.           >=");
 				output.Add(" YR MO Total  Norm   Day Date" +
-						   string.Format("{0,5}{1,5}{2,5}", cumulus.NOAAraincomp1.ToString(cumulus.RainFormat, culture), cumulus.NOAAraincomp2.ToString(cumulus.RainFormat, culture),
-							   cumulus.NOAAraincomp3.ToString(cumulus.RainFormat, culture)));
+						   string.Format("{0,5}{1,5}{2,5}", cumulus.NOAAconf.RainComp1.ToString(cumulus.RainFormat, culture), cumulus.NOAAconf.RainComp2.ToString(cumulus.RainFormat, culture),
+							   cumulus.NOAAconf.RainComp3.ToString(cumulus.RainFormat, culture)));
 				output.Add("---------------------------------------------");
 
 				// Rain section details
@@ -1070,13 +1081,13 @@ namespace CumulusMX
 						maxrainmonth = m;
 					}
 
-					if (cumulus.NOAARainNorms[m] < -999)
+					if (cumulus.NOAAconf.RainNorms[m] < -999)
 						// dummy value for "departure from norm"
 						repLine.Append("   0.0");
 					else
 					{
-						repLine.Append(string.Format("{0,6}", (MonthList[m].totrain - cumulus.NOAARainNorms[m]).ToString(cumulus.RainFormat, culture)));
-						totalnormrain += cumulus.NOAARainNorms[m];
+						repLine.Append(string.Format("{0,6}", (MonthList[m].totrain - cumulus.NOAAconf.RainNorms[m]).ToString(cumulus.RainFormat, culture)));
+						totalnormrain += cumulus.NOAAconf.RainNorms[m];
 					}
 
 					repLine.Append(string.Format("{0,6}", MonthList[m].maxrain.ToString(cumulus.RainFormat, culture)));

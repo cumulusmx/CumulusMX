@@ -3056,12 +3056,12 @@ namespace CumulusMX
 
 		private string TagLatestNoaaMonthlyReport(Dictionary<string,string> tagParams)
 		{
-			return cumulus.NOAALatestMonthlyReport;
+			return cumulus.NOAAconf.LatestMonthReport;
 		}
 
 		private string TagLatestNoaaYearlyReport(Dictionary<string,string> tagParams)
 		{
-			return cumulus.NOAALatestYearlyReport;
+			return cumulus.NOAAconf.LatestYearReport;
 		}
 
 		private string TagMoonPercent(Dictionary<string,string> tagParams)

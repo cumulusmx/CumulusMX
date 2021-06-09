@@ -1077,6 +1077,7 @@ namespace CumulusMX
 				{
 					cumulus.GraphDataFiles[i].CreateRequired = true;
 					cumulus.GraphDataFiles[i].FtpRequired = true;
+					cumulus.GraphDataFiles[i].CopyRequired = true;
 				}
 			}
 			catch (Exception ex)
@@ -1106,8 +1107,8 @@ namespace CumulusMX
 				// Dead simple (dirty), there is only one setting at present!
 				var includeGraphs = json.Contains("true");
 
-				if (!cumulus.FtpOptions.Enabled)
-					return "{\"result\":\"FTP is not enabled!\"}";
+				if (!cumulus.FtpOptions.Enabled && !cumulus.FtpOptions.LocalCopyEnabled)
+					return "{\"result\":\"FTP/local copy is not enabled!\"}";
 
 
 				if (cumulus.WebUpdating == 1)
@@ -1127,6 +1128,7 @@ namespace CumulusMX
 					{
 						cumulus.GraphDataFiles[i].CreateRequired = true;
 						cumulus.GraphDataFiles[i].FtpRequired = true;
+						cumulus.GraphDataFiles[i].CopyRequired = true;
 					}
 					cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
 					station.CreateGraphDataFiles();
@@ -1147,6 +1149,7 @@ namespace CumulusMX
 				{
 					cumulus.GraphDataFiles[i].CreateRequired = true;
 					cumulus.GraphDataFiles[i].FtpRequired = true;
+					cumulus.GraphDataFiles[i].CopyRequired = true;
 				}
 				cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
 				station.CreateGraphDataFiles();

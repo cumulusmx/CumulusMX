@@ -82,6 +82,11 @@ namespace CumulusMX
 						}
 					}
 
+					cumulus.FtpOptions.LocalCopyEnabled = settings.website.localcopy;
+					if (cumulus.FtpOptions.LocalCopyEnabled)
+					{
+						cumulus.FtpOptions.LocalCopyFolder = settings.website.localcopyfolder;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -98,6 +103,7 @@ namespace CumulusMX
 					if (cumulus.RealtimeIntervalEnabled)
 					{
 						cumulus.FtpOptions.RealtimeEnabled = settings.websettings.realtime.enablerealtimeftp;
+						cumulus.FtpOptions.LocalCopyRealtimeEnabled = settings.websettings.realtime.enablecopy;
 						cumulus.RealtimeInterval = settings.websettings.realtime.realtimeinterval * 1000;
 						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
 							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
@@ -105,7 +111,8 @@ namespace CumulusMX
 						for (var i = 0; i < cumulus.RealtimeFiles.Length; i++)
 						{
 							cumulus.RealtimeFiles[i].Create = settings.websettings.realtime.files[i].create;
-							cumulus.RealtimeFiles[i].FTP = settings.websettings.realtime.files[i].ftp;
+							cumulus.RealtimeFiles[i].FTP = cumulus.RealtimeFiles[i].Create && settings.websettings.realtime.files[i].ftp;
+							cumulus.RealtimeFiles[i].Copy = cumulus.RealtimeFiles[i].Create && settings.websettings.realtime.files[i].copy;
 						}
 					}
 					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeIntervalEnabled;
@@ -126,18 +133,21 @@ namespace CumulusMX
 						{
 							cumulus.StdWebFiles[i].Create = settings.websettings.interval.stdfiles.files[i].create;
 							cumulus.StdWebFiles[i].FTP = cumulus.StdWebFiles[i].Create && settings.websettings.interval.stdfiles.files[i].ftp;
+							cumulus.StdWebFiles[i].Copy = cumulus.StdWebFiles[i].Create && settings.websettings.interval.stdfiles.files[i].copy;
 						}
 
 						for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 						{
 							cumulus.GraphDataFiles[i].Create = settings.websettings.interval.graphfiles.files[i].create;
-							cumulus.GraphDataFiles[i].FTP = settings.websettings.interval.graphfiles.files[i].ftp;
+							cumulus.GraphDataFiles[i].FTP = cumulus.GraphDataFiles[i].Create && settings.websettings.interval.graphfiles.files[i].ftp;
+							cumulus.GraphDataFiles[i].Copy = cumulus.GraphDataFiles[i].Create && settings.websettings.interval.graphfiles.files[i].copy;
 						}
 
 						for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 						{
 							cumulus.GraphDataEodFiles[i].Create = settings.websettings.interval.graphfileseod.files[i].create;
-							cumulus.GraphDataEodFiles[i].FTP = settings.websettings.interval.graphfileseod.files[i].ftp;
+							cumulus.GraphDataEodFiles[i].FTP = cumulus.GraphDataEodFiles[i].Create && settings.websettings.interval.graphfileseod.files[i].ftp;
+							cumulus.GraphDataEodFiles[i].Copy = cumulus.GraphDataEodFiles[i].Create && settings.websettings.interval.graphfileseod.files[i].copy;
 						}
 					}
 				}
@@ -204,15 +214,20 @@ namespace CumulusMX
 				// Moon Image
 				try
 				{
-					cumulus.MoonImageEnabled = settings.moonimage.enabled;
-					if (cumulus.MoonImageEnabled)
+					cumulus.MoonImage.Enabled = settings.moonimage.enabled;
+					if (cumulus.MoonImage.Enabled)
 					{
-						cumulus.MoonImageSize = settings.moonimage.size;
-						if (cumulus.MoonImageSize < 10)
-							cumulus.MoonImageSize = 10;
-						cumulus.IncludeMoonImage = settings.moonimage.includemoonimage;
-						if (cumulus.IncludeMoonImage)
-							cumulus.MoonImageFtpDest = settings.moonimage.ftpdest;
+						cumulus.MoonImage.Size = settings.moonimage.size;
+						if (cumulus.MoonImage.Size < 10)
+							cumulus.MoonImage.Size = 10;
+
+						cumulus.MoonImage.Ftp = settings.moonimage.includemoonimage;
+						if (cumulus.MoonImage.Ftp)
+							cumulus.MoonImage.FtpDest = settings.moonimage.ftpdest;
+
+						cumulus.MoonImage.Copy = settings.moonimage.copyimage;
+						if (cumulus.MoonImage.Copy)
+							cumulus.MoonImage.CopyDest = settings.moonimage.copydest;
 					}
 				}
 				catch (Exception ex)
@@ -343,6 +358,8 @@ namespace CumulusMX
 
 			var websitesettings = new JsonInternetSettingsWebsite()
 			{
+				localcopy = cumulus.FtpOptions.LocalCopyEnabled,
+				localcopyfolder = cumulus.FtpOptions.LocalCopyFolder,
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
@@ -387,7 +404,8 @@ namespace CumulusMX
 				{
 					filename = cumulus.StdWebFiles[i].LocalFileName,
 					create = cumulus.StdWebFiles[i].Create,
-					ftp = cumulus.StdWebFiles[i].FTP
+					ftp = cumulus.StdWebFiles[i].FTP,
+					copy = cumulus.StdWebFiles[i].Copy
 				};
 			}
 
@@ -397,7 +415,8 @@ namespace CumulusMX
 				{
 					filename = cumulus.GraphDataFiles[i].LocalFileName,
 					create = cumulus.GraphDataFiles[i].Create,
-					ftp = cumulus.GraphDataFiles[i].FTP
+					ftp = cumulus.GraphDataFiles[i].FTP,
+					copy = cumulus.GraphDataFiles[i].Copy
 				};
 			}
 
@@ -407,7 +426,8 @@ namespace CumulusMX
 				{
 					filename = cumulus.GraphDataEodFiles[i].LocalFileName,
 					create = cumulus.GraphDataEodFiles[i].Create,
-					ftp = cumulus.GraphDataEodFiles[i].FTP
+					ftp = cumulus.GraphDataEodFiles[i].FTP,
+					copy = cumulus.GraphDataEodFiles[i].Copy
 				};
 			}
 
@@ -425,7 +445,8 @@ namespace CumulusMX
 				{
 					filename = cumulus.RealtimeFiles[i].LocalFileName,
 					create = cumulus.RealtimeFiles[i].Create,
-					ftp = cumulus.RealtimeFiles[i].FTP
+					ftp = cumulus.RealtimeFiles[i].FTP,
+					copy = cumulus.RealtimeFiles[i].Copy
 				};
 			}
 
@@ -472,10 +493,12 @@ namespace CumulusMX
 
 			var moonimagesettings = new JsonInternetSettingsMoonImage()
 			{
-				enabled = cumulus.MoonImageEnabled,
-				includemoonimage = cumulus.IncludeMoonImage,
-				size = cumulus.MoonImageSize,
-				ftpdest = cumulus.MoonImageFtpDest
+				enabled = cumulus.MoonImage.Enabled,
+				includemoonimage = cumulus.MoonImage.Ftp,
+				size = cumulus.MoonImage.Size,
+				ftpdest = cumulus.MoonImage.FtpDest,
+				copyimage = cumulus.MoonImage.Copy,
+				copydest = cumulus.MoonImage.CopyDest
 			};
 
 			var httpproxy = new JsonInternetSettingsHTTPproxySettings()
@@ -638,6 +661,8 @@ namespace CumulusMX
 
 	public class JsonInternetSettingsWebsite
 	{
+		public bool localcopy { get; set; }
+		public string localcopyfolder { get; set; }
 		public bool enabled { get; set; }
 		public string hostname { get; set; }
 		public int ftpport { get; set; }
@@ -671,12 +696,14 @@ namespace CumulusMX
 		public string filename { get; set; }
 		public bool create { get; set; }
 		public bool ftp { get; set; }
+		public bool copy { get; set; }
 	}
 
 	public class JsonInternetSettingsWebSettingsInterval
 	{
 		public bool enabled { get; set; }
 		public bool autoupdate { get; set; }
+		public bool enablecopy { get; set; }
 		public int ftpinterval { get; set; }
 		public JsonInternetSettingsWebSettingsIntervalFiles stdfiles { get; set; }
 		public JsonInternetSettingsWebSettingsIntervalFiles graphfiles { get; set; }
@@ -693,6 +720,7 @@ namespace CumulusMX
 	{
 		public bool enabled { get; set; }
 		public bool enablerealtimeftp { get; set; }
+		public bool enablecopy { get; set; }
 		public int realtimeinterval { get; set; }
 		public JsonInternetSettingsFileSettings[] files { get; set; }
 	}
@@ -739,6 +767,8 @@ namespace CumulusMX
 		public bool includemoonimage { get; set; }
 		public int size { get; set; }
 		public string ftpdest { get; set; }
+		public bool copyimage { get; set; }
+		public string copydest { get; set; }
 	}
 
 

@@ -203,7 +203,7 @@ namespace CumulusMX
 
 					// The write pointer does not equal the read pointer
 					// write it back to the logger memory
-					cumulus.LogDebugMessage("Updating logger read pointer");
+					cumulus.LogDebugMessage($"Updating logger read pointer to {currPtr}");
 					SendCommand("WRST,13," + currPtr);
 					var response2 = GetResponse("wrst");
 					if (ValidChecksum(response2))
@@ -996,10 +996,6 @@ namespace CumulusMX
 
 				UpdateStatusPanel(now);
 				UpdateMQTT();
-			}
-			else if (!stop)
-			{
-				return;
 			}
 			else
 			{
