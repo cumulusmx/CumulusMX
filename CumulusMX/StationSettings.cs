@@ -81,6 +81,7 @@ namespace CumulusMX
 				pressure = cumulus.Units.Press,
 				temp = cumulus.Units.Temp,
 				rain = cumulus.Units.Rain,
+				cloudbaseft = cumulus.CloudBaseInFeet,
 				advanced = unitsAdv
 			};
 
@@ -858,6 +859,31 @@ namespace CumulusMX
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
 						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
+
+						// Automatically enable extra logging?
+						// Should we auto disable it too?
+						if (cumulus.WllExtraLeafTx1 > 0 ||
+							cumulus.WllExtraLeafTx2 > 0 ||
+							cumulus.WllExtraSoilMoistureTx1 > 0 ||
+							cumulus.WllExtraSoilMoistureTx2 > 0 ||
+							cumulus.WllExtraSoilMoistureTx3 > 0 ||
+							cumulus.WllExtraSoilMoistureTx4 > 0 ||
+							cumulus.WllExtraSoilTempTx1 > 0 ||
+							cumulus.WllExtraSoilTempTx2 > 0 ||
+							cumulus.WllExtraSoilTempTx3 > 0 ||
+							cumulus.WllExtraSoilTempTx4 > 0 ||
+							cumulus.WllExtraTempTx[0] > 0 ||
+							cumulus.WllExtraTempTx[1] > 0 ||
+							cumulus.WllExtraTempTx[2] > 0 ||
+							cumulus.WllExtraTempTx[3] > 0 ||
+							cumulus.WllExtraTempTx[4] > 0 ||
+							cumulus.WllExtraTempTx[5] > 0 ||
+							cumulus.WllExtraTempTx[6] > 0 ||
+							cumulus.WllExtraTempTx[7] > 0
+							)
+						{
+							cumulus.StationOptions.LogExtraSensors = true;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -1002,6 +1028,8 @@ namespace CumulusMX
 						cumulus.Units.Rain = settings.general.units.rain;
 						cumulus.ChangeRainUnits();
 					}
+
+					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
 
 					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
 					cumulus.PressDPlaces = settings.general.units.advanced.pressdp;
@@ -1285,6 +1313,8 @@ namespace CumulusMX
 		public int pressure { get; set; }
 		public int temp { get; set; }
 		public int rain { get; set; }
+		public bool cloudbaseft { get; set; }
+
 		public JsonStationSettingsUnitsAdvanced advanced { get; set; }
 	}
 

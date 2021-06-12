@@ -1,14 +1,14 @@
-3.12.0 - bxxxx
+3.12.0 - b3134 - BETA
 ——————————————
 - Fix: The Realtime FTP - particularly SFTP - reconnection code has been rewritten to make it more robust
-- Fix SteelSeries gauges data mouseovers not working on the dashboard interface
+- Fix: SteelSeries gauges data mouseovers not working on the dashboard interface
 - Fix: Bug in Davis WLL Chill Hours calculation during archive data catch-up. Each interval increment was 60x larger than it should be
 - Fix: Ecowitt 0.1mm rain tippers would take 3 tips in an interval to register "last rained" when using Inches as the rain unit
 - Fix: Instromet Increment Logger Pointer was not saving correctly from the Station Settings screen
 
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
-	This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
-	If Cumulus MX is offline for a prolonged period, data for that offline period will obviously still be at the station logging interval resolution
+	- This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
+	- If Cumulus MX is offline for a prolonged period, data for that offline period will obviously still be at the station logging interval resolution
 - Change: All log writing routines rewritten to minimise the time the file is open and add error handling where it is missing
 - Change: MQTT now allows multiple topics for both Update and Interval data.
 	- The format of the MQTT template files has changed to accommodate this
@@ -26,7 +26,7 @@
 	- To create a template with multiple topics, use this format...
 		{"topics": [
 			{"topic": "MyName/Topic1", "data": "\"<#timehhmmss>\",<#temp rc=y>", "retain": false},
-			{"topic": "MyName/Topic2", "data": "<humidity><val><#hum></val></humidity>", "retain": true}
+			{"topic": "MyName/Topic2", "data": "<data><humidity><val><#hum></val></humidity></data>", "retain": true}
 		]}
 		Where Topic1 is formatted as CSV and is not retained on the server, and Topic2 as XML and is retained
 	- The Dashboard Internet > MQTT settings have been updated to reflect these changes
@@ -34,6 +34,10 @@
 - Change: Moves the Forum URL and Webcam URL settings from Internet Settings|Web Site to Internet Settings|Miscellaneous
 - Change: The Dashboard web pages now all use a common menu.js script to render the menus - it saves me a lot of typing when anything changes!
 - Change: The Dashboard settings pages now load the forms JSON as static files rather than via the API.
+- Change: The console output on start-up has been changed slightly to show actual IP addresses in URLs, and I have added some colour.
+	- You now also get different messages if no Cumulus.ini file is detected, directing users to run the first time setup wizard
+- Change: The default web site NOAA reports page is now accessible and removes the mouse-over month selection
+- Change: When configuring the Davis WLL station, if any extra sensors are enabled, then Extra Logging is also automatically enabled.
 
 - New: Adds more "advanced" options to the GUI configuration:
 	- Max wind speed in Station > Common Options > Advanced options
@@ -41,20 +45,21 @@
 	- Snow depth hour in Station > Common Options > Advanced options
 	- Rain day threshold in Station > Common Options > Advanced options
 	- List web tags in Program Settings > Program General Options
+- New: Adds Cloud base unit to Units settings
 - New: Realtime and Web Interval settings changed via the dashboard now have immediate effect, a restart is no longer required.
 - New: Adds Lightning distance and last strike time to Today.ini to preserve the values across CMX runs when the GW-1000 has 'forgotten' them
 	[Lightning]
 	Distance=-1
 	LastStrike=0001-01-01T00:00:00
 - New: Adds a global Enable/Disable switch to Internet FTP settings, the value for this on the first run of this version of CMX will be inferred from the other settings.
-	From this release onwards, this switch can used to enable/disable all FTP activity. It does not affect the Interval and real time interval settings.
+	From this release onwards, this switch can be used to enable/disable all FTP activity. It does not affect the Interval and real time interval settings.
 	Disabling this option also disables all the relevant FTP settings in the following sub-sections on the page
 - New: Two new web tags for sunshine hours
 	<#SunshineHoursMonth> <#SunshineHoursYear>
 	- When used without parameters these return the total sunshine hours for this month so far, and this year so far.
 	- The Month tag accepts three parameters:
 		y=nnnn & m=nn - use these to specify a specific month you want the total for. Example - <#SunshineHoursMonth y=2021 m=1> for the January 2021 total
-		r=-nn - use this parameter to specify a relative month, -1 = last month, -2 = month before last etc. Example <#SunshineHoursMonth r=-1> for last months total
+		r=-nn - use this parameter to specify a relative month, -1 = last month, -2 = month before last etc. Example <#SunshineHoursMonth r=-1> for last month's total
 	- The Year tag accepts two parameters:
 		y=nnnn - specify the year you want the total. Example <#SunshineHoursYear y=2020>
 		r=-nn - specify a relative year, -1 = last year etc. Example <#SunshineHoursYear r=-2> total for the year before last
@@ -69,7 +74,7 @@
 	- You can enable/disable this feature via a setting in MySQL settings
 	- It only applies to Edit, Delete does not delete the entry in MySQL
 - New: Catch-up from a station logger with (standard) MySQL enabled, now also adds each archive entry to the Realtime table
-- New: Adds the ability to buffer failed MySQL commands until the MySQL server becomes available again, or Cumulus MX is restarted
+- New: Adds the ability to buffer failed MySQL commands until the MySQL server becomes available again, or Cumulus MX is restarted - when they will be lost
 	- Enabled via an option in MySQL Settings
 	- Note: Whilst Realtime updates are buffered, the uploading of failed queries is only performed by the Log updates
 - New: FineOffset stations now log the progress of archive data loading to the console

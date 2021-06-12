@@ -2784,7 +2784,7 @@ namespace CumulusMX
 
 						if (station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
 						{
-							cumulus.LogMessage($"WLLStations:  - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
+							cumulus.LogMessage($"WLLStations: - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 						}
 					}
 				}

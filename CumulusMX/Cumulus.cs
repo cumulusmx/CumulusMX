@@ -4543,7 +4543,7 @@ namespace CumulusMX
 
 			SunThreshold = ini.GetValue("Solar", "SunThreshold", 75);
 			RStransfactor = ini.GetValue("Solar", "RStransfactor", 0.8);
-			SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 0);
+			SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 30);
 			LuxToWM2 = ini.GetValue("Solar", "LuxToWM2", 0.0079);
 			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
 			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
@@ -9478,6 +9478,10 @@ namespace CumulusMX
 				{
 					LogMessage("This Cumulus MX instance is running the latest version");
 					UpgradeAlarm.Triggered = false;
+				}
+				else if (int.Parse(Build) > int.Parse(LatestBuild))
+				{
+					LogMessage($"This Cumulus MX instance appears to be running a beta/test version. This build = {Build}, latest released build = {LatestBuild}");
 				}
 				else
 				{
