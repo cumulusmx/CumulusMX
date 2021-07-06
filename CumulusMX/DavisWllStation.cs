@@ -1748,7 +1748,6 @@ namespace CumulusMX
 					case 11: // ISS data
 						var data11 = json.FromJsv<WlHistorySensorDataType11>();
 						var recordTs = Utils.FromUnixTime(data11.ts);
-						//weatherLinkArchiveInterval = data.Value<int>("arch_int");
 
 						// Temperature & Humidity
 						if (cumulus.WllPrimaryTempHum == data11.tx_id)
@@ -2026,6 +2025,12 @@ namespace CumulusMX
 							{
 								cumulus.LogDebugMessage($"WL.com historic: using solar data from TxId {data11.tx_id}");
 								DoSolarRad(data11.solar_rad_avg, recordTs);
+
+								// add in archive period worth of sunshine, if sunny - arch_int in seconds
+								if ((SolarRad > CurrentSolarMax * cumulus.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarMinimum))
+								{
+									SunshineHours += (data11.arch_int / 3600.0);
+								}
 							}
 							catch (Exception ex)
 							{

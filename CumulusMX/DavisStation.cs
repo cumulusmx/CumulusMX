@@ -2233,7 +2233,7 @@ namespace CumulusMX
 			if (numtodo == 0)
 			{
 				cumulus.LogMessage("GetArchiveData: No Archive data available");
-				Console.WriteLine(" - No Arichive data available");
+				Console.WriteLine(" - No Archive data available");
 			}
 			else
 			{

@@ -1,3 +1,16 @@
+3.12.0 - b3135 - BETA
+——————————————
+- Fix: Add missing Sunshine hours calculation to WLL historic catch-up
+
+- Fix-3134: Catches "abandoned" Mutex errors when checking single instance
+- Fix-3134: Fix the setting of "generate" option on output files when FTP or Local Copy enabled in the Wizard. Also no longer enable files that
+	are not used by the default web site = wxnow.txt, and realtime.txt
+
+- Change: Default unit values changed from Wind, Pressure and Altitude...
+	m/s -> km/h
+	mbar -> hPa
+	feet -> metres
+
 3.12.0 - b3134 - BETA
 ——————————————
 - Fix: The Realtime FTP - particularly SFTP - reconnection code has been rewritten to make it more robust
@@ -9,7 +22,7 @@
 - Change: Cumulus MX now uses a persistent database to store the recent 1 minute data
 	- This means that charts, recent webtags, and internal calculations for trends and periodic values will be more accurate after a restart
 	- If Cumulus MX is offline for a prolonged period, data for that offline period will obviously still be at the station logging interval resolution
-- Change: All log writing routines rewritten to minimise the time the file is open and add error handling where it is missing
+- Change [Internal]: All log writing routines rewritten to minimise the time the file is open and add error handling where it is missing
 - Change: MQTT now allows multiple topics for both Update and Interval data.
 	- The format of the MQTT template files has changed to accommodate this
 	- The template must now be formatted as JSON, however the payload data for each topic can still be in whatever format you like so long as you construct
@@ -32,7 +45,7 @@
 	- The Dashboard Internet > MQTT settings have been updated to reflect these changes
 - Change: Moves the FTP Rename/Delete/UTF-8 Encode settings from Internet Settings|Web Settings|General, to Internet Settings|Web Site|General
 - Change: Moves the Forum URL and Webcam URL settings from Internet Settings|Web Site to Internet Settings|Miscellaneous
-- Change: The Dashboard web pages now all use a common menu.js script to render the menus - it saves me a lot of typing when anything changes!
+- Change [Internal]: The Dashboard web pages now all use a common menu.js script to render the menus - it saves me a lot of typing when anything changes!
 - Change: The Dashboard settings pages now load the forms JSON as static files rather than via the API.
 - Change: The console output on start-up has been changed slightly to show actual IP addresses in URLs, and I have added some colour.
 	- You now also get different messages if no Cumulus.ini file is detected, directing users to run the first time setup wizard
@@ -79,7 +92,7 @@
 	- Note: Whilst Realtime updates are buffered, the uploading of failed queries is only performed by the Log updates
 - New: FineOffset stations now log the progress of archive data loading to the console
 - New: NOAA Reports now have an option to calculate the mean temperatures using the traditional method (max + min) / 2
-	- Note: This does apply to heating/cooling degree days, they will still use the integrated method
+	- Note: This does not apply to heating/cooling degree days, they will still use the integrated method
 
 - Summary of Cumulus.ini changes:
 	>> NEW >>
@@ -127,6 +140,9 @@
 		UseMinMaxAvg=0
 
 	>> NO LONGER USED >>
+		[FTP site]
+		AutoUpdate=0   // Deprecated, now read-only for migration purposes
+
 		[MQTT]
 		UpdateTopic=CumulusMX/DataUpdate
 		UpdateRetained=0

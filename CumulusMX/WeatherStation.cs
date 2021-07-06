@@ -1769,7 +1769,7 @@ namespace CumulusMX
 						cumulus.CustomHttpMinutesUpdate();
 					}
 
-					if (cumulus.FtpOptions.IntervalEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
+					if (cumulus.WebIntervalEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
 						if (cumulus.WebUpdating == 1)
 						{

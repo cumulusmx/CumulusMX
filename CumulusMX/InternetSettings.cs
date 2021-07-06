@@ -103,7 +103,6 @@ namespace CumulusMX
 					if (cumulus.RealtimeIntervalEnabled)
 					{
 						cumulus.FtpOptions.RealtimeEnabled = settings.websettings.realtime.enablerealtimeftp;
-						cumulus.FtpOptions.LocalCopyRealtimeEnabled = settings.websettings.realtime.enablecopy;
 						cumulus.RealtimeInterval = settings.websettings.realtime.realtimeinterval * 1000;
 						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
 							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
@@ -124,7 +123,7 @@ namespace CumulusMX
 					cumulus.WebIntervalEnabled = settings.websettings.interval.enabled;
 					if (cumulus.WebIntervalEnabled)
 					{
-						cumulus.WebAutoUpdate = settings.websettings.interval.autoupdate;
+						cumulus.FtpOptions.IntervalEnabled = settings.websettings.interval.enableintervalftp;
 						cumulus.UpdateInterval = settings.websettings.interval.ftpinterval;
 						if (cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
 							cumulus.WebTimer.Interval = cumulus.UpdateInterval * 60 * 1000;
@@ -391,7 +390,7 @@ namespace CumulusMX
 			var websettingsinterval = new JsonInternetSettingsWebSettingsInterval()
 			{
 				enabled = cumulus.WebIntervalEnabled,
-				autoupdate = cumulus.WebAutoUpdate,
+				enableintervalftp = cumulus.FtpOptions.IntervalEnabled,
 				ftpinterval = cumulus.UpdateInterval,
 				stdfiles = websettingsintervalstd,
 				graphfiles = websettingsintervalgraph,
@@ -702,7 +701,7 @@ namespace CumulusMX
 	public class JsonInternetSettingsWebSettingsInterval
 	{
 		public bool enabled { get; set; }
-		public bool autoupdate { get; set; }
+		public bool enableintervalftp { get; set; }
 		public bool enablecopy { get; set; }
 		public int ftpinterval { get; set; }
 		public JsonInternetSettingsWebSettingsIntervalFiles stdfiles { get; set; }
@@ -720,7 +719,7 @@ namespace CumulusMX
 	{
 		public bool enabled { get; set; }
 		public bool enablerealtimeftp { get; set; }
-		public bool enablecopy { get; set; }
+		//public bool enablecopy { get; set; }
 		public int realtimeinterval { get; set; }
 		public JsonInternetSettingsFileSettings[] files { get; set; }
 	}

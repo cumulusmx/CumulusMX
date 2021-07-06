@@ -992,14 +992,26 @@ namespace CumulusMX
 			ReadIniFile();
 
 			// Do we prevent more than one copy of CumulusMX running?
-			if (ProgramOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
+			try
 			{
-				LogConsoleMessage("Cumulus is already running - terminating");
-				LogConsoleMessage("Program exit");
-				LogMessage("Cumulus is already running - terminating");
-				LogMessage("Program exit");
-				Environment.Exit(1);
+				if (ProgramOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
+				{
+					LogConsoleMessage("Cumulus is already running - terminating");
+					LogConsoleMessage("Program exit");
+					LogMessage("Cumulus is already running - terminating");
+					LogMessage("Program exit");
+					Environment.Exit(1);
+				}
 			}
+			catch (AbandonedMutexException)
+			{
+				LogMessage("Abandoned Mutex Error!");
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Mutex Error! - " + ex);
+			}
+
 
 			// Do we wait for a ping response from a remote host before starting?
 			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
@@ -3735,7 +3747,7 @@ namespace CumulusMX
 			LonTxt = LonTxt.Replace("°", "&#39;");
 
 			Altitude = ini.GetValue("Station", "Altitude", 0.0);
-			AltitudeInFeet = ini.GetValue("Station", "AltitudeInFeet", true);
+			AltitudeInFeet = ini.GetValue("Station", "AltitudeInFeet", false);
 
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
 			StationOptions.UseWind10MinAve = ini.GetValue("Station", "Wind10MinAverage", false);
@@ -3825,8 +3837,8 @@ namespace CumulusMX
 			FineOffsetOptions.ProductID = ini.GetValue("Station", "ProductID", -1);
 
 
-			Units.Wind = ini.GetValue("Station", "WindUnit", 0);
-			Units.Press = ini.GetValue("Station", "PressureUnit", 0);
+			Units.Wind = ini.GetValue("Station", "WindUnit", 2);
+			Units.Press = ini.GetValue("Station", "PressureUnit", 1);
 
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0);
 			Units.Temp = ini.GetValue("Station", "TempUnit", 0);
@@ -3891,9 +3903,9 @@ namespace CumulusMX
 
 			LogMessage("Cumulus start date: " + RecordsBeganDate);
 
-			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500);			// delay to wait for a reply to a command
-			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);			// delay between sending read live data commands
-			ImetOptions.UpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);   // keep the logger pointer pointing at last data read
+			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
+			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);
+			ImetOptions.UpdateLogPointer = ini.GetValue("Station", "ImetUpdateLogPointer", true);
 			ImetOptions.BaudRate = ini.GetValue("Station", "ImetBaudRate", 19200);
 			// Check we have a valid value
 			if (!ImetOptions.BaudRates.Contains(ImetOptions.BaudRate))
@@ -3968,8 +3980,8 @@ namespace CumulusMX
 			WllStationId = ini.GetValue("WLL", "WLStationId", -1);
 			//if (WllStationId == "-1") WllStationId = "";
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
-			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", 1200);     // Readonly setting, default 20 minutes
-			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", 22222);            // Readonly setting, default 22222
+			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", WllBroadcastDuration);
+			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", WllBroadcastPort);
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1);
 			WllPrimaryTempHum = ini.GetValue("WLL", "PrimaryTempHumTxId", 1);
 			WllPrimaryWind = ini.GetValue("WLL", "PrimaryWindTxId", 1);
@@ -4049,7 +4061,7 @@ namespace CumulusMX
 			FtpOptions.ActiveMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			FtpOptions.FtpMode = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
 			// BUILD 3092 - added alternate SFTP authenication options
-			FtpOptions.SshAuthen = ini.GetValue("FTP site", "SshFtpAuthentication", "password"); // valid options: password, psk, password_psk
+			FtpOptions.SshAuthen = ini.GetValue("FTP site", "SshFtpAuthentication", "password");
 			if (!sshAuthenticationVals.Any(FtpOptions.SshAuthen.Contains))
 			{
 				FtpOptions.SshAuthen = "password";
@@ -4070,7 +4082,7 @@ namespace CumulusMX
 			// Local Copy Options
 			FtpOptions.LocalCopyEnabled = ini.GetValue("FTP site", "EnableLocalCopy", false);
 			//FtpOptions.LocalCopyRealtimeEnabled = ini.GetValue("FTP site", "EnableRealtimeLocalCopy", false);
-			FtpOptions.LocalCopyFolder = ini.GetValue("Ftp site", "LocalCopyFolder", "");
+			FtpOptions.LocalCopyFolder = ini.GetValue("FTP site", "LocalCopyFolder", "");
 			var sep1 = Path.DirectorySeparatorChar.ToString();
 			var sep2 = Path.AltDirectorySeparatorChar.ToString();
 			if (FtpOptions.LocalCopyFolder.Length > 1 &&
@@ -4081,7 +4093,7 @@ namespace CumulusMX
 			}
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
-			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", true);
+			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);
 
 
 			RealtimeFiles[0].Create = ini.GetValue("FTP site", "RealtimeTxtCreate", false);
@@ -4095,16 +4107,10 @@ namespace CumulusMX
 			if (RealtimeInterval < 1) { RealtimeInterval = 1; }
 			//RealtimeTimer.Change(0,RealtimeInterval);
 
-			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);
+			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);  // Deprecated, to be remove at some future date
 			// Have to allow for upgrade, set interval enabled to old WebAutoUpdate
-			if (ini.ValueExists("FTP site", "IntervalEnabled"))
-			{
-				WebIntervalEnabled = ini.GetValue("FTP site", "IntervalEnabled", false);
-			}
-			else
-			{
-				WebIntervalEnabled = WebAutoUpdate;
-			}
+			WebIntervalEnabled = ini.GetValue("FTP site", "IntervalEnabled", WebAutoUpdate);
+			FtpOptions.IntervalEnabled = ini.GetValue("FTP site", "IntervalFtpEnabled", WebAutoUpdate); ;
 
 			UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", DefaultWebUpdateInterval);
 			if (UpdateInterval<1) { UpdateInterval = 1; }
@@ -4149,7 +4155,7 @@ namespace CumulusMX
 				GraphDataEodFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
 
-			FTPRename = ini.GetValue("FTP site", "FTPRename", false);
+			FTPRename = ini.GetValue("FTP site", "FTPRename", true);
 			UTF8encode = ini.GetValue("FTP site", "UTF8encode", true);
 			DeleteBeforeUpload = ini.GetValue("FTP site", "DeleteBeforeUpload", false);
 
@@ -4746,6 +4752,8 @@ namespace CumulusMX
 				TempSumYearStarts = 1;
 			TempSumBase1 = ini.GetValue("TempSum", "BaseTemperature1", GrowingBase1);
 			TempSumBase2 = ini.GetValue("TempSum", "BaseTemperature2", GrowingBase2);
+
+			LogMessage("Reading Cumulus.ini file completed");
 		}
 
 		internal void WriteIniFile()
@@ -4880,9 +4888,9 @@ namespace CumulusMX
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
 			ini.SetValue("Station", "ImetBaudRate", ImetOptions.BaudRate);
-			ini.SetValue("Station", "ImetWaitTime", ImetOptions.WaitTime);					// delay to wait for a reply to a command
-			ini.SetValue("Station", "ImetReadDelay", ImetOptions.ReadDelay);				// delay between sending read live data commands
-			ini.SetValue("Station", "ImetUpdateLogPointer", ImetOptions.UpdateLogPointer);	// keep the logger pointer pointing at last data read
+			ini.SetValue("Station", "ImetWaitTime", ImetOptions.WaitTime);
+			ini.SetValue("Station", "ImetReadDelay", ImetOptions.ReadDelay);
+			ini.SetValue("Station", "ImetUpdateLogPointer", ImetOptions.UpdateLogPointer);
 
 			ini.SetValue("Station", "RG11Enabled", RG11Enabled);
 			ini.SetValue("Station", "RG11portName", RG11Port);
@@ -4966,7 +4974,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "Password", FtpOptions.Password);
 			ini.SetValue("FTP site", "Directory", FtpOptions.Directory);
 
-			ini.SetValue("FTP site", "AutoUpdate", WebAutoUpdate);
+			//ini.SetValue("FTP site", "AutoUpdate", WebAutoUpdate);  // Deprecated - now read-only
 			ini.SetValue("FTP site", "Sslftp", (int)FtpOptions.FtpMode);
 			// BUILD 3092 - added alternate SFTP authenication options
 			ini.SetValue("FTP site", "SshFtpAuthentication", FtpOptions.SshAuthen);
@@ -4986,6 +4994,8 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "RealtimeGaugesTxtCopy", RealtimeFiles[1].Copy);
 
 			ini.SetValue("FTP site", "IntervalEnabled", WebIntervalEnabled);
+			ini.SetValue("FTP site", "IntervalFtpEnabled", FtpOptions.IntervalEnabled);
+
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
@@ -5047,8 +5057,7 @@ namespace CumulusMX
 
 			// Local Copy Options
 			ini.SetValue("FTP site", "EnableLocalCopy", FtpOptions.LocalCopyEnabled);
-			ini.SetValue("FTP site", "EnableRealtimeLocalCopy", FtpOptions.LocalCopyRealtimeEnabled);
-			ini.SetValue("Ftp site", "LocalCopyFolder", FtpOptions.LocalCopyFolder);
+			ini.SetValue("FTP site", "LocalCopyFolder", FtpOptions.LocalCopyFolder);
 
 
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);
@@ -6069,7 +6078,9 @@ namespace CumulusMX
 		public int WllStationId;
 		public int WllParentId;
 
-		public int WllBroadcastDuration = 300;
+		/// <value>Readonly setting, default 20 minutes (1200 sec)</value>
+		public int WllBroadcastDuration = 1200;
+		/// <value>Readonly setting, default 22222</value>
 		public int WllBroadcastPort = 22222;
 		public bool WLLAutoUpdateIpAddress = true;
 		public int WllPrimaryWind = 1;
@@ -9956,9 +9967,13 @@ namespace CumulusMX
 
 	public class StationUnits
 	{
+		/// <value> 0=m/s, 1=mph, 2=km/h, 3=knots</value>
 		public int Wind { get; set; }
+		/// <value> 0=mb, 1=hPa, 2=inHg </value>
 		public int Press { get; set; }
+		/// <value> 0=mm, 1=in </value>
 		public int Rain { get; set; }
+		/// <value> 0=C, 1=F </value>
 		public int Temp { get; set; }
 
 		public string WindText { get; set; }
@@ -10013,7 +10028,9 @@ namespace CumulusMX
 		public string Directory { get; set; }
 		public bool IntervalEnabled { get; set; }
 		public bool RealtimeEnabled { get; set; }
+		/// <value>0=FTP, 1=FTPS, 3=SFTP</value>
 		public Cumulus.FtpProtocols FtpMode { get; set; }
+		/// <value>Valid options: password, psk, password_psk</value>
 		public string SshAuthen { get; set; }
 		public string SshPskFile { get; set; }
 		public bool Logging { get; set; }
@@ -10023,7 +10040,6 @@ namespace CumulusMX
 		public bool DisableExplicit { get; set; }
 
 		public bool LocalCopyEnabled { get; set; }
-		public bool LocalCopyRealtimeEnabled { get; set; }
 		public string LocalCopyFolder { get; set; }
 	}
 
@@ -10091,8 +10107,11 @@ namespace CumulusMX
 	{
 		public List<int> BaudRates { get; set; }
 		public int BaudRate { get; set; }
+		/// <value>Delay to wait for a reply to a command (ms)</value>
 		public int WaitTime { get; set; }
+		/// <value>Delay between sending read live data commands (ms)</value>
 		public int ReadDelay { get; set; }
+		/// <value>Keep the logger pointer pointing at last data read</value>
 		public bool UpdateLogPointer { get; set; }
 	}
 

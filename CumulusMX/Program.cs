@@ -234,6 +234,7 @@ namespace CumulusMX
                     Thread.Sleep(500);
                 }
 
+                appMutex.ReleaseMutex();
                 Environment.Exit(0);
             }
         }

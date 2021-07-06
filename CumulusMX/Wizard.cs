@@ -144,7 +144,7 @@ namespace CumulusMX
 				interval = new JsonWizardWebInterval()
 				{
 					enabled = cumulus.WebIntervalEnabled,
-					autoupdate = cumulus.WebAutoUpdate,
+					enableintervalftp = cumulus.FtpOptions.IntervalEnabled,
 					ftpinterval = cumulus.UpdateInterval
 				},
 				realtime = new JsonWizardWebRealtime()
@@ -225,28 +225,39 @@ namespace CumulusMX
 					}
 
 					// Now flag all the standard files to FTP/Copy or not
-					for (var i = 0; i < cumulus.StdWebFiles.Length; i++)
+					// do not process last entry = wxnow.txt, it is not used by teh standard site
+					for (var i = 0; i < cumulus.StdWebFiles.Length - 1; i++)
 					{
+						cumulus.StdWebFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.StdWebFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.StdWebFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and graph data files
 					for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 					{
+						cumulus.GraphDataFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.GraphDataFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.GraphDataFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and EOD data files
 					for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 					{
+						cumulus.GraphDataEodFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.GraphDataEodFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.GraphDataEodFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and Realtime files
-					cumulus.RealtimeFiles[0].FTP = cumulus.FtpOptions.Enabled;
-					cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+
+					// realtime.txt is no used by the standard site
+					//cumulus.RealtimeFiles[0].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
+					//cumulus.RealtimeFiles[0].FTP = cumulus.FtpOptions.Enabled;
+					//cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+
+					// realtimegauges.txt IS used by the standard site
+					cumulus.RealtimeFiles[1].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 					cumulus.RealtimeFiles[1].FTP = cumulus.FtpOptions.Enabled;
 					cumulus.RealtimeFiles[1].Copy = cumulus.FtpOptions.LocalCopyEnabled;
+
 					// and Moon image
 					cumulus.MoonImage.Enabled = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 					cumulus.MoonImage.Ftp = cumulus.FtpOptions.Enabled;
@@ -288,7 +299,7 @@ namespace CumulusMX
 					cumulus.WebIntervalEnabled = settings.website.interval.enabled;
 					if (cumulus.WebIntervalEnabled)
 					{
-						cumulus.WebAutoUpdate = settings.website.interval.autoupdate;
+						cumulus.FtpOptions.IntervalEnabled = settings.website.interval.enableintervalftp;
 						cumulus.UpdateInterval = settings.website.interval.ftpinterval;
 						if (cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
 							cumulus.WebTimer.Interval = cumulus.UpdateInterval * 60 * 1000;
@@ -668,7 +679,7 @@ namespace CumulusMX
 	internal class JsonWizardWebInterval
 	{
 		public bool enabled { get; set; }
-		public bool autoupdate { get; set; }
+		public bool enableintervalftp { get; set; }
 		public int ftpinterval { get; set; }
 	}
 
