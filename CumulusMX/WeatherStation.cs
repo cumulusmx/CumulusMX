@@ -5738,7 +5738,7 @@ namespace CumulusMX
 		/// <summary>
 		///  Converts wind supplied in mph to user units
 		/// </summary>
-		/// <param name="value">Wind in m/s</param>
+		/// <param name="value">Wind in mph</param>
 		/// <returns>Wind in configured units</returns>
 		public double ConvertWindMPHToUser(double value)
 		{

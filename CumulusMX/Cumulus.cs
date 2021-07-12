@@ -697,7 +697,8 @@ namespace CumulusMX
 		public string[] StationDesc =
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000"
+			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000",
+			"HTTP Wund"
 		};
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
@@ -1395,6 +1396,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
+				case StationTypes.HttpWund:
+					Manufacturer = HTTPSTATION;
+					station = new HttpStationWund(this);
+					break;
 				default:
 					LogConsoleMessage("Station type not set");
 					LogMessage("Station type not set");
@@ -1406,6 +1411,11 @@ namespace CumulusMX
 				Api.Station = station;
 				Api.stationSettings.SetStation(station);
 				Api.dataEditor.SetStation(station);
+
+				if (StationType == StationTypes.HttpWund)
+				{
+					Api.stationWund = (HttpStationWund)station;
+				}
 
 				LogMessage("Creating extra sensors");
 				if (AirLinkInEnabled)
@@ -2676,8 +2686,11 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage($"Realtime[{cycle}]: Error during update: {ex.Message}");
-				RealtimeFTPReconnect();
-				RealtimeFtpInProgress = false;
+				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
+				{
+					RealtimeFTPReconnect();
+					RealtimeFtpInProgress = false;
+				}
 			}
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
 		}
@@ -6143,6 +6156,7 @@ namespace CumulusMX
 		public int OREGONUSB = 4;
 		public int INSTROMET = 5;
 		public int ECOWITT = 6;
+		public int HTTPSTATION = 7;
 		//public bool startingup = true;
 		public string ReportPath;
 		public string LatestError;
@@ -7614,7 +7628,7 @@ namespace CumulusMX
 			}
 			LogDebugMessage("LocalCopy: Done copying daily graph data files");
 
-			if (MoonImage.Ftp && MoonImage.ReadyToCopy)
+			if (MoonImage.Copy && MoonImage.ReadyToCopy)
 			{
 				try
 				{
@@ -9919,6 +9933,7 @@ namespace CumulusMX
 		public const int Instromet = 10;
 		public const int WLL = 11;
 		public const int GW1000 = 12;
+		public const int HttpWund = 13;
 	}
 
 	/*

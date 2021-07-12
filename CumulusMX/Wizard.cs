@@ -124,10 +124,14 @@ namespace CumulusMX
 				wmr928 = wmr
 			};
 
-			var internet = new JsonWiazrdInternet()
+			var copy = new JsonWizardInternetCopy()
 			{
 				localcopy = cumulus.FtpOptions.LocalCopyEnabled,
 				localcopyfolder = cumulus.FtpOptions.LocalCopyFolder,
+			};
+
+			var ftp = new JsonWizardInternetFtp()
+			{
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
@@ -137,6 +141,11 @@ namespace CumulusMX
 				username = cumulus.FtpOptions.Username,
 				sshAuth = cumulus.FtpOptions.SshAuthen,
 				pskFile = cumulus.FtpOptions.SshPskFile
+			};
+			var internet = new JsonWizardInternet()
+			{
+				copy = copy,
+				ftp = ftp
 			};
 
 			var website = new JsonWizardWebSite()
@@ -205,27 +214,27 @@ namespace CumulusMX
 				// website settings
 				try
 				{
-					cumulus.FtpOptions.Enabled = settings.internet.enabled;
+					cumulus.FtpOptions.Enabled = settings.internet.ftp.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.Directory = settings.internet.directory ?? string.Empty;
-						cumulus.FtpOptions.Port = settings.internet.ftpport;
-						cumulus.FtpOptions.Hostname = settings.internet.hostname ?? string.Empty;
-						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.sslftp;
-						cumulus.FtpOptions.Password = settings.internet.password ?? string.Empty;
-						cumulus.FtpOptions.Username = settings.internet.username ?? string.Empty;
-						cumulus.FtpOptions.SshAuthen = settings.internet.sshAuth ?? string.Empty;
-						cumulus.FtpOptions.SshPskFile = settings.internet.pskFile ?? string.Empty;
+						cumulus.FtpOptions.Directory = settings.internet.ftp.directory ?? string.Empty;
+						cumulus.FtpOptions.Port = settings.internet.ftp.ftpport;
+						cumulus.FtpOptions.Hostname = settings.internet.ftp.hostname ?? string.Empty;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.ftp.sslftp;
+						cumulus.FtpOptions.Password = settings.internet.ftp.password ?? string.Empty;
+						cumulus.FtpOptions.Username = settings.internet.ftp.username ?? string.Empty;
+						cumulus.FtpOptions.SshAuthen = settings.internet.ftp.sshAuth ?? string.Empty;
+						cumulus.FtpOptions.SshPskFile = settings.internet.ftp.pskFile ?? string.Empty;
 					}
 
-					cumulus.FtpOptions.LocalCopyEnabled = settings.internet.localcopy;
+					cumulus.FtpOptions.LocalCopyEnabled = settings.internet.copy.localcopy;
 					if (cumulus.FtpOptions.LocalCopyEnabled)
 					{
-						cumulus.FtpOptions.LocalCopyFolder = settings.internet.localcopyfolder;
+						cumulus.FtpOptions.LocalCopyFolder = settings.internet.copy.localcopyfolder;
 					}
 
 					// Now flag all the standard files to FTP/Copy or not
-					// do not process last entry = wxnow.txt, it is not used by teh standard site
+					// do not process last entry = wxnow.txt, it is not used by the standard site
 					for (var i = 0; i < cumulus.StdWebFiles.Length - 1; i++)
 					{
 						cumulus.StdWebFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
@@ -263,13 +272,20 @@ namespace CumulusMX
 					cumulus.MoonImage.Ftp = cumulus.FtpOptions.Enabled;
 					cumulus.MoonImage.Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.MoonImage.Enabled)
-						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images/moonpng";
+						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images" + cumulus.DirectorySeparator + "moonpng";
+
 					// and NOAA reports
 					cumulus.NOAAconf.Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 					cumulus.NOAAconf.AutoFtp = cumulus.FtpOptions.Enabled;
 					cumulus.NOAAconf.AutoCopy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.NOAAconf.AutoCopy)
-						cumulus.NOAAconf.CopyFolder = cumulus.FtpOptions.LocalCopyFolder;
+					{
+						cumulus.NOAAconf.CopyFolder = cumulus.FtpOptions.LocalCopyFolder + "Reports";
+					}
+					if (cumulus.NOAAconf.AutoFtp)
+					{
+						cumulus.NOAAconf.FtpFolder = cumulus.FtpOptions.Directory + (cumulus.FtpOptions.Directory.EndsWith("/") ? "" : "/") + "Reports";
+					}
 				}
 				catch (Exception ex)
 				{
@@ -293,6 +309,7 @@ namespace CumulusMX
 					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeIntervalEnabled;
 					if (!cumulus.RealtimeTimer.Enabled || !cumulus.FtpOptions.RealtimeEnabled)
 					{
+						cumulus.RealtimeTimer.Stop();
 						cumulus.RealtimeFTPDisconnect();
 					}
 
@@ -369,7 +386,7 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// logging
+				// data logging
 				try
 				{
 					cumulus.DataLogInterval = settings.logs.loginterval;
@@ -581,7 +598,7 @@ namespace CumulusMX
 		public JsonWizardUnits units { get; set; }
 		public JsonWizardStation station { get; set; }
 		public JsonWizardLogs logs { get; set; }
-		public JsonWiazrdInternet internet { get; set; }
+		public JsonWizardInternet internet { get; set; }
 		public JsonWizardWebSite website { get; set; }
 	}
 
@@ -655,10 +672,21 @@ namespace CumulusMX
 		public int baudrate { get; set; }
 	}
 
-	internal class JsonWiazrdInternet
+	internal class JsonWizardInternet
+	{
+		public JsonWizardInternetCopy copy { get; set; }
+		public JsonWizardInternetFtp ftp { get; set; }
+	}
+
+	internal class JsonWizardInternetCopy
 	{
 		public bool localcopy { get; set; }
 		public string localcopyfolder { get; set; }
+
+	}
+
+	internal class JsonWizardInternetFtp
+	{
 		public bool enabled { get; set; }
 		public string hostname { get; set; }
 		public int ftpport { get; set; }
@@ -668,6 +696,7 @@ namespace CumulusMX
 		public string password { get; set; }
 		public string sshAuth { get; set; }
 		public string pskFile { get; set; }
+
 	}
 
 	internal class JsonWizardWebSite

@@ -27,6 +27,7 @@ namespace CumulusMX
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
+		internal static HttpStationWund stationWund;
 
 
 		private static string EscapeUnicode(string input)
@@ -55,6 +56,7 @@ namespace CumulusMX
 			server.Module<WebApiModule>().RegisterController<EditController>();
 			server.Module<WebApiModule>().RegisterController<ReportsController>();
 			server.Module<WebApiModule>().RegisterController<TagController>();
+			server.Module<WebApiModule>().RegisterController<HttpStation>();
 		}
 
 		// Get/Post Edit data
@@ -1041,5 +1043,72 @@ namespace CumulusMX
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
+
+		// HTTP Station
+		public class HttpStation : WebApiController
+		{
+			public HttpStation(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Post, "/station/*")]
+			public async Task<bool> PostTags()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						//case "process.txt":
+						//	return await this.StringResponseAsync(tagProcessor.ProcessText(this));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+			[WebApiHandler(HttpVerbs.Get, "/station/*")]
+			public async Task<bool> GetStation()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "wund.html":
+							return await this.JsonResponseAsync(stationWund.ProcessData(Request.Url.Query));
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+			private async Task<bool> HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
+				{
+					Title = "Unexpected Error",
+					ErrorCode = ex.GetType().Name,
+					Description = ex.Message,
+				};
+
+				Response.StatusCode = statusCode;
+				return await this.JsonResponseAsync(errorResponse);
+			}
+		}
+
+
 	}
 }

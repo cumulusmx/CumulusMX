@@ -72,12 +72,17 @@ namespace CumulusMX
 				command = cumulus.MySqlSettings.CustomRollover.Command,
 			};
 
+			var options = new JsonMysqlSettingsOptions()
+			{
+				updateonedit = cumulus.MySqlSettings.UpdateOnEdit,
+				bufferonerror = cumulus.MySqlSettings.BufferOnfailure,
+			};
+
 			var data = new JsonMysqlSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
-				updateonedit = cumulus.MySqlSettings.UpdateOnEdit,
-				bufferonerror = cumulus.MySqlSettings.BufferOnfailure,
 				server = server,
+				options = options,
 				monthly = monthly,
 				realtime = realtime,
 				dayfile = dayfile,
@@ -132,10 +137,10 @@ namespace CumulusMX
 				cumulus.MySqlConnSettings.Database = settings.server.database;
 				cumulus.MySqlConnSettings.UserID = settings.server.user;
 				cumulus.MySqlConnSettings.Password = settings.server.pass;
-				//update on edit
-				cumulus.MySqlSettings.UpdateOnEdit = settings.updateonedit;
-				//buffer on error
-				cumulus.MySqlSettings.BufferOnfailure = settings.bufferonerror;
+
+				// options
+				cumulus.MySqlSettings.UpdateOnEdit = settings.options.updateonedit;
+				cumulus.MySqlSettings.BufferOnfailure = settings.options.bufferonerror;
 
 				//monthly
 				cumulus.MySqlSettings.Monthly.Enabled = settings.monthly.enabled;
@@ -275,9 +280,8 @@ namespace CumulusMX
 	public class JsonMysqlSettings
 	{
 		public bool accessible {get; set;}
-		public bool updateonedit { get; set; }
-		public bool bufferonerror { get; set; }
 		public JsonMysqlSettingsServer server { get; set; }
+		public JsonMysqlSettingsOptions options { get; set; }
 		public JsonMysqlSettingsMonthly monthly { get; set; }
 		public JsonMysqlSettingsRealtime realtime { get; set; }
 		public JsonMysqlSettingsDayfile dayfile { get; set; }
@@ -295,6 +299,11 @@ namespace CumulusMX
 		public string database { get; set; }
 	}
 
+	public class JsonMysqlSettingsOptions
+	{
+		public bool updateonedit { get; set; }
+		public bool bufferonerror { get; set; }
+	}
 	public class JsonMysqlSettingsMonthly
 	{
 		public bool enabled { get; set; }

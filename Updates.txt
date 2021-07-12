@@ -1,3 +1,23 @@
+3.12.0 - b3137 - BETA
+——————————————
+- New: Add HTTP upload station type using WUnderground API
+	- Access via <hostname_orIP>:8998/station/wund.html?ID=1&PASSWORD=1&tempf=68.5 ...etc
+
+
+3.12.0 - b3136 - BETA
+——————————————
+- More improvements to the Wizard
+	- Site name is now required
+	- Latitude and Longitude now accept comma decimals
+	- FTP password field is now hidden when appropriate
+	- Internal changes
+
+- New: Adds ET for Davis WLL stations with Pro subscriptions.
+
+- Internal changes to all Settings pages
+- Cosmetic changes to most Settings pages, and Records editors
+
+
 3.12.0 - b3135 - BETA
 ——————————————
 - Fix: Add missing Sunshine hours calculation to WLL historic catch-up

@@ -2019,7 +2019,7 @@ namespace CumulusMX
 							 * "solar_rad_hi"
 							 * "solar_rad_volt_last"
 							 * "solar_volt_last"
-							 * "et"
+							 * "et" (inches) - ET field is populated in the ISS archive records, which may not be the same as the solar
 							 */
 							try
 							{
@@ -2037,6 +2037,11 @@ namespace CumulusMX
 								cumulus.LogMessage($"WL.com historic: Error processing Solar value on TxId {data11.tx_id}. Error: {ex.Message}");
 							}
 						}
+
+						// Is there any ET in this record?
+						ET += ConvertRainINToUser(data11.et);
+						cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser(data11.et):F3} to ET");
+
 						break;
 
 					case 13: // Non-ISS data
@@ -2517,6 +2522,10 @@ namespace CumulusMX
 					DavisTxRssi[data11.tx_id] = data11.rssi;
 
 					cumulus.LogDebugMessage($"WLL Health: IIS {data11.tx_id}: Errors={DavisTotalPacketsMissed[data11.tx_id]}, CRCs={DavisNumCRCerrors[data11.tx_id]}, Resyncs={DavisNumberOfResynchs[data11.tx_id]}, Streak={DavisMaxInARow[data11.tx_id]}, %={DavisReceptionPct[data11.tx_id]}, RSSI={DavisTxRssi[data11.tx_id]}");
+
+					// Is there any ET in this record?
+					ET += ConvertRainINToUser(data11.et);
+					cumulus.LogDebugMessage($"WLL Health: Adding {ConvertRainINToUser(data11.et):F3} to ET");
 				}
 				catch (Exception ex)
 				{

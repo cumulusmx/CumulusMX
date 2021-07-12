@@ -198,6 +198,7 @@
     <Compile Include="FOStation.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GW1000Station.cs" />
+    <Compile Include="HttpStationWund.cs" />
     <Compile Include="ImetStation.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="InternetSettings.cs" />
