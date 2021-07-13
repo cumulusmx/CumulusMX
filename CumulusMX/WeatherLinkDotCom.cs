@@ -47,34 +47,34 @@ namespace CumulusMX
 		public int tx_id { get; set; }
 		public long ts { get; set; }
 		public int arch_int { get; set; }
-		public double temp_last { get; set; }
+		public double? temp_last { get; set; }
 		public double temp_avg { get; set; }
-		public double temp_hi { get; set; }
+		public double? temp_hi { get; set; }
 		public long temp_hi_at { get; set; }
-		public double temp_lo { get; set; }
+		public double? temp_lo { get; set; }
 		public long temp_lo_at { get; set; }
-		public double hum_last { get; set; }
-		public double hum_hi { get; set; }
+		public double? hum_last { get; set; }
+		public double? hum_hi { get; set; }
 		public long hum_hi_at { get; set; }
-		public double hum_lo { get; set; }
+		public double? hum_lo { get; set; }
 		public long hum_lo_at { get; set; }
-		public double dew_point_last { get; set; }
-		public double dew_point_hi { get; set; }
+		public double? dew_point_last { get; set; }
+		public double? dew_point_hi { get; set; }
 		public long dew_point_hi_at { get; set; }
-		public double dew_point_lo { get; set; }
+		public double? dew_point_lo { get; set; }
 		public long dew_point_lo_at { get; set; }
 		public double wet_bulb_last { get; set; }
 		public double wet_bulb_hi { get; set; }
 		public long wet_bulb_hi_at { get; set; }
 		public double wet_bulb_lo { get; set; }
 		public long wet_bulb_lo_at { get; set; }
-		public double wind_speed_avg { get; set; }
+		public double? wind_speed_avg { get; set; }
 		public int wind_dir_of_prevail { get; set; }
-		public double wind_speed_hi { get; set; }
-		public int wind_speed_hi_dir { get; set; }
+		public double? wind_speed_hi { get; set; }
+		public int? wind_speed_hi_dir { get; set; }
 		public long wind_speed_hi_at { get; set; }
-		public double wind_chill_last { get; set; }
-		public double wind_chill_lo { get; set; }
+		public double? wind_chill_last { get; set; }
+		public double? wind_chill_lo { get; set; }
 		public long wind_chill_lo_at { get; set; }
 		public double heat_index_last { get; set; }
 		public double heat_index_hi { get; set; }
@@ -90,18 +90,18 @@ namespace CumulusMX
 		public double thsw_index_lo { get; set; }
 		public long thsw_index_lo_at { get; set; }
 		public int rain_size { get; set; }
-		public int rainfall_clicks { get; set; }
+		public int? rainfall_clicks { get; set; }
 		public double rainfall_in { get; set; }
 		public double rainfall_mm { get; set; }
-		public int rain_rate_hi_clicks { get; set; }
+		public int? rain_rate_hi_clicks { get; set; }
 		public double rain_rate_hi_in { get; set; }
 		public double rain_rate_hi_mm { get; set; }
 		public long rain_rate_hi_at { get; set; }
-		public int solar_rad_avg { get; set; }
+		public int? solar_rad_avg { get; set; }
 		public int solar_rad_hi { get; set; }
 		public long solar_rad_hi_at { get; set; }
-		public double et { get; set; }
-		public double uv_index_avg { get; set; }
+		public double? et { get; set; }
+		public double? uv_index_avg { get; set; }
 		public double uv_index_hi { get; set; }
 		public long uv_index_hi_at { get; set; }
 		public double solar_rad_volt_last { get; set; }
@@ -130,53 +130,53 @@ namespace CumulusMX
 		public int tx_id { get; set; }
 		public long ts { get; set; }
 		public int arch_int { get; set; }
-		public double temp_last_1 { get; set; }
+		public double? temp_last_1 { get; set; }
 		public double temp_hi_1 { get; set; }
 		public long temp_hi_at_1 { get; set; }
 		public double temp_lo_1 { get; set; }
 		public long temp_lo_at_1 { get; set; }
-		public double temp_last_2 { get; set; }
+		public double? temp_last_2 { get; set; }
 		public double temp_hi_2 { get; set; }
 		public long temp_hi_at_2 { get; set; }
 		public double temp_lo_2 { get; set; }
 		public long temp_lo_at_2 { get; set; }
-		public double temp_last_3 { get; set; }
+		public double? temp_last_3 { get; set; }
 		public double temp_hi_3 { get; set; }
 		public long temp_hi_at_3 { get; set; }
 		public double temp_lo_3 { get; set; }
 		public long temp_lo_at_3 { get; set; }
-		public double temp_last_4 { get; set; }
+		public double? temp_last_4 { get; set; }
 		public double temp_hi_4 { get; set; }
 		public long temp_hi_at_4 { get; set; }
 		public double temp_lo_4 { get; set; }
 		public long temp_lo_at_4 { get; set; }
-		public double moist_soil_last_1 { get; set; }
+		public double? moist_soil_last_1 { get; set; }
 		public double moist_soil_hi_1 { get; set; }
 		public long moist_soil_hi_at_1 { get; set; }
 		public double moist_soil_lo_1 { get; set; }
 		public long moist_soil_lo_at_1 { get; set; }
-		public double moist_soil_last_2 { get; set; }
+		public double? moist_soil_last_2 { get; set; }
 		public double moist_soil_hi_2 { get; set; }
 		public int moist_soil_hi_at_2 { get; set; }
 		public double moist_soil_lo_2 { get; set; }
 		public long moist_soil_lo_at_2 { get; set; }
-		public double moist_soil_last_3 { get; set; }
+		public double? moist_soil_last_3 { get; set; }
 		public double moist_soil_hi_3 { get; set; }
 		public long moist_soil_hi_at_3 { get; set; }
 		public double moist_soil_lo_3 { get; set; }
 		public long moist_soil_lo_at_3 { get; set; }
-		public double moist_soil_last_4 { get; set; }
+		public double? moist_soil_last_4 { get; set; }
 		public double moist_soil_hi_4 { get; set; }
 		public long moist_soil_hi_at_4 { get; set; }
 		public double moist_soil_lo_4 { get; set; }
 		public long moist_soil_lo_at_4 { get; set; }
-		public double wet_leaf_last_1 { get; set; }
+		public double? wet_leaf_last_1 { get; set; }
 		public double wet_leaf_hi_1 { get; set; }
 		public long wet_leaf_hi_at_1 { get; set; }
 		public double wet_leaf_lo_1 { get; set; }
 		public long wet_leaf_lo_at_1 { get; set; }
 		public double wet_leaf_min_1 { get; set; }
-		public double wet_leaf_last_2 { get; set; }
+		public double? wet_leaf_last_2 { get; set; }
 		public double wet_leaf_hi_2 { get; set; }
 		public long wet_leaf_hi_at_2 { get; set; }
 		public double wet_leaf_lo_2 { get; set; }
@@ -198,24 +198,24 @@ namespace CumulusMX
 	{
 		public int arch_int { get; set; }
 		public long ts { get; set; }
-		public double bar_sea_level { get; set; }
-		public double bar_hi { get; set; }
+		public double? bar_sea_level { get; set; }
+		public double? bar_hi { get; set; }
 		public long bar_hi_at { get; set; }
-		public double bar_lo { get; set; }
+		public double? bar_lo { get; set; }
 		public long bar_lo_at { get; set; }
-		public double bar_absolute { get; set; }
+		public double? bar_absolute { get; set; }
 
 	}
 
 	public class WlHistorySensorDataType13Temp
 	{
 		public long ts { get; set; }
-		public double temp_in_last { get; set; }
+		public double? temp_in_last { get; set; }
 		public double temp_in_hi { get; set; }
 		public long temp_in_hi_at { get; set; }
 		public double temp_in_lo { get; set; }
 		public long temp_in_lo_at { get; set; }
-		public double hum_in_last { get; set; }
+		public double? hum_in_last { get; set; }
 		public double hum_in_hi { get; set; }
 		public long hum_in_hi_at { get; set; }
 		public double hum_in_lo { get; set; }
