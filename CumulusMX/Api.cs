@@ -28,6 +28,7 @@ namespace CumulusMX
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
 		internal static HttpStationWund stationWund;
+		internal static HttpStationEcowitt stationEcowitt;
 
 
 		private static string EscapeUnicode(string input)
@@ -1061,8 +1062,12 @@ namespace CumulusMX
 
 					switch (lastSegment)
 					{
-						//case "process.txt":
-						//	return await this.StringResponseAsync(tagProcessor.ProcessText(this));
+						case "ecowitt":
+							if (stationEcowitt != null)
+							{
+								return await this.StringResponseAsync(stationEcowitt.ProcessData(this));
+							}
+							break;
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -1083,8 +1088,12 @@ namespace CumulusMX
 
 					switch (lastSegment)
 					{
-						case "wund.html":
-							return await this.JsonResponseAsync(stationWund.ProcessData(Request.Url.Query));
+						case "wunderground":
+							if (stationWund != null)
+							{
+								return await this.StringResponseAsync(stationWund.ProcessData(this));
+							}
+							break;
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

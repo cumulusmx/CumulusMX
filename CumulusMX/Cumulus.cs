@@ -698,7 +698,7 @@ namespace CumulusMX
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
 			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000",
-			"HTTP Wund"
+			"HTTP WUnderground", "HTTP Ecowitt"
 		};
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
@@ -1400,6 +1400,10 @@ namespace CumulusMX
 					Manufacturer = HTTPSTATION;
 					station = new HttpStationWund(this);
 					break;
+				case StationTypes.HttpEcowitt:
+					Manufacturer = ECOWITT;
+					station = new HttpStationEcowitt(this);
+					break;
 				default:
 					LogConsoleMessage("Station type not set");
 					LogMessage("Station type not set");
@@ -1415,6 +1419,10 @@ namespace CumulusMX
 				if (StationType == StationTypes.HttpWund)
 				{
 					Api.stationWund = (HttpStationWund)station;
+				}
+				else if (StationType == StationTypes.HttpEcowitt)
+				{
+					Api.stationEcowitt = (HttpStationEcowitt)station;
 				}
 
 				LogMessage("Creating extra sensors");
@@ -9934,6 +9942,7 @@ namespace CumulusMX
 		public const int WLL = 11;
 		public const int GW1000 = 12;
 		public const int HttpWund = 13;
+		public const int HttpEcowitt = 14;
 	}
 
 	/*

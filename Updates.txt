@@ -1,7 +1,10 @@
 3.12.0 - b3137 - BETA
 ——————————————
-- New: Add HTTP upload station type using WUnderground API
-	- Access via <hostname_orIP>:8998/station/wund.html?ID=1&PASSWORD=1&tempf=68.5 ...etc
+- New: Add EXPERIMENTAL HTTP upload station type using WUnderground protocol
+	- Access via <hostname_or_ip>:8998/station/wunderground
+
+- New: Add EXPERIMENTAL HTTP upload station type using Ecowitt protocol
+	- Access via <hostname_or_ip>:8998/station/ecowitt
 
 
 3.12.0 - b3136 - BETA

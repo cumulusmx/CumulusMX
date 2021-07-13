@@ -1,19 +1,24 @@
 ﻿using System;
 using Unosquare.Labs.EmbedIO;
+using System.IO;
+using System.Web;
 using System.Globalization;
 
 namespace CumulusMX
 {
-	class HttpStationWund : WeatherStation
+	class HttpStationEcowitt : WeatherStation
 	{
-		private double previousRainCount = -1;
-		private double rainCount = 0;
-
-		public HttpStationWund(Cumulus cumulus) : base(cumulus)
+		public HttpStationEcowitt(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.LogMessage("Starting HTTP Station");
 
-			cumulus.StationOptions.CalculatedWC = true;
+			//cumulus.StationOptions.CalculatedWC = true;
+			// GW1000 does not provide average wind speeds
+			cumulus.StationOptions.UseWind10MinAve = true;
+			cumulus.StationOptions.UseSpeedForAvgCalc = false;
+			// GW1000 does not send DP, so force MX to calculate it
+			cumulus.StationOptions.CalculatedDP = true;
+
 			Start();
 		}
 
@@ -34,52 +39,117 @@ namespace CumulusMX
 			/*
 			GET Parameters - all fields are URL escaped
 			===========================================
-			ID					= ignored
-			PASSWORD			= ignored
-			dateutc				= "YYYY-MM-DD HH:mm:SS" or "now"
-			action				= "updateraw"
-			winddir				- [0-360 instantaneous wind direction]
-			windspeedmph		- [mph instantaneous wind speed]
-			windgustmph			- [mph current wind gust, using software specific time period]
-			windgustdir			- [0-360 using software specific time period]
-			windspdmph_avg2m	- [mph 2 minute average wind speed mph]
-			winddir_avg2m		- [0-360 2 minute average wind direction]
-			windgustmph_10m		- [mph past 10 minutes wind gust mph ]
-			windgustdir_10m		- [0-360 past 10 minutes wind gust direction]
-			humidity			- [% outdoor humidity 0-100%]
-			dewptf				- [F outdoor dewpoint F]
-			tempf				- [F outdoor temperature]
-				* for extra outdoor sensors use temp2f, temp3f, and so on
-			rainin				- [rain inches over the past hour)] -- the accumulated rainfall in the past 60 min
-			dailyrainin			- [rain inches so far today in local time]
-			baromin				- [barometric pressure inches]
-			weather				- ignored
-			clouds				- ignored
-			soiltempf			- [F soil temperature]
-				* for sensors 2,3,4 use soiltemp2f, soiltemp3f, and soiltemp4f
-			soilmoisture		- [%]
-				* for sensors 2,3,4 use soilmoisture2, soilmoisture3, and soilmoisture4
-			leafwetness			- [%]
-			leafwetness2
-			solarradiation		- [W/m^2]
-			UV					- [index]
-			visibility			- ignored
-			indoortempf			- [F indoor temperature F]
-			indoorhumidity		- [% indoor humidity 0-100]
+			PASSKEY					ignore
 
-			AqPM2.5				- PM2.5 mass - UG/M3
-			AqPM10				- PM10 mass - PM10 mass
+			dateutc
 
-			softwaretype		- ignored
+			tempf
+			tempinf
+			indoortempf
+			dewptf
+			windchillf
+
+			humidity
+			indoorhumidity
+
+			winddir
+			windgustmph
+			windspeedmph
+			windspdmph_avg2m
+			windgustmph_10m
+			maxdailygust
+
+			rainin
+			dailyrainin
+			weeklyrainin
+			monthlyrainin
+			yearlyrainin
+			totalrainin
+			rainratein
+			eventrainin
+
+			baromabsin
+			baromrelin
+
+			### extra sensors ###
+
+			temp[1-8]f
+			humidity[1-8]
+
+			solarradiation
+			uv
+
+			soiltempf
+			soiltemp[2-16]f
+			soilmoisture[1-16]
+
+			leafwetness
+			leafwetness[2-8]
+
+			leak[1-4]
+
+			### AQ ###
+
+			AqNO
+			AqNO2
+			AqNO2T
+			AqNO2Y
+			AqNOX
+			AqNOY
+			AqNO3
+			AqSO4
+			AqSO2
+			AqSO2T
+			AqCO
+			AqCOT
+			AqEC
+			AqOC
+			AqBC
+			AqUV-AETH
+			AqPM2.5
+			AqPM10
+			AqOZONE
+			pm25_ch[1-4]
+			pm25_avg_24h_ch[1-4]
+
+			### Lightning ###
+
+			lightning
+			lightning_time
+			lightning_num
+
+			### Battery ###
+
+			lowbatt
+			wh80batt
+			wh40batt
+			wh26batt
+			wh65batt
+			wh57batt
+			batt2
+			batt3
+			batt4
+			soilbatt[1-8]
+			pm25batt[1-4]
+
+			### Misc ###
+
+			freq
+			model
+
 			 */
 
 			DateTime recDate;
 
 			try
 			{
-				cumulus.LogDebugMessage($"ProcessData: Processing query - {context.Request.RawUrl}");
+				cumulus.LogDebugMessage("ProcessData: Processing posted data");
 
-				var data = context.Request.QueryString;
+				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+				cumulus.LogDataMessage("ProcessData: Payload = " + text);
+
+				var data = HttpUtility.ParseQueryString(text);
 
 				var dat = data["dateutc"];
 
@@ -95,15 +165,18 @@ namespace CumulusMX
 				}
 				else
 				{
-					dat = dat.Replace(' ', 'T') + ".00000Z";
-					recDate = DateTime.ParseExact(dat, "u", CultureInfo.InvariantCulture);
+					dat = dat.Replace(' ', 'T') + ".0000000Z";
+					cumulus.LogDebugMessage($"ProcessData: Record date = {dat}");
+					recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
 				}
+
+				cumulus.LogDebugMessage($"ProcessData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}");
 
 				// Wind
 				try
 				{
-					var gust = data["windgustmph_10m"];
-					var dir = data["winddir_avg2m"];
+					var gust = data["windgustmph"];
+					var dir = data["winddir"];
 					var avg = data["windspdmph_avg2m"];
 
 
@@ -163,7 +236,8 @@ namespace CumulusMX
 				// Pressure
 				try
 				{
-					var press = data["baromin"];
+					var press = data["baromrelin"];
+
 					if (press == null)
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing baro pressure");
@@ -186,6 +260,7 @@ namespace CumulusMX
 				try
 				{
 					var temp = data["indoortempf"];
+
 					if (temp == null)
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing indoor temp");
@@ -207,6 +282,7 @@ namespace CumulusMX
 				try
 				{
 					var temp = data["tempf"];
+
 					if (temp == null)
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing outdoor temp");
@@ -227,27 +303,18 @@ namespace CumulusMX
 				// Rain
 				try
 				{
-					var rain = data["dailyrainin"];
-					var rHour = data["rainin"]; //- User rain in last hour as rainfall rate
+					var rain = data["totalrainin"];
+					var rRate = data["rainratein"];
 
-					if (rain == null || rHour == null)
+					if (rain == null || rRate == null)
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing rainfall");
 					}
 					else
 					{
 						var rainVal = ConvertRainINToUser(Convert.ToDouble(rain));
-						var rateVal = ConvertRainINToUser(Convert.ToDouble(rHour));
-
-						if (rainVal < previousRainCount)
-						{
-							// rain counter has reset
-							rainCount += previousRainCount;
-						}
-
-						DoRain(rainCount + rainVal, rateVal, recDate);
-
-						previousRainCount = rainVal;
+						var rateVal = ConvertRainINToUser(Convert.ToDouble(rRate));
+						DoRain(rainVal, rateVal, recDate);
 					}
 				}
 				catch (Exception ex)
@@ -266,16 +333,15 @@ namespace CumulusMX
 					}
 					else
 					{
-
-						var dewpnt = data["dewptf"];
-						if (dewpnt == null)
+						var str = data["dewptf"];
+						if (str == null)
 						{
 							cumulus.LogMessage($"ProcessData: Error, missing dew point");
 						}
 						else
 						{
-							var dpVal = ConvertTempFToUser(Convert.ToDouble(dewpnt));
-							DoOutdoorDewpoint(dpVal, recDate);
+							var val = ConvertTempFToUser(Convert.ToDouble(str));
+							DoOutdoorDewpoint(val, recDate);
 						}
 					}
 				}
@@ -286,8 +352,34 @@ namespace CumulusMX
 					return "Failed: Error in dew point data - " + ex.Message;
 				}
 
-				// Wind Chill - no w/c in wunderground data, so it must be set to CMX calculated
-				DoWindChill(0, recDate);
+				// Wind Chill
+				try
+				{
+					if (cumulus.StationOptions.CalculatedWC)
+					{
+						DoWindChill(0, recDate);
+					}
+					else
+					{
+						var chill = data["windchillf"];
+						if (chill == null)
+						{
+							cumulus.LogMessage($"ProcessData: Error, missing dew point");
+						}
+						else
+						{
+							var val = ConvertTempFToUser(Convert.ToDouble(chill));
+							DoWindChill(val, recDate);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
+					context.Response.StatusCode = 500;
+					return "Failed: Error in dew point data - " + ex.Message;
+				}
+
 
 				DoApparentTemp(recDate);
 				DoFeelsLike(recDate);
@@ -300,18 +392,35 @@ namespace CumulusMX
 					// Temperature
 					try
 					{
-						for (var i = 2; i < 5; i++)
+						for (var i = 1; i <= 8; i++)
 						{
 							var str = data["temp" + i + "f"];
 							if (str != null)
 							{
-								DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
+								DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i);
 							}
 						}
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in extra temperature data - " + ex.Message);
+					}
+
+					// Humidity
+					try
+					{
+						for (var i = 1; i <= 8; i++)
+						{
+							var str = data["humidity" + i];
+							if (str != null)
+							{
+								DoExtraHum(Convert.ToDouble(str), i);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("ProcessData: Error in extra humidity data - " + ex.Message);
 					}
 
 					// Solar
@@ -331,7 +440,7 @@ namespace CumulusMX
 					// UV
 					try
 					{
-						var str = data["UV"];
+						var str = data["uv"];
 						if (str != null)
 						{
 							DoUV(Convert.ToDouble(str), recDate);
@@ -350,20 +459,14 @@ namespace CumulusMX
 						{
 							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
 						}
-						var str2 = data["soiltemp2f"];
-						if (str2 != null)
+
+						for (var i = 2; i <= 16; i++)
 						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str2)), 2);
-						}
-						var str3 = data["soiltemp3f"];
-						if (str3 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str3)), 3);
-						}
-						var str4 = data["soiltemp4f"];
-						if (str4 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str4)), 4);
+							var str = data["soiltemp" + i + "f"];
+							if (str != null)
+							{
+								DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
+							}
 						}
 					}
 					catch (Exception ex)
@@ -374,27 +477,14 @@ namespace CumulusMX
 					// Soil Mositure
 					try
 					{
-						var str1 = data["soilmoisture"];
-						if (str1 != null)
+						for (var i = 1; i <= 16; i++)
 						{
-							DoSoilMoisture(Convert.ToDouble(str1), 1);
+							var str = data["soilmoisture" + i];
+							if (str != null)
+							{
+								DoSoilMoisture(Convert.ToDouble(str), i);
+							}
 						}
-						var str2 = data["soilmoisture2"];
-						if (str2 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str2), 2);
-						}
-						var str3 = data["soilmoisture3"];
-						if (str3 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str3), 3);
-						}
-						var str4 = data["soilmoisture4"];
-						if (str4 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str4), 4);
-						}
-
 					}
 					catch (Exception ex)
 					{
@@ -409,10 +499,13 @@ namespace CumulusMX
 						{
 							DoLeafWetness(Convert.ToDouble(str1), 1);
 						}
-						var str2 = data["leafwetness2"];
-						if (str2 != null)
+						for (var i = 2; i <= 8; i++)
 						{
-							DoLeafWetness(Convert.ToDouble(str2), 2);
+							var str = data["leafwetness" + i];
+							if (str != null)
+							{
+								DoLeafWetness(Convert.ToDouble(str), i - 1);
+							}
 						}
 					}
 					catch (Exception ex)
@@ -423,20 +516,80 @@ namespace CumulusMX
 					// Air Quality
 					try
 					{
-						var str2 = data["AqPM2.5"];
-						if (str2 != null)
+						for (var i = 1; i <= 4; i++)
 						{
-							CO2_pm2p5 = Convert.ToDouble(str2);
-						}
-						var str10 = data["AqPM10"];
-						if (str10 != null)
-						{
-							CO2_pm10 = Convert.ToDouble(str10);
+							var pm = data["pm25_ch" + i];
+							var pmAvg = data["pm25_avg_24h_ch" + i];
+							if (pm != null)
+							{
+								DoAirQuality(Convert.ToDouble(pm), i);
+							}
+							if (pmAvg != null)
+							{
+								DoAirQualityAvg(Convert.ToDouble(pmAvg), i);
+							}
 						}
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Air Quality data - " + ex.Message);
+					}
+
+					// Lightning
+					try
+					{
+						var dist = data["lightning"];
+						var time = data["lightning_time"];
+						var num = data["lightning_num"];
+
+						if (dist != null && time != null)
+						{
+							// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
+							var valDist = Convert.ToDouble(dist);
+							if (valDist != 255)
+							{
+								LightningDistance = valDist;
+							}
+
+							var valTime = Convert.ToDouble(time);
+							// Sends a default value until the first strike is detected of 0xFFFFFFFF
+							if (valTime != 0xFFFFFFFF)
+							{
+								var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+								dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
+
+								if (dtDateTime > LightningTime)
+								{
+									LightningTime = dtDateTime;
+								}
+							}
+						}
+
+						if (num != null)
+						{
+							LightningStrikesToday = Convert.ToInt32(num);
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("ProcessData: Error in Lightning data - " + ex.Message);
+					}
+
+					// Leak
+					try
+					{
+						for (var i = 1; i <= 4; i++)
+						{
+							var str = data["leak" + i];
+							if (str != null)
+							{
+								DoLeakSensor(Convert.ToInt32(str), i);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("ProcessData: Error in Leak data - " + ex.Message);
 					}
 				}
 

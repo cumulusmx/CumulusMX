@@ -1017,7 +1017,7 @@ namespace CumulusMX
 							case 0x26: //Humidity 5, 0-100%
 							case 0x27: //Humidity 6, 0-100%
 							case 0x28: //Humidity 7, 0-100%
-							case 0x29: //Humidity 9, 0-100%
+							case 0x29: //Humidity 8, 0-100%
 								chan = data[idx - 1] - 0x22 + 1;
 								DoExtraHum(data[idx], chan);
 								idx += 1;
