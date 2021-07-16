@@ -19,6 +19,7 @@ namespace CumulusMX
 		{
 			var indoor = new JsonExtraSensorAirLinkDevice()
 			{
+				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
 				hostname = cumulus.AirLinkInHostName,
 				stationId = cumulus.AirLinkInStationId
@@ -26,6 +27,7 @@ namespace CumulusMX
 
 			var outdoor = new JsonExtraSensorAirLinkDevice()
 			{
+				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
 				hostname = cumulus.AirLinkOutHostName,
 				stationId = cumulus.AirLinkOutStationId
@@ -37,9 +39,7 @@ namespace CumulusMX
 				apiKey = cumulus.AirLinkApiKey,
 				apiSecret = cumulus.AirLinkApiSecret,
 				autoUpdateIp = cumulus.AirLinkAutoUpdateIpAddress,
-				indoorenabled = cumulus.AirLinkInEnabled,
 				indoor = indoor,
-				outdoorenabled = cumulus.AirLinkOutEnabled,
 				outdoor = outdoor
 			};
 
@@ -50,6 +50,7 @@ namespace CumulusMX
 
 			var rg11port1 = new JsonExtraSensorRG11device()
 			{
+				enabled = cumulus.RG11Enabled,
 				commPort = cumulus.RG11Port,
 				tipMode = cumulus.RG11TBRmode,
 				tipSize = cumulus.RG11tipsize,
@@ -58,6 +59,7 @@ namespace CumulusMX
 
 			var rg11port2 = new JsonExtraSensorRG11device()
 			{
+				enabled = cumulus.RG11Enabled2,
 				commPort = cumulus.RG11Port2,
 				tipMode = cumulus.RG11TBRmode2,
 				tipSize = cumulus.RG11tipsize2,
@@ -66,9 +68,7 @@ namespace CumulusMX
 
 			var rg11 = new JsonExtraSensorRG11()
 			{
-				dev1enabled = cumulus.RG11Enabled,
 				port1 = rg11port1,
-				dev2enabled = cumulus.RG11Enabled2,
 				port2 = rg11port2
 			};
 
@@ -143,8 +143,8 @@ namespace CumulusMX
 					cumulus.AirLinkApiSecret = settings.airLink.apiSecret;
 					cumulus.AirLinkAutoUpdateIpAddress = settings.airLink.autoUpdateIp;
 
-					cumulus.AirLinkInEnabled = settings.airLink.indoorenabled;
-					if (cumulus.AirLinkInEnabled && settings.airLink.indoor != null)
+					cumulus.AirLinkInEnabled = settings.airLink.indoor.enabled;
+					if (cumulus.AirLinkInEnabled)
 					{
 						cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
 						cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
@@ -154,8 +154,8 @@ namespace CumulusMX
 							cumulus.AirLinkInStationId = cumulus.WllStationId;
 						}
 					}
-					cumulus.AirLinkOutEnabled = settings.airLink.outdoorenabled;
-					if (cumulus.AirLinkOutEnabled && settings.airLink.outdoor != null)
+					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
+					if (cumulus.AirLinkOutEnabled)
 					{
 						cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
 						cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
@@ -190,8 +190,8 @@ namespace CumulusMX
 				// RG-11 settings
 				try
 				{
-					cumulus.RG11Enabled = settings.rg11.dev1enabled;
-					if (cumulus.RG11Enabled && settings.rg11.port1 != null)
+					cumulus.RG11Enabled = settings.rg11.port1.enabled;
+					if (cumulus.RG11Enabled)
 					{
 						cumulus.RG11Port = settings.rg11.port1.commPort;
 						cumulus.RG11TBRmode = settings.rg11.port1.tipMode;
@@ -200,8 +200,8 @@ namespace CumulusMX
 						cumulus.RG11DTRmode = settings.rg11.port1.dtrMode;
 					}
 
-					cumulus.RG11Enabled2 = settings.rg11.dev2enabled;
-					if (cumulus.RG11Enabled2 && settings.rg11.port2 != null)
+					cumulus.RG11Enabled2 = settings.rg11.port2.enabled;
+					if (cumulus.RG11Enabled2)
 					{
 						cumulus.RG11Port2 = settings.rg11.port2.commPort;
 						cumulus.RG11TBRmode2 = settings.rg11.port2.tipMode;
@@ -255,14 +255,13 @@ namespace CumulusMX
 		public string apiKey { get; set; }
 		public string apiSecret { get; set; }
 		public bool autoUpdateIp { get; set; }
-		public bool indoorenabled { get; set; }
 		public JsonExtraSensorAirLinkDevice indoor { get; set; }
-		public bool outdoorenabled { get; set; }
 		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
 	}
 
 	public class JsonExtraSensorAirLinkDevice
 	{
+		public bool enabled { get; set; }
 		public string ipAddress { get; set; }
 		public string hostname { get; set; }
 		public int stationId { get; set; }
@@ -275,14 +274,13 @@ namespace CumulusMX
 
 	public class JsonExtraSensorRG11
 	{
-		public bool dev1enabled { get; set; }
 		public JsonExtraSensorRG11device port1 { get; set; }
-		public bool dev2enabled { get; set; }
 		public JsonExtraSensorRG11device port2 { get; set; }
 	}
 
 	public class JsonExtraSensorRG11device
 	{
+		public bool enabled { get; set; }
 		public string commPort { get; set; }
 		public bool tipMode { get; set; }
 		public double tipSize { get; set; }

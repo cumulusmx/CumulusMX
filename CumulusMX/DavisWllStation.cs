@@ -1792,7 +1792,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Humidity (high) data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Humidity (high) data on TxId {data11.tx_id}");
 								}
 
 								// do low humidity
@@ -1803,7 +1803,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Humidity (low) data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Humidity (low) data on TxId {data11.tx_id}");
 								}
 
 								if (data11.hum_last != null)
@@ -1813,7 +1813,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Humidity data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Humidity data on TxId {data11.tx_id}");
 								}
 							}
 							catch (Exception ex)
@@ -1826,7 +1826,7 @@ namespace CumulusMX
 							{
 								if (data11.temp_last == -99)
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Primary temperature value found [-99] on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Primary temperature value found [-99] on TxId {data11.tx_id}");
 								}
 								else
 								{
@@ -1840,7 +1840,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: no valid Temperatue (high) data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperatue (high) data on TxId {data11.tx_id}");
 									}
 
 									// do low temp
@@ -1851,7 +1851,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: no valid Temperatue (low) data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperatue (low) data on TxId {data11.tx_id}");
 									}
 
 									// do last temp
@@ -1875,7 +1875,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: no valid Temperatue data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperatue data on TxId {data11.tx_id}");
 									}
 								}
 							}
@@ -1895,7 +1895,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Dew Point (high) data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Dew Point (high) data on TxId {data11.tx_id}");
 								}
 
 								// do low DP
@@ -1906,7 +1906,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Dew Point (low) data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Dew Point (low) data on TxId {data11.tx_id}");
 								}
 
 								// do last DP
@@ -1916,7 +1916,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Dew Point data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Dew Point data on TxId {data11.tx_id}");
 								}
 							}
 							catch (Exception ex)
@@ -1937,7 +1937,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: no valid Wind Chill (low) data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Wind Chill (low) data on TxId {data11.tx_id}");
 									}
 
 									// do last WC
@@ -1947,7 +1947,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: no valid Wind Chill data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Wind Chill data on TxId {data11.tx_id}");
 									}
 								}
 								catch (Exception ex)
@@ -1966,7 +1966,7 @@ namespace CumulusMX
 								{
 									if (data11.temp_last == -99 || data11.temp_last == null)
 									{
-										cumulus.LogDebugMessage($"WL.com historic: no valid Extra temperature value on TxId {data11.tx_id}");
+										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Extra temperature value on TxId {data11.tx_id}");
 									}
 									else
 									{
@@ -2016,7 +2016,14 @@ namespace CumulusMX
 								{
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
 									DoWind(ConvertWindMPHToUser((double)data11.wind_speed_hi), (int)data11.wind_speed_hi_dir, ConvertWindMPHToUser((double)data11.wind_speed_avg), recordTs);
+								}
+								else
+								{
+									cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Wind data on TxId {data11.tx_id}");
+								}
 
+								if (data11.wind_speed_avg != null)
+								{
 									WindAverage = ConvertWindMPHToUser((double)data11.wind_speed_avg) * cumulus.Calib.WindSpeed.Mult;
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
@@ -2025,7 +2032,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogDebugMessage($"WL.com historic: no valid Wind data on TxId {data11.tx_id}");
+									cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Wind data (avg) on TxId {data11.tx_id}");
 								}
 							}
 							catch (Exception ex)
@@ -2076,7 +2083,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Rain data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Rain data on TxId {data11.tx_id}");
 								}
 							}
 							catch (Exception ex)
@@ -2107,7 +2114,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid UV data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid UV data on TxId {data11.tx_id}");
 								}
 							}
 							catch (Exception ex)
@@ -2145,7 +2152,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage($"WL.com historic: no valid Solar data on TxId {data11.tx_id}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
 							}
 							catch (Exception ex)
@@ -2247,7 +2254,7 @@ namespace CumulusMX
 										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx1;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2259,7 +2266,7 @@ namespace CumulusMX
 										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx2;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2271,7 +2278,7 @@ namespace CumulusMX
 										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx3;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2283,7 +2290,7 @@ namespace CumulusMX
 										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx4;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2332,7 +2339,7 @@ namespace CumulusMX
 										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx1;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2344,7 +2351,7 @@ namespace CumulusMX
 										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx2;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2356,7 +2363,7 @@ namespace CumulusMX
 										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx3;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2368,7 +2375,7 @@ namespace CumulusMX
 										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx4;
 										if (data13[idx] == null)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: no valid extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data13.tx_id}");
+											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data13.tx_id}");
 										}
 										else
 										{
@@ -2408,7 +2415,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage("WL.com historic: no valid Baro data (high)");
+										cumulus.LogMessage("WL.com historic: Warning, no valid Baro data (high)");
 									}
 									// check the low
 									if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
@@ -2418,7 +2425,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage("WL.com historic: no valid Baro data (high)");
+										cumulus.LogMessage("WL.com historic: Warning, no valid Baro data (high)");
 									}
 
 									if (data13baro.bar_sea_level != null)
@@ -2430,7 +2437,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage("WL.com historic: no valid Baro data (high)");
+										cumulus.LogMessage("WL.com historic: Warning, no valid Baro data (high)");
 									}
 
 									// Altimeter from absolute
@@ -2475,7 +2482,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage("WL.com historic: no valid Inside Temperature");
+										cumulus.LogMessage("WL.com historic: Warning, no valid Inside Temperature");
 									}
 								}
 								catch (Exception ex)
@@ -2492,7 +2499,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage("WL.com historic: no valid Inside Humidity");
+										cumulus.LogMessage("WL.com historic: Warning, no valid Inside Humidity");
 									}
 								}
 								catch (Exception ex)

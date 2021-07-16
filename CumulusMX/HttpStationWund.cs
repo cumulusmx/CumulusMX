@@ -102,12 +102,12 @@ namespace CumulusMX
 				// Wind
 				try
 				{
-					var gust = data["windgustmph_10m"];
-					var dir = data["winddir_avg2m"];
-					var avg = data["windspdmph_avg2m"];
+					var gust = data["windgustmph"];
+					var dir = data["winddir"];
+					var avg = data["windspdmph"];
 
-
-					if (gust == null || dir == null || avg == null)
+					if (gust == null || dir == null || avg == null ||
+						gust == "-9999" || dir == "-9999" || avg == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing wind data");
 					}
@@ -132,8 +132,7 @@ namespace CumulusMX
 					var humIn = data["indoorhumidity"];
 					var humOut = data["humidity"];
 
-
-					if (humIn == null)
+					if (humIn == null || humIn == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing indoor humidity");
 					}
@@ -143,7 +142,7 @@ namespace CumulusMX
 						DoIndoorHumidity(humVal);
 					}
 
-					if (humOut == null)
+					if (humOut == null || humOut == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing outdoor humidity");
 					}
@@ -164,7 +163,7 @@ namespace CumulusMX
 				try
 				{
 					var press = data["baromin"];
-					if (press == null)
+					if (press == null || press == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing baro pressure");
 					}
@@ -186,7 +185,7 @@ namespace CumulusMX
 				try
 				{
 					var temp = data["indoortempf"];
-					if (temp == null)
+					if (temp == null || temp == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing indoor temp");
 					}
@@ -207,7 +206,7 @@ namespace CumulusMX
 				try
 				{
 					var temp = data["tempf"];
-					if (temp == null)
+					if (temp == null || temp == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing outdoor temp");
 					}
@@ -230,7 +229,7 @@ namespace CumulusMX
 					var rain = data["dailyrainin"];
 					var rHour = data["rainin"]; //- User rain in last hour as rainfall rate
 
-					if (rain == null || rHour == null)
+					if (rain == null || rHour == null || rain == "-9999" || rHour == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing rainfall");
 					}
@@ -243,11 +242,11 @@ namespace CumulusMX
 						{
 							// rain counter has reset
 							rainCount += previousRainCount;
+							previousRainCount = rainVal;
 						}
 
 						DoRain(rainCount + rainVal, rateVal, recDate);
 
-						previousRainCount = rainVal;
 					}
 				}
 				catch (Exception ex)
@@ -260,23 +259,15 @@ namespace CumulusMX
 				// Dewpoint
 				try
 				{
-					if (cumulus.StationOptions.CalculatedDP)
+					var dewpnt = data["dewptf"];
+					if (dewpnt == null || dewpnt == "-9999")
 					{
-						DoOutdoorDewpoint(0, recDate);
+						cumulus.LogMessage($"ProcessData: Error, missing dew point");
 					}
 					else
 					{
-
-						var dewpnt = data["dewptf"];
-						if (dewpnt == null)
-						{
-							cumulus.LogMessage($"ProcessData: Error, missing dew point");
-						}
-						else
-						{
-							var dpVal = ConvertTempFToUser(Convert.ToDouble(dewpnt));
-							DoOutdoorDewpoint(dpVal, recDate);
-						}
+						var dpVal = ConvertTempFToUser(Convert.ToDouble(dewpnt));
+						DoOutdoorDewpoint(dpVal, recDate);
 					}
 				}
 				catch (Exception ex)
@@ -287,157 +278,164 @@ namespace CumulusMX
 				}
 
 				// Wind Chill - no w/c in wunderground data, so it must be set to CMX calculated
-				DoWindChill(0, recDate);
+				if (data["windspdmph"] != null && data["tempf"] != null && data["windspdmph"] != "-9999" && data["tempf"] != "-9999")
+				{
+					DoWindChill(0, recDate);
 
-				DoApparentTemp(recDate);
-				DoFeelsLike(recDate);
-				DoHumidex(recDate);
+					if (data["humidity"] != null && data["humidity"] != "-9999")
+					{
+						DoApparentTemp(recDate);
+						DoFeelsLike(recDate);
+					}
+				}
+
+				if (data["tempf"] != null && data["humidity"] != null && data["tempf"] != "-9999" && data["humidity"] != "-9999")
+				{
+					DoHumidex(recDate);
+				}
 
 				DoForecast(string.Empty, false);
 
-				if (cumulus.StationOptions.LogExtraSensors)
+				// Extra Temperature
+				try
 				{
-					// Temperature
-					try
+					for (var i = 2; i < 5; i++)
 					{
-						for (var i = 2; i < 5; i++)
+						var str = data["temp" + i + "f"];
+						if (str != null && str != "-9999")
 						{
-							var str = data["temp" + i + "f"];
-							if (str != null)
-							{
-								DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
-							}
+							DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
 						}
 					}
-					catch (Exception ex)
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in extra temperature data - " + ex.Message);
+				}
+
+				// Solar
+				try
+				{
+					var str = data["solarradiation"];
+					if (str != null && str != "-9999")
 					{
-						cumulus.LogMessage("ProcessData: Error in extra temperature data - " + ex.Message);
+						DoSolarRad(Convert.ToInt32(str), recDate);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in solar data - " + ex.Message);
+				}
+
+				// UV
+				try
+				{
+					var str = data["UV"];
+					if (str != null && str != "-9999")
+					{
+						DoUV(Convert.ToDouble(str), recDate);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in UV data - " + ex.Message);
+				}
+
+				// Soil Temp
+				try
+				{
+					var str1 = data["soiltempf"];
+					if (str1 != null && str1 != "-9999")
+					{
+						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
+					}
+					var str2 = data["soiltemp2f"];
+					if (str2 != null && str2 != "-9999")
+					{
+						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str2)), 2);
+					}
+					var str3 = data["soiltemp3f"];
+					if (str3 != null && str3 != "-9999")
+					{
+						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str3)), 3);
+					}
+					var str4 = data["soiltemp4f"];
+					if (str4 != null && str4 != "-9999")
+					{
+						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str4)), 4);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Soil temp data - " + ex.Message);
+				}
+
+				// Soil Mositure
+				try
+				{
+					var str1 = data["soilmoisture"];
+					if (str1 != null && str1 != "-9999")
+					{
+						DoSoilMoisture(Convert.ToDouble(str1), 1);
+					}
+					var str2 = data["soilmoisture2"];
+					if (str2 != null && str2 != "-9999")
+					{
+						DoSoilMoisture(Convert.ToDouble(str2), 2);
+					}
+					var str3 = data["soilmoisture3"];
+					if (str3 != null && str3 != "-9999")
+					{
+						DoSoilMoisture(Convert.ToDouble(str3), 3);
+					}
+					var str4 = data["soilmoisture4"];
+					if (str4 != null && str4 != "-9999")
+					{
+						DoSoilMoisture(Convert.ToDouble(str4), 4);
 					}
 
-					// Solar
-					try
-					{
-						var str = data["solarradiation"];
-						if (str != null)
-						{
-							DoSolarRad(Convert.ToInt32(str), recDate);
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in solar data - " + ex.Message);
-					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Soil moisture data - " + ex.Message);
+				}
 
-					// UV
-					try
+				// Leaf Wetness
+				try
+				{
+					var str1 = data["leafwetness"];
+					if (str1 != null && str1 != "-9999")
 					{
-						var str = data["UV"];
-						if (str != null)
-						{
-							DoUV(Convert.ToDouble(str), recDate);
-						}
+						DoLeafWetness(Convert.ToDouble(str1), 1);
 					}
-					catch (Exception ex)
+					var str2 = data["leafwetness2"];
+					if (str2 != null && str2 != "-9999")
 					{
-						cumulus.LogMessage("ProcessData: Error in UV data - " + ex.Message);
+						DoLeafWetness(Convert.ToDouble(str2), 2);
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Leaf wetness data - " + ex.Message);
+				}
 
-					// Soil Temp
-					try
+				// Air Quality
+				try
+				{
+					var str2 = data["AqPM2.5"];
+					if (str2 != null && str2 != "-9999")
 					{
-						var str1 = data["soiltempf"];
-						if (str1 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
-						}
-						var str2 = data["soiltemp2f"];
-						if (str2 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str2)), 2);
-						}
-						var str3 = data["soiltemp3f"];
-						if (str3 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str3)), 3);
-						}
-						var str4 = data["soiltemp4f"];
-						if (str4 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str4)), 4);
-						}
+						CO2_pm2p5 = Convert.ToDouble(str2);
 					}
-					catch (Exception ex)
+					var str10 = data["AqPM10"];
+					if (str10 != null && str10 != "-9999")
 					{
-						cumulus.LogMessage("ProcessData: Error in Soil temp data - " + ex.Message);
+						CO2_pm10 = Convert.ToDouble(str10);
 					}
-
-					// Soil Mositure
-					try
-					{
-						var str1 = data["soilmoisture"];
-						if (str1 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str1), 1);
-						}
-						var str2 = data["soilmoisture2"];
-						if (str2 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str2), 2);
-						}
-						var str3 = data["soilmoisture3"];
-						if (str3 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str3), 3);
-						}
-						var str4 = data["soilmoisture4"];
-						if (str4 != null)
-						{
-							DoSoilMoisture(Convert.ToDouble(str4), 4);
-						}
-
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Soil moisture data - " + ex.Message);
-					}
-
-					// Leaf Wetness
-					try
-					{
-						var str1 = data["leafwetness"];
-						if (str1 != null)
-						{
-							DoLeafWetness(Convert.ToDouble(str1), 1);
-						}
-						var str2 = data["leafwetness2"];
-						if (str2 != null)
-						{
-							DoLeafWetness(Convert.ToDouble(str2), 2);
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Leaf wetness data - " + ex.Message);
-					}
-
-					// Air Quality
-					try
-					{
-						var str2 = data["AqPM2.5"];
-						if (str2 != null)
-						{
-							CO2_pm2p5 = Convert.ToDouble(str2);
-						}
-						var str10 = data["AqPM10"];
-						if (str10 != null)
-						{
-							CO2_pm10 = Convert.ToDouble(str10);
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Air Quality data - " + ex.Message);
-					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Air Quality data - " + ex.Message);
 				}
 
 				UpdateStatusPanel(recDate);

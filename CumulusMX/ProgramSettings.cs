@@ -31,7 +31,8 @@ namespace CumulusMX
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				ftplogging = cumulus.FtpOptions.Logging,
-				emaillogging = cumulus.SmtpOptions.Logging
+				emaillogging = cumulus.SmtpOptions.Logging,
+				spikelogging = cumulus.ErrorLogSpikeRemoval
 			};
 
 			var options = new JsonProgramSettingsGeneralOptions()
@@ -92,6 +93,7 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DebugLogging = settings.logging.debuglogging;
 				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
 				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
+				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 
@@ -139,6 +141,7 @@ namespace CumulusMX
 		public bool datalogging { get; set; }
 		public bool ftplogging { get; set; }
 		public bool emaillogging { get; set; }
+		public bool spikelogging { get; set; }
 	}
 	public class JsonProgramSettingsGeneralOptions
 	{

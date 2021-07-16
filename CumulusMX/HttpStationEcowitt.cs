@@ -45,12 +45,11 @@ namespace CumulusMX
 
 			tempf
 			tempinf
-			indoortempf
 			dewptf
 			windchillf
 
 			humidity
-			indoorhumidity
+			humidityin
 
 			winddir
 			windgustmph
@@ -119,18 +118,7 @@ namespace CumulusMX
 			lightning_num
 
 			### Battery ###
-
-			lowbatt
-			wh80batt
-			wh40batt
-			wh26batt
-			wh65batt
-			wh57batt
-			batt2
-			batt3
-			batt4
-			soilbatt[1-8]
-			pm25batt[1-4]
+			 - see below -
 
 			### Misc ###
 
@@ -166,11 +154,11 @@ namespace CumulusMX
 				else
 				{
 					dat = dat.Replace(' ', 'T') + ".0000000Z";
-					cumulus.LogDebugMessage($"ProcessData: Record date = {dat}");
+					cumulus.LogDebugMessage($"ProcessData: Record date = {data["dateutc"]}");
 					recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
 				}
 
-				cumulus.LogDebugMessage($"ProcessData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}");
+				cumulus.LogDebugMessage($"ProcessData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
 
 				// Wind
 				try
@@ -202,7 +190,7 @@ namespace CumulusMX
 				// Humidity
 				try
 				{
-					var humIn = data["indoorhumidity"];
+					var humIn = data["humidityin"];
 					var humOut = data["humidity"];
 
 
@@ -259,7 +247,7 @@ namespace CumulusMX
 				// Indoor temp
 				try
 				{
-					var temp = data["indoortempf"];
+					var temp = data["tempinf"];
 
 					if (temp == null)
 					{
@@ -355,7 +343,7 @@ namespace CumulusMX
 				// Wind Chill
 				try
 				{
-					if (cumulus.StationOptions.CalculatedWC)
+					if (cumulus.StationOptions.CalculatedWC && data["tempf"] != null && data["windspdmph_avg2m"] != null)
 					{
 						DoWindChill(0, recDate);
 					}
@@ -380,233 +368,280 @@ namespace CumulusMX
 					return "Failed: Error in dew point data - " + ex.Message;
 				}
 
+				// Apparent
+				if (data["tempf"] != null && data["windspdmph_avg2m"] != null && data["humidity"] != null)
+				{
+					DoApparentTemp(recDate);
+					DoFeelsLike(recDate);
+				}
 
-				DoApparentTemp(recDate);
-				DoFeelsLike(recDate);
-				DoHumidex(recDate);
+				// Humidex
+				if (data["tempf"] != null && data["humidity"] != null)
+				{
+					DoHumidex(recDate);
+				}
 
 				DoForecast(string.Empty, false);
 
-				if (cumulus.StationOptions.LogExtraSensors)
+				// Temperature
+				try
 				{
-					// Temperature
-					try
+					for (var i = 1; i <= 8; i++)
 					{
-						for (var i = 1; i <= 8; i++)
-						{
-							var str = data["temp" + i + "f"];
-							if (str != null)
-							{
-								DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in extra temperature data - " + ex.Message);
-					}
-
-					// Humidity
-					try
-					{
-						for (var i = 1; i <= 8; i++)
-						{
-							var str = data["humidity" + i];
-							if (str != null)
-							{
-								DoExtraHum(Convert.ToDouble(str), i);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in extra humidity data - " + ex.Message);
-					}
-
-					// Solar
-					try
-					{
-						var str = data["solarradiation"];
+						var str = data["temp" + i + "f"];
 						if (str != null)
 						{
-							DoSolarRad(Convert.ToInt32(str), recDate);
+							DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i);
 						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in solar data - " + ex.Message);
-					}
-
-					// UV
-					try
-					{
-						var str = data["uv"];
-						if (str != null)
-						{
-							DoUV(Convert.ToDouble(str), recDate);
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in UV data - " + ex.Message);
-					}
-
-					// Soil Temp
-					try
-					{
-						var str1 = data["soiltempf"];
-						if (str1 != null)
-						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
-						}
-
-						for (var i = 2; i <= 16; i++)
-						{
-							var str = data["soiltemp" + i + "f"];
-							if (str != null)
-							{
-								DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Soil temp data - " + ex.Message);
-					}
-
-					// Soil Mositure
-					try
-					{
-						for (var i = 1; i <= 16; i++)
-						{
-							var str = data["soilmoisture" + i];
-							if (str != null)
-							{
-								DoSoilMoisture(Convert.ToDouble(str), i);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Soil moisture data - " + ex.Message);
-					}
-
-					// Leaf Wetness
-					try
-					{
-						var str1 = data["leafwetness"];
-						if (str1 != null)
-						{
-							DoLeafWetness(Convert.ToDouble(str1), 1);
-						}
-						for (var i = 2; i <= 8; i++)
-						{
-							var str = data["leafwetness" + i];
-							if (str != null)
-							{
-								DoLeafWetness(Convert.ToDouble(str), i - 1);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Leaf wetness data - " + ex.Message);
-					}
-
-					// Air Quality
-					try
-					{
-						for (var i = 1; i <= 4; i++)
-						{
-							var pm = data["pm25_ch" + i];
-							var pmAvg = data["pm25_avg_24h_ch" + i];
-							if (pm != null)
-							{
-								DoAirQuality(Convert.ToDouble(pm), i);
-							}
-							if (pmAvg != null)
-							{
-								DoAirQualityAvg(Convert.ToDouble(pmAvg), i);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Air Quality data - " + ex.Message);
-					}
-
-					// Lightning
-					try
-					{
-						var dist = data["lightning"];
-						var time = data["lightning_time"];
-						var num = data["lightning_num"];
-
-						if (dist != null && time != null)
-						{
-							// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
-							var valDist = Convert.ToDouble(dist);
-							if (valDist != 255)
-							{
-								LightningDistance = valDist;
-							}
-
-							var valTime = Convert.ToDouble(time);
-							// Sends a default value until the first strike is detected of 0xFFFFFFFF
-							if (valTime != 0xFFFFFFFF)
-							{
-								var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-								dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
-
-								if (dtDateTime > LightningTime)
-								{
-									LightningTime = dtDateTime;
-								}
-							}
-						}
-
-						if (num != null)
-						{
-							LightningStrikesToday = Convert.ToInt32(num);
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Lightning data - " + ex.Message);
-					}
-
-					// Leak
-					try
-					{
-						for (var i = 1; i <= 4; i++)
-						{
-							var str = data["leak" + i];
-							if (str != null)
-							{
-								DoLeakSensor(Convert.ToInt32(str), i);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Leak data - " + ex.Message);
 					}
 				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in extra temperature data - " + ex.Message);
+				}
+
+				// Humidity
+				try
+				{
+					for (var i = 1; i <= 8; i++)
+					{
+						var str = data["humidity" + i];
+						if (str != null)
+						{
+							DoExtraHum(Convert.ToDouble(str), i);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in extra humidity data - " + ex.Message);
+				}
+
+				// Solar
+				try
+				{
+					var str = data["solarradiation"];
+					if (str != null)
+					{
+						DoSolarRad(Convert.ToInt32(str), recDate);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in solar data - " + ex.Message);
+				}
+
+				// UV
+				try
+				{
+					var str = data["uv"];
+					if (str != null)
+					{
+						DoUV(Convert.ToDouble(str), recDate);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in UV data - " + ex.Message);
+				}
+
+				// Soil Temp
+				try
+				{
+					var str1 = data["soiltempf"];
+					if (str1 != null)
+					{
+						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
+					}
+
+					for (var i = 2; i <= 16; i++)
+					{
+						var str = data["soiltemp" + i + "f"];
+						if (str != null)
+						{
+							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Soil temp data - " + ex.Message);
+				}
+
+				// Soil Mositure
+				try
+				{
+					for (var i = 1; i <= 16; i++)
+					{
+						var str = data["soilmoisture" + i];
+						if (str != null)
+						{
+							DoSoilMoisture(Convert.ToDouble(str), i);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Soil moisture data - " + ex.Message);
+				}
+
+				// Leaf Wetness
+				try
+				{
+					var str1 = data["leafwetness"];
+					if (str1 != null)
+					{
+						DoLeafWetness(Convert.ToDouble(str1), 1);
+					}
+					for (var i = 2; i <= 8; i++)
+					{
+						var str = data["leafwetness" + i];
+						if (str != null)
+						{
+							DoLeafWetness(Convert.ToDouble(str), i - 1);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Leaf wetness data - " + ex.Message);
+				}
+
+				// Air Quality
+				try
+				{
+					for (var i = 1; i <= 4; i++)
+					{
+						var pm = data["pm25_ch" + i];
+						var pmAvg = data["pm25_avg_24h_ch" + i];
+						if (pm != null)
+						{
+							DoAirQuality(Convert.ToDouble(pm), i);
+						}
+						if (pmAvg != null)
+						{
+							DoAirQualityAvg(Convert.ToDouble(pmAvg), i);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Air Quality data - " + ex.Message);
+				}
+
+				// Lightning
+				try
+				{
+					var dist = data["lightning"];
+					var time = data["lightning_time"];
+					var num = data["lightning_num"];
+
+					if (dist != null && time != null)
+					{
+						// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
+						var valDist = Convert.ToDouble(dist);
+						if (valDist != 255)
+						{
+							LightningDistance = valDist;
+						}
+
+						var valTime = Convert.ToDouble(time);
+						// Sends a default value until the first strike is detected of 0xFFFFFFFF
+						if (valTime != 0xFFFFFFFF)
+						{
+							var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+							dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
+
+							if (dtDateTime > LightningTime)
+							{
+								LightningTime = dtDateTime;
+							}
+						}
+					}
+
+					if (num != null)
+					{
+						LightningStrikesToday = Convert.ToInt32(num);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Lightning data - " + ex.Message);
+				}
+
+				// Leak
+				try
+				{
+					for (var i = 1; i <= 4; i++)
+					{
+						var str = data["leak" + i];
+						if (str != null)
+						{
+							DoLeakSensor(Convert.ToInt32(str), i);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error in Leak data - " + ex.Message);
+				}
+
+				// Batteries
+				/*
+				?lowbatt?
+				wh25batt
+				wh26batt
+				wh32batt
+				wh40batt
+				wh57batt
+				wh65batt
+				wh68batt
+				wh80batt
+				batt[1-8] (wh31)
+				soilbatt[1-8] (wh51)
+				pm25batt[1-4] (wh41/wh43)
+				leakbatt[1-4] (wh55)
+				*/
+
+				var lowBatt = false;
+				//lowBatt = lowBatt || (data["lowbatt"] != null && data["lowbatt"] == "1");
+				lowBatt = lowBatt || (data["wh25batt"] != null && data["wh25batt"] == "1");
+				lowBatt = lowBatt || (data["wh26batt"] != null && data["wh26batt"] == "1");
+				lowBatt = lowBatt || (data["wh40batt"] != null && data["wh40batt"] == "1");
+				lowBatt = lowBatt || (data["wh40batt"] != null && data["wh40batt"] == "1");
+				lowBatt = lowBatt || (data["wh57batt"] != null && data["wh57batt"] == "1");
+				lowBatt = lowBatt || (data["wh65batt"] != null && data["wh65batt"] == "1");
+				lowBatt = lowBatt || (data["wh68batt"] != null && Convert.ToDouble(data["wh68batt"]) <= 1.2);
+				lowBatt = lowBatt || (data["wh80batt"] != null && Convert.ToDouble(data["wh80batt"]) <= 1.2);
+				for (var i = 1; i < 5; i++)
+				{
+					lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
+					lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i]) <= 1.2);
+					lowBatt = lowBatt || (data["pm25batt" + i] != null && data["pm25batt" + i] == "1");
+					lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
+				}
+				for (var i = 5; i < 9; i++)
+				{
+					lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
+					lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i]) <= 1.2);
+				}
+
+				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 
 				UpdateStatusPanel(recDate);
 				UpdateMQTT();
-			}
-			catch (Exception ex)
-			{
+				}
+				catch (Exception ex)
+				{
 				cumulus.LogMessage("ProcessData: Error - " + ex.Message);
 				context.Response.StatusCode = 500;
 				return "Failed: General error - " + ex.Message;
-			}
+				}
 
-			cumulus.LogDebugMessage($"ProcessData: Complete");
+				cumulus.LogDebugMessage($"ProcessData: Complete");
 
-			context.Response.StatusCode = 200;
-			return "success";
+				context.Response.StatusCode = 200;
+				return "success";
 		}
 	}
 }

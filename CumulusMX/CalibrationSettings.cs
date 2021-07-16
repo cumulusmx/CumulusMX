@@ -86,8 +86,6 @@ namespace CumulusMX
 				cumulus.Limit.PressLow = Convert.ToDouble(settings.limits.presslow, invC);
 				cumulus.Limit.WindHigh = Convert.ToDouble(settings.limits.windhigh, invC);
 
-				cumulus.ErrorLogSpikeRemoval = settings.log;
-
 				// Save the settings
 				cumulus.WriteIniFile();
 
@@ -167,8 +165,7 @@ namespace CumulusMX
 				offsets = offsets,
 				multipliers = multipliers,
 				spikeremoval = spikeremoval,
-				limits = limits,
-				log = cumulus.ErrorLogSpikeRemoval
+				limits = limits
 			};
 
 			return data.ToJson();
@@ -182,7 +179,6 @@ namespace CumulusMX
 		public JsonCalibrationSettingsMultipliers multipliers { get; set; }
 		public JsonCalibrationSettingsSpikeRemoval spikeremoval { get; set; }
 		public JsonCalibrationSettingsLimits limits { get; set; }
-		public bool log { get; set; }
 	}
 
 	public class JsonCalibrationSettingsOffsets

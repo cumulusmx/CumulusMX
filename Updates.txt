@@ -1,10 +1,36 @@
+3.12.0 - b3138 - BETA
+——————————————
+- Improvements to the HTTP stations, these should be somewhat usable now!
+- Fix: Adds missing low battery alarm to GW1000 station
+- Fix: Missing . in moon.png copy file name - I blame the cat!
+
+- Change: When reading the Cumulus.ini file at start-up, if settings are migrated, or invalid entries corrected, Cumulus.ini is now re-written.
+	That is re-written as created afresh, not updated in place. Old entries are removed, and the file order resequenced. Thus you cannot then
+	use the new Cumulus.ini on old versions of Cumulus, you will have to use backups.
+
+
 3.12.0 - b3137 - BETA
 ——————————————
 - New: Add EXPERIMENTAL HTTP upload station type using WUnderground protocol
-	- Access via <hostname_or_ip>:8998/station/wunderground
+	- Access via:
+		Protocol	: Wunderground
+		Server 		: <hostname_or_ip>
+		Path		: /station/wunderground?
+		Station Id	: 1 (can be anything)
+		Key			: 1 (can be anything)
+		Port		: 8998 (or whatever you have configured CMX for)
+		Interval	: 20 (seconds)
 
 - New: Add EXPERIMENTAL HTTP upload station type using Ecowitt protocol
-	- Access via <hostname_or_ip>:8998/station/ecowitt
+	- Access via:
+		Protocol	: Ecowitt
+		Server 		: <hostname_or_ip>
+		Path		: /station/ecowitt
+		Port		: 8998 (or whatever you have configured CMX for)
+		Interval	: 20 (seconds)
+
+- Fix: Davis WLL now correctly handles null values in historic data during cath-up
+
 
 
 3.12.0 - b3136 - BETA
@@ -75,6 +101,7 @@
 - Change: The default web site NOAA reports page is now accessible and removes the mouse-over month selection
 - Change: When configuring the Davis WLL station, if any extra sensors are enabled, then Extra Logging is also automatically enabled.
 
+- New: Adds a First Time Setup Wizard to the settings menu. First time users (i.e. no pre-existing Cumulus.ini) are asked to run this from prompts in the console.
 - New: Adds more "advanced" options to the GUI configuration:
 	- Max wind speed in Station > Common Options > Advanced options
 	- Record set timeout in Station > Common Options > Advanced options

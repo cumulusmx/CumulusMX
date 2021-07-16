@@ -1282,6 +1282,8 @@ namespace CumulusMX
 
 					DoForecast("", false);
 
+					cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
 					UpdateStatusPanel(dateTime);
 					UpdateMQTT();
 

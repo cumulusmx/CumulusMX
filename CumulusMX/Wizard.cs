@@ -257,7 +257,7 @@ namespace CumulusMX
 					}
 					// and Realtime files
 
-					// realtime.txt is no used by the standard site
+					// realtime.txt is not used by the standard site
 					//cumulus.RealtimeFiles[0].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 					//cumulus.RealtimeFiles[0].FTP = cumulus.FtpOptions.Enabled;
 					//cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
@@ -272,7 +272,7 @@ namespace CumulusMX
 					cumulus.MoonImage.Ftp = cumulus.FtpOptions.Enabled;
 					cumulus.MoonImage.Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.MoonImage.Enabled)
-						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images" + cumulus.DirectorySeparator + "moonpng";
+						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images" + cumulus.DirectorySeparator + "moon.png";
 
 					// and NOAA reports
 					cumulus.NOAAconf.Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
