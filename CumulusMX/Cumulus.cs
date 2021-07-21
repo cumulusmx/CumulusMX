@@ -707,6 +707,8 @@ namespace CumulusMX
 
 		public string loggingfile;
 
+		private PingReply pingReply;
+
 		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
 			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
@@ -1035,22 +1037,37 @@ namespace CumulusMX
 				using (var ping = new Ping())
 				{
 					var endTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
-					PingReply reply = null;
+
+					ping.PingCompleted += new PingCompletedEventHandler(PingCompletedCallback);
 
 					do
 					{
+						pingReply = null;
+
 						try
 						{
+							var pingTimeout = DateTime.Now.AddSeconds(2.5);
 
-							reply = ping.Send(ProgramOptions.StartupPingHost, 2000);  // 2 second timeout
-							LogMessage($"PING response = {reply.Status}");
+							ping.SendAsync(ProgramOptions.StartupPingHost, 2000);
+
+							do
+							{
+								Thread.Sleep(50);
+							} while (pingReply != null && DateTime.Now < pingTimeout);
+
+							if (DateTime.Now >= pingTimeout)
+							{
+								LogMessage("Ping Error: The PING failed to return after the timeout, cancelling it...");
+								ping.SendAsyncCancel();
+							}
+
 						}
 						catch (Exception e)
 						{
 							LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
 						}
 
-						if (reply == null || reply.Status != IPStatus.Success)
+						if (pingReply == null || pingReply.Status != IPStatus.Success)
 						{
 							// no response wait 10 seconds before trying again
 							Thread.Sleep(10000);
@@ -1068,7 +1085,7 @@ namespace CumulusMX
 								}
 							}
 						}
-					} while ((reply == null || reply.Status != IPStatus.Success) && DateTime.Now < endTime);
+					} while ((pingReply == null || pingReply.Status != IPStatus.Success) && DateTime.Now < endTime);
 
 					if (DateTime.Now >= endTime)
 					{
@@ -10111,6 +10128,27 @@ namespace CumulusMX
 					LogMessage("Primary AQ Sensor = Airlink Outdoor");
 					break;
 			}
+		}
+
+		private void PingCompletedCallback(object sender, PingCompletedEventArgs e)
+		{
+			// If the operation was canceled, display a message to the user.
+			if (e.Cancelled)
+			{
+				LogMessage("Ping canceled.");
+			}
+
+			// If an error occurred, display the exception to the user.
+			else if (e.Error != null)
+			{
+				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.InnerException.Message);
+			}
+			else
+			{
+				LogMessage("Ping reply: " + e.Reply);
+			}
+
+			pingReply = e.Reply;
 		}
 	}
 
