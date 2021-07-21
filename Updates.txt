@@ -1,8 +1,21 @@
+3.12.0 - b3139 - BETA
+——————————————
+- Fix: Broken 'Stop second instance' code
+- Fix: HTTP Station (Ecowitt) Soil Moisture displaying units "cb", should be "%"
+
+- Change: Some libraries updated:
+	- Email:	MailKit
+	- MQTT:		MQTTnet
+	- MySQL:	MySqlConnector
+	- JSON:		ServiceStack.Text
+
+
 3.12.0 - b3138 - BETA
 ——————————————
 - Improvements to the HTTP stations, these should be somewhat usable now!
 - Fix: Adds missing low battery alarm to GW1000 station
 - Fix: Missing . in moon.png copy file name - I blame the cat!
+- Fix: LowTempAlarmSoundFile being written to incorrect Cumulus.ini entry
 
 - Change: When reading the Cumulus.ini file at start-up, if settings are migrated, or invalid entries corrected, Cumulus.ini is now re-written.
 	That is re-written as created afresh, not updated in place. Old entries are removed, and the file order resequenced. Thus you cannot then

@@ -203,6 +203,8 @@ namespace CumulusMX
 		public int airLinkOutLsid;
 		public string AirLinkOutHostName;
 
+		internal HttpStationEcowitt ecowittExtra;
+
 		public DateTime LastUpdateTime;
 
 		public PerformanceCounter UpTime;
@@ -993,26 +995,34 @@ namespace CumulusMX
 			ReadIniFile();
 
 			// Do we prevent more than one copy of CumulusMX running?
-			try
+			if (ProgramOptions.WarnMultiple)
 			{
-				if (ProgramOptions.WarnMultiple && !Program.appMutex.WaitOne(0, false))
+				try
 				{
-					LogConsoleMessage("Cumulus is already running - terminating");
-					LogConsoleMessage("Program exit");
-					LogMessage("Cumulus is already running - terminating");
-					LogMessage("Program exit");
-					Environment.Exit(1);
+					if (!Program.appMutex.WaitOne(0, false))
+					{
+						LogConsoleMessage("Cumulus is already running - terminating");
+						LogConsoleMessage("Program exit");
+						LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance is enabled' - terminating");
+						LogMessage("Stop second instance: Program exit");
+						Program.exitSystem = true;
+						return;
+					}
+				}
+				catch (AbandonedMutexException)
+				{
+					LogMessage("Stop second instance: Abandoned Mutex Error!");
+					LogMessage("Stop second instance: Was a previous copy of Cumulus terminated from task manager, or otherwise forcibly stopped?");
+					LogMessage("Stop second instance: Continuing this instance of Cumulus");
+				}
+				catch (Exception ex)
+				{
+					LogMessage("Stop second instance: Mutex Error! - " + ex);
+					LogMessage("Stop second instance: Terminating this instance of Cumulus");
+					Program.exitSystem = true;
+					return;
 				}
 			}
-			catch (AbandonedMutexException)
-			{
-				LogMessage("Abandoned Mutex Error!");
-			}
-			catch (Exception ex)
-			{
-				LogMessage("Mutex Error! - " + ex);
-			}
-
 
 			// Do we wait for a ping response from a remote host before starting?
 			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
@@ -1404,6 +1414,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new HttpStationEcowitt(this);
 					break;
+				//case StationTypes.HttpAmbient:
+				//	Manufacturer = AMBIENT;
+				//	station = new HttpStationAmbient(this);
+				//	break;
 				default:
 					LogConsoleMessage("Station type not set");
 					LogMessage("Station type not set");
@@ -1435,6 +1449,11 @@ namespace CumulusMX
 				{
 					airLinkDataOut = new AirLinkData();
 					airLinkOut = new DavisAirLink(this, false, station);
+				}
+				if (EcowittExtraEnabled && StationType != StationTypes.HttpEcowitt)
+				{
+					ecowittExtra = new HttpStationEcowitt(this, station);
+					Api.stationEcowittExtra = ecowittExtra;
 				}
 
 				webtags = new WebTags(this, station);
@@ -3720,7 +3739,7 @@ namespace CumulusMX
 			DavisOptions.IPResponseTime = ini.GetValue("Station", "DavisIPResponseTime", 500);
 			//StationOptions.DavisReadTimeout = ini.GetValue("Station", "DavisReadTimeout", 1000); // Not currently used
 			DavisOptions.IncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", false);
-			if (StationType == StationTypes.VantagePro)
+			if (StationType == StationTypes.VantagePro && DavisOptions.UseLoop2 == true)
 			{
 				DavisOptions.UseLoop2 = false;
 				rewriteRequired = true;
@@ -4004,7 +4023,6 @@ namespace CumulusMX
 			if (FCPressureThreshold < 0)
 			{
 				FCPressureThreshold = Units.Press == 2 ? 0.00295333727 : 0.1;
-				rewriteRequired = true;
 			}
 
 			//special_logging = ini.GetValue("Station", "SpecialLog", false);
@@ -4061,6 +4079,9 @@ namespace CumulusMX
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
+			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
+			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
+			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -4105,7 +4126,7 @@ namespace CumulusMX
 			FtpOptions.Username = ini.GetValue("FTP site", "Username", "");
 			FtpOptions.Password = ini.GetValue("FTP site", "Password", "");
 			FtpOptions.Directory = ini.GetValue("FTP site", "Directory", "");
-			if (FtpOptions.Hostname == "")
+			if (FtpOptions.Hostname == "" && FtpOptions.Enabled)
 			{
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
@@ -5030,6 +5051,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "FCpressinMB", FCpressinMB);
 			ini.SetValue("Station", "FClowpress", FClowpress);
 			ini.SetValue("Station", "FChighpress", FChighpress);
+			//ini.SetValue("Station", "FCPressureThreshold", FCPressureThreshold);
 			ini.SetValue("Station", "UseZeroBearing", StationOptions.UseZeroBearing);
 			ini.SetValue("Station", "RoundWindSpeed", StationOptions.RoundWindSpeed);
 			ini.SetValue("Station", "PrimaryAqSensor", StationOptions.PrimaryAqSensor);
@@ -5117,6 +5139,9 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
 			ini.SetValue("GW1000", "MACAddress", Gw1000MacAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
+			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
+			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
+			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -5345,7 +5370,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarm.Value);
 			ini.SetValue("Alarms", "LowTempAlarmSet", LowTempAlarm.Enabled);
 			ini.SetValue("Alarms", "LowTempAlarmSound", LowTempAlarm.Sound);
-			ini.SetValue("Alarms", "LowTempAlarm.SoundFile", LowTempAlarm.SoundFile);
+			ini.SetValue("Alarms", "LowTempAlarmSoundFile", LowTempAlarm.SoundFile);
 			ini.SetValue("Alarms", "LowTempAlarmNotify", LowTempAlarm.Notify);
 			ini.SetValue("Alarms", "LowTempAlarmEmail", LowTempAlarm.Email);
 			ini.SetValue("Alarms", "LowTempAlarmLatch", LowTempAlarm.Latch);
@@ -6100,6 +6125,10 @@ namespace CumulusMX
 		public bool AirLinkInEnabled { get; set; }
 		public bool AirLinkOutEnabled { get; set; }
 
+		public bool EcowittExtraEnabled { get; set; }
+		public bool EcowittExtraUseSolar { get; set; }
+		public bool EcowittExtraUseUv { get; set; }
+
 		//public bool solar_logging { get; set; }
 
 		//public bool special_logging { get; set; }
@@ -6314,6 +6343,8 @@ namespace CumulusMX
 		public int INSTROMET = 5;
 		public int ECOWITT = 6;
 		public int HTTPSTATION = 7;
+		public int AMBIENT = 8;
+
 		//public bool startingup = true;
 		public string ReportPath;
 		public string LatestError;
@@ -7548,6 +7579,9 @@ namespace CumulusMX
 				airLinkOut?.Stop();
 				// If we have a Indoor AirLink sensor, and it is linked to this WLL then stop it now
 				airLinkIn?.Stop();
+				// If we have a Ecowitt Extra Sensors, stop it
+				ecowittExtra?.Stop();
+
 				LogMessage("Extra sensors stopped");
 
 			}
@@ -8782,6 +8816,7 @@ namespace CumulusMX
 			LogMessage("Start Extra Sensors");
 			airLinkOut?.Start();
 			airLinkIn?.Start();
+			ecowittExtra?.Start();
 
 			LogMessage("Start Timers");
 			// start the general one-minute timer

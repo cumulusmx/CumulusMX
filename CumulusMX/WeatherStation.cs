@@ -4214,7 +4214,7 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		protected void DoSolarRad(int value, DateTime timestamp)
+		public void DoSolarRad(int value, DateTime timestamp)
 		{
 			SolarRad = (value * cumulus.Calib.Solar.Mult) + cumulus.Calib.Solar.Offset;
 			// Update display

@@ -43,6 +43,13 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
+			var ecowitt = new JsonExtraSensorEcowitt()
+			{
+				enabled = cumulus.EcowittExtraEnabled,
+				useSolar = cumulus.EcowittExtraUseSolar,
+				useUv = cumulus.EcowittExtraUseUv
+			};
+
 			var bl = new JsonExtraSensorBlakeLarsen()
 			{
 				enabled = cumulus.UseBlakeLarsen
@@ -83,6 +90,7 @@ namespace CumulusMX
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
 				airLink = airlink,
+				ecowitt = ecowitt,
 				blakeLarsen = bl,
 				rg11 = rg11
 			};
@@ -174,6 +182,24 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Ecowitt Extra settings
+				try
+				{
+					cumulus.EcowittExtraEnabled = settings.ecowitt.enabled;
+					if (cumulus.EcowittExtraEnabled)
+					{
+						cumulus.EcowittExtraUseSolar = settings.ecowitt.useSolar;
+						cumulus.EcowittExtraUseUv = settings.ecowitt.useUv;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Blake-Larsen settings
 				try
 				{
@@ -239,6 +265,7 @@ namespace CumulusMX
 		public bool accessible { get; set; }
 		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
+		public JsonExtraSensorEcowitt ecowitt { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
 		public JsonExtraSensorRG11 rg11 { get; set; }
 	}
@@ -265,6 +292,13 @@ namespace CumulusMX
 		public string ipAddress { get; set; }
 		public string hostname { get; set; }
 		public int stationId { get; set; }
+	}
+
+	public class JsonExtraSensorEcowitt
+	{
+		public bool enabled { get; set; }
+		public bool useSolar { get; set; }
+		public bool useUv { get; set; }
 	}
 
 	public class JsonExtraSensorBlakeLarsen

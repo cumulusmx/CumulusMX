@@ -29,6 +29,7 @@ namespace CumulusMX
 		internal static ApiTagProcessor tagProcessor;
 		internal static HttpStationWund stationWund;
 		internal static HttpStationEcowitt stationEcowitt;
+		internal static HttpStationEcowitt stationEcowittExtra;
 
 
 		private static string EscapeUnicode(string input)
@@ -1067,7 +1068,21 @@ namespace CumulusMX
 							{
 								return await this.StringResponseAsync(stationEcowitt.ProcessData(this));
 							}
-							break;
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Ecowitt) is not running");
+							}
+						case "ecowittextra":
+							if (stationEcowittExtra != null)
+							{
+								return await this.StringResponseAsync(stationEcowittExtra.ProcessExtraData(this));
+							}
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Ecowitt) is not running");
+							}
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -1093,7 +1108,11 @@ namespace CumulusMX
 							{
 								return await this.StringResponseAsync(stationWund.ProcessData(this));
 							}
-							break;
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Wunderground) is not running");
+							}
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

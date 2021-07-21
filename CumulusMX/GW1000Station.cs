@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.IO.Ports;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -867,6 +866,8 @@ namespace CumulusMX
 			// 4 - 0x?? - size of response2
 			// 5-X      - data - NOTE format is Bigendian
 			// Y - 0x?? - checksum
+
+			// See: https://osswww.ecowitt.net/uploads/20210716/WN1900%20GW1000,1100%20WH2680,2650%20telenet%20v1.6.0%20.pdf
 
 			try
 			{

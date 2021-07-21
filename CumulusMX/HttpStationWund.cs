@@ -11,9 +11,13 @@ namespace CumulusMX
 
 		public HttpStationWund(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.LogMessage("Starting HTTP Station");
+			cumulus.LogMessage("Starting HTTP Station (Wunderground)");
 
 			cumulus.StationOptions.CalculatedWC = true;
+			cumulus.Manufacturer = cumulus.HTTPSTATION;
+			cumulus.AirQualityUnitText = "µg/m³";
+			cumulus.SoilMoistureUnitText = "%";
+
 			Start();
 		}
 
@@ -34,49 +38,23 @@ namespace CumulusMX
 			/*
 			GET Parameters - all fields are URL escaped
 			===========================================
-			ID					= ignored
-			PASSWORD			= ignored
-			dateutc				= "YYYY-MM-DD HH:mm:SS" or "now"
-			action				= "updateraw"
-			winddir				- [0-360 instantaneous wind direction]
-			windspeedmph		- [mph instantaneous wind speed]
-			windgustmph			- [mph current wind gust, using software specific time period]
-			windgustdir			- [0-360 using software specific time period]
-			windspdmph_avg2m	- [mph 2 minute average wind speed mph]
-			winddir_avg2m		- [0-360 2 minute average wind direction]
-			windgustmph_10m		- [mph past 10 minutes wind gust mph ]
-			windgustdir_10m		- [0-360 past 10 minutes wind gust direction]
-			humidity			- [% outdoor humidity 0-100%]
-			dewptf				- [F outdoor dewpoint F]
-			tempf				- [F outdoor temperature]
-				* for extra outdoor sensors use temp2f, temp3f, and so on
-			rainin				- [rain inches over the past hour)] -- the accumulated rainfall in the past 60 min
-			dailyrainin			- [rain inches so far today in local time]
-			baromin				- [barometric pressure inches]
+			ID					- ignored
+			PASSWORD			- ignored
 			weather				- ignored
 			clouds				- ignored
-			soiltempf			- [F soil temperature]
-				* for sensors 2,3,4 use soiltemp2f, soiltemp3f, and soiltemp4f
-			soilmoisture		- [%]
-				* for sensors 2,3,4 use soilmoisture2, soilmoisture3, and soilmoisture4
-			leafwetness			- [%]
-			leafwetness2
-			solarradiation		- [W/m^2]
-			UV					- [index]
 			visibility			- ignored
-			indoortempf			- [F indoor temperature F]
-			indoorhumidity		- [% indoor humidity 0-100]
-
-			AqPM2.5				- PM2.5 mass - UG/M3
-			AqPM10				- PM10 mass - PM10 mass
-
+			action				- ignored
 			softwaretype		- ignored
-			 */
+			realtime			- ignored
+			rtfreq				- ignored
+			*/
 
 			DateTime recDate;
 
 			try
 			{
+				// dateutc = "YYYY-MM-DD HH:mm:SS" or "now"
+
 				cumulus.LogDebugMessage($"ProcessData: Processing query - {context.Request.RawUrl}");
 
 				var data = context.Request.QueryString;
@@ -99,12 +77,23 @@ namespace CumulusMX
 					recDate = DateTime.ParseExact(dat, "u", CultureInfo.InvariantCulture);
 				}
 
-				// Wind
+
+				// === Wind ===
 				try
 				{
+					// winddir - [0 - 360 instantaneous wind direction]
+					// windspeedmph - [mph instantaneous wind speed]
+					// windgustmph - [mph current wind gust, using software specific time period]
+					// windgustdir - [0 - 360 using software specific time period]
+					// - values below are not always provided
+					// windspdmph_avg2m - [mph 2 minute average wind speed mph]
+					// winddir_avg2m - [0 - 360 2 minute average wind direction]
+					// windgustmph_10m - [mph past 10 minutes wind gust mph]
+					// windgustdir_10m - [0 - 360 past 10 minutes wind gust direction]
+
 					var gust = data["windgustmph"];
 					var dir = data["winddir"];
-					var avg = data["windspdmph"];
+					var avg = data["windspeedmph"];
 
 					if (gust == null || dir == null || avg == null ||
 						gust == "-9999" || dir == "-9999" || avg == "-9999")
@@ -126,9 +115,13 @@ namespace CumulusMX
 					return "Failed: Error in wind data - " + ex.Message;
 				}
 
-				// Humidity
+
+				// === Humidity ===
 				try
 				{
+					// humidity - [% outdoor humidity 0 - 100 %]
+					// indoorhumidity - [% indoor humidity 0 - 100]
+
 					var humIn = data["indoorhumidity"];
 					var humOut = data["humidity"];
 
@@ -159,9 +152,12 @@ namespace CumulusMX
 					return "Failed: Error in humidity data - " + ex.Message;
 				}
 
-				// Pressure
+
+				// === Pressure ===
 				try
 				{
+					// baromin - [barometric pressure inches]
+
 					var press = data["baromin"];
 					if (press == null || press == "-9999")
 					{
@@ -181,9 +177,12 @@ namespace CumulusMX
 					return "Failed: Error in baro pressure data - " + ex.Message;
 				}
 
-				// Indoor temp
+
+				// === Indoor temp ===
 				try
 				{
+					// indoortempf - [F indoor temperature F]
+
 					var temp = data["indoortempf"];
 					if (temp == null || temp == "-9999")
 					{
@@ -202,9 +201,12 @@ namespace CumulusMX
 					return "Failed: Error in indoor temp data - " + ex.Message;
 				}
 
-				// Outdoor temp
+
+				// === Outdoor temp ===
 				try
 				{
+					// tempf - [F outdoor temperature]
+
 					var temp = data["tempf"];
 					if (temp == null || temp == "-9999")
 					{
@@ -223,9 +225,13 @@ namespace CumulusMX
 					return "Failed: Error in outdoor temp data - " + ex.Message;
 				}
 
-				// Rain
+
+				// === Rain ===
 				try
 				{
+					// rainin - [rain inches over the past hour)] --the accumulated rainfall in the past 60 min
+					// dailyrainin - [rain inches so far today in local time]
+
 					var rain = data["dailyrainin"];
 					var rHour = data["rainin"]; //- User rain in last hour as rainfall rate
 
@@ -256,9 +262,12 @@ namespace CumulusMX
 					return "Failed: Error in rainfall data - " + ex.Message;
 				}
 
-				// Dewpoint
+
+				// === Dewpoint ===
 				try
 				{
+					// dewptf - [F outdoor dewpoint F]
+
 					var dewpnt = data["dewptf"];
 					if (dewpnt == null || dewpnt == "-9999")
 					{
@@ -277,28 +286,49 @@ namespace CumulusMX
 					return "Failed: Error in dew point data - " + ex.Message;
 				}
 
-				// Wind Chill - no w/c in wunderground data, so it must be set to CMX calculated
-				if (data["windspdmph"] != null && data["tempf"] != null && data["windspdmph"] != "-9999" && data["tempf"] != "-9999")
+
+				// === Wind Chill ===
+				// - no w/c in wunderground data, so it must be set to CMX calculated
+				if (data["windspeedmph"] != null && data["tempf"] != null && data["windspeedmph"] != "-9999" && data["tempf"] != "-9999")
 				{
 					DoWindChill(0, recDate);
 
+				// === Apparent/Feels Like ===
 					if (data["humidity"] != null && data["humidity"] != "-9999")
 					{
 						DoApparentTemp(recDate);
 						DoFeelsLike(recDate);
 					}
+					else
+					{
+						cumulus.LogMessage("ProcessData: Insufficent data to calculate Apparent/Feels like Temps");
+					}
+				}
+				else
+				{
+					cumulus.LogMessage("ProcessData: Insufficent data to calculate Wind Chill and Apparent/Feels like Temps");
 				}
 
+
+				// === Humidex ===
+				// - CMX calculated
 				if (data["tempf"] != null && data["humidity"] != null && data["tempf"] != "-9999" && data["humidity"] != "-9999")
 				{
 					DoHumidex(recDate);
 				}
+				else
+				{
+					cumulus.LogMessage("ProcessData: Insufficent data to calculate Humidex");
+				}
 
 				DoForecast(string.Empty, false);
 
-				// Extra Temperature
+
+				// === Extra Temperature ===
 				try
 				{
+					// temp[2-4]f
+
 					for (var i = 2; i < 5; i++)
 					{
 						var str = data["temp" + i + "f"];
@@ -313,13 +343,16 @@ namespace CumulusMX
 					cumulus.LogMessage("ProcessData: Error in extra temperature data - " + ex.Message);
 				}
 
-				// Solar
+
+				// === Solar ===
 				try
 				{
+					// solarradiation - [W/m^2]
+
 					var str = data["solarradiation"];
 					if (str != null && str != "-9999")
 					{
-						DoSolarRad(Convert.ToInt32(str), recDate);
+						DoSolarRad((int)Convert.ToDouble(str), recDate);
 					}
 				}
 				catch (Exception ex)
@@ -327,9 +360,12 @@ namespace CumulusMX
 					cumulus.LogMessage("ProcessData: Error in solar data - " + ex.Message);
 				}
 
-				// UV
+
+				// === UV ===
 				try
 				{
+					// UV - [index]
+
 					var str = data["UV"];
 					if (str != null && str != "-9999")
 					{
@@ -341,28 +377,26 @@ namespace CumulusMX
 					cumulus.LogMessage("ProcessData: Error in UV data - " + ex.Message);
 				}
 
-				// Soil Temp
+
+				// === Soil Temp ===
 				try
 				{
+					// soiltempf - [F soil temperature]
+					// soiltemp[2-4]f
+
 					var str1 = data["soiltempf"];
 					if (str1 != null && str1 != "-9999")
 					{
 						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
 					}
-					var str2 = data["soiltemp2f"];
-					if (str2 != null && str2 != "-9999")
+
+					for (var i = 2; i <= 4; i++)
 					{
-						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str2)), 2);
-					}
-					var str3 = data["soiltemp3f"];
-					if (str3 != null && str3 != "-9999")
-					{
-						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str3)), 3);
-					}
-					var str4 = data["soiltemp4f"];
-					if (str4 != null && str4 != "-9999")
-					{
-						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str4)), 4);
+						var str = data["soiltemp" + i + "f"];
+						if (str != null && str != "-9999")
+						{
+							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str)), 2);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -370,39 +404,40 @@ namespace CumulusMX
 					cumulus.LogMessage("ProcessData: Error in Soil temp data - " + ex.Message);
 				}
 
-				// Soil Mositure
+
+				// === Soil Mositure ===
 				try
 				{
+					// soilmoisture - [%]
+					// soilmoisture[2-4]
+
 					var str1 = data["soilmoisture"];
 					if (str1 != null && str1 != "-9999")
 					{
 						DoSoilMoisture(Convert.ToDouble(str1), 1);
 					}
-					var str2 = data["soilmoisture2"];
-					if (str2 != null && str2 != "-9999")
-					{
-						DoSoilMoisture(Convert.ToDouble(str2), 2);
-					}
-					var str3 = data["soilmoisture3"];
-					if (str3 != null && str3 != "-9999")
-					{
-						DoSoilMoisture(Convert.ToDouble(str3), 3);
-					}
-					var str4 = data["soilmoisture4"];
-					if (str4 != null && str4 != "-9999")
-					{
-						DoSoilMoisture(Convert.ToDouble(str4), 4);
-					}
 
+					for (var i = 2; i <= 4; i++)
+					{
+						var str = data["soilmoisture2"];
+						if (str != null && str != "-9999")
+						{
+							DoSoilMoisture(Convert.ToDouble(str), 2);
+						}
+					}
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogMessage("ProcessData: Error in Soil moisture data - " + ex.Message);
 				}
 
-				// Leaf Wetness
+
+				// === Leaf Wetness ===
 				try
 				{
+					// leafwetness - [%]
+					// leafwetness2
+
 					var str1 = data["leafwetness"];
 					if (str1 != null && str1 != "-9999")
 					{
@@ -419,9 +454,13 @@ namespace CumulusMX
 					cumulus.LogMessage("ProcessData: Error in Leaf wetness data - " + ex.Message);
 				}
 
-				// Air Quality
+
+				// === Air Quality ===
 				try
 				{
+					// AqPM2.5 - PM2.5 mass - UG / M3
+					// AqPM10 - PM10 mass - PM10 mass
+
 					var str2 = data["AqPM2.5"];
 					if (str2 != null && str2 != "-9999")
 					{

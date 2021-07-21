@@ -566,7 +566,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error processing Station settings: " + ex.Message;
+				var msg = "Error processing Wizard settings: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				errorMsg += msg;
