@@ -306,6 +306,12 @@ namespace CumulusMX
                         UpdateStatusPanel(rw.Timestamp);
 
                         break;
+                    case WeatherPacket.MessageType.LightningStrike:
+                        LightningTime = wp.LightningStrike.Timestamp;
+                        LightningDistance = ConvertKmtoUserUnits(wp.LightningStrike.Distance);
+                        LightningStrikesToday++;
+                        cumulus.LogMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
+                        break;
 
                 }
                 
