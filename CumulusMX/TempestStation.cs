@@ -486,11 +486,6 @@ namespace CumulusMX.Tempest
                     Debug.WriteLine(ex.Message);
                 }
 
-                if (wp != null && wp.type.Equals("obs_st"))
-                {
-                    object o = wp.obs;
-                }
-
                 if ((wp?.timestamp ?? 0) != 0) Debug.WriteLine(wp?.PacketTime.ToString());
             }
         }
