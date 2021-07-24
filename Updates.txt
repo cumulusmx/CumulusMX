@@ -1,7 +1,25 @@
+3.12.0 - b3140 - BETA
+——————————————
+- Fix: Custom MySQL Rollover was only being invoked if Custom MySQL minutes was enabled
+
+- Add more opt-ins for GW1000 when using its extra sensors on another main station
+
+
 3.12.0 - b3139 - BETA
 ——————————————
+- New: You can now add extra sensors to your existing station using an Ecowitt GW1000 (or console).
+	- Simply set-up your GW1000 Customized Server to:
+		Protocol	: Ecowitt
+		Server 		: <hostname_or_ip>
+		Path		: /station/ecowittextra
+		Port		: 8998 (or whatever you have configured CMX for)
+		Interval	: 20 (seconds)
+
+
 - Fix: Broken 'Stop second instance' code
 - Fix: HTTP Station (Ecowitt) Soil Moisture displaying units "cb", should be "%"
+- Fix: Start-up PING now catches 'hung' responses and terminates them
+- Fix: Error in processing non-real time Extra Web Files
 
 - Change: Some libraries updated:
 	- Email:	MailKit

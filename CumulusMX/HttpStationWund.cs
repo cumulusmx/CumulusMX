@@ -47,7 +47,10 @@ namespace CumulusMX
 			softwaretype		- ignored
 			realtime			- ignored
 			rtfreq				- ignored
-			*/
+
+			ID=ISAARB3&PASSWORD=key&tempf=81.5&humidity=43&dewptf=56.8&windchillf=81.5&winddir=329&windspeedmph=0.00&windgustmph=5.82&rainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=4.118&yearlyrainin=29.055&solarradiation=253.20&UV=1&indoortempf=80.6&indoorhumidity=50&baromin=29.943&AqPM2.5=10.0&soilmoisture=51&soilmoisture2=65&soilmoisture3=72&soilmoisture4=36&soilmoisture5=48&lowbatt=0&dateutc=now&softwaretype=GW1000A_V1.6.8&action=updateraw&realtime=1&rtfreq=5
+
+			 */
 
 			DateTime recDate;
 
@@ -102,9 +105,9 @@ namespace CumulusMX
 					}
 					else
 					{
-						var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust));
-						var dirVal = Convert.ToInt32(dir);
-						var avgVal = ConvertWindMPHToUser(Convert.ToDouble(avg));
+						var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, CultureInfo.InvariantCulture));
+						var dirVal = Convert.ToInt32(dir, CultureInfo.InvariantCulture);
+						var avgVal = ConvertWindMPHToUser(Convert.ToDouble(avg, CultureInfo.InvariantCulture));
 						DoWind(gustVal, dirVal, avgVal, recDate);
 					}
 				}
@@ -131,7 +134,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var humVal = Convert.ToInt32(humIn);
+						var humVal = Convert.ToInt32(humIn, CultureInfo.InvariantCulture);
 						DoIndoorHumidity(humVal);
 					}
 
@@ -141,7 +144,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var humVal = Convert.ToInt32(humOut);
+						var humVal = Convert.ToInt32(humOut, CultureInfo.InvariantCulture);
 						DoOutdoorHumidity(humVal, recDate);
 					}
 				}
@@ -165,7 +168,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press));
+						var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
 						DoPressure(pressVal, recDate);
 						UpdatePressureTrendString();
 					}
@@ -190,7 +193,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var tempVal = ConvertTempFToUser(Convert.ToDouble(temp));
+						var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
 						DoIndoorTemp(tempVal);
 					}
 				}
@@ -214,7 +217,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var tempVal = ConvertTempFToUser(Convert.ToDouble(temp));
+						var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
 						DoOutdoorTemp(tempVal, recDate);
 					}
 				}
@@ -241,8 +244,8 @@ namespace CumulusMX
 					}
 					else
 					{
-						var rainVal = ConvertRainINToUser(Convert.ToDouble(rain));
-						var rateVal = ConvertRainINToUser(Convert.ToDouble(rHour));
+						var rainVal = ConvertRainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
+						var rateVal = ConvertRainINToUser(Convert.ToDouble(rHour, CultureInfo.InvariantCulture));
 
 						if (rainVal < previousRainCount)
 						{
@@ -275,7 +278,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var dpVal = ConvertTempFToUser(Convert.ToDouble(dewpnt));
+						var dpVal = ConvertTempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
 						DoOutdoorDewpoint(dpVal, recDate);
 					}
 				}
@@ -334,7 +337,7 @@ namespace CumulusMX
 						var str = data["temp" + i + "f"];
 						if (str != null && str != "-9999")
 						{
-							DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str)), i - 1);
+							DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i - 1);
 						}
 					}
 				}
@@ -352,7 +355,7 @@ namespace CumulusMX
 					var str = data["solarradiation"];
 					if (str != null && str != "-9999")
 					{
-						DoSolarRad((int)Convert.ToDouble(str), recDate);
+						DoSolarRad((int)Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
 					}
 				}
 				catch (Exception ex)
@@ -369,7 +372,7 @@ namespace CumulusMX
 					var str = data["UV"];
 					if (str != null && str != "-9999")
 					{
-						DoUV(Convert.ToDouble(str), recDate);
+						DoUV(Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
 					}
 				}
 				catch (Exception ex)
@@ -387,7 +390,7 @@ namespace CumulusMX
 					var str1 = data["soiltempf"];
 					if (str1 != null && str1 != "-9999")
 					{
-						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1)), 1);
+						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1, CultureInfo.InvariantCulture)), 1);
 					}
 
 					for (var i = 2; i <= 4; i++)
@@ -395,7 +398,7 @@ namespace CumulusMX
 						var str = data["soiltemp" + i + "f"];
 						if (str != null && str != "-9999")
 						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str)), 2);
+							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), 2);
 						}
 					}
 				}
@@ -414,7 +417,7 @@ namespace CumulusMX
 					var str1 = data["soilmoisture"];
 					if (str1 != null && str1 != "-9999")
 					{
-						DoSoilMoisture(Convert.ToDouble(str1), 1);
+						DoSoilMoisture(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
 					}
 
 					for (var i = 2; i <= 4; i++)
@@ -422,7 +425,7 @@ namespace CumulusMX
 						var str = data["soilmoisture2"];
 						if (str != null && str != "-9999")
 						{
-							DoSoilMoisture(Convert.ToDouble(str), 2);
+							DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), 2);
 						}
 					}
 				}
@@ -441,12 +444,12 @@ namespace CumulusMX
 					var str1 = data["leafwetness"];
 					if (str1 != null && str1 != "-9999")
 					{
-						DoLeafWetness(Convert.ToDouble(str1), 1);
+						DoLeafWetness(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
 					}
 					var str2 = data["leafwetness2"];
 					if (str2 != null && str2 != "-9999")
 					{
-						DoLeafWetness(Convert.ToDouble(str2), 2);
+						DoLeafWetness(Convert.ToDouble(str2, CultureInfo.InvariantCulture), 2);
 					}
 				}
 				catch (Exception ex)
@@ -464,12 +467,12 @@ namespace CumulusMX
 					var str2 = data["AqPM2.5"];
 					if (str2 != null && str2 != "-9999")
 					{
-						CO2_pm2p5 = Convert.ToDouble(str2);
+						CO2_pm2p5 = Convert.ToDouble(str2, CultureInfo.InvariantCulture);
 					}
 					var str10 = data["AqPM10"];
 					if (str10 != null && str10 != "-9999")
 					{
-						CO2_pm10 = Convert.ToDouble(str10);
+						CO2_pm10 = Convert.ToDouble(str10, CultureInfo.InvariantCulture);
 					}
 				}
 				catch (Exception ex)

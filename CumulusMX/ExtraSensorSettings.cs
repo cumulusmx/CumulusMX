@@ -47,7 +47,15 @@ namespace CumulusMX
 			{
 				enabled = cumulus.EcowittExtraEnabled,
 				useSolar = cumulus.EcowittExtraUseSolar,
-				useUv = cumulus.EcowittExtraUseUv
+				useUv = cumulus.EcowittExtraUseUv,
+				useTempHum = cumulus.EcowittExtraUseTempHum,
+				useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
+				useSoilMoist = cumulus.EcowittExtraUseSoilMoist,
+				useLeafWet = cumulus.EcowittExtraUseLeafWet,
+				useAQI = cumulus.EcowittExtraUseAQI,
+				useCo2 = cumulus.EcowittExtraUseCo2,
+				useLightning = cumulus.EcowittExtraUseLightning,
+				useLeak = cumulus.EcowittExtraUseLeak
 			};
 
 			var bl = new JsonExtraSensorBlakeLarsen()
@@ -190,6 +198,14 @@ namespace CumulusMX
 					{
 						cumulus.EcowittExtraUseSolar = settings.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.ecowitt.useUv;
+						cumulus.EcowittExtraUseTempHum = settings.ecowitt.useTempHum;
+						cumulus.EcowittExtraUseSoilTemp = settings.ecowitt.useSoilTemp;
+						cumulus.EcowittExtraUseSoilMoist = settings.ecowitt.useSoilMoist;
+						cumulus.EcowittExtraUseLeafWet = settings.ecowitt.useLeafWet;
+						cumulus.EcowittExtraUseAQI = settings.ecowitt.useAQI;
+						cumulus.EcowittExtraUseCo2 = settings.ecowitt.useCo2;
+						cumulus.EcowittExtraUseLightning = settings.ecowitt.useLightning;
+						cumulus.EcowittExtraUseLeak = settings.ecowitt.useLeak;
 					}
 				}
 				catch (Exception ex)
@@ -299,6 +315,14 @@ namespace CumulusMX
 		public bool enabled { get; set; }
 		public bool useSolar { get; set; }
 		public bool useUv { get; set; }
+		public bool useTempHum { get; set; }
+		public bool useSoilTemp { get; set; }
+		public bool useSoilMoist { get; set; }
+		public bool useLeafWet { get; set; }
+		public bool useAQI { get; set; }
+		public bool useCo2 { get; set; }
+		public bool useLightning { get; set; }
+		public bool useLeak { get; set; }
 	}
 
 	public class JsonExtraSensorBlakeLarsen

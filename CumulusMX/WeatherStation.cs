@@ -4593,7 +4593,7 @@ namespace CumulusMX
 				int month = timestamp.Month;
 				DayResetDay = drday;
 
-				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				if (cumulus.MySqlSettings.CustomRollover.Enabled)
 				{
 					cumulus.CustomMysqlRolloverTimerTick();
 				}

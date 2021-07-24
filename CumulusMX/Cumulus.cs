@@ -1026,6 +1026,45 @@ namespace CumulusMX
 				}
 			}
 
+			// Do we delay the start of Cumulus MX for a fixed period?
+			if (ProgramOptions.StartupDelaySecs > 0)
+			{
+				// Check uptime
+				double ts = 0;
+				if (Platform.Substring(0, 3) == "Win" && UpTime != null)
+				{
+					UpTime.NextValue();
+					ts = UpTime.NextValue();
+				}
+				else if (File.Exists(@"/proc/uptime"))
+				{
+					var text = File.ReadAllText(@"/proc/uptime");
+					var strTime = text.Split(' ')[0];
+					double.TryParse(strTime, out ts);
+				}
+
+				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
+				LogMessage($"System uptime = {(int)ts} secs");
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts)
+				{
+					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
+					var msg2 = $"Start-up delay complete, continuing...";
+					LogConsoleMessage(msg1);
+					LogMessage(msg1);
+					Thread.Sleep(ProgramOptions.StartupDelaySecs * 1000);
+					LogConsoleMessage(msg2);
+					LogMessage(msg2);
+				}
+				else
+				{
+					LogMessage("No start-up delay, max uptime exceeded");
+				}
+			}
+			else
+			{
+				LogMessage("No start-up delay - disabled");
+			}
+
 			// Do we wait for a ping response from a remote host before starting?
 			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
 			{
@@ -1102,45 +1141,6 @@ namespace CumulusMX
 			else
 			{
 				LogMessage("No start-up PING");
-			}
-
-			// Do we delay the start of Cumulus MX for a fixed period?
-			if (ProgramOptions.StartupDelaySecs > 0)
-			{
-				// Check uptime
-				double ts = 0;
-				if (Platform.Substring(0, 3) == "Win" && UpTime != null)
-				{
-					UpTime.NextValue();
-					ts = UpTime.NextValue();
-				}
-				else if (File.Exists(@"/proc/uptime"))
-				{
-					var text = File.ReadAllText(@"/proc/uptime");
-					var strTime = text.Split(' ')[0];
-					double.TryParse(strTime, out ts);
-				}
-
-				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
-				LogMessage($"System uptime = {(int)ts} secs");
-				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts)
-				{
-					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
-					var msg2 = $"Start-up delay complete, continuing...";
-					LogConsoleMessage(msg1);
-					LogMessage(msg1);
-					Thread.Sleep(ProgramOptions.StartupDelaySecs * 1000);
-					LogConsoleMessage(msg2);
-					LogMessage(msg2);
-				}
-				else
-				{
-					LogMessage("No start-up delay, max uptime exceeded");
-				}
-			}
-			else
-			{
-				LogMessage("No start-up delay - disabled");
 			}
 
 			GC.Collect();
@@ -3005,7 +3005,7 @@ namespace CumulusMX
 				{
 					LogDebugMessage($"Realtime[{cycle}]: Processing realtime file - {RealtimeFiles[i].LocalFileName}");
 					var destFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
-					ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser);
+					ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
 				}
 			}
 
@@ -3028,24 +3028,8 @@ namespace CumulusMX
 							{
 								// process the file
 								LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
-								var utf8WithoutBom = new UTF8Encoding(false);
-								var encoding = UTF8encode ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
-								realtimeTokenParser.Encoding = encoding;
-								realtimeTokenParser.SourceFile = uploadfile;
-								var output = realtimeTokenParser.ToString();
+								ProcessTemplateFile(uploadfile, uploadfile + "tmp", realtimeTokenParser, false);
 								uploadfile += "tmp";
-								try
-								{
-									using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
-									{
-										file.Write(output);
-										file.Close();
-									}
-								}
-								catch (Exception ex)
-								{
-									LogMessage($"Realtime[{cycle}]: Error writing to extra realtime file[{i}] - {uploadfile}: {ex.Message}");
-								}
 							}
 
 							if (!ExtraFiles[i].FTP)
@@ -4099,6 +4083,14 @@ namespace CumulusMX
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
 			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
+			EcowittExtraUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
+			EcowittExtraUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
+			EcowittExtraUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
+			EcowittExtraUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
+			EcowittExtraUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
+			EcowittExtraUseCo2= ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
+			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
+			EcowittExtraUseLeak= ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -5159,6 +5151,15 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
 			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
+			ini.SetValue("GW1000", "ExtraSensorUseTempHum", EcowittExtraUseTempHum);
+			ini.SetValue("GW1000", "ExtraSensorUseSoilTemp", EcowittExtraUseSoilTemp);
+			ini.SetValue("GW1000", "ExtraSensorUseSoilMoist", EcowittExtraUseSoilMoist);
+			ini.SetValue("GW1000", "ExtraSensorUseLeafWet", EcowittExtraUseLeafWet);
+			ini.SetValue("GW1000", "ExtraSensorUseAQI", EcowittExtraUseAQI);
+			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
+			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
+			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
+
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -6145,6 +6146,15 @@ namespace CumulusMX
 		public bool EcowittExtraEnabled { get; set; }
 		public bool EcowittExtraUseSolar { get; set; }
 		public bool EcowittExtraUseUv { get; set; }
+		public bool EcowittExtraUseTempHum { get; set; }
+		public bool EcowittExtraUseSoilTemp { get; set; }
+		public bool EcowittExtraUseSoilMoist { get; set; }
+		public bool EcowittExtraUseLeafWet { get; set; }
+		public bool EcowittExtraUseAQI { get; set; }
+		public bool EcowittExtraUseCo2 { get; set; }
+		public bool EcowittExtraUseLightning { get; set; }
+		public bool EcowittExtraUseLeak { get; set; }
+
 
 		//public bool solar_logging { get; set; }
 
@@ -7638,7 +7648,7 @@ namespace CumulusMX
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
 					{
 						var destFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-						ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, tokenParser);
+						ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, tokenParser, true);
 					}
 				}
 				LogDebugMessage("Done creating standard Data file");
@@ -7668,7 +7678,8 @@ namespace CumulusMX
 								{
 									LogDebugMessage($"Interval: Processing extra file[{i}] - {uploadfile}");
 									// process the file
-									ProcessTemplateFile(uploadfile, uploadfile += "tmp", tokenParser);
+									ProcessTemplateFile(uploadfile, uploadfile + "tmp", tokenParser, false);
+									uploadfile += "tmp";
 								}
 
 								if (!ExtraFiles[i].FTP)
@@ -8802,9 +8813,15 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessTemplateFile(string template, string outputfile, TokenParser parser)
+		private void ProcessTemplateFile(string template, string outputfile, TokenParser parser, bool useAppDir)
 		{
-			string templatefile = AppDir + template;
+			string templatefile = template;
+
+			if (useAppDir)
+			{
+				templatefile = AppDir + template;
+			}
+
 			if (File.Exists(templatefile))
 			{
 				var utf8WithoutBom = new UTF8Encoding(false);
@@ -8825,6 +8842,10 @@ namespace CumulusMX
 				{
 					LogMessage($"ProcessTemplateFile: Error writing to file '{outputfile}', error was - {e}");
 				}
+			}
+			else
+			{
+				LogMessage($"ProcessTemplateFile: Error, template file not found - {templatefile}");
 			}
 		}
 
