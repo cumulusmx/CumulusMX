@@ -85,7 +85,7 @@ namespace CumulusMX
             AutofacWrapper.Instance.Builder.RegisterType<MeteoLib>().Named<object>("MeteoLib");
 
             var stations = _iniFile.GetSection("Stations");
-            
+
             foreach (var station in stations)
             {
                 IWeatherStation theStation = AutofacWrapper.Instance.Scope.ResolveKeyed<IWeatherStation>
@@ -131,7 +131,7 @@ namespace CumulusMX
             {
                 IDataReporter theReporter = (IDataReporter)AutofacWrapper.Instance.Scope.ResolveNamed<IDataReporter>
                     (
-                    reporter.Value.AsString, 
+                    reporter.Value.AsString,
                     new NamedParameter("configurationSectionName", "Reporters:{station.Key}")
                     );
                 if (theReporter.Enabled)
@@ -179,7 +179,7 @@ namespace CumulusMX
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             OnStart(null);
-            
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(1000);

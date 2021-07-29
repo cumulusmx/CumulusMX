@@ -34,7 +34,7 @@ namespace CumulusMX.Stations.Calibration
                 return null;
 
             double pressure = (double)rawPressure?.Millibars;
-             pressure *= _settings.PressureMultiplier;
+            pressure *= _settings.PressureMultiplier;
 
             return Pressure.FromMillibars(pressure);
         }
@@ -49,11 +49,12 @@ namespace CumulusMX.Stations.Calibration
 
             double pressure = (double)rawPressure?.Millibars;
             double previousPressure = (double)previousRawPressure?.Millibars;
-            if (_settings.PressureSpikeDiff != null)
-                pressure += (double)_settings.PressureOffset?.Millibars;
+            if (_settings.PressureSpikeDiff < Math.Abs(pressure - previousPressure))
+                return previousRawPressure;   // On a data spike, do we return previous pressure, or null? Cumulus MX uses previous value.
 
             pressure *= _settings.PressureMultiplier;
 
+            pressure += (double)_settings.PressureOffset?.Millibars;
 
             return Pressure.FromMillibars(pressure);
         }

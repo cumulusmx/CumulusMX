@@ -58,7 +58,7 @@ namespace DavisStation
                 {"RainCounter",typeof(Length)},
                 {"RainRate",typeof(Speed)},
                 {"SolarRadiation",typeof(Irradiance)},
-                {"UvIndex",typeof(int)},
+                {"UvIndex",typeof(double)},
                 {"WindBearing",typeof(Angle)},
                 {"WindSpeed",typeof(Speed)},
                 {"WindGust",typeof(Speed)},
@@ -72,7 +72,7 @@ namespace DavisStation
 
         public override void Initialise()
         {
-            var baseMap = _configurationSettings.Mappings;
+            var baseMap = _configurationSettings.Mappings ?? new Dictionary<string, string>();
             _mapping = RegisterOutputs(baseMap);
             if (_mapping.Count == 0)
             {
@@ -92,7 +92,7 @@ namespace DavisStation
                 }
                 catch (Exception ex)
                 {
-                    _log.Error($"Error creating serial interface. Station disabled.");
+                    _log.Error($"Error creating serial interface. Station disabled.", ex);
                     _enabled = false;
                 }
             }
@@ -104,12 +104,12 @@ namespace DavisStation
                 IPAddress address = IPAddress.Parse("127.0.0.1");
                 int port = 80;
                 try
-                { 
+                {
                     _interface = new DavisStationInterfaceIp(_log, address,port,disconnectInterval,responseTime,initWait);
                 }
                 catch (Exception ex)
                 {
-                    _log.Error($"Error creating IP interface. Station disabled.");
+                    _log.Error($"Error creating IP interface. Station disabled.", ex);
                     _enabled = false;
                 }
             }
@@ -120,7 +120,7 @@ namespace DavisStation
             }
             catch (Exception ex)
             {
-                _log.Error($"Error initialising interface. Station disabled.",ex);
+                _log.Error($"Error initialising interface. Station disabled.", ex);
                 _enabled = false;
             }
 
@@ -150,8 +150,7 @@ namespace DavisStation
             if ( _firmwareVersion < 1.9 && _useLoop2)
             {
                 _useLoop2 = false;
-                _log.Warn(
-                    "LOOP2 disabled. It is enabled in configuration but this firmware version does not support it.");
+                _log.Warn("LOOP2 disabled. It is enabled in configuration but this firmware version does not support it.");
             }
             else
                 _log.Info("LOOP2 format :" + (_useLoop2 ? "enabled" : "disabled"));
@@ -162,14 +161,57 @@ namespace DavisStation
                 _log.Info(_interface.ReceptionStatistics);
             }
 
-            //TODO _log.Info("Last update time = " + cumulus.LastUpdateTime);
+            // check the logger interval
+            _interface.CheckLoggerInterval();
 
-            if (_configurationSettings.SyncTime) _interface.SetTime();
+            //TODO _log.Info("Last update time = " + cumulus.LastUpdateTime);
 
             var consoleClock = _interface.GetTime();
 
             if (consoleClock > DateTime.MinValue)
+            {
                 _log.Info($"Console clock: {consoleClock:O}");
+                var timeDiff = DateTime.Now.Subtract(consoleClock).TotalSeconds;
+
+                if (Math.Abs(timeDiff) >= 30)
+                {
+                    if (_configurationSettings.SyncTime)
+                    {
+                        _log.Info($"Console clock: Console is {(int)timeDiff} seconds adrift, resetting it...");
+
+                        _interface.SetTime();
+
+                        // Pause whilst the console sorts itself out
+                        _log.Info("Console clock: Pausing to allow Davis console to process the new date/time");
+                        //cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
+                        Thread.Sleep(1000 * 5);
+
+                        consoleClock = _interface.GetTime();
+
+                        if (consoleClock > DateTime.MinValue)
+                        {
+                            _log.Info("Console clock: " + consoleClock);
+                        }
+                        else
+                        {
+                            _log.Info("Console clock: Failed to read console time");
+                        }
+                    }
+                    else
+                    {
+                        _log.Info($"Console clock: Console is {(int)timeDiff} seconds adrift but automatic setting is disabled - you should set the clock manually.");
+                    }
+                }
+                else
+                {
+                    _log.Info($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int)DateTime.Now.Subtract(consoleClock).TotalSeconds}s)");
+                }
+            }
+            else
+            {
+                _log.Info("Console clock: Failed to read console time");
+            }
+
 
             _calibrationDictionary = GetCalibrationDictionary(_configurationSettings);
 
@@ -294,7 +336,7 @@ namespace DavisStation
             _log.Info("Start normal reading loop");
             var loopCount = _configurationSettings.ForceVPBarUpdate ? 20 : 50;
             const int loop2Count = 1;
-            
+
             try
             {
                 while (!ct.IsCancellationRequested)
@@ -359,7 +401,8 @@ namespace DavisStation
 
                 _log.Debug("Data " + (i + 1) + ": " + loopString);
 
-                if (!loopString.StartsWith("LOO"))
+                // Check it begins with "LOO"
+                if (!loopString.StartsWith("4C-4F-4F"))
                 {
                     _log.Debug("Invalid LOOP packet");
                     // Stop the sending of LOOP packets so we can resync
@@ -376,7 +419,7 @@ namespace DavisStation
                 loopData.Calibrations = _calibrationDictionary;
 
                 // Process it
-                _log.Debug(DateTime.Now.ToLongTimeString() + " Processing Data, i=" + i);
+                _log.Debug(DateTime.Now.ToLongTimeString() + " Processing Data, i=" + (i + 1));
                 //Trace.Flush();
 
                 var dataModel = loopData.GetDataModel();
@@ -610,7 +653,7 @@ namespace DavisStation
 
                 _log.Info("ACK received");
 
-                // Wait until the buffer is full 
+                // Wait until the buffer is full
                 while (socket.Available < 6)
                     // Wait a short period to let more data load into the buffer
                     Thread.Sleep(200);
@@ -992,6 +1035,6 @@ namespace DavisStation
             }
         }
         */
-        
+
     }
 }

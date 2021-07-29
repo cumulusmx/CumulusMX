@@ -12,32 +12,32 @@ namespace DavisStation
     //
     // Contents of the character array (LOOP2 packet from Vantage):
     //
-    //    Field                           Offset  Size    Explanation 
-    //    "L"                             0       1 
-    //    "O"                             1       1 
-    //    "O"                             2       1       Spells out "LOO"  Identifies a LOOP packet 
-    //    "Bar Trend                      3       1       Signed byte that indicates the current 3-hour barometer trend. It is one of these values: 
-    //                                                    -60 = Falling Rapidly  = 196 (as an unsigned byte) 
-    //                                                    -20 = Falling Slowly   = 236 (as an unsigned byte)   
-    //                                                    0 = Steady  
-    //                                                    20 = Rising Slowly  
-    //                                                    60 = Rising Rapidly  
-    //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available. 
-    //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed 
-    //                                                        to determine the bar trend. 
-    //    Packet Type                     4       1       Has the value 1, indicating a LOOP2 packet 
+    //    Field                           Offset  Size    Explanation
+    //    "L"                             0       1
+    //    "O"                             1       1
+    //    "O"                             2       1       Spells out "LOO"  Identifies a LOOP packet
+    //    "Bar Trend                      3       1       Signed byte that indicates the current 3-hour barometer trend. It is one of these values:
+    //                                                    -60 = Falling Rapidly  = 196 (as an unsigned byte)
+    //                                                    -20 = Falling Slowly   = 236 (as an unsigned byte)
+    //                                                    0 = Steady
+    //                                                    20 = Rising Slowly
+    //                                                    60 = Rising Rapidly
+    //                                                    80 = ASCII "P" = Rev A firmware, no trend info is available.
+    //                                                    Any other value means that the Vantage does not have the 3 hours of bar data needed
+    //                                                        to determine the bar trend.
+    //    Packet Type                     4       1       Has the value 1, indicating a LOOP2 packet
     //    Unused                          5       2       Unused, contains 0x7FFF
-    //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches 
-    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro 
-    //                                                        Vantage Pro2.  Values outside these ranges will not be logged. 
-    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F. 
-    //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%. 
-    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F. 
-    //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization 
-    //                                                        with the radio or due to some other reason, the wind speed is forced to be 0. 
+    //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
+    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
+    //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
+    //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
+    //    Outside Temperature             12      2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
+    //    Wind Speed                      14      1       It is a byte unsigned value in mph.  If the wind speed is dashed because it lost synchronization
+    //                                                        with the radio or due to some other reason, the wind speed is forced to be 0.
     //    Unused                          15      1       Unused, contains 0xFF
-    //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.  
-    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.) 
+    //    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.
+    //                                                        (0° is North, 90° is East, 180° is South and 270° is West.)
     //    10-Min Avg Wind Speed           18      2       It is a two-byte unsigned value.
     //    2-Min Avg Wind Speed            20      2       It is a two-byte unsigned value.
     //    10-Min Wind Gust                22      2       It is a two-byte unsigned value.
@@ -70,30 +70,30 @@ namespace DavisStation
     //    Altimeter Setting               69      2       In 1000th of an inch
     //    Unused                          71      1       Unused field, filled with 0xFF
     //    Unused                          72      1       Undefined
-    //    Next 10-min Wind Speed Graph 
-    //      Pointer                       73      1       Points to the next 10-minute wind speed graph point. For current graph point, 
+    //    Next 10-min Wind Speed Graph
+    //      Pointer                       73      1       Points to the next 10-minute wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next 15-min Wind Speed Graph 
-    //      Pointer                       74      1       Points to the next 15-minute wind speed graph point. For current graph point, 
+    //    Next 15-min Wind Speed Graph
+    //      Pointer                       74      1       Points to the next 15-minute wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Hourly Wind Speed Graph 
-    //      Pointer                       75      1       Points to the next hour wind speed graph point. For current graph point, 
+    //    Next Hourly Wind Speed Graph
+    //      Pointer                       75      1       Points to the next hour wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Daily Wind Speed Graph 
-    //      Pointer                       76      1       Points to the next daily wind speed graph point. For current graph point, 
+    //    Next Daily Wind Speed Graph
+    //      Pointer                       76      1       Points to the next daily wind speed graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Minute Rain Graph Pointer  77      1       Points to the next minute rain graph point. For current graph point, 
+    //    Next Minute Rain Graph Pointer  77      1       Points to the next minute rain graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Rain Storm Graph Pointer   78      1       Points to the next rain storm graph point. For current graph point, 
+    //    Next Rain Storm Graph Pointer   78      1       Points to the next rain storm graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 254on Vantage Vue console)
-    //    Index to the Minute within 
+    //    Index to the Minute within
     //      an Hour                       79      1       It keeps track of the minute within an hour for the rain calculation. (range from 0 to 59)
-    //    Next Monthly Rain               80      1       Points to the next monthly rain graph point. For current graph point, 
+    //    Next Monthly Rain               80      1       Points to the next monthly rain graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Yearly Rain                81      1       Points to the next yearly rain graph point. For current graph point, 
+    //    Next Yearly Rain                81      1       Points to the next yearly rain graph point. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
-    //    Next Seasonal Rain              82      1       Points to the next seasonal rain graph point. Yearly rain always resets at the beginning of the calendar, 
-    //                                                      but seasonal rain resets when rain season begins. For current graph point, 
+    //    Next Seasonal Rain              82      1       Points to the next seasonal rain graph point. Yearly rain always resets at the beginning of the calendar,
+    //                                                      but seasonal rain resets when rain season begins. For current graph point,
     //                                                      just subtract 1 (range from 0 to 23 on VP/VP2 console and 0 to 24 on Vantage Vue console)
     //    Unused                          83      2       Unused field, filled with 0x7FFF
     //    Unused                          85      2       Unused field, filled with 0x7FFF
@@ -101,10 +101,10 @@ namespace DavisStation
     //    Unused                          89      2       Unused field, filled with 0x7FFF
     //    Unused                          91      2       Unused field, filled with 0x7FFF
     //    Unused                          93      2       Unused field, filled with 0x7FFF
-    //    "\n" <LF> = 0x0A                95      1  
-    //    "\r" <CR> = 0x0D                96      1   
-    //    CRC                             97      2  
-    //    Total Length                    99  
+    //    "\n" <LF> = 0x0A                95      1
+    //    "\r" <CR> = 0x0D                96      1
+    //    CRC                             97      2
+    //    Total Length                    99
     public class Loop2Data : RawWeatherData
     {
         private readonly Length _altitude;
@@ -129,7 +129,7 @@ namespace DavisStation
 
         // Load - disassembles the byte array passed in and loads it into local data that the accessors can use.
         // Actual data is in the format to the right of the assignments - I convert it to make it easier to use
-        // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into 
+        // When bytes have to be assembled into 2-byte, 16-bit numbers, I convert two bytes from the array into
         // an Int16 (16-bit integer).  When a single byte is all that's needed, I just convert it to an Int32.
         // In the end, all integers are cast to Int32 for return.
         public void Load(Byte[] byteArray)

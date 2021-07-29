@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HidSharp" Version="2.0.5" />
+    <PackageReference Include="HidSharp" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,8 +18,7 @@
       <FilesToCopy Include="$(TargetDir)*.dll" Exclude="CumulusMX.Extensions.dll;CumulusMX.Common.dll" />
       <FilesToCopy Include="$(TargetDir)*.StringTemplate" />
     </ItemGroup>
-    <Copy SourceFiles="@(FilesToCopy)"
-            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(ProjectName)\" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(ProjectName)\" />
   </Target>
 
 </Project>

@@ -2,12 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Crc32.NET" Version="1.2.0" />
+    <PackageReference Include="Crc32.NET" Version="1.2.0">
+      <IncludeAssets>all</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="System.IO.Ports" Version="4.5.0" />
+    <PackageReference Include="System.IO.Ports" Version="5.0.0">
+      <IncludeAssets>all</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -20,8 +25,7 @@
       <FilesToCopy Include="$(TargetDir)*.dll" Exclude="CumulusMX.Extensions.dll;CumulusMX.Common.dll" />
       <FilesToCopy Include="$(TargetDir)*.StringTemplate" />
     </ItemGroup>
-    <Copy SourceFiles="@(FilesToCopy)"
-            DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(ProjectName)\" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)..\..\CumulusMX\bin\$(ConfigurationName)\$(TargetFramework)\Extensions\$(ProjectName)\" />
   </Target>
 
 </Project>
