@@ -9722,9 +9722,9 @@ namespace CumulusMX
 							if (Cmds.Count > 2)
 								cmd.Transaction = transaction;
 
-							int aff = cmd.ExecuteNonQuery();
-							LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-						}
+									int aff = cmd.ExecuteNonQuery();
+									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+								}
 
 						MySqlUploadAlarm.Triggered = false;
 					}
