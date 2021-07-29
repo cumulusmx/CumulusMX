@@ -194,20 +194,13 @@ namespace CumulusMX
                 cumulus.DoLogFile(timestamp, false);
                 if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(timestamp);
 
-                AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-                AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature,
-                    OutdoorDewpoint,
-                    ApparentTemperature, WindChill, HeatIndex,
-                    IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing,
-                    OutdoorHumidity,
-                    IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-                AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-                AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
-                    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-                    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
-                RemoveOldLHData(timestamp);
-                RemoveOldL3HData(timestamp);
-                RemoveOldGraphData(timestamp);
+                //AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
+                //    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+                //    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+
+                AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+	                OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+
                 DoTrendValues(timestamp);
                 UpdatePressureTrendString();
                 UpdateStatusPanel(timestamp);
