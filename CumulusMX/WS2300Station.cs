@@ -209,7 +209,7 @@ namespace CumulusMX
 
 		private void ProcessHistoryData()
 		{
-			// history data is alread in correct units
+			// history data is already in correct units
 			int totalentries = datalist.Count;
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 			int luhour = cumulus.LastUpdateTime.Hour;
@@ -230,7 +230,7 @@ namespace CumulusMX
 				DateTime timestamp = historydata.timestamp;
 
 				cumulus.LogMessage("Processing data for " + timestamp);
-				// Check for rollover
+				// Check for roll-over
 
 				int h = timestamp.Hour;
 
@@ -241,8 +241,8 @@ namespace CumulusMX
 
 				if ((h == rollHour) && !rolloverdone)
 				{
-					// do rollover
-					cumulus.LogMessage("WS2300: Day rollover " + timestamp);
+					// do roll-over
+					cumulus.LogMessage("WS2300: Day roll-over " + timestamp);
 					DayReset(timestamp);
 
 					rolloverdone = true;
@@ -331,7 +331,7 @@ namespace CumulusMX
 					}
 				}
 
-				// Windchill ==================================================================
+				// Wind chill ==================================================================
 				if (cumulus.StationOptions.CalculatedWC)
 				{
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
@@ -386,15 +386,9 @@ namespace CumulusMX
 				{
 					cumulus.DoExtraLogFile(timestamp);
 				}
+				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
-				AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
-				RemoveOldLHData(timestamp);
-				RemoveOldL3HData(timestamp);
-				RemoveOldGraphData(timestamp);
-				DoTrendValues(timestamp);
+				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, rainrate, -1, -1);
 				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);
@@ -829,7 +823,7 @@ namespace CumulusMX
 				return ERROR;
 
 			var val = (data[0] >> 4) * 10 + (data[0] & 0xF);
-			cumulus.LogDataMessage("Outdoor humidty = " + val);
+			cumulus.LogDataMessage("Outdoor humidity = " + val);
 			return val;
 		}
 

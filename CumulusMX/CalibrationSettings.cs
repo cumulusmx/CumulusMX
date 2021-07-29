@@ -10,14 +10,10 @@ namespace CumulusMX
 	public class CalibrationSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public CalibrationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationOptions.json";
-			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "CalibrationSchema.json";
 		}
 
 		//public string UpdateCalibrationConfig(HttpListenerContext context)
@@ -38,7 +34,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Calibration Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Calibration Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Calibration Data: " + json);
 				context.Response.StatusCode = 500;
@@ -89,8 +85,6 @@ namespace CumulusMX
 				cumulus.Limit.PressHigh = Convert.ToDouble(settings.limits.presshigh, invC);
 				cumulus.Limit.PressLow = Convert.ToDouble(settings.limits.presslow, invC);
 				cumulus.Limit.WindHigh = Convert.ToDouble(settings.limits.windhigh, invC);
-
-				cumulus.ErrorLogSpikeRemoval = settings.log;
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -171,29 +165,10 @@ namespace CumulusMX
 				offsets = offsets,
 				multipliers = multipliers,
 				spikeremoval = spikeremoval,
-				limits = limits,
-				log = cumulus.ErrorLogSpikeRemoval
+				limits = limits
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 	}
 
@@ -204,7 +179,6 @@ namespace CumulusMX
 		public JsonCalibrationSettingsMultipliers multipliers { get; set; }
 		public JsonCalibrationSettingsSpikeRemoval spikeremoval { get; set; }
 		public JsonCalibrationSettingsLimits limits { get; set; }
-		public bool log { get; set; }
 	}
 
 	public class JsonCalibrationSettingsOffsets

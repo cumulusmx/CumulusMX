@@ -162,7 +162,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Start loop");
 
-			// Returns 9-byte usb packet, with report ID in first byte
+			// Returns 9-byte USB packet, with report ID in first byte
 			const int responseLength = 9;
 			const int startByte = 1;
 			const int offset = 0;
@@ -363,7 +363,7 @@ namespace CumulusMX
 
 				var calculatedCRC = 0;
 
-				// CRC is calulated by summing all but the last two bytes
+				// CRC is calculated by summing all but the last two bytes
 				for (int i = 0; i < packetLen - 2; i++)
 				{
 					calculatedCRC += packetBuffer[i];
@@ -525,7 +525,7 @@ namespace CumulusMX
 			//
 			// Byte 08: (TT) byte(08)   .. Temperature low byte  +
 			// Byte 09:  (T) byte(09:L) .. Temperature high nibble
-			// (s) byte(09:H) .. Temperature sign ...... #0 = positif / #8 = negative
+			// (s) byte(09:H) .. Temperature sign ...... #0 = positive / #8 = negative
 			//
 			// Temp_sign = ((byte(09) >> 8)==0x08)? -1 : 1;
 			// TEMPERATURE in °C = Temp_sign * (((byte(09:L)*256) + byte(08)) / 10)
@@ -535,7 +535,7 @@ namespace CumulusMX
 			//
 			// Byte 11: (DD) byte(11)   .. Dew Point low byte  +
 			// Byte 12:  (D) byte(12:L) .. Dew Point high nibble
-			// (s) byte(12:H) .. Dew Point sign ...... #0 = positif / #8 = negative
+			// (s) byte(12:H) .. Dew Point sign ...... #0 = positive / #8 = negative
 			//
 			// Dewp_sign = ((byte(12) >> 4)==0x08)? -1 : 1;
 			// DEWPOINT in °C = Dewp_sign * (((byte(12:L)*256) + byte(11)) / 10)
@@ -679,7 +679,7 @@ namespace CumulusMX
 			//Byte 06: (yy) Year
 
 			//D4 RAIN -----
-			//Rainfall rate in inches (and not in millimeters)
+			//Rainfall rate in inches (and not in millimetres)
 			//Byte 07: (rH) Rainfall Rate high byte +
 			//Byte 08: (rL) Rainfall Rate low  byte
 
@@ -730,7 +730,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Rain supplied in in, convert to units in use
+		/// Rain supplied in inches, convert to units in use
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
@@ -1088,7 +1088,7 @@ namespace CumulusMX
 			//
 			//
 			// D4 RAIN --------------------------------------------------------------------------------------
-			// Rainfall rate in inches (and not in millimeters) reported after 2nd tip.
+			// Rainfall rate in inches (and not in millimetres) reported after 2nd tip.
 			// Byte 07: (rH) Rainfall Rate high byte +
 			// Byte 08: (rL) Rainfall Rate low  byte
 			//
@@ -1258,7 +1258,7 @@ namespace CumulusMX
 			//
 			// Byte 37: (DD) byte(37)   .. Dew Point low byte  +
 			// Byte 38:  (D) byte(38:L) .. Dew Point high nibble
-			// (s) byte(38:H) .. Dew Point sign ...... #0 = positif / #8 = negative
+			// (s) byte(38:H) .. Dew Point sign ...... #0 = positive / #8 = negative
 			//
 			// Dewp_sign = ((byte(38) >> 4)==0x08)? -1 : 1;
 			// DEWPOINT in °C = Dewp_sign * (((byte(38:L)*256) + byte(37)) / 10)
@@ -1298,7 +1298,7 @@ namespace CumulusMX
 			//
 			// Byte 41: (TT) byte(41)   .. Temperature low byte  +
 			// Byte 42:  (T) byte(42:L) .. Temperature high nibble
-			// (s) byte(42:H) .. Temperature sign ...... #0 = positif / #8 = negative
+			// (s) byte(42:H) .. Temperature sign ...... #0 = positive / #8 = negative
 			//
 			// Temp_sign = ((byte(42) >> 4)==0x08)? -1 : 1;
 			// TEMPERATURE in °C = Temp_sign * (((byte(42:L)*256) + byte(41)) / 10)
@@ -1308,7 +1308,7 @@ namespace CumulusMX
 			//
 			// Byte 44: (DD) byte(44)   .. Dew Point low byte  +
 			// Byte 45:  (D) byte(45:L) .. Dew Point high nibble
-			// (s) byte(45:H) .. Dew Point sign ...... #0 = positif / #8 = negative
+			// (s) byte(45:H) .. Dew Point sign ...... #0 = positive / #8 = negative
 			//
 			// Dewp_sign = ((byte(45) >> 4)==0x08)? -1 : 1;
 			// DEWPOINT in °C = Dewp_sign * (((byte(45:L)*256) + byte(44)) / 10)
@@ -1391,7 +1391,7 @@ namespace CumulusMX
 					if (luh == rollHour)
 					{
 						rolloverdone = true;
-						cumulus.LogMessage("Rollover already done for start of history data day");
+						cumulus.LogMessage("Roll-over already done for start of history data day");
 					}
 					if (luh == 0)
 					{
@@ -1405,8 +1405,8 @@ namespace CumulusMX
 			}
 			if ((h == rollHour) && !rolloverdone)
 			{
-				// do rollover
-				cumulus.LogMessage("Day rollover " + timestamp);
+				// do roll-over
+				cumulus.LogMessage("Day roll-over " + timestamp);
 				DayReset(timestamp);
 				rolloverdone = true;
 			}
@@ -1600,21 +1600,15 @@ namespace CumulusMX
 			DoHumidex(timestamp);
 
 			cumulus.DoLogFile(timestamp,false);
+			cumulus.MySqlRealtimeFile(999, false, timestamp);
 
 			if (cumulus.StationOptions.LogExtraSensors)
 			{
 				cumulus.DoExtraLogFile(timestamp);
 			}
 
-			AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-			AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-			RemoveOldLHData(timestamp);
-			RemoveOldL3HData(timestamp);
-			AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex, IndoorTemperature, Pressure, WindAverage,
-							RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-			RemoveOldGraphData(timestamp);
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+							Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 			DoTrendValues(timestamp);
 			UpdatePressureTrendString();
 			UpdateStatusPanel(timestamp);

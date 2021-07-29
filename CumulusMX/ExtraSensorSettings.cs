@@ -9,20 +9,17 @@ namespace CumulusMX
 	public class ExtraSensorSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public ExtraSensorSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ExtraSensorOptions.json";
-			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ExtraSensorSchema.json";
 		}
 
 		public string GetAlpacaFormData()
 		{
 			var indoor = new JsonExtraSensorAirLinkDevice()
 			{
+				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
 				hostname = cumulus.AirLinkInHostName,
 				stationId = cumulus.AirLinkInStationId
@@ -30,6 +27,7 @@ namespace CumulusMX
 
 			var outdoor = new JsonExtraSensorAirLinkDevice()
 			{
+				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
 				hostname = cumulus.AirLinkOutHostName,
 				stationId = cumulus.AirLinkOutStationId
@@ -41,10 +39,23 @@ namespace CumulusMX
 				apiKey = cumulus.AirLinkApiKey,
 				apiSecret = cumulus.AirLinkApiSecret,
 				autoUpdateIp = cumulus.AirLinkAutoUpdateIpAddress,
-				indoorenabled = cumulus.AirLinkInEnabled,
 				indoor = indoor,
-				outdoorenabled = cumulus.AirLinkOutEnabled,
 				outdoor = outdoor
+			};
+
+			var ecowitt = new JsonExtraSensorEcowitt()
+			{
+				enabled = cumulus.EcowittExtraEnabled,
+				useSolar = cumulus.EcowittExtraUseSolar,
+				useUv = cumulus.EcowittExtraUseUv,
+				useTempHum = cumulus.EcowittExtraUseTempHum,
+				useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
+				useSoilMoist = cumulus.EcowittExtraUseSoilMoist,
+				useLeafWet = cumulus.EcowittExtraUseLeafWet,
+				useAQI = cumulus.EcowittExtraUseAQI,
+				useCo2 = cumulus.EcowittExtraUseCo2,
+				useLightning = cumulus.EcowittExtraUseLightning,
+				useLeak = cumulus.EcowittExtraUseLeak
 			};
 
 			var bl = new JsonExtraSensorBlakeLarsen()
@@ -54,6 +65,7 @@ namespace CumulusMX
 
 			var rg11port1 = new JsonExtraSensorRG11device()
 			{
+				enabled = cumulus.RG11Enabled,
 				commPort = cumulus.RG11Port,
 				tipMode = cumulus.RG11TBRmode,
 				tipSize = cumulus.RG11tipsize,
@@ -62,6 +74,7 @@ namespace CumulusMX
 
 			var rg11port2 = new JsonExtraSensorRG11device()
 			{
+				enabled = cumulus.RG11Enabled2,
 				commPort = cumulus.RG11Port2,
 				tipMode = cumulus.RG11TBRmode2,
 				tipSize = cumulus.RG11tipsize2,
@@ -70,9 +83,7 @@ namespace CumulusMX
 
 			var rg11 = new JsonExtraSensorRG11()
 			{
-				dev1enabled = cumulus.RG11Enabled,
 				port1 = rg11port1,
-				dev2enabled = cumulus.RG11Enabled2,
 				port2 = rg11port2
 			};
 
@@ -87,6 +98,7 @@ namespace CumulusMX
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
 				airLink = airlink,
+				ecowitt = ecowitt,
 				blakeLarsen = bl,
 				rg11 = rg11
 			};
@@ -113,7 +125,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing ExtraSensor Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing ExtraSensor Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("ExtraSensor Data: " + json);
 				context.Response.StatusCode = 500;
@@ -147,8 +159,8 @@ namespace CumulusMX
 					cumulus.AirLinkApiSecret = settings.airLink.apiSecret;
 					cumulus.AirLinkAutoUpdateIpAddress = settings.airLink.autoUpdateIp;
 
-					cumulus.AirLinkInEnabled = settings.airLink.indoorenabled;
-					if (cumulus.AirLinkInEnabled && settings.airLink.indoor != null)
+					cumulus.AirLinkInEnabled = settings.airLink.indoor.enabled;
+					if (cumulus.AirLinkInEnabled)
 					{
 						cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
 						cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
@@ -158,8 +170,8 @@ namespace CumulusMX
 							cumulus.AirLinkInStationId = cumulus.WllStationId;
 						}
 					}
-					cumulus.AirLinkOutEnabled = settings.airLink.outdoorenabled;
-					if (cumulus.AirLinkOutEnabled && settings.airLink.outdoor != null)
+					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
+					if (cumulus.AirLinkOutEnabled)
 					{
 						cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
 						cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
@@ -173,6 +185,35 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing AirLink settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Ecowitt Extra settings
+				try
+				{
+					cumulus.EcowittExtraEnabled = settings.ecowitt.enabled;
+					if (cumulus.EcowittExtraEnabled)
+					{
+						cumulus.EcowittExtraUseSolar = settings.ecowitt.useSolar;
+						cumulus.EcowittExtraUseUv = settings.ecowitt.useUv;
+						cumulus.EcowittExtraUseTempHum = settings.ecowitt.useTempHum;
+						cumulus.EcowittExtraUseSoilTemp = settings.ecowitt.useSoilTemp;
+						cumulus.EcowittExtraUseSoilMoist = settings.ecowitt.useSoilMoist;
+						cumulus.EcowittExtraUseLeafWet = settings.ecowitt.useLeafWet;
+						cumulus.EcowittExtraUseAQI = settings.ecowitt.useAQI;
+						cumulus.EcowittExtraUseCo2 = settings.ecowitt.useCo2;
+						cumulus.EcowittExtraUseLightning = settings.ecowitt.useLightning;
+						cumulus.EcowittExtraUseLeak = settings.ecowitt.useLeak;
+
+						// Also enable extra logging
+						cumulus.StationOptions.LogExtraSensors = true;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -194,8 +235,8 @@ namespace CumulusMX
 				// RG-11 settings
 				try
 				{
-					cumulus.RG11Enabled = settings.rg11.dev1enabled;
-					if (cumulus.RG11Enabled && settings.rg11.port1 != null)
+					cumulus.RG11Enabled = settings.rg11.port1.enabled;
+					if (cumulus.RG11Enabled)
 					{
 						cumulus.RG11Port = settings.rg11.port1.commPort;
 						cumulus.RG11TBRmode = settings.rg11.port1.tipMode;
@@ -204,8 +245,8 @@ namespace CumulusMX
 						cumulus.RG11DTRmode = settings.rg11.port1.dtrMode;
 					}
 
-					cumulus.RG11Enabled2 = settings.rg11.dev2enabled;
-					if (cumulus.RG11Enabled2 && settings.rg11.port2 != null)
+					cumulus.RG11Enabled2 = settings.rg11.port2.enabled;
+					if (cumulus.RG11Enabled2)
 					{
 						cumulus.RG11Port2 = settings.rg11.port2.commPort;
 						cumulus.RG11TBRmode2 = settings.rg11.port2.tipMode;
@@ -236,24 +277,6 @@ namespace CumulusMX
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
 	}
 
 	public class JsonExtraSensorSettings
@@ -261,6 +284,7 @@ namespace CumulusMX
 		public bool accessible { get; set; }
 		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
+		public JsonExtraSensorEcowitt ecowitt { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
 		public JsonExtraSensorRG11 rg11 { get; set; }
 	}
@@ -277,17 +301,31 @@ namespace CumulusMX
 		public string apiKey { get; set; }
 		public string apiSecret { get; set; }
 		public bool autoUpdateIp { get; set; }
-		public bool indoorenabled { get; set; }
 		public JsonExtraSensorAirLinkDevice indoor { get; set; }
-		public bool outdoorenabled { get; set; }
 		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
 	}
 
 	public class JsonExtraSensorAirLinkDevice
 	{
+		public bool enabled { get; set; }
 		public string ipAddress { get; set; }
 		public string hostname { get; set; }
 		public int stationId { get; set; }
+	}
+
+	public class JsonExtraSensorEcowitt
+	{
+		public bool enabled { get; set; }
+		public bool useSolar { get; set; }
+		public bool useUv { get; set; }
+		public bool useTempHum { get; set; }
+		public bool useSoilTemp { get; set; }
+		public bool useSoilMoist { get; set; }
+		public bool useLeafWet { get; set; }
+		public bool useAQI { get; set; }
+		public bool useCo2 { get; set; }
+		public bool useLightning { get; set; }
+		public bool useLeak { get; set; }
 	}
 
 	public class JsonExtraSensorBlakeLarsen
@@ -297,14 +335,13 @@ namespace CumulusMX
 
 	public class JsonExtraSensorRG11
 	{
-		public bool dev1enabled { get; set; }
 		public JsonExtraSensorRG11device port1 { get; set; }
-		public bool dev2enabled { get; set; }
 		public JsonExtraSensorRG11device port2 { get; set; }
 	}
 
 	public class JsonExtraSensorRG11device
 	{
+		public bool enabled { get; set; }
 		public string commPort { get; set; }
 		public bool tipMode { get; set; }
 		public double tipSize { get; set; }

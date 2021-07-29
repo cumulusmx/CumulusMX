@@ -24,8 +24,8 @@ namespace CumulusMX
 			serviceInstaller.DelayedAutoStart = true;
 			serviceInstaller.Description = "Runs Cumulus MX as a system service";
 
-			this.Installers.Add(serviceProcessInstaller);
-			this.Installers.Add(serviceInstaller);
+			Installers.Add(serviceProcessInstaller);
+			Installers.Add(serviceInstaller);
 		}
 	}
 }

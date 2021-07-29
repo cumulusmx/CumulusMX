@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.IO.Ports;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -34,7 +33,7 @@ namespace CumulusMX
 
 		private enum Commands : byte {
 			// General order
-			CMD_WRITE_SSID = 0x11,// send router SSID and Password to wifi module
+			CMD_WRITE_SSID = 0x11,// send router SSID and Password to WiFi module
 			CMD_BROADCAST = 0x12,//looking for device inside network. Returned data size is 2 Byte
 			CMD_READ_ECOWITT = 0x1E,// read setting for Ecowitt.net
 			CMD_WRITE_ECOWITT = 0x1F, // write back setting for Ecowitt.net
@@ -59,8 +58,8 @@ namespace CumulusMX
 			CMD_SET_MulCH_OFFSET = 0x2D, // write back multi sensor OFFSET value
 			CMD_GET_PM25_OFFSET = 0x2E, // read PM2.5OFFSET value
 			CMD_SET_PM25_OFFSET = 0x2F, // write back PM2.5OFFSET value
-			CMD_READ_SSSS = 0x30,// read sensor setup ( sensor frequency, wh24/wh65 sensor)
-			CMD_WRITE_SSSS = 0x31,// write back sensor setup
+			CMD_READ_SSSS = 0x30,// read sensor set-up ( sensor frequency, wh24/wh65 sensor)
+			CMD_WRITE_SSSS = 0x31,// write back sensor set-up
 			CMD_READ_RAINDATA = 0x34,// read rain data
 			CMD_WRITE_RAINDATA = 0x35, // write back rain data
 			CMD_READ_GAIN = 0x36, // read rain gain
@@ -70,7 +69,7 @@ namespace CumulusMX
 			CMD_READ_SENSOR_ID = 0x3A,//  read Sensors ID
 			CMD_WRITE_SENSOR_ID = 0x3B, // write back Sensors ID
 			CMD_READ_SENSOR_ID_NEW = 0x3C,
-			CMD_WRITE_REBOOT = 0x40,// system rebset
+			CMD_WRITE_REBOOT = 0x40,// system reset
 			CMD_WRITE_RESET = 0x41,// system default setting reset
 			CMD_GET_CO2_OFFSET = 0x53,
 			CMD_SET_CO2_OFFSET = 0x54
@@ -516,7 +515,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("An error occured during GW1000 auto-discovery");
+				cumulus.LogMessage("An error occurred during GW1000 auto-discovery");
 				cumulus.LogMessage("Error: " + ex.Message);
 			}
 
@@ -868,6 +867,8 @@ namespace CumulusMX
 			// 5-X      - data - NOTE format is Bigendian
 			// Y - 0x?? - checksum
 
+			// See: https://osswww.ecowitt.net/uploads/20210716/WN1900%20GW1000,1100%20WH2680,2650%20telenet%20v1.6.0%20.pdf
+
 			try
 			{
 				if (null != data && data.Length > 16)
@@ -928,10 +929,10 @@ namespace CumulusMX
 								DoOutdoorHumidity(data[idx], dateTime);
 								idx += 1;
 								break;
-							case 0x08: //Absolute Barometric (hpa)
+							case 0x08: //Absolute Barometric (hPa)
 								idx += 2;
 								break;
-							case 0x09: //Relative Barometric (hpa)
+							case 0x09: //Relative Barometric (hPa)
 								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoPressure(ConvertPressMBToUser(tempUint16 / 10.0), dateTime);
 								DoPressTrend("Pressure trend");
@@ -980,7 +981,7 @@ namespace CumulusMX
 							case 0x15: //Light (lux)
 									   // Save the Lux value
 								LightValue = ConvertBigEndianUInt32(data, idx) / 10.0;
-								// convert Lux to W/m2 - approximately!
+								// convert Lux to W/m² - approximately!
 								DoSolarRad((int)(LightValue * cumulus.LuxToWM2), dateTime);
 								idx += 4;
 								break;
@@ -1017,7 +1018,7 @@ namespace CumulusMX
 							case 0x26: //Humidity 5, 0-100%
 							case 0x27: //Humidity 6, 0-100%
 							case 0x28: //Humidity 7, 0-100%
-							case 0x29: //Humidity 9, 0-100%
+							case 0x29: //Humidity 8, 0-100%
 								chan = data[idx - 1] - 0x22 + 1;
 								DoExtraHum(data[idx], chan);
 								idx += 1;
@@ -1075,7 +1076,7 @@ namespace CumulusMX
 								}
 								idx += 16;
 								break;
-							case 0x2A: //PM2.5 Air Quality Sensor(μg/m3)
+							case 0x2A: //PM2.5 Air Quality Sensor(μg/m³)
 								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoAirQuality(tempUint16 / 10.0, 1);
 								idx += 2;
@@ -1089,9 +1090,9 @@ namespace CumulusMX
 								DoAirQualityAvg(tempUint16 / 10.0, chan);
 								idx += 2;
 								break;
-							case 0x51: //PM2.5 ch_2 Air Quality Sensor(μg/m3)
-							case 0x52: //PM2.5 ch_3 Air Quality Sensor(μg/m3)
-							case 0x53: //PM2.5 ch_4 Air Quality Sensor(μg/m3)
+							case 0x51: //PM2.5 ch_2 Air Quality Sensor(μg/m³)
+							case 0x52: //PM2.5 ch_3 Air Quality Sensor(μg/m³)
+							case 0x53: //PM2.5 ch_4 Air Quality Sensor(μg/m³)
 								chan = data[idx - 1] - 0x51 + 2;
 								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoAirQuality(tempUint16 / 10.0, chan);
@@ -1141,8 +1142,7 @@ namespace CumulusMX
 							case 0x68: // user temp ch6 (°C)
 							case 0x69: // user temp ch7 (°C)
 							case 0x6A: // user temp ch8 (°C)
-								chan = data[idx - 1] - 0x63 + 2;  // -> 2,4,6,8...
-								chan /= 2; // -> 1,2,3,4...
+								chan = data[idx - 1] - 0x63 + 1;
 								tempInt16 = ConvertBigEndianInt16(data, idx);
 								DoUserTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
 
@@ -1282,6 +1282,8 @@ namespace CumulusMX
 
 					DoForecast("", false);
 
+					cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
 					UpdateStatusPanel(dateTime);
 					UpdateMQTT();
 
@@ -1314,7 +1316,7 @@ namespace CumulusMX
 			// 4   - frequency - 0=433, 1=868MHz, 2=915MHz, 3=920MHz
 			// 5   - sensor type - 0=WH24, 1=WH65
 			// 6-9 - UTC time
-			// 10  - timezone index (?)
+			// 10  - time zone index (?)
 			// 11  - DST 0-1 - false/true
 			// 12  - 0x?? - checksum
 
@@ -1343,7 +1345,7 @@ namespace CumulusMX
 				var date = Utils.FromUnixTime(unix);
 				var dst = data[11] != 0;
 
-				cumulus.LogMessage($"GW1000 Info: freqency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {dst}");
+				cumulus.LogMessage($"GW1000 Info: frequency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {dst}");
 			}
 			catch (Exception ex)
 			{
@@ -1754,10 +1756,10 @@ namespace CumulusMX
 		{
 			public Int16 temp;          // °C x10
 			public byte hum;			// %
-			public UInt16 pm10;			// ug/m3 x10
-			public UInt16 pm10_24hr;	// ug/m3 x10
-			public UInt16 pm2p5;		// ug/m3 x10
-			public UInt16 pm2p5_24hr;	// ug/m3 x10
+			public UInt16 pm10;			// μg/m³ x10
+			public UInt16 pm10_24hr;	// μg/m³ x10
+			public UInt16 pm2p5;		// μg/m³ x10
+			public UInt16 pm2p5_24hr;	// μg/m³ x10
 			public UInt16 co2;			// ppm
 			public UInt16 co2_24hr;		// ppm
 			public byte batt;			// 0-5

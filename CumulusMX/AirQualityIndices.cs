@@ -459,7 +459,7 @@ namespace CumulusMX
 
 
 		/*
-		 * Belgan AQI - 1-10
+		 * Belgian AQI - 1-10
 		 * https://www.irceline.be/en/air-quality/measurements/belaqi-air-quality-index/information?set_language=en
 		 */
 		public static double BE_BelAQIpm2p5(double pmVal)
@@ -487,7 +487,7 @@ namespace CumulusMX
 		}
 
 		/*
-		 * Belgan AQI - 1-10
+		 * Belgian AQI - 1-10
 		 * https://www.irceline.be/en/air-quality/measurements/belaqi-air-quality-index/information?set_language=en
 		 */
 		public static double BE_BelAQIpm10(double pmVal)

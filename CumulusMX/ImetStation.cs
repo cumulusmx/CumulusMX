@@ -203,7 +203,7 @@ namespace CumulusMX
 
 					// The write pointer does not equal the read pointer
 					// write it back to the logger memory
-					cumulus.LogDebugMessage("Updating logger read pointer");
+					cumulus.LogDebugMessage($"Updating logger read pointer to {currPtr}");
 					SendCommand("WRST,13," + currPtr);
 					var response2 = GetResponse("wrst");
 					if (ValidChecksum(response2))
@@ -380,7 +380,7 @@ namespace CumulusMX
 				// checksum is last field
 				int csum = Convert.ToInt32((sl[len - 1]));
 
-				// caclulate checksum of string
+				// calculate checksum of string
 				uint sum = 0;
 				int endpos = str.LastIndexOf(",");
 
@@ -595,7 +595,7 @@ namespace CumulusMX
 					// and see if (they are on the same day
 					//int hourInc = cumulus.GetHourInc();
 
-					// set up controls for end of day rollover
+					// set up controls for end of day roll-over
 					int rollHour;
 					if (cumulus.RolloverHour == 0)
 					{
@@ -612,8 +612,8 @@ namespace CumulusMX
 						rollHour = cumulus.RolloverHour;
 					}
 
-					// Check to see if (today"s rollover has been done
-					// (we might be starting up in the rollover hour)
+					// Check to see if (today"s roll-over has been done
+					// (we might be starting up in the roll-over hour)
 
 					int luhour = cumulus.LastUpdateTime.Hour;
 
@@ -639,7 +639,7 @@ namespace CumulusMX
 							cumulus.LogMessage("Processing logger data entry " + i + " for " + timestamp);
 
 							int interval = (int) (Convert.ToDouble(sl[INTERVALPOS], provider)/60);
-							// Check for rollover
+							// Check for roll-over
 
 							if (hour != rollHour)
 							{
@@ -669,7 +669,7 @@ namespace CumulusMX
 
 								DateTime windruncheckTS;
 								if ((hour == rollHour) && (minute == 0))
-									// this is the last logger entry before rollover
+									// this is the last logger entry before roll-over
 									// fudge the timestamp to make sure it falls in the previous day
 								{
 									windruncheckTS = timestamp.AddMinutes(-1);
@@ -744,7 +744,7 @@ namespace CumulusMX
 								double tempinC = ConvertUserTempToC(OutdoorTemperature);
 								double windinKPH = ConvertUserWindToKPH(WindAverage);
 								double value = MeteoLib.WindChill(tempinC, windinKPH);
-								// value is now in celsius, convert to units in use
+								// value is now in Celsius, convert to units in use
 								value = ConvertTempCToUser(value);
 								DoWindChill(value, timestamp);
 							}
@@ -768,16 +768,10 @@ namespace CumulusMX
 							}
 
 							cumulus.DoLogFile(timestamp, false);
+							cumulus.MySqlRealtimeFile(999, false, timestamp);
 
-							AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-							RemoveOldLHData(timestamp);
-							AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-								IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-							RemoveOldGraphData(timestamp);
-							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-							RemoveOldL3HData(timestamp);
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
@@ -787,8 +781,8 @@ namespace CumulusMX
 
 							if ((hour == rollHour) && !rolloverdone)
 							{
-								// do rollover
-								cumulus.LogMessage("Day rollover " + timestamp);
+								// do roll-over
+								cumulus.LogMessage("Day roll-over " + timestamp);
 								DayReset(timestamp);
 
 								rolloverdone = true;
@@ -887,7 +881,7 @@ namespace CumulusMX
 
 				if (sl.Count != 10 && sl[0] != "rdlv")
 				{
-					cumulus.LogMessage($"RDLV: Unexpected reponse: {response}");
+					cumulus.LogMessage($"RDLV: Unexpected response: {response}");
 					return;
 				}
 
@@ -1003,10 +997,6 @@ namespace CumulusMX
 				UpdateStatusPanel(now);
 				UpdateMQTT();
 			}
-			else if (!stop)
-			{
-				return;
-			}
 			else
 			{
 				cumulus.LogMessage("RDLV: Invalid checksum:");
@@ -1017,7 +1007,7 @@ namespace CumulusMX
 				return;
 
 			// Keep the log pointer current, to avoid large numbers of logs
-		    // being downloaded at next startup
+		    // being downloaded at next start-up
 		    // Only do this every 30 read intervals
 		    if (readCounter > 0)
 		    {

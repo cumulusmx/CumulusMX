@@ -10,14 +10,10 @@ namespace CumulusMX
 	public class NOAASettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string noaaOptionsFile;
-		private readonly string noaaSchemaFile;
 
 		public NOAASettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			noaaOptionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaOptions.json";
-			noaaSchemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "NoaaSchema.json";
 		}
 
 		public string GetAlpacaFormData()
@@ -25,108 +21,98 @@ namespace CumulusMX
 			//var InvC = new CultureInfo("");
 			var normalmeantemps = new JsonNOAASettingsNormalMeanTemps()
 			{
-				jan = Math.Round(cumulus.NOAATempNorms[1],cumulus.TempDPlaces),
-				feb = Math.Round(cumulus.NOAATempNorms[2], cumulus.TempDPlaces),
-				mar = Math.Round(cumulus.NOAATempNorms[3], cumulus.TempDPlaces),
-				apr = Math.Round(cumulus.NOAATempNorms[4], cumulus.TempDPlaces),
-				may = Math.Round(cumulus.NOAATempNorms[5], cumulus.TempDPlaces),
-				jun = Math.Round(cumulus.NOAATempNorms[6], cumulus.TempDPlaces),
-				jul = Math.Round(cumulus.NOAATempNorms[7], cumulus.TempDPlaces),
-				aug = Math.Round(cumulus.NOAATempNorms[8], cumulus.TempDPlaces),
-				sep = Math.Round(cumulus.NOAATempNorms[9], cumulus.TempDPlaces),
-				oct = Math.Round(cumulus.NOAATempNorms[10], cumulus.TempDPlaces),
-				nov = Math.Round(cumulus.NOAATempNorms[11], cumulus.TempDPlaces),
-				dec = Math.Round(cumulus.NOAATempNorms[12], cumulus.TempDPlaces)
+				jan = Math.Round(cumulus.NOAAconf.TempNorms[1],cumulus.TempDPlaces),
+				feb = Math.Round(cumulus.NOAAconf.TempNorms[2], cumulus.TempDPlaces),
+				mar = Math.Round(cumulus.NOAAconf.TempNorms[3], cumulus.TempDPlaces),
+				apr = Math.Round(cumulus.NOAAconf.TempNorms[4], cumulus.TempDPlaces),
+				may = Math.Round(cumulus.NOAAconf.TempNorms[5], cumulus.TempDPlaces),
+				jun = Math.Round(cumulus.NOAAconf.TempNorms[6], cumulus.TempDPlaces),
+				jul = Math.Round(cumulus.NOAAconf.TempNorms[7], cumulus.TempDPlaces),
+				aug = Math.Round(cumulus.NOAAconf.TempNorms[8], cumulus.TempDPlaces),
+				sep = Math.Round(cumulus.NOAAconf.TempNorms[9], cumulus.TempDPlaces),
+				oct = Math.Round(cumulus.NOAAconf.TempNorms[10], cumulus.TempDPlaces),
+				nov = Math.Round(cumulus.NOAAconf.TempNorms[11], cumulus.TempDPlaces),
+				dec = Math.Round(cumulus.NOAAconf.TempNorms[12], cumulus.TempDPlaces)
 			};
 
 			var normalrain = new JsonNOAASettingsNormalRain()
 			{
-				jan = Math.Round(cumulus.NOAARainNorms[1], cumulus.RainDPlaces),
-				feb = Math.Round(cumulus.NOAARainNorms[2], cumulus.RainDPlaces),
-				mar = Math.Round(cumulus.NOAARainNorms[3], cumulus.RainDPlaces),
-				apr = Math.Round(cumulus.NOAARainNorms[4], cumulus.RainDPlaces),
-				may = Math.Round(cumulus.NOAARainNorms[5], cumulus.RainDPlaces),
-				jun = Math.Round(cumulus.NOAARainNorms[6], cumulus.RainDPlaces),
-				jul = Math.Round(cumulus.NOAARainNorms[7], cumulus.RainDPlaces),
-				aug = Math.Round(cumulus.NOAARainNorms[8], cumulus.RainDPlaces),
-				sep = Math.Round(cumulus.NOAARainNorms[9], cumulus.RainDPlaces),
-				oct = Math.Round(cumulus.NOAARainNorms[10], cumulus.RainDPlaces),
-				nov = Math.Round(cumulus.NOAARainNorms[11], cumulus.RainDPlaces),
-				dec = Math.Round(cumulus.NOAARainNorms[12], cumulus.RainDPlaces)
+				jan = Math.Round(cumulus.NOAAconf.RainNorms[1], cumulus.RainDPlaces),
+				feb = Math.Round(cumulus.NOAAconf.RainNorms[2], cumulus.RainDPlaces),
+				mar = Math.Round(cumulus.NOAAconf.RainNorms[3], cumulus.RainDPlaces),
+				apr = Math.Round(cumulus.NOAAconf.RainNorms[4], cumulus.RainDPlaces),
+				may = Math.Round(cumulus.NOAAconf.RainNorms[5], cumulus.RainDPlaces),
+				jun = Math.Round(cumulus.NOAAconf.RainNorms[6], cumulus.RainDPlaces),
+				jul = Math.Round(cumulus.NOAAconf.RainNorms[7], cumulus.RainDPlaces),
+				aug = Math.Round(cumulus.NOAAconf.RainNorms[8], cumulus.RainDPlaces),
+				sep = Math.Round(cumulus.NOAAconf.RainNorms[9], cumulus.RainDPlaces),
+				oct = Math.Round(cumulus.NOAAconf.RainNorms[10], cumulus.RainDPlaces),
+				nov = Math.Round(cumulus.NOAAconf.RainNorms[11], cumulus.RainDPlaces),
+				dec = Math.Round(cumulus.NOAAconf.RainNorms[12], cumulus.RainDPlaces)
 			};
 
 			var site = new JsonNOAASettingsSite()
 			{
-				sitename = cumulus.NOAAname,
-				city = cumulus.NOAAcity,
-				state = cumulus.NOAAstate
+				sitename = cumulus.NOAAconf.Name,
+				city = cumulus.NOAAconf.City,
+				state = cumulus.NOAAconf.State
 			};
 
 			var files = new JsonNOAASettingsOutput()
 			{
-				monthfileformat = cumulus.NOAAMonthFileFormat,
-				yearfileformat = cumulus.NOAAYearFileFormat
+				monthfileformat = cumulus.NOAAconf.MonthFile,
+				yearfileformat = cumulus.NOAAconf.YearFile
 			};
 
 			var options = new JsonNOAASettingsOptions()
 			{
-				timeformat = cumulus.NOAA12hourformat ? 1 : 0,
-				utf8 = cumulus.NOAAUseUTF8,
-				dotdecimal = cumulus.NOAAUseDotDecimal
+				timeformat = cumulus.NOAAconf.Use12hour ? 1 : 0,
+				utf8 = cumulus.NOAAconf.UseUtf8,
+				dotdecimal = cumulus.NOAAconf.UseDotDecimal,
+				minmaxavg = cumulus.NOAAconf.UseMinMaxAvg
 			};
 
-			var ftp = new JsonNOAASettingsFtp()
+			var ftp = new JsonNOAASettingsFtpCopy()
 			{
-				autoftp = cumulus.NOAAAutoFTP,
-				ftpdirectory = cumulus.NOAAFTPDirectory
+				autotransfer = cumulus.NOAAconf.AutoFtp,
+				dstfolder = cumulus.NOAAconf.FtpFolder
+			};
+
+			var copy = new JsonNOAASettingsFtpCopy()
+			{
+				autotransfer = cumulus.NOAAconf.AutoCopy,
+				dstfolder = cumulus.NOAAconf.CopyFolder
 			};
 
 			var thresh = new JsonNOAASettingsThresholds()
 			{
-				heatingthreshold = Math.Round(cumulus.NOAAheatingthreshold,cumulus.TempDPlaces),
-				coolingthreshold = Math.Round(cumulus.NOAAcoolingthreshold,cumulus.TempDPlaces),
-				maxtempcomp1 = Math.Round(cumulus.NOAAmaxtempcomp1,cumulus.RainDPlaces),
-				maxtempcomp2 = Math.Round(cumulus.NOAAmaxtempcomp2,cumulus.RainDPlaces),
-				mintempcomp1 = Math.Round(cumulus.NOAAmintempcomp1,cumulus.RainDPlaces),
-				mintempcomp2 = Math.Round(cumulus.NOAAmintempcomp2,cumulus.RainDPlaces),
-				raincomp1 = Math.Round(cumulus.NOAAraincomp1,cumulus.RainDPlaces),
-				raincomp2 = Math.Round(cumulus.NOAAraincomp2,cumulus.RainDPlaces),
-				raincomp3 = Math.Round(cumulus.NOAAraincomp3, cumulus.RainDPlaces)
+				heatingthreshold = Math.Round(cumulus.NOAAconf.HeatThreshold, cumulus.TempDPlaces),
+				coolingthreshold = Math.Round(cumulus.NOAAconf.CoolThreshold, cumulus.TempDPlaces),
+				maxtempcomp1 = Math.Round(cumulus.NOAAconf.MaxTempComp1, cumulus.RainDPlaces),
+				maxtempcomp2 = Math.Round(cumulus.NOAAconf.MaxTempComp2, cumulus.RainDPlaces),
+				mintempcomp1 = Math.Round(cumulus.NOAAconf.MinTempComp1, cumulus.RainDPlaces),
+				mintempcomp2 = Math.Round(cumulus.NOAAconf.MinTempComp2, cumulus.RainDPlaces),
+				raincomp1 = Math.Round(cumulus.NOAAconf.RainComp1, cumulus.RainDPlaces),
+				raincomp2 = Math.Round(cumulus.NOAAconf.RainComp2, cumulus.RainDPlaces),
+				raincomp3 = Math.Round(cumulus.NOAAconf.RainComp3, cumulus.RainDPlaces)
 			};
 
 			var data = new JsonNOAASettingsData()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
-				autosave = cumulus.NOAAAutoSave,
+				autosave = cumulus.NOAAconf.Create,
 
 				sitedetails = site,
 				outputfiles = files,
 				options = options,
 				ftp = ftp,
+				copy = copy,
 				thresholds = thresh,
 				normalmeantemps = normalmeantemps,
 				normalrain = normalrain
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(noaaOptionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(noaaSchemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 
 		//public string UpdateNoaaConfig(HttpListenerContext context)
@@ -147,7 +133,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing NOAA Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing NOAA Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("NOAA Data: " + json);
 				context.Response.StatusCode = 500;
@@ -160,60 +146,64 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Updating NOAA settings");
 
-				cumulus.NOAAAutoSave = settings.autosave;
-				if (cumulus.NOAAAutoSave)
+				cumulus.NOAAconf.Create = settings.autosave;
+				if (cumulus.NOAAconf.Create)
 				{
-					cumulus.NOAAname = settings.sitedetails.sitename;
-					cumulus.NOAAcity = settings.sitedetails.city;
-					cumulus.NOAAstate = settings.sitedetails.state;
+					cumulus.NOAAconf.Name = settings.sitedetails.sitename;
+					cumulus.NOAAconf.City = settings.sitedetails.city;
+					cumulus.NOAAconf.State = settings.sitedetails.state;
 
-					cumulus.NOAAMonthFileFormat = settings.outputfiles.monthfileformat;
-					cumulus.NOAAYearFileFormat = settings.outputfiles.yearfileformat;
+					cumulus.NOAAconf.MonthFile = settings.outputfiles.monthfileformat;
+					cumulus.NOAAconf.YearFile = settings.outputfiles.yearfileformat;
 
-					cumulus.NOAA12hourformat = settings.options.timeformat == 1;
-					cumulus.NOAAUseUTF8 = settings.options.utf8;
-					cumulus.NOAAUseDotDecimal = settings.options.dotdecimal;
+					cumulus.NOAAconf.Use12hour = settings.options.timeformat == 1;
+					cumulus.NOAAconf.UseUtf8 = settings.options.utf8;
+					cumulus.NOAAconf.UseDotDecimal = settings.options.dotdecimal;
+					cumulus.NOAAconf.UseMinMaxAvg = settings.options.minmaxavg;
 
-					cumulus.NOAAAutoFTP = settings.ftp.autoftp;
-					cumulus.NOAAFTPDirectory = settings.ftp.ftpdirectory;
+					cumulus.NOAAconf.AutoFtp = settings.ftp.autotransfer;
+					cumulus.NOAAconf.FtpFolder = settings.ftp.dstfolder;
 
-					cumulus.NOAAheatingthreshold = settings.thresholds.heatingthreshold;
-					cumulus.NOAAcoolingthreshold = settings.thresholds.coolingthreshold;
-					cumulus.NOAAmaxtempcomp1 = settings.thresholds.maxtempcomp1;
-					cumulus.NOAAmaxtempcomp2 = settings.thresholds.maxtempcomp2;
-					cumulus.NOAAmintempcomp1 = settings.thresholds.mintempcomp1;
-					cumulus.NOAAmintempcomp2 = settings.thresholds.mintempcomp2;
-					cumulus.NOAAraincomp1 = settings.thresholds.raincomp1;
-					cumulus.NOAAraincomp2 = settings.thresholds.raincomp2;
-					cumulus.NOAAraincomp3 = settings.thresholds.raincomp3;
+					cumulus.NOAAconf.AutoCopy = settings.copy.autotransfer;
+					cumulus.NOAAconf.CopyFolder = settings.copy.dstfolder;
+
+					cumulus.NOAAconf.HeatThreshold = settings.thresholds.heatingthreshold;
+					cumulus.NOAAconf.CoolThreshold = settings.thresholds.coolingthreshold;
+					cumulus.NOAAconf.MaxTempComp1 = settings.thresholds.maxtempcomp1;
+					cumulus.NOAAconf.MaxTempComp2 = settings.thresholds.maxtempcomp2;
+					cumulus.NOAAconf.MinTempComp1 = settings.thresholds.mintempcomp1;
+					cumulus.NOAAconf.MinTempComp2 = settings.thresholds.mintempcomp2;
+					cumulus.NOAAconf.RainComp1 = settings.thresholds.raincomp1;
+					cumulus.NOAAconf.RainComp2 = settings.thresholds.raincomp2;
+					cumulus.NOAAconf.RainComp3 = settings.thresholds.raincomp3;
 
 					// normal mean temps
-					cumulus.NOAATempNorms[1] = settings.normalmeantemps.jan;
-					cumulus.NOAATempNorms[2] = settings.normalmeantemps.feb;
-					cumulus.NOAATempNorms[3] = settings.normalmeantemps.mar;
-					cumulus.NOAATempNorms[4] = settings.normalmeantemps.apr;
-					cumulus.NOAATempNorms[5] = settings.normalmeantemps.may;
-					cumulus.NOAATempNorms[6] = settings.normalmeantemps.jun;
-					cumulus.NOAATempNorms[7] = settings.normalmeantemps.jul;
-					cumulus.NOAATempNorms[8] = settings.normalmeantemps.aug;
-					cumulus.NOAATempNorms[9] = settings.normalmeantemps.sep;
-					cumulus.NOAATempNorms[10] = settings.normalmeantemps.oct;
-					cumulus.NOAATempNorms[11] = settings.normalmeantemps.nov;
-					cumulus.NOAATempNorms[12] = settings.normalmeantemps.dec;
+					cumulus.NOAAconf.TempNorms[1] = settings.normalmeantemps.jan;
+					cumulus.NOAAconf.TempNorms[2] = settings.normalmeantemps.feb;
+					cumulus.NOAAconf.TempNorms[3] = settings.normalmeantemps.mar;
+					cumulus.NOAAconf.TempNorms[4] = settings.normalmeantemps.apr;
+					cumulus.NOAAconf.TempNorms[5] = settings.normalmeantemps.may;
+					cumulus.NOAAconf.TempNorms[6] = settings.normalmeantemps.jun;
+					cumulus.NOAAconf.TempNorms[7] = settings.normalmeantemps.jul;
+					cumulus.NOAAconf.TempNorms[8] = settings.normalmeantemps.aug;
+					cumulus.NOAAconf.TempNorms[9] = settings.normalmeantemps.sep;
+					cumulus.NOAAconf.TempNorms[10] = settings.normalmeantemps.oct;
+					cumulus.NOAAconf.TempNorms[11] = settings.normalmeantemps.nov;
+					cumulus.NOAAconf.TempNorms[12] = settings.normalmeantemps.dec;
 
 					// normal rain
-					cumulus.NOAARainNorms[1] = settings.normalrain.jan;
-					cumulus.NOAARainNorms[2] = settings.normalrain.feb;
-					cumulus.NOAARainNorms[3] = settings.normalrain.mar;
-					cumulus.NOAARainNorms[4] = settings.normalrain.apr;
-					cumulus.NOAARainNorms[5] = settings.normalrain.may;
-					cumulus.NOAARainNorms[6] = settings.normalrain.jun;
-					cumulus.NOAARainNorms[6] = settings.normalrain.jul;
-					cumulus.NOAARainNorms[8] = settings.normalrain.aug;
-					cumulus.NOAARainNorms[9] = settings.normalrain.sep;
-					cumulus.NOAARainNorms[10] = settings.normalrain.oct;
-					cumulus.NOAARainNorms[11] = settings.normalrain.nov;
-					cumulus.NOAARainNorms[12] = settings.normalrain.dec;
+					cumulus.NOAAconf.RainNorms[1] = settings.normalrain.jan;
+					cumulus.NOAAconf.RainNorms[2] = settings.normalrain.feb;
+					cumulus.NOAAconf.RainNorms[3] = settings.normalrain.mar;
+					cumulus.NOAAconf.RainNorms[4] = settings.normalrain.apr;
+					cumulus.NOAAconf.RainNorms[5] = settings.normalrain.may;
+					cumulus.NOAAconf.RainNorms[6] = settings.normalrain.jun;
+					cumulus.NOAAconf.RainNorms[6] = settings.normalrain.jul;
+					cumulus.NOAAconf.RainNorms[8] = settings.normalrain.aug;
+					cumulus.NOAAconf.RainNorms[9] = settings.normalrain.sep;
+					cumulus.NOAAconf.RainNorms[10] = settings.normalrain.oct;
+					cumulus.NOAAconf.RainNorms[11] = settings.normalrain.nov;
+					cumulus.NOAAconf.RainNorms[12] = settings.normalrain.dec;
 				}
 
 				// Save the settings
@@ -240,7 +230,8 @@ namespace CumulusMX
 		public JsonNOAASettingsSite sitedetails { get; set; }
 		public JsonNOAASettingsOutput outputfiles { get; set; }
 		public JsonNOAASettingsOptions options { get; set; }
-		public JsonNOAASettingsFtp ftp { get; set; }
+		public JsonNOAASettingsFtpCopy ftp { get; set; }
+		public JsonNOAASettingsFtpCopy copy { get; set; }
 		public JsonNOAASettingsThresholds thresholds { get; set; }
 		public JsonNOAASettingsNormalMeanTemps normalmeantemps {get; set; }
 		public JsonNOAASettingsNormalRain normalrain {get; set; }
@@ -264,12 +255,13 @@ namespace CumulusMX
 		public int timeformat { get; set; }
 		public bool utf8 { get; set; }
 		public bool dotdecimal { get; set; }
+		public bool minmaxavg { get; set; }
 	}
 
-	public class JsonNOAASettingsFtp
+	public class JsonNOAASettingsFtpCopy
 	{
-		public bool autoftp { get; set; }
-		public string ftpdirectory { get; set; }
+		public bool autotransfer { get; set; }
+		public string dstfolder { get; set; }
 	}
 
 	public class JsonNOAASettingsThresholds

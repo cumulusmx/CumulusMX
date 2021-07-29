@@ -31,8 +31,8 @@ namespace CumulusMX
 			{
 				// If not using UTF, then we have to convert the character set
 				var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-				var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-				var reportName = noaats.ToString(cumulus.NOAAYearFileFormat);
+				var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+				var reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
 				noaafile = cumulus.ReportPath + reportName;
 				cumulus.LogMessage("Saving yearly NOAA report as " + noaafile);
 				File.WriteAllLines(noaafile, report, encoding);
@@ -57,8 +57,8 @@ namespace CumulusMX
 			{
 				// If not using UTF, then we have to convert the character set
 				var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-				var encoding = cumulus.NOAAUseUTF8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-				reportName = noaats.ToString(cumulus.NOAAMonthFileFormat);
+				var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
+				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);
 				noaafile = cumulus.ReportPath + reportName;
 				cumulus.LogMessage("Saving monthly NOAA report as " + noaafile);
 				File.WriteAllLines(noaafile, report, encoding);
@@ -77,7 +77,7 @@ namespace CumulusMX
 			var reportName = String.Empty;
 			try
 			{
-				reportName = noaats.ToString(cumulus.NOAAYearFileFormat);
+				reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
 				noaafile = cumulus.ReportPath + reportName;
 				report = File.Exists(noaafile) ? new List<string>(File.ReadAllLines(noaafile)) : new List<String> { "That report does not exist" };
 			}
@@ -95,9 +95,9 @@ namespace CumulusMX
 			var reportName = String.Empty;
 			try
 			{
-				reportName = noaats.ToString(cumulus.NOAAMonthFileFormat);
+				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);
 				noaafile = cumulus.ReportPath + reportName;
-				var encoding = cumulus.NOAAUseUTF8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
+				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
 				report = File.Exists(noaafile) ? new List<string> (File.ReadAllLines(noaafile, encoding)) : new List<string> { "That report does not exist" };
 			}
 			catch (Exception e)
@@ -110,8 +110,8 @@ namespace CumulusMX
 
 		public string GetLastNoaaYearReportFilename(DateTime dat, bool fullPath)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			// This assumes that the caller has already subtracted a day if required
 			DateTime logfiledate;
@@ -137,15 +137,15 @@ namespace CumulusMX
 			}
 
 			if (fullPath)
-				return cumulus.ReportPath + logfiledate.ToString(cumulus.NOAAYearFileFormat);
+				return cumulus.ReportPath + logfiledate.ToString(cumulus.NOAAconf.YearFile);
 			else
-				return logfiledate.ToString(cumulus.NOAAYearFileFormat);
+				return logfiledate.ToString(cumulus.NOAAconf.YearFile);
 		}
 
 		public string GetLastNoaaMonthReportFilename (DateTime dat, bool fullPath)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			// This assumes that the caller has already subtracted a day if required
 			DateTime logfiledate;
@@ -170,9 +170,9 @@ namespace CumulusMX
 				}
 			}
 			if (fullPath)
-				return cumulus.ReportPath + logfiledate.AddHours(-1).ToString(cumulus.NOAAMonthFileFormat);
+				return cumulus.ReportPath + logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
 			else
-				return logfiledate.AddHours(-1).ToString(cumulus.NOAAMonthFileFormat);
+				return logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
 		}
 	}
 }

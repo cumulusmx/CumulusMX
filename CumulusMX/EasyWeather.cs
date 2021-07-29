@@ -8,15 +8,15 @@ namespace CumulusMX
     /*
      * EasyWeather.dat file format (* indicates fields used by Cumulus)
      * 1    Record number       int
-     * 2    Transfer Date       yyy-mmm-dd hh:mm:ss
-     * 3*   Reading Date        yyy-mmm-dd hh:mm:ss
+     * 2    Transfer Date       yyyy-mmm-dd hh:mm:ss
+     * 3*   Reading Date        yyyy-mmm-dd hh:mm:ss
      * 4    Reading interval    int     (minutes since previous reading)
      * 5*   Indoor humidity     int
-     * 6*   Indoor temp         float   Celcius
+     * 6*   Indoor temp         float   Celsius
      * 7*   Outdoor humidity    int
-     * 8*   Outdoor temp        float   Celcius
-     * 9*   Dew point           float   Celcius
-     * 10*  Wind chill          float   Celcius
+     * 8*   Outdoor temp        float   Celsius
+     * 9*   Dew point           float   Celsius
+     * 10*  Wind chill          float   Celsius
      * 11   Absolute press      float   mB/hPa
      * 12*  Relative press      float   mB/hPa
      * 13*  Wind average        float   m/s
@@ -111,6 +111,8 @@ namespace CumulusMX
                         {
                             line = sr.ReadLine();
                         } while (!sr.EndOfStream);
+                        sr.Close();
+                        fs.Close();
                     }
                     cumulus.LogDataMessage("Data: " + line);
 

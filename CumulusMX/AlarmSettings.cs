@@ -253,7 +253,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Alarm Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Alarm Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Alarm Data: " + json);
 				context.Response.StatusCode = 500;
