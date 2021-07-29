@@ -110,8 +110,8 @@ namespace CumulusMX
 
 		public string GetLastNoaaYearReportFilename(DateTime dat, bool fullPath)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			// This assumes that the caller has already subtracted a day if required
 			DateTime logfiledate;
@@ -144,8 +144,8 @@ namespace CumulusMX
 
 		public string GetLastNoaaMonthReportFilename (DateTime dat, bool fullPath)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			// This assumes that the caller has already subtracted a day if required
 			DateTime logfiledate;

@@ -57,8 +57,8 @@ namespace CumulusMX
 
 			airLinkLastUpdateTime = cumulus.LastUpdateTime;
 
-			// Working out if we are standalone or integrated with WLL is a bit tricky.
-			// Easist to see if we are a node of a WLL station
+			// Working out if we are stand-alone or integrated with WLL is a bit tricky.
+			// Easiest to see if we are a node of a WLL station
 			standalone = !(
 				cumulus.StationType == StationTypes.WLL &&
 				cumulus.AirLinkIsNode &&
@@ -67,13 +67,13 @@ namespace CumulusMX
 				!(cumulus.WllStationId < 10)
 			);
 
-			// If we are standalone, are we configured to read history data?
+			// If we are stand-alone, are we configured to read history data?
 			standaloneHistory = standalone &&
 								!string.IsNullOrEmpty(cumulus.AirLinkApiKey) &&
 								!string.IsNullOrEmpty(cumulus.AirLinkApiSecret) &&
 								!(this.indoor ? cumulus.AirLinkInStationId < 10 : cumulus.AirLinkOutStationId < 10);
 
-			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({locationStr}) - standalone={standalone}");
+			cumulus.LogMessage($"Extra Sensor = Davis AirLink ({locationStr}) - stand-alone={standalone}");
 
 			tmrCurrent = new System.Timers.Timer();
 
@@ -104,7 +104,7 @@ namespace CumulusMX
 			if (discovered.IP.Count == 0)
 			{
 				// We didn't find anything on the network
-				msg = "Failed to discover any Airlink devices";
+				msg = "Failed to discover any AirLink devices";
 				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
 			}
@@ -112,7 +112,7 @@ namespace CumulusMX
 			{
 				var writeConfig = false;
 
-				// If only one device is discovered, and its Hostname address matches (or our Hostname is blank), then just use it
+				// If only one device is discovered, and its Host-name address matches (or our Host-name is blank), then just use it
 				if (string.IsNullOrEmpty(hostname))
 				{
 					writeConfig = true;
@@ -127,7 +127,7 @@ namespace CumulusMX
 				{
 					writeConfig = true;
 
-					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
 					cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
 
 					ipaddr = discovered.IP[0];
@@ -139,25 +139,25 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"ZeroConf Service: Autodiscovery found the AirLink, reporting its IP address as: {ipaddr}");
+					cumulus.LogMessage($"ZeroConf Service: Auto-discovery found the AirLink, reporting its IP address as: {ipaddr}");
 				}
 
 				if (writeConfig)
 				{
 					cumulus.WriteIniFile();
-					cumulus.LogMessage($"ZeroConf Service: Autodiscovered Airlink name {discovered.Hostname[0]}, on IP address {ipaddr}");
+					cumulus.LogMessage($"ZeroConf Service: Auto-discovered AirLink name {discovered.Hostname[0]}, on IP address {ipaddr}");
 				}
 			}
 			else if (discovered.Hostname.Contains(hostname))
 			{
-				// Multiple devices discovered, but we have a Hostname match
-				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} Airlink hostname found on the network");
+				// Multiple devices discovered, but we have a Host-name match
+				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} AirLink host name found on the network");
 
 				var idx = discovered.Hostname.IndexOf(hostname);
 
 				if (discovered.IP[idx] != ipaddr)
 				{
-					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} Airlink that does not match our current one");
+					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
 					cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
 					ipaddr = discovered.IP[idx];
 					if (indoor)
@@ -169,19 +169,19 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogDebugMessage($"ZeroConf Service: {locationStr} Airlink IP address has not changed");
+					cumulus.LogDebugMessage($"ZeroConf Service: {locationStr} AirLink IP address has not changed");
 				}
 			}
 			else if (discovered.IP.Contains(ipaddr))
 			{
-				// Multiple devices discovered, no hostname match but we have an IP match
-				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} Airlink IP address found on the network");
+				// Multiple devices discovered, no host-name match but we have an IP match
+				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} AirLink IP address found on the network");
 
 				var idx = discovered.IP.IndexOf(ipaddr);
 
 				if (discovered.Hostname[idx] != hostname)
 				{
-					cumulus.LogDebugMessage($"ZeroConf Service: Changing previous {locationStr} hostname '{hostname}' to '{discovered.Hostname[idx]}'");
+					cumulus.LogDebugMessage($"ZeroConf Service: Changing previous {locationStr} host name '{hostname}' to '{discovered.Hostname[idx]}'");
 					hostname = discovered.Hostname[idx];
 					if (indoor)
 						cumulus.AirLinkInHostName = hostname;
@@ -195,10 +195,10 @@ namespace CumulusMX
 			{
 				// Multiple devices discovered, and we do not have a clue!
 				string list = "";
-				msg = "*** Discovered more than one potential Airlink device.";
+				msg = "*** Discovered more than one potential AirLink device.";
 				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
-				msg = "*** Please select the Hostname/IP address from the list and enter it manually into the configuration";
+				msg = "*** Please select the Host name/IP address from the list and enter it manually into the configuration";
 				cumulus.LogMessage("ZeroConf Service: " + msg);
 				cumulus.LogConsoleMessage(msg);
 				for (var i = 0; i < discovered.IP.Count; i++)
@@ -246,7 +246,7 @@ namespace CumulusMX
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
-				// Only poll health data here if the AirLink is a standalone device - the standalone history flag shows we have all the required info to poll wl.com
+				// Only poll health data here if the AirLink is a stand-alone device - the stand-alone history flag shows we have all the required info to poll wl.com
 				if (standaloneHistory)
 				{
 					// get the health data every 15 minutes
@@ -397,7 +397,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Error processing temperature value. Errorsg: {ex.Message}");
+							cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Error processing temperature value. Error msg: {ex.Message}");
 						}
 
 
@@ -524,7 +524,7 @@ namespace CumulusMX
 						break;
 
 					default:
-						cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Found an unknown tramsmitter type [{type}]!");
+						cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Found an unknown transmitter type [{type}]!");
 						break;
 				}
 				//UpdateStatusPanel(DateTime.Now);
@@ -755,7 +755,7 @@ namespace CumulusMX
 								}
 								if (!found)
 								{
-									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No outdoor Airlink data for this log interval !!");
+									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No outdoor AirLink data for this log interval !!");
 								}
 							}
 							else
@@ -782,7 +782,7 @@ namespace CumulusMX
 								}
 								if (!found)
 								{
-									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No indoor Airlink data for this log interval !!");
+									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No indoor AirLink data for this log interval !!");
 								}
 							}
 							else
@@ -1006,7 +1006,7 @@ namespace CumulusMX
 			string apiSecret;
 			int stationId;
 
-			// Are we standalone?
+			// Are we stand-alone?
 			if (standalone)
 			{
 				if (cumulus.AirLinkApiKey == string.Empty || cumulus.AirLinkApiSecret == string.Empty)
@@ -1528,7 +1528,7 @@ namespace CumulusMX
 			if (discovered.Hostname.Contains(e.Announcement.Hostname))
 			{
 				var idx = discovered.Hostname.IndexOf(e.Announcement.Hostname);
-				cumulus.LogDebugMessage($"Changing Airlink {e.Announcement.Hostname}  IP address from {discovered.IP[idx]} to {e.Announcement.Addresses[0]}");
+				cumulus.LogDebugMessage($"Changing AirLink {e.Announcement.Hostname}  IP address from {discovered.IP[idx]} to {e.Announcement.Addresses[0]}");
 				discovered.IP[idx] = e.Announcement.Addresses[0].ToString();
 			}
 		}
@@ -1566,7 +1566,7 @@ namespace CumulusMX
 
 					if (!discovered.Hostname.Contains(service.Hostname))
 					{
-						cumulus.LogDebugMessage($"ZeroConfig Service: Adding Airlink {service.Hostname} to list of discovered devices");
+						cumulus.LogDebugMessage($"ZeroConfig Service: Adding AirLink {service.Hostname} to list of discovered devices");
 						discovered.IP.Add(ip.ToString());
 						discovered.Hostname.Add(service.Hostname);
 					}
@@ -1681,7 +1681,7 @@ namespace CumulusMX
 					data.aqiPm10_24hr = -1;
 					data.aqiPm10_nowcast = -1;
 					break;
-				case 5: // Austrialia NEPM
+				case 5: // Australia NEPM
 					data.aqiPm2p5 = AirQualityIndices.AU_NEpm2p5(data.pm2p5);
 					data.aqiPm2p5_1hr = AirQualityIndices.AU_NEpm2p5(data.pm2p5_1hr);
 					data.aqiPm2p5_3hr = AirQualityIndices.AU_NEpm2p5(data.pm2p5_3hr);

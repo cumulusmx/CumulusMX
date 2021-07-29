@@ -75,7 +75,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Program Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Program Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Program Data: " + json);
 				context.Response.StatusCode = 500;

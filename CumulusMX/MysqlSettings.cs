@@ -43,7 +43,7 @@ namespace CumulusMX
 				retentionVal = retenVal,
 				retentionUnit = retenUnit,
 				table = cumulus.MySqlSettings.Realtime.TableName,
-				limit1min = cumulus.MySqlSettings.RealtimeLimit1Minute
+				limit1min = cumulus.MySqlSettings.RealtimeLimit1Minute && cumulus.RealtimeInterval > 60000  // do not enable if real time interval is greater than 1 minute
 			};
 
 			var dayfile = new JsonMysqlSettingsDayfile()
@@ -111,7 +111,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing MySQL Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing MySQL Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("MySQL Data: " + json);
 				context.Response.StatusCode = 500;
@@ -184,7 +184,7 @@ namespace CumulusMX
 						cumulus.MySqlSettings.CustomMins.Interval = 10;
 					}
 				}
-				// custom rollover
+				// custom roll-over
 				cumulus.MySqlSettings.CustomRollover.Enabled = settings.customrollover.enabled;
 				if (cumulus.MySqlSettings.CustomRollover.Enabled)
 				{

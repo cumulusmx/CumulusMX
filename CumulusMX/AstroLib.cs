@@ -15,13 +15,13 @@ namespace CumulusMX
 			if (sinal < 0)
 				return 0;
 
-			// solar radiation on horizonal surface at top of atmosphere
+			// solar radiation on horizontal surface at top of atmosphere
 			double i0 = (1367 / (r * r)) * sinal;
 
 			// optical air mass
 			double m = 1/(sinal + (0.15 * Math.Pow(el + 3.885, -1.253)));
 
-			// molecular scattering coeff
+			// molecular scattering coefficient
 			double al = 0.128 - (0.054 * Math.Log(m) / Math.Log(10));
 
 			// clear-sky solar radiation at earth surface on horizontal surface (W/m^2)
@@ -278,7 +278,7 @@ namespace CumulusMX
 
 		public static double CalcEccentricAnomaly(double fEGuess, double fMA, double fEcc, double fAcc)
 		{
-			//Calc Ecctrentric Anomaly to specified accuracy
+			//Calc Eccentric Anomaly to specified accuracy
 			double fE;
 
 			double fEG = fEGuess;
@@ -865,7 +865,7 @@ namespace CumulusMX
 		{
 			//
 			//   simple way of calling sunevent() using the Excel date format
-			//   returns just the sunset time or ****, ...., ---- as approptiate in a string
+			//   returns just the sunset time or ****, ...., ---- as appropriate in a string
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial number base)
 			//
@@ -897,7 +897,7 @@ namespace CumulusMX
 		{
 			//
 			//   simple way of calling sunevent() using the Excel date format
-			//   returns just the start of civil twilight time or ****, ...., ---- as approptiate
+			//   returns just the start of civil twilight time or ****, ...., ---- as appropriate
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial numbers)
 			//
@@ -1304,7 +1304,7 @@ namespace CumulusMX
 			}
 			else if (fAge < 23.9931)
 			{
-				sStage = "Last Quater";
+				sStage = "Last Quarter";
 			}
 			else if (fAge < 27.68493)
 			{

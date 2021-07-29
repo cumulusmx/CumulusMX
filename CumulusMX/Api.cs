@@ -542,7 +542,7 @@ namespace CumulusMX
 				{
 					// read the last segment of the URL to determine what data the caller wants
 					var lastSegment = Request.Url.Segments.Last();
-					// Get penultimate segment and trim off traling slash. This gives the required month
+					// Get penultimate segment and trim off trailing slash. This gives the required month
 					int month = Convert.ToInt32(Request.Url.Segments[Request.Url.Segments.Length - 2].TrimEnd('/'));
 
 					switch (lastSegment)

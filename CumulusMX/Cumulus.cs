@@ -244,11 +244,11 @@ namespace CumulusMX
 
 		public int GraphDays = 31;
 
-		public string Newmoon = "New Moon",
+		public string NewMoon = "New Moon",
 			WaxingCrescent = "Waxing Crescent",
 			FirstQuarter = "First Quarter",
 			WaxingGibbous = "Waxing Gibbous",
-			Fullmoon = "Full Moon",
+			FullMoon = "Full Moon",
 			WaningGibbous = "Waning Gibbous",
 			LastQuarter = "Last Quarter",
 			WaningCrescent = "Waning Crescent";
@@ -291,34 +291,65 @@ namespace CumulusMX
 
 		public string[] DavisForecast1 =
 		{
-			"FORECAST REQUIRES 3 HRS. OF RECENT DATA", "Mostly cloudy with little temperature change. ", "Mostly cloudy and cooler. ",
-			"Clearing, cooler and windy. ", "Clearing and cooler. ", "Increasing clouds and cooler. ",
-			"Increasing clouds with little temperature change. ", "Increasing clouds and warmer. ",
-			"Mostly clear for 12 to 24 hours with little temperature change. ", "Mostly clear for 6 to 12 hours with little temperature change. ",
-			"Mostly clear and warmer. ", "Mostly clear for 12 to 24 hours and cooler. ", "Mostly clear for 12 hours with little temperature change. ",
-			"Mostly clear with little temperature change. ", "Mostly clear and cooler. ", "Partially cloudy, Rain and/or snow possible or continuing. ",
-			"Partially cloudy, Snow possible or continuing. ", "Partially cloudy, Rain possible or continuing. ",
-			"Mostly cloudy, Rain and/or snow possible or continuing. ", "Mostly cloudy, Snow possible or continuing. ",
-			"Mostly cloudy, Rain possible or continuing. ", "Mostly cloudy. ", "Partially cloudy. ", "Mostly clear. ",
-			"Partly cloudy with little temperature change. ", "Partly cloudy and cooler. ", "Unknown forecast rule."
+			"FORECAST REQUIRES 3 HRS. OF RECENT DATA",
+			"Mostly cloudy with little temperature change.",
+			"Mostly cloudy and cooler.",
+			"Clearing, cooler and windy.",
+			"Clearing and cooler.",
+			"Increasing clouds and cooler.",
+			"Increasing clouds with little temperature change.",
+			"Increasing clouds and warmer.",
+			"Mostly clear for 12 to 24 hours with little temperature change.",
+			"Mostly clear for 6 to 12 hours with little temperature change.",
+			"Mostly clear and warmer. ", "Mostly clear for 12 to 24 hours and cooler.",
+			"Mostly clear for 12 hours with little temperature change.",
+			"Mostly clear with little temperature change.",
+			"Mostly clear and cooler.",
+			"Partially cloudy, Rain and/or snow possible or continuing.",
+			"Partially cloudy, Snow possible or continuing.",
+			"Partially cloudy, Rain possible or continuing.",
+			"Mostly cloudy, Rain and/or snow possible or continuing.",
+			"Mostly cloudy, Snow possible or continuing.",
+			"Mostly cloudy, Rain possible or continuing.",
+			"Mostly cloudy. ", "Partially cloudy.",
+			"Mostly clear.",
+			"Partly cloudy with little temperature change.",
+			"Partly cloudy and cooler.",
+			"Unknown forecast rule."
 		};
 
 		public string[] DavisForecast2 =
 		{
-			"", "Precipitation possible within 48 hours. ", "Precipitation possible within 24 to 48 hours. ",
-			"Precipitation possible within 24 hours. ", "Precipitation possible within 12 to 24 hours. ",
-			"Precipitation possible within 12 hours, possibly heavy at times. ", "Precipitation possible within 12 hours. ",
-			"Precipitation possible within 6 to 12 hours. ", "Precipitation possible within 6 to 12 hours, possibly heavy at times. ",
-			"Precipitation possible and windy within 6 hours. ", "Precipitation possible within 6 hours. ", "Precipitation ending in 12 to 24 hours. ",
-			"Precipitation possibly heavy at times and ending within 12 hours. ", "Precipitation ending within 12 hours. ",
-			"Precipitation ending within 6 hours. ", "Precipitation likely, possibly heavy at times. ", "Precipitation likely. ",
-			"Precipitation continuing, possibly heavy at times. ", "Precipitation continuing. "
+			"",
+			"Precipitation possible within 48 hours.",
+			"Precipitation possible within 24 to 48 hours.",
+			"Precipitation possible within 24 hours.",
+			"Precipitation possible within 12 to 24 hours.",
+			"Precipitation possible within 12 hours, possibly heavy at times.",
+			"Precipitation possible within 12 hours.",
+			"Precipitation possible within 6 to 12 hours. ",
+			"Precipitation possible within 6 to 12 hours, possibly heavy at times.",
+			"Precipitation possible and windy within 6 hours.",
+			"Precipitation possible within 6 hours.",
+			"Precipitation ending in 12 to 24 hours.",
+			"Precipitation possibly heavy at times and ending within 12 hours.",
+			"Precipitation ending within 12 hours.",
+			"Precipitation ending within 6 hours.",
+			"Precipitation likely, possibly heavy at times.",
+			"Precipitation likely.",
+			"Precipitation continuing, possibly heavy at times.",
+			"Precipitation continuing."
 		};
 
 		public string[] DavisForecast3 =
 		{
-			"", "Windy with possible wind shift to the W, SW, or S.", "Possible wind shift to the W, SW, or S.",
-			"Windy with possible wind shift to the W, NW, or N.", "Possible wind shift to the W, NW, or N.", "Windy.", "Increasing winds."
+			"",
+			"Windy with possible wind shift to the W, SW, or S.",
+			"Possible wind shift to the W, SW, or S.",
+			"Windy with possible wind shift to the W, NW, or N.",
+			"Possible wind shift to the W, NW, or N.",
+			"Windy.",
+			"Increasing winds."
 		};
 
 		public int[,] DavisForecastLookup =
@@ -657,7 +688,7 @@ namespace CumulusMX
 		internal int CustomHttpMinutesInterval;
 		internal int CustomHttpMinutesIntervalIndex;
 
-		// Custom HTTP - rollover
+		// Custom HTTP - roll-over
 		private static readonly HttpClientHandler customHttpRolloverHandler = new HttpClientHandler();
 		private readonly HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
 		private bool updatingCustomHttpRollover;
@@ -779,7 +810,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					LogMessage("Error: Unable to acces the System Up Time performance counter. System up time will not be available");
+					LogMessage("Error: Unable to access the System Up Time performance counter. System up time will not be available");
 					LogDebugMessage($"Error: {e}");
 				}
 			}
@@ -1113,7 +1144,7 @@ namespace CumulusMX
 							// Force a DNS refresh if not an IPv4 address
 							if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
 							{
-								// catch and ignore IPv6 and invalid hostname for now
+								// catch and ignore IPv6 and invalid host name for now
 								try
 								{
 									Dns.GetHostEntry(ProgramOptions.StartupPingHost);
@@ -1205,7 +1236,7 @@ namespace CumulusMX
 					RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 					RealtimeFTP.DataConnectionEncryption = true;
 					RealtimeFTP.ValidateAnyCertificate = true;
-					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 					RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				}
 			}
@@ -2310,7 +2341,7 @@ namespace CumulusMX
 						LogMessage("AWEKAS: Data PARIALLY stored");
 						// TODO: Check errors and disabled
 					}
-					else if (respJson.status == 0)  // Authenication error or rate limited
+					else if (respJson.status == 0)  // Authentication error or rate limited
 					{
 						if (respJson.minuploadtime > 0 && respJson.authentication == 0)
 						{
@@ -2322,7 +2353,7 @@ namespace CumulusMX
 								AWEKAS.Interval = 300;
 								AwekasTimer.Enabled = false;
 								AWEKAS.SynchronisedUpdate = true;
-								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authenication error");
+								LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authentication error");
 							}
 						}
 						else if (respJson.minuploadtime == 0)
@@ -2494,7 +2525,7 @@ namespace CumulusMX
 					var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
 					HttpResponseMessage response = await client.PostAsync(url, data);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 					LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 					if (response.StatusCode != HttpStatusCode.NoContent)
 					{
@@ -2573,7 +2604,7 @@ namespace CumulusMX
 
 					HttpResponseMessage response = client.PostAsync(url, data).Result;
 					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
-					var status = response.StatusCode == HttpStatusCode.Created ? "OK" : "Error";  // Returns a 201 reponse for OK
+					var status = response.StatusCode == HttpStatusCode.Created ? "OK" : "Error";  // Returns a 201 response for OK
 					LogDebugMessage($"OpenWeatherMap: Create station response code = {status} - {response.StatusCode}");
 					LogDataMessage($"OpenWeatherMap: Create station response data = {responseBodyAsText}");
 
@@ -2675,7 +2706,7 @@ namespace CumulusMX
 						if (RealtimeFtpInProgress)
 						{
 							LogMessage($"Realtime[{cycle}]: Warning, a previous cycle is still trying to connect to FTP server, skip count = {++realtimeFTPRetries}");
-							// realtimeinvertval is in ms, if a session has been uploading for 3 minutes - abort it and reconnect
+							// real time interval is in ms, if a session has been uploading for 3 minutes - abort it and reconnect
 							if (realtimeFTPRetries * RealtimeInterval / 1000 > 3 * 60)
 							{
 								LogMessage($"Realtime[{cycle}]: Realtime has been in progress for more than 3 minutes, attempting to reconnect.");
@@ -2712,7 +2743,7 @@ namespace CumulusMX
 								}
 								catch (Exception)
 								{
-									LogMessage($"Realtime[{cycle}]: Error during realtime FTP update tht requires reconnection");
+									LogMessage($"Realtime[{cycle}]: Error during realtime FTP update that requires reconnection");
 									RealtimeFTPReconnect();
 								}
 								RealtimeFtpInProgress = false;
@@ -3183,7 +3214,7 @@ namespace CumulusMX
 			else if ((MoonPercent > 55) && (MoonPercent < 99.6))
 				MoonPhaseString = WaxingGibbous;
 			else if ((MoonPercent >= 99.6) || (MoonPercent <= -99.6))
-				MoonPhaseString = Fullmoon;
+				MoonPhaseString = FullMoon;
 			else if ((MoonPercent < -55) && (MoonPercent > -99.6))
 				MoonPhaseString = WaningGibbous;
 			else if ((MoonPercent <= -45) && (MoonPercent >= -55))
@@ -3191,7 +3222,7 @@ namespace CumulusMX
 			else if ((MoonPercent > -45) && (MoonPercent < -0.4))
 				MoonPhaseString = WaningCrescent;
 			else
-				MoonPhaseString = Newmoon;
+				MoonPhaseString = NewMoon;
 			*/
 
 			// Use Phase Angle to determine string - it's linear unlike Illuminated Percentage
@@ -3206,7 +3237,7 @@ namespace CumulusMX
 			else if (MoonPhaseAngle < 84 && MoonPhaseAngle > 6)
 				MoonPhaseString = WaxingGibbous;
 			else if (MoonPhaseAngle <= 6 || MoonPhaseAngle >= 354)
-				MoonPhaseString = Fullmoon;
+				MoonPhaseString = FullMoon;
 			else if (MoonPhaseAngle < 354 && MoonPhaseAngle > 276)
 				MoonPhaseString = WaningGibbous;
 			else if (MoonPhaseAngle <= 276 && MoonPhaseAngle >= 264)
@@ -3214,7 +3245,7 @@ namespace CumulusMX
 			else if (MoonPhaseAngle < 264 && MoonPhaseAngle > 186)
 				MoonPhaseString = WaningCrescent;
 			else
-				MoonPhaseString = Newmoon;
+				MoonPhaseString = NewMoon;
 		}
 
 		internal void DoMoonImage()
@@ -3245,7 +3276,7 @@ namespace CumulusMX
 
 			if (fAge < 1.84566)
 			{
-				sStage = Newmoon;
+				sStage = NewMoon;
 			}
 			else if (fAge < 5.53699)
 			{
@@ -3261,7 +3292,7 @@ namespace CumulusMX
 			}
 			else if (fAge < 16.61096)
 			{
-				sStage = Fullmoon;
+				sStage = FullMoon;
 			}
 			else if (fAge < 20.30228)
 			{
@@ -3277,7 +3308,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				sStage = Newmoon;
+				sStage = NewMoon;
 			}
 
 			return sStage;
@@ -4143,7 +4174,7 @@ namespace CumulusMX
 
 			FtpOptions.ActiveMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			FtpOptions.FtpMode = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
-			// BUILD 3092 - added alternate SFTP authenication options
+			// BUILD 3092 - added alternate SFTP authentication options
 			FtpOptions.SshAuthen = ini.GetValue("FTP site", "SshFtpAuthentication", "password");
 			if (!sshAuthenticationVals.Any(FtpOptions.SshAuthen.Contains))
 			{
@@ -4642,7 +4673,7 @@ namespace CumulusMX
 			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", false);
 			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 24);
 
-			// Alrams below here were created after the change in default sound file, so no check required
+			// Alarms below here were created after the change in default sound file, so no check required
 			BatteryLowAlarm.Enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
 			BatteryLowAlarm.Sound = ini.GetValue("Alarms", "BatteryLowAlarmSound", false);
 			BatteryLowAlarm.SoundFile = ini.GetValue("Alarms", "BatteryLowAlarmSoundFile", DefaultSoundFile);
@@ -4696,7 +4727,7 @@ namespace CumulusMX
 			Calib.Hum.Offset = ini.GetValue("Offsets", "HumOffset", 0);
 			Calib.WindDir.Offset = ini.GetValue("Offsets", "WindDirOffset", 0);
 			Calib.InTemp.Offset = ini.GetValue("Offsets", "InTempOffset", 0.0);
-			Calib.Solar.Offset = ini.GetValue("Offsers", "SolarOffset", 0.0);
+			Calib.Solar.Offset = ini.GetValue("Offsets", "SolarOffset", 0.0);
 			Calib.UV.Offset = ini.GetValue("Offsets", "UVOffset", 0.0);
 			Calib.WetBulb.Offset = ini.GetValue("Offsets", "WetBulbOffset", 0.0);
 
@@ -4858,11 +4889,11 @@ namespace CumulusMX
 			// MySQL - monthly log file
 			MySqlSettings.Monthly.Enabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
 			MySqlSettings.Monthly.TableName = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
-			// MySQL - realtimne
+			// MySQL - real-time
 			MySqlSettings.Realtime.Enabled = ini.GetValue("MySQL", "RealtimeMySqlEnabled", false);
 			MySqlSettings.Realtime.TableName = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
 			MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", "");
-			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false);
+			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval > 60000; // do not enable if real time interval is greater than 1 minute
 			// MySQL - dayfile
 			MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
 			MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
@@ -4885,7 +4916,7 @@ namespace CumulusMX
 				CustomMySqlMinutesIntervalIndex = 6;
 				rewriteRequired = true;
 			}
-			// MySQL - custom rollover
+			// MySQL - custom roll-over
 			MySqlSettings.CustomRollover.Command = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
 			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 
@@ -4908,7 +4939,7 @@ namespace CumulusMX
 				CustomHttpMinutesIntervalIndex = 6;
 				rewriteRequired = true;
 			}
-			// Http - custom rollover
+			// Http - custom roll-over
 			CustomHttpRolloverString = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
 			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
 
@@ -5189,7 +5220,7 @@ namespace CumulusMX
 
 			//ini.SetValue("FTP site", "AutoUpdate", WebAutoUpdate);  // Deprecated - now read-only
 			ini.SetValue("FTP site", "Sslftp", (int)FtpOptions.FtpMode);
-			// BUILD 3092 - added alternate SFTP authenication options
+			// BUILD 3092 - added alternate SFTP authentication options
 			ini.SetValue("FTP site", "SshFtpAuthentication", FtpOptions.SshAuthen);
 			ini.SetValue("FTP site", "SshFtpPskFile", FtpOptions.SshPskFile);
 
@@ -5770,15 +5801,15 @@ namespace CumulusMX
 			zForecast[24] = ini.GetValue("Forecast", "forecast25", zForecast[24]);
 			zForecast[25] = ini.GetValue("Forecast", "forecast26", zForecast[25]);
 			// moon phases
-			Newmoon = ini.GetValue("MoonPhases", "Newmoon", Newmoon);
+			NewMoon = ini.GetValue("MoonPhases", "Newmoon", NewMoon);
 			WaxingCrescent = ini.GetValue("MoonPhases", "WaxingCrescent", WaxingCrescent);
 			FirstQuarter = ini.GetValue("MoonPhases", "FirstQuarter", FirstQuarter);
 			WaxingGibbous = ini.GetValue("MoonPhases", "WaxingGibbous", WaxingGibbous);
-			Fullmoon = ini.GetValue("MoonPhases", "Fullmoon", Fullmoon);
+			FullMoon = ini.GetValue("MoonPhases", "Fullmoon", FullMoon);
 			WaningGibbous = ini.GetValue("MoonPhases", "WaningGibbous", WaningGibbous);
 			LastQuarter = ini.GetValue("MoonPhases", "LastQuarter", LastQuarter);
 			WaningCrescent = ini.GetValue("MoonPhases", "WaningCrescent", WaningCrescent);
-			// beaufort
+			// Beaufort
 			Calm = ini.GetValue("Beaufort", "Calm", Calm);
 			Lightair = ini.GetValue("Beaufort", "Lightair", Lightair);
 			Lightbreeze = ini.GetValue("Beaufort", "Lightbreeze", Lightbreeze);
@@ -6304,9 +6335,9 @@ namespace CumulusMX
 		public int WllStationId;
 		public int WllParentId;
 
-		/// <value>Readonly setting, default 20 minutes (1200 sec)</value>
+		/// <value>Read-only setting, default 20 minutes (1200 sec)</value>
 		public int WllBroadcastDuration = 1200;
-		/// <value>Readonly setting, default 22222</value>
+		/// <value>Read-only setting, default 22222</value>
 		public int WllBroadcastPort = 22222;
 		public bool WLLAutoUpdateIpAddress = true;
 		public int WllPrimaryWind = 1;
@@ -6486,8 +6517,8 @@ namespace CumulusMX
 
 		public string GetLogFileName(DateTime thedate)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			DateTime logfiledate;
 
@@ -6518,8 +6549,8 @@ namespace CumulusMX
 
 		public string GetExtraLogFileName(DateTime thedate)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			DateTime logfiledate;
 
@@ -6551,8 +6582,8 @@ namespace CumulusMX
 
 		public string GetAirLinkLogFileName(DateTime thedate)
 		{
-			// First determine the date for the logfile.
-			// If we're using 9am rollover, the date should be 9 hours (10 in summer)
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
 			DateTime logfiledate;
 
@@ -6586,7 +6617,7 @@ namespace CumulusMX
 
 		public void DoLogFile(DateTime timestamp, bool live)
 		{
-			// Writes an entry to the n-minute logfile. Fields are comma-separated:
+			// Writes an entry to the n-minute log file. Fields are comma-separated:
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2  Current temperature
@@ -6985,7 +7016,7 @@ namespace CumulusMX
 						sb.Append(airLinkDataIn.aqiPm10_24hr.ToString(AirQualityFormat) + ListSeparator);
 						sb.Append(airLinkDataIn.aqiPm10_nowcast.ToString(AirQualityFormat) + ListSeparator);
 					}
-					else // Zero decimals - trucate value rather than round
+					else // Zero decimals - truncate value rather than round
 					{
 						sb.Append((int)airLinkDataIn.aqiPm2p5 + ListSeparator);
 						sb.Append((int)airLinkDataIn.aqiPm2p5_1hr + ListSeparator);
@@ -7001,7 +7032,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					// write zero values - subtract 2 for firmware version, wifi RSSI
+					// write zero values - subtract 2 for firmware version, WiFi RSSI
 					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 2; i++)
 					{
 						sb.Append("0" + ListSeparator);
@@ -7040,7 +7071,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					// write zero values - subtract 2 for firmware version, wifi RSSI - subtract 1 for end field
+					// write zero values - subtract 2 for firmware version, WiFi RSSI - subtract 1 for end field
 					for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
 					{
 						sb.Append("0" + ListSeparator);
@@ -7133,7 +7164,7 @@ namespace CumulusMX
 					CopyBackupFile(dbfile, dbBackup);
 					CopyBackupFile(extraFile, extraBackup);
 					CopyBackupFile(AirLinkFile, AirLinkBackup);
-					// Do not do this extra backup between 00:00 & Rollover hour on the first of the month
+					// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
 					// as the month has not yet rolled over - only applies for start-up backups
 					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
 					{
@@ -7624,7 +7655,7 @@ namespace CumulusMX
 				Arguments = externalParams,
 				// Enter the executable to run, including the complete path
 				FileName = externalProgram,
-				// Dont show a console window
+				// Don't show a console window
 				CreateNoWindow = true
 			};
 
@@ -7881,7 +7912,7 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				// BUILD 3092 - added alternate SFTP authenication options
+				// BUILD 3092 - added alternate SFTP authentication options
 				ConnectionInfo connectionInfo;
 				if (FtpOptions.SshAuthen == "password")
 				{
@@ -7919,7 +7950,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogFtpMessage($"SFTP[Int]: Error connecting sftp - {ex.Message}");
+						LogFtpMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
 
 						if (ex.Message.Contains("Could not resolve host"))
 						{
@@ -7970,7 +8001,7 @@ namespace CumulusMX
 								(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
 								ExtraFiles[i].FTP)
 							{
-								// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
+								// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
 								var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
 
 								uploadfile = GetUploadFilename(uploadfile, logDay);
@@ -8117,7 +8148,7 @@ namespace CumulusMX
 					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 					{
 						// Explicit = Current protocol - connects using FTP and switches to TLS
-						// Implicit = Old depreciated protcol - connects using TLS
+						// Implicit = Old depreciated protocol - connects using TLS
 						conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 						conn.DataConnectionEncryption = true;
 						conn.ValidateAnyCertificate = true;
@@ -8196,7 +8227,7 @@ namespace CumulusMX
 								(EODfilesNeedFTP || (EODfilesNeedFTP == ExtraFiles[i].endofday)) &&
 								ExtraFiles[i].FTP)
 							{
-								// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
+								// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
 								var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
 
 								uploadfile = GetUploadFilename(uploadfile, logDay);
@@ -8580,7 +8611,7 @@ namespace CumulusMX
 			10     1.0        rain today
 			11     999.7      barometer
 			12     W          wind direction
-			13     6          wind speed (beaufort)
+			13     6          wind speed (Beaufort)
 			14     mph        wind units
 			15     C          temperature units
 			16     mb         pressure units
@@ -8620,8 +8651,8 @@ namespace CumulusMX
 			50     1          Is daylight? (1 = yes)
 			51     0          Sensor contact lost (1 = yes)
 			52     NNW        wind direction (average)
-			53     2040       Cloudbase
-			54     ft         Cloudbase units
+			53     2040       Cloud base
+			54     ft         Cloud base units
 			55     12.3       Apparent Temp
 			56     11.4       Sunshine hours today
 			57     420        Current theoretical max solar radiation
@@ -9060,13 +9091,13 @@ namespace CumulusMX
 					LogMessage("CustomSqlSecs: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
-						LogMessage("CustomSqlSecs: Connction to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
 						await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
 						LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
 					}
 					else if (MySqlSettings.BufferOnfailure)
 					{
-						LogMessage("CustomSqlSecs: Connction to MySQL server has failed, adding this update to the failed list");
+						LogMessage("CustomSqlSecs: Connection to MySQL server has failed, adding this update to the failed list");
 						MySqlFailedList.Enqueue(customMysqlSecondsTokenParser.ToStringFromString());
 					}
 				}
@@ -9099,13 +9130,13 @@ namespace CumulusMX
 					LogMessage("CustomSqlMins: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
-						LogMessage("CustomSqlMins: Connction to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
 						await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
 						LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
 					}
 					else if (MySqlSettings.BufferOnfailure)
 					{
-						LogMessage("CustomSqlMins: Connction to MySQL server has failed, adding this update to the failed list");
+						LogMessage("CustomSqlMins: Connection to MySQL server has failed, adding this update to the failed list");
 						MySqlFailedList.Enqueue(customMysqlMinutesTokenParser.ToStringFromString());
 					}
 				}
@@ -9137,13 +9168,13 @@ namespace CumulusMX
 					LogMessage("CustomSqlRollover: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
-						LogMessage("CustomSqlRollover: Connction to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
 						await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
 						LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
 					}
 					else if (MySqlSettings.BufferOnfailure)
 					{
-						LogMessage("CustomSqlRollover: Connction to MySQL server has failed, adding this update to the failed list");
+						LogMessage("CustomSqlRollover: Connection to MySQL server has failed, adding this update to the failed list");
 						MySqlFailedList.Enqueue(customMysqlRolloverTokenParser.ToStringFromString());
 					}
 				}
@@ -9170,7 +9201,7 @@ namespace CumulusMX
 
 					if ((uploadfile.Length > 0) && (remotefile.Length > 0))
 					{
-						// For EOD files, we want the previous days log files since it is now just past the day rollover time. Makes a difference on month rollover
+						// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
 						var logDay = DateTime.Now.AddDays(-1);
 
 						uploadfile = GetUploadFilename(uploadfile, logDay);
@@ -9259,7 +9290,7 @@ namespace CumulusMX
 				RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
 				RealtimeFTP.DataConnectionEncryption = true;
 				RealtimeFTP.ValidateAnyCertificate = true;
-				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specifiy protocols
+				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 				RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
 			}
@@ -9340,13 +9371,13 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"RealtimeSSHLogin: Error connecting sftp - {ex.Message}");
+					LogMessage($"RealtimeSSHLogin: Error connecting SFTP - {ex.Message}");
 				}
 			}
 		}
 
 		/// <summary>
-		/// Process the list of WU updates created at startup from logger entries
+		/// Process the list of WU updates created at start-up from logger entries
 		/// </summary>
 		private async void WundCatchup()
 		{
@@ -9396,7 +9427,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Process the list of PWS Weather updates created at startup from logger entries
+		/// Process the list of PWS Weather updates created at start-up from logger entries
 		/// </summary>
 		private async void PWSCatchUp()
 		{
@@ -9424,7 +9455,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Process the list of WOW updates created at startup from logger entries
+		/// Process the list of WOW updates created at start-up from logger entries
 		/// </summary>
 		private async void WOWCatchUp()
 		{
@@ -9452,7 +9483,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Process the list of OpenWeatherMap updates created at startup from logger entries
+		/// Process the list of OpenWeatherMap updates created at start-up from logger entries
 		/// </summary>
 		private async void OpenWeatherMapCatchUp()
 		{
@@ -9474,7 +9505,7 @@ namespace CumulusMX
 						var data = new StringContent(OWMList[i], Encoding.UTF8, "application/json");
 						HttpResponseMessage response = await client.PostAsync(url, data);
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 reponse for OK!
+						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 						if (response.StatusCode != HttpStatusCode.NoContent)
 							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
@@ -9765,7 +9796,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Failed to get the latest build version from Github: " + ex.Message);
+				LogMessage("Failed to get the latest build version from GitHub: " + ex.Message);
 			}
 		}
 
@@ -9970,7 +10001,7 @@ namespace CumulusMX
 			{
 				return GetExtraLogFileName(dat);
 			}
-			else if (input == "<airlinklogfile")
+			else if (input == "<airlinklogfile>")
 			{
 				return GetAirLinkLogFileName(dat);
 			}
@@ -10143,20 +10174,20 @@ namespace CumulusMX
 					LogMessage("Primary AQ Sensor = Ecowitt CO2");
 					break;
 				case (int)PrimaryAqSensor.AirLinkIndoor:
-					LogMessage("Primary AQ Sensor = Airlink Indoor");
+					LogMessage("Primary AQ Sensor = AirLink Indoor");
 					break;
 				case (int)PrimaryAqSensor.AirLinkOutdoor:
-					LogMessage("Primary AQ Sensor = Airlink Outdoor");
+					LogMessage("Primary AQ Sensor = AirLink Outdoor");
 					break;
 			}
 		}
 
 		private void PingCompletedCallback(object sender, PingCompletedEventArgs e)
 		{
-			// If the operation was canceled, display a message to the user.
+			// If the operation was cancelled, display a message to the user.
 			if (e.Cancelled)
 			{
-				LogMessage("Ping canceled.");
+				LogMessage("Ping cancelled.");
 			}
 
 			// If an error occurred, display the exception to the user.

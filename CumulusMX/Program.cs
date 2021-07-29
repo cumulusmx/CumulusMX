@@ -48,7 +48,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Failed to rollover the Console log file: " + ex.Message);
+				Console.WriteLine("Failed to roll-over the Console log file: " + ex.Message);
 			}
 
 			svcTextListener = new TextWriterTraceListener(logfile);
@@ -144,7 +144,7 @@ namespace CumulusMX
 							httpport = Convert.ToInt32(args[++i]);
 							break;
 						case "-debug":
-							// Switch on debug and and data logging from the start
+							// Switch on debug and data logging from the start
 							debug = true;
 							break;
 						case "-wsport":
@@ -232,7 +232,7 @@ namespace CumulusMX
 						service = true;
 					}
 					svcTextListener.Flush();
-					// Lauch normally - Linux Service runs like this too
+					// Launch normally - Linux Service runs like this too
 					RunAsAConsole(httpport, debug);
 				}
 
@@ -252,7 +252,7 @@ namespace CumulusMX
 		private static void Usage()
 		{
 			Console.WriteLine();
-			Console.WriteLine("Valid arugments are:");
+			Console.WriteLine("Valid arguments are:");
 			Console.WriteLine(" -port <http_portnum> - Sets the HTTP port Cumulus will use (default 8998)");
 			Console.WriteLine(" -lang <culture_name> - Sets the Language Cumulus will use (defaults to current user language)");
 			Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");

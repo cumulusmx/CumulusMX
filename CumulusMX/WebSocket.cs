@@ -10,7 +10,7 @@ namespace CumulusMX
 		private static MySocketServer socketServer;
 
 		/// <summary>
-		/// Setups the specified server.
+		/// Sets up the specified server.
 		/// </summary>
 		/// <param name="server">The server.</param>
 		public static void Setup(WebServer server, Cumulus cumulus)

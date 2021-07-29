@@ -34,7 +34,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing 3rdParty Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing 3rdParty Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("3rdParty Data: " + json);
 				context.Response.StatusCode = 500;
@@ -309,7 +309,7 @@ namespace CumulusMX
 							cumulus.CustomHttpMinutesInterval = 10;
 						}
 					}
-					// custom rollover
+					// custom roll-over
 					cumulus.CustomHttpRolloverEnabled = settings.customhttp.customrollover.enabled;
 					if (cumulus.CustomHttpRolloverEnabled)
 					{
@@ -327,7 +327,7 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				// Do OpenWeatherMap setup
+				// Do OpenWeatherMap set-up
 				cumulus.EnableOpenWeatherMap();
 			}
 			catch (Exception ex)

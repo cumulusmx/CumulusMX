@@ -125,7 +125,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing ExtraSensor Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing ExtraSensor Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("ExtraSensor Data: " + json);
 				context.Response.StatusCode = 500;
@@ -206,6 +206,9 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseCo2 = settings.ecowitt.useCo2;
 						cumulus.EcowittExtraUseLightning = settings.ecowitt.useLightning;
 						cumulus.EcowittExtraUseLeak = settings.ecowitt.useLeak;
+
+						// Also enable extra logging
+						cumulus.StationOptions.LogExtraSensors = true;
 					}
 				}
 				catch (Exception ex)

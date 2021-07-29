@@ -56,7 +56,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Station type = Davis WLL");
 
-			// Override the ServiceStack Deserialization function
+			// Override the ServiceStack De-serialization function
 			// Check which format provided, attempt to parse as datetime or return minValue.
 			// Formats to use for the different date kinds
 			string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
@@ -147,7 +147,7 @@ namespace CumulusMX
 				GetSystemStatus();
 			}
 
-			// Perform Station ID checks - If we have API deatils!
+			// Perform Station ID checks - If we have API details!
 			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key
 			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
 			{
@@ -230,7 +230,7 @@ namespace CumulusMX
 				// Create a realtime thread to periodically restart broadcasts
 				GetWllRealtime(null, null);
 				tmrRealtime.Elapsed += GetWllRealtime;
-				tmrRealtime.Interval = cumulus.WllBroadcastDuration * 1000 / 3 * 2; // give the multicasts a kick after 2/3 of the duration (default 200 secs)
+				tmrRealtime.Interval = cumulus.WllBroadcastDuration * 1000 / 3 * 2; // give the multi-casts a kick after 2/3 of the duration (default 200 secs)
 				tmrRealtime.AutoReset = true;
 				tmrRealtime.Start();
 
@@ -254,12 +254,12 @@ namespace CumulusMX
 
 				if (port == 0)
 				{
-					cumulus.LogMessage("WLL failed to get broadcast port via realtime request, defaulting to 22222");
+					cumulus.LogMessage("WLL failed to get broadcast port via real time request, defaulting to 22222");
 					port = cumulus.DavisOptions.TCPPort;
 				}
 				else if (port != cumulus.DavisOptions.TCPPort)
 				{
-					cumulus.LogMessage($"WLL Discovered broacast port ({port}) is not the same as in the config ({cumulus.DavisOptions.TCPPort}), resetting config to match");
+					cumulus.LogMessage($"WLL Discovered broadcast port ({port}) is not the same as in the config ({cumulus.DavisOptions.TCPPort}), resetting config to match");
 					cumulus.DavisOptions.TCPPort = port;
 					cumulus.WriteIniFile();
 				}
@@ -374,7 +374,7 @@ namespace CumulusMX
 					{
 						var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllBroadcastDuration;
 
-						cumulus.LogDebugMessage($"GetWllRealtime: Sending GET realtime request to WLL: {urlRealtime} ...");
+						cumulus.LogDebugMessage($"GetWllRealtime: Sending GET real time request to WLL: {urlRealtime} ...");
 
 						string responseBody;
 
@@ -520,7 +520,7 @@ namespace CumulusMX
 									if (gustCal > RecentMaxGust)
 									{
 										// See if the station 10 min high speed is higher than our current 10-min max
-										// ie we missed the high gust
+										// i.e. we missed the high gust
 
 										// Check for spikes, and set highs
 										if (CheckHighGust(gustCal, rec.wind_dir_at_hi_speed_last_10_min, dateTime))
@@ -557,7 +557,7 @@ namespace CumulusMX
 						/*
 						 * All fields are *tip counts*
 						 * Available fields:
-						 * rec["rain_size"] - 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
+						 * rec["rain_size"] - 0: Reserved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
 						 * rec["rain_rate_last"]
 						 * rec["rain_15_min"]
 						 * rec["rain_60_min"]
@@ -811,7 +811,7 @@ namespace CumulusMX
 							{
 								/*
 								* Available fields:
-								* rec["rain_size"] - 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
+								* rec["rain_size"] - 0: Reserved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
 								* rec["rain_rate_last"], rec["rain_rate_hi"]
 								* rec["rainfall_last_15_min"], rec["rain_rate_hi_last_15_min"]
 								* rec["rainfall_last_60_min"]
@@ -973,7 +973,7 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								cumulus.LogMessage($"WLL current: Error processung LeafWetness txid={data2.txid}, idx={idx}");
+								cumulus.LogMessage($"WLL current: Error processing LeafWetness txid={data2.txid}, idx={idx}");
 								cumulus.LogDebugMessage($"WLL current: Exception: {e.Message}");
 							}
 
@@ -1155,7 +1155,7 @@ namespace CumulusMX
 							break;
 
 						default:
-							cumulus.LogDebugMessage($"WLL current: found an unknown tramsmitter type [{type}]!");
+							cumulus.LogDebugMessage($"WLL current: found an unknown transmitter type [{type}]!");
 							break;
 					}
 
@@ -1243,7 +1243,7 @@ namespace CumulusMX
 
 		private double ConvertRainClicksToUser(double clicks, int size)
 		{
-			// 0: Reseverved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
+			// 0: Reserved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
 			switch (size)
 			{
 				case 1:
@@ -1491,7 +1491,7 @@ namespace CumulusMX
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 
-			cumulus.LogMessage($"Rollover hour = {rollHour}");
+			cumulus.LogMessage($"Roll over hour = {rollHour}");
 
 			bool rolloverdone = luhour == rollHour;
 
@@ -1584,7 +1584,7 @@ namespace CumulusMX
 				try
 				{
 					// Not all sensors may have the same number of records. We are using the WLL to create the historic data, the other sensors (AirLink) may have more or less records!
-					// For the additional sensors, check if they have the same number of reocrds as the WLL. If they do great, we just process the next record.
+					// For the additional sensors, check if they have the same number of records as the WLL. If they do great, we just process the next record.
 					// If the sensor has more or less historic records than the WLL, then we find the record (if any) that matches the WLL record timestamp
 
 
@@ -1615,7 +1615,7 @@ namespace CumulusMX
 									}
 								}
 								if (!found)
-									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No outdoor Airlink data for this log interval !!");
+									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No outdoor AirLink data for this log interval !!");
 							}
 							else
 							{
@@ -1641,7 +1641,7 @@ namespace CumulusMX
 									}
 								}
 								if (!found)
-									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No indoor Airlink data for this log interval !!");
+									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No indoor AirLink data for this log interval !!");
 							}
 							else
 							{
@@ -1693,17 +1693,17 @@ namespace CumulusMX
 					UpdateStatusPanel(timestamp);
 					cumulus.AddToWebServiceLists(timestamp);
 
-					//  if outside rollover hour, rollover yet to be done
+					//  if outside roll-over hour, roll-over yet to be done
 					if (h != rollHour)
 					{
 						rolloverdone = false;
 					}
 
-					// In rollover hour and rollover not yet done
+					// In roll-over hour and roll-over not yet done
 					if ((h == rollHour) && !rolloverdone)
 					{
-						// do rollover
-						cumulus.LogMessage("GetWlHistoricData: Day rollover " + timestamp.ToShortTimeString());
+						// do roll-over
+						cumulus.LogMessage("GetWlHistoricData: Day roll-over " + timestamp.ToShortTimeString());
 						DayReset(timestamp);
 						rolloverdone = true;
 					}
@@ -1753,7 +1753,7 @@ namespace CumulusMX
 						if (cumulus.WllPrimaryTempHum == data11.tx_id)
 						{
 							/*
-							 * Avaialable fields
+							 * Available fields
 							 * "cooling_degree_days"
 							 * "dew_point_hi_at"
 							 * "dew_point_hi"
@@ -1784,7 +1784,7 @@ namespace CumulusMX
 
 							try
 							{
-								// do high humidty
+								// do high humidity
 								if (data11.hum_hi_at != 0 && data11.hum_hi != null)
 								{
 									ts = Utils.FromUnixTime(data11.hum_hi_at);
@@ -1840,7 +1840,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperatue (high) data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature (high) data on TxId {data11.tx_id}");
 									}
 
 									// do low temp
@@ -1851,7 +1851,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperatue (low) data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature (low) data on TxId {data11.tx_id}");
 									}
 
 									// do last temp
@@ -1875,7 +1875,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperatue data on TxId {data11.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature data on TxId {data11.tx_id}");
 									}
 								}
 							}
@@ -2179,7 +2179,7 @@ namespace CumulusMX
 								string idx = "";
 								/*
 								 * Leaf Wetness
-								 * Avaialable fields
+								 * Available fields
 								 * "wet_leaf_at_1"
 								 * "wet_leaf_hi_1"
 								 * "wet_leaf_hi_2":
@@ -2220,7 +2220,7 @@ namespace CumulusMX
 								}
 								/*
 								 * Soil Moisture
-								 * Avaialable fields
+								 * Available fields
 								 * "moist_soil_hi_1"
 								 * "moist_soil_hi_2"
 								 * "moist_soil_hi_3"
@@ -2305,7 +2305,7 @@ namespace CumulusMX
 
 								/*
 								 * Soil Temperature
-								 * Avaialble fields
+								 * Available fields
 								 * "temp_hi_1"
 								 * "temp_hi_2"
 								 * "temp_hi_3"
@@ -2457,7 +2457,7 @@ namespace CumulusMX
 
 							case 243: // Inside temp/hum
 								/*
-								 * Avilable fields
+								 * Available fields
 								 * "dew_point_in"
 								 * "heat_index_in"
 								 * "hum_in_hi"
@@ -2719,7 +2719,7 @@ namespace CumulusMX
 			}
 		}
 
-		// Extracts health infomation from the last archive record
+		// Extracts health information from the last archive record
 		private void GetWlHistoricHealth()
 		{
 			cumulus.LogMessage("WLL Health: Get WL.com Historic Data");
@@ -3247,7 +3247,7 @@ namespace CumulusMX
 			public int wind_dir_at_hi_speed_last_10_min { get; set; }
 		}
 
-		// Response from WLL when asked to start multicasting
+		// Response from WLL when asked to start multi-casting
 		private class WllBroadcastReqResponse
 		{
 			public WllBroadcastReqResponseData data { get; set; }

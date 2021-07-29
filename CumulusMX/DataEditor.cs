@@ -99,7 +99,7 @@ namespace CumulusMX
 				string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 				string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
 
-				// Override the ServiceStack Deserialization function
+				// Override the ServiceStack de-serialization function
 				// Check which format provided, attempt to parse as datetime or return minValue.
 				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 				{
@@ -153,7 +153,7 @@ namespace CumulusMX
 				string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 				string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
 
-				// Override the ServiceStack Deserialization function
+				// Override the ServiceStack de-serialization function
 				// Check which format provided, attempt to parse as datetime or return minValue.
 				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 				{
@@ -821,7 +821,7 @@ namespace CumulusMX
 
 							var rec = station.ParseLogFileRec(line, true);
 
-							// We need to work in meto dates not clock dates for day hi/lows
+							// We need to work in meteo dates not clock dates for day hi/lows
 							var metoDate = rec.Date.AddHours(cumulus.GetHourInc());
 
 							if (!started)
@@ -955,7 +955,7 @@ namespace CumulusMX
 								highRainMonthTime = rec.Date;
 							}
 
-							// same meto day
+							// same meteo day
 							if (currentDay.Day == metoDate.Day && currentDay.Month == metoDate.Month && currentDay.Year == metoDate.Year)
 							{
 								if (rec.OutdoorTemperature > dayHighTemp)
@@ -977,7 +977,7 @@ namespace CumulusMX
 
 								dayWindRun += rec.Date.Subtract(lastentrydate).TotalHours * rec.WindAverage;
 							}
-							else // new meto day
+							else // new meteo day
 							{
 								if (dayHighTemp < lowMaxTempVal)
 								{
@@ -2260,7 +2260,7 @@ namespace CumulusMX
 
 							var rec = station.ParseLogFileRec(line, true);
 
-							// We need to work in meto dates not clock dates for day hi/lows
+							// We need to work in meteo dates not clock dates for day hi/lows
 							var metoDate = rec.Date.AddHours(cumulus.GetHourInc());
 							var monthOffset = metoDate.Month - 1;
 
@@ -2390,7 +2390,7 @@ namespace CumulusMX
 								highRainRateTime[monthOffset] = rec.Date;
 							}
 
-							// same meto day
+							// same meteo day
 							if (currentDay.Day == metoDate.Day && currentDay.Month == metoDate.Month && currentDay.Year == metoDate.Year)
 							{
 								if (rec.OutdoorTemperature > dayHighTemp)
@@ -2412,7 +2412,7 @@ namespace CumulusMX
 
 								dayWindRun += rec.Date.Subtract(lastentrydate).TotalHours * rec.WindAverage;
 							}
-							else // new meto day
+							else // new meteo day
 							{
 								var lastEntryMonthOffset = currentDay.Month - 1;
 								if (dayHighTemp < lowMaxTempVal[lastEntryMonthOffset])
@@ -2660,7 +2660,7 @@ namespace CumulusMX
 			json.Append($"\"highDailyTempRangeTime\":\"{station.ThisMonth.HighDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 			json.Append($"\"lowDailyTempRangeVal\":\"{station.ThisMonth.LowDailyTempRange.Val.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"lowDailyTempRangeTime\":\"{station.ThisMonth.LowDailyTempRange.Ts.ToString(dateStampFormat)}\",");
-			// Records - Humidty
+			// Records - Humidity
 			json.Append($"\"highHumidityVal\":\"{station.ThisMonth.HighHumidity.Val.ToString(cumulus.HumFormat)}\",");
 			json.Append($"\"highHumidityTime\":\"{station.ThisMonth.HighHumidity.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"lowHumidityVal\":\"{station.ThisMonth.LowHumidity.Val.ToString(cumulus.HumFormat)}\",");
@@ -2946,7 +2946,7 @@ namespace CumulusMX
 			json.Append($"\"highDailyTempRangeTime\":\"{station.ThisYear.HighDailyTempRange.Ts.ToString(dateStampFormat)}\",");
 			json.Append($"\"lowDailyTempRangeVal\":\"{station.ThisYear.LowDailyTempRange.Val.ToString(cumulus.TempFormat)}\",");
 			json.Append($"\"lowDailyTempRangeTime\":\"{station.ThisYear.LowDailyTempRange.Ts.ToString(dateStampFormat)}\",");
-			// Records - Humidty
+			// Records - Humidity
 			json.Append($"\"highHumidityVal\":\"{station.ThisYear.HighHumidity.Val.ToString(cumulus.HumFormat)}\",");
 			json.Append($"\"highHumidityTime\":\"{station.ThisYear.HighHumidity.Ts.ToString(timeStampFormat)}\",");
 			json.Append($"\"lowHumidityVal\":\"{station.ThisYear.LowHumidity.Val.ToString(cumulus.HumFormat)}\",");
@@ -3418,7 +3418,7 @@ namespace CumulusMX
 					cumulus.MySqlSettings.UpdateOnEdit
 					)
 				{
-					// Only the monhtly log file is stored in MySQL
+					// Only the monthly log file is stored in MySQL
 					if (!newData.extra)
 					{
 						try

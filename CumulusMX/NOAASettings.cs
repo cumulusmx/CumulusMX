@@ -133,7 +133,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing NOAA Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing NOAA Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("NOAA Data: " + json);
 				context.Response.StatusCode = 500;

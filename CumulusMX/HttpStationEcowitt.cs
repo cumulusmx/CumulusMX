@@ -133,7 +133,7 @@ namespace CumulusMX
 				{
 					dat = dat.Replace(' ', 'T') + ".0000000Z";
 					cumulus.LogDebugMessage($"ProcessData: Record date = {data["dateutc"]}");
-					recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
+					//recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
 				}
 
 				recDate = DateTime.Now;
@@ -403,12 +403,12 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("ProcessData: Insufficent data to calculate Apparent/Feels Like temps");
+						cumulus.LogMessage("ProcessData: Insufficient data to calculate Apparent/Feels Like temps");
 					}
 				}
 				else
 				{
-					cumulus.LogMessage("ProcessData: Insufficent data to calculate Humidex and Apparent/Feels Like temps");
+					cumulus.LogMessage("ProcessData: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
 				}
 
 
@@ -455,7 +455,7 @@ namespace CumulusMX
 				{
 					// uv
 
-					ProcessUv(data, recDate);
+					ProcessUv(data, this, recDate);
 				}
 				catch (Exception ex)
 				{
@@ -600,7 +600,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("ProcessData: Error calcuating extra sensor dew points - " + ex.Message);
+					cumulus.LogMessage("ProcessData: Error calculating extra sensor dew points - " + ex.Message);
 				}
 
 
@@ -737,7 +737,7 @@ namespace CumulusMX
 
 					if (cumulus.EcowittExtraUseUv)
 					{
-						ProcessUv(data, recDate);
+						ProcessUv(data, station, recDate);
 					}
 				}
 				catch (Exception ex)
@@ -902,7 +902,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("ProcessData: Error calcuating extra sensor dew points - " + ex.Message);
+					cumulus.LogMessage("ProcessData: Error calculating extra sensor dew points - " + ex.Message);
 				}
 			}
 			catch (Exception ex)
@@ -948,11 +948,11 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessUv(NameValueCollection data, DateTime recDate)
+		private void ProcessUv(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["uv"] != null)
 			{
-				DoUV(Convert.ToDouble(data["uv"], CultureInfo.InvariantCulture), recDate);
+				station.DoUV(Convert.ToDouble(data["uv"], CultureInfo.InvariantCulture), recDate);
 			}
 		}
 

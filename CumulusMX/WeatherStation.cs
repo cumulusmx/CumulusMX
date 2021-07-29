@@ -386,7 +386,7 @@ namespace CumulusMX
 			//RecentDataDb = new SQLiteConnection(":memory:", true);
 			RecentDataDb = new SQLiteConnection(cumulus.dbfile, false);
 			RecentDataDb.CreateTable<RecentData>();
-			// switch off full synchronisiation - the db isn't that critical and we get a performance boost
+			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
 			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
 
 			var rnd = new Random();
@@ -542,7 +542,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
 			rainthismonth = 0;
 			rainthisyear = 0;
-			// get today"s date for month check; allow for 0900 rollover
+			// get today"s date for month check; allow for 0900 roll-over
 			var hourInc = cumulus.GetHourInc();
 			var ModifiedNow = DateTime.Now.AddHours(hourInc);
 			// avoid any funny locale peculiarities on date formats
@@ -1013,7 +1013,7 @@ namespace CumulusMX
 			{
 				bool recordbroken;
 
-				// Make the delta relate to the precision for dervied values such as feels like
+				// Make the delta relate to the precision for derived values such as feels like
 				string[] derivedVals = { "HighHeatIndex", "HighAppTemp", "LowAppTemp", "LowChill", "HighHumidex", "HighDewPoint", "LowDewPoint", "HighFeelsLike", "LowFeelsLike" };
 
 				double epsilon = derivedVals.Contains(index) ? Math.Pow(10, -cumulus.TempDPlaces) : 0.001; // required difference for new record
@@ -1402,7 +1402,7 @@ namespace CumulusMX
 		public double RainSinceMidnight { get; set; }
 
 		/// <summary>
-		/// Checks whether a new day has started and does a rollover if necessary
+		/// Checks whether a new day has started and does a roll-over if necessary
 		/// </summary>
 		/// <param name="oadate"></param>
 		/*
@@ -1481,7 +1481,7 @@ namespace CumulusMX
 
 			if ((int)timeNow.TimeOfDay.TotalMilliseconds % 2500 <= 500)
 			{
-				// send current data to websocket every 3 seconds
+				// send current data to web-socket every 3 seconds
 				try
 				{
 					StringBuilder windRoseData = new StringBuilder(80);
@@ -2782,7 +2782,7 @@ namespace CumulusMX
 		}
 
 
-		public void ResetSunshineHours() // called at midnight irrespective of rollover time
+		public void ResetSunshineHours() // called at midnight irrespective of roll-over time
 		{
 			YestSunshineHours = SunshineHours;
 
@@ -2795,14 +2795,14 @@ namespace CumulusMX
 		}
 
 		/*
-		private void RecalcSolarFactor(DateTime now) // called at midnight irrespective of rollover time
+		private void RecalcSolarFactor(DateTime now) // called at midnight irrespective of roll-over time
 		{
 			if (cumulus.SolarFactorSummer > 0 && cumulus.SolarFactorWinter > 0)
 			{
 				// Calculate the solar factor from the day of the year
 				// Use a cosine of the difference between summer and winter values
 				int doy = now.DayOfYear;
-				// take summer solistice as June 21 or December 21 (N & S hemispheres) - ignore leap years
+				// take summer solstice as June 21 or December 21 (N & S hemispheres) - ignore leap years
 				// sol = day 172 (North)
 				// sol = day 355 (South)
 				int sol = cumulus.Latitude >= 0 ? 172 : 355;
@@ -3041,7 +3041,7 @@ namespace CumulusMX
 				CheckForDewpointHighLow(timestamp);
 			}
 
-			// Calculate cloudbase
+			// Calculate cloud base
 			if (cumulus.CloudBaseInFeet)
 			{
 				CloudBase = (int)Math.Floor(((tempinF - ConvertUserTempToF(OutdoorDewpoint)) / 4.4) * 1000);
@@ -3175,7 +3175,7 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.CalculatedWC)
 			{
-				// don"t try to calculate windchill if we haven"t yet had wind and temp readings
+				// don"t try to calculate wind chill if we haven"t yet had wind and temp readings
 				if (TempReadyToPlot && WindReadyToPlot)
 				{
 					double TempinC = ConvertUserTempToC(OutdoorTemperature);
@@ -3658,7 +3658,7 @@ namespace CumulusMX
 
 			if (!FirstChanceRainReset)
 			{
-				// Has a tip occured?
+				// Has a tip occurred?
 				if (total - previoustotal > raintipthreshold)
 				{
 					// rain has occurred
@@ -3896,7 +3896,7 @@ namespace CumulusMX
 		{
 			// from MADIS API by NOAA Forecast Systems Lab, see http://madis.noaa.gov/madis_api.html
 
-			double k1 = 0.190284; // discrepency with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
+			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
 			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
 			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
 		}
@@ -4327,7 +4327,7 @@ namespace CumulusMX
 			var sb = new StringBuilder("New monthly record: month = ", 200);
 			sb.Append(timestamp.Month.ToString("D2"));
 			sb.Append(": New time = ");
-			sb.Append(FormatDateTime("yyy-MM-dd HH:mm", timestamp));
+			sb.Append(FormatDateTime("yyyy-MM-dd HH:mm", timestamp));
 			sb.Append(", new value = ");
 			sb.Append(value.ToString("F3"));
 			sb.Append(" \"");
@@ -4695,7 +4695,7 @@ namespace CumulusMX
 					CheckMonthlyAlltime("LongestDryPeriod", ConsecutiveDryDays, true, yesterday);
 				}
 
-				// offset high temp today timestamp to allow for 0900 rollover
+				// offset high temp today timestamp to allow for 0900 roll-over
 				int hr;
 				int mn;
 				DateTime ts;
@@ -4706,7 +4706,7 @@ namespace CumulusMX
 					ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 					if (hr >= cumulus.RolloverHour)
-						// time is between rollover hour && midnight
+						// time is between roll-over hour && midnight
 						// so subtract a day
 						ts = ts.AddDays(-1);
 				}
@@ -4732,7 +4732,7 @@ namespace CumulusMX
 						ThisMonth.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.RolloverHour)
-							// time is between rollover hour && midnight
+							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisMonth.LowMaxTemp.Ts = ThisMonth.LowMaxTemp.Ts.AddDays(-1);
 					}
@@ -4754,7 +4754,7 @@ namespace CumulusMX
 						ThisYear.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.RolloverHour)
-							// time is between rollover hour && midnight
+							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisYear.LowMaxTemp.Ts = ThisYear.LowMaxTemp.Ts.AddDays(-1);
 					}
@@ -4766,7 +4766,7 @@ namespace CumulusMX
 					WriteYearIniFile();
 				}
 
-				// offset low temp today timestamp to allow for 0900 rollover
+				// offset low temp today timestamp to allow for 0900 roll-over
 				try
 				{
 					hr = HiLoToday.LowTempTime.Hour;
@@ -4774,7 +4774,7 @@ namespace CumulusMX
 					ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 					if (hr >= cumulus.RolloverHour)
-						// time is between rollover hour && midnight
+						// time is between roll-over hour && midnight
 						// so subtract a day
 						ts = ts.AddDays(-1);
 				}
@@ -4800,7 +4800,7 @@ namespace CumulusMX
 						ThisMonth.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.RolloverHour)
-							// time is between rollover hour && midnight
+							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisMonth.HighMinTemp.Ts = ThisMonth.HighMinTemp.Ts.AddDays(-1);
 					}
@@ -4821,7 +4821,7 @@ namespace CumulusMX
 						ThisYear.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.RolloverHour)
-							// time is between rollover hour && midnight
+							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisYear.HighMinTemp.Ts = ThisYear.HighMinTemp.Ts.AddDays(-1);
 					}
@@ -5038,8 +5038,8 @@ namespace CumulusMX
 				GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUserTempToC(HiLoToday.HighTemp), ConvertUserTempToC(HiLoToday.LowTemp), ConvertUserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
 
 				// Now reset all values to the current or default ones
-				// We may be doing a rollover from the first logger entry,
-				// && as we do the rollover before processing the entry, the
+				// We may be doing a roll-over from the first logger entry,
+				// && as we do the roll-over before processing the entry, the
 				// current items may not be set up.
 
 				raindaystart = Raincounter;
@@ -5421,12 +5421,12 @@ namespace CumulusMX
 			strb.Append(ET.ToString(cumulus.ETFormat) + cumulus.ListSeparator);
 			if (cumulus.RolloverHour == 0)
 			{
-				// use existing current sunshinehour count
+				// use existing current sunshine hour count
 				strb.Append(SunshineHours.ToString(cumulus.SunFormat) + cumulus.ListSeparator);
 			}
 			else
 			{
-				// for non-midnight rollover, use new item
+				// for non-midnight roll-over, use new item
 				strb.Append(SunshineToMidnight.ToString(cumulus.SunFormat) + cumulus.ListSeparator);
 			}
 			strb.Append(HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat) + cumulus.ListSeparator);
@@ -6400,7 +6400,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage($"LoadRecent: Attempting to load {cumulus.RecentDataDays} days of entries to recent data list");
 
-			// try and find the first entry in the db that has a "blank" AQ entry (PM2.5 or PM10 = -1)
+			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
 			{
 				var start = RecentDataDb.ExecuteScalar<DateTime>("select MAX(Timestamp) from RecentData");
@@ -6520,7 +6520,7 @@ namespace CumulusMX
 			bool finished = false;
 			int updatedCount = 0;
 
-			// try and find the first entry in the db that has a "blank" AQ entry (PM2.5 or PM10 = -1)
+			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
 			{
 				var start = RecentDataDb.ExecuteScalar<DateTime>("select Timestamp from RecentData where Pm2p5=-1 or Pm10=-1 order by Timestamp limit 1");
@@ -6657,7 +6657,7 @@ namespace CumulusMX
 
 		private void LoadRecentWindRose()
 		{
-			// We can now just query the recent data DB as it has been populated from the loags
+			// We can now just query the recent data database as it has been populated from the logs
 			var datefrom = DateTime.Now.AddHours(-24);
 
 			var result = RecentDataDb.Query<RecentData>("select WindGust, WindDir from RecentData where Timestamp >= ? order by Timestamp", datefrom);
@@ -10318,7 +10318,7 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
-		// Fetchs all days in the required month that have a diary entry
+		// Fetches all days in the required month that have a diary entry
 		//internal string GetDiarySummary(string year, string month)
 		internal string GetDiarySummary()
 		{
@@ -10332,7 +10332,7 @@ namespace CumulusMX
 				for (int i = 0; i < result.Count; i++)
 				{
 					json.Append("\"");
-					json.Append(result[i].Timestamp.ToUniversalTime().ToString("yyy-MM-dd"));
+					json.Append(result[i].Timestamp.ToUniversalTime().ToString("yyyy-MM-dd"));
 					json.Append("\",");
 				}
 				json.Length--;
@@ -11282,7 +11282,7 @@ namespace CumulusMX
 							growYear1.Length--;
 							// close the year data
 							growYear1.Append("],");
-							// apend to years array
+							// append to years array
 							growdegdaysYears1.Append(growYear1);
 
 							growYear1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
@@ -11293,13 +11293,13 @@ namespace CumulusMX
 							growYear2.Length--;
 							// close the year data
 							growYear2.Append("],");
-							// apend to years array
+							// append to years array
 							growdegdaysYears2.Append(growYear2);
 
 							growYear2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
 						}
 
-						// reset the plot year for Southern hemi
+						// reset the plot year for Southern hemisphere
 						plotYear = cumulus.GrowingYearStarts < 3 ? 2000 : 1999;
 
 						annualGrowingDegDays1 = 0;
@@ -11461,7 +11461,7 @@ namespace CumulusMX
 							tempSum0.Length--;
 							// close the year data
 							tempSum0.Append("],");
-							// apend to years array
+							// append to years array
 							tempSumYears0.Append(tempSum0);
 
 							tempSum0.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
@@ -11472,7 +11472,7 @@ namespace CumulusMX
 							tempSum1.Length--;
 							// close the year data
 							tempSum1.Append("],");
-							// apend to years array
+							// append to years array
 							tempSumYears1.Append(tempSum1);
 
 							tempSum1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
@@ -11483,13 +11483,13 @@ namespace CumulusMX
 							tempSum2.Length--;
 							// close the year data
 							tempSum2.Append("],");
-							// apend to years array
+							// append to years array
 							tempSumYears2.Append(tempSum2);
 
 							tempSum2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
 						}
 
-						// reset the plot year for Southern hemi
+						// reset the plot year for Southern hemisphere
 						plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
 
 						annualTempSum0 = 0;

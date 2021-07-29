@@ -41,7 +41,7 @@ namespace CumulusMX
 	}
 
 
-	// Data Struucture type 11 = ISS archive record
+	// Data Structure type 11 = ISS archive record
 	public class WlHistorySensorDataType11
 	{
 		public int tx_id { get; set; }
@@ -124,7 +124,7 @@ namespace CumulusMX
 	}
 
 
-	// Data struture type 13 = Non-IIS Archive record
+	// Data structure type 13 = Non-IIS Archive record
 	public class WlHistorySensorDataType13
 	{
 		public int tx_id { get; set; }
@@ -256,7 +256,7 @@ namespace CumulusMX
 	}
 
 
-	// Data struture type 17 = AirLink Archive record
+	// Data structure type 17 = AirLink Archive record
 	public class WlHistorySensorDataType17
 	{
 		public long ts { get; set; }

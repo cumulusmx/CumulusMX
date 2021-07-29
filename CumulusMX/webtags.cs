@@ -6122,16 +6122,16 @@ namespace CumulusMX
 		//	 * Byte-Array or incorrectly stored with the UTF16 encoding.  *
 		//	 *                                                            *
 		//	 * UTF8 = 1 bytes per char                                    *
-		//	 *    ["100" for the ansi 'd']                                *
-		//	 *    ["206" and "186" for the russian 'κ']                   *
+		//	 *    ["100" for the ANSI 'd']                                *
+		//	 *    ["206" and "186" for the Russian 'κ']                   *
 		//	 *                                                            *
 		//	 * UTF16 = 2 bytes per char                                   *
-		//	 *    ["100, 0" for the ansi 'd']                             *
-		//	 *    ["186, 3" for the russian 'κ']                          *
+		//	 *    ["100, 0" for the ANSI 'd']                             *
+		//	 *    ["186, 3" for the Russian 'κ']                          *
 		//	 *                                                            *
 		//	 * UTF8 inside UTF16                                          *
-		//	 *    ["100, 0" for the ansi 'd']                             *
-		//	 *    ["206, 0" and "186, 0" for the russian 'κ']             *
+		//	 *    ["100, 0" for the ANSI 'd']                             *
+		//	 *    ["206, 0" and "186, 0" for the Russian 'κ']             *
 		//	 *                                                            *
 		//	 * We can use the convert encoding function to convert an     *
 		//	 * UTF16 Byte-Array to an UTF8 Byte-Array. When we use UTF8   *

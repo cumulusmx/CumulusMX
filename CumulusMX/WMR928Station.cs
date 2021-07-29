@@ -40,7 +40,7 @@ namespace CumulusMX
 
 		public override void startReadingHistoryData()
 		{
-			cumulus.LogMessage("Opening com port " + cumulus.ComportName);
+			cumulus.LogMessage("Opening COM port " + cumulus.ComportName);
 
 			comport = new SerialPort(cumulus.ComportName, 9600, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
 
@@ -413,7 +413,7 @@ namespace CumulusMX
 
 			DoWind(ConvertWindMSToUser(current), bearing, ConvertWindMSToUser(average), DateTime.Now);
 
-			// Extract windchill
+			// Extract wind chill
 			double wc = BCDchartoint(buff[9]);
 
 			if (buff[9]/16 == 8) wc = -wc;

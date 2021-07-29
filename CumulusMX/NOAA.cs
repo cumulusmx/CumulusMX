@@ -126,7 +126,7 @@ namespace CumulusMX
 			double totalwinddirY = 0;
 			double totalwindspeed = 0;
 
-			// Use the second of the month to allow for 9am rollover
+			// Use the second of the month to allow for 9am roll-over
 			var logFile = cumulus.GetLogFileName(new DateTime(year, month, 2));
 			if (File.Exists(logFile))
 			{
@@ -272,7 +272,7 @@ namespace CumulusMX
 						continue;
 					}
 
-					// havent had this entry yet
+					// haven't had this entry yet
 
 					// max temp
 					idx = 6;
@@ -347,7 +347,7 @@ namespace CumulusMX
 						idx = 40;
 						if ((st.Count > idx) && (st[idx].Length > 0))
 						{
-							// read hdd from dayfile.txt
+							// read HDD from dayfile.txt
 							dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
 							totalheating += double.Parse(st[idx]);
 						}
@@ -365,7 +365,7 @@ namespace CumulusMX
 						idx = 41;
 						if ((st.Count > idx) && (st[idx] != string.Empty))
 						{
-							// read hdd from dayfile.txt
+							// read HDD from dayfile.txt
 							dayList[daynumber].coolingdegdays = double.Parse(st[idx]);
 							totalcooling += double.Parse(st[idx]);
 						}
@@ -435,7 +435,7 @@ namespace CumulusMX
 			}
 
 			// Calculate average wind speed from log file
-			// Use the second of the month in case of 9am rollover
+			// Use the second of the month in case of 9am roll-over
 			var logFile = cumulus.GetLogFileName(new DateTime(thedate.Year, thedate.Month, 2));
 
 			if (File.Exists(logFile))
@@ -853,7 +853,7 @@ namespace CumulusMX
 						// heating degree days
 						if ((st.Count > 40) && (st[40].Length > 0))
 						{
-							// read hdd from dayfile.txt
+							// read HDD from dayfile.txt
 							MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + Convert.ToDouble(st[40]);
 							totalheating += Convert.ToDouble(st[40]);
 						}
@@ -865,7 +865,7 @@ namespace CumulusMX
 						// cooling degree days
 						if ((st.Count > 41) && (st[41].Length > 0))
 						{
-							// read hdd from dayfile.txt
+							// read HDD from dayfile.txt
 							MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + Convert.ToDouble(st[41]);
 							totalcooling += Convert.ToDouble(st[41]);
 						}

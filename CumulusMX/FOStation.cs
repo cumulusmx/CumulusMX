@@ -145,7 +145,7 @@ namespace CumulusMX
 			tmrDataRead.Stop();
 			cumulus.LogMessage("Stopping minute timer");
 			StopMinuteTimer();
-			cumulus.LogMessage("Nulling hidDevice");
+			cumulus.LogMessage("Nullifying hidDevice");
 			hidDevice = null;
 			cumulus.LogMessage("Exit FOStation.Stop()");
 		}
@@ -343,17 +343,17 @@ namespace CumulusMX
 
 				int h = timestamp.Hour;
 
-				//  if outside rollover hour, rollover yet to be done
+				//  if outside roll-over hour, roll-over yet to be done
 				if (h != rollHour)
 				{
 					rolloverdone = false;
 				}
 
-				// In rollover hour and rollover not yet done
+				// In roll-over hour and roll-over not yet done
 				if (h == rollHour && !rolloverdone)
 				{
-					// do rollover
-					cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
+					// do roll-over
+					cumulus.LogMessage("Day roll-over " + timestamp.ToShortTimeString());
 					DayReset(timestamp);
 
 					rolloverdone = true;
@@ -661,7 +661,7 @@ namespace CumulusMX
 			var lowbyte = (byte) (address & 0xFF);
 			var highbyte = (byte) (address >> 8);
 
-			// Returns 9-byte usb packet, with report ID in first byte
+			// Returns 9-byte USB packet, with report ID in first byte
 			var response = new byte[9];
 			const int responseLength = 9;
 			const int startByte = 1;
@@ -821,7 +821,7 @@ namespace CumulusMX
 			{
 				if ((DateTime.Now - FOSensorClockTime).TotalDays > 1)
 				{
-					// (re)synchronise data reads to try to avoid USB lockup problem
+					// (re)synchronise data reads to try to avoid USB lock-up problem
 
 					StartSynchronising();
 

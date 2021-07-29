@@ -209,7 +209,7 @@ namespace CumulusMX
 
 		private void ProcessHistoryData()
 		{
-			// history data is alread in correct units
+			// history data is already in correct units
 			int totalentries = datalist.Count;
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 			int luhour = cumulus.LastUpdateTime.Hour;
@@ -230,7 +230,7 @@ namespace CumulusMX
 				DateTime timestamp = historydata.timestamp;
 
 				cumulus.LogMessage("Processing data for " + timestamp);
-				// Check for rollover
+				// Check for roll-over
 
 				int h = timestamp.Hour;
 
@@ -241,8 +241,8 @@ namespace CumulusMX
 
 				if ((h == rollHour) && !rolloverdone)
 				{
-					// do rollover
-					cumulus.LogMessage("WS2300: Day rollover " + timestamp);
+					// do roll-over
+					cumulus.LogMessage("WS2300: Day roll-over " + timestamp);
 					DayReset(timestamp);
 
 					rolloverdone = true;
@@ -331,7 +331,7 @@ namespace CumulusMX
 					}
 				}
 
-				// Windchill ==================================================================
+				// Wind chill ==================================================================
 				if (cumulus.StationOptions.CalculatedWC)
 				{
 					if (ConvertUserWindToMS(WindAverage) < 1.5)
@@ -823,7 +823,7 @@ namespace CumulusMX
 				return ERROR;
 
 			var val = (data[0] >> 4) * 10 + (data[0] & 0xF);
-			cumulus.LogDataMessage("Outdoor humidty = " + val);
+			cumulus.LogDataMessage("Outdoor humidity = " + val);
 			return val;
 		}
 

@@ -34,7 +34,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Calibration Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Calibration Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Calibration Data: " + json);
 				context.Response.StatusCode = 500;

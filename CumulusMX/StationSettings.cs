@@ -506,7 +506,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Station Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				context.Response.StatusCode = 500;
@@ -722,7 +722,7 @@ namespace CumulusMX
 				// Display Options
 				try
 				{
-					// bug catch incase user has the old JSON config files that do not work.
+					// bug catch in case user has the old JSON config files that do not work.
 					if (settings.DisplayOptions.windrosepoints == 0)
 						settings.DisplayOptions.windrosepoints = 8;
 					else if (settings.DisplayOptions.windrosepoints == 1)
@@ -742,7 +742,7 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// Log rollover
+				// Log roll-over
 				try
 				{
 					cumulus.RolloverHour = settings.general.logrollover.time == "9am" ? 9 : 0;
@@ -751,7 +751,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing Log rollover settings: " + ex.Message;
+					var msg = "Error processing Log roll-over settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;

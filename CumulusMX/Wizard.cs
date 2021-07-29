@@ -199,7 +199,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Setup Wizard Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Set-up Wizard Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Wizard Data: " + json);
 				context.Response.StatusCode = 500;

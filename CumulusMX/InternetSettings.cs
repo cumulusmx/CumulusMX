@@ -38,7 +38,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Internet Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Internet Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Internet Data: " + json);
 				context.Response.StatusCode = 500;

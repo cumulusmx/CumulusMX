@@ -304,12 +304,12 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("ProcessData: Insufficent data to calculate Apparent/Feels like Temps");
+						cumulus.LogMessage("ProcessData: Insufficient data to calculate Apparent/Feels like Temps");
 					}
 				}
 				else
 				{
-					cumulus.LogMessage("ProcessData: Insufficent data to calculate Wind Chill and Apparent/Feels like Temps");
+					cumulus.LogMessage("ProcessData: Insufficient data to calculate Wind Chill and Apparent/Feels like Temps");
 				}
 
 
@@ -321,7 +321,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ProcessData: Insufficent data to calculate Humidex");
+					cumulus.LogMessage("ProcessData: Insufficient data to calculate Humidex");
 				}
 
 				DoForecast(string.Empty, false);
@@ -408,7 +408,7 @@ namespace CumulusMX
 				}
 
 
-				// === Soil Mositure ===
+				// === Soil Moisture ===
 				try
 				{
 					// soilmoisture - [%]

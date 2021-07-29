@@ -79,7 +79,7 @@ namespace CumulusMX
 			int startByte;
 			int offset;
 
-			// Returns 9-byte usb packet, with report ID in first byte
+			// Returns 9-byte USB packet, with report ID in first byte
 			responseLength = 9;
 			startByte = 1;
 			offset = 0;
@@ -586,7 +586,7 @@ namespace CumulusMX
 
 				var calculatedCRC = 0;
 
-				// CRC is calulated by summing all but the last two bytes
+				// CRC is calculated by summing all but the last two bytes
 				for (int i = 0; i <= packetLen - 3; i++)
 				{
 					calculatedCRC += packetBuffer[i];
