@@ -80,9 +80,6 @@ namespace CumulusMX
 
 	public class AlarmChange : Alarm
 	{
-		//public bool changeUp { get; set; }
-		//public bool changeDown { get; set; }
-
 		bool upTriggered;
 		public bool UpTriggered
 		{

@@ -23,9 +23,13 @@ namespace CumulusMX
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
+		public static Wizard wizard;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
+		internal static HttpStationWund stationWund;
+		internal static HttpStationEcowitt stationEcowitt;
+		internal static HttpStationEcowitt stationEcowittExtra;
 
 
 		private static string EscapeUnicode(string input)
@@ -54,6 +58,7 @@ namespace CumulusMX
 			server.Module<WebApiModule>().RegisterController<EditController>();
 			server.Module<WebApiModule>().RegisterController<ReportsController>();
 			server.Module<WebApiModule>().RegisterController<TagController>();
+			server.Module<WebApiModule>().RegisterController<HttpStation>();
 		}
 
 		// Get/Post Edit data
@@ -198,7 +203,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -265,7 +270,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -330,7 +335,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -478,7 +483,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -537,7 +542,7 @@ namespace CumulusMX
 				{
 					// read the last segment of the URL to determine what data the caller wants
 					var lastSegment = Request.Url.Segments.Last();
-					// Get penultimate segment and trim off traling slash. This gives the required month
+					// Get penultimate segment and trim off trailing slash. This gives the required month
 					int month = Convert.ToInt32(Request.Url.Segments[Request.Url.Segments.Length - 2].TrimEnd('/'));
 
 					switch (lastSegment)
@@ -641,7 +646,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -697,7 +702,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -779,7 +784,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -827,70 +832,42 @@ namespace CumulusMX
 					{
 						case "programdata.json":
 							return await this.JsonResponseAsync(programSettings.GetAlpacaFormData());
-						case "programoptions.json":
-							return await this.JsonResponseAsync(programSettings.GetAlpacaFormOptions());
-						case "programschema.json":
-							return await this.JsonResponseAsync(programSettings.GetAlpacaFormSchema());
 
 						case "stationdata.json":
 							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormData());
-						case "stationoptions.json":
-							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormOptions());
-						case "stationschema.json":
-							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormSchema());
 
 						case "internetdata.json":
 							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormData());
-						case "internetoptions.json":
-							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormOptions());
-						case "internetschema.json":
-							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormSchema());
 
 						case "thirdpartydata.json":
 							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormData());
-						case "thirdpartyoptions.json":
-							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormOptions());
-						case "thirdpartyschema.json":
-							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormSchema());
 
 						case "extrasensordata.json":
 							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormData());
-						case "extrasensoroptions.json":
-							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormOptions());
-						case "extrasensorschema.json":
-							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormSchema());
 
 						case "extrawebfiles.json":
 							return await this.JsonResponseAsync(internetSettings.GetExtraWebFilesData());
 
 						case "calibrationdata.json":
 							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormData());
-						case "calibrationoptions.json":
-							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormOptions());
-						case "calibrationschema.json":
-							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormSchema());
 
 						case "noaadata.json":
 							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormData());
-						case "noaaoptions.json":
-							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormOptions());
-						case "noaaschema.json":
-							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormSchema());
 
 						case "wsport.json":
 							return await this.JsonResponseAsync(stationSettings.GetWSport());
+
 						case "version.json":
 							return await this.JsonResponseAsync(stationSettings.GetVersion());
 
 						case "mysqldata.json":
 							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormData());
-						case "mysqloptions.json":
-							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormOptions());
-						case "mysqlschema.json":
-							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormSchema());
 
 						case "alarms.json":
 							return await this.JsonResponseAsync(alarmSettings.GetAlarmSettings());
+
+						case "wizard.json":
+							return await this.JsonResponseAsync(wizard.GetAlpacaFormData());
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -916,32 +893,48 @@ namespace CumulusMX
 
 						case "updatestationconfig.json":
 							return await this.JsonResponseAsync(stationSettings.UpdateConfig(this));
+
 						case "updateinternetconfig.json":
 							return await this.JsonResponseAsync(internetSettings.UpdateConfig(this));
+
 						case "updatethirdpartyconfig.json":
 							return await this.JsonResponseAsync(thirdpartySettings.UpdateConfig(this));
+
 						case "updateextrasensorconfig.json":
 							return await this.JsonResponseAsync(extraSensorSettings.UpdateConfig(this));
+
 						case "updatecalibrationconfig.json":
 							return await this.JsonResponseAsync(calibrationSettings.UpdateConfig(this));
+
 						case "updatenoaaconfig.json":
 							return await this.JsonResponseAsync(noaaSettings.UpdateConfig(this));
+
 						case "updateextrawebfiles.html":
 							return await this.JsonResponseAsync(internetSettings.UpdateExtraWebFiles(this));
+
 						case "updatemysqlconfig.json":
 							return await this.JsonResponseAsync(mySqlSettings.UpdateConfig(this));
+
 						case "createmonthlysql.json":
 							return await this.JsonResponseAsync(mySqlSettings.CreateMonthlySQL(this));
+
 						case "createdayfilesql.json":
 							return await this.JsonResponseAsync(mySqlSettings.CreateDayfileSQL(this));
+
 						case "createrealtimesql.json":
 							return await this.JsonResponseAsync(mySqlSettings.CreateRealtimeSQL(this));
+
 						case "updatealarmconfig.json":
 							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
+
 						case "ftpnow.json":
 							return await this.JsonResponseAsync(stationSettings.FtpNow(this));
+
 						case "testemail.json":
 							return await this.StringResponseAsync(alarmSettings.TestEmail(this));
+
+						case "wizard.json":
+							return await this.StringResponseAsync(wizard.UpdateConfig(this));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -961,7 +954,7 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
@@ -1048,9 +1041,102 @@ namespace CumulusMX
 					Description = ex.Message,
 				};
 
-				this.Response.StatusCode = statusCode;
+				Response.StatusCode = statusCode;
 				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
+
+		// HTTP Station
+		public class HttpStation : WebApiController
+		{
+			public HttpStation(IHttpContext context) : base(context)
+			{
+			}
+
+			[WebApiHandler(HttpVerbs.Post, "/station/*")]
+			public async Task<bool> PostTags()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "ecowitt":
+							if (stationEcowitt != null)
+							{
+								return await this.StringResponseAsync(stationEcowitt.ProcessData(this));
+							}
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Ecowitt) is not running");
+							}
+						case "ecowittextra":
+							if (stationEcowittExtra != null)
+							{
+								return await this.StringResponseAsync(stationEcowittExtra.ProcessExtraData(this));
+							}
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Ecowitt) is not running");
+							}
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+			[WebApiHandler(HttpVerbs.Get, "/station/*")]
+			public async Task<bool> GetStation()
+			{
+				try
+				{
+					// read the last segment of the URL to determine what data the caller wants
+					string lastSegment = Request.Url.Segments.Last();
+
+					switch (lastSegment)
+					{
+						case "wunderground":
+							if (stationWund != null)
+							{
+								return await this.StringResponseAsync(stationWund.ProcessData(this));
+							}
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Wunderground) is not running");
+							}
+					}
+
+					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+				}
+				catch (Exception ex)
+				{
+					return await HandleError(ex, 404);
+				}
+			}
+
+			private async Task<bool> HandleError(Exception ex, int statusCode)
+			{
+				var errorResponse = new
+				{
+					Title = "Unexpected Error",
+					ErrorCode = ex.GetType().Name,
+					Description = ex.Message,
+				};
+
+				Response.StatusCode = statusCode;
+				return await this.JsonResponseAsync(errorResponse);
+			}
+		}
+
+
 	}
 }

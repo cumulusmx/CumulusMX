@@ -145,7 +145,7 @@ namespace CumulusMX
 			tmrDataRead.Stop();
 			cumulus.LogMessage("Stopping minute timer");
 			StopMinuteTimer();
-			cumulus.LogMessage("Nulling hidDevice");
+			cumulus.LogMessage("Nullifying hidDevice");
 			hidDevice = null;
 			cumulus.LogMessage("Exit FOStation.Stop()");
 		}
@@ -289,7 +289,12 @@ namespace CumulusMX
 
 					datalist.Add(histData);
 
-					bw.ReportProgress(datalist.Count, "collecting");
+					//bw.ReportProgress(datalist.Count, "collecting");
+
+					if (!Program.service)
+					{
+						Console.Write($"\r - Downloaded {datalist.Count} records, current date - {histData.timestamp:g}");
+					}
 				}
 				else
 				{
@@ -297,7 +302,11 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogMessage("Completed read of history data from the console");
+			if (!Program.service)
+			{
+				Console.WriteLine("");
+			}
+			cumulus.LogConsoleMessage("Completed read of history data from the console");
 			cumulus.LogMessage("Number of history entries = " + datalist.Count);
 
 			if (datalist.Count > 0)
@@ -315,12 +324,14 @@ namespace CumulusMX
 		{
 			int totalentries = datalist.Count;
 
-			cumulus.LogMessage("Processing history data, number of entries = " + totalentries);
+			cumulus.LogConsoleMessage("Processing history data, number of entries = " + totalentries);
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 			int luhour = cumulus.LastUpdateTime.Hour;
 			bool rolloverdone = luhour == rollHour;
 			bool midnightraindone = luhour == 0;
+			int recCount = datalist.Count;
+			int processedCount = 0;
 
 			while (datalist.Count > 0)
 			{
@@ -332,17 +343,17 @@ namespace CumulusMX
 
 				int h = timestamp.Hour;
 
-				//  if outside rollover hour, rollover yet to be done
+				//  if outside roll-over hour, roll-over yet to be done
 				if (h != rollHour)
 				{
 					rolloverdone = false;
 				}
 
-				// In rollover hour and rollover not yet done
+				// In roll-over hour and roll-over not yet done
 				if (h == rollHour && !rolloverdone)
 				{
-					// do rollover
-					cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
+					// do roll-over
+					cumulus.LogMessage("Day roll-over " + timestamp.ToShortTimeString());
 					DayReset(timestamp);
 
 					rolloverdone = true;
@@ -548,30 +559,34 @@ namespace CumulusMX
 
 				bw.ReportProgress((totalentries - datalist.Count)*100/totalentries, "processing");
 
-				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
-
 				cumulus.DoLogFile(timestamp,false);
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
 					cumulus.DoExtraLogFile(timestamp);
 				}
+				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
-				AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-				AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-					IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
-				AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
-				RemoveOldLHData(timestamp);
-				RemoveOldL3HData(timestamp);
-				RemoveOldGraphData(timestamp);
+				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 				DoTrendValues(timestamp);
 				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);
 				datalist.RemoveAt(datalist.Count - 1);
+
+				if (!Program.service)
+				{
+					processedCount++;
+
+					Console.Write("\r - processed " + (((double)processedCount) / recCount).ToString("P0"));
+				}
 			}
-			cumulus.LogMessage("End processing history data");
+
+			if (!Program.service)
+			{
+				Console.WriteLine("");
+			}
+			cumulus.LogConsoleMessage("End processing history data");
 		}
 
 		/// <summary>
@@ -646,7 +661,7 @@ namespace CumulusMX
 			var lowbyte = (byte) (address & 0xFF);
 			var highbyte = (byte) (address >> 8);
 
-			// Returns 9-byte usb packet, with report ID in first byte
+			// Returns 9-byte USB packet, with report ID in first byte
 			var response = new byte[9];
 			const int responseLength = 9;
 			const int startByte = 1;
@@ -806,7 +821,7 @@ namespace CumulusMX
 			{
 				if ((DateTime.Now - FOSensorClockTime).TotalDays > 1)
 				{
-					// (re)synchronise data reads to try to avoid USB lockup problem
+					// (re)synchronise data reads to try to avoid USB lock-up problem
 
 					StartSynchronising();
 

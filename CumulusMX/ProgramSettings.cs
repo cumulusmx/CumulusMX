@@ -9,15 +9,10 @@ namespace CumulusMX
 	public class ProgramSettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public ProgramSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-
-			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramOptions.json";
-			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "ProgramSchema.json";
 		}
 
 		public string GetAlpacaFormData()
@@ -31,44 +26,32 @@ namespace CumulusMX
 				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime
 			};
 
-			var options = new JsonProgramSettingsGeneralOptions()
+			var logging = new JsonProgramSettingsLoggingOptions()
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
-				ftplogging = cumulus.FTPlogging,
+				ftplogging = cumulus.FtpOptions.Logging,
 				emaillogging = cumulus.SmtpOptions.Logging,
-				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple
+				spikelogging = cumulus.ErrorLogSpikeRemoval
+			};
+
+			var options = new JsonProgramSettingsGeneralOptions()
+			{
+				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
+				listwebtags = cumulus.ProgramOptions.ListWebTags
 			};
 
 			var settings = new JsonProgramSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
+				logging = logging,
 				options = options
 			};
 
 			//return JsonConvert.SerializeObject(data);
 			return JsonSerializer.SerializeToString(settings);
 		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
 
 		public string UpdateConfig(IHttpContext context)
 		{
@@ -92,7 +75,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Program Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Program Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Program Data: " + json);
 				context.Response.StatusCode = 500;
@@ -107,15 +90,17 @@ namespace CumulusMX
 				cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
 				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
 				cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
-				cumulus.ProgramOptions.DebugLogging = settings.options.debuglogging;
-				cumulus.ProgramOptions.DataLogging = settings.options.datalogging;
-				cumulus.SmtpOptions.Logging = settings.options.emaillogging;
+				cumulus.ProgramOptions.DebugLogging = settings.logging.debuglogging;
+				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
+				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
+				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
+				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 
-				if (settings.options.ftplogging != cumulus.FTPlogging)
+				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
-					cumulus.FTPlogging = settings.options.ftplogging;
-					cumulus.SetFtpLogging(cumulus.FTPlogging);
+					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
+					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
 
 			}
@@ -138,6 +123,7 @@ namespace CumulusMX
 	{
 		public bool accessible { get; set; }
 		public JsonProgramSettingsStartupOptions startup { get; set; }
+		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
 	}
 
@@ -149,12 +135,17 @@ namespace CumulusMX
 		public int startupdelaymaxuptime { get; set; }
 	}
 
-	public class JsonProgramSettingsGeneralOptions
+	public class JsonProgramSettingsLoggingOptions
 	{
 		public bool debuglogging { get; set; }
 		public bool datalogging { get; set; }
 		public bool ftplogging { get; set; }
 		public bool emaillogging { get; set; }
+		public bool spikelogging { get; set; }
+	}
+	public class JsonProgramSettingsGeneralOptions
+	{
 		public bool stopsecondinstance { get; set; }
+		public bool listwebtags { get; set; }
 	}
 }

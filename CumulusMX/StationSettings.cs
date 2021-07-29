@@ -12,15 +12,10 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus;
 		private WeatherStation station;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		internal StationSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-
-			optionsFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationOptions.json";
-			schemaFile = cumulus.AppDir + "interface"+Path.DirectorySeparatorChar+"json" + Path.DirectorySeparatorChar + "StationSchema.json";
 		}
 
 		internal void SetStation(WeatherStation station)
@@ -35,7 +30,11 @@ namespace CumulusMX
 			{
 				avgbearingmins = cumulus.StationOptions.AvgBearingMinutes,
 				avgspeedmins = cumulus.StationOptions.AvgSpeedMinutes,
-				peakgustmins = cumulus.StationOptions.PeakGustMinutes
+				peakgustmins = cumulus.StationOptions.PeakGustMinutes,
+				maxwind = cumulus.LCMaxWind,
+				recordtimeout = cumulus.RecordSetTimeoutHrs,
+				snowdepthhour = cumulus.SnowDepthHour,
+				raindaythreshold = cumulus.RainDayThreshold
 			};
 
 			var options = new JsonStationSettingsOptions()
@@ -82,6 +81,7 @@ namespace CumulusMX
 				pressure = cumulus.Units.Press,
 				temp = cumulus.Units.Temp,
 				rain = cumulus.Units.Rain,
+				cloudbaseft = cumulus.CloudBaseInFeet,
 				advanced = unitsAdv
 			};
 
@@ -120,14 +120,19 @@ namespace CumulusMX
 				advanced = davisvp2advanced
 			};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn() { ipaddress = cumulus.Gw1000IpAddress, autoDiscover = cumulus.Gw1000AutoUpdateIpAddress, macaddress = cumulus.Gw1000MacAddress };
-
-			var logrollover = new JsonStationSettingsLogRollover() { time = "midnight",summer10am = cumulus.Use10amInSummer };
-
-			if (cumulus.RolloverHour == 9)
+			var gw1000 = new JSonStationSettingsGw1000Conn()
 			{
-				logrollover.time = "9am";
-			}
+				ipaddress = cumulus.Gw1000IpAddress,
+				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
+				macaddress = cumulus.Gw1000MacAddress
+			};
+
+			var logrollover = new JsonStationSettingsLogRollover()
+			{
+				time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
+				summer10am = cumulus.Use10amInSummer
+			};
+
 
 			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
 			{
@@ -190,17 +195,12 @@ namespace CumulusMX
 			var location = new JsonStationSettingsLocation()
 			{
 				altitude = (int) cumulus.Altitude,
-				altitudeunit = "metres",
+				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
 				description = cumulus.LocationDesc,
 				Latitude = latitude,
 				Longitude = longitude,
 				sitename = cumulus.LocationName
 			};
-
-			if (cumulus.AltitudeInFeet)
-			{
-				location.altitudeunit = "feet";
-			}
 
 			var forecast = new JsonStationSettingsForecast()
 			{
@@ -245,6 +245,12 @@ namespace CumulusMX
 				basetemp1 = cumulus.TempSumBase1,
 				basetemp2 = cumulus.TempSumBase2,
 				starts = cumulus.TempSumYearStarts
+			};
+
+			var chillhrs = new JsonChillHours()
+			{
+				threshold = cumulus.ChillHourThreshold,
+				month = cumulus.ChillHourSeasonStart
 			};
 
 			var graphDataTemp = new JsonStationSettingsGraphDataTemperature()
@@ -389,7 +395,8 @@ namespace CumulusMX
 
 			var generalAdvanced = new JsonStationSettingsAdvanced()
 			{
-				recsbegandate = cumulus.RecordsBeganDate
+				recsbegandate = cumulus.RecordsBeganDate,
+				recstimeout = cumulus.RecordSetTimeoutHrs
 			};
 
 			var general = new JsonStationGeneral()
@@ -421,30 +428,13 @@ namespace CumulusMX
 				AnnualRainfall = annualrainfall,
 				GrowingDD = growingdd,
 				TempSum = tempsum,
+				ChillHrs = chillhrs,
 				Graphs = graphs,
 				DisplayOptions = displayOptions
 			};
 
 			//return JsonConvert.SerializeObject(data);
 			return JsonSerializer.SerializeToString(data);
-		}
-
-		internal string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		internal string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 
 		private void LongToDMS(double longitude, out int d, out int m, out int s, out string hem)
@@ -516,7 +506,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing Station Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				context.Response.StatusCode = 500;
@@ -530,6 +520,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.GraphHours = settings.Graphs.graphhours;
+					cumulus.RecentDataDays = (int)Math.Ceiling(Math.Max(7, cumulus.GraphHours / 24.0));
 					cumulus.GraphDays = settings.Graphs.graphdays;
 					cumulus.GraphOptions.TempVisible = settings.Graphs.datavisibility.temperature.graphTempVis;
 					cumulus.GraphOptions.InTempVisible = settings.Graphs.datavisibility.temperature.graphInTempVis;
@@ -602,6 +593,20 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Temperature Sum settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Chill Hours
+				try
+				{
+					cumulus.ChillHourThreshold = settings.ChillHrs.threshold;
+					cumulus.ChillHourSeasonStart = settings.ChillHrs.month;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Chill Hours settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -701,6 +706,10 @@ namespace CumulusMX
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
 					cumulus.StationOptions.AvgSpeedMinutes = settings.Options.advanced.avgspeedmins;
 					cumulus.StationOptions.PeakGustMinutes = settings.Options.advanced.peakgustmins;
+					cumulus.LCMaxWind = settings.Options.advanced.maxwind;
+					cumulus.RecordSetTimeoutHrs = settings.Options.advanced.recordtimeout;
+					cumulus.SnowDepthHour = settings.Options.advanced.snowdepthhour;
+					cumulus.RainDayThreshold = settings.Options.advanced.raindaythreshold;
 				}
 				catch (Exception ex)
 				{
@@ -713,7 +722,7 @@ namespace CumulusMX
 				// Display Options
 				try
 				{
-					// bug catch incase user has the old JSON config files that do not work.
+					// bug catch in case user has the old JSON config files that do not work.
 					if (settings.DisplayOptions.windrosepoints == 0)
 						settings.DisplayOptions.windrosepoints = 8;
 					else if (settings.DisplayOptions.windrosepoints == 1)
@@ -733,7 +742,7 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// Log rollover
+				// Log roll-over
 				try
 				{
 					cumulus.RolloverHour = settings.general.logrollover.time == "9am" ? 9 : 0;
@@ -742,7 +751,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing Log rollover settings: " + ex.Message;
+					var msg = "Error processing Log roll-over settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -850,6 +859,31 @@ namespace CumulusMX
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
 						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
+
+						// Automatically enable extra logging?
+						// Should we auto disable it too?
+						if (cumulus.WllExtraLeafTx1 > 0 ||
+							cumulus.WllExtraLeafTx2 > 0 ||
+							cumulus.WllExtraSoilMoistureTx1 > 0 ||
+							cumulus.WllExtraSoilMoistureTx2 > 0 ||
+							cumulus.WllExtraSoilMoistureTx3 > 0 ||
+							cumulus.WllExtraSoilMoistureTx4 > 0 ||
+							cumulus.WllExtraSoilTempTx1 > 0 ||
+							cumulus.WllExtraSoilTempTx2 > 0 ||
+							cumulus.WllExtraSoilTempTx3 > 0 ||
+							cumulus.WllExtraSoilTempTx4 > 0 ||
+							cumulus.WllExtraTempTx[0] > 0 ||
+							cumulus.WllExtraTempTx[1] > 0 ||
+							cumulus.WllExtraTempTx[2] > 0 ||
+							cumulus.WllExtraTempTx[3] > 0 ||
+							cumulus.WllExtraTempTx[4] > 0 ||
+							cumulus.WllExtraTempTx[5] > 0 ||
+							cumulus.WllExtraTempTx[6] > 0 ||
+							cumulus.WllExtraTempTx[7] > 0
+							)
+						{
+							cumulus.StationOptions.LogExtraSensors = true;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -995,6 +1029,8 @@ namespace CumulusMX
 						cumulus.ChangeRainUnits();
 					}
 
+					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
+
 					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
 					cumulus.PressDPlaces = settings.general.units.advanced.pressdp;
 					cumulus.RainDPlaces = settings.general.units.advanced.raindp;
@@ -1017,6 +1053,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate;
+					cumulus.RecordSetTimeoutHrs = settings.general.advanced.recstimeout;
 				}
 				catch (Exception ex)
 				{
@@ -1068,6 +1105,7 @@ namespace CumulusMX
 				{
 					cumulus.GraphDataFiles[i].CreateRequired = true;
 					cumulus.GraphDataFiles[i].FtpRequired = true;
+					cumulus.GraphDataFiles[i].CopyRequired = true;
 				}
 			}
 			catch (Exception ex)
@@ -1097,8 +1135,8 @@ namespace CumulusMX
 				// Dead simple (dirty), there is only one setting at present!
 				var includeGraphs = json.Contains("true");
 
-				if (string.IsNullOrEmpty(cumulus.FtpHostname))
-					return "{\"result\":\"No FTP host defined\"}";
+				if (!cumulus.FtpOptions.Enabled && !cumulus.FtpOptions.LocalCopyEnabled)
+					return "{\"result\":\"FTP/local copy is not enabled!\"}";
 
 
 				if (cumulus.WebUpdating == 1)
@@ -1118,6 +1156,7 @@ namespace CumulusMX
 					{
 						cumulus.GraphDataFiles[i].CreateRequired = true;
 						cumulus.GraphDataFiles[i].FtpRequired = true;
+						cumulus.GraphDataFiles[i].CopyRequired = true;
 					}
 					cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
 					station.CreateGraphDataFiles();
@@ -1138,6 +1177,7 @@ namespace CumulusMX
 				{
 					cumulus.GraphDataFiles[i].CreateRequired = true;
 					cumulus.GraphDataFiles[i].FtpRequired = true;
+					cumulus.GraphDataFiles[i].CopyRequired = true;
 				}
 				cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
 				station.CreateGraphDataFiles();
@@ -1231,6 +1271,7 @@ namespace CumulusMX
 		public JsonStationSettingsAnnualRainfall AnnualRainfall { get; set; }
 		public JsonGrowingDDSettings GrowingDD { get; set; }
 		public JsonTempSumSettings TempSum { get; set; }
+		public JsonChillHours ChillHrs { get; set; }
 		public JsonStationSettingsGraphs Graphs { get; set; }
 		public JsonDisplayOptions DisplayOptions { get; set; }
 	}
@@ -1249,6 +1290,7 @@ namespace CumulusMX
 	internal class JsonStationSettingsAdvanced
 	{
 		public string recsbegandate { get; set; }
+		public int recstimeout { get; set; }
 	}
 
 	internal class JsonStationSettingsUnitsAdvanced
@@ -1271,6 +1313,8 @@ namespace CumulusMX
 		public int pressure { get; set; }
 		public int temp { get; set; }
 		public int rain { get; set; }
+		public bool cloudbaseft { get; set; }
+
 		public JsonStationSettingsUnitsAdvanced advanced { get; set; }
 	}
 
@@ -1279,6 +1323,10 @@ namespace CumulusMX
 		public int avgbearingmins { get; set; }
 		public int avgspeedmins { get; set; }
 		public int peakgustmins { get; set; }
+		public int maxwind { get; set; }
+		public int recordtimeout { get; set; }
+		public int snowdepthhour { get; set; }
+		public double raindaythreshold { get; set; }
 	}
 
 	internal class JsonStationSettingsOptions
@@ -1621,4 +1669,9 @@ namespace CumulusMX
 		public double basetemp2 { get; set; }
 	}
 
+	public class JsonChillHours
+	{
+		public double threshold { get; set; }
+		public int month { get; set; }
+	}
 }

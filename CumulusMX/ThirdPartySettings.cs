@@ -9,14 +9,10 @@ namespace CumulusMX
 	public class ThirdPartySettings
 	{
 		private readonly Cumulus cumulus;
-		private readonly string optionsFile;
-		private readonly string schemaFile;
 
 		public ThirdPartySettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			optionsFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ThirdPartyOptions.json";
-			schemaFile = cumulus.AppDir + "interface" + Path.DirectorySeparatorChar + "json" + Path.DirectorySeparatorChar + "ThirdPartySchema.json";
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -38,7 +34,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error deserializing 3rdParty Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing 3rdParty Settings JSON: " + ex.Message;
 				cumulus.LogMessage(msg);
 				cumulus.LogDebugMessage("3rdParty Data: " + json);
 				context.Response.StatusCode = 500;
@@ -313,7 +309,7 @@ namespace CumulusMX
 							cumulus.CustomHttpMinutesInterval = 10;
 						}
 					}
-					// custom rollover
+					// custom roll-over
 					cumulus.CustomHttpRolloverEnabled = settings.customhttp.customrollover.enabled;
 					if (cumulus.CustomHttpRolloverEnabled)
 					{
@@ -331,7 +327,7 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				// Do OpenWeatherMap setup
+				// Do OpenWeatherMap set-up
 				cumulus.EnableOpenWeatherMap();
 			}
 			catch (Exception ex)
@@ -503,24 +499,6 @@ namespace CumulusMX
 			};
 
 			return data.ToJson();
-		}
-
-		public string GetAlpacaFormOptions()
-		{
-			using (StreamReader sr = new StreamReader(optionsFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
-		}
-
-		public string GetAlpacaFormSchema()
-		{
-			using (StreamReader sr = new StreamReader(schemaFile))
-			{
-				string json = sr.ReadToEnd();
-				return json;
-			}
 		}
 	}
 

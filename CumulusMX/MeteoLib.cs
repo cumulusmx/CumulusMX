@@ -6,15 +6,15 @@ namespace CumulusMX
 	{
 
 		/// <summary>
-		/// Calculates the Wind Chill in Celcius
+		/// Calculates the Wind Chill in Celsius
 		/// </summary>
 		/// <remarks>
 		/// JAG/TI - 2003
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="windSpeedKph">Average wind speed in km/h</param>
-		/// <param name="tempCutoff">Use the 10C cutoff</param>
-		/// <returns>Wind Chill in Celcius</returns>
+		/// <param name="tempCutoff">Use the 10C cut-off</param>
+		/// <returns>Wind Chill in Celsius</returns>
 		public static double WindChill(double tempC, double windSpeedKph, bool tempCutoff = true)
 		{
 			// see American Meteorological Society Journal
@@ -34,7 +34,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Calculates Apparent Temperature in Celcius
+		/// Calculates Apparent Temperature in Celsius
 		/// </summary>
 		/// <remarks>
 		/// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
@@ -42,7 +42,7 @@ namespace CumulusMX
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="windspeedMS">Wind speed in m/s</param>
 		/// <param name="humidity">Relative humidity</param>
-		/// <returns>Apparent temperature in Celcius</returns>
+		/// <returns>Apparent temperature in Celsius</returns>
 		public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
 		{
 			double avp = (humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC)); // hPa
@@ -51,15 +51,15 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Calculates the Feels Like temperature in Celcius
+		/// Calculates the Feels Like temperature in Celsius
 		/// </summary>
 		/// <remarks>
 		/// Joint Action Group for Temperature Indices (JAG/TI) formula
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
-		/// <param name="windSpeedKph">Windspeed in kph</param>
+		/// <param name="windSpeedKph">Wind speed in kph</param>
 		/// <param name="humidity">Relative humidity</param>
-		/// <returns>Feels Like temperture in Celcius</returns>
+		/// <returns>Feels Like temperature in Celsius</returns>
 		public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
 		{
 			// Cannot use the WindChill function as we need the chill above 10 C
@@ -99,7 +99,7 @@ namespace CumulusMX
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="humidity">Relative humidity</param>
-		/// <returns>Heat Index in Celcius</returns>
+		/// <returns>Heat Index in Celsius</returns>
 		public static double HeatIndex(double tempC, int humidity)
 		{
 			double tempF = CToF(tempC);
@@ -140,7 +140,7 @@ namespace CumulusMX
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="dewPointC">Dew point in C</param>
 		/// <param name="pressureMb">Station pressure in mb/hPa</param>
-		/// <returns>Wet bulb temperature in Celcius</returns>
+		/// <returns>Wet bulb temperature in Celsius</returns>
 		public static double CalculateWetBulbC(double tempC, double dewPointC, double pressureMb)
 		{
 			double svpDP = SaturationVapourPressure1980(dewPointC);
@@ -154,15 +154,15 @@ namespace CumulusMX
 		/// <remarks>
 		/// To calculate this accurately we need an iterative process
 		/// This method assumes a pressure of 1013.25 hPa, and RH in the range 5% - 99%
-		/// It is an emprical approximation generated using a best fit function
+		/// It is an empirical approximation generated using a best fit function
 		/// See: https://journals.ametsoc.org/jamc/article/50/11/2267/13533/Wet-Bulb-Temperature-from-Relative-Humidity-and
 		/// and Strull: https://www.eoas.ubc.ca/books/Practical_Meteorology/prmet102/Ch04-watervapor-v102b.pdf
 		/// Errors have multiple relative maxima and minima of order from −1.0° to +0.6°C
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
-		/// <param name="humidity">Relative Humidty in %</param>
+		/// <param name="humidity">Relative Humidity in %</param>
 		/// <param name="PressureMB">Station pressure in mb/hPa</param>
-		/// <returns>Wet bulb temperature in Celcius</returns>
+		/// <returns>Wet bulb temperature in Celsius</returns>
 		public static double CalculateWetBulbC2(double tempC, int humidity)
 		{
 			if (humidity == 100)
@@ -173,16 +173,16 @@ namespace CumulusMX
 
 
 		/// <summary>
-		/// Calcuates the Wet Bulb temperature iteratively
+		/// Calculates the Wet Bulb temperature iteratively
 		/// </summary>
 		/// <remarks>
 		/// To calculate this accurately we need an iterative process
 		/// See: https://www.researchgate.net/publication/303156836_Simple_Iterative_Approach_to_Calculate_Wet-Bulb_Temperature_for_Estimating_Evaporative_Cooling_Efficiency
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
-		/// <param name="humidity">Relative Humidty in %</param>
+		/// <param name="humidity">Relative Humidity in %</param>
 		/// <param name="pressureHpa">Station pressure in mb/hPa</param>
-		/// <returns>Wet bulb temperature in Celcius</returns>
+		/// <returns>Wet bulb temperature in Celsius</returns>
 		public static double CalculateWetBulbCIterative(double tempC, int humidity, double pressureHpa)
 		{
 			if (humidity == 100)
@@ -210,7 +210,7 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Calculates the Dew Point in Celcius
+		/// Calculates the Dew Point in Celsius
 		/// </summary>
 		/// <remarks>
 		/// Uses the Davis formula, described as "an approximation of the Goff & Gratch equation"
@@ -218,7 +218,7 @@ namespace CumulusMX
 		/// </remarks>
 		/// <param name="tempC">Temp in C</param>
 		/// <param name="humidity">Relative humidity</param>
-		/// <returns>Dew Point temperature in Celcius</returns>
+		/// <returns>Dew Point temperature in Celsius</returns>
 		public static double DewPoint(double tempC, double humidity)
 		{
 			if (humidity == 0 || humidity == 100)

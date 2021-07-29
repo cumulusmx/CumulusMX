@@ -87,7 +87,7 @@ namespace CumulusMX
 
 			if (!connectedOK) return;
 
-			// get time of last db entry (also sets raincounter and prevraincounter)
+			// get time of last database entry (also sets raincounter and prevraincounter)
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			DavisFirmwareVersion = GetFirmwareVersion();
@@ -101,7 +101,7 @@ namespace CumulusMX
 			{
 				if (DavisFirmwareVersion == "???" && cumulus.DavisOptions.UseLoop2)
 				{
-					cumulus.LogMessage("Unable to determine the firmare version, LOOP2 may not be supported");
+					cumulus.LogMessage("Unable to determine the firmware version, LOOP2 may not be supported");
 				}
 				else if((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.DavisOptions.UseLoop2)
 				{
@@ -429,7 +429,7 @@ namespace CumulusMX
 
 		private void SetLoggerInterval(int interval)
 		{
-			cumulus.LogMessage($"SetLoggerInterval: Seting logger interval to {interval} minutes");
+			cumulus.LogMessage($"SetLoggerInterval: Setting logger interval to {interval} minutes");
 
 			// response should be just an ACK
 			if (isSerial)
@@ -1176,7 +1176,7 @@ namespace CumulusMX
 						serialPort.WriteLine(commandString);
 
 						cumulus.LogDebugMessage("SendLoopCommand: Wait for ACK");
-						// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+						// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 						// in the buffer first or no response is given.  If all else fails, try again.
 						foundAck = WaitForACK(serialPort);
 						passCount++;
@@ -1187,7 +1187,7 @@ namespace CumulusMX
 						return true;
 
 					// Failed to get a response from the loop command after all the retries, try resetting the connection
-					cumulus.LogDebugMessage($"SendLoopCommand: Failed to get a response after {passCount - 1} trys, reconnecting the station");
+					cumulus.LogDebugMessage($"SendLoopCommand: Failed to get a response after {passCount - 1} attempts, reconnecting the station");
 					InitSerial();
 					cumulus.LogDebugMessage("SendLoopCommand: Reconnected to station");
 				}
@@ -1198,7 +1198,7 @@ namespace CumulusMX
 					return false;
 
 				cumulus.LogMessage("SendLoopCommand: Error sending LOOP command [" + commandString.Replace("\n", "") + "]: " + ex.Message);
-				cumulus.LogDebugMessage("SendLoopCommand: Attempting to reonnect to station");
+				cumulus.LogDebugMessage("SendLoopCommand: Attempting to reconnect to station");
 				InitSerial();
 				cumulus.LogDebugMessage("SendLoopCommand: Reconnected to station");
 				return false;
@@ -1249,7 +1249,7 @@ namespace CumulusMX
 					stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
 					cumulus.LogDebugMessage("SendLoopCommand: Wait for ACK");
-					// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+					// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 					// in the buffer first or no response is given.  If all else fails, try again.
 					foundAck = WaitForACK(stream);
 					passCount++;
@@ -1258,7 +1258,7 @@ namespace CumulusMX
 				if (foundAck) return true;
 
 				// Failed to get a response from the loop command after all the retries, try resetting the connection
-				cumulus.LogDebugMessage($"SendLoopCommand: Failed to get a response after {passCount-1} trys, reonnecting the station");
+				cumulus.LogDebugMessage($"SendLoopCommand: Failed to get a response after {passCount-1} attempts, reconnecting the station");
 				InitTCP();
 				cumulus.LogDebugMessage("SendLoopCommand: Reconnected to station");
 			}
@@ -1346,7 +1346,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					// See if we need to disconnect to allow Weatherlink IP to upload
+					// See if we need to disconnect to allow WeatherLink IP to upload
 					if (cumulus.DavisOptions.PeriodicDisconnectInterval > 0)
 					{
 						min = DateTime.Now.Minute;
@@ -1646,7 +1646,7 @@ namespace CumulusMX
 					}
 				}
 
-				var forecast = cumulus.DavisForecast1[key1] + cumulus.DavisForecast2[key2] + cumulus.DavisForecast3[key3];
+				var forecast = (cumulus.DavisForecast1[key1] + cumulus.DavisForecast2[key2] + cumulus.DavisForecast3[key3]).Trim();
 
 				DoForecast(forecast, false);
 
@@ -2034,9 +2034,9 @@ namespace CumulusMX
 
 		private void GetArchiveData()
 		{
-			cumulus.LogMessage("Get Archive Data");
+			cumulus.LogMessage("GetArchiveData: Downloading Archive Data");
 
-			cumulus.LogConsoleMessage("Downloading Archive Data");
+			Console.WriteLine("Downloading Archive Data");
 
 			const int ACK = 6;
 			const int NAK = 0x21;
@@ -2056,7 +2056,7 @@ namespace CumulusMX
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 
-			cumulus.LogMessage("Rollover hour = " + rollHour);
+			cumulus.LogMessage("Roll-over hour = " + rollHour);
 
 			bool rolloverdone = luhour == rollHour;
 
@@ -2222,7 +2222,7 @@ namespace CumulusMX
 			if (numPages == 513)
 			{
 				cumulus.LogMessage("GetArchiveData: Downloading entire logger contents!");
-				cumulus.LogConsoleMessage(" - Downloading entire logger contents!");
+				Console.WriteLine(" - Downloading entire logger contents!");
 			}
 
 			// keep track of how many records processed for percentage display
@@ -2232,8 +2232,8 @@ namespace CumulusMX
 
 			if (numtodo == 0)
 			{
-				cumulus.LogMessage("GetArchiveData: No historic data available");
-				cumulus.LogConsoleMessage(" - No historic data available");
+				cumulus.LogMessage("GetArchiveData: No Archive data available");
+				Console.WriteLine(" - No Archive data available");
 			}
 			else
 			{
@@ -2318,7 +2318,7 @@ namespace CumulusMX
 							// Read the response
 							stream.Read(buff, 0, pageSize);
 
-							cumulus.LogDataMessage("GetArchiveData: Repsonse data - " + BitConverter.ToString(buff));
+							cumulus.LogDataMessage("GetArchiveData: Response data - " + BitConverter.ToString(buff));
 
 							if (CrcOk(buff))
 								badCRC = false;
@@ -2464,7 +2464,7 @@ namespace CumulusMX
 							DateTime windruncheckTS;
 							if ((h == rollHour) && (timestamp.Minute == 0))
 							{
-								// this is the last logger entry before rollover
+								// this is the last logger entry before roll-over
 								// fudge the timestamp to make sure it falls in the previous day
 								windruncheckTS = timestamp.AddMinutes(-1);
 							}
@@ -2615,41 +2615,35 @@ namespace CumulusMX
 
 							lastDataReadTime = timestamp;
 
-							//UpdateDatabase(now, interval, false);
 							cumulus.DoLogFile(timestamp, false);
 							cumulus.LogMessage("GetArchiveData: Log file entry written");
+							cumulus.MySqlRealtimeFile(999, false, timestamp);
 
 							if (cumulus.StationOptions.LogExtraSensors)
 							{
 								cumulus.DoExtraLogFile(timestamp);
 							}
 
-							AddLastHourDataEntry(timestamp, Raincounter, OutdoorTemperature);
-							AddLast3HourDataEntry(timestamp, Pressure, OutdoorTemperature);
-							AddGraphDataEntry(timestamp, Raincounter, RainToday, RainRate, OutdoorTemperature, OutdoorDewpoint, ApparentTemperature, WindChill, HeatIndex,
-								IndoorTemperature, Pressure, WindAverage, RecentMaxGust, AvgBearing, Bearing, OutdoorHumidity, IndoorHumidity, SolarRad, CurrentSolarMax, UV, FeelsLike, Humidex);
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
-							RemoveOldLHData(timestamp);
-							RemoveOldL3HData(timestamp);
-							RemoveOldGraphData(timestamp);
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
+							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
 
-							//  if outside rollover hour, rollover yet to be done
+							//  if outside roll-over hour, roll-over yet to be done
 							if (h != rollHour)
 							{
 								rolloverdone = false;
 							}
 
-							// In rollover hour and rollover not yet done
+							// In roll-over hour and roll-over not yet done
 							if ((h == rollHour) && !rolloverdone)
 							{
-								// do rollover
-								cumulus.LogMessage("GetArchiveData: Day rollover " + timestamp.ToShortTimeString());
-								// If the rollover processing takes more that ~10 seconds the station times out sending the archive data
-								// If this happens, add aonther run to the archive processing, so we start it again to pick up records for the next day
+								// do roll-over
+								cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
+								// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
+								// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
 								var watch = new Stopwatch();
 								watch.Start();
 								DayReset(timestamp);
@@ -2730,7 +2724,7 @@ namespace CumulusMX
 
 					while (tmrComm.timedout == false)
 					{
-						// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+						// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 						// in the buffer first or no response is given.  If all else fails, try again.
 						Found_ACK = WaitForACK(serialPort);
 					}
@@ -2956,7 +2950,7 @@ namespace CumulusMX
 				}
 				if (cnt > 0)
 				{
-					cumulus.LogDebugMessage($"WakeVP: Flushed {cnt} suprious characters from input stream");
+					cumulus.LogDebugMessage($"WakeVP: Flushed {cnt} spurious characters from input stream");
 				}
 
 
@@ -3086,6 +3080,8 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
+					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message);
+					cumulus.LogConsoleMessage("Will retry in 30 seconds...");
 					cumulus.LogMessage("InitSerial: Error opening port - " + ex.Message);
 				}
 
@@ -3116,7 +3112,7 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"InitSerial: Sending TEST ({tryCount}) command");
 					comport.WriteLine("TEST");
 
-					// pause to allow time for a resonse
+					// pause to allow time for a response
 					Thread.Sleep(500);
 					try
 					{
@@ -3180,6 +3176,7 @@ namespace CumulusMX
 				if (socket == null && !stop)
 				{
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
+					cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again");
 					Thread.Sleep(30000);
 				}
 			} while ((socket == null || !socket.Connected) && !stop);
@@ -3338,7 +3335,7 @@ namespace CumulusMX
 		private bool WaitForACK(SerialPort serialPort, int timeoutMs = -1)
 		{
 			int tryCount = 0;
-			// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+			// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 			// in the buffer first or no response is given.  If all else fails, try again.
 			cumulus.LogDebugMessage("WaitForACK: Wait for ACK");
 
@@ -3393,7 +3390,7 @@ namespace CumulusMX
 		{
 			int tryCount = 0;
 
-			// Wait for the VP to acknowledge the the receipt of the command - sometimes we get a '\n\r'
+			// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 			// in the buffer first or no response is given.  If all else fails, try again.
 			cumulus.LogDebugMessage("WaitForACK: Starting");
 
@@ -3481,7 +3478,7 @@ namespace CumulusMX
 			byte[] readBuffer = new byte[8];
 			var bytesRead = 0;
 
-			// Expected resonse - <ACK><42><17><15><28><11><98><2 Bytes of CRC>
+			// Expected response - <ACK><42><17><15><28><11><98><2 Bytes of CRC>
 			//                     06   ss  mm  hh  dd  MM  yy
 
 			cumulus.LogMessage("Reading console time");
@@ -3810,7 +3807,7 @@ namespace CumulusMX
 			"Increasing clouds and warmer. Precipitation possible within 12 to 24 hours. Windy.", "Partly cloudy with little temperature change.",
 			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 12 hours.",
 			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation likley.", "Clearing and cooler. Precipitation ending within 6 hours.",
+			"Increasing clouds and warmer. Precipitation likely.", "Clearing and cooler. Precipitation ending within 6 hours.",
 			"Partly cloudy with little temperature change.", "Clearing and cooler. Precipitation ending within 6 hours.",
 			"Mostly clear with little temperature change.", "Clearing and cooler. Precipitation ending within 6 hours.", "Partly cloudy and cooler.",
 			"Partly cloudy with little temperature change.", "Mostly clear and cooler.", "Clearing and cooler. Precipitation ending within 6 hours.",

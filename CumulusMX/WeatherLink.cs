@@ -25,7 +25,7 @@ namespace CumulusMX
     //    Next Record                     5       2       Location in the archive memory where the next data packet will be written. This can be
     //                                                        monitored to detect when a new record is created.
     //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
-    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
+    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantage Pro
     //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
     //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
     //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
@@ -42,13 +42,13 @@ namespace CumulusMX
     //                                                        field above
     //    Leaf Temperatures               29      4       This field supports four leaf temperature sensors, in the same format as the Extra Temperature
     //                                                        field above
-    //    Outside Humidity                33      1       This is the relative humitiy in %.
+    //    Outside Humidity                33      1       This is the relative humidity in %.
     //    Extra Humidities                34      7       Relative humidity in % for extra seven humidity stations.
     //    Rain Rate                       41      2       This value is sent as 100th of a inch per hour.  For example, 256 represent 2.56 inches/hour.
     //    UV                              43      1       The unit is in UV index.
     //    Solar Radiation                 44      2       The unit is in watt/meter2.
     //    Storm Rain                      46      2       The storm is stored as 100th of an inch.
-    //    Start Date of current Storm     48      2       Bit 15 to bit 12 is the month, bit 11 to bit 7 is the day and bit 6 to bit 0 is the year offseted
+    //    Start Date of current Storm     48      2       Bit 15 to bit 12 is the month, bit 11 to bit 7 is the day and bit 6 to bit 0 is the year offset
     //                                                        by 2000.
     //    Day Rain                        50      2       This value is sent as the 100th of an inch.
     //    Month Rain                      52      2       This value is sent as the 100th of an inch.
@@ -770,7 +770,7 @@ namespace CumulusMX
     //    Packet Type                     4       1       Has the value 1, indicating a LOOP2 packet
     //    Unused                          5       2       Unused, contains 0x7FFF
     //    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
-    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantatge Pro
+    //                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantage Pro
     //                                                        Vantage Pro2.  Values outside these ranges will not be logged.
     //    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
     //    Inside Humidity                 11      1       This is the relative humidity in %, such as 50 is returned for 50%.
@@ -798,7 +798,7 @@ namespace CumulusMX
     //    UV                              43      1       Unit is in UV Index
     //    Solar Radiation                 44      2       The unit is in watt/meter2.
     //    Storm Rain                      46      2       The storm is stored as number of rain clicks. (0.2mm or 0.01in)
-    //    Start Date of current Storm     48      2       Bit 15 to bit 12 is the month, bit 11 to bit 7 is the day and bit 6 to bit 0 is the year offseted by 2000.
+    //    Start Date of current Storm     48      2       Bit 15 to bit 12 is the month, bit 11 to bit 7 is the day and bit 6 to bit 0 is the year offset by 2000.
     //    Daily Rain                      50      2       This value is sent as number of rain clicks. (0.2mm or 0.01in)
     //    Last 15-min Rain                52      2       This value is sent as number of rain clicks. (0.2mm or 0.01in)
     //    Last Hour Rain                  54      2       This value is sent as number of rain clicks. (0.2mm or 0.01in)

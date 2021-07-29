@@ -27,8 +27,8 @@ namespace CumulusMX
 		//       4 = begin astro twi         -4  = end astro twi
 		//
 		//   the results are returned as a variant with either a time of day
-		//   in zone time or a string reporting an 'event not occuring' condition
-		//   event not occuring can be one of the following
+		//   in zone time or a string reporting an 'event not occurring' condition
+		//   event not occurring can be one of the following
 		//       .....    always below horizon, so no rise or set
 		//       *****    always above horizon, so no rise or set
 		//       -----    the particular rise or set event does not occur on that day
@@ -45,7 +45,7 @@ namespace CumulusMX
 		//   of time is not worth striving for - atmospheric refraction alone can
 		//   alter observed rise times by minutes
 		//
-		//   The module also defines a series of 'named funtions' based on sunevent()
+		//   The module also defines a series of 'named functions' based on sunevent()
 		//   as follows
 		//   astrotwilightstarts(date, tz, glong, glat)
 		//   nauticaltwilightstarts(date, tz, glong, glat)
@@ -450,7 +450,7 @@ namespace CumulusMX
 		{
 			//
 			//   simple way of calling sunevent() using the Excel date format
-			//   returns just the sunset time or ****, ...., ---- as approptiate in a string
+			//   returns just the sunset time or ****, ...., ---- as appropriate in a string
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial number base)
 			//
@@ -478,7 +478,7 @@ namespace CumulusMX
 		{
 			//
 			//   simple way of calling sunevent() using the Excel date format
-			//   returns just the start of civil twilight time or ****, ...., ---- as approptiate
+			//   returns just the start of civil twilight time or ****, ...., ---- as appropriate
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial numbers)
 			//

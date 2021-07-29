@@ -37,9 +37,9 @@
 
 	public class Limits
 	{
-		public double TempHigh = 60;		// Celcius
-		public double TempLow = -60;        // Celcius
-		public double DewHigh = 40;         // Celcius
+		public double TempHigh = 60;		// Celsius
+		public double TempLow = -60;        // Celsius
+		public double DewHigh = 40;         // Celsius
 		public double PressHigh = 1090;		// hPa
 		public double PressLow = 870;		// hPa
 		public double WindHigh = 90;		// m/s

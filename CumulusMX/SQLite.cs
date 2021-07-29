@@ -43,6 +43,7 @@ using Sqlite3Statement = Sqlite.Statement;
 #else
 using Sqlite3DatabaseHandle = System.IntPtr;
 using Sqlite3Statement = System.IntPtr;
+using System.CodeDom.Compiler;
 #endif
 
 namespace SQLite
@@ -62,6 +63,7 @@ namespace SQLite
 		}
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class NotNullConstraintViolationException : SQLiteException
 	{
 		public IEnumerable<TableMapping.Column> Columns { get; protected set; }
@@ -123,6 +125,7 @@ namespace SQLite
 	/// <summary>
 	/// Represents an open connection to a SQLite database.
 	/// </summary>
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public partial class SQLiteConnection : IDisposable
 	{
 		private bool _open;
@@ -1069,6 +1072,28 @@ namespace SQLite
 		/// <param name="objects">
 		/// An <see cref="IEnumerable"/> of the objects to insert.
 		/// </param>
+		/// <returns>
+		/// The number of rows added to the table.
+		/// </returns>
+		public int InsertAllOrIgnore(System.Collections.IEnumerable objects)
+		{
+			var c = 0;
+			RunInTransaction(() => {
+				foreach (var r in objects)
+				{
+					c += InsertOrIgnore(r);
+				}
+			});
+			return c;
+		}
+
+
+		/// <summary>
+		/// Inserts all specified objects.
+		/// </summary>
+		/// <param name="objects">
+		/// An <see cref="IEnumerable"/> of the objects to insert.
+		/// </param>
 		/// <param name="extra">
 		/// Literal SQL code that gets placed into the command. INSERT {extra} INTO ...
 		/// </param>
@@ -1125,6 +1150,29 @@ namespace SQLite
 				return 0;
 			}
 			return Insert (obj, "", obj.GetType ());
+		}
+
+
+		/// <summary>
+		/// Inserts the given object and retrieves its
+		/// auto incremented primary key if it has one.
+		/// If a UNIQUE constraint violation occurs with
+		/// some pre-existing object, this function deletes
+		/// the old object.
+		/// </summary>
+		/// <param name="obj">
+		/// The object to insert.
+		/// </param>
+		/// <returns>
+		/// The number of rows modified.
+		/// </returns>
+		public int InsertOrIgnore(object obj)
+		{
+			if (obj == null)
+			{
+				return 0;
+			}
+			return Insert(obj, "OR IGNORE", obj.GetType());
 		}
 
 		/// <summary>
@@ -1648,6 +1696,7 @@ namespace SQLite
 	{
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class TableMapping
 	{
 		public Type MappedType { get; private set; }
@@ -2004,6 +2053,7 @@ namespace SQLite
 		}
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public partial class SQLiteCommand
 	{
 		SQLiteConnection _conn;
@@ -2311,6 +2361,7 @@ namespace SQLite
 	/// <summary>
 	/// Since the insert never changed, we only need to prepare once.
 	/// </summary>
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class PreparedSqlLiteInsertCommand : IDisposable
 	{
 		public bool Initialized { get; set; }
@@ -2404,6 +2455,7 @@ namespace SQLite
 		}
 	}
 
+	[GeneratedCodeAttribute("SQLite", "9.0.0.0")]
 	public class TableQuery<T> : BaseTableQuery, IEnumerable<T>
 	{
 		public SQLiteConnection Connection { get; private set; }

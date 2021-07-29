@@ -10,7 +10,7 @@ namespace CumulusMX
 		private static MySocketServer socketServer;
 
 		/// <summary>
-		/// Setups the specified server.
+		/// Sets up the specified server.
 		/// </summary>
 		/// <param name="server">The server.</param>
 		public static void Setup(WebServer server, Cumulus cumulus)
@@ -42,7 +42,13 @@ namespace CumulusMX
 			}
 
 			/// <inheritdoc />
-			public override string ServerName => nameof(MySocketServer);
+			public override string ServerName
+			{
+				get
+				{
+					return nameof(MySocketServer);
+				}
+			}
 
 			/// <inheritdoc />
 			protected override void OnClientConnected(IWebSocketContext context, IPEndPoint localEndPoint, IPEndPoint remoteEndPoint)

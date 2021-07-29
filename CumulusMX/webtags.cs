@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Web;
 using Unosquare.Swan;
@@ -396,6 +397,17 @@ namespace CumulusMX
 			return CheckRcDp(station.RecentMaxGust, tagParams, cumulus.WindDPlaces);
 		}
 
+		private string TagwindAvg(Dictionary<string, string> tagParams)
+		{
+			// we add on the meteo day start hour to 00:00 today
+			var startOfDay = DateTime.Today.AddHours(-cumulus.GetHourInc());
+			// then if that is later than now we are still in the previous day, so subtract a day
+			if (startOfDay > DateTime.Now)
+				startOfDay = startOfDay.AddDays(-1);
+			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * (DateTime.Now - startOfDay).TotalHours;
+			return CheckRcDp(station.WindRunToday / timeToday, tagParams, cumulus.WindAvgDPlaces);
+		}
+
 		private string Tagwchill(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.WindChill, tagParams, cumulus.TempDPlaces);
@@ -433,6 +445,13 @@ namespace CumulusMX
 		{
 			return CheckRcDp(station.YesterdayWindRun, tagParams, cumulus.WindRunDPlaces);
 		}
+
+		private string TagwindAvgY(Dictionary<string, string> tagParams)
+		{
+			var timeYest = station.WindRunHourMult[cumulus.Units.Wind] * 24;
+			return CheckRcDp(station.YesterdayWindRun / timeYest, tagParams, cumulus.WindAvgDPlaces);
+		}
+
 
 		private string Tagheatdegdays(Dictionary<string,string> tagParams)
 		{
@@ -3037,12 +3056,12 @@ namespace CumulusMX
 
 		private string TagLatestNoaaMonthlyReport(Dictionary<string,string> tagParams)
 		{
-			return cumulus.NOAALatestMonthlyReport;
+			return cumulus.NOAAconf.LatestMonthReport;
 		}
 
 		private string TagLatestNoaaYearlyReport(Dictionary<string,string> tagParams)
 		{
-			return cumulus.NOAALatestYearlyReport;
+			return cumulus.NOAAconf.LatestYearReport;
 		}
 
 		private string TagMoonPercent(Dictionary<string,string> tagParams)
@@ -3221,6 +3240,62 @@ namespace CumulusMX
 			return CheckRcDp(station.SunshineHours, tagParams, cumulus.SunshineDPlaces);
 		}
 
+		private string TagSunshineHoursMonth(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var month = tagParams.Get("m");
+			var rel = tagParams.Get("r"); // relative month, -1, -2, etc
+			DateTime start;
+			DateTime end;
+
+			if (year != null && month != null)
+			{
+				start = new DateTime(int.Parse(year), int.Parse(month), 1);
+				end = start.AddMonths(1);
+			}
+			else if (rel != null)
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, end.Month, 1).AddMonths(int.Parse(rel));
+				end = start.AddMonths(1);
+			}
+			else
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, end.Month, 1);
+			}
+
+			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours), tagParams, 1);
+		}
+
+		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var rel = tagParams.Get("r"); // relative year, -1, -2, etc
+			DateTime start;
+			DateTime end;
+
+			if (year != null)
+			{
+				start = new DateTime(int.Parse(year), 1, 1);
+				end = start.AddYears(1);
+			}
+			else if (rel != null)
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, 1, 1).AddYears(int.Parse(rel));
+				end = start.AddYears(1);
+			}
+			else
+			{
+				end = DateTime.Now;
+				start = new DateTime(end.Year, 1, 1);
+			}
+
+			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours), tagParams, 1);
+		}
+
+
 		private string TagThwIndex(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.THWIndex, tagParams, 1);
@@ -3234,6 +3309,48 @@ namespace CumulusMX
 		private string TagChillHours(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.ChillHours, tagParams, 1);
+		}
+
+		private string TagChillHoursToday(Dictionary<string, string> tagParams)
+		{
+			if (station.YestChillHours == -1)
+				return "n/a";
+
+			// subtract today from yesterday, unless it has been reset, then its just today
+			var hrs = station.ChillHours > station.YestChillHours ? station.ChillHours - station.YestChillHours : station.ChillHours;
+			return CheckRcDp(hrs, tagParams, 1);
+		}
+
+		private string TagChillHoursYesterday(Dictionary<string, string> tagParams)
+		{
+			var dayb4yest = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(-2);
+			WeatherStation.dayfilerec rec;
+			try
+			{
+				rec = station.DayFile.Where(r => r.Date == dayb4yest).Single();
+			}
+			catch
+			{
+				return "n/a";
+			}
+
+
+			double hrs;
+			if (station.YestChillHours == -1)
+				return "n/a";
+
+			if (station.YestChillHours > rec.ChillHours)
+				hrs = station.YestChillHours - rec.ChillHours;
+			else
+				hrs = station.YestChillHours;
+
+			return CheckRcDp(hrs, tagParams, 1);
+		}
+
+
+		private string TagYChillHours(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.YestChillHours, tagParams, 1);
 		}
 
 		private string TagYSunshineHours(Dictionary<string,string> tagParams)
@@ -5183,6 +5300,8 @@ namespace CumulusMX
 				{ "currentwdir", Tagcurrentwdir },
 				{ "wdir", Tagwdir },
 				{ "wgust", Tagwgust },
+				{ "windAvg", TagwindAvg },
+				{ "windAvgY", TagwindAvgY },
 				{ "wchill", Tagwchill },
 				{ "rrate", Tagrrate },
 				{ "StormRain", TagStormRain },
@@ -5438,6 +5557,9 @@ namespace CumulusMX
 				{ "moonset", Tagmoonset },
 				{ "moonphase", Tagmoonphase },
 				{ "chillhours", TagChillHours },
+				{ "chillhoursToday", TagChillHoursToday },
+				{ "Ychillhours", TagYChillHours },
+				{ "chillhoursYest", TagChillHoursYesterday },
 				{ "altitude", Tagaltitude },
 				{ "altitudenoenc", Tagaltitudenoenc },
 				{ "forum", Tagforum },
@@ -5497,6 +5619,8 @@ namespace CumulusMX
 				{ "CurrentSolarMax", TagCurrentSolarMax },
 				{ "SunshineHours", TagSunshineHours },
 				{ "YSunshineHours", TagYSunshineHours },
+				{ "SunshineHoursMonth", TagSunshineHoursMonth },
+				{ "SunshineHoursYear", TagSunshineHoursYear },
 				{ "IsSunny", TagIsSunny },
 				{ "IsRaining", TagIsRaining },
 				{ "IsFreezing", TagIsFreezing },
@@ -5974,7 +6098,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");
 
-			if (!cumulus.ListWebTags) return;
+			if (!cumulus.ProgramOptions.ListWebTags) return;
 
 			using (StreamWriter file = new StreamWriter(cumulus.WebTagFile))
 			{
@@ -5998,16 +6122,16 @@ namespace CumulusMX
 		//	 * Byte-Array or incorrectly stored with the UTF16 encoding.  *
 		//	 *                                                            *
 		//	 * UTF8 = 1 bytes per char                                    *
-		//	 *    ["100" for the ansi 'd']                                *
-		//	 *    ["206" and "186" for the russian 'κ']                   *
+		//	 *    ["100" for the ANSI 'd']                                *
+		//	 *    ["206" and "186" for the Russian 'κ']                   *
 		//	 *                                                            *
 		//	 * UTF16 = 2 bytes per char                                   *
-		//	 *    ["100, 0" for the ansi 'd']                             *
-		//	 *    ["186, 3" for the russian 'κ']                          *
+		//	 *    ["100, 0" for the ANSI 'd']                             *
+		//	 *    ["186, 3" for the Russian 'κ']                          *
 		//	 *                                                            *
 		//	 * UTF8 inside UTF16                                          *
-		//	 *    ["100, 0" for the ansi 'd']                             *
-		//	 *    ["206, 0" and "186, 0" for the russian 'κ']             *
+		//	 *    ["100, 0" for the ANSI 'd']                             *
+		//	 *    ["206, 0" and "186, 0" for the Russian 'κ']             *
 		//	 *                                                            *
 		//	 * We can use the convert encoding function to convert an     *
 		//	 * UTF16 Byte-Array to an UTF8 Byte-Array. When we use UTF8   *
