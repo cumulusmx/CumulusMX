@@ -37,7 +37,7 @@ namespace CumulusMX
             try
             {
                 var stTime = cumulus.LastUpdateTime;
-                if (FirstRun) stTime = DateTime.Now.AddDays(-60);
+                if (FirstRun) stTime = DateTime.Now.AddDays(-cumulus.WeatherFlowOptions.WFDaysHist);
 
                 var recs = StationListener.GetRestPacket(StationListener.REST_URL,
                     cumulus.WeatherFlowOptions.WFToken, cumulus.WeatherFlowOptions.WFDeviceId,
@@ -527,13 +527,27 @@ namespace CumulusMX.Tempest
                                 ret.Add(new Observation(ob));
                             }
                         }
+                        else if (rp != null && rp.status.status_message.Equals("SUCCESS"))
+                        {
+							// no data for time period, ignore
+							//cumulus.LogConsoleMessage($"No data for time period from {tpStart} to {end}");
+                        }
                         else
                         {
                             var msg = $"Error downloading tempest history: {apiResponse}";
                             cumulus.LogMessage(msg);
                             cumulus.LogConsoleMessage(msg);
-                            if (rp.status.status_code==404)cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
-                            if (rp.status.status_code==401)cumulus.LogConsoleMessage("Normally indicates incorrect Token");
+                            if (rp.status.status_code == 404)
+                            {
+	                            cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
+	                            ts = -1;// force a stop, fatal error
+                            }
+
+                            if (rp.status.status_code == 401)
+                            {
+	                            cumulus.LogConsoleMessage("Normally indicates incorrect Token");
+	                            ts = -1;// force a stop, fatal error
+                            }
                         }
 
                     }

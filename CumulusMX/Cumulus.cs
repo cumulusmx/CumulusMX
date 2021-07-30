@@ -3808,6 +3808,7 @@ namespace CumulusMX
             WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
             WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
             WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
+            WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0);
 
 			//VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
@@ -5149,6 +5150,13 @@ namespace CumulusMX
 			ini.SetValue("Station", "RG11IgnoreFirst2", RG11IgnoreFirst2);
 			ini.SetValue("Station", "RG11DTRmode2", RG11DTRmode2);
 
+			// WeatherFlow Options
+			ini.SetValue("Station", "WeatherFlowDeviceId", WeatherFlowOptions.WFDeviceId);
+			ini.SetValue("Station", "WeatherFlowTcpPort", WeatherFlowOptions.WFTcpPort);
+			ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
+			ini.SetValue("Station", "WeatherFlowDaysHist", WeatherFlowOptions.WFDaysHist);
+
+			
 			// WeatherLink Live device settings
 			ini.SetValue("WLL", "AutoUpdateIpAddress", WLLAutoUpdateIpAddress);
 			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
@@ -10429,6 +10437,7 @@ namespace CumulusMX
         public int WFDeviceId { get; set; }
         public int WFTcpPort { get; set; }
         public string WFToken { get; set; }
+		public int WFDaysHist { get; set; }
 
     }
 

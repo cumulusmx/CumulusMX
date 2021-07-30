@@ -121,7 +121,7 @@ namespace CumulusMX
 			};
 
             var weatherflow = new JsonStationSettingsWeatherFlow()
-                {deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken};
+                {deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
 
 			var gw1000 = new JSonStationSettingsGw1000Conn()
 			{
@@ -935,6 +935,7 @@ namespace CumulusMX
                     cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
                     cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
                     cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
+                    cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
                 }
                 catch (Exception ex)
                 {
@@ -1434,6 +1435,7 @@ namespace CumulusMX
         public int tcpport { get; set; }
         public int deviceid { get; set; }
         public string token { get; set; }
+		public int dayshistory { get; set; }
     }
 
 	internal class JSonStationSettingsGw1000Conn
