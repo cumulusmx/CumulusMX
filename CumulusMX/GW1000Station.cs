@@ -275,8 +275,19 @@ namespace CumulusMX
 				// Get the firmware version as check we are communicating
 				GW1000FirmwareVersion = GetFirmwareVersion();
 				cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
-				var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
-				fwVersion = new Version(fwString[1]);
+				if (GW1000FirmwareVersion != "???")
+				{
+					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
+					if (fwString.Length > 1)
+					{
+						fwVersion = new Version(fwString[1]);
+					}
+					else
+					{
+						// failed to get the version, lets assume it's fairly new
+						fwVersion = new Version("1.6.5");
+					}
+				}
 
 				GetSystemInfo();
 
@@ -608,11 +619,17 @@ namespace CumulusMX
 		{
 			var response = "???";
 			cumulus.LogMessage("Reading firmware version");
-
-			var data = DoCommand(Commands.CMD_READ_FIRMWARE_VERSION);
-			if (null != data && data.Length > 0)
+			try
 			{
-				response = Encoding.ASCII.GetString(data, 5, data[4]);
+				var data = DoCommand(Commands.CMD_READ_FIRMWARE_VERSION);
+				if (null != data && data.Length > 0)
+				{
+					response = Encoding.ASCII.GetString(data, 5, data[4]);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"GetFirmwareVersion: Error retrieving/processing firmware version. Message - {ex.Message}");
 			}
 			return response;
 		}

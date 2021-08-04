@@ -43,9 +43,8 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowitt = new JsonExtraSensorEcowitt()
+			var ecowitt = new JsonExtraSensorEcowittAmbient()
 			{
-				enabled = cumulus.EcowittExtraEnabled,
 				useSolar = cumulus.EcowittExtraUseSolar,
 				useUv = cumulus.EcowittExtraUseUv,
 				useTempHum = cumulus.EcowittExtraUseTempHum,
@@ -57,6 +56,34 @@ namespace CumulusMX
 				useLightning = cumulus.EcowittExtraUseLightning,
 				useLeak = cumulus.EcowittExtraUseLeak
 			};
+
+			var ambient = new JsonExtraSensorEcowittAmbient()
+			{
+				useSolar = cumulus.AmbientExtraUseSolar,
+				useUv = cumulus.AmbientExtraUseUv,
+				useTempHum = cumulus.AmbientExtraUseTempHum,
+				useSoilTemp = cumulus.AmbientExtraUseSoilTemp,
+				useSoilMoist = cumulus.AmbientExtraUseSoilMoist,
+				//useLeafWet = cumulus.AmbientExtraUseLeafWet,
+				useAQI = cumulus.AmbientExtraUseAQI,
+				useCo2 = cumulus.AmbientExtraUseCo2,
+				useLightning = cumulus.AmbientExtraUseLightning,
+				useLeak = cumulus.AmbientExtraUseLeak
+			};
+
+			var httpStation = new JsonExtraSensorHttp()
+			{
+				ecowitt = ecowitt,
+				ambient = ambient
+			};
+
+			if (cumulus.EcowittExtraEnabled)
+				httpStation.extraStation = 0;
+			else if (cumulus.AmbientExtraEnabled)
+				httpStation.extraStation = 1;
+			else
+				httpStation.extraStation = -1;
+
 
 			var bl = new JsonExtraSensorBlakeLarsen()
 			{
@@ -98,7 +125,7 @@ namespace CumulusMX
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
 				airLink = airlink,
-				ecowitt = ecowitt,
+				httpSensors = httpStation,
 				blakeLarsen = bl,
 				rg11 = rg11
 			};
@@ -193,27 +220,60 @@ namespace CumulusMX
 				// Ecowitt Extra settings
 				try
 				{
-					cumulus.EcowittExtraEnabled = settings.ecowitt.enabled;
-					if (cumulus.EcowittExtraEnabled)
+					if (settings.httpSensors.extraStation == 0)
 					{
-						cumulus.EcowittExtraUseSolar = settings.ecowitt.useSolar;
-						cumulus.EcowittExtraUseUv = settings.ecowitt.useUv;
-						cumulus.EcowittExtraUseTempHum = settings.ecowitt.useTempHum;
-						cumulus.EcowittExtraUseSoilTemp = settings.ecowitt.useSoilTemp;
-						cumulus.EcowittExtraUseSoilMoist = settings.ecowitt.useSoilMoist;
-						cumulus.EcowittExtraUseLeafWet = settings.ecowitt.useLeafWet;
-						cumulus.EcowittExtraUseAQI = settings.ecowitt.useAQI;
-						cumulus.EcowittExtraUseCo2 = settings.ecowitt.useCo2;
-						cumulus.EcowittExtraUseLightning = settings.ecowitt.useLightning;
-						cumulus.EcowittExtraUseLeak = settings.ecowitt.useLeak;
+						cumulus.EcowittExtraEnabled = true;
+						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
+						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
+						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
+						cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
+						cumulus.EcowittExtraUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
+						cumulus.EcowittExtraUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
+						cumulus.EcowittExtraUseAQI = settings.httpSensors.ecowitt.useAQI;
+						cumulus.EcowittExtraUseCo2 = settings.httpSensors.ecowitt.useCo2;
+						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
+						cumulus.EcowittExtraUseLeak = settings.httpSensors.ecowitt.useLeak;
 
 						// Also enable extra logging
 						cumulus.StationOptions.LogExtraSensors = true;
 					}
+					else
+						cumulus.EcowittExtraEnabled = false;
 				}
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Ambient Extra settings
+				try
+				{
+					if (settings.httpSensors.extraStation == 1)
+					{
+						cumulus.AmbientExtraEnabled = true;
+						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
+						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
+						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
+						cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
+						cumulus.AmbientExtraUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
+						//cumulus.AmbientExtraUseLeafWet = settings.httpSensors.ambient.useLeafWet;
+						cumulus.AmbientExtraUseAQI = settings.httpSensors.ambient.useAQI;
+						cumulus.AmbientExtraUseCo2 = settings.httpSensors.ambient.useCo2;
+						cumulus.AmbientExtraUseLightning = settings.httpSensors.ambient.useLightning;
+						cumulus.AmbientExtraUseLeak = settings.httpSensors.ambient.useLeak;
+
+						// Also enable extra logging
+						cumulus.StationOptions.LogExtraSensors = true;
+					}
+					else
+						cumulus.AmbientExtraEnabled = false;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ambient settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -284,7 +344,7 @@ namespace CumulusMX
 		public bool accessible { get; set; }
 		public JsonExtraSensorAirQuality airquality { get; set; }
 		public JsonExtraSensorAirLinkSettings airLink { get; set; }
-		public JsonExtraSensorEcowitt ecowitt { get; set; }
+		public JsonExtraSensorHttp httpSensors { get; set; }
 		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
 		public JsonExtraSensorRG11 rg11 { get; set; }
 	}
@@ -313,9 +373,15 @@ namespace CumulusMX
 		public int stationId { get; set; }
 	}
 
-	public class JsonExtraSensorEcowitt
+	public class JsonExtraSensorHttp
 	{
-		public bool enabled { get; set; }
+		public int extraStation { get; set; }
+		public JsonExtraSensorEcowittAmbient ecowitt { get; set; }
+		public JsonExtraSensorEcowittAmbient ambient { get; set; }
+	}
+
+	public class JsonExtraSensorEcowittAmbient
+	{
 		public bool useSolar { get; set; }
 		public bool useUv { get; set; }
 		public bool useTempHum { get; set; }
@@ -327,6 +393,7 @@ namespace CumulusMX
 		public bool useLightning { get; set; }
 		public bool useLeak { get; set; }
 	}
+
 
 	public class JsonExtraSensorBlakeLarsen
 	{

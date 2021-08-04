@@ -1,8 +1,8 @@
 ﻿using System;
 using Unosquare.Labs.EmbedIO;
-using System.IO;
-using System.Web;
 using System.Globalization;
+using System.Collections.Specialized;
+
 
 namespace CumulusMX
 {
@@ -29,8 +29,10 @@ namespace CumulusMX
 			// Ambient does not provide average wind speeds
 			cumulus.StationOptions.UseWind10MinAve = true;
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
+			// Ambient does not send the rain rate, so we will calculate it
+			calculaterainrate = true;
 			// Ambient does not send DP, so force MX to calculate it
-			cumulus.StationOptions.CalculatedDP = true;
+			//cumulus.StationOptions.CalculatedDP = true;
 
 			cumulus.Manufacturer = cumulus.AMBIENT;
 			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
@@ -54,9 +56,7 @@ namespace CumulusMX
 			if (station == null)
 			{
 				cumulus.LogMessage("Starting HTTP Station (Ambient)");
-
 				DoDayResetIfNeeded();
-				DoTrendValues(DateTime.Now);
 				timerStartNeeded = true;
 			}
 			else
@@ -80,6 +80,7 @@ namespace CumulusMX
 			 * Ambient doc: https://help.ambientweather.net/help/advanced/
 			 *
 			 *	GET Parameters - all fields are URL escaped
+			 *	PASSKEY=123&stationtype=EasyWeatherV1.6.0&dateutc=2021-08-01+12:21:31&tempinf=76.3&humidityin=51&baromrelin=29.929&baromabsin=28.866&tempf=72.5&humidity=47&winddir=12&winddir_avg10m=97&windspeedmph=2.2&windspdmph_avg10m=4.7&windgustmph=13.2&maxdailygust=15.0&rainratein=0.000&eventrainin=0.000&hourlyrainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=0.000&yearlyrainin=29.953&solarradiation=855.09&uv=8&temp1f=77.5&humidity1=42&temp2f=76.8&humidity2=57&temp3f=72.3&humidity3=47&temp4f=72.3&humidity4=49&temp5f=-3.6&temp6f=87.4&humidity6=46&temp7f=43.9&humidity7=39&soilhum1=61&soilhum2=68&soilhum3=88&soilhum4=46&soilhum5=55&pm25=14.0&pm25_24h=14.2&pm25_in=5.0&pm25_in_24h=9.0&lightning_day=0&lightning_time=1627320749&lightning_distance=17&pm_in_temp_aqin=77.0&pm_in_humidity_aqin=47&pm10_in_aqin=1.4&pm10_in_24h_aqin=3.0&pm25_in_aqin=1.1&pm25_in_24h_aqin=2.6&co2_in_aqin=336&co2_in_24h_aqin=529&battout=1&wh80batt=3.06&wh25batt=0&wh26batt=0&batt1=1&batt2=1&batt3=1&batt4=1&batt5=1&batt6=1&batt7=1&battsm1=1&battsm2=1&battsm3=1&battsm4=1&battsm5=1&batt_25=1&batt_25in=1&batt_lightning=4&batt_co2=1&freq=868M&model=HP1000SE-PRO_Pro_V1.7.4&dewptf=51.1&windchillf=72.5&feelslikef=72.5&heatindexf=71.7&pm25_AQI_ch1=55&pm25_AQIlvl_ch1=2&pm25_AQI_avg_24h_ch1=55&pm25_AQIlvl_avg_24h_ch1=2&pm25_AQI_ch2=21&pm25_AQIlvl_ch2=1&pm25_AQI_avg_24h_ch2=38&pm25_AQIlvl_avg_24h_ch2=1&co2lvl=1&pm25_AQI_co2=5&pm25_AQIlvl_co2=1&pm25_AQI_24h_co2=11&pm25_AQIlvl_24h_co2=1&pm10_AQI_co2=1&pm10_AQIlvl_co2=1&pm10_AQI_24h_co2=3&pm10_AQIlvl_24h_co2=1&windgustmph_max10m=13.2&brightness=108339.9&sunhours=5.48&ptrend1=-1&pchange1=-0.0177&ptrend3=1&pchange3=0.003
 			 *
 			 */
 
@@ -94,29 +95,10 @@ namespace CumulusMX
 
 				cumulus.LogDebugMessage($"ProcessData: Processing query - {context.Request.RawUrl}");
 
+
 				var data = context.Request.QueryString;
 
-				// We will ignore the dateutc field other than for reporting, this is "live" data so just use "now" to avoid any clock issues
-
-				var dat = data["dateutc"];
-
-				if (dat == null)
-				{
-					cumulus.LogMessage($"ProcessData: Error, no 'dateutc' parameter found");
-					//context.Response.StatusCode = 500;
-					//return "{\"result\":\"Failed\",\"Errors\":[\"No 'dateutc' parameter found\"]}";
-				}
-				else if (dat == "now")
-				{
-					//recDate = DateTime.Now;
-				}
-				else
-				{
-					dat = dat.Replace(' ', 'T') + ".0000000Z";
-					cumulus.LogDebugMessage($"ProcessData: Record date = {data["dateutc"]}");
-					//recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
-				}
-
+				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
 				recDate = DateTime.Now;
 
 				cumulus.LogDebugMessage($"ProcessData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
@@ -285,20 +267,20 @@ namespace CumulusMX
 					// monthlyrainin
 					// yearlyrainin
 					// eventrainin
-					// totalrainin
+					// totalrainin ??? MISSING ???
 
-					var rain = data["totalrainin"];
-					var rRate = data["hourlyrainin"]; // no rain rate, have to use the hourly rain
+					var rain = data["yearlyrainin"];
+					//var rRate = data["hourlyrainin"]; // no rain rate, have to use the hourly rain
 
-					if (rain == null || rRate == null)
+					if (rain == null)
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing rainfall");
 					}
 					else
 					{
 						var rainVal = ConvertRainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
-						var rateVal = ConvertRainINToUser(Convert.ToDouble(rRate, CultureInfo.InvariantCulture));
-						DoRain(rainVal, rateVal, recDate);
+						//var rateVal = ConvertRainINToUser(Convert.ToDouble(rRate, CultureInfo.InvariantCulture));
+						DoRain(rainVal, 0, recDate);
 					}
 				}
 				catch (Exception ex)
@@ -313,24 +295,22 @@ namespace CumulusMX
 				try
 				{
 					// dewptf
+					var dewpnt = data["dewptf"];
 
 					if (cumulus.StationOptions.CalculatedDP)
 					{
 						DoOutdoorDewpoint(0, recDate);
 					}
+					else if (dewpnt == null)
+					{
+						cumulus.LogMessage($"ProcessData: Error, missing dew point");
+					}
 					else
 					{
-						var str = data["dewptf"];
-						if (str == null)
-						{
-							cumulus.LogMessage($"ProcessData: Error, missing dew point");
-						}
-						else
-						{
-							var val = ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture));
-							DoOutdoorDewpoint(val, recDate);
-						}
+						var val = ConvertTempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
+						DoOutdoorDewpoint(val, recDate);
 					}
+
 				}
 				catch (Exception ex)
 				{
@@ -397,7 +377,7 @@ namespace CumulusMX
 				{
 					// temp[1-10]f
 
-					processExtraTemps(data, this);
+					ProcessExtraTemps(data, this);
 				}
 				catch (Exception ex)
 				{
@@ -459,7 +439,6 @@ namespace CumulusMX
 				{
 					// soilhum[1-10]
 					ProcessSoilMoist(data, this);
-					}
 				}
 				catch (Exception ex)
 				{
@@ -494,7 +473,8 @@ namespace CumulusMX
 					// co2_in - [int, ppm]
 					// co2_in_24h - [float, ppm]
 
-					ProcessCo2(data, this);
+					// NOT YET IMPLEMENTED
+					//ProcessCo2(data, this);
 				}
 				catch (Exception ex)
 				{
@@ -531,7 +511,7 @@ namespace CumulusMX
 				try
 				{
 					/*
-					Low Battery = 0, Normal Batetry = 1
+					Low Battery = 0, Normal Battery = 1
 					battout			outdoor sensor array or suite [0 or 1]
 					battin			indoor sensor or console [0 or 1]
 					batt[1-10]		sensors 1-10 [0 or 1]
@@ -549,6 +529,16 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogMessage("ProcessData: Error in Battery data - " + ex.Message);
+				}
+
+				// === Extra Dew point ===
+				try
+				{
+					ProcessExtraDewPoint(data, this);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error calculating extra sensor dew points - " + ex.Message);
 				}
 
 				DoForecast(string.Empty, false);
@@ -596,27 +586,7 @@ namespace CumulusMX
 
 				var data = context.Request.QueryString;
 
-				// We will ignore the dateutc field other than for reporting, this is "live" data so just use "now" to avoid any clock issues
-
-				var dat = data["dateutc"];
-
-				if (dat == null)
-				{
-					cumulus.LogMessage($"ProcessExtraData: Error, no 'dateutc' parameter found");
-					//context.Response.StatusCode = 500;
-					//return "{\"result\":\"Failed\",\"Errors\":[\"No 'dateutc' parameter found\"]}";
-				}
-				else if (dat == "now")
-				{
-					//recDate = DateTime.Now;
-				}
-				else
-				{
-					dat = dat.Replace(' ', 'T') + ".0000000Z";
-					cumulus.LogDebugMessage($"ProcessExtraData: Record date = {data["dateutc"]}");
-					//recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
-				}
-
+				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
 				recDate = DateTime.Now;
 
 				cumulus.LogDebugMessage($"ProcessExtraData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
@@ -677,7 +647,7 @@ namespace CumulusMX
 
 					if (cumulus.AmbientExtraUseUv)
 					{
-						ProcessUv(data, recDate);
+						ProcessUv(data, station, recDate);
 					}
 				}
 				catch (Exception ex)
@@ -692,7 +662,7 @@ namespace CumulusMX
 					// soiltempf
 					// soiltemp[2-16]f
 
-					if (cumulus.AmbienttExtraUseSoilTemp)
+					if (cumulus.AmbientExtraUseSoilTemp)
 					{
 						ProcessSoilTemps(data, station);
 					}
@@ -708,7 +678,7 @@ namespace CumulusMX
 				{
 					// soilmoisture[1-16]
 
-					if (cumulus.AmbienttExtraUseSoilMoist)
+					if (cumulus.AmbientExtraUseSoilMoist)
 					{
 						ProcessSoilMoist(data, station);
 					}
@@ -716,23 +686,6 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogMessage("ProcessExtraData: Error in Soil moisture data - " + ex.Message);
-				}
-
-
-				// === Leaf Wetness ===
-				try
-				{
-					// leafwetness
-					// leafwetness[2-8]
-
-					if (cumulus.AmbientExtraUseLeafWet)
-					{
-						ProcessLeafWetness(data, station);
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage("ProcessExtraData: Error in Leaf wetness data - " + ex.Message);
 				}
 
 
@@ -766,7 +719,7 @@ namespace CumulusMX
 
 					if (cumulus.AmbientExtraUseCo2)
 					{
-						ProcessCo2(data, station);
+						//ProcessCo2(data, station);
 					}
 				}
 				catch (Exception ex)
@@ -923,6 +876,10 @@ namespace CumulusMX
 			// pm25
 			// pm25_24h
 
+			// From FOSKplugin
+			// pm25_AQIlvl_ch[1-4]
+			// pm25_AQIlvl_avg_24h_ch1
+
 			var pm = data["pm25"];
 			var pmAvg = data["pm25_24h"];
 			if (pm != null)
@@ -941,6 +898,7 @@ namespace CumulusMX
 			// co2_in - [int, ppm]
 			// co2_in_24h - [float, ppm]
 
+			/*
 			if (data["co2_in"] != null)
 			{
 				station.CO2 = Convert.ToInt32(data["co2_in"], CultureInfo.InvariantCulture);
@@ -949,13 +907,43 @@ namespace CumulusMX
 			{
 				station.CO2_24h = Convert.ToInt32(data["co2_in_24"], CultureInfo.InvariantCulture);
 			}
+			*/
+
+			// From FOSKplugin
+			// co2lvl
+			// pm25_AQIlvl_co2
+			// pm25_AQIlvl_24h_co2
+			// pm10_AQIlvl_co2
+			// pm10_AQIlvl_24h_co2
+
+
+			if (data["co2lvl"] != null)
+			{
+				station.CO2 = Convert.ToInt32(data["co2lvl"], CultureInfo.InvariantCulture);
+			}
+			if (data["pm25_AQIlvl_co2"] != null)
+			{
+				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_AQIlvl_co2"], CultureInfo.InvariantCulture);
+			}
+			if (data["pm25_AQIlvl_24h_co2"] != null)
+			{
+				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
+			}
+			if (data["pm10_AQIlvl_co2"] != null)
+			{
+				station.CO2_pm10 = Convert.ToDouble(data["pm10_AQIlvl_co2"], CultureInfo.InvariantCulture);
+			}
+			if (data["pm10_AQIlvl_24h_co2"] != null)
+			{
+				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
+			}
 		}
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)
 		{
-			var dist = data["lightning_day"];
+			var num = data["lightning_day"];
 			var time = data["lightning_time"];
-			var num = data["lightning_distance"];
+			var dist = data["lightning_distance"];
 
 			if (!string.IsNullOrEmpty(dist) && !string.IsNullOrEmpty(time))
 			{
@@ -1000,7 +988,7 @@ namespace CumulusMX
 		private void ProcessBatteries(NameValueCollection data)
 		{
 			/*
-			Low Battery = 0, Normal Batetry = 1
+			Low Battery = 0, Normal Battery = 1
 			battout			outdoor sensor array or suite [0 or 1]
 			battin			indoor sensor or console [0 or 1]
 			batt[1-10]		sensors 1-10 [0 or 1]
@@ -1034,5 +1022,18 @@ namespace CumulusMX
 
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
 		}
+
+		private void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 10; i++)
+			{
+				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
+				{
+					var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
+					station.ExtraDewPoint[i] = ConvertTempCToUser(dp);
+				}
+			}
+		}
+
 	}
 }

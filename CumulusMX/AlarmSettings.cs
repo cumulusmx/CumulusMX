@@ -147,7 +147,8 @@ namespace CumulusMX
 					Notify = cumulus.SensorAlarm.Notify,
 					Email = cumulus.SensorAlarm.Email,
 					Latches = cumulus.SensorAlarm.Latch,
-					LatchHrs = cumulus.SensorAlarm.LatchHours
+					LatchHrs = cumulus.SensorAlarm.LatchHours,
+					Threshold = cumulus.SensorAlarm.TriggerThreshold
 				},
 				dataStopped = new JsonAlarmValues()
 				{
@@ -157,7 +158,8 @@ namespace CumulusMX
 					Notify = cumulus.DataStoppedAlarm.Notify,
 					Email = cumulus.DataStoppedAlarm.Email,
 					Latches = cumulus.DataStoppedAlarm.Latch,
-					LatchHrs = cumulus.DataStoppedAlarm.LatchHours
+					LatchHrs = cumulus.DataStoppedAlarm.LatchHours,
+					Threshold = cumulus.DataStoppedAlarm.TriggerThreshold
 				},
 				batteryLow = new JsonAlarmValues()
 				{
@@ -167,7 +169,8 @@ namespace CumulusMX
 					Notify = cumulus.BatteryLowAlarm.Notify,
 					Email = cumulus.BatteryLowAlarm.Email,
 					Latches = cumulus.BatteryLowAlarm.Latch,
-					LatchHrs = cumulus.BatteryLowAlarm.LatchHours
+					LatchHrs = cumulus.BatteryLowAlarm.LatchHours,
+					Threshold = cumulus.BatteryLowAlarm.TriggerThreshold
 				},
 				spike = new JsonAlarmValues()
 				{
@@ -363,6 +366,7 @@ namespace CumulusMX
 				cumulus.SensorAlarm.Email = settings.contactLost.Email;
 				cumulus.SensorAlarm.Latch = settings.contactLost.Latches;
 				cumulus.SensorAlarm.LatchHours = settings.contactLost.LatchHrs;
+				cumulus.SensorAlarm.TriggerThreshold = settings.contactLost.Threshold;
 
 				cumulus.DataStoppedAlarm.Enabled = settings.dataStopped.Enabled;
 				cumulus.DataStoppedAlarm.Sound = settings.dataStopped.SoundEnabled;
@@ -371,6 +375,7 @@ namespace CumulusMX
 				cumulus.DataStoppedAlarm.Email = settings.dataStopped.Email;
 				cumulus.DataStoppedAlarm.Latch = settings.dataStopped.Latches;
 				cumulus.DataStoppedAlarm.LatchHours = settings.dataStopped.LatchHrs;
+				cumulus.DataStoppedAlarm.TriggerThreshold = settings.dataStopped.Threshold;
 
 				cumulus.BatteryLowAlarm.Enabled = settings.batteryLow.Enabled;
 				cumulus.BatteryLowAlarm.Sound = settings.batteryLow.SoundEnabled;
@@ -379,6 +384,7 @@ namespace CumulusMX
 				cumulus.BatteryLowAlarm.Email = settings.batteryLow.Email;
 				cumulus.BatteryLowAlarm.Latch = settings.batteryLow.Latches;
 				cumulus.BatteryLowAlarm.LatchHours = settings.batteryLow.LatchHrs;
+				cumulus.BatteryLowAlarm.TriggerThreshold = settings.batteryLow.Threshold;
 
 				cumulus.SpikeAlarm.Enabled = settings.spike.Enabled;
 				cumulus.SpikeAlarm.Sound = settings.spike.SoundEnabled;

@@ -61,9 +61,7 @@ namespace CumulusMX
 			if (station == null)
 			{
 				cumulus.LogMessage("Starting HTTP Station (Ecowitt)");
-
 				DoDayResetIfNeeded();
-				DoTrendValues(DateTime.Now);
 				timerStartNeeded = true;
 			}
 			else
@@ -115,27 +113,7 @@ namespace CumulusMX
 
 				var data = HttpUtility.ParseQueryString(text);
 
-				// We will ignore the dateutc field other than for reporting, this is "live" data so just use "now" to avoid any clock issues
-
-				var dat = data["dateutc"];
-
-				if (dat == null)
-				{
-					cumulus.LogMessage($"ProcessData: Error, no 'dateutc' parameter found");
-					//context.Response.StatusCode = 500;
-					//return "{\"result\":\"Failed\",\"Errors\":[\"No 'dateutc' parameter found\"]}";
-				}
-				else if (dat == "now")
-				{
-					//recDate = DateTime.Now;
-				}
-				else
-				{
-					dat = dat.Replace(' ', 'T') + ".0000000Z";
-					cumulus.LogDebugMessage($"ProcessData: Record date = {data["dateutc"]}");
-					//recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
-				}
-
+				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
 				recDate = DateTime.Now;
 
 				cumulus.LogDebugMessage($"ProcessData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
@@ -301,15 +279,27 @@ namespace CumulusMX
 					// weeklyrainin
 					// monthlyrainin
 					// yearlyrainin
-					// totalrainin
+					// totalrainin - not reliable, depends on console and firmware version as to whether this is available or not.
 					// rainratein
 					// 24hourrainin Ambient only?
 					// eventrainin
 
-					var rain = data["totalrainin"];
+					var rain = data["yearlyrainin"];
 					var rRate = data["rainratein"];
 
-					if (rain == null || rRate == null)
+					if (rRate == null)
+					{
+						// No rain rate, so we will calculate it
+						calculaterainrate = true;
+						rRate = "0";
+					}
+					else
+					{
+						// we have a rain rate, so we will NOT calculate it
+						calculaterainrate = false;
+					}
+
+					if (rain == null)
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing rainfall");
 					}
@@ -333,22 +323,20 @@ namespace CumulusMX
 				{
 					// dewptf
 
+					var dewpnt = data["dewptf"];
+
 					if (cumulus.StationOptions.CalculatedDP)
 					{
 						DoOutdoorDewpoint(0, recDate);
 					}
+					else if (dewpnt == null)
+					{
+						cumulus.LogMessage($"ProcessData: Error, missing dew point");
+					}
 					else
 					{
-						var str = data["dewptf"];
-						if (str == null)
-						{
-							cumulus.LogMessage($"ProcessData: Error, missing dew point");
-						}
-						else
-						{
-							var val = ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture));
-							DoOutdoorDewpoint(val, recDate);
-						}
+						var val = ConvertTempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
+						DoOutdoorDewpoint(val, recDate);
 					}
 				}
 				catch (Exception ex)
@@ -656,27 +644,7 @@ namespace CumulusMX
 
 				var data = HttpUtility.ParseQueryString(text);
 
-				// We will ignore the dateutc field other than for reporting, this is "live" data so just use "now" to avoid any clock issues
-
-				var dat = data["dateutc"];
-
-				if (dat == null)
-				{
-					cumulus.LogMessage($"ProcessExtraData: Error, no 'dateutc' parameter found");
-					//context.Response.StatusCode = 500;
-					//return "{\"result\":\"Failed\",\"Errors\":[\"No 'dateutc' parameter found\"]}";
-				}
-				else if (dat == "now")
-				{
-					//recDate = DateTime.Now;
-				}
-				else
-				{
-					dat = dat.Replace(' ', 'T') + ".0000000Z";
-					cumulus.LogDebugMessage($"ProcessExtraData: Record date = {data["dateutc"]}");
-					//recDate = DateTime.ParseExact(dat, "o", CultureInfo.InvariantCulture);
-				}
-
+				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
 				recDate = DateTime.Now;
 
 				cumulus.LogDebugMessage($"ProcessExtraData: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");

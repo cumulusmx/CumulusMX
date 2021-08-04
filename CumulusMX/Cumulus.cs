@@ -204,6 +204,7 @@ namespace CumulusMX
 		public string AirLinkOutHostName;
 
 		internal HttpStationEcowitt ecowittExtra;
+		internal HttpStationAmbient ambientExtra;
 
 		public DateTime LastUpdateTime;
 
@@ -731,10 +732,10 @@ namespace CumulusMX
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
 			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000",
-			"HTTP WUnderground", "HTTP Ecowitt"
+			"HTTP WUnderground", "HTTP Ecowitt", "HTTP Ambient"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt", "Ambient" };
 
 		public string loggingfile;
 
@@ -1462,10 +1463,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new HttpStationEcowitt(this);
 					break;
-				//case StationTypes.HttpAmbient:
-				//	Manufacturer = AMBIENT;
-				//	station = new HttpStationAmbient(this);
-				//	break;
+				case StationTypes.HttpAmbient:
+					Manufacturer = AMBIENT;
+					station = new HttpStationAmbient(this);
+					break;
 				default:
 					LogConsoleMessage("Station type not set");
 					LogMessage("Station type not set");
@@ -1486,6 +1487,10 @@ namespace CumulusMX
 				{
 					Api.stationEcowitt = (HttpStationEcowitt)station;
 				}
+				else if (StationType == StationTypes.HttpAmbient)
+				{
+					Api.stationAmbient = (HttpStationAmbient)station;
+				}
 
 				LogMessage("Creating extra sensors");
 				if (AirLinkInEnabled)
@@ -1498,10 +1503,15 @@ namespace CumulusMX
 					airLinkDataOut = new AirLinkData();
 					airLinkOut = new DavisAirLink(this, false, station);
 				}
-				if (EcowittExtraEnabled && StationType != StationTypes.HttpEcowitt)
+				if (EcowittExtraEnabled)
 				{
 					ecowittExtra = new HttpStationEcowitt(this, station);
 					Api.stationEcowittExtra = ecowittExtra;
+				}
+				if (AmbientExtraEnabled)
+				{
+					ambientExtra = new HttpStationAmbient(this, station);
+					Api.stationAmbientExtra = ambientExtra;
 				}
 
 				webtags = new WebTags(this, station);
@@ -4123,6 +4133,19 @@ namespace CumulusMX
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 			EcowittExtraUseLeak= ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
 
+			// Ambient settings
+			AmbientExtraEnabled = ini.GetValue("Ambient", "ExtraSensorDataEnabled", false);
+			AmbientExtraUseSolar = ini.GetValue("Ambient", "ExtraSensorUseSolar", true);
+			AmbientExtraUseUv = ini.GetValue("Ambient", "ExtraSensorUseUv", true);
+			AmbientExtraUseTempHum = ini.GetValue("Ambient", "ExtraSensorUseTempHum", true);
+			AmbientExtraUseSoilTemp = ini.GetValue("Ambient", "ExtraSensorUseSoilTemp", true);
+			AmbientExtraUseSoilMoist = ini.GetValue("Ambient", "ExtraSensorUseSoilMoist", true);
+			//AmbientExtraUseLeafWet = ini.GetValue("Ambient", "ExtraSensorUseLeafWet", true);
+			AmbientExtraUseAQI = ini.GetValue("Ambient", "ExtraSensorUseAQI", true);
+			AmbientExtraUseCo2 = ini.GetValue("Ambient", "ExtraSensorUseCo2", true);
+			AmbientExtraUseLightning = ini.GetValue("Ambient", "ExtraSensorUseLightning", true);
+			AmbientExtraUseLeak = ini.GetValue("Ambient", "ExtraSensorUseLeak", true);
+
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
 			// So check if the global value exists
@@ -4659,6 +4682,7 @@ namespace CumulusMX
 			SensorAlarm.Email = ini.GetValue("Alarms", "SensorAlarmEmail", false);
 			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", false);
 			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 24);
+			SensorAlarm.TriggerThreshold = ini.GetValue("Alarms", "SensorAlarmTriggerCount", 1);
 
 			DataStoppedAlarm.Enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", false);
 			DataStoppedAlarm.Sound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
@@ -4672,6 +4696,7 @@ namespace CumulusMX
 			DataStoppedAlarm.Email = ini.GetValue("Alarms", "DataStoppedAlarmEmail", false);
 			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", false);
 			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 24);
+			DataStoppedAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataStoppedAlarmTriggerCount", 1);
 
 			// Alarms below here were created after the change in default sound file, so no check required
 			BatteryLowAlarm.Enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
@@ -4681,6 +4706,7 @@ namespace CumulusMX
 			BatteryLowAlarm.Email = ini.GetValue("Alarms", "BatteryLowAlarmEmail", false);
 			BatteryLowAlarm.Latch = ini.GetValue("Alarms", "BatteryLowAlarmLatch", false);
 			BatteryLowAlarm.LatchHours = ini.GetValue("Alarms", "BatteryLowAlarmLatchHours", 24);
+			BatteryLowAlarm.TriggerThreshold = ini.GetValue("Alarms", "BatteryLowAlarmTriggerCount", 1);
 
 			SpikeAlarm.Enabled = ini.GetValue("Alarms", "DataSpikeAlarmSet", false);
 			SpikeAlarm.Sound = ini.GetValue("Alarms", "DataSpikeAlarmSound", false);
@@ -4893,7 +4919,7 @@ namespace CumulusMX
 			MySqlSettings.Realtime.Enabled = ini.GetValue("MySQL", "RealtimeMySqlEnabled", false);
 			MySqlSettings.Realtime.TableName = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
 			MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", "");
-			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval > 60000; // do not enable if real time interval is greater than 1 minute
+			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval < 60000; // do not enable if real time interval is greater than 1 minute
 			// MySQL - dayfile
 			MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
 			MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
@@ -5190,6 +5216,19 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
 			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
+
+			// Ambient settings
+			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
+			ini.SetValue("Ambient", "ExtraSensorUseSolar", AmbientExtraUseSolar);
+			ini.SetValue("Ambient", "ExtraSensorUseUv", AmbientExtraUseUv);
+			ini.SetValue("Ambient", "ExtraSensorUseTempHum", AmbientExtraUseTempHum);
+			ini.SetValue("Ambient", "ExtraSensorUseSoilTemp", AmbientExtraUseSoilTemp);
+			ini.SetValue("Ambient", "ExtraSensorUseSoilMoist", AmbientExtraUseSoilMoist);
+			//ini.SetValue("Ambient", "ExtraSensorUseLeafWet", AmbientExtraUseLeafWet);
+			ini.SetValue("Ambient", "ExtraSensorUseAQI", AmbientExtraUseAQI);
+			ini.SetValue("Ambient", "ExtraSensorUseCo2", AmbientExtraUseCo2);
+			ini.SetValue("Ambient", "ExtraSensorUseLightning", AmbientExtraUseLightning);
+			ini.SetValue("Ambient", "ExtraSensorUseLeak", AmbientExtraUseLeak);
 
 
 			// AirLink settings
@@ -5513,6 +5552,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "SensorAlarmEmail", SensorAlarm.Email);
 			ini.SetValue("Alarms", "SensorAlarmLatch", SensorAlarm.Latch);
 			ini.SetValue("Alarms", "SensorAlarmLatchHours", SensorAlarm.LatchHours);
+			ini.SetValue("Alarms", "SensorAlarmTriggerCount", SensorAlarm.TriggerThreshold);
+
 
 			ini.SetValue("Alarms", "DataStoppedAlarmSet", DataStoppedAlarm.Enabled);
 			ini.SetValue("Alarms", "DataStoppedAlarmSound", DataStoppedAlarm.Sound);
@@ -5521,6 +5562,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataStoppedAlarmEmail", DataStoppedAlarm.Email);
 			ini.SetValue("Alarms", "DataStoppedAlarmLatch", DataStoppedAlarm.Latch);
 			ini.SetValue("Alarms", "DataStoppedAlarmLatchHours", DataStoppedAlarm.LatchHours);
+			ini.SetValue("Alarms", "DataStoppedAlarmTriggerCount", DataStoppedAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "BatteryLowAlarmSet", BatteryLowAlarm.Enabled);
 			ini.SetValue("Alarms", "BatteryLowAlarmSound", BatteryLowAlarm.Sound);
@@ -5529,6 +5571,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "BatteryLowAlarmEmail", BatteryLowAlarm.Email);
 			ini.SetValue("Alarms", "BatteryLowAlarmLatch", BatteryLowAlarm.Latch);
 			ini.SetValue("Alarms", "BatteryLowAlarmLatchHours", BatteryLowAlarm.LatchHours);
+			ini.SetValue("Alarms", "BatteryLowAlarmTriggerCount", BatteryLowAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "DataSpikeAlarmSet", SpikeAlarm.Enabled);
 			ini.SetValue("Alarms", "DataSpikeAlarmSound", SpikeAlarm.Sound);
@@ -5537,6 +5580,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataSpikeAlarmEmail", SpikeAlarm.Email);
 			ini.SetValue("Alarms", "DataSpikeAlarmLatch", SpikeAlarm.Latch);
 			ini.SetValue("Alarms", "DataSpikeAlarmLatchHours", SpikeAlarm.LatchHours);
+			ini.SetValue("Alarms", "DataSpikeAlarmTriggerCount", SpikeAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "UpgradeAlarmSet", UpgradeAlarm.Enabled);
 			ini.SetValue("Alarms", "UpgradeAlarmSound", UpgradeAlarm.Sound);
@@ -5553,6 +5597,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HttpUploadAlarmEmail", HttpUploadAlarm.Email);
 			ini.SetValue("Alarms", "HttpUploadAlarmLatch", HttpUploadAlarm.Latch);
 			ini.SetValue("Alarms", "HttpUploadAlarmLatchHours", HttpUploadAlarm.LatchHours);
+			ini.SetValue("Alarms", "HttpUploadAlarmTriggerCount", HttpUploadAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "MySqlUploadAlarmSet", MySqlUploadAlarm.Enabled);
 			ini.SetValue("Alarms", "MySqlUploadAlarmSound", MySqlUploadAlarm.Sound);
@@ -5561,6 +5606,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "MySqlUploadAlarmEmail", MySqlUploadAlarm.Email);
 			ini.SetValue("Alarms", "MySqlUploadAlarmLatch", MySqlUploadAlarm.Latch);
 			ini.SetValue("Alarms", "MySqlUploadAlarmLatchHours", MySqlUploadAlarm.LatchHours);
+			ini.SetValue("Alarms", "MySqlUploadAlarmTriggerCount", MySqlUploadAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", AlarmDestEmail.Join(";"));
@@ -5581,7 +5627,9 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "WindSpeedMult", Calib.WindSpeed.Mult);
 			ini.SetValue("Offsets", "WindGustMult", Calib.WindGust.Mult);
 			ini.SetValue("Offsets", "TempMult", Calib.Temp.Mult);
+			ini.SetValue("Offsets", "TempMult2", Calib.Temp.Mult2);
 			ini.SetValue("Offsets", "HumMult", Calib.Hum.Mult);
+			ini.SetValue("Offsets", "HumMult2", Calib.Hum.Mult2);
 			ini.SetValue("Offsets", "RainMult", Calib.Rain.Mult);
 			ini.SetValue("Offsets", "SolarMult", Calib.Solar.Mult);
 			ini.SetValue("Offsets", "UVMult", Calib.UV.Mult);
@@ -6186,6 +6234,17 @@ namespace CumulusMX
 		public bool EcowittExtraUseLightning { get; set; }
 		public bool EcowittExtraUseLeak { get; set; }
 
+		public bool AmbientExtraEnabled { get; set; }
+		public bool AmbientExtraUseSolar { get; set; }
+		public bool AmbientExtraUseUv { get; set; }
+		public bool AmbientExtraUseTempHum { get; set; }
+		public bool AmbientExtraUseSoilTemp { get; set; }
+		public bool AmbientExtraUseSoilMoist { get; set; }
+		//public bool AmbientExtraUseLeafWet { get; set; }
+		public bool AmbientExtraUseAQI { get; set; }
+		public bool AmbientExtraUseCo2 { get; set; }
+		public bool AmbientExtraUseLightning { get; set; }
+		public bool AmbientExtraUseLeak { get; set; }
 
 		//public bool solar_logging { get; set; }
 
@@ -7639,6 +7698,8 @@ namespace CumulusMX
 				airLinkIn?.Stop();
 				// If we have a Ecowitt Extra Sensors, stop it
 				ecowittExtra?.Stop();
+				// If we have a Ambient Extra Sensors, stop it
+				ambientExtra?.Stop();
 
 				LogMessage("Extra sensors stopped");
 
@@ -8886,6 +8947,7 @@ namespace CumulusMX
 			airLinkOut?.Start();
 			airLinkIn?.Start();
 			ecowittExtra?.Start();
+			ambientExtra?.Start();
 
 			LogMessage("Start Timers");
 			// start the general one-minute timer
@@ -10237,6 +10299,7 @@ namespace CumulusMX
 		public const int GW1000 = 12;
 		public const int HttpWund = 13;
 		public const int HttpEcowitt = 14;
+		public const int HttpAmbient = 15;
 	}
 
 	/*
