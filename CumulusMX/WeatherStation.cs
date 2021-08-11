@@ -5013,6 +5013,14 @@ namespace CumulusMX
 					ThisYear.LongestWetPeriod.Ts = timestamp;
 					ThisYear.HighDailyTempRange.Ts = timestamp;
 					ThisYear.LowDailyTempRange.Ts = timestamp;
+
+					// reset the ET annual total for Davis WLL stations only
+					// because we mimic the annual total and it is not reset like VP2 stations
+					if (cumulus.StationType == CumulusMX.StationTypes.WLL)
+					{
+						cumulus.LogMessage(" Resetting Annual ET total");
+						AnnualETTotal = 0;
+					}
 				}
 
 				if ((day == 1) && (month == cumulus.RainSeasonStart))

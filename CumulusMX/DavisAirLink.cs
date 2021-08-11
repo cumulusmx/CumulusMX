@@ -395,7 +395,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Error processing temperature value. Error msg: {ex.Message}");
+							cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Error processing temperature value. Error: {ex.Message}");
 						}
 
 

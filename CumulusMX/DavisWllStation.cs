@@ -51,6 +51,7 @@ namespace CumulusMX
 			//cumulus.UseDataLogger = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
 			cumulus.UseCumulusForecast = true;
+			noET = false;
 			// initialise the battery status
 			TxBatText = "1-NA 2-NA 3-NA 4-NA 5-NA 6-NA 7-NA 8-NA";
 
@@ -2164,8 +2165,13 @@ namespace CumulusMX
 						// Is there any ET in this record?
 						if (data11.et != null)
 						{
-							ET += ConvertRainINToUser((double)data11.et);
+							// wl.com ET is only available in record the start of each hour.
+							// The number is the total for the one hour period.
+							// This is unlike the existing VP2 when the ET is an annual running total
+							// So we try and mimic the VP behaviour
+							var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
 							cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+							DoET(newET, recordTs);
 						}
 
 						break;
@@ -2695,8 +2701,13 @@ namespace CumulusMX
 					// Is there any ET in this record?
 					if (data11.et != null)
 					{
-						ET += ConvertRainINToUser((double)data11.et);
-						cumulus.LogDebugMessage($"WLL Health: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+						// wl.com ET is only available in record the start of each hour.
+						// The number is the total for the one hour period.
+						// This is unlike the existing VP2 when the ET is an annual running total
+						// So we try and mimic the VP behaviour
+						var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
+						cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+						DoET(newET, DateTime.Now);
 					}
 				}
 				catch (Exception ex)
@@ -3213,8 +3224,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetSystemStatus:  Exception: " + ex);
-				return;
+				cumulus.LogMessage("GetSystemStatus: Exception: " + ex);
 			}
 
 			return;

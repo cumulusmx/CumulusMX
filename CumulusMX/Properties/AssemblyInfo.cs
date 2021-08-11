@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Cumulus MX BETA")]
-[assembly: AssemblyDescription("Version 3.12.1 - Build 3143 BETA")]
+[assembly: AssemblyTitle("Cumulus MX")]
+[assembly: AssemblyDescription("Version 3.12.1 - Build 3143")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Cumulus MX")]

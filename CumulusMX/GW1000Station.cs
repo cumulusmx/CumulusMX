@@ -52,8 +52,8 @@ namespace CumulusMX
 			CMD_WRITE_USER_PATH = 0x52,
 			// the following commands are only valid for GW1000 and WH2650：
 			CMD_GW1000_LIVEDATA = 0x27, // read current，return size is 2 Byte
-			CMD_GET_SOILHUMIAD = 0x28,// read Soilmoisture Sensor calibration parameter
-			CMD_SET_SOILHUMIAD = 0x29, // write back Soilmoisture Sensor calibration parameter
+			CMD_GET_SOILHUMIAD = 0x28,// read Soil moisture Sensor calibration parameter
+			CMD_SET_SOILHUMIAD = 0x29, // write back Soil moisture Sensor calibration parameter
 			CMD_GET_MulCH_OFFSET = 0x2C, // read multi channel sensor OFFSET value
 			CMD_SET_MulCH_OFFSET = 0x2D, // write back multi sensor OFFSET value
 			CMD_GET_PM25_OFFSET = 0x2E, // read PM2.5OFFSET value
@@ -805,6 +805,7 @@ namespace CumulusMX
 				}
 
 				string batt;
+				double battV;
 				switch (type)
 				{
 					case "WH40":  // WH40 does not send any battery info :(
@@ -821,13 +822,17 @@ namespace CumulusMX
 					case "WH80":
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
-						double battV = data[battPos] * 0.02;
+						battV = data[battPos] * 0.02;
 						batt = $"{battV:f1}V ({TestBattery4S(data[battPos])})";  // volts, low = 1.2V
 						break;
 
 					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
-					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 						batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
+						break;
+
+					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
+						battV = data[battPos] * 0.02;
+						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V or 1.0V??
 						break;
 
 					case "WH25":
@@ -1659,6 +1664,12 @@ namespace CumulusMX
 		{
 			return value * 0.02 > 1.2 ? "OK" : "Low";
 		}
+
+		private static string TestBattery10(byte value)
+		{
+			return value / 10.0 > 1.2 ? "OK" : "Low";
+		}
+
 
 		private static object RawDeserialize(byte[] rawData, int position, Type anyType)
 		{

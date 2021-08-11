@@ -54,6 +54,10 @@ namespace CumulusMX
 			{
 				Start();
 			}
+			else
+			{
+				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
+			}
 		}
 
 		public override void Start()

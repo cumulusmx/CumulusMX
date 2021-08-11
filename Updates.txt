@@ -1,19 +1,21 @@
-3.12.1 - b3143 BETA
+3.12.1 - b3143
 ——————————————
 - Fix: Issues with the temperatures on the Gauges page (and adds Feels like)
 - Fix: Hourly rain value when the rain counter is reset
 - Fix: Limit real time MySQL inserts to 1 minute was not saving correctly
 - Fix: Alarm threshold counts not being saved to Cumulus.ini
 - Fix: Trend values being set to invalid values on new installs
+- Fix: GW1000 station, incorrect decoding of WH51 battery status
+- Fix: Davis WLL ET value for teh day being reset to zero on MX restart
 
-- New: Add HTTP Station type for Ambient consoles or WH2600/Observer IP
+- New: Experimental - Add HTTP Station type for Ambient consoles or WH2600/Observer IP
 	- Set-up your Customized Server in the AWnet app to:
 		Protocol	: Ambient Weather
 		Server 		: <hostname_or_ip_of_CMX>
 		Path		: /station/ambient?
 		Port		: 8998 (or whatever you have configured CMX for)
 		Interval	: 20 (seconds)
-- New: You can now add extra sensors to your existing station using an Ambient console or WH2600/Observer IP.
+- New: Experimental - You can now add extra sensors to your existing station using an Ambient console or WH2600/Observer IP.
 	- Set-up your Customized Server in the AWnet app to:
 		Protocol	: Ambient Weather
 		Server 		: <hostname_or_ip_of_CMX>

@@ -361,11 +361,14 @@ namespace CumulusMX
 					{
 						cumulus.Units.Wind = settings.units.wind;
 						cumulus.ChangeWindUnits();
+						cumulus.WindDPlaces = cumulus.StationOptions.RoundWindSpeed ? 0 : cumulus.WindDPlaceDefaults[cumulus.Units.Wind];
+						cumulus.WindAvgDPlaces = cumulus.WindDPlaces;
 					}
 					if (cumulus.Units.Press != settings.units.pressure)
 					{
 						cumulus.Units.Press = settings.units.pressure;
 						cumulus.ChangePressureUnits();
+						cumulus.PressDPlaces = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
 					}
 					if (cumulus.Units.Temp != settings.units.temp)
 					{
@@ -376,6 +379,7 @@ namespace CumulusMX
 					{
 						cumulus.Units.Rain = settings.units.rain;
 						cumulus.ChangeRainUnits();
+						cumulus.RainDPlaces = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
 				}
 				catch (Exception ex)
@@ -436,6 +440,14 @@ namespace CumulusMX
 						if (cumulus.DavisOptions.ConnectionType == 0)
 						{
 							cumulus.ComportName = settings.station.davisvp2.comportname;
+						}
+
+						// set defaults for Davis
+						cumulus.UVdecimals = 1;
+
+						if (settings.units.rain == 1)
+						{
+							cumulus.RainDPlaces = 2;
 						}
 					}
 				}

@@ -735,7 +735,7 @@ namespace CumulusMX
 			"HTTP WUnderground", "HTTP Ecowitt", "HTTP Ambient"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "Instromet", "DsVP", "Ecowitt", "Ambient" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt" };
 
 		public string loggingfile;
 
@@ -3886,17 +3886,6 @@ namespace CumulusMX
 
 			PeakGustTime = new TimeSpan(StationOptions.PeakGustMinutes / 60, StationOptions.PeakGustMinutes % 60, 0);
 
-			if ((StationType == StationTypes.VantagePro) || (StationType == StationTypes.VantagePro2))
-			{
-				UVdecimaldefault = 1;
-			}
-			else
-			{
-				UVdecimaldefault = 0;
-			}
-
-			UVdecimals = ini.GetValue("Station", "UVdecimals", UVdecimaldefault);
-
 			StationOptions.NoSensorCheck = ini.GetValue("Station", "NoSensorCheck", false);
 
 			StationOptions.CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
@@ -3956,11 +3945,15 @@ namespace CumulusMX
 			WindRunDPlaces = ini.GetValue("Station", "WindRunDecimals", WindRunDPlaces);
 			SunshineDPlaces = ini.GetValue("Station", "SunshineHrsDecimals", 1);
 
-			if ((StationType == 0 || StationType == 1) && DavisOptions.IncrementPressureDP)
+			if (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2)
 			{
 				// Use one more DP for Davis stations
-				++PressDPlaces;
+				if (DavisOptions.IncrementPressureDP)
+				{
+					++PressDPlaces;
+				}
 			}
+
 			PressDPlaces = ini.GetValue("Station", "PressDecimals", PressDPlaces);
 			RainDPlaces = ini.GetValue("Station", "RainDecimals", RainDPlaces);
 			TempDPlaces = ini.GetValue("Station", "TempDecimals", TempDPlaces);
@@ -4074,7 +4067,6 @@ namespace CumulusMX
 			//RTdisconnectcount = ini.GetValue("Station", "RTdisconnectcount", 0);
 
 			WMR928TempChannel = ini.GetValue("Station", "WMR928TempChannel", 0);
-
 			WMR200TempChannel = ini.GetValue("Station", "WMR200TempChannel", 1);
 
 			// WeatherLink Live device settings
@@ -6359,8 +6351,6 @@ namespace CumulusMX
 		public int DataLogInterval { get; set; }
 
 		public int UVdecimals { get; set; }
-
-		public int UVdecimaldefault { get; set; }
 
 		public string LonTxt { get; set; }
 
