@@ -18,13 +18,15 @@ namespace CumulusMX
 			cumulus.AirQualityUnitText = "µg/m³";
 			cumulus.SoilMoistureUnitText = "%";
 
+			// Wunderground does not send the rain rate, so we will calculate it
+			calculaterainrate = true;
+
 			Start();
 		}
 
 		public override void Start()
 		{
 			DoDayResetIfNeeded();
-			DoTrendValues(DateTime.Now);
 			timerStartNeeded = true;
 		}
 
@@ -62,24 +64,8 @@ namespace CumulusMX
 
 				var data = context.Request.QueryString;
 
-				var dat = data["dateutc"];
-
-				if (dat == null)
-				{
-					cumulus.LogMessage($"ProcessData: Error, no 'dateutc' parameter found");
-					context.Response.StatusCode = 500;
-					return "{\"result\":\"Failed\",\"Errors\":[\"No 'dateutc' parameter found\"]}";
-				}
-				else if (dat == "now")
-				{
-					recDate = DateTime.Now;
-				}
-				else
-				{
-					dat = dat.Replace(' ', 'T') + ".00000Z";
-					recDate = DateTime.ParseExact(dat, "u", CultureInfo.InvariantCulture);
-				}
-
+				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
+				recDate = DateTime.Now;
 
 				// === Wind ===
 				try
@@ -236,16 +222,14 @@ namespace CumulusMX
 					// dailyrainin - [rain inches so far today in local time]
 
 					var rain = data["dailyrainin"];
-					var rHour = data["rainin"]; //- User rain in last hour as rainfall rate
 
-					if (rain == null || rHour == null || rain == "-9999" || rHour == "-9999")
+					if (rain == null || rain == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing rainfall");
 					}
 					else
 					{
 						var rainVal = ConvertRainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
-						var rateVal = ConvertRainINToUser(Convert.ToDouble(rHour, CultureInfo.InvariantCulture));
 
 						if (rainVal < previousRainCount)
 						{
@@ -254,7 +238,7 @@ namespace CumulusMX
 							previousRainCount = rainVal;
 						}
 
-						DoRain(rainCount + rainVal, rateVal, recDate);
+						DoRain(rainCount + rainVal, 0, recDate);
 
 					}
 				}
@@ -272,7 +256,12 @@ namespace CumulusMX
 					// dewptf - [F outdoor dewpoint F]
 
 					var dewpnt = data["dewptf"];
-					if (dewpnt == null || dewpnt == "-9999")
+
+					if (cumulus.StationOptions.CalculatedDP)
+					{
+						DoOutdoorDewpoint(0, recDate);
+					}
+					else if (dewpnt == null || dewpnt == "-9999")
 					{
 						cumulus.LogMessage($"ProcessData: Error, missing dew point");
 					}

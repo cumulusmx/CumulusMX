@@ -139,15 +139,22 @@ namespace CumulusMX
 			var templateObj = templateText.FromJson<MqttTemplate>();
 
 			// process each of the topics in turn
-			foreach(var feed in templateObj.topics)
+			try
 			{
-				var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
-				mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
-				mqttTokenParser.InputText = feed.data;
-				string message = mqttTokenParser.ToStringFromString();
+				foreach (var feed in templateObj.topics)
+				{
+					var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
+					mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
+					mqttTokenParser.InputText = feed.data;
+					string message = mqttTokenParser.ToStringFromString();
 
-				// send the message
-				_ = SendMessageAsync(feed.topic, message, feed.retain);
+					// send the message
+					_ = SendMessageAsync(feed.topic, message, feed.retain);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"UpdateMQTTfeed: Error process the template file [{template}], error = {ex.Message}");
 			}
 		}
 	}

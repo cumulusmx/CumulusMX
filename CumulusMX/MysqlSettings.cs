@@ -43,7 +43,7 @@ namespace CumulusMX
 				retentionVal = retenVal,
 				retentionUnit = retenUnit,
 				table = cumulus.MySqlSettings.Realtime.TableName,
-				limit1min = cumulus.MySqlSettings.RealtimeLimit1Minute && cumulus.RealtimeInterval > 60000  // do not enable if real time interval is greater than 1 minute
+				limit1min = cumulus.MySqlSettings.RealtimeLimit1Minute && cumulus.RealtimeInterval < 60000  // do not enable if real time interval is greater than 1 minute
 			};
 
 			var dayfile = new JsonMysqlSettingsDayfile()

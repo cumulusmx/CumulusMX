@@ -30,6 +30,8 @@ namespace CumulusMX
 		internal static HttpStationWund stationWund;
 		internal static HttpStationEcowitt stationEcowitt;
 		internal static HttpStationEcowitt stationEcowittExtra;
+		internal static HttpStationAmbient stationAmbient;
+		internal static HttpStationAmbient stationAmbientExtra;
 
 
 		private static string EscapeUnicode(string input)
@@ -1113,6 +1115,29 @@ namespace CumulusMX
 								Response.StatusCode = 500;
 								return await this.StringResponseAsync("HTTP Station (Wunderground) is not running");
 							}
+
+						case "ambient":
+							if (stationAmbient != null)
+							{
+								return await this.StringResponseAsync(stationAmbient.ProcessData(this));
+							}
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Ambient) is not running");
+							}
+
+						case "ambientextra":
+							if (stationAmbientExtra != null)
+							{
+								return await this.StringResponseAsync(stationAmbient.ProcessExtraData(this));
+							}
+							else
+							{
+								Response.StatusCode = 500;
+								return await this.StringResponseAsync("HTTP Station (Ambient) is not running");
+							}
+
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
