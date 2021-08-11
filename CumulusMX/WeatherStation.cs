@@ -14,12 +14,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
-using MySqlConnector;
 using SQLite;
 using Timer = System.Timers.Timer;
 using ServiceStack.Text;
 using System.Web;
-using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -3525,7 +3523,7 @@ namespace CumulusMX
 
 			if ((CurrentDay != readingTS.Day) || (CurrentMonth != readingTS.Month) || (CurrentYear != readingTS.Year))
 			{
-				// A reading has apparently arrived at the start of a new day, but before we have done the rollover
+				// A reading has apparently arrived at the start of a new day, but before we have done the roll-over
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
 				return;
 			}
@@ -3588,8 +3586,9 @@ namespace CumulusMX
 			}
 
 			// Has the rain total in the station been reset?
+			// Or has it incremented by a large value?
 			// raindaystart greater than current total, allow for rounding
-			if (raindaystart - Raincounter > 0.1)
+			if (raindaystart - Raincounter > 0.1 || Raincounter - raindaystart > 50)
 			{
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value
@@ -3603,6 +3602,10 @@ namespace CumulusMX
 
 					midnightraincount = Raincounter;
 
+					// update any data in the recent data db
+					var counterChange = Raincounter - prevraincounter;
+					RecentDataDb.Execute("update RecentData set raincounter=raincounter+?", counterChange);
+
 					FirstChanceRainReset = false;
 				}
 				else
@@ -3612,6 +3615,9 @@ namespace CumulusMX
 					// reset the counter to ignore this reading
 					Raincounter = previoustotal;
 					cumulus.LogMessage("Leaving counter at " + Raincounter);
+
+					// stash the previous rain counter
+					prevraincounter = Raincounter;
 
 					FirstChanceRainReset = true;
 				}
@@ -5007,6 +5013,14 @@ namespace CumulusMX
 					ThisYear.LongestWetPeriod.Ts = timestamp;
 					ThisYear.HighDailyTempRange.Ts = timestamp;
 					ThisYear.LowDailyTempRange.Ts = timestamp;
+
+					// reset the ET annual total for Davis WLL stations only
+					// because we mimic the annual total and it is not reset like VP2 stations
+					if (cumulus.StationType == CumulusMX.StationTypes.WLL)
+					{
+						cumulus.LogMessage(" Resetting Annual ET total");
+						AnnualETTotal = 0;
+					}
 				}
 
 				if ((day == 1) && (month == cumulus.RainSeasonStart))
@@ -6073,91 +6087,104 @@ namespace CumulusMX
 
 		public void DoTrendValues(DateTime ts)
 		{
+			List<RecentData> retVals;
+			double trendval;
 
 			try
 			{
-				// calculate and display the temp trend
+				// Do 3 hour trends
+				retVals = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=? order by Timestamp", ts.AddHours(-3));
 
-				double firstval = RecentDataDb.ExecuteScalar<double>("select OutsideTemp from RecentData where Timestamp >=?", ts.AddHours(-3));
-
-				double trendval = (OutdoorTemperature - firstval) / 3.0F;
-
-				temptrendval = trendval;
-
-				cumulus.TempChangeAlarm.UpTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.Value, cumulus.TempChangeAlarm.Enabled, true);
-				cumulus.TempChangeAlarm.DownTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.Value * -1, cumulus.TempChangeAlarm.Enabled, false);
-
-
-				firstval = RecentDataDb.ExecuteScalar<double>("select OutsideTemp from RecentData where Timestamp >=?", ts.AddHours(-1));
-
-				TempChangeLastHour = OutdoorTemperature - firstval;
-
-				// calculate and display rainfall in last hour
-				firstval = RecentDataDb.ExecuteScalar<double>("select raincounter from RecentData where Timestamp >=?", ts.AddHours(-1));
-
-				if (Raincounter < firstval)
+				if (retVals.Count > 1)
 				{
-					// rain total has gone down, assume it was reset to zero, just use zero
-					trendval = 0;
+					// calculate and display the temp trend
+					temptrendval = (retVals.Last().OutsideTemp - retVals.First().OutsideTemp) / 3.0F;
+					cumulus.TempChangeAlarm.UpTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.Value, cumulus.TempChangeAlarm.Enabled, true);
+					cumulus.TempChangeAlarm.DownTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.Value * -1, cumulus.TempChangeAlarm.Enabled, false);
+
+
+					// calculate and display the pressure trend
+					presstrendval = (retVals.Last().Pressure - retVals.First().Pressure) / 3.0;
+					cumulus.PressChangeAlarm.UpTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.Value, cumulus.PressChangeAlarm.Enabled, true);
+					cumulus.PressChangeAlarm.DownTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.Value * -1, cumulus.PressChangeAlarm.Enabled, false);
+
+					// Convert for display
+					//trendval = ConvertPressMBToUser(presstrendval);
 				}
 				else
 				{
-					// normal case
-					trendval = Raincounter - firstval;
+					temptrendval = 0;
+					presstrendval = 0;
 				}
 
-				// Round value as some values may have been read from log file and already rounded
-				trendval = Math.Round(trendval, cumulus.RainDPlaces);
+				// Do 1 hour trends
+				retVals = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=? order by Timestamp", ts.AddHours(-1));
 
-				var tempRainLastHour = trendval * cumulus.Calib.Rain.Mult;
-
-				if (tempRainLastHour > cumulus.Spike.MaxHourlyRain)
+				if (retVals.Count > 1)
 				{
-					// ignore
+					// Calculate Temperature change in the last hour
+					TempChangeLastHour = retVals.Last().OutsideTemp - retVals.First().OutsideTemp;
+
+
+					// calculate and display rainfall in last hour
+					if (Raincounter < retVals[0].raincounter)
+					{
+						// rain total is not available or has gone down, assume it was reset to zero, just use zero
+						RainLastHour = 0;
+					}
+					else
+					{
+						// normal case
+						trendval = retVals.Last().raincounter - retVals.First().raincounter;
+
+						// Round value as some values may have been read from log file and already rounded
+						trendval = Math.Round(trendval, cumulus.RainDPlaces);
+
+						var tempRainLastHour = trendval * cumulus.Calib.Rain.Mult;
+
+						if (tempRainLastHour > cumulus.Spike.MaxHourlyRain)
+						{
+							// ignore
+						}
+						else
+						{
+							RainLastHour = tempRainLastHour;
+
+							if (RainLastHour > AllTime.HourlyRain.Val)
+								SetAlltime(AllTime.HourlyRain, RainLastHour, ts);
+
+							CheckMonthlyAlltime("HourlyRain", RainLastHour, true, ts);
+
+							if (RainLastHour > HiLoToday.HighHourlyRain)
+							{
+								HiLoToday.HighHourlyRain = RainLastHour;
+								HiLoToday.HighHourlyRainTime = ts;
+								WriteTodayFile(ts, false);
+							}
+
+							if (RainLastHour > ThisMonth.HourlyRain.Val)
+							{
+								ThisMonth.HourlyRain.Val = RainLastHour;
+								ThisMonth.HourlyRain.Ts = ts;
+								WriteMonthIniFile();
+							}
+
+							if (RainLastHour > ThisYear.HourlyRain.Val)
+							{
+								ThisYear.HourlyRain.Val = RainLastHour;
+								ThisYear.HourlyRain.Ts = ts;
+								WriteYearIniFile();
+							}
+						}
+					}
+
 				}
 				else
 				{
-					RainLastHour = tempRainLastHour;
-
-					if (RainLastHour > AllTime.HourlyRain.Val)
-						SetAlltime(AllTime.HourlyRain, RainLastHour, ts);
-
-					CheckMonthlyAlltime("HourlyRain", RainLastHour, true, ts);
-
-					if (RainLastHour > HiLoToday.HighHourlyRain)
-					{
-						HiLoToday.HighHourlyRain = RainLastHour;
-						HiLoToday.HighHourlyRainTime = ts;
-						WriteTodayFile(ts, false);
-					}
-
-					if (RainLastHour > ThisMonth.HourlyRain.Val)
-					{
-						ThisMonth.HourlyRain.Val = RainLastHour;
-						ThisMonth.HourlyRain.Ts = ts;
-						WriteMonthIniFile();
-					}
-
-					if (RainLastHour > ThisYear.HourlyRain.Val)
-					{
-						ThisYear.HourlyRain.Val = RainLastHour;
-						ThisYear.HourlyRain.Ts = ts;
-						WriteYearIniFile();
-					}
+					TempChangeLastHour = 0;
+					RainLastHour = 0;
 				}
 
-				// calculate and display the pressure trend
-
-				firstval = RecentDataDb.ExecuteScalar<double>("select Pressure from RecentData where Timestamp >=?", ts.AddHours(-3));
-
-				// save pressure trend in internal units
-				presstrendval = (Pressure - firstval) / 3.0;
-
-				cumulus.PressChangeAlarm.UpTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.Value, cumulus.PressChangeAlarm.Enabled, true);
-				cumulus.PressChangeAlarm.DownTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.Value * -1, cumulus.PressChangeAlarm.Enabled, false);
-
-				// Convert for display
-				trendval = ConvertPressMBToUser(presstrendval);
 
 				if (calculaterainrate)
 				{
@@ -6166,13 +6193,13 @@ namespace CumulusMX
 					DateTime fiveminutesago = ts.AddSeconds(-330);
 
 
-					var fiveminutedata = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ?", fiveminutesago);
+					var fiveminutedata = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp", fiveminutesago);
 
 					if (fiveminutedata.Count() > 1)
 					{
 						// we have at least two values to compare
 
-						TimeSpan span = fiveminutedata[fiveminutedata.Count - 1].Timestamp.Subtract(fiveminutedata[0].Timestamp);
+						TimeSpan span = fiveminutedata.Last().Timestamp.Subtract(fiveminutedata.First().Timestamp);
 
 						double timediffhours = span.TotalHours;
 
@@ -6234,22 +6261,21 @@ namespace CumulusMX
 							}
 						}
 					}
+					else
+					{
+						RainRate = 0;
+					}
 				}
+
+
 
 				// calculate and display rainfall in last 24 hour
 				var onedayago = ts.AddDays(-1);
-				var result = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", onedayago);
+				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp", onedayago);
 
-				if (result.Count == 0)
+				if (retVals.Count > 1)
 				{
-					// Unable to retrieve rain counter from 24 hours ago
-					trendval = 0;
-				}
-				else
-				{
-					firstval = result[0].raincounter;
-
-					trendval = Raincounter - firstval;
+					trendval = retVals.Last().raincounter - retVals.First().raincounter;
 					// Round value as some values may have been read from log file and already rounded
 					trendval = Math.Round(trendval, cumulus.RainDPlaces);
 
@@ -6257,9 +6283,14 @@ namespace CumulusMX
 					{
 						trendval = 0;
 					}
-				}
 
-				RainLast24Hour = trendval * cumulus.Calib.Rain.Mult;
+					RainLast24Hour = trendval * cumulus.Calib.Rain.Mult;
+				}
+				else
+				{
+					// Unable to retrieve rain counter from 24 hours ago
+					RainLast24Hour = 0;
+				}
 			}
 			catch (Exception e)
 			{

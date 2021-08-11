@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
-using System.IO.Ports;
 using System.Linq;
 using System.Timers;
 using System.Net.Http;
 using Tmds.MDns;
 using System.Net;
-//using System.Security.Cryptography;
 using System.ComponentModel;
 using System.Collections.Generic;
 using ServiceStack;
@@ -397,7 +395,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Error processing temperature value. Error msg: {ex.Message}");
+							cumulus.LogDebugMessage($"DecodeAlCurrent: {locationStr} - Error processing temperature value. Error: {ex.Message}");
 						}
 
 

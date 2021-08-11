@@ -1012,11 +1012,14 @@ namespace CumulusMX
 					{
 						cumulus.Units.Wind = settings.general.units.wind;
 						cumulus.ChangeWindUnits();
+						cumulus.WindDPlaces = cumulus.StationOptions.RoundWindSpeed ? 0 : cumulus.WindDPlaceDefaults[cumulus.Units.Wind];
+						cumulus.WindAvgDPlaces = cumulus.WindDPlaces;
 					}
 					if (cumulus.Units.Press != settings.general.units.pressure)
 					{
 						cumulus.Units.Press = settings.general.units.pressure;
 						cumulus.ChangePressureUnits();
+						cumulus.PressDPlaces = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
 					}
 					if (cumulus.Units.Temp != settings.general.units.temp)
 					{
@@ -1027,19 +1030,10 @@ namespace CumulusMX
 					{
 						cumulus.Units.Rain = settings.general.units.rain;
 						cumulus.ChangeRainUnits();
+						cumulus.RainDPlaces = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
 
 					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
-
-					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
-					cumulus.PressDPlaces = settings.general.units.advanced.pressdp;
-					cumulus.RainDPlaces = settings.general.units.advanced.raindp;
-					cumulus.SunshineDPlaces = settings.general.units.advanced.sunshinedp;
-					cumulus.TempDPlaces = settings.general.units.advanced.tempdp;
-					cumulus.UVDPlaces = settings.general.units.advanced.uvdp;
-					cumulus.WindAvgDPlaces = settings.general.units.advanced.windavgdp;
-					cumulus.WindDPlaces = settings.general.units.advanced.winddp;
-					cumulus.WindRunDPlaces = settings.general.units.advanced.windrundp;
 				}
 				catch (Exception ex)
 				{
