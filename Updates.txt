@@ -6,7 +6,7 @@
 - Fix: Alarm threshold counts not being saved to Cumulus.ini
 - Fix: Trend values being set to invalid values on new installs
 - Fix: GW1000 station, incorrect decoding of WH51 battery status
-- Fix: Davis WLL ET value for teh day being reset to zero on MX restart
+- Fix: Davis WLL ET value for the day being reset to zero on MX restart
 
 - New: Experimental - Add HTTP Station type for Ambient consoles or WH2600/Observer IP
 	- Set-up your Customized Server in the AWnet app to:
@@ -27,7 +27,7 @@
 
 - Change: Removes the restriction that you could not add Ecowitt Extra sensors to an Ecowitt main station
 - Change: The Calibration Settings page has been re-organised
-- Change: Settings screen more compact for mobbile screens, added Aria screen reader attributes to Internet Settings
+- Change: Settings screen more compact for mobile screens, added Aria screen reader attributes to Internet Settings
 
 - Summary of Cumulus.ini changes:
 	>> NEW >>
