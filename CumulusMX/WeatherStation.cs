@@ -5216,6 +5216,9 @@ namespace CumulusMX
 				HiLoToday.HighHumidex = Humidex;
 				HiLoToday.HighHumidexTime = timestamp;
 
+				// Lightning
+                LightningStrikesToday = 0;
+
 				// Save the current values in case of program restart
 				WriteTodayFile(timestamp, true);
 				WriteYesterdayFile();

@@ -522,6 +522,7 @@ namespace CumulusMX
 		public FineOffsetOptions FineOffsetOptions = new FineOffsetOptions();
 		public ImetOptions ImetOptions = new ImetOptions();
 		public EasyWeatherOptions EwOptions = new EasyWeatherOptions();
+        public WeatherFlowOptions WeatherFlowOptions = new WeatherFlowOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
 
@@ -732,10 +733,10 @@ namespace CumulusMX
 		{
 			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
 			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000",
-			"HTTP WUnderground", "HTTP Ecowitt", "HTTP Ambient"
+			"HTTP WUnderground", "HTTP Ecowitt", "HTTP Ambient", "WeatherFlow Tempest"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt" };
 
 		public string loggingfile;
 
@@ -1455,6 +1456,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
+                case StationTypes.Tempest:
+                    Manufacturer = WEATHERFLOW;
+                    station = new TempestStation(this);
+                    break;
 				case StationTypes.HttpWund:
 					Manufacturer = HTTPSTATION;
 					station = new HttpStationWund(this);
@@ -3808,6 +3813,12 @@ namespace CumulusMX
 			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+
+            WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+            WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
+            WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
+            WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0);
+
 			//VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
 			DavisOptions.PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
@@ -5156,6 +5167,13 @@ namespace CumulusMX
 			ini.SetValue("Station", "RG11IgnoreFirst2", RG11IgnoreFirst2);
 			ini.SetValue("Station", "RG11DTRmode2", RG11DTRmode2);
 
+			// WeatherFlow Options
+			ini.SetValue("Station", "WeatherFlowDeviceId", WeatherFlowOptions.WFDeviceId);
+			ini.SetValue("Station", "WeatherFlowTcpPort", WeatherFlowOptions.WFTcpPort);
+			ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
+			ini.SetValue("Station", "WeatherFlowDaysHist", WeatherFlowOptions.WFDaysHist);
+
+			
 			// WeatherLink Live device settings
 			ini.SetValue("WLL", "AutoUpdateIpAddress", WLLAutoUpdateIpAddress);
 			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
@@ -6451,6 +6469,7 @@ namespace CumulusMX
 		public int ECOWITT = 6;
 		public int HTTPSTATION = 7;
 		public int AMBIENT = 8;
+		public int WEATHERFLOW = 9;
 
 		//public bool startingup = true;
 		public string ReportPath;
@@ -10290,6 +10309,7 @@ namespace CumulusMX
 		public const int HttpWund = 13;
 		public const int HttpEcowitt = 14;
 		public const int HttpAmbient = 15;
+		public const int Tempest = 16;
 	}
 
 	/*
@@ -10463,6 +10483,15 @@ namespace CumulusMX
 		public string IPAddr { get; set; }
 		public int PeriodicDisconnectInterval { get; set; }
 	}
+
+    public class WeatherFlowOptions
+    {
+        public int WFDeviceId { get; set; }
+        public int WFTcpPort { get; set; }
+        public string WFToken { get; set; }
+		public int WFDaysHist { get; set; }
+
+    }
 
 	public class FineOffsetOptions
 	{

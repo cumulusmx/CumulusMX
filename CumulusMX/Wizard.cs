@@ -80,6 +80,9 @@ namespace CumulusMX
 				}
 			};
 
+			var weatherflow = new JsonStationSettingsWeatherFlow()
+				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
+
 			var gw1000 = new JSonStationSettingsGw1000Conn()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
@@ -121,7 +124,8 @@ namespace CumulusMX
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
-				wmr928 = wmr
+				wmr928 = wmr,
+				weatherflow = weatherflow
 			};
 
 			var copy = new JsonWizardInternetCopy()
@@ -506,6 +510,25 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// weatherflow connection details
+				try
+				{
+					if (settings.station.weatherflow != null)
+					{
+						cumulus.WeatherFlowOptions.WFDeviceId = settings.station.weatherflow.deviceid;
+						cumulus.WeatherFlowOptions.WFTcpPort = settings.station.weatherflow.tcpport;
+						cumulus.WeatherFlowOptions.WFToken = settings.station.weatherflow.token;
+						cumulus.WeatherFlowOptions.WFDaysHist = settings.station.weatherflow.dayshistory;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = $"Error processing WeatherFlow settings: {ex.Message}";
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+				
 				// FineOffset
 				try
 				{
@@ -650,6 +673,7 @@ namespace CumulusMX
 		public JsonWizardEasyWeather easyw { get; set; }
 		public JsonWizardImet imet { get; set; }
 		public JsonStationSettingsWMR928 wmr928 { get; set; }
+		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 	}
 
 	internal class JsonWizardDavisVp

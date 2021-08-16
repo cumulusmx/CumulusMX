@@ -229,6 +229,7 @@
     <Compile Include="StationSettings.cs" />
     <Compile Include="SunriseSunset.cs" />
     <Compile Include="ThirdPartySettings.cs" />
+    <Compile Include="TempestStation.cs" />
     <Compile Include="TokenParser.cs" />
     <Compile Include="Trig.cs" />
     <Compile Include="DavisStation.cs" />
