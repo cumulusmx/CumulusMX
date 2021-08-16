@@ -818,8 +818,6 @@ namespace CumulusMX
 						batt = TestBattery1(data[battPos], 1);  // 0 or 1
 						break;
 
-					case "WH68":
-					case "WH80":
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 						battV = data[battPos] * 0.02;
@@ -830,6 +828,7 @@ namespace CumulusMX
 						batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
 						break;
 
+					case "WH68":
 					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V or 1.0V??
@@ -841,6 +840,11 @@ namespace CumulusMX
 					case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
 					case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
 						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5, low = 1
+						break;
+
+					case "WH80":
+					case "WS80":
+						batt = $"{data[battPos]} ({TestBattery100(data[battPos])})"; // Percent low = 20
 						break;
 
 					default:
@@ -1668,6 +1672,11 @@ namespace CumulusMX
 		private static string TestBattery10(byte value)
 		{
 			return value / 10.0 > 1.2 ? "OK" : "Low";
+		}
+
+		private static string TestBattery100(byte value)
+		{
+			return value >= 20 ? "OK" : "Low";
 		}
 
 
