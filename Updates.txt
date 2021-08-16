@@ -1,3 +1,10 @@
+3.12.2 - b3144
+——————————————
+- Fix: Realtime FTP, now correctly clears the RT FTP in progress flag
+
+- Change: Davis WLL, low battery warning for WLL device changed from 5.2 to 5.4V (1.35v per cell)
+
+
 3.12.1 - b3143
 ——————————————
 - Fix: Issues with the temperatures on the Gauges page (and adds Feels like)

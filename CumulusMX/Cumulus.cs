@@ -2904,7 +2904,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								LogMessage("RealtimeReconnect: Realtime ftp connection test found Present Working Directory OK");
+								LogMessage($"RealtimeReconnect: Realtime ftp connection test found Present Working Directory OK - [{pwd}]");
 							}
 						}
 						catch (Exception ex)
@@ -2927,6 +2927,7 @@ namespace CumulusMX
 				// OK we are reconnected, let the FTP recommence
 				RealtimeFtpReconnecting = false;
 				realtimeFTPRetries = 0;
+				RealtimeCopyInProgress = false;
 				LogMessage("RealtimeReconnect: Realtime FTP now connected to server (tested)");
 				LogMessage("RealtimeReconnect: Realtime FTP operations will be restarted");
 			});
