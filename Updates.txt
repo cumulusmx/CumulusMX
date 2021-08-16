@@ -1,6 +1,7 @@
 3.12.2 - b3144
 ——————————————
 - Fix: Realtime FTP, now correctly clears the RT FTP in progress flag
+- Fix: Station Settings, Units, Advanced not being saved correctly
 
 - Change: Davis WLL, low battery warning for WLL device changed from 5.2 to 5.4V (1.35v per cell)
 
