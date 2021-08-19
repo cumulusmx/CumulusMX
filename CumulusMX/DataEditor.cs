@@ -3242,6 +3242,7 @@ namespace CumulusMX
 			if (newData.action == "Edit")
 			{
 				// replace the edited line
+				var orgLine = lines[lineNum];
 				var newLine = string.Join(cumulus.ListSeparator, newData.data);
 
 				lines[lineNum] = newLine;
@@ -3253,10 +3254,16 @@ namespace CumulusMX
 
 					// write dayfile back again
 					File.WriteAllLines(cumulus.DayFileName, lines);
+					cumulus.LogMessage($"EditDayFile: Changed dayfile line {lineNum + 1}, original = {orgLine}");
+					cumulus.LogMessage($"EditDayFile: Changed dayfile line {lineNum + 1},      new = {newLine}");
 				}
 				catch
 				{
-					return "{\"result\":\"Failed, new data does not match required values\"}";
+					cumulus.LogMessage("EditDayFile: Failed, new data does not match required values");
+					cumulus.LogMessage("EditDayFile: Data received - " + newLine);
+					context.Response.StatusCode = 500;
+
+					return "{\"errors\":{\"Logfile\":[\"<br>Failed, new data does not match required values\"]}}";
 				}
 
 				// Update the MySQL record
@@ -3267,6 +3274,8 @@ namespace CumulusMX
 					cumulus.MySqlSettings.UpdateOnEdit
 					)
 				{
+					var updateStr = "";
+
 					try
 					{
 						var InvC = new CultureInfo("");
@@ -3328,12 +3337,20 @@ namespace CumulusMX
 						updt.Append($"TMaxHumidex={station.DayFile[lineNum].HighFeelsLikeTime:\\'HH:mm\\'} ");
 
 						updt.Append($"WHERE LogDate={station.DayFile[lineNum].Date:yy-MM-dd};");
+						updateStr = updt.ToString();
 
-						cumulus.MySqlCommandSync(updt.ToString(), "EditDayFile");
+						cumulus.MySqlCommandSync(updateStr, "EditDayFile");
+						cumulus.LogMessage($"EditDayFile: SQL Updated");
 					}
-					catch
+					catch (Exception ex)
 					{
-						return "{\"result\":\"Updated the dayfile OK, but failed, to update MySQL\"}";
+						cumulus.LogMessage($"EditDayFile: Failed, to update MySQL. Error = {ex.Message}");
+						cumulus.LogMessage($"EditDayFile: SQL Update statement = {updateStr}");
+						context.Response.StatusCode = 501;  // Use 501 to signal that SQL failed but file update was OK
+						var thisrec = new List<string>(newData.data);
+						thisrec.Insert(0, newData.line.ToString());
+
+						return "{\"errors\":{\"Dayfile\":[\"<br>Updated the dayfile OK\"], \"MySQL\":[\"<br>Failed to update MySQL\"]}, \"data\":" + thisrec.ToJson() + "}";
 					}
 				}
 
@@ -3344,23 +3361,38 @@ namespace CumulusMX
 				var lineData = lines[lineNum].Split(cumulus.ListSeparator.ToCharArray()[0]);
 				if (lineData[0] == newData.data[0])
 				{
-					lines.RemoveAt(lineNum);
-					// Update the in memory record
-					station.DayFile.RemoveAt(lineNum);
+					var thisrec = new List<string>(newData.data);
+					thisrec.Insert(0, newData.line.ToString());
 
-					// write dayfile back again
-					File.WriteAllLines(cumulus.DayFileName, lines);
+					try
+					{
+						lines.RemoveAt(lineNum);
+						// Update the in memory record
+						station.DayFile.RemoveAt(lineNum);
+
+						// write dayfile back again
+						File.WriteAllLines(cumulus.DayFileName, lines);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"EditDayFile: Entry deletion failed. Error = - " + ex.Message);
+						cumulus.LogMessage($"EditDayFile: Entry data = " + thisrec.ToJson());
+						context.Response.StatusCode = 500;
+						return "{\"errors\":{\"Logfile\":[\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
+					}
 				}
 				else
 				{
-					//throw("Failed, line to delete does not match the file contents");
-					return "{\"result\":\"Failed, line to delete does not match the file contents\"}";
+					cumulus.LogMessage($"EditDayFile: Entry deletion failed. Line to delete does not match the file contents");
+					context.Response.StatusCode = 500;
+					return "{\"errors\":{\"Logfile\":[\"<br>Failed, line to delete does not match the file contents\"]}}";
 				}
 			}
 			else
 			{
-				//throw("Failed, unrecognised action");
-				return "{\"result\":\"Failed, unrecognised action\"}";
+				cumulus.LogMessage($"EditDayFile: Unrecognised action = " + newData.action);
+				context.Response.StatusCode = 500;
+				return "{\"errors\":{\"Logfile\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
 			}
 
 			// return the updated record
@@ -3404,11 +3436,28 @@ namespace CumulusMX
 			if (newData.action == "Edit")
 			{
 				// replace the edited line
+				var orgLine = lines[lineNum];
 				var newLine = String.Join(cumulus.ListSeparator, newData.data);
+
 				lines[lineNum] = newLine;
 
-				// write logfile back again
-				File.WriteAllLines(logfile, lines);
+				try
+				{
+					// write logfile back again
+					File.WriteAllLines(logfile, lines);
+					cumulus.LogMessage($"EditDataLog: Changed Log file [{logfile}] line {lineNum + 1}, original = {orgLine}");
+					cumulus.LogMessage($"EditDataLog: Changed Log file [{logfile}] line {lineNum + 1},      new = {newLine}");
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("EditDataLog: Failed, error = " + ex.Message);
+					cumulus.LogMessage("EditDataLog: Data received - " + newLine);
+					context.Response.StatusCode = 500;
+
+					return "{\"errors\":{\"Logfile\":[\"<br>Failed to update, error = " + ex.Message + "\"]}}";
+				}
+
+
 
 				// Update the MySQL record
 				if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
@@ -3421,6 +3470,8 @@ namespace CumulusMX
 					// Only the monthly log file is stored in MySQL
 					if (!newData.extra)
 					{
+						var updateStr = "";
+
 						try
 						{
 							var InvC = new CultureInfo("");
@@ -3460,12 +3511,21 @@ namespace CumulusMX
 							updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
 
 							updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
+							updateStr = updt.ToString();
 
-							cumulus.MySqlCommandSync(updt.ToString(), "EditLogFile");
+
+							cumulus.MySqlCommandSync(updateStr, "EditLogFile");
+							cumulus.LogMessage($"EditDataLog: SQL Updated");
 						}
-						catch
+						catch (Exception ex)
 						{
-							return "{\"result\":\"Log file updated OK, but failed, to update MySQL\"}";
+							cumulus.LogMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
+							cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
+							context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
+							var thisrec = new List<string>(newData.data);
+							thisrec.Insert(0, newData.line.ToString());
+
+							return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }, \"data\":" + thisrec.ToJson() + "}";
 						}
 
 					}
@@ -3477,14 +3537,29 @@ namespace CumulusMX
 				var lineData = lines[lineNum].Split(cumulus.ListSeparator.ToCharArray()[0]);
 				if (lineData[0] == newData.data[0])
 				{
-					lines.RemoveAt(lineNum);
-					// write logfile back again
-					File.WriteAllLines(logfile, lines);
+					var thisrec = new List<string>(newData.data);
+					thisrec.Insert(0, newData.line.ToString());
+
+					try
+					{
+						lines.RemoveAt(lineNum);
+						// write logfile back again
+						File.WriteAllLines(logfile, lines);
+						cumulus.LogMessage($"EditDataLog: Entry deleted - " + thisrec.ToJson());
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"EditDataLog: Entry deletion failed. Error = - " + ex.Message);
+						cumulus.LogMessage($"EditDataLog: Entry data = - " + thisrec.ToJson());
+						context.Response.StatusCode = 500;
+						return "{\"errors\": { \"Logfile\": [\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
+					}
 				}
 				else
 				{
-					//throw("Failed, line to delete does not match the file contents");
-					return "{\"result\":\"Failed, line to delete does not match the file contents\"}";
+					cumulus.LogMessage($"EditDataLog: Entry deletion failed. Line to delete does not match the file contents");
+					context.Response.StatusCode = 500;
+					return "{\"errors\":{\"Logfile\":[\"Failed, line to delete does not match the file contents\"]}}";
 				}
 			}
 

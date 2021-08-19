@@ -522,7 +522,7 @@ namespace CumulusMX
 		public FineOffsetOptions FineOffsetOptions = new FineOffsetOptions();
 		public ImetOptions ImetOptions = new ImetOptions();
 		public EasyWeatherOptions EwOptions = new EasyWeatherOptions();
-        public WeatherFlowOptions WeatherFlowOptions = new WeatherFlowOptions();
+		public WeatherFlowOptions WeatherFlowOptions = new WeatherFlowOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
 
@@ -1294,7 +1294,7 @@ namespace CumulusMX
 
 			SetupUnitText();
 
-			LogMessage($"Units.Wind={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
+			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
 			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
 			LogMessage($"Roll over hour={RolloverHour}");
@@ -1456,10 +1456,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
-                case StationTypes.Tempest:
-                    Manufacturer = WEATHERFLOW;
-                    station = new TempestStation(this);
-                    break;
+				case StationTypes.Tempest:
+					Manufacturer = WEATHERFLOW;
+					station = new TempestStation(this);
+					break;
 				case StationTypes.HttpWund:
 					Manufacturer = HTTPSTATION;
 					station = new HttpStationWund(this);
@@ -3815,10 +3815,10 @@ namespace CumulusMX
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
-            WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
-            WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
-            WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
-            WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0);
+			WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+			WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
+			WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
+			WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0);
 
 			//VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
@@ -5173,7 +5173,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
 			ini.SetValue("Station", "WeatherFlowDaysHist", WeatherFlowOptions.WFDaysHist);
 
-			
+
 			// WeatherLink Live device settings
 			ini.SetValue("WLL", "AutoUpdateIpAddress", WLLAutoUpdateIpAddress);
 			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
@@ -10432,14 +10432,14 @@ namespace CumulusMX
 		public int PeriodicDisconnectInterval { get; set; }
 	}
 
-    public class WeatherFlowOptions
-    {
-        public int WFDeviceId { get; set; }
-        public int WFTcpPort { get; set; }
-        public string WFToken { get; set; }
+	public class WeatherFlowOptions
+	{
+		public int WFDeviceId { get; set; }
+		public int WFTcpPort { get; set; }
+		public string WFToken { get; set; }
 		public int WFDaysHist { get; set; }
 
-    }
+	}
 
 	public class FineOffsetOptions
 	{

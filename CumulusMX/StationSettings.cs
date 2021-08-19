@@ -932,10 +932,13 @@ namespace CumulusMX
 				// weatherflow connection details
 				try
 				{
-					cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
-					cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
-					cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
-					cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
+					if (settings.weatherflow != null)
+					{
+						cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
+						cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
+						cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
+						cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
+					}
 				}
 				catch (Exception ex)
 				{
