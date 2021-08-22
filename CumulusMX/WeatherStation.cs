@@ -3530,7 +3530,10 @@ namespace CumulusMX
 
 			var previoustotal = Raincounter;
 
-			double raintipthreshold = 0;
+			// This is just to stop rounding errors triggering phantom rain days
+			double raintipthreshold = cumulus.Units.Rain == 0 ? 0.009 : 0.0003;
+
+			/*
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
 				// If the bucket size is set, use that, otherwise infer from rain units
@@ -3569,6 +3572,7 @@ namespace CumulusMX
 					raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.0003 : 0.003;
 				}
 			}
+			*/
 
 			Raincounter = total;
 

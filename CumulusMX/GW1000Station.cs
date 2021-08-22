@@ -821,7 +821,7 @@ namespace CumulusMX
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 						battV = data[battPos] * 0.02;
-						batt = $"{battV:f1}V ({TestBattery4S(data[battPos])})";  // volts, low = 1.2V
+						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})";  // volts/10, low = 1.2V
 						break;
 
 					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
@@ -844,7 +844,7 @@ namespace CumulusMX
 
 					case "WH80":
 					case "WS80":
-						batt = $"{data[battPos]} ({TestBattery100(data[battPos])})"; // Percent low = 20
+						batt = $"{data[battPos]} ({TestBatteryPct(data[battPos])})"; // Percent low = 20
 						break;
 
 					default:
@@ -1177,7 +1177,7 @@ namespace CumulusMX
 								{
 									if (tenMinuteChanged)
 									{
-										var volts = TestBattery4V(data[idx + 2]);
+										var volts = TestBattery10V(data[idx + 2]);
 										if (volts <= 1.2)
 										{
 											batteryLow = true;
@@ -1579,7 +1579,7 @@ namespace CumulusMX
 			else
 				cumulus.LogDebugMessage(str);
 
-			str = "wh68> " + TestBattery4S(status.wh68) + " - " + TestBattery4V(status.wh68) + "V";
+			str = "wh68> " + TestBattery10(status.wh68) + " - " + TestBattery10V(status.wh68) + "V";
 			if (str.Contains("Low"))
 			{
 				batteryLow = true;
@@ -1588,7 +1588,7 @@ namespace CumulusMX
 			else
 				cumulus.LogDebugMessage(str);
 
-			str = "wh80> " + TestBattery4S(status.wh80) + " - " + TestBattery4V(status.wh80) + "V";
+			str = "wh80> " + TestBattery10(status.wh80) + " - " + TestBattery10V(status.wh80) + "V";
 			if (str.Contains("Low"))
 			{
 				batteryLow = true;
@@ -1660,21 +1660,18 @@ namespace CumulusMX
 		{
 			return value > 1 ? "OK" : "Low";
 		}
-		private static double TestBattery4V(byte value)
-		{
-			return value * 0.02;
-		}
-		private static string TestBattery4S(byte value)
-		{
-			return value * 0.02 > 1.2 ? "OK" : "Low";
-		}
 
 		private static string TestBattery10(byte value)
 		{
 			return value / 10.0 > 1.2 ? "OK" : "Low";
 		}
+		private static double TestBattery10V(byte value)
+		{
+			return value / 10.0;
+		}
 
-		private static string TestBattery100(byte value)
+
+		private static string TestBatteryPct(byte value)
 		{
 			return value >= 20 ? "OK" : "Low";
 		}

@@ -441,6 +441,8 @@ namespace CumulusMX
 			if (File.Exists(logFile))
 			{
 				idx = 0;
+				int daynumber = 1;
+
 				try
 				{
 					linenum = 0;
@@ -464,7 +466,7 @@ namespace CumulusMX
 
 						entrydate = entrydate.AddHours(cumulus.GetHourInc(entrydate));
 
-						int daynumber = entrydate.Day;
+						daynumber = entrydate.Day;
 
 						if (!dayList[daynumber].valid)
 							continue;
@@ -494,6 +496,11 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {ex}");
 					cumulus.LogMessage("Please edit the file to correct the error");
+					// set the days after this error as invalid
+					for (var i = daynumber; i < dayList.Length - 1; i++)
+					{
+						dayList[i].valid = false;
+					}
 				}
 			}
 
