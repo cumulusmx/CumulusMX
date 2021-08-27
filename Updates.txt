@@ -11,6 +11,7 @@
 - Change: Davis WLL, low battery warning for WLL device changed from 5.2 to 5.4V (1.35V per cell)
 - Change: Ecowitt battery decoding nightmare continues and evolves as we discover what they really send as opposed to what they say they send!
 - Change: Monthly NOAA reports now stop at the first day with an error in either the dayfile, or the monthly log file. Previously it only stopped at the first dayfile error
+- Change: Internet Settings now works better when enabling/disabling FTP globally and in the interval settings
 
 - Updated libraries
 	- MailKit
