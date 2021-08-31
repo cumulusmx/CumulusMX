@@ -16,6 +16,7 @@ namespace CumulusMX
 		private string ipaddr;
 		private string macaddr;
 		private const int AtPort = 45000;
+		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
@@ -406,7 +407,7 @@ namespace CumulusMX
 							GetLiveData();
 						}
 					}
-					Thread.Sleep(1000 * 10);
+					Thread.Sleep(updateRate);
 				}
 			}
 			// Catch the ThreadAbortException
@@ -844,6 +845,12 @@ namespace CumulusMX
 
 					case "WH80":
 					case "WS80":
+						// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
+						if (updateRate > 4000)
+						{
+							cumulus.LogMessage("PrintSensorInfoNew: WS80 sensor detected, reducing the update rate to 4 seconds");
+							updateRate = 4000;
+						}
 						batt = $"{data[battPos]} ({TestBatteryPct(data[battPos])})"; // Percent low = 20
 						break;
 
