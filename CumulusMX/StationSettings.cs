@@ -120,8 +120,8 @@ namespace CumulusMX
 				advanced = davisvp2advanced
 			};
 
-            var weatherflow = new JsonStationSettingsWeatherFlow()
-                {deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
+			var weatherflow = new JsonStationSettingsWeatherFlow()
+				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
 
 			var gw1000 = new JSonStationSettingsGw1000Conn()
 			{
@@ -421,7 +421,7 @@ namespace CumulusMX
 				davisvp2 = davisvp2,
 				daviswll = wll,
 				gw1000 = gw1000,
-                weatherflow = weatherflow,
+				weatherflow = weatherflow,
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
@@ -929,21 +929,24 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-                // weatherflow connection details
-                try
-                {
-                    cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
-                    cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
-                    cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
-                    cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
-                }
-                catch (Exception ex)
-                {
-                    var msg = $"Error processing WeatherFlow settings: {ex.Message}";
-                    cumulus.LogMessage(msg);
-                    errorMsg += msg + "\n\n";
-                    context.Response.StatusCode = 500;
-                }
+				// weatherflow connection details
+				try
+				{
+					if (settings.weatherflow != null)
+					{
+						cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
+						cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
+						cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
+						cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = $"Error processing WeatherFlow settings: {ex.Message}";
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
 
 				// EasyWeather
 				try
@@ -1033,13 +1036,13 @@ namespace CumulusMX
 						cumulus.Units.Wind = settings.general.units.wind;
 						cumulus.ChangeWindUnits();
 						cumulus.WindDPlaces = cumulus.StationOptions.RoundWindSpeed ? 0 : cumulus.WindDPlaceDefaults[cumulus.Units.Wind];
-						cumulus.WindAvgDPlaces = cumulus.WindDPlaces;
+						settings.general.units.advanced.winddp = cumulus.WindDPlaces;
 					}
 					if (cumulus.Units.Press != settings.general.units.pressure)
 					{
 						cumulus.Units.Press = settings.general.units.pressure;
 						cumulus.ChangePressureUnits();
-						cumulus.PressDPlaces = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
+						settings.general.units.advanced.pressdp = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
 					}
 					if (cumulus.Units.Temp != settings.general.units.temp)
 					{
@@ -1050,10 +1053,49 @@ namespace CumulusMX
 					{
 						cumulus.Units.Rain = settings.general.units.rain;
 						cumulus.ChangeRainUnits();
-						cumulus.RainDPlaces = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
+						settings.general.units.advanced.raindp = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
 
 					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Units settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Units Advanced
+				try
+				{
+					cumulus.TempDPlaces = settings.general.units.advanced.tempdp;
+					cumulus.TempFormat = "F" + cumulus.TempDPlaces;
+
+					cumulus.WindDPlaces = settings.general.units.advanced.winddp;
+					cumulus.WindFormat = "F" + cumulus.WindDPlaces;
+
+					cumulus.WindAvgDPlaces = settings.general.units.advanced.windavgdp;
+					cumulus.WindAvgFormat = "F" + cumulus.WindAvgDPlaces;
+
+					cumulus.RainDPlaces = settings.general.units.advanced.raindp;
+					cumulus.RainFormat = "F" + cumulus.RainDPlaces;
+					cumulus.ETFormat = "F" + (cumulus.RainDPlaces + 1);
+
+					cumulus.PressDPlaces = settings.general.units.advanced.pressdp;
+					cumulus.PressFormat = "F" + cumulus.PressDPlaces;
+
+					cumulus.UVDPlaces = settings.general.units.advanced.uvdp;
+					cumulus.UVFormat = "F" + cumulus.UVDPlaces;
+
+					cumulus.SunshineDPlaces = settings.general.units.advanced.sunshinedp;
+					cumulus.SunFormat = "F" + cumulus.SunshineDPlaces;
+
+					cumulus.WindRunDPlaces = settings.general.units.advanced.windrundp;
+					cumulus.WindRunFormat = "F" + cumulus.WindRunDPlaces;
+
+					cumulus.AirQualityDPlaces = settings.general.units.advanced.airqulaitydp;
+					cumulus.AirQualityFormat = "F" + cumulus.AirQualityDPlaces;
 				}
 				catch (Exception ex)
 				{
@@ -1274,7 +1316,7 @@ namespace CumulusMX
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
 		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
-        public JsonStationSettingsWeatherFlow weatherflow { get; set; }
+		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
 		public JsonStationSettingsFineOffset fineoffset { get; set; }
 		public JsonStationSettingsEasyWeather easyw { get; set; }
@@ -1424,13 +1466,13 @@ namespace CumulusMX
 		public double pressoffset { get; set; }
 	}
 
-    internal class JsonStationSettingsWeatherFlow
-    {
-        public int tcpport { get; set; }
-        public int deviceid { get; set; }
-        public string token { get; set; }
+	internal class JsonStationSettingsWeatherFlow
+	{
+		public int tcpport { get; set; }
+		public int deviceid { get; set; }
+		public string token { get; set; }
 		public int dayshistory { get; set; }
-    }
+	}
 
 	internal class JSonStationSettingsGw1000Conn
 	{

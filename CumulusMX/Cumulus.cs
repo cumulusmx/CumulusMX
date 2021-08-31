@@ -522,7 +522,7 @@ namespace CumulusMX
 		public FineOffsetOptions FineOffsetOptions = new FineOffsetOptions();
 		public ImetOptions ImetOptions = new ImetOptions();
 		public EasyWeatherOptions EwOptions = new EasyWeatherOptions();
-        public WeatherFlowOptions WeatherFlowOptions = new WeatherFlowOptions();
+		public WeatherFlowOptions WeatherFlowOptions = new WeatherFlowOptions();
 
 		public GraphOptions GraphOptions = new GraphOptions();
 
@@ -1294,7 +1294,7 @@ namespace CumulusMX
 
 			SetupUnitText();
 
-			LogMessage($"Units.Wind={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
+			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
 			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
 			LogMessage($"Roll over hour={RolloverHour}");
@@ -1456,10 +1456,10 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
-                case StationTypes.Tempest:
-                    Manufacturer = WEATHERFLOW;
-                    station = new TempestStation(this);
-                    break;
+				case StationTypes.Tempest:
+					Manufacturer = WEATHERFLOW;
+					station = new TempestStation(this);
+					break;
 				case StationTypes.HttpWund:
 					Manufacturer = HTTPSTATION;
 					station = new HttpStationWund(this);
@@ -2909,7 +2909,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								LogMessage("RealtimeReconnect: Realtime ftp connection test found Present Working Directory OK");
+								LogMessage($"RealtimeReconnect: Realtime ftp connection test found Present Working Directory OK - [{pwd}]");
 							}
 						}
 						catch (Exception ex)
@@ -2932,6 +2932,7 @@ namespace CumulusMX
 				// OK we are reconnected, let the FTP recommence
 				RealtimeFtpReconnecting = false;
 				realtimeFTPRetries = 0;
+				RealtimeCopyInProgress = false;
 				LogMessage("RealtimeReconnect: Realtime FTP now connected to server (tested)");
 				LogMessage("RealtimeReconnect: Realtime FTP operations will be restarted");
 			});
@@ -3814,10 +3815,10 @@ namespace CumulusMX
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
-            WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
-            WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
-            WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
-            WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0);
+			WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+			WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222);
+			WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
+			WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0);
 
 			//VPClosedownTime = ini.GetValue("Station", "VPClosedownTime", 99999999);
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
@@ -3955,6 +3956,11 @@ namespace CumulusMX
 			WindAvgDPlaces = ini.GetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
 			WindRunDPlaces = ini.GetValue("Station", "WindRunDecimals", WindRunDPlaces);
 			SunshineDPlaces = ini.GetValue("Station", "SunshineHrsDecimals", 1);
+			PressDPlaces = ini.GetValue("Station", "PressDecimals", PressDPlaces);
+			RainDPlaces = ini.GetValue("Station", "RainDecimals", RainDPlaces);
+			TempDPlaces = ini.GetValue("Station", "TempDecimals", TempDPlaces);
+			UVDPlaces = ini.GetValue("Station", "UVDecimals", UVDPlaces);
+			AirQualityDPlaces = ini.GetValue("Station", "AirQualityDecimals", AirQualityDPlaces);
 
 			if (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2)
 			{
@@ -3964,12 +3970,6 @@ namespace CumulusMX
 					++PressDPlaces;
 				}
 			}
-
-			PressDPlaces = ini.GetValue("Station", "PressDecimals", PressDPlaces);
-			RainDPlaces = ini.GetValue("Station", "RainDecimals", RainDPlaces);
-			TempDPlaces = ini.GetValue("Station", "TempDecimals", TempDPlaces);
-			UVDPlaces = ini.GetValue("Station", "UVDecimals", UVDPlaces);
-			AirQualityDPlaces = ini.GetValue("Station", "AirQualityDecimals", AirQualityDPlaces);
 
 
 			LocationName = ini.GetValue("Station", "LocName", "");
@@ -5173,7 +5173,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
 			ini.SetValue("Station", "WeatherFlowDaysHist", WeatherFlowOptions.WFDaysHist);
 
-			
+
 			// WeatherLink Live device settings
 			ini.SetValue("WLL", "AutoUpdateIpAddress", WLLAutoUpdateIpAddress);
 			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
@@ -5908,57 +5908,6 @@ namespace CumulusMX
 			compassp[13] = ini.GetValue("Compass", "WNW", compassp[13]);
 			compassp[14] = ini.GetValue("Compass", "NW", compassp[14]);
 			compassp[15] = ini.GetValue("Compass", "NNW", compassp[15]);
-			// graphs
-			/*
-			SmallGraphWindSpeedTitle = ini.GetValue("Graphs", "SmallGraphWindSpeedTitle", "Wind Speed");
-			SmallGraphOutsideTemperatureTitle = ini.GetValue("Graphs", "SmallGraphOutsideTemperatureTitle", "Outside Temperature");
-			SmallGraphInsideTemperatureTitle = ini.GetValue("Graphs", "SmallGraphInsideTemperatureTitle", "Inside Temperature");
-			SmallGraphPressureTitle = ini.GetValue("Graphs", "SmallGraphPressureTitle", "Pressure");
-			SmallGraphRainfallRateTitle = ini.GetValue("Graphs", "SmallGraphRainfallRateTitle", "Rainfall Rate");
-			SmallGraphWindDirectionTitle = ini.GetValue("Graphs", "SmallGraphWindDirectionTitle", "Wind Direction");
-			SmallGraphTempMinMaxAvgTitle = ini.GetValue("Graphs", "SmallGraphTempMinMaxAvgTitle", "Temp Min/Max/Avg");
-			SmallGraphHumidityTitle = ini.GetValue("Graphs", "SmallGraphHumidityTitle", "Humidity");
-			SmallGraphRainTodayTitle = ini.GetValue("Graphs", "SmallGraphRainTodayTitle", "Rain Today");
-			SmallGraphDailyRainTitle = ini.GetValue("Graphs", "SmallGraphDailyRainTitle", "Daily Rain");
-			SmallGraphSolarTitle = ini.GetValue("Graphs", "SmallGraphSolarTitle", "Solar Radiation");
-			SmallGraphUVTitle = ini.GetValue("Graphs", "SmallGraphUVTitle", "UV Index");
-			SmallGraphSunshineTitle = ini.GetValue("Graphs", "SmallGraphSunshineTitle", "Daily Sunshine (hrs)");
-
-			LargeGraphWindSpeedTitle = ini.GetValue("Graphs", "LargeGraphWindSpeedTitle", "Wind Speed");
-			LargeGraphWindGustTitle = ini.GetValue("Graphs", "LargeGraphWindGustTitle", "Wind Gust");
-			LargeGraphOutsideTempTitle = ini.GetValue("Graphs", "LargeGraphOutsideTempTitle", "Temperature");
-			LargeGraphHeatIndexTitle = ini.GetValue("Graphs", "LargeGraphHeatIndexTitle", "Heat Index");
-			LargeGraphDewPointTitle = ini.GetValue("Graphs", "LargeGraphDewPointTitle", "Dew Point");
-			LargeGraphWindChillTitle = ini.GetValue("Graphs", "LargeGraphWindChillTitle", "Wind Chill");
-			LargeGraphApparentTempTitle = ini.GetValue("Graphs", "LargeGraphApparentTempTitle", "Apparent Temperature");
-			LargeGraphInsideTempTitle = ini.GetValue("Graphs", "LargeGraphInsideTempTitle", "Inside Temperature");
-			LargeGraphPressureTitle = ini.GetValue("Graphs", "LargeGraphPressureTitle", "Pressure");
-			LargeGraphRainfallRateTitle = ini.GetValue("Graphs", "LargeGraphRainfallRateTitle", "Rainfall Rate");
-			LargeGraphWindDirectionTitle = ini.GetValue("Graphs", "LargeGraphWindDirectionTitle", "Wind Direction");
-			LargeGraphWindAvgDirectionTitle = ini.GetValue("Graphs", "LargeGraphWindAvgDirectionTitle", "Average");
-			LargeGraphMinTempTitle = ini.GetValue("Graphs", "LargeGraphMinTempTitle", "Min Temp");
-			LargeGraphMaxTempTitle = ini.GetValue("Graphs", "LargeGraphMaxTempTitle", "Max Temp");
-			LargeGraphAvgTempTitle = ini.GetValue("Graphs", "LargeGraphAvgTempTitle", "Avg Temp");
-			LargeGraphInsideHumidityTitle = ini.GetValue("Graphs", "LargeGraphInsideHumidityTitle", "Inside Humidity");
-			LargeGraphOutsideHumidityTitle = ini.GetValue("Graphs", "LargeGraphOutsideHumidityTitle", "Outside Humidity");
-			LargeGraphRainfallTodayTitle = ini.GetValue("Graphs", "LargeGraphRainfallTodayTitle", "Rainfall Today");
-			LargeGraphDailyRainfallTitle = ini.GetValue("Graphs", "LargeGraphDailyRainfallTitle", "Daily Rainfall");
-			LargeGraphSolarTitle = ini.GetValue("Graphs", "LargeGraphSolarTitle", "Solar Radiation");
-			LargeGraphMaxSolarTitle = ini.GetValue("Graphs", "LargeGraphMaxSolarTitle", "Theoretical Max");
-			LargeGraphUVTitle = ini.GetValue("Graphs", "LargeGraphUVTitle", "UV Index");
-			LargeGraphSunshineTitle = ini.GetValue("Graphs", "LargeGraphSunshineTitle", "Daily Sunshine (hrs)");
-			*/
-			// Extra sensor captions
-			WMR200ExtraChannelCaptions[1] = ini.GetValue("ExtraSensorCaptions", "Solar", WMR200ExtraChannelCaptions[1]);
-			WMR200ExtraChannelCaptions[2] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel2", WMR200ExtraChannelCaptions[2]);
-			WMR200ExtraChannelCaptions[3] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel3", WMR200ExtraChannelCaptions[3]);
-			WMR200ExtraChannelCaptions[4] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel4", WMR200ExtraChannelCaptions[4]);
-			WMR200ExtraChannelCaptions[5] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel5", WMR200ExtraChannelCaptions[5]);
-			WMR200ExtraChannelCaptions[6] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel6", WMR200ExtraChannelCaptions[6]);
-			WMR200ExtraChannelCaptions[7] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel7", WMR200ExtraChannelCaptions[7]);
-			WMR200ExtraChannelCaptions[8] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel8", WMR200ExtraChannelCaptions[8]);
-			WMR200ExtraChannelCaptions[9] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel9", WMR200ExtraChannelCaptions[9]);
-			WMR200ExtraChannelCaptions[10] = ini.GetValue("ExtraSensorCaptions", "ExtraChannel10", WMR200ExtraChannelCaptions[10]);
 
 			// Extra temperature captions (for Extra Sensor Data screen)
 			ExtraTempCaptions[1] = ini.GetValue("ExtraTempCaptions", "Sensor1", ExtraTempCaptions[1]);
@@ -6495,7 +6444,6 @@ namespace CumulusMX
 
 		public string exceptional = "Exceptional Weather";
 //		private WebSocketServer wsServer;
-		public string[] WMR200ExtraChannelCaptions = new string[11];
 		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
 		public string[] ExtraHumCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
 		public string[] ExtraDPCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
@@ -10484,14 +10432,14 @@ namespace CumulusMX
 		public int PeriodicDisconnectInterval { get; set; }
 	}
 
-    public class WeatherFlowOptions
-    {
-        public int WFDeviceId { get; set; }
-        public int WFTcpPort { get; set; }
-        public string WFToken { get; set; }
+	public class WeatherFlowOptions
+	{
+		public int WFDeviceId { get; set; }
+		public int WFTcpPort { get; set; }
+		public string WFToken { get; set; }
 		public int WFDaysHist { get; set; }
 
-    }
+	}
 
 	public class FineOffsetOptions
 	{

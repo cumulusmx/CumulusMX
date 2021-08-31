@@ -3530,7 +3530,10 @@ namespace CumulusMX
 
 			var previoustotal = Raincounter;
 
-			double raintipthreshold = 0;
+			// This is just to stop rounding errors triggering phantom rain days
+			double raintipthreshold = cumulus.Units.Rain == 0 ? 0.009 : 0.0003;
+
+			/*
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
 			{
 				// If the bucket size is set, use that, otherwise infer from rain units
@@ -3569,6 +3572,7 @@ namespace CumulusMX
 					raintipthreshold = cumulus.Manufacturer == cumulus.INSTROMET ? 0.0003 : 0.003;
 				}
 			}
+			*/
 
 			Raincounter = total;
 
@@ -3588,7 +3592,7 @@ namespace CumulusMX
 			// Has the rain total in the station been reset?
 			// Or has it incremented by a large value?
 			// raindaystart greater than current total, allow for rounding
-			if (raindaystart - Raincounter > 0.1 || Raincounter - raindaystart > 50)
+			if (raindaystart - Raincounter > 0.1 || Raincounter - previoustotal > 50)
 			{
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value
@@ -5217,7 +5221,7 @@ namespace CumulusMX
 				HiLoToday.HighHumidexTime = timestamp;
 
 				// Lightning
-                LightningStrikesToday = 0;
+				LightningStrikesToday = 0;
 
 				// Save the current values in case of program restart
 				WriteTodayFile(timestamp, true);
@@ -6145,9 +6149,13 @@ namespace CumulusMX
 
 						var tempRainLastHour = trendval * cumulus.Calib.Rain.Mult;
 
-						if (tempRainLastHour > cumulus.Spike.MaxHourlyRain)
+						if (ConvertUserRainToMM(tempRainLastHour) > cumulus.Spike.MaxHourlyRain)
 						{
 							// ignore
+							cumulus.LogSpikeRemoval("Max hourly rainfall spike value exceed");
+							lastSpikeRemoval = DateTime.Now;
+							cumulus.SpikeAlarm.LastError = $"Max hourly rainfall greater than spike value - Value={tempRainLastHour:F1}";
+							cumulus.SpikeAlarm.Triggered = true;
 						}
 						else
 						{
@@ -6227,9 +6235,14 @@ namespace CumulusMX
 							tempRainRate = 0;
 						}
 
-						if (tempRainRate > cumulus.Spike.MaxRainRate)
+						if (ConvertUserRainToMM(tempRainRate) > cumulus.Spike.MaxRainRate)
 						{
 							// ignore
+							cumulus.LogSpikeRemoval("Max rainfall rate spike value exceed");
+							lastSpikeRemoval = DateTime.Now;
+							cumulus.SpikeAlarm.LastError = $"Max rainfall rate greater than spike value - Value={tempRainRate:F1}";
+							cumulus.SpikeAlarm.Triggered = true;
+
 						}
 						else
 						{
@@ -11698,6 +11711,9 @@ namespace CumulusMX
 			{
 				cumulus.LogSpikeRemoval("Wind Gust difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastError = $"Wind Gust difference greater than spike value - NewVal={windGustMS:F1}, OldVal={previousGust:F1}";
+				cumulus.SpikeAlarm.Triggered = true;
 				return false;
 			}
 

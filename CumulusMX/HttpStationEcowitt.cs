@@ -596,6 +596,21 @@ namespace CumulusMX
 				}
 
 
+				// === Firmware Version ===
+				try
+				{
+					var fwString = data["stationtype"].Split(new string[] { "_V" }, StringSplitOptions.None);
+					if (fwString.Length > 1)
+					{
+						GW1000FirmwareVersion = fwString[1];
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error extracting firmware version - " + ex.Message);
+				}
+
+
 				DoForecast(string.Empty, false);
 
 				UpdateStatusPanel(recDate);
@@ -875,6 +890,20 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogMessage("ProcessData: Error calculating extra sensor dew points - " + ex.Message);
+				}
+
+				// === Firmware Version ===
+				try
+				{
+					var fwString = data["stationtype"].Split(new string[] { "_V" }, StringSplitOptions.None);
+					if (fwString.Length > 1)
+					{
+						GW1000FirmwareVersion = fwString[1];
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ProcessData: Error extracting firmware version - " + ex.Message);
 				}
 			}
 			catch (Exception ex)

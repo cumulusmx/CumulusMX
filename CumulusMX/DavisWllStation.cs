@@ -2594,7 +2594,9 @@ namespace CumulusMX
 
 					var battV = data15.battery_voltage / 1000.0;
 					ConBatText = battV.ToString("F2");
-					if (battV < 5.2)
+					// Allow voltage to drop to 1.35V per cell before triggering the alarm. This should leave a good reserve without changing them too often
+					// 1.35 * 4 = 5.4
+					if (battV < 5.4)
 					{
 						wllVoltageLow = true;
 						cumulus.LogMessage($"WLL WARNING: Backup battery voltage is low = {battV:0.##}V");
