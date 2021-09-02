@@ -516,11 +516,11 @@ namespace CumulusMX
 					// tf_co2
 					// humi_co2
 					// pm25_co2
-					// pm25_24_co2
+					// pm25_24h_co2
 					// pm10_co2
 					// pm10_24h_co2
 					// co2
-					// co2_24
+					// co2_24h
 
 					ProcessCo2(data, this);
 				}
@@ -1026,11 +1026,11 @@ namespace CumulusMX
 			// tf_co2
 			// humi_co2
 			// pm25_co2
-			// pm25_24_co2
+			// pm25_24h_co2
 			// pm10_co2
 			// pm10_24h_co2
 			// co2
-			// co2_24
+			// co2_24h
 
 			if (data["tf_co2"] != null)
 			{
@@ -1044,7 +1044,7 @@ namespace CumulusMX
 			{
 				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_co2"], CultureInfo.InvariantCulture);
 			}
-			if (data["pm25_24_co2"] != null)
+			if (data["pm25_24h_co2"] != null)
 			{
 				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24_co2"], CultureInfo.InvariantCulture);
 			}
@@ -1060,7 +1060,7 @@ namespace CumulusMX
 			{
 				station.CO2 = Convert.ToInt32(data["co2"], CultureInfo.InvariantCulture);
 			}
-			if (data["co2_24"] != null)
+			if (data["co2_24h"] != null)
 			{
 				station.CO2_24h = Convert.ToInt32(data["co2"], CultureInfo.InvariantCulture);
 			}

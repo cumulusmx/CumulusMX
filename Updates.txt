@@ -1,4 +1,10 @@
-3.13.0 - b3144
+3.13.1 - b3146
+——————————————
+- Fix: HTTP Station Ecowitt - not decoding all CO₂ sensor values correctly
+
+
+
+3.13.0 - b3145
 ——————————————
 - Fix: Realtime FTP, now correctly clears the RT FTP in progress flag
 - Fix: Station Settings, Units, Advanced not being saved correctly
