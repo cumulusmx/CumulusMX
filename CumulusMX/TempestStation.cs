@@ -37,7 +37,8 @@ namespace CumulusMX
 			try
 			{
 				var stTime = cumulus.LastUpdateTime;
-				if (FirstRun) stTime = DateTime.Now.AddDays(-cumulus.WeatherFlowOptions.WFDaysHist);
+				if (FirstRun)
+					stTime = DateTime.Now.AddDays(-cumulus.WeatherFlowOptions.WFDaysHist);
 
 				var recs = StationListener.GetRestPacket(StationListener.REST_URL,
 					cumulus.WeatherFlowOptions.WFToken, cumulus.WeatherFlowOptions.WFDeviceId,
@@ -108,7 +109,7 @@ namespace CumulusMX
 
 				// Pressure =============================================================
 				var alt = AltitudeM(cumulus.Altitude);
-				var seaLevel = GetSeaLevelPressure(alt, (double) historydata.StationPressure, (double)historydata.Temperature);
+				var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) historydata.StationPressure, (double)historydata.Temperature);
 				DoPressure(ConvertPressMBToUser(seaLevel), timestamp);
 
 				// Outdoor Humidity =====================================================
@@ -241,6 +242,21 @@ namespace CumulusMX
 				switch (wp.MsgType)
 				{
 					case WeatherPacket.MessageType.Observation:
+						cumulus.LogDebugMessage("Received an Observation message");
+						cumulus.LogDataMessage(
+							string.Format($"Observation data - temp: {0}, hum: {1}, gust: {2}, spdvg: {3}, press: {4}, solar: {5}, UV: {6}, rain: {7}, batt: {8}",
+								wp.Observation.Temperature,
+								wp.Observation.Humidity,
+								wp.Observation.WindGust,
+								wp.Observation.WindAverage,
+								wp.Observation.StationPressure,
+								wp.Observation.SolarRadiation,
+								wp.Observation.UV,
+								wp.Observation.Precipitation,
+								wp.Observation.BatteryVoltage
+							)
+						);
+
 						ts = wp.Observation.Timestamp;
 						var userTemp = ConvertTempCToUser(Convert.ToDouble(wp.Observation.Temperature));
 
@@ -251,10 +267,10 @@ namespace CumulusMX
 							ts);
 
 						var alt = AltitudeM(cumulus.Altitude);
-						var seaLevel = GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure,
+						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure,
 							(double) wp.Observation.Temperature);
 						DoPressure(ConvertPressMBToUser(seaLevel), ts);
-						cumulus.LogMessage(
+						cumulus.LogDebugMessage(
 							$"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
 
 						DoSolarRad(wp.Observation.SolarRadiation, ts);
@@ -263,11 +279,11 @@ namespace CumulusMX
 													(60d / wp.Observation.ReportInterval));
 
 						var newRain = Raincounter + ConvertRainMMToUser((double) wp.Observation.Precipitation);
-						cumulus.LogMessage(
+						cumulus.LogDebugMessage(
 							$"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
 						DoRain(newRain, rainrate, ts);
-						cumulus.LogMessage(
+						cumulus.LogDebugMessage(
 							$"TempestDoRain: Total Precip for Day: {Raincounter}");
 
 						DoOutdoorHumidity((int)wp.Observation.Humidity,ts);
@@ -291,7 +307,11 @@ namespace CumulusMX
 
 						break;
 					case WeatherPacket.MessageType.RapidWind:
+						cumulus.LogDebugMessage("Received a Rapid Wind message");
+
 						var rw = wp.RapidWind;
+						cumulus.LogDataMessage($"Wind Data - speed: {rw.WindSpeed}, direction: {rw.WindDirection}");
+
 						DoWind(ConvertWindMSToUser((double) rw.WindSpeed),
 							rw.WindDirection,
 							ConvertWindMSToUser((double) rw.WindSpeed),
@@ -300,48 +320,17 @@ namespace CumulusMX
 
 						break;
 					case WeatherPacket.MessageType.LightningStrike:
+						cumulus.LogDebugMessage("Received a Lightning message");
+
 						LightningTime = wp.LightningStrike.Timestamp;
 						LightningDistance = ConvertKmtoUserUnits(wp.LightningStrike.Distance);
 						LightningStrikesToday++;
-						cumulus.LogMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
+						cumulus.LogDebugMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
 						break;
 
 				}
 			}
 		}
-
-		public static double GetSeaLevelPressure(double altitude, double pressure, double temp)
-		{
-			/* constants */
-			double i = 287.05;// gas constant for dry air
-			double a = 9.80665;// gravity
-			double r = .0065; //standard atmosphere lapse rate
-			double s = 1013.25;// standard sea level pressure
-			double n = 273.15 + temp; //288.15; // standard sea level temp;
-
-			double l = a / (i * r);//
-			double c = i * r / a;
-			double u = Math.Pow(1 + Math.Pow(s / pressure, c) * (r * altitude / n), l);
-			double d = pressure * u;
-			return d;
-		}
-
-/*        WeatherCalc.calcSeaLevel = function(A, P) {
-			// (altitude in meters, local pressure in mb)
-			A = parseFloat(A);
-			P = parseFloat(P);
-			var
-				a = 9.80665,
-				i = 287.05,
-				r = .0065,
-				s = 1013.25,
-				n = 288.15,
-				l = a / (i * r),
-				c = i * r / a,
-				u = Math.pow(1 + Math.pow(s / P, c) * (r * A / n), l),
-				d = (P * u);
-			return d.toFixed(1);*/
-
 	}
 }
 
@@ -509,6 +498,7 @@ namespace CumulusMX.Tempest
 						ts = 0;
 					}
 
+					cumulus.LogDebugMessage($"GetRestPacket: Requesting from URL - {url}device/{deviceId}?token=<<token>>&time_start={st}&time_end={end_time}");
 
 					using (var response =
 						httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}")

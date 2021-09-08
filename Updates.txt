@@ -1,6 +1,10 @@
 3.13.1 - b3146
 ——————————————
 - Fix: HTTP Station Ecowitt - not decoding all CO₂ sensor values correctly
+- Fix: AirLink crash when used as a standalone station
+- Fix: NOAA settings normal precipitation value for July being saved as June's value
+
+- Change: On start-up Cumulus now always checks for other running instances and reports if one is found, but only aborts if 'Stop second instance' is enabled
 
 
 
