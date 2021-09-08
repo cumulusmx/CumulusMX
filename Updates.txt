@@ -4,6 +4,8 @@
 - Fix: AirLink crash when used as a standalone station
 - Fix: NOAA settings normal precipitation value for July being saved as June's value
 
+- New: Ecowitt, adds support for WN34S/WN34L soil/water temperature sensors as User Temps as per GW1000
+
 - Change: On start-up Cumulus now always checks for other running instances and reports if one is found, but only aborts if 'Stop second instance' is enabled
 
 

@@ -4147,6 +4147,7 @@ namespace CumulusMX
 			EcowittExtraUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
 			EcowittExtraUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
 			EcowittExtraUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
+			EcowittExtraUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
 			EcowittExtraUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
 			EcowittExtraUseCo2= ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
@@ -5238,6 +5239,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseSoilTemp", EcowittExtraUseSoilTemp);
 			ini.SetValue("GW1000", "ExtraSensorUseSoilMoist", EcowittExtraUseSoilMoist);
 			ini.SetValue("GW1000", "ExtraSensorUseLeafWet", EcowittExtraUseLeafWet);
+			ini.SetValue("GW1000", "ExtraSensorUseUserTemp", EcowittExtraUseUserTemp);
 			ini.SetValue("GW1000", "ExtraSensorUseAQI", EcowittExtraUseAQI);
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
@@ -6204,6 +6206,7 @@ namespace CumulusMX
 		public bool EcowittExtraUseSoilTemp { get; set; }
 		public bool EcowittExtraUseSoilMoist { get; set; }
 		public bool EcowittExtraUseLeafWet { get; set; }
+		public bool EcowittExtraUseUserTemp { get; set; }
 		public bool EcowittExtraUseAQI { get; set; }
 		public bool EcowittExtraUseCo2 { get; set; }
 		public bool EcowittExtraUseLightning { get; set; }
