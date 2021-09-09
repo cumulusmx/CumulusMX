@@ -1023,7 +1023,7 @@ namespace CumulusMX
 			{
 				if (data["tf_ch" + i] != null)
 				{
-					station.DoUserTemp(Convert.ToDouble(data["tf_ch" + i], CultureInfo.InvariantCulture), i);
+					station.DoUserTemp(ConvertTempFToUser(Convert.ToDouble(data["tf_ch" + i], CultureInfo.InvariantCulture)), i);
 				}
 			}
 		}
@@ -1062,7 +1062,7 @@ namespace CumulusMX
 
 			if (data["tf_co2"] != null)
 			{
-				station.CO2_temperature = Convert.ToDouble(data["tf_co2"], CultureInfo.InvariantCulture);
+				station.CO2_temperature = ConvertTempFToUser(Convert.ToDouble(data["tf_co2"], CultureInfo.InvariantCulture));
 			}
 			if (data["humi_co2"] != null)
 			{
