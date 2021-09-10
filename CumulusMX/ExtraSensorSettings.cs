@@ -51,6 +51,7 @@ namespace CumulusMX
 				useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
 				useSoilMoist = cumulus.EcowittExtraUseSoilMoist,
 				useLeafWet = cumulus.EcowittExtraUseLeafWet,
+				useUserTemp = cumulus.EcowittExtraUseUserTemp,
 				useAQI = cumulus.EcowittExtraUseAQI,
 				useCo2 = cumulus.EcowittExtraUseCo2,
 				useLightning = cumulus.EcowittExtraUseLightning,
@@ -229,6 +230,7 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
 						cumulus.EcowittExtraUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
 						cumulus.EcowittExtraUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
+						cumulus.EcowittExtraUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
 						cumulus.EcowittExtraUseAQI = settings.httpSensors.ecowitt.useAQI;
 						cumulus.EcowittExtraUseCo2 = settings.httpSensors.ecowitt.useCo2;
 						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
@@ -388,6 +390,7 @@ namespace CumulusMX
 		public bool useSoilTemp { get; set; }
 		public bool useSoilMoist { get; set; }
 		public bool useLeafWet { get; set; }
+		public bool useUserTemp { get; set; }
 		public bool useAQI { get; set; }
 		public bool useCo2 { get; set; }
 		public bool useLightning { get; set; }

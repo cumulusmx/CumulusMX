@@ -1030,32 +1030,48 @@ namespace CumulusMX
 			ReadIniFile();
 
 			// Do we prevent more than one copy of CumulusMX running?
-			if (ProgramOptions.WarnMultiple)
+			try
 			{
-				try
+				if (!Program.appMutex.WaitOne(0, false))
 				{
-					if (!Program.appMutex.WaitOne(0, false))
+					if (ProgramOptions.WarnMultiple)
 					{
 						LogConsoleMessage("Cumulus is already running - terminating");
 						LogConsoleMessage("Program exit");
-						LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance is enabled' - terminating");
+						LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
 						LogMessage("Stop second instance: Program exit");
 						Program.exitSystem = true;
 						return;
 					}
+					else
+					{
+						LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled");
+						LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
+					}
 				}
-				catch (AbandonedMutexException)
+				else
 				{
-					LogMessage("Stop second instance: Abandoned Mutex Error!");
-					LogMessage("Stop second instance: Was a previous copy of Cumulus terminated from task manager, or otherwise forcibly stopped?");
-					LogMessage("Stop second instance: Continuing this instance of Cumulus");
+					LogMessage("Stop second instance: No other running instances of Cumulus found");
 				}
-				catch (Exception ex)
+			}
+			catch (AbandonedMutexException)
+			{
+				LogMessage("Stop second instance: Abandoned Mutex Error!");
+				LogMessage("Stop second instance: Was a previous copy of Cumulus terminated from task manager, or otherwise forcibly stopped?");
+				LogMessage("Stop second instance: Continuing this instance of Cumulus");
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Stop second instance: Mutex Error! - " + ex);
+				if (ProgramOptions.WarnMultiple)
 				{
-					LogMessage("Stop second instance: Mutex Error! - " + ex);
 					LogMessage("Stop second instance: Terminating this instance of Cumulus");
 					Program.exitSystem = true;
 					return;
+				}
+				else
+				{
+					LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
 				}
 			}
 
@@ -4131,6 +4147,7 @@ namespace CumulusMX
 			EcowittExtraUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
 			EcowittExtraUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
 			EcowittExtraUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
+			EcowittExtraUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
 			EcowittExtraUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
 			EcowittExtraUseCo2= ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
@@ -5222,6 +5239,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseSoilTemp", EcowittExtraUseSoilTemp);
 			ini.SetValue("GW1000", "ExtraSensorUseSoilMoist", EcowittExtraUseSoilMoist);
 			ini.SetValue("GW1000", "ExtraSensorUseLeafWet", EcowittExtraUseLeafWet);
+			ini.SetValue("GW1000", "ExtraSensorUseUserTemp", EcowittExtraUseUserTemp);
 			ini.SetValue("GW1000", "ExtraSensorUseAQI", EcowittExtraUseAQI);
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
@@ -6188,6 +6206,7 @@ namespace CumulusMX
 		public bool EcowittExtraUseSoilTemp { get; set; }
 		public bool EcowittExtraUseSoilMoist { get; set; }
 		public bool EcowittExtraUseLeafWet { get; set; }
+		public bool EcowittExtraUseUserTemp { get; set; }
 		public bool EcowittExtraUseAQI { get; set; }
 		public bool EcowittExtraUseCo2 { get; set; }
 		public bool EcowittExtraUseLightning { get; set; }
@@ -6899,11 +6918,10 @@ namespace CumulusMX
 				sb.Append(station.AirQualityAvg3.ToString("F1") + ListSeparator);  //74
 				sb.Append(station.AirQualityAvg4.ToString("F1") + ListSeparator);  //75
 
-				for (int i = 1; i < 8; i++)
+				for (int i = 1; i < 9; i++)
 				{
-					sb.Append(station.UserTemp[i].ToString(TempFormat) + ListSeparator);   //76-82
+					sb.Append(station.UserTemp[i].ToString(TempFormat) + ListSeparator);   //76-83
 				}
-				sb.Append(station.UserTemp[8].ToString(TempFormat) + ListSeparator);       //83
 
 				sb.Append(station.CO2 + ListSeparator);                                    //84
 				sb.Append(station.CO2_24h + ListSeparator);                                //85

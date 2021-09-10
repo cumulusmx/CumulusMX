@@ -1,4 +1,21 @@
-3.13.0 - b3144
+3.13.1 - b3146
+——————————————
+- Fix: HTTP Station Ecowitt - not decoding all CO₂ sensor values correctly
+- Fix: AirLink crash when used as a standalone station
+- Fix: NOAA settings normal precipitation value for July being saved as June's value
+
+- New: Ecowitt, adds support for WN34S/WN34L soil/water temperature sensors as User Temps as per GW1000
+- New: The default web site index page now shows the Moon illumination percentage
+
+- Change: On start-up Cumulus now always checks for other running instances and reports if one is found, but only aborts if 'Stop second instance' is enabled
+
+- Summary of Cumulus.ini changes:
+	>> NEW >>
+		[GW1000]
+		ExtraSensorUseUserTemp=1
+
+
+3.13.0 - b3145
 ——————————————
 - Fix: Realtime FTP, now correctly clears the RT FTP in progress flag
 - Fix: Station Settings, Units, Advanced not being saved correctly

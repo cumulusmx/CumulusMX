@@ -568,14 +568,36 @@ namespace CumulusMX
 
 		private void GetWlHistoricData()
 		{
-			var stationId = indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId;
+			string apiKey;
+			string apiSecret;
+			int stationId;
 
 			cumulus.LogMessage("GetWlHistoricData: Get WL.com Historic Data");
 
-			if (cumulus.AirLinkApiKey == string.Empty || cumulus.AirLinkApiSecret == string.Empty)
+			if (standalone)
 			{
-				cumulus.LogMessage("GetWlHistoricData: Missing AirLink WeatherLink API data in the configuration, aborting!");
-				return;
+				if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
+				{
+					cumulus.LogMessage("GetWlHistoricData: Missing AirLink WeatherLink API data in the configuration, aborting!");
+					return;
+				}
+
+				apiKey = cumulus.AirLinkApiKey;
+				apiSecret = cumulus.AirLinkApiSecret;
+				stationId = indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId;
+			}
+			else
+			{
+				if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret))
+				{
+					cumulus.LogMessage("GetWlHistoricData: Missing WLL WeatherLink API data in the configuration, aborting!");
+					return;
+				}
+
+				apiKey = cumulus.WllApiKey;
+				apiSecret = cumulus.WllApiSecret;
+				stationId = cumulus.WllStationId;
+
 			}
 
 			if (stationId < 10)
@@ -607,7 +629,7 @@ namespace CumulusMX
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
-				{ "api-key", cumulus.AirLinkApiKey },
+				{ "api-key", apiKey },
 				{ "station-id", stationId.ToString() },
 				{ "t", unixDateTime.ToString() },
 				{ "start-timestamp", startTime.ToString() },
@@ -623,13 +645,13 @@ namespace CumulusMX
 
 			string data = dataStringBuilder.ToString();
 
-			string apiSignature = WlDotCom.CalculateApiSignature(cumulus.AirLinkApiSecret, data);
+			string apiSignature = WlDotCom.CalculateApiSignature(apiSecret, data);
 
 			parameters.Remove("station-id");
 			parameters.Add("api-signature", apiSignature);
 
 			StringBuilder historicUrl = new StringBuilder();
-			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId + "?");
+			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + stationId + "?");
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				historicUrl.Append(entry.Key);
@@ -640,7 +662,7 @@ namespace CumulusMX
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
 
-			string logUrl = historicUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
+			string logUrl = historicUrl.ToString().Replace(apiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {logUrl}");
 			station.lastDataReadTime = airLinkLastUpdateTime;
 
@@ -1007,7 +1029,7 @@ namespace CumulusMX
 			// Are we stand-alone?
 			if (standalone)
 			{
-				if (cumulus.AirLinkApiKey == string.Empty || cumulus.AirLinkApiSecret == string.Empty)
+				if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 				{
 					var msg = "Missing AirLink WeatherLink API key/secret in the cumulus.ini file";
 					cumulus.LogConsoleMessage(msg);
@@ -1029,7 +1051,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty || cumulus.WllStationId < 10)
+				if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret) || cumulus.WllStationId < 10)
 				{
 					cumulus.LogMessage("AirLinkHealth: Missing WLL WeatherLink API key/secret/station Id in the cumulus.ini file, aborting!");
 					return;
@@ -1332,7 +1354,7 @@ namespace CumulusMX
 			}
 			string header = dataStringBuilder.ToString();
 
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, header);
+			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.AirLinkApiSecret, header);
 			parameters.Add("api-signature", apiSignature);
 
 			StringBuilder stationsUrl = new StringBuilder();
@@ -1416,24 +1438,30 @@ namespace CumulusMX
 		private void GetAvailableSensors()
 		{
 			WlSensorList sensorsObj;
+			string apiKey;
+			string apiSecret;
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
-			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
+			if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 			{
-				cumulus.LogMessage("GetAvailableSensors: WeatherLink API data is missing in the configuration, aborting!");
+				cumulus.LogMessage("GetAvailableSensors: WeatherLink AirLink API data is missing in the configuration, aborting!");
 				return;
 			}
 
-			if (cumulus.WllStationId < 10)
+			apiKey = cumulus.AirLinkApiKey;
+			apiSecret = cumulus.AirLinkApiSecret;
+
+			if ((indoor && cumulus.AirLinkInStationId < 10) || (!indoor && cumulus.AirLinkOutStationId < 10))
 			{
-				cumulus.LogMessage($"GetAvailableSensors: No WeatherLink API station ID has been configured, aborting!");
+				cumulus.LogMessage($"GetAvailableSensors: No WeatherLink AirLink API station ID has been configured, aborting!");
 				return;
 			}
+
 
 			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
 			{
-				{ "api-key", cumulus.WllApiKey },
+				{ "api-key", apiKey },
 				{ "t", unixDateTime.ToString() }
 			};
 
@@ -1445,7 +1473,7 @@ namespace CumulusMX
 			}
 			string header = dataStringBuilder.ToString();
 
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, header);
+			var apiSignature = WlDotCom.CalculateApiSignature(apiSecret, header);
 			parameters.Add("api-signature", apiSignature);
 
 			StringBuilder sensorsUrl = new StringBuilder();
@@ -1460,7 +1488,7 @@ namespace CumulusMX
 			// remove the trailing "&"
 			sensorsUrl.Remove(sensorsUrl.Length - 1, 1);
 
-			var logUrl = sensorsUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
+			var logUrl = sensorsUrl.ToString().Replace(apiKey, "<<API_KEY>>");
 			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {logUrl}");
 
 			try

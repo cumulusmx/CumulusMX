@@ -198,7 +198,7 @@ namespace CumulusMX
 					cumulus.NOAAconf.RainNorms[4] = settings.normalrain.apr;
 					cumulus.NOAAconf.RainNorms[5] = settings.normalrain.may;
 					cumulus.NOAAconf.RainNorms[6] = settings.normalrain.jun;
-					cumulus.NOAAconf.RainNorms[6] = settings.normalrain.jul;
+					cumulus.NOAAconf.RainNorms[7] = settings.normalrain.jul;
 					cumulus.NOAAconf.RainNorms[8] = settings.normalrain.aug;
 					cumulus.NOAAconf.RainNorms[9] = settings.normalrain.sep;
 					cumulus.NOAAconf.RainNorms[10] = settings.normalrain.oct;

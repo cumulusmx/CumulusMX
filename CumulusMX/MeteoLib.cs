@@ -330,5 +330,23 @@ namespace CumulusMX
 
 			return hindex - wind;
 		}
+
+
+		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC)
+		{
+			/* constants */
+			double i = 287.05;// gas constant for dry air
+			double a = 9.80665;// gravity
+			double r = .0065; //standard atmosphere lapse rate
+			double s = 1013.25;// standard sea level pressure
+			double n = 273.15 + tempC; //288.15; // standard sea level temp;
+
+			double l = a / (i * r);//
+			double c = i * r / a;
+			double u = Math.Pow(1 + Math.Pow(s / pressureHpa, c) * (r * altitudeM / n), l);
+			double d = pressureHpa * u;
+			return d;
+		}
+
 	}
 }
