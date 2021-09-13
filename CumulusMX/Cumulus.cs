@@ -7139,6 +7139,11 @@ namespace CumulusMX
 			if (!Directory.Exists(dirpath))
 			{
 				LogMessage("BackupData: *** Error - backup folder does not exist - " + dirpath);
+				CreateRequiredFolders();
+				if (!Directory.Exists(dirpath))
+				{
+					return;
+				}
 			}
 			else
 			{
@@ -7148,16 +7153,28 @@ namespace CumulusMX
 
 				while (dirlist.Count > 10)
 				{
-					if (Path.GetFileName(dirlist[0]) == "daily")
+					try
 					{
-						LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
-						break;
+						if (Path.GetFileName(dirlist[0]) == "daily")
+						{
+							LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
+							break;
+						}
+						else
+						{
+							Directory.Delete(dirlist[0], true);
+							dirlist.RemoveAt(0);
+						}
 					}
-					else
+					catch (UnauthorizedAccessException)
 					{
-						Directory.Delete(dirlist[0], true);
-						dirlist.RemoveAt(0);
+						LogErrorMessage("BackupData: Error, no permission to read/delete folder: " + dirlist[0]);
 					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"BackupData: Error while attempting to read/delete folder: {dirlist[0]}, error message: {ex.Message}");
+					}
+
 				}
 
 				string foldername = timestamp.ToString("yyyyMMddHHmmss");
