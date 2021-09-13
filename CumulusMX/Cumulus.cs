@@ -10263,8 +10263,8 @@ namespace CumulusMX
 
 		private void CreateRequiredFolders()
 		{
-			// The required folders are: /backup, /data, /MXdiags
-			var folders = new string[3] { "backup", "data", "MXdiags" };
+			// The required folders are: /backup, /data, /MXdiags, /Reports
+			var folders = new string[4] { "backup", "data", "MXdiags", "Reports"};
 
 			LogMessage("Checking required folders");
 
