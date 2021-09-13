@@ -1,3 +1,11 @@
+3.13.2 - b3147
+——————————————
+- Fix: HTTP Station Ecowitt - not decoding all CO₂ sensor values correctly, again!
+
+- Change: The CumulusMX dustribution zip no longer contains the required empty folders /backup, /data, /MXdiags.
+	These folders will now be created on start-up if they are missing
+
+
 3.13.1 - b3146
 ——————————————
 - Fix: HTTP Station Ecowitt - not decoding all CO₂ sensor values correctly

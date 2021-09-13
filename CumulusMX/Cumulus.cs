@@ -10253,10 +10253,25 @@ namespace CumulusMX
 
 			foreach (var folder in folders)
 			{
-				if (!Directory.Exists(folder))
+				try
 				{
-					LogMessage("Creating required folder: /" + folder);
-					Directory.CreateDirectory(folder);
+					if (!Directory.Exists(folder))
+					{
+						LogMessage("Creating required folder: /" + folder);
+						Directory.CreateDirectory(folder);
+					}
+				}
+				catch (UnauthorizedAccessException)
+				{
+					var msg = "Error, no permission to read/create folder: " + folder;
+					LogConsoleMessage(msg);
+					LogErrorMessage(msg);
+				}
+				catch (Exception ex)
+				{
+					var msg = $"Error while attempting to read/create folder: {folder}, error message: {ex.Message}";
+					LogConsoleMessage(msg);
+					LogErrorMessage(msg);
 				}
 			}
 		}
