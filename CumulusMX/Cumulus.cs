@@ -834,6 +834,10 @@ namespace CumulusMX
 
 			LogMessage(DateTime.Now.ToString("G"));
 
+
+			// Check if all the folders required by CMX exist, if not create them
+			CreateRequiredFolders();
+
 			// find the data folder
 			//datapath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + DirectorySeparator + "Cumulus" + DirectorySeparator;
 
@@ -10238,6 +10242,23 @@ namespace CumulusMX
 			}
 
 			pingReply = e.Reply;
+		}
+
+		private void CreateRequiredFolders()
+		{
+			// The required folders are: /backup, /data, /MXdiags
+			var folders = new string[3] { "backup", "data", "MXdiags" };
+
+			LogMessage("Checking required folders");
+
+			foreach (var folder in folders)
+			{
+				if (!Directory.Exists(folder))
+				{
+					LogMessage("Creating required folder: /" + folder);
+					Directory.CreateDirectory(folder);
+				}
+			}
 		}
 	}
 

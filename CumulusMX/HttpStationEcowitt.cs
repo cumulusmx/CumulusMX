@@ -1074,7 +1074,7 @@ namespace CumulusMX
 			}
 			if (data["pm25_24h_co2"] != null)
 			{
-				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24_co2"], CultureInfo.InvariantCulture);
+				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24h_co2"], CultureInfo.InvariantCulture);
 			}
 			if (data["pm10_co2"] != null)
 			{
@@ -1090,7 +1090,7 @@ namespace CumulusMX
 			}
 			if (data["co2_24h"] != null)
 			{
-				station.CO2_24h = Convert.ToInt32(data["co2"], CultureInfo.InvariantCulture);
+				station.CO2_24h = Convert.ToInt32(data["co2_24h"], CultureInfo.InvariantCulture);
 			}
 		}
 
