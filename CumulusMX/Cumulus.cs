@@ -834,6 +834,10 @@ namespace CumulusMX
 
 			LogMessage(DateTime.Now.ToString("G"));
 
+
+			// Check if all the folders required by CMX exist, if not create them
+			CreateRequiredFolders();
+
 			// find the data folder
 			//datapath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + DirectorySeparator + "Cumulus" + DirectorySeparator;
 
@@ -7135,6 +7139,11 @@ namespace CumulusMX
 			if (!Directory.Exists(dirpath))
 			{
 				LogMessage("BackupData: *** Error - backup folder does not exist - " + dirpath);
+				CreateRequiredFolders();
+				if (!Directory.Exists(dirpath))
+				{
+					return;
+				}
 			}
 			else
 			{
@@ -7144,16 +7153,28 @@ namespace CumulusMX
 
 				while (dirlist.Count > 10)
 				{
-					if (Path.GetFileName(dirlist[0]) == "daily")
+					try
 					{
-						LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
-						break;
+						if (Path.GetFileName(dirlist[0]) == "daily")
+						{
+							LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
+							break;
+						}
+						else
+						{
+							Directory.Delete(dirlist[0], true);
+							dirlist.RemoveAt(0);
+						}
 					}
-					else
+					catch (UnauthorizedAccessException)
 					{
-						Directory.Delete(dirlist[0], true);
-						dirlist.RemoveAt(0);
+						LogErrorMessage("BackupData: Error, no permission to read/delete folder: " + dirlist[0]);
 					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"BackupData: Error while attempting to read/delete folder: {dirlist[0]}, error message: {ex.Message}");
+					}
+
 				}
 
 				string foldername = timestamp.ToString("yyyyMMddHHmmss");
@@ -10238,6 +10259,38 @@ namespace CumulusMX
 			}
 
 			pingReply = e.Reply;
+		}
+
+		private void CreateRequiredFolders()
+		{
+			// The required folders are: /backup, /data, /MXdiags, /Reports
+			var folders = new string[4] { "backup", "data", "MXdiags", "Reports"};
+
+			LogMessage("Checking required folders");
+
+			foreach (var folder in folders)
+			{
+				try
+				{
+					if (!Directory.Exists(folder))
+					{
+						LogMessage("Creating required folder: /" + folder);
+						Directory.CreateDirectory(folder);
+					}
+				}
+				catch (UnauthorizedAccessException)
+				{
+					var msg = "Error, no permission to read/create folder: " + folder;
+					LogConsoleMessage(msg);
+					LogErrorMessage(msg);
+				}
+				catch (Exception ex)
+				{
+					var msg = $"Error while attempting to read/create folder: {folder}, error message: {ex.Message}";
+					LogConsoleMessage(msg);
+					LogErrorMessage(msg);
+				}
+			}
 		}
 	}
 
