@@ -35,6 +35,22 @@ namespace CumulusMX
 				Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 			}
 
+			try
+			{
+				if (!Directory.Exists("MXdiags"))
+				{
+					Directory.CreateDirectory("MXdiags");
+				}
+			}
+			catch (UnauthorizedAccessException)
+			{
+				Console.WriteLine("Error, no permission to read/create folder /MXdiags");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error while attempting to read/create folder /MXdiags, error message: {ex.Message}");
+			}
+
 
 			var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
 			var logfileOld = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog-Old.txt";
