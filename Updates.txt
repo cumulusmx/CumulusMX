@@ -1,6 +1,7 @@
 3.13.3 - b3148
 ——————————————
 - Fix: FineOffset station historic catch-up is now aligned to the correct logger intervals
+- Fix: Raincounter reset incorrectly detected if CMX restarted on a day that has already had more than 50 mm of rainfall
 
 
 
