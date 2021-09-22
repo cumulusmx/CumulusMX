@@ -3590,9 +3590,8 @@ namespace CumulusMX
 			}
 
 			// Has the rain total in the station been reset?
-			// Or has it incremented by a large value?
 			// raindaystart greater than current total, allow for rounding
-			if (raindaystart - Raincounter > 0.1 || Raincounter - previoustotal > 50)
+			if (raindaystart - Raincounter > 0.1)
 			{
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value

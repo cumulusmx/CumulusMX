@@ -30,8 +30,6 @@ namespace CumulusMX
 		private bool synchronising;
 		//private DateTime lastraintip;
 		//private int raininlasttip = 0;
-		private int interval = 0;
-		private int followinginterval = 0;
 		//private readonly double[] WindRunHourMult = {3.6, 1.0, 1.0, 1.0};
 		private readonly Timer tmrDataRead;
 		private int readCounter;
@@ -182,6 +180,7 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			var data = new byte[32];
+			int interval = 0;
 			cumulus.LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 			//DateTime now = DateTime.Now;
 			cumulus.LogMessage(DateTime.Now.ToString("G"));
@@ -216,12 +215,23 @@ namespace CumulusMX
 
 			while (moredata)
 			{
-				followinginterval = interval;
+				var followinginterval = interval;
 				interval = data[0];
 				cumulus.LogDebugMessage($"This logger record interval = {interval} mins");
 
-				// calculate timestamp of previous history data
+				// calculate time stamp of previous history data
 				timestamp = timestamp.AddMinutes(-interval);
+
+				// Now for the first record we need to work out what logging interval that belongs to...
+				if (datalist.Count == 0)
+				{
+					// number of ticks in a logging interval
+					var intTicks = TimeSpan.FromMinutes(cumulus.logints[cumulus.DataLogInterval]).Ticks;
+					// date/time of the last log interval
+					var lastLogInterval = new DateTime((DateTime.Now.Ticks / intTicks) * intTicks);
+					// which log interval does this data belong to, the last or the one before that?
+					timestamp = timestamp > lastLogInterval ? lastLogInterval : lastLogInterval.AddTicks(-intTicks);
+				}
 
 				if ((interval != 255) && (timestamp > cumulus.LastUpdateTime) && (datalist.Count < logEntries))
 				{
