@@ -2951,6 +2951,7 @@ namespace CumulusMX
 
 				// OK we are reconnected, let the FTP recommence
 				RealtimeFtpReconnecting = false;
+				RealtimeFtpInProgress = false;
 				realtimeFTPRetries = 0;
 				RealtimeCopyInProgress = false;
 				LogMessage("RealtimeReconnect: Realtime FTP now connected to server (tested)");
