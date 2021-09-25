@@ -79,133 +79,140 @@ namespace CumulusMX
 			// If it works - check IP address in config file and set/update if required
 			// If it fails - just use the IP address from config file
 
-			const string serviceType = "_airlink._tcp";
-			var serviceBrowser = new ServiceBrowser();
-			serviceBrowser.ServiceAdded += OnServiceAdded;
-			serviceBrowser.ServiceRemoved += OnServiceRemoved;
-			serviceBrowser.ServiceChanged += OnServiceChanged;
-			serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
-
-			//Console.WriteLine($"Browsing for type: {serviceType}");
-			serviceBrowser.StartBrowse(serviceType);
-
-			cumulus.LogMessage("ZeroConf Service: Attempting to find AirLink via zero-config...");
-
-			// short wait for zero-config
-			Thread.Sleep(1000);
-
-			// Process the discovered device list
-			ipaddr = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
-			var hostname = indoor ? cumulus.AirLinkInHostName : cumulus.AirLinkOutHostName;
-			string msg;
-
-			if (discovered.IP.Count == 0)
+			if (cumulus.AirLinkAutoUpdateIpAddress)
 			{
-				// We didn't find anything on the network
-				msg = "Failed to discover any AirLink devices";
-				cumulus.LogMessage("ZeroConf Service: " + msg);
-				cumulus.LogConsoleMessage(msg);
-			}
-			else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname))
-			{
-				var writeConfig = false;
+				const string serviceType = "_airlink._tcp";
+				var serviceBrowser = new ServiceBrowser();
+				serviceBrowser.ServiceAdded += OnServiceAdded;
+				serviceBrowser.ServiceRemoved += OnServiceRemoved;
+				serviceBrowser.ServiceChanged += OnServiceChanged;
+				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
 
-				// If only one device is discovered, and its Host-name address matches (or our Host-name is blank), then just use it
-				if (string.IsNullOrEmpty(hostname))
+				//Console.WriteLine($"Browsing for type: {serviceType}");
+				serviceBrowser.StartBrowse(serviceType);
+
+				cumulus.LogMessage("ZeroConf Service: Attempting to find AirLink via zero-config...");
+
+				// short wait for zero-config
+				Thread.Sleep(1000);
+
+				// Process the discovered device list
+				ipaddr = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
+				var hostname = indoor ? cumulus.AirLinkInHostName : cumulus.AirLinkOutHostName;
+				string msg;
+
+				if (discovered.IP.Count == 0)
 				{
-					writeConfig = true;
-
-					if (indoor)
-						cumulus.AirLinkInHostName = discovered.Hostname[0];
-					else
-						cumulus.AirLinkOutHostName = discovered.Hostname[0];
+					// We didn't find anything on the network
+					msg = "Failed to discover any AirLink devices";
+					cumulus.LogMessage("ZeroConf Service: " + msg);
+					cumulus.LogConsoleMessage(msg);
 				}
-
-				if (discovered.IP[0] != ipaddr)
+				else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname))
 				{
-					writeConfig = true;
+					var writeConfig = false;
 
-					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
-					cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
+					// If only one device is discovered, and its Host-name address matches (or our Host-name is blank), then just use it
+					if (string.IsNullOrEmpty(hostname))
+					{
+						writeConfig = true;
 
-					ipaddr = discovered.IP[0];
+						if (indoor)
+							cumulus.AirLinkInHostName = discovered.Hostname[0];
+						else
+							cumulus.AirLinkOutHostName = discovered.Hostname[0];
+					}
 
-					if (indoor)
-						cumulus.AirLinkInIPAddr = ipaddr;
+					if (discovered.IP[0] != ipaddr)
+					{
+						writeConfig = true;
+
+						cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
+						cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[0]}");
+
+						ipaddr = discovered.IP[0];
+
+						if (indoor)
+							cumulus.AirLinkInIPAddr = ipaddr;
+						else
+							cumulus.AirLinkOutIPAddr = ipaddr;
+					}
 					else
-						cumulus.AirLinkOutIPAddr = ipaddr;
+					{
+						cumulus.LogMessage($"ZeroConf Service: Auto-discovery found the AirLink, reporting its IP address as: {ipaddr}");
+					}
+
+					if (writeConfig)
+					{
+						cumulus.WriteIniFile();
+						cumulus.LogMessage($"ZeroConf Service: Auto-discovered AirLink name {discovered.Hostname[0]}, on IP address {ipaddr}");
+					}
+				}
+				else if (discovered.Hostname.Contains(hostname))
+				{
+					// Multiple devices discovered, but we have a Host-name match
+					cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} AirLink host name found on the network");
+
+					var idx = discovered.Hostname.IndexOf(hostname);
+
+					if (discovered.IP[idx] != ipaddr)
+					{
+						cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
+						cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
+						ipaddr = discovered.IP[idx];
+						if (indoor)
+							cumulus.AirLinkInIPAddr = ipaddr;
+						else
+							cumulus.AirLinkOutIPAddr = ipaddr;
+
+						cumulus.WriteIniFile();
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"ZeroConf Service: {locationStr} AirLink IP address has not changed");
+					}
+				}
+				else if (discovered.IP.Contains(ipaddr))
+				{
+					// Multiple devices discovered, no host-name match but we have an IP match
+					cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} AirLink IP address found on the network");
+
+					var idx = discovered.IP.IndexOf(ipaddr);
+
+					if (discovered.Hostname[idx] != hostname)
+					{
+						cumulus.LogDebugMessage($"ZeroConf Service: Changing previous {locationStr} host name '{hostname}' to '{discovered.Hostname[idx]}'");
+						hostname = discovered.Hostname[idx];
+						if (indoor)
+							cumulus.AirLinkInHostName = hostname;
+						else
+							cumulus.AirLinkOutHostName = hostname;
+
+						cumulus.WriteIniFile();
+					}
 				}
 				else
 				{
-					cumulus.LogMessage($"ZeroConf Service: Auto-discovery found the AirLink, reporting its IP address as: {ipaddr}");
-				}
-
-				if (writeConfig)
-				{
-					cumulus.WriteIniFile();
-					cumulus.LogMessage($"ZeroConf Service: Auto-discovered AirLink name {discovered.Hostname[0]}, on IP address {ipaddr}");
-				}
-			}
-			else if (discovered.Hostname.Contains(hostname))
-			{
-				// Multiple devices discovered, but we have a Host-name match
-				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} AirLink host name found on the network");
-
-				var idx = discovered.Hostname.IndexOf(hostname);
-
-				if (discovered.IP[idx] != ipaddr)
-				{
-					cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
-					cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
-					ipaddr = discovered.IP[idx];
-					if (indoor)
-						cumulus.AirLinkInIPAddr = ipaddr;
-					else
-						cumulus.AirLinkOutIPAddr = ipaddr;
-
-					cumulus.WriteIniFile();
-				}
-				else
-				{
-					cumulus.LogDebugMessage($"ZeroConf Service: {locationStr} AirLink IP address has not changed");
-				}
-			}
-			else if (discovered.IP.Contains(ipaddr))
-			{
-				// Multiple devices discovered, no host-name match but we have an IP match
-				cumulus.LogDebugMessage($"ZeroConf Service: Matching {locationStr} AirLink IP address found on the network");
-
-				var idx = discovered.IP.IndexOf(ipaddr);
-
-				if (discovered.Hostname[idx] != hostname)
-				{
-					cumulus.LogDebugMessage($"ZeroConf Service: Changing previous {locationStr} host name '{hostname}' to '{discovered.Hostname[idx]}'");
-					hostname = discovered.Hostname[idx];
-					if (indoor)
-						cumulus.AirLinkInHostName = hostname;
-					else
-						cumulus.AirLinkOutHostName = hostname;
-
-					cumulus.WriteIniFile();
+					// Multiple devices discovered, and we do not have a clue!
+					string list = "";
+					msg = "*** Discovered more than one potential AirLink device.";
+					cumulus.LogMessage("ZeroConf Service: " + msg);
+					cumulus.LogConsoleMessage(msg);
+					msg = "*** Please select the Host name/IP address from the list and enter it manually into the configuration";
+					cumulus.LogMessage("ZeroConf Service: " + msg);
+					cumulus.LogConsoleMessage(msg);
+					for (var i = 0; i < discovered.IP.Count; i++)
+					{
+						list += discovered.Hostname[i] + "/" + discovered.IP[i] + " ";
+					}
+					msg = "*** Discovered AirLinks = " + list;
+					cumulus.LogMessage("ZeroConf Service: " + msg);
+					cumulus.LogConsoleMessage(msg);
 				}
 			}
 			else
 			{
-				// Multiple devices discovered, and we do not have a clue!
-				string list = "";
-				msg = "*** Discovered more than one potential AirLink device.";
-				cumulus.LogMessage("ZeroConf Service: " + msg);
-				cumulus.LogConsoleMessage(msg);
-				msg = "*** Please select the Host name/IP address from the list and enter it manually into the configuration";
-				cumulus.LogMessage("ZeroConf Service: " + msg);
-				cumulus.LogConsoleMessage(msg);
-				for (var i = 0; i < discovered.IP.Count; i++)
-				{
-					list += discovered.Hostname[i] + "/" + discovered.IP[i] + " ";
-				}
-				msg = "*** Discovered AirLinks = " + list;
-				cumulus.LogMessage("ZeroConf Service: " + msg);
-				cumulus.LogConsoleMessage(msg);
+				cumulus.LogMessage($"ZeroConf Service: Auto discovery is disabled");
 			}
 
 			wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
