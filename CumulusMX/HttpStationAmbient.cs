@@ -34,7 +34,6 @@ namespace CumulusMX
 			// Ambient does not send DP, so force MX to calculate it
 			//cumulus.StationOptions.CalculatedDP = true;
 
-			cumulus.Manufacturer = cumulus.AMBIENT;
 			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
 			{
 				cumulus.AirQualityUnitText = "µg/m³";

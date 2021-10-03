@@ -45,6 +45,7 @@ namespace CumulusMX
 				use100for98hum = cumulus.StationOptions.Humidity98Fix,
 				calculatedewpoint = cumulus.StationOptions.CalculatedDP,
 				calculatewindchill = cumulus.StationOptions.CalculatedWC,
+				calculateet = cumulus.StationOptions.CalculatedET,
 				cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
 				extrasensors = cumulus.StationOptions.LogExtraSensors,
 				ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
@@ -701,6 +702,7 @@ namespace CumulusMX
 					cumulus.StationOptions.Humidity98Fix = settings.Options.use100for98hum;
 					cumulus.StationOptions.CalculatedDP = settings.Options.calculatedewpoint;
 					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
+					cumulus.StationOptions.CalculatedET = settings.Options.calculateet;
 					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
 					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
@@ -1394,6 +1396,7 @@ namespace CumulusMX
 		public bool use100for98hum { get; set; }
 		public bool calculatedewpoint { get; set; }
 		public bool calculatewindchill { get; set; }
+		public bool calculateet { get; set; }
 		public bool cumuluspresstrendnames { get; set; }
 		public bool roundwindspeeds { get; set; }
 		public bool ignorelacrosseclock { get; set; }

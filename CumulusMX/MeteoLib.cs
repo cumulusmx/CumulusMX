@@ -348,5 +348,136 @@ namespace CumulusMX
 			return d;
 		}
 
+
+		/// <summary>
+		/// Calculates the net long wave radiation
+		/// http://www.fao.org/docrep/x0490e/x0490e00.htm - equation (39)
+		/// </summary>
+		/// <param name="tempMinC">Minimum temperature over the period</param>
+		/// <param name="tempMaxC">Maximum temperature over the period</param>
+		/// <param name="vapPresskPa">Vapour pressure in kPa</param>
+		/// <param name="radMeasured">Measured solar radiation (same units as radClearSky)</param>
+		/// <param name="radClearSky">Calculated clear sky radiation (same units as radMeasured)</param>
+		/// <returns>Returns the long wave (back) radiation in MJ/m^2/day</returns>
+		private static double LongwaveRadiation(double tempMinC, double tempMaxC, double vapPresskPa, double radMeasured, double radClearSky)
+		{
+			var minK = tempMinC + 273.16;
+			var maxK = tempMaxC + 273.16;
+
+			// Stefan-Boltzman constant in MJ/K^4/m^2/day
+			var sigma = 4.903e-09;
+
+			// Use the ratio of measured to expected radiation as a measure of cloudiness, but only if it's daylight
+			double cloudFactor;
+			if (radClearSky > 0)
+			{
+				cloudFactor = radMeasured / radClearSky;
+				if (cloudFactor > 1)
+					cloudFactor = 1;
+			}
+			else
+			{
+				// It's night!
+				// As the night time ET is low compared to day, let's just assume 50% cloud cover
+				cloudFactor = 0.5;
+			}
+
+			// Calculate the long wave (back) radiation in MJ/m^2/day.
+			var part1 = sigma * (Math.Pow(minK, 4) + Math.Pow(maxK, 4)) / 2.0;
+			var part2 = (0.34 - 0.14 * Math.Sqrt(vapPresskPa));
+			var part3 = (1.35 * cloudFactor - 0.35);
+
+			return part1 * part2 * part3;
+		}
+
+		/// <summary>
+		///  Evapotranspiration
+		///  The calculation of ETo by means of the FAO Penman-Monteith equation
+		///  Using grass as the reference crop
+		///  Uses the "hourly time step" equations - http://www.fao.org/3/x0490e/x0490e08.htm#calculation%20procedure
+		///  With acknowledgement to the equivalent weewx formula - https://github.com/weewx/weewx/blob/master/bin/weewx/wxformulas.py
+		/// </summary>
+		/// <param name="tempMinC"></param>
+		/// <param name="tempMaxC"></param>
+		/// <param name="humMin"></param>
+		/// <param name="humMax"></param>
+		/// <param name="radMean">Mean solar irradiation over the period in W/m^2</param>
+		/// <param name="windAvgMs">Mean wind speed over the period in m/s</param>
+		/// <param name="latitude"></param>
+		/// <param name="longitude"></param>
+		/// <param name="altitudeM">Station altitude in metres</param>
+		/// <param name="pressMinKpa"></param>
+		/// <param name="pressMaxkpa"></param>
+		/// <param name="date">Date/time of the end of the period</param>
+		/// <returns>Evapotranspiration in mm</returns>
+		public static double Evapotranspiration(
+			double tempMinC, double tempMaxC, int humMin, int humMax,
+			double radMean, double windAvgMs,
+			double latitude, double longitude, double altitudeM,
+			double pressMinKpa, double pressMaxkpa,
+			DateTime date)
+		{
+			var windHeightM = 7.0; // height of wind sensor in metres, we assume 7m and that speeds will be corrected to that height by CMX if lower
+
+			// Use grass as the reference crop
+			var albedo = 0.23;
+
+			// Calculate mean temp from min/max
+			var tempMeanC = (tempMinC + tempMaxC) / 2;
+			var tempMeanK = tempMeanC + 273.16;
+
+			// Adjust avg wind speed to a height of 2m
+			var u2 = 4.87 * windAvgMs / Math.Log(67.8 * windHeightM - 5.42);
+
+			// Calculate the atmospheric pressure in kPa
+			var p = 101.3 * Math.Pow((293 - 0.0065 * altitudeM) / 293.0, 5.26);
+
+			// Calculate mean atmospheric pressure in kPa
+			//var p = (pressMinKpa + pressMaxkpa) / 2;
+
+			// Calculate the psychrometric constant in kPa/C (equation 8)
+			var gamma = 0.665e-03 * p;
+
+			// Calculate mean saturation vapour pressure, converting from hPa to kPa (equation 12)
+			var etMin = SaturationVapourPressure2008(tempMinC) / 10;
+			var etMax = SaturationVapourPressure2008(tempMaxC) / 10;
+			var e0T = (etMin + etMax) / 2;
+
+			// Calculate the slope of the saturation vapour pressure curve in kPa/C (equation 13)
+			var delta = 4098.0 * (0.6108 * Math.Exp(17.27 * tempMeanC / (tempMeanC + 237.3))) / ((tempMeanC + 237.3) * (tempMeanC + 237.3));
+
+			// Calculate actual vapour pressure from relative humidity (equation 17)
+			var ea = (etMin * humMax / 100 + etMax * humMin / 100) / 2;
+
+			// Convert solar radiation from W/m^2 to MJ/m^2/h
+			var Rs = radMean * 0.0036;
+
+			// Net short-wave (measured) radiation in MJ/m^2/h (equation 38)
+			var Rns = (1 - albedo) * Rs;
+
+			// We'll use our own clear sky radiation values - as we already have them. Assume clear skies and ignore any user "tweaks"
+			var RsoEnd = AstroLib.SolarMax(date, longitude, latitude, altitudeM, out _, 0.91, 1, 1);
+			var RsoStart = AstroLib.SolarMax(date.AddHours(-1), longitude, latitude, altitudeM, out _, 0.91, 1, 1);
+			// Take the mean and convert from W/m^2 to MJ/m^2/h
+			var Rso = (RsoEnd + RsoStart) / 2 * 0.0036;
+
+			// Long-wave (back) radiation. Convert from MJ/m^2/day to MJ/m^2/h (equation 39):
+			var Rnl = LongwaveRadiation(tempMinC, tempMaxC, ea, Rs, Rso) / 24;
+
+			// Calculate net radiation at the surface in MJ/m^2/h (equation 40)
+			var Rn = Rns - Rnl;
+
+			// Calculate the soil heat flux. (see section "For hourly or shorter periods" in http://www.fao.org/docrep/x0490e/x0490e07.htm#radiation
+			var Ghr = (Rs > 0 ? 0.1 : 0.5) * Rn;
+
+			// Result is in mm/h (equation 53)
+			// But as we have fixed a 1 hour period, then the effective result is just mm
+			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37 / (tempMeanC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
+
+			if (et0 < 0) et0 = 0;
+
+			return et0;
+		}
+
 	}
 }

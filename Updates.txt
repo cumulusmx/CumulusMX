@@ -1,9 +1,26 @@
+3.13.4 - b3149
+——————————————
+- Fix: Dayfile editor MySQL update statement failing and knock on effects
+- Fix: Davis AirLink sensors now honours the disabling of auto-discovery, and improve auto-discovery logic
+- Fix: Davis WLL station now honours the disabling of auto-discovery
+- Fix: HTTP Extra sensors were over-riding the station manufacturer causing various side effects
+- Fix: Extra sensor logging is now only automatically enabled for HTTP sensors if the selected sensors are actually logged
+- Fix: HTTP Ecowitt station decode of leaf wetness sensors values and battery data
+
+- New: Adds an estimated evapotranspiration value (ET) for stations that have a solar irradiation sensor and do not already supply this value
+	The only currently supported station provides an ET value are Davis VP2/WLL stations with solar sensors
+	The Cumulus calculation uses the standard grass reference crop
+
+- Change: Instead of 'Cumulus pressure names' being implicitly set internally for Davis stations and having to be explicitly set for some other stations
+	Davis VP2/WLL and some! other stations will now explicitly set this option for you
+
+
+
 3.13.3 - b3148
 ——————————————
 - Fix: FineOffset station historic catch-up is now aligned to the correct logger intervals
 - Fix: Raincounter reset incorrectly detected if a day has had more than 50 mm of rainfall
 - Fix: Realtime FTP would not recover after a connection failure
-
 
 
 3.13.2 - b3147

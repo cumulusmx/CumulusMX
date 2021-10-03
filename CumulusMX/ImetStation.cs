@@ -21,7 +21,6 @@ namespace CumulusMX
 
 		public ImetStation(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.INSTROMET;
 			cumulus.LogMessage("ImetUpdateLogPointer=" + cumulus.ImetOptions.UpdateLogPointer);
 			cumulus.LogMessage("ImetWaitTime=" + cumulus.ImetOptions.WaitTime);
 			cumulus.LogMessage("ImetReadDelay=" + cumulus.ImetOptions.ReadDelay);
@@ -773,6 +772,13 @@ namespace CumulusMX
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
+
+							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							{
+								// Start of a new hour, and we want to calculate ET in Cumulus
+								CalculateEvaoptranspiration(timestamp);
+							}
+
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 

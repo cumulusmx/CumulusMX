@@ -101,6 +101,10 @@ namespace CumulusMX
 				var hostname = indoor ? cumulus.AirLinkInHostName : cumulus.AirLinkOutHostName;
 				string msg;
 
+				int numOfAirLinks = 0;
+				if (cumulus.AirLinkInEnabled) numOfAirLinks++;
+				if (cumulus.AirLinkOutEnabled) numOfAirLinks++;
+
 				if (discovered.IP.Count == 0)
 				{
 					// We didn't find anything on the network
@@ -108,7 +112,7 @@ namespace CumulusMX
 					cumulus.LogMessage("ZeroConf Service: " + msg);
 					cumulus.LogConsoleMessage(msg);
 				}
-				else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname))
+				else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname) && numOfAirLinks == 1)
 				{
 					var writeConfig = false;
 
@@ -195,7 +199,7 @@ namespace CumulusMX
 				{
 					// Multiple devices discovered, and we do not have a clue!
 					string list = "";
-					msg = "*** Discovered more than one potential AirLink device.";
+					msg = "*** Discovered one or more potential AirLink devices.";
 					cumulus.LogMessage("ZeroConf Service: " + msg);
 					cumulus.LogConsoleMessage(msg);
 					msg = "*** Please select the Host name/IP address from the list and enter it manually into the configuration";
@@ -212,8 +216,10 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"ZeroConf Service: Auto discovery is disabled");
+				cumulus.LogMessage($"ZeroConf Service: AirLink auto-discovery is disabled");
 			}
+
+			cumulus.LogMessage($"Davis AirLink ({locationStr}) - using IP address {(indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr)}");
 
 			wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries

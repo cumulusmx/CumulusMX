@@ -39,7 +39,6 @@ namespace CumulusMX
 				cumulus.StationOptions.CalculatedWC = true;
 			}
 
-			cumulus.Manufacturer = cumulus.ECOWITT;
 			if (station == null || (station != null && cumulus.EcowittExtraUseAQI))
 			{
 				cumulus.AirQualityUnitText = "µg/m³";
@@ -771,7 +770,7 @@ namespace CumulusMX
 				try
 				{
 					// leafwetness
-					// leafwetness[2-8]
+					// leafwetness_ch[1-8]
 
 					if (cumulus.EcowittExtraUseLeafWet)
 					{
@@ -1007,11 +1006,11 @@ namespace CumulusMX
 				station.DoLeafWetness(Convert.ToDouble(data["leafwetness"], CultureInfo.InvariantCulture), 1);
 			}
 			// Though Ecowitt supports up to 8 sensors, MX only supports the first 4
-			for (var i = 2; i <= 4; i++)
+			for (var i = 1; i <= 4; i++)
 			{
-				if (data["leafwetness" + i] != null)
+				if (data["leafwetness_ch" + i] != null)
 				{
-					station.DoLeafWetness(Convert.ToDouble(data["leafwetness" + i], CultureInfo.InvariantCulture), i - 1);
+					station.DoLeafWetness(Convert.ToDouble(data["leafwetness_ch" + i], CultureInfo.InvariantCulture), i - 1);
 				}
 			}
 
@@ -1158,12 +1157,14 @@ namespace CumulusMX
 				lowBatt = lowBatt || (data["pm25batt" + i] != null && data["pm25batt" + i] == "1");
 				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], CultureInfo.InvariantCulture) <= 1.2);
+				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], CultureInfo.InvariantCulture) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
 				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], CultureInfo.InvariantCulture) <= 1.2);
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], CultureInfo.InvariantCulture) <= 1.2);
+				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], CultureInfo.InvariantCulture) <= 1.2);
 			}
 
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
