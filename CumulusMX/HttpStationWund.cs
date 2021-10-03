@@ -14,7 +14,6 @@ namespace CumulusMX
 			cumulus.LogMessage("Starting HTTP Station (Wunderground)");
 
 			cumulus.StationOptions.CalculatedWC = true;
-			cumulus.Manufacturer = cumulus.HTTPSTATION;
 			cumulus.AirQualityUnitText = "µg/m³";
 			cumulus.SoilMoistureUnitText = "%";
 

@@ -19,10 +19,16 @@ namespace CumulusMX
 
 		public TempestStation(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.WEATHERFLOW;
 			calculaterainrate = false;
 
 			cumulus.LogMessage("Station type = Tempest");
+
+			// Tempest does not provide pressure trend strings
+			cumulus.StationOptions.UseCumulusPresstrendstr = true;
+
+			// Tempest does not provide wind chill
+			cumulus.StationOptions.CalculatedWC = true;
+
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			Task.Run(getAndProcessHistoryData);// grab old data, then start the station
@@ -202,6 +208,12 @@ namespace CumulusMX
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
+				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvaoptranspiration(timestamp);
+				}
+
 				DoTrendValues(timestamp);
 				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
@@ -298,7 +310,6 @@ namespace CumulusMX
 						DoFeelsLike(ts);
 						DoWindChill(userTemp,ts);
 						DoHumidex(ts);
-						DoPressTrend(null);
 						UpdateStatusPanel(ts);
 						UpdateMQTT();
 						DoForecast(string.Empty, false);

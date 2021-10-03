@@ -46,7 +46,6 @@ namespace CumulusMX
 
 		internal FOStation(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.EW;
 			var data = new byte[32];
 
 			tmrDataRead = new Timer();
@@ -579,6 +578,13 @@ namespace CumulusMX
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 				DoTrendValues(timestamp);
+
+				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvaoptranspiration(timestamp);
+				}
+
 				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);

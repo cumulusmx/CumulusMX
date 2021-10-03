@@ -3211,7 +3211,7 @@ namespace CumulusMX
 
 		private string TagEt(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(station.ET, tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(station.ET, tagParams, cumulus.RainDPlaces + 1);
 		}
 
 		private string TagLight(Dictionary<string,string> tagParams)

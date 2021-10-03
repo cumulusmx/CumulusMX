@@ -236,8 +236,11 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
 						cumulus.EcowittExtraUseLeak = settings.httpSensors.ecowitt.useLeak;
 
-						// Also enable extra logging
-						cumulus.StationOptions.LogExtraSensors = true;
+						// Also enable extra logging if applicable
+						if (cumulus.EcowittExtraUseTempHum || cumulus.EcowittExtraUseSoilTemp || cumulus.EcowittExtraUseSoilMoist || cumulus.EcowittExtraUseLeafWet || cumulus.EcowittExtraUseUserTemp || cumulus.EcowittExtraUseAQI || cumulus.EcowittExtraUseCo2)
+						{
+							cumulus.StationOptions.LogExtraSensors = true;
+						}
 					}
 					else
 						cumulus.EcowittExtraEnabled = false;
@@ -267,8 +270,11 @@ namespace CumulusMX
 						cumulus.AmbientExtraUseLightning = settings.httpSensors.ambient.useLightning;
 						cumulus.AmbientExtraUseLeak = settings.httpSensors.ambient.useLeak;
 
-						// Also enable extra logging
-						cumulus.StationOptions.LogExtraSensors = true;
+						// Also enable extra logging if applicable
+						if (cumulus.AmbientExtraUseTempHum || cumulus.AmbientExtraUseSoilTemp || cumulus.AmbientExtraUseSoilMoist || cumulus.AmbientExtraUseAQI || cumulus.AmbientExtraUseCo2)
+						{
+							cumulus.StationOptions.LogExtraSensors = true;
+						}
 					}
 					else
 						cumulus.AmbientExtraEnabled = false;

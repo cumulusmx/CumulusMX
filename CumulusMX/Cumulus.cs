@@ -3923,6 +3923,7 @@ namespace CumulusMX
 
 			StationOptions.CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
 			StationOptions.CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
+			StationOptions.CalculatedET = ini.GetValue("Station", "CalculatedET", false);
 			RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
 			Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
 			//ConfirmClose = ini.GetValue("Station", "ConfirmClose", false);
@@ -5094,6 +5095,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "NoSensorCheck", StationOptions.NoSensorCheck);
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
 			ini.SetValue("Station", "CalculatedWC", StationOptions.CalculatedWC);
+			ini.SetValue("Station", "CalculatedET", StationOptions.CalculatedET);
+
 			ini.SetValue("Station", "RolloverHour", RolloverHour);
 			ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
 			//ini.SetValue("Station", "ConfirmClose", ConfirmClose);
@@ -6694,8 +6697,6 @@ namespace CumulusMX
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor, BrasTurbidity, SolarCalc);
 			var filename = GetLogFileName(timestamp);
 
-			var failed = false;
-
 			try
 			{
 				var sb = new StringBuilder(256);
@@ -6757,12 +6758,17 @@ namespace CumulusMX
 					if (MySqlCheckConnection())
 					{
 						LogMessage("DoLogFile: MySQL server connection OK, trying to send the buffered commands...");
-						MySqlCommandSync(MySqlFailedList, "Buffered");
+						try
+						{
+							MySqlCommandSync(MySqlFailedList, "Buffered");
+						}
+						catch
+						{
+						}
 					}
 					else if (MySqlSettings.BufferOnfailure)
 					{
 						LogMessage("DoLogFile: MySQL server connection failed. Try again at next update");
-						failed = true;
 					}
 				}
 
@@ -6804,11 +6810,7 @@ namespace CumulusMX
 
 				string queryString = values.ToString();
 
-				if (failed)
-				{
-					MySqlFailedList.Enqueue(queryString);
-				}
-				else if (live )
+				if (live)
 				{
 					// do the update
 					_= MySqlCommandAsync(queryString, "DoLogFile");
@@ -9739,13 +9741,17 @@ namespace CumulusMX
 					MySqlUploadAlarm.Triggered = true;
 
 					// do we save this command/commands on failure to be resubmitted?
-					if (MySqlSettings.BufferOnfailure)
+					// if we have a syntax error, it is never going to work so do not save it for retry
+					if (!ex.Message.Contains("syntax"))
 					{
-						if (!string.IsNullOrEmpty(lastCmd))
+						if (MySqlSettings.BufferOnfailure)
 						{
-							MySqlFailedList.Enqueue(lastCmd);
+							if (!string.IsNullOrEmpty(lastCmd))
+							{
+								MySqlFailedList.Enqueue(lastCmd);
+							}
+							MySqlFailedList.Concat(Cmds);
 						}
-						MySqlFailedList.Concat(Cmds);
 					}
 				}
 			});
@@ -9797,11 +9803,17 @@ namespace CumulusMX
 				LogMessage(ex.Message);
 				MySqlUploadAlarm.LastError = ex.Message;
 				MySqlUploadAlarm.Triggered = true;
-				if (!string.IsNullOrEmpty(lastCmd))
+
+				// do we save this command/commands on failure to be resubmitted?
+				// if we have a syntax error, it is never going to work so do not save it for retry
+				if (!ex.Message.Contains("syntax"))
 				{
-					MySqlFailedList.Enqueue(lastCmd);
+					if (!string.IsNullOrEmpty(lastCmd))
+					{
+						MySqlFailedList.Enqueue(lastCmd);
+					}
+					MySqlFailedList.Concat(Cmds);
 				}
-				MySqlFailedList.Concat(Cmds);
 				throw;
 			}
 		}
@@ -10416,6 +10428,7 @@ namespace CumulusMX
 		public bool Humidity98Fix { get; set; }
 		public bool CalculatedDP { get; set; }
 		public bool CalculatedWC { get; set; }
+		public bool CalculatedET { get; set; }
 		public bool SyncTime { get; set; }
 		public int ClockSettingHour { get; set; }
 		public bool UseCumulusPresstrendstr { get; set; }

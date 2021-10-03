@@ -46,11 +46,13 @@ namespace CumulusMX
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.DAVIS;
 			calculaterainrate = false;
 			//cumulus.UseDataLogger = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
 			cumulus.UseCumulusForecast = true;
+			// WLL does not provide pressure trend strings
+			cumulus.StationOptions.UseCumulusPresstrendstr = true;
+
 			noET = false;
 			// initialise the battery status
 			TxBatText = "1-NA 2-NA 3-NA 4-NA 5-NA 6-NA 7-NA 8-NA";
@@ -181,20 +183,28 @@ namespace CumulusMX
 			// If it works - check IP address in config file and set/update if required
 			// If it fails - just use the IP address from config file
 
-			const string serviceType = "_weatherlinklive._tcp";
-			var serviceBrowser = new ServiceBrowser();
-			serviceBrowser.ServiceAdded += OnServiceAdded;
-			serviceBrowser.ServiceRemoved += OnServiceRemoved;
-			serviceBrowser.ServiceChanged += OnServiceChanged;
-			serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
+			if (cumulus.WLLAutoUpdateIpAddress)
+			{
+				const string serviceType = "_weatherlinklive._tcp";
+				var serviceBrowser = new ServiceBrowser();
+				serviceBrowser.ServiceAdded += OnServiceAdded;
+				serviceBrowser.ServiceRemoved += OnServiceRemoved;
+				serviceBrowser.ServiceChanged += OnServiceChanged;
+				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
 
-			//Console.WriteLine($"Browsing for type: {serviceType}");
-			serviceBrowser.StartBrowse(serviceType);
+				//Console.WriteLine($"Browsing for type: {serviceType}");
+				serviceBrowser.StartBrowse(serviceType);
 
-			cumulus.LogMessage("Attempting to find WLL via zero-config...");
+				cumulus.LogMessage("ZeroConf Service: Attempting to find WLL via mDNS...");
 
-			// short wait for zero-config
-			Thread.Sleep(1000);
+				// short wait for zero-config
+				Thread.Sleep(1000);
+			}
+			else
+			{
+				cumulus.LogMessage($"ZeroConf Service: WLL auto-discovery is disabled");
+			}
+
 
 			DateTime tooOld = new DateTime(0);
 
@@ -250,7 +260,7 @@ namespace CumulusMX
 					weatherLinkArchiveInterval = 2 * 60;
 				}
 
-				// short wait for realtime response
+				// short wait for real time response
 				Thread.Sleep(1200);
 
 				if (port == 0)
@@ -1105,7 +1115,6 @@ namespace CumulusMX
 								var data3 = rec.FromJsv<WllCurrentType3>();
 
 								DoPressure(ConvertPressINHGToUser(data3.bar_sea_level), dateTime);
-								DoPressTrend("Pressure trend");
 								// Altimeter from absolute
 								StationPressure = ConvertPressINHGToUser(data3.bar_absolute);
 								// Or do we use calibration? The VP2 code doesn't?
@@ -2162,16 +2171,24 @@ namespace CumulusMX
 							}
 						}
 
-						// Is there any ET in this record?
-						if (data11.et != null)
+						if (cumulus.StationOptions.CalculatedET && recordTs.Minute == 0)
 						{
-							// wl.com ET is only available in record the start of each hour.
-							// The number is the total for the one hour period.
-							// This is unlike the existing VP2 when the ET is an annual running total
-							// So we try and mimic the VP behaviour
-							var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
-							cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
-							DoET(newET, recordTs);
+							// Start of a new hour, and we want to calculate ET in Cumulus
+							CalculateEvaoptranspiration(recordTs);
+						}
+						else
+						{
+							// Is there any ET in this record?
+							if (data11.et != null)
+							{
+								// wl.com ET is only available in record the start of each hour.
+								// The number is the total for the one hour period.
+								// This is unlike the existing VP2 when the ET is an annual running total
+								// So we try and mimic the VP behaviour
+								var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
+								cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+								DoET(newET, recordTs);
+							}
 						}
 
 						break;
@@ -2439,7 +2456,6 @@ namespace CumulusMX
 										// leave it at current value
 										ts = Utils.FromUnixTime(data13baro.ts);
 										DoPressure(ConvertPressINHGToUser((double)data13baro.bar_sea_level), ts);
-										DoPressTrend("Pressure trend");
 									}
 									else
 									{

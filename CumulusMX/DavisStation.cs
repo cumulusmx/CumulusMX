@@ -40,9 +40,10 @@ namespace CumulusMX
 
 		public DavisStation(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.DAVIS;
-
 			calculaterainrate = false;
+
+			// VP2 does not provide pressure trend strings
+			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
 			isSerial = (cumulus.DavisOptions.ConnectionType == 0);
 
@@ -1535,9 +1536,6 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
 				}
 
-
-				DoPressTrend("Pressure trend");
-
 				double wind = ConvertWindMPHToUser(loopData.CurrentWindSpeed);
 				double avgwind = ConvertWindMPHToUser(loopData.AvgWindSpeed);
 
@@ -2507,9 +2505,17 @@ namespace CumulusMX
 									SunshineHours += (interval / 60.0);
 							}
 
-							if ((archiveData.ET >= 0) && (archiveData.ET < 32000))
+							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 							{
-								DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+								// Start of a new hour, and we want to calculate ET in Cumulus
+								CalculateEvaoptranspiration(timestamp);
+							}
+							else
+							{
+								if ((archiveData.ET >= 0) && (archiveData.ET < 32000))
+								{
+									DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+								}
 							}
 
 							if (cumulus.StationOptions.LogExtraSensors)

@@ -3298,18 +3298,18 @@ namespace CumulusMX
 						updt.Append($"TotRainFall={station.DayFile[lineNum].TotalRain.ToString(cumulus.RainFormat, InvC)},");
 						updt.Append($"AvgTemp={station.DayFile[lineNum].AvgTemp.ToString(cumulus.TempFormat, InvC)},");
 						updt.Append($"TotWindRun={station.DayFile[lineNum].WindRun.ToString("F1", InvC)},");
-						updt.Append($"HighAvgWSpeed{station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
+						updt.Append($"HighAvgWSpeed={station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
 						updt.Append($"THAvgWSpeed={station.DayFile[lineNum].HighAvgWindTime:\\'HH:mm\\'},");
 						updt.Append($"LowHum={station.DayFile[lineNum].LowHumidity},");
 						updt.Append($"TLowHum={station.DayFile[lineNum].LowHumidityTime:\\'HH:mm\\'},");
 						updt.Append($"HighHum={station.DayFile[lineNum].HighHumidity},");
-						updt.Append($"THighHum{station.DayFile[lineNum].HighHumidityTime:\\'HH:mm\\'},");
-						updt.Append($"TotalEvap{station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
+						updt.Append($"THighHum={station.DayFile[lineNum].HighHumidityTime:\\'HH:mm\\'},");
+						updt.Append($"TotalEvap={station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
 						updt.Append($"HoursSun={station.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
 						updt.Append($"HighHeatInd={station.DayFile[lineNum].HighHeatIndex.ToString(cumulus.TempFormat, InvC)},");
 						updt.Append($"THighHeatInd={station.DayFile[lineNum].HighHeatIndexTime:\\'HH:mm\\'},");
 						updt.Append($"HighAppTemp={station.DayFile[lineNum].HighAppTemp.ToString(cumulus.TempFormat, InvC)},");
-						updt.Append($"THighAppTemp{station.DayFile[lineNum].HighAppTempTime:\\'HH:mm\\'},");
+						updt.Append($"THighAppTemp={station.DayFile[lineNum].HighAppTempTime:\\'HH:mm\\'},");
 						updt.Append($"LowAppTemp={station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC)},");
 						updt.Append($"TLowAppTemp={station.DayFile[lineNum].LowAppTempTime:\\'HH:mm\\'},");
 						updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
@@ -3328,7 +3328,7 @@ namespace CumulusMX
 						updt.Append($"HighUV={station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC)},");
 						updt.Append($"THighUV={station.DayFile[lineNum].HighUvTime:\\'HH:mm\\'},");
 						updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
-						updt.Append($"HWindGBearSym={station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
+						updt.Append($"DomWindDirSym='{station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
 						updt.Append($"MaxFeelsLike={station.DayFile[lineNum].HighFeelsLike.ToString(cumulus.TempFormat, InvC)},");
 						updt.Append($"TMaxFeelsLike={station.DayFile[lineNum].HighFeelsLikeTime:\\'HH:mm\\'},");
 						updt.Append($"MinFeelsLike={station.DayFile[lineNum].LowFeelsLike.ToString(cumulus.TempFormat, InvC)},");
@@ -3336,7 +3336,7 @@ namespace CumulusMX
 						updt.Append($"MaxHumidex={station.DayFile[lineNum].HighHumidex.ToString(cumulus.TempFormat, InvC)},");
 						updt.Append($"TMaxHumidex={station.DayFile[lineNum].HighFeelsLikeTime:\\'HH:mm\\'} ");
 
-						updt.Append($"WHERE LogDate={station.DayFile[lineNum].Date:yy-MM-dd};");
+						updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
 						updateStr = updt.ToString();
 
 						cumulus.MySqlCommandSync(updateStr, "EditDayFile");

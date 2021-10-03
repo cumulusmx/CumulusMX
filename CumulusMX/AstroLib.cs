@@ -84,7 +84,7 @@ namespace CumulusMX
 
 		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
 
-		private static void CalculateSunPosition(
+		public static void CalculateSunPosition(
 			DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
 		{
 			const double Deg2Rad = Math.PI / 180.0;

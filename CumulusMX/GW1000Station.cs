@@ -232,7 +232,6 @@ namespace CumulusMX
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
 
-			cumulus.Manufacturer = cumulus.ECOWITT;
 			cumulus.AirQualityUnitText = "µg/m³";
 			cumulus.SoilMoistureUnitText = "%";
 			// GW1000 does not provide average wind speeds
@@ -246,6 +245,10 @@ namespace CumulusMX
 
 			// GW1000 does not send DP, so force MX to calculate it
 			cumulus.StationOptions.CalculatedDP = true;
+
+			// GW1000 does not provide pressure trend strings
+			cumulus.StationOptions.UseCumulusPresstrendstr = true;
+
 
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
@@ -968,7 +971,6 @@ namespace CumulusMX
 							case 0x09: //Relative Barometric (hPa)
 								tempUint16 = ConvertBigEndianUInt16(data, idx);
 								DoPressure(ConvertPressMBToUser(tempUint16 / 10.0), dateTime);
-								DoPressTrend("Pressure trend");
 								idx += 2;
 								break;
 							case 0x0A: //Wind Direction (360°)

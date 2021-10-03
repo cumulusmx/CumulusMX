@@ -633,6 +633,10 @@ namespace CumulusMX
 				cumulus.LogMessage("ET not initialised");
 				noET = true;
 			}
+			else
+			{
+				ET = AnnualETTotal - StartofdayET;
+			}
 			ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
 
 			// NOAA report names
@@ -1570,46 +1574,6 @@ namespace CumulusMX
 			}
 		}
 
-		private void HourChanged(DateTime now)
-		{
-			cumulus.LogMessage("Hour changed: " + now.Hour);
-			cumulus.DoSunriseAndSunset();
-			cumulus.DoMoonImage();
-
-			if (cumulus.HourlyForecast)
-			{
-				DoForecast("", true);
-			}
-
-			if (DataStopped)
-			{
-				// No data coming in, do not do anything else
-				return;
-			}
-
-
-			if (now.Hour == 0)
-			{
-				ResetMidnightRain(now);
-				//RecalcSolarFactor(now);
-			}
-
-			int rollHour = Math.Abs(cumulus.GetHourInc());
-
-			if (now.Hour == rollHour)
-			{
-				DayReset(now);
-				cumulus.BackupData(true, now);
-			}
-
-			if (now.Hour == 0)
-			{
-				ResetSunshineHours();
-			}
-
-			RemoveOldRecentData(now);
-		}
-
 		private void RemoveOldRecentData(DateTime ts)
 		{
 			var deleteTime = ts.AddDays(-7);
@@ -1739,6 +1703,7 @@ namespace CumulusMX
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 					DoTrendValues(now);
+					DoPressTrend("Pressure trend");
 
 					if (now.Minute % cumulus.logints[cumulus.DataLogInterval] == 0)
 					{
@@ -1942,6 +1907,52 @@ namespace CumulusMX
 			ClearAlarms();
 		}
 
+		private void HourChanged(DateTime now)
+		{
+			cumulus.LogMessage("Hour changed: " + now.Hour);
+			cumulus.DoSunriseAndSunset();
+			cumulus.DoMoonImage();
+
+			if (cumulus.HourlyForecast)
+			{
+				DoForecast("", true);
+			}
+
+			if (cumulus.StationOptions.CalculatedET)
+			{
+				CalculateEvaoptranspiration(now);
+			}
+
+
+			if (DataStopped)
+			{
+				// No data coming in, do not do anything else
+				return;
+			}
+
+
+			if (now.Hour == 0)
+			{
+				ResetMidnightRain(now);
+				//RecalcSolarFactor(now);
+			}
+
+			int rollHour = Math.Abs(cumulus.GetHourInc());
+
+			if (now.Hour == rollHour)
+			{
+				DayReset(now);
+				cumulus.BackupData(true, now);
+			}
+
+			if (now.Hour == 0)
+			{
+				ResetSunshineHours();
+			}
+
+			RemoveOldRecentData(now);
+		}
+
 		private void CheckForDataStopped()
 		{
 			// Check whether we have read data since the last clock minute.
@@ -2065,6 +2076,40 @@ namespace CumulusMX
 			return DateTimeToUnix(timestamp) * 1000;
 		}
 		*/
+
+
+		public void CalculateEvaoptranspiration(DateTime date)
+		{
+			cumulus.LogDebugMessage("Calculating ET from data");
+
+			var dateFrom = date.AddHours(-1);
+
+			// get the min and max temps, humidity, pressure, and mean solar rad and wind speed for the last hour
+			var result = RecentDataDb.Query<EtData>("select max(OutsideTemp) maxTemp, min(OutsideTemp) minTemp, max(Humidity) maxHum, min(Humidity) minHum, max(Pressure) maxPress, min(Pressure) minPress, avg(SolarRad) avgSol, avg(WindSpeed) avgWind from RecentData where Timestamp >= ? order by Timestamp", dateFrom);
+
+			// finally calculate the ETo
+			var newET = MeteoLib.Evapotranspiration(
+				ConvertUserTempToC(result[0].minTemp),
+				ConvertUserTempToC(result[0].maxTemp),
+				result[0].minHum,
+				result[0].maxHum,
+				result[0].avgSol,
+				ConvertUserWindToMS(result[0].avgWind),
+				cumulus.Latitude,
+				cumulus.Longitude,
+				AltitudeM(cumulus.Altitude),
+				ConvertUserPressureToHPa(result[0].minPress) / 10,
+				ConvertUserPressureToHPa(result[0].maxPress) / 10,
+				date
+			);
+
+			// convert to user units
+			newET = ConvertRainMMToUser(newET);
+			cumulus.LogDebugMessage($"Calculated ET for the last hour = {newET:F3}");
+
+			// DoET expects the running annual total to be sent
+			DoET(AnnualETTotal + newET, date);
+		}
 
 		public void CreateGraphDataFiles()
 		{
@@ -3493,7 +3538,7 @@ namespace CumulusMX
 
 		protected void DoPressTrend(string trend)
 		{
-			if (cumulus.StationOptions.UseCumulusPresstrendstr || cumulus.Manufacturer == cumulus.DAVIS)
+			if (cumulus.StationOptions.UseCumulusPresstrendstr)
 			{
 				UpdatePressureTrendString();
 			}
@@ -5019,7 +5064,7 @@ namespace CumulusMX
 
 					// reset the ET annual total for Davis WLL stations only
 					// because we mimic the annual total and it is not reset like VP2 stations
-					if (cumulus.StationType == CumulusMX.StationTypes.WLL)
+					if (cumulus.StationType == StationTypes.WLL || cumulus.StationOptions.CalculatedET)
 					{
 						cumulus.LogMessage(" Resetting Annual ET total");
 						AnnualETTotal = 0;
@@ -12214,6 +12259,19 @@ namespace CumulusMX
 		public double solar { get; set; }
 		public double hum { get; set; }
 	}
+
+	class EtData
+	{
+		public double maxTemp { get; set; }
+		public double minTemp { get; set; }
+		public int maxHum { get; set; }
+		public int minHum { get; set; }
+		public double avgSol { get; set; }
+		public double avgWind { get; set; }
+		public double maxPress { get; set; }
+		public double minPress { get; set; }
+	}
+
 
 
 	/*
