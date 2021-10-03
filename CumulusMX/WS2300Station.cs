@@ -675,7 +675,7 @@ namespace CumulusMX
 				if (res > ERROR)
 				{
 					DoForecast(forecast, false);
-					Presstrendstr = presstrend;
+					DoPressTrend(presstrend);
 				}
 			}
 

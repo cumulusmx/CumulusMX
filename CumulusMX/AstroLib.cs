@@ -65,7 +65,7 @@ namespace CumulusMX
 		{
 			DateTime utctime = timestamp.ToUniversalTime();
 
-			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out _, out _, out _);
+			CalculateSunPosition(utctime, latitude, longitude, out solarelevation, out _);
 			var dEpoch = new DateTime(1990, 1, 1, 0, 0, 0);
 			double erv = CalcSunDistance(utctime, dEpoch);
 
@@ -85,7 +85,7 @@ namespace CumulusMX
 		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
 
 		public static void CalculateSunPosition(
-			DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth, out double declination, out double hourAngle)
+			DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
 		{
 			const double Deg2Rad = Math.PI / 180.0;
 			const double Rad2Deg = 180.0 / Math.PI;
@@ -129,11 +129,11 @@ namespace CumulusMX
 				Math.Cos(obliquity) * Math.Sin(elipticalLongitude),
 				Math.Cos(elipticalLongitude));
 
-			declination = Math.Asin(
+			double declination = Math.Asin(
 				Math.Sin(rightAscension) * Math.Sin(obliquity));
 
 			// Horizontal Coordinates
-			hourAngle = CorrectAngle(siderealTime * Deg2Rad) - rightAscension;
+			double hourAngle = CorrectAngle(siderealTime * Deg2Rad) - rightAscension;
 
 			if (hourAngle > Math.PI)
 			{
