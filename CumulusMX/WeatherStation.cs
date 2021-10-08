@@ -9840,8 +9840,8 @@ namespace CumulusMX
 
 			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"&nbsp;\"]");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"{cumulus.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9850,12 +9850,12 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness1}\"],");
-			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}&nbsp;&deg;{cumulus.Units.TempText[1]}\",\"{LeafWetness2}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"&nbsp;\"]");
+			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"{cumulus.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9864,14 +9864,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[5]}\",\"{LeafWetness5}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[6]}\",\"{LeafWetness6}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[7]}\",\"{LeafWetness7}\",\"&nbsp;\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[8]}\",\"{LeafWetness8}\",\"&nbsp;\"]");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[5]}\",\"{LeafWetness5}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[6]}\",\"{LeafWetness6}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[7]}\",\"{LeafWetness7}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[8]}\",\"{LeafWetness8}\",\"{cumulus.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}

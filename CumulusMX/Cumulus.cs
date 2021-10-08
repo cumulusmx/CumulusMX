@@ -224,6 +224,7 @@ namespace CumulusMX
 
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
+		public string LeafWetnessUnitText = "";  // Davis is unitless, Ecowitt uses %
 		public string CO2UnitText = "ppm";
 
 		public volatile int WebUpdating;

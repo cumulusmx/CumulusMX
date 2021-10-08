@@ -1765,22 +1765,22 @@ namespace CumulusMX
 						DoSoilMoisture(loopData.SoilMoisture4, 4);
 					}
 
-					if (loopData.SoilTemp1 < 255)
+					if (loopData.SoilTemp1 < 255 && loopData.SoilTemp1 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp1 - 90), 1);
 					}
 
-					if (loopData.SoilTemp2 < 255)
+					if (loopData.SoilTemp2 < 255 && loopData.SoilTemp2 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp2 - 90), 2);
 					}
 
-					if (loopData.SoilTemp3 < 255)
+					if (loopData.SoilTemp3 < 255 && loopData.SoilTemp3 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp3 - 90), 3);
 					}
 
-					if (loopData.SoilTemp4 < 255)
+					if (loopData.SoilTemp4 < 255 && loopData.SoilTemp4 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp4 - 90), 4);
 					}
@@ -1805,22 +1805,22 @@ namespace CumulusMX
 						DoLeafWetness(loopData.LeafWetness4, 4);
 					}
 
-					if (loopData.LeafTemp1 < 255)
+					if (loopData.LeafTemp1 < 255 && loopData.LeafTemp1 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp1 - 90), 1);
 					}
 
-					if (loopData.LeafTemp2 < 255)
+					if (loopData.LeafTemp2 < 255 && loopData.LeafTemp2 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp2 - 90), 2);
 					}
 
-					if (loopData.LeafTemp3 < 255)
+					if (loopData.LeafTemp3 < 255 && loopData.LeafTemp3 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp3 - 90), 3);
 					}
 
-					if (loopData.LeafTemp4 < 255)
+					if (loopData.LeafTemp4 < 255 && loopData.LeafTemp4 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp4 - 90), 4);
 					}
@@ -2573,22 +2573,22 @@ namespace CumulusMX
 									DoSoilMoisture(archiveData.SoilMoisture4, 4);
 								}
 
-								if (archiveData.SoilTemp1 < 255)
+								if (archiveData.SoilTemp1 < 255 && archiveData.SoilTemp1 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp1 - 90), 1);
 								}
 
-								if (archiveData.SoilTemp2 < 255)
+								if (archiveData.SoilTemp2 < 255 && archiveData.SoilTemp2 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp2 - 90), 2);
 								}
 
-								if (archiveData.SoilTemp3 < 255)
+								if (archiveData.SoilTemp3 < 255 && archiveData.SoilTemp3 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp3 - 90), 3);
 								}
 
-								if (archiveData.SoilTemp4 < 255)
+								if (archiveData.SoilTemp4 < 255 && archiveData.SoilTemp4 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp4 - 90), 4);
 								}
@@ -2603,12 +2603,12 @@ namespace CumulusMX
 									DoLeafWetness(LeafWetness2, 2);
 								}
 
-								if (archiveData.LeafTemp1 < 255)
+								if (archiveData.LeafTemp1 < 255 && archiveData.LeafTemp1 > 0)
 								{
 									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp1 - 90), 1);
 								}
 
-								if (archiveData.LeafTemp2 < 255)
+								if (archiveData.LeafTemp2 < 255 && archiveData.LeafTemp2 > 0)
 								{
 									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp2 - 90), 2);
 								}
