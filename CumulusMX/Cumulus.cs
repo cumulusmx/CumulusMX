@@ -1041,7 +1041,7 @@ namespace CumulusMX
 				{
 					if (ProgramOptions.WarnMultiple)
 					{
-						LogConsoleMessage("Cumulus is already running - terminating");
+						LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
 						LogConsoleMessage("Program exit");
 						LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
 						LogMessage("Stop second instance: Program exit");
@@ -1050,7 +1050,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled");
+						LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
 						LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
 					}
 				}
@@ -1182,7 +1182,7 @@ namespace CumulusMX
 
 					if (DateTime.Now >= endTime)
 					{
-						LogConsoleMessage(msg3);
+						LogConsoleMessage(msg3, ConsoleColor.Yellow);
 						LogMessage(msg3);
 					}
 					else
@@ -1398,28 +1398,27 @@ namespace CumulusMX
 			Console.Write("Cumulus running at: ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine($"http://localhost:{HTTPport}/");
+			Console.ResetColor();
 			foreach (var ip in ips)
 			{
 				if (ip.AddressFamily == AddressFamily.InterNetwork)
 				{
-					LogConsoleMessage($"                    http://{ip}:{HTTPport}/");
+					LogConsoleMessage($"                    http://{ip}:{HTTPport}/", ConsoleColor.Yellow);
 				}
 
 			}
 
-			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.WriteLine();
 			if (File.Exists("Cumulus.ini"))
 			{
-				LogConsoleMessage("  Open the admin interface by entering one of the above URLs into a web browser.");
+				LogConsoleMessage("  Open the admin interface by entering one of the above URLs into a web browser.", ConsoleColor.Cyan);
 			}
 			else
 			{
-				LogConsoleMessage("  Leave this window open, then...");
-				LogConsoleMessage("  Run the First Time Configuration Wizard by entering one of the URLs above plus \"wizard.html\" into your browser");
-				LogConsoleMessage($"  e.g. http://localhost:{HTTPport}/wizard.html");
+				LogConsoleMessage("  Leave this window open, then...", ConsoleColor.Cyan);
+				LogConsoleMessage("  Run the First Time Configuration Wizard by entering one of the URLs above plus \"wizard.html\" into your browser", ConsoleColor.Cyan);
+				LogConsoleMessage($"  e.g. http://localhost:{HTTPport}/wizard.html", ConsoleColor.Cyan);
 			}
-			Console.ResetColor();
 			Console.WriteLine();
 
 			LogDebugMessage("Lock: Cumulus waiting for the lock");
@@ -1494,7 +1493,7 @@ namespace CumulusMX
 					station = new HttpStationAmbient(this);
 					break;
 				default:
-					LogConsoleMessage("Station type not set");
+					LogConsoleMessage("Station type not set", ConsoleColor.Red);
 					LogMessage("Station type not set");
 					break;
 			}
@@ -3003,7 +3002,7 @@ namespace CumulusMX
 					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
 					var localFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					LogFtpMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
+					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
 					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 					{
 						doMore = UploadFile(RealtimeSSH, localFile, remoteFile, cycle);
@@ -3041,7 +3040,7 @@ namespace CumulusMX
 							// we've already processed the file
 							uploadfile += "tmp";
 						}
-						LogFtpMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
+						LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							doMore = UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
@@ -3719,9 +3718,9 @@ namespace CumulusMX
 
 		private string GetLoggingFileName(string directory)
 		{
-			const int maxEntries = 15;
+			const int maxEntries = 12;
 
-			List<string> fileEntries = new List<string>(Directory.GetFiles(directory));
+			List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"\d{8}-\d{6}\.txt").Success));
 
 			fileEntries.Sort();
 
@@ -8636,11 +8635,14 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogConsoleMessage(string message)
+		public void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White)
 		{
 			if (!Program.service)
 			{
+
+				Console.ForegroundColor = colour;
 				Console.WriteLine(message);
+				Console.ResetColor();
 			}
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
@@ -9125,7 +9127,7 @@ namespace CumulusMX
 			EnableOpenWeatherMap();
 
 			LogMessage("Normal running");
-			LogConsoleMessage("Normal running");
+			LogConsoleMessage("Normal running", ConsoleColor.Green);
 		}
 
 		private async void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -9847,7 +9849,7 @@ namespace CumulusMX
 				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
 					var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
-					LogConsoleMessage(msg);
+					LogConsoleMessage(msg, ConsoleColor.Cyan);
 					LogMessage(msg);
 					UpgradeAlarm.LastError = $"Build {LatestBuild} is available";
 					UpgradeAlarm.Triggered = true;
@@ -10295,13 +10297,13 @@ namespace CumulusMX
 				catch (UnauthorizedAccessException)
 				{
 					var msg = "Error, no permission to read/create folder: " + folder;
-					LogConsoleMessage(msg);
+					LogConsoleMessage(msg, ConsoleColor.Red);
 					LogErrorMessage(msg);
 				}
 				catch (Exception ex)
 				{
 					var msg = $"Error while attempting to read/create folder: {folder}, error message: {ex.Message}";
-					LogConsoleMessage(msg);
+					LogConsoleMessage(msg, ConsoleColor.Red);
 					LogErrorMessage(msg);
 				}
 			}

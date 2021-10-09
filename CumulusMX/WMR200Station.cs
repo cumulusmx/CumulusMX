@@ -54,7 +54,7 @@ namespace CumulusMX
 			if (station != null)
 			{
 				cumulus.LogMessage("WMR200 station found");
-				cumulus.LogConsoleMessage("WMR200 station found");
+				cumulus.LogConsoleMessage("WMR200 station found", ConsoleColor.Red);
 
 				if (station.TryOpen(out stream))
 				{
@@ -78,7 +78,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("WMR200 station not found!");
-				cumulus.LogConsoleMessage("WMR200 station not found!");
+				cumulus.LogConsoleMessage("WMR200 station not found!", ConsoleColor.Red);
 			}
 		}
 

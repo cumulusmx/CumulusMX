@@ -701,7 +701,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
+				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red);
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogMessage("Error sending command to station - it may need resetting");
 				DataStopped = true;
@@ -720,7 +720,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting");
+					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red);
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
 					DataStopped = true;

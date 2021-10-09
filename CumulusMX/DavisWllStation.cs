@@ -125,7 +125,7 @@ namespace CumulusMX
 				// The basic API details have not been supplied
 				cumulus.LogMessage("WLL - No WeatherLink.com API configuration supplied, just going to work locally");
 				cumulus.LogMessage("WLL - Cannot start historic downloads or retrieve health data");
-				cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start historic downloads or retrieve health data");
+				cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start historic downloads or retrieve health data", ConsoleColor.DarkCyan);
 				useWeatherLinkDotCom = false;
 			}
 			else if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret))
@@ -134,12 +134,12 @@ namespace CumulusMX
 				if (string.IsNullOrEmpty(cumulus.WllApiKey))
 				{
 					cumulus.LogMessage("WLL - Missing WeatherLink.com API Key");
-					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start historic downloads or retrieve health data");
+					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start historic downloads or retrieve health data", ConsoleColor.Yellow);
 				}
 				else
 				{
 					cumulus.LogMessage("WLL - Missing WeatherLink.com API Secret");
-					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Secret. Cannot start historic downloads or retrieve health data");
+					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Secret. Cannot start historic downloads or retrieve health data", ConsoleColor.Yellow);
 				}
 				useWeatherLinkDotCom = false;
 			}
@@ -170,7 +170,7 @@ namespace CumulusMX
 			{
 				// API details supplied, but Station Id is still invalid - do not start the station up.
 				cumulus.LogMessage("WLL - The WeatherLink.com API is enabled, but no Station Id has been configured, not starting the station. Please correct this and restart Cumulus");
-				cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus");
+				cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus", ConsoleColor.Yellow);
 				return;
 			}
 
@@ -1529,7 +1529,7 @@ namespace CumulusMX
 				{
 					var historyError = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-					cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}");
+					cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}

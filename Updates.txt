@@ -1,3 +1,9 @@
+3.13.5 - b3150
+——————————————
+- Fix: HTTP Ecowitt decode of leaf wetness sensors again
+- Fix: Davis VP2 station sending zero values for soil temp instead of 255 when no sensor present
+
+
 3.13.4 - b3149
 ——————————————
 - Fix: Dayfile editor MySQL update statement failing and knock on effects

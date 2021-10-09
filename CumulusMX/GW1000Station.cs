@@ -271,7 +271,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("Not Connected");
-				cumulus.LogConsoleMessage("Unable to connect to station");
+				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
 			}
 
 			if (connectedOk)

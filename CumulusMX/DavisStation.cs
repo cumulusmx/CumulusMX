@@ -107,7 +107,7 @@ namespace CumulusMX
 				else if((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.DavisOptions.UseLoop2)
 				{
 					cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
-					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
+					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini", ConsoleColor.Yellow);
 				}
 			}
 			catch(Exception ex)
@@ -3089,7 +3089,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message);
+					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message, ConsoleColor.Red);
 					cumulus.LogConsoleMessage("Will retry in 30 seconds...");
 					cumulus.LogMessage("InitSerial: Error opening port - " + ex.Message);
 				}
@@ -3185,7 +3185,7 @@ namespace CumulusMX
 				if (socket == null && !stop)
 				{
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
-					cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again");
+					cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again", ConsoleColor.Red);
 					Thread.Sleep(30000);
 				}
 			} while ((socket == null || !socket.Connected) && !stop);
