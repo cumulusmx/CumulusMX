@@ -1597,10 +1597,48 @@ namespace CumulusMX
 					// For the additional sensors, check if they have the same number of records as the WLL. If they do great, we just process the next record.
 					// If the sensor has more or less historic records than the WLL, then we find the record (if any) that matches the WLL record timestamp
 
-
 					var refData = sensorWithMostRecs.data[dataIndex].FromJsv<WlHistorySensorDataType13Baro>();
-					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
 					var timestamp = Utils.FromUnixTime(refData.ts);
+
+					var h = timestamp.Hour;
+
+					//  if outside roll-over hour, roll-over yet to be done
+					if (h != rollHour)
+					{
+						rolloverdone = false;
+					}
+
+					// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+					// Windrun
+					// Dominant wind bearing
+					// ET - if MX calculated
+					// Degree days
+					// Rainfall
+
+					// In roll-over hour and roll-over not yet done
+					if ((h == rollHour) && !rolloverdone)
+					{
+						// do roll-over
+						cumulus.LogMessage("GetWlHistoricData: Day roll-over " + timestamp.ToShortTimeString());
+						DayReset(timestamp);
+						rolloverdone = true;
+					}
+
+					// Not in midnight hour, midnight rain yet to be done
+					if (h != 0)
+					{
+						midnightraindone = false;
+					}
+
+					// In midnight hour and midnight rain (and sun) not yet done
+					if ((h == 0) && !midnightraindone)
+					{
+						ResetMidnightRain(timestamp);
+						ResetSunshineHours();
+						midnightraindone = true;
+					}
+
+					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
 
 					foreach (var sensor in histObj.sensors)
 					{
@@ -1669,7 +1707,6 @@ namespace CumulusMX
 						}
 					}
 
-					var h = timestamp.Hour;
 
 					if (cumulus.StationOptions.LogExtraSensors)
 					{
@@ -1702,35 +1739,6 @@ namespace CumulusMX
 					DoTrendValues(timestamp);
 					UpdateStatusPanel(timestamp);
 					cumulus.AddToWebServiceLists(timestamp);
-
-					//  if outside roll-over hour, roll-over yet to be done
-					if (h != rollHour)
-					{
-						rolloverdone = false;
-					}
-
-					// In roll-over hour and roll-over not yet done
-					if ((h == rollHour) && !rolloverdone)
-					{
-						// do roll-over
-						cumulus.LogMessage("GetWlHistoricData: Day roll-over " + timestamp.ToShortTimeString());
-						DayReset(timestamp);
-						rolloverdone = true;
-					}
-
-					// Not in midnight hour, midnight rain yet to be done
-					if (h != 0)
-					{
-						midnightraindone = false;
-					}
-
-					// In midnight hour and midnight rain (and sun) not yet done
-					if ((h == 0) && !midnightraindone)
-					{
-						ResetMidnightRain(timestamp);
-						ResetSunshineHours();
-						midnightraindone = true;
-					}
 
 
 					if (!Program.service)

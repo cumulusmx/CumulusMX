@@ -2775,6 +2775,7 @@ namespace CumulusMX
 								try
 								{
 									RealtimeFTPUpload(cycle);
+									realtimeFTPRetries = 0;
 								}
 								catch (Exception)
 								{
@@ -7676,19 +7677,23 @@ namespace CumulusMX
 			if (station != null)
 			{
 				LogMessage("Stopping station...");
-				station.Stop();
-				LogMessage("Station stopped");
+				try
+				{
+					station.Stop();
+					LogMessage("Station stopped");
 
-				if (station.HaveReadData)
-				{
-					LogMessage("Writing today.ini file");
-					station.WriteTodayFile(DateTime.Now, false);
-					LogMessage("Completed writing today.ini file");
+					if (station.HaveReadData)
+					{
+						LogMessage("Writing today.ini file");
+						station.WriteTodayFile(DateTime.Now, false);
+						LogMessage("Completed writing today.ini file");
+					}
+					else
+					{
+						LogMessage("No data read this session, today.ini not written");
+					}
 				}
-				else
-				{
-					LogMessage("No data read this session, today.ini not written");
-				}
+				catch { }
 
 				LogMessage("Stopping extra sensors...");
 				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now

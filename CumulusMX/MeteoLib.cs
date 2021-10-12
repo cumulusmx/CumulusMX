@@ -351,14 +351,14 @@ namespace CumulusMX
 
 		/// <summary>
 		/// Calculates the net long wave radiation
-		/// http://www.fao.org/docrep/x0490e/x0490e00.htm - equation (39)
+		/// http://www.fao.org/3/x0490e/x0490e07.htm#radiation - equation (39)
 		/// </summary>
 		/// <param name="tempMinC">Minimum temperature over the period</param>
 		/// <param name="tempMaxC">Maximum temperature over the period</param>
 		/// <param name="vapPresskPa">Vapour pressure in kPa</param>
 		/// <param name="radMeasured">Measured solar radiation (same units as radClearSky)</param>
 		/// <param name="radClearSky">Calculated clear sky radiation (same units as radMeasured)</param>
-		/// <returns>Returns the long wave (back) radiation in MJ/m^2/day</returns>
+		/// <returns>Returns the long wave (back) radiation in MJ/m^2/hour</returns>
 		private static double LongwaveRadiation(double tempMinC, double tempMaxC, double vapPresskPa, double radMeasured, double radClearSky)
 		{
 			var minK = tempMinC + 273.16;
@@ -366,6 +366,8 @@ namespace CumulusMX
 
 			// Stefan-Boltzman constant in MJ/K^4/m^2/day
 			var sigma = 4.903e-09;
+			// because we are using 1 hour, it needs scaling...
+			sigma /= 24.0;
 
 			// Use the ratio of measured to expected radiation as a measure of cloudiness, but only if it's daylight
 			double cloudFactor;
@@ -395,7 +397,7 @@ namespace CumulusMX
 		///  The calculation of ETo by means of the FAO Penman-Monteith equation
 		///  Using grass as the reference crop
 		///  Uses the "hourly time step" equations - http://www.fao.org/3/x0490e/x0490e08.htm#calculation%20procedure
-		///  With acknowledgement to the equivalent weewx formula - https://github.com/weewx/weewx/blob/master/bin/weewx/wxformulas.py
+		///  With acknowledgement to the equivalent WeeWX formula - https://github.com/weewx/weewx/blob/master/bin/weewx/wxformulas.py
 		/// </summary>
 		/// <param name="tempMinC"></param>
 		/// <param name="tempMaxC"></param>
@@ -414,7 +416,6 @@ namespace CumulusMX
 			double tempMinC, double tempMaxC, int humMin, int humMax,
 			double radMean, double windAvgMs,
 			double latitude, double longitude, double altitudeM,
-			double pressMinKpa, double pressMaxkpa,
 			DateTime date)
 		{
 			var windHeightM = 7.0; // height of wind sensor in metres, we assume 7m and that speeds will be corrected to that height by CMX if lower
@@ -424,23 +425,20 @@ namespace CumulusMX
 
 			// Calculate mean temp from min/max
 			var tempMeanC = (tempMinC + tempMaxC) / 2;
-			var tempMeanK = tempMeanC + 273.16;
 
-			// Adjust avg wind speed to a height of 2m
+			// Adjust avg wind speed to a height of 2m (equation 47)
 			var u2 = 4.87 * windAvgMs / Math.Log(67.8 * windHeightM - 5.42);
 
-			// Calculate the atmospheric pressure in kPa
+			// Calculate the atmospheric pressure in kPa (equation 7)
 			var p = 101.3 * Math.Pow((293 - 0.0065 * altitudeM) / 293.0, 5.26);
-
-			// Calculate mean atmospheric pressure in kPa
-			//var p = (pressMinKpa + pressMaxkpa) / 2;
 
 			// Calculate the psychrometric constant in kPa/C (equation 8)
 			var gamma = 0.665e-03 * p;
 
+			// Calculate saturation vapour pressure for min and max temps (equation 11)
+			var etMin = 0.6108 * Math.Exp(17.27 * tempMinC/ (tempMinC + 237.3));
+			var etMax = 0.6108 * Math.Exp(17.27 * tempMaxC / (tempMaxC + 237.3));
 			// Calculate mean saturation vapour pressure, converting from hPa to kPa (equation 12)
-			var etMin = SaturationVapourPressure2008(tempMinC) / 10;
-			var etMax = SaturationVapourPressure2008(tempMaxC) / 10;
 			var e0T = (etMin + etMax) / 2;
 
 			// Calculate the slope of the saturation vapour pressure curve in kPa/C (equation 13)
@@ -461,8 +459,8 @@ namespace CumulusMX
 			// Take the mean and convert from W/m^2 to MJ/m^2/h
 			var Rso = (RsoEnd + RsoStart) / 2 * 0.0036;
 
-			// Long-wave (back) radiation. Convert from MJ/m^2/day to MJ/m^2/h (equation 39):
-			var Rnl = LongwaveRadiation(tempMinC, tempMaxC, ea, Rs, Rso) / 24;
+			// Long-wave (back) radiation. (equation 39 modified to per hour)
+			var Rnl = LongwaveRadiation(tempMinC, tempMaxC, ea, Rs, Rso);
 
 			// Calculate net radiation at the surface in MJ/m^2/h (equation 40)
 			var Rn = Rns - Rnl;
@@ -472,7 +470,7 @@ namespace CumulusMX
 
 			// Result is in mm/h (equation 53)
 			// But as we have fixed a 1 hour period, then the effective result is just mm
-			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37 / (tempMeanC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
+			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37.5 / (tempMeanC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
 
 			if (et0 < 0) et0 = 0;
 

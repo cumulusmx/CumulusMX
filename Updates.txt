@@ -1,7 +1,13 @@
-3.13.5 - b3150
+3.14.0 - b3151
 ——————————————
 - Fix: HTTP Ecowitt decode of leaf wetness sensors again
 - Fix: Davis VP2 station sending zero values for soil temp instead of 255 when no sensor present
+- Fix: Long standing bug in Davis VP2/Vue & WLL stations where the day rollover during catch-up was performed after the monthly log entry rather than before
+- Fix: Small tweaks to the ET calculation
+
+- Change: Cumulus will now still parse the dates/times in dayfile.txt and monthly logs even if the locale changes
+- Change: FO Station will now ignore UV-I values greater than 16
+
 
 
 3.13.4 - b3149

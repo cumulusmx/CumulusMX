@@ -2374,12 +2374,49 @@ namespace CumulusMX
 								rolloverdone = false;
 							}
 
+							// ..and then process it
+
+							// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+							// Windrun
+							// Dominant wind bearing
+							// ET - if MX calculated
+							// Degree days
+							// Rainfall
+
+
+							// In roll-over hour and roll-over not yet done
+							if ((h == rollHour) && !rolloverdone)
+							{
+								// do roll-over
+								cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
+								// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
+								// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
+								var watch = new Stopwatch();
+								watch.Start();
+								DayReset(timestamp);
+								watch.Stop();
+								if (watch.ElapsedMilliseconds > 10000)
+								{
+									// EOD processing took longer than 10 seconds, add another run
+									cumulus.LogDebugMessage("GetArchiveData: End of day processing took more than 10 seconds, adding another archive data run");
+									maxArchiveRuns++;
+								}
+								rolloverdone = true;
+							}
+
+							// Not in midnight hour, midnight rain yet to be done
 							if (h != 0)
 							{
 								midnightraindone = false;
 							}
 
-							// ..and then process it
+							// In midnight hour and midnight rain (and sun) not yet done
+							if ((h == 0) && !midnightraindone)
+							{
+								ResetMidnightRain(timestamp);
+								ResetSunshineHours();
+								midnightraindone = true;
+							}
 
 							int interval = (int)(timestamp - lastDataReadTime).TotalMinutes;
 
@@ -2639,46 +2676,6 @@ namespace CumulusMX
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
-
-							//  if outside roll-over hour, roll-over yet to be done
-							if (h != rollHour)
-							{
-								rolloverdone = false;
-							}
-
-							// In roll-over hour and roll-over not yet done
-							if ((h == rollHour) && !rolloverdone)
-							{
-								// do roll-over
-								cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
-								// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
-								// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
-								var watch = new Stopwatch();
-								watch.Start();
-								DayReset(timestamp);
-								watch.Stop();
-								if (watch.ElapsedMilliseconds > 10000)
-								{
-									// EOD processing took longer than 10 seconds, add another run
-									cumulus.LogDebugMessage("GetArchiveData: End of day processing took more than 10 seconds, adding another archive data run");
-									maxArchiveRuns++;
-								}
-								rolloverdone = true;
-							}
-
-							// Not in midnight hour, midnight rain yet to be done
-							if (h != 0)
-							{
-								midnightraindone = false;
-							}
-
-							// In midnight hour and midnight rain (and sun) not yet done
-							if ((h == 0) && !midnightraindone)
-							{
-								ResetMidnightRain(timestamp);
-								ResetSunshineHours();
-								midnightraindone = true;
-							}
 						}
 						else
 						{
