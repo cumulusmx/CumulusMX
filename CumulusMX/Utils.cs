@@ -112,5 +112,19 @@ namespace CumulusMX
 
 			return new DateTime(Y, M, D, h, m, 0);
 		}
+
+		public static string GetLogFileSeparator(string line, string defSep)
+		{
+			// we know the dayfile and monthly log files start with
+			// dd/MM/yy,NN,...
+			// dd/MM/yy,hh:mm,N.N,....
+			// so we just need to find the first separator after the date before a number
+
+			var reg = Regex.Match(line, @"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])");
+			if (reg.Success)
+				return reg.Groups[1].Value;
+			else
+				return defSep;
+		}
 	}
 }

@@ -45,7 +45,7 @@ namespace CumulusMX
 
 			var culture = new JsonProgramSettingsCultureOptions()
 			{
-				dateseparator = "\"" + cumulus.ProgramOptions.Culture.DateSeparator + "\""
+				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator
 			};
 
 			var settings = new JsonProgramSettings()
@@ -104,23 +104,31 @@ namespace CumulusMX
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
+				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
 
-				var dateSep = settings.culture.dateseparator.Replace("\"", "");
-				if (dateSep != cumulus.ProgramOptions.Culture.DateSeparator)
+				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 				{
-					// save the new setting to our config
-					cumulus.ProgramOptions.Culture.DateSeparator = dateSep;
 					// get the existing culture
 					var newCulture = CultureInfo.CurrentCulture;
 					// change the date separator
-					newCulture.DateTimeFormat.DateSeparator = dateSep;
+					newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
 					// set current thread culture
 					Thread.CurrentThread.CurrentCulture = newCulture;
 					// set the default culture for other threads
 					CultureInfo.DefaultThreadCurrentCulture = newCulture;
 				}
+				else
+				{
+					var newCulture = CultureInfo.GetCultureInfo(CultureInfo.CurrentCulture.Name);
 
-				//cumulus.ProgramOptions.Culture.DateSeparator = settings.culture.dateseparator.Replace("\"", "");
+					if (!cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && newCulture.DateTimeFormat.DateSeparator.Contains(" ") && !CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
+					{
+						// set current thread culture
+						Thread.CurrentThread.CurrentCulture = newCulture;
+						// set the default culture for other threads
+						CultureInfo.DefaultThreadCurrentCulture = newCulture;
+					}
+				}
 
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
@@ -175,6 +183,6 @@ namespace CumulusMX
 	}
 	public class JsonProgramSettingsCultureOptions
 	{
-		public string dateseparator { get; set; }
+		public bool removespacefromdateseparator { get; set; }
 	}
 }

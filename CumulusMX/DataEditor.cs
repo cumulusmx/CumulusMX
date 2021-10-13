@@ -3358,7 +3358,8 @@ namespace CumulusMX
 			else if (newData.action == "Delete")
 			{
 				// Just double check we are deleting the correct line - see if the dates match
-				var lineData = lines[lineNum].Split(cumulus.ListSeparator.ToCharArray()[0]);
+				var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
+				var lineData = lines[lineNum].Split(sep[0]);
 				if (lineData[0] == newData.data[0])
 				{
 					var thisrec = new List<string>(newData.data);
@@ -3534,7 +3535,8 @@ namespace CumulusMX
 			else if (newData.action == "Delete")
 			{
 				// Just double check we are deleting the correct line - see if the dates match
-				var lineData = lines[lineNum].Split(cumulus.ListSeparator.ToCharArray()[0]);
+				var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
+				var lineData = lines[lineNum].Split(sep[0]);
 				if (lineData[0] == newData.data[0])
 				{
 					var thisrec = new List<string>(newData.data);

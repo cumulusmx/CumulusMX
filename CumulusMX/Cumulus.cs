@@ -796,6 +796,8 @@ namespace CumulusMX
 
 			LogMessage("OS version: " + Environment.OSVersion);
 
+			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
+
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
@@ -1016,12 +1018,9 @@ namespace CumulusMX
 			};
 
 			ProgramOptions.Culture = new CultureConfig();
-			ProgramOptions.Culture.CultureName = CultureInfo.CurrentCulture.Name;
-			ProgramOptions.Culture.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator;
 
 			ReadIniFile();
 
-			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -3807,18 +3806,14 @@ namespace CumulusMX
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
-
-			var culture = ini.GetValue("Culture", "CultureName", ProgramOptions.Culture.CultureName);
-			var dateSep = ini.GetValue("Culture", "DateSeparator", ProgramOptions.Culture.DateSeparator).Replace("\"", "");
-			// if the culture names match, then we apply the new date separator if it is different
-			if (culture == ProgramOptions.Culture.CultureName && dateSep != ProgramOptions.Culture.DateSeparator)
+			ProgramOptions.Culture.RemoveSpaceFromDateSeparator = ini.GetValue("Culture", "RemoveSpaceFromDateSeparator", false);
+			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
+			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 			{
-				// save the new setting to our config
-				ProgramOptions.Culture.DateSeparator = dateSep;
 				// get the existing culture
 				var newCulture = CultureInfo.CurrentCulture;
 				// change the date separator
-				newCulture.DateTimeFormat.DateSeparator = dateSep;
+				newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
 				// set current thread culture
 				Thread.CurrentThread.CurrentCulture = newCulture;
 				// set the default culture for other threads
@@ -5100,8 +5095,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
 
-			ini.SetValue("Culture", "CultureName", ProgramOptions.Culture.CultureName);
-			ini.SetValue("Culture", "DateSeparator", "\"" + ProgramOptions.Culture.DateSeparator + "\"");
+			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
@@ -10448,9 +10442,7 @@ namespace CumulusMX
 
 	public class CultureConfig
 	{
-		public string CultureName { get; set; }
-		public string DateSeparator { get; set; }
-		public string ShortDate { get; set; }
+		public bool RemoveSpaceFromDateSeparator { get; set; }
 	}
 
 	public class StationUnits

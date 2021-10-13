@@ -10342,7 +10342,8 @@ namespace CumulusMX
 
 				foreach (var line in lines)
 				{
-					var fields = line.Split(Convert.ToChar(cumulus.ListSeparator));
+					var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+					var fields = line.Split(sep[0]);
 					var numFields = fields.Length;
 					json.Append($"[{lineNum++},");
 					for (var i = 0; i < numFields; i++)
@@ -10483,7 +10484,8 @@ namespace CumulusMX
 
 				foreach (var line in lines)
 				{
-					var fields = line.Split(Convert.ToChar(cumulus.ListSeparator));
+					var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+					var fields = line.Split(sep[0]);
 					json.Append($"[{lineNum++},");
 					for (var i = 0; i < numFields; i++)
 					{

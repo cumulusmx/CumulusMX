@@ -137,13 +137,15 @@ namespace CumulusMX
 					var lines = File.ReadAllLines(logFile);
 					linenum = 0;
 					windsamples = 0;
+					string sep;
 
 					foreach (var line in lines)
 					{
 						// now process each record in the file
 
 						linenum++;
-						st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+						sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+						st = new List<string>(line.Split(sep[0]));
 						idx = 5;
 						double windspeed = Convert.ToSingle(st[idx]);
 						// add in wind speed sample for whole month
@@ -255,7 +257,8 @@ namespace CumulusMX
 				foreach (var line in lines)
 				{
 					linenum++;
-					st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+					var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+					st = new List<string>(line.Split(sep[0]));
 					idx = 0;
 
 					var dateStr = st[0];
@@ -453,7 +456,8 @@ namespace CumulusMX
 					{
 						// now process each record in the file
 						linenum++;
-						st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+						var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+						st = new List<string>(line.Split(sep[0]));
 
 						idx = 0;
 						int entryday = Convert.ToInt32(st[idx].Substring(0, 2));
