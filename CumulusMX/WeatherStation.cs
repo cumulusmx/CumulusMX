@@ -492,56 +492,6 @@ namespace CumulusMX
 			}
 		}
 
-		public DateTime ddmmyyStrToDate(string d)
-		{
-			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
-			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
-
-			// Converts a date string in UK order to a DateTime
-			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
-
-			int D = Convert.ToInt32(date[0]);
-			int M = Convert.ToInt32(date[1]);
-			int Y = Convert.ToInt32(date[2]);
-			if (Y > 70)
-			{
-				Y += 1900;
-			}
-			else
-			{
-				Y += 2000;
-			}
-
-			return new DateTime(Y, M, D);
-		}
-
-		public DateTime ddmmyyhhmmStrToDate(string d, string t)
-		{
-			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
-			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
-			var timSep = Regex.Match(t, @"[^0-9]+").Value;
-
-			// Converts a date string in UK order to a DateTime
-			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
-			string[] time = t.Split(new string[] { timSep }, StringSplitOptions.None);
-
-			int D = Convert.ToInt32(date[0]);
-			int M = Convert.ToInt32(date[1]);
-			int Y = Convert.ToInt32(date[2]);
-
-			// Double check - just in case we get a four digit year!
-			if (Y < 1900)
-			{
-				Y += Y > 70 ? 1900 : 2000;
-			}
-			int h = Convert.ToInt32(time[0]);
-			int m = Convert.ToInt32(time[1]);
-
-			return new DateTime(Y, M, D, h, m, 0);
-		}
-
 		public void GetRainFallTotals()
 		{
 			cumulus.LogMessage("Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
@@ -6680,7 +6630,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-								entrydate = ddmmyyhhmmStrToDate(st[0], st[1]);
+								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -6891,7 +6841,7 @@ namespace CumulusMX
 			var rec = new dayfilerec();
 			try
 			{
-				rec.Date = ddmmyyStrToDate(st[idx++]);
+				rec.Date = Utils.ddmmyyStrToDate(st[idx++]);
 				rec.HighGust = Convert.ToDouble(st[idx++]);
 				rec.HighGustBearing = Convert.ToInt32(st[idx++]);
 				rec.HighGustTime = GetDateTime(rec.Date, st[idx++]);
@@ -7095,7 +7045,7 @@ namespace CumulusMX
 
 				var rec = new logfilerec()
 				{
-					Date = ddmmyyhhmmStrToDate(st[0], st[1]),
+					Date = Utils.ddmmyyhhmmStrToDate(st[0], st[1]),
 					OutdoorTemperature = Convert.ToDouble(st[2]),
 					OutdoorHumidity = Convert.ToInt32(st[3]),
 					OutdoorDewpoint = Convert.ToDouble(st[4]),
