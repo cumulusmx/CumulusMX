@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Threading;
 using ServiceStack.Text;
 using Unosquare.Labs.EmbedIO;
 
@@ -41,12 +43,18 @@ namespace CumulusMX
 				listwebtags = cumulus.ProgramOptions.ListWebTags
 			};
 
+			var culture = new JsonProgramSettingsCultureOptions()
+			{
+				dateseparator = "\"" + cumulus.ProgramOptions.Culture.DateSeparator + "\""
+			};
+
 			var settings = new JsonProgramSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
 				logging = logging,
-				options = options
+				options = options,
+				culture = culture
 			};
 
 			//return JsonConvert.SerializeObject(data);
@@ -97,12 +105,28 @@ namespace CumulusMX
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 
+				var dateSep = settings.culture.dateseparator.Replace("\"", "");
+				if (dateSep != cumulus.ProgramOptions.Culture.DateSeparator)
+				{
+					// save the new setting to our config
+					cumulus.ProgramOptions.Culture.DateSeparator = dateSep;
+					// get the existing culture
+					var newCulture = CultureInfo.CurrentCulture;
+					// change the date separator
+					newCulture.DateTimeFormat.DateSeparator = dateSep;
+					// set current thread culture
+					Thread.CurrentThread.CurrentCulture = newCulture;
+					// set the default culture for other threads
+					CultureInfo.DefaultThreadCurrentCulture = newCulture;
+				}
+
+				//cumulus.ProgramOptions.Culture.DateSeparator = settings.culture.dateseparator.Replace("\"", "");
+
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
 					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
 					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
-
 			}
 			catch (Exception ex)
 			{
@@ -125,6 +149,7 @@ namespace CumulusMX
 		public JsonProgramSettingsStartupOptions startup { get; set; }
 		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
+		public JsonProgramSettingsCultureOptions culture { get; set; }
 	}
 
 	public class JsonProgramSettingsStartupOptions
@@ -147,5 +172,9 @@ namespace CumulusMX
 	{
 		public bool stopsecondinstance { get; set; }
 		public bool listwebtags { get; set; }
+	}
+	public class JsonProgramSettingsCultureOptions
+	{
+		public string dateseparator { get; set; }
 	}
 }

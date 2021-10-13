@@ -5465,7 +5465,7 @@ namespace CumulusMX
 			// save the value for yesterday
 			YestAvgTemp = AvgTemp;
 
-			string datestring = timestamp.AddDays(-1).ToString("dd/MM/yy"); ;
+			string datestring = timestamp.AddDays(-1).ToString("dd/MM/yy");
 			// NB this string is just for logging, the dayfile update code is further down
 			var strb = new StringBuilder(300);
 			strb.Append(datestring + cumulus.ListSeparator);

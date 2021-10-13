@@ -5,8 +5,20 @@
 - Fix: Long standing bug in Davis VP2/Vue & WLL stations where the day rollover during catch-up was performed after the monthly log entry rather than before
 - Fix: Small tweaks to the ET calculation
 
+- New: Program Settings now allows you to over-ride the default date separator string for your locale. This will be useful for those locales that under
+	Mono now use a date separator such as ". " and you want it to use "."
+	BEWARE, there may be implications with your existing data files rendering unreadbale by CMX if you change this value
+	Note: Unlike most settings the string MUST be contained in double quotes (because it can end with a space)
+	Note: The over-ride is ignored if you change the overall locale CMX - and the over-ride is reset to the new locales default string
+
 - Change: Cumulus will now still parse the dates/times in dayfile.txt and monthly logs even if the locale changes
 - Change: FO Station will now ignore UV-I values greater than 16
+
+- Updated libraries
+	FluentFTP
+	MailKit
+	MimeKit
+	MySqlConnector
 
 
 

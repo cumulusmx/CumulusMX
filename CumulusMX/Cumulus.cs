@@ -27,6 +27,7 @@ using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
 using System.Collections.Concurrent;
+using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -818,24 +819,6 @@ namespace CumulusMX
 				}
 			}
 
-			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
-			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
-
-			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
-			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
-
-			TimeZone localZone = TimeZone.CurrentTimeZone;
-			DateTime now = DateTime.Now;
-
-			LogMessage("Standard time zone name:   " + localZone.StandardName);
-			LogMessage("Daylight saving time name: " + localZone.DaylightName);
-			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
-
-			LogMessage(DateTime.Now.ToString("G"));
-
-
 			// Check if all the folders required by CMX exist, if not create them
 			CreateRequiredFolders();
 
@@ -1032,7 +1015,30 @@ namespace CumulusMX
 				RemoteFileName = "alltempsumdata.json"
 			};
 
+			ProgramOptions.Culture = new CultureConfig();
+			ProgramOptions.Culture.CultureName = CultureInfo.CurrentCulture.Name;
+			ProgramOptions.Culture.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator;
+
 			ReadIniFile();
+
+			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
+			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
+
+			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+
+			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
+			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
+
+			TimeZone localZone = TimeZone.CurrentTimeZone;
+			DateTime now = DateTime.Now;
+
+			LogMessage("Standard time zone name:   " + localZone.StandardName);
+			LogMessage("Daylight saving time name: " + localZone.DaylightName);
+			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
+
+			LogMessage(DateTime.Now.ToString("G"));
+
+
 
 			// Do we prevent more than one copy of CumulusMX running?
 			try
@@ -2979,8 +2985,15 @@ namespace CumulusMX
 					var dstFile = dstPath + RealtimeFiles[i].RemoteFileName;
 					var srcFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
-					File.Copy(srcFile, dstFile, true);
+					try
+					{
+						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
+						File.Copy(srcFile, dstFile, true);
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"RealtimeLocalCopy[{cycle}]: Error copying [{srcFile}] to [{dstFile}. Error = {ex.Message}");
+					}
 				}
 			}
 		}
@@ -3072,9 +3085,16 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
 				{
-					LogDebugMessage($"Realtime[{cycle}]: Processing realtime file - {RealtimeFiles[i].LocalFileName}");
 					var destFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
-					ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
+					try
+					{
+						LogDebugMessage($"Realtime[{cycle}]: Processing realtime file - {RealtimeFiles[i].LocalFileName}");
+						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage($"Realtime[{cycle}]: Error processing file [{RealtimeFiles[i].LocalFileName}] to [{destFile}]. Error = {ex.Message}");
+					}
 				}
 			}
 
@@ -3096,8 +3116,16 @@ namespace CumulusMX
 							if (ExtraFiles[i].process)
 							{
 								// process the file
-								LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
-								ProcessTemplateFile(uploadfile, uploadfile + "tmp", realtimeTokenParser, false);
+								try
+								{
+									LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
+									ProcessTemplateFile(uploadfile, uploadfile + "tmp", realtimeTokenParser, false);
+								}
+								catch (Exception ex)
+								{
+									LogMessage($"Realtime[{cycle}]: Error processing extra file [{uploadfile}] to [{uploadfile}]. Error = {ex.Message}");
+									continue;
+								}
 								uploadfile += "tmp";
 							}
 
@@ -3779,6 +3807,24 @@ namespace CumulusMX
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
+
+			var culture = ini.GetValue("Culture", "CultureName", ProgramOptions.Culture.CultureName);
+			var dateSep = ini.GetValue("Culture", "DateSeparator", ProgramOptions.Culture.DateSeparator).Replace("\"", "");
+			// if the culture names match, then we apply the new date separator if it is different
+			if (culture == ProgramOptions.Culture.CultureName && dateSep != ProgramOptions.Culture.DateSeparator)
+			{
+				// save the new setting to our config
+				ProgramOptions.Culture.DateSeparator = dateSep;
+				// get the existing culture
+				var newCulture = CultureInfo.CurrentCulture;
+				// change the date separator
+				newCulture.DateTimeFormat.DateSeparator = dateSep;
+				// set current thread culture
+				Thread.CurrentThread.CurrentCulture = newCulture;
+				// set the default culture for other threads
+				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+			}
+
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
@@ -5053,6 +5099,9 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
+
+			ini.SetValue("Culture", "CultureName", ProgramOptions.Culture.CultureName);
+			ini.SetValue("Culture", "DateSeparator", "\"" + ProgramOptions.Culture.DateSeparator + "\"");
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
@@ -10394,6 +10443,14 @@ namespace CumulusMX
 		public bool DataLogging { get; set; }
 		public bool WarnMultiple { get; set; }
 		public bool ListWebTags { get; set; }
+		public CultureConfig Culture { get; set; }
+	}
+
+	public class CultureConfig
+	{
+		public string CultureName { get; set; }
+		public string DateSeparator { get; set; }
+		public string ShortDate { get; set; }
 	}
 
 	public class StationUnits
