@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Threading;
 using ServiceStack.Text;
 using Unosquare.Labs.EmbedIO;
 
@@ -41,12 +43,18 @@ namespace CumulusMX
 				listwebtags = cumulus.ProgramOptions.ListWebTags
 			};
 
+			var culture = new JsonProgramSettingsCultureOptions()
+			{
+				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator
+			};
+
 			var settings = new JsonProgramSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
 				logging = logging,
-				options = options
+				options = options,
+				culture = culture
 			};
 
 			//return JsonConvert.SerializeObject(data);
@@ -96,13 +104,37 @@ namespace CumulusMX
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
+				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
+
+				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
+				{
+					// get the existing culture
+					var newCulture = CultureInfo.CurrentCulture;
+					// change the date separator
+					newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+					// set current thread culture
+					Thread.CurrentThread.CurrentCulture = newCulture;
+					// set the default culture for other threads
+					CultureInfo.DefaultThreadCurrentCulture = newCulture;
+				}
+				else
+				{
+					var newCulture = CultureInfo.GetCultureInfo(CultureInfo.CurrentCulture.Name);
+
+					if (!cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && newCulture.DateTimeFormat.DateSeparator.Contains(" ") && !CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
+					{
+						// set current thread culture
+						Thread.CurrentThread.CurrentCulture = newCulture;
+						// set the default culture for other threads
+						CultureInfo.DefaultThreadCurrentCulture = newCulture;
+					}
+				}
 
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
 					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
 					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
-
 			}
 			catch (Exception ex)
 			{
@@ -125,6 +157,7 @@ namespace CumulusMX
 		public JsonProgramSettingsStartupOptions startup { get; set; }
 		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
+		public JsonProgramSettingsCultureOptions culture { get; set; }
 	}
 
 	public class JsonProgramSettingsStartupOptions
@@ -147,5 +180,9 @@ namespace CumulusMX
 	{
 		public bool stopsecondinstance { get; set; }
 		public bool listwebtags { get; set; }
+	}
+	public class JsonProgramSettingsCultureOptions
+	{
+		public bool removespacefromdateseparator { get; set; }
 	}
 }

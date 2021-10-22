@@ -257,11 +257,15 @@ namespace CumulusMX
 					Thread.Sleep(500);
 				}
 
-				if (appMutex.WaitOne(0, false))
+				try
 				{
-					appMutex.ReleaseMutex();
+					if (appMutex.WaitOne(0, false))
+					{
+						appMutex.ReleaseMutex();
+					}
+					Environment.Exit(0);
 				}
-				Environment.Exit(0);
+				catch {}
 			}
 		}
 

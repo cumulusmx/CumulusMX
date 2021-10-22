@@ -27,6 +27,7 @@ using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
 using System.Collections.Concurrent;
+using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -224,6 +225,7 @@ namespace CumulusMX
 
 		public string AirQualityUnitText = "µg/m³";
 		public string SoilMoistureUnitText = "cb";
+		public string LeafWetnessUnitText = "";  // Davis is unitless, Ecowitt uses %
 		public string CO2UnitText = "ppm";
 
 		public volatile int WebUpdating;
@@ -761,7 +763,7 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+			loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
 			Program.svcTextListener.Flush();
@@ -794,6 +796,8 @@ namespace CumulusMX
 
 			LogMessage("OS version: " + Environment.OSVersion);
 
+			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
+
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
@@ -816,24 +820,6 @@ namespace CumulusMX
 					LogDebugMessage($"Error: {e}");
 				}
 			}
-
-			LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
-			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
-
-			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
-			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
-
-			TimeZone localZone = TimeZone.CurrentTimeZone;
-			DateTime now = DateTime.Now;
-
-			LogMessage("Standard time zone name:   " + localZone.StandardName);
-			LogMessage("Daylight saving time name: " + localZone.DaylightName);
-			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
-
-			LogMessage(DateTime.Now.ToString("G"));
-
 
 			// Check if all the folders required by CMX exist, if not create them
 			CreateRequiredFolders();
@@ -1031,7 +1017,27 @@ namespace CumulusMX
 				RemoteFileName = "alltempsumdata.json"
 			};
 
+			ProgramOptions.Culture = new CultureConfig();
+
 			ReadIniFile();
+
+			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
+
+			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+
+			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
+			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
+
+			TimeZone localZone = TimeZone.CurrentTimeZone;
+			DateTime now = DateTime.Now;
+
+			LogMessage("Standard time zone name:   " + localZone.StandardName);
+			LogMessage("Daylight saving time name: " + localZone.DaylightName);
+			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
+
+			LogMessage(DateTime.Now.ToString("G"));
+
+
 
 			// Do we prevent more than one copy of CumulusMX running?
 			try
@@ -1040,7 +1046,7 @@ namespace CumulusMX
 				{
 					if (ProgramOptions.WarnMultiple)
 					{
-						LogConsoleMessage("Cumulus is already running - terminating");
+						LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
 						LogConsoleMessage("Program exit");
 						LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
 						LogMessage("Stop second instance: Program exit");
@@ -1049,7 +1055,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled");
+						LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
 						LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
 					}
 				}
@@ -1098,7 +1104,7 @@ namespace CumulusMX
 
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
 				LogMessage($"System uptime = {(int)ts} secs");
-				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts)
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > ts))
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
 					var msg2 = $"Start-up delay complete, continuing...";
@@ -1181,7 +1187,7 @@ namespace CumulusMX
 
 					if (DateTime.Now >= endTime)
 					{
-						LogConsoleMessage(msg3);
+						LogConsoleMessage(msg3, ConsoleColor.Yellow);
 						LogMessage(msg3);
 					}
 					else
@@ -1397,28 +1403,27 @@ namespace CumulusMX
 			Console.Write("Cumulus running at: ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine($"http://localhost:{HTTPport}/");
+			Console.ResetColor();
 			foreach (var ip in ips)
 			{
 				if (ip.AddressFamily == AddressFamily.InterNetwork)
 				{
-					LogConsoleMessage($"                    http://{ip}:{HTTPport}/");
+					LogConsoleMessage($"                    http://{ip}:{HTTPport}/", ConsoleColor.Yellow);
 				}
 
 			}
 
-			Console.ForegroundColor = ConsoleColor.Cyan;
 			Console.WriteLine();
 			if (File.Exists("Cumulus.ini"))
 			{
-				LogConsoleMessage("  Open the admin interface by entering one of the above URLs into a web browser.");
+				LogConsoleMessage("  Open the admin interface by entering one of the above URLs into a web browser.", ConsoleColor.Cyan);
 			}
 			else
 			{
-				LogConsoleMessage("  Leave this window open, then...");
-				LogConsoleMessage("  Run the First Time Configuration Wizard by entering one of the URLs above plus \"wizard.html\" into your browser");
-				LogConsoleMessage($"  e.g. http://localhost:{HTTPport}/wizard.html");
+				LogConsoleMessage("  Leave this window open, then...", ConsoleColor.Cyan);
+				LogConsoleMessage("  Run the First Time Configuration Wizard by entering one of the URLs above plus \"wizard.html\" into your browser", ConsoleColor.Cyan);
+				LogConsoleMessage($"  e.g. http://localhost:{HTTPport}/wizard.html", ConsoleColor.Cyan);
 			}
-			Console.ResetColor();
 			Console.WriteLine();
 
 			LogDebugMessage("Lock: Cumulus waiting for the lock");
@@ -1493,7 +1498,7 @@ namespace CumulusMX
 					station = new HttpStationAmbient(this);
 					break;
 				default:
-					LogConsoleMessage("Station type not set");
+					LogConsoleMessage("Station type not set", ConsoleColor.Red);
 					LogMessage("Station type not set");
 					break;
 			}
@@ -2775,6 +2780,7 @@ namespace CumulusMX
 								try
 								{
 									RealtimeFTPUpload(cycle);
+									realtimeFTPRetries = 0;
 								}
 								catch (Exception)
 								{
@@ -2978,8 +2984,15 @@ namespace CumulusMX
 					var dstFile = dstPath + RealtimeFiles[i].RemoteFileName;
 					var srcFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
-					File.Copy(srcFile, dstFile, true);
+					try
+					{
+						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
+						File.Copy(srcFile, dstFile, true);
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"RealtimeLocalCopy[{cycle}]: Error copying [{srcFile}] to [{dstFile}. Error = {ex.Message}");
+					}
 				}
 			}
 		}
@@ -3002,7 +3015,7 @@ namespace CumulusMX
 					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
 					var localFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					LogFtpMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
+					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
 					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 					{
 						doMore = UploadFile(RealtimeSSH, localFile, remoteFile, cycle);
@@ -3040,7 +3053,7 @@ namespace CumulusMX
 							// we've already processed the file
 							uploadfile += "tmp";
 						}
-						LogFtpMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
+						LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							doMore = UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
@@ -3071,9 +3084,16 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
 				{
-					LogDebugMessage($"Realtime[{cycle}]: Processing realtime file - {RealtimeFiles[i].LocalFileName}");
 					var destFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
-					ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
+					try
+					{
+						LogDebugMessage($"Realtime[{cycle}]: Processing realtime file - {RealtimeFiles[i].LocalFileName}");
+						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage($"Realtime[{cycle}]: Error processing file [{RealtimeFiles[i].LocalFileName}] to [{destFile}]. Error = {ex.Message}");
+					}
 				}
 			}
 
@@ -3095,8 +3115,16 @@ namespace CumulusMX
 							if (ExtraFiles[i].process)
 							{
 								// process the file
-								LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
-								ProcessTemplateFile(uploadfile, uploadfile + "tmp", realtimeTokenParser, false);
+								try
+								{
+									LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
+									ProcessTemplateFile(uploadfile, uploadfile + "tmp", realtimeTokenParser, false);
+								}
+								catch (Exception ex)
+								{
+									LogMessage($"Realtime[{cycle}]: Error processing extra file [{uploadfile}] to [{uploadfile}]. Error = {ex.Message}");
+									continue;
+								}
 								uploadfile += "tmp";
 							}
 
@@ -3716,11 +3744,11 @@ namespace CumulusMX
 			}
 		}
 
-		private string GetLoggingFileName(string directory)
+		private string RemoveOldDiagsFiles(string directory)
 		{
-			const int maxEntries = 15;
+			const int maxEntries = 12;
 
-			List<string> fileEntries = new List<string>(Directory.GetFiles(directory));
+			List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"\d{8}-\d{6}\.txt").Success));
 
 			fileEntries.Sort();
 
@@ -3741,7 +3769,7 @@ namespace CumulusMX
 			if (logfileSize > 20971520)
 			{
 				var oldfile = loggingfile;
-				loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+				loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
 				LogMessage("Rotating log file, new log file will be: " + loggingfile.Split(DirectorySeparator).Last());
 				TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 				Trace.Listeners.Remove("MXlog");
@@ -3778,6 +3806,20 @@ namespace CumulusMX
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
+			ProgramOptions.Culture.RemoveSpaceFromDateSeparator = ini.GetValue("Culture", "RemoveSpaceFromDateSeparator", false);
+			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
+			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
+			{
+				// get the existing culture
+				var newCulture = CultureInfo.CurrentCulture;
+				// change the date separator
+				newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+				// set current thread culture
+				Thread.CurrentThread.CurrentCulture = newCulture;
+				// set the default culture for other threads
+				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+			}
+
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
@@ -5052,6 +5094,8 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
+
+			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
@@ -7651,13 +7695,13 @@ namespace CumulusMX
 		{
 			LogMessage("Cumulus closing");
 
-			//WriteIniFile();
+			try
+			{
+				LogMessage("Releasing mutex");
+				Program.appMutex.ReleaseMutex();
+			}
+			catch { }
 
-			//httpServer.Stop();
-
-			//if (httpServer != null) httpServer.Dispose();
-
-			// Stop the timers
 			try
 			{
 				LogMessage("Stopping timers");
@@ -7676,19 +7720,23 @@ namespace CumulusMX
 			if (station != null)
 			{
 				LogMessage("Stopping station...");
-				station.Stop();
-				LogMessage("Station stopped");
+				try
+				{
+					station.Stop();
+					LogMessage("Station stopped");
 
-				if (station.HaveReadData)
-				{
-					LogMessage("Writing today.ini file");
-					station.WriteTodayFile(DateTime.Now, false);
-					LogMessage("Completed writing today.ini file");
+					if (station.HaveReadData)
+					{
+						LogMessage("Writing today.ini file");
+						station.WriteTodayFile(DateTime.Now, false);
+						LogMessage("Completed writing today.ini file");
+					}
+					else
+					{
+						LogMessage("No data read this session, today.ini not written");
+					}
 				}
-				else
-				{
-					LogMessage("No data read this session, today.ini not written");
-				}
+				catch { }
 
 				LogMessage("Stopping extra sensors...");
 				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now
@@ -8635,11 +8683,14 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogConsoleMessage(string message)
+		public void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White)
 		{
 			if (!Program.service)
 			{
+
+				Console.ForegroundColor = colour;
 				Console.WriteLine(message);
+				Console.ResetColor();
 			}
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
@@ -9124,7 +9175,7 @@ namespace CumulusMX
 			EnableOpenWeatherMap();
 
 			LogMessage("Normal running");
-			LogConsoleMessage("Normal running");
+			LogConsoleMessage("Normal running", ConsoleColor.Green);
 		}
 
 		private async void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -9846,7 +9897,7 @@ namespace CumulusMX
 				if (int.Parse(Build) < int.Parse(LatestBuild))
 				{
 					var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
-					LogConsoleMessage(msg);
+					LogConsoleMessage(msg, ConsoleColor.Cyan);
 					LogMessage(msg);
 					UpgradeAlarm.LastError = $"Build {LatestBuild} is available";
 					UpgradeAlarm.Triggered = true;
@@ -10276,8 +10327,8 @@ namespace CumulusMX
 
 		private void CreateRequiredFolders()
 		{
-			// The required folders are: /backup, /data, /Reports
-			var folders = new string[3] { "backup", "data", "Reports"};
+			// The required folders are: /backup, backup/daily, /data, /Reports
+			var folders = new string[4] { "backup", "backup/daily", "data", "Reports"};
 
 			LogMessage("Checking required folders");
 
@@ -10294,13 +10345,13 @@ namespace CumulusMX
 				catch (UnauthorizedAccessException)
 				{
 					var msg = "Error, no permission to read/create folder: " + folder;
-					LogConsoleMessage(msg);
+					LogConsoleMessage(msg, ConsoleColor.Red);
 					LogErrorMessage(msg);
 				}
 				catch (Exception ex)
 				{
 					var msg = $"Error while attempting to read/create folder: {folder}, error message: {ex.Message}";
-					LogConsoleMessage(msg);
+					LogConsoleMessage(msg, ConsoleColor.Red);
 					LogErrorMessage(msg);
 				}
 			}
@@ -10386,6 +10437,12 @@ namespace CumulusMX
 		public bool DataLogging { get; set; }
 		public bool WarnMultiple { get; set; }
 		public bool ListWebTags { get; set; }
+		public CultureConfig Culture { get; set; }
+	}
+
+	public class CultureConfig
+	{
+		public bool RemoveSpaceFromDateSeparator { get; set; }
 	}
 
 	public class StationUnits

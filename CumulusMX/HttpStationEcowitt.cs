@@ -47,6 +47,12 @@ namespace CumulusMX
 			{
 				cumulus.SoilMoistureUnitText = "%";
 			}
+			if (station == null || (station != null && cumulus.EcowittExtraUseSoilMoist))
+			{
+				cumulus.LeafWetnessUnitText = "%";
+			}
+
+
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (station == null)
@@ -1003,14 +1009,14 @@ namespace CumulusMX
 		{
 			if (data["leafwetness"] != null)
 			{
-				station.DoLeafWetness(Convert.ToDouble(data["leafwetness"], CultureInfo.InvariantCulture), 1);
+				station.DoLeafWetness(Convert.ToInt32(data["leafwetness"], CultureInfo.InvariantCulture), 1);
 			}
 			// Though Ecowitt supports up to 8 sensors, MX only supports the first 4
-			for (var i = 1; i <= 4; i++)
+			for (var i = 1; i <= 8; i++)
 			{
 				if (data["leafwetness_ch" + i] != null)
 				{
-					station.DoLeafWetness(Convert.ToDouble(data["leafwetness_ch" + i], CultureInfo.InvariantCulture), i - 1);
+					station.DoLeafWetness(Convert.ToInt32(data["leafwetness_ch" + i], CultureInfo.InvariantCulture), i);
 				}
 			}
 

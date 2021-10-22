@@ -58,7 +58,7 @@ namespace CumulusMX
 				Exception te = ex;
 				while (te != null)
 				{
-					cumulus.LogConsoleMessage($"Error getting history data: {te.Message}");
+					cumulus.LogConsoleMessage($"Error getting history data: {te.Message}", ConsoleColor.Red);
 					te = te.InnerException;
 				}
 			}
@@ -533,7 +533,7 @@ namespace CumulusMX.Tempest
 						{
 							var msg = $"Error downloading tempest history: {apiResponse}";
 							cumulus.LogMessage(msg);
-							cumulus.LogConsoleMessage(msg);
+							cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
 							if (rp.status.status_code == 404)
 							{
 								cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");

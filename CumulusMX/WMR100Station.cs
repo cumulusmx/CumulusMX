@@ -62,7 +62,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("WMR100 station not found!");
-				cumulus.LogConsoleMessage("WMR100 station not found!");
+				cumulus.LogConsoleMessage("WMR100 station not found!", ConsoleColor.Red);
 			}
 		}
 

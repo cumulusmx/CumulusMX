@@ -107,7 +107,7 @@ namespace CumulusMX
 				else if((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float)1.9) && cumulus.DavisOptions.UseLoop2)
 				{
 					cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
-					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini");
+					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini", ConsoleColor.Yellow);
 				}
 			}
 			catch(Exception ex)
@@ -210,6 +210,7 @@ namespace CumulusMX
 				var vals = recepStats.Split(' ');
 
 				DavisTotalPacketsReceived = Convert.ToInt32(vals[0]);
+				if (DavisTotalPacketsReceived < 0) DavisTotalPacketsReceived = DavisTotalPacketsReceived + 65536; // The console uses 16 bit signed variable to hold the value so it bit wraps
 				DavisTotalPacketsMissed[0] = Convert.ToInt32(vals[1]);
 				DavisNumberOfResynchs[0] = Convert.ToInt32(vals[2]);
 				DavisMaxInARow[0] = Convert.ToInt32(vals[3]);
@@ -1765,22 +1766,22 @@ namespace CumulusMX
 						DoSoilMoisture(loopData.SoilMoisture4, 4);
 					}
 
-					if (loopData.SoilTemp1 < 255)
+					if (loopData.SoilTemp1 < 255 && loopData.SoilTemp1 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp1 - 90), 1);
 					}
 
-					if (loopData.SoilTemp2 < 255)
+					if (loopData.SoilTemp2 < 255 && loopData.SoilTemp2 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp2 - 90), 2);
 					}
 
-					if (loopData.SoilTemp3 < 255)
+					if (loopData.SoilTemp3 < 255 && loopData.SoilTemp3 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp3 - 90), 3);
 					}
 
-					if (loopData.SoilTemp4 < 255)
+					if (loopData.SoilTemp4 < 255 && loopData.SoilTemp4 > 0)
 					{
 						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp4 - 90), 4);
 					}
@@ -1805,22 +1806,22 @@ namespace CumulusMX
 						DoLeafWetness(loopData.LeafWetness4, 4);
 					}
 
-					if (loopData.LeafTemp1 < 255)
+					if (loopData.LeafTemp1 < 255 && loopData.LeafTemp1 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp1 - 90), 1);
 					}
 
-					if (loopData.LeafTemp2 < 255)
+					if (loopData.LeafTemp2 < 255 && loopData.LeafTemp2 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp2 - 90), 2);
 					}
 
-					if (loopData.LeafTemp3 < 255)
+					if (loopData.LeafTemp3 < 255 && loopData.LeafTemp3 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp3 - 90), 3);
 					}
 
-					if (loopData.LeafTemp4 < 255)
+					if (loopData.LeafTemp4 < 255 && loopData.LeafTemp4 > 0)
 					{
 						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp4 - 90), 4);
 					}
@@ -2374,12 +2375,49 @@ namespace CumulusMX
 								rolloverdone = false;
 							}
 
+							// ..and then process it
+
+							// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+							// Windrun
+							// Dominant wind bearing
+							// ET - if MX calculated
+							// Degree days
+							// Rainfall
+
+
+							// In roll-over hour and roll-over not yet done
+							if ((h == rollHour) && !rolloverdone)
+							{
+								// do roll-over
+								cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
+								// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
+								// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
+								var watch = new Stopwatch();
+								watch.Start();
+								DayReset(timestamp);
+								watch.Stop();
+								if (watch.ElapsedMilliseconds > 10000)
+								{
+									// EOD processing took longer than 10 seconds, add another run
+									cumulus.LogDebugMessage("GetArchiveData: End of day processing took more than 10 seconds, adding another archive data run");
+									maxArchiveRuns++;
+								}
+								rolloverdone = true;
+							}
+
+							// Not in midnight hour, midnight rain yet to be done
 							if (h != 0)
 							{
 								midnightraindone = false;
 							}
 
-							// ..and then process it
+							// In midnight hour and midnight rain (and sun) not yet done
+							if ((h == 0) && !midnightraindone)
+							{
+								ResetMidnightRain(timestamp);
+								ResetSunshineHours();
+								midnightraindone = true;
+							}
 
 							int interval = (int)(timestamp - lastDataReadTime).TotalMinutes;
 
@@ -2505,17 +2543,9 @@ namespace CumulusMX
 									SunshineHours += (interval / 60.0);
 							}
 
-							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 							{
-								// Start of a new hour, and we want to calculate ET in Cumulus
-								CalculateEvaoptranspiration(timestamp);
-							}
-							else
-							{
-								if ((archiveData.ET >= 0) && (archiveData.ET < 32000))
-								{
-									DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
-								}
+								DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 							}
 
 							if (cumulus.StationOptions.LogExtraSensors)
@@ -2573,22 +2603,22 @@ namespace CumulusMX
 									DoSoilMoisture(archiveData.SoilMoisture4, 4);
 								}
 
-								if (archiveData.SoilTemp1 < 255)
+								if (archiveData.SoilTemp1 < 255 && archiveData.SoilTemp1 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp1 - 90), 1);
 								}
 
-								if (archiveData.SoilTemp2 < 255)
+								if (archiveData.SoilTemp2 < 255 && archiveData.SoilTemp2 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp2 - 90), 2);
 								}
 
-								if (archiveData.SoilTemp3 < 255)
+								if (archiveData.SoilTemp3 < 255 && archiveData.SoilTemp3 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp3 - 90), 3);
 								}
 
-								if (archiveData.SoilTemp4 < 255)
+								if (archiveData.SoilTemp4 < 255 && archiveData.SoilTemp4 > 0)
 								{
 									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp4 - 90), 4);
 								}
@@ -2603,12 +2633,12 @@ namespace CumulusMX
 									DoLeafWetness(LeafWetness2, 2);
 								}
 
-								if (archiveData.LeafTemp1 < 255)
+								if (archiveData.LeafTemp1 < 255 && archiveData.LeafTemp1 > 0)
 								{
 									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp1 - 90), 1);
 								}
 
-								if (archiveData.LeafTemp2 < 255)
+								if (archiveData.LeafTemp2 < 255 && archiveData.LeafTemp2 > 0)
 								{
 									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp2 - 90), 2);
 								}
@@ -2636,49 +2666,16 @@ namespace CumulusMX
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
+
+							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							{
+								// Start of a new hour, and we want to calculate ET in Cumulus
+								CalculateEvaoptranspiration(timestamp);
+							}
+
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
-
-							//  if outside roll-over hour, roll-over yet to be done
-							if (h != rollHour)
-							{
-								rolloverdone = false;
-							}
-
-							// In roll-over hour and roll-over not yet done
-							if ((h == rollHour) && !rolloverdone)
-							{
-								// do roll-over
-								cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
-								// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
-								// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
-								var watch = new Stopwatch();
-								watch.Start();
-								DayReset(timestamp);
-								watch.Stop();
-								if (watch.ElapsedMilliseconds > 10000)
-								{
-									// EOD processing took longer than 10 seconds, add another run
-									cumulus.LogDebugMessage("GetArchiveData: End of day processing took more than 10 seconds, adding another archive data run");
-									maxArchiveRuns++;
-								}
-								rolloverdone = true;
-							}
-
-							// Not in midnight hour, midnight rain yet to be done
-							if (h != 0)
-							{
-								midnightraindone = false;
-							}
-
-							// In midnight hour and midnight rain (and sun) not yet done
-							if ((h == 0) && !midnightraindone)
-							{
-								ResetMidnightRain(timestamp);
-								ResetSunshineHours();
-								midnightraindone = true;
-							}
 						}
 						else
 						{
@@ -3089,7 +3086,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message);
+					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message, ConsoleColor.Red);
 					cumulus.LogConsoleMessage("Will retry in 30 seconds...");
 					cumulus.LogMessage("InitSerial: Error opening port - " + ex.Message);
 				}
@@ -3185,7 +3182,7 @@ namespace CumulusMX
 				if (socket == null && !stop)
 				{
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
-					cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again");
+					cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again", ConsoleColor.Red);
 					Thread.Sleep(30000);
 				}
 			} while ((socket == null || !socket.Connected) && !stop);

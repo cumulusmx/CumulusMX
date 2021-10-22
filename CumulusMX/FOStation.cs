@@ -529,18 +529,14 @@ namespace CumulusMX
 
 					if (hasSolar)
 					{
-						if (historydata.uvVal == 255)
+						if (historydata.uvVal < 0 || historydata.uvVal > 16)
 						{
-							// ignore
+							cumulus.LogMessage("Invalid UV-I value ignored: " + historydata.uvVal);
 						}
-						else if (historydata.uvVal < 0)
-							DoUV(0, timestamp);
-						else if (historydata.uvVal > 16)
-							DoUV(16, timestamp);
 						else
 							DoUV(historydata.uvVal, timestamp);
 
-						if ((historydata.solarVal >= 0) && (historydata.solarVal <= 300000))
+						if (historydata.solarVal >= 0 && historydata.solarVal <= 300000)
 						{
 							DoSolarRad((int) Math.Floor(historydata.solarVal*cumulus.LuxToWM2), timestamp);
 
@@ -549,6 +545,10 @@ namespace CumulusMX
 								SunshineHours += (historydata.interval/60.0);
 
 							LightValue = historydata.solarVal;
+						}
+						else
+						{
+							cumulus.LogMessage("Invalid solar value ignored: " + historydata.solarVal);
 						}
 					}
 				}
@@ -701,7 +701,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
+				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red);
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogMessage("Error sending command to station - it may need resetting");
 				DataStopped = true;
@@ -720,7 +720,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting");
+					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red);
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
 					DataStopped = true;
@@ -1128,7 +1128,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								cumulus.LogMessage("Ignoring reading " + ignoreraincount);
+								cumulus.LogMessage("Ignoring rain counter reading " + ignoreraincount);
 							}
 						}
 						else
@@ -1154,7 +1154,11 @@ namespace CumulusMX
 
 							int UVreading = data[19];
 
-							if (UVreading != 255)
+							if (UVreading < 0 || UVreading > 16)
+							{
+								cumulus.LogMessage("Ignoring UV-I reading " + UVreading);
+							}
+							else
 							{
 								DoUV(UVreading, now);
 							}

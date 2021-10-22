@@ -125,7 +125,7 @@ namespace CumulusMX
 				// The basic API details have not been supplied
 				cumulus.LogMessage("WLL - No WeatherLink.com API configuration supplied, just going to work locally");
 				cumulus.LogMessage("WLL - Cannot start historic downloads or retrieve health data");
-				cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start historic downloads or retrieve health data");
+				cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start historic downloads or retrieve health data", ConsoleColor.DarkCyan);
 				useWeatherLinkDotCom = false;
 			}
 			else if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret))
@@ -134,12 +134,12 @@ namespace CumulusMX
 				if (string.IsNullOrEmpty(cumulus.WllApiKey))
 				{
 					cumulus.LogMessage("WLL - Missing WeatherLink.com API Key");
-					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start historic downloads or retrieve health data");
+					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start historic downloads or retrieve health data", ConsoleColor.Yellow);
 				}
 				else
 				{
 					cumulus.LogMessage("WLL - Missing WeatherLink.com API Secret");
-					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Secret. Cannot start historic downloads or retrieve health data");
+					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Secret. Cannot start historic downloads or retrieve health data", ConsoleColor.Yellow);
 				}
 				useWeatherLinkDotCom = false;
 			}
@@ -170,7 +170,7 @@ namespace CumulusMX
 			{
 				// API details supplied, but Station Id is still invalid - do not start the station up.
 				cumulus.LogMessage("WLL - The WeatherLink.com API is enabled, but no Station Id has been configured, not starting the station. Please correct this and restart Cumulus");
-				cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus");
+				cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus", ConsoleColor.Yellow);
 				return;
 			}
 
@@ -1529,7 +1529,7 @@ namespace CumulusMX
 				{
 					var historyError = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-					cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}");
+					cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
@@ -1597,10 +1597,48 @@ namespace CumulusMX
 					// For the additional sensors, check if they have the same number of records as the WLL. If they do great, we just process the next record.
 					// If the sensor has more or less historic records than the WLL, then we find the record (if any) that matches the WLL record timestamp
 
-
 					var refData = sensorWithMostRecs.data[dataIndex].FromJsv<WlHistorySensorDataType13Baro>();
-					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
 					var timestamp = Utils.FromUnixTime(refData.ts);
+
+					var h = timestamp.Hour;
+
+					//  if outside roll-over hour, roll-over yet to be done
+					if (h != rollHour)
+					{
+						rolloverdone = false;
+					}
+
+					// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+					// Windrun
+					// Dominant wind bearing
+					// ET - if MX calculated
+					// Degree days
+					// Rainfall
+
+					// In roll-over hour and roll-over not yet done
+					if ((h == rollHour) && !rolloverdone)
+					{
+						// do roll-over
+						cumulus.LogMessage("GetWlHistoricData: Day roll-over " + timestamp.ToShortTimeString());
+						DayReset(timestamp);
+						rolloverdone = true;
+					}
+
+					// Not in midnight hour, midnight rain yet to be done
+					if (h != 0)
+					{
+						midnightraindone = false;
+					}
+
+					// In midnight hour and midnight rain (and sun) not yet done
+					if ((h == 0) && !midnightraindone)
+					{
+						ResetMidnightRain(timestamp);
+						ResetSunshineHours();
+						midnightraindone = true;
+					}
+
+					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
 
 					foreach (var sensor in histObj.sensors)
 					{
@@ -1669,7 +1707,6 @@ namespace CumulusMX
 						}
 					}
 
-					var h = timestamp.Hour;
 
 					if (cumulus.StationOptions.LogExtraSensors)
 					{
@@ -1700,37 +1737,15 @@ namespace CumulusMX
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 					DoTrendValues(timestamp);
+
+					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+					{
+						// Start of a new hour, and we want to calculate ET in Cumulus
+						CalculateEvaoptranspiration(timestamp);
+					}
+
 					UpdateStatusPanel(timestamp);
 					cumulus.AddToWebServiceLists(timestamp);
-
-					//  if outside roll-over hour, roll-over yet to be done
-					if (h != rollHour)
-					{
-						rolloverdone = false;
-					}
-
-					// In roll-over hour and roll-over not yet done
-					if ((h == rollHour) && !rolloverdone)
-					{
-						// do roll-over
-						cumulus.LogMessage("GetWlHistoricData: Day roll-over " + timestamp.ToShortTimeString());
-						DayReset(timestamp);
-						rolloverdone = true;
-					}
-
-					// Not in midnight hour, midnight rain yet to be done
-					if (h != 0)
-					{
-						midnightraindone = false;
-					}
-
-					// In midnight hour and midnight rain (and sun) not yet done
-					if ((h == 0) && !midnightraindone)
-					{
-						ResetMidnightRain(timestamp);
-						ResetSunshineHours();
-						midnightraindone = true;
-					}
 
 
 					if (!Program.service)
@@ -2164,30 +2179,21 @@ namespace CumulusMX
 								{
 									cumulus.LogMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
+
+								if (data11.et != null && !cumulus.StationOptions.CalculatedET)
+								{
+									// wl.com ET is only available in record the start of each hour.
+									// The number is the total for the one hour period.
+									// This is unlike the existing VP2 when the ET is an annual running total
+									// So we try and mimic the VP behaviour
+									var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
+									cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+									DoET(newET, recordTs);
+								}
 							}
 							catch (Exception ex)
 							{
 								cumulus.LogMessage($"WL.com historic: Error processing Solar value on TxId {data11.tx_id}. Error: {ex.Message}");
-							}
-						}
-
-						if (cumulus.StationOptions.CalculatedET && recordTs.Minute == 0)
-						{
-							// Start of a new hour, and we want to calculate ET in Cumulus
-							CalculateEvaoptranspiration(recordTs);
-						}
-						else
-						{
-							// Is there any ET in this record?
-							if (data11.et != null)
-							{
-								// wl.com ET is only available in record the start of each hour.
-								// The number is the total for the one hour period.
-								// This is unlike the existing VP2 when the ET is an annual running total
-								// So we try and mimic the VP behaviour
-								var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
-								cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
-								DoET(newET, recordTs);
 							}
 						}
 

@@ -137,13 +137,15 @@ namespace CumulusMX
 					var lines = File.ReadAllLines(logFile);
 					linenum = 0;
 					windsamples = 0;
+					string sep;
 
 					foreach (var line in lines)
 					{
 						// now process each record in the file
 
 						linenum++;
-						st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+						sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+						st = new List<string>(line.Split(sep[0]));
 						idx = 5;
 						double windspeed = Convert.ToSingle(st[idx]);
 						// add in wind speed sample for whole month
@@ -255,15 +257,17 @@ namespace CumulusMX
 				foreach (var line in lines)
 				{
 					linenum++;
-					st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+					var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+					st = new List<string>(line.Split(sep[0]));
 					idx = 0;
-					string dateStr = st[idx];
 
-					if ((Convert.ToInt32(dateStr.Substring(3, 2)) != month) || (Convert.ToInt32(dateStr.Substring(6, 2)) + 2000 != year))
+					var dateStr = st[0];
+					var dat = Utils.ddmmyyStrToDate(dateStr);
+					if (dat.Month != month || dat.Year != year)
 						continue;
 
 					// entry is for this month (month and year match)
-					int daynumber = Convert.ToInt32(dateStr.Substring(0, 2));
+					int daynumber = dat.Day;
 
 					if (dayList[daynumber].valid)
 					{
@@ -452,7 +456,8 @@ namespace CumulusMX
 					{
 						// now process each record in the file
 						linenum++;
-						st = new List<string>(line.Split(cumulus.ListSeparator[0]));
+						var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+						st = new List<string>(line.Split(sep[0]));
 
 						idx = 0;
 						int entryday = Convert.ToInt32(st[idx].Substring(0, 2));
@@ -814,13 +819,13 @@ namespace CumulusMX
 						linenum++;
 						var st = new List<string>(Regex.Split(line, listSep));
 						string dateStr = st[0];
-
-						if (Convert.ToInt32(dateStr.Substring(6, 2)) + 2000 != year)
+						var dat = Utils.ddmmyyStrToDate(dateStr);
+						if (dat.Year != year)
 							continue;
 
 						// entry is for this year
-						var day = Convert.ToInt32(dateStr.Substring(0, 2));
-						month = Convert.ToInt32(dateStr.Substring(3, 2));
+						var day = dat.Day;
+						month = dat.Month;
 						var maxval = Convert.ToDouble(st[6]);
 						var minval = Convert.ToDouble(st[4]);
 						MonthList[month].totalmaxtemp += maxval;
