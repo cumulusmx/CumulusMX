@@ -43,7 +43,6 @@ namespace CumulusMX
 		private bool stop;
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
-		private double historyRecordET;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
