@@ -43,6 +43,7 @@ namespace CumulusMX
 		private bool stop;
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
+		private double historyRecordET;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -1737,6 +1738,13 @@ namespace CumulusMX
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 					DoTrendValues(timestamp);
+
+					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+					{
+						// Start of a new hour, and we want to calculate ET in Cumulus
+						CalculateEvaoptranspiration(timestamp);
+					}
+
 					UpdateStatusPanel(timestamp);
 					cumulus.AddToWebServiceLists(timestamp);
 
@@ -2172,30 +2180,21 @@ namespace CumulusMX
 								{
 									cumulus.LogMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
+
+								if (data11.et != null && !cumulus.StationOptions.CalculatedET)
+								{
+									// wl.com ET is only available in record the start of each hour.
+									// The number is the total for the one hour period.
+									// This is unlike the existing VP2 when the ET is an annual running total
+									// So we try and mimic the VP behaviour
+									var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
+									cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+									DoET(newET, recordTs);
+								}
 							}
 							catch (Exception ex)
 							{
 								cumulus.LogMessage($"WL.com historic: Error processing Solar value on TxId {data11.tx_id}. Error: {ex.Message}");
-							}
-						}
-
-						if (cumulus.StationOptions.CalculatedET && recordTs.Minute == 0)
-						{
-							// Start of a new hour, and we want to calculate ET in Cumulus
-							CalculateEvaoptranspiration(recordTs);
-						}
-						else
-						{
-							// Is there any ET in this record?
-							if (data11.et != null)
-							{
-								// wl.com ET is only available in record the start of each hour.
-								// The number is the total for the one hour period.
-								// This is unlike the existing VP2 when the ET is an annual running total
-								// So we try and mimic the VP behaviour
-								var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
-								cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
-								DoET(newET, recordTs);
 							}
 						}
 

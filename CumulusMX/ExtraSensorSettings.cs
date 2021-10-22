@@ -48,7 +48,7 @@ namespace CumulusMX
 				useSolar = cumulus.EcowittExtraUseSolar,
 				useUv = cumulus.EcowittExtraUseUv,
 				useTempHum = cumulus.EcowittExtraUseTempHum,
-				useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
+				//useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
 				useSoilMoist = cumulus.EcowittExtraUseSoilMoist,
 				useLeafWet = cumulus.EcowittExtraUseLeafWet,
 				useUserTemp = cumulus.EcowittExtraUseUserTemp,
@@ -63,7 +63,7 @@ namespace CumulusMX
 				useSolar = cumulus.AmbientExtraUseSolar,
 				useUv = cumulus.AmbientExtraUseUv,
 				useTempHum = cumulus.AmbientExtraUseTempHum,
-				useSoilTemp = cumulus.AmbientExtraUseSoilTemp,
+				//useSoilTemp = cumulus.AmbientExtraUseSoilTemp,
 				useSoilMoist = cumulus.AmbientExtraUseSoilMoist,
 				//useLeafWet = cumulus.AmbientExtraUseLeafWet,
 				useAQI = cumulus.AmbientExtraUseAQI,
@@ -227,7 +227,7 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
-						cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
+						//cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
 						cumulus.EcowittExtraUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
 						cumulus.EcowittExtraUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
 						cumulus.EcowittExtraUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
@@ -262,7 +262,7 @@ namespace CumulusMX
 						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
 						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
 						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
-						cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
+						//cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
 						cumulus.AmbientExtraUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
 						//cumulus.AmbientExtraUseLeafWet = settings.httpSensors.ambient.useLeafWet;
 						cumulus.AmbientExtraUseAQI = settings.httpSensors.ambient.useAQI;
@@ -393,7 +393,7 @@ namespace CumulusMX
 		public bool useSolar { get; set; }
 		public bool useUv { get; set; }
 		public bool useTempHum { get; set; }
-		public bool useSoilTemp { get; set; }
+		//public bool useSoilTemp { get; set; }
 		public bool useSoilMoist { get; set; }
 		public bool useLeafWet { get; set; }
 		public bool useUserTemp { get; set; }

@@ -193,8 +193,8 @@ namespace CumulusMX
 
 		internal string GetAllTimeRecData()
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 			// Records - Temperature values
 			var json = new StringBuilder("{", 1700);
 			json.Append($"\"highTempVal\":\"{station.AllTime.HighTemp.Val.ToString(cumulus.TempFormat)}\",");
@@ -269,8 +269,8 @@ namespace CumulusMX
 
 		internal string GetRecordsDayFile(string recordType)
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var highTempVal = -999.0;
 			var lowTempVal = 999.0;
@@ -672,8 +672,8 @@ namespace CumulusMX
 
 		internal string GetRecordsLogFile(string recordType)
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var json = new StringBuilder("{", 2048);
 			DateTime datefrom;
@@ -1646,8 +1646,8 @@ namespace CumulusMX
 
 		internal string GetMonthlyRecData()
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var json = new StringBuilder("{", 21000);
 			for (var m = 1; m <= 12; m++)
@@ -1727,8 +1727,8 @@ namespace CumulusMX
 
 		internal string GetMonthlyRecDayFile()
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var highTempVal = new double[] { -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999 };
 			var lowTempVal = new double[] { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
@@ -2128,8 +2128,8 @@ namespace CumulusMX
 
 		internal string GetMonthlyRecLogFile()
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var json = new StringBuilder("{", 25500);
 			var datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
@@ -2625,8 +2625,8 @@ namespace CumulusMX
 
 		internal string GetThisMonthRecData()
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var json = new StringBuilder("{", 1700);
 			// Records - Temperature
@@ -2911,8 +2911,8 @@ namespace CumulusMX
 
 		internal string GetThisYearRecData()
 		{
-			const string timeStampFormat = "dd/MM/yy HH:mm";
-			const string dateStampFormat = "dd/MM/yy";
+			const string timeStampFormat = "dd/MM/yyyy HH:mm";
+			const string dateStampFormat = "dd/MM/yyyy";
 
 			var json = new StringBuilder("{", 1800);
 			// Records - Temperature

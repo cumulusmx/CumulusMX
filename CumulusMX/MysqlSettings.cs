@@ -304,6 +304,7 @@ namespace CumulusMX
 		public bool updateonedit { get; set; }
 		public bool bufferonerror { get; set; }
 	}
+
 	public class JsonMysqlSettingsMonthly
 	{
 		public bool enabled { get; set; }

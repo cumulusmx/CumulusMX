@@ -763,7 +763,7 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+			loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
 			Program.svcTextListener.Flush();
@@ -1104,7 +1104,7 @@ namespace CumulusMX
 
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
 				LogMessage($"System uptime = {(int)ts} secs");
-				if (ProgramOptions.StartupDelayMaxUptime == 0 || ProgramOptions.StartupDelayMaxUptime > ts)
+				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > ts))
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
 					var msg2 = $"Start-up delay complete, continuing...";
@@ -3744,7 +3744,7 @@ namespace CumulusMX
 			}
 		}
 
-		private string GetLoggingFileName(string directory)
+		private string RemoveOldDiagsFiles(string directory)
 		{
 			const int maxEntries = 12;
 
@@ -3769,7 +3769,7 @@ namespace CumulusMX
 			if (logfileSize > 20971520)
 			{
 				var oldfile = loggingfile;
-				loggingfile = GetLoggingFileName("MXdiags" + DirectorySeparator);
+				loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
 				LogMessage("Rotating log file, new log file will be: " + loggingfile.Split(DirectorySeparator).Last());
 				TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 				Trace.Listeners.Remove("MXlog");
@@ -7695,13 +7695,13 @@ namespace CumulusMX
 		{
 			LogMessage("Cumulus closing");
 
-			//WriteIniFile();
+			try
+			{
+				LogMessage("Releasing mutex");
+				Program.appMutex.ReleaseMutex();
+			}
+			catch { }
 
-			//httpServer.Stop();
-
-			//if (httpServer != null) httpServer.Dispose();
-
-			// Stop the timers
 			try
 			{
 				LogMessage("Stopping timers");
@@ -10327,8 +10327,8 @@ namespace CumulusMX
 
 		private void CreateRequiredFolders()
 		{
-			// The required folders are: /backup, /data, /Reports
-			var folders = new string[3] { "backup", "data", "Reports"};
+			// The required folders are: /backup, backup/daily, /data, /Reports
+			var folders = new string[4] { "backup", "backup/daily", "data", "Reports"};
 
 			LogMessage("Checking required folders");
 

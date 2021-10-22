@@ -418,7 +418,7 @@ namespace CumulusMX
 			double latitude, double longitude, double altitudeM,
 			DateTime date)
 		{
-			var windHeightM = 7.0; // height of wind sensor in metres, we assume 7m and that speeds will be corrected to that height by CMX if lower
+			var windHeightM = 2.0; // height of wind sensor in metres, we assume 2m for a typical amateur station
 
 			// Use grass as the reference crop
 			var albedo = 0.23;
@@ -453,9 +453,9 @@ namespace CumulusMX
 			// Net short-wave (measured) radiation in MJ/m^2/h (equation 38)
 			var Rns = (1 - albedo) * Rs;
 
-			// We'll use our own clear sky radiation values - as we already have them. Assume clear skies and ignore any user "tweaks"
-			var RsoEnd = AstroLib.SolarMax(date, longitude, latitude, altitudeM, out _, 0.91, 1, 1);
-			var RsoStart = AstroLib.SolarMax(date.AddHours(-1), longitude, latitude, altitudeM, out _, 0.91, 1, 1);
+			// We'll use our own clear sky radiation values - as we already have them. Assume clear skies (1.55 turbidity obtained by comparing the calculation against FAO sample data) and ignore any user "tweaks"
+			var RsoEnd = AstroLib.SolarMax(date, longitude, latitude, altitudeM, out _, 1.55, 2, 1);
+			var RsoStart = AstroLib.SolarMax(date.AddHours(-1), longitude, latitude, altitudeM, out _, 1.55, 2, 1);
 			// Take the mean and convert from W/m^2 to MJ/m^2/h
 			var Rso = (RsoEnd + RsoStart) / 2 * 0.0036;
 
@@ -470,12 +470,11 @@ namespace CumulusMX
 
 			// Result is in mm/h (equation 53)
 			// But as we have fixed a 1 hour period, then the effective result is just mm
-			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37.5 / (tempMeanC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
+			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37 / (tempMeanC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
 
 			if (et0 < 0) et0 = 0;
 
 			return et0;
 		}
-
 	}
 }

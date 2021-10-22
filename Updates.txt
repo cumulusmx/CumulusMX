@@ -1,13 +1,15 @@
-3.14.0 - b3151
+3.13.5 - b3151
 ——————————————
 - Fix: HTTP Ecowitt decode of leaf wetness sensors again
+- Fix: HTTP Ecowitt/Ambient - Remove soil temperature from extra sensor settings
 - Fix: Davis VP2 station sending zero values for soil temp instead of 255 when no sensor present
 - Fix: Long standing bug in Davis VP2/Vue & WLL stations where the day rollover during catch-up was performed after the monthly log entry rather than before
 - Fix: Small tweaks to the ET calculation
+- Fix: Davis VP2 console uses 16 bit signed value for Total Packets Received - compensate for it overflowing in CMX
 
 - New: Program Settings now allows you to over-ride the default date separator string for your locale. This will be useful for those locales that under
 	Mono now use a date separator such as ". " and you want it to use "."
-	BEWARE, there may be implications with your existing data files rendering unreadbale by CMX if you change this value
+	BEWARE, there may be implications with your existing data files rendering unreadable by CMX if you change this value
 	Note: Unlike most settings the string MUST be contained in double quotes (because it can end with a space)
 	Note: The over-ride is ignored if you change the overall locale CMX - and the over-ride is reset to the new locales default string
 
@@ -43,7 +45,7 @@
 3.13.3 - b3148
 ——————————————
 - Fix: FineOffset station historic catch-up is now aligned to the correct logger intervals
-- Fix: Raincounter reset incorrectly detected if a day has had more than 50 mm of rainfall
+- Fix: Rain counter reset incorrectly detected if a day has had more than 50 mm of rainfall
 - Fix: Realtime FTP would not recover after a connection failure
 
 

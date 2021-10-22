@@ -210,6 +210,7 @@ namespace CumulusMX
 				var vals = recepStats.Split(' ');
 
 				DavisTotalPacketsReceived = Convert.ToInt32(vals[0]);
+				if (DavisTotalPacketsReceived < 0) DavisTotalPacketsReceived = DavisTotalPacketsReceived + 65536; // The console uses 16 bit signed variable to hold the value so it bit wraps
 				DavisTotalPacketsMissed[0] = Convert.ToInt32(vals[1]);
 				DavisNumberOfResynchs[0] = Convert.ToInt32(vals[2]);
 				DavisMaxInARow[0] = Convert.ToInt32(vals[3]);
@@ -2542,17 +2543,9 @@ namespace CumulusMX
 									SunshineHours += (interval / 60.0);
 							}
 
-							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 							{
-								// Start of a new hour, and we want to calculate ET in Cumulus
-								CalculateEvaoptranspiration(timestamp);
-							}
-							else
-							{
-								if ((archiveData.ET >= 0) && (archiveData.ET < 32000))
-								{
-									DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
-								}
+								DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 							}
 
 							if (cumulus.StationOptions.LogExtraSensors)
@@ -2673,6 +2666,13 @@ namespace CumulusMX
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
+
+							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							{
+								// Start of a new hour, and we want to calculate ET in Cumulus
+								CalculateEvaoptranspiration(timestamp);
+							}
+
 							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
