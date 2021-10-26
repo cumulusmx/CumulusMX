@@ -1,4 +1,4 @@
-3.13.5 - b3151
+3.13.6 - b3152
 ——————————————
 - Fix: HTTP Ecowitt decode of leaf wetness sensors again
 - Fix: HTTP Ecowitt/Ambient - Remove soil temperature from extra sensor settings
@@ -9,19 +9,20 @@
 
 - New: Program Settings now allows you to over-ride the default date separator string for your locale. This will be useful for those locales that under
 	Mono now use a date separator such as ". " and you want it to use "."
-	BEWARE, there may be implications with your existing data files rendering unreadable by CMX if you change this value
-	Note: Unlike most settings the string MUST be contained in double quotes (because it can end with a space)
-	Note: The over-ride is ignored if you change the overall locale CMX - and the over-ride is reset to the new locales default string
 
 - Change: Cumulus will now still parse the dates/times in dayfile.txt and monthly logs even if the locale changes
 - Change: FO Station will now ignore UV-I values greater than 16
 
 - Updated libraries
-	FluentFTP
 	MailKit
 	MimeKit
 	MySqlConnector
 
+
+
+3.13.5 - b3151
+——————————————
+WITHDRWAN due to issues with FluentFTP and Mono when connecting to FTP servers that allow newer EC encryption algorithms
 
 
 3.13.4 - b3149

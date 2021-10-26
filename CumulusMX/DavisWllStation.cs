@@ -2979,7 +2979,8 @@ namespace CumulusMX
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
-					cumulus.LogDebugMessage($"WLLStations: WeatherLink API Response: {responseCode}: {responseBody}");
+					var resp = System.Text.RegularExpressions.Regex.Replace(responseBody, "user_email\":\"[^\"]*\"", "user_email\":\"<<email>>\"");
+					cumulus.LogDebugMessage($"WLLStations: WeatherLink API Response: {responseCode}: {resp}");
 				}
 
 				if (responseCode != 200)
