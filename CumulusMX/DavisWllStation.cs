@@ -1708,16 +1708,6 @@ namespace CumulusMX
 					}
 
 
-					if (cumulus.StationOptions.LogExtraSensors)
-					{
-						cumulus.DoExtraLogFile(timestamp);
-					}
-
-					if (cumulus.airLinkOut != null || cumulus.airLinkIn != null)
-					{
-						cumulus.DoAirLinkLogFile(timestamp);
-					}
-
 					// Now we have the primary data, calculate the derived data
 					if (cumulus.StationOptions.CalculatedWC)
 					{
@@ -1733,6 +1723,16 @@ namespace CumulusMX
 					cumulus.DoLogFile(timestamp, false);
 					cumulus.LogMessage("GetWlHistoricData: Log file entry written");
 					cumulus.MySqlRealtimeFile(999, false, timestamp);
+
+					if (cumulus.StationOptions.LogExtraSensors)
+					{
+						cumulus.DoExtraLogFile(timestamp);
+					}
+
+					if (cumulus.airLinkOut != null || cumulus.airLinkIn != null)
+					{
+						cumulus.DoAirLinkLogFile(timestamp);
+					}
 
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);

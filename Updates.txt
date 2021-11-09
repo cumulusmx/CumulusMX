@@ -1,3 +1,15 @@
+3.13.7 - b3153
+——————————————
+- Fix: Davis stations not retrieving 10 min Gust values from LOOP2 packets
+- Fix: HTTP Ecowitt stations not decoding user temp sensors (HTTP Ecowitt Extra did)
+- Fix: Culture Option to remove spaces from dates
+
+- Change: Writes to log files are now retried twice if they fail the first time
+
+- New: adds support for Ecowitt WH90 sensor battery status
+
+
+
 3.13.6 - b3152
 ——————————————
 - Fix: HTTP Ecowitt decode of leaf wetness sensors again

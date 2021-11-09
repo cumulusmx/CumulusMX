@@ -1428,9 +1428,18 @@ namespace CumulusMX
 				{
 					lastHour = timeNow.Hour;
 					HourChanged(timeNow);
-				}
+					MinuteChanged(timeNow);
 
-				MinuteChanged(timeNow);
+					// If it is rollover do the backup
+					if (timeNow.Hour == Math.Abs(cumulus.GetHourInc()))
+					{
+						cumulus.BackupData(true, timeNow);
+					}
+				}
+				else
+				{
+					MinuteChanged(timeNow);
+				}
 
 				if (DataStopped)
 				{
@@ -1902,7 +1911,6 @@ namespace CumulusMX
 			if (now.Hour == rollHour)
 			{
 				DayReset(now);
-				cumulus.BackupData(true, now);
 			}
 
 			if (now.Hour == 0)
@@ -5350,7 +5358,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void DoDayfile(DateTime timestamp)
+		private async void DoDayfile(DateTime timestamp)
 		{
 			// Writes an entry to the daily extreme log file. Fields are comma-separated.
 			// 0   Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
@@ -5484,12 +5492,13 @@ namespace CumulusMX
 			cumulus.LogMessage("Dayfile.txt entry:");
 			cumulus.LogMessage(strb.ToString());
 
-			try
+			var success = false;
+			var retries = Cumulus.LogFileRetries;
+			do
 			{
-				using (FileStream fs = new FileStream(cumulus.DayFileName, FileMode.Append, FileAccess.Write, FileShare.Read))
-				using (StreamWriter file = new StreamWriter(fs))
+				try
 				{
-					cumulus.LogMessage("Dayfile.txt opened for writing");
+						cumulus.LogMessage("Dayfile.txt opened for writing");
 
 					if ((HiLoToday.HighTemp < -400) || (HiLoToday.LowTemp > 900))
 					{
@@ -5500,16 +5509,26 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage("Writing entry to dayfile.txt");
 
-						file.WriteLine(strb.ToString());
-						file.Close();
-						fs.Close();
+						using (FileStream fs = new FileStream(cumulus.DayFileName, FileMode.Append, FileAccess.Write, FileShare.Read))
+						using (StreamWriter file = new StreamWriter(fs))
+						{
+							await file.WriteLineAsync(strb.ToString());
+							file.Close();
+							fs.Close();
+
+							success = true;
+
+							cumulus.LogMessage($"Dayfile log entry for {datestring} written");
+						}
 					}
 				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage("Error writing to dayfile.txt: " + ex.Message);
-			}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("Error writing to dayfile.txt: " + ex.Message);
+					retries--;
+					await System.Threading.Tasks.Task.Delay(250);
+				}
+			} while (!success && retries >= 0);
 
 			// Add a new record to the in memory dayfile data
 			var tim = timestamp.AddDays(-1);
@@ -6835,7 +6854,6 @@ namespace CumulusMX
 		{
 			var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
 			double varDbl;
-			int varInt;
 			int idx = 0;
 
 			var rec = new dayfilerec();
@@ -6867,16 +6885,16 @@ namespace CumulusMX
 				if (st.Count > idx++ && st[18].Length == 5)
 					rec.HighAvgWindTime = GetDateTime(rec.Date, st[18]);
 
-				if (st.Count > idx++ && int.TryParse(st[19], out varInt))
-					rec.LowHumidity = varInt;
+				if (st.Count > idx++ && double.TryParse(st[19], out varDbl))
+					rec.LowHumidity = Convert.ToInt32(varDbl);
 				else
 					rec.LowHumidity = 9999;
 
 				if (st.Count > idx++ && st[20].Length == 5)
 					rec.LowHumidityTime = GetDateTime(rec.Date, st[20]);
 
-				if (st.Count > idx++ && int.TryParse(st[21], out varInt))
-					rec.HighHumidity = varInt;
+				if (st.Count > idx++ && double.TryParse(st[21], out varDbl))
+					rec.HighHumidity = Convert.ToInt32(varDbl);
 				else
 					rec.HighHumidity = -9999;
 
@@ -6943,8 +6961,8 @@ namespace CumulusMX
 				if (st.Count > idx++ && st[38].Length == 5)
 					rec.LowDewPointTime = GetDateTime(rec.Date, st[38]);
 
-				if (st.Count > idx++ && int.TryParse(st[39], out varInt))
-					rec.DominantWindBearing = varInt;
+				if (st.Count > idx++ && double.TryParse(st[39], out varDbl))
+					rec.DominantWindBearing = Convert.ToInt32(varDbl);
 
 				if (st.Count > idx++ && double.TryParse(st[40], out varDbl))
 					rec.HeatingDegreeDays = varDbl;
@@ -6952,8 +6970,8 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[41], out varDbl))
 					rec.CoolingDegreeDays = varDbl;
 
-				if (st.Count > idx++ && int.TryParse(st[42], out varInt))
-					rec.HighSolar = varInt;
+				if (st.Count > idx++ && double.TryParse(st[42], out varDbl))
+					rec.HighSolar = Convert.ToInt32(varDbl);
 
 				if (st.Count > idx++ && st[43].Length == 5)
 					rec.HighSolarTime = GetDateTime(rec.Date, st[43]);
@@ -7043,21 +7061,22 @@ namespace CumulusMX
 				}
 				var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
 
+				// We allow int values to have a decimal point becuase log files sometimes get mangled by Excel etc!
 				var rec = new logfilerec()
 				{
 					Date = Utils.ddmmyyhhmmStrToDate(st[0], st[1]),
 					OutdoorTemperature = Convert.ToDouble(st[2]),
-					OutdoorHumidity = Convert.ToInt32(st[3]),
+					OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3])),
 					OutdoorDewpoint = Convert.ToDouble(st[4]),
 					WindAverage = Convert.ToDouble(st[5]),
 					RecentMaxGust = Convert.ToDouble(st[6]),
-					AvgBearing = Convert.ToInt32(st[7]),
+					AvgBearing = Convert.ToInt32(Convert.ToDouble(st[7])),
 					RainRate = Convert.ToDouble(st[8]),
 					RainToday = Convert.ToDouble(st[9]),
 					Pressure = Convert.ToDouble(st[10]),
 					Raincounter = Convert.ToDouble(st[11]),
 					IndoorTemperature = Convert.ToDouble(st[12]),
-					IndoorHumidity = Convert.ToInt32(st[13]),
+					IndoorHumidity = Convert.ToInt32(Convert.ToDouble(st[13])),
 					WindLatest = Convert.ToDouble(st[14]),
 					WindChill = st.Count > 15 ? Convert.ToDouble(st[15]) : notPresent,
 					HeatIndex = st.Count > 16 ? Convert.ToDouble(st[16]) : notPresent,
@@ -7068,7 +7087,7 @@ namespace CumulusMX
 					ApparentTemperature = st.Count > 21 ? Convert.ToDouble(st[21]) : notPresent,
 					CurrentSolarMax = st.Count > 22 ? Convert.ToDouble(st[22]) : notPresent,
 					SunshineHours = st.Count > 23 ? Convert.ToDouble(st[23]) : notPresent,
-					Bearing = st.Count > 24 ? Convert.ToInt32(st[24]) : 0,
+					Bearing = st.Count > 24 ? Convert.ToInt32(Convert.ToDouble(st[24])) : 0,
 					RG11RainToday = st.Count > 25 ? Convert.ToDouble(st[25]) : notPresent,
 					RainSinceMidnight = st.Count > 26 ? Convert.ToDouble(st[26]) : notPresent,
 					FeelsLike = st.Count > 27 ? Convert.ToDouble(st[27]) : notPresent,
