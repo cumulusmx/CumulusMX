@@ -1278,7 +1278,7 @@ namespace CumulusMX
 					// Same for extra T/H sensors
 					for (var i = 1; i <= 8; i++)
 					{
-						if (ExtraHum[i] > 0 && ExtraTemp[i] > 0)
+						if (ExtraHum[i] > 0)
 						{
 							var dp = MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[i]), ExtraHum[i]);
 							ExtraDewPoint[i] = ConvertTempCToUser(dp);
