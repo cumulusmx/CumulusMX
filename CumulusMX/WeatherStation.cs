@@ -3781,7 +3781,7 @@ namespace CumulusMX
 
 		public void DoExtraHum(double hum, int channel)
 		{
-			if ((channel > 0) && (channel < 11))
+			if ((channel > 0) && (channel < ExtraHum.Length - 1))
 			{
 				ExtraHum[channel] = (int)hum;
 			}
@@ -3789,7 +3789,7 @@ namespace CumulusMX
 
 		public void DoExtraTemp(double temp, int channel)
 		{
-			if ((channel > 0) && (channel < 11))
+			if ((channel > 0) && (channel < ExtraTemp.Length - 1))
 			{
 				ExtraTemp[channel] = temp;
 			}
@@ -3797,7 +3797,7 @@ namespace CumulusMX
 
 		public void DoUserTemp(double temp, int channel)
 		{
-			if ((channel > 0) && (channel < 11))
+			if ((channel > 0) && (channel < UserTemp.Length - 1))
 			{
 				UserTemp[channel] = temp;
 			}
@@ -3806,7 +3806,7 @@ namespace CumulusMX
 
 		public void DoExtraDP(double dp, int channel)
 		{
-			if ((channel > 0) && (channel < 11))
+			if ((channel > 0) && (channel < ExtraDewPoint.Length - 1))
 			{
 				ExtraDewPoint[channel] = dp;
 			}
