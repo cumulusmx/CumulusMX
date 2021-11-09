@@ -1,3 +1,8 @@
+3.13.8 - b3154
+——————————————
+- Fix: Error in GW1000 LiveData decoding
+
+
 3.13.7 - b3153
 ——————————————
 - Fix: Davis stations not retrieving 10 min Gust values from LOOP2 packets

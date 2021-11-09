@@ -915,6 +915,18 @@ namespace CumulusMX
 			{
 				if (null != data && data.Length > 16)
 				{
+					/*
+					 * debugging code with example data
+					 *
+					var hex = "FFFF27004601009D06220821A509270D02001707490A00B40B002F0C0069150001F07C16006317012A00324D00341900AA0E0000100000110000120000009D130000072C0D0000F8";
+					int NumberChars = hex.Length;
+					byte[] bytes = new byte[NumberChars / 2];
+					for (int i = 0; i < NumberChars; i += 2)
+						bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+
+					data = bytes;
+					*/
+
 					// now decode it
 					Int16 tempInt16;
 					UInt16 tempUint16;
@@ -993,7 +1005,7 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x0D: //Rain Event (mm)
-								StormRain = ConvertRainMMToUser(ConvertBigEndianUInt32(data, idx) / 10.0);
+								StormRain = ConvertRainMMToUser(ConvertBigEndianUInt16(data, idx) / 10.0);
 								idx += 2;
 								break;
 							case 0x0E: //Rain Rate (mm/h)
@@ -1020,7 +1032,7 @@ namespace CumulusMX
 								idx += 4;
 								break;
 							case 0x15: //Light (lux)
-									   // Save the Lux value
+								// Save the Lux value
 								LightValue = ConvertBigEndianUInt32(data, idx) / 10.0;
 								// convert Lux to W/m² - approximately!
 								DoSolarRad((int)(LightValue * cumulus.LuxToWM2), dateTime);
@@ -1080,7 +1092,7 @@ namespace CumulusMX
 							case 0x45: //Soil Temperature14 (℃)
 							case 0x47: //Soil Temperature15 (℃)
 							case 0x49: //Soil Temperature16 (℃)
-									   // figure out the channel number
+								// figure out the channel number
 								chan = data[idx - 1] - 0x2B + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
 								tempInt16 = ConvertBigEndianInt16(data, idx);
@@ -1103,7 +1115,7 @@ namespace CumulusMX
 							case 0x46: //Soil Moisture14 (%)
 							case 0x48: //Soil Moisture15 (%)
 							case 0x4A: //Soil Moisture16 (%)
-									   // figure out the channel number
+								// figure out the channel number
 								chan = data[idx - 1] - 0x2C + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
 								DoSoilMoisture(data[idx], chan);
@@ -1266,7 +1278,7 @@ namespace CumulusMX
 					// Same for extra T/H sensors
 					for (var i = 1; i <= 8; i++)
 					{
-						if (ExtraHum[i] > 0)
+						if (ExtraHum[i] > 0 && ExtraTemp[i] > 0)
 						{
 							var dp = MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[i]), ExtraHum[i]);
 							ExtraDewPoint[i] = ConvertTempCToUser(dp);
