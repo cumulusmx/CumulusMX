@@ -1068,7 +1068,7 @@ namespace CumulusMX
 						case "ecowitt":
 							if (stationEcowitt != null)
 							{
-								return await this.StringResponseAsync(stationEcowitt.ProcessData(this));
+								return await this.StringResponseAsync(stationEcowitt.ProcessData(this, true));
 							}
 							else
 							{
@@ -1078,7 +1078,7 @@ namespace CumulusMX
 						case "ecowittextra":
 							if (stationEcowittExtra != null)
 							{
-								return await this.StringResponseAsync(stationEcowittExtra.ProcessExtraData(this));
+								return await this.StringResponseAsync(stationEcowittExtra.ProcessData(this, false));
 							}
 							else
 							{
@@ -1119,7 +1119,7 @@ namespace CumulusMX
 						case "ambient":
 							if (stationAmbient != null)
 							{
-								return await this.StringResponseAsync(stationAmbient.ProcessData(this));
+								return await this.StringResponseAsync(stationAmbient.ProcessData(this, true));
 							}
 							else
 							{
@@ -1130,7 +1130,7 @@ namespace CumulusMX
 						case "ambientextra":
 							if (stationAmbientExtra != null)
 							{
-								return await this.StringResponseAsync(stationAmbient.ProcessExtraData(this));
+								return await this.StringResponseAsync(stationAmbient.ProcessData(this, false));
 							}
 							else
 							{

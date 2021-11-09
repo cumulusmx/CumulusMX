@@ -887,7 +887,7 @@ namespace CumulusMX
             WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16
             //WindAverage = (double)BitConverter.ToInt16(byteArray, 18) / 10;
             //WindAverage2Min = (double)BitConverter.ToInt16(byteArray, 20) / 10;
-            //WindGust10Min = Convert.ToInt32(byteArray[22]);
+            WindGust10Min = Convert.ToInt32(byteArray[22]);
             WindGustDir = BitConverter.ToInt16(byteArray, 24); // Uint16
             //Humidity = Convert.ToInt32(byteArray[33]);
             //HeatIndex = BitConverter.ToInt16(byteArray, 35);
