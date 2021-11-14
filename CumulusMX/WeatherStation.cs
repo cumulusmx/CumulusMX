@@ -5498,12 +5498,13 @@ namespace CumulusMX
 			{
 				try
 				{
-						cumulus.LogMessage("Dayfile.txt opened for writing");
+					cumulus.LogMessage("Dayfile.txt opened for writing");
 
 					if ((HiLoToday.HighTemp < -400) || (HiLoToday.LowTemp > 900))
 					{
 						cumulus.LogMessage("***Error: Daily values are still at default at end of day");
 						cumulus.LogMessage("Data not logged to dayfile.txt");
+						return;
 					}
 					else
 					{

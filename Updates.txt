@@ -1,3 +1,12 @@
+3.18.9 - b3155
+——————————————
+- Fix: Uncaught exception in SFTP Interval uploads
+- Fix: Endless loop during end of day processing if temperature sensor is missing
+
+- Change: MySQL server connection check amended to attempt to work around issues with some servers
+- Change: The data stopped, and sensor contact lost alarms are now enabled by default for new installs (both with 1 hour latch, and 2 event trigger)
+
+
 3.13.8 - b3154
 ——————————————
 - Fix: Error in GW1000 LiveData decoding
