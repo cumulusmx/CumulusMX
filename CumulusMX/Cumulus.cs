@@ -193,8 +193,8 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
-		public const int DefaultHiValue = -9999;
-		public const int DefaultLoValue = 9999;
+		public const int DefaultHiVal = -9999;
+		public const int DefaultLoVal = 9999;
 
 		public const int DayfileFields = 53;
 
@@ -1270,7 +1270,8 @@ namespace CumulusMX
 					RealtimeFTP.DataConnectionEncryption = true;
 					RealtimeFTP.ValidateAnyCertificate = true;
 					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-					RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+					// b3155 - switch to default again - this will use the highest version available in the OS
+					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				}
 			}
 
@@ -8303,7 +8304,8 @@ namespace CumulusMX
 						conn.DataConnectionEncryption = true;
 						conn.ValidateAnyCertificate = true;
 						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-						conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+						// b3155 - switch to default again - this will use the highest version available in the OS
+						//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 					}
 
 					if (FtpOptions.ActiveMode)
@@ -9454,7 +9456,8 @@ namespace CumulusMX
 				RealtimeFTP.DataConnectionEncryption = true;
 				RealtimeFTP.ValidateAnyCertificate = true;
 				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-				RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+				// b3155 - switch to default again - this will use the highest version available in the OS
+				//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
 			}
 
@@ -9943,7 +9946,8 @@ namespace CumulusMX
 		public async void GetLatestVersion()
 		{
 			var http = new HttpClient();
-			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			// Let this default to highest available version in the OS
+			//ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
 			try
 			{
 				var retVal = await http.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");

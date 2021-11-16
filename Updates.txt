@@ -1,8 +1,10 @@
-3.18.9 - b3155
+3.14.0 - b3155
 ——————————————
 - Fix: Uncaught exception in SFTP Interval uploads
 - Fix: Endless loop during end of day processing if temperature sensor is missing
 
+- Change: Cumulus MX now uses .Net Framework 4.8 (previously 4.5.2)
+- Change: Now supports TLS1.3 for HTTPS/FTPS/MQTT/Email - dependent on OS support
 - Change: MySQL server connection check amended to attempt to work around issues with some servers
 - Change: The data stopped, and sensor contact lost alarms are now enabled by default for new installs (both with 1 hour latch, and 2 event trigger)
 

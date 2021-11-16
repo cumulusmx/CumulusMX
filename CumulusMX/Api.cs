@@ -233,7 +233,8 @@ namespace CumulusMX
 
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					var date = query["date"];
-					var month = query["month"];
+					var from = query["from"];
+					var to = query["to"];
 					var draw = query["draw"];
 					int start = Convert.ToInt32(query["start"]);
 					int length = Convert.ToInt32(query["length"]);
@@ -243,9 +244,9 @@ namespace CumulusMX
 						case "dayfile":
 							return await this.JsonResponseAsync(Station.GetDayfile(draw,start,length));
 						case "logfile":
-							return await this.JsonResponseAsync(Station.GetLogfile(month,draw,start,length,false));
+							return await this.JsonResponseAsync(Station.GetLogfile(from, to, false));
 						case "extralogfile":
-							return await this.JsonResponseAsync(Station.GetLogfile(month, draw, start, length, true));
+							return await this.JsonResponseAsync(Station.GetLogfile(from, to, true));
 						case "currentdata":
 							return await this.JsonResponseAsync(Station.GetCurrentData());
 						case "diarydata":
