@@ -3219,11 +3219,6 @@ namespace CumulusMX
 					WriteMonthIniFile();
 				}
 
-				if (WindChill < MonthlyRecs[timestamp.Month].LowChill.Val)
-				{
-					SetMonthlyAlltime(MonthlyRecs[timestamp.Month].LowChill, WindChill, timestamp);
-				}
-
 				if (WindChill < ThisYear.LowChill.Val)
 				{
 					ThisYear.LowChill.Val = WindChill;
@@ -7063,7 +7058,7 @@ namespace CumulusMX
 				// is the record going to be used for min/max record determination?
 				if (minMax)
 				{
-					notPresent = -99999;
+					notPresent = Cumulus.DefaultHiVal;
 				}
 				var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
 

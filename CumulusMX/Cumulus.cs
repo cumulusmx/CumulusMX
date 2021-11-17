@@ -193,8 +193,8 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
-		public const int DefaultHiVal = -9999;
-		public const int DefaultLoVal = 9999;
+		public const double DefaultHiVal = -9999;
+		public const double DefaultLoVal = 9999;
 
 		public const int DayfileFields = 53;
 

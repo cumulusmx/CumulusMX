@@ -75,15 +75,10 @@ namespace CumulusMX
 			int D = Convert.ToInt32(date[0]);
 			int M = Convert.ToInt32(date[1]);
 			int Y = Convert.ToInt32(date[2]);
-			if (Y > 70)
+			if (Y < 1900)
 			{
-				Y += 1900;
+				Y += Y > 70 ? 1900 : 2000;
 			}
-			else
-			{
-				Y += 2000;
-			}
-
 			return new DateTime(Y, M, D);
 		}
 
