@@ -10457,11 +10457,6 @@ namespace CumulusMX
 		/// <summary>
 		/// Return lines from log file in json format
 		/// </summary>
-		/// <param name="date"></param>
-		/// <param name="draw"></param>
-		/// <param name="start"></param>
-		/// <param name="length"></param>
-		/// <param name="extra"></param>
 		/// <returns></returns>
 		public string GetLogfile(string from, string to, bool extra)
 		{
@@ -10489,6 +10484,14 @@ namespace CumulusMX
 
 				var finished = false;
 				var total = 0;
+
+				// limit the number of return rows to 4 days worth for 1 minute logging etc
+				int[] returnDays = { 4, 17, 34, 52, 68, 104 };
+
+				if ((te - ts).TotalDays > returnDays[cumulus.DataLogInterval])
+				{
+					te = ts.AddDays(returnDays[cumulus.DataLogInterval]);
+				}
 
 				var json = new StringBuilder(220 * 2500);
 				json.Append("{\"data\":[");

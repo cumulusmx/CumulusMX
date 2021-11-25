@@ -328,6 +328,8 @@ namespace CumulusMX
 			var isDryNow = false;
 			var thisDateDry = DateTime.MinValue;
 			var thisDateWet = DateTime.MinValue;
+			var firstRec = true;
+
 			var json = new StringBuilder("{", 2048);
 
 			int rainThreshold;
@@ -354,6 +356,12 @@ namespace CumulusMX
 				var data = station.DayFile.Where(r => r.Date >= startDate).ToList();
 				foreach (var rec in data)
 				{
+					if (firstRec)
+					{
+						thisDate = rec.Date.Date;
+						firstRec = false;
+					}
+
 					// This assumes the day file is in date order!
 					if (thisDate.Month != rec.Date.Month)
 					{
@@ -1671,7 +1679,7 @@ namespace CumulusMX
 				json.Append($"\"{m}-longestDryPeriodTime\":\"{station.MonthlyRecs[m].LongestDryPeriod.GetTsString(dateStampFormat)}\",");
 				json.Append($"\"{m}-longestWetPeriodTime\":\"{station.MonthlyRecs[m].LongestWetPeriod.GetTsString(dateStampFormat)}\",");
 			}
-			json.Remove(json.Length - 1, 1);
+			json.Length--;
 			json.Append("}");
 
 			return json.ToString();
@@ -2384,7 +2392,7 @@ namespace CumulusMX
 							}
 
 							// new meteo day
-								if (currentDay.Date != metoDate.Date)
+							if (currentDay.Date != metoDate.Date)
 							{
 								var lastEntryMonthOffset = metoDate.Month - 1;
 								if (dayHighTemp.Value < lowMaxTemp[lastEntryMonthOffset].Value)
@@ -2602,7 +2610,7 @@ namespace CumulusMX
 				json.Append($"\"{m}-longestWetPeriodTimeLogfile\":\"{wetPeriod[i].GetTsString(dateStampFormat)}\",");
 			}
 
-			json.Remove(json.Length - 1, 1);
+			json.Length--;
 			json.Append("}");
 
 			watch.Stop();

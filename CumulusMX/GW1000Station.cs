@@ -243,7 +243,7 @@ namespace CumulusMX
 			cumulus.SoilMoistureUnitText = "%";
 			// GW1000 does not provide average wind speeds
 			cumulus.StationOptions.UseWind10MinAve = true;
-			cumulus.StationOptions.UseSpeedForAvgCalc = false;
+			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
 			LightningTime = DateTime.MinValue;
 			LightningDistance = 999;

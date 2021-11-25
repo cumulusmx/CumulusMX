@@ -1,12 +1,29 @@
-3.14.0 - b3155
+3.14.0 - b3156 BETA
 ——————————————
 - Fix: Uncaught exception in SFTP Interval uploads
 - Fix: Endless loop during end of day processing if temperature sensor is missing
+- Fix: GW1000, HTTP Ecowitt and HTTP Ambient stations are no longer forced to disable the "Use Speed for Avg" setting
+- Fix: WMR928 Station: Crash opening invalid COM port now handled correctly
 
 - Change: Cumulus MX now uses .Net Framework 4.8 (previously 4.5.2)
-- Change: Now supports TLS1.3 for HTTPS/FTPS/MQTT/Email - dependent on OS support
+- Change: Now supports TLS1.3 for HTTPS/FTPS/MQTT/Email - dependent on OS support dependent on it being OS supported and enabled
 - Change: MySQL server connection check amended to attempt to work around issues with some servers
 - Change: The data stopped, and sensor contact lost alarms are now enabled by default for new installs (both with 1 hour latch, and 2 event trigger)
+- Change: The records editors and records pages in the dashboard now display dashes for records yet to be set.
+- Change: The monthly log file and extra log file file editors now accept a date range rather than showing a whole month at a time.
+	The date range can span a month end.
+	These editors now also have a search field which you can use to search for specific values or times. Only matching lines will be displayed
+	Though you can specify any date range, the result is currently limited for performance reasons:
+		Logging    No.
+		Period   Of Days
+		———————  ———————
+		1 min        4
+		5 min       17
+		10 min      34
+		15 min      52
+		20 min      68
+		30 min     104
+
 
 
 3.13.8 - b3154
