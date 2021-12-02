@@ -29,11 +29,8 @@ namespace CumulusMX
 			//var ci = new CultureInfo("en-GB");
 			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 
-			if (windows)
-			{
-				// set the working path to the exe location
-				Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-			}
+			// force the current folder to be CumulusMX folder
+			Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
 			try
 			{

@@ -243,7 +243,7 @@ namespace CumulusMX
 			cumulus.SoilMoistureUnitText = "%";
 			// GW1000 does not provide average wind speeds
 			cumulus.StationOptions.UseWind10MinAve = true;
-			cumulus.StationOptions.UseSpeedForAvgCalc = false;
+			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
 			LightningTime = DateTime.MinValue;
 			LightningDistance = 999;
@@ -883,6 +883,9 @@ namespace CumulusMX
 
 		private void GetLiveData()
 		{
+			// wait a random time of 0 to 3 seconds before making the request to try and avoid continued clashes with other software or instances of MX
+			Thread.Sleep(random.Next(0, 3000));
+
 			cumulus.LogDebugMessage("Reading live data");
 
 			// set a flag at the start of every 10 minutes to trigger battery status check
