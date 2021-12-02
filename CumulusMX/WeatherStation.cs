@@ -176,6 +176,8 @@ namespace CumulusMX
 		public double[] WMR928ExtraDPValues = new[] { 0.0, 0.0, 0.0, 0.0 };
 		public int[] WMR928ExtraHumValues = new[] { 0, 0, 0, 0 };
 
+		// random number generator - used for things like random back-off delays
+		internal Random random = new Random();
 
 		public DateTime AlltimeRecordTimestamp { get; set; }
 
@@ -10458,7 +10460,7 @@ namespace CumulusMX
 		/// Return lines from log file in json format
 		/// </summary>
 		/// <returns></returns>
-		public string GetLogfile(string from, string to, bool extra)
+		public string GetLogfile(string from, string to, string draw, int start, int length, string search, bool extra)
 		{
 			try
 			{
@@ -10469,7 +10471,7 @@ namespace CumulusMX
 				var ts = new DateTime(int.Parse(stDate[0]), int.Parse(stDate[1]), int.Parse(stDate[2]));
 				var te = new DateTime(int.Parse(enDate[0]), int.Parse(enDate[1]), int.Parse(enDate[2]));
 				te = te.AddDays(1);
-				var fileDate = new DateTime(ts.Year, ts.Month, 1);
+				var fileDate = new DateTime(ts.Year, ts.Month, 15);
 
 				var logfile = extra ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetLogFileName(fileDate);
 				var numFields = extra ? Cumulus.NumExtraLogFileFields : Cumulus.NumLogFileFields;
@@ -10480,20 +10482,14 @@ namespace CumulusMX
 					return "";
 				}
 
-				var watch = System.Diagnostics.Stopwatch.StartNew();
+				var watch = Stopwatch.StartNew();
 
 				var finished = false;
 				var total = 0;
+				var filtered = 0;
+				var thisDraw = 0;
 
-				// limit the number of return rows to 4 days worth for 1 minute logging etc
-				int[] returnDays = { 4, 17, 34, 52, 68, 104 };
-
-				if ((te - ts).TotalDays > returnDays[cumulus.DataLogInterval])
-				{
-					te = ts.AddDays(returnDays[cumulus.DataLogInterval]);
-				}
-
-				var json = new StringBuilder(220 * 2500);
+				var json = new StringBuilder(220 * length);
 				json.Append("{\"data\":[");
 
 				while (!finished)
@@ -10523,42 +10519,67 @@ namespace CumulusMX
 									break;
 								}
 
-								json.Append($"[{lineNum},");
-
-								for (var i = 0; i < numFields; i++)
-								{
-									if (i < fields.Length)
-									{
-										// field exists
-										json.Append('"');
-										json.Append(fields[i]);
-										json.Append('"');
-									}
-									else
-									{
-										// add padding
-										json.Append("\"-\"");
-									}
-
-									if (i < numFields - 1)
-									{
-										json.Append(',');
-									}
-								}
-								json.Append("],");
-
 								total++;
+
+								// if we have a search string and no match, skip to next line
+								if (!string.IsNullOrEmpty(search) && !line.Contains(search))
+								{
+									continue;
+								}
+
+								// this line either matches the search, or we do not have a search
+								filtered++;
+
+								// skip records until we get to the start entry
+								if (filtered <= start)
+								{
+									continue;
+								}
+
+								// only send the number requested
+								if (thisDraw < length)
+								{
+									// track the number of lines we have to return so far
+									thisDraw++;
+
+									json.Append($"[{lineNum},");
+
+									for (var i = 0; i < numFields; i++)
+									{
+										if (i < fields.Length)
+										{
+											// field exists
+											json.Append('"');
+											json.Append(fields[i]);
+											json.Append('"');
+										}
+										else
+										{
+											// add padding
+											json.Append("\"-\"");
+										}
+
+										if (i < numFields - 1)
+										{
+											json.Append(',');
+										}
+									}
+									json.Append("],");
+								}
 							}
 						}
-
 					}
 					else
 					{
 						cumulus.LogDebugMessage($"GetLogfile: Log file  not found - {logfile}");
 					}
 
+					// might need the next months log
+					fileDate = fileDate.AddMonths(1);
+
 					// have we run out of log entries?
-					if (te <= fileDate.AddMonths(1))
+					// filedate is 15th on month, compare against the first
+					if (te <= fileDate.AddDays(-14))
 					{
 						finished = true;
 						cumulus.LogDebugMessage("GetLogfile: Finished processing log files");
@@ -10567,21 +10588,25 @@ namespace CumulusMX
 					if (!finished)
 					{
 						cumulus.LogDebugMessage($"GetLogfile: Finished processing log file - {logfile}");
-						fileDate = fileDate.AddMonths(1);
 						logfile = extra ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetLogFileName(fileDate);
 					}
 
 				}
 				// trim trailing ","
-				if (total > 0)
+				if (thisDraw > 0)
 					json.Length--;
 				json.Append("],\"recordsTotal\":");
 				json.Append(total);
+				json.Append(",\"draw\":");
+				json.Append(draw);
+				json.Append(",\"recordsFiltered\":");
+				json.Append(filtered);
 				json.Append('}');
 
 				watch.Stop();
 				var elapsed = watch.ElapsedMilliseconds;
 				cumulus.LogDebugMessage($"GetLogfile: Logfiles parse = {elapsed} ms");
+				cumulus.LogDebugMessage($"GetLogfile: Found={total}, filtered={filtered} (filter='{search}'), return={thisDraw}");
 
 				return json.ToString();
 			}

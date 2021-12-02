@@ -238,15 +238,17 @@ namespace CumulusMX
 					var draw = query["draw"];
 					int start = Convert.ToInt32(query["start"]);
 					int length = Convert.ToInt32(query["length"]);
+					string search = query["search[value]"];
 
 					switch (lastSegment)
 					{
 						case "dayfile":
 							return await this.JsonResponseAsync(Station.GetDayfile(draw,start,length));
 						case "logfile":
-							return await this.JsonResponseAsync(Station.GetLogfile(from, to, false));
+							//return await this.JsonResponseAsync(Station.GetLogfile(from, to, false));
+							return await this.JsonResponseAsync(Station.GetLogfile(from, to, draw, start, length, search, false));
 						case "extralogfile":
-							return await this.JsonResponseAsync(Station.GetLogfile(from, to, true));
+							return await this.JsonResponseAsync(Station.GetLogfile(from, to, draw, start, length, search, true));
 						case "currentdata":
 							return await this.JsonResponseAsync(Station.GetCurrentData());
 						case "diarydata":

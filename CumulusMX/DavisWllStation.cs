@@ -445,6 +445,9 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
+				// wait a random time of 0 to 5 seconds before making the request to try and avoid continued clashes with other software or instances of MX
+				await Task.Delay(random.Next(0, 5000));
+
 				cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
 				WebReq.Wait();
 				cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
