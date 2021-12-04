@@ -445,6 +445,9 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
+				// wait a random time of 0 to 5 seconds before making the request to try and avoid continued clashes with other software or instances of MX
+				await Task.Delay(random.Next(0, 5000));
+
 				cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
 				WebReq.Wait();
 				cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
@@ -1519,7 +1522,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
-					responseBody = responseBody = response.Content.ReadAsStringAsync().Result;
+					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {responseCode}");
 					cumulus.LogDataMessage($"GetWlHistoricData: WeatherLink API Historic Response: {responseBody}");
@@ -1585,6 +1588,9 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("GetWlHistoricData:  Exception: " + ex.Message);
+				if (ex.InnerException != null) {
+					cumulus.LogMessage("GetWlHistoricData:  Inner Exception: " + ex.InnerException.Message);
+				}
 				cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 				return;
 			}
@@ -3197,7 +3203,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (HttpResponseMessage response = wlHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
 				{
-					responseBody = responseBody = response.Content.ReadAsStringAsync().Result;
+					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
 					cumulus.LogDebugMessage($"GetSystemStatus: WeatherLink.com system status Response code: {responseCode}");
 					cumulus.LogDataMessage($"GetSystemStatus: WeatherLink.com system status Response: {responseBody}");

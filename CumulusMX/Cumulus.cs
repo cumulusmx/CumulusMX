@@ -193,6 +193,9 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
+		public const double DefaultHiVal = -9999;
+		public const double DefaultLoVal = 9999;
+
 		public const int DayfileFields = 53;
 
 		public const int LogFileRetries = 3;
@@ -1267,7 +1270,8 @@ namespace CumulusMX
 					RealtimeFTP.DataConnectionEncryption = true;
 					RealtimeFTP.ValidateAnyCertificate = true;
 					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-					RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+					// b3155 - switch to default again - this will use the highest version available in the OS
+					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				}
 			}
 
@@ -4739,7 +4743,7 @@ namespace CumulusMX
 			HighWindAlarm.Latch = ini.GetValue("Alarms", "HighWindAlarmLatch", false);
 			HighWindAlarm.LatchHours = ini.GetValue("Alarms", "HighWindAlarmLatchHours", 24);
 
-			SensorAlarm.Enabled = ini.GetValue("Alarms", "SensorAlarmSet", false);
+			SensorAlarm.Enabled = ini.GetValue("Alarms", "SensorAlarmSet", true);
 			SensorAlarm.Sound = ini.GetValue("Alarms", "SensorAlarmSound", false);
 			SensorAlarm.SoundFile = ini.GetValue("Alarms", "SensorAlarmSoundFile", DefaultSoundFile);
 			if (SensorAlarm.SoundFile.Contains(DefaultSoundFileOld))
@@ -4747,13 +4751,13 @@ namespace CumulusMX
 				SensorAlarm.SoundFile = DefaultSoundFile;
 				rewriteRequired = true;
 			}
-			SensorAlarm.Notify = ini.GetValue("Alarms", "SensorAlarmNotify", false);
+			SensorAlarm.Notify = ini.GetValue("Alarms", "SensorAlarmNotify", true);
 			SensorAlarm.Email = ini.GetValue("Alarms", "SensorAlarmEmail", false);
-			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", false);
-			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 24);
-			SensorAlarm.TriggerThreshold = ini.GetValue("Alarms", "SensorAlarmTriggerCount", 1);
+			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", true);
+			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 1);
+			SensorAlarm.TriggerThreshold = ini.GetValue("Alarms", "SensorAlarmTriggerCount", 2);
 
-			DataStoppedAlarm.Enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", false);
+			DataStoppedAlarm.Enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", true);
 			DataStoppedAlarm.Sound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
 			DataStoppedAlarm.SoundFile = ini.GetValue("Alarms", "DataStoppedAlarmSoundFile", DefaultSoundFile);
 			if (DataStoppedAlarm.SoundFile.Contains(DefaultSoundFileOld))
@@ -4761,11 +4765,11 @@ namespace CumulusMX
 				SensorAlarm.SoundFile = DefaultSoundFile;
 				rewriteRequired = true;
 			}
-			DataStoppedAlarm.Notify = ini.GetValue("Alarms", "DataStoppedAlarmNotify", false);
+			DataStoppedAlarm.Notify = ini.GetValue("Alarms", "DataStoppedAlarmNotify", true);
 			DataStoppedAlarm.Email = ini.GetValue("Alarms", "DataStoppedAlarmEmail", false);
-			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", false);
-			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 24);
-			DataStoppedAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataStoppedAlarmTriggerCount", 1);
+			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", true);
+			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 1);
+			DataStoppedAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataStoppedAlarmTriggerCount", 2);
 
 			// Alarms below here were created after the change in default sound file, so no check required
 			BatteryLowAlarm.Enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
@@ -4787,7 +4791,7 @@ namespace CumulusMX
 			SpikeAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataSpikeAlarmTriggerCount", 1);
 
 			UpgradeAlarm.Enabled = ini.GetValue("Alarms", "UpgradeAlarmSet", true);
-			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", true);
+			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", false);
 			UpgradeAlarm.SoundFile = ini.GetValue("Alarms", "UpgradeAlarmSoundFile", DefaultSoundFile);
 			UpgradeAlarm.Notify = ini.GetValue("Alarms", "UpgradeAlarmNotify", true);
 			UpgradeAlarm.Email = ini.GetValue("Alarms", "UpgradeAlarmEmail", false);
@@ -6811,6 +6815,7 @@ namespace CumulusMX
 					LogMessage("DoLogFile: We have buffered MySQL commands to send, checking connection to server...");
 					if (MySqlCheckConnection())
 					{
+						Thread.Sleep(500);
 						LogMessage("DoLogFile: MySQL server connection OK, trying to send the buffered commands...");
 						try
 						{
@@ -8075,201 +8080,209 @@ namespace CumulusMX
 					return;
 				}
 
-				using (SftpClient conn = new SftpClient(connectionInfo))
+				try
 				{
-					try
+					using (SftpClient conn = new SftpClient(connectionInfo))
 					{
-						LogFtpDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
-						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
+						try
 						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
-
-						if ((uint)ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
-					}
-
-					if (conn.IsConnected)
-					{
-						if (NOAAconf.NeedFtp)
-						{
-							try
+							LogFtpDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+							conn.Connect();
+							if (ServicePointManager.DnsRefreshTimeout == 0)
 							{
-								// upload NOAA reports
-								LogFtpDebugMessage("SFTP[Int]: Uploading NOAA reports");
-
-								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
-								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
-
-								UploadFile(conn, uploadfile, remotefile, -1);
-
-								uploadfile = ReportPath + NOAAconf.LatestYearReport;
-								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
-
-								UploadFile(conn, uploadfile, remotefile, -1);
-
-								LogFtpDebugMessage("SFTP[Int]: Done uploading NOAA reports");
+								ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
 							}
-							catch (Exception e)
+						}
+						catch (Exception ex)
+						{
+							LogFtpMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
+
+							if ((uint)ex.HResult == 0x80004005) // Could not resolve host
 							{
-								LogFtpMessage($"SFTP[Int]: Error uploading file - {e.Message}");
+								// Disable the DNS cache for the next query
+								ServicePointManager.DnsRefreshTimeout = 0;
 							}
-							NOAAconf.NeedFtp = false;
+							return;
 						}
 
-						LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
-						// Extra files
-						for (int i = 0; i < numextrafiles; i++)
+						if (conn.IsConnected)
 						{
-							var uploadfile = ExtraFiles[i].local;
-							var remotefile = ExtraFiles[i].remote;
-
-							if ((uploadfile.Length > 0) &&
-								(remotefile.Length > 0) &&
-								!ExtraFiles[i].realtime &&
-								(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
-								ExtraFiles[i].FTP)
+							if (NOAAconf.NeedFtp)
 							{
-								// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-								var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-
-								uploadfile = GetUploadFilename(uploadfile, logDay);
-
-								if (File.Exists(uploadfile))
+								try
 								{
-									remotefile = GetRemoteFileName(remotefile, logDay);
+									// upload NOAA reports
+									LogFtpDebugMessage("SFTP[Int]: Uploading NOAA reports");
 
-									// all checks OK, file needs to be uploaded
-									if (ExtraFiles[i].process)
+									var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+									var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
+
+									UploadFile(conn, uploadfile, remotefile, -1);
+
+									uploadfile = ReportPath + NOAAconf.LatestYearReport;
+									remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
+
+									UploadFile(conn, uploadfile, remotefile, -1);
+
+									LogFtpDebugMessage("SFTP[Int]: Done uploading NOAA reports");
+								}
+								catch (Exception e)
+								{
+									LogFtpMessage($"SFTP[Int]: Error uploading file - {e.Message}");
+								}
+								NOAAconf.NeedFtp = false;
+							}
+
+							LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
+							// Extra files
+							for (int i = 0; i < numextrafiles; i++)
+							{
+								var uploadfile = ExtraFiles[i].local;
+								var remotefile = ExtraFiles[i].remote;
+
+								if ((uploadfile.Length > 0) &&
+									(remotefile.Length > 0) &&
+									!ExtraFiles[i].realtime &&
+									(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
+									ExtraFiles[i].FTP)
+								{
+									// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
+									var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+
+									uploadfile = GetUploadFilename(uploadfile, logDay);
+
+									if (File.Exists(uploadfile))
 									{
-										// we've already processed the file
-										uploadfile += "tmp";
+										remotefile = GetRemoteFileName(remotefile, logDay);
+
+										// all checks OK, file needs to be uploaded
+										if (ExtraFiles[i].process)
+										{
+											// we've already processed the file
+											uploadfile += "tmp";
+										}
+
+										try
+										{
+											UploadFile(conn, uploadfile, remotefile, -1);
+										}
+										catch (Exception e)
+										{
+											LogFtpMessage($"SFTP[Int]: Error uploading Extra web file #{i} [{uploadfile}]");
+											LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
+										}
 									}
+									else
+									{
+										LogFtpMessage($"SFTP[Int]: Extra web file #{i} [{uploadfile}] not found!");
+									}
+								}
+							}
+							if (EODfilesNeedFTP)
+							{
+								EODfilesNeedFTP = false;
+							}
+							LogFtpDebugMessage("SFTP[Int]: Done uploading extra files");
+
+							// standard files
+							LogFtpDebugMessage("SFTP[Int]: Uploading standard web files");
+							for (var i = 0; i < StdWebFiles.Length; i++)
+							{
+								if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
+								{
+									try
+									{
+										var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+										var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
+										UploadFile(conn, localFile, remotefile, -1);
+									}
+									catch (Exception e)
+									{
+										LogFtpMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].LocalFileName}]");
+										LogFtpMessage($"SFTP[Int]: Error = {e}");
+									}
+								}
+							}
+							LogFtpDebugMessage("SFTP[Int]: Done uploading standard web files");
+
+							LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
+
+							for (int i = 0; i < GraphDataFiles.Length; i++)
+							{
+								if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
+								{
+									var uploadfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+									var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
 
 									try
 									{
 										UploadFile(conn, uploadfile, remotefile, -1);
+										// The config files only need uploading once per change
+										if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
+											GraphDataFiles[i].LocalFileName == "graphconfig.json")
+										{
+											GraphDataFiles[i].FtpRequired = false;
+										}
 									}
 									catch (Exception e)
 									{
-										LogFtpMessage($"SFTP[Int]: Error uploading Extra web file #{i} [{uploadfile}]");
-										LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
+										LogFtpMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
+										LogFtpMessage($"SFTP[Int]: Error = {e}");
 									}
 								}
-								else
-								{
-									LogFtpMessage($"SFTP[Int]: Extra web file #{i} [{uploadfile}] not found!");
-								}
 							}
-						}
-						if (EODfilesNeedFTP)
-						{
-							EODfilesNeedFTP = false;
-						}
-						LogFtpDebugMessage("SFTP[Int]: Done uploading extra files");
+							LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
 
-						// standard files
-						LogFtpDebugMessage("SFTP[Int]: Uploading standard web files");
-						for (var i = 0; i < StdWebFiles.Length; i++)
-						{
-							if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
+							LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
+							for (int i = 0; i < GraphDataEodFiles.Length; i++)
 							{
-								try
+								if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 								{
-									var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-									var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
-									UploadFile(conn, localFile, remotefile, -1);
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].LocalFileName}]");
-									LogFtpMessage($"SFTP[Int]: Error = {e}");
-								}
-							}
-						}
-						LogFtpDebugMessage("SFTP[Int]: Done uploading standard web files");
-
-						LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
-
-						for (int i = 0; i < GraphDataFiles.Length; i++)
-						{
-							if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
-							{
-								var uploadfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
-
-								try
-								{
-									UploadFile(conn, uploadfile, remotefile, -1);
-									// The config files only need uploading once per change
-									if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
-										GraphDataFiles[i].LocalFileName == "graphconfig.json")
+									var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+									var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+									try
 									{
-										GraphDataFiles[i].FtpRequired = false;
+										UploadFile(conn, uploadfile, remotefile, -1);
+										// Uploaded OK, reset the upload required flag
+										GraphDataEodFiles[i].FtpRequired = false;
+									}
+									catch (Exception e)
+									{
+										LogFtpMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
+										LogFtpMessage($"SFTP[Int]: Error = {e}");
 									}
 								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
-									LogFtpMessage($"SFTP[Int]: Error = {e}");
-								}
 							}
-						}
-						LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
+							LogFtpMessage("SFTP[Int]: Done uploading daily graph data files");
 
-						LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
-						for (int i = 0; i < GraphDataEodFiles.Length; i++)
-						{
-							if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
+							if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 							{
-								var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 								try
 								{
-									UploadFile(conn, uploadfile, remotefile, -1);
-									// Uploaded OK, reset the upload required flag
-									GraphDataEodFiles[i].FtpRequired = false;
+									LogFtpMessage("SFTP[Int]: Uploading Moon image file");
+									UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest, -1);
+									LogFtpMessage("SFTP[Int]: Done uploading Moon image file");
+									// clear the image ready for FTP flag, only upload once an hour
+									MoonImage.ReadyToFtp = false;
 								}
 								catch (Exception e)
 								{
-									LogFtpMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
-									LogFtpMessage($"SFTP[Int]: Error = {e}");
+									LogMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
 								}
 							}
 						}
-						LogFtpMessage("SFTP[Int]: Done uploading daily graph data files");
 
-						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
+						try
 						{
-							try
-							{
-								LogFtpMessage("SFTP[Int]: Uploading Moon image file");
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest, -1);
-								LogFtpMessage("SFTP[Int]: Done uploading Moon image file");
-								// clear the image ready for FTP flag, only upload once an hour
-								MoonImage.ReadyToFtp = false;
-							}
-							catch (Exception e)
-							{
-								LogMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
-							}
+							// do not error on disconnect
+							conn.Disconnect();
 						}
+						catch { }
 					}
-					try
-					{
-						// do not error on disconnect
-						conn.Disconnect();
-					}
-					catch { }
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"SFTP[Int]: Error using SFTP connection - {ex.Message}");
 				}
 				LogFtpDebugMessage("SFTP[Int]: Connection process complete");
 			}
@@ -8291,7 +8304,8 @@ namespace CumulusMX
 						conn.DataConnectionEncryption = true;
 						conn.ValidateAnyCertificate = true;
 						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-						conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+						// b3155 - switch to default again - this will use the highest version available in the OS
+						//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 					}
 
 					if (FtpOptions.ActiveMode)
@@ -9233,7 +9247,9 @@ namespace CumulusMX
 					LogMessage("CustomSqlSecs: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
+						Thread.Sleep(500);
 						LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
+
 						await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
 						LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
 					}
@@ -9272,7 +9288,9 @@ namespace CumulusMX
 					LogMessage("CustomSqlMins: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
+						Thread.Sleep(500);
 						LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
+
 						await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
 						LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
 					}
@@ -9310,7 +9328,9 @@ namespace CumulusMX
 					LogMessage("CustomSqlRollover: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
+						Thread.Sleep(500);
 						LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
+
 						await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
 						LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
 					}
@@ -9417,7 +9437,10 @@ namespace CumulusMX
 				}
 				LogDebugMessage("Disconnected Realtime FTP session");
 			}
-			catch { }
+			catch (Exception ex)
+			{
+				LogDebugMessage("RealtimeFTPDisconnect: Error disconnecting connection (can be ignored?) - " + ex.Message);
+			}
 		}
 
 		private void RealtimeFTPLogin()
@@ -9433,7 +9456,8 @@ namespace CumulusMX
 				RealtimeFTP.DataConnectionEncryption = true;
 				RealtimeFTP.ValidateAnyCertificate = true;
 				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-				RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+				// b3155 - switch to default again - this will use the highest version available in the OS
+				//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
 				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
 			}
 
@@ -9906,6 +9930,10 @@ namespace CumulusMX
 				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
 				{
 					mySqlConn.Open();
+					// get the database name to check 100% we have a connection
+					var db = mySqlConn.Database;
+					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+					mySqlConn.Close();
 					return true;
 				}
 			}
@@ -9918,7 +9946,8 @@ namespace CumulusMX
 		public async void GetLatestVersion()
 		{
 			var http = new HttpClient();
-			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			// Let this default to highest available version in the OS
+			//ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
 			try
 			{
 				var retVal = await http.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");
