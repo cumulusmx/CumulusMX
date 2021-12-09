@@ -4272,7 +4272,7 @@ namespace CumulusMX
 			FtpOptions.FtpMode = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
 			// BUILD 3092 - added alternate SFTP authentication options
 			FtpOptions.SshAuthen = ini.GetValue("FTP site", "SshFtpAuthentication", "password");
-			if (!sshAuthenticationVals.Any(FtpOptions.SshAuthen.Contains))
+			if (!sshAuthenticationVals.Contains(FtpOptions.SshAuthen))
 			{
 				FtpOptions.SshAuthen = "password";
 				LogMessage($"Error, invalid SshFtpAuthentication value in Cumulus.ini [{FtpOptions.SshAuthen}], defaulting to Password.");
@@ -4282,7 +4282,7 @@ namespace CumulusMX
 			if (FtpOptions.SshPskFile.Length > 0 && (FtpOptions.SshAuthen == "psk" || FtpOptions.SshAuthen == "password_psk") && !File.Exists(FtpOptions.SshPskFile))
 			{
 				FtpOptions.SshPskFile = "";
-				LogMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}], defaulting to None.");
+				LogMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}].");
 				rewriteRequired = true;
 			}
 			FtpOptions.DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
