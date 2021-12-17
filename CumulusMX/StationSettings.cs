@@ -222,11 +222,13 @@ namespace CumulusMX
 
 			var solar = new JsonStationSettingsSolar()
 			{
-				solarmin = cumulus.SolarMinimum,
-				transfactor = cumulus.RStransfactor,
-				sunthreshold = cumulus.SunThreshold,
-				solarcalc = cumulus.SolarCalc,
-				turbidity = cumulus.BrasTurbidity
+				solarmin = cumulus.SolarOptions.SolarMinimum,
+				sunthreshold = cumulus.SolarOptions.SunThreshold,
+				solarcalc = cumulus.SolarOptions.SolarCalc,
+				transfactorJul = cumulus.SolarOptions.RStransfactorJul,
+				transfactorDec = cumulus.SolarOptions.RStransfactorDec,
+				turbidityJul = cumulus.SolarOptions.BrasTurbidityJul,
+				turbidityDec = cumulus.SolarOptions.BrasTurbidityDec
 			};
 
 			var annualrainfall = new JsonStationSettingsAnnualRainfall()
@@ -622,13 +624,19 @@ namespace CumulusMX
 				{
 					if (settings.Solar != null)
 					{
-						cumulus.SolarCalc = settings.Solar.solarcalc;
-						cumulus.SolarMinimum = settings.Solar.solarmin;
-						cumulus.SunThreshold = settings.Solar.sunthreshold;
-						if (cumulus.SolarCalc == 0)
-							cumulus.RStransfactor = settings.Solar.transfactor;
+						cumulus.SolarOptions.SolarCalc = settings.Solar.solarcalc;
+						cumulus.SolarOptions.SolarMinimum = settings.Solar.solarmin;
+						cumulus.SolarOptions.SunThreshold = settings.Solar.sunthreshold;
+						if (cumulus.SolarOptions.SolarCalc == 0)
+						{
+							cumulus.SolarOptions.RStransfactorJul = settings.Solar.transfactorJul;
+							cumulus.SolarOptions.RStransfactorDec = settings.Solar.transfactorDec;
+						}
 						else
-							cumulus.BrasTurbidity = settings.Solar.turbidity;
+						{
+							cumulus.SolarOptions.BrasTurbidityJul = settings.Solar.turbidityJul;
+							cumulus.SolarOptions.BrasTurbidityDec = settings.Solar.turbidityDec;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -1543,10 +1551,11 @@ namespace CumulusMX
 	{
 		public int sunthreshold { get; set; }
 		public int solarmin { get; set; }
-		public double transfactor { get; set; }
 		public int solarcalc { get; set; }
-
-		public double turbidity { get; set; }
+		public double transfactorJul { get; set; }
+		public double transfactorDec { get; set; }
+		public double turbidityJul { get; set; }
+		public double turbidityDec { get; set; }
 	}
 
 	internal class JsonStationSettingsWLL

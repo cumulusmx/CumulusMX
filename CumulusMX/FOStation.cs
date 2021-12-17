@@ -538,10 +538,10 @@ namespace CumulusMX
 
 						if (historydata.solarVal >= 0 && historydata.solarVal <= 300000)
 						{
-							DoSolarRad((int) Math.Floor(historydata.solarVal*cumulus.LuxToWM2), timestamp);
+							DoSolarRad((int)Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
 
 							// add in archive period worth of sunshine, if sunny
-							if ((SolarRad > CurrentSolarMax*cumulus.SunThreshold/100) && (SolarRad >= cumulus.SolarMinimum))
+							if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
 								SunshineHours += (historydata.interval/60.0);
 
 							LightValue = historydata.solarVal;
@@ -1149,7 +1149,7 @@ namespace CumulusMX
 
 							if (LightValue < 300000)
 							{
-								DoSolarRad((int) (LightValue*cumulus.LuxToWM2), now);
+								DoSolarRad((int)(LightValue * cumulus.SolarOptions.LuxToWM2), now);
 							}
 
 							int UVreading = data[19];

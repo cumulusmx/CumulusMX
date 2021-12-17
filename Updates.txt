@@ -1,3 +1,19 @@
+3.14.1 - b3160
+——————————————
+- Fix: Davis WLL stations recording zero values if the WLL sends "null" for a value
+
+- New: The Solar calculation now allows you to input different transparency values for July and August. MX uses a cosine interpolation between the two values
+       There are changes to cumulus.ini to accommodate this.
+	[Solar]
+	RStransfactor=0.8		Removed
+	BrasTurbidity=2.0		Removed
+	RStransfactorJul=0.8	New
+	RStransfactorDec=0.8	New
+	BrasTurbidityJul=2.0	New
+	BrasTurbidityDec=2.0	New
+
+
+
 3.14.0 - b3159
 ——————————————
 - Fix: Uncaught exception in SFTP Interval uploads

@@ -456,8 +456,6 @@ namespace CumulusMX
 		public double Longitude;
 		public double Altitude;
 
-		public double RStransfactor = 0.8;
-
 		internal int wsPort;
 		private readonly bool DebuggingEnabled;
 
@@ -539,6 +537,8 @@ namespace CumulusMX
 
 		public EmailSender emailer;
 		public EmailSender.SmtpOptions SmtpOptions = new EmailSender.SmtpOptions();
+
+		public SolarOptions SolarOptions = new SolarOptions();
 
 		public string AlarmEmailPreamble;
 		public string AlarmEmailSubject;
@@ -4853,15 +4853,35 @@ namespace CumulusMX
 			xapUID = ini.GetValue("xAP", "UID", "4375");
 			xapPort = ini.GetValue("xAP", "Port", 3639);
 
-			SunThreshold = ini.GetValue("Solar", "SunThreshold", 75);
-			RStransfactor = ini.GetValue("Solar", "RStransfactor", 0.8);
-			SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 30);
-			LuxToWM2 = ini.GetValue("Solar", "LuxToWM2", 0.0079);
-			UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
-			SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
-			BrasTurbidity = ini.GetValue("Solar", "BrasTurbidity", 2.0);
-			//SolarFactorSummer = ini.GetValue("Solar", "SolarFactorSummer", -1);
-			//SolarFactorWinter = ini.GetValue("Solar", "SolarFactorWinter", -1);
+			SolarOptions.SunThreshold = ini.GetValue("Solar", "SunThreshold", 75);
+			SolarOptions.SolarMinimum = ini.GetValue("Solar", "SolarMinimum", 30);
+			SolarOptions.LuxToWM2 = ini.GetValue("Solar", "LuxToWM2", 0.0079);
+			SolarOptions.UseBlakeLarsen = ini.GetValue("Solar", "UseBlakeLarsen", false);
+			SolarOptions.SolarCalc = ini.GetValue("Solar", "SolarCalc", 0);
+
+			// Migrate old single solar factors to the new dual scheme
+			if (ini.ValueExists("Solar", "RStransfactor"))
+			{
+				SolarOptions.RStransfactorJul = ini.GetValue("Solar", "RStransfactor", 0.8);
+				SolarOptions.RStransfactorDec = SolarOptions.RStransfactorJul;
+				rewriteRequired = true;
+			}
+			else
+			{
+				SolarOptions.RStransfactorJul = ini.GetValue("Solar", "RStransfactorJul", 0.8);
+				SolarOptions.RStransfactorDec = ini.GetValue("Solar", "RStransfactorDec", 0.8);
+			}
+			if (ini.ValueExists("Solar", "BrasTurbidity"))
+			{
+				SolarOptions.BrasTurbidityJul = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+				SolarOptions.BrasTurbidityDec = SolarOptions.BrasTurbidityJul;
+				rewriteRequired = true;
+			}
+			else
+			{
+				SolarOptions.BrasTurbidityJul = ini.GetValue("Solar", "BrasTurbidityJul", 2.0);
+				SolarOptions.BrasTurbidityDec = ini.GetValue("Solar", "BrasTurbidityDec", 2.0);
+			}
 
 			NOAAconf.Name = ini.GetValue("NOAA", "Name", " ");
 			NOAAconf.City = ini.GetValue("NOAA", "City", " ");
@@ -5731,12 +5751,15 @@ namespace CumulusMX
 			ini.SetValue("xAP", "UID", xapUID);
 			ini.SetValue("xAP", "Port", xapPort);
 
-			ini.SetValue("Solar", "SunThreshold", SunThreshold);
-			ini.SetValue("Solar", "RStransfactor", RStransfactor);
-			ini.SetValue("Solar", "SolarMinimum", SolarMinimum);
-			ini.SetValue("Solar", "UseBlakeLarsen", UseBlakeLarsen);
-			ini.SetValue("Solar", "SolarCalc", SolarCalc);
-			ini.SetValue("Solar", "BrasTurbidity", BrasTurbidity);
+			ini.SetValue("Solar", "SunThreshold", SolarOptions.SunThreshold);
+			ini.SetValue("Solar", "SolarMinimum", SolarOptions.SolarMinimum);
+			ini.SetValue("Solar", "UseBlakeLarsen", SolarOptions.UseBlakeLarsen);
+			ini.SetValue("Solar", "SolarCalc", SolarOptions.SolarCalc);
+			ini.SetValue("Solar", "LuxToWM2", SolarOptions.LuxToWM2);
+			ini.SetValue("Solar", "RStransfactorJul", SolarOptions.RStransfactorJul);
+			ini.SetValue("Solar", "RStransfactorDec", SolarOptions.RStransfactorDec);
+			ini.SetValue("Solar", "BrasTurbidityJul", SolarOptions.BrasTurbidityJul);
+			ini.SetValue("Solar", "BrasTurbidityDec", SolarOptions.BrasTurbidityDec);
 
 			ini.SetValue("NOAA", "Name", NOAAconf.Name);
 			ini.SetValue("NOAA", "City", NOAAconf.City);
@@ -6183,21 +6206,6 @@ namespace CumulusMX
 			MySqlUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "mySqlStopped", "MySQL uploads are failing.");
 		}
 
-
-		public bool UseBlakeLarsen { get; set; }
-
-		public double LuxToWM2 { get; set; }
-
-		public int SolarMinimum { get; set; }
-
-		public int SunThreshold { get; set; }
-
-		public int SolarCalc { get; set; }
-
-		public double BrasTurbidity { get; set; }
-
-		//public double SolarFactorSummer { get; set; }
-		//public double SolarFactorWinter { get; set; }
 
 		public int xapPort { get; set; }
 
@@ -6743,7 +6751,7 @@ namespace CumulusMX
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
-			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, RStransfactor, BrasTurbidity, SolarCalc);
+			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
 
 			var sb = new StringBuilder(256);
@@ -10672,6 +10680,19 @@ namespace CumulusMX
 		public int MaxPressMB { get; set; }
 		public int MaxRainTipDiff { get; set; }
 		public double PressOffset { get; set; }
+	}
+
+	public class SolarOptions
+	{
+		public int SunThreshold { get; set; }
+		public int SolarMinimum { get; set; }
+		public double LuxToWM2 { get; set; }
+		public bool UseBlakeLarsen { get; set; }
+		public int SolarCalc { get; set; }
+		public double RStransfactorJul { get; set; }
+		public double RStransfactorDec { get; set; }
+		public double BrasTurbidityJul { get; set; }
+		public double BrasTurbidityDec { get; set; }
 	}
 
 	public class GraphOptions

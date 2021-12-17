@@ -454,8 +454,8 @@ namespace CumulusMX
 			var Rns = (1 - albedo) * Rs;
 
 			// We'll use our own clear sky radiation values - as we already have them. Assume clear skies (1.55 turbidity obtained by comparing the calculation against FAO sample data) and ignore any user "tweaks"
-			var RsoEnd = AstroLib.SolarMax(date, longitude, latitude, altitudeM, out _, 1.55, 2, 1);
-			var RsoStart = AstroLib.SolarMax(date.AddHours(-1), longitude, latitude, altitudeM, out _, 1.55, 2, 1);
+			var RsoEnd = AstroLib.SolarMax(date, longitude, latitude, altitudeM, out _, 1.55, 1);
+			var RsoStart = AstroLib.SolarMax(date.AddHours(-1), longitude, latitude, altitudeM, out _, 1.55, 1);
 			// Take the mean and convert from W/m^2 to MJ/m^2/h
 			var Rso = (RsoEnd + RsoStart) / 2 * 0.0036;
 
