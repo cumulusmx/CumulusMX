@@ -660,7 +660,8 @@ namespace CumulusMX
 							cumulus.LogDebugMessage($"WLL current: found ISS data on TxId {data1.txid}");
 
 							// Battery
-							SetTxBatteryStatus(data1.txid, data1.trans_battery_flag);
+							if (data1.trans_battery_flag.HasValue)
+								SetTxBatteryStatus(data1.txid, data1.trans_battery_flag.Value);
 
 							if (data1.rx_state == 2)
 							{
@@ -687,17 +688,19 @@ namespace CumulusMX
 								try
 								{
 									cumulus.LogDebugMessage($"WLL current: using temp/hum data from TxId {data1.txid}");
+									if (data1.hum.HasValue)
+										DoOutdoorHumidity(Convert.ToInt32(data1.hum.Value), dateTime);
 
-									DoOutdoorHumidity(Convert.ToInt32(data1.hum), dateTime);
+									if (data1.temp.HasValue)
+										DoOutdoorTemp(ConvertTempFToUser(data1.temp.Value), dateTime);
 
-									DoOutdoorTemp(ConvertTempFToUser(data1.temp), dateTime);
+									if (data1.dew_point.HasValue)
+									DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point.Value), dateTime);
 
-									DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point), dateTime);
-
-									if (!cumulus.StationOptions.CalculatedWC)
+									if (!cumulus.StationOptions.CalculatedWC && data1.wind_chill.HasValue)
 									{
 										// use wind chill from WLL
-										DoWindChill(ConvertTempFToUser(data1.wind_chill), dateTime);
+										DoWindChill(ConvertTempFToUser(data1.wind_chill.Value), dateTime);
 									}
 
 									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
@@ -719,7 +722,7 @@ namespace CumulusMX
 									{
 										if (cumulus.WllExtraTempTx[tempTxId - 1] == data1.txid)
 										{
-											if (data1.temp == -99)
+											if (!data1.temp.HasValue || data1.temp.Value == -99)
 											{
 												cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
 											}
@@ -727,12 +730,12 @@ namespace CumulusMX
 											{
 												cumulus.LogDebugMessage($"WLL current: using extra temp data from TxId {data1.txid}");
 
-												DoExtraTemp(ConvertTempFToUser(data1.temp), tempTxId);
+												DoExtraTemp(ConvertTempFToUser(data1.temp.Value), tempTxId);
 											}
 
-											if (cumulus.WllExtraHumTx[tempTxId - 1])
+											if (cumulus.WllExtraHumTx[tempTxId - 1] && data1.hum.HasValue)
 											{
-												DoExtraHum(data1.hum, tempTxId);
+												DoExtraHum(data1.hum.Value, tempTxId);
 											}
 										}
 									}
@@ -767,8 +770,8 @@ namespace CumulusMX
 									cumulus.LogDebugMessage($"WLL current: using wind data from TxId {data1.txid}");
 
 									// pesky null values from WLL when it is calm
-									int wdir = data1.wind_dir_last ?? 0;
-									double wind = data1.wind_speed_last ?? 0;
+									int wdir = data1.wind_dir_last.HasValue ? data1.wind_dir_last.Value : 0;
+									double wind = data1.wind_speed_last.HasValue ? data1.wind_speed_last.Value : 0;
 									double wspdAvg10min = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
 
 									DoWind(ConvertWindMPHToUser(wind), wdir, wspdAvg10min, dateTime);
@@ -840,41 +843,43 @@ namespace CumulusMX
 
 								cumulus.LogDebugMessage($"WLL current: using rain data from TxId {data1.txid}");
 
-								var tipSize = data1.rain_size;
-								switch (tipSize)
+								if (data1.rain_size.HasValue)
 								{
-									case 1:
-										if (cumulus.DavisOptions.RainGaugeType != 1)
-										{
-											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.01 in");
-											cumulus.DavisOptions.RainGaugeType = 1;
-											cumulus.WriteIniFile();
-										}
-										break;
-									case 2:
-										if (cumulus.DavisOptions.RainGaugeType != 0)
-										{
-											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.2 mm");
-											cumulus.DavisOptions.RainGaugeType = 0;
-											cumulus.WriteIniFile();
-										}
-										break;
-									case 3:
-										if (cumulus.DavisOptions.RainGaugeType != 2)
-										{
-											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.1 mm");
-											cumulus.DavisOptions.RainGaugeType = 2;
-											cumulus.WriteIniFile();
-										}
-										break;
-									case 4:
-										if (cumulus.DavisOptions.RainGaugeType != 3)
-										{
-											cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.001 in");
-											cumulus.DavisOptions.RainGaugeType = 2;
-											cumulus.WriteIniFile();
-										}
-										break;
+									switch (data1.rain_size.Value)
+									{
+										case 1:
+											if (cumulus.DavisOptions.RainGaugeType != 1)
+											{
+												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.01 in");
+												cumulus.DavisOptions.RainGaugeType = 1;
+												cumulus.WriteIniFile();
+											}
+											break;
+										case 2:
+											if (cumulus.DavisOptions.RainGaugeType != 0)
+											{
+												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.2 mm");
+												cumulus.DavisOptions.RainGaugeType = 0;
+												cumulus.WriteIniFile();
+											}
+											break;
+										case 3:
+											if (cumulus.DavisOptions.RainGaugeType != 2)
+											{
+												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 2 = 0.1 mm");
+												cumulus.DavisOptions.RainGaugeType = 2;
+												cumulus.WriteIniFile();
+											}
+											break;
+										case 4:
+											if (cumulus.DavisOptions.RainGaugeType != 3)
+											{
+												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.001 in");
+												cumulus.DavisOptions.RainGaugeType = 1;
+												cumulus.WriteIniFile();
+											}
+											break;
+									}
 								}
 
 								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use storm data
@@ -890,7 +895,7 @@ namespace CumulusMX
 
 								//DoRain(rain, rainrate, dateTime);
 
-								if (!data1.rain_storm.HasValue || !data1.rain_storm_start_at.HasValue)
+								if (!data1.rain_storm.HasValue || !data1.rain_storm_start_at.HasValue || !data1.rain_size.HasValue)
 								{
 									cumulus.LogDebugMessage("WLL current: No rain storm values present");
 								}
@@ -898,7 +903,7 @@ namespace CumulusMX
 								{
 									try
 									{
-										StormRain = ConvertRainClicksToUser(data1.rain_storm.Value, data1.rain_size) * cumulus.Calib.Rain.Mult;
+										StormRain = ConvertRainClicksToUser(data1.rain_storm.Value, data1.rain_size.Value) * cumulus.Calib.Rain.Mult;
 										StartOfStorm = Utils.FromUnixTime(data1.rain_storm_start_at.Value);
 									}
 									catch (Exception ex)
@@ -909,12 +914,12 @@ namespace CumulusMX
 								}
 							}
 
-							if (cumulus.WllPrimaryUV == data1.txid)
+							if (cumulus.WllPrimaryUV == data1.txid && data1.uv_index.HasValue)
 							{
 								try
 								{
 									cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
-									DoUV(data1.uv_index, dateTime);
+									DoUV(data1.uv_index.Value, dateTime);
 								}
 								catch (Exception ex)
 								{
@@ -923,12 +928,12 @@ namespace CumulusMX
 								}
 							}
 
-							if (cumulus.WllPrimarySolar == data1.txid)
+							if (cumulus.WllPrimarySolar == data1.txid && data1.solar_rad.HasValue)
 							{
 								try
 								{
 									cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
-									DoSolarRad(data1.solar_rad, dateTime);
+									DoSolarRad(data1.solar_rad.Value, dateTime);
 								}
 								catch (Exception ex)
 								{
@@ -960,7 +965,8 @@ namespace CumulusMX
 							cumulus.LogDebugMessage($"WLL current: found Leaf/Soil data on TxId {data2.txid}");
 
 							// Battery
-							SetTxBatteryStatus(data2.txid, data2.trans_battery_flag);
+							if (data2.trans_battery_flag.HasValue)
+								SetTxBatteryStatus(data2.txid, data2.trans_battery_flag.Value);
 
 							if (data2.rx_state == 2)
 							{
@@ -977,12 +983,16 @@ namespace CumulusMX
 								if (cumulus.WllExtraLeafTx1 == data2.txid)
 								{
 									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx1;
-									DoLeafWetness((double)data2[idx], 1);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 1);
 								}
 								if (cumulus.WllExtraLeafTx2 == data2.txid)
 								{
 									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx2;
-									DoLeafWetness((double)data2[idx], 2);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 2);
 								}
 							}
 							catch (Exception e)
@@ -997,7 +1007,9 @@ namespace CumulusMX
 								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx1;
 								try
 								{
-									DoSoilMoisture((double)data2[idx], 1);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 1);
 								}
 								catch (Exception ex)
 								{
@@ -1010,7 +1022,9 @@ namespace CumulusMX
 								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx2;
 								try
 								{
-									DoSoilMoisture((double)data2[idx], 2);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 2);
 								}
 								catch (Exception ex)
 								{
@@ -1023,7 +1037,9 @@ namespace CumulusMX
 								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx3;
 								try
 								{
-									DoSoilMoisture((double)data2[idx], 3);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 3);
 								}
 								catch (Exception ex)
 								{
@@ -1036,7 +1052,9 @@ namespace CumulusMX
 								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx4;
 								try
 								{
-									DoSoilMoisture((double)data2[idx], 4);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 4);
 								}
 								catch (Exception ex)
 								{
@@ -1051,7 +1069,9 @@ namespace CumulusMX
 								idx = "temp_" + cumulus.WllExtraSoilTempIdx1;
 								try
 								{
-									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 1);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilTemp(ConvertTempFToUser(val.Value), 1);
 								}
 								catch (Exception ex)
 								{
@@ -1064,7 +1084,9 @@ namespace CumulusMX
 								idx = "temp_" + cumulus.WllExtraSoilTempIdx2;
 								try
 								{
-									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 2);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilTemp(ConvertTempFToUser(val.Value), 2);
 								}
 								catch (Exception ex)
 								{
@@ -1077,7 +1099,9 @@ namespace CumulusMX
 								idx = "temp_" + cumulus.WllExtraSoilTempIdx3;
 								try
 								{
-									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 3);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilTemp(ConvertTempFToUser(val.Value), 3);
 								}
 								catch (Exception ex)
 								{
@@ -1090,7 +1114,9 @@ namespace CumulusMX
 								idx = "temp_" + cumulus.WllExtraSoilTempIdx4;
 								try
 								{
-									DoSoilTemp(ConvertTempFToUser((double)data2[idx]), 4);
+									var val = (double?)data2[idx];
+									if (val.HasValue)
+										DoSoilTemp(ConvertTempFToUser(val.Value), 4);
 								}
 								catch (Exception ex)
 								{
@@ -1116,13 +1142,16 @@ namespace CumulusMX
 							try
 							{
 								var data3 = rec.FromJsv<WllCurrentType3>();
-
-								DoPressure(ConvertPressINHGToUser(data3.bar_sea_level), dateTime);
+								if (data3.bar_sea_level.HasValue)
+									DoPressure(ConvertPressINHGToUser(data3.bar_sea_level.Value), dateTime);
 								// Altimeter from absolute
-								StationPressure = ConvertPressINHGToUser(data3.bar_absolute);
-								// Or do we use calibration? The VP2 code doesn't?
-								//StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
-								AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+								if (data3.bar_absolute.HasValue)
+								{
+									StationPressure = ConvertPressINHGToUser(data3.bar_absolute.Value);
+									// Or do we use calibration? The VP2 code doesn't?
+									//StationPressure = ConvertPressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
+									AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+								}
 							}
 							catch (Exception ex)
 							{
@@ -1147,7 +1176,8 @@ namespace CumulusMX
 
 							try
 							{
-								DoIndoorTemp(ConvertTempFToUser(data4.temp_in));
+								if (data4.temp_in.HasValue)
+									DoIndoorTemp(ConvertTempFToUser(data4.temp_in.Value));
 							}
 							catch (Exception ex)
 							{
@@ -1157,7 +1187,8 @@ namespace CumulusMX
 
 							try
 							{
-								DoIndoorHumidity(Convert.ToInt32(data4.hum_in));
+								if (data4.hum_in.HasValue)
+									DoIndoorHumidity(Convert.ToInt32(data4.hum_in.Value));
 							}
 							catch (Exception ex)
 							{
@@ -2176,7 +2207,7 @@ namespace CumulusMX
 									DoSolarRad((int)data11.solar_rad_avg, recordTs);
 
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
-									if ((SolarRad > CurrentSolarMax * cumulus.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarMinimum))
+									if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
 									{
 										SunshineHours += (data11.arch_int / 3600.0);
 									}
@@ -3319,44 +3350,44 @@ namespace CumulusMX
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
 			public int txid { get; set; }
-			public double temp { get; set; }
-			public double hum { get; set; }
-			public double dew_point { get; set; }
-			public double heat_index { get; set; }
-			public double wind_chill { get; set; }
-			public double thw_index { get; set; }
-			public double thsw_index { get; set; }
+			public double? temp { get; set; }
+			public double? hum { get; set; }
+			public double? dew_point { get; set; }
+			public double? heat_index { get; set; }
+			public double? wind_chill { get; set; }
+			public double? thw_index { get; set; }
+			public double? thsw_index { get; set; }
 			public double? wind_speed_last { get; set; }
 			public int? wind_dir_last { get; set; }
-			public double wind_speed_avg_last_1_min { get; set; }
-			public double wind_dir_scalar_avg_last_1_min { get; set; }
-			public double wind_speed_avg_last_2_min { get; set; }
-			public double wind_dir_scalar_avg_last_2_min { get; set; }
-			public double wind_speed_hi_last_2_min { get; set; }
-			public int wind_dir_at_hi_speed_last_2_min { get; set; }
+			public double? wind_speed_avg_last_1_min { get; set; }
+			public double? wind_dir_scalar_avg_last_1_min { get; set; }
+			public double? wind_speed_avg_last_2_min { get; set; }
+			public double? wind_dir_scalar_avg_last_2_min { get; set; }
+			public double? wind_speed_hi_last_2_min { get; set; }
+			public int? wind_dir_at_hi_speed_last_2_min { get; set; }
 			public double? wind_speed_avg_last_10_min { get; set; }
-			public double wind_dir_scalar_avg_last_10_min { get; set; }
-			public double wind_speed_hi_last_10_min { get; set; }
-			public int wind_dir_at_hi_speed_last_10_min { get; set; }
-			public int rain_size { get; set; }
-			public double rain_rate_last { get; set; }
-			public double rain_rate_hi { get; set; }
-			public double rainfall_last_15_min { get; set; }
-			public double rain_rate_hi_last_15_min { get; set; }
-			public double rainfall_last_60_min { get; set; }
-			public double rainfall_last_24_hr { get; set; }
+			public double? wind_dir_scalar_avg_last_10_min { get; set; }
+			public double? wind_speed_hi_last_10_min { get; set; }
+			public int? wind_dir_at_hi_speed_last_10_min { get; set; }
+			public int? rain_size { get; set; }
+			public double? rain_rate_last { get; set; }
+			public double? rain_rate_hi { get; set; }
+			public double? rainfall_last_15_min { get; set; }
+			public double? rain_rate_hi_last_15_min { get; set; }
+			public double? rainfall_last_60_min { get; set; }
+			public double? rainfall_last_24_hr { get; set; }
 			public int? rain_storm { get; set; }
 			public long? rain_storm_start_at { get; set; }
-			public int solar_rad { get; set; }
-			public double uv_index { get; set; }
-			public int rx_state { get; set; }
-			public uint trans_battery_flag { get; set; }
-			public int rainfall_daily { get; set; }
-			public int rainfall_monthly { get; set; }
-			public int rainfall_year { get; set; }
-			public int rain_storm_last { get; set; }
-			public long rain_storm_last_start_at { get; set; }
-			public long rain_storm_last_end_at { get; set; }
+			public int? solar_rad { get; set; }
+			public double? uv_index { get; set; }
+			public int? rx_state { get; set; }
+			public uint? trans_battery_flag { get; set; }
+			public int? rainfall_daily { get; set; }
+			public int? rainfall_monthly { get; set; }
+			public int? rainfall_year { get; set; }
+			public int? rain_storm_last { get; set; }
+			public long? rain_storm_last_start_at { get; set; }
+			public long? rain_storm_last_end_at { get; set; }
 		}
 
 		private class WllCurrentType2
@@ -3364,18 +3395,18 @@ namespace CumulusMX
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
 			public int txid { get; set; }
-			public double temp_1 { get; set; }
-			public double temp_2 { get; set; }
-			public double temp_3 { get; set; }
-			public double temp_4 { get; set; }
-			public double moist_soil_1 { get; set; }
-			public double moist_soil_2 { get; set; }
-			public double moist_soil_3 { get; set; }
-			public double moist_soil_4 { get; set; }
-			public double wet_leaf_1 { get; set; }
-			public double wet_leaf_2 { get; set; }
+			public double? temp_1 { get; set; }
+			public double? temp_2 { get; set; }
+			public double? temp_3 { get; set; }
+			public double? temp_4 { get; set; }
+			public double? moist_soil_1 { get; set; }
+			public double? moist_soil_2 { get; set; }
+			public double? moist_soil_3 { get; set; }
+			public double? moist_soil_4 { get; set; }
+			public double? wet_leaf_1 { get; set; }
+			public double? wet_leaf_2 { get; set; }
 			public int rx_state { get; set; }
-			public uint trans_battery_flag { get; set; }
+			public uint? trans_battery_flag { get; set; }
 			public object this[string name]
 			{
 				get
@@ -3392,9 +3423,9 @@ namespace CumulusMX
 		{
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
-			public double bar_sea_level { get; set; }
-			public double bar_trend { get; set; }
-			public double bar_absolute { get; set; }
+			public double? bar_sea_level { get; set; }
+			public double? bar_trend { get; set; }
+			public double? bar_absolute { get; set; }
 		}
 
 		// WLL Current internal temp/hum
@@ -3402,10 +3433,10 @@ namespace CumulusMX
 		{
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
-			public double temp_in { get; set; }
-			public double hum_in { get; set; }
-			public double dew_point_in { get; set; }
-			public double heat_index_in { get; set; }
+			public double? temp_in { get; set; }
+			public double? hum_in { get; set; }
+			public double? dew_point_in { get; set; }
+			public double? heat_index_in { get; set; }
 		}
 	}
 }

@@ -61,7 +61,23 @@ namespace CumulusMX
 		}
 
 		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
-									  out double solarelevation, double transfactor, double turbidity, int method)
+									  out double solarelevation, SolarOptions options)
+		{
+			double factor = 0;
+			if (options.SolarCalc == 0)
+			{
+				factor = GetFactor(timestamp, options.RStransfactorJul, options.RStransfactorDec);
+			}
+			if (options.SolarCalc == 1)
+			{
+				factor = GetFactor(timestamp, options.BrasTurbidityJul, options.BrasTurbidityDec);
+			}
+			return SolarMax(timestamp, longitude, latitude, altitude, out solarelevation, factor, options.SolarCalc);
+		}
+
+
+		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
+									  out double solarelevation, double factor, int method)
 		{
 			DateTime utctime = timestamp.ToUniversalTime();
 
@@ -72,14 +88,22 @@ namespace CumulusMX
 			//cumulus.LogMessage(utctime+" lat="+latitude+" lon="+longitude+" sun elev="+solarelevation);
 			if (method == 0)
 			{
-				return RyanStolzSolar(solarelevation, erv, transfactor, altitude);
+				return RyanStolzSolar(solarelevation, erv, factor, altitude);
 			}
 			if (method == 1)
 			{
-				return BrasSolar(solarelevation, erv, turbidity);
+				return BrasSolar(solarelevation, erv, factor);
 			}
 
 			return 0;
+		}
+
+		// Calculate the interpolated factor using a cosine function
+		private static double GetFactor(DateTime timestamp, double jul, double dec)
+		{
+			var range = jul - dec;
+			var doy = timestamp.DayOfYear;
+			return dec + Math.Cos((doy - 172) / 183.0 * Math.PI / 2) * range;
 		}
 
 		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html

@@ -170,7 +170,7 @@ namespace CumulusMX
 
 						if ((lightReading >= 0) && (lightReading <= 300000))
 						{
-							DoSolarRad((int)(lightReading * cumulus.LuxToWM2), now);
+							DoSolarRad((int)(lightReading * cumulus.SolarOptions.LuxToWM2), now);
 							LightValue = lightReading;
 						}
 
