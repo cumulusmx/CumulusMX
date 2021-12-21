@@ -1,6 +1,8 @@
 3.14.1 - b3160
 ——————————————
 - Fix: Davis WLL stations recording zero values if the WLL sends "null" for a value
+- Fix: Dashboard Alarm settings screen now correctly shows the Sound Enabled flags
+- Fix: Dashboard Historic charts nor correctly removes the Temperature Sum chart
 
 - Change: Ecowitt GW1000 discovery mechanism updated
 
