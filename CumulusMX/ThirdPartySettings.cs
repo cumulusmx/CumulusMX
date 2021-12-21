@@ -206,6 +206,7 @@ namespace CumulusMX
 					{
 						cumulus.WOW.SendSolar = settings.wow.includesolar;
 						cumulus.WOW.SendUV = settings.wow.includeuv;
+						cumulus.WOW.SendSoilTemp = settings.wow.includesoiltemp;
 						cumulus.WOW.Interval = settings.wow.interval;
 						cumulus.WOW.PW = settings.wow.password ?? string.Empty; ;
 						cumulus.WOW.ID = settings.wow.stationid ?? string.Empty; ;
@@ -426,6 +427,7 @@ namespace CumulusMX
 				enabled = cumulus.WOW.Enabled,
 				includesolar = cumulus.WOW.SendSolar,
 				includeuv = cumulus.WOW.SendUV,
+				includesoiltemp = cumulus.WOW.SendSoilTemp,
 				interval = cumulus.WOW.Interval,
 				password = cumulus.WOW.PW,
 				stationid = cumulus.WOW.ID
@@ -602,6 +604,7 @@ namespace CumulusMX
 		public bool enabled { get; set; }
 		public bool includeuv { get; set; }
 		public bool includesolar { get; set; }
+		public bool includesoiltemp { get; set; }
 		public bool catchup { get; set; }
 		public string stationid { get; set; }
 		public string password { get; set; }

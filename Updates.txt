@@ -1,3 +1,10 @@
+3.14.2 - b3161
+——————————————
+
+- New: Third party upload WOW can now include soil temperature from sensor 1
+
+
+
 3.14.1 - b3160
 ——————————————
 - Fix: Davis WLL stations recording zero values if the WLL sends "null" for a value
@@ -6,7 +13,7 @@
 
 - Change: Ecowitt GW1000 discovery mechanism updated
 
-- New: The Solar calculation now allows you to input different transparency values for July and August. MX uses a cosine interpolation between the two values
+- New: The Solar calculation now allows you to input different transparency values for July and Decmember. MX uses a cosine interpolation between the two values
 	There are changes to cumulus.ini to accommodate this.
 	[Solar]
 	RStransfactor=0.8		Removed

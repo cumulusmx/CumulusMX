@@ -9282,6 +9282,10 @@ namespace CumulusMX
 			{
 				Data.Append("&solarradiation=" + SolarRad.ToString("F0"));
 			}
+			if (cumulus.WOW.SendSoilTemp)
+			{
+				Data.Append($"&soiltempf=" + TempFstr(SoilTemp1));
+			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
 			Data.Append("&action=updateraw");
