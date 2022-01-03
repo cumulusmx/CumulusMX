@@ -11,6 +11,7 @@ namespace CumulusMX
 	class HttpStationEcowitt : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private bool starting = true;
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
@@ -81,6 +82,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Starting Extra Sensors - HTTP Station (Ecowitt)");
 			}
+			starting = false;
 		}
 
 		public override void Stop()
@@ -110,7 +112,7 @@ namespace CumulusMX
 			var thisStation = main ? this : station;
 
 
-			if (stopping)
+			if (starting || stopping)
 			{
 				context.Response.StatusCode = 200;
 				return "success";

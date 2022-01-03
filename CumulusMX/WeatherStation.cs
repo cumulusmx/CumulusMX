@@ -1338,14 +1338,14 @@ namespace CumulusMX
 		public double LeafTemp7 { get; set; }
 		public double LeafTemp8 { get; set; }
 
-		public int LeafWetness1 { get; set; }
-		public int LeafWetness2 { get; set; }
-		public int LeafWetness3 { get; set; }
-		public int LeafWetness4 { get; set; }
-		public int LeafWetness5 { get; set; }
-		public int LeafWetness6 { get; set; }
-		public int LeafWetness7 { get; set; }
-		public int LeafWetness8 { get; set; }
+		public double LeafWetness1 { get; set; }
+		public double LeafWetness2 { get; set; }
+		public double LeafWetness3 { get; set; }
+		public double LeafWetness4 { get; set; }
+		public double LeafWetness5 { get; set; }
+		public double LeafWetness6 { get; set; }
+		public double LeafWetness7 { get; set; }
+		public double LeafWetness8 { get; set; }
 
 		public double SunshineHours { get; set; } = 0;
 
@@ -1863,8 +1863,15 @@ namespace CumulusMX
 				try
 				{
 					var raw = File.ReadAllText(@"/sys/class/thermal/thermal_zone0/temp");
-					cumulus.CPUtemp = ConvertTempCToUser(double.Parse(raw) / 1000);
-					cumulus.LogDebugMessage($"Current CPU temp = {cumulus.CPUtemp.ToString(cumulus.TempFormat)}{cumulus.Units.TempText}");
+					if (double.TryParse(raw, out var val))
+					{
+						cumulus.CPUtemp = ConvertTempCToUser(val / 1000);
+						cumulus.LogDebugMessage($"Current CPU temp = {cumulus.CPUtemp.ToString(cumulus.TempFormat)}{cumulus.Units.TempText}");
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"Current CPU temp file /sys/class/thermal/thermal_zone0/temp does not contain a number = [{raw}]");
+					}
 				}
 				catch (Exception ex)
 				{
@@ -7339,28 +7346,28 @@ namespace CumulusMX
 			switch (index)
 			{
 				case 1:
-					LeafWetness1 = (int)value;
+					LeafWetness1 = value;
 					break;
 				case 2:
-					LeafWetness2 = (int)value;
+					LeafWetness2 = value;
 					break;
 				case 3:
-					LeafWetness3 = (int)value;
+					LeafWetness3 = value;
 					break;
 				case 4:
-					LeafWetness4 = (int)value;
+					LeafWetness4 = value;
 					break;
 				case 5:
-					LeafWetness5 = (int)value;
+					LeafWetness5 = value;
 					break;
 				case 6:
-					LeafWetness6 = (int)value;
+					LeafWetness6 = value;
 					break;
 				case 7:
-					LeafWetness7 = (int)value;
+					LeafWetness7 = value;
 					break;
 				case 8:
-					LeafWetness8 = (int)value;
+					LeafWetness8 = value;
 					break;
 			}
 		}
@@ -8594,7 +8601,7 @@ namespace CumulusMX
 			if (cumulus.WCloud.SendLeafWetness)
 			{
 				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
-				int wet = 0;
+				double wet = 0;
 
 				switch (cumulus.WCloud.LeafWetnessSensor)
 				{
@@ -8624,7 +8631,7 @@ namespace CumulusMX
 						break;
 				}
 
-				sb.Append($"&leafwet={wet}");
+				sb.Append($"&leafwet={wet.ToString(cumulus.LeafWetFormat)}");
 			}
 
 			// time - UTC
@@ -8713,10 +8720,10 @@ namespace CumulusMX
 			if (cumulus.AWEKAS.SendLeafWetness)
 			{
 				if (started) sb.Append("&"); else started = true;
-				sb.Append("leafwetness1=" + LeafWetness1);
-				sb.Append("&leafwetness2=" + LeafWetness2);
-				sb.Append("&leafwetness3=" + LeafWetness3);
-				sb.Append("&leafwetness4=" + LeafWetness4);
+				sb.Append("leafwetness1=" + LeafWetness1.ToString(cumulus.LeafWetFormat));
+				sb.Append("&leafwetness2=" + LeafWetness2.ToString(cumulus.LeafWetFormat));
+				sb.Append("&leafwetness3=" + LeafWetness3.ToString(cumulus.LeafWetFormat));
+				sb.Append("&leafwetness4=" + LeafWetness4.ToString(cumulus.LeafWetFormat));
 			}
 
 			if (cumulus.AWEKAS.SendAirQuality)
@@ -8969,9 +8976,9 @@ namespace CumulusMX
 				Data.Append($"&soilmoisture4={SoilMoisture4}");
 
 			if (cumulus.Wund.SendLeafWetness1)
-				Data.Append($"&leafwetness={LeafWetness1}");
+				Data.Append($"&leafwetness={LeafWetness1.ToString(cumulus.LeafWetFormat)}");
 			if (cumulus.Wund.SendLeafWetness2)
-				Data.Append($"&leafwetness2={LeafWetness2}");
+				Data.Append($"&leafwetness2={LeafWetness2.ToString(cumulus.LeafWetFormat)}");
 
 			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined)
 			{
@@ -9284,7 +9291,57 @@ namespace CumulusMX
 			}
 			if (cumulus.WOW.SendSoilTemp)
 			{
-				Data.Append($"&soiltempf=" + TempFstr(SoilTemp1));
+				switch (cumulus.WOW.SoilTempSensor)
+				{
+					case 1:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp1));
+						break;
+					case 2:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp2));
+						break;
+					case 3:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp3));
+						break;
+					case 4:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp4));
+						break;
+					case 5:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp5));
+						break;
+					case 6:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp6));
+						break;
+					case 7:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp7));
+						break;
+					case 8:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp8));
+						break;
+					case 9:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp9));
+						break;
+					case 10:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp10));
+						break;
+					case 11:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp11));
+						break;
+					case 12:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp12));
+						break;
+					case 13:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp13));
+						break;
+					case 14:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp14));
+						break;
+					case 15:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp15));
+						break;
+					case 16:
+						Data.Append($"&soiltempf=" + TempFstr(SoilTemp16));
+						break;
+				}
 			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
@@ -9862,8 +9919,8 @@ namespace CumulusMX
 
 			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"{cumulus.LeafWetnessUnitText}\"]");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9874,10 +9931,10 @@ namespace CumulusMX
 
 			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"{cumulus.LeafWetnessUnitText}\"]");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -9886,14 +9943,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[5]}\",\"{LeafWetness5}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[6]}\",\"{LeafWetness6}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[7]}\",\"{LeafWetness7}\",\"{cumulus.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[8]}\",\"{LeafWetness8}\",\"{cumulus.LeafWetnessUnitText}\"]");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[5]}\",\"{LeafWetness5.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[6]}\",\"{LeafWetness6.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[7]}\",\"{LeafWetness7.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.LeafWetnessCaptions[8]}\",\"{LeafWetness8.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}

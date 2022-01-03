@@ -427,6 +427,9 @@ namespace CumulusMX
 
 		public string ETFormat;
 
+		internal int LeafWetDPlaces = 0;
+		public string LeafWetFormat = "F0";
+
 		public string ComportName;
 		public string DefaultComportName;
 
@@ -3753,7 +3756,7 @@ namespace CumulusMX
 		{
 			const int maxEntries = 12;
 
-			List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"\d{8}-\d{6}\.txt").Success));
+			List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
 
 			fileEntries.Sort();
 
@@ -4565,6 +4568,7 @@ namespace CumulusMX
 			WOW.SendUV = ini.GetValue("WOW", "SendUV", false);
 			WOW.SendSolar = ini.GetValue("WOW", "SendSR", false);
 			WOW.SendSoilTemp = ini.GetValue("WOW", "SendSoilTemp", false);
+			WOW.SoilTempSensor = ini.GetValue("WOW", "SoilTempSensor", 1);
 			WOW.CatchUp = ini.GetValue("WOW", "CatchUp", false);
 
 			APRS.ID = ini.GetValue("APRS", "ID", "");
@@ -5528,6 +5532,7 @@ namespace CumulusMX
 			ini.SetValue("WOW", "SendUV", WOW.SendUV);
 			ini.SetValue("WOW", "SendSR", WOW.SendSolar);
 			ini.SetValue("WOW", "SendSoilTemp", WOW.SendSoilTemp);
+			ini.SetValue("WOW", "SoilTempSensor", WOW.SoilTempSensor);
 			ini.SetValue("WOW", "CatchUp", WOW.CatchUp);
 
 			ini.SetValue("APRS", "ID", APRS.ID);
@@ -10843,7 +10848,9 @@ namespace CumulusMX
 		public bool SendIndoor;
 		public bool SendAirQuality;
 		public bool SendSoilTemp;
+		public int SoilTempSensor;
 		public bool SendSoilMoisture;
+		public int SoilMoistureSensor;
 		public bool CatchUp;
 		public bool CatchingUp;
 		public bool Updating;

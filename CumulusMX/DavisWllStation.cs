@@ -98,6 +98,11 @@ namespace CumulusMX
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
 			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
 
+			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
+			cumulus.LeafWetDPlaces = 1;
+			cumulus.LeafWetFormat = "F1";
+
+
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
 			if (cumulus.StationOptions.PeakGustMinutes == 10)
 			{

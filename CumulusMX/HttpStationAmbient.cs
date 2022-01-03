@@ -9,6 +9,7 @@ namespace CumulusMX
 	class HttpStationAmbient : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private bool starting = true;
 		private bool stopping = false;
 
 		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
@@ -62,6 +63,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Starting Extra Sensors - HTTP Station (Ambient)");
 			}
+			starting = false;
 		}
 
 		public override void Stop()
@@ -88,7 +90,7 @@ namespace CumulusMX
 			var procName = main ? "ProcessData" : "ProcessExtraData";
 			var thisStation = main ? this : station;
 
-			if (stopping)
+			if (starting || stopping)
 			{
 				context.Response.StatusCode = 200;
 				return "success";
