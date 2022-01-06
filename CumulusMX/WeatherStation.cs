@@ -9943,6 +9943,8 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
+			json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
 			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
 			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.LeafWetnessUnitText}\"],");
