@@ -239,11 +239,12 @@ namespace CumulusMX
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
 
-			cumulus.AirQualityUnitText = "µg/m³";
-			cumulus.SoilMoistureUnitText = "%";
-			// GW1000 does not provide average wind speeds
-			cumulus.StationOptions.UseWind10MinAve = true;
-			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
+			cumulus.Units.AirQualityUnitText = "µg/m³";
+			cumulus.Units.SoilMoistureUnitText = "%";
+			cumulus.Units.LeafWetnessUnitText = "%";
+
+			// GW1000 does not provide 10 min average wind speeds
+			cumulus.StationOptions.UseWind10MinAvg = true;
 
 			LightningTime = DateTime.MinValue;
 			LightningDistance = 999;
@@ -252,6 +253,9 @@ namespace CumulusMX
 
 			// GW1000 does not send DP, so force MX to calculate it
 			cumulus.StationOptions.CalculatedDP = true;
+
+			// does not provide a forecast, force MX to provide it
+			cumulus.UseCumulusForecast = true;
 
 			// GW1000 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
@@ -955,7 +959,7 @@ namespace CumulusMX
 					var dateTime = DateTime.Now;
 					var size = ConvertBigEndianUInt16(data, 3);
 
-					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999, gustLastCal = -999;
+					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
 					int windDirLast = -999;
 					double outdoortemp = -999;
 
@@ -1021,7 +1025,6 @@ namespace CumulusMX
 								break;
 							case 0x0C: // Gust speed (m/s)
 								gustLast = ConvertWindMSToUser(ConvertBigEndianUInt16(data, idx) / 10.0);
-								gustLastCal = gustLast * cumulus.Calib.WindGust.Mult;
 								idx += 2;
 								break;
 							case 0x0D: //Rain Event (mm)
@@ -1281,6 +1284,9 @@ namespace CumulusMX
 						}
 					} while (idx < size);
 
+					// Some debugging info
+					cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={WindAverage:F1})");
+
 					// Now do the stuff that requires more than one input parameter
 
 					// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
@@ -1310,25 +1316,27 @@ namespace CumulusMX
 
 					//cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
-					// No average in the live data, so use last value from cumulus
-					if (windSpeedLast > -999 && windDirLast > -999)
+					if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
 					{
+						//DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
+
+						// The protocol does not provide an average value
+						// so feed in current MX average
 						DoWind(windSpeedLast, windDirLast, WindAverage / cumulus.Calib.WindSpeed.Mult, dateTime);
-						//DoWind(windSpeedLast, windDirLast, windSpeedLast, dateTime);
-					}
+						var gustLastCal = gustLast * cumulus.Calib.WindGust.Mult;
+						if (gustLastCal > RecentMaxGust)
+						{
+							cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
+							CheckHighGust(gustLastCal, windDirLast, dateTime);
 
-					if (gustLastCal > RecentMaxGust)
-					{
-						cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
-						CheckHighGust(gustLastCal, windDirLast, dateTime);
+							// add to recent values so normal calculation includes this value
+							WindRecent[nextwind].Gust = gustLast; // use uncalibrated value
+							WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+							WindRecent[nextwind].Timestamp = dateTime;
+							nextwind = (nextwind + 1) % MaxWindRecent;
 
-						// add to recent values so normal calculation includes this value
-						WindRecent[nextwind].Gust = gustLast; // use uncalibrated value
-						WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
-						WindRecent[nextwind].Timestamp = dateTime;
-						nextwind = (nextwind + 1) % MaxWindRecent;
-
-						RecentMaxGust = gustLastCal;
+							RecentMaxGust = gustLastCal;
+						}
 					}
 
 					if (rainLast > -999 && rainRateLast > -999)
@@ -1473,7 +1481,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
 						cumulus.LogDebugMessage($"command resp={buffer[2]}, checksum=" + (ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)) ? "OK" : "BAD"));
-						cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(buffer, 0, bytesRead - 1));
+						cumulus.LogDataMessage("Received " + BitConverter.ToString(buffer, 0, bytesRead - 1));
 					}
 					else
 					{
@@ -1496,7 +1504,7 @@ namespace CumulusMX
 			{
 				var data = new byte[bytesRead];
 				Array.Copy(buffer, data, data.Length);
-				cumulus.LogDataMessage("Received 0x" + BitConverter.ToString(data));
+				cumulus.LogDataMessage("Received: " + BitConverter.ToString(data));
 				return data;
 			}
 

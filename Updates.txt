@@ -1,13 +1,16 @@
-3.14.2 - b3161
+3.14.2 - b3162
 ——————————————
 - Fix: Dayfile viewer/editor header for log date changed year format to correct value = "dd/mm/yy"
-- Fix: HTTP stations now ignore any inbound data until any required pre=processing is complete
+- Fix: HTTP stations now ignore any inbound data until any required pre-processing is complete
 - Fix: Removal of old log files from the /MXdiags folder now ignores log files created by other utilities
+- Fix: Davis WLL: Adds missing health data decode for soil/leaf transmitters, and adds SuperCap voltage for Vue transmitters
+- Fix: GW1000 & HTTP Ecowitt: Wind speed handling now consistent across both protocols
+- Fix: Davis VP2: Fix USB/Serial stations stopping polling when connection is temporarily lost
 
-- Change: Davis leaf wetness sensors now log values as decimals when reporting via WLL stations
+- Change: Davis WLL: Davis leaf wetness sensors now log values as decimals when reporting
 
-- New: Third party upload WOW can now include soil temperature from any chosen sensor
-
+- New: Third party uploads to WOW can now include soil temperature from any chosen sensor
+- New: Adds additional units to the JSON data files - "windrun", "soilmoisture", "co2", "leafwet", and "aq"
 
 
 3.14.1 - b3160
@@ -18,7 +21,7 @@
 
 - Change: Ecowitt GW1000 discovery mechanism updated
 
-- New: The Solar calculation now allows you to input different transparency values for July and Decmember. MX uses a cosine interpolation between the two values
+- New: The Solar calculation now allows you to input different transparency values for July and December. MX uses a cosine interpolation between the two values
 	There are changes to cumulus.ini to accommodate this.
 	[Solar]
 	RStransfactor=0.8		Removed
@@ -45,7 +48,7 @@
 - Change: The monthly log file and extra log file file editors now accept a date range rather than showing a whole month at a time
 	The date range can span a month end
 	These editors now also have a search field which you can use to search for specific values or times. Only matching lines will be displayed
-	- It is up to you to be sensible on restricting the date range to the performanance of your CMX computer
+	- It is up to you to be sensible on restricting the date range to the performance of your CMX computer
 	- A fast machine with SSD drives will cope with much larger ranges than a Raspberry Pi zero for instance!
 
 
@@ -217,7 +220,7 @@ WITHDRWAN due to issues with FluentFTP and Mono when connecting to FTP servers t
 - Fix: SteelSeries gauges data mouseovers not working on the dashboard interface
 - Fix: Davis WLL, bug in Chill Hours calculation during archive data catch-up. Each interval increment was 60x larger than it should be
 - Fix: Davis WLL, add missing Sunshine hours calculation to historic catch-up
-- Fix: Davis WLL, now correctly handles null values in historic data during cath-up
+- Fix: Davis WLL, now correctly handles null values in historic data during catch-up
 - Fix: GW1000 station, 0.1mm rain tippers would take 3 tips in an interval to register "last rained" when using Inches as the rain unit
 - Fix: GW1000 station, adds missing low battery alarm
 - Fix: GW1000 station, user temperatures above channel 1 were not being assigned to the correct channel

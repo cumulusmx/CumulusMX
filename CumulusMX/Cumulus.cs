@@ -227,12 +227,6 @@ namespace CumulusMX
 
 		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
 
-
-		public string AirQualityUnitText = "µg/m³";
-		public string SoilMoistureUnitText = "cb";
-		public string LeafWetnessUnitText = "";  // Davis is unitless, Ecowitt uses %
-		public string CO2UnitText = "ppm";
-
 		public volatile int WebUpdating;
 
 		public double WindRoseAngle { get; set; }
@@ -3921,7 +3915,7 @@ namespace CumulusMX
 			AltitudeInFeet = ini.GetValue("Station", "AltitudeInFeet", false);
 
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
-			StationOptions.UseWind10MinAve = ini.GetValue("Station", "Wind10MinAverage", false);
+			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 
 			StationOptions.AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
@@ -5141,7 +5135,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "Altitude", Altitude);
 			ini.SetValue("Station", "AltitudeInFeet", AltitudeInFeet);
 			ini.SetValue("Station", "Humidity98Fix", StationOptions.Humidity98Fix);
-			ini.SetValue("Station", "Wind10MinAverage", StationOptions.UseWind10MinAve);
+			ini.SetValue("Station", "Wind10MinAverage", StationOptions.UseWind10MinAvg);
 			ini.SetValue("Station", "UseSpeedForAvgCalc", StationOptions.UseSpeedForAvgCalc);
 			ini.SetValue("Station", "AvgBearingMinutes", StationOptions.AvgBearingMinutes);
 			ini.SetValue("Station", "AvgSpeedMinutes", StationOptions.AvgSpeedMinutes);
@@ -6959,8 +6953,8 @@ namespace CumulusMX
 			sb.Append(station.LeafTemp1.ToString(TempFormat) + ListSeparator);     //40
 			sb.Append(station.LeafTemp2.ToString(TempFormat) + ListSeparator);     //41
 
-			sb.Append(station.LeafWetness1 + ListSeparator);                       //42
-			sb.Append(station.LeafWetness2 + ListSeparator);                       //43
+			sb.Append(station.LeafWetness1.ToString(LeafWetFormat) + ListSeparator);	//42
+			sb.Append(station.LeafWetness2.ToString(LeafWetFormat) + ListSeparator);	//43
 
 			sb.Append(station.SoilTemp5.ToString(TempFormat) + ListSeparator);     //44
 			sb.Append(station.SoilTemp6.ToString(TempFormat) + ListSeparator);     //45
@@ -10542,19 +10536,21 @@ namespace CumulusMX
 		public string AirQualityUnitText { get; set; }
 		public string SoilMoistureUnitText { get; set; }
 		public string CO2UnitText { get; set; }
+		public string LeafWetnessUnitText { get; set; }
 
 		public StationUnits()
 		{
 			AirQualityUnitText = "µg/m³";
 			SoilMoistureUnitText = "cb";
 			CO2UnitText = "ppm";
+			LeafWetnessUnitText = "";  // Davis is unitless, Ecowitt uses %
 		}
 	}
 
 	public class StationOptions
 	{
 		public bool UseZeroBearing { get; set; }
-		public bool UseWind10MinAve { get; set; }
+		public bool UseWind10MinAvg { get; set; }
 		public bool UseSpeedForAvgCalc { get; set; }
 		public bool Humidity98Fix { get; set; }
 		public bool CalculatedDP { get; set; }
@@ -10896,15 +10892,11 @@ namespace CumulusMX
 		public bool RateLimited;
 		public int OriginalInterval;
 		public string Lang;
-		public bool SendSoilTemp;
-		public bool SendSoilMoisture;
 		public bool SendLeafWetness;
 	}
 
 	public class WebUploadWCloud : WebUploadService
 	{
-		public bool SendSoilMoisture;
-		public int SoilMoistureSensor;
 		public bool SendLeafWetness;
 		public int LeafWetnessSensor;
 	}

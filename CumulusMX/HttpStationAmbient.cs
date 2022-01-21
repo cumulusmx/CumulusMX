@@ -28,7 +28,7 @@ namespace CumulusMX
 
 			//cumulus.StationOptions.CalculatedWC = true;
 			// Ambient does not provide average wind speeds
-			cumulus.StationOptions.UseWind10MinAve = true;
+			cumulus.StationOptions.UseWind10MinAvg = true;
 			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 			// Ambient does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
@@ -37,11 +37,11 @@ namespace CumulusMX
 
 			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
 			{
-				cumulus.AirQualityUnitText = "µg/m³";
+				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
 			if (station == null || (station != null && cumulus.AmbientExtraUseSoilMoist))
 			{
-				cumulus.SoilMoistureUnitText = "%";
+				cumulus.Units.SoilMoistureUnitText = "%";
 			}
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor

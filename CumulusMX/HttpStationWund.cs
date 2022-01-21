@@ -16,8 +16,9 @@ namespace CumulusMX
 			cumulus.LogMessage("Starting HTTP Station (Wunderground)");
 
 			cumulus.StationOptions.CalculatedWC = true;
-			cumulus.AirQualityUnitText = "µg/m³";
-			cumulus.SoilMoistureUnitText = "%";
+			cumulus.Units.AirQualityUnitText = "µg/m³";
+			cumulus.Units.SoilMoistureUnitText = "%";
+			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// Wunderground does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
