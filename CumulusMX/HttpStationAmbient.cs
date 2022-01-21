@@ -9,6 +9,7 @@ namespace CumulusMX
 	class HttpStationAmbient : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private bool starting = true;
 		private bool stopping = false;
 
 		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
@@ -27,7 +28,7 @@ namespace CumulusMX
 
 			//cumulus.StationOptions.CalculatedWC = true;
 			// Ambient does not provide average wind speeds
-			cumulus.StationOptions.UseWind10MinAve = true;
+			cumulus.StationOptions.UseWind10MinAvg = true;
 			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 			// Ambient does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
@@ -36,11 +37,11 @@ namespace CumulusMX
 
 			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
 			{
-				cumulus.AirQualityUnitText = "µg/m³";
+				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
 			if (station == null || (station != null && cumulus.AmbientExtraUseSoilMoist))
 			{
-				cumulus.SoilMoistureUnitText = "%";
+				cumulus.Units.SoilMoistureUnitText = "%";
 			}
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
@@ -62,6 +63,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Starting Extra Sensors - HTTP Station (Ambient)");
 			}
+			starting = false;
 		}
 
 		public override void Stop()
@@ -88,7 +90,7 @@ namespace CumulusMX
 			var procName = main ? "ProcessData" : "ProcessExtraData";
 			var thisStation = main ? this : station;
 
-			if (stopping)
+			if (starting || stopping)
 			{
 				context.Response.StatusCode = 200;
 				return "success";

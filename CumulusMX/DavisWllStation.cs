@@ -98,6 +98,11 @@ namespace CumulusMX
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
 			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
 
+			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
+			cumulus.LeafWetDPlaces = 1;
+			cumulus.LeafWetFormat = "F1";
+
+
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
 			if (cumulus.StationOptions.PeakGustMinutes == 10)
 			{
@@ -2713,9 +2718,9 @@ namespace CumulusMX
 					cumulus.LogDebugMessage("WLL FW version = " + DavisFirmwareVersion);
 				}
 			}
-			else if (sensor.data_structure_type == 11)
+			else if (sensor.data_structure_type == 11 || sensor.data_structure_type == 13)
 			{
-				/* ISS
+				/* ISS & Non-ISS have the same health fields
 				 * Available fields of interest to health
 				 * "afc": -1
 				 * "error_packets": 0
@@ -2731,43 +2736,52 @@ namespace CumulusMX
 
 				try
 				{
-					var data11 = sensor.data.Last().FromJsv<WlHistorySensorDataType11>();
+					string type;
+					if (sensor.sensor_type == 84 || sensor.sensor_type == 85)
+						type = "Vue";
+					else
+						type= sensor.data_structure_type == 11 ? "ISS" : "Soil/Leaf";
 
-					cumulus.LogDebugMessage("WLL Health - found health data for ISS device TxId = " + data11.tx_id);
+					var data = sensor.data.Last().FromJsv<WlHistoryHealthType11_13>();
+
+					cumulus.LogDebugMessage($"WLL Health - found health data for {type} device TxId = {data.tx_id}");
 
 					// Save the archive interval
 					//weatherLinkArchiveInterval = data.Value<int>("arch_int");
 
 					// Check battery state 0=Good, 1=Low
-					SetTxBatteryStatus(data11.tx_id, data11.trans_battery_flag);
-					if (data11.trans_battery_flag == 1)
+					SetTxBatteryStatus(data.tx_id, data.trans_battery_flag);
+					if (data.trans_battery_flag == 1)
 					{
-						cumulus.LogMessage($"WLL WARNING: Battery voltage is low in TxId {data11.tx_id}");
+						cumulus.LogMessage($"WLL WARNING: Battery voltage is low in TxId {data.tx_id}");
 					}
 					else
 					{
-						cumulus.LogDebugMessage($"WLL Health: ISS {data11.tx_id}: Battery state is OK");
+						cumulus.LogDebugMessage($"WLL Health: {type} {data.tx_id}: Battery state is OK");
 					}
 
 					//DavisTotalPacketsReceived[txid] = ;  // Do not have a value for this
-					DavisTotalPacketsMissed[data11.tx_id] = data11.error_packets;
-					DavisNumCRCerrors[data11.tx_id] = data11.error_packets;
-					DavisNumberOfResynchs[data11.tx_id] = data11.resynchs;
-					DavisMaxInARow[data11.tx_id] = data11.good_packets_streak;
-					DavisReceptionPct[data11.tx_id] = data11.reception;
-					DavisTxRssi[data11.tx_id] = data11.rssi;
+					DavisTotalPacketsMissed[data.tx_id] = data.error_packets;
+					DavisNumCRCerrors[data.tx_id] = data.error_packets;
+					DavisNumberOfResynchs[data.tx_id] = data.resynchs;
+					DavisMaxInARow[data.tx_id] = data.good_packets_streak;
+					DavisReceptionPct[data.tx_id] = data.reception;
+					DavisTxRssi[data.tx_id] = data.rssi;
 
-					cumulus.LogDebugMessage($"WLL Health: IIS {data11.tx_id}: Errors={DavisTotalPacketsMissed[data11.tx_id]}, CRCs={DavisNumCRCerrors[data11.tx_id]}, Resyncs={DavisNumberOfResynchs[data11.tx_id]}, Streak={DavisMaxInARow[data11.tx_id]}, %={DavisReceptionPct[data11.tx_id]}, RSSI={DavisTxRssi[data11.tx_id]}");
+					var logMsg = $"WLL Health: {type} {data.tx_id}: Errors={DavisTotalPacketsMissed[data.tx_id]}, CRCs={DavisNumCRCerrors[data.tx_id]}, Resyncs={DavisNumberOfResynchs[data.tx_id]}, Streak={DavisMaxInARow[data.tx_id]}, %={DavisReceptionPct[data.tx_id]}, RSSI={DavisTxRssi[data.tx_id]}";
+					logMsg += data.supercap_volt_last != null ? $", Supercap={data.supercap_volt_last:F2}V" : "";
+					logMsg += data.solar_volt_last != null ? $", Supercap={data.solar_volt_last:F2}V" : "";
+					cumulus.LogDebugMessage(logMsg);
 
 					// Is there any ET in this record?
-					if (data11.et != null)
+					if (sensor.data_structure_type == 11 && data.et != null)
 					{
 						// wl.com ET is only available in record the start of each hour.
 						// The number is the total for the one hour period.
 						// This is unlike the existing VP2 when the ET is an annual running total
 						// So we try and mimic the VP behaviour
-						var newET = AnnualETTotal + ConvertRainINToUser((double)data11.et);
-						cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double)data11.et):F3} to ET");
+						var newET = AnnualETTotal + ConvertRainINToUser((double)data.et);
+						cumulus.LogDebugMessage($"WLL Health: Adding {ConvertRainINToUser((double)data.et):F3} to ET");
 						DoET(newET, DateTime.Now);
 					}
 				}
@@ -2939,12 +2953,34 @@ namespace CumulusMX
 								if (cumulus.airLinkIn != null)
 									cumulus.airLinkIn.DecodeWlApiHealth(sensor, true);
 								break;
+							// WLL or ISS
+							case 504:
+							case int n when (n >= 43 && n < 90):
+								// Davis don't make this easy! Either a...
+								// 504 - WLL
+								//  43 - ISS VP2, wireless (6152)
+								//  44 - ISS VP2, 24hr fan, wireless (6153)
+								//  45 - ISS VP2 Plus, wireless (6162)
+								//  46 - ISS VP2 Plus, 24hr fan, wireless (6163)
+								//  48 - ISS VP2, wireless (6322)
+								//  49 - ISS VP2, 24hr fan, wireless (6323)
+								//  50 - ISS VP2 Plus, wireless (6327)
+								//  51 - ISS VP2 Plus, 24hr fan, wireless (6328)
+								//  55 - ISS
+								//  56 - Leaf/Soil
+								//  76 - ISS VP2, 24hr fan, wireless, metric (6323M)
+								//  77 - ISS VP2, 24hr fan, wireless, OV (6323OV)
+								//  78 - ISS VP2, wireless, metric (6322M)
+								//  79 - ISS VP2, wirelss, OV (6322OV)
+								//  80 - ISS VP2 Plus, 24hr fan, wireless, metric (6328M)
+								//  81 - ISS VP2 Plus, 24hr fan, wireless, OV (6328OV)
+								//  82 - ISS VP2 Plus, wireless metric (6327M)
+								//  83 - ISS VP2 Plus, wireless, OV (6327OV)
+								//  84 - Vue, wireless, metric (6357M)
+								//  85 - Vue, wireless, OV (6357OV)
+								DecodeWlApiHealth(sensor, true);
+								break;
 							default:
-								if (sensorType == 504 || dataStructureType == 11)
-								{
-									// Either a WLL (504) or ISS (data type = 11) record
-									DecodeWlApiHealth(sensor, true);
-								}
 								break;
 						}
 					}

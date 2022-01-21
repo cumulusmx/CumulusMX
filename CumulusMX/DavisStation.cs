@@ -894,9 +894,9 @@ namespace CumulusMX
 			const int loop2count = 1;
 			bool reconnecting = false;
 
-			try
+			while (!stop)
 			{
-				while (!stop)
+				try
 				{
 					if (clockSetNeeded && !stop)
 					{
@@ -1020,27 +1020,35 @@ namespace CumulusMX
 					var recepStats = GetReceptionStats();
 					DecodeReceptionStats(recepStats);
 				}
-			}
-			catch (ThreadAbortException) // Catch the ThreadAbortException
-			{
-			}
-			finally
-			{
-				if (isSerial)
+				catch (ThreadAbortException) // Catch the ThreadAbortException
 				{
-					if (comport != null && comport.IsOpen)
-					{
-						comport.WriteLine("");
-						comport.Close();
-					}
+					cumulus.LogMessage("Davis Start: ThreadAbortException");
+					// and exit
+					stop = true;
 				}
-				else
+				catch (Exception ex)
 				{
-					if (socket != null && socket.Connected)
-					{
-						socket.GetStream().WriteByte(10);
-						socket.Close();
-					}
+					// any others, log them and carry on
+					cumulus.LogMessage("Davis Start: Exception - " + ex.Message);
+				}
+			}
+
+			cumulus.LogMessage("Ending normal reading loop");
+
+			if (isSerial)
+			{
+				if (comport != null && comport.IsOpen)
+				{
+					comport.WriteLine("");
+					comport.Close();
+				}
+			}
+			else
+			{
+				if (socket != null && socket.Connected)
+				{
+					socket.GetStream().WriteByte(10);
+					socket.Close();
 				}
 			}
 		}

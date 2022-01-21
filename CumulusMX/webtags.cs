@@ -3870,42 +3870,42 @@ namespace CumulusMX
 
 		private string TagLeafWetness1(Dictionary<string,string> tagParams)
 		{
-			return station.LeafWetness1.ToString();
+			return station.LeafWetness1.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness2(Dictionary<string,string> tagParams)
 		{
-			return station.LeafWetness2.ToString();
+			return station.LeafWetness2.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness3(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness3.ToString();
+			return station.LeafWetness3.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness4(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness4.ToString();
+			return station.LeafWetness4.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness5(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness5.ToString();
+			return station.LeafWetness5.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness6(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness6.ToString();
+			return station.LeafWetness6.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness7(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness7.ToString();
+			return station.LeafWetness7.ToString(cumulus.LeafWetFormat);
 		}
 
 		private string TagLeafWetness8(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness8.ToString();
+			return station.LeafWetness8.ToString(cumulus.LeafWetFormat);
 		}
 
 

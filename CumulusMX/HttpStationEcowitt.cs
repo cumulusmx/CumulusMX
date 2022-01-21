@@ -11,8 +11,10 @@ namespace CumulusMX
 	class HttpStationEcowitt : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private bool starting = true;
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
+		private bool reportStationType = true;
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
 		{
@@ -27,33 +29,33 @@ namespace CumulusMX
 				cumulus.LogMessage("Creating Extra Sensors - HTTP Station (Ecowitt)");
 			}
 
-			//cumulus.StationOptions.CalculatedWC = true;
-			// GW1000 does not provide average wind speeds
 			// Do not set these if we are only using extra sensors
 			if (station == null)
 			{
-				cumulus.StationOptions.UseWind10MinAve = true;
-				//cumulus.StationOptions.UseSpeedForAvgCalc = false;
-				// GW1000 does not send DP, so force MX to calculate it
+				// does not provide 10 min average wind speeds
+				cumulus.StationOptions.UseWind10MinAvg = true;
+
+				// does not send DP, so force MX to calculate it
 				cumulus.StationOptions.CalculatedDP = true;
 				// Same for Wind Chill
 				cumulus.StationOptions.CalculatedWC = true;
 				// does not provide a forecast, force MX to provide it
 				cumulus.UseCumulusForecast = true;
-
+				// does not provide pressure trend strings
+				cumulus.StationOptions.UseCumulusPresstrendstr = true;
 			}
 
 			if (station == null || (station != null && cumulus.EcowittExtraUseAQI))
 			{
-				cumulus.AirQualityUnitText = "µg/m³";
+				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
 			if (station == null || (station != null && cumulus.EcowittExtraUseSoilMoist))
 			{
-				cumulus.SoilMoistureUnitText = "%";
+				cumulus.Units.SoilMoistureUnitText = "%";
 			}
 			if (station == null || (station != null && cumulus.EcowittExtraUseSoilMoist))
 			{
-				cumulus.LeafWetnessUnitText = "%";
+				cumulus.Units.LeafWetnessUnitText = "%";
 			}
 
 
@@ -81,6 +83,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Starting Extra Sensors - HTTP Station (Ecowitt)");
 			}
+			starting = false;
 		}
 
 		public override void Stop()
@@ -110,7 +113,7 @@ namespace CumulusMX
 			var thisStation = main ? this : station;
 
 
-			if (stopping)
+			if (starting || stopping)
 			{
 				context.Response.StatusCode = 200;
 				return "success";
@@ -134,7 +137,12 @@ namespace CumulusMX
 				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
 				recDate = DateTime.Now;
 
-				cumulus.LogDebugMessage($"{procName}: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
+				// we only really want to do this once
+				if (reportStationType)
+				{
+					cumulus.LogDebugMessage($"{procName}: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
+					reportStationType = false;
+				}
 
 				// Only do the primary sensors if running as the main station
 				if (main)
@@ -153,10 +161,10 @@ namespace CumulusMX
 
 						var gust = data["windgustmph"];
 						var dir = data["winddir"];
-						var avg = data["windspeedmph"];
+						var spd = data["windspeedmph"];
 
 
-						if (gust == null || dir == null || avg == null)
+						if (gust == null || dir == null || spd == null)
 						{
 							cumulus.LogMessage($"ProcessData: Error, missing wind data");
 						}
@@ -164,8 +172,26 @@ namespace CumulusMX
 						{
 							var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, invNum));
 							var dirVal = Convert.ToInt32(dir, invNum);
-							var avgVal = ConvertWindMPHToUser(Convert.ToDouble(avg, invNum));
-							DoWind(gustVal, dirVal, avgVal, recDate);
+							var spdVal = ConvertWindMPHToUser(Convert.ToDouble(spd, invNum));
+							//DoWind(gustVal, dirVal, spdVal, recDate);
+							// The protocol does not provide an average value
+							// so feed in current MX average
+							DoWind(spdVal, dirVal, WindAverage / cumulus.Calib.WindSpeed.Mult, recDate);
+
+							var gustLastCal = gustVal * cumulus.Calib.WindGust.Mult;
+							if (gustLastCal > RecentMaxGust)
+							{
+								cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
+								CheckHighGust(gustLastCal, dirVal, recDate);
+
+								// add to recent values so normal calculation includes this value
+								WindRecent[nextwind].Gust = gustVal; // use uncalibrated value
+								WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+								WindRecent[nextwind].Timestamp = recDate;
+								nextwind = (nextwind + 1) % MaxWindRecent;
+
+								RecentMaxGust = gustLastCal;
+							}
 						}
 					}
 					catch (Exception ex)

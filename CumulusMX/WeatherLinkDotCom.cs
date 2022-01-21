@@ -194,6 +194,23 @@ namespace CumulusMX
 		}
 	}
 
+	public class WlHistoryHealthType11_13
+	{
+		public int afc { get; set; }
+		public int arch_int { get; set; }
+		public int error_packets { get; set; }
+		public double? et { get; set; }
+		public int good_packets_streak { get; set; }
+		public int reception { get; set; }
+		public int resynchs { get; set; }
+		public double? solar_volt_last { get; set; }
+		public double? supercap_volt_last { get; set; }
+		public int rssi { get; set; }
+		public uint trans_battery_flag { get; set; }
+		public long ts { get; set; }
+		public int tx_id { get; set; }
+	}
+
 	public class WlHistorySensorDataType13Baro
 	{
 		public int arch_int { get; set; }

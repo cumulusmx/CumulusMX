@@ -6,6 +6,8 @@ namespace CumulusMX
 {
 	class HttpStationWund : WeatherStation
 	{
+		private bool starting = true;
+		private bool stopping = false;
 		private double previousRainCount = -1;
 		private double rainCount = 0;
 
@@ -14,8 +16,9 @@ namespace CumulusMX
 			cumulus.LogMessage("Starting HTTP Station (Wunderground)");
 
 			cumulus.StationOptions.CalculatedWC = true;
-			cumulus.AirQualityUnitText = "µg/m³";
-			cumulus.SoilMoistureUnitText = "%";
+			cumulus.Units.AirQualityUnitText = "µg/m³";
+			cumulus.Units.SoilMoistureUnitText = "%";
+			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// Wunderground does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
@@ -27,10 +30,12 @@ namespace CumulusMX
 		{
 			DoDayResetIfNeeded();
 			timerStartNeeded = true;
+			starting = false;
 		}
 
 		public override void Stop()
 		{
+			stopping = true;
 			StopMinuteTimer();
 		}
 
@@ -54,6 +59,12 @@ namespace CumulusMX
 			 */
 
 			DateTime recDate;
+
+			if (starting || stopping)
+			{
+				context.Response.StatusCode = 200;
+				return "success";
+			}
 
 			try
 			{
@@ -386,7 +397,7 @@ namespace CumulusMX
 						var str = data["soiltemp" + i + "f"];
 						if (str != null && str != "-9999")
 						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), 2);
+							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i);
 						}
 					}
 				}
@@ -410,10 +421,10 @@ namespace CumulusMX
 
 					for (var i = 2; i <= 4; i++)
 					{
-						var str = data["soilmoisture2"];
+						var str = data["soilmoisture" + i];
 						if (str != null && str != "-9999")
 						{
-							DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), 2);
+							DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), i);
 						}
 					}
 				}
