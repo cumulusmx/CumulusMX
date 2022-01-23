@@ -1,3 +1,10 @@
+3.14.3 - b3163
+——————————————
+- Fix: Prevent real time processing occurring before first data has been received
+- Fix: Davis WLL: Add missing decode of THSW from current data
+
+
+
 3.14.2 - b3162
 ——————————————
 - Fix: Dayfile viewer/editor header for log date changed year format to correct value = "dd/mm/yy"
