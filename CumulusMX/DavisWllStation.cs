@@ -708,6 +708,11 @@ namespace CumulusMX
 										DoWindChill(ConvertTempFToUser(data1.wind_chill.Value), dateTime);
 									}
 
+									if (data1.thsw_index.HasValue)
+									{
+										THSWIndex = ConvertTempFToUser(data1.thsw_index.Value);
+									}
+
 									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
 									//TODO: Heat Index? rec["heat_index"] - No, Cumulus always calculates HI
 								}

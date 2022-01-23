@@ -173,7 +173,7 @@ namespace CumulusMX
 							var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, invNum));
 							var dirVal = Convert.ToInt32(dir, invNum);
 							var spdVal = ConvertWindMPHToUser(Convert.ToDouble(spd, invNum));
-							//DoWind(gustVal, dirVal, spdVal, recDate);
+
 							// The protocol does not provide an average value
 							// so feed in current MX average
 							DoWind(spdVal, dirVal, WindAverage / cumulus.Calib.WindSpeed.Mult, recDate);

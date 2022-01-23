@@ -2720,6 +2720,12 @@ namespace CumulusMX
 				return;
 			}
 
+			if ((!station.PressReadyToPlot || station.TempReadyToPlot || station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				return;
+			}
+
 			LogDebugMessage($"Realtime[{cycle}]: Start cycle");
 			try
 			{
