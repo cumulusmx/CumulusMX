@@ -5665,7 +5665,7 @@ namespace CumulusMX
 				queryString.Append(HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat, InvC) + ",");
 				queryString.Append(HiLoToday.LowFeelsLikeTime.ToString("\\'HH:mm\\'") + ",");
 				queryString.Append(HiLoToday.HighHumidex.ToString(cumulus.TempFormat, InvC) + ",");
-				queryString.Append(HiLoToday.HighFeelsLikeTime.ToString("\\'HH:mm\\'"));
+				queryString.Append(HiLoToday.HighHumidexTime.ToString("\\'HH:mm\\'"));
 
 				queryString.Append(")");
 

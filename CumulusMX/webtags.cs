@@ -3214,6 +3214,11 @@ namespace CumulusMX
 			return CheckRcDp(station.ET, tagParams, cumulus.RainDPlaces + 1);
 		}
 
+		private string TagAnnualEt(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AnnualETTotal, tagParams, cumulus.RainDPlaces + 1);
+		}
+
 		private string TagLight(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.LightValue, tagParams, 1);
@@ -5612,6 +5617,7 @@ namespace CumulusMX
 				{ "RCapptempTH", TagRCapptempTh },
 				{ "RCapptempTL", TagRCapptempTl },
 				{ "ET", TagEt },
+				{ "AnnualET", TagAnnualEt },
 				{ "UV", TagUv },
 				{ "SolarRad", TagSolarRad },
 				{ "Light", TagLight },
