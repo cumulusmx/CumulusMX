@@ -250,10 +250,10 @@ namespace CumulusMX
 				tmrRealtime.AutoReset = true;
 				tmrRealtime.Start();
 
-				// Create a current conditions thread to poll readings every 30 seconds
+				// Create a current conditions thread to poll readings every 10 seconds as temperature updates every 10 seconds
 				GetWllCurrent(null, null);
 				tmrCurrent.Elapsed += GetWllCurrent;
-				tmrCurrent.Interval = 30 * 1000;  // Every 30 seconds
+				tmrCurrent.Interval = 10 * 1000;  // Every 10 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 

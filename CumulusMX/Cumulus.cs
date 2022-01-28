@@ -4209,6 +4209,14 @@ namespace CumulusMX
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 			EcowittExtraUseLeak= ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
 
+			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", "");
+			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", "");
+			EcowittMacAddress = ini.GetValue("Gw1000", "EcowittMacAddress", "");
+			if (string.IsNullOrEmpty(EcowittMacAddress) && !string.IsNullOrEmpty(Gw1000MacAddress))
+			{
+				EcowittMacAddress = Gw1000MacAddress;
+			}
+
 			// Ambient settings
 			AmbientExtraEnabled = ini.GetValue("Ambient", "ExtraSensorDataEnabled", false);
 			AmbientExtraUseSolar = ini.GetValue("Ambient", "ExtraSensorUseSolar", true);
@@ -5327,6 +5335,10 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
 			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
 
+			ini.SetValue("GW1000", "EcowittAppKey", EcowittApplicationKey);
+			ini.SetValue("GW1000", "EcowittUserKey", EcowittUserApiKey);
+			ini.SetValue("GW1000", "EcowittMacAddress", EcowittMacAddress);
+
 			// Ambient settings
 			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
 			ini.SetValue("Ambient", "ExtraSensorUseSolar", AmbientExtraUseSolar);
@@ -6266,9 +6278,11 @@ namespace CumulusMX
 
 		//public int VPClosedownTime { get; set; }
 		public string AirLinkInIPAddr { get; set; }
+
 		public string AirLinkOutIPAddr { get; set; }
 
 		public bool AirLinkInEnabled { get; set; }
+
 		public bool AirLinkOutEnabled { get; set; }
 
 		public bool EcowittExtraEnabled { get; set; }
@@ -6283,6 +6297,9 @@ namespace CumulusMX
 		public bool EcowittExtraUseCo2 { get; set; }
 		public bool EcowittExtraUseLightning { get; set; }
 		public bool EcowittExtraUseLeak { get; set; }
+		public string EcowittApplicationKey { get; set; }
+		public string EcowittUserApiKey { get; set; }
+		public string EcowittMacAddress { get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
 		public bool AmbientExtraUseSolar { get; set; }

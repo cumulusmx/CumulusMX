@@ -131,6 +131,13 @@ namespace CumulusMX
 				macaddress = cumulus.Gw1000MacAddress
 			};
 
+			var ecowittapi = new JsonStationSettingsEcowittApi()
+			{
+				applicationkey = cumulus.EcowittApplicationKey,
+				userkey = cumulus.EcowittUserApiKey,
+				mac = cumulus.EcowittMacAddress
+			};
+
 			var logrollover = new JsonStationSettingsLogRollover()
 			{
 				time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
@@ -429,6 +436,7 @@ namespace CumulusMX
 				easyw = easyweather,
 				imet = imet,
 				wmr928 = wmr928,
+				ecowittapi = ecowittapi,
 				Options = options,
 				Forecast = forecast,
 				Solar = solar,
@@ -1038,6 +1046,24 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Ecowitt API
+				try
+				{
+					if (settings.ecowittapi != null)
+					{
+						cumulus.EcowittApplicationKey = settings.ecowittapi.applicationkey;
+						cumulus.EcowittUserApiKey = settings.ecowittapi.userkey;
+						cumulus.EcowittMacAddress = settings.ecowittapi.mac;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt API settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Units
 				try
 				{
@@ -1332,6 +1358,7 @@ namespace CumulusMX
 		public JsonStationSettingsEasyWeather easyw { get; set; }
 		public JsonStationSettingsImet imet { get; set; }
 		public JsonStationSettingsWMR928 wmr928 { get; set; }
+		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 		public JsonStationSettingsOptions Options { get; set; }
 		public JsonStationSettingsForecast Forecast { get; set; }
 		public JsonStationSettingsSolar Solar { get; set; }
@@ -1490,6 +1517,13 @@ namespace CumulusMX
 		public string ipaddress { get; set; }
 		public bool autoDiscover { get; set; }
 		public string macaddress { get; set; }
+	}
+
+	internal class JsonStationSettingsEcowittApi
+	{
+		public string applicationkey { get; set; }
+		public string userkey { get; set; }
+		public string mac { get; set; }
 	}
 
 	internal class JsonStationSettingsWMR928

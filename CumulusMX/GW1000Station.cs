@@ -8,6 +8,8 @@ using System.Net;
 using System.Timers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -20,6 +22,9 @@ namespace CumulusMX
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
+		private EcowittApi api;
+		private int maxArchiveRuns = 1;
+
 		private TcpClient socket;
 		private NetworkStream stream;
 		private bool connectedOk = false;
@@ -27,6 +32,8 @@ namespace CumulusMX
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
 		private bool stop = false;
+
+		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private Version fwVersion;
 
@@ -264,62 +271,50 @@ namespace CumulusMX
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
 
-			if (!DoDiscovery())
+			if (DoDiscovery())
 			{
-				return;
-			}
+				cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
+				socket = OpenTcpPort();
 
-			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
-			socket = OpenTcpPort();
+				connectedOk = socket != null;
 
-			connectedOk = socket != null;
-
-			if (connectedOk)
-			{
-				cumulus.LogMessage("Connected OK");
-				cumulus.LogConsoleMessage("Connected to station");
-			}
-			else
-			{
-				cumulus.LogMessage("Not Connected");
-				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
-			}
-
-			if (connectedOk)
-			{
-				// Get the firmware version as check we are communicating
-				GW1000FirmwareVersion = GetFirmwareVersion();
-				cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
-				if (GW1000FirmwareVersion != "???")
+				if (connectedOk)
 				{
-					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
-					if (fwString.Length > 1)
-					{
-						fwVersion = new Version(fwString[1]);
-					}
-					else
-					{
-						// failed to get the version, lets assume it's fairly new
-						fwVersion = new Version("1.6.5");
-					}
+					cumulus.LogMessage("Connected OK");
+					cumulus.LogConsoleMessage("Connected to station");
+				}
+				else
+				{
+					cumulus.LogMessage("Not Connected");
+					cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
 				}
 
-				GetSystemInfo();
+				if (connectedOk)
+				{
+					// Get the firmware version as check we are communicating
+					GW1000FirmwareVersion = GetFirmwareVersion();
+					cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
+					if (GW1000FirmwareVersion != "???")
+					{
+						var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
+						if (fwString.Length > 1)
+						{
+							fwVersion = new Version(fwString[1]);
+						}
+						else
+						{
+							// failed to get the version, lets assume it's fairly new
+							fwVersion = new Version("1.6.5");
+						}
+					}
 
-				GetSensorIdsNew();
+					GetSystemInfo();
+
+					GetSensorIdsNew();
+				}
 			}
 
-			timerStartNeeded = true;
-			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
-			DoTrendValues(DateTime.Now);
-
-			// WLL does not provide a forecast string, so use the Cumulus forecast
-			cumulus.UseCumulusForecast = true;
-
-			cumulus.LogMessage("Starting GW1000");
-
-			StartLoop();
-			bw = new BackgroundWorker();
+			Task.Run(getAndProcessHistoryData);
 		}
 
 		private TcpClient OpenTcpPort()
@@ -372,16 +367,6 @@ namespace CumulusMX
 
 		public override void Start()
 		{
-			// Wait for the lock
-			cumulus.LogDebugMessage("Lock: Station waiting for lock");
-			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
-
-			cumulus.LogMessage("Start normal reading loop");
-
-			cumulus.LogDebugMessage("Lock: Station releasing lock");
-			Cumulus.syncInit.Release();
-
 			tenMinuteChanged = true;
 			lastMinute = DateTime.Now.Minute;
 
@@ -390,6 +375,22 @@ namespace CumulusMX
 			tmrDataWatchdog.Interval = 1000 * 30; // timeout after 30 seconds
 			tmrDataWatchdog.AutoReset = true;
 			tmrDataWatchdog.Start();
+
+			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
+			DoTrendValues(DateTime.Now);
+
+			// WLL does not provide a forecast string, so use the Cumulus forecast
+			cumulus.UseCumulusForecast = true;
+
+			// just incase we did not catch-up any history
+			DoDayResetIfNeeded();
+
+			cumulus.LogMessage("Starting GW1000");
+			
+			cumulus.StartTimersAndSensors();
+
+			StartLoop();
+			bw = new BackgroundWorker();
 
 			try
 			{
@@ -467,6 +468,861 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("Lock: Station releasing lock");
 			Cumulus.syncInit.Release();
 		}
+
+		public override void getAndProcessHistoryData()
+		{
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
+			{
+				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
+				cumulus.LastUpdateTime = DateTime.Now;
+				Start();
+				return;
+			}
+
+			int archiveRun = 0;
+			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			Cumulus.syncInit.Wait();
+			cumulus.LogDebugMessage("Lock: Station has the lock");
+
+			try
+			{
+
+				api = new EcowittApi(cumulus);
+
+				do
+				{
+					GetHistoricData();
+					archiveRun++;
+				} while (archiveRun < maxArchiveRuns);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+			}
+
+			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			_ = Cumulus.syncInit.Release();
+
+			Start();
+		}
+
+		private void GetHistoricData()
+		{
+			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+
+			var startTime = cumulus.LastUpdateTime;
+			var endTime = DateTime.Now;
+
+			// The API call is limited to fetching 24 hours of data
+			if ((endTime - startTime).TotalHours > 24.0)
+			{
+				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
+				endTime = startTime.AddHours(24);
+				maxArchiveRuns++;
+			}
+
+			EcowittApi.EcowittHistoricData dat;
+
+			// only fetch the data we are interested in...
+			var sb = new StringBuilder("indoor,outdoor,wind,pressure");
+			if (cumulus.EcowittExtraUseSolar || cumulus.EcowittExtraUseUv)
+				sb.Append(",solar_and_uvi");
+			if (cumulus.EcowittExtraUseTempHum)
+				sb.Append(",temp_and_humidity_ch1,temp_and_humidity_ch2,temp_and_humidity_ch3,temp_and_humidity_ch4,temp_and_humidity_ch5,temp_and_humidity_ch6,temp_and_humidity_ch7,temp_and_humidity_ch8");
+			if (cumulus.EcowittExtraUseSoilMoist)
+				sb.Append(",soil_ch1,soil_ch2,soil_ch3,soil_ch4,soil_ch5,soil_ch6,soil_ch7,soil_ch8");
+			if (cumulus.EcowittExtraUseUserTemp)
+				sb.Append(",temp_ch1,temp_ch2,temp_ch3,temp_ch4,temp_ch5,temp_ch6,temp_ch7,temp_ch8");
+			if (cumulus.EcowittExtraUseLeafWet)
+				sb.Append(",leaf_ch1,leaf_ch2,leaf_ch3,leaf_ch4,leaf_ch5,leaf_ch6,leaf_ch7,leaf_ch8");
+
+			var res = api.GetHistoricData(startTime, endTime, new string[] { sb.ToString() }, out dat);
+
+			if (res)
+			{
+				ProcessHistoryData(dat);
+			}
+		}
+
+		private void ProcessHistoryData(EcowittApi.EcowittHistoricData data)
+		{
+			// allocate a dictionary of data objects, keyed on the timestamp
+			var buffer = new SortedDictionary<DateTime, EcowittApi.HistoricData>();
+
+			// process each sensor type, and store them for adding to the system later
+			// Indoor Data
+			if (data.indoor != null)
+			{
+				// do the temperature
+				if (data.indoor.temperature.list != null)
+				{
+					foreach (var item in data.indoor.temperature.list)
+					{
+						// not present value = 140
+						if (!item.Value.HasValue || item.Value == 140)
+							continue;
+
+						var newItem = new EcowittApi.HistoricData();
+						newItem.IndoorTemp = item.Value;
+						buffer.Add(item.Key, newItem);
+					}
+				}
+				// do the humidity
+				if (data.indoor.humidity.list != null)
+				{
+					foreach (var item in data.indoor.humidity.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].IndoorHum = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.IndoorHum = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+			}
+			// Outdoor Data
+			if (data.outdoor != null)
+			{
+				// Temperature
+				if (data.outdoor.temperature.list != null)
+				{
+					foreach (var item in data.outdoor.temperature.list)
+					{
+						// not present value = 140
+						if (!item.Value.HasValue || item.Value == 140)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].Temp = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.Temp = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+
+				// Humidity
+				if (data.outdoor.humidity.list != null)
+				{
+					foreach (var item in data.outdoor.humidity.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].Humidity = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.Humidity = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+				// Dewpoint
+				if (data.outdoor.dew_point.list != null)
+				{
+					foreach (var item in data.outdoor.dew_point.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].DewPoint = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.DewPoint = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+			}
+			// Wind Data
+			if (data.wind != null)
+			{
+				// Speed
+				if (data.wind.wind_speed.list != null)
+				{
+					foreach (var item in data.wind.wind_speed.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].WindSpd = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.WindSpd = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+
+				// Gust
+				if (data.wind.wind_gust.list != null)
+				{
+					foreach (var item in data.wind.wind_gust.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].WindGust = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.WindGust = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+				// Direction
+				if (data.wind.wind_direction.list != null)
+				{
+					foreach (var item in data.wind.wind_direction.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].WindDir = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.WindDir = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+			}
+			// Pressure Data
+			if (data.pressure != null)
+			{
+				// relative
+				if (data.pressure.relative.list != null)
+				{
+					foreach (var item in data.pressure.relative.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].Pressure = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.Pressure = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+			}
+			// Solar Data
+			if (data.solar_and_uvi != null)
+			{
+				// solar
+				if (cumulus.EcowittExtraUseSolar && data.solar_and_uvi.solar.list != null)
+				{
+					foreach (var item in data.solar_and_uvi.solar.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].Solar = (int)item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.Solar = (int)item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+				// uvi
+				if (cumulus.EcowittExtraUseUv && data.solar_and_uvi.uvi.list != null)
+				{
+					foreach (var item in data.solar_and_uvi.uvi.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].UVI = (int)item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.UVI = (int)item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+			}
+			// Extra 8 channel sensors
+			for (var i = 1; i <= 8; i++)
+			{
+				EcowittApi.EcowittHistoricTempHum srcTH = null;
+				EcowittApi.EcowittHistoricDataSoil srcSoil = null;
+				EcowittApi.EcowittHistoricDataTemp srcTemp = null;
+				EcowittApi.EcowittHistoricDataLeaf srcLeaf = null;
+				switch (i)
+				{
+					case 1:
+						srcTH = data.temp_and_humidity_ch1;
+						srcSoil = data.soil_ch1;
+						srcTemp = data.temp_ch1;
+						srcLeaf = data.leaf_ch1;
+						break;
+					case 2:
+						srcTH = data.temp_and_humidity_ch2;
+						srcSoil = data.soil_ch2;
+						srcTemp = data.temp_ch2;
+						srcLeaf = data.leaf_ch2;
+						break;
+					case 3:
+						srcTH = data.temp_and_humidity_ch3;
+						srcSoil = data.soil_ch3;
+						srcTemp = data.temp_ch3;
+						srcLeaf = data.leaf_ch3;
+						break;
+					case 4:
+						srcTH = data.temp_and_humidity_ch4;
+						srcSoil = data.soil_ch4;
+						srcTemp = data.temp_ch4;
+						srcLeaf = data.leaf_ch4;
+						break;
+					case 5:
+						srcTH = data.temp_and_humidity_ch5;
+						srcSoil = data.soil_ch5;
+						srcTemp = data.temp_ch5;
+						srcLeaf = data.leaf_ch5;
+						break;
+					case 6:
+						srcTH = data.temp_and_humidity_ch6;
+						srcSoil = data.soil_ch6;
+						srcTemp = data.temp_ch6;
+						srcLeaf = data.leaf_ch6;
+						break;
+					case 7:
+						srcTH = data.temp_and_humidity_ch7;
+						srcSoil = data.soil_ch7;
+						srcTemp = data.temp_ch7;
+						srcLeaf = data.leaf_ch7;
+						break;
+					case 8:
+						srcTH = data.temp_and_humidity_ch8;
+						srcSoil = data.soil_ch8;
+						srcTemp = data.temp_ch8;
+						srcLeaf = data.leaf_ch8;
+						break;
+				}
+
+				// Extra Temp/Hum Data
+				if (cumulus.EcowittExtraUseTempHum && srcTH != null)
+				{
+					// temperature
+					if (srcTH.temperature.list != null)
+					{
+						foreach (var item in srcTH.temperature.list)
+						{
+							if (!item.Value.HasValue)
+								continue;
+
+							if (buffer.ContainsKey(item.Key))
+							{
+								buffer[item.Key].ExtraTemp[i - 1] = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.ExtraTemp[i - 1] = item.Value;
+								buffer.Add(item.Key, newItem);
+							}
+						}
+					}
+					// humidity
+					if (srcTH.humidity.list != null)
+					{
+						foreach (var item in srcTH.humidity.list)
+						{
+							if (!item.Value.HasValue)
+								continue;
+
+							if (buffer.ContainsKey(item.Key))
+							{
+								buffer[item.Key].ExtraHumidity[i - 1] = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.ExtraHumidity[i - 1] = item.Value;
+								buffer.Add(item.Key, newItem);
+							}
+						}
+					}
+				}
+				// Extra Soil Moisture Data
+				if (cumulus.EcowittExtraUseSoilMoist && srcSoil != null && srcSoil.soilmoisture.list != null)
+				{
+					// moisture
+					foreach (var item in srcSoil.soilmoisture.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].SoilMoist[i - 1] = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.SoilMoist[i - 1] = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+				// User Temp Data
+				if (cumulus.EcowittExtraUseUserTemp && srcTemp != null && srcTemp.temperature.list != null)
+				{
+					// temperature
+					foreach (var item in srcTemp.temperature.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].UserTemp[i - 1] = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.UserTemp[i - 1] = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+				// Leaf Wetness Data
+				if (cumulus.EcowittExtraUseLeafWet && srcLeaf != null && srcLeaf.leaf_wetness.list != null)
+				{
+					// wetness
+					foreach (var item in srcLeaf.leaf_wetness.list)
+					{
+						if (!item.Value.HasValue)
+							continue;
+
+						if (buffer.ContainsKey(item.Key))
+						{
+							buffer[item.Key].LeafWetness[i - 1] = item.Value;
+						}
+						else
+						{
+							var newItem = new EcowittApi.HistoricData();
+							newItem.LeafWetness[i - 1] = item.Value;
+							buffer.Add(item.Key, newItem);
+						}
+					}
+				}
+			}
+
+
+			// now we have all the data for this period, for each record create the string expected by ProcessData and get it processed
+			var rollHour = Math.Abs(cumulus.GetHourInc());
+			var luhour = cumulus.LastUpdateTime.Hour;
+			var rolloverdone = luhour == rollHour;
+			var midnightraindone = luhour == 0;
+
+			foreach (var rec in buffer)
+			{
+				cumulus.LogMessage("Processing data for " + rec.Key);
+
+				var h = rec.Key.Hour;
+
+				//  if outside rollover hour, rollover yet to be done
+				if (h != rollHour) rolloverdone = false;
+
+				// In rollover hour and rollover not yet done
+				if (h == rollHour && !rolloverdone)
+				{
+					// do rollover
+					cumulus.LogMessage("Day rollover " + rec.Key.ToShortTimeString());
+					DayReset(rec.Key);
+
+					rolloverdone = true;
+				}
+
+				// Not in midnight hour, midnight rain yet to be done
+				if (h != 0) midnightraindone = false;
+
+				// In midnight hour and midnight rain (and sun) not yet done
+				if (h == 0 && !midnightraindone)
+				{
+					ResetMidnightRain(rec.Key);
+					ResetSunshineHours();
+					midnightraindone = true;
+				}
+
+				// finally apply this data
+				ApplyHistoricData(rec);
+
+				// add in archive period worth of sunshine, if sunny
+				if (SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+					SolarRad >= cumulus.SolarOptions.SolarMinimum)
+					SunshineHours += 5 / 60.0;
+
+
+
+				// add in 'following interval' minutes worth of wind speed to windrun
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + 5 + " minutes = " +
+								   (WindAverage * WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+
+				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0;
+
+				// update heating/cooling degree days
+				UpdateDegreeDays(5);
+
+				// update dominant wind bearing
+				CalculateDominantWindBearing(Bearing, WindAverage, 5);
+
+				CheckForWindrunHighLow(rec.Key);
+
+				//bw?.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
+
+				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
+
+				cumulus.DoLogFile(rec.Key, false);
+				if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(rec.Key);
+
+				//AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
+				//    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+				//    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+
+				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+
+				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvaoptranspiration(rec.Key);
+				}
+
+				DoTrendValues(rec.Key);
+				UpdatePressureTrendString();
+				UpdateStatusPanel(rec.Key);
+				cumulus.AddToWebServiceLists(rec.Key);
+
+			}
+		}
+
+
+		private void ApplyHistoricData(KeyValuePair<DateTime, EcowittApi.HistoricData> rec)
+		{
+			// === Wind ==
+			try
+			{
+				if (rec.Value.WindGust.HasValue && rec.Value.WindSpd.HasValue && rec.Value.WindDir.HasValue)
+				{
+					var gustVal = ConvertWindMPHToUser((double)rec.Value.WindGust);
+					var spdVal = ConvertWindMPHToUser((double)rec.Value.WindSpd);
+					var dirVal = rec.Value.WindDir.Value;
+
+					// The protocol does not provide an average value
+					// so feed in current MX average
+					DoWind(spdVal, dirVal, WindAverage / cumulus.Calib.WindSpeed.Mult, rec.Key);
+
+					var gustLastCal = gustVal * cumulus.Calib.WindGust.Mult;
+					if (gustLastCal > RecentMaxGust)
+					{
+						cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
+						CheckHighGust(gustLastCal, dirVal, rec.Key);
+
+						// add to recent values so normal calculation includes this value
+						WindRecent[nextwind].Gust = gustVal; // use uncalibrated value
+						WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+						WindRecent[nextwind].Timestamp = rec.Key;
+						nextwind = (nextwind + 1) % MaxWindRecent;
+
+						RecentMaxGust = gustLastCal;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Wind data - " + ex.Message);
+			}
+
+			// === Humidity ===
+			try
+			{
+				if (rec.Value.IndoorHum.HasValue)
+				{
+					DoIndoorHumidity(rec.Value.IndoorHum.Value);
+				}
+
+				if (rec.Value.Humidity.HasValue)
+				{
+					DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Humidity data - " + ex.Message);
+			}
+
+			// === Pressure ===
+			try
+			{
+				if (rec.Value.Pressure.HasValue)
+				{
+					var pressVal = ConvertPressINHGToUser((double)rec.Value.Pressure);
+					DoPressure(pressVal, rec.Key);
+					UpdatePressureTrendString();
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Pressure data - " + ex.Message);
+			}
+
+			// === Indoor temp ===
+			try
+			{
+				if (rec.Value.IndoorTemp.HasValue)
+				{
+					var tempVal = ConvertTempFToUser((double)rec.Value.IndoorTemp);
+					DoIndoorTemp(tempVal);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Indoor temp data - " + ex.Message);
+			}
+
+			// === Outdoor temp ===
+			try
+			{
+				if (rec.Value.Temp.HasValue)
+				{
+					var tempVal = ConvertTempFToUser((double)rec.Value.Temp);
+					DoOutdoorTemp(tempVal, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Outdoor temp data - " + ex.Message);
+			}
+
+			// === Rain ===
+			try
+			{
+				double rRate = 0;
+				if (rec.Value.RainRate.HasValue)
+				{
+					// we have a rain rate, so we will NOT calculate it
+					calculaterainrate = false;
+					rRate = (double)rec.Value.RainRate;
+				}
+				else
+				{
+					// No rain rate, so we will calculate it
+					calculaterainrate = true;
+				}
+
+				if (rec.Value.RainYear.HasValue)
+				{
+					var rainVal = ConvertRainINToUser((double)rec.Value.RainYear);
+					var rateVal = ConvertRainINToUser(rRate);
+					DoRain(rainVal, rateVal, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Rain data - " + ex.Message);
+			}
+
+			// === Dewpoint ===
+			try
+			{
+				if (cumulus.StationOptions.CalculatedDP)
+				{
+					DoOutdoorDewpoint(0, rec.Key);
+				}
+				else if (rec.Value.DewPoint.HasValue)
+				{
+					var val = ConvertTempFToUser((double)rec.Value.DewPoint);
+					DoOutdoorDewpoint(val, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message);
+			}
+
+			// === Wind Chill ===
+			try
+			{
+				if (cumulus.StationOptions.CalculatedWC && rec.Value.Temp.HasValue && rec.Value.WindSpd.HasValue)
+				{
+					DoWindChill(0, rec.Key);
+				}
+				else
+				{
+					// historic API does not provide Wind Chill so force calculation
+					cumulus.StationOptions.CalculatedWC = true;
+					DoWindChill(0, rec.Key);
+					cumulus.StationOptions.CalculatedWC = false;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message);
+			}
+
+			// === Humidex ===
+			if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
+			{
+				try
+				{ 
+					DoHumidex(rec.Key);
+
+					// === Apparent & Feels Like === - requires temp, hum, and windspeed
+					if (rec.Value.WindSpd.HasValue)
+					{
+						DoApparentTemp(rec.Key);
+						DoFeelsLike(rec.Key);
+					}
+					else
+					{
+						cumulus.LogMessage("ApplyHistoricData: Insufficient data to calculate Apparent/Feels Like temps");
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("ApplyHistoricData: Error in Humidex/Apparant/Feels Like - " + ex.Message);
+				}
+			}
+			else
+			{
+				cumulus.LogMessage("ApplyHistoricData: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
+			}
+
+			// === Solar ===
+			try
+			{
+				if (cumulus.EcowittExtraUseSolar && rec.Value.Solar.HasValue)
+				{
+					DoSolarRad(rec.Value.Solar.Value, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Solar data - " + ex.Message);
+			}
+
+			// === UVI ===
+			try
+			{
+				if (cumulus.EcowittExtraUseUv && rec.Value.UVI.HasValue)
+				{
+					DoUV((double)rec.Value.UVI, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Solar data - " + ex.Message);
+			}
+
+			// === Extra Sensors ===
+			for (var i = 1; i <= 8; i++)
+			{
+				if (cumulus.EcowittExtraUseTempHum)
+				{
+					// === Extra Temperature ===
+					try
+					{
+						if (rec.Value.ExtraTemp[i-1].HasValue)
+						{
+							DoExtraTemp(ConvertTempFToUser((double)rec.Value.ExtraTemp[i - 1]), i);
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
+					}
+					// === Extra Humidity ===
+					try
+					{
+						if (rec.Value.ExtraHumidity[i-1].HasValue)
+						{
+							DoExtraHum(rec.Value.ExtraHumidity[i - 1].Value, i);
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
+					}
+
+				}
+
+				// === User Temperature ===
+				try
+				{
+					if (cumulus.EcowittExtraUseUserTemp && rec.Value.UserTemp[i - 1].HasValue)
+					{
+						DoUserTemp(ConvertTempFToUser((double)rec.Value.UserTemp[i - 1]), i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"ApplyHistoricData: Error in extra user temperature data - {ex.Message}");
+				}
+
+				// === Soil Moisture ===
+				try
+				{
+					if (cumulus.EcowittExtraUseSoilMoist && rec.Value.SoilMoist[i - 1].HasValue)
+					{
+						DoSoilMoisture((double)rec.Value.SoilMoist[i-1], i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
+				}
+			}
+
+		}
+
 
 		private Discovery DiscoverGW1000()
 		{
@@ -851,6 +1707,12 @@ namespace CumulusMX
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 					case "WH90":
+						// if a WS90 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
+						if (updateRate > 4000)
+						{
+							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000} seconds to 4 seconds");
+							updateRate = 4000;
+						}
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})";  // volts/10, low = 1.2V
 						break;
@@ -1722,11 +2584,11 @@ namespace CumulusMX
 		{
 			return value / 10.0 > 1.2 ? "OK" : "Low";
 		}
+		
 		private static double TestBattery10V(byte value)
 		{
 			return value / 10.0;
 		}
-
 
 		private static string TestBatteryPct(byte value)
 		{
