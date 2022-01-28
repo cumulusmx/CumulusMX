@@ -314,6 +314,8 @@ namespace CumulusMX
 				}
 			}
 
+			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
+
 			Task.Run(getAndProcessHistoryData);
 		}
 
@@ -365,6 +367,7 @@ namespace CumulusMX
 			return client;
 		}
 
+
 		public override void Start()
 		{
 			tenMinuteChanged = true;
@@ -376,67 +379,64 @@ namespace CumulusMX
 			tmrDataWatchdog.AutoReset = true;
 			tmrDataWatchdog.Start();
 
-			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
-			DoTrendValues(DateTime.Now);
 
 			// WLL does not provide a forecast string, so use the Cumulus forecast
 			cumulus.UseCumulusForecast = true;
 
 			// just incase we did not catch-up any history
 			DoDayResetIfNeeded();
+			DoTrendValues(DateTime.Now);
 
 			cumulus.LogMessage("Starting GW1000");
-			
+
 			cumulus.StartTimersAndSensors();
 
-			StartLoop();
-			bw = new BackgroundWorker();
-
-			try
+			Task.Run(() =>
 			{
-				while (!stop)
+				try
 				{
-					if (connectedOk)
+					while (!stop)
 					{
-						GetLiveData();
-
-						// at the start of every 10 minutes to trigger battery status check
-						var minute = DateTime.Now.Minute;
-						if (minute != lastMinute)
-						{
-							lastMinute = minute;
-							if ((minute % 10) == 0)
-							{
-								GetSensorIdsNew();
-							}
-						}
-					}
-					else
-					{
-						cumulus.LogMessage("Attempting to reconnect to GW1000...");
-						socket = OpenTcpPort();
-						connectedOk = socket != null;
 						if (connectedOk)
 						{
-							cumulus.LogMessage("Reconnected to GW1000");
 							GetLiveData();
+
+							// at the start of every 10 minutes to trigger battery status check
+							var minute = DateTime.Now.Minute;
+							if (minute != lastMinute)
+							{
+								lastMinute = minute;
+								if ((minute % 10) == 0)
+								{
+									GetSensorIdsNew();
+								}
+							}
 						}
+						else
+						{
+							cumulus.LogMessage("Attempting to reconnect to GW1000...");
+							socket = OpenTcpPort();
+							connectedOk = socket != null;
+							if (connectedOk)
+							{
+								cumulus.LogMessage("Reconnected to GW1000");
+								GetLiveData();
+							}
+						}
+						Thread.Sleep(updateRate);
 					}
-					Thread.Sleep(updateRate);
 				}
-			}
-			// Catch the ThreadAbortException
-			catch (ThreadAbortException)
-			{
-			}
-			finally
-			{
-				if (socket != null)
+				// Catch the ThreadAbortException
+				catch (ThreadAbortException) {}
+				finally
 				{
-					socket.GetStream().WriteByte(10);
-					socket.Close();
+					if (socket != null)
+					{
+						socket.GetStream().WriteByte(10);
+						socket.Close();
+					}
 				}
-			}
+			});
 		}
 
 		public override void Stop()
@@ -455,62 +455,51 @@ namespace CumulusMX
 			}
 		}
 
-		private void bw_DoStart(object sender, DoWorkEventArgs e)
-		{
-			cumulus.LogDebugMessage("Lock: Station waiting for lock");
-			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
-
-			// Wait a short while for Cumulus initialisation to complete
-			Thread.Sleep(500);
-			StartLoop();
-
-			cumulus.LogDebugMessage("Lock: Station releasing lock");
-			Cumulus.syncInit.Release();
-		}
 
 		public override void getAndProcessHistoryData()
 		{
-			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
-			{
-				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
-				cumulus.LastUpdateTime = DateTime.Now;
-				Start();
-				return;
-			}
-
-			int archiveRun = 0;
 			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
 			cumulus.LogDebugMessage("Lock: Station has the lock");
 
-			try
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
-
-				api = new EcowittApi(cumulus);
-
-				do
-				{
-					GetHistoricData();
-					archiveRun++;
-				} while (archiveRun < maxArchiveRuns);
+				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
+				cumulus.LastUpdateTime = DateTime.Now;
 			}
-			catch (Exception ex)
+			else
 			{
-				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+				int archiveRun = 0;
+
+				try
+				{
+
+					api = new EcowittApi(cumulus);
+
+					do
+					{
+						GetHistoricData();
+						archiveRun++;
+					} while (archiveRun < maxArchiveRuns);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+				}
 			}
 
 			cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.syncInit.Release();
 
-			Start();
+			StartLoop();
 		}
 
 		private void GetHistoricData()
 		{
 			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
 
-			var startTime = cumulus.LastUpdateTime;
+			// add one minute to the time to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
 			var endTime = DateTime.Now;
 
 			// The API call is limited to fetching 24 hours of data

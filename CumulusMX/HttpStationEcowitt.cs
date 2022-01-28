@@ -146,7 +146,8 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
 
-			var startTime = cumulus.LastUpdateTime;
+			// add one minute to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
 			var endTime = DateTime.Now;
 
 			// The API call is limited to fetching 24 hours of data

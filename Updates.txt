@@ -1,5 +1,9 @@
-3.15.0 - b3164 - BETA
+3.15.0 - b3165 - BETA
 ——————————————
+- 3165: Fix GW1000 start-up issue!
+- 3165: Fix possible duplication of the last log entry from the previous run of MX
+
+
 - Fix: Prevent real time processing occurring before first data has been received
 - Fix: Davis WLL: Add missing decode of THSW from current data
 - Fix: Daily high humidex time being logged as high apparent temp time
