@@ -548,7 +548,7 @@ namespace CumulusMX
 					foreach (var item in data.indoor.temperature.list)
 					{
 						// not present value = 140
-						if (!item.Value.HasValue || item.Value == 140)
+						if (!item.Value.HasValue || item.Value == 140 || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						var newItem = new EcowittApi.HistoricData();
@@ -561,7 +561,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.indoor.humidity.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -586,7 +586,7 @@ namespace CumulusMX
 					foreach (var item in data.outdoor.temperature.list)
 					{
 						// not present value = 140
-						if (!item.Value.HasValue || item.Value == 140)
+						if (!item.Value.HasValue || item.Value == 140 || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -607,7 +607,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.outdoor.humidity.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -627,7 +627,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.outdoor.dew_point.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -651,7 +651,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.wind.wind_speed.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -672,7 +672,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.wind.wind_gust.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -692,7 +692,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.wind.wind_direction.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -716,7 +716,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.pressure.relative.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -740,7 +740,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.solar_and_uvi.solar.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -760,7 +760,7 @@ namespace CumulusMX
 				{
 					foreach (var item in data.solar_and_uvi.uvi.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -843,7 +843,7 @@ namespace CumulusMX
 					{
 						foreach (var item in srcTH.temperature.list)
 						{
-							if (!item.Value.HasValue)
+							if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 								continue;
 
 							if (buffer.ContainsKey(item.Key))
@@ -863,7 +863,7 @@ namespace CumulusMX
 					{
 						foreach (var item in srcTH.humidity.list)
 						{
-							if (!item.Value.HasValue)
+							if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 								continue;
 
 							if (buffer.ContainsKey(item.Key))
@@ -885,7 +885,7 @@ namespace CumulusMX
 					// moisture
 					foreach (var item in srcSoil.soilmoisture.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -906,7 +906,7 @@ namespace CumulusMX
 					// temperature
 					foreach (var item in srcTemp.temperature.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
@@ -927,7 +927,7 @@ namespace CumulusMX
 					// wetness
 					foreach (var item in srcLeaf.leaf_wetness.list)
 					{
-						if (!item.Value.HasValue)
+						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
 							continue;
 
 						if (buffer.ContainsKey(item.Key))
