@@ -4208,10 +4208,10 @@ namespace CumulusMX
 			EcowittExtraUseCo2= ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 			EcowittExtraUseLeak= ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
-
+			// api
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", "");
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", "");
-			EcowittMacAddress = ini.GetValue("Gw1000", "EcowittMacAddress", "");
+			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", "");
 			if (string.IsNullOrEmpty(EcowittMacAddress) && !string.IsNullOrEmpty(Gw1000MacAddress))
 			{
 				EcowittMacAddress = Gw1000MacAddress;

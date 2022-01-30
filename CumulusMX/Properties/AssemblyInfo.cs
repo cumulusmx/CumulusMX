@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Cumulus MX BETA")]
-[assembly: AssemblyDescription("Version 3.15.0 - Build 3166")]
+[assembly: AssemblyTitle("Cumulus MX")]
+[assembly: AssemblyDescription("Version 3.15.0 - Build 3167")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Cumulus MX BETA")]
+[assembly: AssemblyProduct("Cumulus MX")]
 [assembly: AssemblyCopyright("Copyright ©  2015-2022 Cumulus MX")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.15.0.3166")]
-[assembly: AssemblyFileVersion("3.15.0.3166")]
+[assembly: AssemblyVersion("3.15.0.3167")]
+[assembly: AssemblyFileVersion("3.15.0.3167")]

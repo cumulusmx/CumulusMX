@@ -7117,7 +7117,7 @@ namespace CumulusMX
 			}
 		}
 
-		protected void UpdateStatusPanel(DateTime timestamp)
+		internal void UpdateStatusPanel(DateTime timestamp)
 		{
 			LastDataReadTimestamp = timestamp;
 		}
