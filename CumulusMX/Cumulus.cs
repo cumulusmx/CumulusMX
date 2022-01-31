@@ -2720,9 +2720,10 @@ namespace CumulusMX
 				return;
 			}
 
-			if ((!station.PressReadyToPlot || station.TempReadyToPlot || station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"Realtime[{cycle}]: Not all data is ready, aborting process");
 				return;
 			}
 

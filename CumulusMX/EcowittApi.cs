@@ -199,8 +199,16 @@ namespace CumulusMX
 							{
 								try
 								{
-									data = histObj.data;
-									success = true;
+									if (histObj.data != null)
+									{
+										data = histObj.data;
+										success = true;
+									}
+									else
+									{
+										// There was no data returned.
+										return false;
+									}
 								}
 								catch (Exception ex)
 								{
@@ -1317,6 +1325,8 @@ namespace CumulusMX
 			public EcowittHistoricData data { get; set; }
 		}
 
+		//TODO: OK this works, but ouch!
+		// refactor data as a dictionary object and parse each item indivually
 		internal class EcowittHistoricData
 		{
 			public EcowittHistoricTempHum indoor { get; set; }
