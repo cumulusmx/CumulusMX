@@ -1,3 +1,19 @@
+3.15.0 - b3169
+——————————————
+- Fix: Prevent real time processing occurring before first data has been received
+- Fix: Davis WLL: Add missing decode of THSW from current data
+- Fix: Daily high humidex time being logged as high apparent temp time
+
+- Change: Leaf wetness web tags <#LeafWetness[1-8]> now accept the rc and dp parameters
+- Change: Davis WLL: Now fetches temperature data every 10 seconds instead of 60 seconds
+
+- New: Adds experimental support for Ecowitt stations (GW1000 & HTTP) historic catch-up
+- New: HTTP (Ecowitt) station: adds support for WS990 battery state decoding
+
+- New: Additional web tag for annual ET total <#AnnualET>
+
+
+
 3.14.2 - b3162
 ——————————————
 - Fix: Dayfile viewer/editor header for log date changed year format to correct value = "dd/mm/yy"

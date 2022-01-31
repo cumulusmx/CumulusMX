@@ -204,6 +204,7 @@
     <Compile Include="DavisAirLink.cs" />
     <Compile Include="DavisWllStation.cs" />
     <Compile Include="EasyWeather.cs" />
+    <Compile Include="EcowittApi.cs" />
     <Compile Include="EmailSender.cs" />
     <Compile Include="ExtraSensorSettings.cs" />
     <Compile Include="FOStation.cs" />

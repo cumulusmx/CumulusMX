@@ -8,6 +8,8 @@ using System.Net;
 using System.Timers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -20,6 +22,9 @@ namespace CumulusMX
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
+		private EcowittApi api;
+		private int maxArchiveRuns = 1;
+
 		private TcpClient socket;
 		private NetworkStream stream;
 		private bool connectedOk = false;
@@ -27,6 +32,8 @@ namespace CumulusMX
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
 		private bool stop = false;
+
+		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private Version fwVersion;
 
@@ -264,62 +271,52 @@ namespace CumulusMX
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
 
-			if (!DoDiscovery())
+			if (DoDiscovery())
 			{
-				return;
-			}
+				cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
+				socket = OpenTcpPort();
 
-			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
-			socket = OpenTcpPort();
+				connectedOk = socket != null;
 
-			connectedOk = socket != null;
-
-			if (connectedOk)
-			{
-				cumulus.LogMessage("Connected OK");
-				cumulus.LogConsoleMessage("Connected to station");
-			}
-			else
-			{
-				cumulus.LogMessage("Not Connected");
-				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
-			}
-
-			if (connectedOk)
-			{
-				// Get the firmware version as check we are communicating
-				GW1000FirmwareVersion = GetFirmwareVersion();
-				cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
-				if (GW1000FirmwareVersion != "???")
+				if (connectedOk)
 				{
-					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
-					if (fwString.Length > 1)
-					{
-						fwVersion = new Version(fwString[1]);
-					}
-					else
-					{
-						// failed to get the version, lets assume it's fairly new
-						fwVersion = new Version("1.6.5");
-					}
+					cumulus.LogMessage("Connected OK");
+					cumulus.LogConsoleMessage("Connected to station");
+				}
+				else
+				{
+					cumulus.LogMessage("Not Connected");
+					cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
 				}
 
-				GetSystemInfo();
+				if (connectedOk)
+				{
+					// Get the firmware version as check we are communicating
+					GW1000FirmwareVersion = GetFirmwareVersion();
+					cumulus.LogMessage($"GW1000 firmware version: {GW1000FirmwareVersion}");
+					if (GW1000FirmwareVersion != "???")
+					{
+						var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
+						if (fwString.Length > 1)
+						{
+							fwVersion = new Version(fwString[1]);
+						}
+						else
+						{
+							// failed to get the version, lets assume it's fairly new
+							fwVersion = new Version("1.6.5");
+						}
+					}
 
-				GetSensorIdsNew();
+					GetSystemInfo();
+
+					GetSensorIdsNew();
+				}
 			}
 
-			timerStartNeeded = true;
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
-			DoTrendValues(DateTime.Now);
 
-			// WLL does not provide a forecast string, so use the Cumulus forecast
-			cumulus.UseCumulusForecast = true;
-
-			cumulus.LogMessage("Starting GW1000");
-
-			StartLoop();
-			bw = new BackgroundWorker();
+			Task.Run(getAndProcessHistoryData);
 		}
 
 		private TcpClient OpenTcpPort()
@@ -370,18 +367,9 @@ namespace CumulusMX
 			return client;
 		}
 
+
 		public override void Start()
 		{
-			// Wait for the lock
-			cumulus.LogDebugMessage("Lock: Station waiting for lock");
-			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
-
-			cumulus.LogMessage("Start normal reading loop");
-
-			cumulus.LogDebugMessage("Lock: Station releasing lock");
-			Cumulus.syncInit.Release();
-
 			tenMinuteChanged = true;
 			lastMinute = DateTime.Now.Minute;
 
@@ -391,51 +379,64 @@ namespace CumulusMX
 			tmrDataWatchdog.AutoReset = true;
 			tmrDataWatchdog.Start();
 
-			try
-			{
-				while (!stop)
-				{
-					if (connectedOk)
-					{
-						GetLiveData();
 
-						// at the start of every 10 minutes to trigger battery status check
-						var minute = DateTime.Now.Minute;
-						if (minute != lastMinute)
-						{
-							lastMinute = minute;
-							if ((minute % 10) == 0)
-							{
-								GetSensorIdsNew();
-							}
-						}
-					}
-					else
+			// WLL does not provide a forecast string, so use the Cumulus forecast
+			cumulus.UseCumulusForecast = true;
+
+			// just incase we did not catch-up any history
+			DoDayResetIfNeeded();
+			DoTrendValues(DateTime.Now);
+
+			cumulus.LogMessage("Starting GW1000");
+
+			cumulus.StartTimersAndSensors();
+
+			Task.Run(() =>
+			{
+				try
+				{
+					while (!stop)
 					{
-						cumulus.LogMessage("Attempting to reconnect to GW1000...");
-						socket = OpenTcpPort();
-						connectedOk = socket != null;
 						if (connectedOk)
 						{
-							cumulus.LogMessage("Reconnected to GW1000");
 							GetLiveData();
+
+							// at the start of every 10 minutes to trigger battery status check
+							var minute = DateTime.Now.Minute;
+							if (minute != lastMinute)
+							{
+								lastMinute = minute;
+								if ((minute % 10) == 0)
+								{
+									GetSensorIdsNew();
+								}
+							}
 						}
+						else
+						{
+							cumulus.LogMessage("Attempting to reconnect to GW1000...");
+							socket = OpenTcpPort();
+							connectedOk = socket != null;
+							if (connectedOk)
+							{
+								cumulus.LogMessage("Reconnected to GW1000");
+								GetLiveData();
+							}
+						}
+						Thread.Sleep(updateRate);
 					}
-					Thread.Sleep(updateRate);
 				}
-			}
-			// Catch the ThreadAbortException
-			catch (ThreadAbortException)
-			{
-			}
-			finally
-			{
-				if (socket != null)
+				// Catch the ThreadAbortException
+				catch (ThreadAbortException) {}
+				finally
 				{
-					socket.GetStream().WriteByte(10);
-					socket.Close();
+					if (socket != null)
+					{
+						socket.GetStream().WriteByte(10);
+						socket.Close();
+					}
 				}
-			}
+			});
 		}
 
 		public override void Stop()
@@ -454,18 +455,62 @@ namespace CumulusMX
 			}
 		}
 
-		private void bw_DoStart(object sender, DoWorkEventArgs e)
+
+		public override void getAndProcessHistoryData()
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for lock");
+			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
 			cumulus.LogDebugMessage("Lock: Station has the lock");
 
-			// Wait a short while for Cumulus initialisation to complete
-			Thread.Sleep(500);
-			StartLoop();
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
+			{
+				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
+				cumulus.LastUpdateTime = DateTime.Now;
+			}
+			else
+			{
+				int archiveRun = 0;
 
-			cumulus.LogDebugMessage("Lock: Station releasing lock");
-			Cumulus.syncInit.Release();
+				try
+				{
+
+					api = new EcowittApi(cumulus, this);
+
+					do
+					{
+						GetHistoricData();
+						archiveRun++;
+					} while (archiveRun < maxArchiveRuns);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+				}
+			}
+
+			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			_ = Cumulus.syncInit.Release();
+
+			StartLoop();
+		}
+
+		private void GetHistoricData()
+		{
+			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+
+			// add one minute to the time to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+			var endTime = DateTime.Now;
+
+			// The API call is limited to fetching 24 hours of data
+			if ((endTime - startTime).TotalHours > 24.0)
+			{
+				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
+				endTime = startTime.AddHours(24);
+				maxArchiveRuns++;
+			}
+
+			api.GetHistoricData(startTime, endTime);
 		}
 
 		private Discovery DiscoverGW1000()
@@ -664,77 +709,6 @@ namespace CumulusMX
 			return response;
 		}
 
-		/*
-		private bool GetSensorIds()
-		{
-			cumulus.LogMessage("Reading sensor ids");
-
-			var data = DoCommand(Commands.CMD_READ_SENSOR_ID);
-
-			// expected response
-			// 0   - 0xff - header
-			// 1   - 0xff - header
-			// 2   - 0x3A - sensor id command
-			// 3   - 0x?? - size of response
-			// 4   - wh65
-			// 5-8 - wh65 id
-			// 9   - wh65 signal
-			// 10  - wh65 battery
-			// 11  - wh68
-			//       ... etc
-			// (??) - 0x?? - checksum
-
-			if (null != data && data.Length > 200)
-			{
-				for (int i = 4; i < data[3]; i += 7)
-				{
-					PrintSensorInfo(data, i);
-				}
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		private void PrintSensorInfo(byte[] data, int idx)
-		{
-			// expected response
-			// 0   - 0xff - header
-			// 1   - 0xff - header
-			// 2   - 0x3A - sensor id command
-			// 3   - 0x?? - size of response
-			// 4   - wh65
-			// 5-8 - wh65 id
-			// 9   - wh65 signal
-			// 10  - wh65 battery
-			// 11  - wh68
-			//       ... etc
-			// (??) - 0x?? - checksum
-
-			var id = ConvertBigEndianUInt32(data, idx + 1);
-			var type = Enum.GetName(typeof(SensorIds), data[idx]).ToUpper();
-
-			if (string.IsNullOrEmpty(type))
-			{
-				type = $"unknown type = {id}";
-			}
-			switch (id)
-			{
-				case 0xFFFFFFFE:
-					cumulus.LogDebugMessage($" - {type} sensor = disabled");
-					break;
-				case 0xFFFFFFFF:
-					cumulus.LogDebugMessage($" - {type} sensor = registering");
-					break;
-				default:
-					cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[idx+5]} battery = {data[idx+6]}");
-					break;
-			}
-		}
-		*/
-
 		private bool GetSensorIdsNew()
 		{
 			cumulus.LogMessage("Reading sensor ids");
@@ -851,6 +825,12 @@ namespace CumulusMX
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 					case "WH90":
+						// if a WS90 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
+						if (updateRate > 4000)
+						{
+							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000} seconds to 4 seconds");
+							updateRate = 4000;
+						}
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})";  // volts/10, low = 1.2V
 						break;
@@ -1722,11 +1702,11 @@ namespace CumulusMX
 		{
 			return value / 10.0 > 1.2 ? "OK" : "Low";
 		}
+		
 		private static double TestBattery10V(byte value)
 		{
 			return value / 10.0;
 		}
-
 
 		private static string TestBatteryPct(byte value)
 		{

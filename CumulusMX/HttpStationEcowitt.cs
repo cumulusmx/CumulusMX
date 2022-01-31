@@ -4,6 +4,13 @@ using System.IO;
 using System.Web;
 using System.Globalization;
 using System.Collections.Specialized;
+using System.Reflection;
+using ServiceStack.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -15,6 +22,9 @@ namespace CumulusMX
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		private bool reportStationType = true;
+		private EcowittApi api;
+		private int maxArchiveRuns = 1;
+
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
 		{
@@ -63,7 +73,7 @@ namespace CumulusMX
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (station == null)
 			{
-				Start();
+				Task.Run(getAndProcessHistoryData);
 			}
 			else
 			{
@@ -77,7 +87,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Starting HTTP Station (Ecowitt)");
 				DoDayResetIfNeeded();
-				timerStartNeeded = true;
+				cumulus.StartTimersAndSensors();
 			}
 			else
 			{
@@ -95,7 +105,65 @@ namespace CumulusMX
 			}
 		}
 
-		public string ProcessData(IHttpContext context, bool main)
+		public override void getAndProcessHistoryData()
+		{
+			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			Cumulus.syncInit.Wait();
+			cumulus.LogDebugMessage("Lock: Station has the lock");
+
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
+			{
+				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
+				cumulus.LastUpdateTime = DateTime.Now;
+			}
+			else
+			{
+				int archiveRun = 0;
+
+				try
+				{
+
+					api = new EcowittApi(cumulus, this);
+
+					do
+					{
+						GetHistoricData();
+						archiveRun++;
+					} while (archiveRun < maxArchiveRuns);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+				}
+			}
+
+			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			_ = Cumulus.syncInit.Release();
+
+			StartLoop();
+		}
+
+		private void GetHistoricData()
+		{
+			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+
+			// add one minute to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+			var endTime = DateTime.Now;
+
+			// The API call is limited to fetching 24 hours of data
+			if ((endTime - startTime).TotalHours > 24.0)
+			{
+				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
+				endTime = startTime.AddHours(24);
+				maxArchiveRuns++;
+			}
+
+			api.GetHistoricData(startTime, endTime);
+
+		}
+
+		public string ProcessData(IHttpContext context, bool main, DateTime? ts = null)
 		{
 			/*
 			 * Ecowitt doc:
@@ -107,11 +175,7 @@ namespace CumulusMX
 
 			 */
 
-			DateTime recDate;
-
 			var procName = main ? "ProcessData" : "ProcessExtraData";
-			var thisStation = main ? this : station;
-
 
 			if (starting || stopping)
 			{
@@ -132,13 +196,51 @@ namespace CumulusMX
 
 				cumulus.LogDataMessage($"{procName}: Payload = {text}");
 
-				var data = HttpUtility.ParseQueryString(text);
+				// force the wind chill calculation as it is not present in historic data
+				var chillSave = cumulus.StationOptions.CalculatedWC;
+				cumulus.StationOptions.CalculatedWC = true;
 
-				// We will ignore the dateutc field, this is "live" data so just use "now" to avoid any clock issues
-				recDate = DateTime.Now;
+				var retVal = ApplyData(text, main, ts);
+
+				// restore wind chill setting
+				cumulus.StationOptions.CalculatedWC = chillSave;
+
+				if (retVal != "")
+				{
+					context.Response.StatusCode = 500;
+					return retVal;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"{procName}: Error - {ex.Message}");
+				context.Response.StatusCode = 500;
+				return "Failed: General error - " + ex.Message;
+			}
+
+			cumulus.LogDebugMessage($"{procName}: Complete");
+
+			context.Response.StatusCode = 200;
+			return "success";
+		}
+
+		public string ApplyData(string dataString, bool main, DateTime? ts = null)
+		{ 
+			var procName = main ? "ApplyData" : "ApplyExtraData";
+			var thisStation = main ? this : station;
+
+			try
+			{
+				DateTime recDate;
+
+
+				var data = HttpUtility.ParseQueryString(dataString);
+
+				// We will ignore the dateutc field if this "live" data to avoid any clock issues
+				recDate = ts.HasValue ? ts.Value : DateTime.Now;
 
 				// we only really want to do this once
-				if (reportStationType)
+				if (reportStationType && !ts.HasValue)
 				{
 					cumulus.LogDebugMessage($"{procName}: StationType = {data["stationtype"]}, Model = {data["model"]}, Frequency = {data["freq"]}Hz");
 					reportStationType = false;
@@ -173,7 +275,7 @@ namespace CumulusMX
 							var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, invNum));
 							var dirVal = Convert.ToInt32(dir, invNum);
 							var spdVal = ConvertWindMPHToUser(Convert.ToDouble(spd, invNum));
-							//DoWind(gustVal, dirVal, spdVal, recDate);
+
 							// The protocol does not provide an average value
 							// so feed in current MX average
 							DoWind(spdVal, dirVal, WindAverage / cumulus.Calib.WindSpeed.Mult, recDate);
@@ -197,7 +299,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Wind data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in wind data - " + ex.Message;
 					}
 
@@ -235,7 +336,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Humidity data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in humidity data - " + ex.Message;
 					}
 
@@ -262,7 +362,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Pressure data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in baro pressure data - " + ex.Message;
 					}
 
@@ -287,7 +386,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Indoor temp data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in indoor temp data - " + ex.Message;
 					}
 
@@ -312,7 +410,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Outdoor temp data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in outdoor temp data - " + ex.Message;
 					}
 
@@ -360,7 +457,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Rain data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in rainfall data - " + ex.Message;
 					}
 
@@ -389,7 +485,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in dew point data - " + ex.Message;
 					}
 
@@ -420,7 +515,6 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
-						context.Response.StatusCode = 500;
 						return "Failed: Error in dew point data - " + ex.Message;
 					}
 
@@ -650,6 +744,7 @@ namespace CumulusMX
 					wh65batt
 					wh68batt
 					wh80batt
+					wh90batt
 					batt[1-8] (wh31)
 					soilbatt[1-8] (wh51)
 					pm25batt[1-4] (wh41/wh43)
@@ -681,10 +776,15 @@ namespace CumulusMX
 				// === Firmware Version ===
 				try
 				{
-					var fwString = data["stationtype"].Split(new string[] { "_V" }, StringSplitOptions.None);
-					if (fwString.Length > 1)
+					if (data["stationtype"] != null)
 					{
-						GW1000FirmwareVersion = fwString[1];
+						var fwString = data["stationtype"].Split(new string[] { "_V" }, StringSplitOptions.None);
+						if (fwString.Length > 1)
+						{
+							// bug fix for WS90 which sends "stationtype=GW2000A_V2.1.0, runtime=253500"
+							var str = fwString[1].Split(new string[] { ", " }, StringSplitOptions.None)[0];
+							GW1000FirmwareVersion = str;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -701,14 +801,10 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage($"{procName}: Error - {ex.Message}");
-				context.Response.StatusCode = 500;
 				return "Failed: General error - " + ex.Message;
 			}
 
-			cumulus.LogDebugMessage($"{procName}: Complete");
-
-			context.Response.StatusCode = 200;
-			return "success";
+			return "";
 		}
 
 		private void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
@@ -926,6 +1022,7 @@ namespace CumulusMX
 			lowBatt = lowBatt || (data["wh65batt"] != null && data["wh65batt"] == "1");
 			lowBatt = lowBatt || (data["wh68batt"] != null && Convert.ToDouble(data["wh68batt"], invNum) <= 1.2);
 			lowBatt = lowBatt || (data["wh80batt"] != null && Convert.ToDouble(data["wh80batt"], invNum) <= 1.2);
+			lowBatt = lowBatt || (data["wh90batt"] != null && Convert.ToDouble(data["wh90batt"], invNum) <= 2.4);
 			for (var i = 1; i < 5; i++)
 			{
 				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
@@ -957,5 +1054,6 @@ namespace CumulusMX
 				}
 			}
 		}
+
 	}
 }

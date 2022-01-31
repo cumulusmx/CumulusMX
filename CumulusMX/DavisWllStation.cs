@@ -250,10 +250,10 @@ namespace CumulusMX
 				tmrRealtime.AutoReset = true;
 				tmrRealtime.Start();
 
-				// Create a current conditions thread to poll readings every 30 seconds
+				// Create a current conditions thread to poll readings every 10 seconds as temperature updates every 10 seconds
 				GetWllCurrent(null, null);
 				tmrCurrent.Elapsed += GetWllCurrent;
-				tmrCurrent.Interval = 30 * 1000;  // Every 30 seconds
+				tmrCurrent.Interval = 10 * 1000;  // Every 10 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
@@ -706,6 +706,11 @@ namespace CumulusMX
 									{
 										// use wind chill from WLL
 										DoWindChill(ConvertTempFToUser(data1.wind_chill.Value), dateTime);
+									}
+
+									if (data1.thsw_index.HasValue)
+									{
+										THSWIndex = ConvertTempFToUser(data1.thsw_index.Value);
 									}
 
 									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
