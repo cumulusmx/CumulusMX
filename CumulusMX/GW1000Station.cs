@@ -401,12 +401,12 @@ namespace CumulusMX
 						{
 							GetLiveData();
 
-							// at the start of every 10 minutes to trigger battery status check
+							// at the start of every 20 minutes to trigger battery status check
 							var minute = DateTime.Now.Minute;
 							if (minute != lastMinute)
 							{
 								lastMinute = minute;
-								if ((minute % 10) == 0)
+								if ((minute % 20) == 0)
 								{
 									GetSensorIdsNew();
 								}
@@ -826,12 +826,12 @@ namespace CumulusMX
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 					case "WH90":
 						// if a WS90 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
-						if (updateRate > 4000)
+						if (updateRate > 4000 && updateRate != 4000)
 						{
 							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000} seconds to 4 seconds");
 							updateRate = 4000;
 						}
-						battV = data[battPos] * 0.02;
+						battV = data[battPos] * 0.1;
 						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})";  // volts/10, low = 1.2V
 						break;
 
@@ -841,7 +841,7 @@ namespace CumulusMX
 
 					case "WH68":
 					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
-						battV = data[battPos] * 0.02;
+						battV = data[battPos] * 0.1;
 						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V or 1.0V??
 						break;
 
@@ -856,12 +856,13 @@ namespace CumulusMX
 					case "WH80":
 					case "WS80":
 						// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
-						if (updateRate > 4000)
+						if (updateRate > 4000 && updateRate != 4000)
 						{
 							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {updateRate/1000} seconds to 4 seconds");
 							updateRate = 4000;
 						}
-						batt = $"{data[battPos]} ({TestBatteryPct(data[battPos])})"; // Percent low = 20
+						battV = data[battPos] * 0.02;
+						batt = $"{battV:f1}V ({(battV > 1.2 ? "OK" : "Low")})";
 						break;
 
 					default:
@@ -1125,11 +1126,13 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
-									   // This has been deprecated since v1.6.5 - now use CMD_READ_SENSOR_ID_NEW
+								// This has been deprecated since v1.6.5 - now use CMD_READ_SENSOR_ID_NEW
+								/*
 								if (tenMinuteChanged && fwVersion.CompareTo(new Version("1.6.5")) >= 0)
 								{
 									batteryLow = batteryLow || DoBatteryStatus(data, idx);
 								}
+								*/
 								idx += 16;
 								break;
 							case 0x2A: //PM2.5 Air Quality Sensor(μg/m³)
@@ -1539,6 +1542,7 @@ namespace CumulusMX
 			return batteryLow;
 		}
 
+/*
 		private bool DoBatteryStatus(byte[] data, int index)
 		{
 			bool batteryLow = false;
@@ -1589,14 +1593,14 @@ namespace CumulusMX
 				cumulus.LogDebugMessage(str);
 
 			str = "wh51>" +
-				" ch1=" + TestBattery1(status.wh51, (byte)Wh51Ch.Ch1) +
-				" ch2=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch2) +
-				" ch3=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch3) +
-				" ch4=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch4) +
-				" ch5=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch5) +
-				" ch6=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch6) +
-				" ch7=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch7) +
-				" ch8=" + TestBattery1(status.wh31, (byte)Wh51Ch.Ch8);
+				" ch1=" + TestBattery10((byte)Wh51Ch.Ch1) + " - " + TestBattery10V((byte)Wh51Ch.Ch1) +
+				" ch2=" + TestBattery10((byte)Wh51Ch.Ch2) + " - " + TestBattery10V((byte)Wh51Ch.Ch2) +
+				" ch3=" + TestBattery10((byte)Wh51Ch.Ch3) + " - " + TestBattery10V((byte)Wh51Ch.Ch3) +
+				" ch4=" + TestBattery10((byte)Wh51Ch.Ch4) + " - " + TestBattery10V((byte)Wh51Ch.Ch4) +
+				" ch5=" + TestBattery10((byte)Wh51Ch.Ch5) + " - " + TestBattery10V((byte)Wh51Ch.Ch5) +
+				" ch6=" + TestBattery10((byte)Wh51Ch.Ch6) + " - " + TestBattery10V((byte)Wh51Ch.Ch6) +
+				" ch7=" + TestBattery10((byte)Wh51Ch.Ch7) + " - " + TestBattery10V((byte)Wh51Ch.Ch7) +
+				" ch8=" + TestBattery10((byte)Wh51Ch.Ch8) + " - " + TestBattery10V((byte)Wh51Ch.Ch8);
 			if (str.Contains("Low"))
 			{
 				batteryLow = true;
@@ -1656,6 +1660,7 @@ namespace CumulusMX
 
 			return batteryLow;
 		}
+*/
 
 		private bool DoWH34BatteryStatus(byte[] data, int index)
 		{

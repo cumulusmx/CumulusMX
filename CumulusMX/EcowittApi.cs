@@ -153,6 +153,8 @@ namespace CumulusMX
 			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
 			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
 
+			cumulus.LogConsoleMessage($"Processing history data from {startTime.ToString("yyyy-MM-dd HH:mm")} to {endTime.ToString("yyyy-MM-dd HH:mm")}...");
+
 			try
 			{
 				string responseBody;

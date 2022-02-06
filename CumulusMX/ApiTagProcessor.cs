@@ -26,12 +26,14 @@ namespace CumulusMX
 		}
 
 		// Output the processed response as a JSON string
-		public string ProcessJson(string query)
+		public string ProcessJson(IHttpRequest request)
 		{
 			var rc = false;
 
+			var query = request.Url.Query;
+
 			cumulus.LogDebugMessage("API tag: Processing API JSON tag request");
-			cumulus.LogDataMessage("API tag: Input string = " + query);
+			cumulus.LogDataMessage($"API tag: Source = {request.RemoteEndPoint} Input string = {query}");
 
 			var output = new StringBuilder("{", query.Length * 2);
 
@@ -79,15 +81,15 @@ namespace CumulusMX
 		}
 
 		// Just return the processed text as-is
-		public string ProcessText(IHttpContext context)
+		public string ProcessText(IHttpRequest request)
 		{
 			cumulus.LogDebugMessage("API tag: Processing API Text tag request");
 
 			try
 			{
-				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
+				var data = new StreamReader(request.InputStream).ReadToEnd();
 
-				cumulus.LogDataMessage("API tag: Input string = " + data);
+				cumulus.LogDataMessage($"API tag: Source = {request.RemoteEndPoint} Input string = {data}");
 
 				tokenParser.InputText = data;
 				var output = tokenParser.ToStringFromString();
