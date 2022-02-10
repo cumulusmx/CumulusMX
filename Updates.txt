@@ -1,3 +1,11 @@
+3.15.1 - b3107
+——————————————
+- Fix: Changes to the initial ping delay
+- Fix: Remove duplicated Records Set Timeout setting in Station Settings/General/Advanced
+
+- Change: Tweak to the ET calculation
+
+
 3.15.0 - b3169
 ——————————————
 - Fix: Prevent real time processing occurring before first data has been received

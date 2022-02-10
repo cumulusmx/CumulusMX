@@ -1152,8 +1152,8 @@ namespace CumulusMX
 
 							do
 							{
-								Thread.Sleep(50);
-							} while (pingReply != null || DateTime.Now < pingTimeout);
+								Thread.Sleep(500);
+							} while (pingReply != null && DateTime.Now < pingTimeout);
 
 							if (DateTime.Now >= pingTimeout)
 							{
@@ -10398,20 +10398,14 @@ namespace CumulusMX
 
 		private void PingCompletedCallback(object sender, PingCompletedEventArgs e)
 		{
-			// If the operation was cancelled, display a message to the user.
-			if (e.Cancelled)
-			{
-				LogMessage("Ping cancelled.");
-			}
-
 			// If an error occurred, display the exception to the user.
-			else if (e.Error != null)
+			if (e.Error != null)
 			{
 				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.InnerException.Message);
 			}
 			else
 			{
-				LogMessage("Ping reply: " + e.Reply);
+				LogMessage("Ping reply: " + e.Reply.Status);
 			}
 
 			pingReply = e.Reply;

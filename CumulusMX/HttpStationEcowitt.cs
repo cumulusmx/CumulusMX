@@ -193,6 +193,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"{procName}: Processing posted data");
 
 				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
+				text = System.Text.RegularExpressions.Regex.Replace(text, "PASSKEY=[^&]+", "PASSKEY=<PassKey>");
 
 				cumulus.LogDataMessage($"{procName}: Payload = {text}");
 

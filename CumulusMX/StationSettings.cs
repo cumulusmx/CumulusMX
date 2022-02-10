@@ -408,8 +408,7 @@ namespace CumulusMX
 
 			var generalAdvanced = new JsonStationSettingsAdvanced()
 			{
-				recsbegandate = cumulus.RecordsBeganDate,
-				recstimeout = cumulus.RecordSetTimeoutHrs
+				recsbegandate = cumulus.RecordsBeganDate
 			};
 
 			var general = new JsonStationGeneral()
@@ -1145,7 +1144,6 @@ namespace CumulusMX
 				try
 				{
 					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate;
-					cumulus.RecordSetTimeoutHrs = settings.general.advanced.recstimeout;
 				}
 				catch (Exception ex)
 				{
@@ -1384,7 +1382,6 @@ namespace CumulusMX
 	internal class JsonStationSettingsAdvanced
 	{
 		public string recsbegandate { get; set; }
-		public int recstimeout { get; set; }
 	}
 
 	internal class JsonStationSettingsUnitsAdvanced
