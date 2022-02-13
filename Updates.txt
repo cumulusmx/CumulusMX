@@ -4,6 +4,8 @@
 - Fix: Remove duplicated Records Set Timeout setting in Station Settings/General/Advanced
 
 - Change: Tweak to the ET calculation
+- Change: Improved WeatherLink.com status message logging
+
 
 
 3.15.0 - b3169

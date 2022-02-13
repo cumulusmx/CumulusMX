@@ -453,12 +453,69 @@ namespace CumulusMX
 	public class WlComSystemStatus
 	{
 		public WlComSystemStatusResult result {get; set;}
+
+		public string ToString(bool PrintFullMessage)
+		{
+			if (!PrintFullMessage)
+			{
+				return $"Weatherlink.com overall System Status: '{result.status_overall.status}', Updated: {result.status_overall.updated}";
+			}
+
+			var msg = new StringBuilder();
+
+			msg.AppendLine($"Weatherlink.com overall System Status: '{result.status_overall.status}', Updated: {result.status_overall.updated}");
+			if (result.status_overall.status_code != 100)
+			{
+				// If we are not OK, then find what isn't working
+				msg.AppendLine("Individual subsystems: ");
+				foreach (var subSys in result.status)
+				{
+					msg.AppendLine($"   Subsystem: {subSys.name}, status: {subSys.status}, last updated: {subSys.updated}");
+				}
+
+				if (result.incidents.Length > 0)
+				{
+					msg.AppendLine($"\nCurrent incidents:");
+					foreach (var incident in result.incidents)
+					{
+						msg.AppendLine($"  {incident.name}");
+						foreach (var message in incident.messages)
+						{
+							msg.AppendLine($"    {message.datetime} - {message.details}");
+						}
+
+						/*
+						if (incident.containers_affected.Length > 0)
+						{
+							msg.AppendLine($"  Affected containers:");
+							foreach (var container in incident.containers_affected)
+							{
+								msg.AppendLine($"    {container.name}");
+							}
+						}
+						*/
+
+						if (incident.components_affected.Length > 0)
+						{
+							msg.AppendLine($"  Affected components:");
+							foreach (var component in incident.components_affected)
+							{
+								msg.AppendLine($"    {component.name}");
+							}
+						}
+					}
+				}
+			}
+			return msg.ToString();
+		}
+
 	}
 
 	public class WlComSystemStatusResult
 	{
 		public WlComStatusOverall status_overall { get; set; }
 		public WlComStatus[] status { get; set; }
+		public WlComIncidents[] incidents { get; set; }
 	}
 
 	public class WlComStatusOverall
@@ -479,4 +536,23 @@ namespace CumulusMX
 		public string name { get; set; }
 	}
 
+	public class WlComIncidents
+	{
+		public string name { get; set; }
+		public DateTime datetime_open { get; set; }
+		public WlComIncidentMessages[] messages { get; set; }
+		public WlComAffected[] containers_affected { get; set; }
+		public WlComAffected[] components_affected { get; set; }
+	}
+
+	public class WlComIncidentMessages
+	{
+		public string details { get; set; }
+		public DateTime datetime { get; set; }
+	}
+
+	public class WlComAffected
+	{
+		public string name { get; set; }
+	}
 }

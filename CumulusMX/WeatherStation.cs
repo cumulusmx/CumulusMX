@@ -12017,6 +12017,8 @@ namespace CumulusMX
 
 		public void UpdateAPRS()
 		{
+			// See: http://aprs.net/vm/DOS/PROTOCOL.HTM
+
 			if (DataStopped)
 			{
 				// No data coming in, do nothing

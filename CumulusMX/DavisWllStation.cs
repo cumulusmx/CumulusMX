@@ -3302,26 +3302,17 @@ namespace CumulusMX
 				}
 				else if (status != null)
 				{
-					var msg = $"Weatherlink.com overall System Status: '{status.result.status_overall.status}', Updated: {status.result.status_overall.updated}";
+					string msg;
 					if (status.result.status_overall.status_code != 100)
 					{
-						msg += "Error: ";
+						msg = status.ToString(true);
 						cumulus.LogMessage(msg);
 						Console.WriteLine(msg);
 					}
 					else
 					{
+						msg = status.ToString(false);
 						cumulus.LogDebugMessage(msg);
-					}
-					// If we are not OK, then find what isn't working
-					if (status.result.status_overall.status_code != 100)
-					{
-						foreach (var subSys in status.result.status)
-						{
-							msg = $"   wl.com system: {subSys.name}, status: {subSys.status}, updated: {subSys.updated}";
-							cumulus.LogMessage(msg);
-							Console.WriteLine(msg);
-						}
 					}
 				}
 				else
