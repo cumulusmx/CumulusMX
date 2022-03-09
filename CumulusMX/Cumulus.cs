@@ -7953,7 +7953,7 @@ namespace CumulusMX
 			}
 
 			var srcfile = "";
-			var dstfile = "";
+			string dstfile;
 
 			if (NOAAconf.NeedCopy)
 			{

@@ -508,7 +508,6 @@ namespace CumulusMX
 			}
 			return msg.ToString();
 		}
-
 	}
 
 	public class WlComSystemStatusResult

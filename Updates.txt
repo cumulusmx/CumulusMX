@@ -2,9 +2,12 @@
 ——————————————
 - Fix: Changes to the initial ping delay
 - Fix: Remove duplicated Records Set Timeout setting in Station Settings/General/Advanced
+- Fix: Some HTTP Ecowitt stations not sending yearlyrainin - try and use totalrainin for these
 
 - Change: Tweak to the ET calculation
 - Change: Improved WeatherLink.com status message logging
+- Change: The Ecowitt GW1000 station has been renamed to "Ecowitt Local API" to better reflect the applicability to a range of devices
+	- The Ecowitt local API remains the preferred method of connection over HTTP (Ecowitt)
 
 
 

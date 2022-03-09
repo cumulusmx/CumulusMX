@@ -16,7 +16,7 @@ namespace CumulusMX
 	internal class GW1000Station : WeatherStation
 	{
 		private string ipaddr;
-		private string macaddr;
+		private readonly string macaddr;
 		private const int AtPort = 45000;
 		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute;
@@ -33,9 +33,9 @@ namespace CumulusMX
 		private readonly System.Timers.Timer tmrDataWatchdog;
 		private bool stop = false;
 
-		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
+		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
-		private Version fwVersion;
+		private readonly Version fwVersion;
 
 		private string mainSensor;
 
@@ -1685,17 +1685,20 @@ namespace CumulusMX
 		{
 			return (value & mask) == 0 ? "OK" : "Low";
 		}
-
+		
+		/*
 		private static string TestBattery1(UInt16 value, UInt16 mask)
 		{
 			return (value & mask) == 0 ? "OK" : "Low";
 		}
-
+		*/
+		/*
 		private static string TestBattery2(UInt16 value, UInt16 mask)
 		{
 			return (value & mask) > 1 ? "OK" : "Low";
 		}
-
+		*/
+		
 		private static string TestBattery3(byte value)
 		{
 			if (value == 6)
@@ -1712,13 +1715,15 @@ namespace CumulusMX
 		{
 			return value / 10.0;
 		}
-
+		
+		/*
 		private static string TestBatteryPct(byte value)
 		{
 			return value >= 20 ? "OK" : "Low";
 		}
+		*/
 
-
+		/*
 		private static object RawDeserialize(byte[] rawData, int position, Type anyType)
 		{
 			int rawsize = Marshal.SizeOf(anyType);
@@ -1730,6 +1735,7 @@ namespace CumulusMX
 			Marshal.FreeHGlobal(buffer);
 			return retobj;
 		}
+		*/
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 		private struct CommandPayload

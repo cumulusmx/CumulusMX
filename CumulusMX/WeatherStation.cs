@@ -12528,7 +12528,7 @@ namespace CumulusMX
 
 	public class AllTimeRec
 	{
-		private static string[] alltimedescs = new[]
+		private static readonly string[] alltimedescs = new[]
 		{
 			"High temperature", "Low temperature", "High gust", "High wind speed", "Low wind chill", "High rain rate", "High daily rain",
 			"High hourly rain", "Low pressure", "High pressure", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
@@ -12536,7 +12536,7 @@ namespace CumulusMX
 			"High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range",
 			"High feels like", "Low feels like", "High Humidex"
 		};
-		private int idx;
+		private readonly int idx;
 
 		public AllTimeRec(int index)
 		{
