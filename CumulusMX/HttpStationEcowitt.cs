@@ -193,6 +193,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"{procName}: Processing posted data");
 
 				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
+				text = System.Text.RegularExpressions.Regex.Replace(text, "PASSKEY=[^&]+", "PASSKEY=<PassKey>");
 
 				cumulus.LogDataMessage($"{procName}: Payload = {text}");
 
@@ -422,15 +423,16 @@ namespace CumulusMX
 						// dailyrainin
 						// weeklyrainin
 						// monthlyrainin
-						// yearlyrainin
+						// yearlyrainin - also turns out that not all stations send this :(
 						// totalrainin - not reliable, depends on console and firmware version as to whether this is available or not.
 						// rainratein
 						// 24hourrainin Ambient only?
 						// eventrainin
 
-						var rain = data["yearlyrainin"];
+						// if no yearly counter, try the total counter
+						var rain = data["yearlyrainin"] ?? data["totalrainin"];
 						var rRate = data["rainratein"];
-
+							
 						if (rRate == null)
 						{
 							// No rain rate, so we will calculate it

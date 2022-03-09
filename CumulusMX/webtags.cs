@@ -403,8 +403,10 @@ namespace CumulusMX
 			// then if that is later than now we are still in the previous day, so subtract a day
 			if (startOfDay > DateTime.Now)
 				startOfDay = startOfDay.AddDays(-1);
-			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * (DateTime.Now - startOfDay).TotalHours;
-			return CheckRcDp(station.WindRunToday / timeToday, tagParams, cumulus.WindAvgDPlaces);
+			var hours = (DateTime.Now - startOfDay).TotalHours;
+			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * hours;
+			// just after rollover the numbers will be silly, so return zero for the first 15 minutes
+			return CheckRcDp(hours > 0.25 ? station.WindRunToday / timeToday : 0, tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string Tagwchill(Dictionary<string,string> tagParams)

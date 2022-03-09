@@ -2062,20 +2062,16 @@ namespace CumulusMX
 			var dateFrom = date.AddHours(-1);
 
 			// get the min and max temps, humidity, pressure, and mean solar rad and wind speed for the last hour
-			var result = RecentDataDb.Query<EtData>("select max(OutsideTemp) maxTemp, min(OutsideTemp) minTemp, max(Humidity) maxHum, min(Humidity) minHum, max(Pressure) maxPress, min(Pressure) minPress, avg(SolarRad) avgSol, avg(WindSpeed) avgWind from RecentData where Timestamp >= ? order by Timestamp", dateFrom);
+			var result = RecentDataDb.Query<EtData>("select avg(OutsideTemp) avgTemp, avg(Humidity) avgHum, avg(Pressure) avgPress, avg(SolarRad) avgSol, avg(SolarMax) avgSolMax, avg(WindSpeed) avgWind from RecentData where Timestamp >= ? order by Timestamp", dateFrom);
 
 			// finally calculate the ETo
 			var newET = MeteoLib.Evapotranspiration(
-				ConvertUserTempToC(result[0].minTemp),
-				ConvertUserTempToC(result[0].maxTemp),
-				result[0].minHum,
-				result[0].maxHum,
+				ConvertUserTempToC(result[0].avgTemp),
+				result[0].avgHum,
 				result[0].avgSol,
+				result[0].avgSolMax,
 				ConvertUserWindToMS(result[0].avgWind),
-				cumulus.Latitude,
-				cumulus.Longitude,
-				AltitudeM(cumulus.Altitude),
-				date
+				ConvertUserPressureToHPa(result[0].avgPress) / 10
 			);
 
 			// convert to user units
@@ -12021,6 +12017,8 @@ namespace CumulusMX
 
 		public void UpdateAPRS()
 		{
+			// See: http://aprs.net/vm/DOS/PROTOCOL.HTM
+
 			if (DataStopped)
 			{
 				// No data coming in, do nothing
@@ -12436,14 +12434,12 @@ namespace CumulusMX
 
 	class EtData
 	{
-		public double maxTemp { get; set; }
-		public double minTemp { get; set; }
-		public int maxHum { get; set; }
-		public int minHum { get; set; }
+		public double avgTemp { get; set; }
+		public int avgHum { get; set; }
 		public double avgSol { get; set; }
+		public double avgSolMax { get; set; }
 		public double avgWind { get; set; }
-		public double maxPress { get; set; }
-		public double minPress { get; set; }
+		public double avgPress { get; set; }
 	}
 
 
@@ -12532,7 +12528,7 @@ namespace CumulusMX
 
 	public class AllTimeRec
 	{
-		private static string[] alltimedescs = new[]
+		private static readonly string[] alltimedescs = new[]
 		{
 			"High temperature", "Low temperature", "High gust", "High wind speed", "Low wind chill", "High rain rate", "High daily rain",
 			"High hourly rain", "Low pressure", "High pressure", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
@@ -12540,7 +12536,7 @@ namespace CumulusMX
 			"High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range",
 			"High feels like", "Low feels like", "High Humidex"
 		};
-		private int idx;
+		private readonly int idx;
 
 		public AllTimeRec(int index)
 		{

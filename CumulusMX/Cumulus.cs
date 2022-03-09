@@ -1134,15 +1134,15 @@ namespace CumulusMX
 				var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
 				LogConsoleMessage(msg1);
 				LogMessage(msg1);
-				using (var ping = new Ping())
+				var endTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+
+				do
 				{
-					var endTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+					pingReply = null;
 
-					ping.PingCompleted += new PingCompletedEventHandler(PingCompletedCallback);
-
-					do
+					using (var ping = new Ping())
 					{
-						pingReply = null;
+						ping.PingCompleted += new PingCompletedEventHandler(PingCompletedCallback);
 
 						try
 						{
@@ -1152,7 +1152,7 @@ namespace CumulusMX
 
 							do
 							{
-								Thread.Sleep(50);
+								Thread.Sleep(500);
 							} while (pingReply != null && DateTime.Now < pingTimeout);
 
 							if (DateTime.Now >= pingTimeout)
@@ -1166,37 +1166,37 @@ namespace CumulusMX
 						{
 							LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
 						}
+					}
 
-						if (pingReply == null || pingReply.Status != IPStatus.Success)
+					if (pingReply == null || pingReply.Status != IPStatus.Success)
+					{
+						// no response wait 10 seconds before trying again
+						Thread.Sleep(10000);
+						// Force a DNS refresh if not an IPv4 address
+						if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
 						{
-							// no response wait 10 seconds before trying again
-							Thread.Sleep(10000);
-							// Force a DNS refresh if not an IPv4 address
-							if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
+							// catch and ignore IPv6 and invalid host name for now
+							try
 							{
-								// catch and ignore IPv6 and invalid host name for now
-								try
-								{
-									Dns.GetHostEntry(ProgramOptions.StartupPingHost);
-								}
-								catch (Exception ex)
-								{
-									LogMessage($"PING: Error with DNS refresh - {ex.Message}");
-								}
+								Dns.GetHostEntry(ProgramOptions.StartupPingHost);
+							}
+							catch (Exception ex)
+							{
+								LogMessage($"PING: Error with DNS refresh - {ex.Message}");
 							}
 						}
-					} while ((pingReply == null || pingReply.Status != IPStatus.Success) && DateTime.Now < endTime);
+					}
+				} while ((pingReply == null || pingReply.Status != IPStatus.Success) && DateTime.Now < endTime);
 
-					if (DateTime.Now >= endTime)
-					{
-						LogConsoleMessage(msg3, ConsoleColor.Yellow);
-						LogMessage(msg3);
-					}
-					else
-					{
-						LogConsoleMessage(msg2);
-						LogMessage(msg2);
-					}
+				if (DateTime.Now >= endTime)
+				{
+					LogConsoleMessage(msg3, ConsoleColor.Yellow);
+					LogMessage(msg3);
+				}
+				else
+				{
+					LogConsoleMessage(msg2);
+					LogMessage(msg2);
 				}
 			}
 			else
@@ -7953,7 +7953,7 @@ namespace CumulusMX
 			}
 
 			var srcfile = "";
-			var dstfile = "";
+			string dstfile;
 
 			if (NOAAconf.NeedCopy)
 			{
@@ -10398,20 +10398,14 @@ namespace CumulusMX
 
 		private void PingCompletedCallback(object sender, PingCompletedEventArgs e)
 		{
-			// If the operation was cancelled, display a message to the user.
-			if (e.Cancelled)
-			{
-				LogMessage("Ping cancelled.");
-			}
-
 			// If an error occurred, display the exception to the user.
-			else if (e.Error != null)
+			if (e.Error != null)
 			{
 				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.InnerException.Message);
 			}
 			else
 			{
-				LogMessage("Ping reply: " + e.Reply);
+				LogMessage("Ping reply: " + e.Reply.Status);
 			}
 
 			pingReply = e.Reply;

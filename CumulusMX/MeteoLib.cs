@@ -359,10 +359,9 @@ namespace CumulusMX
 		/// <param name="radMeasured">Measured solar radiation (same units as radClearSky)</param>
 		/// <param name="radClearSky">Calculated clear sky radiation (same units as radMeasured)</param>
 		/// <returns>Returns the long wave (back) radiation in MJ/m^2/hour</returns>
-		private static double LongwaveRadiation(double tempMinC, double tempMaxC, double vapPresskPa, double radMeasured, double radClearSky)
+		private static double LongwaveRadiation(double tempAvgC, double vapPresskPa, double radMeasured, double radClearSky)
 		{
-			var minK = tempMinC + 273.16;
-			var maxK = tempMaxC + 273.16;
+			var avgK = tempAvgC + 273.16;
 
 			// Stefan-Boltzman constant in MJ/K^4/m^2/day
 			var sigma = 4.903e-09;
@@ -384,8 +383,8 @@ namespace CumulusMX
 				cloudFactor = 0.5;
 			}
 
-			// Calculate the long wave (back) radiation in MJ/m^2/day.
-			var part1 = sigma * (Math.Pow(minK, 4) + Math.Pow(maxK, 4)) / 2.0;
+			// Calculate the long wave (back) radiation in MJ/m^2/hour.
+			var part1 = sigma * Math.Pow(avgK, 4);
 			var part2 = (0.34 - 0.14 * Math.Sqrt(vapPresskPa));
 			var part3 = (1.35 * cloudFactor - 0.35);
 
@@ -413,39 +412,29 @@ namespace CumulusMX
 		/// <param name="date">Date/time of the end of the period</param>
 		/// <returns>Evapotranspiration in mm</returns>
 		public static double Evapotranspiration(
-			double tempMinC, double tempMaxC, int humMin, int humMax,
-			double radMean, double windAvgMs,
-			double latitude, double longitude, double altitudeM,
-			DateTime date)
+			double tempAvgC, int humAvg,
+			double radMean, double maxRadMean, double windAvgMs,
+			double pressKpa)
 		{
 			var windHeightM = 2.0; // height of wind sensor in metres, we assume 2m for a typical amateur station
 
 			// Use grass as the reference crop
 			var albedo = 0.23;
 
-			// Calculate mean temp from min/max
-			var tempMeanC = (tempMinC + tempMaxC) / 2;
-
 			// Adjust avg wind speed to a height of 2m (equation 47)
 			var u2 = 4.87 * windAvgMs / Math.Log(67.8 * windHeightM - 5.42);
 
-			// Calculate the atmospheric pressure in kPa (equation 7)
-			var p = 101.3 * Math.Pow((293 - 0.0065 * altitudeM) / 293.0, 5.26);
-
 			// Calculate the psychrometric constant in kPa/C (equation 8)
-			var gamma = 0.665e-03 * p;
+			var gamma = 0.665e-03 * pressKpa;
 
-			// Calculate saturation vapour pressure for min and max temps (equation 11)
-			var etMin = 0.6108 * Math.Exp(17.27 * tempMinC/ (tempMinC + 237.3));
-			var etMax = 0.6108 * Math.Exp(17.27 * tempMaxC / (tempMaxC + 237.3));
 			// Calculate mean saturation vapour pressure, converting from hPa to kPa (equation 12)
-			var e0T = (etMin + etMax) / 2;
+			var e0T = 0.6108 * Math.Exp(17.27 * tempAvgC / (tempAvgC + 237.3));
 
 			// Calculate the slope of the saturation vapour pressure curve in kPa/C (equation 13)
-			var delta = 4098.0 * (0.6108 * Math.Exp(17.27 * tempMeanC / (tempMeanC + 237.3))) / ((tempMeanC + 237.3) * (tempMeanC + 237.3));
+			var delta = 4098.0 * (0.6108 * Math.Exp(17.27 * tempAvgC / (tempAvgC + 237.3))) / ((tempAvgC + 237.3) * (tempAvgC + 237.3));
 
 			// Calculate actual vapour pressure from relative humidity (equation 17)
-			var ea = (etMin * humMax / 100 + etMax * humMin / 100) / 2;
+			var ea = e0T * humAvg / 100;
 
 			// Convert solar radiation from W/m^2 to MJ/m^2/h
 			var Rs = radMean * 0.0036;
@@ -453,14 +442,11 @@ namespace CumulusMX
 			// Net short-wave (measured) radiation in MJ/m^2/h (equation 38)
 			var Rns = (1 - albedo) * Rs;
 
-			// We'll use our own clear sky radiation values - as we already have them. Assume clear skies (1.55 turbidity obtained by comparing the calculation against FAO sample data) and ignore any user "tweaks"
-			var RsoEnd = AstroLib.SolarMax(date, longitude, latitude, altitudeM, out _, 1.55, 1);
-			var RsoStart = AstroLib.SolarMax(date.AddHours(-1), longitude, latitude, altitudeM, out _, 1.55, 1);
-			// Take the mean and convert from W/m^2 to MJ/m^2/h
-			var Rso = (RsoEnd + RsoStart) / 2 * 0.0036;
+			// Take the mean solar max and convert from W/m^2 to MJ/m^2/h
+			var Rso = maxRadMean * 0.0036;
 
 			// Long-wave (back) radiation. (equation 39 modified to per hour)
-			var Rnl = LongwaveRadiation(tempMinC, tempMaxC, ea, Rs, Rso);
+			var Rnl = LongwaveRadiation(tempAvgC, ea, Rs, Rso);
 
 			// Calculate net radiation at the surface in MJ/m^2/h (equation 40)
 			var Rn = Rns - Rnl;
@@ -470,7 +456,7 @@ namespace CumulusMX
 
 			// Result is in mm/h (equation 53)
 			// But as we have fixed a 1 hour period, then the effective result is just mm
-			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37 / (tempMeanC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
+			var et0 = (0.408 * delta * (Rn - Ghr) + gamma * 37 / (tempAvgC + 273) * u2 * (e0T - ea)) / (delta + gamma * (1 + 0.34 * u2));
 
 			if (et0 < 0) et0 = 0;
 

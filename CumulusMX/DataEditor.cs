@@ -3410,6 +3410,8 @@ namespace CumulusMX
 		{
 			var request = context.Request;
 			string text;
+			var InvC = new CultureInfo("");
+
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
 				text = reader.ReadToEnd();
@@ -3451,8 +3453,55 @@ namespace CumulusMX
 
 					return "{\"errors\":{\"Logfile\":[\"<br>Failed to update, error = " + ex.Message + "\"]}}";
 				}
+				
+				// Update internal database
+				// This does not really work, as the recent data is every minute, the logged data could be every 5, 15, 30 minutes
 
+				var LogRec = station.ParseLogFileRec(newLine, false);
+				/*
+				// first check if the record is on the recent data table
+				try
+				{
 
+					var updt = new StringBuilder(1024);
+					var updtRec = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp=?)", LogRec.Date)[0];
+					if (updtRec != null)
+					{
+						updtRec.AppTemp = LogRec.ApparentTemperature;
+						updtRec.DewPoint = LogRec.OutdoorDewpoint;
+						updtRec.FeelsLike = LogRec.FeelsLike;
+						updtRec.HeatIndex = LogRec.HeatIndex;
+						updtRec.Humidex = LogRec.Humidex;
+						updtRec.Humidity = LogRec.OutdoorHumidity;
+						updtRec.IndoorHumidity = LogRec.IndoorHumidity;
+						updtRec.IndoorTemp = LogRec.IndoorTemperature;
+						updtRec.OutsideTemp = LogRec.OutdoorTemperature;
+						updtRec.Pressure = LogRec.Pressure;
+						updtRec.raincounter = LogRec.Raincounter;
+						updtRec.RainRate = LogRec.RainRate;
+						updtRec.RainToday = LogRec.RainToday;
+						updtRec.SolarMax = (int)LogRec.CurrentSolarMax;
+						updtRec.SolarRad = (int)LogRec.SolarRad;
+						updtRec.UV = LogRec.UV;
+						updtRec.WindAvgDir = LogRec.AvgBearing;
+						updtRec.WindChill = LogRec.WindChill;
+						updtRec.WindDir = LogRec.Bearing;
+						updtRec.WindGust = LogRec.RecentMaxGust;
+						updtRec.WindLatest = LogRec.WindLatest;
+						updtRec.WindSpeed = LogRec.WindAverage;
+
+						var rowCnt = station.RecentDataDb.Update(updtRec);
+						if (rowCnt != 1)
+						{
+							cumulus.LogMessage("EditDataLog: Failed to update SQLite database");
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"EditDataLog: Failed to update SQLite. Error = {ex.Message}");
+				}
+				*/
 
 				// Update the MySQL record
 				if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
@@ -3469,10 +3518,8 @@ namespace CumulusMX
 
 						try
 						{
-							var InvC = new CultureInfo("");
 							var updt = new StringBuilder(1024);
 
-							var LogRec = station.ParseLogFileRec(newLine, false);
 
 							updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
 							updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");

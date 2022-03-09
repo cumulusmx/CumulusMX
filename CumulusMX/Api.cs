@@ -298,7 +298,7 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "process.txt":
-							return await this.StringResponseAsync(tagProcessor.ProcessText(this));
+							return await this.StringResponseAsync(tagProcessor.ProcessText(Request));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
@@ -320,7 +320,7 @@ namespace CumulusMX
 					switch (lastSegment)
 					{
 						case "process.json":
-							return await this.JsonResponseAsync(tagProcessor.ProcessJson(Request.Url.Query));
+							return await this.JsonResponseAsync(tagProcessor.ProcessJson(Request));
 					}
 
 					throw new KeyNotFoundException("Key Not Found: " + lastSegment);

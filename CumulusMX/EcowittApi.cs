@@ -14,14 +14,14 @@ namespace CumulusMX
 {
 	internal class EcowittApi
 	{
-		private Cumulus cumulus;
-		private WeatherStation station;
-		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
+		private readonly Cumulus cumulus;
+		private readonly WeatherStation station;
+		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private static readonly HttpClientHandler httpHandler = new HttpClientHandler();
 		private readonly HttpClient httpClient = new HttpClient(httpHandler);
 
-		private static string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
+		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
@@ -153,6 +153,8 @@ namespace CumulusMX
 			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
 			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
 
+			cumulus.LogConsoleMessage($"Processing history data from {startTime.ToString("yyyy-MM-dd HH:mm")} to {endTime.ToString("yyyy-MM-dd HH:mm")}...");
+
 			try
 			{
 				string responseBody;
@@ -262,7 +264,7 @@ namespace CumulusMX
 
 		}
 
-		private void ProcessHistoryData(EcowittApi.EcowittHistoricData data)
+		private void ProcessHistoryData(EcowittHistoricData data)
 		{
 			// allocate a dictionary of data objects, keyed on the timestamp
 			var buffer = new SortedDictionary<DateTime, EcowittApi.HistoricData>();
@@ -1278,7 +1280,7 @@ namespace CumulusMX
 		}
 
 
-
+		/*
 		private string ErrorCode(int code)
 		{
 			switch (code)
@@ -1308,6 +1310,7 @@ namespace CumulusMX
 				default: return "Unknown error code";
 			}
 		}
+		*/
 
 		private class EcowitHistErrorResp
 		{

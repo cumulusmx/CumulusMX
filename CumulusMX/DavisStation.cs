@@ -210,7 +210,10 @@ namespace CumulusMX
 				var vals = recepStats.Split(' ');
 
 				DavisTotalPacketsReceived = Convert.ToInt32(vals[0]);
-				if (DavisTotalPacketsReceived < 0) DavisTotalPacketsReceived = DavisTotalPacketsReceived + 65536; // The console uses 16 bit signed variable to hold the value so it bit wraps
+				if (DavisTotalPacketsReceived < 0)
+				{
+					DavisTotalPacketsReceived += 65536; // The console uses 16 bit signed variable to hold the value so it bit wraps
+				}
 				DavisTotalPacketsMissed[0] = Convert.ToInt32(vals[1]);
 				DavisNumberOfResynchs[0] = Convert.ToInt32(vals[2]);
 				DavisMaxInARow[0] = Convert.ToInt32(vals[3]);

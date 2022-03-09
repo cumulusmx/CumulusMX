@@ -156,10 +156,7 @@ namespace CumulusMX
 			var min = ts.Minutes;
 			var sec = ts.Seconds;
 
-			//double hour = (int)Math.Floor(t);
-			//double min = (int)Math.Floor((t - hour) * 60 + 0.5);
-			return (hour.ToString("00") + min.ToString("00") + sec.ToString("00"));
-			//return "0000";
+			return $"{hour:00}{min:00}{sec:00}";
 		}
 
 		private static double LocalMeanSiderealTime(double mjd, double glong)
