@@ -11,7 +11,6 @@ using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,6 @@ using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
 using System.Collections.Concurrent;
-using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -1153,14 +1151,13 @@ namespace CumulusMX
 							do
 							{
 								Thread.Sleep(500);
-							} while (pingReply != null && DateTime.Now < pingTimeout);
+							} while (pingReply == null || DateTime.Now > pingTimeout);
 
 							if (DateTime.Now >= pingTimeout)
 							{
 								LogMessage("Ping Error: The PING failed to return after the timeout, cancelling it...");
 								ping.SendAsyncCancel();
 							}
-
 						}
 						catch (Exception e)
 						{
@@ -1168,7 +1165,7 @@ namespace CumulusMX
 						}
 					}
 
-					if (pingReply == null || pingReply.Status != IPStatus.Success)
+					if (pingReply?.Status != IPStatus.Success)
 					{
 						// no response wait 10 seconds before trying again
 						Thread.Sleep(10000);
@@ -1186,9 +1183,9 @@ namespace CumulusMX
 							}
 						}
 					}
-				} while ((pingReply == null || pingReply.Status != IPStatus.Success) && DateTime.Now < endTime);
+				} while (pingReply?.Status != IPStatus.Success && DateTime.Now < endTime);
 
-				if (DateTime.Now >= endTime)
+			if (DateTime.Now >= endTime)
 				{
 					LogConsoleMessage(msg3, ConsoleColor.Yellow);
 					LogMessage(msg3);
