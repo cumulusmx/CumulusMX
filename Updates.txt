@@ -1,3 +1,7 @@
+3.15.3 - b3172
+——————————————
+- Fix: Broken start-up ping in 3.15.2 - doh!
+
 3.15.2 - b3171
 ——————————————
 - Fix: Broken start-up ping in 3.15.1
