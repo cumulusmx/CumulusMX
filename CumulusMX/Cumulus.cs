@@ -1151,9 +1151,9 @@ namespace CumulusMX
 							do
 							{
 								Thread.Sleep(500);
-							} while (pingReply == null || DateTime.Now > pingTimeout);
+							} while (pingReply == null && DateTime.Now < pingTimeout);
 
-							if (DateTime.Now >= pingTimeout)
+							if (pingReply == null)
 							{
 								LogMessage("Ping Error: The PING failed to return after the timeout, cancelling it...");
 								ping.SendAsyncCancel();
