@@ -1,6 +1,12 @@
-3.15.3 - b3172
+3.15.3 - b3173
 ——————————————
 - Fix: Broken start-up ping in 3.15.2 - doh!
+- Fix: Ecowitt historic catch-up when expected data is missing
+- Fix: Disabling the Third Party HTTP Seconds upload no longer requires a restart of CMX
+
+- Change: Ecowitt historic catch-up now applies a 5 minute offset to the received data
+
+
 
 3.15.2 - b3171
 ——————————————

@@ -1718,7 +1718,7 @@ namespace CumulusMX
 						}
 						else if (cumulus.WebUpdating >= 2)
 						{
-							cumulus.LogMessage("Warning, previous web update is still in progress,second chance, aborting connection");
+							cumulus.LogMessage("Warning, previous web update is still in progress, second chance, aborting connection");
 							if (cumulus.ftpThread.ThreadState == System.Threading.ThreadState.Running)
 								cumulus.ftpThread.Abort();
 							cumulus.LogMessage("Trying new web update");

@@ -289,12 +289,12 @@ namespace CumulusMX
 				{
 					// custom seconds
 					cumulus.CustomHttpSecondsEnabled = settings.customhttp.customseconds.enabled;
+					cumulus.CustomHttpSecondsTimer.Enabled = cumulus.CustomHttpSecondsEnabled;
 					if (cumulus.CustomHttpSecondsEnabled)
 					{
 						cumulus.CustomHttpSecondsString = settings.customhttp.customseconds.url ?? string.Empty;
 						cumulus.CustomHttpSecondsInterval = settings.customhttp.customseconds.interval;
 						cumulus.CustomHttpSecondsTimer.Interval = cumulus.CustomHttpSecondsInterval * 1000;
-						cumulus.CustomHttpSecondsTimer.Enabled = cumulus.CustomHttpSecondsEnabled;
 					}
 					// custom minutes
 					cumulus.CustomHttpMinutesEnabled = settings.customhttp.customminutes.enabled;

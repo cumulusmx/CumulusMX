@@ -23,6 +23,8 @@ namespace CumulusMX
 
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
 
+		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is dealyed
+
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
 			cumulus = cuml;
@@ -75,13 +77,16 @@ namespace CumulusMX
 				return false;
 			}
 
+			var apiStartDate = startTime.AddMinutes(-EcowittApiFudgeFactor);
+			var apiEndDate = endTime.AddMinutes(-EcowittApiFudgeFactor);
+
 			var sb = new StringBuilder(historyUrl);
 
 			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
 			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
 			sb.Append($"&mac={cumulus.EcowittMacAddress}");
-			sb.Append($"&start_date={startTime.ToString("yyyy-MM-dd'%20'HH:mm:ss")}");
-			sb.Append($"&end_date={endTime.ToString("yyyy-MM-dd'%20'HH:mm:ss")}");
+			sb.Append($"&start_date={apiStartDate.ToString("yyyy-MM-dd'%20'HH:mm:ss")}");
+			sb.Append($"&end_date={apiEndDate.ToString("yyyy-MM-dd'%20'HH:mm:ss")}");
 
 			// available callbacks:
 			//	outdoor, indoor, solar_and_uvi, rainfall, wind, pressure, lightning
@@ -257,7 +262,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("API.GetHistoricData: Exception:");
+				cumulus.LogMessage("API.GetHistoricData: Exception: " + ex.Message);
 				cumulus.LastUpdateTime = endTime;
 				return false;
 			}
@@ -273,238 +278,302 @@ namespace CumulusMX
 			// Indoor Data
 			if (data.indoor != null)
 			{
-				// do the temperature
-				if (data.indoor.temperature.list != null)
+				try
 				{
-					foreach (var item in data.indoor.temperature.list)
+					// do the temperature
+					if (data.indoor.temperature != null && data.indoor.temperature.list != null)
 					{
-						// not present value = 140
-						if (!item.Value.HasValue || item.Value == 140 || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.indoor.temperature.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						var newItem = new EcowittApi.HistoricData();
-						newItem.IndoorTemp = item.Value;
-						buffer.Add(item.Key, newItem);
+							// not present value = 140
+							if (!item.Value.HasValue || item.Value == 140 || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].IndoorTemp = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.IndoorTemp = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+					// do the humidity
+					if (data.indoor.humidity != null && data.indoor.humidity.list != null)
+					{
+						foreach (var item in data.indoor.humidity.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].IndoorHum = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.IndoorHum = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
+						}
 					}
 				}
-				// do the humidity
-				if (data.indoor.humidity.list != null)
+				catch (Exception ex)
 				{
-					foreach (var item in data.indoor.humidity.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].IndoorHum = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.IndoorHum = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing indoor data. Exception: " + ex.Message);
 				}
 			}
 			// Outdoor Data
 			if (data.outdoor != null)
 			{
-				// Temperature
-				if (data.outdoor.temperature.list != null)
-				{
-					foreach (var item in data.outdoor.temperature.list)
+				try
+				{ 
+					// Temperature
+					if (data.outdoor.temperature != null && data.outdoor.temperature.list != null)
 					{
-						// not present value = 140
-						if (!item.Value.HasValue || item.Value == 140 || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.outdoor.temperature.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].Temp = item.Value;
+							// not present value = 140
+							if (!item.Value.HasValue || item.Value == 140 || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].Temp = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.Temp = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
-						else
+					}
+
+					// Humidity
+					if (data.outdoor.humidity != null && data.outdoor.humidity.list != null)
+					{
+						foreach (var item in data.outdoor.humidity.list)
 						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.Temp = item.Value;
-							buffer.Add(item.Key, newItem);
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].Humidity = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.Humidity = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+					// Dewpoint
+					if (data.outdoor.dew_point != null && data.outdoor.dew_point.list != null)
+					{
+						foreach (var item in data.outdoor.dew_point.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].DewPoint = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.DewPoint = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
 				}
-
-				// Humidity
-				if (data.outdoor.humidity.list != null)
+				catch (Exception ex)
 				{
-					foreach (var item in data.outdoor.humidity.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].Humidity = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.Humidity = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
-				}
-				// Dewpoint
-				if (data.outdoor.dew_point.list != null)
-				{
-					foreach (var item in data.outdoor.dew_point.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].DewPoint = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.DewPoint = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing outdoor data. Exception: " + ex.Message);
 				}
 			}
 			// Wind Data
 			if (data.wind != null)
 			{
-				// Speed
-				if (data.wind.wind_speed.list != null)
+				try
 				{
-					foreach (var item in data.wind.wind_speed.list)
+					// Speed
+					if (data.wind.wind_speed != null && data.wind.wind_speed.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.wind.wind_speed.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].WindSpd = item.Value;
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].WindSpd = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.WindSpd = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
-						else
+					}
+
+					// Gust
+					if (data.wind.wind_gust != null && data.wind.wind_gust.list != null)
+					{
+						foreach (var item in data.wind.wind_gust.list)
 						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.WindSpd = item.Value;
-							buffer.Add(item.Key, newItem);
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].WindGust = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.WindGust = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+					// Direction
+					if (data.wind.wind_direction != null && data.wind.wind_direction.list != null)
+					{
+						foreach (var item in data.wind.wind_direction.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].WindDir = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.WindDir = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
 				}
-
-				// Gust
-				if (data.wind.wind_gust.list != null)
+				catch (Exception ex)
 				{
-					foreach (var item in data.wind.wind_gust.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].WindGust = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.WindGust = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
-				}
-				// Direction
-				if (data.wind.wind_direction.list != null)
-				{
-					foreach (var item in data.wind.wind_direction.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].WindDir = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.WindDir = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing wind data. Exception: " + ex.Message);
 				}
 			}
 			// Pressure Data
 			if (data.pressure != null)
 			{
-				// relative
-				if (data.pressure.relative.list != null)
+				try
 				{
-					foreach (var item in data.pressure.relative.list)
+					// relative
+					if (data.pressure.relative != null && data.pressure.relative.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.pressure.relative.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].Pressure = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.Pressure = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].Pressure = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.Pressure = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing pressure data. Exception: " + ex.Message);
 				}
 			}
 			// Solar Data
 			if (data.solar_and_uvi != null)
 			{
-				// solar
-				if (data.solar_and_uvi.solar.list != null)
+				try
 				{
-					foreach (var item in data.solar_and_uvi.solar.list)
+					// solar
+					if (data.solar_and_uvi.solar != null && data.solar_and_uvi.solar.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.solar_and_uvi.solar.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].Solar = (int)item.Value;
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].Solar = (int)item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.Solar = (int)item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
-						else
+					}
+					// uvi
+					if (data.solar_and_uvi.uvi != null && data.solar_and_uvi.uvi.list != null)
+					{
+						foreach (var item in data.solar_and_uvi.uvi.list)
 						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.Solar = (int)item.Value;
-							buffer.Add(item.Key, newItem);
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].UVI = (int)item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.UVI = (int)item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
 				}
-				// uvi
-				if (data.solar_and_uvi.uvi.list != null)
+				catch (Exception ex)
 				{
-					foreach (var item in data.solar_and_uvi.uvi.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].UVI = (int)item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.UVI = (int)item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing solar data. Exception: " + ex.Message);
 				}
 			}
 			// Extra 8 channel sensors
@@ -569,243 +638,322 @@ namespace CumulusMX
 				// Extra Temp/Hum Data
 				if (srcTH != null)
 				{
-					// temperature
-					if (srcTH.temperature.list != null)
+					try
 					{
-						foreach (var item in srcTH.temperature.list)
+						// temperature
+						if (srcTH.temperature != null && srcTH.temperature.list != null)
 						{
-							if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-								continue;
+							foreach (var item in srcTH.temperature.list)
+							{
+								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-							if (buffer.ContainsKey(item.Key))
-							{
-								buffer[item.Key].ExtraTemp[i - 1] = item.Value;
+								if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+									continue;
+
+								if (buffer.ContainsKey(itemDate))
+								{
+									buffer[itemDate].ExtraTemp[i - 1] = item.Value;
+								}
+								else
+								{
+									var newItem = new EcowittApi.HistoricData();
+									newItem.ExtraTemp[i - 1] = item.Value;
+									buffer.Add(itemDate, newItem);
+								}
 							}
-							else
+						}
+						// humidity
+						if (srcTH.humidity != null && srcTH.humidity.list != null)
+						{
+							foreach (var item in srcTH.humidity.list)
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.ExtraTemp[i - 1] = item.Value;
-								buffer.Add(item.Key, newItem);
+								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+								if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+									continue;
+
+								if (buffer.ContainsKey(itemDate))
+								{
+									buffer[itemDate].ExtraHumidity[i - 1] = item.Value;
+								}
+								else
+								{
+									var newItem = new EcowittApi.HistoricData();
+									newItem.ExtraHumidity[i - 1] = item.Value;
+									buffer.Add(itemDate, newItem);
+								}
 							}
 						}
 					}
-					// humidity
-					if (srcTH.humidity.list != null)
+					catch (Exception ex)
 					{
-						foreach (var item in srcTH.humidity.list)
-						{
-							if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-								continue;
-
-							if (buffer.ContainsKey(item.Key))
-							{
-								buffer[item.Key].ExtraHumidity[i - 1] = item.Value;
-							}
-							else
-							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.ExtraHumidity[i - 1] = item.Value;
-								buffer.Add(item.Key, newItem);
-							}
-						}
+						cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra T/H data - chan[{i}]. Exception: {ex.Message}");
 					}
+
 				}
 				// Extra Soil Moisture Data
-				if (srcSoil != null && srcSoil.soilmoisture.list != null)
+				try
 				{
-					// moisture
-					foreach (var item in srcSoil.soilmoisture.list)
+					if (srcSoil != null && srcSoil.soilmoisture != null && srcSoil.soilmoisture.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						// moisture
+						foreach (var item in srcSoil.soilmoisture.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].SoilMoist[i - 1] = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.SoilMoist[i - 1] = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].SoilMoist[i - 1] = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.SoilMoist[i - 1] = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra soil moisture data - chan[{i}]. Exception: {ex.Message}");
 				}
 				// User Temp Data
-				if (srcTemp != null && srcTemp.temperature.list != null)
+				try
 				{
-					// temperature
-					foreach (var item in srcTemp.temperature.list)
+					if (srcTemp != null && srcTemp.temperature != null && srcTemp.temperature.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						// temperature
+						foreach (var item in srcTemp.temperature.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].UserTemp[i - 1] = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.UserTemp[i - 1] = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].UserTemp[i - 1] = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.UserTemp[i - 1] = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
 				}
-				// Leaf Wetness Data
-				if (srcLeaf != null && srcLeaf.leaf_wetness.list != null)
+				catch (Exception ex)
 				{
-					// wetness
-					foreach (var item in srcLeaf.leaf_wetness.list)
+					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra user temp data - chan[{i}]. Exception: {ex.Message}");
+				}
+				// Leaf Wetness Data
+				try
+				{
+					if (srcLeaf != null && srcLeaf.leaf_wetness != null && srcLeaf.leaf_wetness.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						// wetness
+						foreach (var item in srcLeaf.leaf_wetness.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].LeafWetness[i - 1] = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.LeafWetness[i - 1] = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].LeafWetness[i - 1] = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.LeafWetness[i - 1] = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra leaf wetness data - chan[{i}]. Exception:{ex.Message}");
 				}
 			}
 			// Indoor CO2
 			if (data.indoor_co2 != null)
 			{
-				// CO2
-				if (data.indoor_co2.co2.list != null)
+				try
 				{
-					foreach (var item in data.indoor_co2.co2.list)
+					// CO2
+					if (data.indoor_co2.co2 != null && data.indoor_co2.co2.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.indoor_co2.co2.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].IndoorCo2 = item.Value;
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].IndoorCo2 = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.IndoorCo2 = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
-						else
+					}
+					// 24 Avg
+					if (data.indoor_co2.average24h != null && data.indoor_co2.average24h.list != null)
+					{
+						foreach (var item in data.indoor_co2.average24h.list)
 						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.IndoorCo2 = item.Value;
-							buffer.Add(item.Key, newItem);
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].IndoorCo2hr24 = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.IndoorCo2hr24 = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
 				}
-				// 24 Avg
-				if (data.indoor_co2.average24h.list != null)
+				catch (Exception ex)
 				{
-					foreach (var item in data.indoor_co2.average24h.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].IndoorCo2hr24 = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.IndoorCo2hr24 = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing indoor CO2 data. Exception: " + ex.Message);
 				}
 			}
 			// CO2 Combi
 			if (data.co2_aqi_combo != null)
 			{
-				// CO2
-				if (data.co2_aqi_combo.co2.list != null)
+				try
 				{
-					foreach (var item in data.co2_aqi_combo.co2.list)
+					// CO2
+					if (data.co2_aqi_combo.co2 != null && data.co2_aqi_combo.co2.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.co2_aqi_combo.co2.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].CO2pm2p5 = item.Value;
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].CO2pm2p5 = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.CO2pm2p5 = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
-						else
+					}
+					// 24 Avg
+					if (data.co2_aqi_combo.average24h != null && data.co2_aqi_combo.average24h.list != null)
+					{
+						foreach (var item in data.co2_aqi_combo.average24h.list)
 						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.CO2pm2p5 = item.Value;
-							buffer.Add(item.Key, newItem);
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].CO2pm2p5hr24 = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.CO2pm2p5hr24 = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
 				}
-				// 24 Avg
-				if (data.co2_aqi_combo.average24h.list != null)
+				catch (Exception ex)
 				{
-					foreach (var item in data.co2_aqi_combo.average24h.list)
-					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
-
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].CO2pm2p5hr24 = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.CO2pm2p5hr24 = item.Value;
-							buffer.Add(item.Key, newItem);
-						}
-					}
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing CO2 combo data. Exception: " + ex.Message);
 				}
 			}
 			// pm2.5 Combi
 			if (data.pm25_aqi_combo != null)
 			{
-				if (data.pm25_aqi_combo.pm25.list != null)
+				try
 				{
-					foreach (var item in data.pm25_aqi_combo.pm25.list)
+					if (data.pm25_aqi_combo.pm25 != null && data.pm25_aqi_combo.pm25.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.pm25_aqi_combo.pm25.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].AqiComboPm25 = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.AqiComboPm25 = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].AqiComboPm25 = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.AqiComboPm25 = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing pm 2.5 combo data. Exception: " + ex.Message);
 				}
 			}
 			// pm10 Combi
 			if (data.pm10_aqi_combo != null)
 			{
-				if (data.pm10_aqi_combo.pm10.list != null)
+				try
 				{
-					foreach (var item in data.pm10_aqi_combo.pm10.list)
+					if (data.pm10_aqi_combo.pm10 != null && data.pm10_aqi_combo.pm10.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in data.pm10_aqi_combo.pm10.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].AqiComboPm10 = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.AqiComboPm10 = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].AqiComboPm10 = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.AqiComboPm10 = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing pm 10 combo data. Exception: " + ex.Message);
 				}
 			}
 			// 4 channel PM 2.5 sensors
@@ -828,24 +976,33 @@ namespace CumulusMX
 						break;
 				}
 
-				if (sensor != null && sensor.pm25.list != null)
+				try
 				{
-					foreach (var item in sensor.pm25.list)
+					if (sensor != null && sensor.pm25 != null && sensor.pm25.list != null)
 					{
-						if (!item.Value.HasValue || item.Key <= cumulus.LastUpdateTime)
-							continue;
+						foreach (var item in sensor.pm25.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-						if (buffer.ContainsKey(item.Key))
-						{
-							buffer[item.Key].pm25[i -1] = item.Value;
-						}
-						else
-						{
-							var newItem = new EcowittApi.HistoricData();
-							newItem.pm25[i - 1] = item.Value;
-							buffer.Add(item.Key, newItem);
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.ContainsKey(itemDate))
+							{
+								buffer[itemDate].pm25[i - 1] = item.Value;
+							}
+							else
+							{
+								var newItem = new EcowittApi.HistoricData();
+								newItem.pm25[i - 1] = item.Value;
+								buffer.Add(itemDate, newItem);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing 4 chan pm 2.5 data - chan[{i}] . Exception: {ex.Message}");
 				}
 			}
 
