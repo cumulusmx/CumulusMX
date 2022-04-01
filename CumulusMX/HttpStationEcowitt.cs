@@ -22,9 +22,8 @@ namespace CumulusMX
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		private bool reportStationType = true;
-		private EcowittApi api;
+		private EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
-
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
 		{
@@ -53,6 +52,16 @@ namespace CumulusMX
 				cumulus.UseCumulusForecast = true;
 				// does not provide pressure trend strings
 				cumulus.StationOptions.UseCumulusPresstrendstr = true;
+			}
+
+			if (cumulus.EcowittSetCustomServer && station == null)
+			{
+				cumulus.LogMessage("Checking Ecowitt Gateway Custom Server configuration...");
+				var api = new GW1000Api(cumulus);
+				api.OpenTcpPort(cumulus.EcowittGatewayAddr, 45000);
+				SetCustomServer(api);
+				api.CloseTcpPort();
+				cumulus.LogMessage("Ecowitt Gateway Custom Server configuration complete");
 			}
 
 			if (station == null || (station != null && cumulus.EcowittExtraUseAQI))
@@ -123,7 +132,7 @@ namespace CumulusMX
 				try
 				{
 
-					api = new EcowittApi(cumulus, this);
+					ecowittApi = new EcowittApi(cumulus, this);
 
 					do
 					{
@@ -159,7 +168,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			api.GetHistoricData(startTime, endTime);
+			ecowittApi.GetHistoricData(startTime, endTime);
 
 		}
 
@@ -1072,5 +1081,144 @@ namespace CumulusMX
 			}
 		}
 
+		private void SetCustomServer(GW1000Api api)
+		{
+			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config");
+
+			var data = api.DoCommand(GW1000Api.Commands.CMD_READ_CUSTOMIZED);
+
+			// expected response
+			// 0     - 0xff - header
+			// 1     - 0xff - header
+			// 2     - 0x2A - read customized
+			// 3     - 0x?? - size of response
+			// 4     - 0x?? - ID length
+			// 5-len - ID field (max 40)
+			// a     - 0x?? - password length
+			// a1+   - Password field (max 40)
+			// b     - 0x?? - server length
+			// b1+   - Server field (max 64)
+			// c-d   - Port Id (0-65536)
+			// e-f   - Interval (5-600)
+			// g     - 0x?? - Active (0-disabled, 1-active)
+			// h  - 0x?? - checksum
+
+			if (data != null)
+			{
+				try
+				{
+					//  ID field
+					var id = Encoding.ASCII.GetString(data, 5, data[4]);
+					// Password field
+					var idx = 5 + data[4];
+					var pass = Encoding.ASCII.GetString(data, idx + 1, data[idx]);
+					// get server string
+					idx += data[idx] + 1;
+					var server = Encoding.ASCII.GetString(data, idx + 1, data[idx]);
+					// get port id
+					idx += data[idx] + 1;
+					var port = GW1000Api.ConvertBigEndianUInt16(data, idx);
+					// interval
+					idx += 2;
+					var intv = GW1000Api.ConvertBigEndianUInt16(data, idx);
+					// type
+					idx += 2;
+					var type = data[idx] == 0 ? "Ecowitt" : "WUnderground";
+					idx += 1;
+					var active = data[idx];
+
+					var data2 = api.DoCommand(GW1000Api.Commands.CMD_READ_USER_PATH);
+					var ecPath = Encoding.ASCII.GetString(data2, 5, data2[4]);
+					idx = 5 + data2[4];
+					var wuPath = Encoding.ASCII.GetString(data2, idx + 1, data2[idx]);
+
+
+					cumulus.LogMessage($"Ecowitt Gateway Custom Server config: Server={server}, Port={port}, Path={ecPath}, Interval={intv}, Protocol={type}, Enabled={active}");
+
+					if (server != cumulus.EcowittLocalAddr || port != cumulus.wsPort || intv != cumulus.EcowittCustomInterval || type != "Ecowitt" || active != 1)
+					{
+						cumulus.LogMessage("Ecowitt Gateway Custom Server config does not match the required config, reconfiguring it...");
+
+						// Payload
+						// 1    - ID length
+						// n+   - ID
+						// 1    - Password length
+						// n+   - Password
+						// 0	- Server length
+						// 1+   - Server Name
+						// a-b  - Port
+						// c-d  - Interval
+						// e    - Type (EC=0, WU=1)
+						// f    - Active
+
+						var length = 1 + id.Length + 1 + pass.Length; // id.len + id + pass.len + pass
+						length += cumulus.EcowittLocalAddr.Length + 1; // Server name + length byte
+						length += 2 + 2 + 1 + 1; // + port + interval + type + active
+						var send = new byte[length];
+						// set ID
+						send[0] = (byte)id.Length;
+						Encoding.ASCII.GetBytes(id).CopyTo(send, 1);
+
+						// set password
+						idx = 1 + id.Length;
+						send[idx] = (byte)pass.Length;
+						Encoding.ASCII.GetBytes(id).CopyTo(send, idx + 1);
+
+						// set server string length
+						idx += 1 + pass.Length;
+						send[idx] = (byte)cumulus.EcowittLocalAddr.Length;
+						// set server string
+						Encoding.ASCII.GetBytes(cumulus.EcowittLocalAddr).CopyTo(send, idx + 1);
+						idx += 1 + server.Length;
+						// set the port id
+						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort)cumulus.wsPort).CopyTo(send, idx);
+						// set the interval
+						idx += 2;
+						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort)cumulus.EcowittCustomInterval).CopyTo(send, idx);
+						// set type
+						idx += 2;
+						send[idx] = 0;
+						// set enabled
+						idx += 1;
+						send[idx] = 1;
+
+						// do the config
+						var retData = api.DoCommand(GW1000Api.Commands.CMD_WRITE_CUSTOMIZED, send);
+
+						if (retData == null || retData[4] != 0)
+						{
+							cumulus.LogMessage("Error - failed to set the Ecowitt Gateway config");
+						}
+
+						// does the path need setting as well?
+						if (ecPath != "/station/ecowitt")
+						{
+							ecPath = "/station/ecowitt";
+							var path = new byte[ecPath.Length + wuPath.Length + 2];
+							path[0] = (byte)ecPath.Length;
+							Encoding.ASCII.GetBytes(ecPath).CopyTo(path, 1);
+							idx = 1 + ecPath.Length;
+							path[idx] = (byte)wuPath.Length;
+							Encoding.ASCII.GetBytes(wuPath).CopyTo(path, idx + 1);
+
+							retData = api.DoCommand(GW1000Api.Commands.CMD_WRITE_USER_PATH, path);
+
+							if (retData == null || retData[4] != 0)
+							{
+								cumulus.LogMessage("Error - failed to set the Ecowitt Gateway Path");
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage("Error setting Ecowitt Gateway Custom Server config: " + ex.Message);
+				}
+			}
+			else
+			{
+				cumulus.LogMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+			}
+		}
 	}
 }

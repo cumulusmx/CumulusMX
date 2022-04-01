@@ -4245,6 +4245,11 @@ namespace CumulusMX
 			EcowittExtraUseCo2= ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 			EcowittExtraUseLeak= ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+			EcowittSetCustomServer = ini.GetValue("GW1000", "SetCustomServer", false);
+			EcowittGatewayAddr = ini.GetValue("GW1000", "EcowittGwAddr", "0.0.0.0");
+			var localIp = Utils.GetIpWithDefaultGateway();
+			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
+			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16);
 			// api
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", "");
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", "");
@@ -5372,6 +5377,10 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
 			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
+			ini.SetValue("GW1000", "SetCustomServer", EcowittSetCustomServer);
+			ini.SetValue("GW1000", "EcowittGwAddr", EcowittGatewayAddr);
+			ini.SetValue("GW1000", "EcowittLocalAddr", EcowittLocalAddr);
+			ini.SetValue("GW1000", "EcowittCustomInterval", EcowittCustomInterval);
 
 			ini.SetValue("GW1000", "EcowittAppKey", EcowittApplicationKey);
 			ini.SetValue("GW1000", "EcowittUserKey", EcowittUserApiKey);
@@ -6338,6 +6347,10 @@ namespace CumulusMX
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
+		public bool EcowittSetCustomServer { get; set; }
+		public string EcowittGatewayAddr { get; set; }
+		public string EcowittLocalAddr { get; set; }
+		public int EcowittCustomInterval { get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
 		public bool AmbientExtraUseSolar { get; set; }

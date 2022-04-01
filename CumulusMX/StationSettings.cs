@@ -134,6 +134,10 @@ namespace CumulusMX
 
 			var ecowitt = new JsonStationSettingsEcowitt()
 			{
+				setcustom = cumulus.EcowittSetCustomServer,
+				gwaddr = cumulus.EcowittGatewayAddr,
+				localaddr = cumulus.EcowittLocalAddr,
+				interval = cumulus.EcowittCustomInterval,
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor
 			};
 
@@ -436,12 +440,13 @@ namespace CumulusMX
 				davisvp2 = davisvp2,
 				daviswll = wll,
 				gw1000 = gw1000,
+				ecowitt = ecowitt,
+				ecowittapi = ecowittapi,
 				weatherflow = weatherflow,
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
 				wmr928 = wmr928,
-				ecowittapi = ecowittapi,
 				Options = options,
 				Forecast = forecast,
 				Solar = solar,
@@ -958,6 +963,10 @@ namespace CumulusMX
 				{
 					if (settings.ecowitt != null)
 					{
+						cumulus.EcowittSetCustomServer = settings.ecowitt.setcustom;
+						cumulus.EcowittGatewayAddr = settings.ecowitt.gwaddr;
+						cumulus.EcowittLocalAddr = settings.ecowitt.localaddr;
+						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
 						cumulus.Gw1000PrimaryTHSensor = settings.ecowitt.primaryTHsensor;
 					}
 				}
@@ -1544,6 +1553,10 @@ namespace CumulusMX
 
 	internal class JsonStationSettingsEcowitt
 	{
+		public bool setcustom { get; set; }
+		public string gwaddr { get; set; }
+		public string localaddr { get; set; }
+		public int interval { get; set; }
 		public int primaryTHsensor { get; set; }
 	}
 

@@ -1,11 +1,12 @@
-3.15.4 - b3174
+3.16.0 - b3174
 ——————————————
 - Fix: CPU temp check on Linux?
 - Fix: Start-up PING is now run in a separate thread so if it hangs CMX can continue
 - Fix: Ecowitt Local API station not performing a battery check every 20 minutes
 - Fix: Longest dry/wet web tags from outputting -9999 values, if uninitialised they now output "--"
 
-- New: Ecowitt stations, adds the ability to over-ride the default outdoor temp/humidity values by specifying and extra T/H sensor channel
+- New: HTTP Ecowitt stations, Cumulus MX will now configure the custom server config for you - optional
+- New: Ecowitt stations (Local API and HHTP), adds the ability to over-ride the default outdoor temp/humidity values by specifying and extra T/H sensor channel
 - New: Adds last 24 hours rain to the dashboard "Now" page
 - New: Adds records for 24 hour rainfall - This Month, This Year, Monthly, and All Time
 	- New web tags:
