@@ -267,6 +267,11 @@ namespace CumulusMX
 			// GW1000 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
+			if (cumulus.Gw1000PrimaryTHSensor != 0)
+			{
+				// We are not using the primary T/H sensor so MX must calculate the wind chill as well
+				cumulus.StationOptions.CalculatedWC = true;
+			}
 
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
@@ -894,7 +899,6 @@ namespace CumulusMX
 			var minute = DateTime.Now.Minute;
 			if (minute != lastMinute)
 			{
-				lastMinute = minute;
 				tenMinuteChanged = (minute % 10) == 0;
 			}
 
@@ -961,9 +965,12 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x02: //Outdoor Temperature (℃)
-								tempInt16 = ConvertBigEndianInt16(data, idx);
-								// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
-								outdoortemp = tempInt16 / 10.0;
+								if (cumulus.Gw1000PrimaryTHSensor == 0)
+								{
+									tempInt16 = ConvertBigEndianInt16(data, idx);
+									// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
+									outdoortemp = tempInt16 / 10.0;
+								}
 								idx += 2;
 								break;
 							case 0x03: //Dew point (℃)
@@ -972,12 +979,15 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x04: //Wind chill (℃)
-								tempInt16 = ConvertBigEndianInt16(data, idx);
-								DoWindChill(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
+								if (cumulus.Gw1000PrimaryTHSensor == 0)
+								{
+									tempInt16 = ConvertBigEndianInt16(data, idx);
+									DoWindChill(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
+								}
 								idx += 2;
 								break;
 							case 0x05: //Heat index (℃)
-									   // cumulus calculates this
+								// cumulus calculates this
 								idx += 2;
 								break;
 							case 0x06: //Indoor Humidity(%)
@@ -985,7 +995,10 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x07: //Outdoor Humidity (%)
-								DoOutdoorHumidity(data[idx], dateTime);
+								if (cumulus.Gw1000PrimaryTHSensor == 0)
+								{
+									DoOutdoorHumidity(data[idx], dateTime);
+								}
 								idx += 1;
 								break;
 							case 0x08: //Absolute Barometric (hPa)
@@ -1065,6 +1078,10 @@ namespace CumulusMX
 							case 0x21: //Temperature 8(℃)
 								chan = data[idx - 1] - 0x1A + 1;
 								tempInt16 = ConvertBigEndianInt16(data, idx);
+								if (cumulus.Gw1000PrimaryTHSensor == chan)
+								{
+									outdoortemp = tempInt16 / 10.0;
+								}
 								DoExtraTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
 								idx += 2;
 								break;
@@ -1077,6 +1094,10 @@ namespace CumulusMX
 							case 0x28: //Humidity 7, 0-100%
 							case 0x29: //Humidity 8, 0-100%
 								chan = data[idx - 1] - 0x22 + 1;
+								if (cumulus.Gw1000PrimaryTHSensor == chan)
+								{
+									DoOutdoorHumidity(data[idx], dateTime);
+								}
 								DoExtraHum(data[idx], chan);
 								idx += 1;
 								break;

@@ -97,7 +97,7 @@ namespace CumulusMX
 						{
 							if (s.Length > 2)
 							{
-								string SectionName = s.Substring(1,s.Length-2);
+								string SectionName = s.Substring(1, s.Length - 2);
 
 								// *** Only first occurrence of a section is loaded ***
 								if (m_Sections.ContainsKey(SectionName))
@@ -107,7 +107,7 @@ namespace CumulusMX
 								else
 								{
 									CurrentSection = new Dictionary<string, string>();
-									m_Sections.Add(SectionName,CurrentSection);
+									m_Sections.Add(SectionName, CurrentSection);
 								}
 							}
 						}
@@ -115,17 +115,27 @@ namespace CumulusMX
 						{
 							// *** Check for key+value pair ***
 							int i;
-							if ((i=s.IndexOf('=')) > 0)
+							if (s.StartsWith("#"))
 							{
+								// It's a comment
+								// *** Only first occurrence of a key is loaded ***
+								if (!CurrentSection.ContainsKey(s))
+								{
+									CurrentSection.Add(s, "");
+								}
+							}
+							else if ((i = s.IndexOf('=')) > 0)
+							{
+								// It's a value
 								int j = s.Length - i - 1;
-								string Key = s.Substring(0,i).Trim();
-								if (Key.Length  > 0)
+								string Key = s.Substring(0, i).Trim();
+								if (Key.Length > 0)
 								{
 									// *** Only first occurrence of a key is loaded ***
 									if (!CurrentSection.ContainsKey(Key))
 									{
-										string Value = (j > 0) ? (s.Substring(i+1,j).Trim()) : ("");
-										CurrentSection.Add(Key,Value);
+										string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+										CurrentSection.Add(Key, Value);
 									}
 								}
 							}
@@ -160,6 +170,8 @@ namespace CumulusMX
 						// *** Open the file ***
 						using (StreamWriter sw = new StreamWriter(m_FileName))
 						{
+							sw.WriteLine($"#Last updated: {DateTime.Now:G}");
+
 							// *** Cycle on all sections ***
 							bool First = false;
 							foreach (KeyValuePair<string, Dictionary<string, string>> SectionPair in m_Sections)
@@ -178,8 +190,12 @@ namespace CumulusMX
 								{
 									// *** Write the key+value pair ***
 									sw.Write(ValuePair.Key);
-									sw.Write('=');
-									sw.WriteLine(ValuePair.Value);
+									if (!ValuePair.Key.StartsWith("#"))
+									{
+										sw.Write('=');
+										sw.Write(ValuePair.Value);
+									}
+									sw.WriteLine();
 								}
 							}
 						}

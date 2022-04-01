@@ -1127,48 +1127,86 @@ namespace CumulusMX
 			// Do we wait for a ping response from a remote host before starting?
 			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
 			{
+				var msg0 = $"Sending PING to {ProgramOptions.StartupPingHost}";
 				var msg1 = $"Waiting for PING reply from {ProgramOptions.StartupPingHost}";
 				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
 				var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
-				LogConsoleMessage(msg1);
-				LogMessage(msg1);
-				var endTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+				var escapeTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+				var attempt = 1;
+				var pingSuccess = false;
+				// This is the timeout for "hung" attempts, we will double this at every failure so we do not create too many hung resources
+				var pingTimeoutSecs = 10;
 
 				do
 				{
-					pingReply = null;
+					var pingTimeoutDT = DateTime.Now.AddSeconds(pingTimeoutSecs); 
+					var pingTokenSource = new CancellationTokenSource();
+					var pingCancelToken = pingTokenSource.Token;
 
-					using (var ping = new Ping())
+					LogDebugMessage($"Starting PING #{attempt} task with time-out of {pingTimeoutSecs} seconds");
+
+					var pingTask = Task.Run(() =>
 					{
-						ping.PingCompleted += new PingCompletedEventHandler(PingCompletedCallback);
-
-						try
+						var cnt = attempt;
+						using (var ping = new Ping())
 						{
-							var pingTimeout = DateTime.Now.AddSeconds(2.5);
-
-							ping.SendAsync(ProgramOptions.StartupPingHost, 2000);
-
-							do
+							try
 							{
-								Thread.Sleep(500);
-							} while (pingReply == null && DateTime.Now < pingTimeout);
+								LogMessage($"Sending PING #{cnt} to {ProgramOptions.StartupPingHost}");
 
-							if (pingReply == null)
-							{
-								LogMessage("Ping Error: The PING failed to return after the timeout, cancelling it...");
-								ping.SendAsyncCancel();
+								// set the actual ping timeout 5 secs less than the task timeout
+								var reply = ping.Send(ProgramOptions.StartupPingHost, (pingTimeoutSecs - 5) * 1000);
+
+								// were we hung on the network and now cancelled? if so just exit silently
+								if (pingCancelToken.IsCancellationRequested)
+								{
+									LogDebugMessage($"Cancelled PING #{cnt} task exiting");
+								}
+								else
+								{
+									var msg = $"Received PING #{cnt} response from {ProgramOptions.StartupPingHost}, status: {reply.Status}";
+
+									LogMessage(msg);
+									LogConsoleMessage(msg);
+
+									if (reply.Status == IPStatus.Success)
+									{
+										pingSuccess = true;
+									}
+								}
 							}
+							catch (Exception e)
+							{
+								LogMessage($"PING #{cnt} to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
+							}
+
 						}
-						catch (Exception e)
-						{
-							LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
-						}
+					}, pingCancelToken);
+
+					// wait for the ping to return
+					do
+					{
+						Thread.Sleep(100);
+					} while (pingTask.Status == TaskStatus.Running && DateTime.Now < pingTimeoutDT);
+
+					LogDebugMessage($"PING #{attempt} task status: {pingTask.Status}");
+
+					// did we timeout waiting for the task to end?
+					if (DateTime.Now >= pingTimeoutDT)
+					{
+						// yep, so attempt to cancel the task
+						LogMessage($"Nothing returned from PING #{attempt}, attempting the cancel the task");
+						pingTokenSource.Cancel();
+						// and double the timeout for next attempt
+						pingTimeoutSecs *= 2;
 					}
 
-					if (pingReply?.Status != IPStatus.Success)
+					if (!pingSuccess)
 					{
 						// no response wait 10 seconds before trying again
+						LogDebugMessage("Waiting 10 seconds before retry...");
 						Thread.Sleep(10000);
+						attempt++;
 						// Force a DNS refresh if not an IPv4 address
 						if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
 						{
@@ -1179,13 +1217,13 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogMessage($"PING: Error with DNS refresh - {ex.Message}");
+								LogMessage($"PING #{attempt}: Error with DNS refresh - {ex.Message}");
 							}
 						}
 					}
-				} while (pingReply?.Status != IPStatus.Success && DateTime.Now < endTime);
+				} while (!pingSuccess && DateTime.Now < escapeTime);
 
-			if (DateTime.Now >= endTime)
+				if (DateTime.Now >= escapeTime)
 				{
 					LogConsoleMessage(msg3, ConsoleColor.Yellow);
 					LogMessage(msg3);
@@ -4194,6 +4232,7 @@ namespace CumulusMX
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
+			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
 			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
@@ -5320,6 +5359,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
 			ini.SetValue("GW1000", "MACAddress", Gw1000MacAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
+			ini.SetValue("GW1000", "PrimaryTHSensor", Gw1000PrimaryTHSensor);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
 			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
@@ -6508,6 +6548,7 @@ namespace CumulusMX
 		public string Gw1000IpAddress;
 		public string Gw1000MacAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
+		public int Gw1000PrimaryTHSensor;
 
 		public Timer WundTimer = new Timer();
 		public Timer WebTimer = new Timer();

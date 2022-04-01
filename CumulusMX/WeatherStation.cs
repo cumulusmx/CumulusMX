@@ -1858,9 +1858,9 @@ namespace CumulusMX
 			}
 
 			// If not on windows, check for CPU temp
-			if (Type.GetType("Mono.Runtime") != null && File.Exists("/sys/class/thermal/thermal_zone0/temp"))
+			try
 			{
-				try
+				if (Type.GetType("Mono.Runtime") != null && File.Exists("/sys/class/thermal/thermal_zone0/temp"))
 				{
 					var raw = File.ReadAllText(@"/sys/class/thermal/thermal_zone0/temp");
 					if (double.TryParse(raw, out var val))
@@ -1873,10 +1873,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"Current CPU temp file /sys/class/thermal/thermal_zone0/temp does not contain a number = [{raw}]");
 					}
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogDebugMessage($"Error reading CPU temperature - {ex.Message}");
-				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogDebugMessage($"Error reading CPU temperature - {ex.Message}");
 			}
 		}
 
@@ -6338,6 +6338,27 @@ namespace CumulusMX
 					}
 
 					RainLast24Hour = trendval * cumulus.Calib.Rain.Mult;
+
+					if (RainLast24Hour > AllTime.Rain24Hours.Val)
+					{
+						SetAlltime(AllTime.Rain24Hours, RainLast24Hour, ts);
+					}
+
+					CheckMonthlyAlltime("Rain24Hours", RainLast24Hour, true, ts);
+
+					if (RainLast24Hour > ThisMonth.Rain24Hours.Val)
+					{
+						ThisMonth.Rain24Hours.Val = RainLast24Hour;
+						ThisMonth.Rain24Hours.Ts = ts;
+						WriteMonthIniFile();
+					}
+
+					if (RainLast24Hour > ThisYear.Rain24Hours.Val)
+					{
+						ThisYear.Rain24Hours.Val = RainLast24Hour;
+						ThisYear.Rain24Hours.Ts = ts;
+						WriteYearIniFile();
+					}
 				}
 				else
 				{
@@ -7716,6 +7737,9 @@ namespace CumulusMX
 			AllTime.HourlyRain.Val = ini.GetValue("Rain", "highhourlyrainvalue", Cumulus.DefaultHiVal);
 			AllTime.HourlyRain.Ts = ini.GetValue("Rain", "highhourlyraintime", cumulus.defaultRecordTS);
 
+			AllTime.Rain24Hours.Val = ini.GetValue("Rain", "high24hourrainvalue", Cumulus.DefaultHiVal);
+			AllTime.Rain24Hours.Ts = ini.GetValue("Rain", "high24hourraintime", cumulus.defaultRecordTS);
+
 			AllTime.MonthlyRain.Val = ini.GetValue("Rain", "highmonthlyrainvalue", Cumulus.DefaultHiVal);
 			AllTime.MonthlyRain.Ts = ini.GetValue("Rain", "highmonthlyraintime", cumulus.defaultRecordTS);
 
@@ -7788,6 +7812,8 @@ namespace CumulusMX
 				ini.SetValue("Rain", "highdailyraintime", AllTime.DailyRain.Ts);
 				ini.SetValue("Rain", "highhourlyrainvalue", AllTime.HourlyRain.Val);
 				ini.SetValue("Rain", "highhourlyraintime", AllTime.HourlyRain.Ts);
+				ini.SetValue("Rain", "high24hourrainvalue", AllTime.Rain24Hours.Val);
+				ini.SetValue("Rain", "high24hourraintime", AllTime.Rain24Hours.Ts);
 				ini.SetValue("Rain", "highmonthlyrainvalue", AllTime.MonthlyRain.Val);
 				ini.SetValue("Rain", "highmonthlyraintime", AllTime.MonthlyRain.Ts);
 				ini.SetValue("Rain", "longestdryperiodvalue", AllTime.LongestDryPeriod.Val);
@@ -7881,6 +7907,9 @@ namespace CumulusMX
 				MonthlyRecs[month].HourlyRain.Val = ini.GetValue("Rain" + monthstr, "highhourlyrainvalue", Cumulus.DefaultHiVal);
 				MonthlyRecs[month].HourlyRain.Ts = ini.GetValue("Rain" + monthstr, "highhourlyraintime", cumulus.defaultRecordTS);
 
+				MonthlyRecs[month].Rain24Hours.Val = ini.GetValue("Rain" + monthstr, "high24hourrainvalue", Cumulus.DefaultHiVal);
+				MonthlyRecs[month].Rain24Hours.Ts = ini.GetValue("Rain" + monthstr, "high24hourraintime", cumulus.defaultRecordTS);
+
 				MonthlyRecs[month].MonthlyRain.Val = ini.GetValue("Rain" + monthstr, "highmonthlyrainvalue", Cumulus.DefaultHiVal);
 				MonthlyRecs[month].MonthlyRain.Ts = ini.GetValue("Rain" + monthstr, "highmonthlyraintime", cumulus.defaultRecordTS);
 
@@ -7957,6 +7986,8 @@ namespace CumulusMX
 					ini.SetValue("Rain" + monthstr, "highdailyraintime", MonthlyRecs[month].DailyRain.Ts);
 					ini.SetValue("Rain" + monthstr, "highhourlyrainvalue", MonthlyRecs[month].HourlyRain.Val);
 					ini.SetValue("Rain" + monthstr, "highhourlyraintime", MonthlyRecs[month].HourlyRain.Ts);
+					ini.SetValue("Rain" + monthstr, "high24hourrainvalue", MonthlyRecs[month].Rain24Hours.Val);
+					ini.SetValue("Rain" + monthstr, "high24hourraintime", MonthlyRecs[month].Rain24Hours.Ts);
 					ini.SetValue("Rain" + monthstr, "highmonthlyrainvalue", MonthlyRecs[month].MonthlyRain.Val);
 					ini.SetValue("Rain" + monthstr, "highmonthlyraintime", MonthlyRecs[month].MonthlyRain.Ts);
 					ini.SetValue("Rain" + monthstr, "longestdryperiodvalue", MonthlyRecs[month].LongestDryPeriod.Val);
@@ -8083,6 +8114,8 @@ namespace CumulusMX
 				ThisMonth.HourlyRain.Ts = ini.GetValue("Rain", "HHourlyTime", cumulus.defaultRecordTS);
 				ThisMonth.DailyRain.Val = ini.GetValue("Rain", "DailyHigh", Cumulus.DefaultHiVal);
 				ThisMonth.DailyRain.Ts = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
+				ThisMonth.Rain24Hours.Val = ini.GetValue("Rain", "24Hour", Cumulus.DefaultHiVal);
+				ThisMonth.Rain24Hours.Ts = ini.GetValue("Rain", "24HourTime", cumulus.defaultRecordTS);
 				ThisMonth.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", Cumulus.DefaultHiVal);
 				ThisMonth.LongestDryPeriod.Ts = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
 				ThisMonth.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", Cumulus.DefaultHiVal);
@@ -8165,6 +8198,8 @@ namespace CumulusMX
 					ini.SetValue("Rain", "HHourlyTime", ThisMonth.HourlyRain.Ts);
 					ini.SetValue("Rain", "DailyHigh", ThisMonth.DailyRain.Val);
 					ini.SetValue("Rain", "HDailyTime", ThisMonth.DailyRain.Ts);
+					ini.SetValue("Rain", "24Hour", ThisMonth.Rain24Hours.Val);
+					ini.SetValue("Rain", "24HourTime", ThisMonth.Rain24Hours.Ts);
 					ini.SetValue("Rain", "LongestDryPeriod", ThisMonth.LongestDryPeriod.Val);
 					ini.SetValue("Rain", "LongestDryPeriodTime", ThisMonth.LongestDryPeriod.Ts);
 					ini.SetValue("Rain", "LongestWetPeriod", ThisMonth.LongestWetPeriod.Val);
@@ -8255,6 +8290,8 @@ namespace CumulusMX
 				ThisYear.HourlyRain.Ts = ini.GetValue("Rain", "HHourlyTime", cumulus.defaultRecordTS);
 				ThisYear.DailyRain.Val = ini.GetValue("Rain", "DailyHigh", Cumulus.DefaultHiVal);
 				ThisYear.DailyRain.Ts = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
+				ThisYear.Rain24Hours.Val = ini.GetValue("Rain", "24Hour", Cumulus.DefaultHiVal);
+				ThisYear.Rain24Hours.Ts = ini.GetValue("Rain", "24HourTime", cumulus.defaultRecordTS);
 				ThisYear.MonthlyRain.Val = ini.GetValue("Rain", "MonthlyHigh", Cumulus.DefaultHiVal);
 				ThisYear.MonthlyRain.Ts = ini.GetValue("Rain", "HMonthlyTime", cumulus.defaultRecordTS);
 				ThisYear.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", Cumulus.DefaultHiVal);
@@ -8338,6 +8375,8 @@ namespace CumulusMX
 					ini.SetValue("Rain", "HHourlyTime", ThisYear.HourlyRain.Ts);
 					ini.SetValue("Rain", "DailyHigh", ThisYear.DailyRain.Val);
 					ini.SetValue("Rain", "HDailyTime", ThisYear.DailyRain.Ts);
+					ini.SetValue("Rain", "24Hour", ThisYear.Rain24Hours.Val);
+					ini.SetValue("Rain", "24HourTime", ThisYear.Rain24Hours.Ts);
 					ini.SetValue("Rain", "MonthlyHigh", ThisYear.MonthlyRain.Val);
 					ini.SetValue("Rain", "HMonthlyTime", ThisYear.MonthlyRain.Ts);
 					ini.SetValue("Rain", "LongestDryPeriod", ThisYear.LongestDryPeriod.Val);
@@ -9437,6 +9476,8 @@ namespace CumulusMX
 			json.Append(",");
 			json.Append(alltimejsonformat(AllTime.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
+			json.Append(alltimejsonformat(AllTime.Rain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(",");
 			json.Append(alltimejsonformat(AllTime.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(",");
 			json.Append(alltimejsonformat(AllTime.LongestDryPeriod, "days", "f0", "D"));
@@ -9532,6 +9573,8 @@ namespace CumulusMX
 			json.Append(monthlyjsonformat(MonthlyRecs[month].HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(",");
 			json.Append(monthlyjsonformat(MonthlyRecs[month].DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(",");
+			json.Append(monthlyjsonformat(MonthlyRecs[month].Rain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
 			json.Append(monthlyjsonformat(MonthlyRecs[month].MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(",");
@@ -9629,6 +9672,8 @@ namespace CumulusMX
 			json.Append(",");
 			json.Append(monthyearjsonformat(ThisMonth.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
+			json.Append(monthyearjsonformat(ThisMonth.Rain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(",");
 			//json.Append(monthyearjsonformat(ThisMonth.WetMonth.Desc, month, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			//json.Append(",");
 			json.Append(monthyearjsonformat(ThisMonth.LongestDryPeriod, "days", "f0", "D"));
@@ -9719,6 +9764,8 @@ namespace CumulusMX
 			json.Append(monthyearjsonformat(ThisYear.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(ThisYear.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(",");
+			json.Append(monthyearjsonformat(ThisYear.Rain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(",");
 			json.Append(monthyearjsonformat(ThisYear.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(",");
@@ -12524,6 +12571,7 @@ namespace CumulusMX
 		public AllTimeRec HighFeelsLike { get; set; } = new AllTimeRec(25);
 		public AllTimeRec LowFeelsLike { get; set; } = new AllTimeRec(26);
 		public AllTimeRec HighHumidex { get; set; } = new AllTimeRec(27);
+		public AllTimeRec Rain24Hours { get; set; } = new AllTimeRec(28);
 	}
 
 	public class AllTimeRec
@@ -12534,7 +12582,7 @@ namespace CumulusMX
 			"High hourly rain", "Low pressure", "High pressure", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
 			"High humidity", "Low humidity", "High apparent temp", "Low apparent temp", "High heat index", "High dew point", "Low dew point",
 			"High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range",
-			"High feels like", "Low feels like", "High Humidex"
+			"High feels like", "Low feels like", "High Humidex", "High 24 hour rain"
 		};
 		private readonly int idx;
 

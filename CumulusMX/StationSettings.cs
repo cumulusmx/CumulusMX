@@ -124,11 +124,17 @@ namespace CumulusMX
 			var weatherflow = new JsonStationSettingsWeatherFlow()
 				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn()
+			var gw1000 = new JsonStationSettingsGw1000Conn()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
-				macaddress = cumulus.Gw1000MacAddress
+				macaddress = cumulus.Gw1000MacAddress,
+				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor
+			};
+
+			var ecowitt = new JsonStationSettingsEcowitt()
+			{
+				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor
 			};
 
 			var ecowittapi = new JsonStationSettingsEcowittApi()
@@ -936,6 +942,7 @@ namespace CumulusMX
 						cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
 						cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
 						cumulus.Gw1000MacAddress = settings.gw1000.macaddress;
+						cumulus.Gw1000PrimaryTHSensor = settings.gw1000.primaryTHsensor;
 					}
 				}
 				catch (Exception ex)
@@ -945,6 +952,23 @@ namespace CumulusMX
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
+
+				// Ecowitt configuration details
+				try
+				{
+					if (settings.ecowitt != null)
+					{
+						cumulus.Gw1000PrimaryTHSensor = settings.ecowitt.primaryTHsensor;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 
 				// weatherflow connection details
 				try
@@ -1349,14 +1373,15 @@ namespace CumulusMX
 		public int stationid { get; set; }
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
-		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsEcowitt ecowitt { get; set; }
+		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
 		public JsonStationSettingsFineOffset fineoffset { get; set; }
 		public JsonStationSettingsEasyWeather easyw { get; set; }
 		public JsonStationSettingsImet imet { get; set; }
 		public JsonStationSettingsWMR928 wmr928 { get; set; }
-		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 		public JsonStationSettingsOptions Options { get; set; }
 		public JsonStationSettingsForecast Forecast { get; set; }
 		public JsonStationSettingsSolar Solar { get; set; }
@@ -1509,11 +1534,17 @@ namespace CumulusMX
 		public int dayshistory { get; set; }
 	}
 
-	internal class JSonStationSettingsGw1000Conn
+	internal class JsonStationSettingsGw1000Conn
 	{
 		public string ipaddress { get; set; }
 		public bool autoDiscover { get; set; }
 		public string macaddress { get; set; }
+		public int primaryTHsensor { get; set; }
+	}
+
+	internal class JsonStationSettingsEcowitt
+	{
+		public int primaryTHsensor { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowittApi

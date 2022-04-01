@@ -78,7 +78,7 @@ namespace CumulusMX
 			}
 
 			var apiStartDate = startTime.AddMinutes(-EcowittApiFudgeFactor);
-			var apiEndDate = endTime.AddMinutes(-EcowittApiFudgeFactor);
+			var apiEndDate = endTime;
 
 			var sb = new StringBuilder(historyUrl);
 
@@ -1138,7 +1138,7 @@ namespace CumulusMX
 					station.DoIndoorHumidity(rec.Value.IndoorHum.Value);
 				}
 
-				if (rec.Value.Humidity.HasValue)
+				if (rec.Value.Humidity.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 				{
 					station.DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
 				}
@@ -1180,7 +1180,7 @@ namespace CumulusMX
 			// === Outdoor temp ===
 			try
 			{
-				if (rec.Value.Temp.HasValue)
+				if (rec.Value.Temp.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 				{
 					var tempVal = station.ConvertTempFToUser((double)rec.Value.Temp);
 					station.DoOutdoorTemp(tempVal, rec.Key);
@@ -1219,72 +1219,6 @@ namespace CumulusMX
 				cumulus.LogMessage("ApplyHistoricData: Error in Rain data - " + ex.Message);
 			}
 
-			// === Dewpoint ===
-			try
-			{
-				if (cumulus.StationOptions.CalculatedDP)
-				{
-					station.DoOutdoorDewpoint(0, rec.Key);
-				}
-				else if (rec.Value.DewPoint.HasValue)
-				{
-					var val = station.ConvertTempFToUser((double)rec.Value.DewPoint);
-					station.DoOutdoorDewpoint(val, rec.Key);
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message);
-			}
-
-			// === Wind Chill ===
-			try
-			{
-				if (cumulus.StationOptions.CalculatedWC && rec.Value.Temp.HasValue && rec.Value.WindSpd.HasValue)
-				{
-					station.DoWindChill(0, rec.Key);
-				}
-				else
-				{
-					// historic API does not provide Wind Chill so force calculation
-					cumulus.StationOptions.CalculatedWC = true;
-					station.DoWindChill(0, rec.Key);
-					cumulus.StationOptions.CalculatedWC = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message);
-			}
-
-			// === Humidex ===
-			if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
-			{
-				try
-				{
-					station.DoHumidex(rec.Key);
-
-					// === Apparent & Feels Like === - requires temp, hum, and windspeed
-					if (rec.Value.WindSpd.HasValue)
-					{
-						station.DoApparentTemp(rec.Key);
-						station.DoFeelsLike(rec.Key);
-					}
-					else
-					{
-						cumulus.LogMessage("ApplyHistoricData: Insufficient data to calculate Apparent/Feels Like temps");
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage("ApplyHistoricData: Error in Humidex/Apparant/Feels Like - " + ex.Message);
-				}
-			}
-			else
-			{
-				cumulus.LogMessage("ApplyHistoricData: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
-			}
-
 			// === Solar ===
 			try
 			{
@@ -1319,7 +1253,12 @@ namespace CumulusMX
 				{
 					if (rec.Value.ExtraTemp[i - 1].HasValue)
 					{
-						station.DoExtraTemp(station.ConvertTempFToUser((double)rec.Value.ExtraTemp[i - 1]), i);
+						var tempVal = (double)rec.Value.ExtraTemp[i - 1];
+						if (i == cumulus.Gw1000PrimaryTHSensor)
+						{
+							station.DoOutdoorTemp(tempVal, rec.Key);
+						}
+						station.DoExtraTemp(station.ConvertTempFToUser(tempVal), i);
 					}
 				}
 				catch (Exception ex)
@@ -1331,6 +1270,10 @@ namespace CumulusMX
 				{
 					if (rec.Value.ExtraHumidity[i - 1].HasValue)
 					{
+						if (i == cumulus.Gw1000PrimaryTHSensor)
+						{
+							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i - 1].Value, rec.Key);
+						}
 						station.DoExtraHum(rec.Value.ExtraHumidity[i - 1].Value, i);
 					}
 				}
@@ -1433,6 +1376,68 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
 				}
+			}
+
+
+			// Do all the derived values after the primary data
+
+			// === Dewpoint ===
+			try
+			{
+				if (cumulus.StationOptions.CalculatedDP)
+				{
+					station.DoOutdoorDewpoint(0, rec.Key);
+				}
+				else if (rec.Value.DewPoint.HasValue)
+				{
+					var val = station.ConvertTempFToUser((double)rec.Value.DewPoint);
+					station.DoOutdoorDewpoint(val, rec.Key);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message);
+			}
+
+			// === Wind Chill ===
+			try
+			{
+				if (cumulus.StationOptions.CalculatedWC && rec.Value.WindSpd.HasValue)
+				{
+					station.DoWindChill(0, rec.Key);
+				}
+				else
+				{
+					// historic API does not provide Wind Chill so force calculation
+					cumulus.StationOptions.CalculatedWC = true;
+					station.DoWindChill(0, rec.Key);
+					cumulus.StationOptions.CalculatedWC = false;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Wind chill data - " + ex.Message);
+			}
+
+			// === Humidex ===
+			try
+			{
+				station.DoHumidex(rec.Key);
+
+				// === Apparent & Feels Like === - requires temp, hum, and windspeed
+				if (rec.Value.WindSpd.HasValue)
+				{
+					station.DoApparentTemp(rec.Key);
+					station.DoFeelsLike(rec.Key);
+				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Insufficient data to calculate Apparent/Feels Like temps");
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("ApplyHistoricData: Error in Humidex/Apparant/Feels Like - " + ex.Message);
 			}
 		}
 

@@ -229,6 +229,8 @@ namespace CumulusMX
 		{ 
 			var procName = main ? "ApplyData" : "ApplyExtraData";
 			var thisStation = main ? this : station;
+			string thisTemp = null;
+			string thisHum = null;
 
 			try
 			{
@@ -250,6 +252,9 @@ namespace CumulusMX
 				// Only do the primary sensors if running as the main station
 				if (main)
 				{
+					thisTemp = cumulus.Gw1000PrimaryTHSensor == 0 ? data["tempf"] : data["temp" + cumulus.Gw1000PrimaryTHSensor + "f"];
+					thisHum = cumulus.Gw1000PrimaryTHSensor == 0 ? data["humidity"] : data["humidity" + cumulus.Gw1000PrimaryTHSensor];
+
 					// === Wind ==
 					try
 					{
@@ -311,8 +316,6 @@ namespace CumulusMX
 						// humidityin
 
 						var humIn = data["humidityin"];
-						var humOut = data["humidity"];
-
 
 						if (humIn == null)
 						{
@@ -324,14 +327,17 @@ namespace CumulusMX
 							DoIndoorHumidity(humVal);
 						}
 
-						if (humOut == null)
+						if (cumulus.Gw1000PrimaryTHSensor == 0)
 						{
-							cumulus.LogMessage("ProcessData: Error, missing outdoor humidity");
-						}
-						else
-						{
-							var humVal = Convert.ToInt32(humOut, invNum);
-							DoOutdoorHumidity(humVal, recDate);
+							if (thisHum == null)
+							{
+								cumulus.LogMessage("ProcessData: Error, missing outdoor humidity");
+							}
+							else
+							{
+								var humVal = Convert.ToInt32(thisHum, invNum);
+								DoOutdoorHumidity(humVal, recDate);
+							}
 						}
 					}
 					catch (Exception ex)
@@ -395,17 +401,17 @@ namespace CumulusMX
 					try
 					{
 						// tempf
-
-						var temp = data["tempf"];
-
-						if (temp == null)
+						if (cumulus.Gw1000PrimaryTHSensor == 0)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing outdoor temp");
-						}
-						else
-						{
-							var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, invNum));
-							DoOutdoorTemp(tempVal, recDate);
+							if (thisTemp == null)
+							{
+								cumulus.LogMessage($"ProcessData: Error, missing outdoor temp");
+							}
+							else
+							{
+								var tempVal = ConvertTempFToUser(Convert.ToDouble(thisTemp, invNum));
+								DoOutdoorTemp(tempVal, recDate);
+							}
 						}
 					}
 					catch (Exception ex)
@@ -432,7 +438,7 @@ namespace CumulusMX
 						// if no yearly counter, try the total counter
 						var rain = data["yearlyrainin"] ?? data["totalrainin"];
 						var rRate = data["rainratein"];
-							
+
 						if (rRate == null)
 						{
 							// No rain rate, so we will calculate it
@@ -461,86 +467,6 @@ namespace CumulusMX
 						cumulus.LogMessage("ProcessData: Error in Rain data - " + ex.Message);
 						return "Failed: Error in rainfall data - " + ex.Message;
 					}
-
-
-					// === Dewpoint ===
-					try
-					{
-						// dewptf
-
-						var dewpnt = data["dewptf"];
-
-						if (cumulus.StationOptions.CalculatedDP)
-						{
-							DoOutdoorDewpoint(0, recDate);
-						}
-						else if (dewpnt == null)
-						{
-							cumulus.LogMessage($"ProcessData: Error, missing dew point");
-						}
-						else
-						{
-							var val = ConvertTempFToUser(Convert.ToDouble(dewpnt, invNum));
-							DoOutdoorDewpoint(val, recDate);
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
-						return "Failed: Error in dew point data - " + ex.Message;
-					}
-
-
-					// === Wind Chill ===
-					try
-					{
-						// windchillf
-
-						if (cumulus.StationOptions.CalculatedWC && data["tempf"] != null && data["windspeedmph"] != null)
-						{
-							DoWindChill(0, recDate);
-						}
-						else
-						{
-							var chill = data["windchillf"];
-							if (chill == null)
-							{
-								cumulus.LogMessage($"ProcessData: Error, missing dew point");
-							}
-							else
-							{
-								var val = ConvertTempFToUser(Convert.ToDouble(chill, invNum));
-								DoWindChill(val, recDate);
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
-						return "Failed: Error in dew point data - " + ex.Message;
-					}
-
-
-					// === Humidex ===
-					if (data["tempf"] != null && data["humidity"] != null)
-					{
-						DoHumidex(recDate);
-
-						// === Apparent === - requires temp, hum, and windspeed
-						if (data["windspeedmph"] != null)
-						{
-							DoApparentTemp(recDate);
-							DoFeelsLike(recDate);
-						}
-						else
-						{
-							cumulus.LogMessage("ProcessData: Insufficient data to calculate Apparent/Feels Like temps");
-						}
-					}
-					else
-					{
-						cumulus.LogMessage("ProcessData: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
-					}
 				}
 
 				// === Extra Temperature ===
@@ -549,7 +475,7 @@ namespace CumulusMX
 					try
 					{
 						// temp[1-10]f
-						ProcessExtraTemps(data, thisStation);
+						ProcessExtraTemps(data, thisStation, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -563,7 +489,7 @@ namespace CumulusMX
 					try
 					{
 						// humidity[1-10]
-						ProcessExtraHumidity(data, thisStation);
+						ProcessExtraHumidity(data, thisStation, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -794,6 +720,87 @@ namespace CumulusMX
 					cumulus.LogMessage($"{procName}: Error extracting firmware version - {ex.Message}");
 				}
 
+				if (main)
+				{ 
+					// Do derived values after the primary values
+
+					// === Dewpoint ===
+					try
+					{
+						// dewptf
+
+						var dewpnt = data["dewptf"];
+
+						if (cumulus.StationOptions.CalculatedDP)
+						{
+							DoOutdoorDewpoint(0, recDate);
+						}
+						else if (dewpnt == null)
+						{
+							cumulus.LogMessage($"ProcessData: Error, missing dew point");
+						}
+						else
+						{
+							var val = ConvertTempFToUser(Convert.ToDouble(dewpnt, invNum));
+							DoOutdoorDewpoint(val, recDate);
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
+						return "Failed: Error in dew point data - " + ex.Message;
+					}
+
+					// === Wind Chill ===
+					try
+					{
+						// windchillf
+						if (cumulus.StationOptions.CalculatedWC && thisTemp != null && data["windspeedmph"] != null)
+						{
+							DoWindChill(0, recDate);
+						}
+						else
+						{
+							var chill = data["windchillf"];
+							if (chill == null)
+							{
+								cumulus.LogMessage($"ProcessData: Error, missing dew point");
+							}
+							else
+							{
+								var val = ConvertTempFToUser(Convert.ToDouble(chill, invNum));
+								DoWindChill(val, recDate);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
+						return "Failed: Error in dew point data - " + ex.Message;
+					}
+
+
+					// === Humidex ===
+					if (thisTemp != null && thisHum != null)
+					{
+						DoHumidex(recDate);
+
+						// === Apparent === - requires temp, hum, and windspeed
+						if (data["windspeedmph"] != null)
+						{
+							DoApparentTemp(recDate);
+							DoFeelsLike(recDate);
+						}
+						else
+						{
+							cumulus.LogMessage("ProcessData: Insufficient data to calculate Apparent/Feels Like temps");
+						}
+					}
+					else
+					{
+						cumulus.LogMessage("ProcessData: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
+					}
+				}
 
 				DoForecast(string.Empty, false);
 
@@ -809,23 +816,31 @@ namespace CumulusMX
 			return "";
 		}
 
-		private void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraTemps(NameValueCollection data, WeatherStation station, DateTime ts)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
 				if (data["temp" + i + "f"] != null)
 				{
+					if (i == cumulus.Gw1000PrimaryTHSensor)
+					{
+						station.DoOutdoorTemp(ConvertTempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), ts);
+					}
 					station.DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), i);
 				}
 			}
 		}
 
-		private void ProcessExtraHumidity(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraHumidity(NameValueCollection data, WeatherStation station, DateTime ts)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
 				if (data["humidity" + i] != null)
 				{
+					if (i == cumulus.Gw1000PrimaryTHSensor)
+					{
+						station.DoOutdoorHumidity(Convert.ToInt32(data["humidity" + i], invNum), ts);
+					}
 					station.DoExtraHum(Convert.ToDouble(data["humidity" + i], invNum), i);
 				}
 			}
