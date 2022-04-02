@@ -1261,7 +1261,7 @@ namespace CumulusMX
 
 		private void OnServiceRemoved(object sender, ServiceAnnouncementEventArgs e)
 		{
-			cumulus.LogMessage("ZeroConfig Service: WLL service has been removed!");
+			cumulus.LogMessage("ZeroConf Service: WLL service has been removed!");
 		}
 
 		private void OnServiceAdded(object sender, ServiceAnnouncementEventArgs e)

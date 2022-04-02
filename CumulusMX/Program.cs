@@ -125,7 +125,11 @@ namespace CumulusMX
 						//allow main to run off
 						Thread.Sleep(500);
 					}
-					Trace.WriteLine("Cumulus has shutdown");
+					else
+					{
+						Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Ctrl+C pressed");
+					}
+					Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 					ev.Cancel = true;
 					exitSystem = true;
 				};
@@ -304,7 +308,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				Trace.WriteLine("!!! Unhandled Exception !!!");
+				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "!!! Unhandled Exception !!!");
 				Trace.WriteLine(e.ExceptionObject.ToString());
 
 				if (service)
@@ -361,7 +365,7 @@ namespace CumulusMX
 		{
 			var reason = new[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
 
-			Trace.WriteLine("Exiting system due to external: " + reason[(int)sig]);
+			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external: " + reason[(int)sig]);
 
 			if (Program.cumulus != null)
 			{
@@ -372,11 +376,11 @@ namespace CumulusMX
 			}
 			else
 			{
-				Trace.WriteLine("Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
+				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
 				Environment.Exit(2);
 			}
 
-			Trace.WriteLine("Cumulus has shutdown");
+			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 			Console.WriteLine("Cumulus stopped");
 
 			Program.exitSystem = true;

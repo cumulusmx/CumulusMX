@@ -4923,6 +4923,7 @@ namespace CumulusMX
 					ThisMonth.LowPress.Val = Pressure;
 					ThisMonth.HighRainRate.Val = RainRate;
 					ThisMonth.HourlyRain.Val = RainLastHour;
+					ThisMonth.Rain24Hours.Val = Cumulus.DefaultHiVal;
 					ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
 					ThisMonth.HighHumidity.Val = OutdoorHumidity;
 					ThisMonth.LowHumidity.Val = OutdoorHumidity;
@@ -4952,6 +4953,7 @@ namespace CumulusMX
 					ThisMonth.LowPress.Ts = timestamp;
 					ThisMonth.HighRainRate.Ts = timestamp;
 					ThisMonth.HourlyRain.Ts = timestamp;
+					ThisMonth.Rain24Hours.Ts = timestamp;
 					ThisMonth.DailyRain.Ts = timestamp;
 					ThisMonth.HighHumidity.Ts = timestamp;
 					ThisMonth.LowHumidity.Ts = timestamp;
@@ -4990,6 +4992,7 @@ namespace CumulusMX
 					ThisYear.LowPress.Val = Pressure;
 					ThisYear.HighRainRate.Val = RainRate;
 					ThisYear.HourlyRain.Val = RainLastHour;
+					ThisYear.Rain24Hours.Val = Cumulus.DefaultHiVal;
 					ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
 					ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
 					ThisYear.HighHumidity.Val = OutdoorHumidity;
@@ -5020,6 +5023,7 @@ namespace CumulusMX
 					ThisYear.LowPress.Ts = timestamp;
 					ThisYear.HighRainRate.Ts = timestamp;
 					ThisYear.HourlyRain.Ts = timestamp;
+					ThisYear.Rain24Hours.Ts = timestamp;
 					ThisYear.DailyRain.Ts = timestamp;
 					ThisYear.MonthlyRain.Ts = timestamp;
 					ThisYear.HighHumidity.Ts = timestamp;
@@ -8029,6 +8033,7 @@ namespace CumulusMX
 			ThisMonth.LowPress.Val = Cumulus.DefaultLoVal;
 			ThisMonth.HighRainRate.Val = Cumulus.DefaultHiVal;
 			ThisMonth.HourlyRain.Val = Cumulus.DefaultHiVal;
+			ThisMonth.Rain24Hours.Val = Cumulus.DefaultHiVal;
 			ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
 			ThisMonth.HighHumidity.Val = Cumulus.DefaultHiVal;
 			ThisMonth.LowHumidity.Val = Cumulus.DefaultLoVal;
@@ -8056,6 +8061,7 @@ namespace CumulusMX
 			ThisMonth.LowPress.Ts = cumulus.defaultRecordTS;
 			ThisMonth.HighRainRate.Ts = cumulus.defaultRecordTS;
 			ThisMonth.HourlyRain.Ts = cumulus.defaultRecordTS;
+			ThisMonth.Rain24Hours.Ts = cumulus.defaultRecordTS;
 			ThisMonth.DailyRain.Ts = cumulus.defaultRecordTS;
 			ThisMonth.HighHumidity.Ts = cumulus.defaultRecordTS;
 			ThisMonth.LowHumidity.Ts = cumulus.defaultRecordTS;
@@ -8440,6 +8446,7 @@ namespace CumulusMX
 			ThisYear.LowPress.Val = Cumulus.DefaultLoVal;
 			ThisYear.HighRainRate.Val = Cumulus.DefaultHiVal;
 			ThisYear.HourlyRain.Val = Cumulus.DefaultHiVal;
+			ThisYear.Rain24Hours.Val = Cumulus.DefaultHiVal;
 			ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
 			ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
 			ThisYear.HighHumidity.Val = Cumulus.DefaultHiVal;
@@ -8469,6 +8476,7 @@ namespace CumulusMX
 			ThisYear.HighRainRate.Ts = cumulus.defaultRecordTS;
 			ThisYear.HourlyRain.Ts = cumulus.defaultRecordTS;
 			ThisYear.DailyRain.Ts = cumulus.defaultRecordTS;
+			ThisYear.Rain24Hours.Ts = cumulus.defaultRecordTS;
 			ThisYear.MonthlyRain.Ts = cumulus.defaultRecordTS;
 			ThisYear.HighHumidity.Ts = cumulus.defaultRecordTS;
 			ThisYear.LowHumidity.Ts = cumulus.defaultRecordTS;

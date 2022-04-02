@@ -1567,7 +1567,7 @@ namespace CumulusMX
 
 		private void OnServiceChanged(object sender, ServiceAnnouncementEventArgs e)
 		{
-			cumulus.LogMessage($"ZeroConfig Service: AirLink {e.Announcement.Hostname} service has changed!");
+			cumulus.LogMessage($"ZeroConf Service: AirLink {e.Announcement.Hostname} service has changed!");
 			if (discovered.Hostname.Contains(e.Announcement.Hostname))
 			{
 				var idx = discovered.Hostname.IndexOf(e.Announcement.Hostname);
@@ -1578,10 +1578,10 @@ namespace CumulusMX
 
 		private void OnServiceRemoved(object sender, ServiceAnnouncementEventArgs e)
 		{
-			cumulus.LogMessage($"ZeroConfig Service: AirLink {e.Announcement.Hostname} service has been removed!");
+			cumulus.LogMessage($"ZeroConf Service: AirLink {e.Announcement.Hostname} service has been removed!");
 			if (discovered.Hostname.Contains(e.Announcement.Hostname))
 			{
-				//cumulus.LogDebugMessage($"ZeroConfig Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
+				//cumulus.LogDebugMessage($"ZeroConf Service: Removing {e.Announcement.Hostname} / {e.Announcement.Addresses[0]} from the discovered device list");
 				//discovered.Hostname.Remove(e.Announcement.Hostname);
 				//discovered.IP.Remove(e.Announcement.Addresses[0].ToString());
 			}
@@ -1605,11 +1605,11 @@ namespace CumulusMX
 				foreach (var ip in service.Addresses)
 				{
 					//ipaddr = service.Addresses[0].ToString();
-					cumulus.LogMessage($"ZeroConfig Service: AirLink found '{service.Hostname}', reporting its IP address as: {ip}");
+					cumulus.LogMessage($"ZeroConf Service: AirLink found '{service.Hostname}', reporting its IP address as: {ip}");
 
 					if (!discovered.Hostname.Contains(service.Hostname))
 					{
-						cumulus.LogDebugMessage($"ZeroConfig Service: Adding AirLink {service.Hostname} to list of discovered devices");
+						cumulus.LogDebugMessage($"ZeroConf Service: Adding AirLink {service.Hostname} to list of discovered devices");
 						discovered.IP.Add(ip.ToString());
 						discovered.Hostname.Add(service.Hostname);
 					}
