@@ -52,6 +52,12 @@ namespace CumulusMX
 				cumulus.UseCumulusForecast = true;
 				// does not provide pressure trend strings
 				cumulus.StationOptions.UseCumulusPresstrendstr = true;
+
+				if (cumulus.Gw1000PrimaryTHSensor != 0)
+				{
+					// We are not using the primary T/H sensor
+					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
+				}
 			}
 
 			if (cumulus.EcowittSetCustomServer && station == null)
@@ -206,14 +212,7 @@ namespace CumulusMX
 
 				cumulus.LogDataMessage($"{procName}: Payload = {text}");
 
-				// force the wind chill calculation as it is not present in historic data
-				var chillSave = cumulus.StationOptions.CalculatedWC;
-				cumulus.StationOptions.CalculatedWC = true;
-
 				var retVal = ApplyData(text, main, ts);
-
-				// restore wind chill setting
-				cumulus.StationOptions.CalculatedWC = chillSave;
 
 				if (retVal != "")
 				{
@@ -764,16 +763,23 @@ namespace CumulusMX
 					try
 					{
 						// windchillf
-						if (cumulus.StationOptions.CalculatedWC && thisTemp != null && data["windspeedmph"] != null)
+						if (cumulus.StationOptions.CalculatedWC)
 						{
-							DoWindChill(0, recDate);
+							if (thisTemp != null && data["windspeedmph"] != null)
+							{
+								DoWindChill(0, recDate);
+							}
+							else
+							{
+								cumulus.LogMessage($"ProcessData: Insufficient data to calculate wind chill");
+							}
 						}
 						else
 						{
 							var chill = data["windchillf"];
 							if (chill == null)
 							{
-								cumulus.LogMessage($"ProcessData: Error, missing dew point");
+								cumulus.LogMessage($"ProcessData: Error, missing wind chill");
 							}
 							else
 							{
@@ -784,8 +790,8 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
-						return "Failed: Error in dew point data - " + ex.Message;
+						cumulus.LogMessage("ProcessData: Error in wind chill data - " + ex.Message);
+						return "Failed: Error in wind chill data - " + ex.Message;
 					}
 
 

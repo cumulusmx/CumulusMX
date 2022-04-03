@@ -70,6 +70,7 @@ namespace CumulusMX
 			{
 				// We are not using the primary T/H sensor so MX must calculate the wind chill as well
 				cumulus.StationOptions.CalculatedWC = true;
+				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
 			}
 
 			ipaddr = cumulus.Gw1000IpAddress;
