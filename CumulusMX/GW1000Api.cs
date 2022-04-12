@@ -65,12 +65,19 @@ namespace CumulusMX
 			// Set the timeout of the underlying stream
 			if (socket != null)
 			{
-				stream = socket.GetStream();
-				stream.ReadTimeout = 2500;
-				cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
-				connecting = false;
+				try
+				{
+					stream = socket.GetStream();
+					stream.ReadTimeout = 2500;
+					cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
+					connecting = false;
 
-				connected = true;
+					connected = true;
+				}
+				catch(Exception ex)
+				{
+					cumulus.LogMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
+				}
 			}
 			else
 			{
@@ -296,7 +303,9 @@ namespace CumulusMX
 			CMD_GET_CO2_OFFSET = 0x53,
 			CMD_SET_CO2_OFFSET = 0x54,
 			CMD_READ_RSTRAIN_TIME = 0x55,// read rain reset time
-			CMD_WRITE_RSTRAIN_TIME = 0x56// write back rain reset time
+			CMD_WRITE_RSTRAIN_TIME = 0x56, // write back rain reset time
+			CMD_READ_RAIN = 0x57, // *new* read rain data
+			CMD_WRITE_RAIN = 0x58 // *new* write rain data
 		}
 
 		private enum CommandRespSize : int
@@ -342,60 +351,62 @@ namespace CumulusMX
 			CMD_WRITE_RESET = bytes1,
 			CMD_READ_SENSOR_ID_NEW = bytes2,
 			CMD_READ_RSTRAIN_TIME = bytes1,
-			CMD_WRITE_RSTRAIN_TIME = bytes1
+			CMD_WRITE_RSTRAIN_TIME = bytes1,
+			CMD_READ_RAIN = bytes1,
+			CMD_WRITE_RAIN = bytes1
 		}
 
 		internal enum SensorIds
 		{
-			Wh65,           // 0
-			Wh68,           // 1
-			Wh80,           // 2
-			Wh40,           // 3
-			Wh25,           // 4
-			Wh26,           // 5
-			Wh31Ch1,        // 6
-			Wh31Ch2,        // 7
-			Wh31Ch3,        // 8
-			Wh31Ch4,        // 9
-			Wh31Ch5,        // 10
-			Wh31Ch6,        // 11
-			Wh31Ch7,        // 12
-			Wh31Ch8,        // 13
-			Wh51Ch1,        // 14
-			Wh51Ch2,        // 15
-			Wh51Ch3,        // 16
-			Wh51Ch4,        // 17
-			Wh51Ch5,        // 18
-			Wh51Ch6,        // 19
-			Wh51Ch7,        // 20
-			Wh51Ch8,        // 21
-			Wh41Ch1,        // 22
-			Wh41Ch2,        // 23
-			Wh41Ch3,        // 24
-			Wh41Ch4,        // 25
-			Wh57,           // 26
-			Wh55Ch1,        // 27
-			Wh55Ch2,        // 28
-			Wh55Ch3,        // 29
-			Wh55Ch4,        // 30
-			Wh34Ch1,        // 31
-			Wh34Ch2,        // 32
-			Wh34Ch3,        // 33
-			Wh34Ch4,        // 34
-			Wh34Ch5,        // 35
-			Wh34Ch6,        // 36
-			Wh34Ch7,        // 37
-			Wh34Ch8,        // 38
-			Wh45,           // 39
-			Wh35Ch1,        // 40
-			Wh35Ch2,        // 41
-			Wh35Ch3,        // 42
-			Wh35Ch4,        // 43
-			Wh35Ch5,        // 44
-			Wh35Ch6,        // 45
-			Wh35Ch7,        // 46
-			Wh35Ch8,        // 47
-			Wh90            // 48
+			Wh65,           // 0 00
+			Wh68,           // 1 01
+			Wh80,           // 2 02
+			Wh40,           // 3 03
+			Wh25,           // 4 04
+			Wh26,           // 5 05
+			Wh31Ch1,        // 6 06
+			Wh31Ch2,        // 7 07 
+			Wh31Ch3,        // 8 08
+			Wh31Ch4,        // 9 09
+			Wh31Ch5,        // 10 0A
+			Wh31Ch6,        // 11 0B
+			Wh31Ch7,        // 12 0C
+			Wh31Ch8,        // 13 0D
+			Wh51Ch1,        // 14 0E
+			Wh51Ch2,        // 15 0F
+			Wh51Ch3,        // 16 10
+			Wh51Ch4,        // 17 11
+			Wh51Ch5,        // 18 12
+			Wh51Ch6,        // 19 13
+			Wh51Ch7,        // 20 14
+			Wh51Ch8,        // 21 15
+			Wh41Ch1,        // 22 16
+			Wh41Ch2,        // 23 17
+			Wh41Ch3,        // 24 18
+			Wh41Ch4,        // 25 19
+			Wh57,           // 26 1A
+			Wh55Ch1,        // 27 1B
+			Wh55Ch2,        // 28 1C
+			Wh55Ch3,        // 29 1D
+			Wh55Ch4,        // 30 1E
+			Wh34Ch1,        // 31 1F
+			Wh34Ch2,        // 32 20
+			Wh34Ch3,        // 33 21
+			Wh34Ch4,        // 34 22
+			Wh34Ch5,        // 35 23
+			Wh34Ch6,        // 36 24
+			Wh34Ch7,        // 37 25
+			Wh34Ch8,        // 38 26
+			Wh45,           // 39 27
+			Wh35Ch1,        // 40 28
+			Wh35Ch2,        // 41 29
+			Wh35Ch3,        // 42 2A
+			Wh35Ch4,        // 43 2B
+			Wh35Ch5,        // 44 2C
+			Wh35Ch6,        // 45 2D
+			Wh35Ch7,        // 46 2E
+			Wh35Ch8,        // 47 2F
+			Wh90            // 48 30
 		};
 
 

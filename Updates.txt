@@ -1,5 +1,19 @@
-3.16.0 - b3174
+3.16.0 - b3178
 ——————————————
+Beta#4
+Change: Ecowitt historic data is now requested in the user units and not converted
+Change: Ecowitt Local API - piezo rain is now read every 30 secs using the new Read_Rain command
+
+Beta#3
+Fix: Ecowitt using extra T/H sensor was not converting F -> user units during catch-up
+Fix: Ecowitt catch-up not processing rain data - and nobody has noticed!
+New: Ecowitt rain sensor is now selectable between tipping bucket and piezo sensors - both Local API and HTTP Ecowitt protocols
+
+Beta#2
+Fix: GW1000 station crash on start-up
+New: Adds ability for CMX to configure Ecowitt custom server when using it for Extra Sensors
+======
+
 - Fix: CPU temp check on Linux?
 - Fix: Start-up PING is now run in a separate thread so if it hangs CMX can continue
 - Fix: Ecowitt Local API station not performing a battery check every 20 minutes

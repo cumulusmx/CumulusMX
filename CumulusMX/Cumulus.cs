@@ -4233,6 +4233,7 @@ namespace CumulusMX
 			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number
+			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
 			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
@@ -4250,6 +4251,11 @@ namespace CumulusMX
 			var localIp = Utils.GetIpWithDefaultGateway();
 			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
 			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16);
+			//
+			EcowittExtraSetCustomServer = ini.GetValue("GW1000", "ExtraSetCustomServer", false);
+			EcowittExtraGatewayAddr = ini.GetValue("GW1000", "EcowittExtraGwAddr", "0.0.0.0");
+			EcowittExtraLocalAddr = ini.GetValue("GW1000", "EcowittExtraLocalAddr", localIp.ToString());
+			EcowittExtraCustomInterval = ini.GetValue("GW1000", "EcowittExtraCustomInterval", 16);
 			// api
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", "");
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", "");
@@ -5365,6 +5371,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "MACAddress", Gw1000MacAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 			ini.SetValue("GW1000", "PrimaryTHSensor", Gw1000PrimaryTHSensor);
+			ini.SetValue("GW1000", "PrimaryRainSensor", Gw1000PrimaryRainSensor);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
 			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
@@ -5381,7 +5388,11 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "EcowittGwAddr", EcowittGatewayAddr);
 			ini.SetValue("GW1000", "EcowittLocalAddr", EcowittLocalAddr);
 			ini.SetValue("GW1000", "EcowittCustomInterval", EcowittCustomInterval);
-
+			ini.SetValue("GW1000", "ExtraSetCustomServer", EcowittExtraSetCustomServer);
+			ini.SetValue("GW1000", "EcowittExtraGwAddr", EcowittExtraGatewayAddr);
+			ini.SetValue("GW1000", "EcowittExtraLocalAddr", EcowittExtraLocalAddr);
+			ini.SetValue("GW1000", "EcowittExtraCustomInterval", EcowittExtraCustomInterval);
+			// api
 			ini.SetValue("GW1000", "EcowittAppKey", EcowittApplicationKey);
 			ini.SetValue("GW1000", "EcowittUserKey", EcowittUserApiKey);
 			ini.SetValue("GW1000", "EcowittMacAddress", EcowittMacAddress);
@@ -6351,6 +6362,10 @@ namespace CumulusMX
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
 		public int EcowittCustomInterval { get; set; }
+		public bool EcowittExtraSetCustomServer { get; set; }
+		public string EcowittExtraGatewayAddr { get; set; }
+		public string EcowittExtraLocalAddr { get; set; }
+		public int EcowittExtraCustomInterval { get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
 		public bool AmbientExtraUseSolar { get; set; }
@@ -6562,6 +6577,7 @@ namespace CumulusMX
 		public string Gw1000MacAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
 		public int Gw1000PrimaryTHSensor;
+		public int Gw1000PrimaryRainSensor;
 
 		public Timer WundTimer = new Timer();
 		public Timer WebTimer = new Timer();

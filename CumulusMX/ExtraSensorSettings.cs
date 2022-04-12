@@ -43,7 +43,7 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowitt = new JsonExtraSensorEcowittAmbient()
+			var ecowitt = new JsonExtraSensorEcowitt()
 			{
 				useSolar = cumulus.EcowittExtraUseSolar,
 				useUv = cumulus.EcowittExtraUseUv,
@@ -55,10 +55,17 @@ namespace CumulusMX
 				useAQI = cumulus.EcowittExtraUseAQI,
 				useCo2 = cumulus.EcowittExtraUseCo2,
 				useLightning = cumulus.EcowittExtraUseLightning,
-				useLeak = cumulus.EcowittExtraUseLeak
+				useLeak = cumulus.EcowittExtraUseLeak,
+
+				setcustom = cumulus.EcowittExtraSetCustomServer,
+				gwaddr = cumulus.EcowittExtraGatewayAddr,
+				localaddr = cumulus.EcowittExtraLocalAddr,
+				interval = cumulus.EcowittExtraCustomInterval,
+
+				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 			};
 
-			var ambient = new JsonExtraSensorEcowittAmbient()
+			var ambient = new JsonExtraSensorAmbient()
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
 				useUv = cumulus.AmbientExtraUseUv,
@@ -236,6 +243,13 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
 						cumulus.EcowittExtraUseLeak = settings.httpSensors.ecowitt.useLeak;
 
+						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
+						cumulus.EcowittExtraGatewayAddr = settings.httpSensors.ecowitt.gwaddr;
+						cumulus.EcowittExtraLocalAddr = settings.httpSensors.ecowitt.localaddr;
+						cumulus.EcowittExtraCustomInterval = settings.httpSensors.ecowitt.interval;
+
+						cumulus.Gw1000PrimaryTHSensor = settings.httpSensors.ecowitt.primaryTHsensor;
+
 						// Also enable extra logging if applicable
 						if (cumulus.EcowittExtraUseTempHum || cumulus.EcowittExtraUseSoilTemp || cumulus.EcowittExtraUseSoilMoist || cumulus.EcowittExtraUseLeafWet || cumulus.EcowittExtraUseUserTemp || cumulus.EcowittExtraUseAQI || cumulus.EcowittExtraUseCo2)
 						{
@@ -384,11 +398,11 @@ namespace CumulusMX
 	public class JsonExtraSensorHttp
 	{
 		public int extraStation { get; set; }
-		public JsonExtraSensorEcowittAmbient ecowitt { get; set; }
-		public JsonExtraSensorEcowittAmbient ambient { get; set; }
+		public JsonExtraSensorEcowitt ecowitt { get; set; }
+		public JsonExtraSensorAmbient ambient { get; set; }
 	}
 
-	public class JsonExtraSensorEcowittAmbient
+	public class JsonExtraSensorAmbient
 	{
 		public bool useSolar { get; set; }
 		public bool useUv { get; set; }
@@ -401,6 +415,16 @@ namespace CumulusMX
 		public bool useCo2 { get; set; }
 		public bool useLightning { get; set; }
 		public bool useLeak { get; set; }
+	}
+
+	public class JsonExtraSensorEcowitt : JsonExtraSensorAmbient
+	{
+		public bool setcustom { get; set; }
+		public string gwaddr { get; set; }
+		public string localaddr { get; set; }
+		public int interval { get; set; }
+		public int primaryTHsensor { get; set; }
+
 	}
 
 
