@@ -551,7 +551,7 @@ namespace CumulusMX
 		public WebUploadWund Wund = new WebUploadWund();
 
 		// Windy.com settings
-		public  WebUploadWindy Windy = new WebUploadWindy();
+		public WebUploadWindy Windy = new WebUploadWindy();
 
 		// Wind Guru settings
 		public WebUploadWindGuru WindGuru = new WebUploadWindGuru();
@@ -607,7 +607,7 @@ namespace CumulusMX
 
 		public bool EODfilesNeedFTP;
 
-		public bool IsOSX;
+		public bool IsOSX = false;
 		public double CPUtemp = -999;
 
 		// Alarms
@@ -785,12 +785,17 @@ namespace CumulusMX
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
 			LogConsoleMessage("Working Dir: " + AppDir);
 
-			IsOSX = IsRunningOnMac();
+			Type type = Type.GetType("Mono.Runtime");
+			if (type != null)
+			{
+				IsOSX = IsRunningOnMac();
+
+				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
+				if (displayName != null)
+					LogMessage("Mono version: " + displayName.Invoke(null, null));
+			}
 
 			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
-
-			// Set the default comport name depending on platform
-			DefaultComportName = Platform.Substring(0, 3) == "Win" ? "COM1" : "/dev/ttyUSB0";
 
 			LogMessage("Platform: " + Platform);
 
@@ -798,13 +803,8 @@ namespace CumulusMX
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
-			Type type = Type.GetType("Mono.Runtime");
-			if (type != null)
-			{
-				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
-				if (displayName != null)
-					LogMessage("Mono version: "+displayName.Invoke(null, null));
-			}
+			// Set the default comport name depending on platform
+			DefaultComportName = Platform.Substring(0, 3) == "Win" ? "COM1" : "/dev/ttyUSB0";
 
 			// determine system uptime based on OS
 			if (Platform.Substring(0, 3) == "Win")
@@ -904,7 +904,7 @@ namespace CumulusMX
 			{
 				LocalPath = WebPath,
 				LocalFileName = "tempdata.json",
-				RemoteFileName ="tempdata.json"
+				RemoteFileName = "tempdata.json"
 			};
 			GraphDataFiles[3] = new FileGenerationFtpOptions()
 			{
@@ -1127,48 +1127,86 @@ namespace CumulusMX
 			// Do we wait for a ping response from a remote host before starting?
 			if (!string.IsNullOrWhiteSpace(ProgramOptions.StartupPingHost))
 			{
+				var msg0 = $"Sending PING to {ProgramOptions.StartupPingHost}";
 				var msg1 = $"Waiting for PING reply from {ProgramOptions.StartupPingHost}";
 				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
 				var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
-				LogConsoleMessage(msg1);
-				LogMessage(msg1);
-				var endTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+				var escapeTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+				var attempt = 1;
+				var pingSuccess = false;
+				// This is the timeout for "hung" attempts, we will double this at every failure so we do not create too many hung resources
+				var pingTimeoutSecs = 10;
 
 				do
 				{
-					pingReply = null;
+					var pingTimeoutDT = DateTime.Now.AddSeconds(pingTimeoutSecs);
+					var pingTokenSource = new CancellationTokenSource();
+					var pingCancelToken = pingTokenSource.Token;
 
-					using (var ping = new Ping())
+					LogDebugMessage($"Starting PING #{attempt} task with time-out of {pingTimeoutSecs} seconds");
+
+					var pingTask = Task.Run(() =>
 					{
-						ping.PingCompleted += new PingCompletedEventHandler(PingCompletedCallback);
-
-						try
+						var cnt = attempt;
+						using (var ping = new Ping())
 						{
-							var pingTimeout = DateTime.Now.AddSeconds(2.5);
-
-							ping.SendAsync(ProgramOptions.StartupPingHost, 2000);
-
-							do
+							try
 							{
-								Thread.Sleep(500);
-							} while (pingReply == null && DateTime.Now < pingTimeout);
+								LogMessage($"Sending PING #{cnt} to {ProgramOptions.StartupPingHost}");
 
-							if (pingReply == null)
-							{
-								LogMessage("Ping Error: The PING failed to return after the timeout, cancelling it...");
-								ping.SendAsyncCancel();
+								// set the actual ping timeout 5 secs less than the task timeout
+								var reply = ping.Send(ProgramOptions.StartupPingHost, (pingTimeoutSecs - 5) * 1000);
+
+								// were we hung on the network and now cancelled? if so just exit silently
+								if (pingCancelToken.IsCancellationRequested)
+								{
+									LogDebugMessage($"Cancelled PING #{cnt} task exiting");
+								}
+								else
+								{
+									var msg = $"Received PING #{cnt} response from {ProgramOptions.StartupPingHost}, status: {reply.Status}";
+
+									LogMessage(msg);
+									LogConsoleMessage(msg);
+
+									if (reply.Status == IPStatus.Success)
+									{
+										pingSuccess = true;
+									}
+								}
 							}
+							catch (Exception e)
+							{
+								LogMessage($"PING #{cnt} to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
+							}
+
 						}
-						catch (Exception e)
-						{
-							LogErrorMessage($"PING to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
-						}
+					}, pingCancelToken);
+
+					// wait for the ping to return
+					do
+					{
+						Thread.Sleep(100);
+					} while (pingTask.Status == TaskStatus.Running && DateTime.Now < pingTimeoutDT);
+
+					LogDebugMessage($"PING #{attempt} task status: {pingTask.Status}");
+
+					// did we timeout waiting for the task to end?
+					if (DateTime.Now >= pingTimeoutDT)
+					{
+						// yep, so attempt to cancel the task
+						LogMessage($"Nothing returned from PING #{attempt}, attempting the cancel the task");
+						pingTokenSource.Cancel();
+						// and double the timeout for next attempt
+						pingTimeoutSecs *= 2;
 					}
 
-					if (pingReply?.Status != IPStatus.Success)
+					if (!pingSuccess)
 					{
 						// no response wait 10 seconds before trying again
+						LogDebugMessage("Waiting 10 seconds before retry...");
 						Thread.Sleep(10000);
+						attempt++;
 						// Force a DNS refresh if not an IPv4 address
 						if (!Utils.ValidateIPv4(ProgramOptions.StartupPingHost))
 						{
@@ -1179,13 +1217,13 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogMessage($"PING: Error with DNS refresh - {ex.Message}");
+								LogMessage($"PING #{attempt}: Error with DNS refresh - {ex.Message}");
 							}
 						}
 					}
-				} while (pingReply?.Status != IPStatus.Success && DateTime.Now < endTime);
+				} while (!pingSuccess && DateTime.Now < escapeTime);
 
-			if (DateTime.Now >= endTime)
+				if (DateTime.Now >= escapeTime)
 				{
 					LogConsoleMessage(msg3, ConsoleColor.Yellow);
 					LogMessage(msg3);
@@ -1507,6 +1545,7 @@ namespace CumulusMX
 			{
 				Api.Station = station;
 				Api.stationSettings.SetStation(station);
+				Api.extraSensorSettings.SetStation(station);
 				Api.dataEditor.SetStation(station);
 
 				if (StationType == StationTypes.HttpWund)
@@ -3817,7 +3856,7 @@ namespace CumulusMX
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 			{
 				// get the existing culture
-				var newCulture = (CultureInfo) CultureInfo.CurrentCulture.Clone();
+				var newCulture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
 				// change the date separator
 				newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
 				// set current thread culture
@@ -4184,16 +4223,18 @@ namespace CumulusMX
 			WllExtraLeafIdx1 = ini.GetValue("WLL", "ExtraLeafIdx1", 1);
 			WllExtraLeafTx2 = ini.GetValue("WLL", "ExtraLeafTxId2", 0);
 			WllExtraLeafIdx2 = ini.GetValue("WLL", "ExtraLeafIdx2", 2);
-			for (int i = 1; i <=8; i++)
+			for (int i = 1; i <= 8; i++)
 			{
-				WllExtraTempTx[i - 1] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0);
-				WllExtraHumTx[i - 1] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
+				WllExtraTempTx[i] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0);
+				WllExtraHumTx[i] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
 			}
 
 			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
+			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number
+			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
 			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
@@ -4203,9 +4244,19 @@ namespace CumulusMX
 			EcowittExtraUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
 			EcowittExtraUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
 			EcowittExtraUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
-			EcowittExtraUseCo2= ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
+			EcowittExtraUseCo2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
-			EcowittExtraUseLeak= ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+			EcowittExtraUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+			EcowittSetCustomServer = ini.GetValue("GW1000", "SetCustomServer", false);
+			EcowittGatewayAddr = ini.GetValue("GW1000", "EcowittGwAddr", "0.0.0.0");
+			var localIp = Utils.GetIpWithDefaultGateway();
+			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
+			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16);
+			//
+			EcowittExtraSetCustomServer = ini.GetValue("GW1000", "ExtraSetCustomServer", false);
+			EcowittExtraGatewayAddr = ini.GetValue("GW1000", "EcowittExtraGwAddr", "0.0.0.0");
+			EcowittExtraLocalAddr = ini.GetValue("GW1000", "EcowittExtraLocalAddr", localIp.ToString());
+			EcowittExtraCustomInterval = ini.GetValue("GW1000", "EcowittExtraCustomInterval", 16);
 			// api
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", "");
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", "");
@@ -4213,6 +4264,11 @@ namespace CumulusMX
 			if (string.IsNullOrEmpty(EcowittMacAddress) && !string.IsNullOrEmpty(Gw1000MacAddress))
 			{
 				EcowittMacAddress = Gw1000MacAddress;
+			}
+			// WN34 sensor mapping
+			for (int i = 1; i <= 8; i++)
+			{
+				EcowittMapWN34[i] = ini.GetValue("GW1000", "WN34MapChan" + i, 0);
 			}
 
 			// Ambient settings
@@ -4334,12 +4390,12 @@ namespace CumulusMX
 			//RealtimeTimer.Change(0,RealtimeInterval);
 
 			WebAutoUpdate = ini.GetValue("FTP site", "AutoUpdate", false);  // Deprecated, to be remove at some future date
-			// Have to allow for upgrade, set interval enabled to old WebAutoUpdate
+																			// Have to allow for upgrade, set interval enabled to old WebAutoUpdate
 			WebIntervalEnabled = ini.GetValue("FTP site", "IntervalEnabled", WebAutoUpdate);
 			FtpOptions.IntervalEnabled = ini.GetValue("FTP site", "IntervalFtpEnabled", WebAutoUpdate); ;
 
 			UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", DefaultWebUpdateInterval);
-			if (UpdateInterval<1)
+			if (UpdateInterval < 1)
 			{
 				UpdateInterval = 1;
 				rewriteRequired = true;
@@ -4529,7 +4585,7 @@ namespace CumulusMX
 			WCloud.SendSolar = ini.GetValue("WeatherCloud", "SendSR", false);
 			WCloud.SendAirQuality = ini.GetValue("WeatherCloud", "SendAirQuality", false);
 			WCloud.SendSoilMoisture = ini.GetValue("WeatherCloud", "SendSoilMoisture", false);
-			WCloud.SoilMoistureSensor= ini.GetValue("WeatherCloud", "SoilMoistureSensor", 1);
+			WCloud.SoilMoistureSensor = ini.GetValue("WeatherCloud", "SoilMoistureSensor", 1);
 			WCloud.SendLeafWetness = ini.GetValue("WeatherCloud", "SendLeafWetness", false);
 			WCloud.LeafWetnessSensor = ini.GetValue("WeatherCloud", "LeafWetnessSensor", 1);
 
@@ -4873,24 +4929,40 @@ namespace CumulusMX
 			// Migrate old single solar factors to the new dual scheme
 			if (ini.ValueExists("Solar", "RStransfactor"))
 			{
-				SolarOptions.RStransfactorJul = ini.GetValue("Solar", "RStransfactor", 0.8);
-				SolarOptions.RStransfactorDec = SolarOptions.RStransfactorJul;
+				SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactor", 0.8);
+				SolarOptions.RStransfactorDec = SolarOptions.RStransfactorJun;
 				rewriteRequired = true;
 			}
 			else
 			{
-				SolarOptions.RStransfactorJul = ini.GetValue("Solar", "RStransfactorJul", 0.8);
+				if (ini.ValueExists("Solar", "RStransfactorJul"))
+				{
+					SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJul", 0.8);
+					rewriteRequired = true;
+				}
+				else
+				{
+					SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJun", 0.8);
+				}
 				SolarOptions.RStransfactorDec = ini.GetValue("Solar", "RStransfactorDec", 0.8);
 			}
 			if (ini.ValueExists("Solar", "BrasTurbidity"))
 			{
-				SolarOptions.BrasTurbidityJul = ini.GetValue("Solar", "BrasTurbidity", 2.0);
-				SolarOptions.BrasTurbidityDec = SolarOptions.BrasTurbidityJul;
+				SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidity", 2.0);
+				SolarOptions.BrasTurbidityDec = SolarOptions.BrasTurbidityJun;
 				rewriteRequired = true;
 			}
 			else
 			{
-				SolarOptions.BrasTurbidityJul = ini.GetValue("Solar", "BrasTurbidityJul", 2.0);
+				if (ini.ValueExists("Solar", "BrasTurbidityJul"))
+				{
+					SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJul", 2.0);
+					rewriteRequired = true;
+				}
+				else
+				{
+					SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJun", 2.0);
+				}
 				SolarOptions.BrasTurbidityDec = ini.GetValue("Solar", "BrasTurbidityDec", 2.0);
 			}
 
@@ -5024,7 +5096,7 @@ namespace CumulusMX
 			MySqlSettings.Realtime.TableName = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
 			MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", "");
 			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval < 60000; // do not enable if real time interval is greater than 1 minute
-			// MySQL - dayfile
+																																	 // MySQL - dayfile
 			MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
 			MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
 			// MySQL - custom seconds
@@ -5312,14 +5384,16 @@ namespace CumulusMX
 			ini.SetValue("WLL", "ExtraLeafIdx2", WllExtraLeafIdx2);
 			for (int i = 1; i <= 8; i++)
 			{
-				ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i - 1]);
-				ini.SetValue("WLL", "ExtraHumOnTxId" + i, WllExtraHumTx[i - 1]);
+				ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i]);
+				ini.SetValue("WLL", "ExtraHumOnTxId" + i, WllExtraHumTx[i]);
 			}
 
 			// GW1000 settings
 			ini.SetValue("GW1000", "IPAddress", Gw1000IpAddress);
 			ini.SetValue("GW1000", "MACAddress", Gw1000MacAddress);
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
+			ini.SetValue("GW1000", "PrimaryTHSensor", Gw1000PrimaryTHSensor);
+			ini.SetValue("GW1000", "PrimaryRainSensor", Gw1000PrimaryRainSensor);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
 			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
@@ -5332,10 +5406,23 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
 			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
-
+			ini.SetValue("GW1000", "SetCustomServer", EcowittSetCustomServer);
+			ini.SetValue("GW1000", "EcowittGwAddr", EcowittGatewayAddr);
+			ini.SetValue("GW1000", "EcowittLocalAddr", EcowittLocalAddr);
+			ini.SetValue("GW1000", "EcowittCustomInterval", EcowittCustomInterval);
+			ini.SetValue("GW1000", "ExtraSetCustomServer", EcowittExtraSetCustomServer);
+			ini.SetValue("GW1000", "EcowittExtraGwAddr", EcowittExtraGatewayAddr);
+			ini.SetValue("GW1000", "EcowittExtraLocalAddr", EcowittExtraLocalAddr);
+			ini.SetValue("GW1000", "EcowittExtraCustomInterval", EcowittExtraCustomInterval);
+			// api
 			ini.SetValue("GW1000", "EcowittAppKey", EcowittApplicationKey);
 			ini.SetValue("GW1000", "EcowittUserKey", EcowittUserApiKey);
 			ini.SetValue("GW1000", "EcowittMacAddress", EcowittMacAddress);
+			// WN34 sensor mapping
+			for (int i = 1; i <= 8; i++)
+			{
+				ini.SetValue("GW1000", "WN34MapChan" + i, EcowittMapWN34[i]);
+			}
 
 			// Ambient settings
 			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
@@ -5773,9 +5860,9 @@ namespace CumulusMX
 			ini.SetValue("Solar", "UseBlakeLarsen", SolarOptions.UseBlakeLarsen);
 			ini.SetValue("Solar", "SolarCalc", SolarOptions.SolarCalc);
 			ini.SetValue("Solar", "LuxToWM2", SolarOptions.LuxToWM2);
-			ini.SetValue("Solar", "RStransfactorJul", SolarOptions.RStransfactorJul);
+			ini.SetValue("Solar", "RStransfactorJun", SolarOptions.RStransfactorJun);
 			ini.SetValue("Solar", "RStransfactorDec", SolarOptions.RStransfactorDec);
-			ini.SetValue("Solar", "BrasTurbidityJul", SolarOptions.BrasTurbidityJul);
+			ini.SetValue("Solar", "BrasTurbidityJun", SolarOptions.BrasTurbidityJun);
 			ini.SetValue("Solar", "BrasTurbidityDec", SolarOptions.BrasTurbidityDec);
 
 			ini.SetValue("NOAA", "Name", NOAAconf.Name);
@@ -6298,6 +6385,16 @@ namespace CumulusMX
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
+		public bool EcowittSetCustomServer { get; set; }
+		public string EcowittGatewayAddr { get; set; }
+		public string EcowittLocalAddr { get; set; }
+		public int EcowittCustomInterval { get; set; }
+		public bool EcowittExtraSetCustomServer { get; set; }
+		public string EcowittExtraGatewayAddr { get; set; }
+		public string EcowittExtraLocalAddr { get; set; }
+		public int EcowittExtraCustomInterval { get; set; }
+
+		public int[] EcowittMapWN34 = new int[9];
 
 		public bool AmbientExtraEnabled { get; set; }
 		public bool AmbientExtraUseSolar { get; set; }
@@ -6491,9 +6588,9 @@ namespace CumulusMX
 		public int WllExtraLeafTx2;
 		public int WllExtraLeafIdx2 = 2;
 
-		public int[] WllExtraTempTx = { 0, 0, 0, 0, 0, 0, 0, 0 };
+		public int[] WllExtraTempTx = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false };
+		public bool[] WllExtraHumTx = { false, false, false, false, false, false, false, false, false };
 
 		// WeatherLink Live transmitter Ids and indexes
 		public bool AirLinkIsNode;
@@ -6508,6 +6605,8 @@ namespace CumulusMX
 		public string Gw1000IpAddress;
 		public string Gw1000MacAddress;
 		public bool Gw1000AutoUpdateIpAddress = true;
+		public int Gw1000PrimaryTHSensor;
+		public int Gw1000PrimaryRainSensor;
 
 		public Timer WundTimer = new Timer();
 		public Timer WebTimer = new Timer();
@@ -6948,23 +7047,22 @@ namespace CumulusMX
 			sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);                     //0
 			sb.Append(timestamp.ToString("HH:mm") + ListSeparator);                        //1
 
-			for (int i = 1; i < 11; i++)
+			for (int i = 1; i <= 10; i++)
 			{
 				sb.Append(station.ExtraTemp[i].ToString(TempFormat) + ListSeparator);      //2-11
 			}
-			for (int i = 1; i < 11; i++)
+			for (int i = 1; i <= 10; i++)
 			{
 				sb.Append(station.ExtraHum[i].ToString(HumFormat) + ListSeparator);        //12-21
 			}
-			for (int i = 1; i < 11; i++)
+			for (int i = 1; i <= 10; i++)
 			{
 				sb.Append(station.ExtraDewPoint[i].ToString(TempFormat) + ListSeparator);  //22-31
 			}
-
-			sb.Append(station.SoilTemp1.ToString(TempFormat) + ListSeparator);     //32
-			sb.Append(station.SoilTemp2.ToString(TempFormat) + ListSeparator);     //33
-			sb.Append(station.SoilTemp3.ToString(TempFormat) + ListSeparator);     //34
-			sb.Append(station.SoilTemp4.ToString(TempFormat) + ListSeparator);     //35
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(station.SoilTemp[i].ToString(TempFormat) + ListSeparator);     //32-35
+			}
 
 			sb.Append(station.SoilMoisture1 + ListSeparator);                      //36
 			sb.Append(station.SoilMoisture2 + ListSeparator);                      //37
@@ -6975,20 +7073,12 @@ namespace CumulusMX
 			sb.Append(station.LeafTemp2.ToString(TempFormat) + ListSeparator);     //41
 
 			sb.Append(station.LeafWetness1.ToString(LeafWetFormat) + ListSeparator);	//42
-			sb.Append(station.LeafWetness2.ToString(LeafWetFormat) + ListSeparator);	//43
+			sb.Append(station.LeafWetness2.ToString(LeafWetFormat) + ListSeparator);    //43
 
-			sb.Append(station.SoilTemp5.ToString(TempFormat) + ListSeparator);     //44
-			sb.Append(station.SoilTemp6.ToString(TempFormat) + ListSeparator);     //45
-			sb.Append(station.SoilTemp7.ToString(TempFormat) + ListSeparator);     //46
-			sb.Append(station.SoilTemp8.ToString(TempFormat) + ListSeparator);     //47
-			sb.Append(station.SoilTemp9.ToString(TempFormat) + ListSeparator);     //48
-			sb.Append(station.SoilTemp10.ToString(TempFormat) + ListSeparator);    //49
-			sb.Append(station.SoilTemp11.ToString(TempFormat) + ListSeparator);    //50
-			sb.Append(station.SoilTemp12.ToString(TempFormat) + ListSeparator);    //51
-			sb.Append(station.SoilTemp13.ToString(TempFormat) + ListSeparator);    //52
-			sb.Append(station.SoilTemp14.ToString(TempFormat) + ListSeparator);    //53
-			sb.Append(station.SoilTemp15.ToString(TempFormat) + ListSeparator);    //54
-			sb.Append(station.SoilTemp16.ToString(TempFormat) + ListSeparator);    //55
+			for (int i = 5; i <= 16; i++)
+			{
+				sb.Append(station.SoilTemp[i].ToString(TempFormat) + ListSeparator);     //44-55
+			}
 
 			sb.Append(station.SoilMoisture5 + ListSeparator);      //56
 			sb.Append(station.SoilMoisture6 + ListSeparator);      //57
@@ -7762,13 +7852,6 @@ namespace CumulusMX
 
 			try
 			{
-				LogMessage("Releasing mutex");
-				Program.appMutex.ReleaseMutex();
-			}
-			catch { }
-
-			try
-			{
 				LogMessage("Stopping timers");
 				RealtimeTimer.Stop();
 				WundTimer.Stop();
@@ -7779,6 +7862,23 @@ namespace CumulusMX
 				CustomHttpSecondsTimer.Stop();
 				CustomMysqlSecondsTimer.Stop();
 				MQTTTimer.Stop();
+			}
+			catch { }
+
+			try
+			{
+				LogMessage("Stopping extra sensors...");
+				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now
+				airLinkOut?.Stop();
+				// If we have a Indoor AirLink sensor, and it is linked to this WLL then stop it now
+				airLinkIn?.Stop();
+				// If we have a Ecowitt Extra Sensors, stop it
+				ecowittExtra?.Stop();
+				// If we have a Ambient Extra Sensors, stop it
+				ambientExtra?.Stop();
+
+				LogMessage("Extra sensors stopped");
+
 			}
 			catch { }
 
@@ -7802,19 +7902,6 @@ namespace CumulusMX
 					}
 				}
 				catch { }
-
-				LogMessage("Stopping extra sensors...");
-				// If we have a Outdoor AirLink sensor, and it is linked to this WLL then stop it now
-				airLinkOut?.Stop();
-				// If we have a Indoor AirLink sensor, and it is linked to this WLL then stop it now
-				airLinkIn?.Stop();
-				// If we have a Ecowitt Extra Sensors, stop it
-				ecowittExtra?.Stop();
-				// If we have a Ambient Extra Sensors, stop it
-				ambientExtra?.Stop();
-
-				LogMessage("Extra sensors stopped");
-
 			}
 			LogMessage("Station shutdown complete");
 		}
@@ -10707,9 +10794,9 @@ namespace CumulusMX
 		public double LuxToWM2 { get; set; }
 		public bool UseBlakeLarsen { get; set; }
 		public int SolarCalc { get; set; }
-		public double RStransfactorJul { get; set; }
+		public double RStransfactorJun { get; set; }
 		public double RStransfactorDec { get; set; }
-		public double BrasTurbidityJul { get; set; }
+		public double BrasTurbidityJun { get; set; }
 		public double BrasTurbidityDec { get; set; }
 	}
 

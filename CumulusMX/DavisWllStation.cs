@@ -40,7 +40,8 @@ namespace CumulusMX
 		private bool broadcastReceived;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow;
-		private bool stop;
+		private CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private CancellationToken cancellationToken;
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
 
@@ -280,6 +281,8 @@ namespace CumulusMX
 					cumulus.WriteIniFile();
 				}
 
+				cancellationToken = tokenSource.Token;
+
 				// Create a broadcast listener
 				Task.Run(() =>
 				{
@@ -290,15 +293,22 @@ namespace CumulusMX
 						udpClient.Client.ReceiveTimeout = 4000;  // We should get a message every 2.5 seconds
 						var from = new IPEndPoint(0, 0);
 
-						while (!stop)
+						while (!cancellationToken.IsCancellationRequested)
 						{
 							try
 							{
-								var jsonBtye = udpClient.Receive(ref from);
-								var jsonStr = Encoding.UTF8.GetString(jsonBtye);
-								if (!stop) // we may be waiting for a broadcast when a shutdown is started
+								// test is any data is available
+								if (udpClient.Client.Available > 0)
 								{
+									var jsonBtye = udpClient.Receive(ref from);
+									var jsonStr = Encoding.UTF8.GetString(jsonBtye);
 									DecodeBroadcast(jsonStr);
+								}
+								// if not, sleep and repeat, or exit on cancel
+								else if (cancellationToken.WaitHandle.WaitOne(200))
+								{
+									cumulus.LogMessage("WLL broadcast listener stop requested");
+									break;
 								}
 							}
 							catch (SocketException exp)
@@ -315,10 +325,9 @@ namespace CumulusMX
 								}
 							}
 						}
-						udpClient.Close();
-						cumulus.LogMessage("WLL broadcast listener stopped");
 					}
-				});
+					cumulus.LogMessage("WLL broadcast listener stopped");
+				}, cancellationToken);
 
 				cumulus.LogMessage($"WLL Now listening on broadcast port {port}");
 
@@ -352,7 +361,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing WLL connections");
 			try
 			{
-				stop = true;
+				tokenSource.Cancel();
 				tmrRealtime.Stop();
 				tmrCurrent.Stop();
 				tmrBroadcastWatchdog.Stop();
@@ -726,11 +735,11 @@ namespace CumulusMX
 							{   // Check for Extra temperature/humidity settings
 								for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
 								{
-									if (cumulus.WllExtraTempTx[tempTxId - 1] != data1.txid) continue;
+									if (cumulus.WllExtraTempTx[tempTxId] != data1.txid) continue;
 
 									try
 									{
-										if (cumulus.WllExtraTempTx[tempTxId - 1] == data1.txid)
+										if (cumulus.WllExtraTempTx[tempTxId] == data1.txid)
 										{
 											if (!data1.temp.HasValue || data1.temp.Value == -99)
 											{
@@ -743,7 +752,7 @@ namespace CumulusMX
 												DoExtraTemp(ConvertTempFToUser(data1.temp.Value), tempTxId);
 											}
 
-											if (cumulus.WllExtraHumTx[tempTxId - 1] && data1.hum.HasValue)
+											if (cumulus.WllExtraHumTx[tempTxId] && data1.hum.HasValue)
 											{
 												DoExtraHum(data1.hum.Value, tempTxId);
 											}
@@ -1261,7 +1270,7 @@ namespace CumulusMX
 
 		private void OnServiceRemoved(object sender, ServiceAnnouncementEventArgs e)
 		{
-			cumulus.LogMessage("ZeroConfig Service: WLL service has been removed!");
+			cumulus.LogMessage("ZeroConf Service: WLL service has been removed!");
 		}
 
 		private void OnServiceAdded(object sender, ServiceAnnouncementEventArgs e)
@@ -2032,7 +2041,7 @@ namespace CumulusMX
 						{   // Check for Extra temperature/humidity settings
 							for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
 							{
-								if (cumulus.WllExtraTempTx[tempTxId - 1] != data11.tx_id) continue;
+								if (cumulus.WllExtraTempTx[tempTxId] != data11.tx_id) continue;
 
 								try
 								{
@@ -2053,7 +2062,7 @@ namespace CumulusMX
 									cumulus.LogDebugMessage($"WL.com historic: Exception {ex.Message}");
 								}
 
-								if (!cumulus.WllExtraHumTx[tempTxId - 1]) continue;
+								if (!cumulus.WllExtraHumTx[tempTxId]) continue;
 
 								try
 								{

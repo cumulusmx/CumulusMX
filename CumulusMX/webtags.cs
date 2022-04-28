@@ -1385,6 +1385,7 @@ namespace CumulusMX
 			if (station.AllTime.HighRainRate.Ts >= threshold ||
 				station.AllTime.DailyRain.Ts >= threshold ||
 				station.AllTime.HourlyRain.Ts >= threshold ||
+				station.AllTime.Rain24Hours.Ts >= threshold ||
 				station.AllTime.LongestDryPeriod.Ts >= threshold ||
 				station.AllTime.LongestWetPeriod.Ts >= threshold ||
 				station.AllTime.MonthlyRain.Ts >= threshold
@@ -1504,6 +1505,11 @@ namespace CumulusMX
 		private string TagHighDailyRainRecordSet(Dictionary<string,string> tagParams)
 		{
 			return station.AllTime.DailyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+		}
+
+		private string TagHighRain24HourRecordSet(Dictionary<string, string> tagParams)
+		{
+			return station.AllTime.Rain24Hours.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMonthlyRainRecordSet(Dictionary<string,string> tagParams)
@@ -2269,24 +2275,34 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.AllTime.DailyRain.Ts, "o\\n dd MMMM yyyy", tagParams);
 		}
 
+		private string Tagr24hourH(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AllTime.Rain24Hours.Val, tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagTr24hourH(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.AllTime.Rain24Hours.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
+		}
+
 		private string TagLongestDryPeriod(Dictionary<string,string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val.ToString("F0");
+			return station.AllTime.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.AllTime.LongestDryPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestDryPeriod(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
+			return station.AllTime.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
 		}
 
 		private string TagLongestWetPeriod(Dictionary<string,string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val.ToString("F0");
+			return station.AllTime.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.AllTime.LongestWetPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestWetPeriod(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
+			return station.AllTime.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
 		}
 
 		private string TagLowDailyTempRange(Dictionary<string,string> tagParams)
@@ -2595,28 +2611,41 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.MonthlyRecs[month].DailyRain.Ts, "o\\n dd MMMM yyyy", tagParams);
 		}
 
+		private string TagByMonthRain24HourH(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].Rain24Hours, tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagByMonthRain24HourHt(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			return GetFormattedDateTime(station.MonthlyRecs[month].Rain24Hours.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
+		}
+
+
 		private string TagByMonthLongestDryPeriod(Dictionary<string,string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
+			return station.MonthlyRecs[month].LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestDryPeriodT(Dictionary<string,string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
+			return station.MonthlyRecs[month].LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
 		}
 
 		private string TagByMonthLongestWetPeriod(Dictionary<string,string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
+			return station.MonthlyRecs[month].LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestWetPeriodT(Dictionary<string,string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
+			return station.MonthlyRecs[month].LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, "\\to dd MMMM yyyy", tagParams);
 		}
 
 		private string TagByMonthLowDailyTempRange(Dictionary<string,string> tagParams)
@@ -3323,13 +3352,13 @@ namespace CumulusMX
 				return "n/a";
 
 			// subtract today from yesterday, unless it has been reset, then its just today
-			var hrs = station.ChillHours > station.YestChillHours ? station.ChillHours - station.YestChillHours : station.ChillHours;
+			var hrs = station.ChillHours >= station.YestChillHours ? station.ChillHours - station.YestChillHours : station.ChillHours;
 			return CheckRcDp(hrs, tagParams, 1);
 		}
 
 		private string TagChillHoursYesterday(Dictionary<string, string> tagParams)
 		{
-			var dayb4yest = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(-2);
+			var dayb4yest = DateTime.Now.Date.AddDays(-2);
 			WeatherStation.dayfilerec rec;
 			try
 			{
@@ -3345,14 +3374,13 @@ namespace CumulusMX
 			if (station.YestChillHours == -1)
 				return "n/a";
 
-			if (station.YestChillHours > rec.ChillHours)
+			if (Math.Round(station.YestChillHours, 1) >= rec.ChillHours)
 				hrs = station.YestChillHours - rec.ChillHours;
 			else
 				hrs = station.YestChillHours;
 
 			return CheckRcDp(hrs, tagParams, 1);
 		}
-
 
 		private string TagYChillHours(Dictionary<string, string> tagParams)
 		{
@@ -3542,82 +3570,82 @@ namespace CumulusMX
 
 		private string TagSoilTemp1(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp1, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[1], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp2(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp2, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[2], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp3(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp3, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[3], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp4(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp4, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[4], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp5, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[5], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp6, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[6], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp7, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[7], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp8, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[8], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp9(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp9, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[9], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp10(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp10, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[10], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp11(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp11, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[11], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp12(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp12, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[12], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp13(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp13, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[13], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp14(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp14, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[14], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp15(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp15, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[15], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilTemp16(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SoilTemp16, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(station.SoilTemp[16], tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagSoilMoisture1(Dictionary<string,string> tagParams)
@@ -4204,14 +4232,20 @@ namespace CumulusMX
 			return CheckRcDp(station.ThisMonth.DailyRain.Val, tagParams, cumulus.RainDPlaces);
 		}
 
+		private string TagMonthRain24HourH(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.ThisMonth.Rain24Hours.Val, tagParams, cumulus.RainDPlaces);
+		}
+
+
 		private string TagMonthLongestDryPeriod(Dictionary<string,string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val.ToString();
+			return station.ThisMonth.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisMonth.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagMonthLongestWetPeriod(Dictionary<string,string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val.ToString();
+			return station.ThisMonth.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisMonth.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagMonthHighDailyTempRange(Dictionary<string,string> tagParams)
@@ -4320,6 +4354,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.ThisMonth.HourlyRain.Ts, "t", tagParams);
 		}
 
+		private string TagMonthRain24HourHt(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisMonth.Rain24Hours.Ts, "t", tagParams);
+		}
+
+
 		// Monthly highs and lows - dates
 		private string TagMonthTempHd(Dictionary<string,string> tagParams)
 		{
@@ -4426,6 +4466,11 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.ThisMonth.HourlyRain.Ts, "dd MMMM", tagParams);
 		}
 
+		private string TagMonthRain24HourHd(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisMonth.Rain24Hours.Ts, "dd MMMM", tagParams);
+		}
+
 		private string TagMonthHighDailyTempRangeD(Dictionary<string,string> tagParams)
 		{
 			return station.ThisMonth.HighDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisMonth.HighDailyTempRange.Ts, "dd MMMM", tagParams) : "------";
@@ -4448,12 +4493,12 @@ namespace CumulusMX
 
 		private string TagMonthLongestDryPeriodD(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisMonth.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthLongestWetPeriodD(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisMonth.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		// Yearly highs and lows - values
@@ -4572,14 +4617,20 @@ namespace CumulusMX
 			return CheckRcDp(station.ThisYear.DailyRain.Val, tagParams, cumulus.RainDPlaces);
 		}
 
+		private string TagYearRain24HourH(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.ThisYear.Rain24Hours.Val, tagParams, cumulus.RainDPlaces);
+		}
+
+
 		private string TagYearLongestDryPeriod(Dictionary<string,string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val.ToString();
+			return station.ThisYear.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisYear.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagYearLongestWetPeriod(Dictionary<string,string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val.ToString();
+			return station.ThisYear.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisYear.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagYearHighDailyTempRange(Dictionary<string,string> tagParams)
@@ -4692,6 +4743,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.ThisYear.HourlyRain.Ts, "t", tagParams);
 		}
 
+		private string TagYearRain24HourHt(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisYear.Rain24Hours.Ts, "t", tagParams);
+		}
+
+
 		// Yearly highs and lows - dates
 		private string TagYearTempHd(Dictionary<string,string> tagParams)
 		{
@@ -4797,6 +4854,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.ThisYear.HourlyRain.Ts, "dd MMMM", tagParams);
 		}
 
+		private string TagYearRain24HourHd(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisYear.Rain24Hours.Ts, "dd MMMM", tagParams);
+		}
+
+
 		private string TagYearHighDailyTempRangeD(Dictionary<string,string> tagParams)
 		{
 			return station.ThisYear.HighDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighDailyTempRange.Ts, "dd MMMM", tagParams) : "------";
@@ -4819,12 +4882,12 @@ namespace CumulusMX
 
 		private string TagYearLongestDryPeriodD(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisYear.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearLongestWetPeriodD(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisYear.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearMonthlyRainHd(Dictionary<string,string> tagParams)
@@ -5372,6 +5435,7 @@ namespace CumulusMX
 				{ "HighRainRateRecordSet", TagHighRainRateRecordSet },
 				{ "HighHourlyRainRecordSet", TagHighHourlyRainRecordSet },
 				{ "HighDailyRainRecordSet", TagHighDailyRainRecordSet },
+				{ "HighRain24HourRecordSet", TagHighRain24HourRecordSet },
 				{ "HighMonthlyRainRecordSet", TagHighMonthlyRainRecordSet },
 				{ "HighHumidityRecordSet", TagHighHumidityRecordSet },
 				{ "LowHumidityRecordSet", TagLowHumidityRecordSet },
@@ -5511,6 +5575,8 @@ namespace CumulusMX
 				{ "TrrateM", TagTrrateM },
 				{ "rfallH", TagrfallH },
 				{ "TrfallH", TagTrfallH },
+				{ "r24hourH", Tagr24hourH },
+				{ "Tr24hourH", TagTr24hourH },
 				{ "rfallhH", TagrfallhH },
 				{ "TrfallhH", TagTrfallhH },
 				{ "rfallmH", TagrfallmH },
@@ -5843,6 +5909,7 @@ namespace CumulusMX
 				{ "MonthWindH", TagMonthWindH },
 				{ "MonthRainRateH", TagMonthRainRateH },
 				{ "MonthHourlyRainH", TagMonthHourlyRainH },
+				{ "MonthRain24HourH", TagMonthRain24HourH },
 				{ "MonthDailyRainH", TagMonthDailyRainH },
 				{ "MonthDewPointH", TagMonthDewPointH },
 				{ "MonthDewPointL", TagMonthDewPointL },
@@ -5869,6 +5936,7 @@ namespace CumulusMX
 				{ "MonthWindHT", TagMonthWindHt },
 				{ "MonthRainRateHT", TagMonthRainRateHt },
 				{ "MonthHourlyRainHT", TagMonthHourlyRainHt },
+				{ "MonthRain24HourHT", TagMonthRain24HourHt },
 				{ "MonthDewPointHT", TagMonthDewPointHt },
 				{ "MonthDewPointLT", TagMonthDewPointLt },
 				// This month"s highs and lows - dates
@@ -5891,6 +5959,7 @@ namespace CumulusMX
 				{ "MonthWindHD", TagMonthWindHd },
 				{ "MonthRainRateHD", TagMonthRainRateHd },
 				{ "MonthHourlyRainHD", TagMonthHourlyRainHd },
+				{ "MonthRain24HourHD", TagMonthRain24HourHd },
 				{ "MonthDailyRainHD", TagMonthDailyRainHd },
 				{ "MonthDewPointHD", TagMonthDewPointHd },
 				{ "MonthDewPointLD", TagMonthDewPointLd },
@@ -5919,6 +5988,7 @@ namespace CumulusMX
 				{ "YearWindH", TagYearWindH },
 				{ "YearRainRateH", TagYearRainRateH },
 				{ "YearHourlyRainH", TagYearHourlyRainH },
+				{ "YearRain24HourH", TagYearRain24HourH },
 				{ "YearDailyRainH", TagYearDailyRainH },
 				{ "YearMonthlyRainH", TagYearMonthlyRainH },
 				{ "YearDewPointH", TagYearDewPointH },
@@ -5946,6 +6016,7 @@ namespace CumulusMX
 				{ "YearWindHT", TagYearWindHt },
 				{ "YearRainRateHT", TagYearRainRateHt },
 				{ "YearHourlyRainHT", TagYearHourlyRainHt },
+				{ "YearRain24HourHT", TagYearRain24HourHt },
 				{ "YearDewPointHT", TagYearDewPointHt },
 				{ "YearDewPointLT", TagYearDewPointLt },
 				// Yearly highs and lows - dates
@@ -5968,6 +6039,7 @@ namespace CumulusMX
 				{ "YearWindHD", TagYearWindHd },
 				{ "YearRainRateHD", TagYearRainRateHd },
 				{ "YearHourlyRainHD", TagYearHourlyRainHd },
+				{ "YearRain24HourHD", TagYearRain24HourHd },
 				{ "YearDailyRainHD", TagYearDailyRainHd },
 				{ "YearMonthlyRainHD", TagYearMonthlyRainHd },
 				{ "YearDewPointHD", TagYearDewPointHd },
@@ -6056,6 +6128,7 @@ namespace CumulusMX
 				{ "ByMonthRainRateH", TagByMonthRainRateH },
 				{ "ByMonthDailyRainH", TagByMonthDailyRainH },
 				{ "ByMonthHourlyRainH", TagByMonthHourlyRainH },
+				{ "ByMonthRain24HourH", TagByMonthRain24HourH },
 				{ "ByMonthMonthlyRainH", TagByMonthMonthlyRainH },
 				{ "ByMonthPressH", TagByMonthPressH },
 				{ "ByMonthPressL", TagByMonthPressL },
@@ -6087,6 +6160,7 @@ namespace CumulusMX
 				{ "ByMonthDailyRainHT", TagByMonthDailyRainHt },
 				{ "ByMonthHourlyRainHT", TagByMonthHourlyRainHt },
 				{ "ByMonthMonthlyRainHT", TagByMonthMonthlyRainHt },
+				{ "ByMonthRain24HourHT", TagByMonthRain24HourHt },
 				{ "ByMonthPressHT", TagByMonthPressHt },
 				{ "ByMonthPressLT", TagByMonthPressLt },
 				{ "ByMonthHumHT", TagByMonthHumHt },

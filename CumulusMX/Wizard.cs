@@ -83,7 +83,7 @@ namespace CumulusMX
 			var weatherflow = new JsonStationSettingsWeatherFlow()
 				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
 
-			var gw1000 = new JSonStationSettingsGw1000Conn()
+			var gw1000 = new JsonStationSettingsGw1000Conn()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
@@ -668,7 +668,7 @@ namespace CumulusMX
 		public string stationmodel { get; set; }
 		public JsonWizardDavisVp davisvp2 { get; set; }
 		public JsonWizardDavisWll daviswll { get; set; }
-		public JSonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
 		public JsonWizardFineOffset fineoffset { get; set; }
 		public JsonWizardEasyWeather easyw { get; set; }
 		public JsonWizardImet imet { get; set; }

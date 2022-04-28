@@ -9,10 +9,16 @@ namespace CumulusMX
 	public class ExtraSensorSettings
 	{
 		private readonly Cumulus cumulus;
+		private WeatherStation station;
 
 		public ExtraSensorSettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
+		}
+
+		internal void SetStation(WeatherStation station)
+		{
+			this.station = station;
 		}
 
 		public string GetAlpacaFormData()
@@ -43,7 +49,21 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowitt = new JsonExtraSensorEcowittAmbient()
+			var ecowittwn34map = new JsonStationSettingsEcowittMappings()
+			{
+				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
+
+				wn34chan1 = cumulus.EcowittMapWN34[1],
+				wn34chan2 = cumulus.EcowittMapWN34[2],
+				wn34chan3 = cumulus.EcowittMapWN34[3],
+				wn34chan4 = cumulus.EcowittMapWN34[4],
+				wn34chan5 = cumulus.EcowittMapWN34[5],
+				wn34chan6 = cumulus.EcowittMapWN34[6],
+				wn34chan7 = cumulus.EcowittMapWN34[7],
+				wn34chan8 = cumulus.EcowittMapWN34[8]
+			};
+
+			var ecowitt = new JsonExtraSensorEcowitt()
 			{
 				useSolar = cumulus.EcowittExtraUseSolar,
 				useUv = cumulus.EcowittExtraUseUv,
@@ -55,10 +75,17 @@ namespace CumulusMX
 				useAQI = cumulus.EcowittExtraUseAQI,
 				useCo2 = cumulus.EcowittExtraUseCo2,
 				useLightning = cumulus.EcowittExtraUseLightning,
-				useLeak = cumulus.EcowittExtraUseLeak
+				useLeak = cumulus.EcowittExtraUseLeak,
+
+				setcustom = cumulus.EcowittExtraSetCustomServer,
+				gwaddr = cumulus.EcowittExtraGatewayAddr,
+				localaddr = cumulus.EcowittExtraLocalAddr,
+				interval = cumulus.EcowittExtraCustomInterval,
+
+				mappings = ecowittwn34map
 			};
 
-			var ambient = new JsonExtraSensorEcowittAmbient()
+			var ambient = new JsonExtraSensorAmbient()
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
 				useUv = cumulus.AmbientExtraUseUv,
@@ -236,6 +263,93 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
 						cumulus.EcowittExtraUseLeak = settings.httpSensors.ecowitt.useLeak;
 
+						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
+						cumulus.EcowittExtraGatewayAddr = settings.httpSensors.ecowitt.gwaddr;
+						cumulus.EcowittExtraLocalAddr = settings.httpSensors.ecowitt.localaddr;
+						cumulus.EcowittExtraCustomInterval = settings.httpSensors.ecowitt.interval;
+
+						cumulus.Gw1000PrimaryTHSensor = settings.httpSensors.ecowitt.mappings.primaryTHsensor;
+
+						if (cumulus.EcowittMapWN34[1] != settings.httpSensors.ecowitt.mappings.wn34chan1)
+						{
+							if (cumulus.EcowittMapWN34[1] == 0)
+								station.UserTemp[1] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[1]] = 0;
+
+							cumulus.EcowittMapWN34[1] = settings.httpSensors.ecowitt.mappings.wn34chan1;
+						}
+
+						if (cumulus.EcowittMapWN34[2] != settings.httpSensors.ecowitt.mappings.wn34chan2)
+						{
+							if (cumulus.EcowittMapWN34[2] == 0)
+								station.UserTemp[2] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[2]] = 0;
+
+							cumulus.EcowittMapWN34[2] = settings.httpSensors.ecowitt.mappings.wn34chan2;
+						}
+
+						if (cumulus.EcowittMapWN34[3] != settings.httpSensors.ecowitt.mappings.wn34chan3)
+						{
+							if (cumulus.EcowittMapWN34[3] == 0)
+								station.UserTemp[3] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[3]] = 0;
+
+							cumulus.EcowittMapWN34[3] = settings.httpSensors.ecowitt.mappings.wn34chan3;
+						}
+
+						if (cumulus.EcowittMapWN34[4] != settings.httpSensors.ecowitt.mappings.wn34chan4)
+						{
+							if (cumulus.EcowittMapWN34[4] == 0)
+								station.UserTemp[4] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[4]] = 0;
+
+							cumulus.EcowittMapWN34[4] = settings.httpSensors.ecowitt.mappings.wn34chan4;
+						}
+
+						if (cumulus.EcowittMapWN34[5] != settings.httpSensors.ecowitt.mappings.wn34chan5)
+						{
+							if (cumulus.EcowittMapWN34[5] == 0)
+								station.UserTemp[5] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[5]] = 0;
+
+							cumulus.EcowittMapWN34[5] = settings.httpSensors.ecowitt.mappings.wn34chan5;
+						}
+
+						if (cumulus.EcowittMapWN34[6] != settings.httpSensors.ecowitt.mappings.wn34chan6)
+						{
+							if (cumulus.EcowittMapWN34[6] == 0)
+								station.UserTemp[6] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[6]] = 0;
+
+							cumulus.EcowittMapWN34[6] = settings.httpSensors.ecowitt.mappings.wn34chan6;
+						}
+
+						if (cumulus.EcowittMapWN34[7] != settings.httpSensors.ecowitt.mappings.wn34chan7)
+						{
+							if (cumulus.EcowittMapWN34[7] == 0)
+								station.UserTemp[7] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[7]] = 0;
+
+							cumulus.EcowittMapWN34[7] = settings.httpSensors.ecowitt.mappings.wn34chan7;
+						}
+
+						if (cumulus.EcowittMapWN34[8] != settings.httpSensors.ecowitt.mappings.wn34chan8)
+						{
+							if (cumulus.EcowittMapWN34[8] == 0)
+								station.UserTemp[8] = 0;
+							else
+								station.SoilTemp[cumulus.EcowittMapWN34[8]] = 0;
+
+							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
+						}
+
 						// Also enable extra logging if applicable
 						if (cumulus.EcowittExtraUseTempHum || cumulus.EcowittExtraUseSoilTemp || cumulus.EcowittExtraUseSoilMoist || cumulus.EcowittExtraUseLeafWet || cumulus.EcowittExtraUseUserTemp || cumulus.EcowittExtraUseAQI || cumulus.EcowittExtraUseCo2)
 						{
@@ -384,11 +498,11 @@ namespace CumulusMX
 	public class JsonExtraSensorHttp
 	{
 		public int extraStation { get; set; }
-		public JsonExtraSensorEcowittAmbient ecowitt { get; set; }
-		public JsonExtraSensorEcowittAmbient ambient { get; set; }
+		public JsonExtraSensorEcowitt ecowitt { get; set; }
+		public JsonExtraSensorAmbient ambient { get; set; }
 	}
 
-	public class JsonExtraSensorEcowittAmbient
+	public class JsonExtraSensorAmbient
 	{
 		public bool useSolar { get; set; }
 		public bool useUv { get; set; }
@@ -401,6 +515,15 @@ namespace CumulusMX
 		public bool useCo2 { get; set; }
 		public bool useLightning { get; set; }
 		public bool useLeak { get; set; }
+	}
+
+	public class JsonExtraSensorEcowitt : JsonExtraSensorAmbient
+	{
+		internal bool setcustom { get; set; }
+		internal string gwaddr { get; set; }
+		internal string localaddr { get; set; }
+		internal int interval { get; set; }
+		internal JsonStationSettingsEcowittMappings mappings { get; set; }
 	}
 
 

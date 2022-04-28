@@ -66,11 +66,11 @@ namespace CumulusMX
 			double factor = 0;
 			if (options.SolarCalc == 0)
 			{
-				factor = GetFactor(timestamp, options.RStransfactorJul, options.RStransfactorDec);
+				factor = GetFactor(timestamp, options.RStransfactorJun, options.RStransfactorDec);
 			}
 			if (options.SolarCalc == 1)
 			{
-				factor = GetFactor(timestamp, options.BrasTurbidityJul, options.BrasTurbidityDec);
+				factor = GetFactor(timestamp, options.BrasTurbidityJun, options.BrasTurbidityDec);
 			}
 			return SolarMax(timestamp, longitude, latitude, altitude, out solarelevation, factor, options.SolarCalc);
 		}
@@ -99,9 +99,9 @@ namespace CumulusMX
 		}
 
 		// Calculate the interpolated factor using a cosine function
-		private static double GetFactor(DateTime timestamp, double jul, double dec)
+		private static double GetFactor(DateTime timestamp, double jun, double dec)
 		{
-			var range = jul - dec;
+			var range = jun - dec;
 			var doy = timestamp.DayOfYear;
 			return dec + Math.Cos((doy - 172) / 183.0 * Math.PI / 2) * range;
 		}
