@@ -367,6 +367,7 @@ namespace CumulusMX
 			ExtraHum = new double[11];
 			ExtraDewPoint = new double[11];
 			UserTemp = new double[9];
+			SoilTemp = new double[17];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -1235,36 +1236,9 @@ namespace CumulusMX
 		public double[] ExtraDewPoint { get; set; }
 
 		/// <summary>
-		/// Soil Temp 1 in C
+		/// Soil Temp 1-16 in C
 		/// </summary>
-		public double SoilTemp1 { get; set; }
-
-		/// <summary>
-		/// Soil Temp 2 in C
-		/// </summary>
-		public double SoilTemp2 { get; set; }
-
-		/// <summary>
-		/// Soil Temp 3 in C
-		/// </summary>
-		public double SoilTemp3 { get; set; }
-
-		/// <summary>
-		/// Soil Temp 4 in C
-		/// </summary>
-		public double SoilTemp4 { get; set; }
-		public double SoilTemp5 { get; set; }
-		public double SoilTemp6 { get; set; }
-		public double SoilTemp7 { get; set; }
-		public double SoilTemp8 { get; set; }
-		public double SoilTemp9 { get; set; }
-		public double SoilTemp10 { get; set; }
-		public double SoilTemp11 { get; set; }
-		public double SoilTemp12 { get; set; }
-		public double SoilTemp13 { get; set; }
-		public double SoilTemp14 { get; set; }
-		public double SoilTemp15 { get; set; }
-		public double SoilTemp16 { get; set; }
+		public double[] SoilTemp { get; set; }
 
 		public double RainYesterday { get; set; }
 
@@ -1900,14 +1874,6 @@ namespace CumulusMX
 			{
 				DoForecast("", true);
 			}
-
-
-			if (DataStopped)
-			{
-				// No data coming in, do not do anything else
-				return;
-			}
-
 
 			if (now.Hour == 0)
 			{
@@ -4934,8 +4900,8 @@ namespace CumulusMX
 					ThisMonth.HighDewPoint.Val = OutdoorDewpoint;
 					ThisMonth.LowDewPoint.Val = OutdoorDewpoint;
 					ThisMonth.HighWindRun.Val = Cumulus.DefaultHiVal;
-					ThisMonth.LongestDryPeriod.Val = Cumulus.DefaultHiVal;
-					ThisMonth.LongestWetPeriod.Val = Cumulus.DefaultHiVal;
+					ThisMonth.LongestDryPeriod.Val = 0;
+					ThisMonth.LongestWetPeriod.Val = 0;
 					ThisMonth.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
 					ThisMonth.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
 
@@ -5004,8 +4970,8 @@ namespace CumulusMX
 					ThisYear.HighDewPoint.Val = OutdoorDewpoint;
 					ThisYear.LowDewPoint.Val = OutdoorDewpoint;
 					ThisYear.HighWindRun.Val = Cumulus.DefaultHiVal;
-					ThisYear.LongestDryPeriod.Val = Cumulus.DefaultHiVal;
-					ThisYear.LongestWetPeriod.Val = Cumulus.DefaultHiVal;
+					ThisYear.LongestDryPeriod.Val = 0;
+					ThisYear.LongestWetPeriod.Val = 0;
 					ThisYear.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
 					ThisYear.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
 
@@ -7255,57 +7221,8 @@ namespace CumulusMX
 
 		public void DoSoilTemp(double value, int index)
 		{
-			switch (index)
-			{
-				case 1:
-					SoilTemp1 = value;
-					break;
-				case 2:
-					SoilTemp2 = value;
-					break;
-				case 3:
-					SoilTemp3 = value;
-					break;
-				case 4:
-					SoilTemp4 = value;
-					break;
-				case 5:
-					SoilTemp5 = value;
-					break;
-				case 6:
-					SoilTemp6 = value;
-					break;
-				case 7:
-					SoilTemp7 = value;
-					break;
-				case 8:
-					SoilTemp8 = value;
-					break;
-				case 9:
-					SoilTemp9 = value;
-					break;
-				case 10:
-					SoilTemp10 = value;
-					break;
-				case 11:
-					SoilTemp11 = value;
-					break;
-				case 12:
-					SoilTemp12 = value;
-					break;
-				case 13:
-					SoilTemp13 = value;
-					break;
-				case 14:
-					SoilTemp14 = value;
-					break;
-				case 15:
-					SoilTemp15 = value;
-					break;
-				case 16:
-					SoilTemp16 = value;
-					break;
-			}
+			if (index > 0 && index < SoilTemp.Length)
+				SoilTemp[index] = value;
 		}
 
 		public void DoAirQuality(double value, int index)
@@ -7747,10 +7664,10 @@ namespace CumulusMX
 			AllTime.MonthlyRain.Val = ini.GetValue("Rain", "highmonthlyrainvalue", Cumulus.DefaultHiVal);
 			AllTime.MonthlyRain.Ts = ini.GetValue("Rain", "highmonthlyraintime", cumulus.defaultRecordTS);
 
-			AllTime.LongestDryPeriod.Val = ini.GetValue("Rain", "longestdryperiodvalue", Cumulus.DefaultHiVal);
+			AllTime.LongestDryPeriod.Val = ini.GetValue("Rain", "longestdryperiodvalue", 0);
 			AllTime.LongestDryPeriod.Ts = ini.GetValue("Rain", "longestdryperiodtime", cumulus.defaultRecordTS);
 
-			AllTime.LongestWetPeriod.Val = ini.GetValue("Rain", "longestwetperiodvalue", Cumulus.DefaultHiVal);
+			AllTime.LongestWetPeriod.Val = ini.GetValue("Rain", "longestwetperiodvalue", 0);
 			AllTime.LongestWetPeriod.Ts = ini.GetValue("Rain", "longestwetperiodtime", cumulus.defaultRecordTS);
 
 			AllTime.HighPress.Val = ini.GetValue("Pressure", "highpressurevalue", Cumulus.DefaultHiVal);
@@ -8122,9 +8039,9 @@ namespace CumulusMX
 				ThisMonth.DailyRain.Ts = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
 				ThisMonth.Rain24Hours.Val = ini.GetValue("Rain", "24Hour", Cumulus.DefaultHiVal);
 				ThisMonth.Rain24Hours.Ts = ini.GetValue("Rain", "24HourTime", cumulus.defaultRecordTS);
-				ThisMonth.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", Cumulus.DefaultHiVal);
+				ThisMonth.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", 0);
 				ThisMonth.LongestDryPeriod.Ts = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
-				ThisMonth.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", Cumulus.DefaultHiVal);
+				ThisMonth.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", 0);
 				ThisMonth.LongestWetPeriod.Ts = ini.GetValue("Rain", "LongestWetPeriodTime", cumulus.defaultRecordTS);
 				// humidity
 				ThisMonth.LowHumidity.Val = ini.GetValue("Humidity", "Low", Cumulus.DefaultLoVal);
@@ -8300,9 +8217,9 @@ namespace CumulusMX
 				ThisYear.Rain24Hours.Ts = ini.GetValue("Rain", "24HourTime", cumulus.defaultRecordTS);
 				ThisYear.MonthlyRain.Val = ini.GetValue("Rain", "MonthlyHigh", Cumulus.DefaultHiVal);
 				ThisYear.MonthlyRain.Ts = ini.GetValue("Rain", "HMonthlyTime", cumulus.defaultRecordTS);
-				ThisYear.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", Cumulus.DefaultHiVal);
+				ThisYear.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", 0);
 				ThisYear.LongestDryPeriod.Ts = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
-				ThisYear.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", Cumulus.DefaultHiVal);
+				ThisYear.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", 0);
 				ThisYear.LongestWetPeriod.Ts = ini.GetValue("Rain", "LongestWetPeriodTime", cumulus.defaultRecordTS);
 				// humidity
 				ThisYear.LowHumidity.Val = ini.GetValue("Humidity", "Low", Cumulus.DefaultLoVal);
@@ -8748,10 +8665,10 @@ namespace CumulusMX
 			if (cumulus.AWEKAS.SendSoilTemp)
 			{
 				if (started) sb.Append("&"); else started = true;
-				sb.Append("soiltemp1=" + ConvertUserTempToC(SoilTemp1).ToString("F1", InvC));
-				sb.Append("&soiltemp2=" + ConvertUserTempToC(SoilTemp2).ToString("F1", InvC));
-				sb.Append("&soiltemp3=" + ConvertUserTempToC(SoilTemp3).ToString("F1", InvC));
-				sb.Append("&soiltemp4=" + ConvertUserTempToC(SoilTemp4).ToString("F1", InvC));
+				for (var i = 1; i <= 4; i++)
+				{
+					sb.Append($"soiltemp{i}=" + ConvertUserTempToC(SoilTemp[i]).ToString("F1", InvC));
+				}
 			}
 
 			if (cumulus.AWEKAS.SendSoilMoisture)
@@ -8858,7 +8775,7 @@ namespace CumulusMX
 			}
 
 			if (cumulus.AWEKAS.SendSoilTemp)
-				sb.Append(ConvertUserTempToC(SoilTemp1).ToString("F1", InvC) + sep);        // 21
+				sb.Append(ConvertUserTempToC(SoilTemp[1]).ToString("F1", InvC) + sep);        // 21
 			else
 				sb.Append(sep);
 
@@ -9004,13 +8921,13 @@ namespace CumulusMX
 			}
 			// Davis soil and leaf sensors
 			if (cumulus.Wund.SendSoilTemp1)
-				Data.Append($"&soiltempf={TempFstr(SoilTemp1)}");
+				Data.Append($"&soiltempf={TempFstr(SoilTemp[1])}");
 			if (cumulus.Wund.SendSoilTemp2)
-				Data.Append($"&soiltempf2={TempFstr(SoilTemp2)}");
+				Data.Append($"&soiltempf2={TempFstr(SoilTemp[2])}");
 			if (cumulus.Wund.SendSoilTemp3)
-				Data.Append($"&soiltempf3={TempFstr(SoilTemp3)}");
+				Data.Append($"&soiltempf3={TempFstr(SoilTemp[3])}");
 			if (cumulus.Wund.SendSoilTemp4)
-				Data.Append($"&soiltempf4={TempFstr(SoilTemp4)}");
+				Data.Append($"&soiltempf4={TempFstr(SoilTemp[4])}");
 
 			if (cumulus.Wund.SendSoilMoisture1)
 				Data.Append($"&soilmoisture={SoilMoisture1}");
@@ -9337,57 +9254,7 @@ namespace CumulusMX
 			}
 			if (cumulus.WOW.SendSoilTemp)
 			{
-				switch (cumulus.WOW.SoilTempSensor)
-				{
-					case 1:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp1));
-						break;
-					case 2:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp2));
-						break;
-					case 3:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp3));
-						break;
-					case 4:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp4));
-						break;
-					case 5:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp5));
-						break;
-					case 6:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp6));
-						break;
-					case 7:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp7));
-						break;
-					case 8:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp8));
-						break;
-					case 9:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp9));
-						break;
-					case 10:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp10));
-						break;
-					case 11:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp11));
-						break;
-					case 12:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp12));
-						break;
-					case 13:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp13));
-						break;
-					case 14:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp14));
-						break;
-					case 15:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp15));
-						break;
-					case 16:
-						Data.Append($"&soiltempf=" + TempFstr(SoilTemp16));
-						break;
-				}
+				Data.Append($"&soiltempf=" + TempFstr(SoilTemp[cumulus.WOW.SoilTempSensor]));
 			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
@@ -9882,22 +9749,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
 
-			json.Append($"[\"{cumulus.SoilTempCaptions[1]}\",\"{SoilTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[2]}\",\"{SoilTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[3]}\",\"{SoilTemp3.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[4]}\",\"{SoilTemp4.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[5]}\",\"{SoilTemp5.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[6]}\",\"{SoilTemp6.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[7]}\",\"{SoilTemp7.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[8]}\",\"{SoilTemp8.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[9]}\",\"{SoilTemp9.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[10]}\",\"{SoilTemp10.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[11]}\",\"{SoilTemp11.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[12]}\",\"{SoilTemp12.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[13]}\",\"{SoilTemp13.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[14]}\",\"{SoilTemp14.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[15]}\",\"{SoilTemp15.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.SoilTempCaptions[16]}\",\"{SoilTemp16.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"]");
+			for (var i = 1; i <= 16; i++)
+			{
+				json.Append($"[\"{cumulus.SoilTempCaptions[i]}\",\"{SoilTemp[i].ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+			}
+			json.Length--;
 			json.Append("]}");
 			return json.ToString();
 		}

@@ -262,6 +262,8 @@ namespace CumulusMX
 				{
 					if (appMutex.WaitOne(0, false))
 					{
+						Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Releasing Mutex");
+						Trace.Flush();
 						appMutex.ReleaseMutex();
 					}
 					Environment.Exit(0);

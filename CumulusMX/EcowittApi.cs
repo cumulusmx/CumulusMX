@@ -90,7 +90,7 @@ namespace CumulusMX
 
 			// Request the data in the correct units
 			sb.Append($"&temp_unitid={cumulus.Units.Temp + 1}"); // 1=C, 2=F
-			sb.Append($"&pressue_unitid={(cumulus.Units.Press == 1 ? "3" : "2")}"); // 3=hPa, 4=inHg, 5=mmHg
+			sb.Append($"&pressure_unitid={(cumulus.Units.Press == 2 ? "4" : "3")}"); // 3=hPa, 4=inHg, 5=mmHg
 			string windUnit;
 			switch (cumulus.Units.Wind)
 			{
@@ -182,10 +182,12 @@ namespace CumulusMX
 
 			var url = sb.ToString();
 
+			var msg = $"Processing history data from {startTime.ToString("yyyy-MM-dd HH:mm")} to {endTime.AddMinutes(5).ToString("yyyy-MM-dd HH:mm")}...";
+			cumulus.LogMessage($"API.GetHistoricData: " + msg);
+			cumulus.LogConsoleMessage(msg);
+
 			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
 			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
-
-			cumulus.LogConsoleMessage($"Processing history data from {startTime.ToString("yyyy-MM-dd HH:mm")} to {endTime.ToString("yyyy-MM-dd HH:mm")}...");
 
 			try
 			{
@@ -786,12 +788,12 @@ namespace CumulusMX
 
 								if (buffer.ContainsKey(itemDate))
 								{
-									buffer[itemDate].ExtraTemp[i - 1] = item.Value;
+									buffer[itemDate].ExtraTemp[i] = item.Value;
 								}
 								else
 								{
 									var newItem = new EcowittApi.HistoricData();
-									newItem.ExtraTemp[i - 1] = item.Value;
+									newItem.ExtraTemp[i] = item.Value;
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -808,12 +810,12 @@ namespace CumulusMX
 
 								if (buffer.ContainsKey(itemDate))
 								{
-									buffer[itemDate].ExtraHumidity[i - 1] = item.Value;
+									buffer[itemDate].ExtraHumidity[i] = item.Value;
 								}
 								else
 								{
 									var newItem = new EcowittApi.HistoricData();
-									newItem.ExtraHumidity[i - 1] = item.Value;
+									newItem.ExtraHumidity[i] = item.Value;
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -840,12 +842,12 @@ namespace CumulusMX
 
 							if (buffer.ContainsKey(itemDate))
 							{
-								buffer[itemDate].SoilMoist[i - 1] = item.Value;
+								buffer[itemDate].SoilMoist[i] = item.Value;
 							}
 							else
 							{
 								var newItem = new EcowittApi.HistoricData();
-								newItem.SoilMoist[i - 1] = item.Value;
+								newItem.SoilMoist[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -870,12 +872,12 @@ namespace CumulusMX
 
 							if (buffer.ContainsKey(itemDate))
 							{
-								buffer[itemDate].UserTemp[i - 1] = item.Value;
+								buffer[itemDate].UserTemp[i] = item.Value;
 							}
 							else
 							{
 								var newItem = new EcowittApi.HistoricData();
-								newItem.UserTemp[i - 1] = item.Value;
+								newItem.UserTemp[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -900,12 +902,12 @@ namespace CumulusMX
 
 							if (buffer.ContainsKey(itemDate))
 							{
-								buffer[itemDate].LeafWetness[i - 1] = item.Value;
+								buffer[itemDate].LeafWetness[i] = item.Value;
 							}
 							else
 							{
 								var newItem = new EcowittApi.HistoricData();
-								newItem.LeafWetness[i - 1] = item.Value;
+								newItem.LeafWetness[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1123,12 +1125,12 @@ namespace CumulusMX
 
 							if (buffer.ContainsKey(itemDate))
 							{
-								buffer[itemDate].pm25[i - 1] = item.Value;
+								buffer[itemDate].pm25[i] = item.Value;
 							}
 							else
 							{
 								var newItem = new EcowittApi.HistoricData();
-								newItem.pm25[i - 1] = item.Value;
+								newItem.pm25[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1385,9 +1387,9 @@ namespace CumulusMX
 				// === Extra Temperature ===
 				try
 				{
-					if (rec.Value.ExtraTemp[i - 1].HasValue)
+					if (rec.Value.ExtraTemp[i].HasValue)
 					{
-						var tempVal = (double)rec.Value.ExtraTemp[i - 1];
+						var tempVal = (double)rec.Value.ExtraTemp[i];
 						if (i == cumulus.Gw1000PrimaryTHSensor)
 						{
 							station.DoOutdoorTemp(tempVal, rec.Key);
@@ -1402,13 +1404,13 @@ namespace CumulusMX
 				// === Extra Humidity ===
 				try
 				{
-					if (rec.Value.ExtraHumidity[i - 1].HasValue)
+					if (rec.Value.ExtraHumidity[i].HasValue)
 					{
 						if (i == cumulus.Gw1000PrimaryTHSensor)
 						{
-							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i - 1].Value, rec.Key);
+							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, rec.Key);
 						}
-						station.DoExtraHum(rec.Value.ExtraHumidity[i - 1].Value, i);
+						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
 					}
 				}
 				catch (Exception ex)
@@ -1420,9 +1422,16 @@ namespace CumulusMX
 				// === User Temperature ===
 				try
 				{
-					if (rec.Value.UserTemp[i - 1].HasValue)
+					if (rec.Value.UserTemp[i].HasValue)
 					{
-						station.DoUserTemp((double)rec.Value.UserTemp[i - 1], i);
+						if (cumulus.EcowittMapWN34[i] == 0)
+						{
+							station.DoUserTemp((double)rec.Value.UserTemp[i], i);
+						}
+						else
+						{
+							station.DoSoilTemp((double)rec.Value.UserTemp[i], cumulus.EcowittMapWN34[i]);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -1433,9 +1442,9 @@ namespace CumulusMX
 				// === Soil Moisture ===
 				try
 				{
-					if (rec.Value.SoilMoist[i - 1].HasValue)
+					if (rec.Value.SoilMoist[i].HasValue)
 					{
-						station.DoSoilMoisture((double)rec.Value.SoilMoist[i - 1], i);
+						station.DoSoilMoisture((double)rec.Value.SoilMoist[i], i);
 					}
 				}
 				catch (Exception ex)
@@ -1501,9 +1510,9 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (rec.Value.pm25[i - 1].HasValue)
+					if (rec.Value.pm25[i].HasValue)
 					{
-						station.DoAirQuality((double)rec.Value.pm25[i - 1].Value, i);
+						station.DoAirQuality((double)rec.Value.pm25[i].Value, i);
 					}
 				}
 				catch (Exception ex)
@@ -1799,12 +1808,12 @@ namespace CumulusMX
 
 			public HistoricData()
 			{
-				pm25 = new decimal?[4];
-				ExtraTemp = new decimal?[8];
-				ExtraHumidity = new int?[8];
-				SoilMoist = new int?[8];
-				UserTemp = new decimal?[8];
-				LeafWetness = new int?[8];
+				pm25 = new decimal?[5];
+				ExtraTemp = new decimal?[9];
+				ExtraHumidity = new int?[9];
+				SoilMoist = new int?[9];
+				UserTemp = new decimal?[9];
+				LeafWetness = new int?[9];
 			}
 		}
 

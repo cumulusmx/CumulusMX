@@ -55,7 +55,12 @@ namespace CumulusMX
 				// does not provide pressure trend strings
 				cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
-				if (cumulus.Gw1000PrimaryTHSensor != 0)
+				if (cumulus.Gw1000PrimaryTHSensor == 0)
+				{
+					// We are using the primary T/H sensor
+					cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
+				}
+				else
 				{
 					// We are not using the primary T/H sensor
 					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
@@ -128,6 +133,7 @@ namespace CumulusMX
 			if (station == null)
 			{
 				StopMinuteTimer();
+				cumulus.LogMessage("HTTP Station (Ecowitt) Stopped");
 			}
 		}
 
@@ -205,6 +211,7 @@ namespace CumulusMX
 
 			if (starting || stopping)
 			{
+				cumulus.LogMessage($"Station {(starting ? "starting" : "stopping")}, incoming data ignored");
 				context.Response.StatusCode = 200;
 				return "success";
 			}
@@ -956,7 +963,14 @@ namespace CumulusMX
 			{
 				if (data["tf_ch" + i] != null)
 				{
-					station.DoUserTemp(ConvertTempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
+					if (cumulus.EcowittMapWN34[i] == 0)
+					{
+						station.DoUserTemp(ConvertTempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
+					}
+					else
+					{
+						station.DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), cumulus.EcowittMapWN34[i]);
+					}
 				}
 			}
 		}

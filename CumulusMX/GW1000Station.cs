@@ -33,18 +33,20 @@ namespace CumulusMX
 		private bool dataReceived = false;
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
-		private bool stop = false;
+
+		private CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private CancellationToken cancellationToken;
+
+		private Task historyTask;
+		private Task liveTask;
 
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private readonly Version fwVersion;
 
-		private string mainSensor;
-
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
-
 			cumulus.Units.AirQualityUnitText = "µg/m³";
 			cumulus.Units.SoilMoistureUnitText = "%";
 			cumulus.Units.LeafWetnessUnitText = "%";
@@ -66,12 +68,19 @@ namespace CumulusMX
 			// GW1000 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
-			if (cumulus.Gw1000PrimaryTHSensor != 0)
+			if (cumulus.Gw1000PrimaryTHSensor == 0)
+			{
+				// We are using the primary T/H sensor
+				cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
+			}
+			else
 			{
 				// We are not using the primary T/H sensor so MX must calculate the wind chill as well
 				cumulus.StationOptions.CalculatedWC = true;
 				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
 			}
+
+			cancellationToken = tokenSource.Token;
 
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
@@ -122,7 +131,7 @@ namespace CumulusMX
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
-			Task.Run(getAndProcessHistoryData);
+			historyTask = Task.Run(getAndProcessHistoryData, cancellationToken);
 		}
 
 
@@ -149,17 +158,20 @@ namespace CumulusMX
 
 			cumulus.StartTimersAndSensors();
 
-			Task.Run(() =>
+			liveTask = Task.Run(() =>
 			{
 				try
 				{
 					var piezoLastRead = DateTime.MinValue;
+					var dataLastRead = DateTime.MinValue;
+					double delay;
 
-					while (!stop)
+					while (!cancellationToken.IsCancellationRequested)
 					{
 						if (connectedOk)
 						{
 							GetLiveData();
+							dataLastRead = DateTime.Now;
 
 							// every 30 seconds read the rain rate
 							if (cumulus.Gw1000PrimaryRainSensor == 1 && (DateTime.Now - piezoLastRead).TotalSeconds >= 30)
@@ -190,7 +202,13 @@ namespace CumulusMX
 								GetLiveData();
 							}
 						}
-						Thread.Sleep(updateRate);
+
+						delay = updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds;
+
+						if (cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
+						{
+							break;
+						}
 					}
 				}
 				// Catch the ThreadAbortException
@@ -198,8 +216,9 @@ namespace CumulusMX
 				finally
 				{
 					Api.CloseTcpPort();
+					cumulus.LogMessage("Local API task ended");
 				}
-			});
+			}, cancellationToken);
 		}
 
 		public override void Stop()
@@ -207,12 +226,10 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing connection");
 			try
 			{
-				stop = true;
-				socket.GetStream().WriteByte(10);
-				socket.Close();
+				tokenSource.Cancel();
 				tmrDataWatchdog.Stop();
 				StopMinuteTimer();
-				Api.CloseTcpPort();
+				Task.WaitAll(historyTask, liveTask);
 			}
 			catch
 			{
@@ -244,7 +261,7 @@ namespace CumulusMX
 					{
 						GetHistoricData();
 						archiveRun++;
-					} while (archiveRun < maxArchiveRuns);
+					} while (archiveRun < maxArchiveRuns && !cancellationToken.IsCancellationRequested);
 				}
 				catch (Exception ex)
 				{
@@ -254,6 +271,11 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.syncInit.Release();
+
+			if (cancellationToken.IsCancellationRequested)
+			{
+				return;
+			}
 
 			StartLoop();
 		}
@@ -301,10 +323,11 @@ namespace CumulusMX
 					// time out listening after 1 second
 					client.Client.ReceiveTimeout = 1000;
 
-					// we are going to attemp discovery three times
-					var retryCount = 3;
+					// we are going to attempt discovery twice
+					var retryCount = 1;
 					do
 					{
+						cumulus.LogDebugMessage("Discovery Run #" + retryCount);
 						// each time we wait 1 second for any responses
 						var endTime = DateTime.Now.AddSeconds(1);
 
@@ -329,14 +352,20 @@ namespace CumulusMX
 										Array.Copy(recevBuffer, 5, macArr, 0, 6);
 										var macHex = BitConverter.ToString(macArr).Replace('-', ':');
 
+										var nameLen = recevBuffer[17];
+										var nameArr = new byte[nameLen];
+										Array.Copy(recevBuffer, 18, nameArr, 0, nameLen);
+										var name = Encoding.UTF8.GetString(nameArr, 0, nameArr.Length);
+
 										if (ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
 										{
 											IPAddress ipAddr2;
 											if (IPAddress.TryParse(ipAddr, out ipAddr2))
 											{
-												if (!discovered.IP.Contains(ipAddr))
+												cumulus.LogDebugMessage($"Discovered Ecowitt device: {name}, IP={ipAddr}, MAC={macHex}");
+												if (!discovered.IP.Contains(ipAddr) && !discovered.Mac.Contains(macHex))
 												{
-													cumulus.LogDebugMessage($"Discovered Ecowitt device: IP={ipAddr}, MAC={macHex}");
+													discovered.Name.Add(name);
 													discovered.IP.Add(ipAddr);
 													discovered.Mac.Add(macHex);
 												}
@@ -344,7 +373,7 @@ namespace CumulusMX
 										}
 										else
 										{
-											cumulus.LogDebugMessage($"Discovered an unsupported device: IP={ipAddr}, MAC={macHex}");
+											cumulus.LogDebugMessage($"Discovered an unsupported device: {name}, IP={ipAddr}, MAC={macHex}");
 										}
 									}
 								}
@@ -358,9 +387,9 @@ namespace CumulusMX
 							cumulus.LogMessage("DiscoverGW1000: Error sending discovery request");
 							cumulus.LogMessage("Error: " + ex.Message);
 						}
-						retryCount--;
+						retryCount++;
 
-					} while (retryCount > 0);
+					} while (retryCount <= 2);
 				}
 			}
 			catch (Exception ex)
@@ -376,8 +405,9 @@ namespace CumulusMX
 		{
 			if (cumulus.Gw1000AutoUpdateIpAddress || string.IsNullOrWhiteSpace(cumulus.Gw1000IpAddress))
 			{
-				var msg = "Running Ecowitt Local API auto-discovery...";
-				cumulus.LogMessage(msg);
+				string msg;
+				cumulus.LogMessage("Running Ecowitt Local API auto-discovery...");
+				cumulus.LogMessage($"Current IP address={cumulus.Gw1000IpAddress}, current MAC={cumulus.Gw1000MacAddress}");
 
 				var discoveredDevices = DiscoverGW1000();
 
@@ -434,13 +464,16 @@ namespace CumulusMX
 					msg = "Please select the IP address from the list and enter it manually into the configuration";
 					cumulus.LogMessage(msg);
 					cumulus.LogConsoleMessage(msg);
+
 					for (var i = 0; i < discoveredDevices.IP.Count; i++)
 					{
+						msg = $"Device={discoveredDevices.Name[i]}, IP={discoveredDevices.IP[i]}";
+						cumulus.LogConsoleMessage(msg);
+						cumulus.LogMessage(msg);
 						iplist += discoveredDevices.IP[i] + " ";
 					}
 					msg = "  discovered IPs = " + iplist;
 					cumulus.LogMessage(msg);
-					cumulus.LogConsoleMessage(msg);
 					return false;
 				}
 			}
@@ -558,7 +591,7 @@ namespace CumulusMX
 				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
 				if (type == "WH65")
 				{
-					type = mainSensor;
+					type = "WH24/WH65";
 				}
 
 				switch (id)
@@ -598,7 +631,7 @@ namespace CumulusMX
 							updateRate = 4000;
 						}
 						battV = data[battPos] * 0.02;
-						batt = $"{battV:f1}V ({(battV > 2.4 ? "OK" : "Low")})";
+						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
 
 					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
@@ -608,7 +641,7 @@ namespace CumulusMX
 					case "WH68":
 					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 						battV = data[battPos] * 0.1;
-						batt = $"{battV:f1}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V or 1.0V??
+						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V or 1.0V??
 						break;
 
 					case "WH25":
@@ -628,7 +661,7 @@ namespace CumulusMX
 							updateRate = 4000;
 						}
 						battV = data[battPos] * 0.02;
-						batt = $"{battV:f1}V ({(battV > 2.4 ? "OK" : "Low")})";
+						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
 
 					default:
@@ -651,9 +684,6 @@ namespace CumulusMX
 
 		private void GetLiveData()
 		{
-			// wait a random time of 0 to 3 seconds before making the request to try and avoid continued clashes with other software or instances of MX
-			Thread.Sleep(random.Next(0, 3000));
-
 			cumulus.LogDebugMessage("Reading live data");
 
 			// set a flag at the start of every 10 minutes to trigger battery status check
@@ -994,8 +1024,14 @@ namespace CumulusMX
 							case 0x6A: // user temp ch8 (°C)
 								chan = data[idx - 1] - 0x63 + 1;
 								tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
-								DoUserTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
-
+								if (cumulus.EcowittMapWN34[chan] == 0) // false = user temp, true = soil temp
+								{
+									DoUserTemp(ConvertTempCToUser(tempInt16 / 10.0), chan);
+								}
+								else
+								{
+									DoSoilTemp(ConvertTempCToUser(tempInt16 / 10.0), cumulus.EcowittMapWN34[chan]);
+								}
 								// Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
 								if (fwVersion.CompareTo(new Version("1.6.0")) >= 0)
 								{
@@ -1005,11 +1041,11 @@ namespace CumulusMX
 										if (volts <= 1.2)
 										{
 											batteryLow = true;
-											cumulus.LogMessage($"WH34 channel #{chan} battery LOW = {volts}V");
+											cumulus.LogMessage($"WN34 channel #{chan} battery LOW = {volts}V");
 										}
 										else
 										{
-											cumulus.LogDebugMessage($"WH34 channel #{chan} battery OK = {volts}V");
+											cumulus.LogDebugMessage($"WN34 channel #{chan} battery OK = {volts}V");
 										}
 									}
 									idx += 3;
@@ -1235,7 +1271,7 @@ namespace CumulusMX
 				else
 					freq = $"Unknown [{data[4]}]";
 
-				mainSensor = data[5] == 0 ? "WH24" : "WH65";
+				var mainSensor = data[5] == 0 ? "WH24" : "Other than WH24";
 
 				var unix = GW1000Api.ConvertBigEndianUInt32(data, 6);
 				var date = Utils.FromUnixTime(unix);
@@ -1257,46 +1293,125 @@ namespace CumulusMX
 
 
 			// expected response - units mm
-			// 0   - 0xff - header
-			// 1   - 0xff - header
-			// 2   - 0x57 - rain data
-			// 3-4 - size
-			// 05-06 - rain rate
-			// 07-10 - rain day
-			// 11-14 - rain week
-			// 15-18 - rain month
-			// 19-22 - rain year
-			// 23-24 - rain event
-			// 26-27 - rain event
-			// 28-29 - rain hour
-			// 30-31 - piezo rain rate
-			// 32-33 - piezo rain event
-			// 34-35 - piezo rain hour
-			// 36-39 - piezo rain day
-			// 40-43 - piezo rain week
-			// 44-47 - piezo rain month
-			// 48-51 - piezo rain year
-			// 52-71 - piezo gain 0-9 (2 bytes each)
-			// 72-74 - rain reset time (hr, day [sun-0], month [jan=0])
-			// 75 - checksum
+			// 0     - 0xff - header
+			// 1     - 0xff - header
+			// 2     - 0x57 - rain data
+			// 3-4   - size(2)
+			// 05    - 0E = rain rate
+			// 06-07 - data(2)
+			// 08    - 10 = rain day
+			// 09-12 - data(4)
+			// 13    - 11 = rain week 
+			// 14-17 - data(4)
+			// 18    - 12 = rain month 
+			// 19-22 - data(4)
+			// 23    - 13 = rain year 
+			// 24-27 - data(4)
+			// 28    - 0D = rain event 
+			// 29-30 - data(2)
+			// 31    - 0F = rain hour 
+			// 32-33 - data(2)
+			// 34    - 80 = piezo rain rate 
+			// 35-36 - data(2)
+			// 37    - 83 = piezo rain day
+			// 38-41 - data(4)
+			// 42    - 84 = piezo rain week
+			// 43-46 - data(4)
+			// 47    - 85 = piezo rain month
+			// 48-51 - data(4)
+			// 52    - 86 = piezo rain year
+			// 53-56 - data(4)
+			// 57    - 81 = piezo rain event
+			// 58-59 - data(2)
+			// 60    - 87 =  piezo gain 0-9
+			// 61-80 - data(2x10)
+			// 81    - 88 = rain reset time (hr, day [sun-0], month [jan=0])
+			// 82-84 - data(3)
+			// 85 - checksum
+
+			//data = new byte[] { 0xFF, 0xFF, 0x57, 0x00, 0x54, 0x0E, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x02, 0xF2, 0x13, 0x00, 0x00, 0x0B, 0x93, 0x0D, 0x00, 0x00, 0x0F, 0x00, 0x64, 0x80, 0x00, 0x00, 0x83, 0x00, 0x00, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00, 0x85, 0x00, 0x00, 0x01, 0xDE, 0x86, 0x00, 0x00, 0x0B, 0xF2, 0x81, 0x00, 0x00, 0x87, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x88, 0x00, 0x00, 0x00, 0xF7 };
 
 			if (data == null)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Nothing returned from Read Rain!");
 				return;
 			}
 
-			if (data.Length != 76)
+			if (data.Length < 8)
 			{
 				cumulus.LogMessage("GetPiezoRainData: Unexpected response to Read Rain!");
 				return;
 			}
 			try
 			{
-				var rRate = ConvertRainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, 30) / 10.0);
-				var rain = ConvertRainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, 48) / 10.0);
+				// There are reports of different sized messages from different gateways,
+				// so parse it sequentially like the live data rather than using fixed offsets
+				var idx = 5;
+				var size = GW1000Api.ConvertBigEndianUInt16(data, 3);
+				double? rRate = null;
+				double? rain = null;
 
-				DoRain(rain, rRate, DateTime.Now);
+				do
+				{
+					switch (data[idx++])
+					{
+						// all the two byte values we are ignoring
+						case 0x0E: // rain rate
+						case 0x0D: // rain event
+						case 0x0F: // rain hour
+						case 0x81: // piezo rain event
+							idx += 2;
+							break;
+						// all the four byte values we are ignoring
+						case 0x10: // rain day
+						case 0x11: // rain week
+						case 0x12: // rain month 
+						case 0x13: // rain year
+						case 0x83: // piezo rain day
+						case 0x84: // piezo rain week
+						case 0x85: // piezo rain month
+							idx += 4;
+							break;
+						case 0x80: // piezo rain rate
+							rRate = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+							idx += 2;
+							break;
+						case 0x86: // piezo rain year
+							rain = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
+							idx += 4;
+							break;
+						case 0x87: // piezo gain 0-9
+							idx += 20;
+							break;
+						case 0x88: // rain reset time
+#if DEBUG
+							cumulus.LogDebugMessage($"GetPiezoRainData: Rain reset times - hour:{data[idx++]}, day:{data[idx++]}, month:{data[idx++]}");
+#else
+							idx += 3;
+#endif
+							break;
+						case 0x7A: // Seems to indicate no rain data available?
+							cumulus.LogDebugMessage("No rain data available? 0x7a=" + data[idx++]);
+							break;
+						default:
+							cumulus.LogDebugMessage($"GetPiezoRainData: Error: Unknown value type found = {data[idx - 1]}, at position = {idx - 1}");
+							// We will have lost our place now, so bail out
+							idx = size;
+							break;
+					}
+
+				} while (idx < size);
+
+				if (rRate.HasValue && rain.HasValue)
+				{
+#if DEBUG
+					cumulus.LogDebugMessage($"GetPiezoRainData: Rain Year: {rain:f1} mm, Rate: {rRate:f1} mm/hr");
+#endif
+					DoRain(ConvertRainMMToUser(rain.Value), ConvertRainMMToUser(rRate.Value), DateTime.Now);
+				}
+				else
+				{
+					cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
+				}
 			}
 			catch (Exception ex)
 			{

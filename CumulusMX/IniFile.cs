@@ -75,12 +75,12 @@ namespace CumulusMX
 					m_Sections.Clear();
 
 					// *** Open the INI file ***
-					try
+					if (File.Exists(m_FileName))
 					{
 						fs = new FileStream(m_FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 						sr = new StreamReader(fs);
 					}
-					catch (FileNotFoundException)
+					else
 					{
 						return;
 					}

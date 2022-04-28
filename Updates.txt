@@ -1,15 +1,34 @@
-3.16.0 - b3178
+3.16.0 - b3182
 ——————————————
-Beta#4
+Beta 3182
+Change: Fix mislabelled July solar transmission factors to June
+
+Beta 3181
+Fix: Web tags <#chillhoursToday>, <#chillhoursYest> when chill hours not increasing
+Fix: Live piezo rain data decode
+
+Beta 3180
+Fix: Alarm settings could not be saved unless a valid from-email address was entered. Now it is only mandatory if an alert has the email option checked
+Fix: WS90 piezo rain extraction from local api response
+Fix: Ecowitt historic catchup broken in 3179 for users using pressure units of mb or inHg
+
+Changes: internal changes to improve CMX start-up and shutdown
+
+Beta 3179
+New: Ecowitt WN34 sensors can now be mapped from User temp to Soil Temp
+Fix: Ecowitt piezo rain packet decode - basically nothing like it is documented!
+Fix: Ecowitt historic data pressure was not being requested in "user" units correctly (broken in 3178 change)
+
+Beta 3178
 Change: Ecowitt historic data is now requested in the user units and not converted
 Change: Ecowitt Local API - piezo rain is now read every 30 secs using the new Read_Rain command
 
-Beta#3
+Beta 3177
 Fix: Ecowitt using extra T/H sensor was not converting F -> user units during catch-up
 Fix: Ecowitt catch-up not processing rain data - and nobody has noticed!
 New: Ecowitt rain sensor is now selectable between tipping bucket and piezo sensors - both Local API and HTTP Ecowitt protocols
 
-Beta#2
+Beta 3176
 Fix: GW1000 station crash on start-up
 New: Adds ability for CMX to configure Ecowitt custom server when using it for Extra Sensors
 ======

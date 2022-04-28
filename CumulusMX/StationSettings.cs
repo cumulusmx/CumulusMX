@@ -122,25 +122,41 @@ namespace CumulusMX
 			};
 
 			var weatherflow = new JsonStationSettingsWeatherFlow()
-				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
+			{
+				deviceid = cumulus.WeatherFlowOptions.WFDeviceId, 
+				tcpport = cumulus.WeatherFlowOptions.WFTcpPort, 
+				token = cumulus.WeatherFlowOptions.WFToken, 
+				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
+			};
+
+			var ecowittmaps = new JsonStationSettingsEcowittMappings()
+			{
+				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
+				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor,
+				wn34chan1 = cumulus.EcowittMapWN34[1],
+				wn34chan2 = cumulus.EcowittMapWN34[2],
+				wn34chan3 = cumulus.EcowittMapWN34[3],
+				wn34chan4 = cumulus.EcowittMapWN34[4],
+				wn34chan5 = cumulus.EcowittMapWN34[5],
+				wn34chan6 = cumulus.EcowittMapWN34[6],
+				wn34chan7 = cumulus.EcowittMapWN34[7],
+				wn34chan8 = cumulus.EcowittMapWN34[8]
+			};
 
 			var gw1000 = new JsonStationSettingsGw1000Conn()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
 				macaddress = cumulus.Gw1000MacAddress,
-				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
-				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor
 			};
+
 
 			var ecowitt = new JsonStationSettingsEcowitt()
 			{
 				setcustom = cumulus.EcowittSetCustomServer,
 				gwaddr = cumulus.EcowittGatewayAddr,
 				localaddr = cumulus.EcowittLocalAddr,
-				interval = cumulus.EcowittCustomInterval,
-				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
-				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor
+				interval = cumulus.EcowittCustomInterval
 			};
 
 			var ecowittapi = new JsonStationSettingsEcowittApi()
@@ -244,9 +260,9 @@ namespace CumulusMX
 				solarmin = cumulus.SolarOptions.SolarMinimum,
 				sunthreshold = cumulus.SolarOptions.SunThreshold,
 				solarcalc = cumulus.SolarOptions.SolarCalc,
-				transfactorJul = cumulus.SolarOptions.RStransfactorJul,
+				transfactorJun = cumulus.SolarOptions.RStransfactorJun,
 				transfactorDec = cumulus.SolarOptions.RStransfactorDec,
-				turbidityJul = cumulus.SolarOptions.BrasTurbidityJul,
+				turbidityJun = cumulus.SolarOptions.BrasTurbidityJun,
 				turbidityDec = cumulus.SolarOptions.BrasTurbidityDec
 			};
 
@@ -402,10 +418,10 @@ namespace CumulusMX
 			for (int i = 1; i <= 8; i++)
 			{
 				PropertyInfo propInfo = wllExtraTemp.GetType().GetProperty("extraTempTx" + i);
-				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraTempTx[i - 1], propInfo.PropertyType), null);
+				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraTempTx[i], propInfo.PropertyType), null);
 
 				propInfo = wllExtraTemp.GetType().GetProperty("extraHumTx" + i);
-				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraHumTx[i - 1], propInfo.PropertyType), null);
+				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraHumTx[i], propInfo.PropertyType), null);
 			};
 
 			var wll = new JsonStationSettingsWLL()
@@ -444,6 +460,7 @@ namespace CumulusMX
 				gw1000 = gw1000,
 				ecowitt = ecowitt,
 				ecowittapi = ecowittapi,
+				ecowittmaps = ecowittmaps,
 				weatherflow = weatherflow,
 				fineoffset = fineoffset,
 				easyw = easyweather,
@@ -649,12 +666,12 @@ namespace CumulusMX
 						cumulus.SolarOptions.SunThreshold = settings.Solar.sunthreshold;
 						if (cumulus.SolarOptions.SolarCalc == 0)
 						{
-							cumulus.SolarOptions.RStransfactorJul = settings.Solar.transfactorJul;
+							cumulus.SolarOptions.RStransfactorJun = settings.Solar.transfactorJun;
 							cumulus.SolarOptions.RStransfactorDec = settings.Solar.transfactorDec;
 						}
 						else
 						{
-							cumulus.SolarOptions.BrasTurbidityJul = settings.Solar.turbidityJul;
+							cumulus.SolarOptions.BrasTurbidityJun = settings.Solar.turbidityJun;
 							cumulus.SolarOptions.BrasTurbidityDec = settings.Solar.turbidityDec;
 						}
 					}
@@ -873,23 +890,23 @@ namespace CumulusMX
 						cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
 						cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
 
-						cumulus.WllExtraTempTx[0] = settings.daviswll.extraTemp.extraTempTx1;
-						cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx2;
-						cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx3;
-						cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx4;
-						cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx5;
-						cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx6;
-						cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx7;
-						cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx8;
+						cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx1;
+						cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx2;
+						cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx3;
+						cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx4;
+						cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx5;
+						cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx6;
+						cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx7;
+						cumulus.WllExtraTempTx[8] = settings.daviswll.extraTemp.extraTempTx8;
 
-						cumulus.WllExtraHumTx[0] = settings.daviswll.extraTemp.extraHumTx1;
-						cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx2;
-						cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx3;
-						cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx4;
-						cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx5;
-						cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx6;
-						cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx7;
-						cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx8;
+						cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx1;
+						cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx2;
+						cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx3;
+						cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx4;
+						cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx5;
+						cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx6;
+						cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx7;
+						cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
 						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
@@ -906,14 +923,7 @@ namespace CumulusMX
 							cumulus.WllExtraSoilTempTx2 > 0 ||
 							cumulus.WllExtraSoilTempTx3 > 0 ||
 							cumulus.WllExtraSoilTempTx4 > 0 ||
-							cumulus.WllExtraTempTx[0] > 0 ||
-							cumulus.WllExtraTempTx[1] > 0 ||
-							cumulus.WllExtraTempTx[2] > 0 ||
-							cumulus.WllExtraTempTx[3] > 0 ||
-							cumulus.WllExtraTempTx[4] > 0 ||
-							cumulus.WllExtraTempTx[5] > 0 ||
-							cumulus.WllExtraTempTx[6] > 0 ||
-							cumulus.WllExtraTempTx[7] > 0
+							Array.Exists(cumulus.WllExtraTempTx, el => el > 0)
 							)
 						{
 							cumulus.StationOptions.LogExtraSensors = true;
@@ -949,8 +959,6 @@ namespace CumulusMX
 						cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
 						cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
 						cumulus.Gw1000MacAddress = settings.gw1000.macaddress;
-						cumulus.Gw1000PrimaryTHSensor = settings.gw1000.primaryTHsensor;
-						cumulus.Gw1000PrimaryRainSensor = settings.gw1000.primaryRainSensor;
 					}
 				}
 				catch (Exception ex)
@@ -970,8 +978,6 @@ namespace CumulusMX
 						cumulus.EcowittGatewayAddr = settings.ecowitt.gwaddr;
 						cumulus.EcowittLocalAddr = settings.ecowitt.localaddr;
 						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
-						cumulus.Gw1000PrimaryTHSensor = settings.ecowitt.primaryTHsensor;
-						cumulus.Gw1000PrimaryRainSensor = settings.ecowitt.primaryRainSensor;
 					}
 				}
 				catch (Exception ex)
@@ -982,6 +988,99 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Ecowitt sensor mappings
+				try
+				{
+					cumulus.Gw1000PrimaryTHSensor = settings.ecowittmaps.primaryTHsensor;
+					cumulus.Gw1000PrimaryRainSensor = settings.ecowittmaps.primaryRainSensor;
+
+					if (cumulus.EcowittMapWN34[1] != settings.ecowittmaps.wn34chan1)
+					{
+						if (cumulus.EcowittMapWN34[1] == 0)
+							station.UserTemp[1] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[1]] = 0;
+
+						cumulus.EcowittMapWN34[1] = settings.ecowittmaps.wn34chan1;
+					}
+
+					if (cumulus.EcowittMapWN34[2] != settings.ecowittmaps.wn34chan2)
+					{
+						if (cumulus.EcowittMapWN34[2] == 0)
+							station.UserTemp[2] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[2]] = 0;
+
+						cumulus.EcowittMapWN34[2] = settings.ecowittmaps.wn34chan2;
+					}
+
+					if (cumulus.EcowittMapWN34[3] != settings.ecowittmaps.wn34chan3)
+					{
+						if (cumulus.EcowittMapWN34[3] == 0)
+							station.UserTemp[3] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[3]] = 0;
+
+						cumulus.EcowittMapWN34[3] = settings.ecowittmaps.wn34chan3;
+					}
+
+					if (cumulus.EcowittMapWN34[4] != settings.ecowittmaps.wn34chan4)
+					{
+						if (cumulus.EcowittMapWN34[4] == 0)
+							station.UserTemp[4] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[4]] = 0;
+
+						cumulus.EcowittMapWN34[4] = settings.ecowittmaps.wn34chan4;
+					}
+
+					if (cumulus.EcowittMapWN34[5] != settings.ecowittmaps.wn34chan5)
+					{
+						if (cumulus.EcowittMapWN34[5] == 0)
+							station.UserTemp[5] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[5]] = 0;
+
+						cumulus.EcowittMapWN34[5] = settings.ecowittmaps.wn34chan5;
+					}
+
+					if (cumulus.EcowittMapWN34[6] != settings.ecowittmaps.wn34chan6)
+					{
+						if (cumulus.EcowittMapWN34[6] == 0)
+							station.UserTemp[6] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[6]] = 0;
+
+						cumulus.EcowittMapWN34[6] = settings.ecowittmaps.wn34chan6;
+					}
+
+					if (cumulus.EcowittMapWN34[7] != settings.ecowittmaps.wn34chan7)
+					{
+						if (cumulus.EcowittMapWN34[7] == 0)
+							station.UserTemp[7] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[7]] = 0;
+
+						cumulus.EcowittMapWN34[7] = settings.ecowittmaps.wn34chan7;
+					}
+
+					if (cumulus.EcowittMapWN34[8] != settings.ecowittmaps.wn34chan8)
+					{
+						if (cumulus.EcowittMapWN34[8] == 0)
+							station.UserTemp[8] = 0;
+						else
+							station.SoilTemp[cumulus.EcowittMapWN34[8]] = 0;
+
+						cumulus.EcowittMapWN34[8] = settings.ecowittmaps.wn34chan8;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt sensor mapping: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
 
 				// weatherflow connection details
 				try
@@ -1389,6 +1488,7 @@ namespace CumulusMX
 		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
 		public JsonStationSettingsEcowitt ecowitt { get; set; }
 		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
+		public JsonStationSettingsEcowittMappings ecowittmaps { get; set; }
 		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsWLL daviswll { get; set; }
 		public JsonStationSettingsFineOffset fineoffset { get; set; }
@@ -1562,8 +1662,6 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
-		public int primaryTHsensor { get; set; }
-		public int primaryRainSensor { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowittApi
@@ -1571,6 +1669,21 @@ namespace CumulusMX
 		public string applicationkey { get; set; }
 		public string userkey { get; set; }
 		public string mac { get; set; }
+	}
+
+	internal class JsonStationSettingsEcowittMappings
+	{
+		public int primaryTHsensor { get; set; }
+		public int primaryRainSensor { get; set; }
+
+		public int wn34chan1 { get; set; }
+		public int wn34chan2 { get; set; }
+		public int wn34chan3 { get; set; }
+		public int wn34chan4 { get; set; }
+		public int wn34chan5 { get; set; }
+		public int wn34chan6 { get; set; }
+		public int wn34chan7 { get; set; }
+		public int wn34chan8 { get; set; }
 	}
 
 	internal class JsonStationSettingsWMR928
@@ -1633,9 +1746,9 @@ namespace CumulusMX
 		public int sunthreshold { get; set; }
 		public int solarmin { get; set; }
 		public int solarcalc { get; set; }
-		public double transfactorJul { get; set; }
+		public double transfactorJun { get; set; }
 		public double transfactorDec { get; set; }
-		public double turbidityJul { get; set; }
+		public double turbidityJun { get; set; }
 		public double turbidityDec { get; set; }
 	}
 
