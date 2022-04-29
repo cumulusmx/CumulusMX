@@ -11871,6 +11871,8 @@ namespace CumulusMX
 
 				// check for monthly all time records (and set)
 				CheckMonthlyAlltime("HighGust", gust, true, timestamp);
+
+				cumulus.HighGustAlarm.Triggered = DoAlarm(gust, cumulus.HighGustAlarm.Value, cumulus.HighGustAlarm.Enabled, true);
 			}
 			return true;
 		}
