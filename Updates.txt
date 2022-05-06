@@ -1,3 +1,14 @@
+3.16.1 - b3183
+——————————————
+- Fix: Error message about Ecowitt sensor mapping when saving the station settings for non-Ecowitt stations
+- Fix: Some Ambient stations are not sending the yearly rainfall total - they send total rain instead
+- Fix: Ecowitt stations with a Blake-Larsen were erroneously adding CMX calculated sunshine during catch-up
+- Fix: Potential issue whereby Ecowitt historic data download could get stuck in a loop downloading the same block
+
+- Change: Ecowitt Local API stations with WS90 sensors now get the update rate set to 8 seconds (previously 4)
+
+
+
 3.16.0 - b3182
 ——————————————
 - Fix: Fix mislabelled July solar transmission factors to June
@@ -26,8 +37,7 @@
 		<#newrecord>
 		<#RainRecordSet>
 	- Note: It is not currently possible to edit these records via the built-in records editor
-
-- Change: You can now use comment lines within sections in .ini files that start with a # character
+- New: You can now use comment lines that start with a # character within sections in .ini files
 
 
 

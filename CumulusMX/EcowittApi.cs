@@ -243,12 +243,14 @@ namespace CumulusMX
 									else
 									{
 										// There was no data returned.
+										cumulus.LastUpdateTime = endTime;
 										return false;
 									}
 								}
 								catch (Exception ex)
 								{
 									cumulus.LogMessage("API.GetHistoricData: Error decoding the response - " + ex.Message);
+									cumulus.LastUpdateTime = endTime;
 									return false;
 								}
 							}
@@ -258,10 +260,11 @@ namespace CumulusMX
 
 								// have we reached the retry limit?
 								if (--retries <= 0)
-									return false;
+									cumulus.LastUpdateTime = endTime;
+								return false;
 
-								cumulus.LogMessage("API.GetHistoricData: System Busy or Rate Limited, waiting before retry...");
-								System.Threading.Thread.Sleep(1500);
+								cumulus.LogMessage("API.GetHistoricData: System Busy or Rate Limited, waiting 5 secs before retry...");
+								System.Threading.Thread.Sleep(5000);
 							}
 							else
 							{
@@ -270,6 +273,7 @@ namespace CumulusMX
 						}
 						else
 						{
+							cumulus.LastUpdateTime = endTime;
 							return false;
 						}
 
@@ -1183,9 +1187,11 @@ namespace CumulusMX
 
 				// add in archive period worth of sunshine, if sunny
 				if (station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
-					station.SolarRad >= cumulus.SolarOptions.SolarMinimum)
+					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
+					!cumulus.SolarOptions.UseBlakeLarsen)
+				{
 					station.SunshineHours += 5 / 60.0;
-
+				}
 
 
 				// add in 'following interval' minutes worth of wind speed to windrun
@@ -1739,6 +1745,7 @@ namespace CumulusMX
 		{
 			public EcowittHistoricDataTypeInt soilmoisture { get; set; }
 		}
+		
 		internal class EcowittHistoricDataTemp
 		{
 			public EcowittHistoricDataTypeDbl temperature { get; set; }

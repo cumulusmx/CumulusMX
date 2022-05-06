@@ -733,9 +733,23 @@ namespace CumulusMX
 
 		public string[] StationDesc =
 		{
-			"Davis Vantage Pro", "Davis Vantage Pro2", "Oregon Scientific WMR-928", "Oregon Scientific WM-918", "EasyWeather", "Fine Offset",
-			"LaCrosse WS2300", "Fine Offset with Solar", "Oregon Scientific WMR100", "Oregon Scientific WMR200", "Instromet", "Davis WLL", "GW1000",
-			"HTTP WUnderground", "HTTP Ecowitt", "HTTP Ambient", "WeatherFlow Tempest"
+			"Davis Vantage Pro",			// 0
+			"Davis Vantage Pro2",			// 1
+			"Oregon Scientific WMR-928",	// 2
+			"Oregon Scientific WM-918",		// 3
+			"EasyWeather",					// 4
+			"Fine Offset",					// 5
+			"LaCrosse WS2300",				// 6
+			"Fine Offset with Solar",		// 7
+			"Oregon Scientific WMR100",		// 8
+			"Oregon Scientific WMR200",		// 9
+			"Instromet",					// 10
+			"Davis WLL",					// 11
+			"GW1000",						// 12
+			"HTTP WUnderground",			// 13
+			"HTTP Ecowitt",					// 14
+			"HTTP Ambient",					// 15
+			"WeatherFlow Tempest"			// 16
 		};
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt" };

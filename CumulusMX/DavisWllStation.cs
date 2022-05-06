@@ -42,6 +42,8 @@ namespace CumulusMX
 		private bool wllVoltageLow;
 		private CancellationTokenSource tokenSource = new CancellationTokenSource();
 		private CancellationToken cancellationToken;
+		private Task broadcastTask;
+		private AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
 
@@ -66,6 +68,7 @@ namespace CumulusMX
 			string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
 			string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
 
+			cancellationToken = tokenSource.Token;
 
 			ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 			{
@@ -281,10 +284,8 @@ namespace CumulusMX
 					cumulus.WriteIniFile();
 				}
 
-				cancellationToken = tokenSource.Token;
-
 				// Create a broadcast listener
-				Task.Run(() =>
+				broadcastTask = Task.Run(() =>
 				{
 					using (var udpClient = new UdpClient())
 					{
@@ -361,16 +362,39 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing WLL connections");
 			try
 			{
-				tokenSource.Cancel();
-				tmrRealtime.Stop();
-				tmrCurrent.Stop();
-				tmrBroadcastWatchdog.Stop();
-				tmrHealth.Stop();
-				StopMinuteTimer();
+				if (tmrRealtime != null)
+					tmrRealtime.Stop();
+				if (tmrCurrent != null)
+					tmrCurrent.Stop();
+				if (tmrBroadcastWatchdog != null)
+					tmrBroadcastWatchdog.Stop();
+				if (tmrHealth != null)
+					tmrHealth.Stop();
 			}
 			catch
 			{
 				cumulus.LogMessage("Error stopping station timers");
+			}
+
+			StopMinuteTimer();
+			try
+			{ 
+				if (tokenSource != null)
+				{
+					tokenSource.Cancel();
+				}
+				if (bw != null && bw.WorkerSupportsCancellation)
+				{
+					bw.CancelAsync();
+				}
+				if (broadcastTask != null)
+					broadcastTask.Wait();
+
+				bwDoneEvent.WaitOne();
+			}
+			catch
+			{
+				cumulus.LogMessage("Error stopping station background tasks");
 			}
 		}
 
@@ -1380,7 +1404,7 @@ namespace CumulusMX
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			cumulus.LogMessage("WLL history: Reading archive data from WeatherLink API");
-			bw = new BackgroundWorker();
+			bw = new BackgroundWorker { WorkerSupportsCancellation = true };
 			//histprog = new historyProgressWindow();
 			//histprog.Owner = mainWindow;
 			//histprog.Show();
@@ -1433,6 +1457,8 @@ namespace CumulusMX
 
 		private void bw_ReadHistory(object sender, DoWorkEventArgs e)
 		{
+			BackgroundWorker worker = sender as BackgroundWorker;
+
 			int archiveRun = 0;
 			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
@@ -1461,9 +1487,9 @@ namespace CumulusMX
 
 				do
 				{
-					GetWlHistoricData();
+					GetWlHistoricData(worker);
 					archiveRun++;
-				} while (archiveRun < maxArchiveRuns);
+				} while (archiveRun < maxArchiveRuns && worker.CancellationPending == false);
 			}
 			catch (Exception ex)
 			{
@@ -1471,9 +1497,10 @@ namespace CumulusMX
 			}
 			cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
+			bwDoneEvent.Set();
 		}
 
-		private void GetWlHistoricData()
+		private void GetWlHistoricData(BackgroundWorker worker)
 		{
 			cumulus.LogMessage("GetWlHistoricData: Get WL.com Historic Data");
 
@@ -1647,6 +1674,9 @@ namespace CumulusMX
 
 			for (int dataIndex = 0; dataIndex < noOfRecs; dataIndex++)
 			{
+				if (worker.CancellationPending == true)
+					return;
+
 				try
 				{
 					// Not all sensors may have the same number of records. We are using the WLL to create the historic data, the other sensors (AirLink) may have more or less records!
@@ -1698,6 +1728,9 @@ namespace CumulusMX
 
 					foreach (var sensor in histObj.sensors)
 					{
+						if (worker.CancellationPending == true)
+							return;
+
 						int sensorType = sensor.sensor_type;
 						int dataStructureType = sensor.data_structure_type;
 						int lsid = sensor.lsid;
@@ -1709,6 +1742,9 @@ namespace CumulusMX
 								var found = false;
 								foreach (var dataRec in sensor.data)
 								{
+									if (worker.CancellationPending == true)
+										return;
+
 									var rec = dataRec.FromJsv<WlHistorySensorDataType17>();
 									if (rec.ts == refData.ts)
 									{
@@ -1734,6 +1770,9 @@ namespace CumulusMX
 								var found = false;
 								foreach (var dataRec in sensor.data)
 								{
+									if (worker.CancellationPending == true)
+										return;
+
 									var rec = dataRec.FromJsv<WlHistorySensorDataType17>();
 
 									if (rec.ts == refData.ts)
