@@ -541,6 +541,8 @@ namespace CumulusMX
 				rainthisyear += cumulus.YTDrain;
 				cumulus.LogMessage("Rainthisyear: " + rainthisyear);
 			}
+			RainMonth = rainthismonth;
+			RainYear = rainthisyear;
 		}
 
 		public void ReadTodayFile()

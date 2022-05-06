@@ -278,11 +278,11 @@ namespace CumulusMX
 						// 24hourrainin
 						// weeklyrainin
 						// monthlyrainin
-						// yearlyrainin
+						// yearlyrainin - missing on some stations, they supply totalrainin 
 						// eventrainin
-						// totalrainin ??? MISSING ???
+						// totalrainin - only some stations
 
-						var rain = data["yearlyrainin"];
+						var rain = data["yearlyrainin"] ?? data["totalrainin"];
 						//var rRate = data["hourlyrainin"]; // no rain rate, have to use the hourly rain
 
 						if (rain == null)

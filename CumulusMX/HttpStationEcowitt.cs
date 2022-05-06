@@ -66,6 +66,16 @@ namespace CumulusMX
 					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
 				}
 
+				if (cumulus.Gw1000PrimaryRainSensor == 0)
+				{
+					// We are using the traditional rain tipper
+					cumulus.LogMessage("Using the default traditional rain sensor data");
+				}
+				else
+				{
+					cumulus.LogMessage("Using the piezo rain sensor data");
+				}
+
 				if (cumulus.EcowittSetCustomServer)
 				{
 					cumulus.LogMessage("Checking Ecowitt Gateway Custom Server configuration...");

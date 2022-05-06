@@ -80,6 +80,16 @@ namespace CumulusMX
 				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
 			}
 
+			if (cumulus.Gw1000PrimaryRainSensor == 0)
+			{
+				// We are using the traditional rain tipper
+				cumulus.LogMessage("Using the default traditional rain sensor data");
+			}
+			else
+			{
+				cumulus.LogMessage("Using the piezo rain sensor data");
+			}
+
 			cancellationToken = tokenSource.Token;
 
 			ipaddr = cumulus.Gw1000IpAddress;
@@ -624,15 +634,15 @@ namespace CumulusMX
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 					case "WH90":
-						// if a WS90 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
-						if (updateRate > 4000 && updateRate != 4000)
+						// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
+						if (updateRate > 8000 && updateRate != 8000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000} seconds to 4 seconds");
-							updateRate = 4000;
+							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000} seconds to 8 seconds");
+							updateRate = 8000;
 						}
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
-						break;
+						break;	
 
 					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
 						batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
@@ -1297,36 +1307,42 @@ namespace CumulusMX
 			// 1     - 0xff - header
 			// 2     - 0x57 - rain data
 			// 3-4   - size(2)
-			// 05    - 0E = rain rate
-			// 06-07 - data(2)
-			// 08    - 10 = rain day
-			// 09-12 - data(4)
-			// 13    - 11 = rain week 
-			// 14-17 - data(4)
-			// 18    - 12 = rain month 
-			// 19-22 - data(4)
-			// 23    - 13 = rain year 
-			// 24-27 - data(4)
-			// 28    - 0D = rain event 
-			// 29-30 - data(2)
-			// 31    - 0F = rain hour 
-			// 32-33 - data(2)
-			// 34    - 80 = piezo rain rate 
-			// 35-36 - data(2)
-			// 37    - 83 = piezo rain day
-			// 38-41 - data(4)
-			// 42    - 84 = piezo rain week
-			// 43-46 - data(4)
-			// 47    - 85 = piezo rain month
-			// 48-51 - data(4)
-			// 52    - 86 = piezo rain year
-			// 53-56 - data(4)
-			// 57    - 81 = piezo rain event
-			// 58-59 - data(2)
-			// 60    - 87 =  piezo gain 0-9
-			// 61-80 - data(2x10)
-			// 81    - 88 = rain reset time (hr, day [sun-0], month [jan=0])
-			// 82-84 - data(3)
+			//
+			// Field Value
+			// - data size
+			//
+			// 0E = rain rate
+			// - data(2)
+			// 10 = rain day
+			// - data(4)
+			// 11 = rain week 
+			// - data(4)
+			// 12 = rain month 
+			// - data(4)
+			// 13 = rain year 
+			// - data(4)
+			// 0D = rain event 
+			// - data(2)
+			// 0F = rain hour 
+			// - data(2)
+			// 80 = piezo rain rate 
+			// - data(2)
+			// 83 = piezo rain day
+			// - data(4)
+			// 84 = piezo rain week
+			// - data(4)
+			// 85 = piezo rain month
+			// - data(4)
+			// 86 = piezo rain year
+			// - data(4)
+			// 81 = piezo rain event
+			// - data(2)
+			// 87 =  piezo gain 0-9
+			// - data(2x10)
+			// 88 = rain reset time (hr, day [sun-0], month [jan=0])
+			// - data(3)
+			// 7A = primary rain selection (0=No sensor, 1=Tipper, 2=Piezo)
+			// - data(1)
 			// 85 - checksum
 
 			//data = new byte[] { 0xFF, 0xFF, 0x57, 0x00, 0x54, 0x0E, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x02, 0xF2, 0x13, 0x00, 0x00, 0x0B, 0x93, 0x0D, 0x00, 0x00, 0x0F, 0x00, 0x64, 0x80, 0x00, 0x00, 0x83, 0x00, 0x00, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00, 0x85, 0x00, 0x00, 0x01, 0xDE, 0x86, 0x00, 0x00, 0x0B, 0xF2, 0x81, 0x00, 0x00, 0x87, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x00, 0x64, 0x88, 0x00, 0x00, 0x00, 0xF7 };
@@ -1389,8 +1405,18 @@ namespace CumulusMX
 							idx += 3;
 #endif
 							break;
-						case 0x7A: // Seems to indicate no rain data available?
-							cumulus.LogDebugMessage("No rain data available? 0x7a=" + data[idx++]);
+						case 0x7A: // Preferred rain sensor on station
+							var sensor = data[idx++];
+#if DEBUG
+							if (sensor == 0)
+								cumulus.LogDebugMessage("No rain sensor available");
+							else if (sensor == 1)
+								cumulus.LogDebugMessage("Traditional rain sensor selected");
+							else if (sensor == 2)
+								cumulus.LogDebugMessage("Piezo rain sensor selected");
+							else
+								cumulus.LogDebugMessage("Unkown rain sensor selection value = " + sensor);
+#endif
 							break;
 						default:
 							cumulus.LogDebugMessage($"GetPiezoRainData: Error: Unknown value type found = {data[idx - 1]}, at position = {idx - 1}");
