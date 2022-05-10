@@ -772,24 +772,24 @@ namespace CumulusMX
 
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			// Wait a short while for Cumulus initialisation to complete
 			Thread.Sleep(500);
 			StartLoop();
 
-			cumulus.LogDebugMessage("Lock: Station releasing lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing lock");
 			Cumulus.syncInit.Release();
 		}
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
 			int archiveRun = 0;
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
@@ -805,7 +805,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Exception occurred reading archive data: "+ex.Message);
 			}
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
 		}
 

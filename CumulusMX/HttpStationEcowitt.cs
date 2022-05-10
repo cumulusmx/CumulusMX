@@ -46,6 +46,11 @@ namespace CumulusMX
 				// does not provide 10 min average wind speeds
 				cumulus.StationOptions.UseWind10MinAvg = true;
 
+				// GW1000 does not provide an interval gust value, it gives us a 2 minute high
+				// So CMX porces the latest speed into the gust
+				// Therefore we need to force using the gust (but we actually input the speed) for the average calculation
+				cumulus.StationOptions.UseSpeedForAvgCalc = false;
+
 				// does not send DP, so force MX to calculate it
 				cumulus.StationOptions.CalculatedDP = true;
 				// Same for Wind Chill
@@ -149,9 +154,9 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
@@ -179,7 +184,7 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.syncInit.Release();
 
 			StartLoop();
@@ -323,6 +328,7 @@ namespace CumulusMX
 							DoWind(spdVal, dirVal, WindAverage / cumulus.Calib.WindSpeed.Mult, recDate);
 
 							var gustLastCal = gustVal * cumulus.Calib.WindGust.Mult;
+
 							if (gustLastCal > RecentMaxGust)
 							{
 								cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
@@ -1196,6 +1202,10 @@ namespace CumulusMX
 					idx = 5 + data2[4];
 					var wuPath = Encoding.ASCII.GetString(data2, idx + 1, data2[idx]);
 
+					// Ecowitt actually sends data at interval + 1 seconds! :(
+					customIntv -= 1;
+					if (customIntv < 1)
+						customIntv = 1;
 
 					cumulus.LogMessage($"Ecowitt Gateway Custom Server config: Server={server}, Port={port}, Path={ecPath}, Interval={intv}, Protocol={type}, Enabled={active}");
 
@@ -1256,6 +1266,7 @@ namespace CumulusMX
 						else
 						{
 							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server config to: Server={customServer}, Port={customPort}, Interval={customIntv}, Protocol={0}, Enabled={1}");
+							cumulus.LogMessage("Ecowitt Gateway Custom Server. Note, the set interval should be 1 less than the value set in the CMX configuration");
 						}
 					}
 

@@ -243,9 +243,9 @@ namespace CumulusMX
 			try
 			{
 				// Wait for the lock
-				cumulus.LogDebugMessage("Lock: Station waiting for lock");
+				//cumulus.LogDebugMessage("Lock: Station waiting for lock");
 				Cumulus.syncInit.Wait();
-				cumulus.LogDebugMessage("Lock: Station has the lock");
+				//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 				// Create a realtime thread to periodically restart broadcasts
 				GetWllRealtime(null, null);
@@ -352,7 +352,7 @@ namespace CumulusMX
 			}
 			finally
 			{
-				cumulus.LogDebugMessage("Lock: Station releasing lock");
+				//cumulus.LogDebugMessage("Lock: Station releasing lock");
 				Cumulus.syncInit.Release();
 			}
 		}
@@ -402,9 +402,9 @@ namespace CumulusMX
 		{
 			var retry = 2;
 
-			cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime waiting for lock");
+			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime waiting for lock");
 			WebReq.Wait();
-			cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime has the lock");
+			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime has the lock");
 
 			// The WLL will error if already responding to a request from another device, so add a retry
 			do
@@ -465,7 +465,7 @@ namespace CumulusMX
 				}
 			} while (retry > 0);
 
-			cumulus.LogDebugMessage("GetWllRealtime: Releasing lock");
+			//cumulus.LogDebugMessage("GetWllRealtime: Releasing lock");
 			WebReq.Release();
 		}
 
@@ -486,9 +486,9 @@ namespace CumulusMX
 				// wait a random time of 0 to 5 seconds before making the request to try and avoid continued clashes with other software or instances of MX
 				await Task.Delay(random.Next(0, 5000));
 
-				cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
+				//cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
 				WebReq.Wait();
-				cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
+				//cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
 
 				// The WLL will error if already responding to a request from another device, so add a retry
 				do
@@ -524,7 +524,7 @@ namespace CumulusMX
 					}
 				} while (retry < 3);
 
-				cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");
+				//cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");
 				WebReq.Release();
 			}
 			else
@@ -814,12 +814,12 @@ namespace CumulusMX
 
 									// pesky null values from WLL when it is calm
 									int wdir = data1.wind_dir_last.HasValue ? data1.wind_dir_last.Value : 0;
-									double wind = data1.wind_speed_last.HasValue ? data1.wind_speed_last.Value : 0;
+									double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
 									double wspdAvg10min = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
 
-									DoWind(ConvertWindMPHToUser(wind), wdir, wspdAvg10min, dateTime);
+									DoWind(wind, wdir, wspdAvg10min, dateTime);
 
-									WindAverage = wspdAvg10min * cumulus.Calib.WindSpeed.Mult;
+									//WindAverage = wspdAvg10min * cumulus.Calib.WindSpeed.Mult;
 
 									// Wind data can be a bit out of date compared to the broadcasts (1 minute update), so only use gust broadcast data
 									/*
@@ -1245,11 +1245,6 @@ namespace CumulusMX
 							cumulus.LogDebugMessage($"WLL current: found an unknown transmitter type [{type}]!");
 							break;
 					}
-
-					DoForecast(string.Empty, false);
-
-					UpdateStatusPanel(DateTime.Now);
-					UpdateMQTT();
 				}
 
 				// Now we have the primary data, calculate the derived data
@@ -1270,6 +1265,11 @@ namespace CumulusMX
 				DoApparentTemp(dateTime);
 				DoFeelsLike(dateTime);
 				DoHumidex(dateTime);
+
+				DoForecast(string.Empty, false);
+
+				UpdateStatusPanel(DateTime.Now);
+				UpdateMQTT();
 
 				SensorContactLost = localSensorContactLost;
 
@@ -1442,15 +1442,15 @@ namespace CumulusMX
 		/*
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			// Wait a short while for Cumulus initialisation to complete
 			Thread.Sleep(500);
 			StartLoop();
 
-			cumulus.LogDebugMessage("Lock: Station releasing lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing lock");
 			Cumulus.syncInit.Release();
 		}
 		*/
@@ -1460,9 +1460,9 @@ namespace CumulusMX
 			BackgroundWorker worker = sender as BackgroundWorker;
 
 			int archiveRun = 0;
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			try
 			{
@@ -1495,7 +1495,8 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
 			}
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
 			bwDoneEvent.Set();
 		}

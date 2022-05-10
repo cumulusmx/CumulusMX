@@ -237,6 +237,7 @@
     <Compile Include="ServiceCumulusInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Simulator.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="ProgramSettings.cs" />
     <Compile Include="StationSettings.cs" />

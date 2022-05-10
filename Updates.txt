@@ -1,3 +1,12 @@
+3.17.0 - b3184
+——————————————
+
+- New: Adds a PWS Simulator station type for testing or trial purposes
+
+- Change: The "live" dashboard screens now refresh whenever new data is received, or every five seconds
+
+
+
 3.16.1 - b3183
 ——————————————
 - Fix: Error message about Ecowitt sensor mapping when saving the station settings for non-Ecowitt stations

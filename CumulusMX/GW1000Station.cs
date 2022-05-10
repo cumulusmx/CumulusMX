@@ -54,6 +54,10 @@ namespace CumulusMX
 			// GW1000 does not provide 10 min average wind speeds
 			cumulus.StationOptions.UseWind10MinAvg = true;
 
+			// GW1000 does not provide an interval gust value, it gives us a 30 second high
+			// so force using the wind speed for the average calculation
+			cumulus.StationOptions.UseSpeedForAvgCalc = true;
+
 			LightningTime = DateTime.MinValue;
 			LightningDistance = 999;
 
@@ -249,9 +253,9 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
@@ -279,7 +283,7 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.syncInit.Release();
 
 			if (cancellationToken.IsCancellationRequested)
@@ -1173,8 +1177,9 @@ namespace CumulusMX
 
 					if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
 					{
-						//DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
+						DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
 
+						/*
 						// The protocol does not provide an average value
 						// so feed in current MX average
 						DoWind(windSpeedLast, windDirLast, WindAverage / cumulus.Calib.WindSpeed.Mult, dateTime);
@@ -1192,6 +1197,7 @@ namespace CumulusMX
 
 							RecentMaxGust = gustLastCal;
 						}
+						*/
 					}
 
 					if (rainLast > -999 && rainRateLast > -999)

@@ -749,10 +749,11 @@ namespace CumulusMX
 			"HTTP WUnderground",			// 13
 			"HTTP Ecowitt",					// 14
 			"HTTP Ambient",					// 15
-			"WeatherFlow Tempest"			// 16
+			"WeatherFlow Tempest",			// 16
+			"Simulator"
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul" };
 
 		public string loggingfile;
 
@@ -1478,9 +1479,9 @@ namespace CumulusMX
 			}
 			Console.WriteLine();
 
-			LogDebugMessage("Lock: Cumulus waiting for the lock");
+			//LogDebugMessage("Lock: Cumulus waiting for the lock");
 			syncInit.Wait();
-			LogDebugMessage("Lock: Cumulus has lock");
+			//LogDebugMessage("Lock: Cumulus has lock");
 
 			LogMessage("Opening station");
 
@@ -1548,6 +1549,10 @@ namespace CumulusMX
 				case StationTypes.HttpAmbient:
 					Manufacturer = AMBIENT;
 					station = new HttpStationAmbient(this);
+					break;
+				case StationTypes.Simulator:
+					Manufacturer = SIMULATOR;
+					station = new Simulator(this);
 					break;
 				default:
 					LogConsoleMessage("Station type not set", ConsoleColor.Red);
@@ -1652,7 +1657,7 @@ namespace CumulusMX
 					StartTimersAndSensors();
 				}
 
-				if ((StationType == StationTypes.WMR100) || (StationType == StationTypes.EasyWeather) || (Manufacturer == OREGON))
+				if ((StationType == StationTypes.WMR100) || (StationType == StationTypes.EasyWeather) || (Manufacturer == OREGON) || StationType == StationTypes.Simulator)
 				{
 					station.StartLoop();
 				}
@@ -1662,7 +1667,7 @@ namespace CumulusMX
 				station.CreateEodGraphDataFiles();
 			}
 
-			LogDebugMessage("Lock: Cumulus releasing the lock");
+			//LogDebugMessage("Lock: Cumulus releasing the lock");
 			syncInit.Release();
 		}
 
@@ -6638,6 +6643,7 @@ namespace CumulusMX
 		public int HTTPSTATION = 7;
 		public int AMBIENT = 8;
 		public int WEATHERFLOW = 9;
+		public int SIMULATOR = 10;
 
 		//public bool startingup = true;
 		public string ReportPath;
@@ -10577,6 +10583,7 @@ namespace CumulusMX
 		public const int HttpEcowitt = 14;
 		public const int HttpAmbient = 15;
 		public const int Tempest = 16;
+		public const int Simulator = 17;
 	}
 
 	/*

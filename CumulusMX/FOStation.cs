@@ -161,9 +161,9 @@ namespace CumulusMX
 		{
 			//var ci = new CultureInfo("en-GB");
 			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
 				getAndProcessHistoryData();
@@ -172,7 +172,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
 			}
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
 		}
 

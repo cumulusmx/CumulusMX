@@ -36,9 +36,9 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
 				var stTime = cumulus.LastUpdateTime;
@@ -61,7 +61,7 @@ namespace CumulusMX
 					te = te.InnerException;
 				}
 			}
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
 			StartLoop();
 		}

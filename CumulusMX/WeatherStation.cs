@@ -18,6 +18,7 @@ using SQLite;
 using Timer = System.Timers.Timer;
 using ServiceStack.Text;
 using System.Web;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -42,6 +43,7 @@ namespace CumulusMX
 		public readonly Object yearIniThreadLock = new Object();
 		public readonly Object alltimeIniThreadLock = new Object();
 		public readonly Object monthlyalltimeIniThreadLock = new Object();
+		private readonly Object webSocketThreadLock = new Object();
 
 		// holds all time highs and lows
 		public AllTimeRecords AllTime = new AllTimeRecords();
@@ -1426,11 +1428,26 @@ namespace CumulusMX
 				}
 			}
 
-			if ((int)timeNow.TimeOfDay.TotalMilliseconds % 2500 <= 500)
+			// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds
+			if (LastDataReadTimestamp.AddSeconds(5) < timeNow && (int)timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
 			{
-				// send current data to web-socket every 3 seconds
-				try
+				_ = sendWebSocketData();
+			}
+		}
+
+		private async Task sendWebSocketData()
+		{
+			// Return control to the calling method immediately.
+			await Task.Yield();
+
+			// send current data to web-socket
+			try
+			{
+				// wait for the ws lock object
+				lock (webSocketThreadLock);
 				{
+					//cumulus.LogDebugMessage("WebSocket: Sending message");
+
 					StringBuilder windRoseData = new StringBuilder(80);
 
 					lock (windcounts)
@@ -1478,12 +1495,21 @@ namespace CumulusMX
 
 					stream.Position = 0;
 
+					cumulus.LogDebugMessage("WebSocket: Send message");
 					WebSocket.SendMessage(new StreamReader(stream).ReadToEnd());
+
+					// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
+					await Task.Delay(500);
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage(ex.Message);
-				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("sendWebSocketData: Error - " + ex.Message);
+			}
+			finally
+			{
+				//cumulus.LogDebugMessage("WebSocket: End message");
+				//webSocketLocked = false;
 			}
 		}
 
@@ -7109,6 +7135,7 @@ namespace CumulusMX
 		internal void UpdateStatusPanel(DateTime timestamp)
 		{
 			LastDataReadTimestamp = timestamp;
+			sendWebSocketData();
 		}
 
 

@@ -415,6 +415,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// Dewpoint
 					if (data.outdoor.dew_point != null && data.outdoor.dew_point.list != null)
 					{
@@ -493,6 +494,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// Direction
 					if (data.wind.wind_direction != null && data.wind.wind_direction.list != null)
 					{
@@ -688,6 +690,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// uvi
 					if (data.solar_and_uvi.uvi != null && data.solar_and_uvi.uvi.list != null)
 					{
@@ -802,6 +805,7 @@ namespace CumulusMX
 								}
 							}
 						}
+						
 						// humidity
 						if (srcTH.humidity != null && srcTH.humidity.list != null)
 						{
@@ -949,6 +953,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// 24 Avg
 					if (data.indoor_co2.average24h != null && data.indoor_co2.average24h.list != null)
 					{
@@ -1004,6 +1009,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// 24 Avg
 					if (data.co2_aqi_combo.average24h != null && data.co2_aqi_combo.average24h.list != null)
 					{
@@ -1186,11 +1192,13 @@ namespace CumulusMX
 				ApplyHistoricData(rec);
 
 				// add in archive period worth of sunshine, if sunny
-				if (station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+				if (station.CurrentSolarMax > 0 &&
+					station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
 					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
 					station.SunshineHours += 5 / 60.0;
+					cumulus.LogDebugMessage("Adding 5 minutes to Sunshine Hours");
 				}
 
 

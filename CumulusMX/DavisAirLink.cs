@@ -312,9 +312,9 @@ namespace CumulusMX
 
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Waiting for lock");
+				//cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Waiting for lock");
 				WebReq.Wait();
-				cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Has the lock");
+				//cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Has the lock");
 
 				// The AL will error if already responding to a request from another device, so add a retry
 				do
@@ -356,7 +356,7 @@ namespace CumulusMX
 					}
 				} while (retry < 3);
 
-				cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Releasing lock");
+				//cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Releasing lock");
 				WebReq.Release();
 			}
 			else
