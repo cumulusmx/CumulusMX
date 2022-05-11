@@ -16,10 +16,10 @@ namespace CumulusMX
 {
 	internal class DavisAirLink
 	{
-		private Cumulus cumulus;
-		private WeatherStation station;
+		private readonly Cumulus cumulus;
+		private readonly WeatherStation station;
 
-		private string ipaddr;
+		private readonly string ipaddr;
 		private readonly System.Timers.Timer tmrCurrent;
 		private System.Timers.Timer tmrHealth;
 		private readonly object threadSafer = new object();
@@ -42,7 +42,7 @@ namespace CumulusMX
 		private readonly bool standaloneHistory; // Used to flag if we need to get history data on catch-up
 		private DateTime airLinkLastUpdateTime;
 
-		private DiscoveredDevices discovered = new DiscoveredDevices();
+		private readonly DiscoveredDevices discovered = new DiscoveredDevices();
 
 		public DavisAirLink(Cumulus cumulus, bool indoor, WeatherStation station)
 		{

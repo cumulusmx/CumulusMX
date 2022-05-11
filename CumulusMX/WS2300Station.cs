@@ -374,6 +374,7 @@ namespace CumulusMX
 				DoApparentTemp(timestamp);
 				DoFeelsLike(timestamp);
 				DoHumidex(timestamp);
+				DoCloudBaseHeatIndex(timestamp);
 
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
 
@@ -724,6 +725,8 @@ namespace CumulusMX
 				DoApparentTemp(now);
 				DoFeelsLike(now);
 				DoHumidex(now);
+				DoCloudBaseHeatIndex(now);
+
 				UpdateStatusPanel(now);
 				UpdateMQTT();
 			}

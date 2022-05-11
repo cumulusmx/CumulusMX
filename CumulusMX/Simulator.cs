@@ -11,12 +11,12 @@ namespace CumulusMX
 	internal class Simulator : WeatherStation
 	{
 		private bool stop;
-		private CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 		private CancellationToken cancellationToken;
 
-		private DataSet currData;
+		private readonly DataSet currData;
 
-		private int dataUpdateRate = 5000; // 5 second data update rate
+		private readonly int dataUpdateRate = 5000; // 5 second data update rate
 
 		private new readonly Random random;
 		private bool solarIntialised;
@@ -133,6 +133,7 @@ namespace CumulusMX
 			DoHumidex(recDate);
 			DoApparentTemp(recDate);
 			DoFeelsLike(recDate);
+			DoCloudBaseHeatIndex(recDate);
 		}
 
 		private void doSolar(DateTime recDate)
@@ -181,14 +182,14 @@ namespace CumulusMX
 
 		private class DataSet 
 		{
-			private MeanRevertingRandomWalk temperature;
-			private MeanRevertingRandomWalk humidity;
-			private MeanRevertingRandomWalk windSpeed;
-			private MeanRevertingRandomWalk windDirection;
-			private MeanRevertingRandomWalk insideTemp;
-			private MeanRevertingRandomWalk insideHum;
-			private MeanRevertingRandomWalk pressure;
-			private MeanRevertingRandomWalk rainRate;
+			private readonly MeanRevertingRandomWalk temperature;
+			private readonly MeanRevertingRandomWalk humidity;
+			private readonly MeanRevertingRandomWalk windSpeed;
+			private readonly MeanRevertingRandomWalk windDirection;
+			private readonly MeanRevertingRandomWalk insideTemp;
+			private readonly MeanRevertingRandomWalk insideHum;
+			private readonly MeanRevertingRandomWalk pressure;
+			private readonly MeanRevertingRandomWalk rainRate;
 
 			public double tempVal { get; set; }
 			public int humVal { get; set; }

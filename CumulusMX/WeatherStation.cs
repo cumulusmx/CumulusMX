@@ -1444,7 +1444,7 @@ namespace CumulusMX
 			try
 			{
 				// wait for the ws lock object
-				lock (webSocketThreadLock);
+				lock (webSocketThreadLock)
 				{
 					//cumulus.LogDebugMessage("WebSocket: Sending message");
 
@@ -1499,7 +1499,7 @@ namespace CumulusMX
 					WebSocket.SendMessage(new StreamReader(stream).ReadToEnd());
 
 					// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
-					await Task.Delay(500);
+					Thread.Sleep(500);
 				}
 			}
 			catch (Exception ex)
@@ -2976,7 +2976,6 @@ namespace CumulusMX
 			// update global temp
 			OutdoorTemperature = CalibrateTemp(temp);
 
-			double tempinF = ConvertUserTempToF(OutdoorTemperature);
 			double tempinC = ConvertUserTempToC(OutdoorTemperature);
 
 			first_temp = false;
@@ -3043,25 +3042,25 @@ namespace CumulusMX
 			if ((cumulus.StationOptions.CalculatedDP || cumulus.DavisStation) && (OutdoorHumidity != 0) && (!cumulus.FineOffsetStation))
 			{
 				// Calculate DewPoint.
-				// dewpoint = TempinC + ((0.13 * TempinC) + 13.6) * Ln(humidity / 100);
 				OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(tempinC, OutdoorHumidity));
 
 				CheckForDewpointHighLow(timestamp);
 			}
 
+			TempReadyToPlot = true;
+			HaveReadData = true;
+		}
+
+
+		public void DoCloudBaseHeatIndex(DateTime timestamp)
+		{
+			var tempinF = ConvertUserTempToF(OutdoorTemperature);
+			var tempinC = ConvertUserTempToC(OutdoorTemperature);
+
 			// Calculate cloud base
-			if (cumulus.CloudBaseInFeet)
-			{
-				CloudBase = (int)Math.Floor(((tempinF - ConvertUserTempToF(OutdoorDewpoint)) / 4.4) * 1000);
-				if (CloudBase < 0)
-					CloudBase = 0;
-			}
-			else
-			{
-				CloudBase = (int)Math.Floor((((tempinF - ConvertUserTempToF(OutdoorDewpoint)) / 4.4) * 1000) / 3.2808399);
-				if (CloudBase < 0)
-					CloudBase = 0;
-			}
+			CloudBase = (int)Math.Floor((tempinF - ConvertUserTempToF(OutdoorDewpoint)) / 4.4 * 1000 / (cumulus.CloudBaseInFeet ? 1 : 3.2808399));
+			if (CloudBase < 0)
+				CloudBase = 0;
 
 			HeatIndex = ConvertTempCToUser(MeteoLib.HeatIndex(tempinC, OutdoorHumidity));
 
@@ -3091,7 +3090,6 @@ namespace CumulusMX
 
 			CheckMonthlyAlltime("HighHeatIndex", HeatIndex, true, timestamp);
 
-			//DoApparentTemp(timestamp);
 
 			// Find estimated wet bulb temp. First time this is called, required variables may not have been set up yet
 			try
@@ -3102,9 +3100,6 @@ namespace CumulusMX
 			{
 				WetBulb = OutdoorTemperature;
 			}
-
-			TempReadyToPlot = true;
-			HaveReadData = true;
 		}
 
 		public void DoApparentTemp(DateTime timestamp)
@@ -3993,8 +3988,12 @@ namespace CumulusMX
 			}
 			var uncalibratedgust = gustpar;
 			calibratedgust = uncalibratedgust * cumulus.Calib.WindGust.Mult;
-			WindLatest = calibratedgust;
-			windspeeds[nextwindvalue] = uncalibratedgust;
+
+			// If we are using speed for average it means the gustpar is a period gust value not a latest.
+			// So we have to use the speed for the latest
+			WindLatest = cumulus.StationOptions.UseSpeedForAvgCalc ? speedpar * cumulus.Calib.WindSpeed.Mult : calibratedgust;
+			
+			windspeeds[nextwindvalue] = gustpar;
 			windbears[nextwindvalue] = Bearing;
 
 			// Recalculate wind rose data
@@ -4046,7 +4045,7 @@ namespace CumulusMX
 			// check for monthly all time records (and set)
 			CheckMonthlyAlltime("HighGust", calibratedgust, true, timestamp);
 
-			WindRecent[nextwind].Gust = uncalibratedgust;
+			WindRecent[nextwind].Gust = gustpar;
 			WindRecent[nextwind].Speed = speedpar;
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
@@ -7135,7 +7134,7 @@ namespace CumulusMX
 		internal void UpdateStatusPanel(DateTime timestamp)
 		{
 			LastDataReadTimestamp = timestamp;
-			sendWebSocketData();
+			_ = sendWebSocketData();
 		}
 
 

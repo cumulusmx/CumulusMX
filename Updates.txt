@@ -1,10 +1,12 @@
 3.17.0 - b3184
 ——————————————
+- Fix: Cloud base being set to large value at start-up
 
 - New: Adds a PWS Simulator station type for testing or trial purposes
 
 - Change: The "live" dashboard screens now refresh whenever new data is received, or every five seconds
-
+- Change: The "Speed for average calc" station option has been moved from Common Options to Common Options | Advanced Options
+- Change: The Ecowitt stations now force the "Speed for average calc" option to be enabled at start-up
 
 
 3.16.1 - b3183

@@ -47,9 +47,9 @@ namespace CumulusMX
 				cumulus.StationOptions.UseWind10MinAvg = true;
 
 				// GW1000 does not provide an interval gust value, it gives us a 2 minute high
-				// So CMX porces the latest speed into the gust
-				// Therefore we need to force using the gust (but we actually input the speed) for the average calculation
-				cumulus.StationOptions.UseSpeedForAvgCalc = false;
+				// The speed is the average for that update
+				// Therefore we need to force using the speed for the average calculation
+				cumulus.StationOptions.UseSpeedForAvgCalc = true;
 
 				// does not send DP, so force MX to calculate it
 				cumulus.StationOptions.CalculatedDP = true;
@@ -323,25 +323,8 @@ namespace CumulusMX
 							var dirVal = Convert.ToInt32(dir, invNum);
 							var spdVal = ConvertWindMPHToUser(Convert.ToDouble(spd, invNum));
 
-							// The protocol does not provide an average value
-							// so feed in current MX average
-							DoWind(spdVal, dirVal, WindAverage / cumulus.Calib.WindSpeed.Mult, recDate);
+							DoWind(gustVal, dirVal, spdVal, recDate);
 
-							var gustLastCal = gustVal * cumulus.Calib.WindGust.Mult;
-
-							if (gustLastCal > RecentMaxGust)
-							{
-								cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
-								CheckHighGust(gustLastCal, dirVal, recDate);
-
-								// add to recent values so normal calculation includes this value
-								WindRecent[nextwind].Gust = gustVal; // use uncalibrated value
-								WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
-								WindRecent[nextwind].Timestamp = recDate;
-								nextwind = (nextwind + 1) % MaxWindRecent;
-
-								RecentMaxGust = gustLastCal;
-							}
 						}
 					}
 					catch (Exception ex)
@@ -851,6 +834,7 @@ namespace CumulusMX
 					if (thisTemp != null && thisHum != null)
 					{
 						DoHumidex(recDate);
+						DoCloudBaseHeatIndex(recDate);
 
 						// === Apparent === - requires temp, hum, and windspeed
 						if (data["windspeedmph"] != null)
@@ -1289,7 +1273,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server path={path}");
+							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server Path={customPath}");
 						}
 					}
 				}

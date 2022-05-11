@@ -1636,6 +1636,7 @@ namespace CumulusMX
 				DoApparentTemp(now);
 				DoFeelsLike(now);
 				DoHumidex(now);
+				DoCloudBaseHeatIndex(now);
 
 				var forecastRule = loopData.ForecastRule < cumulus.DavisForecastLookup.Length ? loopData.ForecastRule : cumulus.DavisForecastLookup.Length - 1;
 
@@ -2507,6 +2508,7 @@ namespace CumulusMX
 							DoApparentTemp(timestamp);
 							DoFeelsLike(timestamp);
 							DoHumidex(timestamp);
+							DoCloudBaseHeatIndex(timestamp);
 
 							// add in 'archivePeriod' minutes worth of wind speed to windrun
 							WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);

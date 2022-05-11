@@ -492,8 +492,8 @@ namespace CumulusMX
 		private List<string> OWMList = new List<string>();
 
 		// Use thread safe queues for the MySQL command lists
-		private ConcurrentQueue<string> MySqlList = new ConcurrentQueue<string>();
-		private ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
+		private readonly ConcurrentQueue<string> MySqlList = new ConcurrentQueue<string>();
+		private readonly ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
 
 		// Calibration settings
 		/// <summary>
@@ -757,7 +757,7 @@ namespace CumulusMX
 
 		public string loggingfile;
 
-		private PingReply pingReply;
+		//private PingReply pingReply;
 
 		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
@@ -10512,7 +10512,7 @@ namespace CumulusMX
 				LogMessage("Ping reply: " + e.Reply.Status);
 			}
 
-			pingReply = e.Reply;
+			//pingReply = e.Reply;
 		}
 
 		private void CreateRequiredFolders()

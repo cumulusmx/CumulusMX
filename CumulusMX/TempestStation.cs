@@ -165,7 +165,7 @@ namespace CumulusMX
 				DoApparentTemp(timestamp);
 				DoFeelsLike(timestamp);
 				DoHumidex(timestamp);
-
+				DoCloudBaseHeatIndex(timestamp);
 
 				DoUV((double) historydata.UV, timestamp);
 
@@ -309,6 +309,8 @@ namespace CumulusMX
 						DoFeelsLike(ts);
 						DoWindChill(userTemp,ts);
 						DoHumidex(ts);
+						DoCloudBaseHeatIndex(ts);
+
 						UpdateStatusPanel(ts);
 						UpdateMQTT();
 						DoForecast(string.Empty, false);
@@ -746,10 +748,7 @@ namespace CumulusMX.Tempest
 				if (!int.TryParse(packet.firmware_revision.ToString(), out var i)) i = -1;
 				FirmwareRevision = i;
 			}
-			catch (Exception e)
-			{
-				var ex = e.Message;
-			}
+			catch {}
 
 			RSSI = packet.rssi;
 			HubRSSI = packet.hub_rssi;
@@ -858,10 +857,7 @@ namespace CumulusMX.Tempest
 				if (!int.TryParse(packet.firmware_revision.ToString(), out i)) i = -1;
 				FirmwareRevision = i;
 			}
-			catch (Exception e)
-			{
-				var ex = e.Message;
-			}
+			catch {}
 
 			if (packet.obs[0].Length >= 18)
 			{

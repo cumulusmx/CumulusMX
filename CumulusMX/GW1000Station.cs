@@ -27,17 +27,15 @@ namespace CumulusMX
 
 		private int maxArchiveRuns = 1;
 
-		private TcpClient socket;
-		private NetworkStream stream;
 		private bool connectedOk = false;
 		private bool dataReceived = false;
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
 
-		private CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 		private CancellationToken cancellationToken;
 
-		private Task historyTask;
+		private readonly Task historyTask;
 		private Task liveTask;
 
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
@@ -1220,6 +1218,7 @@ namespace CumulusMX
 						DoApparentTemp(dateTime);
 						DoFeelsLike(dateTime);
 						DoHumidex(dateTime);
+						DoCloudBaseHeatIndex(dateTime);
 					}
 
 					DoForecast("", false);
@@ -1575,44 +1574,6 @@ namespace CumulusMX
 				Mac = new List<string>();
 			}
 		}
-
-		private bool ChecksumOk(byte[] data, int lengthBytes)
-		{
-			ushort size;
-
-			// general response 1 byte size         2 byte size
-			// 0   - 0xff - header                  0   - 0xff - header
-			// 1   - 0xff                           1   - 0xff
-			// 2   - command                        2   - command
-			// 3   - total size of response         3   - size1
-			// 4-X - data                           4   - size2
-			// X+1 - checksum                       5-X - data
-			//                                      X+1 - checksum
-
-			if (lengthBytes == 1)
-			{
-				size = (ushort)data[3];
-			}
-			else
-			{
-				size = GW1000Api.ConvertBigEndianUInt16(data, 3);
-			}
-
-			byte checksum = (byte)(data[2] + data[3]);
-			for (var i = 4; i <= size; i++)
-			{
-				checksum += data[i];
-			}
-
-			if (checksum != data[size + 1])
-			{
-				cumulus.LogMessage("Bad checksum");
-				return false;
-			}
-
-			return true;
-		}
-
 
 		private void DataTimeout(object source, ElapsedEventArgs e)
 		{

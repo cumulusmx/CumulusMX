@@ -40,10 +40,10 @@ namespace CumulusMX
 		private bool broadcastReceived;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow;
-		private CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 		private CancellationToken cancellationToken;
 		private Task broadcastTask;
-		private AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
+		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
 
@@ -733,7 +733,7 @@ namespace CumulusMX
 										DoOutdoorTemp(ConvertTempFToUser(data1.temp.Value), dateTime);
 
 									if (data1.dew_point.HasValue)
-									DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point.Value), dateTime);
+										DoOutdoorDewpoint(ConvertTempFToUser(data1.dew_point.Value), dateTime);
 
 									if (!cumulus.StationOptions.CalculatedWC && data1.wind_chill.HasValue)
 									{
@@ -1265,6 +1265,7 @@ namespace CumulusMX
 				DoApparentTemp(dateTime);
 				DoFeelsLike(dateTime);
 				DoHumidex(dateTime);
+				DoCloudBaseHeatIndex(dateTime);
 
 				DoForecast(string.Empty, false);
 
@@ -1814,6 +1815,7 @@ namespace CumulusMX
 					DoApparentTemp(timestamp);
 					DoFeelsLike(timestamp);
 					DoHumidex(timestamp);
+					DoCloudBaseHeatIndex(timestamp);
 
 					// Log all the data
 					cumulus.DoLogFile(timestamp, false);
