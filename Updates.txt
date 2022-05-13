@@ -1,6 +1,7 @@
 3.17.0 - b3184
 ——————————————
 - Fix: Cloud base being set to large value at start-up
+- Fix: Reading lightning distance from today.ini
 
 - New: Adds a PWS Simulator station type for testing or trial purposes
 

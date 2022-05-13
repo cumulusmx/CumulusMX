@@ -22,6 +22,7 @@ namespace CumulusMX
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		private bool reportStationType = true;
+		private int lastMinute = -1;
 		private EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
 
@@ -220,6 +221,8 @@ namespace CumulusMX
 			PASSKEY=<redacted>&stationtype=GW1000A_V1.6.8&dateutc=2021-07-23+17:13:34&tempinf=80.6&humidityin=50&baromrelin=29.940&baromabsin=29.081&tempf=81.3&humidity=43&winddir=296&windspeedmph=2.46&windgustmph=4.25&maxdailygust=14.09&solarradiation=226.28&uv=1&rainratein=0.000&eventrainin=0.000&hourlyrainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=4.118&yearlyrainin=29.055&totalrainin=29.055&temp1f=83.48&humidity1=39&temp2f=87.98&humidity2=40&temp3f=82.04&humidity3=40&temp4f=93.56&humidity4=34&temp5f=-11.38&temp6f=87.26&humidity6=38&temp7f=45.50&humidity7=40&soilmoisture1=51&soilmoisture2=65&soilmoisture3=72&soilmoisture4=36&soilmoisture5=48&pm25_ch1=11.0&pm25_avg_24h_ch1=10.8&pm25_ch2=13.0&pm25_avg_24h_ch2=15.0&tf_co2=80.8&humi_co2=48&pm25_co2=4.8&pm25_24h_co2=6.1&pm10_co2=4.9&pm10_24h_co2=6.5&co2=493&co2_24h=454&lightning_time=1627039348&lightning_num=3&lightning=24&wh65batt=0&wh80batt=3.06&batt1=0&batt2=0&batt3=0&batt4=0&batt5=0&batt6=0&batt7=0&soilbatt1=1.5&soilbatt2=1.4&soilbatt3=1.5&soilbatt4=1.5&soilbatt5=1.6&pm25batt1=4&pm25batt2=4&wh57batt=4&co2_batt=6&freq=868M&model=GW1000_Pro
 			PASSKEY=<redacted>&stationtype=GW1100A_V2.0.2&dateutc=2021-09-08+11:58:39&tempinf=80.8&humidityin=42&baromrelin=29.864&baromabsin=29.415&temp1f=87.8&tf_ch1=64.4&batt1=0&tf_batt1=1.48&freq=868M&model=GW1100A
 
+			PASSKEY=<PassKey>&stationtype=GW1100A_V2.1.4&runtime=2336207&dateutc=2022-05-13+08:55:11&tempinf=73.0&humidityin=38&baromrelin=30.156&baromabsin=29.297&tempf=63.0&humidity=49&winddir=71&windspeedmph=2.68&windgustmph=11.86&maxdailygust=15.21&solarradiation=694.87&uv=5&rainratein=0.000&eventrainin=0.000&hourlyrainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=0.591&yearlyrainin=14.591&temp1f=67.8&humidity1=43&temp2f=68.7&humidity2=47&temp3f=62.6&humidity3=51&temp4f=62.6&humidity4=51&temp5f=-1.5&temp6f=76.1&humidity6=47&temp7f=44.4&humidity7=49&soilmoisture1=14&soilmoisture2=50&soilmoisture3=20&soilmoisture4=25&pm25_ch1=7.0&pm25_avg_24h_ch1=7.6&pm25_ch2=6.0&pm25_avg_24h_ch2=8.3&tf_co2=72.9&humi_co2=44&pm25_co2=1.2&pm25_24h_co2=2.6&pm10_co2=1.5&pm10_24h_co2=3.0&co2=387&co2_24h=536&lightning_num=0&lightning=31&lightning_time=1652304268&leak_ch2=0&wh65batt=0&wh80batt=2.74&wh26batt=0&batt1=0&batt2=0&batt3=0&batt4=0&batt5=0&batt6=0&batt7=0&soilbatt1=1.3&soilbatt2=1.4&soilbatt3=1.4&soilbatt4=1.4&pm25batt1=4&pm25batt2=4&wh57batt=5&leakbatt2=4&co2_batt=6&freq=868M&model=GW1100A
+
 			 */
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
@@ -282,6 +285,21 @@ namespace CumulusMX
 
 				// We will ignore the dateutc field if this "live" data to avoid any clock issues
 				recDate = ts.HasValue ? ts.Value : DateTime.Now;
+
+				if (recDate.Minute != lastMinute)
+				{
+
+					// at start-up or every 10 minutes trigger output of uptime
+					if ((recDate.Minute % 10) == 0 || lastMinute == -1 && data["runtime"] != null)
+					{
+						var runtime = Convert.ToInt32(data["runtime"]);
+						var uptime = TimeSpan.FromSeconds(runtime);
+
+						cumulus.LogMessage($"Ecowitt Gateway uptime = {runtime} secs - {uptime:c}");
+					}
+
+					lastMinute = recDate.Minute;
+				}
 
 				// we only really want to do this once
 				if (reportStationType && !ts.HasValue)
@@ -526,6 +544,7 @@ namespace CumulusMX
 					}
 				}
 
+
 				// === Extra Humidity ===
 				if (main || cumulus.EcowittExtraUseTempHum)
 				{
@@ -744,6 +763,7 @@ namespace CumulusMX
 					}
 				}
 
+
 				// === Firmware Version ===
 				try
 				{
@@ -793,6 +813,7 @@ namespace CumulusMX
 						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message);
 						return "Failed: Error in dew point data - " + ex.Message;
 					}
+
 
 					// === Wind Chill ===
 					try

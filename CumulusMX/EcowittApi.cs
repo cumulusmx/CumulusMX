@@ -1249,6 +1249,9 @@ namespace CumulusMX
 		private void ApplyHistoricData(KeyValuePair<DateTime, EcowittApi.HistoricData> rec)
 		{
 			// === Wind ==
+			// WindGust = max for period
+			// WindSpd = avg for period
+			// WindDir = avg for period
 			try
 			{
 				if (rec.Value.WindGust.HasValue && rec.Value.WindSpd.HasValue && rec.Value.WindDir.HasValue)
@@ -1267,6 +1270,7 @@ namespace CumulusMX
 			}
 
 			// === Humidity ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.IndoorHum.HasValue)
@@ -1285,6 +1289,7 @@ namespace CumulusMX
 			}
 
 			// === Pressure ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.Pressure.HasValue)
@@ -1300,6 +1305,7 @@ namespace CumulusMX
 			}
 
 			// === Indoor temp ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.IndoorTemp.HasValue)
@@ -1314,6 +1320,7 @@ namespace CumulusMX
 			}
 
 			// === Outdoor temp ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.Temp.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
@@ -1356,6 +1363,7 @@ namespace CumulusMX
 			}
 
 			// === Solar ===
+			// = max for period
 			try
 			{
 				if (rec.Value.Solar.HasValue)
@@ -1369,6 +1377,7 @@ namespace CumulusMX
 			}
 
 			// === UVI ===
+			// = max for period
 			try
 			{
 				if (rec.Value.UVI.HasValue)
