@@ -4,10 +4,10 @@ namespace CumulusMX
 {
 	internal class AstroLib
 	{
-		public static double BrasSolar(double el, double r, double nfac)
+		public static double BrasSolar(double el, double erv, double nfac)
 		{
 			// el      solar elevation deg from horizon
-			// r       distance from earth to sun in AU
+			// erv     distance from earth to sun in AU
 			// nfac    atmospheric turbidity parameter (2=clear, 4-5=smoggy)
 
 			double sinal = Math.Sin(DegToRad(el)); // Sine of the solar elevation angle
@@ -16,10 +16,10 @@ namespace CumulusMX
 				return 0;
 
 			// solar radiation on horizontal surface at top of atmosphere
-			double i0 = (1367 / (r * r)) * sinal;
+			double i0 = (1367 / (erv * erv)) * sinal;
 
 			// optical air mass
-			double m = 1/(sinal + (0.15 * Math.Pow(el + 3.885, -1.253)));
+			double m = 1 / (sinal + (0.15 * Math.Pow(el + 3.885, -1.253)));
 
 			// molecular scattering coefficient
 			double al = 0.128 - (0.054 * Math.Log(m) / Math.Log(10));
@@ -43,21 +43,21 @@ namespace CumulusMX
 			double al = Math.Asin(sinal);
 			double a0 = RadToDeg(al); // convert the radians to degree
 
-			double rm = Math.Pow(((288.0 - 0.0065*z)/288.0), 5.256)/(sinal + 0.15*Math.Pow((a0 + 3.885), (-1.253)));
+			double rm = Math.Pow(((288.0 - 0.0065 * z) / 288.0), 5.256) / (sinal + 0.15 * Math.Pow((a0 + 3.885), (-1.253)));
 
-			double rsToa = 1360*sinal/(erv*erv); // RS on the top of atmosphere
+			double rsToa = 1360 * sinal / (erv * erv); // RS on the top of atmosphere
 
 			return rsToa * Math.Pow(atc, rm); //RS on the ground
 		}
 
 		private static double DegToRad(double angle)
 		{
-			return Math.PI*angle/180.0;
+			return Math.PI * angle / 180.0;
 		}
 
 		private static double RadToDeg(double angle)
 		{
-			return angle*(180.0/Math.PI);
+			return angle * (180.0 / Math.PI);
 		}
 
 		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
@@ -76,7 +76,7 @@ namespace CumulusMX
 		}
 
 
-		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
+		private static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
 									  out double solarelevation, double factor, int method)
 		{
 			DateTime utctime = timestamp.ToUniversalTime();
@@ -106,10 +106,478 @@ namespace CumulusMX
 			return dec + Math.Cos((doy - 172) / 183.0 * Math.PI / 2) * range;
 		}
 
-		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
 
-		public static void CalculateSunPosition(
-			DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
+
+		// Uses the VBA from NOAA solrad_ver16 spreadsheet
+		#region solrad calculations
+
+		/*
+		private static void CalculateSunPosition(DateTime dateTime, double latitude, double lon, out double altitude, out double azimuth)
+		{
+			// change sign convention for longitude from negative to positive in western hemisphere
+			var longitude = lon * -1.0;
+
+			if (latitude > 89.8)
+				latitude = 89.8;
+
+			if (latitude < -89.8)
+				latitude = -89.8;
+
+			// timenow is GMT time for calculation in hours since 0Z
+			//var timenow = dateTime.TimeOfDay.TotalHours;
+
+			double julianDate = 367.0 * dateTime.Year -
+				(int)((7.0 / 4.0) * (dateTime.Year + (int)((dateTime.Month + 9.0) / 12.0))) +
+				(int)((275.0 * dateTime.Month) / 9.0) +
+				dateTime.Day - 730531.5;
+
+			double t = julianDate / 36525.0;
+			//double r = calcSunRadVector(t);
+			//double alpha = calcSunRtAscension(t);
+			double solardec = calcSunDeclination(t);
+			double eqtime = calcEquationOfTime(t);
+
+			double zone = TimeZoneInfo.Local.BaseUtcOffset.Hours;
+			zone = -7;
+
+			double solarTimeFix = eqtime - 4.0 * longitude + 60.0 * zone;
+			double trueSolarTime = dateTime.Hour * 60 + dateTime.Minute + dateTime.Second / 60.0 + solarTimeFix;  // in minutes
+
+			while (trueSolarTime > 1440)
+			{
+				trueSolarTime -= 1440;
+			}
+
+			double hourangle = trueSolarTime / 4.0 - 180;
+
+			if (hourangle < -180)
+				hourangle += 360;
+
+			double harad = DegToRad(hourangle);
+
+			double csz = Math.Sin(DegToRad(latitude)) * Math.Sin(DegToRad(solardec)) + Math.Cos(DegToRad(latitude)) * Math.Cos(DegToRad(solardec)) * Math.Cos(harad);
+
+			if (csz > 1)
+				csz = 1;
+			else if (csz < -1)
+				csz = -1;
+
+			double zenith = RadToDeg(Math.Acos(csz));
+			double azDenom = Math.Cos(DegToRad(latitude)) * Math.Sin(DegToRad(zenith));
+
+			double azRad;
+
+			if (Math.Abs(azDenom) > 0.001)
+			{
+				azRad = (Math.Sin(DegToRad(latitude) * Math.Cos(DegToRad(zenith))) - Math.Sin(DegToRad(solardec))) / azDenom;
+
+				if (Math.Abs(azRad) > 1)
+				{
+					if (azRad < 0)
+						azRad = -1;
+					else
+						azRad = 1;
+				}
+
+				azimuth = 180.0 - RadToDeg(Math.Acos(azRad));
+
+				if (hourangle > 0)
+					azimuth = -azimuth;
+			}
+			else
+			{
+				if (latitude > 0)
+					azimuth = 180;
+				else
+					azimuth = 0;
+
+			}
+
+			if (azimuth < 0)
+				azimuth += 360;
+
+			var exoatmElevation = 90.0 - zenith;
+			double refractionCorrection;
+
+			if (exoatmElevation > 85)
+			{
+				refractionCorrection = 0;
+			}
+			else
+			{
+
+				double te = Math.Tan(DegToRad(exoatmElevation));
+
+				if (exoatmElevation > 5)
+				{
+					refractionCorrection = 58.1 / te - 0.07 / (te * te * te) + 0.000086 / (te * te * te * te * te);
+				}
+				else if (exoatmElevation > -0.575)
+				{
+					double step1 = -12.79 + exoatmElevation * 0.711;
+					double step2 = 103.4 + exoatmElevation * step1;
+					double step3 = -518.2 + exoatmElevation * step2;
+
+					refractionCorrection = 1735.0 + exoatmElevation * step3;
+				}
+				else
+				{
+					refractionCorrection = -20.774 / te;
+				}
+
+				refractionCorrection = refractionCorrection / 3600.0;
+			}
+
+			double solarzen = zenith - refractionCorrection;
+
+			altitude = 90.0 - solarzen;
+		}
+
+
+
+		private static double calcSunRadVector(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunRadVector (not used by sunrise, solarnoon, sunset)
+			// Type:    Function
+			// Purpose: calculate the distance to the sun in AU
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   sun radius vector in AUs
+			// ***********************************************************************
+
+			double v = calcSunTrueAnomaly(t);
+
+			double e = calcEccentricityEarthOrbit(t);
+
+			return 1.000001018 * (1 - e * e) / (1 + e * Math.Cos(DegToRad(v)));
+		}
+
+		private static double calcSunTrueAnomaly(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunTrueAnomaly (not used by sunrise, solarnoon, sunset)
+			// Type:    Function
+			//Purpose: calculate the true anamoly of the sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   sun's true anamoly in degrees
+			// ***********************************************************************
+
+			double m = calcGeomMeanAnomalySun(t);
+
+			double c = calcSunEqOfCenter(t);
+
+			return m + c;
+		}
+
+		private static double calcGeomMeanAnomalySun(double t)
+		{
+			// ***********************************************************************
+			// Name:    calGeomAnomalySun
+			// Type:    Function
+			// Purpose: calculate the Geometric Mean Anomaly of the Sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   the Geometric Mean Anomaly of the Sun in degrees
+			// ***********************************************************************
+
+			return 357.52911 + t * (35999.05029 - 0.0001537 * t);
+		}
+
+		private static double calcSunEqOfCenter(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunEqOfCenter
+			// Type:    Function
+			// Purpose: calculate the equation of center for the sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   in degrees
+			// ***********************************************************************
+
+			double m = calcGeomMeanAnomalySun(t);
+
+			double mrad = DegToRad(m);
+			double sinm = Math.Sin(mrad);
+			double sin2m = Math.Sin(mrad + mrad);
+			double sin3m = Math.Sin(mrad + mrad + mrad);
+
+			return sinm * (1.914602 - t * (0.004817 + 0.000014 * t)) + sin2m * (0.019993 - 0.000101 * t) + sin3m * 0.000289;
+		}
+
+		private static double calcEccentricityEarthOrbit(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcEccentricityEarthOrbit
+			// Type:    Function
+			// Purpose: calculate the eccentricity of earth's orbit
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   the unitless eccentricity
+			// ***********************************************************************
+
+			return 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
+		}
+
+
+		private static double calcSunRtAscension(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunRtAscension (not used by sunrise, solarnoon, sunset)
+			// Type:    Function
+			// Purpose: calculate the right ascension of the sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   sun's right ascension in degrees
+			// ***********************************************************************
+
+			double e = calcObliquityCorrection(t);
+
+			double lambda = calcSunApparentLong(t);
+			double tananum = Math.Cos(DegToRad(e)) * Math.Sin(DegToRad(lambda));
+			double tanadenom = Math.Cos(DegToRad(lambda));
+
+			//original NOAA code using javascript Math.Atan2(y,x) convention:
+			//        var alpha = radToDeg(Math.atan2(tananum, tanadenom));
+			//        alpha = radToDeg(Application.WorksheetFunction.Atan2(tananum, tanadenom))
+			//
+			//translated using Excel VBA Application.WorksheetFunction.Atan2(x,y) convention:
+
+			return RadToDeg(Math.Atan2(tanadenom, tananum));
+		}
+
+		private static double calcSunDeclination(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunDeclination
+			// Type:    Function
+			// Purpose: calculate the declination of the sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   sun's declination in degrees
+			// ***********************************************************************
+
+			double e = calcObliquityCorrection(t);
+
+			double lambda = calcSunApparentLong(t);
+			double sint = Math.Sin(DegToRad(e)) * Math.Sin(DegToRad(lambda));
+
+			return RadToDeg(Math.Asin(sint));
+		}
+
+		private static double calcSunApparentLong(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunApparentLong (not used by sunrise, solarnoon, sunset)
+			// Type:    Function
+			// Purpose: calculate the apparent longitude of the sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   sun's apparent longitude in degrees
+			// ***********************************************************************
+
+			double O = calcSunTrueLong(t);
+
+			double omega = 125.04 - 1934.136 * t;
+
+			return O - 0.00569 - 0.00478 * Math.Sin(DegToRad(omega));
+		}
+
+		private static double calcSunTrueLong(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcSunTrueLong
+			// Type:    Function
+			// Purpose: calculate the true longitude of the sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   sun's true longitude in degrees
+			// ***********************************************************************
+
+			double l0 = calcGeomMeanLongSun(t);
+
+			double c = calcSunEqOfCenter(t);
+
+			return l0 + c;
+		}
+
+		private static double calcGeomMeanLongSun(double t)
+		{
+			// ***********************************************************************
+			// Name:    calGeomMeanLongSun
+			// Type:    Function
+			// Purpose: calculate the Geometric Mean Longitude of the Sun
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   the Geometric Mean Longitude of the Sun in degrees
+			// ***********************************************************************
+
+			double l0 = 280.46646 + t * (36000.76983 + 0.0003032 * t);
+
+			do
+			{
+				if (l0 <= 360 && l0 >= 0)
+					break;
+
+				if (l0 > 360)
+					l0 -= 360;
+
+				if (l0 < 0)
+					l0 += 360;
+			} while (true);
+
+			return l0;
+		}
+
+		private static double calcEquationOfTime(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcEquationOfTime
+			// Type:    Function
+			// Purpose: calculate the difference between true solar time and mean
+			//     solar time
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   equation of time in minutes of time
+			// ***********************************************************************
+
+			double epsilon = calcObliquityCorrection(t);
+			double l0 = calcGeomMeanLongSun(t);
+			double e = calcEccentricityEarthOrbit(t);
+			double m = calcGeomMeanAnomalySun(t);
+
+			double y = Math.Tan(DegToRad(epsilon) / 2.0);
+			y = y * y;
+
+			double sin2l0 = Math.Sin(2.0 * DegToRad(l0));
+			double sinm = Math.Sin(DegToRad(m));
+			double cos2l0 = Math.Cos(2.0 * DegToRad(l0));
+			double sin4l0 = Math.Sin(4.0 * DegToRad(l0));
+			double sin2m = Math.Sin(2.0 * DegToRad(m));
+
+			double Etime = y * sin2l0 - 2.0 * e * sinm + 4.0 * e * y * sinm * cos2l0 - 0.5 * y * y * sin4l0 - 1.25 * e * e * sin2m;
+
+			return RadToDeg(Etime) * 4.0;
+		}
+
+		private static double calcMeanObliquityOfEcliptic(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcMeanObliquityOfEcliptic
+			// Type:    Function
+			// Purpose: calculate the mean obliquity of the ecliptic
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   mean obliquity in degrees
+			// ***********************************************************************
+
+			double seconds = 21.448 - t * (46.815 + t * (0.00059 - t * (0.001813)));
+
+			return 23.0 + (26.0 + (seconds / 60.0)) / 60.0;
+		}
+
+		private static double calcObliquityCorrection(double t)
+		{
+			// ***********************************************************************
+			// Name:    calcObliquityCorrection
+			// Type:    Function
+			// Purpose: calculate the corrected obliquity of the ecliptic
+			// Arguments:
+			//   t : number of Julian centuries since J2000.0
+			// Return value:
+			//   corrected obliquity in degrees
+			// ***********************************************************************
+
+			double e0 = calcMeanObliquityOfEcliptic(t);
+
+			double omega = 125.04 - 1934.136 * t;
+			
+			return e0 + 0.00256 * Math.Cos(DegToRad(omega));
+		}
+
+		*/
+
+		#endregion
+
+
+
+		// From the NOAA_SolarCalculations_day spreadsheet
+		// https://gml.noaa.gov/grad/solcalc/calcdetails.html
+		#region NOAA_Solar
+
+		private static void CalculateSunPosition(DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
+		{
+			// We will use DateTime.ToOADate() which automatically includes the TZ
+			var zone = 0.0;
+
+			var julianDate = dateTime.ToOADate() + 2415018.5;
+			var julianCentry = (julianDate - 2451545 ) / 36525.0;
+			var geoMeanLongSun = PutIn360Deg(280.46646 + julianCentry * (36000.76983 + julianCentry * 0.0003032));
+			var geoMeanAnomSun = 357.52911 + julianCentry * (35999.05029 - 0.0001537 * julianCentry);
+			var eccEarthOrbit = 0.016708634 - julianCentry * (0.000042037 + 0.0000001267 * julianCentry);
+			var sunEqCentre = Math.Sin(DegToRad(geoMeanAnomSun)) * (1.914602 - julianCentry * (0.004817 + 0.000014 * julianCentry)) + Math.Sin(DegToRad(2 * geoMeanAnomSun)) * (0.019993 - 0.000101 * julianCentry) + Math.Sin(DegToRad(3 * geoMeanAnomSun)) * 0.000289;
+			var sunTrueLong = geoMeanLongSun + sunEqCentre;
+			//var sunTrueAnom = geoMeanAnomSun + sunEqCentre;
+			//var sunRadVector = (1.000001018 * (1 - eccEarthOrbit * eccEarthOrbit)) / (1 + eccEarthOrbit * Math.Cos(DegToRad(sunTrueAnom)));
+			var sunAppLong = sunTrueLong - 0.00569 - 0.00478 * Math.Sin(DegToRad(125.04 - 1934.136 * julianCentry));
+			var meanObliqEcplitic = 23 + (26 + ((21.448 - julianCentry * (46.815 + julianCentry * (0.00059 - julianCentry * 0.001813)))) / 60.0) / 60.0;
+			var obliqCorr = meanObliqEcplitic + 0.00256 * Math.Cos(DegToRad(125.04 - 1934.136 * julianCentry));
+			//var sunRA = RadToDeg(Math.Atan2(Math.Cos(DegToRad(sunAppLong)), Math.Cos(DegToRad(obliqCorr)) * Math.Sin(DegToRad(obliqCorr))));
+			var sunDec = RadToDeg(Math.Asin(Math.Sin(DegToRad(obliqCorr)) * Math.Sin(DegToRad(sunAppLong))));
+			var varY = Math.Tan(DegToRad(obliqCorr / 2.0)) * Math.Tan(DegToRad(obliqCorr / 2.0));
+			var eqOfTime = 4 * RadToDeg(varY * Math.Sin(2 * DegToRad(geoMeanLongSun)) - 2 * eccEarthOrbit * Math.Sin(DegToRad(geoMeanAnomSun)) + 4 * eccEarthOrbit * varY * Math.Sin(DegToRad(geoMeanAnomSun)) * Math.Cos(2 * DegToRad(geoMeanLongSun)) - 0.5 * varY * varY * Math.Sin(4 * DegToRad(geoMeanLongSun)) - 1.25 * eccEarthOrbit * eccEarthOrbit * Math.Sin(2 * DegToRad(geoMeanAnomSun)));
+			//var haSunRise = RadToDeg(Math.Acos(Math.Cos(DegToRad(90.833)) / (Math.Cos(DegToRad(latitude)) * Math.Cos(DegToRad(sunDec))) - Math.Tan(DegToRad(latitude)) * Math.Tan(DegToRad(sunDec))));
+			//var solarNoonLst = (720.0 - 4 * longitude - eqOfTime + zone * 60.0) / 1440.0;
+			//var sunriseTimeLst = solarNoonLst - haSunRise * 4 / 1440.0;
+			//var sunsetTimeLst = solarNoonLst + haSunRise * 4 / 1440.0;
+			//var sunlightDurationMins = 8 * haSunRise; 
+			var trueSolarTime = PutInRange(dateTime.TimeOfDay.TotalMinutes + eqOfTime + 4 * longitude - 60 * zone, 1440);
+			var hourAngle = trueSolarTime / 4.0 < 0 ? trueSolarTime / 4.0 + 180 : trueSolarTime / 4.0 - 180;
+			var solarZenithAngle = RadToDeg(Math.Acos(Math.Sin(DegToRad(latitude)) * Math.Sin(DegToRad(sunDec)) + Math.Cos(DegToRad(latitude)) * Math.Cos(DegToRad(sunDec)) * Math.Cos(DegToRad(hourAngle))));
+			var solarElevation = 90 - solarZenithAngle;
+
+			double refraction;
+
+			if (solarElevation > 85)
+				refraction = 0;
+			else if (solarElevation > 5)
+				refraction = 58.1 / Math.Tan(DegToRad(solarElevation)) - 0.07 / Math.Pow(Math.Tan(DegToRad(solarElevation)), 3) + 0.000086 / Math.Pow(Math.Tan(DegToRad(solarElevation)), 5);
+			else if (solarElevation > -0.575)
+				refraction = 1735.0 + solarElevation * (-518.2 + solarElevation * (103.4 + solarElevation * (-12.79 + solarElevation * 0.711)));
+			else
+				refraction  = -20.772 / Math.Tan(DegToRad(solarElevation));
+
+			altitude = solarElevation + refraction / 3600.0;
+
+			if (hourAngle > 0)
+				azimuth = PutIn360Deg(DegToRad(Math.Acos(((Math.Sin(DegToRad(latitude)) * Math.Cos(DegToRad(solarZenithAngle))) - Math.Sin(DegToRad(sunDec))) / (Math.Sin(DegToRad(latitude)) * Math.Sin(DegToRad(solarZenithAngle))))) + 180);
+			else
+				azimuth = PutIn360Deg(540 - DegToRad(Math.Acos(((Math.Sin(DegToRad(latitude)) * Math.Cos(DegToRad(solarZenithAngle))) - Math.Sin(DegToRad(sunDec))) / (Math.Cos(DegToRad(latitude)) * Math.Sin(DegToRad(solarZenithAngle))))));
+
+		}
+
+
+		#endregion
+
+
+		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
+		#region sun-position-in-c
+
+		/*
+		public static void CalculateSunPosition(DateTime dateTime, double latitude, double longitude, out double altitude, out double azimuth)
 		{
 			const double Deg2Rad = Math.PI / 180.0;
 			const double Rad2Deg = 180.0 / Math.PI;
@@ -130,7 +598,7 @@ namespace CumulusMX
 			double siderealTime = siderealTimeUT * 15 + longitude;
 
 			// Refine to number of days (fractional) to specific time.
-			julianDate += dateTime.TimeOfDay.TotalHours / 24.0;
+			julianDate += dateTime.TimeOfDay.TotalDays;
 			julianCenturies = julianDate / 36525.0;
 
 			// Solar Coordinates
@@ -164,9 +632,13 @@ namespace CumulusMX
 				hourAngle -= 2 * Math.PI;
 			}
 
-			altitude = Math.Asin(Math.Sin(latitude * Deg2Rad) *
-				Math.Sin(declination) + Math.Cos(latitude * Deg2Rad) *
-				Math.Cos(declination) * Math.Cos(hourAngle));
+			altitude = Math.Asin(
+				Math.Sin(latitude * Deg2Rad) *
+				Math.Sin(declination) +
+				Math.Cos(latitude * Deg2Rad) *
+				Math.Cos(declination) * 
+				Math.Cos(hourAngle)
+			);
 
 			// refraction correction
 			// work in degrees
@@ -185,10 +657,10 @@ namespace CumulusMX
 				}
 				else if (altitude > -0.575)
 				{
-					double step1 = (-12.79 + altitude * 0.711);
-					double step2 = (103.4 + altitude * (step1));
-					double step3 = (-518.2 + altitude * (step2));
-					refractionCorrection = 1735.0 + altitude * (step3);
+					double step1 = -12.79 + altitude * 0.711;
+					double step2 = 103.4 + altitude * step1;
+					double step3 = -518.2 + altitude * step2;
+					refractionCorrection = 1735.0 + altitude * step3;
 				}
 				else
 				{
@@ -217,17 +689,17 @@ namespace CumulusMX
 			}
 
 			azimuth *= Rad2Deg;
-			//altitude = altitude * Rad2Deg;
 		}
 
-		/*!
-		* \brief Corrects an angle.
-		*
-		* \param angleInRadians An angle expressed in radians.
-		* \return An angle in the range 0 to 2*PI.
-		 *
-		 * http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
-		*/
+
+		//
+		// \brief Corrects an angle.
+		//
+		// \param angleInRadians An angle expressed in radians.
+		// \return An angle in the range 0 to 2*PI.
+		//
+		// http://guideving.blogspot.co.uk/2010/08/sun-position-in-c.html
+		//
 
 		private static double CorrectAngle(double angleInRadians)
 		{
@@ -243,8 +715,12 @@ namespace CumulusMX
 
 			return angleInRadians;
 		}
+		*/
 
-		public static double CalcSunDistance(DateTime dDate, DateTime dEpoch)
+		#endregion
+
+
+		private static double CalcSunDistance(DateTime dDate, DateTime dEpoch)
 		{
 			const double fAcc = 0.0000001;
 			double fD = GetDaysBetween(dDate, dEpoch);
@@ -268,7 +744,7 @@ namespace CumulusMX
 			return fDistance/149597871.0;
 		}
 
-		public static double GetSunEarthEcc(DateTime dDate, bool b0Epoch)
+		private static double GetSunEarthEcc(DateTime dDate, bool b0Epoch)
 		{
 			//Returns the eccentricity of Earth's orbit around the sun for the specified date
 
@@ -283,7 +759,7 @@ namespace CumulusMX
 		}
 
 		/*
-		public static double GetEarthObliquity(DateTime dDate, bool b0Epoch)
+		private static double GetEarthObliquity(DateTime dDate, bool b0Epoch)
 		{
 			//Returns the obliquity of Earth's orbit around the sun for the specified date
 
@@ -300,7 +776,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public static double CalcEccentricAnomaly(double fEGuess, double fMA, double fEcc, double fAcc)
+		private static double CalcEccentricAnomaly(double fEGuess, double fMA, double fEcc, double fAcc)
 		{
 			//Calc Eccentric Anomaly to specified accuracy
 			double fE;
@@ -338,7 +814,7 @@ namespace CumulusMX
 			return (long) Math.Floor(fDays);
 		}
 
-		public static double GetJulianDay(DateTime dDate, int iZone)
+		private static double GetJulianDay(DateTime dDate, int iZone)
 		{
 			double iGreg;
 			double fC;
@@ -375,7 +851,7 @@ namespace CumulusMX
 			return fJD;
 		}
 
-		public static DateTime CalcUTFromZT(DateTime dDate, int iZone)
+		private static DateTime CalcUTFromZT(DateTime dDate, int iZone)
 		{
 			if (iZone >= 0)
 			{
@@ -385,7 +861,7 @@ namespace CumulusMX
 			return dDate.AddHours(Math.Abs(iZone));
 		}
 
-		public static double GetSolarMEL(DateTime dDate, bool b0Epoch)
+		private static double GetSolarMEL(DateTime dDate, bool b0Epoch)
 		{
 			//Returns the Sun's Mean Ecliptic Longitude for the specified date
 
@@ -401,7 +877,7 @@ namespace CumulusMX
 			return fLong;
 		}
 
-		public static double GetSolarPerigeeLong(DateTime dDate, bool b0Epoch)
+		private static double GetSolarPerigeeLong(DateTime dDate, bool b0Epoch)
 		{
 			//Returns the Sun's Perigee Longitude for the specified date
 
@@ -418,17 +894,20 @@ namespace CumulusMX
 			return fLong;
 		}
 
-		public static double PutIn360Deg(double pfDeg)
+		private static double PutIn360Deg(double pfDeg)
 		{
-			while (pfDeg >= 360)
-			{
-				pfDeg -= 360;
-			}
-			while (pfDeg < 0)
-			{
-				pfDeg += 360;
-			}
-			return pfDeg;
+			return PutInRange(pfDeg, 360);
+		}
+
+		private static double PutInRange(double val, double range)
+		{
+			while (val >= range)
+				val -= range;
+
+			while (val < 0)
+				val += range;
+
+			return val;
 		}
 
 		//public static int cSunrise = 1;

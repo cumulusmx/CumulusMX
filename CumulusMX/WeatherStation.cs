@@ -1619,9 +1619,10 @@ namespace CumulusMX
 		{
 			CheckForDataStopped();
 
+			CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+			
 			if (!DataStopped)
 			{
-				CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 				if (((Pressure > 0) && TempReadyToPlot && WindReadyToPlot) || cumulus.StationOptions.NoSensorCheck)
 				{
 					// increment wind run by one minute's worth of average speed
@@ -1677,7 +1678,7 @@ namespace CumulusMX
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 					DoTrendValues(now);
-					DoPressTrend("Pressure trend");
+					DoPressTrend("Enable Cumulus pressure trend");
 
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)

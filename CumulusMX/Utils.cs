@@ -127,16 +127,37 @@ namespace CumulusMX
 
 		public static IPAddress GetIpWithDefaultGateway()
 		{
-			return NetworkInterface
-				.GetAllNetworkInterfaces()
-				.Where(n => n.OperationalStatus == OperationalStatus.Up)
-				.Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-				.Where(n => n.GetIPProperties().GatewayAddresses.Count > 0)
-				.SelectMany(n => n.GetIPProperties().UnicastAddresses)
-				.Where(n => n.Address.AddressFamily == AddressFamily.InterNetwork)
-				.Where(n => n.IPv4Mask.ToString() != "0.0.0.0")
-				.Select(g => g.Address)
-				.First();
+			try
+			{
+				// First try and find the IPv4 address that also has the default gateway
+				return NetworkInterface
+					.GetAllNetworkInterfaces()
+					.Where(n => n.OperationalStatus == OperationalStatus.Up)
+					.Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+					.Where(n => n.GetIPProperties().GatewayAddresses.Count > 0)
+					.SelectMany(n => n.GetIPProperties().UnicastAddresses)
+					.Where(n => n.Address.AddressFamily == AddressFamily.InterNetwork)
+					.Where(n => n.IPv4Mask.ToString() != "0.0.0.0")
+					.Select(g => g.Address)
+					.First();
+			}
+			catch {}
+			try
+			{
+				// next just return the first IPv4 address found
+				var host = Dns.GetHostEntry(Dns.GetHostName());
+				foreach (var ip in host.AddressList)
+				{
+					if (ip.AddressFamily == AddressFamily.InterNetwork)
+					{
+						return ip;
+					}
+				}
+			}
+			catch {}
+
+			// finally, give up and just return a 0.0.0.0 IP!
+			return IPAddress.Any;
 		}
 	}
 }
