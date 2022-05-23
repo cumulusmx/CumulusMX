@@ -12,7 +12,7 @@ namespace CumulusMX
 	internal class DataEditor
 	{
 		private WeatherStation station;
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 		private WebTags webtags;
 
 		private readonly List<LastHourRainLog> hourRainLog = new List<LastHourRainLog>();
@@ -1758,7 +1758,7 @@ namespace CumulusMX
 			var isDryNow = false;
 			var thisDateDry = DateTime.MinValue;
 			var thisDateWet = DateTime.MinValue;
-			var monthOffset = 0;
+			int monthOffset;
 			var firstEntry = true;
 
 			var json = new StringBuilder("{", 25500);
