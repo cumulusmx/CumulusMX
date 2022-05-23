@@ -36,9 +36,9 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
 				var stTime = cumulus.LastUpdateTime;
@@ -61,7 +61,7 @@ namespace CumulusMX
 					te = te.InnerException;
 				}
 			}
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
 			StartLoop();
 		}
@@ -165,7 +165,7 @@ namespace CumulusMX
 				DoApparentTemp(timestamp);
 				DoFeelsLike(timestamp);
 				DoHumidex(timestamp);
-
+				DoCloudBaseHeatIndex(timestamp);
 
 				DoUV((double) historydata.UV, timestamp);
 
@@ -309,6 +309,8 @@ namespace CumulusMX
 						DoFeelsLike(ts);
 						DoWindChill(userTemp,ts);
 						DoHumidex(ts);
+						DoCloudBaseHeatIndex(ts);
+
 						UpdateStatusPanel(ts);
 						UpdateMQTT();
 						DoForecast(string.Empty, false);
@@ -746,10 +748,7 @@ namespace CumulusMX.Tempest
 				if (!int.TryParse(packet.firmware_revision.ToString(), out var i)) i = -1;
 				FirmwareRevision = i;
 			}
-			catch (Exception e)
-			{
-				var ex = e.Message;
-			}
+			catch {}
 
 			RSSI = packet.rssi;
 			HubRSSI = packet.hub_rssi;
@@ -858,10 +857,7 @@ namespace CumulusMX.Tempest
 				if (!int.TryParse(packet.firmware_revision.ToString(), out i)) i = -1;
 				FirmwareRevision = i;
 			}
-			catch (Exception e)
-			{
-				var ex = e.Message;
-			}
+			catch {}
 
 			if (packet.obs[0].Length >= 18)
 			{

@@ -27,22 +27,21 @@ namespace CumulusMX
 
 		private int maxArchiveRuns = 1;
 
-		private TcpClient socket;
-		private NetworkStream stream;
 		private bool connectedOk = false;
 		private bool dataReceived = false;
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
 
-		private CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 		private CancellationToken cancellationToken;
 
-		private Task historyTask;
+		private readonly Task historyTask;
 		private Task liveTask;
 
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private readonly Version fwVersion;
+		private readonly string gatewayType;
 
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
@@ -54,8 +53,12 @@ namespace CumulusMX
 			// GW1000 does not provide 10 min average wind speeds
 			cumulus.StationOptions.UseWind10MinAvg = true;
 
+			// GW1000 does not provide an interval gust value, it gives us a 30 second high
+			// so force using the wind speed for the average calculation
+			cumulus.StationOptions.UseSpeedForAvgCalc = true;
+
 			LightningTime = DateTime.MinValue;
-			LightningDistance = 999;
+			LightningDistance = -1.0;
 
 			tmrDataWatchdog = new System.Timers.Timer();
 
@@ -124,6 +127,7 @@ namespace CumulusMX
 						var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
 						if (fwString.Length > 1)
 						{
+							gatewayType = fwString[0];
 							fwVersion = new Version(fwString[1]);
 						}
 						else
@@ -249,9 +253,9 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			cumulus.LogDebugMessage("Lock: Station waiting for the lock");
+			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
-			cumulus.LogDebugMessage("Lock: Station has the lock");
+			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
@@ -279,7 +283,7 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogDebugMessage("Lock: Station releasing the lock");
+			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.syncInit.Release();
 
 			if (cancellationToken.IsCancellationRequested)
@@ -637,7 +641,7 @@ namespace CumulusMX
 						// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 8000 && updateRate != 8000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000} seconds to 8 seconds");
+							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
 							updateRate = 8000;
 						}
 						battV = data[battPos] * 0.02;
@@ -667,7 +671,7 @@ namespace CumulusMX
 						// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 4000 && updateRate != 4000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {updateRate/1000} seconds to 4 seconds");
+							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {(updateRate/1000):D} seconds to 4 seconds");
 							updateRate = 4000;
 						}
 						battV = data[battPos] * 0.02;
@@ -1173,8 +1177,9 @@ namespace CumulusMX
 
 					if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
 					{
-						//DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
+						DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
 
+						/*
 						// The protocol does not provide an average value
 						// so feed in current MX average
 						DoWind(windSpeedLast, windDirLast, WindAverage / cumulus.Calib.WindSpeed.Mult, dateTime);
@@ -1192,6 +1197,7 @@ namespace CumulusMX
 
 							RecentMaxGust = gustLastCal;
 						}
+						*/
 					}
 
 					if (rainLast > -999 && rainRateLast > -999)
@@ -1214,6 +1220,7 @@ namespace CumulusMX
 						DoApparentTemp(dateTime);
 						DoFeelsLike(dateTime);
 						DoHumidex(dateTime);
+						DoCloudBaseHeatIndex(dateTime);
 					}
 
 					DoForecast("", false);
@@ -1569,44 +1576,6 @@ namespace CumulusMX
 				Mac = new List<string>();
 			}
 		}
-
-		private bool ChecksumOk(byte[] data, int lengthBytes)
-		{
-			ushort size;
-
-			// general response 1 byte size         2 byte size
-			// 0   - 0xff - header                  0   - 0xff - header
-			// 1   - 0xff                           1   - 0xff
-			// 2   - command                        2   - command
-			// 3   - total size of response         3   - size1
-			// 4-X - data                           4   - size2
-			// X+1 - checksum                       5-X - data
-			//                                      X+1 - checksum
-
-			if (lengthBytes == 1)
-			{
-				size = (ushort)data[3];
-			}
-			else
-			{
-				size = GW1000Api.ConvertBigEndianUInt16(data, 3);
-			}
-
-			byte checksum = (byte)(data[2] + data[3]);
-			for (var i = 4; i <= size; i++)
-			{
-				checksum += data[i];
-			}
-
-			if (checksum != data[size + 1])
-			{
-				cumulus.LogMessage("Bad checksum");
-				return false;
-			}
-
-			return true;
-		}
-
 
 		private void DataTimeout(object source, ElapsedEventArgs e)
 		{

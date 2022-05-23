@@ -11,7 +11,7 @@ namespace CumulusMX
 {
 	internal class GW1000Api
 	{
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 		private NetworkStream stream;
 		private TcpClient socket;
 		private string ipAddress = null;
@@ -129,8 +129,6 @@ namespace CumulusMX
 			var buffer = new byte[2028];
 			var bytesRead = 0;
 			var cmdName = command.ToString();
-
-			var readBuffer = new byte[2028];
 
 			byte[] bytes;
 			if (data == null)

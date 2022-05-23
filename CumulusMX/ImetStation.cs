@@ -756,9 +756,11 @@ namespace CumulusMX
 							// Cause wind chill calc
 							DoWindChill(0, timestamp);
 
+							DoOutdoorDewpoint(0, timestamp);
 							DoApparentTemp(timestamp);
 							DoFeelsLike(timestamp);
 							DoHumidex(timestamp);
+							DoCloudBaseHeatIndex(timestamp);
 
 							// sunshine hours
 							if (sl[SUNPOS].Length > 0)
@@ -990,7 +992,10 @@ namespace CumulusMX
 
 				if (temp1 > -999 && humidity > -999)
 				{
+					DoOutdoorDewpoint(0, now);
 					DoHumidex(now);
+					DoCloudBaseHeatIndex(now);
+
 					if (windspeed > -999)
 					{
 						DoApparentTemp(now);

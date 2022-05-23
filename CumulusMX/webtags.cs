@@ -3890,12 +3890,12 @@ namespace CumulusMX
 
 		private string TagLightningDistance(Dictionary<string, string> tagParams)
 		{
-			return station.LightningDistance == 999 ? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
+			return station.LightningDistance == -1 ? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagLightningTime(Dictionary<string, string> tagParams)
 		{
-			return DateTime.Compare(station.LightningTime, new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)) == 0 ? "---" : GetFormattedDateTime(station.LightningTime, "t", tagParams);
+			return DateTime.Equals(station.LightningTime, DateTime.MinValue) ? "---" : GetFormattedDateTime(station.LightningTime, "t", tagParams);
 		}
 
 		private string TagLightningStrikesToday(Dictionary<string, string> tagParams)

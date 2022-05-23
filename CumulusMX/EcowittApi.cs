@@ -85,8 +85,8 @@ namespace CumulusMX
 			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
 			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
 			sb.Append($"&mac={cumulus.EcowittMacAddress}");
-			sb.Append($"&start_date={apiStartDate.ToString("yyyy-MM-dd'%20'HH:mm:ss")}");
-			sb.Append($"&end_date={apiEndDate.ToString("yyyy-MM-dd'%20'HH:mm:ss")}");
+			sb.Append($"&start_date={apiStartDate:yyyy-MM-dd'%20'HH:mm:ss}");
+			sb.Append($"&end_date={apiEndDate:yyyy-MM-dd'%20'HH:mm:ss}");
 
 			// Request the data in the correct units
 			sb.Append($"&temp_unitid={cumulus.Units.Temp + 1}"); // 1=C, 2=F
@@ -182,7 +182,7 @@ namespace CumulusMX
 
 			var url = sb.ToString();
 
-			var msg = $"Processing history data from {startTime.ToString("yyyy-MM-dd HH:mm")} to {endTime.AddMinutes(5).ToString("yyyy-MM-dd HH:mm")}...";
+			var msg = $"Processing history data from {startTime:yyyy-MM-dd HH:mm} to {endTime.AddMinutes(5):yyyy-MM-dd HH:mm}...";
 			cumulus.LogMessage($"API.GetHistoricData: " + msg);
 			cumulus.LogConsoleMessage(msg);
 
@@ -260,8 +260,10 @@ namespace CumulusMX
 
 								// have we reached the retry limit?
 								if (--retries <= 0)
+								{
 									cumulus.LastUpdateTime = endTime;
-								return false;
+									return false;
+								}
 
 								cumulus.LogMessage("API.GetHistoricData: System Busy or Rate Limited, waiting 5 secs before retry...");
 								System.Threading.Thread.Sleep(5000);
@@ -415,6 +417,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// Dewpoint
 					if (data.outdoor.dew_point != null && data.outdoor.dew_point.list != null)
 					{
@@ -493,6 +496,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// Direction
 					if (data.wind.wind_direction != null && data.wind.wind_direction.list != null)
 					{
@@ -688,6 +692,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// uvi
 					if (data.solar_and_uvi.uvi != null && data.solar_and_uvi.uvi.list != null)
 					{
@@ -802,6 +807,7 @@ namespace CumulusMX
 								}
 							}
 						}
+						
 						// humidity
 						if (srcTH.humidity != null && srcTH.humidity.list != null)
 						{
@@ -949,6 +955,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// 24 Avg
 					if (data.indoor_co2.average24h != null && data.indoor_co2.average24h.list != null)
 					{
@@ -1004,6 +1011,7 @@ namespace CumulusMX
 							}
 						}
 					}
+					
 					// 24 Avg
 					if (data.co2_aqi_combo.average24h != null && data.co2_aqi_combo.average24h.list != null)
 					{
@@ -1186,11 +1194,13 @@ namespace CumulusMX
 				ApplyHistoricData(rec);
 
 				// add in archive period worth of sunshine, if sunny
-				if (station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+				if (station.CurrentSolarMax > 0 &&
+					station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
 					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
 					station.SunshineHours += 5 / 60.0;
+					cumulus.LogDebugMessage("Adding 5 minutes to Sunshine Hours");
 				}
 
 
@@ -1239,6 +1249,9 @@ namespace CumulusMX
 		private void ApplyHistoricData(KeyValuePair<DateTime, EcowittApi.HistoricData> rec)
 		{
 			// === Wind ==
+			// WindGust = max for period
+			// WindSpd = avg for period
+			// WindDir = avg for period
 			try
 			{
 				if (rec.Value.WindGust.HasValue && rec.Value.WindSpd.HasValue && rec.Value.WindDir.HasValue)
@@ -1247,24 +1260,8 @@ namespace CumulusMX
 					var spdVal = (double)rec.Value.WindSpd;
 					var dirVal = (int)rec.Value.WindDir.Value;
 
-					// The protocol does not provide an average value
-					// so feed in current MX average
-					station.DoWind(spdVal, dirVal, station.WindAverage / cumulus.Calib.WindSpeed.Mult, rec.Key);
+					station.DoWind(gustVal, dirVal, spdVal, rec.Key);
 
-					var gustLastCal = gustVal * cumulus.Calib.WindGust.Mult;
-					if (gustLastCal > station.RecentMaxGust)
-					{
-						cumulus.LogDebugMessage("Setting max gust from current value: " + gustLastCal.ToString(cumulus.WindFormat));
-						station.CheckHighGust(gustLastCal, dirVal, rec.Key);
-
-						// add to recent values so normal calculation includes this value
-						station.WindRecent[station.nextwind].Gust = gustVal; // use uncalibrated value
-						station.WindRecent[station.nextwind].Speed = station.WindAverage / cumulus.Calib.WindSpeed.Mult;
-						station.WindRecent[station.nextwind].Timestamp = rec.Key;
-						station.nextwind = (station.nextwind + 1) % WeatherStation.MaxWindRecent;
-
-						station.RecentMaxGust = gustLastCal;
-					}
 				}
 			}
 			catch (Exception ex)
@@ -1273,6 +1270,7 @@ namespace CumulusMX
 			}
 
 			// === Humidity ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.IndoorHum.HasValue)
@@ -1291,6 +1289,7 @@ namespace CumulusMX
 			}
 
 			// === Pressure ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.Pressure.HasValue)
@@ -1306,6 +1305,7 @@ namespace CumulusMX
 			}
 
 			// === Indoor temp ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.IndoorTemp.HasValue)
@@ -1320,6 +1320,7 @@ namespace CumulusMX
 			}
 
 			// === Outdoor temp ===
+			// = avg for period
 			try
 			{
 				if (rec.Value.Temp.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
@@ -1362,6 +1363,7 @@ namespace CumulusMX
 			}
 
 			// === Solar ===
+			// = max for period
 			try
 			{
 				if (rec.Value.Solar.HasValue)
@@ -1375,6 +1377,7 @@ namespace CumulusMX
 			}
 
 			// === UVI ===
+			// = max for period
 			try
 			{
 				if (rec.Value.UVI.HasValue)
@@ -1572,6 +1575,7 @@ namespace CumulusMX
 			try
 			{
 				station.DoHumidex(rec.Key);
+				station.DoCloudBaseHeatIndex(rec.Key);
 
 				// === Apparent & Feels Like === - requires temp, hum, and windspeed
 				if (rec.Value.WindSpd.HasValue)

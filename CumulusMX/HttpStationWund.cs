@@ -317,6 +317,7 @@ namespace CumulusMX
 				if (data["tempf"] != null && data["humidity"] != null && data["tempf"] != "-9999" && data["humidity"] != "-9999")
 				{
 					DoHumidex(recDate);
+					DoCloudBaseHeatIndex(recDate);
 				}
 				else
 				{

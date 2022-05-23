@@ -28,6 +28,7 @@ namespace CumulusMX
 			// Build the settings data, convert to JSON, and return it
 			var optionsAdv = new JsonStationSettingsOptionsAdvanced()
 			{
+				usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
 				avgbearingmins = cumulus.StationOptions.AvgBearingMinutes,
 				avgspeedmins = cumulus.StationOptions.AvgSpeedMinutes,
 				peakgustmins = cumulus.StationOptions.PeakGustMinutes,
@@ -41,7 +42,6 @@ namespace CumulusMX
 			{
 				usezerobearing = cumulus.StationOptions.UseZeroBearing,
 				calcwindaverage = cumulus.StationOptions.UseWind10MinAvg,
-				usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
 				use100for98hum = cumulus.StationOptions.Humidity98Fix,
 				calculatedewpoint = cumulus.StationOptions.CalculatedDP,
 				calculatewindchill = cumulus.StationOptions.CalculatedWC,
@@ -743,7 +743,6 @@ namespace CumulusMX
 				{
 					cumulus.StationOptions.UseZeroBearing = settings.Options.usezerobearing;
 					cumulus.StationOptions.UseWind10MinAvg = settings.Options.calcwindaverage;
-					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.usespeedforavg;
 					cumulus.StationOptions.Humidity98Fix = settings.Options.use100for98hum;
 					cumulus.StationOptions.CalculatedDP = settings.Options.calculatedewpoint;
 					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
@@ -754,6 +753,7 @@ namespace CumulusMX
 					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
 					cumulus.StationOptions.NoSensorCheck = settings.Options.nosensorcheck;
 
+					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.advanced.usespeedforavg;
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
 					cumulus.StationOptions.AvgSpeedMinutes = settings.Options.advanced.avgspeedmins;
 					cumulus.StationOptions.PeakGustMinutes = settings.Options.advanced.peakgustmins;
@@ -1553,6 +1553,7 @@ namespace CumulusMX
 
 	internal class JsonStationSettingsOptionsAdvanced
 	{
+		public bool usespeedforavg { get; set; }
 		public int avgbearingmins { get; set; }
 		public int avgspeedmins { get; set; }
 		public int peakgustmins { get; set; }
@@ -1566,7 +1567,6 @@ namespace CumulusMX
 	{
 		public bool usezerobearing { get; set; }
 		public bool calcwindaverage { get; set; }
-		public bool usespeedforavg { get; set; }
 		public bool use100for98hum { get; set; }
 		public bool calculatedewpoint { get; set; }
 		public bool calculatewindchill { get; set; }

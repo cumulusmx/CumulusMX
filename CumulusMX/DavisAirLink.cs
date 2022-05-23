@@ -16,10 +16,10 @@ namespace CumulusMX
 {
 	internal class DavisAirLink
 	{
-		private Cumulus cumulus;
-		private WeatherStation station;
+		private readonly Cumulus cumulus;
+		private readonly WeatherStation station;
 
-		private string ipaddr;
+		private readonly string ipaddr;
 		private readonly System.Timers.Timer tmrCurrent;
 		private System.Timers.Timer tmrHealth;
 		private readonly object threadSafer = new object();
@@ -42,7 +42,7 @@ namespace CumulusMX
 		private readonly bool standaloneHistory; // Used to flag if we need to get history data on catch-up
 		private DateTime airLinkLastUpdateTime;
 
-		private DiscoveredDevices discovered = new DiscoveredDevices();
+		private readonly DiscoveredDevices discovered = new DiscoveredDevices();
 
 		public DavisAirLink(Cumulus cumulus, bool indoor, WeatherStation station)
 		{
@@ -312,9 +312,9 @@ namespace CumulusMX
 
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Waiting for lock");
+				//cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Waiting for lock");
 				WebReq.Wait();
-				cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Has the lock");
+				//cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Has the lock");
 
 				// The AL will error if already responding to a request from another device, so add a retry
 				do
@@ -356,7 +356,7 @@ namespace CumulusMX
 					}
 				} while (retry < 3);
 
-				cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Releasing lock");
+				//cumulus.LogDebugMessage($"GetAlCurrent: {locationStr} - Releasing lock");
 				WebReq.Release();
 			}
 			else

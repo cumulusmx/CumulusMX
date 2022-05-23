@@ -368,6 +368,7 @@ namespace CumulusMX
 					if (data["tempf"] != null && data["humidity"] != null)
 					{
 						DoHumidex(recDate);
+						DoCloudBaseHeatIndex(recDate);
 
 						// === Apparent === - requires temp, hum, and windspeed
 						if (data["windspeedmph"] != null)
@@ -691,22 +692,23 @@ namespace CumulusMX
 			}
 		}
 
+
+		/*
+		 * Not yet used
 		private void ProcessCo2(NameValueCollection data, WeatherStation station)
 		{
 			// co2 - [int, ppm]
 			// co2_in - [int, ppm]
 			// co2_in_24h - [float, ppm]
 
-			/*
-			if (data["co2_in"] != null)
-			{
-				station.CO2 = Convert.ToInt32(data["co2_in"], CultureInfo.InvariantCulture);
-			}
-			if (data["co2_in_24"] != null)
-			{
-				station.CO2_24h = Convert.ToInt32(data["co2_in_24"], CultureInfo.InvariantCulture);
-			}
-			*/
+			//if (data["co2_in"] != null)
+			//{
+			//	station.CO2 = Convert.ToInt32(data["co2_in"], CultureInfo.InvariantCulture);
+			//}
+			//if (data["co2_in_24"] != null)
+			//{
+			//	station.CO2_24h = Convert.ToInt32(data["co2_in_24"], CultureInfo.InvariantCulture);
+			//}
 
 			// From FOSKplugin
 			// co2lvl
@@ -737,6 +739,7 @@ namespace CumulusMX
 				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_AQIlvl_24h_co2"], CultureInfo.InvariantCulture);
 			}
 		}
+		*/
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)
 		{
