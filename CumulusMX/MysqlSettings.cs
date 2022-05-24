@@ -3,7 +3,7 @@ using System.IO;
 using System.Net;
 using MySqlConnector;
 using ServiceStack;
-using Unosquare.Labs.EmbedIO;
+using EmbedIO;
 
 namespace CumulusMX
 {
@@ -94,8 +94,7 @@ namespace CumulusMX
 			return data.ToJson();
 		}
 
-		//public object UpdateMysqlConfig(HttpListenerContext context)
-		public object UpdateConfig(IHttpContext context)
+		public string UpdateConfig(IHttpContext context)
 		{
 			string json = "";
 			JsonMysqlSettings settings;

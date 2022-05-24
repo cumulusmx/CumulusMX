@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 using System.Net;
-using Unosquare.Labs.EmbedIO;
+using EmbedIO;
 
 namespace CumulusMX
 {

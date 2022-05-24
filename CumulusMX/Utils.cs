@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using Unosquare.Swan;
+using Swan;
 
 // A rag tag of useful functions
 

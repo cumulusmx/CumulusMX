@@ -1,5 +1,5 @@
 ﻿using System;
-using Unosquare.Labs.EmbedIO;
+using EmbedIO;
 using System.Globalization;
 
 namespace CumulusMX

@@ -1501,7 +1501,7 @@ namespace CumulusMX
 
 				stream.Position = 0;
 
-				WebSocket.SendMessage(new StreamReader(stream).ReadToEnd());
+				cumulus.WebSock.SendMessage(new StreamReader(stream).ReadToEnd());
 
 				// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
 				Thread.Sleep(500);

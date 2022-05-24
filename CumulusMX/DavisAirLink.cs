@@ -9,7 +9,7 @@ using System.Net;
 using System.ComponentModel;
 using System.Collections.Generic;
 using ServiceStack;
-using Unosquare.Swan;
+using Swan;
 using System.Threading.Tasks;
 
 namespace CumulusMX
