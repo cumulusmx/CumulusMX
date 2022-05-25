@@ -36,5 +36,9 @@ namespace CumulusMX
 		{
 			BroadcastAsync(message).Wait();
 		}
+
+		public int ConnectedClients {
+			get { return this.ActiveContexts.Count; }
+		}
 	}
 }

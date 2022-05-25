@@ -8299,7 +8299,7 @@ namespace CumulusMX
 								if ((uploadfile.Length > 0) &&
 									(remotefile.Length > 0) &&
 									!ExtraFiles[i].realtime &&
-									(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
+									(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either: It's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
 									ExtraFiles[i].FTP)
 								{
 									// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
@@ -8529,8 +8529,6 @@ namespace CumulusMX
 						}
 
 						// Extra files
-						LogFtpDebugMessage("FTP[Int]: Uploading Extra files");
-						var cnt = 0;
 						for (int i = 0; i < numextrafiles; i++)
 						{
 							var uploadfile = ExtraFiles[i].local;
@@ -8549,8 +8547,9 @@ namespace CumulusMX
 
 								if (File.Exists(uploadfile))
 								{
-									cnt++;
 									remotefile = GetRemoteFileName(remotefile, logDay);
+
+									LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
 
 									// all checks OK, file needs to be uploaded
 									if (ExtraFiles[i].process)
@@ -8578,19 +8577,17 @@ namespace CumulusMX
 						{
 							EODfilesNeedFTP = false;
 						}
-						LogFtpDebugMessage($"FTP[Int]: Uploaded {cnt} Extra files");
 
 						// standard files
-						LogFtpDebugMessage("FTP[Int]: Uploading standard Data file");
-						cnt = 0;
 						for (int i = 0; i < StdWebFiles.Length; i++)
 						{
 							if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
 							{
 								try
 								{
-									cnt++;
 									var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+									LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile);
+
 									UploadFile(conn, localfile, remotePath + StdWebFiles[i].RemoteFileName);
 								}
 								catch (Exception e)
@@ -8599,19 +8596,16 @@ namespace CumulusMX
 								}
 							}
 						}
-						LogFtpMessage($"Done uploading {cnt} standard Data file");
 
-						LogFtpDebugMessage("FTP[Int]: Uploading graph data files");
-						cnt = 0;
 						for (int i = 0; i < GraphDataFiles.Length; i++)
 						{
 							if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
 							{
 								try
 								{
-									cnt++;
 									var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
 									var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+									LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile);
 									UploadFile(conn, localfile, remotefile);
 								}
 								catch (Exception e)
@@ -8621,19 +8615,17 @@ namespace CumulusMX
 								}
 							}
 						}
-						LogFtpMessage($"Done uploading {cnt} graph data files");
 
-						LogFtpMessage("FTP[Int]: Uploading daily graph data files");
-						cnt = 0;
 						for (int i = 0; i < GraphDataEodFiles.Length; i++)
 						{
 							if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 							{
-								cnt++;
 								var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
 								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 								try
 								{
+									LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile);
+
 									UploadFile(conn, localfile, remotefile, -1);
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[i].FtpRequired = false;
@@ -8645,7 +8637,6 @@ namespace CumulusMX
 								}
 							}
 						}
-						LogFtpMessage($"FTP[Int]: Done uploading {cnt} daily graph data files");
 
 						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 						{
@@ -8704,34 +8695,13 @@ namespace CumulusMX
 
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
 
-				using (Stream ostream = conn.OpenWrite(remotefilename))
-				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				var status = conn.UploadFile(localfile, remotefilename);
+
+				if (status.IsFailure())
 				{
-					try
-					{
-						var buffer = new byte[4096];
-						int read;
-						while ((read = istream.Read(buffer, 0, buffer.Length)) > 0)
-						{
-							ostream.Write(buffer, 0, read);
-						}
-
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Uploaded {localfile}");
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefilename} : {ex.Message}");
-						return conn.IsConnected;
-					}
-					finally
-					{
-						ostream.Close();
-						istream.Close();
-						conn.GetReply();
-					}
+					LogMessage($"FTP[{cycleStr}]: Upload of {localfile} to {remotefile} failed");
 				}
-
-				if (FTPRename)
+				else if (FTPRename)
 				{
 					// rename the file
 					LogFtpDebugMessage($"FTP[{cycleStr}]: Renaming {remotefilename} to {remotefile}");

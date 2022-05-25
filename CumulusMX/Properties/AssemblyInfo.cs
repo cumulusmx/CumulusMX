@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Cumulus MX")]
-[assembly: AssemblyDescription("Version 3.17.1 - Build 3185")]
+[assembly: AssemblyDescription("Version 3.17.1 - Build 3185 -BETA")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Cumulus MX")]
+[assembly: AssemblyProduct("Cumulus MX - BETA")]
 [assembly: AssemblyCopyright("Copyright ©  2015-2022 Cumulus MX")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -1,3 +1,10 @@
+3.17.1 - b3185
+——————————————
+- Fix: Adds Ecowitt Wh40 battery state decode
+
+- Change: Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
+
+
 3.17.0 - b3184
 ——————————————
 - Fix: Cloud base being set to large value at start-up
