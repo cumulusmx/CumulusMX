@@ -1,6 +1,7 @@
 3.17.1 - b3185
 ——————————————
 - Fix: Adds Ecowitt Wh40 battery state decode
+- Fix: Some of the lack of accessibility on the records editors and WeatherDiary
 
 - Change: Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
 
