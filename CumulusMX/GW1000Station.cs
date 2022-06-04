@@ -633,8 +633,16 @@ namespace CumulusMX
 						if (battV > 2)
 						{
 							battV /= 10;
+							batt = $"{battV:f2}V ({TestBatteryWh40(data[battPos], battV)})"; // low = 1.2V
 						}
-						batt = $"{battV:f2}V ({TestBatteryWh40(data[battPos], battV)})"; // low = 1.2V
+						else
+						{
+							batt = $"{battV:f2}V ({TestBatteryWh40(data[battPos], battV)})"; // low = 1.2V
+							if (battV == 1.6)
+							{
+								batt += " dummy value?";
+							}
+						}
 						break;
 
 					case "WH65":

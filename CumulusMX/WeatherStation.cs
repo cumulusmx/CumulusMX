@@ -3607,7 +3607,7 @@ namespace CumulusMX
 
 			// Has the rain total in the station been reset?
 			// raindaystart greater than current total, allow for rounding
-			if (raindaystart - Raincounter > 0.1)
+			if (raindaystart - Raincounter > raintipthreshold)
 			{
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value
