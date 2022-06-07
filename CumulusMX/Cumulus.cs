@@ -752,7 +752,7 @@ namespace CumulusMX
 			"HTTP Ecowitt",					// 14
 			"HTTP Ambient",					// 15
 			"WeatherFlow Tempest",			// 16
-			"Simulator"
+			"Simulator"						// 17
 		};
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul" };
