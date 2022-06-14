@@ -4307,7 +4307,7 @@ namespace CumulusMX
 				HiLoToday.HighSolar = SolarRad;
 				HiLoToday.HighSolarTime = timestamp;
 			}
-			CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+			//CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 
 			if (!cumulus.SolarOptions.UseBlakeLarsen)
 			{
