@@ -863,6 +863,7 @@ namespace CumulusMX
 			TodayIniFile = Datapath + "today.ini";
 			MonthIniFile = Datapath + "month.ini";
 			YearIniFile = Datapath + "year.ini";
+
 			//stringsFile = "strings.ini";
 
 			// Set the default upload intervals for web services
@@ -1264,13 +1265,41 @@ namespace CumulusMX
 
 			// Open database (create file if it doesn't exist)
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-			//LogDB = new SQLiteConnection(dbfile, flags)
-			//LogDB.CreateTable<StandardData>();
 
 			// Open diary database (create file if it doesn't exist)
 			//DiaryDB = new SQLiteConnection(diaryfile, flags, true);  // We should be using this - storing datetime as ticks, but historically string storage has been used, so we are stuck with it?
 			DiaryDB = new SQLiteConnection(diaryfile, flags);
 			DiaryDB.CreateTable<DiaryData>();
+
+			try
+			{
+				// clean-up the diary db, change any entries to use date+time to just use date
+				// first see if there will be any days with more than one record
+				var duplicates = DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
+				if (duplicates.Count > 0)
+				{
+					LogConsoleMessage($"WARNING: Duplicate entries ({duplicates.Count}) found in your Weather Diary database - please see log file for details");
+					LogMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...");
+
+					foreach (var rec in duplicates)
+					{
+						LogMessage($"  Date: {rec.Timestamp.Date}, Falling: {rec.snowFalling}, Lying: {rec.snowLying}, Depth: {rec.snowDepth}, Entry: '{rec.entry}'");
+					}
+
+					// Remove the duplicates, leave the latest, remove the oldest
+					var deleted = DiaryDB.Execute("DELETE FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
+					if (deleted > 0)
+					{
+						LogMessage($"{deleted} duplicate records deleted from the weather diary database");
+					}
+				}
+				// Now reset the now unique-by-day records to have a time of 00:00:00
+				DiaryDB.Execute("UPDATE DiaryData SET Timestamp = datetime(date(TimeStamp)) WHERE time(Timestamp) <> '00:00:00'");
+			}
+			catch (Exception ex)
+			{
+				LogErrorMessage("Error cleaning up the Diary DB, exception = " + ex.Message);
+			}
 
 			BackupData(false, DateTime.Now);
 

@@ -258,7 +258,6 @@ namespace CumulusMX
 			public DateTime HighSolarTime;
 			public double HighUv;
 			public DateTime HighUvTime;
-
 		};
 
 		// today highs and lows
@@ -297,6 +296,19 @@ namespace CumulusMX
 			LowHumidity = 100
 		};
 
+		// todays midnight highs and lows
+		public DailyHighLow HiLoTodayMidnight = new DailyHighLow()
+		{
+			HighTemp = -500,
+			LowTemp = 999
+		};
+
+		// todays midnight highs and lows
+		public DailyHighLow HiLoYestMidnight = new DailyHighLow()
+		{
+			HighTemp = -500,
+			LowTemp = 999
+		};
 
 		public int IndoorBattStatus;
 		public int WindBattStatus;
@@ -643,6 +655,11 @@ namespace CumulusMX
 			CoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			GrowingDegreeDaysThisYear1 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear1", 0.0);
 			GrowingDegreeDaysThisYear2 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear2", 0.0);
+			// Temperature midnight rollover
+			HiLoTodayMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 999.0);
+			HiLoTodayMidnight.LowTempTime = ini.GetValue("TempMidnight", "LTime", new DateTime(CurrentYear, CurrentMonth, CurrentDay));
+			HiLoTodayMidnight.HighTemp = ini.GetValue("TempMidnight", "High", -999.0);
+			HiLoTodayMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", new DateTime(CurrentYear, CurrentMonth, CurrentDay));
 			// PressureHighDewpoint
 			HiLoToday.LowPress = ini.GetValue("Pressure", "Low", 9999.0);
 			HiLoToday.LowPressTime = ini.GetValue("Pressure", "LTime", new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0));
@@ -741,6 +758,11 @@ namespace CumulusMX
 				ini.SetValue("Temp", "CoolingDegreeDays", CoolingDegreeDays);
 				ini.SetValue("Temp", "GrowingDegreeDaysThisYear1", GrowingDegreeDaysThisYear1);
 				ini.SetValue("Temp", "GrowingDegreeDaysThisYear2", GrowingDegreeDaysThisYear2);
+				// Temperature midnight rollover
+				ini.SetValue("TempMidnight", "Low", HiLoTodayMidnight.LowTemp);
+				ini.SetValue("TempMidnight", "LTime", HiLoTodayMidnight.LowTempTime);
+				ini.SetValue("TempMidnight", "High", HiLoTodayMidnight.HighTemp);
+				ini.SetValue("TempMidnight", "HTime", HiLoTodayMidnight.HighTempTime);
 				// Pressure
 				ini.SetValue("Pressure", "Low", HiLoToday.LowPress);
 				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime.ToString("HH:mm"));
@@ -838,6 +860,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Error writing today.ini: " + ex.Message);
 			}
 		}
+
 
 		/// <summary>
 		/// calculate the start of today in UTC
@@ -1930,6 +1953,7 @@ namespace CumulusMX
 			if (now.Hour == 0)
 			{
 				ResetSunshineHours();
+				ResetMidnightTemperatures();
 			}
 
 			RemoveOldRecentData(now);
@@ -2813,6 +2837,19 @@ namespace CumulusMX
 			WriteYesterdayFile();
 		}
 
+		public void ResetMidnightTemperatures() // called at midnight irrespective of roll-over time
+		{
+			HiLoYestMidnight.LowTemp = HiLoTodayMidnight.LowTemp;
+			HiLoYestMidnight.HighTemp = HiLoTodayMidnight.HighTemp;
+			HiLoYestMidnight.LowTempTime = HiLoTodayMidnight.LowTempTime;
+			HiLoYestMidnight.HighTempTime = HiLoTodayMidnight.HighTempTime;
+
+			HiLoTodayMidnight.LowTemp = 999;
+			HiLoTodayMidnight.HighTemp = -999;
+
+			WriteYesterdayFile();
+		}
+
 		/*
 		private void RecalcSolarFactor(DateTime now) // called at midnight irrespective of roll-over time
 		{
@@ -3016,6 +3053,20 @@ namespace CumulusMX
 			{
 				HiLoToday.LowTemp = OutdoorTemperature;
 				HiLoToday.LowTempTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+
+			if (OutdoorTemperature > HiLoTodayMidnight.HighTemp)
+			{
+				HiLoTodayMidnight.HighTemp = OutdoorTemperature;
+				HiLoTodayMidnight.HighTempTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+
+			if (OutdoorTemperature < HiLoTodayMidnight.LowTemp)
+			{
+				HiLoTodayMidnight.LowTemp = OutdoorTemperature;
+				HiLoTodayMidnight.LowTempTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -4485,6 +4536,11 @@ namespace CumulusMX
 			ini.SetValue("Temp", "HeatingDegreeDays", YestHeatingDegreeDays);
 			ini.SetValue("Temp", "CoolingDegreeDays", YestCoolingDegreeDays);
 			ini.SetValue("Temp", "AvgTemp", YestAvgTemp);
+			// Temperature midnight
+			ini.SetValue("TempMidnight", "Low", HiLoYestMidnight.LowTemp);
+			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime.ToString("HH:mm"));
+			ini.SetValue("TempMidnight", "High", HiLoYestMidnight.HighTemp);
+			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime.ToString("HH:mm"));
 			// Pressure
 			ini.SetValue("Pressure", "Low", HiLoYest.LowPress);
 			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime.ToString("HH:mm"));
@@ -4563,6 +4619,11 @@ namespace CumulusMX
 			YestCoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			YestAvgTemp = ini.GetValue("Temp", "AvgTemp", 0.0);
 			HiLoYest.TempRange = HiLoYest.HighTemp - HiLoYest.LowTemp;
+			// Temperature midnight
+			HiLoYestMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 0.0);
+			HiLoYestMidnight.LowTempTime = ini.GetValue("TempMidnight", "LTime", DateTime.MinValue);
+			HiLoYestMidnight.HighTemp = ini.GetValue("TempMidnight", "High", 0.0);
+			HiLoYestMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", DateTime.MinValue);
 			// Pressure
 			HiLoYest.LowPress = ini.GetValue("Pressure", "Low", 0.0);
 			HiLoYest.LowPressTime = ini.GetValue("Pressure", "LTime", DateTime.MinValue);
@@ -6450,6 +6511,7 @@ namespace CumulusMX
 				ResetMidnightRain(DateTime.Now);
 				ResetSunshineHours();
 				//RecalcSolarFactor(DateTime.Now);
+				ResetMidnightTemperatures();
 			}
 		}
 
@@ -10419,7 +10481,7 @@ namespace CumulusMX
 
 			StringBuilder json = new StringBuilder("{\"entry\":\"", 1024);
 
-			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Timestamp,'utc') = ? order by Timestamp limit 1", date);
+			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Timestamp) = ? order by Timestamp limit 1", date);
 
 			if (result.Count > 0)
 			{
@@ -10440,12 +10502,10 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
-		// Fetches all days in the required month that have a diary entry
-		//internal string GetDiarySummary(string year, string month)
+		// Fetches all days that have a diary entry
 		internal string GetDiarySummary()
 		{
 			var json = new StringBuilder(512);
-			//var result = cumulus.DiaryDB.Query<DiaryData>("select Timestamp from DiaryData where strftime('%Y', Timestamp) = ? and strftime('%m', Timestamp) = ? order by Timestamp", year, month);
 			var result = cumulus.DiaryDB.Query<DiaryData>("select Timestamp from DiaryData order by Timestamp");
 
 			if (result.Count > 0)
@@ -10454,7 +10514,7 @@ namespace CumulusMX
 				for (int i = 0; i < result.Count; i++)
 				{
 					json.Append("\"");
-					json.Append(result[i].Timestamp.ToUniversalTime().ToString("yyyy-MM-dd"));
+					json.Append(result[i].Timestamp.ToString("yyyy-MM-dd"));
 					json.Append("\",");
 				}
 				json.Length--;

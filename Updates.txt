@@ -1,10 +1,17 @@
-3.17.1 - b3186
+3.18.0 - b3189
 ——————————————
 - Fix: Adds Ecowitt Wh40 battery state decode
-- Fix: Some of the lack of accessibility on the records editors and Weather Diary
 - Fix: Increase the sensitivity of the rain counter reset and make it "unit aware"
 
 - Change: Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
+- Change: Weather Diary editor changed to improve accessibility of the Date Picker
+- Change: Records editors changed to improve accessibility, they now also use pop-up editors
+- Change: Records editors now have the ability to click on the values/timestamps of the log files and have them copied to the record value/timestamp
+
+- New: Additional web tags for today and yesterday high and low temperatures using a midnight rollover. Obviously if you use a midnight rollover
+  for your met day then these tags will return the same values as the existing hi/lo temp web tags.
+	<#tempMidnightTH>, <#TtempMidnightTH>, <#tempMidnightTL>, <#TtempMidnightTL>
+	<#tempMidnightYH>, <#TtempMidnightYH>, <#tempMidnightYL>, <#TtempMidnightYL>
 
 
 3.17.0 - b3184
