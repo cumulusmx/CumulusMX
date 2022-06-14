@@ -4300,14 +4300,12 @@ namespace CumulusMX
 		public void DoSolarRad(int value, DateTime timestamp)
 		{
 			SolarRad = (value * cumulus.Calib.Solar.Mult) + cumulus.Calib.Solar.Offset;
-			// Update display
 
 			if (SolarRad > HiLoToday.HighSolar)
 			{
 				HiLoToday.HighSolar = SolarRad;
 				HiLoToday.HighSolarTime = timestamp;
 			}
-			CurrentSolarMax = AstroLib.SolarMax(timestamp, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 
 			if (!cumulus.SolarOptions.UseBlakeLarsen)
 			{
