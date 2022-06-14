@@ -14,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Tmds.MDns;
-using Unosquare.Swan;
+using Swan;
 
 namespace CumulusMX
 {
@@ -1723,6 +1723,7 @@ namespace CumulusMX
 					{
 						ResetMidnightRain(timestamp);
 						ResetSunshineHours();
+						ResetMidnightTemperatures();
 						midnightraindone = true;
 					}
 

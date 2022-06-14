@@ -17,11 +17,12 @@ using System.Threading.Tasks;
 using System.Timers;
 using MySqlConnector;
 using FluentFTP;
+using FluentFTP.Helpers;
 using LinqToTwitter;
 using ServiceStack.Text;
-using Unosquare.Labs.EmbedIO;
-using Unosquare.Labs.EmbedIO.Modules;
-using Unosquare.Labs.EmbedIO.Constants;
+using EmbedIO;
+using EmbedIO.WebApi;
+using EmbedIO.Files;
 using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
@@ -647,9 +648,10 @@ namespace CumulusMX
 		public string ForecastNotAvailable = "Not available";
 
 		public WebServer httpServer;
-		//public WebSocket websock;
 
-		//private Thread httpThread;
+		//public WebServer httpServer;
+		public MxWebSocket WebSock;
+
 
 		private static readonly HttpClientHandler WUhttpHandler = new HttpClientHandler();
 		private readonly HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
@@ -750,7 +752,7 @@ namespace CumulusMX
 			"HTTP Ecowitt",					// 14
 			"HTTP Ambient",					// 15
 			"WeatherFlow Tempest",			// 16
-			"Simulator"
+			"Simulator"						// 17
 		};
 
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul" };
@@ -861,6 +863,7 @@ namespace CumulusMX
 			TodayIniFile = Datapath + "today.ini";
 			MonthIniFile = Datapath + "month.ini";
 			YearIniFile = Datapath + "year.ini";
+
 			//stringsFile = "strings.ini";
 
 			// Set the default upload intervals for web services
@@ -1262,13 +1265,41 @@ namespace CumulusMX
 
 			// Open database (create file if it doesn't exist)
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-			//LogDB = new SQLiteConnection(dbfile, flags)
-			//LogDB.CreateTable<StandardData>();
 
 			// Open diary database (create file if it doesn't exist)
 			//DiaryDB = new SQLiteConnection(diaryfile, flags, true);  // We should be using this - storing datetime as ticks, but historically string storage has been used, so we are stuck with it?
 			DiaryDB = new SQLiteConnection(diaryfile, flags);
 			DiaryDB.CreateTable<DiaryData>();
+
+			try
+			{
+				// clean-up the diary db, change any entries to use date+time to just use date
+				// first see if there will be any days with more than one record
+				var duplicates = DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
+				if (duplicates.Count > 0)
+				{
+					LogConsoleMessage($"WARNING: Duplicate entries ({duplicates.Count}) found in your Weather Diary database - please see log file for details");
+					LogMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...");
+
+					foreach (var rec in duplicates)
+					{
+						LogMessage($"  Date: {rec.Timestamp.Date}, Falling: {rec.snowFalling}, Lying: {rec.snowLying}, Depth: {rec.snowDepth}, Entry: '{rec.entry}'");
+					}
+
+					// Remove the duplicates, leave the latest, remove the oldest
+					var deleted = DiaryDB.Execute("DELETE FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
+					if (deleted > 0)
+					{
+						LogMessage($"{deleted} duplicate records deleted from the weather diary database");
+					}
+				}
+				// Now reset the now unique-by-day records to have a time of 00:00:00
+				DiaryDB.Execute("UPDATE DiaryData SET Timestamp = datetime(date(TimeStamp)) WHERE time(Timestamp) <> '00:00:00'");
+			}
+			catch (Exception ex)
+			{
+				LogErrorMessage("Error cleaning up the Diary DB, exception = " + ex.Message);
+			}
 
 			BackupData(false, DateTime.Now);
 
@@ -1416,21 +1447,40 @@ namespace CumulusMX
 			LogMessage("Cumulus Starting");
 
 			// switch off logging from Unosquare.Swan which underlies embedIO
-			Unosquare.Swan.Terminal.Settings.DisplayLoggingMessageType = Unosquare.Swan.LogMessageType.Fatal;
-
-			httpServer = new WebServer(HTTPport, RoutingStrategy.Wildcard);
+			Swan.Logging.Logger.NoLogging();
 
 			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 			var htmlRootPath = Path.Combine(assemblyPath, "interface");
 
 			LogMessage("HTML root path = " + htmlRootPath);
 
-			httpServer.RegisterModule(new StaticFilesModule(htmlRootPath, new Dictionary<string, string>() { { "Cache-Control", "max-age=300" } }));
-			httpServer.Module<StaticFilesModule>().UseRamCache = true;
+			WebSock = new MxWebSocket("/ws/", this);
+
+			WebServer httpServer = new WebServer(o => o
+					.WithUrlPrefix($"http://*:{HTTPport}/")
+					.WithMode(HttpListenerMode.EmbedIO)
+				)
+				.WithWebApi("/api/", m => m
+					.WithController<Api.EditController>()
+					.WithController<Api.DataController>()
+					.WithController<Api.TagController>()
+					.WithController<Api.GraphDataController>()
+					.WithController<Api.RecordsController>()
+					.WithController<Api.TodayYestDataController>()
+					.WithController<Api.ExtraDataController>()
+					.WithController<Api.SettingsController>()
+					.WithController<Api.ReportsController>()
+				)
+				.WithWebApi("/station", m => m
+					.WithController<Api.HttpStation>()
+				)
+				.WithModule(WebSock)
+				.WithStaticFolder("/", htmlRootPath, true, m => m
+					.WithoutContentCaching()
+				);
 
 			// Set up the API web server
 			// Some APi functions require the station, so set them after station initialisation
-			Api.Setup(httpServer);
 			Api.programSettings = new ProgramSettings(this);
 			Api.stationSettings = new StationSettings(this);
 			Api.internetSettings = new InternetSettings(this);
@@ -1444,10 +1494,7 @@ namespace CumulusMX
 			Api.tagProcessor = new ApiTagProcessor(this);
 			Api.wizard = new Wizard(this);
 
-			// Set up the Web Socket server
-			WebSocket.Setup(httpServer, this);
-
-			httpServer.RunAsync();
+			_ = httpServer.RunAsync();
 
 			// get the local v4 IP addresses
 			Console.WriteLine();
@@ -8270,8 +8317,9 @@ namespace CumulusMX
 								NOAAconf.NeedFtp = false;
 							}
 
-							LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
 							// Extra files
+							LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
+							var cnt = 0;
 							for (int i = 0; i < numextrafiles; i++)
 							{
 								var uploadfile = ExtraFiles[i].local;
@@ -8280,7 +8328,7 @@ namespace CumulusMX
 								if ((uploadfile.Length > 0) &&
 									(remotefile.Length > 0) &&
 									!ExtraFiles[i].realtime &&
-									(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either, it's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
+									(!ExtraFiles[i].endofday || EODfilesNeedFTP == ExtraFiles[i].endofday) && // Either: It's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
 									ExtraFiles[i].FTP)
 								{
 									// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
@@ -8290,6 +8338,7 @@ namespace CumulusMX
 
 									if (File.Exists(uploadfile))
 									{
+										cnt++;
 										remotefile = GetRemoteFileName(remotefile, logDay);
 
 										// all checks OK, file needs to be uploaded
@@ -8319,16 +8368,18 @@ namespace CumulusMX
 							{
 								EODfilesNeedFTP = false;
 							}
-							LogFtpDebugMessage("SFTP[Int]: Done uploading extra files");
+							LogFtpDebugMessage($"SFTP[Int]: Done uploading {cnt} extra files");
 
 							// standard files
 							LogFtpDebugMessage("SFTP[Int]: Uploading standard web files");
+							cnt = 0;
 							for (var i = 0; i < StdWebFiles.Length; i++)
 							{
 								if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
 								{
 									try
 									{
+										cnt++;
 										var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 										var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
 										UploadFile(conn, localFile, remotefile, -1);
@@ -8340,7 +8391,7 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpDebugMessage("SFTP[Int]: Done uploading standard web files");
+							LogFtpDebugMessage($"SFTP[Int]: Done uploading {0} standard web files");
 
 							LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
 
@@ -8371,10 +8422,12 @@ namespace CumulusMX
 							LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
 
 							LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
+							cnt = 0;
 							for (int i = 0; i < GraphDataEodFiles.Length; i++)
 							{
 								if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 								{
+									cnt++;
 									var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
 									var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 									try
@@ -8390,7 +8443,7 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpMessage("SFTP[Int]: Done uploading daily graph data files");
+							LogFtpMessage($"SFTP[Int]: Done uploading {cnt} daily graph data files");
 
 							if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 							{
@@ -8457,6 +8510,7 @@ namespace CumulusMX
 					try
 					{
 						conn.Connect();
+
 						if (ServicePointManager.DnsRefreshTimeout == 0)
 						{
 							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
@@ -8504,7 +8558,6 @@ namespace CumulusMX
 						}
 
 						// Extra files
-						LogFtpDebugMessage("FTP[Int]: Uploading Extra files");
 						for (int i = 0; i < numextrafiles; i++)
 						{
 							var uploadfile = ExtraFiles[i].local;
@@ -8524,6 +8577,8 @@ namespace CumulusMX
 								if (File.Exists(uploadfile))
 								{
 									remotefile = GetRemoteFileName(remotefile, logDay);
+
+									LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
 
 									// all checks OK, file needs to be uploaded
 									if (ExtraFiles[i].process)
@@ -8551,8 +8606,8 @@ namespace CumulusMX
 						{
 							EODfilesNeedFTP = false;
 						}
+
 						// standard files
-						LogFtpDebugMessage("FTP[Int]: Uploading standard Data file");
 						for (int i = 0; i < StdWebFiles.Length; i++)
 						{
 							if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
@@ -8560,6 +8615,8 @@ namespace CumulusMX
 								try
 								{
 									var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+									LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile);
+
 									UploadFile(conn, localfile, remotePath + StdWebFiles[i].RemoteFileName);
 								}
 								catch (Exception e)
@@ -8568,9 +8625,7 @@ namespace CumulusMX
 								}
 							}
 						}
-						LogFtpMessage("Done uploading standard Data file");
 
-						LogFtpDebugMessage("FTP[Int]: Uploading graph data files");
 						for (int i = 0; i < GraphDataFiles.Length; i++)
 						{
 							if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
@@ -8579,6 +8634,7 @@ namespace CumulusMX
 								{
 									var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
 									var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+									LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile);
 									UploadFile(conn, localfile, remotefile);
 								}
 								catch (Exception e)
@@ -8588,9 +8644,7 @@ namespace CumulusMX
 								}
 							}
 						}
-						LogFtpMessage("Done uploading graph data files");
 
-						LogFtpMessage("FTP[Int]: Uploading daily graph data files");
 						for (int i = 0; i < GraphDataEodFiles.Length; i++)
 						{
 							if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
@@ -8599,6 +8653,8 @@ namespace CumulusMX
 								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 								try
 								{
+									LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile);
+
 									UploadFile(conn, localfile, remotefile, -1);
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[i].FtpRequired = false;
@@ -8610,7 +8666,6 @@ namespace CumulusMX
 								}
 							}
 						}
-						LogFtpMessage("FTP[Int]: Done uploading daily graph data files");
 
 						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 						{
@@ -8669,34 +8724,13 @@ namespace CumulusMX
 
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
 
-				using (Stream ostream = conn.OpenWrite(remotefilename))
-				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				var status = conn.UploadFile(localfile, remotefilename);
+
+				if (status.IsFailure())
 				{
-					try
-					{
-						var buffer = new byte[4096];
-						int read;
-						while ((read = istream.Read(buffer, 0, buffer.Length)) > 0)
-						{
-							ostream.Write(buffer, 0, read);
-						}
-
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Uploaded {localfile}");
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefilename} : {ex.Message}");
-						return conn.IsConnected;
-					}
-					finally
-					{
-						ostream.Close();
-						istream.Close();
-						conn.GetReply(); // required FluentFTP 19.2
-					}
+					LogMessage($"FTP[{cycleStr}]: Upload of {localfile} to {remotefile} failed");
 				}
-
-				if (FTPRename)
+				else if (FTPRename)
 				{
 					// rename the file
 					LogFtpDebugMessage($"FTP[{cycleStr}]: Renaming {remotefilename} to {remotefile}");

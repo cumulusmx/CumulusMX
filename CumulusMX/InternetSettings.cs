@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Web;
 using ServiceStack;
-using Unosquare.Labs.EmbedIO;
+using EmbedIO;
 
 namespace CumulusMX
 {

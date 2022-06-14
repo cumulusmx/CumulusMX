@@ -5,15 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using Unosquare.Labs.EmbedIO;
-using Unosquare.Labs.EmbedIO.Constants;
-using Unosquare.Labs.EmbedIO.Modules;
+using EmbedIO;
+using EmbedIO.Routing;
+using EmbedIO.WebApi;
+using Swan.Formatters;
 
 namespace CumulusMX
 {
 	public static class Api
 	{
-		private const string RelativePath = "/api/";
 		internal static WeatherStation Station;
 		public static ProgramSettings programSettings;
 		internal static StationSettings stationSettings;
@@ -47,166 +47,147 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public static void Setup(WebServer server)
-		{
-			server.RegisterModule(new WebApiModule());
-
-			server.Module<WebApiModule>().RegisterController<GraphDataController>();
-			server.Module<WebApiModule>().RegisterController<DataController>();
-			server.Module<WebApiModule>().RegisterController<RecordsController>();
-			server.Module<WebApiModule>().RegisterController<TodayYestDataController>();
-			server.Module<WebApiModule>().RegisterController<ExtraDataController>();
-			server.Module<WebApiModule>().RegisterController<SettingsController>();
-			server.Module<WebApiModule>().RegisterController<EditController>();
-			server.Module<WebApiModule>().RegisterController<ReportsController>();
-			server.Module<WebApiModule>().RegisterController<TagController>();
-			server.Module<WebApiModule>().RegisterController<HttpStation>();
-		}
-
 		// Get/Post Edit data
 		public class EditController : WebApiController
 		{
-			public EditController(IHttpContext context) : base(context)
+			[Route(HttpVerbs.Get, "/edit/{req}")]
+			public async Task GetEditData(string req)
 			{
-			}
+				Response.ContentType = "application/json";
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "edit/*")]
-			public async Task<bool> GetEditData()
-			{
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					string lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
-					{
-						case "raintodayeditdata.json":
-							return await this.JsonResponseAsync(dataEditor.GetRainTodayEditData());
-
-						case "raintoday":
-							return await this.JsonResponseAsync(dataEditor.EditRainToday(this));
-
-						case "currentcond.json":
-							return await this.JsonResponseAsync(dataEditor.GetCurrentCond());
-
-						case "alltimerecords.json":
-							return await this.JsonResponseAsync(dataEditor.GetAllTimeRecData());
-
-						case "alltimerecordsdayfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetRecordsDayFile("alltime"));
-
-						case "alltimerecordslogfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetRecordsLogFile("alltime"));
-
-						case "monthlyrecords.json":
-							return await this.JsonResponseAsync(dataEditor.GetMonthlyRecData());
-
-						case "monthlyrecordsdayfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetMonthlyRecDayFile());
-
-						case "monthlyrecordslogfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetMonthlyRecLogFile());
-
-						case "thismonthrecords.json":
-							return await this.JsonResponseAsync(dataEditor.GetThisMonthRecData());
-
-						case "thismonthrecordsdayfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetRecordsDayFile("thismonth"));
-
-						case "thismonthrecordslogfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetRecordsLogFile("thismonth"));
-
-						case "thisyearrecords.json":
-							return await this.JsonResponseAsync(dataEditor.GetThisYearRecData());
-
-						case "thisyearrecordsdayfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetRecordsDayFile("thisyear"));
-
-						case "thisyearrecordslogfile.json":
-							return await this.JsonResponseAsync(dataEditor.GetRecordsLogFile("thisyear"));
+					using (var writer = HttpContext.OpenResponseText())
+					{ 
+						switch (req)
+						{
+							case "raintodayeditdata.json":
+								await writer.WriteAsync(dataEditor.GetRainTodayEditData());
+								break;
+							case "raintoday":
+								await writer.WriteAsync(dataEditor.EditRainToday(HttpContext));
+								break;
+							case "currentcond.json":
+								await writer.WriteAsync(dataEditor.GetCurrentCond());
+								break;
+							case "alltimerecords.json":
+								await writer.WriteAsync(dataEditor.GetAllTimeRecData());
+								break;
+							case "alltimerecordsdayfile.json":
+								await writer.WriteAsync(dataEditor.GetRecordsDayFile("alltime"));
+								break;
+							case "alltimerecordslogfile.json":
+								await writer.WriteAsync(dataEditor.GetRecordsLogFile("alltime"));
+								break;
+							case "monthlyrecords.json":
+								await writer.WriteAsync(dataEditor.GetMonthlyRecData());
+								break;
+							case "monthlyrecordsdayfile.json":
+								await writer.WriteAsync(dataEditor.GetMonthlyRecDayFile());
+								break;
+							case "monthlyrecordslogfile.json":
+								await writer.WriteAsync(dataEditor.GetMonthlyRecLogFile());
+								break;
+							case "thismonthrecords.json":
+								await writer.WriteAsync(dataEditor.GetThisMonthRecData());
+								break;
+							case "thismonthrecordsdayfile.json":
+								await writer.WriteAsync(dataEditor.GetRecordsDayFile("thismonth"));
+								break;
+							case "thismonthrecordslogfile.json":
+								await writer.WriteAsync(dataEditor.GetRecordsLogFile("thismonth"));
+								break;
+							case "thisyearrecords.json":
+								await writer.WriteAsync(dataEditor.GetThisYearRecData());
+								break;
+							case "thisyearrecordsdayfile.json":
+								await writer.WriteAsync(dataEditor.GetRecordsDayFile("thisyear"));
+								break;
+							case "thisyearrecordslogfile.json":
+								await writer.WriteAsync(dataEditor.GetRecordsLogFile("thisyear"));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Post, RelativePath + "edit/*")]
-			public async Task<bool> PostEditData()
+			[Route(HttpVerbs.Post, "/edit/{req}")]
+			public async Task PostEditData(string req)
 			{
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					string lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "raintodayeditdata.json":
-							return await this.JsonResponseAsync(dataEditor.GetRainTodayEditData());
-
-						case "raintoday":
-							return await this.JsonResponseAsync(dataEditor.EditRainToday(this));
-
-						case "diarydata":
-							return await this.JsonResponseAsync(dataEditor.EditDiary(this));
-
-						case "diarydelete":
-							return await this.JsonResponseAsync(dataEditor.DeleteDiary(this));
-
-						case "currcond":
-							return await this.JsonResponseAsync(dataEditor.EditCurrentCond(this));
-
-						case "alltime":
-							return await this.JsonResponseAsync(dataEditor.EditAllTimeRecs(this));
-
-						case "monthly":
-							return await this.JsonResponseAsync(dataEditor.EditMonthlyRecs(this));
-
-						case "thismonth":
-							return await this.JsonResponseAsync(dataEditor.EditThisMonthRecs(this));
-
-						case "thisyear":
-							return await this.JsonResponseAsync(dataEditor.EditThisYearRecs(this));
-
-						case "dayfile":
-							return await this.JsonResponseAsync(dataEditor.EditDayFile(this));
-
-						case "datalogs":
-							return await this.JsonResponseAsync(dataEditor.EditDatalog(this));
+						switch (req)
+						{
+							case "raintodayeditdata.json":
+								await writer.WriteAsync(dataEditor.GetRainTodayEditData());
+								break;
+							case "raintoday":
+								await writer.WriteAsync(dataEditor.EditRainToday(HttpContext));
+								break;
+							case "diarydata":
+								await writer.WriteAsync(dataEditor.EditDiary(HttpContext));
+								break;
+							case "diarydelete":
+								await writer.WriteAsync(dataEditor.DeleteDiary(HttpContext));
+								break;
+							case "currcond":
+								await writer.WriteAsync(dataEditor.EditCurrentCond(HttpContext));
+								break;
+							case "alltime":
+								await writer.WriteAsync(dataEditor.EditAllTimeRecs(HttpContext));
+								break;
+							case "monthly":
+								await writer.WriteAsync(dataEditor.EditMonthlyRecs(HttpContext));
+								break;
+							case "thismonth":
+								await writer.WriteAsync(dataEditor.EditThisMonthRecs(HttpContext));
+								break;
+							case "thisyear":
+								await writer.WriteAsync(dataEditor.EditThisYearRecs(HttpContext));
+								break;
+							case "dayfile":
+								await writer.WriteAsync(dataEditor.EditDayFile(HttpContext));
+								break;
+							case "datalogs":
+								await writer.WriteAsync(dataEditor.EditDatalog(HttpContext));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
@@ -214,16 +195,17 @@ namespace CumulusMX
 		// Get log and diary Data
 		public class DataController : WebApiController
 		{
-			public DataController(IHttpContext context) : base(context)
+			[Route(HttpVerbs.Get, "/data/{req}")]
+			public async Task GetData(string req)
 			{
-			}
+				Response.ContentType = "application/json";
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "data/*")]
-			public async Task<bool> GetData()
-			{
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
@@ -240,567 +222,649 @@ namespace CumulusMX
 					int length = Convert.ToInt32(query["length"]);
 					string search = query["search[value]"];
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "dayfile":
-							return await this.JsonResponseAsync(Station.GetDayfile(draw,start,length));
-						case "logfile":
-							//return await this.JsonResponseAsync(Station.GetLogfile(from, to, false));
-							return await this.JsonResponseAsync(Station.GetLogfile(from, to, draw, start, length, search, false));
-						case "extralogfile":
-							return await this.JsonResponseAsync(Station.GetLogfile(from, to, draw, start, length, search, true));
-						case "currentdata":
-							return await this.JsonResponseAsync(Station.GetCurrentData());
-						case "diarydata":
-							return await this.JsonResponseAsync(Station.GetDiaryData(date));
-						case "diarysummary":
-							//return await this.JsonResponseAsync(Station.GetDiarySummary(year, month));
-							return await this.JsonResponseAsync(Station.GetDiarySummary());
-					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
-				}
+						switch (lastSegment)
+						{
+							case "dayfile":
+								await writer.WriteAsync(Station.GetDayfile(draw, start, length));
+								break;
+							case "logfile":
+								//return await this.JsonResponseAsync(Station.GetLogfile(from, to, false));
+								await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, false));
+								break;
+							case "extralogfile":
+								await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, true));
+								break;
+							case "currentdata":
+								await writer.WriteAsync(Station.GetCurrentData());
+								break;
+							case "diarydata":
+								await writer.WriteAsync(Station.GetDiaryData(date));
+								break;
+							case "diarysummary":
+								//return await this.JsonResponseAsync(Station.GetDiarySummary(year, month));
+								await writer.WriteAsync(Station.GetDiarySummary());
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
+					}				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// Get/Post Tag body data
 		public class TagController : WebApiController
 		{
-			public TagController(IHttpContext context) : base(context)
+			[Route(HttpVerbs.Post, "/tags/{req}")]
+			public async Task PostTags(string req)
 			{
-			}
+				Response.ContentType = "application/json";
 
-			[WebApiHandler(HttpVerbs.Post, RelativePath + "tags/*")]
-			public async Task<bool> PostTags()
-			{
+				if (Station == null)
+				{
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
+				}
+
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					string lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "process.txt":
-							return await this.StringResponseAsync(tagProcessor.ProcessText(Request));
-					}
+						switch (req)
+						{
+							case "process.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(tagProcessor.ProcessText(HttpContext.Request));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+					}
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "tags/*")]
-			public async Task<bool> GetTags()
+			[Route(HttpVerbs.Get, "/tags/{req}")]
+			public async Task GetTags(string req)
 			{
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					string lastSegment = Request.Url.Segments.Last();
+					Response.ContentType = "application/json";
 
-					switch (lastSegment)
+					if (Station == null)
 					{
-						case "process.json":
-							return await this.JsonResponseAsync(tagProcessor.ProcessJson(Request));
+						using (var writer = HttpContext.OpenResponseText())
+							await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+						Response.StatusCode = 500;
+						return;
 					}
 
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+					using (var writer = HttpContext.OpenResponseText())
+					{
+						switch (req)
+						{
+							case "process.json":
+								await writer.WriteAsync(tagProcessor.ProcessJson(Request));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// Get recent/daily graph data
 		public class GraphDataController : WebApiController
 		{
-			public GraphDataController(IHttpContext context) : base(context)
+			[Route(HttpVerbs.Get, "/graphdata/{req}")]
+			public async Task GetGraphData(string req)
 			{
-			}
+				Response.ContentType = "application/json";
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "graphdata/*")]
-			public async Task<bool> GetGraphData()
-			{
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "tempdata.json":
-							return await this.JsonResponseAsync(Station.GetTempGraphData());
-						case "winddata.json":
-							return await this.JsonResponseAsync(Station.GetWindGraphData());
-						case "raindata.json":
-							return await this.JsonResponseAsync(Station.GetRainGraphData());
-						case "pressdata.json":
-							return await this.JsonResponseAsync(Station.GetPressGraphData());
-						case "wdirdata.json":
-							return await this.JsonResponseAsync(Station.GetWindDirGraphData());
-						case "humdata.json":
-							return await this.JsonResponseAsync(Station.GetHumGraphData());
-						case "solardata.json":
-							return await this.JsonResponseAsync(Station.GetSolarGraphData());
-						case "dailyrain.json":
-							return await this.JsonResponseAsync(Station.GetDailyRainGraphData());
-						case "sunhours.json":
-							return await this.JsonResponseAsync(Station.GetSunHoursGraphData());
-						case "dailytemp.json":
-							return await this.JsonResponseAsync(Station.GetDailyTempGraphData());
-						case "units.json":
-							return await this.JsonResponseAsync(Station.GetUnits());
-						case "graphconfig.json":
-							return await this.JsonResponseAsync(Station.GetGraphConfig());
-						case "airqualitydata.json":
-							return await this.JsonResponseAsync(Station.GetAqGraphData());
-						case "availabledata.json":
-							return await this.JsonResponseAsync(Station.GetAvailGraphData());
-
-						case "selectachart.json":
-							return await this.JsonResponseAsync(Station.GetSelectaChartOptions());
-					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
-				}
+						switch (req)
+						{
+							case "tempdata.json":
+								await writer.WriteAsync(Station.GetTempGraphData());
+								break;
+							case "winddata.json":
+								await writer.WriteAsync(Station.GetWindGraphData());
+								break;
+							case "raindata.json":
+								await writer.WriteAsync(Station.GetRainGraphData());
+								break;
+							case "pressdata.json":
+								await writer.WriteAsync(Station.GetPressGraphData());
+								break;
+							case "wdirdata.json":
+								await writer.WriteAsync(Station.GetWindDirGraphData());
+								break;
+							case "humdata.json":
+								await writer.WriteAsync(Station.GetHumGraphData());
+								break;
+							case "solardata.json":
+								await writer.WriteAsync(Station.GetSolarGraphData());
+								break;
+							case "dailyrain.json":
+								await writer.WriteAsync(Station.GetDailyRainGraphData());
+								break;
+							case "sunhours.json":
+								await writer.WriteAsync(Station.GetSunHoursGraphData());
+								break;
+							case "dailytemp.json":
+								await writer.WriteAsync(Station.GetDailyTempGraphData());
+								break;
+							case "units.json":
+								await writer.WriteAsync(Station.GetUnits());
+								break;
+							case "graphconfig.json":
+								await writer.WriteAsync(Station.GetGraphConfig());
+								break;
+							case "airqualitydata.json":
+								await writer.WriteAsync(Station.GetAqGraphData());
+								break;
+							case "availabledata.json":
+								await writer.WriteAsync(Station.GetAvailGraphData());
+								break;
+							case "selectachart.json":
+								await writer.WriteAsync(Station.GetSelectaChartOptions());
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
+					}				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Post, RelativePath + "graphdata/*")]
-			public async Task<bool> SetGraphData()
+			[Route(HttpVerbs.Post, "/graphdata/{req}")]
+			public async Task SetGraphData(string req)
 			{
-				try
-				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
+				Response.ContentType = "application/json";
 
-					switch (lastSegment)
-					{
-						case "selectachart.json":
-							return await this.JsonResponseAsync(stationSettings.SetSelectaChartOptions(this));
-
-					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
-				}
-				catch (Exception ex)
-				{
-					return await HandleError(ex, 404);
-				}
-			}
-
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "dailygraphdata/*")]
-			public async Task<bool> GetDailyGraphData()
-			{
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "tempdata.json":
-							return await this.JsonResponseAsync(Station.GetAllDailyTempGraphData());
-						case "winddata.json":
-							return await this.JsonResponseAsync(Station.GetAllDailyWindGraphData());
-						case "raindata.json":
-							return await this.JsonResponseAsync(Station.GetAllDailyRainGraphData());
-						case "pressdata.json":
-							return await this.JsonResponseAsync(Station.GetAllDailyPressGraphData());
-						//case "wdirdata.json":
-						//	return await this.JsonResponseAsync(Station.GetAllDailyWindDirGraphData());
-						case "humdata.json":
-							return await this.JsonResponseAsync(Station.GetAllDailyHumGraphData());
-						case "solardata.json":
-							return await this.JsonResponseAsync(Station.GetAllDailySolarGraphData());
-						case "degdaydata.json":
-							return await this.JsonResponseAsync(Station.GetAllDegreeDaysGraphData());
-						case "tempsumdata.json":
-							return await this.JsonResponseAsync(Station.GetAllTempSumGraphData());
-						case "units.json":
-							return await this.JsonResponseAsync(Station.GetUnits());
-						case "graphconfig.json":
-							return await this.JsonResponseAsync(Station.GetGraphConfig());
-					}
+						switch (req)
+						{
+							case "selectachart.json":
+								await writer.WriteAsync(stationSettings.SetSelectaChartOptions(HttpContext));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
 
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
+			[Route(HttpVerbs.Get, "/dailygraphdata/{req}")]
+			public async Task GetDailyGraphData(string req)
 			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
+				Response.ContentType = "application/json";
 
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
+				if (Station == null)
+				{
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
+				}
+
+				try
+				{
+					using (var writer = HttpContext.OpenResponseText())
+					{
+						switch (req)
+						{
+							case "tempdata.json":
+								await writer.WriteAsync(Station.GetAllDailyTempGraphData());
+								break;
+							case "winddata.json":
+								await writer.WriteAsync(Station.GetAllDailyWindGraphData());
+								break;
+							case "raindata.json":
+								await writer.WriteAsync(Station.GetAllDailyRainGraphData());
+								break;
+							case "pressdata.json":
+								await writer.WriteAsync(Station.GetAllDailyPressGraphData());
+								break;
+							//case "wdirdata.json":
+							//await writer.WriteAsync(Station.GetAllDailyWindDirGraphData());
+							//break;
+							case "humdata.json":
+								await writer.WriteAsync(Station.GetAllDailyHumGraphData());
+								break;
+							case "solardata.json":
+								await writer.WriteAsync(Station.GetAllDailySolarGraphData());
+								break;
+							case "degdaydata.json":
+								await writer.WriteAsync(Station.GetAllDegreeDaysGraphData());
+								break;
+							case "tempsumdata.json":
+								await writer.WriteAsync(Station.GetAllTempSumGraphData());
+								break;
+							case "units.json":
+								await writer.WriteAsync(Station.GetUnits());
+								break;
+							case "graphconfig.json":
+								await writer.WriteAsync(Station.GetGraphConfig());
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
+				}
 			}
 		}
 
 		// Get Records data
 		public class RecordsController : WebApiController
 		{
-			public RecordsController(IHttpContext context) : base(context)
+			[Route(HttpVerbs.Get, "/records/alltime/{req}")]
+			public async Task GetAlltimeData(string req)
 			{
-			}
+				Response.ContentType = "application/json";
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/alltime/*")]
-			public async Task<bool> GetAlltimeData()
-			{
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync("{}");
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "temperature.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetTempRecords()));
-						case "humidity.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetHumRecords()));
-						case "pressure.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetPressRecords()));
-						case "wind.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetWindRecords()));
-						case "rain.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetRainRecords()));
+						switch (req)
+						{
+							case "temperature.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetTempRecords()));
+								break;
+							case "humidity.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetHumRecords()));
+								break;
+							case "pressure.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetPressRecords()));
+								break;
+							case "wind.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetWindRecords()));
+								break;
+							case "rain.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetRainRecords()));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/month/*")]
-			public async Task<bool> GetMonthlyRecordData()
+			[Route(HttpVerbs.Get, "/records/month/{mon}/{req}")]
+			public async Task GetMonthlyRecordData(string mon, string req)
 			{
+				Response.ContentType = "application/json";
+
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-					// Get penultimate segment and trim off trailing slash. This gives the required month
-					int month = Convert.ToInt32(Request.Url.Segments[Request.Url.Segments.Length - 2].TrimEnd('/'));
+					int month = Convert.ToInt32(mon);
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "temperature.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyTempRecords(month)));
-						case "humidity.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyHumRecords(month)));
-						case "pressure.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyPressRecords(month)));
-						case "wind.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyWindRecords(month)));
-						case "rain.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetMonthlyRainRecords(month)));
-					}
+						if (month < 1 || month > 12)
+						{
+							await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"406\",\"Description\":\"Month value is out of range\"}}");
+							Response.StatusCode = 406;
+						}
 
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+						switch (req)
+						{
+							case "temperature.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetMonthlyTempRecords(month)));
+								break;
+							case "humidity.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetMonthlyHumRecords(month)));
+								break;
+							case "pressure.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetMonthlyPressRecords(month)));
+								break;
+							case "wind.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetMonthlyWindRecords(month)));
+								break;
+							case "rain.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetMonthlyRainRecords(month)));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/thismonth/*")]
-			public async Task<bool> GetThisMonthRecordData()
+			[Route(HttpVerbs.Get, "/records/thismonth/{req}")]
+			public async Task GetThisMonthRecordData(string req)
 			{
+				Response.ContentType = "application/json";
+
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
-					{
-						case "temperature.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthTempRecords()));
-						case "humidity.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthHumRecords()));
-						case "pressure.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthPressRecords()));
-						case "wind.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthWindRecords()));
-						case "rain.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisMonthRainRecords()));
+					using (var writer = HttpContext.OpenResponseText())
+					{ 
+						switch (req)
+						{
+							case "temperature.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisMonthTempRecords()));
+								break;
+							case "humidity.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisMonthHumRecords()));
+								break;
+							case "pressure.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisMonthPressRecords()));
+								break;
+							case "wind.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisMonthWindRecords()));
+								break;
+							case "rain.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisMonthRainRecords()));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "records/thisyear/*")]
-			public async Task<bool> GetThisYearRecordData()
+			[Route(HttpVerbs.Get, "/records/thisyear/{req}")]
+			public async Task GetThisYearRecordData(string req)
 			{
+				Response.ContentType = "application/json";
+
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync("{}");
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "temperature.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearTempRecords()));
-						case "humidity.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearHumRecords()));
-						case "pressure.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearPressRecords()));
-						case "wind.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearWindRecords()));
-						case "rain.json":
-							return await this.JsonResponseAsync(EscapeUnicode(Station.GetThisYearRainRecords()));
+						switch (req)
+						{
+							case "temperature.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisYearTempRecords()));
+								break;
+							case "humidity.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisYearHumRecords()));
+								break;
+							case "pressure.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisYearPressRecords()));
+								break;
+							case "wind.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisYearWindRecords()));
+								break;
+							case "rain.json":
+								await writer.WriteAsync(EscapeUnicode(Station.GetThisYearRainRecords()));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// Get today/yesterday data
 		public class TodayYestDataController : WebApiController
 		{
-			public TodayYestDataController(IHttpContext context) : base(context) {}
-
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "todayyest/*")]
-			public async Task<bool> GetYesterdayData()
+			[Route(HttpVerbs.Get, "/todayyest/{req}")]
+			public async Task GetYesterdayData(string req)
 			{
+				Response.ContentType = "application/json";
+
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "temp.json":
-							return await this.JsonResponseAsync(Station.GetTodayYestTemp());
-						case "hum.json":
-							return await this.JsonResponseAsync(Station.GetTodayYestHum());
-						case "rain.json":
-							return await this.JsonResponseAsync(Station.GetTodayYestRain());
-						case "wind.json":
-							return await this.JsonResponseAsync(Station.GetTodayYestWind());
-						case "pressure.json":
-							return await this.JsonResponseAsync(Station.GetTodayYestPressure());
-						case "solar.json":
-							return await this.JsonResponseAsync(Station.GetTodayYestSolar());
+						switch (req)
+						{
+							case "temp.json":
+								await writer.WriteAsync(Station.GetTodayYestTemp());
+								break;
+							case "hum.json":
+								await writer.WriteAsync(Station.GetTodayYestHum());
+								break;
+							case "rain.json":
+								await writer.WriteAsync(Station.GetTodayYestRain());
+								break;
+							case "wind.json":
+								await writer.WriteAsync(Station.GetTodayYestWind());
+								break;
+							case "pressure.json":
+								await writer.WriteAsync(Station.GetTodayYestPressure());
+								break;
+							case "solar.json":
+								await writer.WriteAsync(Station.GetTodayYestSolar());
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// Get Extra data
 		public class ExtraDataController : WebApiController
 		{
-			public ExtraDataController(IHttpContext context) : base(context) { }
-
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "extra/*")]
-			public async Task<bool> GetExtraData()
+			[Route(HttpVerbs.Get, "/extra/{req}")]
+			public async Task GetExtraData(string req)
 			{
+				Response.ContentType = "application/json";
+
 				if (Station == null)
 				{
-					return await this.JsonResponseAsync("{}");
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
+					Response.StatusCode = 500;
+					return;
 				}
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "temp.json":
-							return await this.JsonResponseAsync(Station.GetExtraTemp());
-						case "hum.json":
-							return await this.JsonResponseAsync(Station.GetExtraHum());
-						case "dew.json":
-							return await this.JsonResponseAsync(Station.GetExtraDew());
-						case "soiltemp.json":
-							return await this.JsonResponseAsync(Station.GetSoilTemp());
-						case "soilmoisture.json":
-							return await this.JsonResponseAsync(Station.GetSoilMoisture());
-						case "leaf.json":
-							return await this.JsonResponseAsync(Station.GetLeaf());
-						case "leaf4.json":
-							return await this.JsonResponseAsync(Station.GetLeaf4());
-						case "leaf8.json":
-							return await this.JsonResponseAsync(Station.GetLeaf8());
-						case "airqual.json":
-							return await this.JsonResponseAsync(Station.GetAirQuality());
-						case "lightning.json":
-							return await this.JsonResponseAsync(Station.GetLightning());
-						case "usertemp.json":
-							return await this.JsonResponseAsync(Station.GetUserTemp());
+						switch (req)
+						{
+							case "temp.json":
+								await writer.WriteAsync(Station.GetExtraTemp());
+								break;
+							case "hum.json":
+								await writer.WriteAsync(Station.GetExtraHum());
+								break;
+							case "dew.json":
+								await writer.WriteAsync(Station.GetExtraDew());
+								break;
+							case "soiltemp.json":
+								await writer.WriteAsync(Station.GetSoilTemp());
+								break;
+							case "soilmoisture.json":
+								await writer.WriteAsync(Station.GetSoilMoisture());
+								break;
+							case "leaf.json":
+								await writer.WriteAsync(Station.GetLeaf());
+								break;
+							case "leaf4.json":
+								await writer.WriteAsync(Station.GetLeaf4());
+								break;
+							case "leaf8.json":
+								await writer.WriteAsync(Station.GetLeaf8());
+								break;
+							case "airqual.json":
+								await writer.WriteAsync(Station.GetAirQuality());
+								break;
+							case "lightning.json":
+								await writer.WriteAsync(Station.GetLightning());
+								break;
+							case "usertemp.json":
+								await writer.WriteAsync(Station.GetUserTemp());
+								break;
 
-						case "airLinkCountsOut.json":
-							return await this.JsonResponseAsync(Station.GetAirLinkCountsOut());
-						case "airLinkAqiOut.json":
-							return await this.JsonResponseAsync(Station.GetAirLinkAqiOut());
-						case "airLinkPctOut.json":
-							return await this.JsonResponseAsync(Station.GetAirLinkPctOut());
-						case "airLinkCountsIn.json":
-							return await this.JsonResponseAsync(Station.GetAirLinkCountsIn());
-						case "airLinkAqiIn.json":
-							return await this.JsonResponseAsync(Station.GetAirLinkAqiIn());
-						case "airLinkPctIn.json":
-							return await this.JsonResponseAsync(Station.GetAirLinkPctIn());
+							case "airLinkCountsOut.json":
+								await writer.WriteAsync(Station.GetAirLinkCountsOut());
+								break;
+							case "airLinkAqiOut.json":
+								await writer.WriteAsync(Station.GetAirLinkAqiOut());
+								break;
+							case "airLinkPctOut.json":
+								await writer.WriteAsync(Station.GetAirLinkPctOut());
+								break;
+							case "airLinkCountsIn.json":
+								await writer.WriteAsync(Station.GetAirLinkCountsIn());
+								break;
+							case "airLinkAqiIn.json":
+								await writer.WriteAsync(Station.GetAirLinkAqiIn());
+								break;
+							case "airLinkPctIn.json":
+								await writer.WriteAsync(Station.GetAirLinkPctIn());
+								break;
 
-						case "co2sensor.json":
-							return await this.JsonResponseAsync(Station.GetCO2sensor());
+							case "co2sensor.json":
+								await writer.WriteAsync(Station.GetCO2sensor());
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// Get/Post settings data
 		public class SettingsController : WebApiController
 		{
-			public SettingsController(IHttpContext context) : base(context) { }
-
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "settings/*")]
-			public async Task<bool> SettingsGet()
+			[Route(HttpVerbs.Get, "/settings/{req}")]
+			public async Task SettingsGet(string req)
 			{
 				/* string authorization = context.Request.Headers["Authorization"];
 				 string userInfo;
@@ -830,149 +894,142 @@ namespace CumulusMX
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
+					Response.ContentType = "application/json";
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "programdata.json":
-							return await this.JsonResponseAsync(programSettings.GetAlpacaFormData());
-
-						case "stationdata.json":
-							return await this.JsonResponseAsync(stationSettings.GetAlpacaFormData());
-
-						case "internetdata.json":
-							return await this.JsonResponseAsync(internetSettings.GetAlpacaFormData());
-
-						case "thirdpartydata.json":
-							return await this.JsonResponseAsync(thirdpartySettings.GetAlpacaFormData());
-
-						case "extrasensordata.json":
-							return await this.JsonResponseAsync(extraSensorSettings.GetAlpacaFormData());
-
-						case "extrawebfiles.json":
-							return await this.JsonResponseAsync(internetSettings.GetExtraWebFilesData());
-
-						case "calibrationdata.json":
-							return await this.JsonResponseAsync(calibrationSettings.GetAlpacaFormData());
-
-						case "noaadata.json":
-							return await this.JsonResponseAsync(noaaSettings.GetAlpacaFormData());
-
-						case "wsport.json":
-							return await this.JsonResponseAsync(stationSettings.GetWSport());
-
-						case "version.json":
-							return await this.JsonResponseAsync(stationSettings.GetVersion());
-
-						case "mysqldata.json":
-							return await this.JsonResponseAsync(mySqlSettings.GetAlpacaFormData());
-
-						case "alarms.json":
-							return await this.JsonResponseAsync(alarmSettings.GetAlarmSettings());
-
-						case "wizard.json":
-							return await this.JsonResponseAsync(wizard.GetAlpacaFormData());
+						switch (req)
+						{
+							case "programdata.json":
+								await writer.WriteAsync(programSettings.GetAlpacaFormData());
+								break;
+							case "stationdata.json":
+								await writer.WriteAsync(stationSettings.GetAlpacaFormData());
+								break;
+							case "internetdata.json":
+								await writer.WriteAsync(internetSettings.GetAlpacaFormData());
+								break;
+							case "thirdpartydata.json":
+								await writer.WriteAsync(thirdpartySettings.GetAlpacaFormData());
+								break;
+							case "extrasensordata.json":
+								await writer.WriteAsync(extraSensorSettings.GetAlpacaFormData());
+								break;
+							case "extrawebfiles.json":
+								await writer.WriteAsync(internetSettings.GetExtraWebFilesData());
+								break;
+							case "calibrationdata.json":
+								await writer.WriteAsync(calibrationSettings.GetAlpacaFormData());
+								break;
+							case "noaadata.json":
+								await writer.WriteAsync(noaaSettings.GetAlpacaFormData());
+								break;
+							case "wsport.json":
+								await writer.WriteAsync(stationSettings.GetWSport());
+								break;
+							case "version.json":
+								await writer.WriteAsync(stationSettings.GetVersion());
+								break;
+							case "mysqldata.json":
+								await writer.WriteAsync(mySqlSettings.GetAlpacaFormData());
+								break;
+							case "alarms.json":
+								await writer.WriteAsync(alarmSettings.GetAlarmSettings());
+								break;
+							case "wizard.json":
+								await writer.WriteAsync(wizard.GetAlpacaFormData());
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Post, RelativePath + "setsettings/*")]
-			public async Task<bool> SettingsSet()
+			[Route(HttpVerbs.Post, "/setsettings/{req}")]
+			public async Task SettingsSet(string req)
 			{
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
+					Response.ContentType = "application/json";
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "updateprogramconfig.json":
-							return await this.JsonResponseAsync(programSettings.UpdateConfig(this));
-
-						case "updatestationconfig.json":
-							return await this.JsonResponseAsync(stationSettings.UpdateConfig(this));
-
-						case "updateinternetconfig.json":
-							return await this.JsonResponseAsync(internetSettings.UpdateConfig(this));
-
-						case "updatethirdpartyconfig.json":
-							return await this.JsonResponseAsync(thirdpartySettings.UpdateConfig(this));
-
-						case "updateextrasensorconfig.json":
-							return await this.JsonResponseAsync(extraSensorSettings.UpdateConfig(this));
-
-						case "updatecalibrationconfig.json":
-							return await this.JsonResponseAsync(calibrationSettings.UpdateConfig(this));
-
-						case "updatenoaaconfig.json":
-							return await this.JsonResponseAsync(noaaSettings.UpdateConfig(this));
-
-						case "updateextrawebfiles.html":
-							return await this.JsonResponseAsync(internetSettings.UpdateExtraWebFiles(this));
-
-						case "updatemysqlconfig.json":
-							return await this.JsonResponseAsync(mySqlSettings.UpdateConfig(this));
-
-						case "createmonthlysql.json":
-							return await this.JsonResponseAsync(mySqlSettings.CreateMonthlySQL(this));
-
-						case "createdayfilesql.json":
-							return await this.JsonResponseAsync(mySqlSettings.CreateDayfileSQL(this));
-
-						case "createrealtimesql.json":
-							return await this.JsonResponseAsync(mySqlSettings.CreateRealtimeSQL(this));
-
-						case "updatealarmconfig.json":
-							return await this.JsonResponseAsync(alarmSettings.UpdateAlarmSettings(this));
-
-						case "ftpnow.json":
-							return await this.JsonResponseAsync(stationSettings.FtpNow(this));
-
-						case "testemail.json":
-							return await this.StringResponseAsync(alarmSettings.TestEmail(this));
-
-						case "wizard.json":
-							return await this.StringResponseAsync(wizard.UpdateConfig(this));
+						switch (req)
+						{
+							case "updateprogramconfig.json":
+								await writer.WriteAsync(programSettings.UpdateConfig(HttpContext));
+								break;
+							case "updatestationconfig.json":
+								await writer.WriteAsync(stationSettings.UpdateConfig(HttpContext));
+								break;
+							case "updateinternetconfig.json":
+								await writer.WriteAsync(internetSettings.UpdateConfig(HttpContext));
+								break;
+							case "updatethirdpartyconfig.json":
+								await writer.WriteAsync(thirdpartySettings.UpdateConfig(HttpContext));
+								break;
+							case "updateextrasensorconfig.json":
+								await writer.WriteAsync(extraSensorSettings.UpdateConfig(HttpContext));
+								break;
+							case "updatecalibrationconfig.json":
+								await writer.WriteAsync(calibrationSettings.UpdateConfig(HttpContext));
+								break;
+							case "updatenoaaconfig.json":
+								await writer.WriteAsync(noaaSettings.UpdateConfig(HttpContext));
+								break;
+							case "updateextrawebfiles.html":
+								await writer.WriteAsync(internetSettings.UpdateExtraWebFiles(HttpContext));
+								break;
+							case "updatemysqlconfig.json":
+								await writer.WriteAsync(mySqlSettings.UpdateConfig(HttpContext));
+								break;
+							case "createmonthlysql.json":
+								await writer.WriteAsync(mySqlSettings.CreateMonthlySQL(HttpContext));
+								break;
+							case "createdayfilesql.json":
+								await writer.WriteAsync(mySqlSettings.CreateDayfileSQL(HttpContext));
+								break;
+							case "createrealtimesql.json":
+								await writer.WriteAsync(mySqlSettings.CreateRealtimeSQL(HttpContext));
+								break;
+							case "updatealarmconfig.json":
+								await writer.WriteAsync(alarmSettings.UpdateAlarmSettings(HttpContext));
+								break;
+							case "ftpnow.json":
+								await writer.WriteAsync(stationSettings.FtpNow(HttpContext));
+								break;
+							case "testemail.json":
+								await writer.WriteAsync(alarmSettings.TestEmail(HttpContext));
+								break;
+							case "wizard.json":
+								await writer.WriteAsync(wizard.UpdateConfig(HttpContext));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// Get reports data
 		public class ReportsController : WebApiController
 		{
-			public ReportsController(IHttpContext context) : base(context)
-			{
-			}
-
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "reports/*")]
-			public async Task<bool> GetData()
+			[Route(HttpVerbs.Get, "/reports/{req}")]
+			public async Task GetData(string req)
 			{
 				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
 				try
@@ -983,188 +1040,196 @@ namespace CumulusMX
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					int month, year;
 
-					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
-						return await this.JsonResponseAsync("Invalid year supplied: " + year);
+					Response.ContentType = "application/json";
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "noaayear":
-							return await this.JsonResponseAsync(noaarpts.GetNoaaYearReport(year));
-						case "noaamonth":
-							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
-								return await this.JsonResponseAsync("Invalid month supplied: " + month);
-							return await this.JsonResponseAsync(noaarpts.GetNoaaMonthReport(year, month));
-					}
 
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
+						if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+						{
+							await writer.WriteAsync("Invalid year supplied: " + year);
+							Response.StatusCode = 406;
+							return;
+						}
+
+						switch (req)
+						{
+							case "noaayear":
+								await writer.WriteAsync(Json.Serialize(noaarpts.GetNoaaYearReport(year)));
+								break;
+							case "noaamonth":
+								if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
+								{
+									await writer.WriteAsync("Invalid month supplied: " + month);
+									Response.StatusCode = 406;
+									return;
+								}
+								await writer.WriteAsync(Json.Serialize(noaarpts.GetNoaaMonthReport(year, month)));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Get, RelativePath + "genreports/*")]
-			public async Task<bool> GenReports()
+			[Route(HttpVerbs.Get, "/genreports/{req}")]
+			public async Task GenReports(string req)
 			{
 				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					int month, year;
+					Response.ContentType = "application/json";
 
-					if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
-						return await this.JsonResponseAsync("Invalid year supplied: " + year);
-
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "noaayear":
-							return await this.JsonResponseAsync(noaarpts.GenerateNoaaYearReport(year));
-						case "noaamonth":
-							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
-								return await this.JsonResponseAsync("Invalid month supplied: " + month);
-							return await this.JsonResponseAsync(noaarpts.GenerateNoaaMonthReport(year, month));
+						if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+						{
+							await writer.WriteAsync("Invalid year supplied: " + year);
+							Response.StatusCode = 406;
+							return;
+						}
+
+						switch (req)
+						{
+							case "noaayear":
+								await writer.WriteAsync(Json.Serialize(noaarpts.GenerateNoaaYearReport(year)));
+								break;
+							case "noaamonth":
+								if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
+								{
+									await writer.WriteAsync("Invalid month supplied: " + month);
+									Response.StatusCode = 406;
+									return;
+								}
+								await writer.WriteAsync(Json.Serialize(noaarpts.GenerateNoaaMonthReport(year, month)));
+								break;
+							default:
+								throw new KeyNotFoundException("Key Not Found: " + req);
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
 
 		// HTTP Station
 		public class HttpStation : WebApiController
 		{
-			public HttpStation(IHttpContext context) : base(context)
-			{
-			}
-
-			[WebApiHandler(HttpVerbs.Post, "/station/*")]
-			public async Task<bool> PostTags()
+			[Route(HttpVerbs.Post, "/{req}")]
+			public async Task PostTags(string req)
 			{
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					string lastSegment = Request.Url.Segments.Last();
+					Response.ContentType = "application/json";
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "ecowitt":
-							if (stationEcowitt != null)
-							{
-								return await this.StringResponseAsync(stationEcowitt.ProcessData(this, true));
-							}
-							else
-							{
-								Response.StatusCode = 500;
-								return await this.StringResponseAsync("HTTP Station (Ecowitt) is not running");
-							}
-						case "ecowittextra":
-							if (stationEcowittExtra != null)
-							{
-								return await this.StringResponseAsync(stationEcowittExtra.ProcessData(this, false));
-							}
-							else
-							{
-								Response.StatusCode = 500;
-								return await this.StringResponseAsync("HTTP Station (Ecowitt) is not running");
-							}
+						switch (req)
+						{
+							case "ecowitt":
+								if (stationEcowitt != null)
+								{
+									await writer.WriteAsync(stationEcowitt.ProcessData(HttpContext, true));
+								}
+								else
+								{
+									Response.StatusCode = 500;
+									await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
+								}
+								break;
+							case "ecowittextra":
+								if (stationEcowittExtra != null)
+								{
+									await writer.WriteAsync(stationEcowittExtra.ProcessData(HttpContext, false));
+								}
+								else
+								{
+									Response.StatusCode = 500;
+									await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
+								}
+								break;
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
 			}
 
-			[WebApiHandler(HttpVerbs.Get, "/station/*")]
-			public async Task<bool> GetStation()
+			[Route(HttpVerbs.Get, "/{req}")]
+			public async Task GetStation(string req)
 			{
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					string lastSegment = Request.Url.Segments.Last();
+					Response.ContentType = "application/json";
 
-					switch (lastSegment)
+					using (var writer = HttpContext.OpenResponseText())
 					{
-						case "wunderground":
-							if (stationWund != null)
-							{
-								return await this.StringResponseAsync(stationWund.ProcessData(this));
-							}
-							else
-							{
-								Response.StatusCode = 500;
-								return await this.StringResponseAsync("HTTP Station (Wunderground) is not running");
-							}
 
-						case "ambient":
-							if (stationAmbient != null)
-							{
-								return await this.StringResponseAsync(stationAmbient.ProcessData(this, true));
-							}
-							else
-							{
-								Response.StatusCode = 500;
-								return await this.StringResponseAsync("HTTP Station (Ambient) is not running");
-							}
+						switch (req)
+						{
+							case "wunderground":
+								if (stationWund != null)
+								{
+									await writer.WriteAsync(stationWund.ProcessData(HttpContext));
+								}
+								else
+								{
+									Response.StatusCode = 500;
+									await writer.WriteAsync("HTTP Station (Wunderground) is not running");
+								}
+								break;
 
-						case "ambientextra":
-							if (stationAmbientExtra != null)
-							{
-								return await this.StringResponseAsync(stationAmbient.ProcessData(this, false));
-							}
-							else
-							{
-								Response.StatusCode = 500;
-								return await this.StringResponseAsync("HTTP Station (Ambient) is not running");
-							}
+							case "ambient":
+								if (stationAmbient != null)
+								{
+									await writer.WriteAsync(stationAmbient.ProcessData(HttpContext, true));
+								}
+								else
+								{
+									Response.StatusCode = 500;
+									await writer.WriteAsync("HTTP Station (Ambient) is not running");
+								}
+								break;
 
+							case "ambientextra":
+								if (stationAmbientExtra != null)
+								{
+									await writer.WriteAsync(stationAmbient.ProcessData(HttpContext, false));
+								}
+								else
+								{
+									Response.StatusCode = 500;
+									await writer.WriteAsync("HTTP Station (Ambient) is not running");
+								}
+								break;
+						}
 					}
-
-					throw new KeyNotFoundException("Key Not Found: " + lastSegment);
 				}
 				catch (Exception ex)
 				{
-					return await HandleError(ex, 404);
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
+					Response.StatusCode = 500;
 				}
-			}
-
-			private async Task<bool> HandleError(Exception ex, int statusCode)
-			{
-				var errorResponse = new
-				{
-					Title = "Unexpected Error",
-					ErrorCode = ex.GetType().Name,
-					Description = ex.Message,
-				};
-
-				Response.StatusCode = statusCode;
-				return await this.JsonResponseAsync(errorResponse);
 			}
 		}
-
-
 	}
 }

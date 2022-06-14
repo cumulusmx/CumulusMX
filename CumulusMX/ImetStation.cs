@@ -800,6 +800,7 @@ namespace CumulusMX
 							{
 								ResetMidnightRain(timestamp);
 								ResetSunshineHours();
+								ResetMidnightTemperatures();
 								midnightraindone = true;
 							}
 						}

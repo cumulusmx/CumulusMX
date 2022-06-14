@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Unosquare.Labs.EmbedIO;
+using EmbedIO;
 using ServiceStack;
 
 namespace CumulusMX
@@ -95,12 +95,7 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
-				// Formats to use for the different date kinds
-				string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-				string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
 
-				// Override the ServiceStack de-serialization function
-				// Check which format provided, attempt to parse as DateTime or return minValue.
 				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 				{
 					if (string.IsNullOrWhiteSpace(datetimeStr))
@@ -108,19 +103,11 @@ namespace CumulusMX
 						return DateTime.MinValue;
 					}
 
-					if (datetimeStr.EndsWith("Z") &&
-						DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
-					{
-						return resultUtc;
-					}
-					else if (!datetimeStr.EndsWith("Z") &&
-						DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
-					{
-						return resultLocal;
-					}
+					DateTime.TryParseExact(datetimeStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal);
 
-					return DateTime.MinValue;
+					return resultLocal;
 				};
+
 
 				var newData = text.FromJson<DiaryData>();
 
@@ -149,12 +136,6 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
-				// Formats to use for the different date kinds
-				string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-				string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
-
-				// Override the ServiceStack de-serialization function
-				// Check which format provided, attempt to parse as DateTime or return minValue.
 				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 				{
 					if (string.IsNullOrWhiteSpace(datetimeStr))
@@ -162,18 +143,8 @@ namespace CumulusMX
 						return DateTime.MinValue;
 					}
 
-					if (datetimeStr.EndsWith("Z") &&
-						DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
-					{
-						return resultUtc;
-					}
-					else if (!datetimeStr.EndsWith("Z") &&
-						DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
-					{
-						return resultLocal;
-					}
-
-					return DateTime.MinValue;
+					DateTime.TryParseExact(datetimeStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal);
+					return resultLocal;
 				};
 
 				var record = text.FromJson<DiaryData>();

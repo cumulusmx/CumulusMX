@@ -625,8 +625,24 @@ namespace CumulusMX
 				double battV;
 				switch (type)
 				{
-					case "WH40":  // WH40 does not send any battery info :(
-						batt = "n/a";
+					case "WH40":
+						// Older WH40 units do not send battery info
+						// Old ones report a dummy value of 16 = 1.6V
+						// Newer ones report volts * 100!
+						battV = data[battPos] / 10;
+						if (battV > 2)
+						{
+							battV /= 10;
+							batt = $"{battV:f2}V ({TestBatteryWh40(data[battPos], battV)})"; // low = 1.2V
+						}
+						else
+						{
+							batt = $"{battV:f2}V ({TestBatteryWh40(data[battPos], battV)})"; // low = 1.2V
+							if (battV == 1.6)
+							{
+								batt += " dummy value?";
+							}
+						}
 						break;
 
 					case "WH65":
@@ -655,7 +671,7 @@ namespace CumulusMX
 					case "WH68":
 					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 						battV = data[battPos] * 0.1;
-						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V or 1.0V??
+						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V 
 						break;
 
 					case "WH25":
@@ -1547,14 +1563,26 @@ namespace CumulusMX
 
 		private static string TestBattery10(byte value)
 		{
-			return value / 10.0 > 1.2 ? "OK" : "Low";
+			// consider 1.2V as low
+			if (value == 255)
+				return "n/a";
+
+			return value > 12 ? "OK" : "Low";
 		}
 		
 		private static double TestBattery10V(byte value)
 		{
 			return value / 10.0;
 		}
-		
+
+		private static string TestBatteryWh40(byte value, double volts)
+		{
+			if (value == 255)
+				return "n/a";
+
+			return volts > 1.2 ? "OK" : "Low";
+		}
+
 		/*
 		private static string TestBatteryPct(byte value)
 		{
