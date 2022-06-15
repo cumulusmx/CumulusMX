@@ -8268,6 +8268,21 @@ namespace CumulusMX
 				{
 					using (SftpClient conn = new SftpClient(connectionInfo))
 					{
+						// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
+						try
+						{
+							using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
+#pragma warning disable CS0642 // Possible mistaken empty statement
+								;
+#pragma warning restore CS0642 // Possible mistaken empty statement
+						}
+						catch (NotImplementedException)
+						{
+							var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
+							foreach (var algName in algsToRemove)
+								connectionInfo.HostKeyAlgorithms.Remove(algName);
+						}
+
 						try
 						{
 							LogFtpDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
@@ -9694,6 +9709,21 @@ namespace CumulusMX
 					{
 						LogMessage($"RealtimeSSHLogin: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
 						return;
+					}
+
+					// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
+					try
+					{
+						using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
+#pragma warning disable CS0642 // Possible mistaken empty statement
+							;
+#pragma warning restore CS0642 // Possible mistaken empty statement
+					}
+					catch (NotImplementedException)
+					{
+						var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
+						foreach (var algName in algsToRemove)
+							connectionInfo.HostKeyAlgorithms.Remove(algName);
 					}
 
 					RealtimeSSH = new SftpClient(connectionInfo);
