@@ -1,4 +1,4 @@
-3.18.0 - b3189
+3.18.0 - b3190
 ——————————————
 - Fix: Adds Ecowitt Wh40 battery state decode
 - Fix: Increase the sensitivity of the rain counter reset and make it "unit aware"
