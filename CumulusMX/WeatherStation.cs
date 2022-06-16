@@ -10892,11 +10892,13 @@ namespace CumulusMX
 			var data = DayFile.Where(rec => rec.Date >= datefrom).ToList();
 			for (var i = 0; i < data.Count; i++)
 			{
-				sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].TotalRain.ToString(cumulus.RainFormat, InvC)}]");
-
-				if (i < data.Count - 1)
-					sb.Append(",");
+				sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].TotalRain.ToString(cumulus.RainFormat, InvC)}],");
 			}
+
+			// remove trailing comma
+			if (sb[sb.Length - 1] == ',')
+				sb.Length--;
+			
 			sb.Append("]}");
 			return sb.ToString();
 		}
@@ -10914,13 +10916,15 @@ namespace CumulusMX
 				for (var i = 0; i < data.Count; i++)
 				{
 					var sunhrs = data[i].SunShineHours >= 0 ? data[i].SunShineHours : 0;
-					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{sunhrs.ToString(cumulus.SunFormat, InvC)}]");
-
-					if (i < data.Count - 1)
-						sb.Append(",");
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{sunhrs.ToString(cumulus.SunFormat, InvC)}],");
 				}
 				sb.Append("]");
 			}
+
+			// remove trailing comma
+			if (sb[sb.Length - 1] == ',')
+				sb.Length--;
+
 			sb.Append("}");
 			return sb.ToString();
 		}
@@ -10939,10 +10943,12 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
-					if (i < data.Count - 1)
-						sb.Append(",");
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].LowTemp.ToString(cumulus.TempFormat, InvC)}],");
 				}
+
+				// remove trailing comma
+				if (sb[sb.Length - 1] == ',')
+					sb.Length--;
 
 				sb.Append("]");
 				append = true;
@@ -10957,10 +10963,12 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
-					if (i < data.Count - 1)
-						sb.Append(",");
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].HighTemp.ToString(cumulus.TempFormat, InvC)}],");
 				}
+
+				// remove trailing comma
+				if (sb[sb.Length - 1] == ',')
+					sb.Length--;
 
 				sb.Append("]");
 				append = true;
@@ -10974,10 +10982,12 @@ namespace CumulusMX
 				sb.Append("\"avgtemp\":[");
 				for (var i = 0; i < data.Count; i++)
 				{
-					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
-					if (i < data.Count - 1)
-						sb.Append(",");
+					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{data[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}],");
 				}
+
+				// remove trailing comma
+				if (sb[sb.Length - 1] == ',')
+					sb.Length--;
 
 				sb.Append("]");
 			}
@@ -11021,119 +11031,92 @@ namespace CumulusMX
 					var recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 					// lo temp
 					if (cumulus.GraphOptions.DailyMinTempVisible)
-						minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}]");
+						minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}],");
 					// hi temp
 					if (cumulus.GraphOptions.DailyMaxTempVisible)
-						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}]");
+						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}],");
 					// avg temp
 					if (cumulus.GraphOptions.DailyAvgTempVisible)
-						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}]");
-
-					if (i < len)
-					{
-						minTemp.Append(",");
-						maxTemp.Append(",");
-						avgTemp.Append(",");
-					}
+						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}],");
 
 					if (cumulus.GraphOptions.HIVisible)
 					{
 						// hi heat index
 						if (DayFile[i].HighHeatIndex > -999)
-							heatIdx.Append($"[{recDate},{DayFile[i].HighHeatIndex.ToString(cumulus.TempFormat, InvC)}]");
+							heatIdx.Append($"[{recDate},{DayFile[i].HighHeatIndex.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							heatIdx.Append($"[{recDate},null]");
-
-						if (i < len)
-							heatIdx.Append(",");
+							heatIdx.Append($"[{recDate},null],");
 					}
 					if (cumulus.GraphOptions.AppTempVisible)
 					{
 						// hi app temp
 						if (DayFile[i].HighAppTemp > -999)
-							maxApp.Append($"[{recDate},{DayFile[i].HighAppTemp.ToString(cumulus.TempFormat, InvC)}]");
+							maxApp.Append($"[{recDate},{DayFile[i].HighAppTemp.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							maxApp.Append($"[{recDate},null]");
+							maxApp.Append($"[{recDate},null],");
 
 						// lo app temp
 						if (DayFile[i].LowAppTemp < 999)
-							minApp.Append($"[{recDate},{DayFile[i].LowAppTemp.ToString(cumulus.TempFormat, InvC)}]");
+							minApp.Append($"[{recDate},{DayFile[i].LowAppTemp.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							minApp.Append($"[{recDate},null]");
-
-						if (i < len)
-						{
-							maxApp.Append(",");
-							minApp.Append(",");
-						}
+							minApp.Append($"[{recDate},null],");
 					}
 					// lo wind chill
 					if (cumulus.GraphOptions.WCVisible)
 					{
 						if (DayFile[i].LowWindChill < 999)
-							windChill.Append($"[{recDate},{DayFile[i].LowWindChill.ToString(cumulus.TempFormat, InvC)}]");
+							windChill.Append($"[{recDate},{DayFile[i].LowWindChill.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							windChill.Append($"[{recDate},null]");
-
-						if (i < len)
-							windChill.Append(",");
+							windChill.Append($"[{recDate},null],");
 					}
 
 					if (cumulus.GraphOptions.DPVisible)
 					{
 						// hi dewpt
 						if (DayFile[i].HighDewPoint > -999)
-							maxDew.Append($"[{recDate},{DayFile[i].HighDewPoint.ToString(cumulus.TempFormat, InvC)}]");
+							maxDew.Append($"[{recDate},{DayFile[i].HighDewPoint.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							maxDew.Append($"[{recDate},null]");
+							maxDew.Append($"[{recDate},null],");
 
 						// lo dewpt
 						if (DayFile[i].LowDewPoint < 999)
-							minDew.Append($"[{recDate},{DayFile[i].LowDewPoint.ToString(cumulus.TempFormat, InvC)}]");
+							minDew.Append($"[{recDate},{DayFile[i].LowDewPoint.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							minDew.Append($"[{recDate},null]");
-
-						if (i < len)
-						{
-							maxDew.Append(",");
-							minDew.Append(",");
-						}
+							minDew.Append($"[{recDate},null],");
 					}
 
 					if (cumulus.GraphOptions.FeelsLikeVisible)
 					{
 						// hi feels like
 						if (DayFile[i].HighFeelsLike > -999)
-							maxFeels.Append($"[{recDate},{DayFile[i].HighFeelsLike.ToString(cumulus.TempFormat, InvC)}]");
+							maxFeels.Append($"[{recDate},{DayFile[i].HighFeelsLike.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							maxFeels.Append($"[{recDate},null]");
+							maxFeels.Append($"[{recDate},null],");
 
 						// lo feels like
 						if (DayFile[i].LowFeelsLike < 999)
-							minFeels.Append($"[{recDate},{DayFile[i].LowFeelsLike.ToString(cumulus.TempFormat, InvC)}]");
+							minFeels.Append($"[{recDate},{DayFile[i].LowFeelsLike.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							minFeels.Append($"[{recDate},null]");
-
-						if (i < len)
-						{
-							maxFeels.Append(",");
-							minFeels.Append(",");
-						}
+							minFeels.Append($"[{recDate},null],");
 					}
 
 					if (cumulus.GraphOptions.HumidexVisible)
 					{
 						// hi humidex
 						if (DayFile[i].HighHumidex > -999)
-							humidex.Append($"[{recDate},{DayFile[i].HighHumidex.ToString(cumulus.TempFormat, InvC)}]");
+							humidex.Append($"[{recDate},{DayFile[i].HighHumidex.ToString(cumulus.TempFormat, InvC)}],");
 						else
-							humidex.Append($"[{recDate},null]");
-
-						if (i < len)
-							humidex.Append(",");
+							humidex.Append($"[{recDate},null],");
 					}
 				}
 			}
+
+			// remove trailing commas
+			minTemp.Length--;
+			maxTemp.Length--;
+			avgTemp.Length--;
+
+
 			if (cumulus.GraphOptions.DailyMinTempVisible)
 				sb.Append("\"minTemp\":" + minTemp.ToString() + "],");
 			if (cumulus.GraphOptions.DailyMaxTempVisible)
@@ -11141,26 +11124,41 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.DailyAvgTempVisible)
 				sb.Append("\"avgTemp\":" + avgTemp.ToString() + "],");
 			if (cumulus.GraphOptions.HIVisible)
+			{
+				heatIdx.Length--;
 				sb.Append("\"heatIndex\":" + heatIdx.ToString() + "],");
+			}
 			if (cumulus.GraphOptions.AppTempVisible)
 			{
+				maxApp.Length--;
+				minApp.Length--;
 				sb.Append("\"maxApp\":" + maxApp.ToString() + "],");
 				sb.Append("\"minApp\":" + minApp.ToString() + "],");
 			}
 			if (cumulus.GraphOptions.WCVisible)
+			{
+				windChill.Length--;
 				sb.Append("\"windChill\":" + windChill.ToString() + "],");
+			}
 			if (cumulus.GraphOptions.DPVisible)
 			{
+				maxDew.Length--;
+				minDew.Length--;
 				sb.Append("\"maxDew\":" + maxDew.ToString() + "],");
 				sb.Append("\"minDew\":" + minDew.ToString() + "],");
 			}
 			if (cumulus.GraphOptions.FeelsLikeVisible)
 			{
+				maxFeels.Length--;
+				minFeels.Length--;
 				sb.Append("\"maxFeels\":" + maxFeels.ToString() + "],");
 				sb.Append("\"minFeels\":" + minFeels.ToString() + "],");
 			}
 			if (cumulus.GraphOptions.HumidexVisible)
+			{
+				humidex.Length--;
 				sb.Append("\"humidex\":" + humidex.ToString() + "],");
+			}
 
 			sb.Length--;
 			sb.Append("}");
@@ -11195,20 +11193,18 @@ namespace CumulusMX
 					var recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 
 					// hi gust
-					maxGust.Append($"[{recDate},{DayFile[i].HighGust.ToString(cumulus.WindFormat, InvC)}]");
+					maxGust.Append($"[{recDate},{DayFile[i].HighGust.ToString(cumulus.WindFormat, InvC)}],");
 					// hi wind run
-					windRun.Append($"[{recDate},{DayFile[i].WindRun.ToString(cumulus.WindRunFormat, InvC)}]");
+					windRun.Append($"[{recDate},{DayFile[i].WindRun.ToString(cumulus.WindRunFormat, InvC)}],");
 					// hi wind
-					maxWind.Append($"[{recDate},{DayFile[i].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)}]");
-
-					if (i < len)
-					{
-						maxGust.Append(",");
-						windRun.Append(",");
-						maxWind.Append(",");
-					}
+					maxWind.Append($"[{recDate},{DayFile[i].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)}],");
 				}
 			}
+
+			maxGust.Length--;
+			windRun.Length--;
+			maxWind.Length--;
+
 			sb.Append("\"maxGust\":" + maxGust.ToString() + "],");
 			sb.Append("\"windRun\":" + windRun.ToString() + "],");
 			sb.Append("\"maxWind\":" + maxWind.ToString() + "]");
@@ -11244,17 +11240,15 @@ namespace CumulusMX
 					long recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 
 					// hi rain rate
-					maxRRate.Append($"[{recDate},{DayFile[i].HighRainRate.ToString(cumulus.RainFormat, InvC)}]");
+					maxRRate.Append($"[{recDate},{DayFile[i].HighRainRate.ToString(cumulus.RainFormat, InvC)}],");
 					// total rain
-					rain.Append($"[{recDate},{DayFile[i].TotalRain.ToString(cumulus.RainFormat, InvC)}]");
-
-					if (i < len)
-					{
-						maxRRate.Append(",");
-						rain.Append(",");
-					}
+					rain.Append($"[{recDate},{DayFile[i].TotalRain.ToString(cumulus.RainFormat, InvC)}],");
 				}
 			}
+
+			maxRRate.Length--;
+			rain.Length--;
+
 			sb.Append("\"maxRainRate\":" + maxRRate.ToString() + "],");
 			sb.Append("\"rain\":" + rain.ToString() + "]");
 			sb.Append("}");
@@ -11290,17 +11284,15 @@ namespace CumulusMX
 					long recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 
 					// lo baro
-					minBaro.Append($"[{recDate},{DayFile[i].LowPress.ToString(cumulus.PressFormat, InvC)}]");
+					minBaro.Append($"[{recDate},{DayFile[i].LowPress.ToString(cumulus.PressFormat, InvC)}],");
 					// hi baro
-					maxBaro.Append($"[{recDate},{DayFile[i].HighPress.ToString(cumulus.PressFormat, InvC)}]");
-
-					if (i < len)
-					{
-						maxBaro.Append(",");
-						minBaro.Append(",");
-					}
+					maxBaro.Append($"[{recDate},{DayFile[i].HighPress.ToString(cumulus.PressFormat, InvC)}],");
 				}
 			}
+
+			// Remove trailing commas
+			minBaro.Length--;
+			maxBaro.Length--;
 			sb.Append("\"minBaro\":" + minBaro.ToString() + "],");
 			sb.Append("\"maxBaro\":" + maxBaro.ToString() + "]");
 			sb.Append("}");
@@ -11308,65 +11300,42 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		//public string GetAllDailyWindDirGraphData()
-		//{
-		//	int linenum = 0;
-		//	int valInt;
+		public string GetAllDailyWindDirGraphData()
+		{
 
-		//	/* returns:
-		//	 *	{
-		//	 *		highgust:[[date1,val1],[date2,val2]...],
-		//	 *		mintemp:[[date1,val1],[date2,val2]...],
-		//	 *		etc
-		//	 *	}
-		//	 */
+			/* returns:
+			 *	{
+			 *		highgust:[[date1,val1],[date2,val2]...],
+			 *		mintemp:[[date1,val1],[date2,val2]...],
+			 *		etc
+			 *	}
+			 */
 
-		//	StringBuilder sb = new StringBuilder("{");
-		//	StringBuilder windDir = new StringBuilder("[");
+			StringBuilder sb = new StringBuilder("{");
+			StringBuilder windDir = new StringBuilder("[");
 
-		//	var watch = Stopwatch.StartNew();
 
-		//	// Read the dayfile and extract the records from there
-		//	if (File.Exists(cumulus.DayFile))
-		//	{
-		//		try
-		//		{
-		//			var dayfile = File.ReadAllLines(cumulus.DayFile);
+			// Read the dayfile and extract the records from there
+			if (DayFile.Count() > 0)
+			{
+				var len = DayFile.Count() - 1;
 
-		//			foreach (var line in dayfile)
-		//			{
-		//				linenum++;
-		//				List<string> st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+				for (var i = 0; i < DayFile.Count(); i++)
+				{
+					long recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 
-		//				if (st.Count <= 0) continue;
+					windDir.Append($"[{recDate},{DayFile[i].DominantWindBearing.ToString()}],");
 
-		//				// dominant wind direction
-		//				if (st.Count > 39)
-		//				{
-		//					long recDate = DateTimeToUnix(ddmmyyStrToDate(st[0])) * 1000;
+				}
+			}
 
-		//					if (int.TryParse(st[39], out valInt))
-		//						windDir.Append($"[{recDate},{valInt}]");
-		//					else
-		//						windDir.Append($"[{recDate},null]");
-		//					if (linenum < dayfile.Length)
-		//						windDir.Append(",");
-		//				}
-		//			}
-		//		}
-		//		catch (Exception e)
-		//		{
-		//			cumulus.LogMessage("GetAllDailyWindDirGraphData: Error on line " + linenum + " of " + cumulus.DayFile + ": " + e.Message);
-		//		}
-		//	}
-		//	sb.Append("\"windDir\":" + windDir.ToString() + "]");
-		//	sb.Append("}");
+			// Remove trailing commas
+			windDir.Length--;
+			sb.Append("\"windDir\":" + windDir.ToString() + "]");
+			sb.Append("}");
 
-		//	watch.Stop();
-		//	cumulus.LogDebugMessage($"GetAllDailyWindDirGraphData: Dayfile parse = {watch.ElapsedMilliseconds} ms");
-
-		//	return sb.ToString();
-		//}
+			return sb.ToString();
+		}
 
 		public string GetAllDailyHumGraphData()
 		{
@@ -11393,17 +11362,15 @@ namespace CumulusMX
 					long recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 
 					// lo humidity
-					minHum.Append($"[{recDate},{DayFile[i].LowHumidity}]");
+					minHum.Append($"[{recDate},{DayFile[i].LowHumidity}],");
 					// hi humidity
-					maxHum.Append($"[{recDate},{DayFile[i].HighHumidity}]");
-
-					if (i < len)
-					{
-						minHum.Append(",");
-						maxHum.Append(",");
-					}
+					maxHum.Append($"[{recDate},{DayFile[i].HighHumidity}],");
 				}
 			}
+			// Remove trailing commas
+			minHum.Length--;
+			maxHum.Length--;
+
 			sb.Append("\"minHum\":" + minHum.ToString() + "],");
 			sb.Append("\"maxHum\":" + maxHum.ToString() + "]");
 			sb.Append("}");
@@ -11440,36 +11407,35 @@ namespace CumulusMX
 					if (cumulus.GraphOptions.SunshineVisible)
 					{
 						// sunshine hours
-						sunHours.Append($"[{recDate},{DayFile[i].SunShineHours.ToString(InvC)}]");
-						if (i < len)
-							sunHours.Append(",");
+						sunHours.Append($"[{recDate},{DayFile[i].SunShineHours.ToString(InvC)}],");
 					}
 
 					if (cumulus.GraphOptions.SolarVisible)
 					{
 						// hi solar rad
-						solarRad.Append($"[{recDate},{DayFile[i].HighSolar}]");
-						if (i < len)
-							solarRad.Append(",");
+						solarRad.Append($"[{recDate},{DayFile[i].HighSolar}],");
 					}
 
 					if (cumulus.GraphOptions.UVVisible)
 					{
 						// hi UV-I
-						uvi.Append($"[{recDate},{DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC)}]");
-						if (i < len)
-							uvi.Append(",");
+						uvi.Append($"[{recDate},{DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC)}],");
 					}
 				}
 			}
+
 			if (cumulus.GraphOptions.SunshineVisible)
+			{
+				sunHours.Length--;
 				sb.Append("\"sunHours\":" + sunHours.ToString() + "]");
+			}
 
 			if (cumulus.GraphOptions.SolarVisible)
 			{
 				if (cumulus.GraphOptions.SunshineVisible)
 					sb.Append(",");
 
+				solarRad.Length--;
 				sb.Append("\"solarRad\":" + solarRad.ToString() + "]");
 			}
 
@@ -11478,6 +11444,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.SunshineVisible || cumulus.GraphOptions.SolarVisible)
 					sb.Append(",");
 
+				uvi.Length--;
 				sb.Append("\"uvi\":" + uvi.ToString() + "]");
 			}
 			sb.Append("}");

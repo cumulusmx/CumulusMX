@@ -8333,8 +8333,6 @@ namespace CumulusMX
 							}
 
 							// Extra files
-							LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
-							var cnt = 0;
 							for (int i = 0; i < numextrafiles; i++)
 							{
 								var uploadfile = ExtraFiles[i].local;
@@ -8353,7 +8351,8 @@ namespace CumulusMX
 
 									if (File.Exists(uploadfile))
 									{
-										cnt++;
+										LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
+
 										remotefile = GetRemoteFileName(remotefile, logDay);
 
 										// all checks OK, file needs to be uploaded
@@ -8383,20 +8382,18 @@ namespace CumulusMX
 							{
 								EODfilesNeedFTP = false;
 							}
-							LogFtpDebugMessage($"SFTP[Int]: Done uploading {cnt} extra files");
 
 							// standard files
-							LogFtpDebugMessage("SFTP[Int]: Uploading standard web files");
-							cnt = 0;
 							for (var i = 0; i < StdWebFiles.Length; i++)
 							{
 								if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
 								{
 									try
 									{
-										cnt++;
 										var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 										var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
+										LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localFile);
+
 										UploadFile(conn, localFile, remotefile, -1);
 									}
 									catch (Exception e)
@@ -8406,9 +8403,6 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpDebugMessage($"SFTP[Int]: Done uploading {0} standard web files");
-
-							LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
 
 							for (int i = 0; i < GraphDataFiles.Length; i++)
 							{
@@ -8419,6 +8413,8 @@ namespace CumulusMX
 
 									try
 									{
+										LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + uploadfile);
+
 										UploadFile(conn, uploadfile, remotefile, -1);
 										// The config files only need uploading once per change
 										if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
@@ -8434,19 +8430,17 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
 
-							LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
-							cnt = 0;
 							for (int i = 0; i < GraphDataEodFiles.Length; i++)
 							{
 								if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 								{
-									cnt++;
 									var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
 									var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 									try
 									{
+										LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + uploadfile);
+
 										UploadFile(conn, uploadfile, remotefile, -1);
 										// Uploaded OK, reset the upload required flag
 										GraphDataEodFiles[i].FtpRequired = false;
@@ -8458,7 +8452,6 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpMessage($"SFTP[Int]: Done uploading {cnt} daily graph data files");
 
 							if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 							{
@@ -9656,6 +9649,10 @@ namespace CumulusMX
 			{
 				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
 				LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
+			}
+			else
+			{
+				RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
 			}
 
 			if (FtpOptions.Enabled)
