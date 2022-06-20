@@ -2803,15 +2803,15 @@ namespace SQLite
 					//
 					if (val != null && val is System.Collections.IEnumerable && !(val is string) && !(val is System.Collections.Generic.IEnumerable<byte>)) {
 						var sb = new System.Text.StringBuilder();
-						sb.Append("(");
+						sb.Append('(');
 						var head = "";
 						foreach (var a in (System.Collections.IEnumerable)val) {
 							queryArgs.Add(a);
 							sb.Append(head);
-							sb.Append("?");
+							sb.Append('?');
 							head = ",";
 						}
-						sb.Append(")");
+						sb.Append(')');
 						return new CompileResult {
 							CommandText = sb.ToString(),
 							Value = val

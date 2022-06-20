@@ -559,13 +559,13 @@ namespace CumulusMX
 				string utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
 				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
 				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
-				json.Append("{");
+				json.Append('{');
 				json.Append($"\"id\":{(i + 1)},\"values\":[\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\"]");
-				json.Append("}");
+				json.Append('}');
 
 				if (i < Cumulus.numextrafiles - 1)
 				{
-					json.Append(",");
+					json.Append(',');
 				}
 			}
 

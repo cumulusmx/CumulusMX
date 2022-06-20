@@ -7061,7 +7061,7 @@ namespace CumulusMX
 				values.Append(station.CompassPoint(station.Bearing) + "',");
 				values.Append(station.FeelsLike.ToString(TempFormat, InvC) + ",");
 				values.Append(station.Humidex.ToString(TempFormat, InvC));
-				values.Append(")");
+				values.Append(')');
 
 				string queryString = values.ToString();
 
@@ -7371,7 +7371,7 @@ namespace CumulusMX
 				{
 					sb.Append("0" + ListSeparator);
 				}
-				sb.Append("0");
+				sb.Append('0');
 			}
 
 			var success = false;
@@ -9156,7 +9156,7 @@ namespace CumulusMX
 			values.Append(((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'");
 			values.Append((station.IsSunny ? "1" : "0") + "',");
 			values.Append(station.FeelsLike.ToString(TempFormat, InvC));
-			values.Append(")");
+			values.Append(')');
 
 			string valuesString = values.ToString();
 			List<string> cmds = new List<string>() { valuesString };

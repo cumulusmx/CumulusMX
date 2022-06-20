@@ -672,9 +672,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				historicUrl.Append(entry.Key);
-				historicUrl.Append("=");
+				historicUrl.Append('=');
 				historicUrl.Append(entry.Value);
-				historicUrl.Append("&");
+				historicUrl.Append('&');
 			}
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
@@ -1114,9 +1114,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				historicUrl.Append(entry.Key);
-				historicUrl.Append("=");
+				historicUrl.Append('=');
 				historicUrl.Append(entry.Value);
-				historicUrl.Append("&");
+				historicUrl.Append('&');
 			}
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
@@ -1379,9 +1379,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				stationsUrl.Append(entry.Key);
-				stationsUrl.Append("=");
+				stationsUrl.Append('=');
 				stationsUrl.Append(entry.Value);
-				stationsUrl.Append("&");
+				stationsUrl.Append('&');
 			}
 			// remove the trailing "&"
 			stationsUrl.Remove(stationsUrl.Length - 1, 1);
@@ -1498,9 +1498,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				sensorsUrl.Append(entry.Key);
-				sensorsUrl.Append("=");
+				sensorsUrl.Append('=');
 				sensorsUrl.Append(entry.Value);
-				sensorsUrl.Append("&");
+				sensorsUrl.Append('&');
 			}
 			// remove the trailing "&"
 			sensorsUrl.Remove(sensorsUrl.Length - 1, 1);

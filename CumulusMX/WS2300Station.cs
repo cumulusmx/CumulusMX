@@ -547,7 +547,7 @@ namespace CumulusMX
 			for (int n = 0; n < bytes; n++)
 			{
 				msg.Append(data[n].ToString("X2"));
-				msg.Append(" ");
+				msg.Append(' ');
 			}
 
 			cumulus.LogMessage(msg.ToString());

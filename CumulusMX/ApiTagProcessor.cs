@@ -67,7 +67,7 @@ namespace CumulusMX
 					// remove trailing ","
 					output.Remove(output.Length - 1, 1);
 				}
-				output.Append("}");
+				output.Append('}');
 
 				cumulus.LogDataMessage("API tag: Output string = " + output);
 			}
