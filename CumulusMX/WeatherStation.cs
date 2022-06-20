@@ -10708,7 +10708,7 @@ namespace CumulusMX
 		public string GetGraphConfig()
 		{
 			var json = new StringBuilder(200);
-			json.Append("{");
+			json.Append('{');
 			json.Append($"\"temp\":{{\"units\":\"{cumulus.Units.TempText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
 			json.Append($"\"wind\":{{\"units\":\"{cumulus.Units.WindText}\",\"decimals\":{cumulus.WindAvgDPlaces},\"rununits\":\"{cumulus.Units.WindRunText}\"}},");
 			json.Append($"\"rain\":{{\"units\":\"{cumulus.Units.RainText}\",\"decimals\":{cumulus.RainDPlaces}}},");
@@ -10793,7 +10793,7 @@ namespace CumulusMX
 				if (json[json.Length - 1] == ',')
 					json.Length--;
 
-				json.Append("]");
+				json.Append(']');
 			}
 
 
@@ -10811,7 +10811,7 @@ namespace CumulusMX
 				if (json[json.Length - 1] == ',')
 					json.Length--;
 
-				json.Append("]");
+				json.Append(']');
 			}
 
 			// Sunshine
@@ -10835,7 +10835,7 @@ namespace CumulusMX
 				{
 					json.Append(",\"PM 10\"");
 				}
-				json.Append("]");
+				json.Append(']');
 			}
 
 			// Degree Days
@@ -10851,7 +10851,7 @@ namespace CumulusMX
 				if (json[json.Length - 1] == ',')
 					json.Length--;
 
-				json.Append("]");
+				json.Append(']');
 			}
 
 			// Temp Sum
@@ -10868,10 +10868,10 @@ namespace CumulusMX
 				if (json[json.Length - 1] == ',')
 					json.Length--;
 
-				json.Append("]");
+				json.Append(']');
 			}
 
-			json.Append("}");
+			json.Append('}');
 			return json.ToString();
 		}
 
@@ -10918,14 +10918,14 @@ namespace CumulusMX
 					var sunhrs = data[i].SunShineHours >= 0 ? data[i].SunShineHours : 0;
 					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{sunhrs.ToString(cumulus.SunFormat, InvC)}],");
 				}
-				sb.Append("]");
+				sb.Append(']');
 			}
 
 			// remove trailing comma
 			if (sb[sb.Length - 1] == ',')
 				sb.Length--;
 
-			sb.Append("}");
+			sb.Append('}');
 			return sb.ToString();
 		}
 
@@ -10950,14 +10950,14 @@ namespace CumulusMX
 				if (sb[sb.Length - 1] == ',')
 					sb.Length--;
 
-				sb.Append("]");
+				sb.Append(']');
 				append = true;
 			}
 
 			if (cumulus.GraphOptions.DailyMaxTempVisible)
 			{
 				if (append)
-					sb.Append(",");
+					sb.Append(',');
 
 				sb.Append("\"maxtemp\":[");
 
@@ -10970,14 +10970,14 @@ namespace CumulusMX
 				if (sb[sb.Length - 1] == ',')
 					sb.Length--;
 
-				sb.Append("]");
+				sb.Append(']');
 				append = true;
 			}
 
 			if (cumulus.GraphOptions.DailyAvgTempVisible)
 			{
 				if (append)
-					sb.Append(",");
+					sb.Append(',');
 
 				sb.Append("\"avgtemp\":[");
 				for (var i = 0; i < data.Count; i++)
@@ -10989,10 +10989,10 @@ namespace CumulusMX
 				if (sb[sb.Length - 1] == ',')
 					sb.Length--;
 
-				sb.Append("]");
+				sb.Append(']');
 			}
 
-			sb.Append("}");
+			sb.Append('}');
 			return sb.ToString();
 		}
 
@@ -11161,7 +11161,7 @@ namespace CumulusMX
 			}
 
 			sb.Length--;
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11208,7 +11208,7 @@ namespace CumulusMX
 			sb.Append("\"maxGust\":" + maxGust.ToString() + "],");
 			sb.Append("\"windRun\":" + windRun.ToString() + "],");
 			sb.Append("\"maxWind\":" + maxWind.ToString() + "]");
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11251,7 +11251,7 @@ namespace CumulusMX
 
 			sb.Append("\"maxRainRate\":" + maxRRate.ToString() + "],");
 			sb.Append("\"rain\":" + rain.ToString() + "]");
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11295,7 +11295,7 @@ namespace CumulusMX
 			maxBaro.Length--;
 			sb.Append("\"minBaro\":" + minBaro.ToString() + "],");
 			sb.Append("\"maxBaro\":" + maxBaro.ToString() + "]");
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11332,7 +11332,7 @@ namespace CumulusMX
 			// Remove trailing commas
 			windDir.Length--;
 			sb.Append("\"windDir\":" + windDir.ToString() + "]");
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11373,7 +11373,7 @@ namespace CumulusMX
 
 			sb.Append("\"minHum\":" + minHum.ToString() + "],");
 			sb.Append("\"maxHum\":" + maxHum.ToString() + "]");
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11433,7 +11433,7 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.SolarVisible)
 			{
 				if (cumulus.GraphOptions.SunshineVisible)
-					sb.Append(",");
+					sb.Append(',');
 
 				solarRad.Length--;
 				sb.Append("\"solarRad\":" + solarRad.ToString() + "]");
@@ -11442,12 +11442,12 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.UVVisible)
 			{
 				if (cumulus.GraphOptions.SunshineVisible || cumulus.GraphOptions.SolarVisible)
-					sb.Append(",");
+					sb.Append(',');
 
 				uvi.Length--;
 				sb.Append("\"uvi\":" + uvi.ToString() + "]");
 			}
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11621,7 +11621,7 @@ namespace CumulusMX
 
 			sb.Append(options);
 
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11789,7 +11789,7 @@ namespace CumulusMX
 				sb.Append("\"Sum0\":" + tempSumYears0 + "}");
 
 				if (cumulus.GraphOptions.TempSumVisible1 || cumulus.GraphOptions.TempSumVisible2)
-					sb.Append(",");
+					sb.Append(',');
 			}
 			if (cumulus.GraphOptions.TempSumVisible1)
 			{
@@ -11830,7 +11830,7 @@ namespace CumulusMX
 
 			sb.Append(options);
 
-			sb.Append("}");
+			sb.Append('}');
 
 			return sb.ToString();
 		}
@@ -11844,7 +11844,7 @@ namespace CumulusMX
 			{
 				for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 				{
-					windRoseData.Append(",");
+					windRoseData.Append(',');
 					windRoseData.Append((windcounts[i] * cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 				}
 			}
