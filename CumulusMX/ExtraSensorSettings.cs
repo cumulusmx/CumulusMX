@@ -519,11 +519,11 @@ namespace CumulusMX
 
 	public class JsonExtraSensorEcowitt : JsonExtraSensorAmbient
 	{
-		internal bool setcustom { get; set; }
-		internal string gwaddr { get; set; }
-		internal string localaddr { get; set; }
-		internal int interval { get; set; }
-		internal JsonStationSettingsEcowittMappings mappings { get; set; }
+		public bool setcustom { get; set; }
+		public string gwaddr { get; set; }
+		public string localaddr { get; set; }
+		public int interval { get; set; }
+		public JsonStationSettingsEcowittMappings mappings { get; set; }
 	}
 
 

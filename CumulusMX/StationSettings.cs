@@ -1675,7 +1675,7 @@ namespace CumulusMX
 		public string mac { get; set; }
 	}
 
-	internal class JsonStationSettingsEcowittMappings
+	public class JsonStationSettingsEcowittMappings
 	{
 		public int primaryTHsensor { get; set; }
 		public int primaryRainSensor { get; set; }

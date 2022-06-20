@@ -1,3 +1,10 @@
+3.18.1 - b3191
+——————————————
+- Fix: Ecowitt Extra Sensors setup error 500
+
+- Change: Migrate the log file viewers to the new date picker
+
+
 3.18.0 - b3190
 ——————————————
 - Fix: Adds Ecowitt Wh40 battery state decode
