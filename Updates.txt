@@ -3,6 +3,7 @@
 - Fix: Ecowitt Extra Sensors setup error 500
 
 - Change: Migrate the log file viewers to the new date picker
+- Change: Default web site menu system - add accessible sub-menus (setpagedata.js)
 
 
 3.18.0 - b3190
