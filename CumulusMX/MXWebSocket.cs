@@ -6,6 +6,7 @@ namespace CumulusMX
 	public class MxWebSocket : WebSocketModule
 	{
 		private readonly Cumulus cumulus;
+		private WeatherStation station;
 
 		public MxWebSocket(string urlPath, Cumulus cumulus) : base(urlPath, true)
 		{
@@ -15,14 +16,19 @@ namespace CumulusMX
 		/// <inheritdoc />
 		protected override async Task OnClientConnectedAsync(IWebSocketContext context)
 		{
-			cumulus.LogDebugMessage("WS Client Connect: " + context.RemoteEndPoint.Address.ToString());
+			cumulus.LogDebugMessage("WS Client Connect: " + context.RemoteEndPoint.Address.ToString() + ", Total clients: " + ConnectedClients);
+			if (station != null)
+			{
+				// send an update right away so the client is not left waiting
+				await station.sendWebSocketData(true);
+			}
 			await Task.CompletedTask;
 		}
 
 		/// <inheritdoc />
 		protected override async Task OnClientDisconnectedAsync(IWebSocketContext context)
 		{
-			cumulus.LogDebugMessage("WS Client Disconnected: " + context.RemoteEndPoint.Address.ToString());
+			cumulus.LogDebugMessage("WS Client Disconnected: " + context.RemoteEndPoint.Address.ToString() + ", Total clients: " + ConnectedClients);
 			await Task.CompletedTask;
 		}
 
@@ -37,8 +43,14 @@ namespace CumulusMX
 			BroadcastAsync(message).Wait();
 		}
 
-		public int ConnectedClients {
+		public int ConnectedClients
+		{
 			get { return this.ActiveContexts.Count; }
+		}
+
+		internal WeatherStation SetStation
+		{
+			set { station = value; }
 		}
 	}
 }
