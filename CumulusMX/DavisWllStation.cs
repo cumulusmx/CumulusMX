@@ -491,7 +491,7 @@ namespace CumulusMX
 				}
 
 				//cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
-				WebReq.Wait();
+				await WebReq.WaitAsync();
 				//cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
 
 				// The WLL will error if already responding to a request from another device, so add a retry
