@@ -100,7 +100,7 @@ namespace CumulusMX
 
 			// used for kicking real time, and getting current conditions
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
-			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+			//dogsBodyClient.DefaultRequestHeaders.Add("Connection", "keep-alive"); - No persistent connections on the WLL
 
 			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
 			cumulus.LeafWetDPlaces = 1;
