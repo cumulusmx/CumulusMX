@@ -28,7 +28,7 @@ namespace CumulusMX
 		private readonly System.Timers.Timer tmrBroadcastWatchdog;
 		private readonly System.Timers.Timer tmrHealth;
 		private readonly object threadSafer = new object();
-		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1);
+		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1, 1);
 		private bool startupDayResetIfRequired = true;
 		private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
@@ -100,7 +100,7 @@ namespace CumulusMX
 
 			// used for kicking real time, and getting current conditions
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
-			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
+			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
 
 			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
 			cumulus.LeafWetDPlaces = 1;
@@ -483,8 +483,12 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				// wait a random time of 0 to 5 seconds before making the request to try and avoid continued clashes with other software or instances of MX
-				await Task.Delay(random.Next(0, 5000));
+				if (DateTime.Now.Subtract(LastDataReadTimestamp).TotalSeconds > 2.1)
+				{
+					// Another brodcast is due, half a second or so
+					cumulus.LogDebugMessage("GetWllCurrent: Delaying");
+					await Task.Delay(600);
+				}
 
 				//cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
 				WebReq.Wait();
@@ -514,13 +518,21 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
+						// less chatty, only ouput the error on the third attempt
+						if (retry == 3)
+						{
+							cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
+							if (ex.InnerException == null)
+								cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
+							else
+								cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
+						}
 						retry++;
-						cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
-						if (ex.InnerException == null)
-							cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
-						else
-							cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
+
+						// also shift the timer by a second
+						tmrCurrent.Stop();
 						Thread.Sleep(1000);
+						tmrCurrent.Start();
 					}
 				} while (retry < 3);
 
