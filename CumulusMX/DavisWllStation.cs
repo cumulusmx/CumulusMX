@@ -403,7 +403,7 @@ namespace CumulusMX
 			var retry = 2;
 
 			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime waiting for lock");
-			WebReq.Wait();
+			await WebReq.WaitAsync();
 			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime has the lock");
 
 			// The WLL will error if already responding to a request from another device, so add a retry
