@@ -1464,6 +1464,10 @@ namespace CumulusMX
 			// Don't do anything if there are no clients connected
 			if (cumulus.WebSock.ConnectedClients == 0)
 			{
+				if (webSocketSemaphore.CurrentCount == 0)
+				{
+					webSocketSemaphore.Release();
+				}
 				return;
 			}
 
@@ -1539,7 +1543,7 @@ namespace CumulusMX
 				cumulus.LogMessage("sendWebSocketData: Error - " + ex.Message);
 			}
 
-			webSocketSemaphore.Release(1);
+			webSocketSemaphore.Release();
 		}
 
 		private string getTimeString(DateTime time)
@@ -4042,10 +4046,8 @@ namespace CumulusMX
 			var uncalibratedgust = gustpar;
 			calibratedgust = uncalibratedgust * cumulus.Calib.WindGust.Mult;
 
-			// If we are using speed for average it means the gustpar is a period gust value not a latest.
-			// So we have to use the speed for the latest
-			WindLatest = cumulus.StationOptions.UseSpeedForAvgCalc ? speedpar * cumulus.Calib.WindSpeed.Mult : calibratedgust;
-			
+			WindLatest = cumulus.StationOptions.UseSpeedForLatest ? speedpar * cumulus.Calib.WindSpeed.Mult : calibratedgust;
+
 			windspeeds[nextwindvalue] = gustpar;
 			windbears[nextwindvalue] = Bearing;
 

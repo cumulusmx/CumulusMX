@@ -40,8 +40,8 @@ namespace CumulusMX
 
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
-		private readonly Version fwVersion;
-		private readonly string gatewayType;
+		private Version fwVersion;
+		private string gatewayType;
 
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
@@ -56,6 +56,8 @@ namespace CumulusMX
 			// GW1000 does not provide an interval gust value, it gives us a 30 second high
 			// so force using the wind speed for the average calculation
 			cumulus.StationOptions.UseSpeedForAvgCalc = true;
+			// also use it for the Latest value
+			cumulus.StationOptions.UseSpeedForLatest = true;
 
 			LightningTime = DateTime.MinValue;
 			LightningDistance = -1.0;
@@ -102,45 +104,7 @@ namespace CumulusMX
 
 			if (DoDiscovery())
 			{
-				cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
-
-				connectedOk = Api.OpenTcpPort(ipaddr, AtPort);
-
-				if (connectedOk)
-				{
-					cumulus.LogMessage("Connected OK");
-					cumulus.LogConsoleMessage("Connected to station");
-				}
-				else
-				{
-					cumulus.LogMessage("Not Connected");
-					cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
-				}
-
-				if (connectedOk)
-				{
-					// Get the firmware version as check we are communicating
-					GW1000FirmwareVersion = GetFirmwareVersion();
-					cumulus.LogMessage($"Ecowitt firmware version: {GW1000FirmwareVersion}");
-					if (GW1000FirmwareVersion != "???")
-					{
-						var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
-						if (fwString.Length > 1)
-						{
-							gatewayType = fwString[0];
-							fwVersion = new Version(fwString[1]);
-						}
-						else
-						{
-							// failed to get the version, lets assume it's fairly new
-							fwVersion = new Version("1.6.5");
-						}
-					}
-
-					GetSystemInfo();
-
-					GetSensorIdsNew();
-				}
+				PostDiscovery();         
 			}
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -215,9 +179,18 @@ namespace CumulusMX
 								cumulus.LogMessage("Reconnected to Ecowitt device");
 								GetLiveData();
 							}
+							else
+							{
+								// add a small extra delay before trying again
+								cumulus.LogMessage("Delaying before attempting reconnect");
+								if (cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
+								{
+									break;
+								}
+							}
 						}
 
-						delay = updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds;
+						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
 
 						if (cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
 						{
@@ -334,16 +307,16 @@ namespace CumulusMX
 
 					// bind the cient to the primary address - broadcast does not work with .Any address :(
 					client.Client.Bind(new IPEndPoint(myIP, broadcastPort));
-					// time out listening after 1 second
-					client.Client.ReceiveTimeout = 1000;
+					// time out listening after 1.5 second
+					client.Client.ReceiveTimeout = 1500;
 
 					// we are going to attempt discovery twice
 					var retryCount = 1;
 					do
 					{
 						cumulus.LogDebugMessage("Discovery Run #" + retryCount);
-						// each time we wait 1 second for any responses
-						var endTime = DateTime.Now.AddSeconds(1);
+						// each time we wait 1.5 second for any responses
+						var endTime = DateTime.Now.AddSeconds(1.5);
 
 						try
 						{
@@ -501,6 +474,49 @@ namespace CumulusMX
 			}
 
 			return true;
+		}
+
+		private void PostDiscovery()
+		{
+			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
+
+			connectedOk = Api.OpenTcpPort(ipaddr, AtPort);
+
+			if (connectedOk)
+			{
+				cumulus.LogMessage("Connected OK");
+				cumulus.LogConsoleMessage("Connected to station");
+			}
+			else
+			{
+				cumulus.LogMessage("Not Connected");
+				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red);
+			}
+
+			if (connectedOk)
+			{
+				// Get the firmware version as check we are communicating
+				GW1000FirmwareVersion = GetFirmwareVersion();
+				cumulus.LogMessage($"Ecowitt firmware version: {GW1000FirmwareVersion}");
+				if (GW1000FirmwareVersion != "???")
+				{
+					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
+					if (fwString.Length > 1)
+					{
+						gatewayType = fwString[0];
+						fwVersion = new Version(fwString[1]);
+					}
+					else
+					{
+						// failed to get the version, lets assume it's fairly new
+						fwVersion = new Version("1.6.5");
+					}
+				}
+
+				GetSystemInfo();
+
+				GetSensorIdsNew();
+			}
 		}
 
 		private string GetFirmwareVersion()
@@ -1619,7 +1635,10 @@ namespace CumulusMX
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
-				DoDiscovery();
+				if (DoDiscovery())
+				{
+					PostDiscovery();
+				}
 			}
 		}
 	}

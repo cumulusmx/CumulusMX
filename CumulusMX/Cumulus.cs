@@ -3924,6 +3924,7 @@ namespace CumulusMX
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
 			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
+			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
 
 			StationOptions.AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
 			if (StationOptions.AvgBearingMinutes > 120)
@@ -10616,6 +10617,7 @@ namespace CumulusMX
 		public bool UseZeroBearing { get; set; }
 		public bool UseWind10MinAvg { get; set; }
 		public bool UseSpeedForAvgCalc { get; set; }
+		public bool UseSpeedForLatest { get; set; }
 		public bool Humidity98Fix { get; set; }
 		public bool CalculatedDP { get; set; }
 		public bool CalculatedWC { get; set; }

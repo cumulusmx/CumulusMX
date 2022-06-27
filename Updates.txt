@@ -5,6 +5,7 @@ Fixed
 - Broken NOAA reports in dashboard
 - Occasional web socket disconnection in the Dashboard
 - Default web site pages not always fully loading - updated /js/setpagedata.js
+- Ecowitt Local API station failing to start-up correctly when auto-discovery is enabled and the station fails initial discovery
 
 Changed
 - Migrate the log file viewers to the new date picker
