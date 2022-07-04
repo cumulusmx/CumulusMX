@@ -6,6 +6,7 @@ Fixed
 - Occasional web socket disconnection in the Dashboard
 - Default web site pages not always fully loading - updated /js/setpagedata.js
 - Ecowitt Local API station failing to start-up correctly when auto-discovery is enabled and the station fails initial discovery
+- Fine Offset console read synchronisation is fixed/changed
 
 New
 - Added the Today/Yesterday page to the default web site
