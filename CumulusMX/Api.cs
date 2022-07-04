@@ -1034,9 +1034,6 @@ namespace CumulusMX
 				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					int month, year;
 

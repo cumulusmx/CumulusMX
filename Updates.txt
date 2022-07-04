@@ -7,6 +7,9 @@ Fixed
 - Default web site pages not always fully loading - updated /js/setpagedata.js
 - Ecowitt Local API station failing to start-up correctly when auto-discovery is enabled and the station fails initial discovery
 
+New
+- Added the Today/Yesterday page to the default web site
+
 Changed
 - Migrate the log file viewers to the new date picker
 - Default web site menu system - add accessible sub-menus (setpagedata.js)
