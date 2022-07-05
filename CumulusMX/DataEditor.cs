@@ -233,7 +233,7 @@ namespace CumulusMX
 			json.Append($"\"highMonthlyRainTime\":\"{station.AllTime.MonthlyRain.GetTsString("MM/yyyy")}\",");
 			json.Append($"\"longestDryPeriodTime\":\"{station.AllTime.LongestDryPeriod.GetTsString(dateStampFormat)}\",");
 			json.Append($"\"longestWetPeriodTime\":\"{station.AllTime.LongestWetPeriod.GetTsString(dateStampFormat)}\"");
-			json.Append("}");
+			json.Append('}');
 
 			return json.ToString();
 		}
@@ -1651,7 +1651,7 @@ namespace CumulusMX
 				json.Append($"\"{m}-longestWetPeriodTime\":\"{station.MonthlyRecs[m].LongestWetPeriod.GetTsString(dateStampFormat)}\",");
 			}
 			json.Length--;
-			json.Append("}");
+			json.Append('}');
 
 			return json.ToString();
 		}
@@ -2582,7 +2582,7 @@ namespace CumulusMX
 			}
 
 			json.Length--;
-			json.Append("}");
+			json.Append('}');
 
 			watch.Stop();
 			var elapsed = watch.ElapsedMilliseconds;

@@ -47,26 +47,6 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Updating third party settings");
 
-				// twitter
-				try
-				{
-					cumulus.Twitter.Enabled = settings.twitter.enabled;
-					if (cumulus.Twitter.Enabled)
-					{
-						cumulus.Twitter.Interval = settings.twitter.interval;
-						cumulus.Twitter.PW = settings.twitter.password ?? string.Empty;
-						cumulus.Twitter.SendLocation = settings.twitter.sendlocation;
-						cumulus.Twitter.ID = settings.twitter.user ?? string.Empty;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing twitter settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// wunderground
 				try
 				{
@@ -346,15 +326,6 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var twittersettings = new JsonThirdPartySettingsTwitterSettings()
-			{
-				enabled = cumulus.Twitter.Enabled,
-				interval = cumulus.Twitter.Interval,
-				password = cumulus.Twitter.PW,
-				sendlocation = cumulus.Twitter.SendLocation,
-				user = cumulus.Twitter.ID
-			};
-
 			var wusettings = new JsonThirdPartySettingsWunderground()
 			{
 				catchup = cumulus.Wund.CatchUp,
@@ -489,7 +460,6 @@ namespace CumulusMX
 			var data = new JsonThirdPartySettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
-				twitter = twittersettings,
 				wunderground = wusettings,
 				windy = windysettings,
 				awekas = awekassettings,
@@ -510,7 +480,6 @@ namespace CumulusMX
 	public class JsonThirdPartySettings
 	{
 		public bool accessible { get; set; }
-		public JsonThirdPartySettingsTwitterSettings twitter { get; set; }
 		public JsonThirdPartySettingsWunderground wunderground { get; set; }
 		public JsonThirdPartySettingsWindy windy { get; set; }
 		public JsonThirdPartySettingsPWSweather pwsweather { get; set; }
@@ -521,15 +490,6 @@ namespace CumulusMX
 		public JsonThirdPartySettingsOpenweatherMap openweathermap { get; set; }
 		public JsonThirdPartySettingsWindGuru windguru { get; set; }
 		public JsonThirdPartySettingsCustomHttpSettings customhttp { get; set; }
-	}
-
-	public class JsonThirdPartySettingsTwitterSettings
-	{
-		public bool enabled { get; set; }
-		public bool sendlocation { get; set; }
-		public int interval { get; set; }
-		public string user { get; set; }
-		public string password { get; set; }
 	}
 
 	public class JsonThirdPartySettingsWunderground

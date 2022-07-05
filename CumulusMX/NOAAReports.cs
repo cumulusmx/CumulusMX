@@ -79,7 +79,8 @@ namespace CumulusMX
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
 				noaafile = cumulus.ReportPath + reportName;
-				report = File.Exists(noaafile) ? new List<string>(File.ReadAllLines(noaafile)) : new List<String> { "That report does not exist" };
+				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
+				report = File.Exists(noaafile) ? new List<string>(File.ReadAllLines(noaafile, encoding)) : new List<String> { "That report does not exist" };
 			}
 			catch (Exception e)
 			{
@@ -99,6 +100,7 @@ namespace CumulusMX
 				noaafile = cumulus.ReportPath + reportName;
 				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
 				report = File.Exists(noaafile) ? new List<string> (File.ReadAllLines(noaafile, encoding)) : new List<string> { "That report does not exist" };
+				//cumulus.LogDebugMessage("NOAA Report\n" + string.Join("\n",report.ToArray()));
 			}
 			catch (Exception e)
 			{

@@ -1625,7 +1625,7 @@ namespace CumulusMX
 			for (int i = 0; i < packetBuffer[1]; i++)
 			{
 				str.Append(packetBuffer[i].ToString("X2"));
-				str.Append(" ");
+				str.Append(' ');
 			}
 
 			cumulus.LogDataMessage($"Packet:{str}");

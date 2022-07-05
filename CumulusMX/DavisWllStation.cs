@@ -28,7 +28,7 @@ namespace CumulusMX
 		private readonly System.Timers.Timer tmrBroadcastWatchdog;
 		private readonly System.Timers.Timer tmrHealth;
 		private readonly object threadSafer = new object();
-		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1);
+		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1, 1);
 		private bool startupDayResetIfRequired = true;
 		private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
@@ -46,6 +46,8 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
+
+		private static byte[] broadcastBuffer = new byte[8192];
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -100,7 +102,7 @@ namespace CumulusMX
 
 			// used for kicking real time, and getting current conditions
 			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
-			dogsBodyClient.DefaultRequestHeaders.Add("Connection", "close");
+			//dogsBodyClient.DefaultRequestHeaders.Add("Connection", "keep-alive"); - No persistent connections on the WLL
 
 			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
 			cumulus.LeafWetDPlaces = 1;
@@ -301,12 +303,12 @@ namespace CumulusMX
 								// test is any data is available
 								if (udpClient.Client.Available > 0)
 								{
-									var jsonBtye = udpClient.Receive(ref from);
-									var jsonStr = Encoding.UTF8.GetString(jsonBtye);
+									broadcastBuffer = udpClient.Receive(ref from);
+									var jsonStr = Encoding.UTF8.GetString(broadcastBuffer);
 									DecodeBroadcast(jsonStr);
 								}
 								// if not, sleep and repeat, or exit on cancel
-								else if (cancellationToken.WaitHandle.WaitOne(200))
+								else if (cancellationToken.WaitHandle.WaitOne(100))
 								{
 									cumulus.LogMessage("WLL broadcast listener stop requested");
 									break;
@@ -403,7 +405,7 @@ namespace CumulusMX
 			var retry = 2;
 
 			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime waiting for lock");
-			WebReq.Wait();
+			await WebReq.WaitAsync();
 			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime has the lock");
 
 			// The WLL will error if already responding to a request from another device, so add a retry
@@ -483,11 +485,15 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				// wait a random time of 0 to 5 seconds before making the request to try and avoid continued clashes with other software or instances of MX
-				await Task.Delay(random.Next(0, 5000));
+				if (DateTime.Now.Subtract(LastDataReadTimestamp).TotalSeconds > 2.1)
+				{
+					// Another brodcast is due, half a second or so
+					cumulus.LogDebugMessage("GetWllCurrent: Delaying");
+					await Task.Delay(600);
+				}
 
 				//cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
-				WebReq.Wait();
+				await WebReq.WaitAsync();
 				//cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
 
 				// The WLL will error if already responding to a request from another device, so add a retry
@@ -514,13 +520,21 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
+						// less chatty, only ouput the error on the third attempt
+						if (retry == 3)
+						{
+							cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
+							if (ex.InnerException == null)
+								cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
+							else
+								cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
+						}
 						retry++;
-						cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
-						if (ex.InnerException == null)
-							cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
-						else
-							cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
+
+						// also shift the timer by a second
+						tmrCurrent.Stop();
 						Thread.Sleep(1000);
+						tmrCurrent.Start();
 					}
 				} while (retry < 3);
 
@@ -1568,9 +1582,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				historicUrl.Append(entry.Key);
-				historicUrl.Append("=");
+				historicUrl.Append('=');
 				historicUrl.Append(entry.Value);
-				historicUrl.Append("&");
+				historicUrl.Append('&');
 			}
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
@@ -2915,9 +2929,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				historicUrl.Append(entry.Key);
-				historicUrl.Append("=");
+				historicUrl.Append('=');
 				historicUrl.Append(entry.Value);
-				historicUrl.Append("&");
+				historicUrl.Append('&');
 			}
 			// remove the trailing "&"
 			historicUrl.Remove(historicUrl.Length - 1, 1);
@@ -3094,9 +3108,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				stationsUrl.Append(entry.Key);
-				stationsUrl.Append("=");
+				stationsUrl.Append('=');
 				stationsUrl.Append(entry.Value);
-				stationsUrl.Append("&");
+				stationsUrl.Append('&');
 			}
 			// remove the trailing "&"
 			stationsUrl.Remove(stationsUrl.Length - 1, 1);
@@ -3207,9 +3221,9 @@ namespace CumulusMX
 			foreach (KeyValuePair<string, string> entry in parameters)
 			{
 				stationsUrl.Append(entry.Key);
-				stationsUrl.Append("=");
+				stationsUrl.Append('=');
 				stationsUrl.Append(entry.Value);
-				stationsUrl.Append("&");
+				stationsUrl.Append('&');
 			}
 			// remove the trailing "&"
 			stationsUrl.Remove(stationsUrl.Length - 1, 1);

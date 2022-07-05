@@ -1,3 +1,29 @@
+3.19.0 - b3191
+——————————————
+Fixed
+- Ecowitt Extra Sensors setup error 500
+- Broken NOAA reports in dashboard
+- Occasional web socket disconnection in the Dashboard
+- Default web site pages not always fully loading - updated /js/setpagedata.js
+- Ecowitt Local API station failing to start-up correctly when auto-discovery is enabled and the station fails initial discovery
+- Fine Offset console read synchronisation is fixed/changed
+
+New
+- Added the Today/Yesterday page to the default web site
+
+Changed
+- Migrate the log file viewers to the new date picker
+- Default web site menu system - add accessible sub-menus (setpagedata.js)
+- Date selection in NOAA reports
+- Local API: NOAA reports are now returned as plain text rather than a JSON array of strings
+- Dashboard now populated with data on initial page load (also Now and Gauges pages)
+- Davis WLL: Querying the WLL current conditions now avoids times a broadcast is due to be sent as the WLL cannot do both at once
+
+Removed
+- Twitter be gone! Cumulus MX no longer supports Twitter directly
+
+
+
 3.18.0 - b3190
 ——————————————
 - Fix: Adds Ecowitt Wh40 battery state decode

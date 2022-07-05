@@ -321,7 +321,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					if (l < 2) sb.Append("0");
+					if (l < 2) sb.Append('0');
 					sb.Append(hex);
 				}
 			}

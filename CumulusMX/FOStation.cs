@@ -24,9 +24,9 @@ namespace CumulusMX
 		private int prevaddr = -1;
 		private int prevraintotal = -1;
 		private int ignoreraincount;
-		private int synchroPhase;
 		private DateTime previousSensorClock;
 		private DateTime previousStationClock;
+		private DateTime previousSolarClock;
 		private bool synchronising;
 		//private DateTime lastraintip;
 		//private int raininlasttip = 0;
@@ -34,7 +34,7 @@ namespace CumulusMX
 		private readonly Timer tmrDataRead;
 		private int readCounter;
 		private bool hadfirstsyncdata;
-		private readonly byte[] prevdata = new byte[16];
+		private readonly byte[] prevdata = new byte[20];
 		private readonly int foEntrysize;
 		private readonly int foMaxAddr;
 		//private int FOmaxhistoryentries;
@@ -51,6 +51,13 @@ namespace CumulusMX
 			tmrDataRead = new Timer();
 
 			calculaterainrate = true;
+
+			cumulus.LogMessage("FO synchronise reads: " + cumulus.FineOffsetOptions.SyncReads);
+			if (cumulus.FineOffsetOptions.SyncReads)
+			{
+				cumulus.LogMessage("FO synchronise avoid time: " + cumulus.FineOffsetOptions.ReadAvoidPeriod);
+				cumulus.LogMessage($"FO last station time: {FOSensorClockTime:s}");
+			}
 
 			hasSolar = cumulus.StationType == StationTypes.FineOffsetSolar;
 
@@ -613,8 +620,12 @@ namespace CumulusMX
 		public override void Start()
 		{
 			tmrDataRead.Elapsed += DataReadTimerTick;
-			tmrDataRead.Interval = 10000;
+			tmrDataRead.Interval = 16000;
 			tmrDataRead.Enabled = true;
+
+			readingData = true;
+			GetAndProcessData();
+			readingData = false;
 		}
 
 		private bool OpenHidDevice()
@@ -837,34 +848,60 @@ namespace CumulusMX
 
 			if (cumulus.FineOffsetOptions.SyncReads && !synchronising)
 			{
+				var now = DateTime.Now;
+
 				if ((DateTime.Now - FOSensorClockTime).TotalDays > 1)
 				{
 					// (re)synchronise data reads to try to avoid USB lock-up problem
 
 					StartSynchronising();
-
-					return;
 				}
-
-				// Check that were not within N seconds of the station updating memory
-				bool sensorclockOK = ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
-				                     ((int)(Math.Floor((DateTime.Now - FOSensorClockTime).TotalSeconds))%48 <= (47 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
-				bool stationclockOK = ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
-				                      ((int)(Math.Floor((DateTime.Now - FOStationClockTime).TotalSeconds))%60 <= (59 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
-
-				if (!sensorclockOK || !stationclockOK)
+				else
 				{
-					if (!sensorclockOK)
+					// Check that were not within N seconds of the station updating memory
+					bool sensorclockOK = ((int)(Math.Floor((now - FOSensorClockTime).TotalSeconds)) % 48 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
+										 ((int)(Math.Floor((now - FOSensorClockTime).TotalSeconds)) % 48 <= (47 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
+
+					//bool stationclockOK = ((int)(Math.Floor((now - FOStationClockTime).TotalSeconds)) % 60 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
+					//					((int)(Math.Floor((now - FOStationClockTime).TotalSeconds)) % 60 <= (59 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
+
+					bool solarclockOK = true;
+
+					if (hasSolar)
 					{
-						cumulus.LogDebugMessage("Within "+cumulus.FineOffsetOptions.ReadAvoidPeriod +" seconds of sensor data change, skipping read");
+						solarclockOK = ((int)(Math.Floor((now - FOSolarClockTime).TotalSeconds)) % 60 >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) &&
+										((int)(Math.Floor((now - FOSolarClockTime).TotalSeconds)) % 60 <= (59 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
 					}
 
-					if (!stationclockOK)
+					//if (!sensorclockOK || !stationclockOK || !solarclockOK)
+					if (!sensorclockOK || !solarclockOK)
 					{
-						cumulus.LogDebugMessage("Within " + cumulus.FineOffsetOptions.ReadAvoidPeriod + " seconds of station clock minute change, skipping read");
-					}
+						if (!sensorclockOK)
+						{
+							cumulus.LogDebugMessage("Synchronise: Within " + cumulus.FineOffsetOptions.ReadAvoidPeriod + " seconds of sensor data change, skipping read");
 
-					return;
+							cumulus.LogMessage("Pausing for 8 seconds to unsynchronise data reads with 48 second updates...");
+
+
+							// We'll shift the timer by 8 seconds to try and avoid it at completely
+							tmrDataRead.Enabled = false;
+							Thread.Sleep(8000);
+							tmrDataRead.Enabled = true;
+						}
+
+						if (!solarclockOK)
+						{
+							cumulus.LogDebugMessage("Synchronise: Within " + cumulus.FineOffsetOptions.ReadAvoidPeriod + " seconds of solar change, skipping read");
+						}
+
+
+						/*
+						if (!stationclockOK)
+						{
+							cumulus.LogDebugMessage("Synchronise: Within " + cumulus.FineOffsetOptions.ReadAvoidPeriod + " seconds of console clock minute change, skipping read");
+						}
+						*/
+					}
 				}
 			}
 
@@ -880,20 +917,20 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("First block read, addr = " + addr.ToString("X4"));
 
-			if (addr != prevaddr)
+			if (prevaddr == -1)
+			{
+				prevaddr = addr;
+			}
+			else if (addr != prevaddr)
 			{
 				// location has changed, skip this read to give it chance to update
 				//cumulus.LogMessage("Location changed, skipping");
-				cumulus.LogDebugMessage("Address changed");
+				cumulus.LogDebugMessage("Address changed, avoid reading data this time");
 				cumulus.LogDebugMessage("addr=" + addr.ToString("X4") + " previous=" + prevaddr.ToString("X4"));
 
-				if (synchroPhase == 2)
-				{
-					FOStationClockTime = DateTime.Now;
-					StopSynchronising();
-				}
-
 				prevaddr = addr;
+				hadfirstsyncdata = false;
+
 				return;
 			}
 			else
@@ -911,15 +948,76 @@ namespace CumulusMX
 
 				if (synchronising)
 				{
-					if (synchroPhase == 1)
+					bool datachanged = false;
+					// ReadCounter determines whether we actually process the data (every 10 seconds)
+					readCounter++;
+					if (hadfirstsyncdata)
 					{
-						// phase 1 - sensor clock
-						bool datachanged = false;
-						// ReadCounter determines whether we actually process the data (every 10 seconds)
-						readCounter++;
+
+						// Sensor Data change detection
+
+						// ignore the first byte as this is a time increment every minute
+						for (int i = 1; i < 16; i++)
+						{
+							if (prevdata[i] != data[i])
+							{
+								datachanged = true;
+							}
+						}
+
+						if (datachanged)
+						{
+							cumulus.LogConsoleMessage("Sensor data changed");
+							cumulus.LogMessage("Synchronise: Sensor data changed");
+
+							if (FOSensorClockTime == DateTime.MinValue)
+							{
+								FOSensorClockTime = now;
+							}
+
+							for (int i = 1; i < 16; i++)
+							{
+								prevdata[i] = data[i];
+							}
+						}
+
+						// station clock minute change
+						// the minutes in the data block only seems to update when data is written to the block,
+						// so we cannot use that as an accurate indication of when the console clock minute changes
+						/*
+						if (prevdata[0] != data[0])
+						{
+							cumulus.LogConsoleMessage("Console clock minute changed");
+							cumulus.LogMessage("Synchronise: Console clock minute changed");
+
+							FOStationClockTime = now;
+
+							if (FOStationClockTime == DateTime.MinValue)
+							{
+								FOStationClockTime = now;
+							}
+
+							prevdata[0] = data[0];
+						}
+						*/
+					}
+					else
+					{
+						hadfirstsyncdata = true;
+						for (int i = 0; i < 16; i++)
+						{
+							prevdata[i] = data[i];
+						}
+
+					}
+
+					// now do the solar
+					if (hasSolar)
+					{
+						datachanged = false;
 						if (hadfirstsyncdata)
 						{
-							for (int i = 0; i < 16; i++)
+							for (int i = 16; i < 20; i++)
 							{
 								if (prevdata[i] != data[i])
 								{
@@ -929,28 +1027,46 @@ namespace CumulusMX
 
 							if (datachanged)
 							{
-								FOSensorClockTime = DateTime.Now;
-								synchroPhase = 2;
+								cumulus.LogConsoleMessage("Solar data changed");
+								cumulus.LogMessage("Synchronise: Solar data changed");
+
+								if (FOSolarClockTime == DateTime.MinValue)
+								{
+									FOSolarClockTime = now;
+								}
+
+								for (int i = 16; i < 20; i++)
+								{
+									prevdata[i] = data[i];
+								}
 							}
 						}
 					}
-					else
+
+					//if (FOSensorClockTime != DateTime.MinValue && FOStationClockTime != DateTime.MinValue)
+					if (FOSensorClockTime != DateTime.MinValue)
 					{
-						// Phase 2 - station clock
-						readCounter++;
+						if (hasSolar)
+						{
+							if (FOSolarClockTime != DateTime.MinValue)
+							{
+								StopSynchronising();
+							}
+						}
+						else
+						{
+							StopSynchronising();
+						}
 					}
+
+					readCounter++;
 				}
 
-				hadfirstsyncdata = true;
-				for (int i = 0; i < 16; i++)
-				{
-					prevdata[i] = data[i];
-				}
 
-				if (!synchronising || (readCounter%20) == 0)
+				if (!synchronising || (readCounter % 20) == 0)
 				{
-					LatestFOReading = addr.ToString("X4") + ": " + BitConverter.ToString(data, 0, 16);
-					cumulus.LogDataMessage(LatestFOReading);
+					LatestFOReading = addr.ToString("X4") + " Data: " + BitConverter.ToString(data, 0, 16);
+					cumulus.LogDataMessage("Latest Block: " + LatestFOReading);
 
 					// Indoor Humidity ====================================================
 					int inhum = data[1];
@@ -1120,7 +1236,7 @@ namespace CumulusMX
 
 							if (ignoreraincount == 6)
 							{
-								cumulus.LogMessage("Six consecutive readings; accepting value. Adjusting start of day figure to compensate");
+								cumulus.LogMessage("Six consecutive rain readings; accepting value. Adjusting start of day figure to compensate");
 								raindaystart += (raindiff*0.3);
 								// adjust current rain total counter
 								Raincounter += (raindiff*0.3);
@@ -1180,12 +1296,14 @@ namespace CumulusMX
 		private void StartSynchronising()
 		{
 			previousSensorClock = FOSensorClockTime;
-			previousStationClock = FOStationClockTime;
+			//previousStationClock = FOStationClockTime;
+			previousSolarClock = FOSolarClockTime;
 			synchronising = true;
-			synchroPhase = 1;
 			hadfirstsyncdata = false;
 			readCounter = 0;
-			cumulus.LogMessage("Start Synchronising");
+			cumulus.LogMessage("Start Synchronising with console");
+			cumulus.LogConsoleMessage("Start Synchronising with console");
+
 
 			tmrDataRead.Interval = 500; // half a second
 		}
@@ -1195,14 +1313,13 @@ namespace CumulusMX
 			int secsdiff;
 
 			synchronising = false;
-			synchroPhase = 0;
 			if (previousSensorClock == DateTime.MinValue)
 			{
 				cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString());
 			}
 			else
 			{
-				secsdiff = (int) Math.Floor((FOSensorClockTime - previousSensorClock).TotalSeconds)%48;
+				secsdiff = (int) Math.Floor((FOSensorClockTime - previousSensorClock).TotalSeconds) % 48;
 				if (secsdiff > 24)
 				{
 					secsdiff = 48 - secsdiff;
@@ -1210,28 +1327,43 @@ namespace CumulusMX
 				cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString() + " drift = " + secsdiff + " seconds");
 			}
 
+			/*
 			if (previousStationClock == DateTime.MinValue)
 			{
 				cumulus.LogMessage("Station clock " + FOStationClockTime.ToLongTimeString());
 			}
-
 			else
 			{
-				secsdiff = (int) Math.Floor((FOStationClockTime - previousStationClock).TotalSeconds)%60;
+				secsdiff = (int)Math.Floor((FOStationClockTime - previousStationClock).TotalSeconds) % 60;
 				if (secsdiff > 30)
 				{
 					secsdiff = 60 - secsdiff;
 				}
 				cumulus.LogMessage("Station clock  " + FOStationClockTime.ToLongTimeString() + " drift = " + secsdiff + " seconds");
 			}
-			tmrDataRead.Interval = 10000; // 10 seconds
-			tmrDataRead.Enabled = false;
-			// sleep 5 secs to get out of sync with station clock minute change
-			Thread.Sleep(5000);
+			*/
 
-			tmrDataRead.Enabled = true;
+			if (hasSolar)
+			{
+				if (previousSolarClock == DateTime.MinValue)
+				{
+					cumulus.LogMessage("Solar clock " + FOSolarClockTime.ToLongTimeString());
+				}
+				else
+				{
+					secsdiff = (int)Math.Floor((FOSolarClockTime - previousSolarClock).TotalSeconds) % 60;
+					if (secsdiff > 30)
+					{
+						secsdiff = 60 - secsdiff;
+					}
+					cumulus.LogMessage("Solar clock  " + FOSolarClockTime.ToLongTimeString() + " drift = " + secsdiff + " seconds");
+				}
+			}
+
+			tmrDataRead.Interval = 16000; // 16 seconds
 
 			cumulus.LogMessage("Stop Synchronising");
+			cumulus.LogConsoleMessage("Stop Synchronising");
 		}
 
 		//public double EWpressureoffset { get; set; }

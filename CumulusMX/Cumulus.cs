@@ -18,7 +18,6 @@ using System.Timers;
 using MySqlConnector;
 using FluentFTP;
 using FluentFTP.Helpers;
-using LinqToTwitter;
 using ServiceStack.Text;
 using EmbedIO;
 using EmbedIO.WebApi;
@@ -466,9 +465,6 @@ namespace CumulusMX
 		//private const int VP2USBCONNECTION = 1;
 		//private const int VP2TCPIPCONNECTION = 2;
 
-		private readonly string twitterKey = "lQiGNdtlYUJ4wS3d7souPw";
-		private readonly string twitterSecret = "AoB7OqimfoaSfGQAd47Hgatqdv3YeTTiqpinkje6Xg";
-
 		public string AlltimeIniFile;
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
@@ -544,9 +540,6 @@ namespace CumulusMX
 
 		public bool RealtimeIntervalEnabled; // The timer is to be started
 		private int realtimeFTPRetries; // Count of failed realtime FTP attempts
-
-		// Twitter settings
-		public WebUploadTwitter Twitter = new WebUploadTwitter();
 
 		// Wunderground settings
 		public WebUploadWund Wund = new WebUploadWund();
@@ -770,7 +763,6 @@ namespace CumulusMX
 			DirectorySeparator = Path.DirectorySeparatorChar;
 
 			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
-			TwitterTxtFile = AppDir + "twitter.txt";
 			WebTagFile = AppDir + "WebTags.txt";
 
 			//b3045>, use same port for WS...  WS port = HTTPS port
@@ -1107,7 +1099,7 @@ namespace CumulusMX
 			if (ProgramOptions.StartupDelaySecs > 0)
 			{
 				// Check uptime
-				double ts = 0;
+				double ts = -1;
 				if (Platform.Substring(0, 3) == "Win" && UpTime != null)
 				{
 					UpTime.NextValue();
@@ -1121,7 +1113,7 @@ namespace CumulusMX
 				}
 
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
-				LogMessage($"System uptime = {(int)ts} secs");
+				LogMessage($"System uptime = {ts:F0} secs");
 				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > ts))
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
@@ -1709,6 +1701,9 @@ namespace CumulusMX
 					station.StartLoop();
 				}
 
+				// let the web socket know about the station
+				WebSock.SetStation = station;
+
 				// If enabled generate the daily graph data files, and upload at first opportunity
 				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
@@ -2157,103 +2152,6 @@ namespace CumulusMX
 				WebUpdating = 1;
 				ftpThread = new Thread(DoHTMLFiles) { IsBackground = true };
 				ftpThread.Start();
-			}
-		}
-
-		internal async void UpdateTwitter()
-		{
-			if (station.DataStopped)
-			{
-				// No data coming in, do nothing
-				return;
-			}
-
-			LogDebugMessage("Starting Twitter update");
-			var auth = new XAuthAuthorizer
-			{
-				CredentialStore = new XAuthCredentials { ConsumerKey = twitterKey, ConsumerSecret = twitterSecret, UserName = Twitter.ID, Password = Twitter.PW }
-			};
-
-			if (Twitter.OauthToken == "unknown")
-			{
-				// need to get tokens using xauth
-				LogDebugMessage("Obtaining Twitter tokens");
-				await auth.AuthorizeAsync();
-
-				Twitter.OauthToken = auth.CredentialStore.OAuthToken;
-				Twitter.OauthTokenSecret = auth.CredentialStore.OAuthTokenSecret;
-				//LogDebugMessage("Token=" + TwitterOauthToken);
-				//LogDebugMessage("TokenSecret=" + TwitterOauthTokenSecret);
-				LogDebugMessage("Tokens obtained");
-			}
-			else
-			{
-				auth.CredentialStore.OAuthToken = Twitter.OauthToken;
-				auth.CredentialStore.OAuthTokenSecret = Twitter.OauthTokenSecret;
-			}
-
-			using (var twitterCtx = new TwitterContext(auth))
-			{
-				StringBuilder status = new StringBuilder(1024);
-
-				if (File.Exists(TwitterTxtFile))
-				{
-					// use twitter.txt file
-					LogDebugMessage("Using twitter.txt file");
-					var twitterTokenParser = new TokenParser();
-					var utf8WithoutBom = new UTF8Encoding(false);
-					var encoding = utf8WithoutBom;
-					twitterTokenParser.Encoding = encoding;
-					twitterTokenParser.SourceFile = TwitterTxtFile;
-					twitterTokenParser.OnToken += TokenParserOnToken;
-					status.Append(twitterTokenParser);
-				}
-				else
-				{
-					// default message
-					status.Append($"Wind {station.WindAverage.ToString(WindAvgFormat)} {Units.WindText} {station.AvgBearingText}.");
-					status.Append($" Barometer {station.Pressure.ToString(PressFormat)} {Units.PressText}, {station.Presstrendstr}.");
-					status.Append($" Temperature {station.OutdoorTemperature.ToString(TempFormat)} {Units.TempText}.");
-					status.Append($" Rain today {station.RainToday.ToString(RainFormat)}{Units.RainText}.");
-					status.Append($" Humidity {station.OutdoorHumidity}%");
-				}
-
-				LogDebugMessage($"Updating Twitter: {status}");
-
-				var statusStr = status.ToString();
-
-				try
-				{
-					Status tweet;
-
-					if (Twitter.SendLocation)
-					{
-						tweet = await twitterCtx.TweetAsync(statusStr, (decimal)Latitude, (decimal)Longitude);
-					}
-					else
-					{
-						tweet = await twitterCtx.TweetAsync(statusStr);
-					}
-
-					if (tweet == null)
-					{
-						LogDebugMessage("Null Twitter response");
-					}
-					else
-					{
-						LogDebugMessage($"Status returned: ({tweet.StatusID}) {tweet.User.Name}, {tweet.Text}, {tweet.CreatedAt}");
-					}
-
-					HttpUploadAlarm.Triggered = false;
-				}
-				catch (Exception ex)
-				{
-					LogMessage($"UpdateTwitter: {ex.Message}");
-					HttpUploadAlarm.LastError = "Twitter: " + ex.Message;
-					HttpUploadAlarm.Triggered = true;
-				}
-				//if (tweet != null)
-				//    Console.WriteLine("Status returned: " + "(" + tweet.StatusID + ")" + tweet.User.Name + ", " + tweet.Text + "\n");
 			}
 		}
 
@@ -4026,6 +3924,7 @@ namespace CumulusMX
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
 			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
+			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
 
 			StationOptions.AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
 			if (StationOptions.AvgBearingMinutes > 120)
@@ -4654,19 +4553,6 @@ namespace CumulusMX
 			WCloud.SoilMoistureSensor = ini.GetValue("WeatherCloud", "SoilMoistureSensor", 1);
 			WCloud.SendLeafWetness = ini.GetValue("WeatherCloud", "SendLeafWetness", false);
 			WCloud.LeafWetnessSensor = ini.GetValue("WeatherCloud", "LeafWetnessSensor", 1);
-
-			Twitter.ID = ini.GetValue("Twitter", "User", "");
-			Twitter.PW = ini.GetValue("Twitter", "Password", "");
-			Twitter.Enabled = ini.GetValue("Twitter", "Enabled", false);
-			Twitter.Interval = ini.GetValue("Twitter", "Interval", 60);
-			if (Twitter.Interval < 1)
-			{
-				Twitter.Interval = 1;
-				rewriteRequired = true;
-			}
-			Twitter.OauthToken = ini.GetValue("Twitter", "OauthToken", "unknown");
-			Twitter.OauthTokenSecret = ini.GetValue("Twitter", "OauthTokenSecret", "unknown");
-			Twitter.SendLocation = ini.GetValue("Twitter", "SendLocation", true);
 
 			//if HTTPLogging then
 			//  MainForm.WUHTTP.IcsLogger = MainForm.HTTPlogger;
@@ -5671,14 +5557,6 @@ namespace CumulusMX
 			ini.SetValue("WeatherCloud", "SoilMoistureSensor", WCloud.SoilMoistureSensor);
 			ini.SetValue("WeatherCloud", "SendLeafWetness", WCloud.SendLeafWetness);
 			ini.SetValue("WeatherCloud", "LeafWetnessSensor", WCloud.LeafWetnessSensor);
-
-			ini.SetValue("Twitter", "User", Twitter.ID);
-			ini.SetValue("Twitter", "Password", Twitter.PW);
-			ini.SetValue("Twitter", "Enabled", Twitter.Enabled);
-			ini.SetValue("Twitter", "Interval", Twitter.Interval);
-			ini.SetValue("Twitter", "OauthToken", Twitter.OauthToken);
-			ini.SetValue("Twitter", "OauthTokenSecret", Twitter.OauthTokenSecret);
-			ini.SetValue("Twitter", "TwitterSendLocation", Twitter.SendLocation);
 
 			ini.SetValue("PWSweather", "ID", PWS.ID);
 			ini.SetValue("PWSweather", "Password", PWS.PW);
@@ -6700,7 +6578,6 @@ namespace CumulusMX
 		public DateTime defaultRecordTS = DateTime.MinValue;
 		public string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
-		private readonly string TwitterTxtFile;
 		private readonly FtpClient RealtimeFTP = new FtpClient();
 		private SftpClient RealtimeSSH;
 		private volatile bool RealtimeFtpInProgress;
@@ -7061,7 +6938,7 @@ namespace CumulusMX
 				values.Append(station.CompassPoint(station.Bearing) + "',");
 				values.Append(station.FeelsLike.ToString(TempFormat, InvC) + ",");
 				values.Append(station.Humidex.ToString(TempFormat, InvC));
-				values.Append(")");
+				values.Append(')');
 
 				string queryString = values.ToString();
 
@@ -7371,7 +7248,7 @@ namespace CumulusMX
 				{
 					sb.Append("0" + ListSeparator);
 				}
-				sb.Append("0");
+				sb.Append('0');
 			}
 
 			var success = false;
@@ -8333,8 +8210,6 @@ namespace CumulusMX
 							}
 
 							// Extra files
-							LogFtpDebugMessage("SFTP[Int]: Uploading extra files");
-							var cnt = 0;
 							for (int i = 0; i < numextrafiles; i++)
 							{
 								var uploadfile = ExtraFiles[i].local;
@@ -8353,7 +8228,8 @@ namespace CumulusMX
 
 									if (File.Exists(uploadfile))
 									{
-										cnt++;
+										LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
+
 										remotefile = GetRemoteFileName(remotefile, logDay);
 
 										// all checks OK, file needs to be uploaded
@@ -8383,20 +8259,18 @@ namespace CumulusMX
 							{
 								EODfilesNeedFTP = false;
 							}
-							LogFtpDebugMessage($"SFTP[Int]: Done uploading {cnt} extra files");
 
 							// standard files
-							LogFtpDebugMessage("SFTP[Int]: Uploading standard web files");
-							cnt = 0;
 							for (var i = 0; i < StdWebFiles.Length; i++)
 							{
 								if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
 								{
 									try
 									{
-										cnt++;
 										var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 										var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
+										LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localFile);
+
 										UploadFile(conn, localFile, remotefile, -1);
 									}
 									catch (Exception e)
@@ -8406,9 +8280,6 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpDebugMessage($"SFTP[Int]: Done uploading {0} standard web files");
-
-							LogFtpDebugMessage("SFTP[Int]: Uploading graph data files");
 
 							for (int i = 0; i < GraphDataFiles.Length; i++)
 							{
@@ -8419,6 +8290,8 @@ namespace CumulusMX
 
 									try
 									{
+										LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + uploadfile);
+
 										UploadFile(conn, uploadfile, remotefile, -1);
 										// The config files only need uploading once per change
 										if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
@@ -8434,19 +8307,17 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpDebugMessage("SFTP[Int]: Done uploading graph data files");
 
-							LogFtpMessage("SFTP[Int]: Uploading daily graph data files");
-							cnt = 0;
 							for (int i = 0; i < GraphDataEodFiles.Length; i++)
 							{
 								if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 								{
-									cnt++;
 									var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
 									var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 									try
 									{
+										LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + uploadfile);
+
 										UploadFile(conn, uploadfile, remotefile, -1);
 										// Uploaded OK, reset the upload required flag
 										GraphDataEodFiles[i].FtpRequired = false;
@@ -8458,7 +8329,6 @@ namespace CumulusMX
 									}
 								}
 							}
-							LogFtpMessage($"SFTP[Int]: Done uploading {cnt} daily graph data files");
 
 							if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 							{
@@ -9163,7 +9033,7 @@ namespace CumulusMX
 			values.Append(((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'");
 			values.Append((station.IsSunny ? "1" : "0") + "',");
 			values.Append(station.FeelsLike.ToString(TempFormat, InvC));
-			values.Append(")");
+			values.Append(')');
 
 			string valuesString = values.ToString();
 			List<string> cmds = new List<string>() { valuesString };
@@ -9656,6 +9526,10 @@ namespace CumulusMX
 			{
 				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
 				LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
+			}
+			else
+			{
+				RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
 			}
 
 			if (FtpOptions.Enabled)
@@ -10743,6 +10617,7 @@ namespace CumulusMX
 		public bool UseZeroBearing { get; set; }
 		public bool UseWind10MinAvg { get; set; }
 		public bool UseSpeedForAvgCalc { get; set; }
+		public bool UseSpeedForLatest { get; set; }
 		public bool Humidity98Fix { get; set; }
 		public bool CalculatedDP { get; set; }
 		public bool CalculatedWC { get; set; }
@@ -11041,13 +10916,6 @@ namespace CumulusMX
 		public bool CatchUp;
 		public bool CatchingUp;
 		public bool Updating;
-	}
-
-	public class WebUploadTwitter : WebUploadService
-	{
-		public string OauthToken;
-		public string OauthTokenSecret;
-		public bool SendLocation;
 	}
 
 	public class WebUploadWund : WebUploadService

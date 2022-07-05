@@ -51,6 +51,8 @@ namespace CumulusMX
 				// The speed is the average for that update
 				// Therefore we need to force using the speed for the average calculation
 				cumulus.StationOptions.UseSpeedForAvgCalc = true;
+				// also use it for the Latest value
+				cumulus.StationOptions.UseSpeedForLatest = true;
 
 				// does not send DP, so force MX to calculate it
 				cumulus.StationOptions.CalculatedDP = true;
