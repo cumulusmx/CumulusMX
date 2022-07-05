@@ -10915,12 +10915,13 @@ namespace CumulusMX
 					var sunhrs = data[i].SunShineHours >= 0 ? data[i].SunShineHours : 0;
 					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{sunhrs.ToString(cumulus.SunFormat, InvC)}],");
 				}
+
+				// remove trailing comma
+				if (sb[sb.Length - 1] == ',')
+					sb.Length--;
+
 				sb.Append(']');
 			}
-
-			// remove trailing comma
-			if (sb[sb.Length - 1] == ',')
-				sb.Length--;
 
 			sb.Append('}');
 			return sb.ToString();

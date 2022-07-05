@@ -1,3 +1,10 @@
+3.19.1 - b3192
+——————————————
+Fixed
+- Dashboard occasionally showing zero values when using Ecowitt/Ambient extra sensors with the extra HHTP feature
+- Sunshine Hours graph data had badly formed JSON
+
+
 3.19.0 - b3191
 ——————————————
 Fixed
