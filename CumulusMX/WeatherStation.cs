@@ -1529,13 +1529,14 @@ namespace CumulusMX
 
 				var ser = new DataContractJsonSerializer(typeof(DataStruct));
 
-				var stream = new MemoryStream();
+				using (var stream = new MemoryStream())
+				{
+					ser.WriteObject(stream, data);
 
-				ser.WriteObject(stream, data);
+					stream.Position = 0;
 
-				stream.Position = 0;
-
-				cumulus.WebSock.SendMessage(new StreamReader(stream).ReadToEnd());
+					cumulus.WebSock.SendMessage(new StreamReader(stream).ReadToEnd());
+				}
 
 				// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
 				Thread.Sleep(500);
@@ -7205,7 +7206,7 @@ namespace CumulusMX
 		}
 
 
-		protected void UpdateMQTT()
+		internal void UpdateMQTT()
 		{
 			if (cumulus.MQTT.EnableDataUpdate)
 			{
