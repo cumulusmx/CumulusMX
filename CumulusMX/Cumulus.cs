@@ -8588,6 +8588,10 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
+						if (ex.InnerException != null)
+						{
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+						}
 						return conn.IsConnected;
 					}
 				}
@@ -8613,6 +8617,10 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
+						if (ex.InnerException != null)
+						{
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+						}
 						return conn.IsConnected;
 					}
 				}
@@ -8620,7 +8628,10 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
-
+				if (ex.InnerException != null)
+				{
+					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+				}
 			}
 
 			return conn.IsConnected;
