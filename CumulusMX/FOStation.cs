@@ -25,7 +25,7 @@ namespace CumulusMX
 		private int prevraintotal = -1;
 		private int ignoreraincount;
 		private DateTime previousSensorClock;
-		private DateTime previousStationClock;
+		//private DateTime previousStationClock;
 		private DateTime previousSolarClock;
 		private bool synchronising;
 		//private DateTime lastraintip;
