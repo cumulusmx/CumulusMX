@@ -1961,10 +1961,12 @@ namespace CumulusMX
 			{
 				FtpTrace.LogToFile = "ftplog.txt";
 				FtpTrace.FlushOnWrite = true;
+				FtpTrace.EnableTracing = true;
 			}
 			else
 			{
 				FtpTrace.LogToFile = "false";
+				FtpTrace.EnableTracing = false;
 			}
 		}
 
