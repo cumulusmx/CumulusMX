@@ -3,6 +3,7 @@
 Fixed
 - Dashboard occasionally showing zero values when using Ecowitt/Ambient extra sensors with the extra HTTP station feature
 - Sunshine Hours graph data had badly formed JSON
+- Fine Offset station getting into a data read synchronisation loop when synchronisation fails. It will now give up after two attempts
 
 New
 - Added new midnight temperature range tags for today and yesterday
