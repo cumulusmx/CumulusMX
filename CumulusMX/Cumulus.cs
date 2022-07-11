@@ -223,6 +223,8 @@ namespace CumulusMX
 
 		public string CurrentActivity = "Stopped";
 
+		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
+
 		public volatile int WebUpdating;
 
 		public double WindRoseAngle { get; set; }
@@ -1957,16 +1959,19 @@ namespace CumulusMX
 
 		public void SetFtpLogging(bool isSet)
 		{
+			try
+			{
+				FtpTrace.RemoveListener(FtpTraceListener);
+			}
+			catch
+			{
+				// ignored
+			}
+
 			if (isSet)
 			{
-				FtpTrace.LogToFile = "ftplog.txt";
+				FtpTrace.AddListener(FtpTraceListener);
 				FtpTrace.FlushOnWrite = true;
-				FtpTrace.EnableTracing = true;
-			}
-			else
-			{
-				FtpTrace.LogToFile = "false";
-				FtpTrace.EnableTracing = false;
 			}
 		}
 
@@ -8766,7 +8771,7 @@ namespace CumulusMX
 			LogMessage(message);
 			if (FtpOptions.Logging)
 			{
-				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
 
@@ -8775,7 +8780,7 @@ namespace CumulusMX
 			if (FtpOptions.Logging)
 			{
 				LogDebugMessage(message);
-				FtpTrace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
 
