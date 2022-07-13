@@ -622,6 +622,7 @@ namespace CumulusMX
 		public Alarm UpgradeAlarm = new Alarm();
 		public Alarm HttpUploadAlarm = new Alarm();
 		public Alarm MySqlUploadAlarm = new Alarm();
+		public Alarm IsRainingAlarm = new Alarm();
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
@@ -1411,6 +1412,7 @@ namespace CumulusMX
 			UpgradeAlarm.cumulus = this;
 			HttpUploadAlarm.cumulus = this;
 			MySqlUploadAlarm.cumulus = this;
+			IsRainingAlarm.cumulus = this;
 
 			GetLatestVersion();
 
@@ -2075,6 +2077,7 @@ namespace CumulusMX
 				else
 				{
 					station.IsRaining = isOn;
+					IsRainingAlarm.Triggered = isOn;
 				}
 			}
 			else if (isDevice2)
@@ -2090,6 +2093,7 @@ namespace CumulusMX
 				else
 				{
 					station.IsRaining = isOn;
+					IsRainingAlarm.Triggered = isOn;
 				}
 			}
 		}
@@ -4724,6 +4728,14 @@ namespace CumulusMX
 			HighRainRateAlarm.Latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
 			HighRainRateAlarm.LatchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24);
 
+			IsRainingAlarm.Enabled = ini.GetValue("Alarms", "IsRainingAlarmSet", false);
+			IsRainingAlarm.Sound = ini.GetValue("Alarms", "IsRainingAlarmSound", false);
+			IsRainingAlarm.SoundFile = ini.GetValue("Alarms", "IsRainingAlarmSoundFile", DefaultSoundFile);
+			IsRainingAlarm.Notify = ini.GetValue("Alarms", "IsRainingAlarmNotify", false);
+			IsRainingAlarm.Email = ini.GetValue("Alarms", "IsRainingAlarmEmail", false);
+			IsRainingAlarm.Latch = ini.GetValue("Alarms", "IsRainingAlarmLatch", false);
+			IsRainingAlarm.LatchHours = ini.GetValue("Alarms", "IsRainingAlarmLatchHours", 1);
+
 			HighGustAlarm.Value = ini.GetValue("Alarms", "alarmhighgust", 0.0);
 			HighGustAlarm.Enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
 			HighGustAlarm.Sound = ini.GetValue("Alarms", "HighGustAlarmSound", false);
@@ -5669,6 +5681,15 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighRainRateAlarmEmail", HighRainRateAlarm.Email);
 			ini.SetValue("Alarms", "HighRainRateAlarmLatch", HighRainRateAlarm.Latch);
 			ini.SetValue("Alarms", "HighRainRateAlarmLatchHours", HighRainRateAlarm.LatchHours);
+
+			ini.SetValue("Alarms", "IsRainingAlarmSet", IsRainingAlarm.Enabled);
+			ini.SetValue("Alarms", "IsRainingAlarmSound", IsRainingAlarm.Sound);
+			ini.SetValue("Alarms", "IsRainingAlarmSoundFile", IsRainingAlarm.SoundFile);
+			ini.SetValue("Alarms", "IsRainingAlarmNotify", IsRainingAlarm.Notify);
+			ini.SetValue("Alarms", "IsRainingAlarmEmail", IsRainingAlarm.Email);
+			ini.SetValue("Alarms", "IsRainingAlarmLatch", IsRainingAlarm.Latch);
+			ini.SetValue("Alarms", "IsRainingAlarmLatchHours", IsRainingAlarm.LatchHours);
+			ini.SetValue("Alarms", "IsRainingAlarmTriggerCount", IsRainingAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "alarmhighgust", HighGustAlarm.Value);
 			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarm.Enabled);
@@ -6884,8 +6905,9 @@ namespace CumulusMX
 						{
 							MySqlCommandSync(MySqlFailedList, "Buffered");
 						}
-						catch
+						catch (Exception ex)
 						{
+							LogMessage("DoLogFile: Error - " + exceptional.Message);
 						}
 					}
 					else if (MySqlSettings.BufferOnfailure)
@@ -9298,29 +9320,34 @@ namespace CumulusMX
 				customMySqlSecondsUpdateInProgress = true;
 
 				customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Command;
-
-				if (!MySqlFailedList.IsEmpty)
+				try
 				{
-					LogMessage("CustomSqlSecs: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+					if (!MySqlFailedList.IsEmpty)
 					{
-						Thread.Sleep(500);
-						LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlSecs: Failed MySQL updates are present");
+						if (MySqlCheckConnection())
+						{
+							Thread.Sleep(500);
+							LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
-						LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
+							await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
+							LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
+						}
+						else if (MySqlSettings.BufferOnfailure)
+						{
+							LogMessage("CustomSqlSecs: Connection to MySQL server has failed, adding this update to the failed list");
+							MySqlFailedList.Enqueue(customMysqlSecondsTokenParser.ToStringFromString());
+						}
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					else
 					{
-						LogMessage("CustomSqlSecs: Connection to MySQL server has failed, adding this update to the failed list");
-						MySqlFailedList.Enqueue(customMysqlSecondsTokenParser.ToStringFromString());
+						await MySqlCommandAsync(customMysqlSecondsTokenParser.ToStringFromString(), "CustomSqlSecs");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					await MySqlCommandAsync(customMysqlSecondsTokenParser.ToStringFromString(), "CustomSqlSecs");
+					LogMessage("CustomSqlSecs: Error - " + ex.Message);
 				}
-
 				customMySqlSecondsUpdateInProgress = false;
 			}
 		}
@@ -9340,26 +9367,33 @@ namespace CumulusMX
 
 				customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Command;
 
-				if (!MySqlFailedList.IsEmpty)
+				try
 				{
-					LogMessage("CustomSqlMins: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+					if (!MySqlFailedList.IsEmpty)
 					{
-						Thread.Sleep(500);
-						LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlMins: Failed MySQL updates are present");
+						if (MySqlCheckConnection())
+						{
+							Thread.Sleep(500);
+							LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
-						LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
+							await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
+							LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
+						}
+						else if (MySqlSettings.BufferOnfailure)
+						{
+							LogMessage("CustomSqlMins: Connection to MySQL server has failed, adding this update to the failed list");
+							MySqlFailedList.Enqueue(customMysqlMinutesTokenParser.ToStringFromString());
+						}
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					else
 					{
-						LogMessage("CustomSqlMins: Connection to MySQL server has failed, adding this update to the failed list");
-						MySqlFailedList.Enqueue(customMysqlMinutesTokenParser.ToStringFromString());
+						await MySqlCommandAsync(customMysqlMinutesTokenParser.ToStringFromString(), "CustomSqlMins");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					await MySqlCommandAsync(customMysqlMinutesTokenParser.ToStringFromString(), "CustomSqlMins");
+					LogMessage("CustomSqlMins: Error - " + ex.Message);
 				}
 
 				customMySqlMinutesUpdateInProgress = false;
@@ -9380,26 +9414,33 @@ namespace CumulusMX
 
 				customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Command;
 
-				if (!MySqlFailedList.IsEmpty)
+				try
 				{
-					LogMessage("CustomSqlRollover: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+					if (!MySqlFailedList.IsEmpty)
 					{
-						Thread.Sleep(500);
-						LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlRollover: Failed MySQL updates are present");
+						if (MySqlCheckConnection())
+						{
+							Thread.Sleep(500);
+							LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
-						LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
+							await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
+							LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
+						}
+						else if (MySqlSettings.BufferOnfailure)
+						{
+							LogMessage("CustomSqlRollover: Connection to MySQL server has failed, adding this update to the failed list");
+							MySqlFailedList.Enqueue(customMysqlRolloverTokenParser.ToStringFromString());
+						}
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					else
 					{
-						LogMessage("CustomSqlRollover: Connection to MySQL server has failed, adding this update to the failed list");
-						MySqlFailedList.Enqueue(customMysqlRolloverTokenParser.ToStringFromString());
+						await MySqlCommandAsync(customMysqlRolloverTokenParser.ToStringFromString(), "CustomSqlRollover");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					await MySqlCommandAsync(customMysqlRolloverTokenParser.ToStringFromString(), "CustomSqlRollover");
+					LogMessage("CustomSqlRollover: Error - " + ex.Message);
 				}
 
 				customMySqlRolloverUpdateInProgress = false;
@@ -9891,7 +9932,6 @@ namespace CumulusMX
 
 						using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 						{
-
 							foreach (var cmdStr in Cmds)
 							{
 								lastCmd = cmdStr;
@@ -9915,10 +9955,12 @@ namespace CumulusMX
 								LogDebugMessage($"{CallingFunction}: Committing updates to DB");
 								transaction.Commit();
 								LogDebugMessage($"{CallingFunction}: Commit complete");
+								transaction.Dispose();
 							}
-
-							mySqlConn.Close();
 						}
+
+						mySqlConn.Close();
+						mySqlConn.Dispose();
 					}
 
 					MySqlUploadAlarm.Triggered = false;
@@ -9962,29 +10004,40 @@ namespace CumulusMX
 			{
 
 				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
-				using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 				{
 					mySqlConn.Open();
 
-					foreach (var cmdStr in Cmds)
+					using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 					{
-						lastCmd = cmdStr;
-
-						using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+						foreach (var cmdStr in Cmds)
 						{
-							LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
+							lastCmd = cmdStr;
 
-							if (Cmds.Count > 2)
-								cmd.Transaction = transaction;
+							using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+							{
+								LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
 
-									int aff = cmd.ExecuteNonQuery();
-									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-								}
+								if (Cmds.Count > 2)
+									cmd.Transaction = transaction;
 
-						MySqlUploadAlarm.Triggered = false;
+								int aff = cmd.ExecuteNonQuery();
+								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+							}
+
+							MySqlUploadAlarm.Triggered = false;
+						}
+
+						if (transaction != null)
+						{
+							LogDebugMessage($"{CallingFunction}: Committing updates to DB");
+							transaction.Commit();
+							LogDebugMessage($"{CallingFunction}: Commit complete");
+							transaction.Dispose();
+						}
 					}
 
 					mySqlConn.Close();
+					mySqlConn.Dispose();
 				}
 			}
 			catch (Exception ex)

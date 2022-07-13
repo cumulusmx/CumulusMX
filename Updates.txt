@@ -1,4 +1,4 @@
-3.19.1 - b3193
+3.19.1 - b3194
 ——————————————
 Fixed
 - Dashboard occasionally showing zero values when using Ecowitt/Ambient extra sensors with the extra HTTP station feature
@@ -8,6 +8,8 @@ Fixed
 New
 - Added new midnight temperature range tags for today and yesterday
 	<#tempMidnightRangeT> <#tempMidnightRangeY>
+- Adds new "Is Raining" alarm, triggered either via a Hydreon RG-11 device, or rain rate > 0
+	The alarm has a new associated web tag <#IsRainingAlarm>
 
 
 3.19.0 - b3191
