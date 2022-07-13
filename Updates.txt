@@ -4,12 +4,14 @@ Fixed
 - Dashboard occasionally showing zero values when using Ecowitt/Ambient extra sensors with the extra HTTP station feature
 - Sunshine Hours graph data had badly formed JSON
 - Fine Offset station getting into a data read synchronisation loop when synchronisation fails. It will now give up after two attempts
+- Potential fix for FTP client locking files on connection error
 
 New
 - Added new midnight temperature range tags for today and yesterday
 	<#tempMidnightRangeT> <#tempMidnightRangeY>
 - Adds new "Is Raining" alarm, triggered either via a Hydreon RG-11 device, or rain rate > 0
 	The alarm has a new associated web tag <#IsRainingAlarm>
+- Adds a new option under Station > Common Options > Advanced Options to use station rainfall (rate > 0 or tip occurred) to trigger IsRaining
 
 
 3.19.0 - b3191

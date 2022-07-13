@@ -3593,6 +3593,7 @@ namespace CumulusMX
 			{
 				// A reading has apparently arrived at the start of a new day, but before we have done the roll-over
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
+				cumulus.LogDebugMessage("DoRain: A reading arrived at the start of a new day, but before we have done the roll-over. Ignoring it");
 				return;
 			}
 
@@ -3704,8 +3705,11 @@ namespace CumulusMX
 				// scale rainfall rate
 				RainRate = rate * cumulus.Calib.Rain.Mult;
 
-				IsRaining = RainRate > 0;
-				cumulus.IsRainingAlarm.Triggered = IsRaining;
+				if (cumulus.StationOptions.UseRainForIsRaining)
+				{
+					IsRaining = RainRate > 0;
+					cumulus.IsRainingAlarm.Triggered = IsRaining;
+				}
 
 				if (RainRate > AllTime.HighRainRate.Val)
 					SetAlltime(AllTime.HighRainRate, RainRate, timestamp);
@@ -3743,10 +3747,14 @@ namespace CumulusMX
 				{
 					// rain has occurred
 					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
-					IsRaining = true;
-					cumulus.IsRainingAlarm.Triggered = true;
+
+					if (cumulus.StationOptions.UseRainForIsRaining)
+					{
+						IsRaining = true;
+						cumulus.IsRainingAlarm.Triggered = true;
+					}
 				}
-				else
+				else if (cumulus.StationOptions.UseRainForIsRaining && RainRate <= 0)
 				{
 					IsRaining = false;
 					cumulus.IsRainingAlarm.Triggered = false;

@@ -3919,6 +3919,7 @@ namespace CumulusMX
 			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
+			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", false);
 
 			StationOptions.AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
 			if (StationOptions.AvgBearingMinutes > 120)
@@ -5181,6 +5182,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "LCMaxWind", LCMaxWind);
 			ini.SetValue("Station", "RecordSetTimeoutHrs", RecordSetTimeoutHrs);
 			ini.SetValue("Station", "SnowDepthHour", SnowDepthHour);
+			ini.SetValue("Station", "UseRainForIsRaining", StationOptions.UseRainForIsRaining);
+
 
 			ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
 			ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
@@ -6907,7 +6910,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogMessage("DoLogFile: Error - " + exceptional.Message);
+							LogMessage("DoLogFile: Error - " + ex.Message);
 						}
 					}
 					else if (MySqlSettings.BufferOnfailure)
@@ -10696,6 +10699,7 @@ namespace CumulusMX
 		public int AvgBearingMinutes { get; set; }
 		public int AvgSpeedMinutes { get; set; }
 		public int PeakGustMinutes { get; set; }
+		public bool UseRainForIsRaining { get; set; }
 	}
 
 	public class FtpOptionsClass
