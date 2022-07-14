@@ -1608,6 +1608,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.HiLoTodayMidnight.LowTempTime, "HH:mm", tagParams);
 		}
 
+		private string TagtempMidnightRangeT(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp((station.HiLoTodayMidnight.HighTemp - station.HiLoTodayMidnight.LowTemp), tagParams, cumulus.TempDPlaces);
+		}
+
+
 		private string TagSolarTh(Dictionary<string,string> tagParams)
 		{
 			return ((int)station.HiLoToday.HighSolar).ToString();
@@ -1972,6 +1978,11 @@ namespace CumulusMX
 		private string TagTtempMidnightYl(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(station.HiLoYestMidnight.LowTempTime, "HH:mm", tagParams);
+		}
+
+		private string TagtempMidnightRangeY(Dictionary<string, string> tagParams)
+		{	
+			return CheckRcDp((station.HiLoYestMidnight.HighTemp - station.HiLoYestMidnight.LowTemp), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagapptempYh(Dictionary<string,string> tagParams)
@@ -4085,6 +4096,16 @@ namespace CumulusMX
 			return "0";
 		}
 
+		private string TagIsRainingAlarm(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.IsRainingAlarm.Enabled)
+			{
+				return cumulus.IsRainingAlarm.Triggered ? "1" : "0";
+			}
+
+			return "0";
+		}
+
 		private string TagHighWindGustAlarm(Dictionary<string,string> tagParams)
 		{
 			if (cumulus.HighGustAlarm.Enabled)
@@ -5494,6 +5515,7 @@ namespace CumulusMX
 				{ "TtempMidnightTH", TagTtempMidnightTh },
 				{ "tempMidnightTL", TagtempMidnightTl },
 				{ "TtempMidnightTL", TagTtempMidnightTl },
+				{ "tempMidnightRangeT", TagtempMidnightRangeT },
 				{ "wchillTL", TagwchillTl },
 				{ "TwchillTL", TagTwchillTl },
 				{ "apptempTH", TagapptempTh },
@@ -5550,6 +5572,7 @@ namespace CumulusMX
 				{ "TtempMidnightYH", TagTtempMidnightYh },
 				{ "tempMidnightYL", TagtempMidnightYl },
 				{ "TtempMidnightYL", TagTtempMidnightYl },
+				{ "tempMidnightRangeY", TagtempMidnightRangeY },
 				{ "wchillYL", TagwchillYl },
 				{ "TwchillYL", TagTwchillYl },
 				{ "apptempYH", TagapptempYh },
@@ -5863,6 +5886,7 @@ namespace CumulusMX
 				{ "PressChangeDownAlarm", TagPressChangeDownAlarm },
 				{ "HighRainTodayAlarm", TagHighRainTodayAlarm },
 				{ "HighRainRateAlarm", TagHighRainRateAlarm },
+				{ "IsRainingAlarm", TagIsRainingAlarm },
 				{ "HighWindGustAlarm", TagHighWindGustAlarm },
 				{ "HighWindSpeedAlarm", TagHighWindSpeedAlarm },
 				{ "BatteryLowAlarm", TagBatteryLowAlarm },

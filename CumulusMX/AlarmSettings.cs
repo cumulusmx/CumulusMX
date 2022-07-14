@@ -117,6 +117,17 @@ namespace CumulusMX
 					Latches = cumulus.HighRainRateAlarm.Latch,
 					LatchHrs = cumulus.HighRainRateAlarm.LatchHours
 				},
+				isRaining = new JsonAlarmValues()
+				{
+					Enabled = cumulus.IsRainingAlarm.Enabled,
+					SoundEnabled = cumulus.IsRainingAlarm.Sound,
+					Sound = cumulus.IsRainingAlarm.SoundFile,
+					Notify = cumulus.IsRainingAlarm.Notify,
+					Email = cumulus.IsRainingAlarm.Email,
+					Latches = cumulus.IsRainingAlarm.Latch,
+					LatchHrs = cumulus.IsRainingAlarm.LatchHours,
+					Threshold = cumulus.IsRainingAlarm.TriggerThreshold
+				},
 				gustAbove = new JsonAlarmValues()
 				{
 					Enabled = cumulus.HighGustAlarm.Enabled,
@@ -350,6 +361,15 @@ namespace CumulusMX
 				cumulus.HighRainRateAlarm.LatchHours = settings.rainRateAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighRainRateAlarm.Email && cumulus.HighRainRateAlarm.Enabled);
 
+				cumulus.IsRainingAlarm.Enabled = settings.isRaining.Enabled;
+				cumulus.IsRainingAlarm.Sound = settings.isRaining.SoundEnabled;
+				cumulus.IsRainingAlarm.SoundFile = settings.isRaining.Sound;
+				cumulus.IsRainingAlarm.Notify = settings.isRaining.Notify;
+				cumulus.IsRainingAlarm.Email = settings.isRaining.Email;
+				cumulus.IsRainingAlarm.Latch = settings.isRaining.Latches;
+				cumulus.IsRainingAlarm.LatchHours = settings.isRaining.LatchHrs;
+				emailRequired = emailRequired || (cumulus.IsRainingAlarm.Email && cumulus.IsRainingAlarm.Enabled);
+
 				cumulus.HighGustAlarm.Enabled = settings.gustAbove.Enabled;
 				cumulus.HighGustAlarm.Value = settings.gustAbove.Val;
 				cumulus.HighGustAlarm.Sound = settings.gustAbove.SoundEnabled;
@@ -563,6 +583,7 @@ namespace CumulusMX
 		public JsonAlarmValues upgrade { get; set; }
 		public JsonAlarmValues httpUpload { get; set; }
 		public JsonAlarmValues mySqlUpload { get; set; }
+		public JsonAlarmValues isRaining { get; set; }
 	}
 
 	public class JsonAlarmValues

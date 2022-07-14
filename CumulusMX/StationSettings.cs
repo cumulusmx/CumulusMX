@@ -26,6 +26,8 @@ namespace CumulusMX
 		internal string GetAlpacaFormData()
 		{
 			// Build the settings data, convert to JSON, and return it
+
+			// Common > Advanced Settings
 			var optionsAdv = new JsonStationSettingsOptionsAdvanced()
 			{
 				usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
@@ -35,9 +37,11 @@ namespace CumulusMX
 				maxwind = cumulus.LCMaxWind,
 				recordtimeout = cumulus.RecordSetTimeoutHrs,
 				snowdepthhour = cumulus.SnowDepthHour,
-				raindaythreshold = cumulus.RainDayThreshold
+				raindaythreshold = cumulus.RainDayThreshold,
+				userainforisraining = cumulus.StationOptions.UseRainForIsRaining
 			};
 
+			// Common Settings
 			var options = new JsonStationSettingsOptions()
 			{
 				usezerobearing = cumulus.StationOptions.UseZeroBearing,
@@ -63,6 +67,7 @@ namespace CumulusMX
 				displayuv = cumulus.DisplayOptions.ShowUV
 			};
 
+			// Units > Advanced
 			var unitsAdv = new JsonStationSettingsUnitsAdvanced
 			{
 				airqulaitydp = cumulus.AirQualityDPlaces,
@@ -76,6 +81,7 @@ namespace CumulusMX
 				windrundp = cumulus.WindRunDPlaces
 			};
 
+			// Units
 			var units = new JsonStationSettingsUnits()
 			{
 				wind = cumulus.Units.Wind,
@@ -761,6 +767,7 @@ namespace CumulusMX
 					cumulus.RecordSetTimeoutHrs = settings.Options.advanced.recordtimeout;
 					cumulus.SnowDepthHour = settings.Options.advanced.snowdepthhour;
 					cumulus.RainDayThreshold = settings.Options.advanced.raindaythreshold;
+					cumulus.StationOptions.UseRainForIsRaining = settings.Options.advanced.userainforisraining;
 				}
 				catch (Exception ex)
 				{
@@ -1561,6 +1568,7 @@ namespace CumulusMX
 		public int recordtimeout { get; set; }
 		public int snowdepthhour { get; set; }
 		public double raindaythreshold { get; set; }
+		public bool userainforisraining { get; set; }
 	}
 
 	internal class JsonStationSettingsOptions

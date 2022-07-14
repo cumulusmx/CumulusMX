@@ -622,6 +622,7 @@ namespace CumulusMX
 		public Alarm UpgradeAlarm = new Alarm();
 		public Alarm HttpUploadAlarm = new Alarm();
 		public Alarm MySqlUploadAlarm = new Alarm();
+		public Alarm IsRainingAlarm = new Alarm();
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
@@ -1323,28 +1324,6 @@ namespace CumulusMX
 
 			SetRealtimeSqlCreateString();
 
-			if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
-			{
-				if (FtpOptions.ActiveMode)
-				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
-				}
-				else if (FtpOptions.DisableEPSV)
-				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
-				}
-
-				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-				{
-					RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-					RealtimeFTP.DataConnectionEncryption = true;
-					RealtimeFTP.ValidateAnyCertificate = true;
-					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-					// b3155 - switch to default again - this will use the highest version available in the OS
-					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-				}
-			}
-
 			ReadStringsFile();
 
 			SetUpHttpProxy();
@@ -1433,6 +1412,7 @@ namespace CumulusMX
 			UpgradeAlarm.cumulus = this;
 			HttpUploadAlarm.cumulus = this;
 			MySqlUploadAlarm.cumulus = this;
+			IsRainingAlarm.cumulus = this;
 
 			GetLatestVersion();
 
@@ -2097,6 +2077,7 @@ namespace CumulusMX
 				else
 				{
 					station.IsRaining = isOn;
+					IsRainingAlarm.Triggered = isOn;
 				}
 			}
 			else if (isDevice2)
@@ -2112,6 +2093,7 @@ namespace CumulusMX
 				else
 				{
 					station.IsRaining = isOn;
+					IsRainingAlarm.Triggered = isOn;
 				}
 			}
 		}
@@ -2731,7 +2713,7 @@ namespace CumulusMX
 			try
 			{
 				// Process any files
-				if (RealtimeCopyInProgress)
+				if (RealtimeCopyInProgress || RealtimeFtpInProgress)
 				{
 					LogMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
 				}
@@ -2834,58 +2816,70 @@ namespace CumulusMX
 					reinit = false;
 
 					// Try to disconnect cleanly first
-					try
+					//TODO: Just bypassing this for now for FTP, if it works refactor to remove redundant code
+					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 					{
-						LogMessage("RealtimeReconnect: Realtime ftp attempting disconnect");
-						if (FtpOptions.FtpMode == FtpProtocols.SFTP && RealtimeSSH != null)
+						try
 						{
-							RealtimeSSH.Disconnect();
+							LogMessage("RealtimeReconnect: Realtime ftp attempting disconnect");
+							if (FtpOptions.FtpMode == FtpProtocols.SFTP && RealtimeSSH != null)
+							{
+								RealtimeSSH.Disconnect();
+							}
+							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
+							{
+								RealtimeFTP.UngracefullDisconnection = true;
+								RealtimeFTP.Disconnect();
+							}
+							LogMessage("RealtimeReconnect: Realtime ftp disconnected");
 						}
-						if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
+						catch (ObjectDisposedException)
 						{
-							RealtimeFTP.Disconnect();
+							LogDebugMessage($"RealtimeReconnect: Error, connection is disposed");
 						}
-						LogMessage("RealtimeReconnect: Realtime ftp disconnected");
-					}
-					catch (ObjectDisposedException)
-					{
-						LogDebugMessage($"RealtimeReconnect: Error, connection is disposed");
-					}
-					catch (Exception ex)
-					{
-						LogDebugMessage($"RealtimeReconnect: Error disconnecting from server - {ex.Message}");
-					}
+						catch (Exception ex)
+						{
+							LogDebugMessage($"RealtimeReconnect: Error disconnecting from server - {ex.Message}");
+						}
+						finally
+						{
+							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
+								RealtimeFTP.UngracefullDisconnection = false;
+						}
 
-					// Attempt a simple reconnect
-					try
-					{
-						LogMessage("RealtimeReconnect: Realtime ftp attempting to reconnect");
-						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+						// Attempt a simple reconnect
+						try
 						{
-							RealtimeSSH.Connect();
-							connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
+							LogMessage("RealtimeReconnect: Realtime ftp attempting to reconnect");
+							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							{
+								RealtimeSSH.Connect();
+								connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
+							}
+							else
+							{
+								RealtimeFTP.Connect();
+								connected = RealtimeFTP.IsConnected;
+							}
+							LogMessage("RealtimeReconnect: Reconnected with server (we think)");
 						}
-						else
+						catch (ObjectDisposedException)
 						{
-							RealtimeFTP.Connect();
-							connected = RealtimeFTP.IsConnected;
+							reinit = true;
+							LogDebugMessage($"RealtimeReconnect: Error, connection is disposed");
 						}
-						LogMessage("RealtimeReconnect: Reconnected with server (we think)");
+						catch (Exception ex)
+						{
+							reinit = true;
+							LogDebugMessage($"RealtimeReconnect: Error reconnecting ftp server - {ex.Message}");
+							if (ex.InnerException != null)
+								LogDebugMessage($"RealtimeReconnect: Base exception - {ex.GetBaseException().Message}");
+						}
 					}
-					catch (ObjectDisposedException)
+					else
 					{
 						reinit = true;
-						LogDebugMessage($"RealtimeReconnect: Error, connection is disposed");
 					}
-					catch (Exception ex)
-					{
-						reinit = true;
-						LogDebugMessage($"RealtimeReconnect: Error reconnecting ftp server - {ex.Message}");
-						if (ex.InnerException != null)
-							LogDebugMessage($"RealtimeReconnect: Base exception - {ex.GetBaseException().Message}");
-					}
-
-
 
 					// Simple reconnect failed - start again and reinitialise the connections
 					// RealtimeXXXLogin() has its own error handling
@@ -3925,6 +3919,7 @@ namespace CumulusMX
 			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
+			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", false);
 
 			StationOptions.AvgBearingMinutes = ini.GetValue("Station", "AvgBearingMinutes", 10);
 			if (StationOptions.AvgBearingMinutes > 120)
@@ -4734,6 +4729,14 @@ namespace CumulusMX
 			HighRainRateAlarm.Latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
 			HighRainRateAlarm.LatchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24);
 
+			IsRainingAlarm.Enabled = ini.GetValue("Alarms", "IsRainingAlarmSet", false);
+			IsRainingAlarm.Sound = ini.GetValue("Alarms", "IsRainingAlarmSound", false);
+			IsRainingAlarm.SoundFile = ini.GetValue("Alarms", "IsRainingAlarmSoundFile", DefaultSoundFile);
+			IsRainingAlarm.Notify = ini.GetValue("Alarms", "IsRainingAlarmNotify", false);
+			IsRainingAlarm.Email = ini.GetValue("Alarms", "IsRainingAlarmEmail", false);
+			IsRainingAlarm.Latch = ini.GetValue("Alarms", "IsRainingAlarmLatch", false);
+			IsRainingAlarm.LatchHours = ini.GetValue("Alarms", "IsRainingAlarmLatchHours", 1);
+
 			HighGustAlarm.Value = ini.GetValue("Alarms", "alarmhighgust", 0.0);
 			HighGustAlarm.Enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
 			HighGustAlarm.Sound = ini.GetValue("Alarms", "HighGustAlarmSound", false);
@@ -5179,6 +5182,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "LCMaxWind", LCMaxWind);
 			ini.SetValue("Station", "RecordSetTimeoutHrs", RecordSetTimeoutHrs);
 			ini.SetValue("Station", "SnowDepthHour", SnowDepthHour);
+			ini.SetValue("Station", "UseRainForIsRaining", StationOptions.UseRainForIsRaining);
+
 
 			ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
 			ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
@@ -5679,6 +5684,15 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighRainRateAlarmEmail", HighRainRateAlarm.Email);
 			ini.SetValue("Alarms", "HighRainRateAlarmLatch", HighRainRateAlarm.Latch);
 			ini.SetValue("Alarms", "HighRainRateAlarmLatchHours", HighRainRateAlarm.LatchHours);
+
+			ini.SetValue("Alarms", "IsRainingAlarmSet", IsRainingAlarm.Enabled);
+			ini.SetValue("Alarms", "IsRainingAlarmSound", IsRainingAlarm.Sound);
+			ini.SetValue("Alarms", "IsRainingAlarmSoundFile", IsRainingAlarm.SoundFile);
+			ini.SetValue("Alarms", "IsRainingAlarmNotify", IsRainingAlarm.Notify);
+			ini.SetValue("Alarms", "IsRainingAlarmEmail", IsRainingAlarm.Email);
+			ini.SetValue("Alarms", "IsRainingAlarmLatch", IsRainingAlarm.Latch);
+			ini.SetValue("Alarms", "IsRainingAlarmLatchHours", IsRainingAlarm.LatchHours);
+			ini.SetValue("Alarms", "IsRainingAlarmTriggerCount", IsRainingAlarm.TriggerThreshold);
 
 			ini.SetValue("Alarms", "alarmhighgust", HighGustAlarm.Value);
 			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarm.Enabled);
@@ -6578,7 +6592,7 @@ namespace CumulusMX
 		public DateTime defaultRecordTS = DateTime.MinValue;
 		public string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
-		private readonly FtpClient RealtimeFTP = new FtpClient();
+		private FtpClient RealtimeFTP;
 		private SftpClient RealtimeSSH;
 		private volatile bool RealtimeFtpInProgress;
 		private volatile bool RealtimeCopyInProgress;
@@ -6894,8 +6908,9 @@ namespace CumulusMX
 						{
 							MySqlCommandSync(MySqlFailedList, "Buffered");
 						}
-						catch
+						catch (Exception ex)
 						{
+							LogMessage("DoLogFile: Error - " + ex.Message);
 						}
 					}
 					else if (MySqlSettings.BufferOnfailure)
@@ -8603,6 +8618,10 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
+						if (ex.InnerException != null)
+						{
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+						}
 						return conn.IsConnected;
 					}
 				}
@@ -8628,6 +8647,10 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
+						if (ex.InnerException != null)
+						{
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+						}
 						return conn.IsConnected;
 					}
 				}
@@ -8635,7 +8658,10 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
-
+				if (ex.InnerException != null)
+				{
+					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+				}
 			}
 
 			return conn.IsConnected;
@@ -9297,29 +9323,34 @@ namespace CumulusMX
 				customMySqlSecondsUpdateInProgress = true;
 
 				customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Command;
-
-				if (!MySqlFailedList.IsEmpty)
+				try
 				{
-					LogMessage("CustomSqlSecs: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+					if (!MySqlFailedList.IsEmpty)
 					{
-						Thread.Sleep(500);
-						LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlSecs: Failed MySQL updates are present");
+						if (MySqlCheckConnection())
+						{
+							Thread.Sleep(500);
+							LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
-						LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
+							await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
+							LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
+						}
+						else if (MySqlSettings.BufferOnfailure)
+						{
+							LogMessage("CustomSqlSecs: Connection to MySQL server has failed, adding this update to the failed list");
+							MySqlFailedList.Enqueue(customMysqlSecondsTokenParser.ToStringFromString());
+						}
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					else
 					{
-						LogMessage("CustomSqlSecs: Connection to MySQL server has failed, adding this update to the failed list");
-						MySqlFailedList.Enqueue(customMysqlSecondsTokenParser.ToStringFromString());
+						await MySqlCommandAsync(customMysqlSecondsTokenParser.ToStringFromString(), "CustomSqlSecs");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					await MySqlCommandAsync(customMysqlSecondsTokenParser.ToStringFromString(), "CustomSqlSecs");
+					LogMessage("CustomSqlSecs: Error - " + ex.Message);
 				}
-
 				customMySqlSecondsUpdateInProgress = false;
 			}
 		}
@@ -9339,26 +9370,33 @@ namespace CumulusMX
 
 				customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Command;
 
-				if (!MySqlFailedList.IsEmpty)
+				try
 				{
-					LogMessage("CustomSqlMins: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+					if (!MySqlFailedList.IsEmpty)
 					{
-						Thread.Sleep(500);
-						LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlMins: Failed MySQL updates are present");
+						if (MySqlCheckConnection())
+						{
+							Thread.Sleep(500);
+							LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
-						LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
+							await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
+							LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
+						}
+						else if (MySqlSettings.BufferOnfailure)
+						{
+							LogMessage("CustomSqlMins: Connection to MySQL server has failed, adding this update to the failed list");
+							MySqlFailedList.Enqueue(customMysqlMinutesTokenParser.ToStringFromString());
+						}
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					else
 					{
-						LogMessage("CustomSqlMins: Connection to MySQL server has failed, adding this update to the failed list");
-						MySqlFailedList.Enqueue(customMysqlMinutesTokenParser.ToStringFromString());
+						await MySqlCommandAsync(customMysqlMinutesTokenParser.ToStringFromString(), "CustomSqlMins");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					await MySqlCommandAsync(customMysqlMinutesTokenParser.ToStringFromString(), "CustomSqlMins");
+					LogMessage("CustomSqlMins: Error - " + ex.Message);
 				}
 
 				customMySqlMinutesUpdateInProgress = false;
@@ -9379,26 +9417,33 @@ namespace CumulusMX
 
 				customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Command;
 
-				if (!MySqlFailedList.IsEmpty)
+				try
 				{
-					LogMessage("CustomSqlRollover: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+					if (!MySqlFailedList.IsEmpty)
 					{
-						Thread.Sleep(500);
-						LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
+						LogMessage("CustomSqlRollover: Failed MySQL updates are present");
+						if (MySqlCheckConnection())
+						{
+							Thread.Sleep(500);
+							LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
-						LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
+							await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
+							LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
+						}
+						else if (MySqlSettings.BufferOnfailure)
+						{
+							LogMessage("CustomSqlRollover: Connection to MySQL server has failed, adding this update to the failed list");
+							MySqlFailedList.Enqueue(customMysqlRolloverTokenParser.ToStringFromString());
+						}
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					else
 					{
-						LogMessage("CustomSqlRollover: Connection to MySQL server has failed, adding this update to the failed list");
-						MySqlFailedList.Enqueue(customMysqlRolloverTokenParser.ToStringFromString());
+						await MySqlCommandAsync(customMysqlRolloverTokenParser.ToStringFromString(), "CustomSqlRollover");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					await MySqlCommandAsync(customMysqlRolloverTokenParser.ToStringFromString(), "CustomSqlRollover");
+					LogMessage("CustomSqlRollover: Error - " + ex.Message);
 				}
 
 				customMySqlRolloverUpdateInProgress = false;
@@ -9490,6 +9535,7 @@ namespace CumulusMX
 				else if (RealtimeFTP != null)
 				{
 					RealtimeFTP.Disconnect();
+					RealtimeFTP.Dispose();
 				}
 				LogDebugMessage("Disconnected Realtime FTP session");
 			}
@@ -9501,10 +9547,20 @@ namespace CumulusMX
 
 		private void RealtimeFTPLogin()
 		{
+			// dispose of the previous FTP client
+			if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+			{
+				RealtimeFTP.Dispose();
+			}
+
+			RealtimeFTP = new FtpClient();
+
 			//RealtimeTimer.Enabled = false;
 			RealtimeFTP.Host = FtpOptions.Hostname;
 			RealtimeFTP.Port = FtpOptions.Port;
 			RealtimeFTP.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+			RealtimeFTP.SocketPollInterval = 20000; // increase beyond the timeout values
+			RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
 
 			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
@@ -9546,8 +9602,6 @@ namespace CumulusMX
 					LogMessage($"RealtimeFTPLogin: Error connecting ftp - {ex.Message}");
 					RealtimeFTP.Disconnect();
 				}
-
-				RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
 			}
 			//RealtimeTimer.Enabled = true;
 		}
@@ -9881,7 +9935,6 @@ namespace CumulusMX
 
 						using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 						{
-
 							foreach (var cmdStr in Cmds)
 							{
 								lastCmd = cmdStr;
@@ -9905,10 +9958,12 @@ namespace CumulusMX
 								LogDebugMessage($"{CallingFunction}: Committing updates to DB");
 								transaction.Commit();
 								LogDebugMessage($"{CallingFunction}: Commit complete");
+								transaction.Dispose();
 							}
-
-							mySqlConn.Close();
 						}
+
+						mySqlConn.Close();
+						mySqlConn.Dispose();
 					}
 
 					MySqlUploadAlarm.Triggered = false;
@@ -9952,29 +10007,40 @@ namespace CumulusMX
 			{
 
 				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
-				using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 				{
 					mySqlConn.Open();
 
-					foreach (var cmdStr in Cmds)
+					using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 					{
-						lastCmd = cmdStr;
-
-						using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+						foreach (var cmdStr in Cmds)
 						{
-							LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
+							lastCmd = cmdStr;
 
-							if (Cmds.Count > 2)
-								cmd.Transaction = transaction;
+							using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+							{
+								LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
 
-									int aff = cmd.ExecuteNonQuery();
-									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-								}
+								if (Cmds.Count > 2)
+									cmd.Transaction = transaction;
 
-						MySqlUploadAlarm.Triggered = false;
+								int aff = cmd.ExecuteNonQuery();
+								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+							}
+
+							MySqlUploadAlarm.Triggered = false;
+						}
+
+						if (transaction != null)
+						{
+							LogDebugMessage($"{CallingFunction}: Committing updates to DB");
+							transaction.Commit();
+							LogDebugMessage($"{CallingFunction}: Commit complete");
+							transaction.Dispose();
+						}
 					}
 
 					mySqlConn.Close();
+					mySqlConn.Dispose();
 				}
 			}
 			catch (Exception ex)
@@ -10633,6 +10699,7 @@ namespace CumulusMX
 		public int AvgBearingMinutes { get; set; }
 		public int AvgSpeedMinutes { get; set; }
 		public int PeakGustMinutes { get; set; }
+		public bool UseRainForIsRaining { get; set; }
 	}
 
 	public class FtpOptionsClass

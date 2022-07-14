@@ -592,10 +592,10 @@ namespace CumulusMX
 				}
 
 
-				DoForecast(string.Empty, false);
+				thisStation.DoForecast(string.Empty, false);
 
-				UpdateStatusPanel(recDate);
-				UpdateMQTT();
+				thisStation.UpdateStatusPanel(recDate);
+				thisStation.UpdateMQTT();
 			}
 			catch (Exception ex)
 			{

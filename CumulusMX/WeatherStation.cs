@@ -1521,7 +1521,7 @@ namespace CumulusMX
 					cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 					cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
 					cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered,
-					cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered,
+					cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered, cumulus.IsRainingAlarm.Triggered,
 					FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm"),
 					HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("HH:mm"));
 
@@ -1529,13 +1529,14 @@ namespace CumulusMX
 
 				var ser = new DataContractJsonSerializer(typeof(DataStruct));
 
-				var stream = new MemoryStream();
+				using (var stream = new MemoryStream())
+				{
+					ser.WriteObject(stream, data);
 
-				ser.WriteObject(stream, data);
+					stream.Position = 0;
 
-				stream.Position = 0;
-
-				cumulus.WebSock.SendMessage(new StreamReader(stream).ReadToEnd());
+					cumulus.WebSock.SendMessage(new StreamReader(stream).ReadToEnd());
+				}
 
 				// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
 				Thread.Sleep(500);
@@ -1621,6 +1622,9 @@ namespace CumulusMX
 
 			if (cumulus.HighRainTodayAlarm.Latch && cumulus.HighRainTodayAlarm.Triggered && DateTime.Now > cumulus.HighRainTodayAlarm.TriggeredTime.AddHours(cumulus.HighRainTodayAlarm.LatchHours))
 				cumulus.HighRainTodayAlarm.Triggered = false;
+
+			if (cumulus.IsRainingAlarm.Latch && cumulus.IsRainingAlarm.Triggered && DateTime.Now > cumulus.IsRainingAlarm.TriggeredTime.AddHours(cumulus.IsRainingAlarm.LatchHours))
+				cumulus.IsRainingAlarm.Triggered = false;
 
 			if (cumulus.HighPressAlarm.Latch && cumulus.HighPressAlarm.Triggered && DateTime.Now > cumulus.HighPressAlarm.TriggeredTime.AddHours(cumulus.HighPressAlarm.LatchHours))
 				cumulus.HighPressAlarm.Triggered = false;
@@ -3589,6 +3593,7 @@ namespace CumulusMX
 			{
 				// A reading has apparently arrived at the start of a new day, but before we have done the roll-over
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
+				cumulus.LogDebugMessage("DoRain: A reading arrived at the start of a new day, but before we have done the roll-over. Ignoring it");
 				return;
 			}
 
@@ -3700,6 +3705,12 @@ namespace CumulusMX
 				// scale rainfall rate
 				RainRate = rate * cumulus.Calib.Rain.Mult;
 
+				if (cumulus.StationOptions.UseRainForIsRaining)
+				{
+					IsRaining = RainRate > 0;
+					cumulus.IsRainingAlarm.Triggered = IsRaining;
+				}
+
 				if (RainRate > AllTime.HighRainRate.Val)
 					SetAlltime(AllTime.HighRainRate, RainRate, timestamp);
 
@@ -3736,6 +3747,17 @@ namespace CumulusMX
 				{
 					// rain has occurred
 					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
+
+					if (cumulus.StationOptions.UseRainForIsRaining)
+					{
+						IsRaining = true;
+						cumulus.IsRainingAlarm.Triggered = true;
+					}
+				}
+				else if (cumulus.StationOptions.UseRainForIsRaining && RainRate <= 0)
+				{
+					IsRaining = false;
+					cumulus.IsRainingAlarm.Triggered = false;
 				}
 
 				// Calculate today"s rainfall
@@ -7205,7 +7227,7 @@ namespace CumulusMX
 		}
 
 
-		protected void UpdateMQTT()
+		internal void UpdateMQTT()
 		{
 			if (cumulus.MQTT.EnableDataUpdate)
 			{
@@ -10914,12 +10936,13 @@ namespace CumulusMX
 					var sunhrs = data[i].SunShineHours >= 0 ? data[i].SunShineHours : 0;
 					sb.Append($"[{DateTimeToUnix(data[i].Date) * 1000},{sunhrs.ToString(cumulus.SunFormat, InvC)}],");
 				}
+
+				// remove trailing comma
+				if (sb[sb.Length - 1] == ',')
+					sb.Length--;
+
 				sb.Append(']');
 			}
-
-			// remove trailing comma
-			if (sb[sb.Length - 1] == ',')
-				sb.Length--;
 
 			sb.Append('}');
 			return sb.ToString();
@@ -11863,7 +11886,7 @@ namespace CumulusMX
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("HH:mm:ss"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 				cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
-				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered,
+				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered, cumulus.IsRainingAlarm.Triggered,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("HH:mm:ss"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("HH:mm:ss"),
 				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("HH:mm:ss"));
 
