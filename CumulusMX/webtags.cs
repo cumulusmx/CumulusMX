@@ -902,11 +902,12 @@ namespace CumulusMX
 
 		private string TagWindRoseData(Dictionary<string,string> tagParams)
 		{
-			var sb = new StringBuilder((station.windcounts[0]*cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+			// no need to use multiplier as the rose is all relative
+			var sb = new StringBuilder(station.windcounts[0].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 
 			for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 			{
-				sb.Append("," + (station.windcounts[i]*cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+				sb.Append("," + station.windcounts[i].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 			}
 
 			return sb.ToString();

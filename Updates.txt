@@ -1,3 +1,12 @@
+3.19.2 - b3195
+——————————————
+Fixed
+
+New
+- Adds the ability to use leaf wetness sensors to trigger the "Is Raining" value and optional alarm. Configure this via Station Settings > Common Options
+
+
+
 3.19.1 - b3194
 ——————————————
 Fixed

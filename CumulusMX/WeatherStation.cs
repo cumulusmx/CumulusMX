@@ -1492,12 +1492,13 @@ namespace CumulusMX
 
 				lock (windcounts)
 				{
-					windRoseData.Append((windcounts[0] * cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+					// no need to use multiplier as rose data is all relative
+					windRoseData.Append(windcounts[0].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 
 					for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 					{
 						windRoseData.Append(',');
-						windRoseData.Append((windcounts[i] * cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+						windRoseData.Append(windcounts[i].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 					}
 				}
 
@@ -7428,6 +7429,12 @@ namespace CumulusMX
 					LeafWetness8 = value;
 					break;
 			}
+
+			if (cumulus.StationOptions.LeafWetnessIsRainingIdx == index)
+			{
+				IsRaining = value >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
+				cumulus.IsRainingAlarm.Triggered = IsRaining;
+			}
 		}
 
 		public void DoLeafTemp(double value, int index)
@@ -11858,13 +11865,14 @@ namespace CumulusMX
 
 		internal string GetCurrentData()
 		{
-			StringBuilder windRoseData = new StringBuilder((windcounts[0] * cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture), 4096);
+			// no need to use multiplier as rose is all relative
+			StringBuilder windRoseData = new StringBuilder(windcounts[0].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture), 4096);
 			lock (windRoseData)
 			{
 				for (var i = 1; i < cumulus.NumWindRosePoints; i++)
 				{
 					windRoseData.Append(',');
-					windRoseData.Append((windcounts[i] * cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+					windRoseData.Append(windcounts[i].ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 				}
 			}
 			string stormRainStart = StartOfStorm == DateTime.MinValue ? "-----" : StartOfStorm.ToString("d");
