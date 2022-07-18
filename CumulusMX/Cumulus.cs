@@ -489,8 +489,8 @@ namespace CumulusMX
 		private List<string> OWMList = new List<string>();
 
 		// Use thread safe queues for the MySQL command lists
-		private readonly ConcurrentQueue<string> MySqlList = new ConcurrentQueue<string>();
-		private readonly ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
+		private ConcurrentQueue<string> MySqlList = new ConcurrentQueue<string>();
+		private ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
 
 		// Calibration settings
 		/// <summary>
@@ -2724,8 +2724,6 @@ namespace CumulusMX
 					CreateRealtimeHTMLfiles(cycle);
 					RealtimeCopyInProgress = false;
 
-					MySqlRealtimeFile(cycle, true);
-
 					if (FtpOptions.LocalCopyEnabled)
 					{
 						RealtimeLocalCopy(cycle);
@@ -2789,6 +2787,8 @@ namespace CumulusMX
 						ExecuteProgram(RealtimeProgram, RealtimeParams);
 					}
 				}
+
+				MySqlRealtimeFile(cycle, true);
 			}
 			catch (Exception ex)
 			{
@@ -6900,28 +6900,6 @@ namespace CumulusMX
 
 			if (MySqlSettings.Monthly.Enabled)
 			{
-				if (!MySqlFailedList.IsEmpty)
-				{
-					// We have buffered commands run the catch up
-					LogMessage("DoLogFile: We have buffered MySQL commands to send, checking connection to server...");
-					if (MySqlCheckConnection())
-					{
-						Thread.Sleep(500);
-						LogMessage("DoLogFile: MySQL server connection OK, trying to send the buffered commands...");
-						try
-						{
-							MySqlCommandSync(MySqlFailedList, "Buffered");
-						}
-						catch (Exception ex)
-						{
-							LogMessage("DoLogFile: Error - " + ex.Message);
-						}
-					}
-					else if (MySqlSettings.BufferOnfailure)
-					{
-						LogMessage("DoLogFile: MySQL server connection failed. Try again at next update");
-					}
-				}
 
 				var InvC = new CultureInfo("");
 
@@ -6964,7 +6942,7 @@ namespace CumulusMX
 				if (live)
 				{
 					// do the update
-					_= MySqlCommandAsync(queryString, "DoLogFile");
+					_ = CheckMySQLFailedUploads("DoLogFile", queryString);
 				}
 				else
 				{
@@ -8813,11 +8791,14 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White)
+		public void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
 		{
 			if (!Program.service)
 			{
-
+				if (LogDateTime)
+				{
+					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
+				}
 				Console.ForegroundColor = colour;
 				Console.WriteLine(message);
 				Console.ResetColor();
@@ -9076,7 +9057,7 @@ namespace CumulusMX
 				}
 
 				// do the update
-				_ = MySqlCommandAsync(cmds, $"Realtime[{cycle}]");
+				_ = CheckMySQLFailedUploads($"Realtime[{cycle}]", cmds);
 			}
 			else
 			{
@@ -9293,8 +9274,8 @@ namespace CumulusMX
 			else
 			{
 				// start the archive upload thread
-				LogMessage("Starting MySQL catchup thread");
-				_ = MySqlCommandAsync(MySqlList, "MySQL Archive");
+				LogMessage($"Starting MySQL catchup thread. Found {MySqlList.Count} commands to execute");
+				_ = MySqlCommandAsync(MySqlList, "MySQL Archive", false);
 			}
 
 			WebTimer.Interval = UpdateInterval * 60 * 1000; // mins to millisecs
@@ -9329,27 +9310,7 @@ namespace CumulusMX
 				customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Command;
 				try
 				{
-					if (!MySqlFailedList.IsEmpty)
-					{
-						LogMessage("CustomSqlSecs: Failed MySQL updates are present");
-						if (MySqlCheckConnection())
-						{
-							Thread.Sleep(500);
-							LogMessage("CustomSqlSecs: Connection to MySQL server is OK, trying to upload failed commands");
-
-							await MySqlCommandAsync(MySqlFailedList, "CustomSqlSecs");
-							LogMessage("CustomSqlSecs: Upload of failed MySQL commands complete");
-						}
-						else if (MySqlSettings.BufferOnfailure)
-						{
-							LogMessage("CustomSqlSecs: Connection to MySQL server has failed, adding this update to the failed list");
-							MySqlFailedList.Enqueue(customMysqlSecondsTokenParser.ToStringFromString());
-						}
-					}
-					else
-					{
-						await MySqlCommandAsync(customMysqlSecondsTokenParser.ToStringFromString(), "CustomSqlSecs");
-					}
+					await CheckMySQLFailedUploads("CustomSqlSecs", customMysqlSecondsTokenParser.ToStringFromString());
 				}
 				catch (Exception ex)
 				{
@@ -9376,27 +9337,7 @@ namespace CumulusMX
 
 				try
 				{
-					if (!MySqlFailedList.IsEmpty)
-					{
-						LogMessage("CustomSqlMins: Failed MySQL updates are present");
-						if (MySqlCheckConnection())
-						{
-							Thread.Sleep(500);
-							LogMessage("CustomSqlMins: Connection to MySQL server is OK, trying to upload failed commands");
-
-							await MySqlCommandAsync(MySqlFailedList, "CustomSqlMins");
-							LogMessage("CustomSqlMins: Upload of failed MySQL commands complete");
-						}
-						else if (MySqlSettings.BufferOnfailure)
-						{
-							LogMessage("CustomSqlMins: Connection to MySQL server has failed, adding this update to the failed list");
-							MySqlFailedList.Enqueue(customMysqlMinutesTokenParser.ToStringFromString());
-						}
-					}
-					else
-					{
-						await MySqlCommandAsync(customMysqlMinutesTokenParser.ToStringFromString(), "CustomSqlMins");
-					}
+					await CheckMySQLFailedUploads("CustomSqlMins", customMysqlMinutesTokenParser.ToStringFromString());
 				}
 				catch (Exception ex)
 				{
@@ -9423,27 +9364,7 @@ namespace CumulusMX
 
 				try
 				{
-					if (!MySqlFailedList.IsEmpty)
-					{
-						LogMessage("CustomSqlRollover: Failed MySQL updates are present");
-						if (MySqlCheckConnection())
-						{
-							Thread.Sleep(500);
-							LogMessage("CustomSqlRollover: Connection to MySQL server is OK, trying to upload failed commands");
-
-							await MySqlCommandAsync(MySqlFailedList, "CustomSqlRollover");
-							LogMessage("CustomSqlRollover: Upload of failed MySQL commands complete");
-						}
-						else if (MySqlSettings.BufferOnfailure)
-						{
-							LogMessage("CustomSqlRollover: Connection to MySQL server has failed, adding this update to the failed list");
-							MySqlFailedList.Enqueue(customMysqlRolloverTokenParser.ToStringFromString());
-						}
-					}
-					else
-					{
-						await MySqlCommandAsync(customMysqlRolloverTokenParser.ToStringFromString(), "CustomSqlRollover");
-					}
+					await CheckMySQLFailedUploads("CustomSqlRollover", customMysqlRolloverTokenParser.ToStringFromString());
 				}
 				catch (Exception ex)
 				{
@@ -9451,6 +9372,61 @@ namespace CumulusMX
 				}
 
 				customMySqlRolloverUpdateInProgress = false;
+			}
+		}
+
+
+		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
+		{
+			await CheckMySQLFailedUploads(callingFunction, new List<string>() { cmd });
+		}
+
+		public async Task CheckMySQLFailedUploads(string callingFunction, List<string> cmds)
+		{
+			var connectionOK = true;
+
+			try
+			{
+				if (!MySqlFailedList.IsEmpty)
+				{
+					LogMessage($"{callingFunction}: Failed MySQL updates are present");
+					if (MySqlCheckConnection())
+					{
+						Thread.Sleep(500);
+						LogMessage($"{callingFunction}: Connection to MySQL server is OK, trying to upload {MySqlFailedList.Count} failed commands");
+
+						await MySqlCommandAsync(MySqlFailedList, callingFunction, true);
+						LogMessage($"{callingFunction}: Upload of failed MySQL commands complete");
+					}
+					else if (MySqlSettings.BufferOnfailure)
+					{
+						connectionOK = false;
+						LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
+						if (callingFunction.StartsWith("Realtime["))
+						{
+							// don't bother buffering the realtime deletes - if present
+							MySqlFailedList.Enqueue(cmds[0]);
+						}
+						else
+						{
+							MySqlFailedList = (ConcurrentQueue<string>)MySqlFailedList.Concat<string>(cmds);
+						}
+					}
+					else
+					{
+						connectionOK = false;
+					}
+				}
+
+				// now do what we came here to do
+				if (connectionOK)
+				{
+					await MySqlCommandAsync(cmds, callingFunction);
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"{callingFunction}: Error - " + ex.Message);
 			}
 		}
 
@@ -9913,24 +9889,21 @@ namespace CumulusMX
 		{
 			var Cmds = new ConcurrentQueue<string>();
 			Cmds.Enqueue(Cmd);
-			await MySqlCommandAsync(Cmds, CallingFunction);
+			await MySqlCommandAsync(Cmds, CallingFunction, false);
 		}
 
 		public async Task MySqlCommandAsync(List<string> Cmds, string CallingFunction)
 		{
-			var tempQ = new ConcurrentQueue<string>();
-			foreach (var cmd in Cmds)
-			{
-				tempQ.Enqueue(cmd);
-			}
-			await MySqlCommandAsync(tempQ, CallingFunction);
+			var tempQ = new ConcurrentQueue<string>(Cmds);
+			await MySqlCommandAsync(tempQ, CallingFunction, false);
 		}
 
-		public async Task MySqlCommandAsync(ConcurrentQueue<string> Cmds, string CallingFunction)
+		public async Task MySqlCommandAsync(ConcurrentQueue<string> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			await Task.Run(() =>
 			{
-				string lastCmd = string.Empty;
+				ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+
 				try
 				{
 					using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
@@ -9939,23 +9912,28 @@ namespace CumulusMX
 
 						using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 						{
-							foreach (var cmdStr in Cmds)
+							do
 							{
-								lastCmd = cmdStr;
-								using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+								// Do not remove the item from the stack until we know the command worked
+								if (queue.TryPeek(out var cmdStr))
 								{
-									LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
-
-									if (transaction != null)
+									using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
 									{
-										cmd.Transaction = transaction;
+										LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
+
+										if (transaction != null)
+										{
+											cmd.Transaction = transaction;
+										}
+
+										int aff = cmd.ExecuteNonQuery();
+										LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+
+										// Success, pop the value from the queue
+										queue.TryDequeue(out cmdStr);
 									}
-
-									int aff = cmd.ExecuteNonQuery();
-									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
 								}
-
-							}
+							} while (!queue.IsEmpty);
 
 							if (transaction != null)
 							{
@@ -9981,15 +9959,15 @@ namespace CumulusMX
 
 					// do we save this command/commands on failure to be resubmitted?
 					// if we have a syntax error, it is never going to work so do not save it for retry
-					if (!ex.Message.Contains("syntax"))
+					if (MySqlSettings.BufferOnfailure && !ex.Message.Contains("syntax") && !UseFailedList)
 					{
-						if (MySqlSettings.BufferOnfailure)
+						while (!queue.IsEmpty)
 						{
-							if (!string.IsNullOrEmpty(lastCmd))
+							queue.TryDequeue(out var cmd);
+							if (!cmd.StartsWith("DELETE IGNORE FROM"))
 							{
-								MySqlFailedList.Enqueue(lastCmd);
+								MySqlFailedList.Enqueue(cmd);
 							}
-							MySqlFailedList.Concat(Cmds);
 						}
 					}
 				}
@@ -10000,12 +9978,12 @@ namespace CumulusMX
 		{
 			var Cmds = new ConcurrentQueue<string>();
 			Cmds.Enqueue(Cmd);
-			MySqlCommandSync(Cmds, CallingFunction);
+			MySqlCommandSync(Cmds, CallingFunction, false);
 		}
 
-		public void MySqlCommandSync(ConcurrentQueue<string> Cmds, string CallingFunction)
+		public void MySqlCommandSync(ConcurrentQueue<string> Cmds, string CallingFunction, bool UseFailedList)
 		{
-			string lastCmd = string.Empty;
+			ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
 
 			try
 			{
@@ -10016,23 +9994,31 @@ namespace CumulusMX
 
 					using (var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null)
 					{
-						foreach (var cmdStr in Cmds)
+						do
 						{
-							lastCmd = cmdStr;
-
-							using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+							// Do not remove the item from the stack until we know the command worked
+							if (queue.TryPeek(out var cmdStr))
 							{
-								LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
 
-								if (Cmds.Count > 2)
-									cmd.Transaction = transaction;
+								using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+								{
+									LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
 
-								int aff = cmd.ExecuteNonQuery();
-								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+									if (transaction != null)
+									{
+										cmd.Transaction = transaction;
+									}
+
+									int aff = cmd.ExecuteNonQuery();
+									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+
+									// Success, pop the value from the stack
+									queue.TryDequeue(out cmdStr);
+								}
+
+								MySqlUploadAlarm.Triggered = false;
 							}
-
-							MySqlUploadAlarm.Triggered = false;
-						}
+						} while (!queue.IsEmpty);
 
 						if (transaction != null)
 						{
@@ -10056,13 +10042,13 @@ namespace CumulusMX
 
 				// do we save this command/commands on failure to be resubmitted?
 				// if we have a syntax error, it is never going to work so do not save it for retry
-				if (!ex.Message.Contains("syntax"))
+				if (MySqlSettings.BufferOnfailure && !ex.Message.Contains("syntax") && !UseFailedList)
 				{
-					if (!string.IsNullOrEmpty(lastCmd))
+					while (!queue.IsEmpty)
 					{
-						MySqlFailedList.Enqueue(lastCmd);
+						queue.TryDequeue(out var cmd);
+						MySqlFailedList.Enqueue(cmd);
 					}
-					MySqlFailedList.Concat(Cmds);
 				}
 				throw;
 			}

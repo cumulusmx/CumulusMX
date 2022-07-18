@@ -723,7 +723,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red);
+				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red, true);
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogMessage("Error sending command to station - it may need resetting");
 				DataStopped = true;
@@ -742,7 +742,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red);
+					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red, true);
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
 					DataStopped = true;
@@ -1379,7 +1379,7 @@ namespace CumulusMX
 			readCounter = 0;
 			syncStart = DateTime.Now;
 			cumulus.LogMessage("Start Synchronising with console");
-			cumulus.LogConsoleMessage(DateTime.Now.ToString("yy-MM-dd HH:mm:ss ") + "Start Synchronising with console, run #" + synchroniseAttempts);
+			cumulus.LogConsoleMessage("Start Synchronising with console, run #" + synchroniseAttempts, ConsoleColor.Gray, true);
 
 			tmrDataRead.Interval = 500; // half a second
 		}
@@ -1456,10 +1456,10 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogConsoleMessage($" - Found times for:- sensor: {foundSensor}, station: {foundStation} {(hasSolar ? (", solar:" + (doSolarSync ? foundSolar.ToString() : "supressed")) : "")}");
+			cumulus.LogConsoleMessage($" - Found times for:- sensor: {foundSensor}, station: {foundStation} {(hasSolar ? (", solar:" + (doSolarSync ? foundSolar.ToString() : "supressed")) : "")}", ConsoleColor.Gray);
 
 			cumulus.LogMessage("Stop Synchronising");
-			cumulus.LogConsoleMessage(DateTime.Now.ToString("yy-MM-dd HH:mm:ss ") + "Stop Synchronising");
+			cumulus.LogConsoleMessage("Stop Synchronising", ConsoleColor.Gray, true);
 		}
 
 		private void InitialiseSync(bool solarSync)

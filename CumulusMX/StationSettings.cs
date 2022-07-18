@@ -1311,7 +1311,7 @@ namespace CumulusMX
 					if (cumulus.StationType != settings.general.stationtype)
 					{
 						cumulus.LogMessage("Station type changed, restart required");
-						cumulus.LogConsoleMessage("*** Station type changed, restart required ***");
+						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;

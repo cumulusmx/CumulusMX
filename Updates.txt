@@ -1,7 +1,9 @@
 3.19.2 - b3195
 ——————————————
 Fixed
-- Supress trying to sync solar data on FO stations with solar during nigh time hours
+- Supress trying to sync solar data on FO stations with solar during night time hours
+- Fix problem processing buffered failed MySQL commands. Note the buffer is processed during the next interval update after the DB connection is restored
+- Default gauges.htm page CSS for the Wind Rose fixed
 
 New
 - Adds the ability to use leaf wetness sensors to trigger the "Is Raining" value and optional alarm. Configure this via Station Settings > Common Options
