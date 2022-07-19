@@ -9957,18 +9957,13 @@ namespace CumulusMX
 					MySqlUploadAlarm.LastError = ex.Message;
 					MySqlUploadAlarm.Triggered = true;
 
-					// do we save this command/commands on failure to be resubmitted?
-					// if we have a syntax error, it is never going to work so do not save it for retry
-					if (MySqlSettings.BufferOnfailure && !ex.Message.Contains("syntax") && !UseFailedList)
+					if (MySqlSettings.BufferOnfailure && !UseFailedList)
 					{
-						while (!queue.IsEmpty)
-						{
-							queue.TryDequeue(out var cmd);
-							if (!cmd.StartsWith("DELETE IGNORE FROM"))
-							{
-								MySqlFailedList.Enqueue(cmd);
-							}
-						}
+						// do we save this command/commands on failure to be resubmitted?
+						// if we have a syntax error, it is never going to work so do not save it for retry
+						// A selection of the more common(?) errors to ignore...
+						var errorCode = (int) ex.Data["Server Error Code"];
+						MySqlCommandErrorHandler(CallingFunction, errorCode, queue);
 					}
 				}
 			});
@@ -10042,15 +10037,47 @@ namespace CumulusMX
 
 				// do we save this command/commands on failure to be resubmitted?
 				// if we have a syntax error, it is never going to work so do not save it for retry
-				if (MySqlSettings.BufferOnfailure && !ex.Message.Contains("syntax") && !UseFailedList)
+				if (MySqlSettings.BufferOnfailure && !UseFailedList)
 				{
-					while (!queue.IsEmpty)
+					// do we save this command/commands on failure to be resubmitted?
+					// if we have a syntax error, it is never going to work so do not save it for retry
+					// A selection of the more common(?) errors to ignore...
+					var errorCode = (int) ex.Data["Server Error Code"];
+					MySqlCommandErrorHandler(CallingFunction, errorCode, queue);
+				}
+
+				throw;
+			}
+		}
+
+		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<string> Cmds)
+		{
+			var ignore = ErrorCode == (int) MySqlConnector.MySqlErrorCode.ParseError ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.EmptyQuery ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.TooBigSelect ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.InvalidUseOfNull ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.MixOfGroupFunctionAndFields ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.SyntaxError ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.TooLongString ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.WrongColumnName ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.DuplicateUnique ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.PrimaryCannotHaveNull ||
+						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.DivisionByZero;
+
+			if (ignore)
+			{
+				LogDebugMessage($"{CallingFunction}: Not buffering this command due to a problem with the query");
+			}
+			else
+			{
+				while (!Cmds.IsEmpty)
+				{
+					Cmds.TryDequeue(out var cmd);
+					if (!cmd.StartsWith("DELETE IGNORE FROM"))
 					{
-						queue.TryDequeue(out var cmd);
 						MySqlFailedList.Enqueue(cmd);
 					}
 				}
-				throw;
 			}
 		}
 
