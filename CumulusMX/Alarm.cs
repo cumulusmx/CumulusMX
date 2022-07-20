@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,8 +15,6 @@ namespace CumulusMX
 		public double Value { get; set; }
 		public bool Sound { get; set; }
 		public string SoundFile { get; set; }
-
-		bool triggered;
 		public bool Triggered
 		{
 			get => triggered;
@@ -30,17 +29,40 @@ namespace CumulusMX
 					if (triggerCount >= TriggerThreshold)
 					{
 						// If we were not set before, so we need to send an email?
-						if (!triggered && Enabled && Email && cumulus.SmtpOptions.Enabled)
+						if (!triggered && Enabled)
 						{
-							// Construct the message - preamble, plus values
-							var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
-							if (!string.IsNullOrEmpty(LastError))
+							if (Email && cumulus.SmtpOptions.Enabled)
 							{
-								msg += "\r\nLast error: " + LastError;
+								// Construct the message - preamble, plus values
+								var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
+								if (!string.IsNullOrEmpty(LastError))
+								{
+									msg += "\r\nLast error: " + LastError;
+								}
+								cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 							}
-							cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
-						}
 
+							if (!string.IsNullOrEmpty(Action))
+							{
+								try
+								{
+									// Prepare the process to run
+									ProcessStartInfo start = new ProcessStartInfo();
+									// Enter in the command line arguments
+									start.Arguments = ActionParams;
+									// Enter the executable to run, including the complete path
+									start.FileName = Action;
+									// Don"t show a console window
+									start.CreateNoWindow = true;
+									// Run the external process
+									Process.Start(start);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
+								}
+							}
+						}
 						// If we get a new trigger, record the time
 						triggered = true;
 					}
@@ -69,14 +91,17 @@ namespace CumulusMX
 		public DateTime TriggeredTime { get; set; }
 		public bool Notify { get; set; }
 		public bool Email { get; set; }
+		public string Action { get; set; }
+		public string ActionParams { get; set; }
 		public bool Latch { get; set; }
 		public int LatchHours { get; set; }
 		public string EmailMsg { get; set; }
 		public string Units { get; set; }
 		public string LastError { get; set; }
-		int triggerCount = 0;
 		public int TriggerThreshold { get; set; }
-	}
+		bool triggered;
+		int triggerCount = 0;
+}
 
 	public class AlarmChange : Alarm
 	{
@@ -88,12 +113,36 @@ namespace CumulusMX
 			{
 				if (value)
 				{
-					// If we were not set before, so we need to send an email?
-					if (!upTriggered && Enabled && Email && cumulus.SmtpOptions.Enabled)
-					{
-						// Construct the message - preamble, plus values
-						var msg = Program.cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+					// If we were not set before, so we need to send an email etc?
+					if (!upTriggered && Enabled)
+					{ 
+						if (Email && cumulus.SmtpOptions.Enabled)
+						{
+							// Construct the message - preamble, plus values
+							var msg = Program.cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
+							cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						}
+
+						if (!string.IsNullOrEmpty(Action))
+						{
+							try
+							{
+								// Prepare the process to run
+								ProcessStartInfo start = new ProcessStartInfo();
+								// Enter in the command line arguments
+								start.Arguments = ActionParams;
+								// Enter the executable to run, including the complete path
+								start.FileName = Action;
+								// Don"t show a console window
+								start.CreateNoWindow = true;
+								// Run the external process
+								Process.Start(start);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
+							}
+						}
 					}
 
 					// If we get a new trigger, record the time
@@ -131,11 +180,35 @@ namespace CumulusMX
 				if (value)
 				{
 					// If we were not set before, so we need to send an email?
-					if (!downTriggered && Enabled && Email && cumulus.SmtpOptions.Enabled)
+					if (!downTriggered && Enabled)
 					{
-						// Construct the message - preamble, plus values
-						var msg = Program.cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						if (Email && cumulus.SmtpOptions.Enabled)
+						{
+							// Construct the message - preamble, plus values
+							var msg = Program.cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
+							cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						}
+
+						if (!string.IsNullOrEmpty(Action))
+						{
+							try
+							{
+								// Prepare the process to run
+								ProcessStartInfo start = new ProcessStartInfo();
+								// Enter in the command line arguments
+								start.Arguments = ActionParams;
+								// Enter the executable to run, including the complete path
+								start.FileName = Action;
+								// Don"t show a console window
+								start.CreateNoWindow = true;
+								// Run the external process
+								Process.Start(start);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
+							}
+						}
 					}
 
 					// If we get a new trigger, record the time

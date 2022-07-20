@@ -38,7 +38,9 @@ namespace CumulusMX
 					Notify = cumulus.LowTempAlarm.Notify,
 					Email = cumulus.LowTempAlarm.Email,
 					Latches = cumulus.LowTempAlarm.Latch,
-					LatchHrs = cumulus.LowTempAlarm.LatchHours
+					LatchHrs = cumulus.LowTempAlarm.LatchHours,
+					Action = cumulus.LowTempAlarm.Action,
+					ActionParams = cumulus.LowTempAlarm.ActionParams
 				},
 				tempAbove = new JsonAlarmValues()
 				{
@@ -49,7 +51,9 @@ namespace CumulusMX
 					Notify = cumulus.HighTempAlarm.Notify,
 					Email = cumulus.HighTempAlarm.Email,
 					Latches = cumulus.HighTempAlarm.Latch,
-					LatchHrs = cumulus.HighTempAlarm.LatchHours
+					LatchHrs = cumulus.HighTempAlarm.LatchHours,
+					Action = cumulus.HighTempAlarm.Action,
+					ActionParams = cumulus.HighTempAlarm.ActionParams
 				},
 				tempChange = new JsonAlarmValues()
 				{
@@ -60,7 +64,9 @@ namespace CumulusMX
 					Notify = cumulus.TempChangeAlarm.Notify,
 					Email = cumulus.TempChangeAlarm.Email,
 					Latches = cumulus.TempChangeAlarm.Latch,
-					LatchHrs = cumulus.TempChangeAlarm.LatchHours
+					LatchHrs = cumulus.TempChangeAlarm.LatchHours,
+					Action = cumulus.TempChangeAlarm.Action,
+					ActionParams = cumulus.TempChangeAlarm.ActionParams
 				},
 				pressBelow = new JsonAlarmValues()
 				{
@@ -71,7 +77,9 @@ namespace CumulusMX
 					Notify = cumulus.LowPressAlarm.Notify,
 					Email = cumulus.LowPressAlarm.Email,
 					Latches = cumulus.LowPressAlarm.Latch,
-					LatchHrs = cumulus.LowPressAlarm.LatchHours
+					LatchHrs = cumulus.LowPressAlarm.LatchHours,
+					Action = cumulus.LowPressAlarm.Action,
+					ActionParams = cumulus.LowPressAlarm.ActionParams
 				},
 				pressAbove = new JsonAlarmValues()
 				{
@@ -82,7 +90,9 @@ namespace CumulusMX
 					Notify = cumulus.HighPressAlarm.Notify,
 					Email = cumulus.HighPressAlarm.Email,
 					Latches = cumulus.HighPressAlarm.Latch,
-					LatchHrs = cumulus.HighPressAlarm.LatchHours
+					LatchHrs = cumulus.HighPressAlarm.LatchHours,
+					Action = cumulus.HighPressAlarm.Action,
+					ActionParams = cumulus.HighPressAlarm.ActionParams
 				},
 				pressChange = new JsonAlarmValues()
 				{
@@ -93,7 +103,9 @@ namespace CumulusMX
 					Notify = cumulus.PressChangeAlarm.Notify,
 					Email = cumulus.PressChangeAlarm.Email,
 					Latches = cumulus.PressChangeAlarm.Latch,
-					LatchHrs = cumulus.PressChangeAlarm.LatchHours
+					LatchHrs = cumulus.PressChangeAlarm.LatchHours,
+					Action = cumulus.PressChangeAlarm.Action,
+					ActionParams = cumulus.PressChangeAlarm.ActionParams
 				},
 				rainAbove = new JsonAlarmValues()
 				{
@@ -104,7 +116,9 @@ namespace CumulusMX
 					Notify = cumulus.HighRainTodayAlarm.Notify,
 					Email = cumulus.HighRainTodayAlarm.Email,
 					Latches = cumulus.HighRainTodayAlarm.Latch,
-					LatchHrs = cumulus.HighRainTodayAlarm.LatchHours
+					LatchHrs = cumulus.HighRainTodayAlarm.LatchHours,
+					Action = cumulus.HighRainTodayAlarm.Action,
+					ActionParams = cumulus.HighRainTodayAlarm.ActionParams
 				},
 				rainRateAbove = new JsonAlarmValues()
 				{
@@ -115,7 +129,9 @@ namespace CumulusMX
 					Notify = cumulus.HighRainRateAlarm.Notify,
 					Email = cumulus.HighRainRateAlarm.Email,
 					Latches = cumulus.HighRainRateAlarm.Latch,
-					LatchHrs = cumulus.HighRainRateAlarm.LatchHours
+					LatchHrs = cumulus.HighRainRateAlarm.LatchHours,
+					Action = cumulus.HighRainRateAlarm.Action,
+					ActionParams = cumulus.HighRainRateAlarm.ActionParams
 				},
 				isRaining = new JsonAlarmValues()
 				{
@@ -126,7 +142,9 @@ namespace CumulusMX
 					Email = cumulus.IsRainingAlarm.Email,
 					Latches = cumulus.IsRainingAlarm.Latch,
 					LatchHrs = cumulus.IsRainingAlarm.LatchHours,
-					Threshold = cumulus.IsRainingAlarm.TriggerThreshold
+					Threshold = cumulus.IsRainingAlarm.TriggerThreshold,
+					Action = cumulus.IsRainingAlarm.Action,
+					ActionParams = cumulus.IsRainingAlarm.ActionParams
 				},
 				gustAbove = new JsonAlarmValues()
 				{
@@ -137,7 +155,9 @@ namespace CumulusMX
 					Notify = cumulus.HighGustAlarm.Notify,
 					Email = cumulus.HighGustAlarm.Email,
 					Latches = cumulus.HighGustAlarm.Latch,
-					LatchHrs = cumulus.HighGustAlarm.LatchHours
+					LatchHrs = cumulus.HighGustAlarm.LatchHours,
+					Action = cumulus.HighGustAlarm.Action,
+					ActionParams = cumulus.HighGustAlarm.ActionParams
 				},
 				windAbove = new JsonAlarmValues()
 				{
@@ -148,7 +168,9 @@ namespace CumulusMX
 					Notify = cumulus.HighWindAlarm.Notify,
 					Email = cumulus.HighWindAlarm.Email,
 					Latches = cumulus.HighWindAlarm.Latch,
-					LatchHrs = cumulus.HighWindAlarm.LatchHours
+					LatchHrs = cumulus.HighWindAlarm.LatchHours,
+					Action = cumulus.HighWindAlarm.Action,
+					ActionParams = cumulus.HighWindAlarm.ActionParams
 				},
 				contactLost = new JsonAlarmValues()
 				{
@@ -159,7 +181,9 @@ namespace CumulusMX
 					Email = cumulus.SensorAlarm.Email,
 					Latches = cumulus.SensorAlarm.Latch,
 					LatchHrs = cumulus.SensorAlarm.LatchHours,
-					Threshold = cumulus.SensorAlarm.TriggerThreshold
+					Threshold = cumulus.SensorAlarm.TriggerThreshold,
+					Action = cumulus.SensorAlarm.Action,
+					ActionParams = cumulus.SensorAlarm.ActionParams
 				},
 				dataStopped = new JsonAlarmValues()
 				{
@@ -170,7 +194,9 @@ namespace CumulusMX
 					Email = cumulus.DataStoppedAlarm.Email,
 					Latches = cumulus.DataStoppedAlarm.Latch,
 					LatchHrs = cumulus.DataStoppedAlarm.LatchHours,
-					Threshold = cumulus.DataStoppedAlarm.TriggerThreshold
+					Threshold = cumulus.DataStoppedAlarm.TriggerThreshold,
+					Action = cumulus.DataStoppedAlarm.Action,
+					ActionParams = cumulus.DataStoppedAlarm.ActionParams
 				},
 				batteryLow = new JsonAlarmValues()
 				{
@@ -181,7 +207,9 @@ namespace CumulusMX
 					Email = cumulus.BatteryLowAlarm.Email,
 					Latches = cumulus.BatteryLowAlarm.Latch,
 					LatchHrs = cumulus.BatteryLowAlarm.LatchHours,
-					Threshold = cumulus.BatteryLowAlarm.TriggerThreshold
+					Threshold = cumulus.BatteryLowAlarm.TriggerThreshold,
+					Action = cumulus.BatteryLowAlarm.Action,
+					ActionParams = cumulus.BatteryLowAlarm.ActionParams
 				},
 				spike = new JsonAlarmValues()
 				{
@@ -192,7 +220,9 @@ namespace CumulusMX
 					Email = cumulus.SpikeAlarm.Email,
 					Latches = cumulus.SpikeAlarm.Latch,
 					LatchHrs = cumulus.SpikeAlarm.LatchHours,
-					Threshold = cumulus.SpikeAlarm.TriggerThreshold
+					Threshold = cumulus.SpikeAlarm.TriggerThreshold,
+					Action = cumulus.SpikeAlarm.Action,
+					ActionParams = cumulus.SpikeAlarm.ActionParams
 				},
 				upgrade = new JsonAlarmValues()
 				{
@@ -202,7 +232,9 @@ namespace CumulusMX
 					Notify = cumulus.UpgradeAlarm.Notify,
 					Email = cumulus.UpgradeAlarm.Email,
 					Latches = cumulus.UpgradeAlarm.Latch,
-					LatchHrs = cumulus.UpgradeAlarm.LatchHours
+					LatchHrs = cumulus.UpgradeAlarm.LatchHours,
+					Action = cumulus.UpgradeAlarm.Action,
+					ActionParams = cumulus.UpgradeAlarm.ActionParams
 				},
 				httpUpload = new JsonAlarmValues()
 				{
@@ -213,7 +245,9 @@ namespace CumulusMX
 					Email = cumulus.HttpUploadAlarm.Email,
 					Latches = cumulus.HttpUploadAlarm.Latch,
 					LatchHrs = cumulus.HttpUploadAlarm.LatchHours,
-					Threshold = cumulus.HttpUploadAlarm.TriggerThreshold
+					Threshold = cumulus.HttpUploadAlarm.TriggerThreshold,
+					Action = cumulus.HttpUploadAlarm.Action,
+					ActionParams = cumulus.HttpUploadAlarm.ActionParams
 				},
 				mySqlUpload = new JsonAlarmValues()
 				{
@@ -224,7 +258,9 @@ namespace CumulusMX
 					Email = cumulus.MySqlUploadAlarm.Email,
 					Latches = cumulus.MySqlUploadAlarm.Latch,
 					LatchHrs = cumulus.MySqlUploadAlarm.LatchHours,
-					Threshold = cumulus.MySqlUploadAlarm.TriggerThreshold
+					Threshold = cumulus.MySqlUploadAlarm.TriggerThreshold,
+					Action = cumulus.MySqlUploadAlarm.Action,
+					ActionParams = cumulus.MySqlUploadAlarm.ActionParams
 				}
 			};
 
@@ -290,6 +326,8 @@ namespace CumulusMX
 				cumulus.LowTempAlarm.Latch = settings.tempBelow.Latches;
 				cumulus.LowTempAlarm.LatchHours = settings.tempBelow.LatchHrs;
 				emailRequired = cumulus.LowTempAlarm.Email && cumulus.LowTempAlarm.Enabled;
+				cumulus.LowTempAlarm.Action = settings.tempBelow.Action;
+				cumulus.LowTempAlarm.ActionParams = settings.tempBelow.ActionParams;
 
 				cumulus.HighTempAlarm.Enabled = settings.tempAbove.Enabled;
 				cumulus.HighTempAlarm.Value = settings.tempAbove.Val;
@@ -300,6 +338,8 @@ namespace CumulusMX
 				cumulus.HighTempAlarm.Latch = settings.tempAbove.Latches;
 				cumulus.HighTempAlarm.LatchHours = settings.tempAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighTempAlarm.Email && cumulus.HighTempAlarm.Enabled);
+				cumulus.HighTempAlarm.Action = settings.tempAbove.Action;
+				cumulus.HighTempAlarm.ActionParams = settings.tempAbove.ActionParams;
 
 				cumulus.TempChangeAlarm.Enabled = settings.tempChange.Enabled;
 				cumulus.TempChangeAlarm.Value = settings.tempChange.Val;
@@ -310,6 +350,8 @@ namespace CumulusMX
 				cumulus.TempChangeAlarm.Latch = settings.tempChange.Latches;
 				cumulus.TempChangeAlarm.LatchHours = settings.tempChange.LatchHrs;
 				emailRequired = emailRequired || (cumulus.TempChangeAlarm.Email && cumulus.TempChangeAlarm.Enabled);
+				cumulus.TempChangeAlarm.Action = settings.tempChange.Action;
+				cumulus.TempChangeAlarm.ActionParams = settings.tempChange.ActionParams;
 
 				cumulus.LowPressAlarm.Enabled = settings.pressBelow.Enabled;
 				cumulus.LowPressAlarm.Value = settings.pressBelow.Val;
@@ -320,6 +362,8 @@ namespace CumulusMX
 				cumulus.LowPressAlarm.Latch = settings.pressBelow.Latches;
 				cumulus.LowPressAlarm.LatchHours = settings.pressBelow.LatchHrs;
 				emailRequired = emailRequired || (cumulus.LowPressAlarm.Email && cumulus.LowPressAlarm.Enabled);
+				cumulus.LowPressAlarm.Action = settings.pressBelow.Action;
+				cumulus.LowPressAlarm.ActionParams = settings.pressBelow.ActionParams;
 
 				cumulus.HighPressAlarm.Enabled = settings.pressAbove.Enabled;
 				cumulus.HighPressAlarm.Value = settings.pressAbove.Val;
@@ -330,6 +374,8 @@ namespace CumulusMX
 				cumulus.HighPressAlarm.Latch = settings.pressAbove.Latches;
 				cumulus.HighPressAlarm.LatchHours = settings.pressAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighPressAlarm.Email && cumulus.HighPressAlarm.Enabled);
+				cumulus.HighPressAlarm.Action = settings.pressAbove.Action;
+				cumulus.HighPressAlarm.ActionParams = settings.pressAbove.ActionParams;
 
 				cumulus.PressChangeAlarm.Enabled = settings.pressChange.Enabled;
 				cumulus.PressChangeAlarm.Value = settings.pressChange.Val;
@@ -340,6 +386,8 @@ namespace CumulusMX
 				cumulus.PressChangeAlarm.Latch = settings.pressChange.Latches;
 				cumulus.PressChangeAlarm.LatchHours = settings.pressChange.LatchHrs;
 				emailRequired = emailRequired || (cumulus.PressChangeAlarm.Email && cumulus.PressChangeAlarm.Enabled);
+				cumulus.PressChangeAlarm.Action = settings.pressChange.Action;
+				cumulus.PressChangeAlarm.ActionParams = settings.pressChange.ActionParams;
 
 				cumulus.HighRainTodayAlarm.Enabled = settings.rainAbove.Enabled;
 				cumulus.HighRainTodayAlarm.Value = settings.rainAbove.Val;
@@ -350,6 +398,8 @@ namespace CumulusMX
 				cumulus.HighRainTodayAlarm.Latch = settings.rainAbove.Latches;
 				cumulus.HighRainTodayAlarm.LatchHours = settings.rainAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighRainTodayAlarm.Email && cumulus.HighRainTodayAlarm.Enabled);
+				cumulus.HighRainTodayAlarm.Action = settings.rainAbove.Action;
+				cumulus.HighRainTodayAlarm.ActionParams = settings.rainAbove.ActionParams;
 
 				cumulus.HighRainRateAlarm.Enabled = settings.rainRateAbove.Enabled;
 				cumulus.HighRainRateAlarm.Value = settings.rainRateAbove.Val;
@@ -360,6 +410,8 @@ namespace CumulusMX
 				cumulus.HighRainRateAlarm.Latch = settings.rainRateAbove.Latches;
 				cumulus.HighRainRateAlarm.LatchHours = settings.rainRateAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighRainRateAlarm.Email && cumulus.HighRainRateAlarm.Enabled);
+				cumulus.HighRainRateAlarm.Action = settings.rainRateAbove.Action;
+				cumulus.HighRainRateAlarm.ActionParams = settings.rainRateAbove.ActionParams;
 
 				cumulus.IsRainingAlarm.Enabled = settings.isRaining.Enabled;
 				cumulus.IsRainingAlarm.Sound = settings.isRaining.SoundEnabled;
@@ -369,6 +421,8 @@ namespace CumulusMX
 				cumulus.IsRainingAlarm.Latch = settings.isRaining.Latches;
 				cumulus.IsRainingAlarm.LatchHours = settings.isRaining.LatchHrs;
 				emailRequired = emailRequired || (cumulus.IsRainingAlarm.Email && cumulus.IsRainingAlarm.Enabled);
+				cumulus.IsRainingAlarm.Action = settings.isRaining.Action;
+				cumulus.IsRainingAlarm.ActionParams = settings.isRaining.ActionParams;
 
 				cumulus.HighGustAlarm.Enabled = settings.gustAbove.Enabled;
 				cumulus.HighGustAlarm.Value = settings.gustAbove.Val;
@@ -379,6 +433,8 @@ namespace CumulusMX
 				cumulus.HighGustAlarm.Latch = settings.gustAbove.Latches;
 				cumulus.HighGustAlarm.LatchHours = settings.gustAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighGustAlarm.Email && cumulus.HighGustAlarm.Enabled);
+				cumulus.HighGustAlarm.Action = settings.gustAbove.Action;
+				cumulus.HighGustAlarm.ActionParams = settings.gustAbove.ActionParams;
 
 				cumulus.HighWindAlarm.Enabled = settings.windAbove.Enabled;
 				cumulus.HighWindAlarm.Value = settings.windAbove.Val;
@@ -389,6 +445,8 @@ namespace CumulusMX
 				cumulus.HighWindAlarm.Latch = settings.windAbove.Latches;
 				cumulus.HighWindAlarm.LatchHours = settings.windAbove.LatchHrs;
 				emailRequired = emailRequired || (cumulus.HighWindAlarm.Email && cumulus.HighWindAlarm.Enabled);
+				cumulus.HighWindAlarm.Action = settings.windAbove.Action;
+				cumulus.HighWindAlarm.ActionParams = settings.windAbove.ActionParams;
 
 				cumulus.SensorAlarm.Enabled = settings.contactLost.Enabled;
 				cumulus.SensorAlarm.Sound = settings.contactLost.SoundEnabled;
@@ -399,6 +457,8 @@ namespace CumulusMX
 				cumulus.SensorAlarm.LatchHours = settings.contactLost.LatchHrs;
 				cumulus.SensorAlarm.TriggerThreshold = settings.contactLost.Threshold;
 				emailRequired = emailRequired || (cumulus.SensorAlarm.Email && cumulus.SensorAlarm.Enabled);
+				cumulus.SensorAlarm.Action = settings.contactLost.Action;
+				cumulus.SensorAlarm.ActionParams = settings.contactLost.ActionParams;
 
 				cumulus.DataStoppedAlarm.Enabled = settings.dataStopped.Enabled;
 				cumulus.DataStoppedAlarm.Sound = settings.dataStopped.SoundEnabled;
@@ -409,6 +469,8 @@ namespace CumulusMX
 				cumulus.DataStoppedAlarm.LatchHours = settings.dataStopped.LatchHrs;
 				cumulus.DataStoppedAlarm.TriggerThreshold = settings.dataStopped.Threshold;
 				emailRequired = emailRequired || (cumulus.DataStoppedAlarm.Email && cumulus.DataStoppedAlarm.Enabled);
+				cumulus.DataStoppedAlarm.Action = settings.dataStopped.Action;
+				cumulus.DataStoppedAlarm.ActionParams = settings.dataStopped.ActionParams;
 
 				cumulus.BatteryLowAlarm.Enabled = settings.batteryLow.Enabled;
 				cumulus.BatteryLowAlarm.Sound = settings.batteryLow.SoundEnabled;
@@ -419,6 +481,8 @@ namespace CumulusMX
 				cumulus.BatteryLowAlarm.LatchHours = settings.batteryLow.LatchHrs;
 				cumulus.BatteryLowAlarm.TriggerThreshold = settings.batteryLow.Threshold;
 				emailRequired = emailRequired || (cumulus.BatteryLowAlarm.Email && cumulus.BatteryLowAlarm.Enabled);
+				cumulus.BatteryLowAlarm.Action = settings.batteryLow.Action;
+				cumulus.BatteryLowAlarm.ActionParams = settings.batteryLow.ActionParams;
 
 				cumulus.SpikeAlarm.Enabled = settings.spike.Enabled;
 				cumulus.SpikeAlarm.Sound = settings.spike.SoundEnabled;
@@ -429,6 +493,8 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.LatchHours = settings.spike.LatchHrs;
 				cumulus.SpikeAlarm.TriggerThreshold = settings.spike.Threshold;
 				emailRequired = emailRequired || (cumulus.SpikeAlarm.Email && cumulus.SpikeAlarm.Enabled);
+				cumulus.SpikeAlarm.Action = settings.spike.Action;
+				cumulus.SpikeAlarm.ActionParams = settings.spike.ActionParams;
 
 				cumulus.UpgradeAlarm.Enabled = settings.upgrade.Enabled;
 				cumulus.UpgradeAlarm.Sound = settings.upgrade.SoundEnabled;
@@ -438,6 +504,8 @@ namespace CumulusMX
 				cumulus.UpgradeAlarm.Latch = settings.upgrade.Latches;
 				cumulus.UpgradeAlarm.LatchHours = settings.upgrade.LatchHrs;
 				emailRequired = emailRequired || (cumulus.UpgradeAlarm.Email && cumulus.UpgradeAlarm.Enabled);
+				cumulus.UpgradeAlarm.Action = settings.upgrade.Action;
+				cumulus.UpgradeAlarm.ActionParams = settings.upgrade.ActionParams;
 
 				cumulus.HttpUploadAlarm.Enabled = settings.httpUpload.Enabled;
 				cumulus.HttpUploadAlarm.Sound = settings.httpUpload.SoundEnabled;
@@ -448,6 +516,8 @@ namespace CumulusMX
 				cumulus.HttpUploadAlarm.LatchHours = settings.httpUpload.LatchHrs;
 				cumulus.HttpUploadAlarm.TriggerThreshold = settings.httpUpload.Threshold;
 				emailRequired = emailRequired || (cumulus.HttpUploadAlarm.Email && cumulus.HttpUploadAlarm.Enabled);
+				cumulus.HttpUploadAlarm.Action = settings.httpUpload.Action;
+				cumulus.HttpUploadAlarm.ActionParams = settings.httpUpload.ActionParams;
 
 				cumulus.MySqlUploadAlarm.Enabled = settings.mySqlUpload.Enabled;
 				cumulus.MySqlUploadAlarm.Sound = settings.mySqlUpload.SoundEnabled;
@@ -458,6 +528,8 @@ namespace CumulusMX
 				cumulus.MySqlUploadAlarm.LatchHours = settings.mySqlUpload.LatchHrs;
 				cumulus.MySqlUploadAlarm.TriggerThreshold = settings.mySqlUpload.Threshold;
 				emailRequired = emailRequired || (cumulus.MySqlUploadAlarm.Email && cumulus.MySqlUploadAlarm.Enabled);
+				cumulus.MySqlUploadAlarm.Action = settings.mySqlUpload.Action;
+				cumulus.MySqlUploadAlarm.ActionParams = settings.mySqlUpload.ActionParams;
 
 				// validate the from email
 				if (emailRequired && !EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
@@ -597,6 +669,8 @@ namespace CumulusMX
 		public bool Latches { get; set; }
 		public int LatchHrs { get; set; }
 		public int Threshold { get; set; }
+		public string Action { get; set; }
+		public string ActionParams { get; set; }
 	}
 
 	public class JsonAlarmEmail
