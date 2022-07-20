@@ -2,11 +2,12 @@
 ——————————————
 Fixed
 - Supress trying to sync solar data on FO stations with solar during night time hours
-- Fix problem processing buffered failed MySQL commands. Note the buffer is processed during the next interval update after the DB connection is restored
+- Fix problem processing buffered failed MySQL commands. More query string issues excluded from buffering
 - Default gauges.htm page CSS for the Wind Rose fixed
 
 New
 - Adds the ability to use leaf wetness sensors to trigger the "Is Raining" value and optional alarm. Configure this via Station Settings > Common Options
+- Adds a hash file for the distribution files - hashmd5_<buildno>.txt
 
 
 3.19.1 - b3194
