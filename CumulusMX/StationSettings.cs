@@ -55,6 +55,8 @@ namespace CumulusMX
 				ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
 				roundwindspeeds = cumulus.StationOptions.RoundWindSpeed,
 				nosensorcheck = cumulus.StationOptions.NoSensorCheck,
+				leafwetisrainingidx = cumulus.StationOptions.LeafWetnessIsRainingIdx,
+				leafwetisrainingthrsh = cumulus.StationOptions.LeafWetnessIsRainingThrsh,
 				advanced = optionsAdv
 			};
 
@@ -758,6 +760,8 @@ namespace CumulusMX
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
 					cumulus.StationOptions.RoundWindSpeed = settings.Options.roundwindspeeds;
 					cumulus.StationOptions.NoSensorCheck = settings.Options.nosensorcheck;
+					cumulus.StationOptions.LeafWetnessIsRainingIdx = settings.Options.leafwetisrainingidx;
+					cumulus.StationOptions.LeafWetnessIsRainingThrsh = settings.Options.leafwetisrainingthrsh;
 
 					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.advanced.usespeedforavg;
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
@@ -1307,7 +1311,7 @@ namespace CumulusMX
 					if (cumulus.StationType != settings.general.stationtype)
 					{
 						cumulus.LogMessage("Station type changed, restart required");
-						cumulus.LogConsoleMessage("*** Station type changed, restart required ***");
+						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;
@@ -1587,6 +1591,8 @@ namespace CumulusMX
 		public bool datalogging { get; set; }
 		public bool stopsecondinstance { get; set; }
 		public bool nosensorcheck { get; set; }
+		public int leafwetisrainingidx { get; set; }
+		public double leafwetisrainingthrsh { get; set; }
 		public JsonStationSettingsOptionsAdvanced advanced { get; set; }
 	}
 
