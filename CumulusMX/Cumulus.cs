@@ -9481,7 +9481,10 @@ namespace CumulusMX
 						}
 						else
 						{
-							MySqlFailedList = (ConcurrentQueue<string>)MySqlFailedList.Concat<string>(cmds);
+							for (var i = 0; i < cmds.Count; i++)
+							{
+								MySqlFailedList.Enqueue(cmds[i]);
+							}
 						}
 					}
 					else
@@ -10147,6 +10150,7 @@ namespace CumulusMX
 					Cmds.TryDequeue(out var cmd);
 					if (!cmd.StartsWith("DELETE IGNORE FROM"))
 					{
+						LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
 						MySqlFailedList.Enqueue(cmd);
 					}
 				}
