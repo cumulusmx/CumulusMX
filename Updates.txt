@@ -1,10 +1,13 @@
 3.20.0 - b3196
 ——————————————
 Fixed
-
+- Buffering of failed MySQL queries
 
 New
 - Add custom actions for alarms. Call a script or external exe etc.
+
+Changed
+- Alarm latch time hours are now decimal values rather than integer
 
 
 

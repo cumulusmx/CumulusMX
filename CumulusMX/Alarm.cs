@@ -94,7 +94,7 @@ namespace CumulusMX
 		public string Action { get; set; }
 		public string ActionParams { get; set; }
 		public bool Latch { get; set; }
-		public int LatchHours { get; set; }
+		public double LatchHours { get; set; }
 		public string EmailMsg { get; set; }
 		public string Units { get; set; }
 		public string LastError { get; set; }

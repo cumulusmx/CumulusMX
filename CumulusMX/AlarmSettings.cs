@@ -667,7 +667,7 @@ namespace CumulusMX
 		public bool Notify { get; set; }
 		public bool Email { get; set; }
 		public bool Latches { get; set; }
-		public int LatchHrs { get; set; }
+		public double LatchHrs { get; set; }
 		public int Threshold { get; set; }
 		public string Action { get; set; }
 		public string ActionParams { get; set; }
