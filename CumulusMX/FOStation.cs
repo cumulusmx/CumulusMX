@@ -710,6 +710,11 @@ namespace CumulusMX
 
 			if (hidDevice == null)
 			{
+				if (!DataStopped)
+				{
+					DataStoppedTime = DateTime.Now;
+				}
+
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = "USB device no longer detected";
 				cumulus.DataStoppedAlarm.Triggered = true;
@@ -726,6 +731,10 @@ namespace CumulusMX
 				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red, true);
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				if (!DataStopped)
+				{
+					DataStoppedTime = DateTime.Now;
+				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = "Error reading data from station - it may need resetting. " + ex.Message;
 				cumulus.DataStoppedAlarm.Triggered = true;
@@ -745,6 +754,10 @@ namespace CumulusMX
 					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red, true);
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogMessage("Error reading data from station - it may need resetting");
+					if (!DataStopped)
+					{
+						DataStoppedTime = DateTime.Now;
+					}
 					DataStopped = true;
 					cumulus.DataStoppedAlarm.LastError = "Error reading data from station - it may need resetting. " + ex.Message;
 					cumulus.DataStoppedAlarm.Triggered = true;
@@ -783,6 +796,10 @@ namespace CumulusMX
 				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				if (!DataStopped)
+				{
+					DataStoppedTime = DateTime.Now;
+				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = "Error sending command to station - it may need resetting: " + ex.Message;
 				cumulus.DataStoppedAlarm.Triggered = true;

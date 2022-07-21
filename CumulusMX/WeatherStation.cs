@@ -1449,6 +1449,12 @@ namespace CumulusMX
 
 				if (DataStopped)
 				{
+					// check if we want to exit on data stopped
+					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
+					{
+						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
+						Program.exitSystem = true;
+					}
 					// No data coming in, do not do anything else
 					return;
 				}
@@ -1967,6 +1973,10 @@ namespace CumulusMX
 			if ((LastDataReadTimestamp != DateTime.MinValue) && (LastDataReadTimestamp == SavedLastDataReadTimestamp) && (LastDataReadTimestamp < DateTime.Now))
 			{
 				// Data input appears to have has stopped
+				if (!DataStopped)
+				{
+					DataStoppedTime = DateTime.Now;
+				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.Triggered = true;
 				/*if (RestartIfDataStops)
@@ -6566,6 +6576,7 @@ namespace CumulusMX
 		public DateTime StartOfStorm { get; set; }
 		public bool SensorContactLost { get; set; }
 		public bool DataStopped { get; set; }
+		public DateTime DataStoppedTime { get; set; }
 		public bool IsRaining { get; set; }
 
 		public void LoadLastHoursFromDataLogs(DateTime ts)

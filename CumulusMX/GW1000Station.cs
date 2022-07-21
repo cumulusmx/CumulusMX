@@ -1632,6 +1632,10 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
+				if (!DataStopped)
+				{
+					DataStoppedTime = DateTime.Now;
+				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;

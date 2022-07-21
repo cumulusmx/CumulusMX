@@ -284,7 +284,7 @@ namespace CumulusMX
 			return res;
 		}
 
-		private static string GetFormattedDateTime(DateTime dt, Dictionary<string,string> tagParams)
+		private string GetFormattedDateTime(DateTime dt, Dictionary<string,string> tagParams)
 		{
 			string s;
 			string dtformat = tagParams.Get("format");
@@ -296,7 +296,19 @@ namespace CumulusMX
 			{
 				try
 				{
-					s = dt.ToString(dtformat);
+					if (dtformat == "Unix")
+					{
+						s = dt.ToUnixEpochDate().ToString();
+					}
+					else if (dtformat == "JS")
+					{
+						s = (dt.ToUnixEpochDate() * 1000).ToString();
+
+					}
+					else
+					{
+						s = dt.ToString(dtformat);
+					}
 				}
 				catch (Exception)
 				{
@@ -316,7 +328,19 @@ namespace CumulusMX
 			else
 			{
 				string dtformat = tagParams.Get("format") ?? defaultFormat;
-				s = dt.ToString(dtformat);
+				if (dtformat == "Unix")
+				{
+					s = dt.ToUnixEpochDate().ToString();
+				}
+				else if (dtformat == "JS")
+				{
+					s = (dt.ToUnixEpochDate() * 1000).ToString();
+
+				}
+				else
+				{
+					s = dt.ToString(dtformat);
+				}
 			}
 			return s;
 		}
@@ -515,12 +539,9 @@ namespace CumulusMX
 			return station.CloudBase.ToString();
 		}
 
-		private static string TagTime(Dictionary<string,string> tagParams)
+		private string TagTime(Dictionary<string,string> tagParams)
 		{
-			var dtformat = tagParams.Get("format") ?? "HH:mm\" on \"dd MMMM yyyy";
-			var s = DateTime.Now.ToString(dtformat);
-			var result = s;
-			return result;
+			return GetFormattedDateTime(DateTime.Now, tagParams);
 		}
 
 		private static string TagDaysSince30Dec1899(Dictionary<string,string> tagParams)
@@ -529,10 +550,9 @@ namespace CumulusMX
 			return ((DateTime.Now - startDate).TotalDays).ToString();
 		}
 
-		private static string TagTimeUtc(Dictionary<string,string> tagParams)
+		private string TagTimeUtc(Dictionary<string,string> tagParams)
 		{
-			string dtformat = tagParams.Get("format") ?? "HH:mm\" on \"dd MMMM yyyy";
-			return DateTime.UtcNow.ToString(dtformat);
+			return GetFormattedDateTime(DateTime.UtcNow, tagParams);
 		}
 
 		private static string TagTimehhmmss(Dictionary<string,string> tagParams)
@@ -550,47 +570,29 @@ namespace CumulusMX
 			return DateTime.UtcNow.ToUnixEpochDate().ToString();
 		}
 
-		private static string TagDate(Dictionary<string,string> tagParams)
+		private string TagDate(Dictionary<string,string> tagParams)
 		{
-			string dtformat = tagParams.Get("format");
-			return dtformat == null ? DateTime.Now.ToString("d") : DateTime.Now.ToString(dtformat);
+			return GetFormattedDateTime(DateTime.Now, "d", tagParams);
 		}
 
-		private static string TagYesterday(Dictionary<string,string> tagParams)
+		private string TagYesterday(Dictionary<string,string> tagParams)
 		{
 			var yesterday = DateTime.Now.AddDays(-1);
-			var dtformat = tagParams.Get("format");
-			var s = dtformat == null ? (yesterday).ToString("d") : yesterday.ToString(dtformat);
-			return s;
+			return GetFormattedDateTime(yesterday, "d", tagParams);
 		}
 
 		private string TagMetDate(Dictionary<string,string> tagParams)
 		{
-
-			string dtformat = tagParams.Get("format");
-
-			if (string.IsNullOrEmpty(dtformat))
-			{
-				dtformat = "d";
-			}
-
 			int offset = cumulus.GetHourInc();
 
-			return DateTime.Now.AddHours(offset).ToString(dtformat);
+			return GetFormattedDateTime(DateTime.Now.AddHours(offset), "d", tagParams);
 		}
 
 		private string TagMetDateYesterday(Dictionary<string,string> tagParams)
 		{
-			string dtformat = tagParams.Get("format");
-
-			if (string.IsNullOrEmpty(dtformat))
-			{
-				dtformat = "d";
-			}
-
 			int offset = cumulus.GetHourInc();
 
-			return DateTime.Now.AddHours(offset).AddDays(-1).ToString(dtformat);
+			return GetFormattedDateTime(DateTime.Now.AddHours(offset).AddDays(-1), "d", tagParams);
 		}
 
 		private static string TagDay(Dictionary<string,string> tagParams)
@@ -2950,8 +2952,6 @@ namespace CumulusMX
 
 		private string Tagdaylength(Dictionary<string,string> tagParams)
 		{
-			if (tagParams.Get("format") == null)
-				return ((int)cumulus.DayLength.TotalHours).ToString("D2") + ":" + cumulus.DayLength.Minutes.ToString("D2");
 			return GetFormattedDateTime(cumulus.DayLength, "HH:mm", tagParams);
 		}
 
@@ -2967,8 +2967,6 @@ namespace CumulusMX
 
 		private string Tagdaylightlength(Dictionary<string,string> tagParams)
 		{
-			if (tagParams.Get("format") == null)
-				return ((int)cumulus.DaylightLength.TotalHours).ToString("D2") + ":" + cumulus.DaylightLength.Minutes.ToString("D2");
 			return GetFormattedDateTime(cumulus.DaylightLength, "HH:mm", tagParams);
 		}
 
@@ -2994,12 +2992,12 @@ namespace CumulusMX
 
 		private string Tagmoonrise(Dictionary<string,string> tagParams)
 		{
-			return cumulus.MoonRiseTime.Hours < 0 ? "-----" : GetFormattedDateTime(cumulus.MoonRiseTime, "HH:mm", tagParams);
+			return cumulus.MoonRiseTime.Hours < 0 ? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonRiseTime.TotalSeconds), "HH:mm", tagParams);
 		}
 
 		private string Tagmoonset(Dictionary<string,string> tagParams)
 		{
-			return cumulus.MoonSetTime.Hours < 0 ? "-----" : GetFormattedDateTime(cumulus.MoonSetTime, "HH:mm", tagParams);
+			return cumulus.MoonSetTime.Hours < 0 ? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonSetTime.TotalSeconds), "HH:mm", tagParams);
 		}
 
 		private string Tagmoonphase(Dictionary<string,string> tagParams)
@@ -3174,7 +3172,7 @@ namespace CumulusMX
 			try
 			{
 				var lastTip = DateTime.Parse(station.LastRainTip);
-				return lastTip.ToString(dtformat ?? "d");
+				return GetFormattedDateTime(lastTip, "d", tagParams);
 			}
 			catch (Exception)
 			{

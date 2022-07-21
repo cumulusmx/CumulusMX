@@ -3809,6 +3809,8 @@ namespace CumulusMX
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
+			ProgramOptions.DataStoppedExit = ini.GetValue("Program", "DataStoppedExit", false);
+			ProgramOptions.DataStoppedMins = ini.GetValue("Program", "DataStoppedMins", 10);
 			ProgramOptions.Culture.RemoveSpaceFromDateSeparator = ini.GetValue("Culture", "RemoveSpaceFromDateSeparator", false);
 			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
@@ -5195,6 +5197,9 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
+
+			ini.SetValue("Program", "DataStoppedExit", ProgramOptions.DataStoppedExit);
+			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
 
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
@@ -10730,6 +10735,8 @@ namespace CumulusMX
 		public bool WarnMultiple { get; set; }
 		public bool ListWebTags { get; set; }
 		public CultureConfig Culture { get; set; }
+		public bool DataStoppedExit { get; set; }
+		public int DataStoppedMins { get; set; }
 	}
 
 	public class CultureConfig

@@ -3306,6 +3306,10 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
+				if (!DataStopped)
+				{
+					DataStoppedTime = DateTime.Now;
+				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;

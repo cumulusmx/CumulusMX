@@ -7,10 +7,12 @@ Fixed
 New
 - Add custom actions for alarms. Call a script or external exe etc.
 - Add a This Period records display like C1
+- New option to exit Cumulus MX after a data stopped condition - Program Options > Shutdown
+- All DateTime web tags now accept format strings of "Unix" and "JS", if either of these is supplied the datetime will be output as either a Unix or JavaScript timestamp
 
 Changed
 - Alarm latch time hours are now decimal values rather than integer
-
+- Moon Rise/Set web tags now have the date set to the current day
 
 
 3.19.2 - b3195
