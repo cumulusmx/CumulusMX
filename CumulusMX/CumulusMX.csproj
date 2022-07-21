@@ -110,11 +110,11 @@
     <Reference Include="MimeKit, Version=3.3.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
       <HintPath>..\packages\MimeKit.3.3.0\lib\net48\MimeKit.dll</HintPath>
     </Reference>
-    <Reference Include="MQTTnet, Version=4.0.1.184, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
-      <HintPath>..\packages\MQTTnet.4.0.1.184\lib\net461\MQTTnet.dll</HintPath>
+    <Reference Include="MQTTnet, Version=4.0.2.221, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
+      <HintPath>..\packages\MQTTnet.4.0.2.221\lib\net461\MQTTnet.dll</HintPath>
     </Reference>
     <Reference Include="MySqlConnector, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d33d3e53aa5f8c92, processorArchitecture=MSIL">
-      <HintPath>..\packages\MySqlConnector.2.1.10\lib\net471\MySqlConnector.dll</HintPath>
+      <HintPath>..\packages\MySqlConnector.2.1.11\lib\net471\MySqlConnector.dll</HintPath>
     </Reference>
     <Reference Include="Renci.SshNet, Version=2020.0.2.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <HintPath>..\packages\SSH.NET.2020.0.2\lib\net40\Renci.SshNet.dll</HintPath>

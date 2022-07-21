@@ -238,7 +238,7 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
-		internal string GetRecordsDayFile(string recordType)
+		internal string GetRecordsDayFile(string recordType, DateTime? start = null, DateTime? end = null)
 		{
 			const string timeStampFormat = "dd/MM/yyyy HH:mm";
 			const string dateStampFormat = "dd/MM/yyyy";
@@ -274,6 +274,7 @@ namespace CumulusMX
 
 			var thisDate = DateTime.MinValue;
 			DateTime startDate;
+			DateTime endDate = DateTime.Now;
 
 			switch (recordType)
 			{
@@ -287,6 +288,10 @@ namespace CumulusMX
 				case "thismonth":
 					now = DateTime.Now;
 					startDate = new DateTime(now.Year, now.Month, 1);
+					break;
+				case "thisperiod":
+					startDate = start.Value;
+					endDate = end.Value;
 					break;
 				default:
 					startDate = DateTime.MinValue;
@@ -324,7 +329,7 @@ namespace CumulusMX
 			// Read the dayfile list extract the records from there
 			if (station.DayFile.Count() > 0)
 			{
-				var data = station.DayFile.Where(r => r.Date >= startDate).ToList();
+				var data = station.DayFile.Where(r => r.Date >= startDate && r.Date <= endDate).ToList();
 				foreach (var rec in data)
 				{
 					if (firstRec)

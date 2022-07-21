@@ -2,9 +2,11 @@
 ——————————————
 Fixed
 - Buffering of failed MySQL queries
+- MySQL library update to fix crashes with a null reference
 
 New
 - Add custom actions for alarms. Call a script or external exe etc.
+- Add a This Period records display like C1
 
 Changed
 - Alarm latch time hours are now decimal values rather than integer

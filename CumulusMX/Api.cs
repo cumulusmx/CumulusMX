@@ -633,7 +633,7 @@ namespace CumulusMX
 				try
 				{
 					using (var writer = HttpContext.OpenResponseText())
-					{ 
+					{
 						switch (req)
 						{
 							case "temperature.json":
@@ -706,6 +706,107 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					Program.cumulus.LogMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+
+			[Route(HttpVerbs.Get, "/records/thisperiod")]
+			public async Task GetThisPeriodRecordData(string req)
+			{
+				Response.ContentType = "application/json";
+
+				if (Station == null)
+				{
+					using (var writer = HttpContext.OpenResponseText())
+						await writer.WriteAsync("{}");
+					return;
+				}
+
+				try
+				{
+					int startday, startmonth, startyear;
+					int endday, endmonth, endyear;
+
+					var query = HttpUtility.ParseQueryString(Request.Url.Query);
+
+					using (var writer = HttpContext.OpenResponseText())
+					{
+						if (query.AllKeys.Contains("startdate"))
+						{
+							// we expect "yyyy-mm-dd"
+							var start  = query["startdate"].Split('-');
+
+							if (!Int32.TryParse(start[0], out startyear) || startyear < 2000 || startyear > 2050)
+							{
+								await writer.WriteAsync("Invalid start year supplied: " + startyear);
+								Response.StatusCode = 406;
+								return;
+							}
+
+							if (!Int32.TryParse(start[1], out startmonth) || startmonth < 1 || startmonth > 12)
+							{
+								await writer.WriteAsync("Invalid start month supplied: " + startmonth);
+								Response.StatusCode = 406;
+								return;
+							}
+
+							if (!Int32.TryParse(start[2], out startday) || startday < 1 || startday > 31)
+							{
+								await writer.WriteAsync("Invalid start day supplied: " + startday);
+								Response.StatusCode = 406;
+								return;
+							}
+						}
+						else
+						{
+							await writer.WriteAsync("No start date supplied: ");
+							Response.StatusCode = 406;
+							return;
+						}
+
+						if (query.AllKeys.Contains("enddate"))
+						{
+							// we expect "yyyy-mm-dd"
+							var end = query["enddate"].Split('-');
+
+							if (!Int32.TryParse(end[0], out endyear) || endyear < 2000 || endyear > 2050)
+							{
+								await writer.WriteAsync("Invalid end year supplied: " + endyear);
+								Response.StatusCode = 406;
+								return;
+							}
+
+							if (!Int32.TryParse(end[1], out endmonth) || endmonth < 1 || endmonth > 12)
+							{
+								await writer.WriteAsync("Invalid end month supplied: " + endmonth);
+								Response.StatusCode = 406;
+								return;
+							}
+
+							if (!Int32.TryParse(end[2], out endday) || endday < 1 || endday > 31)
+							{
+								await writer.WriteAsync("Invalid end day supplied: " + endday);
+								Response.StatusCode = 406;
+								return;
+							}
+						}
+						else
+						{
+							await writer.WriteAsync("No start date supplied: ");
+							Response.StatusCode = 406;
+							return;
+						}
+
+						var startDate = new DateTime(startyear, startmonth, startday);
+						var endDate = new DateTime(endyear, endmonth, endday);
+
+
+						await writer.WriteAsync(EscapeUnicode(dataEditor.GetRecordsDayFile("thisperiod", startDate, endDate)));
+					}
+				}
+				catch (Exception ex)
+				{
+					Program.cumulus.LogMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
