@@ -1831,7 +1831,8 @@ namespace CumulusMX
 				"HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint," +
 				"LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad," +
 				"THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym," +
-				"MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,MaxHumidex,TMaxHumidex)";
+				"MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,MaxHumidex,TMaxHumidex," +
+				"ChillHours,HighRain24h,THighRain24h)";
 		}
 
 		internal void SetStartOfMonthlyInsertSQL()
@@ -6780,27 +6781,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate;
-
-			if (RolloverHour == 0)
-			{
-				logfiledate = thedate;
-			}
-			else
-			{
-				TimeZone tz = TimeZone.CurrentTimeZone;
-
-				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = thedate.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = thedate.AddHours(-9);
-				}
-			}
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
 
 			var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
 
@@ -6812,27 +6793,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate;
-
-			if (RolloverHour == 0)
-			{
-				logfiledate = thedate;
-			}
-			else
-			{
-				TimeZone tz = TimeZone.CurrentTimeZone;
-
-				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = thedate.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = thedate.AddHours(-9);
-				}
-			}
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -6845,27 +6806,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate;
-
-			if (RolloverHour == 0)
-			{
-				logfiledate = thedate;
-			}
-			else
-			{
-				TimeZone tz = TimeZone.CurrentTimeZone;
-
-				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = thedate.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = thedate.AddHours(-9);
-				}
-			}
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -10562,8 +10503,9 @@ namespace CumulusMX
 			strb.Append("TMinFeelsLike varchar(5),");
 			strb.Append("MaxHumidex decimal(5," + TempDPlaces + "),");
 			strb.Append("TMaxHumidex varchar(5),");
-			//strb.Append("MinHumidex decimal(5," + TempDPlaces + "),");
-			//strb.Append("TMinHumidex varchar(5),");
+			strb.Append("ChillHours decimal(7," + TempDPlaces + "),");
+			strb.Append("HighRain24h decimal(6," + RainDPlaces + "),");
+			strb.Append("THighRain24h varchar(5),");
 			strb.Append("PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"");
 			CreateDayfileSQL = strb.ToString();
 		}

@@ -9,6 +9,11 @@ New
 - Add a This Period records display like C1
 - New option to exit Cumulus MX after a data stopped condition - Program Options > Shutdown
 - All DateTime web tags now accept format strings of "Unix" and "JS", if either of these is supplied the datetime will be output as either a Unix or JavaScript timestamp
+- Rain 24 hour:
+	- Added to day file, records 54, 55 (value, time)
+	- Updated dayfile header. Also abbreviated and changed to CSV from PipeSV
+	- Added to all the record editors
+	- Added to MySQL. There is a MySQL script in the MXutils folder to alter existing tables
 
 Changed
 - Alarm latch time hours are now decimal values rather than integer

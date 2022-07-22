@@ -1388,7 +1388,7 @@ namespace CumulusMX
 			if (station.AllTime.HighRainRate.Ts >= threshold ||
 				station.AllTime.DailyRain.Ts >= threshold ||
 				station.AllTime.HourlyRain.Ts >= threshold ||
-				station.AllTime.Rain24Hours.Ts >= threshold ||
+				station.AllTime.HighRain24Hours.Ts >= threshold ||
 				station.AllTime.LongestDryPeriod.Ts >= threshold ||
 				station.AllTime.LongestWetPeriod.Ts >= threshold ||
 				station.AllTime.MonthlyRain.Ts >= threshold
@@ -1512,7 +1512,7 @@ namespace CumulusMX
 
 		private string TagHighRain24HourRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.Rain24Hours.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return station.AllTime.HighRain24Hours.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMonthlyRainRecordSet(Dictionary<string,string> tagParams)
@@ -2331,12 +2331,12 @@ namespace CumulusMX
 
 		private string Tagr24hourH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AllTime.Rain24Hours.Val, tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(station.AllTime.HighRain24Hours.Val, tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagTr24hourH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.Rain24Hours.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
+			return GetFormattedDateTime(station.AllTime.HighRain24Hours.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
 
 		private string TagLongestDryPeriod(Dictionary<string,string> tagParams)
@@ -2668,13 +2668,13 @@ namespace CumulusMX
 		private string TagByMonthRain24HourH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].Rain24Hours, tagParams, cumulus.RainDPlaces);
+			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].HighRain24Hours, tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthRain24HourHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].Rain24Hours.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
+			return GetFormattedDateTime(station.MonthlyRecs[month].HighRain24Hours.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
 
 
@@ -4294,7 +4294,7 @@ namespace CumulusMX
 
 		private string TagMonthRain24HourH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ThisMonth.Rain24Hours.Val, tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(station.ThisMonth.HighRain24Hours.Val, tagParams, cumulus.RainDPlaces);
 		}
 
 
@@ -4416,7 +4416,7 @@ namespace CumulusMX
 
 		private string TagMonthRain24HourHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.Rain24Hours.Ts, "t", tagParams);
+			return GetFormattedDateTime(station.ThisMonth.HighRain24Hours.Ts, "t", tagParams);
 		}
 
 
@@ -4528,7 +4528,7 @@ namespace CumulusMX
 
 		private string TagMonthRain24HourHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.Rain24Hours.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(station.ThisMonth.HighRain24Hours.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHighDailyTempRangeD(Dictionary<string,string> tagParams)
@@ -4679,7 +4679,7 @@ namespace CumulusMX
 
 		private string TagYearRain24HourH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ThisYear.Rain24Hours.Val, tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(station.ThisYear.HighRain24Hours.Val, tagParams, cumulus.RainDPlaces);
 		}
 
 
@@ -4805,7 +4805,7 @@ namespace CumulusMX
 
 		private string TagYearRain24HourHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.Rain24Hours.Ts, "t", tagParams);
+			return GetFormattedDateTime(station.ThisYear.HighRain24Hours.Ts, "t", tagParams);
 		}
 
 
@@ -4916,7 +4916,7 @@ namespace CumulusMX
 
 		private string TagYearRain24HourHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.Rain24Hours.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(station.ThisYear.HighRain24Hours.Ts, "dd MMMM", tagParams);
 		}
 
 

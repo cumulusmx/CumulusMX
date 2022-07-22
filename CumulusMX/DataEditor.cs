@@ -15,8 +15,6 @@ namespace CumulusMX
 		private readonly Cumulus cumulus;
 		private WebTags webtags;
 
-		private readonly List<LastHourRainLog> hourRainLog = new List<LastHourRainLog>();
-
 		internal DataEditor(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
@@ -223,6 +221,7 @@ namespace CumulusMX
 			json.Append($"\"highRainRateVal\":\"{station.AllTime.HighRainRate.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highHourlyRainVal\":\"{station.AllTime.HourlyRain.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainVal\":\"{station.AllTime.DailyRain.GetValString(cumulus.RainFormat)}\",");
+			json.Append($"\"highRain24hVal\":\"{station.AllTime.HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highMonthlyRainVal\":\"{station.AllTime.MonthlyRain.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"longestDryPeriodVal\":\"{station.AllTime.LongestDryPeriod.GetValString("f0")}\",");
 			json.Append($"\"longestWetPeriodVal\":\"{station.AllTime.LongestWetPeriod.GetValString("f0")}\",");
@@ -230,6 +229,7 @@ namespace CumulusMX
 			json.Append($"\"highRainRateTime\":\"{station.AllTime.HighRainRate.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highHourlyRainTime\":\"{station.AllTime.HourlyRain.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highDailyRainTime\":\"{station.AllTime.DailyRain.GetTsString(dateStampFormat)}\",");
+			json.Append($"\"highRain24hTime\":\"{station.AllTime.HighRain24Hours.GetTsString(dateStampFormat)}\",");
 			json.Append($"\"highMonthlyRainTime\":\"{station.AllTime.MonthlyRain.GetTsString("MM/yyyy")}\",");
 			json.Append($"\"longestDryPeriodTime\":\"{station.AllTime.LongestDryPeriod.GetTsString(dateStampFormat)}\",");
 			json.Append($"\"longestWetPeriodTime\":\"{station.AllTime.LongestWetPeriod.GetTsString(dateStampFormat)}\"");
@@ -269,6 +269,7 @@ namespace CumulusMX
 			var highRainHour = new LocalRec(true);
 			var highRainDay = new LocalRec(true);
 			var highRainMonth = new LocalRec(true);
+			var highRain24h = new LocalRec(true);
 			var dryPeriod = new LocalRec(true);
 			var wetPeriod = new LocalRec(true);
 
@@ -420,6 +421,13 @@ namespace CumulusMX
 
 					// monthly rain
 					rainThisMonth += rec.TotalRain;
+
+					// 24h rain
+					if (rec.HighRain24h > highRain24h.Value)
+					{
+						highRain24h.Value = rec.HighRain24h;
+						highRain24h.Ts = rec.Date.Date;
+					}
 
 					// dry/wet period
 					if (Convert.ToInt32(rec.TotalRain * 1000) >= rainThreshold)
@@ -625,6 +633,8 @@ namespace CumulusMX
 				json.Append($"\"highMonthlyRainValDayfile\":\"{highRainMonth.GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"highMonthlyRainTimeDayfile\":\"{highRainMonth.GetTsString("MM/yyyy")}\",");
 			}
+			json.Append($"\"highRain24hValDayfile\":\"{highRain24h.GetValString(cumulus.RainFormat)}\",");
+			json.Append($"\"highRain24hTimeDayfile\":\"{highRain24h.GetTsString(dateStampFormat)}\",");
 			json.Append($"\"longestDryPeriodValDayfile\":\"{dryPeriod.GetValString()}\",");
 			json.Append($"\"longestDryPeriodTimeDayfile\":\"{dryPeriod.GetTsString(dateStampFormat)}\",");
 			json.Append($"\"longestWetPeriodValDayfile\":\"{wetPeriod.GetValString()}\",");
@@ -649,25 +659,26 @@ namespace CumulusMX
 					break;
 				case "thisyear":
 					var now = DateTime.Now;
-					datefrom = new DateTime(now.Year, 1, 2);
+					datefrom = new DateTime(now.Year, 1, 1);
 					break;
 				case "thismonth":
 					now = DateTime.Now;
-					datefrom = new DateTime(now.Year, now.Month, 2);
+					datefrom = new DateTime(now.Year, now.Month, 1).Date;
 					break;
 				default:
 					datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
 					break;
 			}
-			datefrom = new DateTime(datefrom.Year, datefrom.Month, datefrom.Day, 0, 0, 0);
-			var dateto = DateTime.Now;
-			dateto = new DateTime(dateto.Year, dateto.Month, 2, 0, 0, 0);
-			var filedate = datefrom;
+			var dateto = DateTime.Now.Date;
+
+			// we have to go back 24 hour to calculate rain in 24h value
+			var filedate = datefrom.AddDays(-1);
 
 			var logFile = cumulus.GetLogFileName(filedate);
 			var started = false;
 			var finished = false;
 			var lastentrydate = datefrom;
+			var lastentryrain = 0.0;
 
 			var isDryNow = false;
 			var currentDryPeriod = 0;
@@ -716,6 +727,7 @@ namespace CumulusMX
 			var highRainRate = new LocalRec(true);
 			var highRainHour = new LocalRec(true);
 			var highRainDay = new LocalRec(true);
+			var highRain24h = new LocalRec(true);
 			var highRainMonth = new LocalRec(true);
 			var dryPeriod = new LocalRec(true);
 			var wetPeriod = new LocalRec(true);
@@ -726,15 +738,19 @@ namespace CumulusMX
 			double dayWindRun = 0;
 			double dayRain = 0;
 
+			highRainHour.Value = 0;
+			highRain24h.Value = 0;
 
 			var thisDateDry = DateTime.MinValue;
 			var thisDateWet = DateTime.MinValue;
+
+			var hourRainLog = new Queue<LastHourRainLog>();
+			var rain24hLog = new Queue<LastHourRainLog>();
 
 			var totalRainfall = 0.0;
 
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
-			hourRainLog.Clear();
 
 			while (!finished)
 			{
@@ -760,11 +776,25 @@ namespace CumulusMX
 
 							if (!started)
 							{
-								lastentrydate = rec.Date;
-								currentDay = metoDate;
-								started = true;
+								if (metoDate >= datefrom)
+								{
+									lastentrydate = rec.Date;
+									currentDay = metoDate;
+									started = true;
+									totalRainfall = lastentryrain;
+								}
+								else if (metoDate < filedate)
+								{
+									continue;
+								}
+								else
+								{
+									// OK we are within 24 hours of the start date, so record rain values
+									Add24HourRainEntry(rec.Date, totalRainfall + rec.RainToday, ref rain24hLog);
+									lastentryrain = rec.RainToday;
+									continue;
+								}
 							}
-
 							// low chill
 							if (rec.WindChill > Cumulus.DefaultHiVal && rec.WindChill < lowWindChill.Value)
 							{
@@ -896,34 +926,17 @@ namespace CumulusMX
 							}
 
 
-							// new meteo day
-							if (currentDay.Date != metoDate.Date)
+							// logging format changed on with C1 1.9.3 b1055 in Dec 2012
+							// before that date the 00:00 log entry contained the rain total for the day before and the next log entry was reset to zero
+							// after that build the total was reset to zero in the entry
+							// messy!
+							if (currentDay.Date != metoDate.Date && currentDay.Date >= new DateTime(2013, 1, 1))
 							{
-								if (dayHighTemp.Value < lowMaxTemp.Value)
-								{
-									lowMaxTemp.Value = dayHighTemp.Value;
-									lowMaxTemp.Ts = dayHighTemp.Ts;
-								}
-								if (dayLowTemp.Value > highMinTemp.Value)
-								{
-									highMinTemp.Value = dayLowTemp.Value;
-									highMinTemp.Ts = dayLowTemp.Ts;
-								}
-								if (dayHighTemp.Value - dayLowTemp.Value > highTempRange.Value)
-								{
-									highTempRange.Value = dayHighTemp.Value - dayLowTemp.Value;
-									highTempRange.Ts = currentDay;
-								}
-								if (dayHighTemp.Value - dayLowTemp.Value < lowTempRange.Value)
-								{
-									lowTempRange.Value = dayHighTemp.Value - dayLowTemp.Value;
-									lowTempRange.Ts = currentDay;
-								}
-
 								if (currentDay.Month != metoDate.Month)
 								{
 									monthlyRain = 0;
 								}
+
 								monthlyRain += dayRain;
 
 								if (monthlyRain > highRainMonth.Value)
@@ -932,7 +945,6 @@ namespace CumulusMX
 									highRainMonth.Ts = currentDay.Date;
 								}
 
-
 								// dry/wet period
 								if (Convert.ToInt32(dayRain * 1000) >= rainThreshold)
 								{
@@ -940,7 +952,7 @@ namespace CumulusMX
 									{
 										currentWetPeriod = 1;
 										isDryNow = false;
-										if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod ==0) && currentDryPeriod > dryPeriod.Value)
+										if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 										{
 											dryPeriod.Value = currentDryPeriod;
 											dryPeriod.Ts = thisDateDry;
@@ -973,11 +985,95 @@ namespace CumulusMX
 									}
 								}
 
+								totalRainfall += dayRain;
+							}
+							else if (currentDay.Date != metoDate.Date && currentDay.Date < new DateTime(2013, 1, 1) && currentDay.Date.TimeOfDay > new TimeSpan(0,0,0))
+							{
+								if (currentDay.Month != metoDate.Month)
+								{
+									monthlyRain = 0;
+								}
+
+								monthlyRain += dayRain;
+
+								if (monthlyRain > highRainMonth.Value)
+								{
+									highRainMonth.Value = monthlyRain;
+									highRainMonth.Ts = currentDay.Date;
+								}
+
+								// dry/wet period
+								if (Convert.ToInt32(dayRain * 1000) >= rainThreshold)
+								{
+									if (isDryNow)
+									{
+										currentWetPeriod = 1;
+										isDryNow = false;
+										if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+										{
+											dryPeriod.Value = currentDryPeriod;
+											dryPeriod.Ts = thisDateDry;
+										}
+										currentDryPeriod = 0;
+									}
+									else
+									{
+										currentWetPeriod++;
+										thisDateWet = currentDay;
+									}
+								}
+								else
+								{
+									if (isDryNow)
+									{
+										currentDryPeriod++;
+										thisDateDry = currentDay;
+									}
+									else
+									{
+										currentDryPeriod = 1;
+										isDryNow = true;
+										if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+										{
+											wetPeriod.Value = currentWetPeriod;
+											wetPeriod.Ts = thisDateWet;
+										}
+										currentWetPeriod = 0;
+									}
+								}
+
+								totalRainfall += dayRain;
+							}
+
+							// new meteo day
+							if (currentDay.Date != metoDate.Date)
+							{
+								if (dayHighTemp.Value < lowMaxTemp.Value)
+								{
+									lowMaxTemp.Value = dayHighTemp.Value;
+									lowMaxTemp.Ts = dayHighTemp.Ts;
+								}
+								if (dayLowTemp.Value > highMinTemp.Value)
+								{
+									highMinTemp.Value = dayLowTemp.Value;
+									highMinTemp.Ts = dayLowTemp.Ts;
+								}
+								if (dayHighTemp.Value - dayLowTemp.Value > highTempRange.Value)
+								{
+									highTempRange.Value = dayHighTemp.Value - dayLowTemp.Value;
+									highTempRange.Ts = currentDay;
+								}
+								if (dayHighTemp.Value - dayLowTemp.Value < lowTempRange.Value)
+								{
+									lowTempRange.Value = dayHighTemp.Value - dayLowTemp.Value;
+									lowTempRange.Ts = currentDay;
+								}
+
+
 								currentDay = metoDate;
 								dayHighTemp.Value = rec.OutdoorTemperature;
 								dayLowTemp.Value = rec.OutdoorTemperature;
 								dayWindRun = 0;
-								totalRainfall += dayRain;
 							}
 
 							dayRain = rec.RainToday;
@@ -998,17 +1094,23 @@ namespace CumulusMX
 
 							// hourly rain
 							/*
-							 * need to track what the rainfall has been in the last rolling hour
+							 * need to track what the rainfall has been in the last rolling hour and 24 hours
 							 * across day rollovers where the count resets
 							 */
-							AddLastHourRainEntry(rec.Date, totalRainfall + dayRain);
-							RemoveOldRainData(rec.Date);
+							AddLastHoursRainEntry(rec.Date, totalRainfall + dayRain, ref hourRainLog, ref rain24hLog);
 
-							var rainThisHour = hourRainLog.Last().Raincounter - hourRainLog.First().Raincounter;
+							var rainThisHour = hourRainLog.Last().Raincounter - hourRainLog.Peek().Raincounter;
 							if (rainThisHour > highRainHour.Value)
 							{
 								highRainHour.Value = rainThisHour;
 								highRainHour.Ts = rec.Date;
+							}
+
+							var rain24h = rain24hLog.Last().Raincounter - rain24hLog.Peek().Raincounter;
+							if (rain24h > highRain24h.Value)
+							{
+								highRain24h.Value = rain24h;
+								highRain24h.Ts = rec.Date;
 							}
 
 							lastentrydate = rec.Date;
@@ -1037,6 +1139,9 @@ namespace CumulusMX
 					logFile = cumulus.GetLogFileName(filedate);
 				}
 			}
+
+			hourRainLog.Clear();
+			rain24hLog.Clear();
 
 			// We need to check if the run or wet/dry days at the end of logs exceeds any records
 			if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
@@ -1100,6 +1205,8 @@ namespace CumulusMX
 			json.Append($"\"highHourlyRainTimeLogfile\":\"{highRainHour.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highDailyRainValLogfile\":\"{highRainDay.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainTimeLogfile\":\"{highRainDay.GetTsString(dateStampFormat)}\",");
+			json.Append($"\"highRain24hValLogfile\":\"{highRain24h.GetValString(cumulus.RainFormat)}\",");
+			json.Append($"\"highRain24hTimeLogfile\":\"{highRain24h.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highMonthlyRainValLogfile\":\"{highRainMonth.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highMonthlyRainTimeLogfile\":\"{highRainMonth.GetTsString("MM/yyyy")}\",");
 			if (recordType == "alltime")
@@ -1322,6 +1429,13 @@ namespace CumulusMX
 						break;
 					case "highDailyRainTime":
 						station.SetAlltime(station.AllTime.DailyRain, station.AllTime.DailyRain.Val, Utils.ddmmyyStrToDate(value));
+						break;
+					case "highRain24hVal":
+						station.SetAlltime(station.AllTime.HighRain24Hours, double.Parse(value), station.AllTime.HighRain24Hours.Ts);
+						break;
+					case "highRain24hTime":
+						dt = value.Split('+');
+						station.SetAlltime(station.AllTime.HighRain24Hours, station.AllTime.HighRain24Hours.Val, Utils.ddmmyyhhmmStrToDate(dt[0], dt[1]));
 						break;
 					case "highMonthlyRainVal":
 						station.SetAlltime(station.AllTime.MonthlyRain, double.Parse(value), station.AllTime.MonthlyRain.Ts);
@@ -1548,6 +1662,13 @@ namespace CumulusMX
 						case "highDailyRainTime":
 							station.SetMonthlyAlltime(station.MonthlyRecs[month].DailyRain, station.MonthlyRecs[month].DailyRain.Val, Utils.ddmmyyStrToDate(value));
 							break;
+						case "highRain24hVal":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRain24Hours, double.Parse(value), station.MonthlyRecs[month].HighRain24Hours.Ts);
+							break;
+						case "highRain24hTime":
+							dt = value.Split('+');
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRain24Hours, station.MonthlyRecs[month].HighRain24Hours.Val, Utils.ddmmyyhhmmStrToDate(dt[0], dt[1]));
+							break;
 						case "highMonthlyRainVal":
 							station.SetMonthlyAlltime(station.MonthlyRecs[month].MonthlyRain, double.Parse(value), station.MonthlyRecs[month].MonthlyRain.Ts);
 							break;
@@ -1644,6 +1765,7 @@ namespace CumulusMX
 				json.Append($"\"{m}-highRainRateVal\":\"{station.MonthlyRecs[m].HighRainRate.GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highHourlyRainVal\":\"{station.MonthlyRecs[m].HourlyRain.GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highDailyRainVal\":\"{station.MonthlyRecs[m].DailyRain.GetValString(cumulus.RainFormat)}\",");
+				json.Append($"\"{m}-highRain24hVal\":\"{station.MonthlyRecs[m].HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainVal\":\"{station.MonthlyRecs[m].MonthlyRain.GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-longestDryPeriodVal\":\"{station.MonthlyRecs[m].LongestDryPeriod.GetValString("f0")}\",");
 				json.Append($"\"{m}-longestWetPeriodVal\":\"{station.MonthlyRecs[m].LongestWetPeriod.GetValString("f0")}\",");
@@ -1651,6 +1773,7 @@ namespace CumulusMX
 				json.Append($"\"{m}-highRainRateTime\":\"{station.MonthlyRecs[m].HighRainRate.GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highHourlyRainTime\":\"{station.MonthlyRecs[m].HourlyRain.GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highDailyRainTime\":\"{station.MonthlyRecs[m].DailyRain.GetTsString(dateStampFormat)}\",");
+				json.Append($"\"{m}-highRain24hTime\":\"{station.MonthlyRecs[m].HighRain24Hours.GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainTime\":\"{station.MonthlyRecs[m].MonthlyRain.GetTsString("MM/yyyy")}\",");
 				json.Append($"\"{m}-longestDryPeriodTime\":\"{station.MonthlyRecs[m].LongestDryPeriod.GetTsString(dateStampFormat)}\",");
 				json.Append($"\"{m}-longestWetPeriodTime\":\"{station.MonthlyRecs[m].LongestWetPeriod.GetTsString(dateStampFormat)}\",");
@@ -1691,6 +1814,7 @@ namespace CumulusMX
 			var highRainRate = new LocalRec[12];
 			var highRainHour = new LocalRec[12];
 			var highRainDay = new LocalRec[12];
+			var highRain24h = new LocalRec[12];
 			var highRainMonth = new LocalRec[12];
 			var dryPeriod = new LocalRec[12];
 			var wetPeriod = new LocalRec[12];
@@ -1722,6 +1846,7 @@ namespace CumulusMX
 				highRainRate[i] = new LocalRec(true);
 				highRainHour[i] = new LocalRec(true);
 				highRainDay[i] = new LocalRec(true);
+				highRain24h[i] = new LocalRec(true);
 				highRainMonth[i] = new LocalRec(true);
 				dryPeriod[i] = new LocalRec(true);
 				wetPeriod[i] = new LocalRec(true);
@@ -1854,6 +1979,12 @@ namespace CumulusMX
 					{
 						highRainDay[monthOffset].Value = station.DayFile[i].TotalRain;
 						highRainDay[monthOffset].Ts = loggedDate;
+					}
+
+					if (station.DayFile[i].HighRain24h > highRain24h[monthOffset].Value)
+					{
+						highRain24h[monthOffset].Value = station.DayFile[i].HighRain24h;
+						highRain24h[monthOffset].Ts = loggedDate;
 					}
 
 					// monthly rain
@@ -2072,6 +2203,8 @@ namespace CumulusMX
 				json.Append($"\"{m}-highHourlyRainTimeDayfile\":\"{highRainHour[i].GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highDailyRainValDayfile\":\"{highRainDay[i].GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highDailyRainTimeDayfile\":\"{highRainDay[i].GetTsString(dateStampFormat)}\",");
+				json.Append($"\"{m}-highRain24hValDayfile\":\"{highRain24h[i].GetValString(cumulus.RainFormat)}\",");
+				json.Append($"\"{m}-highRain24hTimeDayfile\":\"{highRain24h[i].GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainValDayfile\":\"{highRainMonth[i].GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainTimeDayfile\":\"{highRainMonth[i].GetTsString("MM/yyyy")}\",");
 				json.Append($"\"{m}-longestDryPeriodValDayfile\":\"{dryPeriod[i].GetValString()}\",");
@@ -2150,6 +2283,7 @@ namespace CumulusMX
 			var highRainRate = new LocalRec[12];
 			var highRainHour = new LocalRec[12];
 			var highRainDay = new LocalRec[12];
+			var highRain24h = new LocalRec[12];
 			var highRainMonth = new LocalRec[12];
 			var dryPeriod = new LocalRec[12];
 			var wetPeriod = new LocalRec[12];
@@ -2181,6 +2315,7 @@ namespace CumulusMX
 				highRainRate[i] = new LocalRec(true);
 				highRainHour[i] = new LocalRec(true);
 				highRainDay[i] = new LocalRec(true);
+				highRain24h[i] = new LocalRec(true);
 				highRainMonth[i] = new LocalRec(true);
 				dryPeriod[i] = new LocalRec(true);
 				wetPeriod[i] = new LocalRec(true);
@@ -2199,7 +2334,8 @@ namespace CumulusMX
 
 			var totalRainfall = 0.0;
 
-			hourRainLog.Clear();
+			var hourRainLog = new Queue<LastHourRainLog>();
+			var rain24hLog = new Queue<LastHourRainLog>();
 
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -2367,33 +2503,15 @@ namespace CumulusMX
 								highRainDay[monthOffset].Ts = rec.Date.Date;
 							}
 
-							// new meteo day
-							if (currentDay.Date != metoDate.Date)
+
+							// logging format changed on with C1 1.9.3 b1055 in Dec 2012
+							// before that date the 00:00 log entry contained the rain total for the day before and the next log entry was reset to zero
+							// after that build the total was reset to zero in the entry
+							// messy!
+							if ((currentDay.Date != metoDate.Date && currentDay.Date >= new DateTime(2013, 1, 1)) ||
+								(currentDay.Date != metoDate.Date && currentDay.Date < new DateTime(2013, 1, 1) && currentDay.Date.TimeOfDay > new TimeSpan(0, 0, 0)))
 							{
 								var lastEntryMonthOffset = metoDate.Month - 1;
-								if (dayHighTemp.Value < lowMaxTemp[lastEntryMonthOffset].Value)
-								{
-									lowMaxTemp[lastEntryMonthOffset].Value = dayHighTemp.Value;
-									lowMaxTemp[lastEntryMonthOffset].Ts = dayHighTemp.Ts;
-								}
-								if (dayLowTemp.Value > highMinTemp[lastEntryMonthOffset].Value)
-								{
-									highMinTemp[lastEntryMonthOffset].Value = dayLowTemp.Value;
-									highMinTemp[lastEntryMonthOffset].Ts = dayLowTemp.Ts;
-								}
-								if (dayHighTemp.Value - dayLowTemp.Value > highTempRange[lastEntryMonthOffset].Value)
-								{
-									highTempRange[lastEntryMonthOffset].Value = dayHighTemp.Value - dayLowTemp.Value;
-									highTempRange[lastEntryMonthOffset].Ts = currentDay;
-								}
-								if (dayHighTemp.Value - dayLowTemp.Value < lowTempRange[lastEntryMonthOffset].Value)
-								{
-									lowTempRange[lastEntryMonthOffset].Value = dayHighTemp.Value - dayLowTemp.Value;
-									lowTempRange[lastEntryMonthOffset].Ts = currentDay;
-								}
-
-
-
 
 								if (dayRain > highRainDay[lastEntryMonthOffset].Value)
 								{
@@ -2454,12 +2572,38 @@ namespace CumulusMX
 									}
 								}
 
+								totalRainfall += dayRain;
+							}
+
+							// new meteo day
+							if (currentDay.Date != metoDate.Date)
+							{
+								var lastEntryMonthOffset = metoDate.Month - 1;
+								if (dayHighTemp.Value < lowMaxTemp[lastEntryMonthOffset].Value)
+								{
+									lowMaxTemp[lastEntryMonthOffset].Value = dayHighTemp.Value;
+									lowMaxTemp[lastEntryMonthOffset].Ts = dayHighTemp.Ts;
+								}
+								if (dayLowTemp.Value > highMinTemp[lastEntryMonthOffset].Value)
+								{
+									highMinTemp[lastEntryMonthOffset].Value = dayLowTemp.Value;
+									highMinTemp[lastEntryMonthOffset].Ts = dayLowTemp.Ts;
+								}
+								if (dayHighTemp.Value - dayLowTemp.Value > highTempRange[lastEntryMonthOffset].Value)
+								{
+									highTempRange[lastEntryMonthOffset].Value = dayHighTemp.Value - dayLowTemp.Value;
+									highTempRange[lastEntryMonthOffset].Ts = currentDay;
+								}
+								if (dayHighTemp.Value - dayLowTemp.Value < lowTempRange[lastEntryMonthOffset].Value)
+								{
+									lowTempRange[lastEntryMonthOffset].Value = dayHighTemp.Value - dayLowTemp.Value;
+									lowTempRange[lastEntryMonthOffset].Ts = currentDay;
+								}
+
 								currentDay = metoDate;
 								dayHighTemp.Value = rec.OutdoorTemperature;
 								dayLowTemp.Value = rec.OutdoorTemperature;
 								dayWindRun = 0.0;
-								totalRainfall += dayRain;
-								//dayRain = 0.0;
 							}
 
 							dayRain = rec.RainToday;
@@ -2486,18 +2630,25 @@ namespace CumulusMX
 
 							// hourly rain
 							/*
-								* need to track what the rainfall has been in the last rolling hour
-								* across day rollovers where the count resets
-								*/
-							AddLastHourRainEntry(rec.Date, totalRainfall + dayRain);
-							RemoveOldRainData(rec.Date);
+							* need to track what the rainfall has been in the last rolling hour
+							* across day rollovers where the count resets
+							*/
+							AddLastHoursRainEntry(rec.Date, totalRainfall + dayRain, ref hourRainLog, ref rain24hLog);
 
-							var rainThisHour = hourRainLog.Last().Raincounter - hourRainLog.First().Raincounter;
+							var rainThisHour = hourRainLog.Last().Raincounter - hourRainLog.Peek().Raincounter;
 							if (rainThisHour > highRainHour[monthOffset].Value)
 							{
 								highRainHour[monthOffset].Value = rainThisHour;
 								highRainHour[monthOffset].Ts = rec.Date;
 							}
+
+							var rain24h = rain24hLog.Last().Raincounter - rain24hLog.Peek().Raincounter;
+							if (rain24h > highRain24h[monthOffset].Value)
+							{
+								highRain24h[monthOffset].Value = rain24h;
+								highRain24h[monthOffset].Ts = rec.Date;
+							}
+
 
 							lastentrydate = rec.Date;
 							//lastRainMidnight = rainMidnight;
@@ -2525,6 +2676,10 @@ namespace CumulusMX
 					logFile = cumulus.GetLogFileName(filedate);
 				}
 			}
+
+			hourRainLog.Clear();
+			rain24hLog.Clear();
+
 			for (var i = 0; i < 12; i++)
 			{
 				var m = i + 1;
@@ -2578,6 +2733,8 @@ namespace CumulusMX
 				json.Append($"\"{m}-highHourlyRainTimeLogfile\":\"{highRainHour[i].GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highDailyRainValLogfile\":\"{highRainDay[i].GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highDailyRainTimeLogfile\":\"{highRainDay[i].GetTsString(dateStampFormat)}\",");
+				json.Append($"\"{m}-highRain24hValLogfile\":\"{highRain24h[i].GetValString(cumulus.RainFormat)}\",");
+				json.Append($"\"{m}-highRain24hTimeLogfile\":\"{highRain24h[i].GetTsString(timeStampFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainValLogfile\":\"{highRainMonth[i].GetValString(cumulus.RainFormat)}\",");
 				json.Append($"\"{m}-highMonthlyRainTimeLogfile\":\"{highRainMonth[i].GetTsString("MM/yyyy")}\",");
 				json.Append($"\"{m}-longestDryPeriodValLogfile\":\"{dryPeriod[i].GetValString()}\",");
@@ -2657,6 +2814,8 @@ namespace CumulusMX
 			json.Append($"\"highHourlyRainTime\":\"{station.ThisMonth.HourlyRain.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highDailyRainVal\":\"{station.ThisMonth.DailyRain.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainTime\":\"{station.ThisMonth.DailyRain.GetTsString(dateStampFormat)}\",");
+			json.Append($"\"highRain24hVal\":\"{station.ThisMonth.HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
+			json.Append($"\"highRain24hTime\":\"{station.ThisMonth.HighRain24Hours.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"longestDryPeriodVal\":\"{station.ThisMonth.LongestDryPeriod.GetValString("F0")}\",");
 			json.Append($"\"longestDryPeriodTime\":\"{station.ThisMonth.LongestDryPeriod.GetTsString(dateStampFormat)}\",");
 			json.Append($"\"longestWetPeriodVal\":\"{station.ThisMonth.LongestWetPeriod.GetValString("F0")}\",");
@@ -2857,6 +3016,13 @@ namespace CumulusMX
 					case "highDailyRainTime":
 						station.ThisMonth.DailyRain.Ts = Utils.ddmmyyStrToDate(value);
 						break;
+					case "highRain24hVal":
+						station.ThisMonth.HighRain24Hours.Val = double.Parse(value);
+						break;
+					case "highRain24hTime":
+						dt = value.Split('+');
+						station.ThisMonth.HighRain24Hours.Ts = Utils.ddmmyyhhmmStrToDate(dt[0], dt[1]);
+						break;
 					case "longestDryPeriodVal":
 						station.ThisMonth.LongestDryPeriod.Val = int.Parse(value);
 						break;
@@ -2943,6 +3109,8 @@ namespace CumulusMX
 			json.Append($"\"highHourlyRainTime\":\"{station.ThisYear.HourlyRain.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highDailyRainVal\":\"{station.ThisYear.DailyRain.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highDailyRainTime\":\"{station.ThisYear.DailyRain.GetTsString(dateStampFormat)}\",");
+			json.Append($"\"highRain24hVal\":\"{station.ThisYear.HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
+			json.Append($"\"highRain24hTime\":\"{station.ThisYear.HighRain24Hours.GetTsString(timeStampFormat)}\",");
 			json.Append($"\"highMonthlyRainVal\":\"{station.ThisYear.MonthlyRain.GetValString(cumulus.RainFormat)}\",");
 			json.Append($"\"highMonthlyRainTime\":\"{station.ThisYear.MonthlyRain.GetTsString("MM/yyyy")}\",");
 			json.Append($"\"longestDryPeriodVal\":\"{station.ThisYear.LongestDryPeriod.GetValString("F0")}\",");
@@ -3144,6 +3312,13 @@ namespace CumulusMX
 						break;
 					case "highDailyRainTime":
 						station.ThisYear.DailyRain.Ts = Utils.ddmmyyStrToDate(value);
+						break;
+					case "highRain24hVal":
+						station.ThisYear.HighRain24Hours.Val = double.Parse(value);
+						break;
+					case "highRain24hTime":
+						dt = value.Split('+');
+						station.ThisYear.HighRain24Hours.Ts = Utils.ddmmyyhhmmStrToDate(dt[0], dt[1]);
 						break;
 					case "highMonthlyRainVal":
 						station.ThisYear.MonthlyRain.Val = double.Parse(value);
@@ -3626,11 +3801,35 @@ namespace CumulusMX
 		}
 		*/
 
-		private void AddLastHourRainEntry(DateTime ts, double rain)
+		private void AddLastHoursRainEntry(DateTime ts, double rain, ref Queue<LastHourRainLog> hourQueue, ref Queue<LastHourRainLog> h24Queue)
 		{
-			var lasthourrain = new LastHourRainLog(ts, rain);
+			var lastrain = new LastHourRainLog(ts, rain);
 
-			hourRainLog.Add(lasthourrain);
+			hourQueue.Enqueue(lastrain);
+
+			var hoursago = ts.AddHours(-1);
+
+			while ((hourQueue.Count > 0) && (hourQueue.Peek().Timestamp < hoursago))
+			{
+				// the oldest entry is older than 1 hour ago, delete it
+				hourQueue.Dequeue();
+			}
+
+			h24Queue.Enqueue(lastrain);
+
+			hoursago = ts.AddHours(-24);
+
+			while ((h24Queue.Count > 0) && (h24Queue.Peek().Timestamp < hoursago))
+			{
+				// the oldest entry is older than 24 hours ago, delete it
+				h24Queue.Dequeue();
+			}
+		}
+
+		private void Add24HourRainEntry(DateTime ts, double rain, ref Queue<LastHourRainLog> h24Queue)
+		{
+			var lastrain = new LastHourRainLog(ts, rain);
+			h24Queue.Enqueue(lastrain);
 		}
 
 		private class LastHourRainLog
@@ -3645,19 +3844,6 @@ namespace CumulusMX
 			}
 		}
 
-		private void RemoveOldRainData(DateTime ts)
-		{
-			var onehourago = ts.AddHours(-1);
-
-			if (hourRainLog.Count <= 0) return;
-
-			// there are entries to consider
-			while ((hourRainLog.Count > 0) && (hourRainLog.First().Timestamp < onehourago))
-			{
-				// the oldest entry is older than 1 hour ago, delete it
-				hourRainLog.RemoveAt(0);
-			}
-		}
 
 		private class LocalRec
 		{
