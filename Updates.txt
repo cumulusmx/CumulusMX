@@ -18,6 +18,7 @@ New
 Changed
 - Alarm latch time hours are now decimal values rather than integer
 - Moon Rise/Set web tags now have the date set to the current day
+- The records editors now work in your locale date/time formats, they also now report any errors setting values
 
 
 3.19.2 - b3195

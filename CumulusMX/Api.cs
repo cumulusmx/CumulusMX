@@ -142,6 +142,7 @@ namespace CumulusMX
 				{
 					using (var writer = HttpContext.OpenResponseText())
 					{
+						string res;
 						switch (req)
 						{
 							case "raintodayeditdata.json":
@@ -160,16 +161,36 @@ namespace CumulusMX
 								await writer.WriteAsync(dataEditor.EditCurrentCond(HttpContext));
 								break;
 							case "alltime":
-								await writer.WriteAsync(dataEditor.EditAllTimeRecs(HttpContext));
+								res = dataEditor.EditAllTimeRecs(HttpContext);
+								if (res != "Success")
+								{
+									Response.StatusCode = 500;
+								}
+								await writer.WriteAsync(res);
 								break;
 							case "monthly":
-								await writer.WriteAsync(dataEditor.EditMonthlyRecs(HttpContext));
+								res = dataEditor.EditMonthlyRecs(HttpContext);
+								if (res != "Success")
+								{
+									Response.StatusCode = 500;
+								}
+								await writer.WriteAsync(res);
 								break;
 							case "thismonth":
-								await writer.WriteAsync(dataEditor.EditThisMonthRecs(HttpContext));
+								res = dataEditor.EditThisMonthRecs(HttpContext);
+								if (res != "Success")
+								{
+									Response.StatusCode = 500;
+								}
+								await writer.WriteAsync(res);
 								break;
 							case "thisyear":
-								await writer.WriteAsync(dataEditor.EditThisYearRecs(HttpContext));
+								res = dataEditor.EditThisYearRecs(HttpContext);
+								if (res != "Success")
+								{
+									Response.StatusCode = 500;
+								}
+								await writer.WriteAsync(res);
 								break;
 							case "dayfile":
 								await writer.WriteAsync(dataEditor.EditDayFile(HttpContext));

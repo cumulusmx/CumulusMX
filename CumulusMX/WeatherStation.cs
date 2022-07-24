@@ -4718,6 +4718,9 @@ namespace CumulusMX
 				int month = timestamp.Month;
 				DayResetDay = drday;
 
+				// any last updates?
+				DoTrendValues(timestamp);
+
 				if (cumulus.MySqlSettings.CustomRollover.Enabled)
 				{
 					cumulus.CustomMysqlRolloverTimerTick();
