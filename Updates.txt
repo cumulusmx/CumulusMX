@@ -14,6 +14,7 @@ New
 	- Updated dayfile header. Also abbreviated and changed to CSV from PipeSV
 	- Added to all the record editors
 	- Added to MySQL. There is a MySQL script in the MXutils folder to alter existing tables
+- Adds the ability to search in the Dayfile viewer/editor
 
 Changed
 - Alarm latch time hours are now decimal values rather than integer

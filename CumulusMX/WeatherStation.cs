@@ -10485,55 +10485,87 @@ namespace CumulusMX
 		/// <param name="start"></param>
 		/// <param name="length"></param>
 		/// <returns>JSON encoded section of the dayfile</returns>
-		public string GetDayfile(string draw, int start, int length)
+		public string GetDayfile(string draw, int start, int length, string search)
 		{
 			try
 			{
 				//var total = File.ReadLines(cumulus.DayFile).Count();
-				var allLines = File.ReadAllLines(cumulus.DayFileName);
-				var total = allLines.Length;
-				var lines = allLines.Skip(start).Take(length);
+				var lines = File.ReadAllLines(cumulus.DayFileName);
+				var total = lines.Length;
+				var filtered = 0;
+				var thisDraw = 0;
 
 				var json = new StringBuilder(350 * lines.Count());
 
-				json.Append("{\"draw\":" + draw);
-				json.Append(",\"recordsTotal\":" + total);
-				json.Append(",\"recordsFiltered\":" + total);
-				json.Append(",\"data\":[");
+				json.Append("{\"data\":[");
 
 				//var lines = File.ReadLines(cumulus.DayFile).Skip(start).Take(length);
 
-				var lineNum = start + 1; // Start is zero relative
+				var lineNum = 0;
 
 				foreach (var line in lines)
 				{
-					var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
-					var fields = line.Split(sep[0]);
-					var numFields = fields.Length;
-					json.Append($"[{lineNum++},");
-					for (var i = 0; i < numFields; i++)
+					lineNum++;
+
+					// if we have a search string and no match, skip to next line
+					if (!string.IsNullOrEmpty(search) &&!line.Contains(search))
 					{
-						json.Append($"\"{fields[i]}\"");
-						if (i < fields.Length - 1)
-						{
-							json.Append(',');
-						}
+						continue;
 					}
 
-					if (numFields < Cumulus.DayfileFields)
+					// this line either matches the search
+					filtered++;
+
+					// skip records until we get to the start entry
+					if (filtered <= start)
 					{
-						// insufficient fields, pad with empty fields
-						for (var i = numFields; i < Cumulus.DayfileFields; i++)
-						{
-							json.Append(",\"\"");
-						}
+						continue;
 					}
-					json.Append("],");
+
+					// only send the number requested
+					if (thisDraw < length)
+					{
+						// track the number of lines we have to return so far
+						thisDraw++;
+
+						var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
+
+						var fields = line.Split(sep[0]);
+						var numFields = fields.Length;
+
+						json.Append($"[{lineNum},");
+
+						for (var i = 0; i < numFields; i++)
+						{
+							json.Append($"\"{fields[i]}\"");
+							if (i < fields.Length - 1)
+							{
+								json.Append(',');
+							}
+						}
+
+						if (numFields < Cumulus.DayfileFields)
+						{
+							// insufficient fields, pad with empty fields
+							for (var i = numFields; i < Cumulus.DayfileFields; i++)
+							{
+								json.Append(",\"\"");
+							}
+						}
+						json.Append("],");
+					}
 				}
 
 				// trim last ","
-				json.Length--;
-				json.Append("]}");
+				if (thisDraw > 0)
+					json.Length--;
+				json.Append("],\"recordsTotal\":");
+				json.Append(total);
+				json.Append(",\"draw\":");
+				json.Append(draw);
+				json.Append(",\"recordsFiltered\":");
+				json.Append(string.IsNullOrEmpty(search) ? total : filtered);
+				json.Append('}');
 
 				return json.ToString();
 			}
@@ -10741,7 +10773,7 @@ namespace CumulusMX
 				json.Append(",\"draw\":");
 				json.Append(draw);
 				json.Append(",\"recordsFiltered\":");
-				json.Append(filtered);
+				json.Append(string.IsNullOrEmpty(search) ? total : filtered);
 				json.Append('}');
 
 				watch.Stop();
