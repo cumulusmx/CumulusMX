@@ -15,6 +15,9 @@ New
 	- Added to all the record editors
 	- Added to MySQL. There is a MySQL script in the MXutils folder to alter existing tables
 - Adds the ability to search in the Dayfile viewer/editor
+- FTP and FTPS now has an option to enable automatic detection of the connection settings
+	- This and another new setting Ignore Certificate Errors are in Internet Settings | Web/TFP Site | Advanced Settings
+	- NOTE: If you use an FTP server without a public certificate that previously worked, you MUST enable the setting. This is a breaking change
 
 Changed
 - Alarm latch time hours are now decimal values rather than integer
@@ -23,6 +26,7 @@ Changed
 - The Monthly records editor month tabs have improved accessibility
 - The default web site monthly records page month selection button have improved accessibility
 - Local API, removed BOM from all API responses
+
 
 
 3.19.3 - b3196

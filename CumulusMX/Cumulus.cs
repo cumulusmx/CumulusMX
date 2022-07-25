@@ -2859,7 +2859,14 @@ namespace CumulusMX
 							}
 							else
 							{
-								RealtimeFTP.Connect();
+								if (FtpOptions.AutoDetect)
+								{
+									RealtimeFTP.AutoConnect();
+								}
+								else
+								{
+									RealtimeFTP.Connect();
+								}
 								connected = RealtimeFTP.IsConnected;
 							}
 							LogMessage("RealtimeReconnect: Reconnected with server (we think)");
@@ -4298,6 +4305,8 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 
+			FtpOptions.AutoDetect = ini.GetValue("FTP site", "ConnectionAutoDetect", false);
+			FtpOptions.IgnoreCertErrors = ini.GetValue("FTP site", "IgnoreCertErrors", false);
 			FtpOptions.ActiveMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			FtpOptions.FtpMode = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
 			// BUILD 3092 - added alternate SFTP authentication options
@@ -5472,6 +5481,9 @@ namespace CumulusMX
 			// BUILD 3092 - added alternate SFTP authentication options
 			ini.SetValue("FTP site", "SshFtpAuthentication", FtpOptions.SshAuthen);
 			ini.SetValue("FTP site", "SshFtpPskFile", FtpOptions.SshPskFile);
+
+			ini.SetValue("FTP site", "ConnectionAutoDetect", FtpOptions.AutoDetect);
+			ini.SetValue("FTP site", "IgnoreCertErrors", FtpOptions.IgnoreCertErrors);
 
 			ini.SetValue("FTP site", "FTPlogging", FtpOptions.Logging);
 			ini.SetValue("FTP site", "UTF8encode", UTF8encode);
@@ -8387,30 +8399,45 @@ namespace CumulusMX
 					conn.Port = FtpOptions.Port;
 					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
 
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+					if (!FtpOptions.AutoDetect)
 					{
-						// Explicit = Current protocol - connects using FTP and switches to TLS
-						// Implicit = Old depreciated protocol - connects using TLS
-						conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-						conn.DataConnectionEncryption = true;
-						conn.ValidateAnyCertificate = true;
-						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-						// b3155 - switch to default again - this will use the highest version available in the OS
-						//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							// Explicit = Current protocol - connects using FTP and switches to TLS
+							// Implicit = Old depreciated protocol - connects using TLS
+							conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.DataConnectionEncryption = true;
+							// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
+							// b3155 - switch to default again - this will use the highest version available in the OS
+							//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+						}
+
+						if (FtpOptions.ActiveMode)
+						{
+							conn.DataConnectionType = FtpDataConnectionType.PORT;
+						}
+						else if (FtpOptions.DisableEPSV)
+						{
+							conn.DataConnectionType = FtpDataConnectionType.PASV;
+						}
 					}
 
-					if (FtpOptions.ActiveMode)
+					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 					{
-						conn.DataConnectionType = FtpDataConnectionType.PORT;
-					}
-					else if (FtpOptions.DisableEPSV)
-					{
-						conn.DataConnectionType = FtpDataConnectionType.PASV;
+						conn.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 					}
 
 					try
 					{
-						conn.Connect();
+						if (FtpOptions.AutoDetect)
+						{
+							conn.AutoConnect();
+						}
+						else
+						{
+							conn.Connect();
+						}
 
 						if (ServicePointManager.DnsRefreshTimeout == 0)
 						{
@@ -9564,30 +9591,37 @@ namespace CumulusMX
 			RealtimeFTP.SocketPollInterval = 20000; // increase beyond the timeout values
 			RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
 
-			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+			if (!FtpOptions.AutoDetect)
 			{
-				RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-				RealtimeFTP.DataConnectionEncryption = true;
-				RealtimeFTP.ValidateAnyCertificate = true;
-				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-				// b3155 - switch to default again - this will use the highest version available in the OS
-				//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
+				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+				{
+					RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+					RealtimeFTP.DataConnectionEncryption = true;
+					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
+					// b3155 - switch to default again - this will use the highest version available in the OS
+					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+					LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
+				}
+
+				if (FtpOptions.ActiveMode)
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+					LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
+				}
+				else if (FtpOptions.DisableEPSV)
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+					LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
+				}
+				else
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
+				}
 			}
 
-			if (FtpOptions.ActiveMode)
+			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
-				LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
-			}
-			else if (FtpOptions.DisableEPSV)
-			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
-				LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
-			}
-			else
-			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
+				RealtimeFTP.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 			}
 
 			if (FtpOptions.Enabled)
@@ -9595,7 +9629,14 @@ namespace CumulusMX
 				LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 				try
 				{
-					RealtimeFTP.Connect();
+					if (FtpOptions.AutoDetect)
+					{
+						RealtimeFTP.AutoConnect();
+					}
+					else
+					{
+						RealtimeFTP.Connect();
+					}
 					LogMessage("RealtimeFTPLogin: Realtime FTP connected");
 					RealtimeFTP.SocketKeepAlive = true;
 				}
@@ -10760,6 +10801,7 @@ namespace CumulusMX
 		/// <value>0=FTP, 1=FTPS, 3=SFTP</value>
 		public Cumulus.FtpProtocols FtpMode { get; set; }
 		/// <value>Valid options: password, psk, password_psk</value>
+		public bool AutoDetect { get; set; }
 		public string SshAuthen { get; set; }
 		public string SshPskFile { get; set; }
 		public bool Logging { get; set; }
@@ -10767,6 +10809,7 @@ namespace CumulusMX
 		public bool ActiveMode { get; set; }
 		public bool DisableEPSV { get; set; }
 		public bool DisableExplicit { get; set; }
+		public bool IgnoreCertErrors { get; set; }
 
 		public bool LocalCopyEnabled { get; set; }
 		public string LocalCopyFolder { get; set; }
