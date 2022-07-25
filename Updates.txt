@@ -21,7 +21,7 @@ Changed
 - Moon Rise/Set web tags now have the date set to the current day
 - The records editors now work in your locale date/time formats, they also now report any errors setting values
 - The Monthly records editor month tabs have improved accessibility
-- The default web site monthly records page month button have improved accessibility
+- The default web site monthly records page month selection button have improved accessibility
 
 
 

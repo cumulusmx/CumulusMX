@@ -194,7 +194,7 @@ namespace CumulusMX
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
 
-		public const int DayfileFields = 53;
+		public const int DayfileFields = 55;
 
 		public const int LogFileRetries = 3;
 
@@ -605,24 +605,24 @@ namespace CumulusMX
 		public double CPUtemp = -999;
 
 		// Alarms
-		public Alarm DataStoppedAlarm = new Alarm();
-		public Alarm BatteryLowAlarm = new Alarm();
-		public Alarm SensorAlarm = new Alarm();
-		public Alarm SpikeAlarm = new Alarm();
-		public Alarm HighWindAlarm = new Alarm();
-		public Alarm HighGustAlarm = new Alarm();
-		public Alarm HighRainRateAlarm = new Alarm();
-		public Alarm HighRainTodayAlarm = new Alarm();
-		public AlarmChange PressChangeAlarm = new AlarmChange();
-		public Alarm HighPressAlarm = new Alarm();
-		public Alarm LowPressAlarm = new Alarm();
-		public AlarmChange TempChangeAlarm = new AlarmChange();
-		public Alarm HighTempAlarm = new Alarm();
-		public Alarm LowTempAlarm = new Alarm();
-		public Alarm UpgradeAlarm = new Alarm();
-		public Alarm HttpUploadAlarm = new Alarm();
-		public Alarm MySqlUploadAlarm = new Alarm();
-		public Alarm IsRainingAlarm = new Alarm();
+		public Alarm DataStoppedAlarm = new Alarm("Data Stopped", AlarmTypes.Trigger);
+		public Alarm BatteryLowAlarm = new Alarm("Battery Low", AlarmTypes.Trigger);
+		public Alarm SensorAlarm = new Alarm("Sensor Data Stopped", AlarmTypes.Trigger);
+		public Alarm SpikeAlarm = new Alarm("Data Spike",AlarmTypes.Trigger);
+		public Alarm HighWindAlarm = new Alarm("High Wind", AlarmTypes.Above);
+		public Alarm HighGustAlarm = new Alarm("High Gust", AlarmTypes.Above);
+		public Alarm HighRainRateAlarm = new Alarm("High Rainfall Rate", AlarmTypes.Above);
+		public Alarm HighRainTodayAlarm = new Alarm("Total Rainfall Today", AlarmTypes.Above);
+		public AlarmChange PressChangeAlarm = new AlarmChange("Pressure Change");
+		public Alarm HighPressAlarm = new Alarm("High Pressure", AlarmTypes.Above);
+		public Alarm LowPressAlarm = new Alarm("Low Pressure", AlarmTypes.Below);
+		public AlarmChange TempChangeAlarm = new AlarmChange("Temperature Change");
+		public Alarm HighTempAlarm = new Alarm("High Temperature", AlarmTypes.Above);
+		public Alarm LowTempAlarm = new Alarm("Low Temperature", AlarmTypes.Below);
+		public Alarm UpgradeAlarm = new Alarm("Upgrade Available", AlarmTypes.Trigger);
+		public Alarm HttpUploadAlarm = new Alarm("HTTP Uploads", AlarmTypes.Trigger);
+		public Alarm MySqlUploadAlarm = new Alarm("MySQL Uploads", AlarmTypes.Trigger);
+		public Alarm IsRainingAlarm = new Alarm("IsRaining", AlarmTypes.Trigger);
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;

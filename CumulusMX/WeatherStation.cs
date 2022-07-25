@@ -3050,12 +3050,12 @@ namespace CumulusMX
 			if (OutdoorTemperature > AllTime.HighTemp.Val)
 				SetAlltime(AllTime.HighTemp, OutdoorTemperature, timestamp);
 
-			cumulus.HighTempAlarm.Triggered = DoAlarm(OutdoorTemperature, cumulus.HighTempAlarm.Value, cumulus.HighTempAlarm.Enabled, true);
+			cumulus.HighTempAlarm.CheckAlarm(OutdoorTemperature);
 
 			if (OutdoorTemperature < AllTime.LowTemp.Val)
 				SetAlltime(AllTime.LowTemp, OutdoorTemperature, timestamp);
 
-			cumulus.LowTempAlarm.Triggered = DoAlarm(OutdoorTemperature, cumulus.LowTempAlarm.Value, cumulus.LowTempAlarm.Enabled, false);
+			cumulus.LowTempAlarm.CheckAlarm(OutdoorTemperature);
 
 			CheckMonthlyAlltime("HighTemp", OutdoorTemperature, true, timestamp);
 			CheckMonthlyAlltime("LowTemp", OutdoorTemperature, false, timestamp);
@@ -3519,14 +3519,14 @@ namespace CumulusMX
 				SetAlltime(AllTime.HighPress, Pressure, timestamp);
 			}
 
-			cumulus.HighPressAlarm.Triggered = DoAlarm(Pressure, cumulus.HighPressAlarm.Value, cumulus.HighPressAlarm.Enabled, true);
+			cumulus.HighPressAlarm.CheckAlarm(Pressure);
 
 			if (Pressure < AllTime.LowPress.Val)
 			{
 				SetAlltime(AllTime.LowPress, Pressure, timestamp);
 			}
 
-			cumulus.LowPressAlarm.Triggered = DoAlarm(Pressure, cumulus.LowPressAlarm.Value, cumulus.LowPressAlarm.Enabled, false);
+			cumulus.LowPressAlarm.CheckAlarm(Pressure);
 			CheckMonthlyAlltime("LowPress", Pressure, false, timestamp);
 			CheckMonthlyAlltime("HighPress", Pressure, true, timestamp);
 
@@ -3733,7 +3733,7 @@ namespace CumulusMX
 
 				CheckMonthlyAlltime("HighRainRate", RainRate, true, timestamp);
 
-				cumulus.HighRainRateAlarm.Triggered = DoAlarm(RainRate, cumulus.HighRainRateAlarm.Value, cumulus.HighRainRateAlarm.Enabled, true);
+				cumulus.HighRainRateAlarm.CheckAlarm(RainRate);
 
 				if (RainRate > HiLoToday.HighRainRate)
 				{
@@ -3839,7 +3839,7 @@ namespace CumulusMX
 
 				CheckMonthlyAlltime("MonthlyRain", RainMonth, true, timestamp);
 
-				cumulus.HighRainTodayAlarm.Triggered = DoAlarm(RainToday, cumulus.HighRainTodayAlarm.Value, cumulus.HighRainTodayAlarm.Enabled, true);
+				cumulus.HighRainTodayAlarm.CheckAlarm(RainToday);
 
 				// Yesterday"s rain - Scale for units
 				// rainyest = rainyesterday * RainMult;
@@ -4024,22 +4024,6 @@ namespace CumulusMX
 		}
 		*/
 
-		public bool DoAlarm(double value, double threshold, bool enabled, bool testAbove)
-		{
-			if (enabled)
-			{
-				if (testAbove)
-				{
-					return value > threshold;
-				}
-				else
-				{
-					return value < threshold;
-				}
-			}
-			return false;
-		}
-
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
 #if DEBUG
@@ -4176,7 +4160,7 @@ namespace CumulusMX
 
 			WindAverage *= cumulus.Calib.WindSpeed.Mult;
 
-			cumulus.HighWindAlarm.Triggered = DoAlarm(WindAverage, cumulus.HighWindAlarm.Value, cumulus.HighWindAlarm.Enabled, true);
+			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
 
 
 			if (CalcRecentMaxGust)
@@ -4196,7 +4180,7 @@ namespace CumulusMX
 				RecentMaxGust = maxgust * cumulus.Calib.WindGust.Mult;
 			}
 
-			cumulus.HighGustAlarm.Triggered = DoAlarm(RecentMaxGust, cumulus.HighGustAlarm.Value, cumulus.HighGustAlarm.Enabled, true);
+			cumulus.HighGustAlarm.CheckAlarm(RecentMaxGust);
 
 			if (WindAverage > HiLoToday.HighWind)
 			{
@@ -6257,14 +6241,12 @@ namespace CumulusMX
 				{
 					// calculate and display the temp trend
 					temptrendval = (retVals.Last().OutsideTemp - retVals.First().OutsideTemp) / 3.0F;
-					cumulus.TempChangeAlarm.UpTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.Value, cumulus.TempChangeAlarm.Enabled, true);
-					cumulus.TempChangeAlarm.DownTriggered = DoAlarm(temptrendval, cumulus.TempChangeAlarm.Value * -1, cumulus.TempChangeAlarm.Enabled, false);
+					cumulus.TempChangeAlarm.CheckAlarm(temptrendval);
 
 
 					// calculate and display the pressure trend
 					presstrendval = (retVals.Last().Pressure - retVals.First().Pressure) / 3.0;
-					cumulus.PressChangeAlarm.UpTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.Value, cumulus.PressChangeAlarm.Enabled, true);
-					cumulus.PressChangeAlarm.DownTriggered = DoAlarm(presstrendval, cumulus.PressChangeAlarm.Value * -1, cumulus.PressChangeAlarm.Enabled, false);
+					cumulus.PressChangeAlarm.CheckAlarm(presstrendval);
 
 					// Convert for display
 					//trendval = ConvertPressMBToUser(presstrendval);
@@ -6404,7 +6386,7 @@ namespace CumulusMX
 
 							CheckMonthlyAlltime("HighRainRate", RainRate, true, ts);
 
-							cumulus.HighRainRateAlarm.Triggered = DoAlarm(RainRate, cumulus.HighRainRateAlarm.Value, cumulus.HighRainRateAlarm.Enabled, true);
+							cumulus.HighRainRateAlarm.CheckAlarm(RainRate);
 
 							if (RainRate > HiLoToday.HighRainRate)
 							{
@@ -10554,6 +10536,11 @@ namespace CumulusMX
 						}
 						json.Append("],");
 					}
+					else if (string.IsNullOrEmpty(search))
+					{
+						// no search so we can bail out as we already know the total number of records
+						break;
+					}
 				}
 
 				// trim last ","
@@ -12041,7 +12028,7 @@ namespace CumulusMX
 				// check for monthly all time records (and set)
 				CheckMonthlyAlltime("HighGust", gust, true, timestamp);
 
-				cumulus.HighGustAlarm.Triggered = DoAlarm(gust, cumulus.HighGustAlarm.Value, cumulus.HighGustAlarm.Enabled, true);
+				cumulus.HighGustAlarm.CheckAlarm(gust);
 			}
 			return true;
 		}
