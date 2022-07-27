@@ -541,7 +541,7 @@ namespace CumulusMX
 
 		private string TagTime(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(DateTime.Now, tagParams);
+			return GetFormattedDateTime(DateTime.Now, "HH:mm\" on \"dd MMMM yyyy", tagParams);
 		}
 
 		private static string TagDaysSince30Dec1899(Dictionary<string,string> tagParams)
@@ -552,7 +552,7 @@ namespace CumulusMX
 
 		private string TagTimeUtc(Dictionary<string,string> tagParams)
 		{
-			return GetFormattedDateTime(DateTime.UtcNow, tagParams);
+			return GetFormattedDateTime(DateTime.UtcNow, "HH:mm\" on \"dd MMMM yyyy", tagParams);
 		}
 
 		private static string TagTimehhmmss(Dictionary<string,string> tagParams)
@@ -2004,7 +2004,7 @@ namespace CumulusMX
 		}
 
 		private string TagtempMidnightRangeY(Dictionary<string, string> tagParams)
-		{	
+		{
 			return CheckRcDp((station.HiLoYestMidnight.HighTemp - station.HiLoYestMidnight.LowTemp), tagParams, cumulus.TempDPlaces);
 		}
 

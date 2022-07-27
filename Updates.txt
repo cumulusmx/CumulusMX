@@ -1,4 +1,7 @@
-3.20.0 - b3197
+3198 fixes
+- #time and #timeutc web tags default formats
+
+3.20.0 - b3198
 ——————————————
 Fixed
 - Buffering of failed MySQL queries
@@ -32,7 +35,7 @@ Changed
 - The default web site monthly records page month selection button have improved accessibility
 - Local API, removed BOM from all API responses
 - The date pickers for the log file view/editor pages and the new This Period now display the date in the CMX locale format
-- The Cumulus.ini file now only contains FTP ExtraFiles entries that have either a local or remote filename entered
+- The Cumulus.ini file now only contains FTP ExtraFiles entries that have either a local or remote filename entered (potentially removes 800 lines from the file!)
 
 
 3.19.3 - b3196
