@@ -1872,6 +1872,16 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.HiLoToday.HighHourlyRainTime, "HH:mm", tagParams);
 		}
 
+		private string Tagrain24hourTh(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.HiLoToday.HighRain24h, tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagTrain24hourTh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoToday.HighRain24hTime, "HH:mm", tagParams);
+		}
+
 		private string TaghourlyrainYh(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(station.HiLoYest.HighHourlyRain, tagParams, cumulus.RainDPlaces);
@@ -1880,6 +1890,16 @@ namespace CumulusMX
 		private string TagThourlyrainYh(Dictionary<string,string> tagParams)
 		{
 			return GetFormattedDateTime(station.HiLoYest.HighHourlyRainTime, "HH:mm", tagParams);
+		}
+
+		private string Tagrain24hourYh(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.HiLoYest.HighRain24h, tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagTrain24hourYh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoYest.HighRain24hTime, "HH:mm", tagParams);
 		}
 
 		private string TagSolarYh(Dictionary<string,string> tagParams)
@@ -5553,8 +5573,12 @@ namespace CumulusMX
 				{ "TrrateTM", TagTrrateTm },
 				{ "hourlyrainTH", TaghourlyrainTh },
 				{ "ThourlyrainTH", TagThourlyrainTh },
+				{ "rain24hourTH", Tagrain24hourTh },
+				{ "Train24hourTH", TagTrain24hourTh },
 				{ "hourlyrainYH", TaghourlyrainYh },
 				{ "ThourlyrainYH", TagThourlyrainYh },
+				{ "rain24hourYH", Tagrain24hourYh },
+				{ "Train24hourYH", TagTrain24hourYh },
 				{ "solarTH", TagSolarTh },
 				{ "TsolarTH", TagTsolarTh },
 				{ "UVTH", TagUvth },

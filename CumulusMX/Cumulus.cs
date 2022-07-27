@@ -675,7 +675,7 @@ namespace CumulusMX
 		private readonly TokenParser customHttpSecondsTokenParser = new TokenParser();
 		internal Timer CustomHttpSecondsTimer;
 		internal bool CustomHttpSecondsEnabled;
-		internal string CustomHttpSecondsString;
+		internal string[] CustomHttpSecondsStrings = new string[10];
 		internal int CustomHttpSecondsInterval;
 
 		// Custom HTTP - minutes
@@ -684,7 +684,7 @@ namespace CumulusMX
 		private bool updatingCustomHttpMinutes;
 		private readonly TokenParser customHttpMinutesTokenParser = new TokenParser();
 		internal bool CustomHttpMinutesEnabled;
-		internal string CustomHttpMinutesString;
+		internal string[] CustomHttpMinutesStrings = new string[10];
 		internal int CustomHttpMinutesInterval;
 		internal int CustomHttpMinutesIntervalIndex;
 
@@ -694,7 +694,7 @@ namespace CumulusMX
 		private bool updatingCustomHttpRollover;
 		private readonly TokenParser customHttpRolloverTokenParser = new TokenParser();
 		internal bool CustomHttpRolloverEnabled;
-		internal string CustomHttpRolloverString;
+		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		public Thread ftpThread;
 		public Thread MySqlCatchupThread;
@@ -5128,12 +5128,25 @@ namespace CumulusMX
 			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 
 			// Custom HTTP - seconds
-			CustomHttpSecondsString = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
+			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomHttpSecondsString" + i))
+					CustomHttpSecondsStrings[i] = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, "");
+			}
+
 			CustomHttpSecondsEnabled = ini.GetValue("HTTP", "CustomHttpSecondsEnabled", false);
 			CustomHttpSecondsInterval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10);
 			if (CustomHttpSecondsInterval < 1) { CustomHttpSecondsInterval = 1; }
+			
 			// Custom HTTP - minutes
-			CustomHttpMinutesString = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
+			CustomHttpMinutesStrings[0] = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomHttpMinutesString" + i))
+					CustomHttpMinutesStrings[i] = ini.GetValue("HTTP", "CustomHttpMinutesString" + i, "");
+			}
+
 			CustomHttpMinutesEnabled = ini.GetValue("HTTP", "CustomHttpMinutesEnabled", false);
 			CustomHttpMinutesIntervalIndex = ini.GetValue("HTTP", "CustomHttpMinutesIntervalIndex", -1);
 			if (CustomHttpMinutesIntervalIndex >= 0 && CustomHttpMinutesIntervalIndex < FactorsOf60.Length)
@@ -5146,9 +5159,16 @@ namespace CumulusMX
 				CustomHttpMinutesIntervalIndex = 6;
 				rewriteRequired = true;
 			}
+
 			// Http - custom roll-over
-			CustomHttpRolloverString = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
 			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
+			CustomHttpRolloverStrings[0] = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomHttpRolloverString" + i))
+					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, "");
+			}
+
 
 			// Select-a-Chart settings
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
@@ -5543,14 +5563,29 @@ namespace CumulusMX
 
 			for (int i = 0; i < numextrafiles; i++)
 			{
-				ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].local);
-				ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].remote);
-				ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].process);
-				ini.SetValue("FTP site", "ExtraBinary" + i, ExtraFiles[i].binary);
-				ini.SetValue("FTP site", "ExtraRealtime" + i, ExtraFiles[i].realtime);
-				ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].FTP);
-				ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].UTF8);
-				ini.SetValue("FTP site", "ExtraEOD" + i, ExtraFiles[i].endofday);
+				if (string.IsNullOrEmpty(ExtraFiles[i].local) && string.IsNullOrEmpty(ExtraFiles[i].remote))
+				{
+					ini.DeleteValue("FTP site", "ExtraLocal" + i);
+					ini.DeleteValue("FTP site", "ExtraRemote" + i);
+					ini.DeleteValue("FTP site", "ExtraProcess" + i);
+					ini.DeleteValue("FTP site", "ExtraBinary" + i);
+					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
+					ini.DeleteValue("FTP site", "ExtraFTP" + i);
+					ini.DeleteValue("FTP site", "ExtraUTF" + i);
+					ini.DeleteValue("FTP site", "ExtraEOD" + i);
+
+				}
+				else
+				{
+					ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].local);
+					ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].remote);
+					ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].process);
+					ini.SetValue("FTP site", "ExtraBinary" + i, ExtraFiles[i].binary);
+					ini.SetValue("FTP site", "ExtraRealtime" + i, ExtraFiles[i].realtime);
+					ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].FTP);
+					ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].UTF8);
+					ini.SetValue("FTP site", "ExtraEOD" + i, ExtraFiles[i].endofday);
+				}
 			}
 
 			ini.SetValue("FTP site", "ExternalProgram", ExternalProgram);
@@ -6034,9 +6069,27 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlSettings.CustomSecs.Interval);
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", CustomMySqlMinutesIntervalIndex);
 
-			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsString);
-			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesString);
-			ini.SetValue("HTTP", "CustomHttpRolloverString", CustomHttpRolloverString);
+			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsStrings[0]);
+			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesStrings[0]);
+			ini.SetValue("HTTP", "CustomHttpRolloverString", CustomHttpRolloverStrings[0]);
+
+			for (var i = 1; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
+					ini.DeleteValue("HTTP", "CustomHttpSecondsString" + i);
+				else
+					ini.SetValue("HTTP", "CustomHttpSecondsString" + i, CustomHttpSecondsStrings[i]);
+
+				if (string.IsNullOrEmpty(CustomHttpMinutesStrings[i]))
+					ini.DeleteValue("HTTP", "CustomHttpMinutesString" + i);
+				else
+					ini.SetValue("HTTP", "CustomHttpMinutesString" + i, CustomHttpMinutesStrings[i]);
+
+				if (string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
+					ini.DeleteValue("HTTP", "CustomHttpRolloverString" + i);
+				else
+					ini.SetValue("HTTP", "CustomHttpRolloverString" + i, CustomHttpRolloverStrings[i]);
+			}
 
 			ini.SetValue("HTTP", "CustomHttpSecondsEnabled", CustomHttpSecondsEnabled);
 			ini.SetValue("HTTP", "CustomHttpMinutesEnabled", CustomHttpMinutesEnabled);
@@ -10209,25 +10262,29 @@ namespace CumulusMX
 			{
 				updatingCustomHttpSeconds = true;
 
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					customHttpSecondsTokenParser.InputText = CustomHttpSecondsString;
-					var processedString = customHttpSecondsTokenParser.ToStringFromString();
-					LogDebugMessage("CustomHttpSeconds: Querying - " + processedString);
-					var response = await customHttpSecondsClient.GetAsync(processedString);
-					response.EnsureSuccessStatusCode();
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("CustomHttpSeconds: Response - " + response.StatusCode);
-					LogDataMessage("CustomHttpSeconds: Response Text - " + responseBodyAsText);
+					try
+					{
+						if (!string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
+						{
+							customHttpSecondsTokenParser.InputText = CustomHttpSecondsStrings[i];
+							var processedString = customHttpSecondsTokenParser.ToStringFromString();
+							LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
+							var response = await customHttpSecondsClient.GetAsync(processedString);
+							response.EnsureSuccessStatusCode();
+							var responseBodyAsText = await response.Content.ReadAsStringAsync();
+							LogDebugMessage($"CustomHttpSeconds[{i}]: Response - {response.StatusCode}");
+							LogDataMessage($"CustomHttpSeconds[{i}]: Response Text - {responseBodyAsText}");
+						}
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("CustomHttpSeconds: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("CustomHttpSeconds: " + ex.Message);
-				}
-				finally
-				{
-					updatingCustomHttpSeconds = false;
-				}
+
+				updatingCustomHttpSeconds = false;
 			}
 			else
 			{
@@ -10241,24 +10298,25 @@ namespace CumulusMX
 			{
 				updatingCustomHttpMinutes = true;
 
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					customHttpMinutesTokenParser.InputText = CustomHttpMinutesString;
-					var processedString = customHttpMinutesTokenParser.ToStringFromString();
-					LogDebugMessage("CustomHttpMinutes: Querying - " + processedString);
-					var response = await customHttpMinutesClient.GetAsync(processedString);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("CustomHttpMinutes: Response code - " + response.StatusCode);
-					LogDataMessage("CustomHttpMinutes: Response text - " + responseBodyAsText);
+					try
+					{
+						customHttpMinutesTokenParser.InputText = CustomHttpMinutesStrings[i];
+						var processedString = customHttpMinutesTokenParser.ToStringFromString();
+						LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
+						var response = await customHttpMinutesClient.GetAsync(processedString);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
+						LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("CustomHttpMinutes: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("CustomHttpMinutes: " + ex.Message);
-				}
-				finally
-				{
-					updatingCustomHttpMinutes = false;
-				}
+
+				updatingCustomHttpMinutes = false;
 			}
 		}
 
@@ -10268,24 +10326,25 @@ namespace CumulusMX
 			{
 				updatingCustomHttpRollover = true;
 
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					customHttpRolloverTokenParser.InputText = CustomHttpRolloverString;
-					var processedString = customHttpRolloverTokenParser.ToStringFromString();
-					LogDebugMessage("CustomHttpRollover: Querying - " + processedString);
-					var response = await customHttpRolloverClient.GetAsync(processedString);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("CustomHttpRollover: Response code - " + response.StatusCode);
-					LogDataMessage("CustomHttpRollover: Response text - " + responseBodyAsText);
+					try
+					{
+						customHttpRolloverTokenParser.InputText = CustomHttpRolloverStrings[i];
+						var processedString = customHttpRolloverTokenParser.ToStringFromString();
+						LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
+						var response = await customHttpRolloverClient.GetAsync(processedString);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
+						LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("CustomHttpRollover: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("CustomHttpRollover: " + ex.Message);
-				}
-				finally
-				{
-					updatingCustomHttpRollover = false;
-				}
+				
+				updatingCustomHttpRollover = false;
 			}
 		}
 

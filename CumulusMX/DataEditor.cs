@@ -759,14 +759,13 @@ namespace CumulusMX
 			var rain24hLog = new Queue<LastHourRainLog>();
 
 			var totalRainfall = 0.0;
+			var monthlyRain = 0.0;
 
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
 
 			while (!finished)
 			{
-				double monthlyRain = 0;
-
 				if (File.Exists(logFile))
 				{
 					cumulus.LogDebugMessage($"GetAllTimeRecLogFile: Processing log file - {logFile}");
@@ -967,7 +966,7 @@ namespace CumulusMX
 								{
 									dayRain = rec.RainToday;
 								}
-								else if (rec.Raincounter - lastentrycounter < counterJumpTooBig)
+								else if ((rec.Raincounter - lastentrycounter > 0) && (rec.Raincounter - lastentrycounter < counterJumpTooBig))
 								{
 									dayRain += (rec.Raincounter - lastentrycounter) * cumulus.Calib.Rain.Mult;
 								}
@@ -2472,7 +2471,7 @@ namespace CumulusMX
 								{
 									dayRain = rec.RainToday;
 								}
-								else if (rec.Raincounter - lastentrycounter < counterJumpTooBig)
+								else if ((rec.Raincounter - lastentrycounter > 0) && (rec.Raincounter - lastentrycounter < counterJumpTooBig))
 								{
 									dayRain += (rec.Raincounter - lastentrycounter) * cumulus.Calib.Rain.Mult;
 								}

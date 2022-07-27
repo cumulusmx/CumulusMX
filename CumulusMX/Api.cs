@@ -1058,6 +1058,10 @@ namespace CumulusMX
 							case "wizard.json":
 								await writer.WriteAsync(wizard.GetAlpacaFormData());
 								break;
+							case "dateformat.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
