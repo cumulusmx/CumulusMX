@@ -400,7 +400,7 @@ namespace CumulusMX
 			ReadMonthlyAlltimeIniFile();
 			ReadMonthIniFile();
 			ReadYearIniFile();
-			LoadDayFile();
+			_ = LoadDayFile();
 
 			GetRainCounter();
 			GetRainFallTotals();
@@ -5714,7 +5714,7 @@ namespace CumulusMX
 			{
 				var InvC = new CultureInfo("");
 
-				StringBuilder queryString = new StringBuilder(cumulus.StartOfDayfileInsertSQL, 1024);
+				StringBuilder queryString = new StringBuilder(cumulus.DayfileTable.StartOfInsert, 1024);
 				queryString.Append(" Values('");
 				queryString.Append(timestamp.AddDays(-1).ToString("yy-MM-dd") + "',");
 				queryString.Append(HiLoToday.HighGust.ToString(cumulus.WindFormat, InvC) + ",");
@@ -6242,41 +6242,54 @@ namespace CumulusMX
 
 		public void DoTrendValues(DateTime ts)
 		{
+			double trendval, retVal;
 			List<RecentData> retVals;
-			double trendval;
 
+			// Do 3 hour trends
 			try
 			{
-				// Do 3 hour trends
-				retVals = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=? order by Timestamp", ts.AddHours(-3));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >=? order by Timestamp limit 1", ts.AddHours(-3));
 
-				if (retVals.Count > 1)
+				if (retVals.Count != 1)
 				{
+					temptrendval = 0;
+					presstrendval = 0;
+				}
+				else
+				{
+
 					// calculate and display the temp trend
-					temptrendval = (retVals.Last().OutsideTemp - retVals.First().OutsideTemp) / 3.0F;
+					temptrendval = (OutdoorTemperature - retVals[0].OutsideTemp) / 3.0F;
 					cumulus.TempChangeAlarm.CheckAlarm(temptrendval);
 
-
 					// calculate and display the pressure trend
-					presstrendval = (retVals.Last().Pressure - retVals.First().Pressure) / 3.0;
+					presstrendval = (Pressure - retVals[0].Pressure) / 3.0;
 					cumulus.PressChangeAlarm.CheckAlarm(presstrendval);
 
 					// Convert for display
 					//trendval = ConvertPressMBToUser(presstrendval);
 				}
+			}
+			catch
+			{
+				temptrendval = 0;
+				presstrendval = 0;
+			}
+
+			try
+			{ 
+				// Do 1 hour trends
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >=? order by Timestamp limit 1", ts.AddHours(-1));
+
+				if (retVals.Count != 1)
+				{
+					TempChangeLastHour = 0;
+					RainLastHour = 0;
+				}
 				else
 				{
-					temptrendval = 0;
-					presstrendval = 0;
-				}
-
-				// Do 1 hour trends
-				retVals = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=? order by Timestamp", ts.AddHours(-1));
-
-				if (retVals.Count > 1)
-				{
 					// Calculate Temperature change in the last hour
-					TempChangeLastHour = retVals.Last().OutsideTemp - retVals.First().OutsideTemp;
+					TempChangeLastHour = OutdoorTemperature - retVals[0].OutsideTemp;
 
 
 					// calculate and display rainfall in last hour
@@ -6288,7 +6301,7 @@ namespace CumulusMX
 					else
 					{
 						// normal case
-						trendval = retVals.Last().raincounter - retVals.First().raincounter;
+						trendval = Raincounter - retVals[0].raincounter;
 
 						// Round value as some values may have been read from log file and already rounded
 						trendval = Math.Round(trendval, cumulus.RainDPlaces);
@@ -6334,47 +6347,37 @@ namespace CumulusMX
 							}
 						}
 					}
-
 				}
-				else
+			}
+			catch
+			{
+				TempChangeLastHour = 0;
+				RainLastHour = 0;
+			}
+
+
+			if (calculaterainrate)
+			{
+				// Station doesn't supply rain rate, calculate one based on rain in last 5 minutes
+
+				try
 				{
-					TempChangeLastHour = 0;
-					RainLastHour = 0;
-				}
+					retVal = RecentDataDb.ExecuteScalar<double>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddMinutes(-5.5));
 
-
-				if (calculaterainrate)
-				{
-					// Station doesn't supply rain rate, calculate one based on rain in last 5 minutes
-
-					DateTime fiveminutesago = ts.AddSeconds(-330);
-
-
-					var fiveminutedata = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp", fiveminutesago);
-
-					if (fiveminutedata.Count() > 1)
+					if (Raincounter < retVal)
 					{
-						// we have at least two values to compare
+						RainRate = 0;
+					}
+					else
+					{
 
-						TimeSpan span = fiveminutedata.Last().Timestamp.Subtract(fiveminutedata.First().Timestamp);
-
-						double timediffhours = span.TotalHours;
-
-						//cumulus.LogMessage("first time = " + fiveminutedata.First().timestamp + " last time = " + fiveminutedata.Last().timestamp);
-						//cumulus.LogMessage("timediffhours = " + timediffhours);
-
-						// if less than 5 minutes, use 5 minutes
-						if (timediffhours < 1.0 / 12.0)
-						{
-							timediffhours = 1.0 / 12.0;
-						}
-
-						double raindiff = Math.Round(fiveminutedata.Last().raincounter, cumulus.RainDPlaces) - Math.Round(fiveminutedata.First().raincounter, cumulus.RainDPlaces);
-						//cumulus.LogMessage("first value = " + fiveminutedata.First().raincounter + " last value = " + fiveminutedata.Last().raincounter);
+						var raindiff = Math.Round(Raincounter - retVal, cumulus.RainDPlaces);
 						//cumulus.LogMessage("raindiff = " + raindiff);
 
+						var timediffhours = 1.0 / 12.0;
+
 						// Scale the counter values
-						var tempRainRate = (double)(raindiff / timediffhours) * cumulus.Calib.Rain.Mult;
+						var tempRainRate = Math.Round((double) (raindiff / timediffhours) * cumulus.Calib.Rain.Mult, cumulus.RainDPlaces);
 
 						if (tempRainRate < 0)
 						{
@@ -6423,23 +6426,27 @@ namespace CumulusMX
 							}
 						}
 					}
-					else
-					{
-						RainRate = 0;
-					}
 				}
-
-
-
-				// calculate and display rainfall in last 24 hour
-				var onedayago = ts.AddDays(-1);
-				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp", onedayago);
-
-				if (retVals.Count > 1)
+				catch
 				{
-					trendval = retVals.Last().raincounter - retVals.First().raincounter;
-					// Round value as some values may have been read from log file and already rounded
-					trendval = Math.Round(trendval, cumulus.RainDPlaces);
+					RainRate = 0;
+				}
+			}
+
+
+			// calculate and display rainfall in last 24 hour
+			try
+			{ 
+				retVal = RecentDataDb.ExecuteScalar<double>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddDays(-1));
+
+				if (Raincounter < retVal)
+				{
+					RainLast24Hour = 0;
+				}
+				else
+				{
+
+					trendval = Math.Round(Raincounter - retVal, cumulus.RainDPlaces);
 
 					if (trendval < 0)
 					{
@@ -6475,15 +6482,11 @@ namespace CumulusMX
 						WriteYearIniFile();
 					}
 				}
-				else
-				{
-					// Unable to retrieve rain counter from 24 hours ago
-					RainLast24Hour = 0;
-				}
 			}
-			catch (Exception e)
+			catch
 			{
-				cumulus.LogMessage($"DoTrendValues: Error - {e.Message}");
+				// Unable to retrieve rain counter from 24 hours ago
+				RainLast24Hour = 0;
 			}
 		}
 
@@ -6935,7 +6938,7 @@ namespace CumulusMX
 			return new DateTime(date.Year, date.Month, date.Day, int.Parse(tim[0]), int.Parse(tim[1]), 0);
 		}
 
-		public void LoadDayFile()
+		public string LoadDayFile()
 		{
 			int addedEntries = 0;
 
@@ -6989,11 +6992,16 @@ namespace CumulusMX
 					cumulus.LogMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
 					cumulus.LogMessage("Please edit the file to correct the error");
 				}
-				cumulus.LogMessage($"LoadDayFile: Loaded {addedEntries} entries to recent daily data list");
+
+				var msg = $"LoadDayFile: Loaded {addedEntries} entries to recent daily data list";
+				cumulus.LogMessage(msg);
+				return msg;
 			}
 			else
 			{
-				cumulus.LogMessage("LoadDayFile: No Dayfile found - No entries added to recent daily data list");
+				var msg = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
+				cumulus.LogMessage(msg);
+				return msg;
 			}
 		}
 

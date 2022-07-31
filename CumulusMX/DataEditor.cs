@@ -432,7 +432,7 @@ namespace CumulusMX
 					if (rec.HighRain24h > highRain24h.Value)
 					{
 						highRain24h.Value = rec.HighRain24h;
-						highRain24h.Ts = rec.Date.Date;
+						highRain24h.Ts = rec.HighRain24hTime;
 					}
 
 					// dry/wet period
@@ -763,6 +763,8 @@ namespace CumulusMX
 
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
+			double _day24h = 0;
+			DateTime _dayTs;
 
 			while (!finished)
 			{
@@ -777,7 +779,7 @@ namespace CumulusMX
 						foreach (var line in logfile)
 						{
 							// process each record in the file
-							linenum++;
+							linenum++; 
 
 							var rec = station.ParseLogFileRec(line, true);
 
@@ -800,12 +802,13 @@ namespace CumulusMX
 								else
 								{
 									// OK we are within 24 hours of the start date, so record rain values
-									Add24HourRainEntry(rec.Date, totalRainfall + rec.RainToday, ref rain24hLog);
+									AddLastHoursRainEntry(rec.Date, totalRainfall + rec.RainToday, ref rain1hLog, ref rain24hLog);
 									lastentryrain = rec.RainToday;
 									lastentrycounter = rec.Raincounter;
 									continue;
 								}
 							}
+
 							// low chill
 							if (rec.WindChill > Cumulus.DefaultHiVal && rec.WindChill < lowWindChill.Value)
 							{
@@ -1068,6 +1071,12 @@ namespace CumulusMX
 								highRain24h.Value = rain24h;
 								highRain24h.Ts = rec.Date;
 							}
+							if (rain24h > _day24h)
+							{
+								_day24h = rain24h;
+								_dayTs = rec.Date;
+								//System.Diagnostics.Debugger.Break();
+							}
 
 							// new meteo day, part 2
 							if (currentDay.Date != metoDate.Date)
@@ -1077,6 +1086,9 @@ namespace CumulusMX
 								dayLowTemp.Value = rec.OutdoorTemperature;
 								dayWindRun = 0;
 								totalRainfall += dayRain;
+								
+								_day24h = rain24h;
+								_dayTs = rec.Date;
 							}
 
 							lastentrydate = rec.Date;
@@ -1902,11 +1914,11 @@ namespace CumulusMX
 						highRainDay[monthOffset].Value = station.DayFile[i].TotalRain;
 						highRainDay[monthOffset].Ts = loggedDate;
 					}
-
+					// hi 24h rain
 					if (station.DayFile[i].HighRain24h > highRain24h[monthOffset].Value)
 					{
 						highRain24h[monthOffset].Value = station.DayFile[i].HighRain24h;
-						highRain24h[monthOffset].Ts = loggedDate;
+						highRain24h[monthOffset].Ts = station.DayFile[i].HighRain24hTime;
 					}
 
 					// monthly rain

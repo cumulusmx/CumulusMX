@@ -1122,11 +1122,17 @@ namespace CumulusMX
 							case "createrealtimesql.json":
 								await writer.WriteAsync(mySqlSettings.CreateRealtimeSQL(HttpContext));
 								break;
+							case "updatemonthlysql.json":
+								await writer.WriteAsync(mySqlSettings.UpdateMonthlySQL(HttpContext));
+								break;
+							case "updatedayfilesql.json":
+								await writer.WriteAsync(mySqlSettings.UpdateDayfileSQL(HttpContext));
+								break;
+							case "updaterealtimesql.json":
+								await writer.WriteAsync(mySqlSettings.UpdateRealtimeSQL(HttpContext));
+								break;
 							case "updatealarmconfig.json":
 								await writer.WriteAsync(alarmSettings.UpdateAlarmSettings(HttpContext));
-								break;
-							case "ftpnow.json":
-								await writer.WriteAsync(stationSettings.FtpNow(HttpContext));
 								break;
 							case "testemail.json":
 								await writer.WriteAsync(alarmSettings.TestEmail(HttpContext));
@@ -1357,5 +1363,88 @@ namespace CumulusMX
 				}
 			}
 		}
+
+		// Utilities
+		public class UtilsController : WebApiController
+		{
+			[Route(HttpVerbs.Get, "/utils/{req}")]
+			public async Task GetUtilData(string req)
+			{
+				Response.ContentType = "plain/text";
+
+				if (Station == null)
+				{
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+						await writer.WriteAsync("The station is not running");
+					Response.StatusCode = 500;
+					return;
+				}
+
+				try
+				{
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+					{
+						switch (req)
+						{
+							case "reloaddayfile":
+								await writer.WriteAsync(Station.LoadDayFile());
+								break;
+							case "purgemysql":
+								var cnt = 0;
+								while (Program.cumulus.MySqlFailedList.TryDequeue(out var item))
+								{
+									cnt++;
+								};
+								await writer.WriteAsync($"Failed queue cleared of {cnt} commands");
+								break;
+							default:
+								Response.StatusCode = 404;
+								break;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Program.cumulus.LogMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+
+			[Route(HttpVerbs.Post, "/utils/{req}")]
+			public async Task PostUtilsData(string req)
+			{
+				if (Station == null)
+				{
+					Response.StatusCode = 500;
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+						await writer.WriteAsync("The station is not running");
+					return;
+				}
+
+				try
+				{
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+					{
+						string res;
+						switch (req)
+						{
+							case "ftpnow.json":
+								await writer.WriteAsync(stationSettings.FtpNow(HttpContext));
+								break;
+							default:
+								Response.StatusCode = 404;
+								break;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
+
 	}
 }
