@@ -1425,7 +1425,6 @@ namespace CumulusMX
 				{
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
-						string res;
 						switch (req)
 						{
 							case "ftpnow.json":

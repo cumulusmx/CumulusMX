@@ -1233,7 +1233,6 @@ namespace CumulusMX
 			var value = newData[1].Split('=')[1];
 			try
 			{
-				string[] dt;
 				switch (field)
 				{
 					case "highTempVal":
@@ -1413,7 +1412,6 @@ namespace CumulusMX
 						break;
 					default:
 						return "Data index not recognised";
-						break;
 				}
 			}
 			catch (Exception ex)
@@ -1622,7 +1620,6 @@ namespace CumulusMX
 							break;
 						default:
 							return "Data index not recognised";
-							break;
 					}
 				}
 			}
@@ -2788,7 +2785,6 @@ namespace CumulusMX
 			var value = newData[1].Split('=')[1];
 			try
 			{
-				string[] dt;
 				switch (field)
 				{
 					case "highTempVal":
@@ -2961,7 +2957,6 @@ namespace CumulusMX
 						break;
 					default:
 						return "Data index not recognised";
-						break;
 				}
 				station.WriteMonthIniFile();
 			}
@@ -3063,7 +3058,6 @@ namespace CumulusMX
 			var value = newData[1].Split('=')[1];
 			try
 			{
-				string[] dt;
 				switch (field)
 				{
 					case "highTempVal":
@@ -3243,7 +3237,6 @@ namespace CumulusMX
 						break;
 					default:
 						return "Data index not recognised";
-						break;
 				}
 				station.WriteYearIniFile();
 			}

@@ -164,7 +164,7 @@ namespace CumulusMX
 
 		public DateTime DownTriggeredTime { get; set; }
 
-		public void CheckAlarm(double value)
+		public new void CheckAlarm(double value)
 		{
 			if (value > Value)
 			{
