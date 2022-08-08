@@ -176,7 +176,7 @@ namespace CumulusMX
 			try
 			{
 				comport.Open();
-				cumulus.CurrentActivity = "Normal running";
+				cumulus.NormalRunning = true;
 
 				LoadLastHoursFromDataLogs(DateTime.Now);
 

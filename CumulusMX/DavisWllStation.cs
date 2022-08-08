@@ -1414,7 +1414,6 @@ namespace CumulusMX
 
 		public override void startReadingHistoryData()
 		{
-			cumulus.CurrentActivity = "Reading archive data";
 			cumulus.LogMessage("WLL history: Reading history data from log files");
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
@@ -1442,7 +1441,7 @@ namespace CumulusMX
 			//{
 			//    UpdateHighsAndLows(dataContext);
 			//}
-			cumulus.CurrentActivity = "Normal running";
+			cumulus.NormalRunning = true;
 
 			// restore settings
 			cumulus.StationOptions.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
@@ -1736,8 +1735,8 @@ namespace CumulusMX
 					if ((h == 0) && !midnightraindone)
 					{
 						ResetMidnightRain(timestamp);
-						ResetSunshineHours();
-						ResetMidnightTemperatures();
+						ResetSunshineHours(timestamp);
+						ResetMidnightTemperatures(timestamp);
 						midnightraindone = true;
 					}
 

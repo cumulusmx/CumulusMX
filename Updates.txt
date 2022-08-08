@@ -1,9 +1,10 @@
-3.20.0 - b3200
+3.20.0 - b3201
 ——————————————
 Fixed
 - Buffering of failed MySQL queries
 - MySQL library update to fix crashes with a null reference
 - NOAA Monthly report selector showing two "March"s and no February on the first day of each new month
+- Alarms being triggered during data catch-up. These are now suppressed
 
 New
 - Add custom actions for alarms. Call a script or external exe etc.

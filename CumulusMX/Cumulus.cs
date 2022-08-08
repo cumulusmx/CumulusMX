@@ -221,7 +221,7 @@ namespace CumulusMX
 		private readonly TokenParser customMysqlMinutesTokenParser = new TokenParser();
 		private readonly TokenParser customMysqlRolloverTokenParser = new TokenParser();
 
-		public string CurrentActivity = "Stopped";
+		public bool NormalRunning = false;
 
 		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
 
@@ -9492,6 +9492,7 @@ namespace CumulusMX
 
 			EnableOpenWeatherMap();
 
+			NormalRunning = true;
 			LogMessage("Normal running");
 			LogConsoleMessage("Normal running", ConsoleColor.Green);
 		}

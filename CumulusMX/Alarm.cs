@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -21,7 +17,10 @@ namespace CumulusMX
 			get => triggered;
 			set
 			{
-				doTriggered(value);
+				if (Program.cumulus.NormalRunning)
+				{
+					doTriggered(value);
+				}
 			}
 		}
 
@@ -50,7 +49,10 @@ namespace CumulusMX
 
 		public void CheckAlarm(double value)
 		{
-			doTriggered((type == AlarmTypes.Above && value > Value) || (type == AlarmTypes.Below && value < Value));
+			if (Program.cumulus.NormalRunning)
+			{
+				doTriggered((type == AlarmTypes.Above && value > Value) || (type == AlarmTypes.Below && value < Value));
+			}
 		}
 
 		private void doTriggered(bool value)
@@ -145,7 +147,10 @@ namespace CumulusMX
 			get => upTriggered;
 			set
 			{
-				doUpTriggered(value);
+				if (Program.cumulus.NormalRunning)
+				{
+					doUpTriggered(value);
+				}
 			}
 		}
 		public DateTime UpTriggeredTime { get; set; }
@@ -157,7 +162,10 @@ namespace CumulusMX
 			get => downTriggered;
 			set
 			{
-				doDownTriggered(value);
+				if (Program.cumulus.NormalRunning)
+				{
+					doDownTriggered(value);
+				}
 			}
 		}
 
@@ -166,20 +174,24 @@ namespace CumulusMX
 
 		public new void CheckAlarm(double value)
 		{
-			if (value > Value)
+			if (Program.cumulus.NormalRunning)
 			{
-				doUpTriggered(true);
-				doDownTriggered(false);
-			}
-			else if (value < Value)
-			{
-				doUpTriggered(false);
-				doDownTriggered(true);
-			}
-			else
-			{
-				doUpTriggered(false);
-				doDownTriggered(false);
+
+				if (value > Value)
+				{
+					doUpTriggered(true);
+					doDownTriggered(false);
+				}
+				else if (value < -Value)
+				{
+					doUpTriggered(false);
+					doDownTriggered(true);
+				}
+				else
+				{
+					doUpTriggered(false);
+					doDownTriggered(false);
+				}
 			}
 		}
 

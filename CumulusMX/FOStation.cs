@@ -140,7 +140,6 @@ namespace CumulusMX
 
 		public override void startReadingHistoryData()
 		{
-			cumulus.CurrentActivity = "Getting archive data";
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -165,7 +164,7 @@ namespace CumulusMX
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			cumulus.CurrentActivity = "Normal running";
+			cumulus.NormalRunning = true;
 			cumulus.LogMessage("Archive reading thread completed");
 			Start();
 			DoDayResetIfNeeded();
@@ -394,8 +393,8 @@ namespace CumulusMX
 				if (h == 0 && !midnightraindone)
 				{
 					ResetMidnightRain(timestamp);
-					ResetSunshineHours();
-					ResetMidnightTemperatures();
+					ResetSunshineHours(timestamp);
+					ResetMidnightTemperatures(timestamp);
 					midnightraindone = true;
 				}
 
