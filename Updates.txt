@@ -1,4 +1,4 @@
-3.20.0 - b3201
+3.20.0 - b3202
 ——————————————
 Fixed
 - Buffering of failed MySQL queries

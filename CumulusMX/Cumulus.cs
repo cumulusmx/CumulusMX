@@ -8609,6 +8609,11 @@ namespace CumulusMX
 					{
 						LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message);
 
+						if (null != ex.InnerException)
+						{
+							LogMessage($"FTP[Int]: Error connecting ftp - {ex.GetBaseException().Message}");
+						}
+
 						if ((uint)ex.HResult == 0x80004005) // Could not resolve host
 						{
 							// Disable the DNS cache for the next query
@@ -8809,7 +8814,7 @@ namespace CumulusMX
 						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
 						if (ex.InnerException != null)
 						{
-							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 						}
 						return conn.IsConnected;
 					}
@@ -8838,7 +8843,7 @@ namespace CumulusMX
 						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 						if (ex.InnerException != null)
 						{
-							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 						}
 						return conn.IsConnected;
 					}
@@ -8849,7 +8854,7 @@ namespace CumulusMX
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
 				if (ex.InnerException != null)
 				{
-					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 				}
 			}
 
@@ -9813,6 +9818,10 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage($"RealtimeFTPLogin: Error connecting ftp - {ex.Message}");
+					if (null != ex.InnerException)
+					{
+						LogMessage($"RealtimeFTPLogin: Inner Error - {ex.GetBaseException().Message}");
+					}
 					RealtimeFTP.Disconnect();
 				}
 			}
@@ -10673,7 +10682,7 @@ namespace CumulusMX
 			// If an error occurred, display the exception to the user.
 			if (e.Error != null)
 			{
-				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.InnerException.Message);
+				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.GetBaseException().Message);
 			}
 			else
 			{
@@ -10686,7 +10695,7 @@ namespace CumulusMX
 		private void CreateRequiredFolders()
 		{
 			// The required folders are: /backup, backup/daily, /data, /Reports
-			var folders = new string[4] { "backup", "backup/daily", "data", "Reports"};
+			var folders = new string[4] { "backup", "backup/daily", "data", "Reports" };
 
 			LogMessage("Checking required folders");
 
