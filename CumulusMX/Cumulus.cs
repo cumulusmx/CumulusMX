@@ -9532,7 +9532,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("CustomSqlSecs: Error - " + ex.Message);
+						LogMessage($"CustomSqlSecs[{i}]: Error - " + ex.Message);
 					}
 				}
 				customMySqlSecondsUpdateInProgress = false;
@@ -9556,12 +9556,15 @@ namespace CumulusMX
 				{
 					try
 					{
-						customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
-						await CheckMySQLFailedUploads("CustomSqlMins", customMysqlMinutesTokenParser.ToStringFromString());
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						{
+							customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", customMysqlMinutesTokenParser.ToStringFromString());
+						}
 					}
 					catch (Exception ex)
 					{
-						LogMessage("CustomSqlMins: Error - " + ex.Message);
+						LogMessage($"CustomSqlMins[{i}]: Error - " + ex.Message);
 					}
 				}
 				customMySqlMinutesUpdateInProgress = false;
@@ -9584,12 +9587,15 @@ namespace CumulusMX
 				{
 					try
 					{
-						customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
-						await CheckMySQLFailedUploads("CustomSqlRollover", customMysqlRolloverTokenParser.ToStringFromString());
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
+						{
+							customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", customMysqlRolloverTokenParser.ToStringFromString());
+						}
 					}
 					catch (Exception ex)
 					{
-						LogMessage("CustomSqlRollover: Error - " + ex.Message);
+						LogMessage($"CustomSqlRollover[{i}]: Error - " + ex.Message);
 					}
 				}
 				customMySqlRolloverUpdateInProgress = false;
