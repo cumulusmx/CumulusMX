@@ -10151,6 +10151,7 @@ namespace CumulusMX
 			await Task.Run(() =>
 			{
 				ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+				var cmdStr = "";
 
 				try
 				{
@@ -10163,7 +10164,7 @@ namespace CumulusMX
 							do
 							{
 								// Do not remove the item from the stack until we know the command worked
-								if (queue.TryPeek(out var cmdStr))
+								if (queue.TryPeek(out cmdStr))
 								{
 									using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
 									{
@@ -10201,6 +10202,12 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
+					// if debug logging is disable, then log the failing statement anyway
+					if (!DebuggingEnabled)
+					{
+						LogMessage($"{CallingFunction}: SQL = {cmdStr}");
+					}
+
 
 					MySqlUploadAlarm.LastError = ex.Message;
 					MySqlUploadAlarm.Triggered = true;
@@ -10227,10 +10234,10 @@ namespace CumulusMX
 		public void MySqlCommandSync(ConcurrentQueue<string> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+			var cmdStr = "";
 
 			try
 			{
-
 				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
 				{
 					mySqlConn.Open();
@@ -10240,7 +10247,7 @@ namespace CumulusMX
 						do
 						{
 							// Do not remove the item from the stack until we know the command worked
-							if (queue.TryPeek(out var cmdStr))
+							if (queue.TryPeek(out cmdStr))
 							{
 
 								using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
@@ -10278,8 +10285,13 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
-				LogMessage(ex.Message);
+				LogMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
+				// if debug logging is disable, then log the failing statement anyway
+				if (!DebuggingEnabled)
+				{
+					LogMessage($"{CallingFunction}: SQL = {cmdStr}");
+				}
+
 				MySqlUploadAlarm.LastError = ex.Message;
 				MySqlUploadAlarm.Triggered = true;
 
