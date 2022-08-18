@@ -1186,8 +1186,8 @@ namespace CumulusMX
 				if (h == 0 && !midnightraindone)
 				{
 					station.ResetMidnightRain(rec.Key);
-					station.ResetSunshineHours();
-					station.ResetMidnightTemperatures();
+					station.ResetSunshineHours(rec.Key);
+					station.ResetMidnightTemperatures(rec.Key);
 					midnightraindone = true;
 				}
 

@@ -47,7 +47,7 @@ namespace CumulusMX
 				comport = new SerialPort(cumulus.ComportName, 9600, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
 				comport.Open();
 
-				cumulus.CurrentActivity = "Normal running";
+				cumulus.NormalRunning = true;
 
 				LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 				DoDayResetIfNeeded();

@@ -194,7 +194,7 @@ namespace CumulusMX
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
 
-		public const int DayfileFields = 53;
+		public const int DayfileFields = 55;
 
 		public const int LogFileRetries = 3;
 
@@ -221,7 +221,7 @@ namespace CumulusMX
 		private readonly TokenParser customMysqlMinutesTokenParser = new TokenParser();
 		private readonly TokenParser customMysqlRolloverTokenParser = new TokenParser();
 
-		public string CurrentActivity = "Stopped";
+		public bool NormalRunning = false;
 
 		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
 
@@ -490,7 +490,7 @@ namespace CumulusMX
 
 		// Use thread safe queues for the MySQL command lists
 		private ConcurrentQueue<string> MySqlList = new ConcurrentQueue<string>();
-		private ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
+		public ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
 
 		// Calibration settings
 		/// <summary>
@@ -605,24 +605,24 @@ namespace CumulusMX
 		public double CPUtemp = -999;
 
 		// Alarms
-		public Alarm DataStoppedAlarm = new Alarm();
-		public Alarm BatteryLowAlarm = new Alarm();
-		public Alarm SensorAlarm = new Alarm();
-		public Alarm SpikeAlarm = new Alarm();
-		public Alarm HighWindAlarm = new Alarm();
-		public Alarm HighGustAlarm = new Alarm();
-		public Alarm HighRainRateAlarm = new Alarm();
-		public Alarm HighRainTodayAlarm = new Alarm();
-		public AlarmChange PressChangeAlarm = new AlarmChange();
-		public Alarm HighPressAlarm = new Alarm();
-		public Alarm LowPressAlarm = new Alarm();
-		public AlarmChange TempChangeAlarm = new AlarmChange();
-		public Alarm HighTempAlarm = new Alarm();
-		public Alarm LowTempAlarm = new Alarm();
-		public Alarm UpgradeAlarm = new Alarm();
-		public Alarm HttpUploadAlarm = new Alarm();
-		public Alarm MySqlUploadAlarm = new Alarm();
-		public Alarm IsRainingAlarm = new Alarm();
+		public Alarm DataStoppedAlarm = new Alarm("Data Stopped", AlarmTypes.Trigger);
+		public Alarm BatteryLowAlarm = new Alarm("Battery Low", AlarmTypes.Trigger);
+		public Alarm SensorAlarm = new Alarm("Sensor Data Stopped", AlarmTypes.Trigger);
+		public Alarm SpikeAlarm = new Alarm("Data Spike",AlarmTypes.Trigger);
+		public Alarm HighWindAlarm = new Alarm("High Wind", AlarmTypes.Above);
+		public Alarm HighGustAlarm = new Alarm("High Gust", AlarmTypes.Above);
+		public Alarm HighRainRateAlarm = new Alarm("High Rainfall Rate", AlarmTypes.Above);
+		public Alarm HighRainTodayAlarm = new Alarm("Total Rainfall Today", AlarmTypes.Above);
+		public AlarmChange PressChangeAlarm = new AlarmChange("Pressure Change");
+		public Alarm HighPressAlarm = new Alarm("High Pressure", AlarmTypes.Above);
+		public Alarm LowPressAlarm = new Alarm("Low Pressure", AlarmTypes.Below);
+		public AlarmChange TempChangeAlarm = new AlarmChange("Temperature Change");
+		public Alarm HighTempAlarm = new Alarm("High Temperature", AlarmTypes.Above);
+		public Alarm LowTempAlarm = new Alarm("Low Temperature", AlarmTypes.Below);
+		public Alarm UpgradeAlarm = new Alarm("Upgrade Available", AlarmTypes.Trigger);
+		public Alarm HttpUploadAlarm = new Alarm("HTTP Uploads", AlarmTypes.Trigger);
+		public Alarm MySqlUploadAlarm = new Alarm("MySQL Uploads", AlarmTypes.Trigger);
+		public Alarm IsRainingAlarm = new Alarm("IsRaining", AlarmTypes.Trigger);
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
@@ -675,7 +675,7 @@ namespace CumulusMX
 		private readonly TokenParser customHttpSecondsTokenParser = new TokenParser();
 		internal Timer CustomHttpSecondsTimer;
 		internal bool CustomHttpSecondsEnabled;
-		internal string CustomHttpSecondsString;
+		internal string[] CustomHttpSecondsStrings = new string[10];
 		internal int CustomHttpSecondsInterval;
 
 		// Custom HTTP - minutes
@@ -684,7 +684,7 @@ namespace CumulusMX
 		private bool updatingCustomHttpMinutes;
 		private readonly TokenParser customHttpMinutesTokenParser = new TokenParser();
 		internal bool CustomHttpMinutesEnabled;
-		internal string CustomHttpMinutesString;
+		internal string[] CustomHttpMinutesStrings = new string[10];
 		internal int CustomHttpMinutesInterval;
 		internal int CustomHttpMinutesIntervalIndex;
 
@@ -694,7 +694,7 @@ namespace CumulusMX
 		private bool updatingCustomHttpRollover;
 		private readonly TokenParser customHttpRolloverTokenParser = new TokenParser();
 		internal bool CustomHttpRolloverEnabled;
-		internal string CustomHttpRolloverString;
+		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		public Thread ftpThread;
 		public Thread MySqlCatchupThread;
@@ -710,13 +710,9 @@ namespace CumulusMX
 
 		private int RealtimeMySqlLastMinute = -1;
 
-		public string StartOfMonthlyInsertSQL;
-		public string StartOfDayfileInsertSQL;
-		public string StartOfRealtimeInsertSQL;
-
-		public string CreateMonthlySQL;
-		public string CreateDayfileSQL;
-		public string CreateRealtimeSQL;
+		internal MySqlTable RealtimeTable;
+		internal MySqlTable MonthlyTable;
+		internal MySqlTable DayfileTable;
 
 		public int CustomMySqlMinutesIntervalIndex;
 
@@ -1318,30 +1314,14 @@ namespace CumulusMX
 			TempTrendFormat = "+0.0;-0.0;0";
 			AirQualityFormat = "F" + AirQualityDPlaces;
 
-			SetMonthlySqlCreateString();
 
-			SetDayfileSqlCreateString();
-
-			SetRealtimeSqlCreateString();
+			SetupRealtimeMySqlTable();
+			SetupMonthlyMySqlTable();
+			SetupDayfileMySqlTable();
 
 			ReadStringsFile();
 
 			SetUpHttpProxy();
-
-			if (MySqlSettings.Monthly.Enabled)
-			{
-				SetStartOfMonthlyInsertSQL();
-			}
-
-			if (MySqlSettings.Dayfile.Enabled)
-			{
-				SetStartOfDayfileInsertSQL();
-			}
-
-			if (MySqlSettings.Realtime.Enabled)
-			{
-				SetStartOfRealtimeInsertSQL();
-			}
 
 
 			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
@@ -1442,6 +1422,7 @@ namespace CumulusMX
 					.WithController<Api.ExtraDataController>()
 					.WithController<Api.SettingsController>()
 					.WithController<Api.ReportsController>()
+					.WithController<Api.UtilsController>()
 				)
 				.WithWebApi("/station", m => m
 					.WithController<Api.HttpStation>()
@@ -1745,103 +1726,173 @@ namespace CumulusMX
 				CustomHttpSecondsUpdate();
 		}
 
-		internal void SetStartOfRealtimeInsertSQL()
+
+		internal void SetupRealtimeMySqlTable()
 		{
-			StartOfRealtimeInsertSQL = "INSERT IGNORE INTO " + MySqlSettings.Realtime.TableName + " (" +
-				"LogDateTime,temp,hum,dew,wspeed,wlatest,bearing,rrate,rfall,press," +
-				"currentwdir,beaufortnumber,windunit,tempunitnodeg,pressunit,rainunit," +
-				"windrun,presstrendval,rmonth,ryear,rfallY,intemp,inhum,wchill,temptrend," +
-				"tempTH,TtempTH,tempTL,TtempTL,windTM,TwindTM,wgustTM,TwgustTM," +
-				"pressTH,TpressTH,pressTL,TpressTL,version,build,wgust,heatindex,humidex," +
-				"UV,ET,SolarRad,avgbearing,rhour,forecastnumber,isdaylight,SensorContactLost," +
-				"wdir,cloudbasevalue,cloudbaseunit,apptemp,SunshineHours,CurrentSolarMax,IsSunny," +
-				"FeelsLike)";
+			RealtimeTable = new MySqlTable(MySqlSettings.Realtime.TableName);
+			RealtimeTable.AddColumn("LogDateTime", "DATETIME NOT NULL");
+			RealtimeTable.AddColumn("temp", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("hum", "decimal(4," + HumDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("dew", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("wspeed", "decimal(4," + WindDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("wlatest", "decimal(4," + WindDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("bearing", "VARCHAR(3) NOT NULL");
+			RealtimeTable.AddColumn("rrate", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("rfall", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("press", "decimal(6," + PressDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("currentwdir", "VARCHAR(3) NOT NULL");
+			RealtimeTable.AddColumn("beaufortnumber", "varchar(2) NOT NULL");
+			RealtimeTable.AddColumn("windunit", "varchar(4) NOT NULL");
+			RealtimeTable.AddColumn("tempunitnodeg", "varchar(1) NOT NULL");
+			RealtimeTable.AddColumn("pressunit", "varchar(3) NOT NULL");
+			RealtimeTable.AddColumn("rainunit", "varchar(2) NOT NULL");
+			RealtimeTable.AddColumn("windrun", "decimal(4," + WindRunDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("presstrendval", "varchar(6) NOT NULL");
+			RealtimeTable.AddColumn("rmonth", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("ryear", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("rfallY", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("intemp", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("inhum", "decimal(4," + HumDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("wchill", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("temptrend", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("tempTH", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("TtempTH", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("tempTL", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("TtempTL", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("windTM", "decimal(4," + WindDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("TwindTM", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("wgustTM", "decimal(4," + WindDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("TwgustTM", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("pressTH", "decimal(6," + PressDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("TpressTH", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("pressTL", "decimal(6," + PressDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("TpressTL", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("version", "varchar(8) NOT NULL");
+			RealtimeTable.AddColumn("build", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("wgust", "decimal(4," + WindDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("heatindex", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("humidex", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("UV", "decimal(3," + UVDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("ET", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("SolarRad", "decimal(5,1) NOT NULL");
+			RealtimeTable.AddColumn("avgbearing", "varchar(3) NOT NULL");
+			RealtimeTable.AddColumn("rhour", "decimal(4," + RainDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("forecastnumber", "varchar(2) NOT NULL");
+			RealtimeTable.AddColumn("isdaylight", "varchar(1) NOT NULL");
+			RealtimeTable.AddColumn("SensorContactLost", "varchar(1) NOT NULL");
+			RealtimeTable.AddColumn("wdir", "varchar(3) NOT NULL");
+			RealtimeTable.AddColumn("cloudbasevalue", "varchar(5) NOT NULL");
+			RealtimeTable.AddColumn("cloudbaseunit", "varchar(2) NOT NULL");
+			RealtimeTable.AddColumn("apptemp", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("SunshineHours", "decimal(3," + SunshineDPlaces + ") NOT NULL");
+			RealtimeTable.AddColumn("CurrentSolarMax", "decimal(5,1) NOT NULL");
+			RealtimeTable.AddColumn("IsSunny", "varchar(1) NOT NULL");
+			RealtimeTable.AddColumn("FeelsLike", "decimal(4," + TempDPlaces + ") NOT NULL");
+			RealtimeTable.PrimaryKey = "LogDateTime";
+			RealtimeTable.Comment = "\"Realtime log\"";
 		}
 
-		internal void SetRealtimeSqlCreateString()
+		internal void SetupMonthlyMySqlTable()
 		{
-			CreateRealtimeSQL = "CREATE TABLE " + MySqlSettings.Realtime.TableName + " (LogDateTime DATETIME NOT NULL," +
-				"temp decimal(4," + TempDPlaces + ") NOT NULL," +
-				"hum decimal(4," + HumDPlaces + ") NOT NULL," +
-				"dew decimal(4," + TempDPlaces + ") NOT NULL," +
-				"wspeed decimal(4," + WindDPlaces + ") NOT NULL," +
-				"wlatest decimal(4," + WindDPlaces + ") NOT NULL," +
-				"bearing VARCHAR(3) NOT NULL," +
-				"rrate decimal(4," + RainDPlaces + ") NOT NULL," +
-				"rfall decimal(4," + RainDPlaces + ") NOT NULL," +
-				"press decimal(6," + PressDPlaces + ") NOT NULL," +
-				"currentwdir varchar(3) NOT NULL," +
-				"beaufortnumber varchar(2) NOT NULL," +
-				"windunit varchar(4) NOT NULL," +
-				"tempunitnodeg varchar(1) NOT NULL," +
-				"pressunit varchar(3) NOT NULL," +
-				"rainunit varchar(2) NOT NULL," +
-				"windrun decimal(4," + WindRunDPlaces + ") NOT NULL," +
-				"presstrendval varchar(6) NOT NULL," +
-				"rmonth decimal(4," + RainDPlaces + ") NOT NULL," +
-				"ryear decimal(4," + RainDPlaces + ") NOT NULL," +
-				"rfallY decimal(4," + RainDPlaces + ") NOT NULL," +
-				"intemp decimal(4," + TempDPlaces + ") NOT NULL," +
-				"inhum decimal(4," + HumDPlaces + ") NOT NULL," +
-				"wchill decimal(4," + TempDPlaces + ") NOT NULL," +
-				"temptrend varchar(5) NOT NULL," +
-				"tempTH decimal(4," + TempDPlaces + ") NOT NULL," +
-				"TtempTH varchar(5) NOT NULL," +
-				"tempTL decimal(4," + TempDPlaces + ") NOT NULL," +
-				"TtempTL varchar(5) NOT NULL," +
-				"windTM decimal(4," + WindDPlaces + ") NOT NULL," +
-				"TwindTM varchar(5) NOT NULL," +
-				"wgustTM decimal(4," + WindDPlaces + ") NOT NULL," +
-				"TwgustTM varchar(5) NOT NULL," +
-				"pressTH decimal(6," + PressDPlaces + ") NOT NULL," +
-				"TpressTH varchar(5) NOT NULL," +
-				"pressTL decimal(6," + PressDPlaces + ") NOT NULL," +
-				"TpressTL varchar(5) NOT NULL," +
-				"version varchar(8) NOT NULL," +
-				"build varchar(5) NOT NULL," +
-				"wgust decimal(4," + WindDPlaces + ") NOT NULL," +
-				"heatindex decimal(4," + TempDPlaces + ") NOT NULL," +
-				"humidex decimal(4," + TempDPlaces + ") NOT NULL," +
-				"UV decimal(3," + UVDPlaces + ") NOT NULL," +
-				"ET decimal(4," + RainDPlaces + ") NOT NULL," +
-				"SolarRad decimal(5,1) NOT NULL," +
-				"avgbearing varchar(3) NOT NULL," +
-				"rhour decimal(4," + RainDPlaces + ") NOT NULL," +
-				"forecastnumber varchar(2) NOT NULL," +
-				"isdaylight varchar(1) NOT NULL," +
-				"SensorContactLost varchar(1) NOT NULL," +
-				"wdir varchar(3) NOT NULL," +
-				"cloudbasevalue varchar(5) NOT NULL," +
-				"cloudbaseunit varchar(2) NOT NULL," +
-				"apptemp decimal(4," + TempDPlaces + ") NOT NULL," +
-				"SunshineHours decimal(3," + SunshineDPlaces + ") NOT NULL," +
-				"CurrentSolarMax decimal(5,1) NOT NULL," +
-				"IsSunny varchar(1) NOT NULL," +
-				"FeelsLike decimal(4," + TempDPlaces + ") NOT NULL," +
-				"PRIMARY KEY (LogDateTime)) COMMENT = \"Realtime log\"";
+			MonthlyTable = new MySqlTable(MySqlSettings.Monthly.TableName);
+			MonthlyTable.AddColumn("LogDateTime", "DATETIME NOT NULL");
+			MonthlyTable.AddColumn("Temp", "decimal(4," + TempDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Humidity", "decimal(4," + HumDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Dewpoint", "decimal(4," + TempDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Windspeed", "decimal(4," + WindAvgDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Windgust", "decimal(4," + WindDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Windbearing", "VARCHAR(3) NOT NULL");
+			MonthlyTable.AddColumn("RainRate", "decimal(4," + RainDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("TodayRainSoFar", "decimal(4," + RainDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Pressure", "decimal(6," + PressDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("Raincounter", "decimal(6," + RainDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("InsideTemp", "decimal(4," + TempDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("InsideHumidity", "decimal(4," + HumDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("LatestWindGust", "decimal(5," + WindDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("WindChill", "decimal(4," + TempDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("HeatIndex", "decimal(4," + TempDPlaces + ") NOT NULL");
+			MonthlyTable.AddColumn("UVindex", "decimal(4," + UVDPlaces + ")");
+			MonthlyTable.AddColumn("SolarRad", "decimal(5,1)");
+			MonthlyTable.AddColumn("Evapotrans", "decimal(4," + RainDPlaces + ")");
+			MonthlyTable.AddColumn("AnnualEvapTran", "decimal(5," + RainDPlaces + ")");
+			MonthlyTable.AddColumn("ApparentTemp", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.AddColumn("MaxSolarRad", "decimal(5,1)");
+			MonthlyTable.AddColumn("HrsSunShine", "decimal(3," + SunshineDPlaces + ")");
+			MonthlyTable.AddColumn("CurrWindBearing", "varchar(3)");
+			MonthlyTable.AddColumn("RG11rain", "decimal(4," + RainDPlaces + ")");
+			MonthlyTable.AddColumn("RainSinceMidnight", "decimal(4," + RainDPlaces + ")");
+			MonthlyTable.AddColumn("WindbearingSym", "varchar(3)");
+			MonthlyTable.AddColumn("CurrWindBearingSym", "varchar(3)");
+			MonthlyTable.AddColumn("FeelsLike", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.AddColumn("Humidex", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.PrimaryKey = "LogDateTime";
+			MonthlyTable.Comment = "\"Monthly logs from Cumulus\"";
 		}
 
-		internal void SetStartOfDayfileInsertSQL()
+		internal void SetupDayfileMySqlTable()
 		{
-			StartOfDayfileInsertSQL = "INSERT IGNORE INTO " + MySqlSettings.Dayfile.TableName + " (" +
-				"LogDate,HighWindGust,HWindGBear,THWindG,MinTemp,TMinTemp,MaxTemp,TMaxTemp," +
-				"MinPress,TMinPress,MaxPress,TMaxPress,MaxRainRate,TMaxRR,TotRainFall,AvgTemp," +
-				"TotWindRun,HighAvgWSpeed,THAvgWSpeed,LowHum,TLowHum,HighHum,THighHum,TotalEvap," +
-				"HoursSun,HighHeatInd,THighHeatInd,HighAppTemp,THighAppTemp,LowAppTemp,TLowAppTemp," +
-				"HighHourRain,THighHourRain,LowWindChill,TLowWindChill,HighDewPoint,THighDewPoint," +
-				"LowDewPoint,TLowDewPoint,DomWindDir,HeatDegDays,CoolDegDays,HighSolarRad," +
-				"THighSolarRad,HighUV,THighUV,HWindGBearSym,DomWindDirSym," +
-				"MaxFeelsLike,TMaxFeelsLike,MinFeelsLike,TMinFeelsLike,MaxHumidex,TMaxHumidex)";
+			DayfileTable = new MySqlTable(MySqlSettings.Dayfile.TableName);
+			DayfileTable.AddColumn("LogDate", "date NOT NULL");
+			DayfileTable.AddColumn("HighWindGust", "decimal(4," + WindDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("HWindGBear", "varchar(3) NOT NULL");
+			DayfileTable.AddColumn("THWindG", "varchar(5) NOT NULL");
+			DayfileTable.AddColumn("MinTemp", "decimal(5," + TempDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("TMinTemp", "varchar(5) NOT NULL");
+			DayfileTable.AddColumn("MaxTemp", "decimal(5," + TempDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("TMaxTemp", "varchar(5) NOT NULL");
+			DayfileTable.AddColumn("MinPress", "decimal(6," + PressDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("TMinPress", "varchar(5) NOT NULL");
+			DayfileTable.AddColumn("MaxPress", "decimal(6," + PressDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("TMaxPress", "varchar(5) NOT NULL");
+			DayfileTable.AddColumn("MaxRainRate", "decimal(4," + RainDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("TMaxRR", "varchar(5) NOT NULL");
+			DayfileTable.AddColumn("TotRainFall", "decimal(6," + RainDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("AvgTemp", "decimal(5," + TempDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("TotWindRun", "decimal(5," + WindRunDPlaces + ") NOT NULL");
+			DayfileTable.AddColumn("HighAvgWSpeed", "decimal(3," + WindAvgDPlaces + ")");
+			DayfileTable.AddColumn("THAvgWSpeed", "varchar(5)");
+			DayfileTable.AddColumn("LowHum", "decimal(4," + HumDPlaces + ")");
+			DayfileTable.AddColumn("TLowHum", "varchar(5)");
+			DayfileTable.AddColumn("HighHum", "decimal(4," + HumDPlaces + ")");
+			DayfileTable.AddColumn("THighHum", "varchar(5)");
+			DayfileTable.AddColumn("TotalEvap", "decimal(5," + RainDPlaces + ")");
+			DayfileTable.AddColumn("HoursSun", "decimal(3," + SunshineDPlaces + ")");
+			DayfileTable.AddColumn("HighHeatInd", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighHeatInd", "varchar(5)");
+			DayfileTable.AddColumn("HighAppTemp", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighAppTemp", "varchar(5)");
+			DayfileTable.AddColumn("LowAppTemp", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("TLowAppTemp", "varchar(5)");
+			DayfileTable.AddColumn("HighHourRain", "decimal(4," + RainDPlaces + ")");
+			DayfileTable.AddColumn("THighHourRain", "varchar(5)");
+			DayfileTable.AddColumn("LowWindChill", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("TLowWindChill", "varchar(5)");
+			DayfileTable.AddColumn("HighDewPoint", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighDewPoint", "varchar(5)");
+			DayfileTable.AddColumn("LowDewPoint", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("TLowDewPoint", "varchar(5)");
+			DayfileTable.AddColumn("DomWindDir", "varchar(3)");
+			DayfileTable.AddColumn("HeatDegDays", "decimal(4,1)");
+			DayfileTable.AddColumn("CoolDegDays", "decimal(4,1)");
+			DayfileTable.AddColumn("HighSolarRad", "decimal(5,1)");
+			DayfileTable.AddColumn("THighSolarRad", "varchar(5)");
+			DayfileTable.AddColumn("HighUV", "decimal(3," + UVDPlaces + ")");
+			DayfileTable.AddColumn("THighUV", "varchar(5)");
+			DayfileTable.AddColumn("HWindGBearSym", "varchar(3)");
+			DayfileTable.AddColumn("DomWindDirSym", "varchar(3)");
+			DayfileTable.AddColumn("MaxFeelsLike", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("TMaxFeelsLike", "varchar(5)");
+			DayfileTable.AddColumn("MinFeelsLike", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("TMinFeelsLike", "varchar(5)");
+			DayfileTable.AddColumn("MaxHumidex", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("TMaxHumidex", "varchar(5)");
+			DayfileTable.AddColumn("ChillHours", "decimal(7," + TempDPlaces + ")");
+			DayfileTable.AddColumn("HighRain24h", "decimal(6," + RainDPlaces + ")");
+			DayfileTable.AddColumn("THighRain24h", "varchar(5)");
+			DayfileTable.PrimaryKey = "LogDate";
+			DayfileTable.Comment = "\"Dayfile from Cumulus\"";
 		}
 
-		internal void SetStartOfMonthlyInsertSQL()
-		{
-			StartOfMonthlyInsertSQL = "INSERT IGNORE INTO " + MySqlSettings.Monthly.TableName + " (" +
-				"LogDateTime,Temp,Humidity,Dewpoint,Windspeed,Windgust,Windbearing,RainRate,TodayRainSoFar," +
-				"Pressure,Raincounter,InsideTemp,InsideHumidity,LatestWindGust,WindChill,HeatIndex,UVindex," +
-				"SolarRad,Evapotrans,AnnualEvapTran,ApparentTemp,MaxSolarRad,HrsSunShine,CurrWindBearing," +
-				"RG11rain,RainSinceMidnight,WindbearingSym,CurrWindBearingSym,FeelsLike,Humidex)";
-		}
 
 		internal void SetupUnitText()
 		{
@@ -2858,7 +2909,14 @@ namespace CumulusMX
 							}
 							else
 							{
-								RealtimeFTP.Connect();
+								if (FtpOptions.AutoDetect)
+								{
+									RealtimeFTP.AutoConnect();
+								}
+								else
+								{
+									RealtimeFTP.Connect();
+								}
 								connected = RealtimeFTP.IsConnected;
 							}
 							LogMessage("RealtimeReconnect: Reconnected with server (we think)");
@@ -3809,6 +3867,8 @@ namespace CumulusMX
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
+			ProgramOptions.DataStoppedExit = ini.GetValue("Program", "DataStoppedExit", false);
+			ProgramOptions.DataStoppedMins = ini.GetValue("Program", "DataStoppedMins", 10);
 			ProgramOptions.Culture.RemoveSpaceFromDateSeparator = ini.GetValue("Culture", "RemoveSpaceFromDateSeparator", false);
 			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
@@ -4295,6 +4355,8 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 
+			FtpOptions.AutoDetect = ini.GetValue("FTP site", "ConnectionAutoDetect", false);
+			FtpOptions.IgnoreCertErrors = ini.GetValue("FTP site", "IgnoreCertErrors", false);
 			FtpOptions.ActiveMode = ini.GetValue("FTP site", "ActiveFTP", false);
 			FtpOptions.FtpMode = (FtpProtocols)ini.GetValue("FTP site", "Sslftp", 0);
 			// BUILD 3092 - added alternate SFTP authentication options
@@ -4632,6 +4694,8 @@ namespace CumulusMX
 			LowTempAlarm.Email = ini.GetValue("Alarms", "LowTempAlarmEmail", false);
 			LowTempAlarm.Latch = ini.GetValue("Alarms", "LowTempAlarmLatch", false);
 			LowTempAlarm.LatchHours = ini.GetValue("Alarms", "LowTempAlarmLatchHours", 24);
+			LowTempAlarm.Action = ini.GetValue("Alarms", "LowTempAlarmAction", "");
+			LowTempAlarm.ActionParams = ini.GetValue("Alarms", "LowTempAlarmActionParams", "");
 
 			HighTempAlarm.Value = ini.GetValue("Alarms", "alarmhightemp", 0.0);
 			HighTempAlarm.Enabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
@@ -4646,6 +4710,8 @@ namespace CumulusMX
 			HighTempAlarm.Email = ini.GetValue("Alarms", "HighTempAlarmEmail", false);
 			HighTempAlarm.Latch = ini.GetValue("Alarms", "HighTempAlarmLatch", false);
 			HighTempAlarm.LatchHours = ini.GetValue("Alarms", "HighTempAlarmLatchHours", 24);
+			HighTempAlarm.Action = ini.GetValue("Alarms", "HighTempAlarmAction", "");
+			HighTempAlarm.ActionParams = ini.GetValue("Alarms", "HighTempAlarmActionParams", "");
 
 			TempChangeAlarm.Value = ini.GetValue("Alarms", "alarmtempchange", 0.0);
 			TempChangeAlarm.Enabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
@@ -4660,6 +4726,8 @@ namespace CumulusMX
 			TempChangeAlarm.Email = ini.GetValue("Alarms", "TempChangeAlarmEmail", false);
 			TempChangeAlarm.Latch = ini.GetValue("Alarms", "TempChangeAlarmLatch", false);
 			TempChangeAlarm.LatchHours = ini.GetValue("Alarms", "TempChangeAlarmLatchHours", 24);
+			TempChangeAlarm.Action = ini.GetValue("Alarms", "TempChangeAlarmAction", "");
+			TempChangeAlarm.ActionParams = ini.GetValue("Alarms", "TempChangeAlarmActionParams", "");
 
 			LowPressAlarm.Value = ini.GetValue("Alarms", "alarmlowpress", 0.0);
 			LowPressAlarm.Enabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
@@ -4674,6 +4742,8 @@ namespace CumulusMX
 			LowPressAlarm.Email = ini.GetValue("Alarms", "LowPressAlarmEmail", false);
 			LowPressAlarm.Latch = ini.GetValue("Alarms", "LowPressAlarmLatch", false);
 			LowPressAlarm.LatchHours = ini.GetValue("Alarms", "LowPressAlarmLatchHours", 24);
+			LowPressAlarm.Action = ini.GetValue("Alarms", "LowPressAlarmAction", "");
+			LowPressAlarm.ActionParams = ini.GetValue("Alarms", "LowPressAlarmActionParams", "");
 
 			HighPressAlarm.Value = ini.GetValue("Alarms", "alarmhighpress", 0.0);
 			HighPressAlarm.Enabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
@@ -4688,6 +4758,8 @@ namespace CumulusMX
 			HighPressAlarm.Email = ini.GetValue("Alarms", "HighPressAlarmEmail", false);
 			HighPressAlarm.Latch = ini.GetValue("Alarms", "HighPressAlarmLatch", false);
 			HighPressAlarm.LatchHours = ini.GetValue("Alarms", "HighPressAlarmLatchHours", 24);
+			HighPressAlarm.Action = ini.GetValue("Alarms", "HighPressAlarmAction", "");
+			HighPressAlarm.ActionParams = ini.GetValue("Alarms", "HighPressAlarmActionParams", "");
 
 			PressChangeAlarm.Value = ini.GetValue("Alarms", "alarmpresschange", 0.0);
 			PressChangeAlarm.Enabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
@@ -4702,6 +4774,8 @@ namespace CumulusMX
 			PressChangeAlarm.Email = ini.GetValue("Alarms", "PressChangeAlarmEmail", false);
 			PressChangeAlarm.Latch = ini.GetValue("Alarms", "PressChangeAlarmLatch", false);
 			PressChangeAlarm.LatchHours = ini.GetValue("Alarms", "PressChangeAlarmLatchHours", 24);
+			PressChangeAlarm.Action = ini.GetValue("Alarms", "PressChangeAlarmAction", "");
+			PressChangeAlarm.ActionParams = ini.GetValue("Alarms", "PressChangeAlarmActionParams", "");
 
 			HighRainTodayAlarm.Value = ini.GetValue("Alarms", "alarmhighraintoday", 0.0);
 			HighRainTodayAlarm.Enabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
@@ -4716,6 +4790,8 @@ namespace CumulusMX
 			HighRainTodayAlarm.Email = ini.GetValue("Alarms", "HighRainTodayAlarmEmail", false);
 			HighRainTodayAlarm.Latch = ini.GetValue("Alarms", "HighRainTodayAlarmLatch", false);
 			HighRainTodayAlarm.LatchHours = ini.GetValue("Alarms", "HighRainTodayAlarmLatchHours", 24);
+			HighRainTodayAlarm.Action = ini.GetValue("Alarms", "HighRainTodayAlarmAction", "");
+			HighRainTodayAlarm.ActionParams = ini.GetValue("Alarms", "HighRainTodayAlarmActionParams", "");
 
 			HighRainRateAlarm.Value = ini.GetValue("Alarms", "alarmhighrainrate", 0.0);
 			HighRainRateAlarm.Enabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
@@ -4730,6 +4806,8 @@ namespace CumulusMX
 			HighRainRateAlarm.Email = ini.GetValue("Alarms", "HighRainRateAlarmEmail", false);
 			HighRainRateAlarm.Latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
 			HighRainRateAlarm.LatchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24);
+			HighRainRateAlarm.Action = ini.GetValue("Alarms", "HighRainRateAlarmAction", "");
+			HighRainRateAlarm.ActionParams = ini.GetValue("Alarms", "HighRainRateAlarmActionParams", "");
 
 			IsRainingAlarm.Enabled = ini.GetValue("Alarms", "IsRainingAlarmSet", false);
 			IsRainingAlarm.Sound = ini.GetValue("Alarms", "IsRainingAlarmSound", false);
@@ -4738,6 +4816,8 @@ namespace CumulusMX
 			IsRainingAlarm.Email = ini.GetValue("Alarms", "IsRainingAlarmEmail", false);
 			IsRainingAlarm.Latch = ini.GetValue("Alarms", "IsRainingAlarmLatch", false);
 			IsRainingAlarm.LatchHours = ini.GetValue("Alarms", "IsRainingAlarmLatchHours", 1);
+			IsRainingAlarm.Action = ini.GetValue("Alarms", "IsRainingAlarmAction", "");
+			IsRainingAlarm.ActionParams = ini.GetValue("Alarms", "IsRainingAlarmActionParams", "");
 
 			HighGustAlarm.Value = ini.GetValue("Alarms", "alarmhighgust", 0.0);
 			HighGustAlarm.Enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
@@ -4752,6 +4832,8 @@ namespace CumulusMX
 			HighGustAlarm.Email = ini.GetValue("Alarms", "HighGustAlarmEmail", false);
 			HighGustAlarm.Latch = ini.GetValue("Alarms", "HighGustAlarmLatch", false);
 			HighGustAlarm.LatchHours = ini.GetValue("Alarms", "HighGustAlarmLatchHours", 24);
+			HighGustAlarm.Action = ini.GetValue("Alarms", "HighGustAlarmAction", "");
+			HighGustAlarm.ActionParams = ini.GetValue("Alarms", "HighGustAlarmActionParams", "");
 
 			HighWindAlarm.Value = ini.GetValue("Alarms", "alarmhighwind", 0.0);
 			HighWindAlarm.Enabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
@@ -4766,6 +4848,8 @@ namespace CumulusMX
 			HighWindAlarm.Email = ini.GetValue("Alarms", "HighWindAlarmEmail", false);
 			HighWindAlarm.Latch = ini.GetValue("Alarms", "HighWindAlarmLatch", false);
 			HighWindAlarm.LatchHours = ini.GetValue("Alarms", "HighWindAlarmLatchHours", 24);
+			HighWindAlarm.Action = ini.GetValue("Alarms", "HighWindAlarmAction", "");
+			HighWindAlarm.ActionParams = ini.GetValue("Alarms", "HighWindAlarmActionParams", "");
 
 			SensorAlarm.Enabled = ini.GetValue("Alarms", "SensorAlarmSet", true);
 			SensorAlarm.Sound = ini.GetValue("Alarms", "SensorAlarmSound", false);
@@ -4780,6 +4864,8 @@ namespace CumulusMX
 			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", true);
 			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 1);
 			SensorAlarm.TriggerThreshold = ini.GetValue("Alarms", "SensorAlarmTriggerCount", 2);
+			SensorAlarm.Action = ini.GetValue("Alarms", "SensorAlarmAction", "");
+			SensorAlarm.ActionParams = ini.GetValue("Alarms", "SensorAlarmActionParams", "");
 
 			DataStoppedAlarm.Enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", true);
 			DataStoppedAlarm.Sound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
@@ -4794,6 +4880,8 @@ namespace CumulusMX
 			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", true);
 			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 1);
 			DataStoppedAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataStoppedAlarmTriggerCount", 2);
+			DataStoppedAlarm.Action = ini.GetValue("Alarms", "DataStoppedAlarmAction", "");
+			DataStoppedAlarm.ActionParams = ini.GetValue("Alarms", "DataStoppedAlarmActionParams", "");
 
 			// Alarms below here were created after the change in default sound file, so no check required
 			BatteryLowAlarm.Enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
@@ -4804,6 +4892,8 @@ namespace CumulusMX
 			BatteryLowAlarm.Latch = ini.GetValue("Alarms", "BatteryLowAlarmLatch", false);
 			BatteryLowAlarm.LatchHours = ini.GetValue("Alarms", "BatteryLowAlarmLatchHours", 24);
 			BatteryLowAlarm.TriggerThreshold = ini.GetValue("Alarms", "BatteryLowAlarmTriggerCount", 1);
+			BatteryLowAlarm.Action = ini.GetValue("Alarms", "BatteryLowAlarmAction", "");
+			BatteryLowAlarm.ActionParams = ini.GetValue("Alarms", "BatteryLowAlarmActionParams", "");
 
 			SpikeAlarm.Enabled = ini.GetValue("Alarms", "DataSpikeAlarmSet", false);
 			SpikeAlarm.Sound = ini.GetValue("Alarms", "DataSpikeAlarmSound", false);
@@ -4813,6 +4903,8 @@ namespace CumulusMX
 			SpikeAlarm.Latch = ini.GetValue("Alarms", "DataSpikeAlarmLatch", true);
 			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "DataSpikeAlarmLatchHours", 24);
 			SpikeAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataSpikeAlarmTriggerCount", 1);
+			SpikeAlarm.Action = ini.GetValue("Alarms", "DataSpikeAlarmAction", "");
+			SpikeAlarm.ActionParams = ini.GetValue("Alarms", "DataSpikeAlarmActionParams", "");
 
 			UpgradeAlarm.Enabled = ini.GetValue("Alarms", "UpgradeAlarmSet", true);
 			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", false);
@@ -4821,6 +4913,8 @@ namespace CumulusMX
 			UpgradeAlarm.Email = ini.GetValue("Alarms", "UpgradeAlarmEmail", false);
 			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
 			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24);
+			UpgradeAlarm.Action = ini.GetValue("Alarms", "UpgradeAlarmAction", "");
+			UpgradeAlarm.ActionParams = ini.GetValue("Alarms", "UpgradeAlarmActionParams", "");
 
 			HttpUploadAlarm.Enabled = ini.GetValue("Alarms", "HttpUploadAlarmSet", false);
 			HttpUploadAlarm.Sound = ini.GetValue("Alarms", "HttpUploadAlarmSound", false);
@@ -4830,6 +4924,8 @@ namespace CumulusMX
 			HttpUploadAlarm.Latch = ini.GetValue("Alarms", "HttpUploadAlarmLatch", false);
 			HttpUploadAlarm.LatchHours = ini.GetValue("Alarms", "HttpUploadAlarmLatchHours", 24);
 			HttpUploadAlarm.TriggerThreshold = ini.GetValue("Alarms", "HttpUploadAlarmTriggerCount", 1);
+			HttpUploadAlarm.Action = ini.GetValue("Alarms", "HttpUploadAlarmAction", "");
+			HttpUploadAlarm.ActionParams = ini.GetValue("Alarms", "HttpUploadAlarmActionParams", "");
 
 			MySqlUploadAlarm.Enabled = ini.GetValue("Alarms", "MySqlUploadAlarmSet", false);
 			MySqlUploadAlarm.Sound = ini.GetValue("Alarms", "MySqlUploadAlarmSound", false);
@@ -4839,6 +4935,8 @@ namespace CumulusMX
 			MySqlUploadAlarm.Latch = ini.GetValue("Alarms", "MySqlUploadAlarmLatch", false);
 			MySqlUploadAlarm.LatchHours = ini.GetValue("Alarms", "MySqlUploadAlarmLatchHours", 24);
 			MySqlUploadAlarm.TriggerThreshold = ini.GetValue("Alarms", "MySqlUploadAlarmTriggerCount", 1);
+			MySqlUploadAlarm.Action = ini.GetValue("Alarms", "MySqlUploadAlarmAction", "");
+			MySqlUploadAlarm.ActionParams = ini.GetValue("Alarms", "MySqlUploadAlarmActionParams", "");
 
 
 			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", "");
@@ -5056,13 +5154,27 @@ namespace CumulusMX
 																																	 // MySQL - dayfile
 			MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
 			MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
+			
 			// MySQL - custom seconds
-			MySqlSettings.CustomSecs.Command = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", "");
+			MySqlSettings.CustomSecs.Commands[0] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomMySqlSecondsCommandString" + i))
+					MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("HTTP", "CustomMySqlSecondsCommandString" + i, "");
+			}
+
 			MySqlSettings.CustomSecs.Enabled = ini.GetValue("MySQL", "CustomMySqlSecondsEnabled", false);
 			MySqlSettings.CustomSecs.Interval = ini.GetValue("MySQL", "CustomMySqlSecondsInterval", 10);
 			if (MySqlSettings.CustomSecs.Interval < 1) { MySqlSettings.CustomSecs.Interval = 1; }
+
 			// MySQL - custom minutes
-			MySqlSettings.CustomMins.Command = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
+			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomMySqlMinutesCommandString" + i))
+					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("HTTP", "CustomMySqlMinutesCommandString" + i, "");
+			}
+
 			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
 			CustomMySqlMinutesIntervalIndex = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", -1);
 			if (CustomMySqlMinutesIntervalIndex >= 0 && CustomMySqlMinutesIntervalIndex < FactorsOf60.Length)
@@ -5076,16 +5188,35 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 			// MySQL - custom roll-over
-			MySqlSettings.CustomRollover.Command = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
+			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomMySqlRolloverCommandString" + i))
+					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("HTTP", "CustomMySqlRolloverCommandString" + i, "");
+			}
+
 			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 
 			// Custom HTTP - seconds
-			CustomHttpSecondsString = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
+			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomHttpSecondsString" + i))
+					CustomHttpSecondsStrings[i] = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, "");
+			}
+
 			CustomHttpSecondsEnabled = ini.GetValue("HTTP", "CustomHttpSecondsEnabled", false);
 			CustomHttpSecondsInterval = ini.GetValue("HTTP", "CustomHttpSecondsInterval", 10);
 			if (CustomHttpSecondsInterval < 1) { CustomHttpSecondsInterval = 1; }
+			
 			// Custom HTTP - minutes
-			CustomHttpMinutesString = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
+			CustomHttpMinutesStrings[0] = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomHttpMinutesString" + i))
+					CustomHttpMinutesStrings[i] = ini.GetValue("HTTP", "CustomHttpMinutesString" + i, "");
+			}
+
 			CustomHttpMinutesEnabled = ini.GetValue("HTTP", "CustomHttpMinutesEnabled", false);
 			CustomHttpMinutesIntervalIndex = ini.GetValue("HTTP", "CustomHttpMinutesIntervalIndex", -1);
 			if (CustomHttpMinutesIntervalIndex >= 0 && CustomHttpMinutesIntervalIndex < FactorsOf60.Length)
@@ -5098,9 +5229,16 @@ namespace CumulusMX
 				CustomHttpMinutesIntervalIndex = 6;
 				rewriteRequired = true;
 			}
+
 			// Http - custom roll-over
-			CustomHttpRolloverString = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
 			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
+			CustomHttpRolloverStrings[0] = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "CustomHttpRolloverString" + i))
+					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, "");
+			}
+
 
 			// Select-a-Chart settings
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
@@ -5159,6 +5297,9 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "StartupDelaySecs", ProgramOptions.StartupDelaySecs);
 			ini.SetValue("Program", "StartupDelayMaxUptime", ProgramOptions.StartupDelayMaxUptime);
+
+			ini.SetValue("Program", "DataStoppedExit", ProgramOptions.DataStoppedExit);
+			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
 
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
@@ -5431,6 +5572,9 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "SshFtpAuthentication", FtpOptions.SshAuthen);
 			ini.SetValue("FTP site", "SshFtpPskFile", FtpOptions.SshPskFile);
 
+			ini.SetValue("FTP site", "ConnectionAutoDetect", FtpOptions.AutoDetect);
+			ini.SetValue("FTP site", "IgnoreCertErrors", FtpOptions.IgnoreCertErrors);
+
 			ini.SetValue("FTP site", "FTPlogging", FtpOptions.Logging);
 			ini.SetValue("FTP site", "UTF8encode", UTF8encode);
 			ini.SetValue("FTP site", "EnableRealtime", RealtimeIntervalEnabled);
@@ -5489,14 +5633,29 @@ namespace CumulusMX
 
 			for (int i = 0; i < numextrafiles; i++)
 			{
-				ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].local);
-				ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].remote);
-				ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].process);
-				ini.SetValue("FTP site", "ExtraBinary" + i, ExtraFiles[i].binary);
-				ini.SetValue("FTP site", "ExtraRealtime" + i, ExtraFiles[i].realtime);
-				ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].FTP);
-				ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].UTF8);
-				ini.SetValue("FTP site", "ExtraEOD" + i, ExtraFiles[i].endofday);
+				if (string.IsNullOrEmpty(ExtraFiles[i].local) && string.IsNullOrEmpty(ExtraFiles[i].remote))
+				{
+					ini.DeleteValue("FTP site", "ExtraLocal" + i);
+					ini.DeleteValue("FTP site", "ExtraRemote" + i);
+					ini.DeleteValue("FTP site", "ExtraProcess" + i);
+					ini.DeleteValue("FTP site", "ExtraBinary" + i);
+					ini.DeleteValue("FTP site", "ExtraRealtime" + i);
+					ini.DeleteValue("FTP site", "ExtraFTP" + i);
+					ini.DeleteValue("FTP site", "ExtraUTF" + i);
+					ini.DeleteValue("FTP site", "ExtraEOD" + i);
+
+				}
+				else
+				{
+					ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].local);
+					ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].remote);
+					ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].process);
+					ini.SetValue("FTP site", "ExtraBinary" + i, ExtraFiles[i].binary);
+					ini.SetValue("FTP site", "ExtraRealtime" + i, ExtraFiles[i].realtime);
+					ini.SetValue("FTP site", "ExtraFTP" + i, ExtraFiles[i].FTP);
+					ini.SetValue("FTP site", "ExtraUTF" + i, ExtraFiles[i].UTF8);
+					ini.SetValue("FTP site", "ExtraEOD" + i, ExtraFiles[i].endofday);
+				}
 			}
 
 			ini.SetValue("FTP site", "ExternalProgram", ExternalProgram);
@@ -5625,6 +5784,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "LowTempAlarmEmail", LowTempAlarm.Email);
 			ini.SetValue("Alarms", "LowTempAlarmLatch", LowTempAlarm.Latch);
 			ini.SetValue("Alarms", "LowTempAlarmLatchHours", LowTempAlarm.LatchHours);
+			ini.SetValue("Alarms", "LowTempAlarmAction", LowTempAlarm.Action);
+			ini.SetValue("Alarms", "LowTempAlarmActionParams", LowTempAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmhightemp", HighTempAlarm.Value);
 			ini.SetValue("Alarms", "HighTempAlarmSet", HighTempAlarm.Enabled);
@@ -5634,6 +5795,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighTempAlarmEmail", HighTempAlarm.Email);
 			ini.SetValue("Alarms", "HighTempAlarmLatch", HighTempAlarm.Latch);
 			ini.SetValue("Alarms", "HighTempAlarmLatchHours", HighTempAlarm.LatchHours);
+			ini.SetValue("Alarms", "HighTempAlarmAction", HighTempAlarm.Action);
+			ini.SetValue("Alarms", "HighTempAlarmActionParams", HighTempAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmtempchange", TempChangeAlarm.Value);
 			ini.SetValue("Alarms", "TempChangeAlarmSet", TempChangeAlarm.Enabled);
@@ -5643,6 +5806,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "TempChangeAlarmEmail", TempChangeAlarm.Email);
 			ini.SetValue("Alarms", "TempChangeAlarmLatch", TempChangeAlarm.Latch);
 			ini.SetValue("Alarms", "TempChangeAlarmLatchHours", TempChangeAlarm.LatchHours);
+			ini.SetValue("Alarms", "TempChangeAlarmAction", TempChangeAlarm.Action);
+			ini.SetValue("Alarms", "TempChangeAlarmActionParams", TempChangeAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmlowpress", LowPressAlarm.Value);
 			ini.SetValue("Alarms", "LowPressAlarmSet", LowPressAlarm.Enabled);
@@ -5652,6 +5817,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "LowPressAlarmEmail", LowPressAlarm.Email);
 			ini.SetValue("Alarms", "LowPressAlarmLatch", LowPressAlarm.Latch);
 			ini.SetValue("Alarms", "LowPressAlarmLatchHours", LowPressAlarm.LatchHours);
+			ini.SetValue("Alarms", "LowPressAlarmAction", LowPressAlarm.Action);
+			ini.SetValue("Alarms", "LowPressAlarmActionParams", LowPressAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmhighpress", HighPressAlarm.Value);
 			ini.SetValue("Alarms", "HighPressAlarmSet", HighPressAlarm.Enabled);
@@ -5661,6 +5828,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighPressAlarmEmail", HighPressAlarm.Email);
 			ini.SetValue("Alarms", "HighPressAlarmLatch", HighPressAlarm.Latch);
 			ini.SetValue("Alarms", "HighPressAlarmLatchHours", HighPressAlarm.LatchHours);
+			ini.SetValue("Alarms", "HighPressAlarmAction", HighPressAlarm.Action);
+			ini.SetValue("Alarms", "HighPressAlarmActionParams", HighPressAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmpresschange", PressChangeAlarm.Value);
 			ini.SetValue("Alarms", "PressChangeAlarmSet", PressChangeAlarm.Enabled);
@@ -5670,6 +5839,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "PressChangeAlarmEmail", PressChangeAlarm.Email);
 			ini.SetValue("Alarms", "PressChangeAlarmLatch", PressChangeAlarm.Latch);
 			ini.SetValue("Alarms", "PressChangeAlarmLatchHours", PressChangeAlarm.LatchHours);
+			ini.SetValue("Alarms", "PressChangeAlarmAction", PressChangeAlarm.Action);
+			ini.SetValue("Alarms", "PressChangeAlarmActionParams", PressChangeAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmhighraintoday", HighRainTodayAlarm.Value);
 			ini.SetValue("Alarms", "HighRainTodayAlarmSet", HighRainTodayAlarm.Enabled);
@@ -5679,6 +5850,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighRainTodayAlarmEmail", HighRainTodayAlarm.Email);
 			ini.SetValue("Alarms", "HighRainTodayAlarmLatch", HighRainTodayAlarm.Latch);
 			ini.SetValue("Alarms", "HighRainTodayAlarmLatchHours", HighRainTodayAlarm.LatchHours);
+			ini.SetValue("Alarms", "HighRainTodayAlarmAction", HighRainTodayAlarm.Action);
+			ini.SetValue("Alarms", "HighRainTodayAlarmActionParams", HighRainTodayAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmhighrainrate", HighRainRateAlarm.Value);
 			ini.SetValue("Alarms", "HighRainRateAlarmSet", HighRainRateAlarm.Enabled);
@@ -5688,6 +5861,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighRainRateAlarmEmail", HighRainRateAlarm.Email);
 			ini.SetValue("Alarms", "HighRainRateAlarmLatch", HighRainRateAlarm.Latch);
 			ini.SetValue("Alarms", "HighRainRateAlarmLatchHours", HighRainRateAlarm.LatchHours);
+			ini.SetValue("Alarms", "HighRainRateAlarmAction", HighRainRateAlarm.Action);
+			ini.SetValue("Alarms", "HighRainRateAlarmActionParams", HighRainRateAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "IsRainingAlarmSet", IsRainingAlarm.Enabled);
 			ini.SetValue("Alarms", "IsRainingAlarmSound", IsRainingAlarm.Sound);
@@ -5697,6 +5872,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "IsRainingAlarmLatch", IsRainingAlarm.Latch);
 			ini.SetValue("Alarms", "IsRainingAlarmLatchHours", IsRainingAlarm.LatchHours);
 			ini.SetValue("Alarms", "IsRainingAlarmTriggerCount", IsRainingAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "IsRainingAlarmAction", IsRainingAlarm.Action);
+			ini.SetValue("Alarms", "IsRainingAlarmActionParams", IsRainingAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmhighgust", HighGustAlarm.Value);
 			ini.SetValue("Alarms", "HighGustAlarmSet", HighGustAlarm.Enabled);
@@ -5706,6 +5883,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighGustAlarmEmail", HighGustAlarm.Email);
 			ini.SetValue("Alarms", "HighGustAlarmLatch", HighGustAlarm.Latch);
 			ini.SetValue("Alarms", "HighGustAlarmLatchHours", HighGustAlarm.LatchHours);
+			ini.SetValue("Alarms", "HighGustAlarmAction", HighGustAlarm.Action);
+			ini.SetValue("Alarms", "HighGustAlarmActionParams", HighGustAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "alarmhighwind", HighWindAlarm.Value);
 			ini.SetValue("Alarms", "HighWindAlarmSet", HighWindAlarm.Enabled);
@@ -5715,6 +5894,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HighWindAlarmEmail", HighWindAlarm.Email);
 			ini.SetValue("Alarms", "HighWindAlarmLatch", HighWindAlarm.Latch);
 			ini.SetValue("Alarms", "HighWindAlarmLatchHours", HighWindAlarm.LatchHours);
+			ini.SetValue("Alarms", "HighWindAlarmAction", HighWindAlarm.Action);
+			ini.SetValue("Alarms", "HighWindAlarmActionParams", HighWindAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "SensorAlarmSet", SensorAlarm.Enabled);
 			ini.SetValue("Alarms", "SensorAlarmSound", SensorAlarm.Sound);
@@ -5724,6 +5905,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "SensorAlarmLatch", SensorAlarm.Latch);
 			ini.SetValue("Alarms", "SensorAlarmLatchHours", SensorAlarm.LatchHours);
 			ini.SetValue("Alarms", "SensorAlarmTriggerCount", SensorAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "SensorAlarmAction", SensorAlarm.Action);
+			ini.SetValue("Alarms", "SensorAlarmActionParams", SensorAlarm.ActionParams);
 
 
 			ini.SetValue("Alarms", "DataStoppedAlarmSet", DataStoppedAlarm.Enabled);
@@ -5734,6 +5917,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataStoppedAlarmLatch", DataStoppedAlarm.Latch);
 			ini.SetValue("Alarms", "DataStoppedAlarmLatchHours", DataStoppedAlarm.LatchHours);
 			ini.SetValue("Alarms", "DataStoppedAlarmTriggerCount", DataStoppedAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "DataStoppedAlarmAction", DataStoppedAlarm.Action);
+			ini.SetValue("Alarms", "DataStoppedAlarmActionParams", DataStoppedAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "BatteryLowAlarmSet", BatteryLowAlarm.Enabled);
 			ini.SetValue("Alarms", "BatteryLowAlarmSound", BatteryLowAlarm.Sound);
@@ -5743,6 +5928,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "BatteryLowAlarmLatch", BatteryLowAlarm.Latch);
 			ini.SetValue("Alarms", "BatteryLowAlarmLatchHours", BatteryLowAlarm.LatchHours);
 			ini.SetValue("Alarms", "BatteryLowAlarmTriggerCount", BatteryLowAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "BatteryLowAlarmAction", BatteryLowAlarm.Action);
+			ini.SetValue("Alarms", "BatteryLowAlarmActionParams", BatteryLowAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "DataSpikeAlarmSet", SpikeAlarm.Enabled);
 			ini.SetValue("Alarms", "DataSpikeAlarmSound", SpikeAlarm.Sound);
@@ -5752,6 +5939,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "DataSpikeAlarmLatch", SpikeAlarm.Latch);
 			ini.SetValue("Alarms", "DataSpikeAlarmLatchHours", SpikeAlarm.LatchHours);
 			ini.SetValue("Alarms", "DataSpikeAlarmTriggerCount", SpikeAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "DataSpikeAlarmAction", SpikeAlarm.Action);
+			ini.SetValue("Alarms", "DataSpikeAlarmActionParams", SpikeAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "UpgradeAlarmSet", UpgradeAlarm.Enabled);
 			ini.SetValue("Alarms", "UpgradeAlarmSound", UpgradeAlarm.Sound);
@@ -5760,6 +5949,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "UpgradeAlarmEmail", UpgradeAlarm.Email);
 			ini.SetValue("Alarms", "UpgradeAlarmLatch", UpgradeAlarm.Latch);
 			ini.SetValue("Alarms", "UpgradeAlarmLatchHours", UpgradeAlarm.LatchHours);
+			ini.SetValue("Alarms", "UpgradeAlarmAction", UpgradeAlarm.Action);
+			ini.SetValue("Alarms", "UpgradeAlarmActionParams", UpgradeAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "HttpUploadAlarmSet", HttpUploadAlarm.Enabled);
 			ini.SetValue("Alarms", "HttpUploadAlarmSound", HttpUploadAlarm.Sound);
@@ -5769,6 +5960,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "HttpUploadAlarmLatch", HttpUploadAlarm.Latch);
 			ini.SetValue("Alarms", "HttpUploadAlarmLatchHours", HttpUploadAlarm.LatchHours);
 			ini.SetValue("Alarms", "HttpUploadAlarmTriggerCount", HttpUploadAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "HttpUploadAlarmAction", HttpUploadAlarm.Action);
+			ini.SetValue("Alarms", "HttpUploadAlarmActionParams", HttpUploadAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "MySqlUploadAlarmSet", MySqlUploadAlarm.Enabled);
 			ini.SetValue("Alarms", "MySqlUploadAlarmSound", MySqlUploadAlarm.Sound);
@@ -5778,6 +5971,8 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "MySqlUploadAlarmLatch", MySqlUploadAlarm.Latch);
 			ini.SetValue("Alarms", "MySqlUploadAlarmLatchHours", MySqlUploadAlarm.LatchHours);
 			ini.SetValue("Alarms", "MySqlUploadAlarmTriggerCount", MySqlUploadAlarm.TriggerThreshold);
+			ini.SetValue("Alarms", "MySqlUploadAlarmAction", MySqlUploadAlarm.Action);
+			ini.SetValue("Alarms", "MySqlUploadAlarmActionParams", MySqlUploadAlarm.ActionParams);
 
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", AlarmDestEmail.Join(";"));
@@ -5933,9 +6128,24 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "DayfileTable", MySqlSettings.Dayfile.TableName);
 			ini.SetValue("MySQL", "RealtimeTable", MySqlSettings.Realtime.TableName);
 			ini.SetValue("MySQL", "RealtimeRetention", MySqlSettings.RealtimeRetention);
-			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlSettings.CustomSecs.Command);
-			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Command);
-			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Command);
+
+			for (var i = 1; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlSecondsCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlSettings.CustomSecs.Commands[i]);
+
+				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
+
+				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
+			}
 
 			ini.SetValue("MySQL", "CustomMySqlSecondsEnabled", MySqlSettings.CustomSecs.Enabled);
 			ini.SetValue("MySQL", "CustomMySqlMinutesEnabled", MySqlSettings.CustomMins.Enabled);
@@ -5944,9 +6154,50 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlSettings.CustomSecs.Interval);
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", CustomMySqlMinutesIntervalIndex);
 
-			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsString);
-			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesString);
-			ini.SetValue("HTTP", "CustomHttpRolloverString", CustomHttpRolloverString);
+			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlSettings.CustomSecs.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
+
+
+			for (var i = 1; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlSecondsCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlSettings.CustomSecs.Commands[i]);
+
+				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
+
+				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
+			}
+
+			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsStrings[0]);
+			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesStrings[0]);
+			ini.SetValue("HTTP", "CustomHttpRolloverString", CustomHttpRolloverStrings[0]);
+
+			for (var i = 1; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
+					ini.DeleteValue("HTTP", "CustomHttpSecondsString" + i);
+				else
+					ini.SetValue("HTTP", "CustomHttpSecondsString" + i, CustomHttpSecondsStrings[i]);
+
+				if (string.IsNullOrEmpty(CustomHttpMinutesStrings[i]))
+					ini.DeleteValue("HTTP", "CustomHttpMinutesString" + i);
+				else
+					ini.SetValue("HTTP", "CustomHttpMinutesString" + i, CustomHttpMinutesStrings[i]);
+
+				if (string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
+					ini.DeleteValue("HTTP", "CustomHttpRolloverString" + i);
+				else
+					ini.SetValue("HTTP", "CustomHttpRolloverString" + i, CustomHttpRolloverStrings[i]);
+			}
 
 			ini.SetValue("HTTP", "CustomHttpSecondsEnabled", CustomHttpSecondsEnabled);
 			ini.SetValue("HTTP", "CustomHttpMinutesEnabled", CustomHttpMinutesEnabled);
@@ -6704,27 +6955,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate;
-
-			if (RolloverHour == 0)
-			{
-				logfiledate = thedate;
-			}
-			else
-			{
-				TimeZone tz = TimeZone.CurrentTimeZone;
-
-				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = thedate.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = thedate.AddHours(-9);
-				}
-			}
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
 
 			var datestring = logfiledate.ToString("MMMyy").Replace(".", "");
 
@@ -6736,27 +6967,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate;
-
-			if (RolloverHour == 0)
-			{
-				logfiledate = thedate;
-			}
-			else
-			{
-				TimeZone tz = TimeZone.CurrentTimeZone;
-
-				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = thedate.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = thedate.AddHours(-9);
-				}
-			}
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -6769,27 +6980,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate;
-
-			if (RolloverHour == 0)
-			{
-				logfiledate = thedate;
-			}
-			else
-			{
-				TimeZone tz = TimeZone.CurrentTimeZone;
-
-				if (Use10amInSummer && tz.IsDaylightSavingTime(thedate))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = thedate.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = thedate.AddHours(-9);
-				}
-			}
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -6904,7 +7095,7 @@ namespace CumulusMX
 
 				var InvC = new CultureInfo("");
 
-				StringBuilder values = new StringBuilder(StartOfMonthlyInsertSQL, 600);
+				StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
 				values.Append(" Values('");
 				values.Append(timestamp.ToString("yy-MM-dd HH:mm") + "',");
 				values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ",");
@@ -8369,30 +8560,45 @@ namespace CumulusMX
 					conn.Port = FtpOptions.Port;
 					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
 
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+					if (!FtpOptions.AutoDetect)
 					{
-						// Explicit = Current protocol - connects using FTP and switches to TLS
-						// Implicit = Old depreciated protocol - connects using TLS
-						conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-						conn.DataConnectionEncryption = true;
-						conn.ValidateAnyCertificate = true;
-						// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-						// b3155 - switch to default again - this will use the highest version available in the OS
-						//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							// Explicit = Current protocol - connects using FTP and switches to TLS
+							// Implicit = Old depreciated protocol - connects using TLS
+							conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.DataConnectionEncryption = true;
+							// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
+							// b3155 - switch to default again - this will use the highest version available in the OS
+							//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+						}
+
+						if (FtpOptions.ActiveMode)
+						{
+							conn.DataConnectionType = FtpDataConnectionType.PORT;
+						}
+						else if (FtpOptions.DisableEPSV)
+						{
+							conn.DataConnectionType = FtpDataConnectionType.PASV;
+						}
 					}
 
-					if (FtpOptions.ActiveMode)
+					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 					{
-						conn.DataConnectionType = FtpDataConnectionType.PORT;
-					}
-					else if (FtpOptions.DisableEPSV)
-					{
-						conn.DataConnectionType = FtpDataConnectionType.PASV;
+						conn.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 					}
 
 					try
 					{
-						conn.Connect();
+						if (FtpOptions.AutoDetect)
+						{
+							conn.AutoConnect();
+						}
+						else
+						{
+							conn.Connect();
+						}
 
 						if (ServicePointManager.DnsRefreshTimeout == 0)
 						{
@@ -8402,6 +8608,11 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message);
+
+						if (null != ex.InnerException)
+						{
+							LogMessage($"FTP[Int]: Error connecting ftp - {ex.GetBaseException().Message}");
+						}
 
 						if ((uint)ex.HResult == 0x80004005) // Could not resolve host
 						{
@@ -8603,7 +8814,7 @@ namespace CumulusMX
 						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
 						if (ex.InnerException != null)
 						{
-							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 						}
 						return conn.IsConnected;
 					}
@@ -8632,7 +8843,7 @@ namespace CumulusMX
 						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 						if (ex.InnerException != null)
 						{
-							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 						}
 						return conn.IsConnected;
 					}
@@ -8643,7 +8854,7 @@ namespace CumulusMX
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
 				if (ex.InnerException != null)
 				{
-					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.InnerException.Message}");
+					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 				}
 			}
 
@@ -8985,7 +9196,7 @@ namespace CumulusMX
 
 			var InvC = new CultureInfo("");
 
-			StringBuilder values = new StringBuilder(StartOfRealtimeInsertSQL, 1024);
+			StringBuilder values = new StringBuilder(RealtimeTable.StartOfInsert, 1024);
 			values.Append(" Values('");
 			values.Append(timestamp.ToString("yy-MM-dd HH:mm:ss") + "',");
 			values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ',');
@@ -9286,6 +9497,7 @@ namespace CumulusMX
 
 			EnableOpenWeatherMap();
 
+			NormalRunning = true;
 			LogMessage("Normal running");
 			LogConsoleMessage("Normal running", ConsoleColor.Green);
 		}
@@ -9308,14 +9520,20 @@ namespace CumulusMX
 			{
 				customMySqlSecondsUpdateInProgress = true;
 
-				customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Command;
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					await CheckMySQLFailedUploads("CustomSqlSecs", customMysqlSecondsTokenParser.ToStringFromString());
-				}
-				catch (Exception ex)
-				{
-					LogMessage("CustomSqlSecs: Error - " + ex.Message);
+					try
+					{
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
+						{
+							customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlSecs[{i}]", customMysqlSecondsTokenParser.ToStringFromString());
+						}
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"CustomSqlSecs[{i}]: Error - " + ex.Message);
+					}
 				}
 				customMySqlSecondsUpdateInProgress = false;
 			}
@@ -9334,17 +9552,21 @@ namespace CumulusMX
 			{
 				customMySqlMinutesUpdateInProgress = true;
 
-				customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Command;
-
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					await CheckMySQLFailedUploads("CustomSqlMins", customMysqlMinutesTokenParser.ToStringFromString());
+					try
+					{
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						{
+							customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", customMysqlMinutesTokenParser.ToStringFromString());
+						}
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"CustomSqlMins[{i}]: Error - " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogMessage("CustomSqlMins: Error - " + ex.Message);
-				}
-
 				customMySqlMinutesUpdateInProgress = false;
 			}
 		}
@@ -9361,17 +9583,21 @@ namespace CumulusMX
 			{
 				customMySqlRolloverUpdateInProgress = true;
 
-				customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Command;
-
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					await CheckMySQLFailedUploads("CustomSqlRollover", customMysqlRolloverTokenParser.ToStringFromString());
+					try
+					{
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
+						{
+							customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", customMysqlRolloverTokenParser.ToStringFromString());
+						}
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"CustomSqlRollover[{i}]: Error - " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogMessage("CustomSqlRollover: Error - " + ex.Message);
-				}
-
 				customMySqlRolloverUpdateInProgress = false;
 			}
 		}
@@ -9410,7 +9636,10 @@ namespace CumulusMX
 						}
 						else
 						{
-							MySqlFailedList = (ConcurrentQueue<string>)MySqlFailedList.Concat<string>(cmds);
+							for (var i = 0; i < cmds.Count; i++)
+							{
+								MySqlFailedList.Enqueue(cmds[i]);
+							}
 						}
 					}
 					else
@@ -9543,30 +9772,37 @@ namespace CumulusMX
 			RealtimeFTP.SocketPollInterval = 20000; // increase beyond the timeout values
 			RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
 
-			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+			if (!FtpOptions.AutoDetect)
 			{
-				RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-				RealtimeFTP.DataConnectionEncryption = true;
-				RealtimeFTP.ValidateAnyCertificate = true;
-				// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
-				// b3155 - switch to default again - this will use the highest version available in the OS
-				//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
-				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
+				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+				{
+					RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+					RealtimeFTP.DataConnectionEncryption = true;
+					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
+					// b3155 - switch to default again - this will use the highest version available in the OS
+					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+					LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
+				}
+
+				if (FtpOptions.ActiveMode)
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+					LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
+				}
+				else if (FtpOptions.DisableEPSV)
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+					LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
+				}
+				else
+				{
+					RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
+				}
 			}
 
-			if (FtpOptions.ActiveMode)
+			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
-				LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
-			}
-			else if (FtpOptions.DisableEPSV)
-			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
-				LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
-			}
-			else
-			{
-				RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
+				RealtimeFTP.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 			}
 
 			if (FtpOptions.Enabled)
@@ -9574,13 +9810,24 @@ namespace CumulusMX
 				LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 				try
 				{
-					RealtimeFTP.Connect();
+					if (FtpOptions.AutoDetect)
+					{
+						RealtimeFTP.AutoConnect();
+					}
+					else
+					{
+						RealtimeFTP.Connect();
+					}
 					LogMessage("RealtimeFTPLogin: Realtime FTP connected");
 					RealtimeFTP.SocketKeepAlive = true;
 				}
 				catch (Exception ex)
 				{
 					LogMessage($"RealtimeFTPLogin: Error connecting ftp - {ex.Message}");
+					if (null != ex.InnerException)
+					{
+						LogMessage($"RealtimeFTPLogin: Inner Error - {ex.GetBaseException().Message}");
+					}
 					RealtimeFTP.Disconnect();
 				}
 			}
@@ -9904,6 +10151,7 @@ namespace CumulusMX
 			await Task.Run(() =>
 			{
 				ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+				var cmdStr = "";
 
 				try
 				{
@@ -9916,7 +10164,7 @@ namespace CumulusMX
 							do
 							{
 								// Do not remove the item from the stack until we know the command worked
-								if (queue.TryPeek(out var cmdStr))
+								if (queue.TryPeek(out cmdStr))
 								{
 									using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
 									{
@@ -9954,6 +10202,12 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
+					// if debug logging is disable, then log the failing statement anyway
+					if (!DebuggingEnabled)
+					{
+						LogMessage($"{CallingFunction}: SQL = {cmdStr}");
+					}
+
 
 					MySqlUploadAlarm.LastError = ex.Message;
 					MySqlUploadAlarm.Triggered = true;
@@ -9980,10 +10234,10 @@ namespace CumulusMX
 		public void MySqlCommandSync(ConcurrentQueue<string> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+			var cmdStr = "";
 
 			try
 			{
-
 				using (var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString()))
 				{
 					mySqlConn.Open();
@@ -9993,7 +10247,7 @@ namespace CumulusMX
 						do
 						{
 							// Do not remove the item from the stack until we know the command worked
-							if (queue.TryPeek(out var cmdStr))
+							if (queue.TryPeek(out cmdStr))
 							{
 
 								using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
@@ -10031,8 +10285,13 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"{CallingFunction}: Error encountered during MySQL operation.");
-				LogMessage(ex.Message);
+				LogMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
+				// if debug logging is disable, then log the failing statement anyway
+				if (!DebuggingEnabled)
+				{
+					LogMessage($"{CallingFunction}: SQL = {cmdStr}");
+				}
+
 				MySqlUploadAlarm.LastError = ex.Message;
 				MySqlUploadAlarm.Triggered = true;
 
@@ -10076,6 +10335,7 @@ namespace CumulusMX
 					Cmds.TryDequeue(out var cmd);
 					if (!cmd.StartsWith("DELETE IGNORE FROM"))
 					{
+						LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
 						MySqlFailedList.Enqueue(cmd);
 					}
 				}
@@ -10146,25 +10406,29 @@ namespace CumulusMX
 			{
 				updatingCustomHttpSeconds = true;
 
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					customHttpSecondsTokenParser.InputText = CustomHttpSecondsString;
-					var processedString = customHttpSecondsTokenParser.ToStringFromString();
-					LogDebugMessage("CustomHttpSeconds: Querying - " + processedString);
-					var response = await customHttpSecondsClient.GetAsync(processedString);
-					response.EnsureSuccessStatusCode();
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("CustomHttpSeconds: Response - " + response.StatusCode);
-					LogDataMessage("CustomHttpSeconds: Response Text - " + responseBodyAsText);
+					try
+					{
+						if (!string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
+						{
+							customHttpSecondsTokenParser.InputText = CustomHttpSecondsStrings[i];
+							var processedString = customHttpSecondsTokenParser.ToStringFromString();
+							LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
+							var response = await customHttpSecondsClient.GetAsync(processedString);
+							response.EnsureSuccessStatusCode();
+							var responseBodyAsText = await response.Content.ReadAsStringAsync();
+							LogDebugMessage($"CustomHttpSeconds[{i}]: Response - {response.StatusCode}");
+							LogDataMessage($"CustomHttpSeconds[{i}]: Response Text - {responseBodyAsText}");
+						}
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("CustomHttpSeconds: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("CustomHttpSeconds: " + ex.Message);
-				}
-				finally
-				{
-					updatingCustomHttpSeconds = false;
-				}
+
+				updatingCustomHttpSeconds = false;
 			}
 			else
 			{
@@ -10178,24 +10442,25 @@ namespace CumulusMX
 			{
 				updatingCustomHttpMinutes = true;
 
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					customHttpMinutesTokenParser.InputText = CustomHttpMinutesString;
-					var processedString = customHttpMinutesTokenParser.ToStringFromString();
-					LogDebugMessage("CustomHttpMinutes: Querying - " + processedString);
-					var response = await customHttpMinutesClient.GetAsync(processedString);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("CustomHttpMinutes: Response code - " + response.StatusCode);
-					LogDataMessage("CustomHttpMinutes: Response text - " + responseBodyAsText);
+					try
+					{
+						customHttpMinutesTokenParser.InputText = CustomHttpMinutesStrings[i];
+						var processedString = customHttpMinutesTokenParser.ToStringFromString();
+						LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
+						var response = await customHttpMinutesClient.GetAsync(processedString);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
+						LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("CustomHttpMinutes: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("CustomHttpMinutes: " + ex.Message);
-				}
-				finally
-				{
-					updatingCustomHttpMinutes = false;
-				}
+
+				updatingCustomHttpMinutes = false;
 			}
 		}
 
@@ -10205,24 +10470,25 @@ namespace CumulusMX
 			{
 				updatingCustomHttpRollover = true;
 
-				try
+				for (var i = 0; i < 10; i++)
 				{
-					customHttpRolloverTokenParser.InputText = CustomHttpRolloverString;
-					var processedString = customHttpRolloverTokenParser.ToStringFromString();
-					LogDebugMessage("CustomHttpRollover: Querying - " + processedString);
-					var response = await customHttpRolloverClient.GetAsync(processedString);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogDebugMessage("CustomHttpRollover: Response code - " + response.StatusCode);
-					LogDataMessage("CustomHttpRollover: Response text - " + responseBodyAsText);
+					try
+					{
+						customHttpRolloverTokenParser.InputText = CustomHttpRolloverStrings[i];
+						var processedString = customHttpRolloverTokenParser.ToStringFromString();
+						LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
+						var response = await customHttpRolloverClient.GetAsync(processedString);
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
+						LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+					}
+					catch (Exception ex)
+					{
+						LogDebugMessage("CustomHttpRollover: " + ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					LogDebugMessage("CustomHttpRollover: " + ex.Message);
-				}
-				finally
-				{
-					updatingCustomHttpRollover = false;
-				}
+				
+				updatingCustomHttpRollover = false;
 			}
 		}
 
@@ -10391,103 +10657,6 @@ namespace CumulusMX
 			return input;
 		}
 
-		public void SetMonthlySqlCreateString()
-		{
-			StringBuilder strb = new StringBuilder("CREATE TABLE " + MySqlSettings.Monthly.TableName + " (", 1500);
-			strb.Append("LogDateTime DATETIME NOT NULL,");
-			strb.Append("Temp decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("Humidity decimal(4," + HumDPlaces + ") NOT NULL,");
-			strb.Append("Dewpoint decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("Windspeed decimal(4," + WindAvgDPlaces + ") NOT NULL,");
-			strb.Append("Windgust decimal(4," + WindDPlaces + ") NOT NULL,");
-			strb.Append("Windbearing VARCHAR(3) NOT NULL,");
-			strb.Append("RainRate decimal(4," + RainDPlaces + ") NOT NULL,");
-			strb.Append("TodayRainSoFar decimal(4," + RainDPlaces + ") NOT NULL,");
-			strb.Append("Pressure decimal(6," + PressDPlaces + ") NOT NULL,");
-			strb.Append("Raincounter decimal(6," + RainDPlaces + ") NOT NULL,");
-			strb.Append("InsideTemp decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("InsideHumidity decimal(4," + HumDPlaces + ") NOT NULL,");
-			strb.Append("LatestWindGust decimal(5," + WindDPlaces + ") NOT NULL,");
-			strb.Append("WindChill decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("HeatIndex decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("UVindex decimal(4," + UVDPlaces + "),");
-			strb.Append("SolarRad decimal(5,1),");
-			strb.Append("Evapotrans decimal(4," + RainDPlaces + "),");
-			strb.Append("AnnualEvapTran decimal(5," + RainDPlaces + "),");
-			strb.Append("ApparentTemp decimal(4," + TempDPlaces + "),");
-			strb.Append("MaxSolarRad decimal(5,1),");
-			strb.Append("HrsSunShine decimal(3," + SunshineDPlaces + "),");
-			strb.Append("CurrWindBearing varchar(3),");
-			strb.Append("RG11rain decimal(4," + RainDPlaces + "),");
-			strb.Append("RainSinceMidnight decimal(4," + RainDPlaces + "),");
-			strb.Append("WindbearingSym varchar(3),");
-			strb.Append("CurrWindBearingSym varchar(3),");
-			strb.Append("FeelsLike decimal(4," + TempDPlaces + "),");
-			strb.Append("Humidex decimal(4," + TempDPlaces + "),");
-			strb.Append("PRIMARY KEY (LogDateTime)) COMMENT = \"Monthly logs from Cumulus\"");
-			CreateMonthlySQL = strb.ToString();
-		}
-
-		internal void SetDayfileSqlCreateString()
-		{
-			StringBuilder strb = new StringBuilder("CREATE TABLE " + MySqlSettings.Dayfile.TableName + " (", 2048);
-			strb.Append("LogDate date NOT NULL ,");
-			strb.Append("HighWindGust decimal(4," + WindDPlaces + ") NOT NULL,");
-			strb.Append("HWindGBear varchar(3) NOT NULL,");
-			strb.Append("THWindG varchar(5) NOT NULL,");
-			strb.Append("MinTemp decimal(5," + TempDPlaces + ") NOT NULL,");
-			strb.Append("TMinTemp varchar(5) NOT NULL,");
-			strb.Append("MaxTemp decimal(5," + TempDPlaces + ") NOT NULL,");
-			strb.Append("TMaxTemp varchar(5) NOT NULL,");
-			strb.Append("MinPress decimal(6," + PressDPlaces + ") NOT NULL,");
-			strb.Append("TMinPress varchar(5) NOT NULL,");
-			strb.Append("MaxPress decimal(6," + PressDPlaces + ") NOT NULL,");
-			strb.Append("TMaxPress varchar(5) NOT NULL,");
-			strb.Append("MaxRainRate decimal(4," + RainDPlaces + ") NOT NULL,");
-			strb.Append("TMaxRR varchar(5) NOT NULL,TotRainFall decimal(6," + RainDPlaces + ") NOT NULL,");
-			strb.Append("AvgTemp decimal(4," + TempDPlaces + ") NOT NULL,");
-			strb.Append("TotWindRun decimal(5," + WindRunDPlaces +") NOT NULL,");
-			strb.Append("HighAvgWSpeed decimal(3," + WindAvgDPlaces + "),");
-			strb.Append("THAvgWSpeed varchar(5),LowHum decimal(4," + HumDPlaces + "),");
-			strb.Append("TLowHum varchar(5),");
-			strb.Append("HighHum decimal(4," + HumDPlaces + "),");
-			strb.Append("THighHum varchar(5),TotalEvap decimal(5," + RainDPlaces + "),");
-			strb.Append("HoursSun decimal(3," + SunshineDPlaces + "),");
-			strb.Append("HighHeatInd decimal(4," + TempDPlaces + "),");
-			strb.Append("THighHeatInd varchar(5),");
-			strb.Append("HighAppTemp decimal(4," + TempDPlaces + "),");
-			strb.Append("THighAppTemp varchar(5),");
-			strb.Append("LowAppTemp decimal(4," + TempDPlaces + "),");
-			strb.Append("TLowAppTemp varchar(5),");
-			strb.Append("HighHourRain decimal(4," + RainDPlaces + "),");
-			strb.Append("THighHourRain varchar(5),");
-			strb.Append("LowWindChill decimal(4," + TempDPlaces + "),");
-			strb.Append("TLowWindChill varchar(5),");
-			strb.Append("HighDewPoint decimal(4," + TempDPlaces + "),");
-			strb.Append("THighDewPoint varchar(5),");
-			strb.Append("LowDewPoint decimal(4," + TempDPlaces + "),");
-			strb.Append("TLowDewPoint varchar(5),");
-			strb.Append("DomWindDir varchar(3),");
-			strb.Append("HeatDegDays decimal(4,1),");
-			strb.Append("CoolDegDays decimal(4,1),");
-			strb.Append("HighSolarRad decimal(5,1),");
-			strb.Append("THighSolarRad varchar(5),");
-			strb.Append("HighUV decimal(3," + UVDPlaces + "),");
-			strb.Append("THighUV varchar(5),");
-			strb.Append("HWindGBearSym varchar(3),");
-			strb.Append("DomWindDirSym varchar(3),");
-			strb.Append("MaxFeelsLike decimal(5," + TempDPlaces + "),");
-			strb.Append("TMaxFeelsLike varchar(5),");
-			strb.Append("MinFeelsLike decimal(5," + TempDPlaces + "),");
-			strb.Append("TMinFeelsLike varchar(5),");
-			strb.Append("MaxHumidex decimal(5," + TempDPlaces + "),");
-			strb.Append("TMaxHumidex varchar(5),");
-			//strb.Append("MinHumidex decimal(5," + TempDPlaces + "),");
-			//strb.Append("TMinHumidex varchar(5),");
-			strb.Append("PRIMARY KEY(LogDate)) COMMENT = \"Dayfile from Cumulus\"");
-			CreateDayfileSQL = strb.ToString();
-		}
-
 		public void LogOffsetsMultipliers()
 		{
 			LogMessage("Offsets and Multipliers:");
@@ -10531,7 +10700,7 @@ namespace CumulusMX
 			// If an error occurred, display the exception to the user.
 			if (e.Error != null)
 			{
-				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.InnerException.Message);
+				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.GetBaseException().Message);
 			}
 			else
 			{
@@ -10544,7 +10713,7 @@ namespace CumulusMX
 		private void CreateRequiredFolders()
 		{
 			// The required folders are: /backup, backup/daily, /data, /Reports
-			var folders = new string[4] { "backup", "backup/daily", "data", "Reports"};
+			var folders = new string[4] { "backup", "backup/daily", "data", "Reports" };
 
 			LogMessage("Checking required folders");
 
@@ -10655,6 +10824,8 @@ namespace CumulusMX
 		public bool WarnMultiple { get; set; }
 		public bool ListWebTags { get; set; }
 		public CultureConfig Culture { get; set; }
+		public bool DataStoppedExit { get; set; }
+		public int DataStoppedMins { get; set; }
 	}
 
 	public class CultureConfig
@@ -10735,6 +10906,7 @@ namespace CumulusMX
 		/// <value>0=FTP, 1=FTPS, 3=SFTP</value>
 		public Cumulus.FtpProtocols FtpMode { get; set; }
 		/// <value>Valid options: password, psk, password_psk</value>
+		public bool AutoDetect { get; set; }
 		public string SshAuthen { get; set; }
 		public string SshPskFile { get; set; }
 		public bool Logging { get; set; }
@@ -10742,6 +10914,7 @@ namespace CumulusMX
 		public bool ActiveMode { get; set; }
 		public bool DisableEPSV { get; set; }
 		public bool DisableExplicit { get; set; }
+		public bool IgnoreCertErrors { get; set; }
 
 		public bool LocalCopyEnabled { get; set; }
 		public string LocalCopyFolder { get; set; }
@@ -11114,6 +11287,10 @@ namespace CumulusMX
 			CustomSecs = new MySqlTableSettings();
 			CustomMins = new MySqlTableSettings();
 			CustomRollover = new MySqlTableSettings();
+
+			CustomSecs.Commands = new string[10];
+			CustomMins.Commands = new string[10];
+			CustomRollover.Commands = new string[10];
 		}
 	}
 
@@ -11121,7 +11298,7 @@ namespace CumulusMX
 	{
 		public bool Enabled { get; set; }
 		public string TableName { get; set; }
-		public string Command { get; set; }
+		public string[] Commands { get; set; }
 		public int Interval { get; set; }
 	}
 

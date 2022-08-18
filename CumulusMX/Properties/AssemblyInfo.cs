@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Cumulus MX")]
-[assembly: AssemblyDescription("Version 3.19.3 - Build 3196")]
+[assembly: AssemblyDescription("Version 3.20.0 - Build 3202")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Cumulus MX")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.19.3.3196")]
-[assembly: AssemblyFileVersion("3.19.3.3196")]
+[assembly: AssemblyVersion("3.20.0.3202")]
+[assembly: AssemblyFileVersion("3.20.0.3202")]

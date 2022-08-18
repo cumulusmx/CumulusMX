@@ -1,3 +1,54 @@
+3.20.0 - b3202
+——————————————
+Fixed
+- Buffering of failed MySQL queries
+- MySQL library update to fix crashes with a null reference
+- NOAA Monthly report selector showing two "March"s and no February on the first day of each new month
+- Alarms being triggered during data catch-up. These are now suppressed
+
+New
+- Add custom actions for alarms. Call a script or external exe etc.
+- Add a This Period records display like C1
+- New option to exit Cumulus MX after a data stopped condition - Program Options > Shutdown
+- All DateTime web tags now accept format strings of "Unix" and "JS", if either of these is supplied the datetime will be output as either a Unix or JavaScript timestamp
+- Rain 24 hour:
+	- Added to day file, records 54, 55 (value, time)
+	- Updated dayfile header. Also abbreviated and changed to CSV from PipeSV
+	- Added to all the record editors
+	- Added to MySQL. See new feature below for updating your existing Dayfile table. There is also a MySQL script in the MXutils folder to alter existing table
+	- New web tags:
+		<#rain24hourTH>, <#Train24hourTH>
+		<#rain24hourYH>, <#Train24hourYH>
+	- Default web site updated to show all the relevant records
+- Adds the ability to search in the Dayfile viewer/editor
+- FTP and FTPS now has an option to enable automatic detection of the connection settings
+	- This and another new setting Ignore Certificate Errors are in Internet Settings | Web/TFP Site | Advanced Settings
+	- NOTE: If you use an FTP server without a public certificate, you *MUST* enable the setting. This is a breaking change
+- Custom HTTP calls (seconds, minutes, rollover) can now each have up to 10 URLs
+- Custom MySQL Uploads (seconds, minutes, rollover) can now each have up to 10 commands
+- The MySQL Settings page gets new functions for updating existing tables by adding columns to match the current schema
+- A new "Utils" menu on the Dashboard interface
+	- The FTP Now function has been moved there
+	- New option to reload the Dayfile into CMX from file. CMX holds a copy of the Dayfile in memory, if you edit it externally, use this to refresh the values in CMX without restating
+	- New option to purge the failed MySQL command queue. If you have failed commands (normally custom commands) that will never work, then you can remove them from the failed retry queue without restarting CMX
+
+Changed
+- Alarm latch time hours are now decimal values rather than integer
+- Moon Rise/Set web tags now have the date set to the current day
+- The records editors now work in your locale date/time formats, they also now report any errors setting values
+- The Monthly records editor month tabs have improved accessibility
+- The default web site monthly records page month selection button have improved accessibility
+- Local API, removed BOM from all API responses
+- The date pickers for the log file view/editor pages and the new This Period now display the date in the CMX locale format
+- The Cumulus.ini file now only contains FTP ExtraFiles entries that have either a local or remote filename entered (potentially removes 800 lines from the file!)
+
+
+3.19.3 - b3196
+——————————————
+Fixed
+- Error when sending an Is Raining alarm email
+
+
 3.19.2 - b3195
 ——————————————
 Fixed

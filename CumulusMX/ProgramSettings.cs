@@ -28,6 +28,12 @@ namespace CumulusMX
 				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime
 			};
 
+			var shutdown = new JsonProgramSettingsShutdownOptions()
+			{
+				datastoppedexit = cumulus.ProgramOptions.DataStoppedExit,
+				datastoppedmins = cumulus.ProgramOptions.DataStoppedMins
+			};
+
 			var logging = new JsonProgramSettingsLoggingOptions()
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
@@ -52,6 +58,7 @@ namespace CumulusMX
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
+				shutdown = shutdown,
 				logging = logging,
 				options = options,
 				culture = culture
@@ -98,10 +105,15 @@ namespace CumulusMX
 				cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
 				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
 				cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
+
+				cumulus.ProgramOptions.DataStoppedExit = settings.shutdown.datastoppedexit;
+				cumulus.ProgramOptions.DataStoppedMins = settings.shutdown.datastoppedmins;
+
 				cumulus.ProgramOptions.DebugLogging = settings.logging.debuglogging;
 				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
 				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
+
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
@@ -155,6 +167,7 @@ namespace CumulusMX
 	{
 		public bool accessible { get; set; }
 		public JsonProgramSettingsStartupOptions startup { get; set; }
+		public JsonProgramSettingsShutdownOptions shutdown { get; set; }
 		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
 		public JsonProgramSettingsCultureOptions culture { get; set; }
@@ -184,5 +197,10 @@ namespace CumulusMX
 	public class JsonProgramSettingsCultureOptions
 	{
 		public bool removespacefromdateseparator { get; set; }
+	}
+	public class JsonProgramSettingsShutdownOptions
+	{
+		public bool datastoppedexit { get; set; }
+		public int datastoppedmins { get; set; }
 	}
 }

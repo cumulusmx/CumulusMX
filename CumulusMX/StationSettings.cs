@@ -1365,7 +1365,7 @@ namespace CumulusMX
 		{
 			if (station == null)
 			{
-				return "{\"result\":\"Not possible, station is not initialised\"}";
+				return "Not possible, station is not initialised}";
 			}
 
 			try
@@ -1377,13 +1377,13 @@ namespace CumulusMX
 				var includeGraphs = json.Contains("true");
 
 				if (!cumulus.FtpOptions.Enabled && !cumulus.FtpOptions.LocalCopyEnabled)
-					return "{\"result\":\"FTP/local copy is not enabled!\"}";
+					return "FTP/local copy is not enabled!";
 
 
 				if (cumulus.WebUpdating == 1)
 				{
 					cumulus.LogMessage("FTP Now: Warning, a previous web update is still in progress, first chance, skipping attempt");
-					return "{\"result\":\"A web update is already in progress\"}";
+					return "A web update is already in progress";
 				}
 
 				if (cumulus.WebUpdating >= 2)
@@ -1410,7 +1410,7 @@ namespace CumulusMX
 					cumulus.WebUpdating = 1;
 					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
 					cumulus.ftpThread.Start();
-					return "{\"result\":\"An existing FTP process was aborted, and a new FTP process invoked\"}";
+					return "An existing FTP process was aborted, and a new FTP process invoked";
 				}
 
 				// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
@@ -1430,13 +1430,13 @@ namespace CumulusMX
 				cumulus.WebUpdating = 1;
 				cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
 				cumulus.ftpThread.Start();
-				return "{\"result\":\"FTP process invoked\"}";
+				return "FTP process invoked";
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogMessage($"FTP Now: {ex.Message}");
 				context.Response.StatusCode = 500;
-				return $"{{\"result\":\"Error: {ex.Message}\"}}";
+				return $"Error: {ex.Message}";
 			}
 		}
 
