@@ -17,7 +17,7 @@ namespace CumulusMX
 			get => triggered;
 			set
 			{
-				if (Program.cumulus.NormalRunning)
+				if (cumulus.NormalRunning)
 				{
 					doTriggered(value);
 				}
@@ -49,7 +49,7 @@ namespace CumulusMX
 
 		public void CheckAlarm(double value)
 		{
-			if (Program.cumulus.NormalRunning)
+			if (cumulus.NormalRunning)
 			{
 				doTriggered((type == AlarmTypes.Above && value > Value) || (type == AlarmTypes.Below && value < Value));
 			}
@@ -147,7 +147,7 @@ namespace CumulusMX
 			get => upTriggered;
 			set
 			{
-				if (Program.cumulus.NormalRunning)
+				if (cumulus.NormalRunning)
 				{
 					doUpTriggered(value);
 				}
@@ -162,7 +162,7 @@ namespace CumulusMX
 			get => downTriggered;
 			set
 			{
-				if (Program.cumulus.NormalRunning)
+				if (cumulus.NormalRunning)
 				{
 					doDownTriggered(value);
 				}
@@ -174,7 +174,7 @@ namespace CumulusMX
 
 		public new void CheckAlarm(double value)
 		{
-			if (Program.cumulus.NormalRunning)
+			if (cumulus.NormalRunning)
 			{
 
 				if (value > Value)
@@ -209,7 +209,7 @@ namespace CumulusMX
 						cumulus.LogMessage($"Alarm ({Name}): Sending email");
 
 						// Construct the message - preamble, plus values
-						var msg = Program.cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
+						var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
 						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
 
@@ -274,7 +274,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage($"Alarm ({Name}): Sending email");
 						// Construct the message - preamble, plus values
-						var msg = Program.cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
+						var msg = cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
 						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
 
