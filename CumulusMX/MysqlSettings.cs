@@ -345,16 +345,14 @@ namespace CumulusMX
 					// first get a list of the columns the table currenty has
 					var currCols = new List<string>();
 					using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
+					using (MySqlDataReader reader = cmd.ExecuteReader())
 					{
-						using (MySqlDataReader reader = cmd.ExecuteReader())
+						if (reader.HasRows)
 						{
-							if (reader.HasRows)
+							while (reader.Read())
 							{
-								while (reader.Read())
-								{
-									var col = reader.GetString(0);
-									currCols.Add(col);
-								}
+								var col = reader.GetString(0);
+								currCols.Add(col);
 							}
 						}
 					}
@@ -373,14 +371,21 @@ namespace CumulusMX
 
 						// strip trailing comma
 						if (cnt > 0)
+						{
 							update.Length--;
 
-						using(MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
-						{
-							int aff = cmd.ExecuteNonQuery();
-							cumulus.LogMessage($"MySQL Update Table: {aff} items were affected.");
-							res = $"Added {cnt} columns to {table.Name} table";
+							using (MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
+							{
+								int aff = cmd.ExecuteNonQuery();
+								cumulus.LogMessage($"MySQL Update Table: {aff} items were affected.");
+								res = $"Added {cnt} columns to {table.Name} table";
 
+							}
+						}
+						else
+						{
+							res = $"Error: The {table.Name} table does not have all the required columns, but failed to find the missing columns!";
+							cumulus.LogMessage("MySQL Update Table: " + res);
 						}
 					}
 					else
