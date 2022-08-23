@@ -1,3 +1,11 @@
+3.20.1 - b3203
+——————————————
+Fixed
+- Fix crash in Alarms with some station types
+- Change the MySQL table updates to compare column names rather than simple counts
+- Fix the All Time, Monthly, This Year records editors not allowing 24 hour rain values to be changed
+
+
 3.20.0 - b3202
 ——————————————
 Fixed

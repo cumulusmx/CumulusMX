@@ -1670,7 +1670,7 @@ namespace CumulusMX
 				station.CreateEodGraphDataFiles();
 			}
 
-			//LogDebugMessage("Lock: Cumulus releasing the lock");
+			LogDebugMessage("Lock: Cumulus releasing the lock");
 			syncInit.Release();
 		}
 

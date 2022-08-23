@@ -5,6 +5,8 @@ using MySqlConnector;
 using ServiceStack;
 using EmbedIO;
 using System.Text;
+using MySqlConnector.Logging;
+using System.Collections.Generic;
 
 namespace CumulusMX
 {
@@ -340,24 +342,38 @@ namespace CumulusMX
 				{
 					mySqlConn.Open();
 
-					// first get a count of the columns the table currenty has
-					using (MySqlCommand cmd = new MySqlCommand($"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
+					// first get a list of the columns the table currenty has
+					var currCols = new List<string>();
+					using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
 					{
-						colsNow = int.Parse(cmd.ExecuteScalar().ToString());
+						using (MySqlDataReader reader = cmd.ExecuteReader())
+						{
+							if (reader.HasRows)
+							{
+								while (reader.Read())
+								{
+									var col = reader.GetString(0);
+									currCols.Add(col);
+								}
+							}
+						}
 					}
 
-					if (colsNow < table.Columns.Count)
+					if (currCols.Count < table.Columns.Count)
 					{
 						var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
-						while (colsNow < table.Columns.Count)
+						foreach (var newCol in table.Columns)
 						{
-							update.Append($" ADD COLUMN {table.Columns[colsNow].Name} {table.Columns[colsNow].Attributes},");
-							colsNow++;
-							cnt++;
+							if (!currCols.Contains(newCol.Name))
+							{
+								update.Append($" ADD COLUMN {newCol.Name} {newCol.Attributes},");
+								cnt++;
+							}
 						}
 
 						// strip trailing comma
-						update.Length--;
+						if (cnt > 0)
+							update.Length--;
 
 						using(MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
 						{
@@ -369,7 +385,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						res = $"The {table.Name} already has the correct number of columns = {table.Columns.Count}";
+						res = $"The {table.Name} already has the required columns = {table.Columns.Count}";
 					}
 				}
 			}
