@@ -385,7 +385,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						res = $"The {table.Name} already has the required columns = {table.Columns.Count}";
+						res = $"The {table.Name} table already has all the required columns = {table.Columns.Count}";
 					}
 				}
 			}
