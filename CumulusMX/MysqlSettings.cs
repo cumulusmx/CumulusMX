@@ -357,40 +357,32 @@ namespace CumulusMX
 						}
 					}
 
-					if (currCols.Count < table.Columns.Count)
+					var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
+					foreach (var newCol in table.Columns)
 					{
-						var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
-						foreach (var newCol in table.Columns)
+						if (!currCols.Contains(newCol.Name))
 						{
-							if (!currCols.Contains(newCol.Name))
-							{
-								update.Append($" ADD COLUMN {newCol.Name} {newCol.Attributes},");
-								cnt++;
-							}
+							update.Append($" ADD COLUMN {newCol.Name} {newCol.Attributes},");
+							cnt++;
 						}
+					}
 
+					if (cnt > 0)
+					{
 						// strip trailing comma
-						if (cnt > 0)
-						{
-							update.Length--;
+						update.Length--;
 
-							using (MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
-							{
-								int aff = cmd.ExecuteNonQuery();
-								cumulus.LogMessage($"MySQL Update Table: {aff} items were affected.");
-								res = $"Added {cnt} columns to {table.Name} table";
-
-							}
-						}
-						else
+						using (MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
 						{
-							res = $"Error: The {table.Name} table does not have all the required columns, but failed to find the missing columns!";
-							cumulus.LogMessage("MySQL Update Table: " + res);
+							int aff = cmd.ExecuteNonQuery();
+							res = $"Added {cnt} columns to {table.Name} table";
+							cumulus.LogMessage($"MySQL Update Table: " + res);
 						}
 					}
 					else
 					{
 						res = $"The {table.Name} table already has all the required columns = {table.Columns.Count}";
+						cumulus.LogMessage("MySQL Update Table: " + res);
 					}
 				}
 			}
