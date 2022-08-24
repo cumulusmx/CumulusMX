@@ -447,8 +447,8 @@ namespace CumulusMX
 		public int RolloverHour;
 		public bool Use10amInSummer;
 
-		public double Latitude;
-		public double Longitude;
+		public decimal Latitude;
+		public decimal Longitude;
 		public double Altitude;
 
 		internal int wsPort;
@@ -3315,7 +3315,7 @@ namespace CumulusMX
 		internal void DoMoonPhase()
 		{
 			DateTime now = DateTime.Now;
-			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZone.CurrentTimeZone.GetUtcOffset(now).TotalHours, Latitude, Longitude);
+			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZone.CurrentTimeZone.GetUtcOffset(now).TotalHours, (double)Latitude, (double)Longitude);
 			MoonRiseTime = TimeSpan.FromHours(moonriseset[0]);
 			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
 
@@ -3379,7 +3379,7 @@ namespace CumulusMX
 			if (MoonImage.Enabled)
 			{
 				LogDebugMessage("Generating new Moon image");
-				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, Latitude, MoonImage.Size);
+				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double)Latitude, MoonImage.Size);
 
 				if (ret == "OK")
 				{
@@ -3457,8 +3457,8 @@ namespace CumulusMX
 
 		private void GetSunriseSunset(DateTime time, out DateTime sunrise, out DateTime sunset, out bool alwaysUp, out bool alwaysDown)
 		{
-			string rise = SunriseSunset.SunRise(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
-			string set = SunriseSunset.SunSet(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
+			string rise = SunriseSunset.SunRise(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string set = SunriseSunset.SunSet(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 
 			if (rise.Equals("Always Down") || set.Equals("Always Down"))
 			{
@@ -3530,8 +3530,8 @@ namespace CumulusMX
 
 		private void GetDawnDusk(DateTime time, out DateTime dawn, out DateTime dusk, out bool alwaysUp, out bool alwaysDown)
 		{
-			string dawnStr = SunriseSunset.CivilTwilightEnds(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
-			string duskStr = SunriseSunset.CivilTwilightStarts(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
+			string dawnStr = SunriseSunset.CivilTwilightEnds(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string duskStr = SunriseSunset.CivilTwilightStarts(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 
 			if (dawnStr.Equals("Always Down") || duskStr.Equals("Always Down"))
 			{
@@ -3950,14 +3950,14 @@ namespace CumulusMX
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
 			DavisOptions.PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
 
-			Latitude = ini.GetValue("Station", "Latitude", 0.0);
+			Latitude = ini.GetValue("Station", "Latitude", (decimal) 0.0);
 			if (Latitude > 90 || Latitude < -90)
 			{
 				Latitude = 0;
 				LogMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
-			Longitude = ini.GetValue("Station", "Longitude", 0.0);
+			Longitude = ini.GetValue("Station", "Longitude", (decimal) 0.0);
 			if (Longitude > 180 || Longitude < -180)
 			{
 				Longitude = 0;
@@ -6112,7 +6112,7 @@ namespace CumulusMX
 
 
 			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
-			ini.SetValue("MySQL", "Port", MySqlConnSettings.Port);
+			ini.SetValue("MySQL", "Port", (int) MySqlConnSettings.Port);
 			ini.SetValue("MySQL", "User", MySqlConnSettings.UserID);
 			ini.SetValue("MySQL", "Pass", MySqlConnSettings.Password);
 			ini.SetValue("MySQL", "Database", MySqlConnSettings.Database);
@@ -7026,7 +7026,7 @@ namespace CumulusMX
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
-			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
+			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, station.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
 
 			var sb = new StringBuilder(256);
@@ -10492,7 +10492,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DegToDMS(double degrees, out int d, out int m, out int s)
+		public void DegToDMS(decimal degrees, out int d, out int m, out int s)
 		{
 			int secs = (int)(degrees * 60 * 60);
 

@@ -393,6 +393,14 @@ namespace CumulusMX
 			return DefaultValue;
 		}
 
+		internal decimal GetValue(string SectionName, string Key, decimal DefaultValue)
+		{
+			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
+			decimal Value;
+			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value)) return Value;
+			return DefaultValue;
+		}
+
 		internal byte[] GetValue(string SectionName, string Key, byte[] DefaultValue)
 		{
 			string StringValue = GetValue(SectionName, Key, EncodeByteArray(DefaultValue));
@@ -428,6 +436,11 @@ namespace CumulusMX
 		internal void SetValue(string SectionName, string Key, double Value)
 		{
 			SetValue(SectionName, Key, Value.ToString("G17", CultureInfo.InvariantCulture));
+		}
+
+		internal void SetValue(string SectionName, string Key, decimal Value)
+		{
+			SetValue(SectionName, Key, Value.ToString(CultureInfo.InvariantCulture));
 		}
 
 		internal void SetValue(string SectionName, string Key, byte[] Value)

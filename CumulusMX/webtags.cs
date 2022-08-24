@@ -129,6 +129,30 @@ namespace CumulusMX
 			}
 		}
 
+		private static string CheckRcDp(decimal val, Dictionary<string, string> tagParams, int decimals)
+		{
+			string ret;
+			try
+			{
+				if (tagParams.Get("tc") == "y")
+					return Math.Truncate(val).ToString();
+
+				int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
+
+				ret = val.ToString("F" + dp);
+
+				if (tagParams.Get("rc") == "y")
+				{
+					ret = ReplaceCommas(ret);
+				}
+				return ret;
+			}
+			catch
+			{
+				return "error";
+			}
+		}
+
 		private double GetSnowDepth(DateTime day)
 		{
 			double depth;
@@ -1027,7 +1051,7 @@ namespace CumulusMX
 		}
 		private string TagAirLinkHumIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
+			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp((decimal) cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1In(Dictionary<string, string> tagParams)
 		{
@@ -1090,7 +1114,7 @@ namespace CumulusMX
 		}
 		private string TagAirLinkHumOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
+			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp((decimal) cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1Out(Dictionary<string, string> tagParams)
 		{

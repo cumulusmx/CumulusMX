@@ -489,9 +489,9 @@ namespace CumulusMX
 			return JsonSerializer.SerializeToString(data);
 		}
 
-		private void LongToDMS(double longitude, out int d, out int m, out int s, out string hem)
+		private void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
 		{
-			double coordinate;
+			decimal coordinate;
 			if (longitude < 0)
 			{
 				coordinate = -longitude;
@@ -512,9 +512,9 @@ namespace CumulusMX
 			d = secs / 60;
 		}
 
-		private void LatToDMS(double latitude, out int d, out int m, out int s, out string hem)
+		private void LatToDMS(decimal latitude, out int d, out int m, out int s, out string hem)
 		{
-			double coordinate;
+			decimal coordinate;
 			if (latitude < 0)
 			{
 				coordinate = -latitude;
@@ -720,7 +720,7 @@ namespace CumulusMX
 					cumulus.LocationName = settings.general.Location.sitename ?? string.Empty;
 					cumulus.LocationDesc = settings.general.Location.description ?? string.Empty;
 
-					cumulus.Latitude = settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0);
+					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0));
 					if (settings.general.Location.Latitude.hemisphere == "South")
 					{
 						cumulus.Latitude = -cumulus.Latitude;
@@ -729,7 +729,7 @@ namespace CumulusMX
 					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.general.Location.Latitude.hemisphere[0], settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
 						settings.general.Location.Latitude.seconds);
 
-					cumulus.Longitude = settings.general.Location.Longitude.degrees + (settings.general.Location.Longitude.minutes / 60.0) + (settings.general.Location.Longitude.seconds / 3600.0);
+					cumulus.Longitude = (decimal) (settings.general.Location.Longitude.degrees + (settings.general.Location.Longitude.minutes / 60.0) + (settings.general.Location.Longitude.seconds / 3600.0));
 					if (settings.general.Location.Longitude.hemisphere == "West")
 					{
 						cumulus.Longitude = -cumulus.Longitude;

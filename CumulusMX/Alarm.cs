@@ -70,7 +70,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage($"Alarm ({Name}): Triggered");
 
-						if (Email && cumulus.SmtpOptions.Enabled)
+						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 						{
 							cumulus.LogMessage($"Alarm ({Name}): Sending email");
 
@@ -204,7 +204,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage($"Alarm ({Name}): Up triggered");
 
-					if (Email && cumulus.SmtpOptions.Enabled)
+					if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 					{
 						cumulus.LogMessage($"Alarm ({Name}): Sending email");
 
@@ -270,7 +270,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage($"Alarm ({Name}): Down triggered");
 
-					if (Email && cumulus.SmtpOptions.Enabled)
+					if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 					{
 						cumulus.LogMessage($"Alarm ({Name}): Sending email");
 						// Construct the message - preamble, plus values
