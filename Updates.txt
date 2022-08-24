@@ -5,9 +5,13 @@ Fixed
 - Change the MySQL table updates to compare column names rather than simple counts
 - Fix the All Time, Monthly, This Year records editors not allowing 24 hour rain values to be changed
 
+New
+- Adds a new option to the email server settings to ignore certificate errors
+
 Changed
 - The station latitude and longitude are now stored internally as decimal values. This means there will be no loss of precision when storing locations entered as decimal values via the
   configuration wizard, or directly in the Cumulus.ini file
+
 
 3.20.0 - b3202
 ——————————————

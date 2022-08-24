@@ -26,6 +26,7 @@ using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
 using System.Collections.Concurrent;
+using System.Security.Authentication;
 
 namespace CumulusMX
 {
@@ -5255,6 +5256,7 @@ namespace CumulusMX
 			SmtpOptions.RequiresAuthentication = ini.GetValue("SMTP", "RequiresAuthentication", false);
 			SmtpOptions.User = ini.GetValue("SMTP", "User", "");
 			SmtpOptions.Password = ini.GetValue("SMTP", "Password", "");
+			SmtpOptions.IgnoreCertErrors = ini.GetValue("SMTP", "IgnoreCertErrors", false);
 
 			// Growing Degree Days
 			GrowingBase1 = ini.GetValue("GrowingDD", "BaseTemperature1", (Units.Temp == 0 ? 5.0 : 40.0));
@@ -6221,6 +6223,7 @@ namespace CumulusMX
 			ini.SetValue("SMTP", "User", SmtpOptions.User);
 			ini.SetValue("SMTP", "Password", SmtpOptions.Password);
 			ini.SetValue("SMTP", "Logging", SmtpOptions.Logging);
+			ini.SetValue("SMTP", "IgnoreCertErrors", SmtpOptions.IgnoreCertErrors);
 
 			// Growing Degree Days
 			ini.SetValue("GrowingDD", "BaseTemperature1", GrowingBase1);

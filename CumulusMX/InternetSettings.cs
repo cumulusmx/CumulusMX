@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using ServiceStack;
 using EmbedIO;
+using static ServiceStack.Diagnostics.Events;
 
 namespace CumulusMX
 {
@@ -269,6 +270,7 @@ namespace CumulusMX
 						cumulus.SmtpOptions.RequiresAuthentication = settings.emailsettings.authenticate;
 						cumulus.SmtpOptions.User = settings.emailsettings.user;
 						cumulus.SmtpOptions.Password = settings.emailsettings.password;
+						cumulus.SmtpOptions.IgnoreCertErrors = settings.emailsettings.ignorecerterrors;
 
 						if (cumulus.emailer == null)
 						{
@@ -523,7 +525,8 @@ namespace CumulusMX
 				ssloption = cumulus.SmtpOptions.SslOption,
 				authenticate = cumulus.SmtpOptions.RequiresAuthentication,
 				user = cumulus.SmtpOptions.User,
-				password = cumulus.SmtpOptions.Password
+				password = cumulus.SmtpOptions.Password,
+				ignorecerterrors = cumulus.SmtpOptions.IgnoreCertErrors
 			};
 
 			var misc = new JsonInternetSettingsMisc()
@@ -800,6 +803,7 @@ namespace CumulusMX
 		public bool authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
+		public bool ignorecerterrors { get; set; }
 	}
 
 	public class JsonInternetSettingsMisc

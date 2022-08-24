@@ -57,6 +57,11 @@ namespace CumulusMX
 
 				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
+					if (cumulus.SmtpOptions.IgnoreCertErrors)
+					{
+						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+					}
+
 					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
 
 					// Note: since we don't have an OAuth2 token, disable
@@ -192,6 +197,7 @@ namespace CumulusMX
 			public int SslOption;
 			public bool RequiresAuthentication;
 			public bool Logging;
+			public bool IgnoreCertErrors;
 		}
 	}
 }
