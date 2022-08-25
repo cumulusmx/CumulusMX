@@ -3377,7 +3377,10 @@ namespace CumulusMX
 						updt.Append($"MinFeelsLike={station.DayFile[lineNum].LowFeelsLike.ToString(cumulus.TempFormat, InvC)},");
 						updt.Append($"TMinFeelsLike={station.DayFile[lineNum].LowFeelsLikeTime:\\'HH:mm\\'},");
 						updt.Append($"MaxHumidex={station.DayFile[lineNum].HighHumidex.ToString(cumulus.TempFormat, InvC)},");
-						updt.Append($"TMaxHumidex={station.DayFile[lineNum].HighFeelsLikeTime:\\'HH:mm\\'} ");
+						updt.Append($"TMaxHumidex={station.DayFile[lineNum].HighFeelsLikeTime:\\'HH:mm\\'},");
+						updt.Append($"ChillHours={station.DayFile[lineNum].ChillHours.ToString("F1", InvC)},");
+						updt.Append($"HighRain24h={station.DayFile[lineNum].HighRain24h.ToString(cumulus.RainFormat, InvC)},");
+						updt.Append($"THighRain24h={station.DayFile[lineNum].HighRain24hTime:\\'HH:mm\\'} ");
 
 						updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
 						updateStr = updt.ToString();
