@@ -1033,8 +1033,8 @@ namespace CumulusMX
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
 
-			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
-			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
+			LogMessage($"Directory separator=[{DirectorySeparator}] Decimal separator=[{DecimalSeparator}] List separator=[{ListSeparator}]");
+			LogMessage($"Date separator=[{CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator}] Time separator=[{CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator}]");
 
 			TimeZone localZone = TimeZone.CurrentTimeZone;
 			DateTime now = DateTime.Now;
@@ -8161,16 +8161,28 @@ namespace CumulusMX
 		public void DoLocalCopy()
 		{
 			var remotePath = "";
-			var folderSep1 = Path.DirectorySeparatorChar.ToString();
-			var folderSep2 = Path.AltDirectorySeparatorChar.ToString();
 
-			if (!FtpOptions.LocalCopyEnabled)
-				return;
-
-			if (FtpOptions.LocalCopyFolder.Length > 0)
+			try
 			{
-				remotePath = (FtpOptions.LocalCopyFolder.EndsWith(folderSep1) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + folderSep1);
+				var folderSep2 = Path.AltDirectorySeparatorChar;
+
+				if (!FtpOptions.LocalCopyEnabled)
+					return;
+
+				if (FtpOptions.LocalCopyFolder.Length > 0)
+				{
+					remotePath = (FtpOptions.LocalCopyFolder[-1] == DirectorySeparator || FtpOptions.LocalCopyFolder[-1] == folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + DirectorySeparator;
+				}
+				else
+				{
+					return;
+				}
 			}
+			catch (Exception ex)
+			{
+				LogMessage("LocalCopy: Error with paths - " + ex.Message);
+			}
+
 
 			var srcfile = "";
 			string dstfile;
@@ -8182,21 +8194,28 @@ namespace CumulusMX
 					// upload NOAA reports
 					LogDebugMessage("LocalCopy: Copying NOAA reports");
 
-					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
+					try
+					{
+						var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
 
-					srcfile = ReportPath + NOAAconf.LatestMonthReport;
-					dstfile = dstPath + folderSep1 + NOAAconf.LatestMonthReport;
+						srcfile = ReportPath + NOAAconf.LatestMonthReport;
+						dstfile = dstPath + DirectorySeparator + NOAAconf.LatestMonthReport;
 
-					File.Copy(srcfile, dstfile, true);
+						File.Copy(srcfile, dstfile, true);
 
-					srcfile = ReportPath + NOAAconf.LatestYearReport;
-					dstfile = dstPath + folderSep1 + NOAAconf.LatestYearReport;
+						srcfile = ReportPath + NOAAconf.LatestYearReport;
+						dstfile = dstPath + DirectorySeparator + NOAAconf.LatestYearReport;
 
-					File.Copy(srcfile, dstfile, true);
+						File.Copy(srcfile, dstfile, true);
 
-					NOAAconf.NeedCopy = false;
+						NOAAconf.NeedCopy = false;
 
-					LogDebugMessage("LocalCopy: Done copying NOAA reports");
+						LogDebugMessage("LocalCopy: Done copying NOAA reports");
+					}
+					catch (Exception ex)
+					{
+						LogMessage("LocalCopy: Error copy NOAA reports - " + ex.Message);
+					}
 				}
 				catch (Exception e)
 				{
@@ -8205,7 +8224,7 @@ namespace CumulusMX
 			}
 
 			// standard files
-			LogDebugMessage("LocalCopy: Uploading standard web files");
+			LogDebugMessage("LocalCopy: Copying standard web files");
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
 				if (StdWebFiles[i].Copy && StdWebFiles[i].CopyRequired)
@@ -8219,7 +8238,7 @@ namespace CumulusMX
 					catch (Exception e)
 					{
 						LogMessage($"LocalCopy: Error copying standard data file [{StdWebFiles[i].LocalFileName}]");
-						LogMessage($"LocalCopy: Error = {e}");
+						LogMessage($"LocalCopy: Error = {e.Message}");
 					}
 				}
 			}
@@ -8230,11 +8249,11 @@ namespace CumulusMX
 			{
 				if (GraphDataFiles[i].Copy && GraphDataFiles[i].CopyRequired)
 				{
-					srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-					dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
-
 					try
 					{
+						srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+						dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
+
 						File.Copy(srcfile, dstfile, true);
 						// The config files only need uploading once per change
 						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
@@ -8246,7 +8265,7 @@ namespace CumulusMX
 					catch (Exception e)
 					{
 						LogMessage($"LocalCopy: Error copying graph data file [{srcfile}]");
-						LogMessage($"LocalCopy: Error = {e}");
+						LogMessage($"LocalCopy: Error = {e.Message}");
 					}
 				}
 			}
@@ -8257,10 +8276,11 @@ namespace CumulusMX
 			{
 				if (GraphDataEodFiles[i].Copy && GraphDataEodFiles[i].CopyRequired)
 				{
-					srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-					dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 					try
 					{
+						srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+						dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+
 						File.Copy(srcfile, dstfile, true);
 						// Uploaded OK, reset the upload required flag
 						GraphDataEodFiles[i].CopyRequired = false;
@@ -8268,7 +8288,7 @@ namespace CumulusMX
 					catch (Exception e)
 					{
 						LogMessage($"LocalCopy: Error copying daily graph data file [{srcfile}]");
-						LogMessage($"LocalCopy: Error = {e}");
+						LogMessage($"LocalCopy: Error = {e.Message}");
 					}
 				}
 			}
