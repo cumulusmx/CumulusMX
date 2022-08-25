@@ -4,6 +4,8 @@ Fixed
 - Fix crash in Alarms with some station types
 - Change the MySQL table updates to compare column names rather than simple counts
 - Fix the All Time, Monthly, This Year records editors not allowing 24 hour rain values to be changed
+- Fix Dayfile editor not updating ChillHours and 24 hour rainfall values in the MySQL database
+- Fix Dayfile editor inserting 9999/-9999 values into the MySQL database when values are missing
 
 New
 - Adds a new option to the email server settings to ignore certificate errors
