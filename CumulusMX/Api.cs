@@ -1443,7 +1443,5 @@ namespace CumulusMX
 				}
 			}
 		}
-
-
 	}
 }

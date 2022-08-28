@@ -144,7 +144,7 @@ namespace CumulusMX
 			// if we are starting up, set the intial solar rad value to 90% of theoretical
 			if (!solarIntialised)
 			{
-				CurrentSolarMax = AstroLib.SolarMax(recDate, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+				CurrentSolarMax = AstroLib.SolarMax(recDate, (double) cumulus.Longitude, (double) cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 				solar = CurrentSolarMax * 0.9;
 				solarIntialised = true;
 			}

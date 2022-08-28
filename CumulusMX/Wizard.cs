@@ -611,11 +611,11 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		private string degToString(double degrees, bool lat)
+		private string degToString(decimal degrees, bool lat)
 		{
 			var degs = (int)Math.Floor(Math.Abs(degrees));
-			var minsF = (Math.Abs(degrees) - degs) * 60.0;
-			var secs = (int)Math.Round((minsF - Math.Floor(minsF)) * 60.0);
+			var minsF = (Math.Abs(degrees) - degs) * 60;
+			var secs = (int)Math.Round((minsF - Math.Floor(minsF)) * 60);
 			var mins = (int)Math.Floor(minsF);
 			string hemi;
 			if (lat)
@@ -639,8 +639,8 @@ namespace CumulusMX
 
 	internal class JsonWizardLocation
 	{
-		public double latitude { get; set; }
-		public double longitude { get; set; }
+		public decimal latitude { get; set; }
+		public decimal longitude { get; set; }
 		public int altitude { get; set; }
 		public string altitudeunit { get; set; }
 		public string sitename { get; set; }

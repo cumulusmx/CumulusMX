@@ -1674,7 +1674,7 @@ namespace CumulusMX
 		{
 			CheckForDataStopped();
 
-			CurrentSolarMax = AstroLib.SolarMax(now, cumulus.Longitude, cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+			CurrentSolarMax = AstroLib.SolarMax(now, (double) cumulus.Longitude, (double) cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 			
 			if (!DataStopped)
 			{
@@ -12214,7 +12214,7 @@ namespace CumulusMX
 		private string APRSLat(Cumulus cumulus)
 		{
 			string dir;
-			double lat;
+			decimal lat;
 			int d, m, s;
 			if (cumulus.Latitude < 0)
 			{
@@ -12242,7 +12242,7 @@ namespace CumulusMX
 		private string APRSLon(Cumulus cumulus)
 		{
 			string dir;
-			double lon;
+			decimal lon;
 			int d, m, s;
 			if (cumulus.Longitude < 0)
 			{

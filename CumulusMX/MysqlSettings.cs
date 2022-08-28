@@ -5,6 +5,8 @@ using MySqlConnector;
 using ServiceStack;
 using EmbedIO;
 using System.Text;
+using MySqlConnector.Logging;
+using System.Collections.Generic;
 
 namespace CumulusMX
 {
@@ -340,36 +342,47 @@ namespace CumulusMX
 				{
 					mySqlConn.Open();
 
-					// first get a count of the columns the table currenty has
-					using (MySqlCommand cmd = new MySqlCommand($"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
+					// first get a list of the columns the table currenty has
+					var currCols = new List<string>();
+					using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
+					using (MySqlDataReader reader = cmd.ExecuteReader())
 					{
-						colsNow = int.Parse(cmd.ExecuteScalar().ToString());
+						if (reader.HasRows)
+						{
+							while (reader.Read())
+							{
+								var col = reader.GetString(0);
+								currCols.Add(col);
+							}
+						}
 					}
 
-					if (colsNow < table.Columns.Count)
+					var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
+					foreach (var newCol in table.Columns)
 					{
-						var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
-						while (colsNow < table.Columns.Count)
+						if (!currCols.Contains(newCol.Name))
 						{
-							update.Append($" ADD COLUMN {table.Columns[colsNow].Name} {table.Columns[colsNow].Attributes},");
-							colsNow++;
+							update.Append($" ADD COLUMN {newCol.Name} {newCol.Attributes},");
 							cnt++;
 						}
+					}
 
+					if (cnt > 0)
+					{
 						// strip trailing comma
 						update.Length--;
 
-						using(MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
+						using (MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
 						{
 							int aff = cmd.ExecuteNonQuery();
-							cumulus.LogMessage($"MySQL Update Table: {aff} items were affected.");
 							res = $"Added {cnt} columns to {table.Name} table";
-
+							cumulus.LogMessage($"MySQL Update Table: " + res);
 						}
 					}
 					else
 					{
-						res = $"The {table.Name} already has the correct number of columns = {table.Columns.Count}";
+						res = $"The {table.Name} table already has all the required columns = {table.Columns.Count}";
+						cumulus.LogMessage("MySQL Update Table: " + res);
 					}
 				}
 			}

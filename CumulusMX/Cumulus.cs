@@ -26,6 +26,7 @@ using Timer = System.Timers.Timer;
 using SQLite;
 using Renci.SshNet;
 using System.Collections.Concurrent;
+using System.Security.Authentication;
 
 namespace CumulusMX
 {
@@ -447,8 +448,8 @@ namespace CumulusMX
 		public int RolloverHour;
 		public bool Use10amInSummer;
 
-		public double Latitude;
-		public double Longitude;
+		public decimal Latitude;
+		public decimal Longitude;
 		public double Altitude;
 
 		internal int wsPort;
@@ -1032,8 +1033,8 @@ namespace CumulusMX
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
 
-			LogMessage("Directory separator=[" + DirectorySeparator + "] Decimal separator=[" + DecimalSeparator + "] List separator=[" + ListSeparator + "]");
-			LogMessage("Date separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator + "] Time separator=[" + CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator + "]");
+			LogMessage($"Directory separator=[{DirectorySeparator}] Decimal separator=[{DecimalSeparator}] List separator=[{ListSeparator}]");
+			LogMessage($"Date separator=[{CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator}] Time separator=[{CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator}]");
 
 			TimeZone localZone = TimeZone.CurrentTimeZone;
 			DateTime now = DateTime.Now;
@@ -1670,7 +1671,7 @@ namespace CumulusMX
 				station.CreateEodGraphDataFiles();
 			}
 
-			//LogDebugMessage("Lock: Cumulus releasing the lock");
+			LogDebugMessage("Lock: Cumulus releasing the lock");
 			syncInit.Release();
 		}
 
@@ -3315,7 +3316,7 @@ namespace CumulusMX
 		internal void DoMoonPhase()
 		{
 			DateTime now = DateTime.Now;
-			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZone.CurrentTimeZone.GetUtcOffset(now).TotalHours, Latitude, Longitude);
+			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZone.CurrentTimeZone.GetUtcOffset(now).TotalHours, (double)Latitude, (double)Longitude);
 			MoonRiseTime = TimeSpan.FromHours(moonriseset[0]);
 			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
 
@@ -3379,7 +3380,7 @@ namespace CumulusMX
 			if (MoonImage.Enabled)
 			{
 				LogDebugMessage("Generating new Moon image");
-				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, Latitude, MoonImage.Size);
+				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double)Latitude, MoonImage.Size);
 
 				if (ret == "OK")
 				{
@@ -3457,8 +3458,8 @@ namespace CumulusMX
 
 		private void GetSunriseSunset(DateTime time, out DateTime sunrise, out DateTime sunset, out bool alwaysUp, out bool alwaysDown)
 		{
-			string rise = SunriseSunset.SunRise(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
-			string set = SunriseSunset.SunSet(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
+			string rise = SunriseSunset.SunRise(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string set = SunriseSunset.SunSet(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 
 			if (rise.Equals("Always Down") || set.Equals("Always Down"))
 			{
@@ -3530,8 +3531,8 @@ namespace CumulusMX
 
 		private void GetDawnDusk(DateTime time, out DateTime dawn, out DateTime dusk, out bool alwaysUp, out bool alwaysDown)
 		{
-			string dawnStr = SunriseSunset.CivilTwilightEnds(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
-			string duskStr = SunriseSunset.CivilTwilightStarts(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, Longitude, Latitude);
+			string dawnStr = SunriseSunset.CivilTwilightEnds(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string duskStr = SunriseSunset.CivilTwilightStarts(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 
 			if (dawnStr.Equals("Always Down") || duskStr.Equals("Always Down"))
 			{
@@ -3950,14 +3951,14 @@ namespace CumulusMX
 			//VP2SleepInterval = ini.GetValue("Station", "VP2SleepInterval", 0);
 			DavisOptions.PeriodicDisconnectInterval = ini.GetValue("Station", "VP2PeriodicDisconnectInterval", 0);
 
-			Latitude = ini.GetValue("Station", "Latitude", 0.0);
+			Latitude = ini.GetValue("Station", "Latitude", (decimal) 0.0);
 			if (Latitude > 90 || Latitude < -90)
 			{
 				Latitude = 0;
 				LogMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
-			Longitude = ini.GetValue("Station", "Longitude", 0.0);
+			Longitude = ini.GetValue("Station", "Longitude", (decimal) 0.0);
 			if (Longitude > 180 || Longitude < -180)
 			{
 				Longitude = 0;
@@ -5255,6 +5256,7 @@ namespace CumulusMX
 			SmtpOptions.RequiresAuthentication = ini.GetValue("SMTP", "RequiresAuthentication", false);
 			SmtpOptions.User = ini.GetValue("SMTP", "User", "");
 			SmtpOptions.Password = ini.GetValue("SMTP", "Password", "");
+			SmtpOptions.IgnoreCertErrors = ini.GetValue("SMTP", "IgnoreCertErrors", false);
 
 			// Growing Degree Days
 			GrowingBase1 = ini.GetValue("GrowingDD", "BaseTemperature1", (Units.Temp == 0 ? 5.0 : 40.0));
@@ -6112,7 +6114,7 @@ namespace CumulusMX
 
 
 			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
-			ini.SetValue("MySQL", "Port", MySqlConnSettings.Port);
+			ini.SetValue("MySQL", "Port", (int) MySqlConnSettings.Port);
 			ini.SetValue("MySQL", "User", MySqlConnSettings.UserID);
 			ini.SetValue("MySQL", "Pass", MySqlConnSettings.Password);
 			ini.SetValue("MySQL", "Database", MySqlConnSettings.Database);
@@ -6221,6 +6223,7 @@ namespace CumulusMX
 			ini.SetValue("SMTP", "User", SmtpOptions.User);
 			ini.SetValue("SMTP", "Password", SmtpOptions.Password);
 			ini.SetValue("SMTP", "Logging", SmtpOptions.Logging);
+			ini.SetValue("SMTP", "IgnoreCertErrors", SmtpOptions.IgnoreCertErrors);
 
 			// Growing Degree Days
 			ini.SetValue("GrowingDD", "BaseTemperature1", GrowingBase1);
@@ -7026,7 +7029,7 @@ namespace CumulusMX
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
-			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, Longitude, Latitude, station.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
+			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, station.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
 
 			var sb = new StringBuilder(256);
@@ -8158,16 +8161,28 @@ namespace CumulusMX
 		public void DoLocalCopy()
 		{
 			var remotePath = "";
-			var folderSep1 = Path.DirectorySeparatorChar.ToString();
-			var folderSep2 = Path.AltDirectorySeparatorChar.ToString();
 
-			if (!FtpOptions.LocalCopyEnabled)
-				return;
-
-			if (FtpOptions.LocalCopyFolder.Length > 0)
+			try
 			{
-				remotePath = (FtpOptions.LocalCopyFolder.EndsWith(folderSep1) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + folderSep1);
+				var folderSep2 = Path.AltDirectorySeparatorChar;
+
+				if (!FtpOptions.LocalCopyEnabled)
+					return;
+
+				if (FtpOptions.LocalCopyFolder.Length > 0)
+				{
+					remotePath = (FtpOptions.LocalCopyFolder[-1] == DirectorySeparator || FtpOptions.LocalCopyFolder[-1] == folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + DirectorySeparator;
+				}
+				else
+				{
+					return;
+				}
 			}
+			catch (Exception ex)
+			{
+				LogMessage("LocalCopy: Error with paths - " + ex.Message);
+			}
+
 
 			var srcfile = "";
 			string dstfile;
@@ -8179,21 +8194,28 @@ namespace CumulusMX
 					// upload NOAA reports
 					LogDebugMessage("LocalCopy: Copying NOAA reports");
 
-					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
+					try
+					{
+						var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
 
-					srcfile = ReportPath + NOAAconf.LatestMonthReport;
-					dstfile = dstPath + folderSep1 + NOAAconf.LatestMonthReport;
+						srcfile = ReportPath + NOAAconf.LatestMonthReport;
+						dstfile = dstPath + DirectorySeparator + NOAAconf.LatestMonthReport;
 
-					File.Copy(srcfile, dstfile, true);
+						File.Copy(srcfile, dstfile, true);
 
-					srcfile = ReportPath + NOAAconf.LatestYearReport;
-					dstfile = dstPath + folderSep1 + NOAAconf.LatestYearReport;
+						srcfile = ReportPath + NOAAconf.LatestYearReport;
+						dstfile = dstPath + DirectorySeparator + NOAAconf.LatestYearReport;
 
-					File.Copy(srcfile, dstfile, true);
+						File.Copy(srcfile, dstfile, true);
 
-					NOAAconf.NeedCopy = false;
+						NOAAconf.NeedCopy = false;
 
-					LogDebugMessage("LocalCopy: Done copying NOAA reports");
+						LogDebugMessage("LocalCopy: Done copying NOAA reports");
+					}
+					catch (Exception ex)
+					{
+						LogMessage("LocalCopy: Error copy NOAA reports - " + ex.Message);
+					}
 				}
 				catch (Exception e)
 				{
@@ -8202,7 +8224,7 @@ namespace CumulusMX
 			}
 
 			// standard files
-			LogDebugMessage("LocalCopy: Uploading standard web files");
+			LogDebugMessage("LocalCopy: Copying standard web files");
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
 				if (StdWebFiles[i].Copy && StdWebFiles[i].CopyRequired)
@@ -8216,7 +8238,7 @@ namespace CumulusMX
 					catch (Exception e)
 					{
 						LogMessage($"LocalCopy: Error copying standard data file [{StdWebFiles[i].LocalFileName}]");
-						LogMessage($"LocalCopy: Error = {e}");
+						LogMessage($"LocalCopy: Error = {e.Message}");
 					}
 				}
 			}
@@ -8227,11 +8249,11 @@ namespace CumulusMX
 			{
 				if (GraphDataFiles[i].Copy && GraphDataFiles[i].CopyRequired)
 				{
-					srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-					dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
-
 					try
 					{
+						srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+						dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
+
 						File.Copy(srcfile, dstfile, true);
 						// The config files only need uploading once per change
 						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
@@ -8243,7 +8265,7 @@ namespace CumulusMX
 					catch (Exception e)
 					{
 						LogMessage($"LocalCopy: Error copying graph data file [{srcfile}]");
-						LogMessage($"LocalCopy: Error = {e}");
+						LogMessage($"LocalCopy: Error = {e.Message}");
 					}
 				}
 			}
@@ -8254,10 +8276,11 @@ namespace CumulusMX
 			{
 				if (GraphDataEodFiles[i].Copy && GraphDataEodFiles[i].CopyRequired)
 				{
-					srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-					dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 					try
 					{
+						srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+						dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+
 						File.Copy(srcfile, dstfile, true);
 						// Uploaded OK, reset the upload required flag
 						GraphDataEodFiles[i].CopyRequired = false;
@@ -8265,7 +8288,7 @@ namespace CumulusMX
 					catch (Exception e)
 					{
 						LogMessage($"LocalCopy: Error copying daily graph data file [{srcfile}]");
-						LogMessage($"LocalCopy: Error = {e}");
+						LogMessage($"LocalCopy: Error = {e.Message}");
 					}
 				}
 			}
@@ -10312,17 +10335,18 @@ namespace CumulusMX
 
 		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<string> Cmds)
 		{
-			var ignore = ErrorCode == (int) MySqlConnector.MySqlErrorCode.ParseError ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.EmptyQuery ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.TooBigSelect ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.InvalidUseOfNull ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.MixOfGroupFunctionAndFields ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.SyntaxError ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.TooLongString ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.WrongColumnName ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.DuplicateUnique ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.PrimaryCannotHaveNull ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.DivisionByZero;
+			var ignore = ErrorCode == (int) MySqlErrorCode.ParseError ||
+						 ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
+						 ErrorCode == (int) MySqlErrorCode.TooBigSelect ||
+						 ErrorCode == (int) MySqlErrorCode.InvalidUseOfNull ||
+						 ErrorCode == (int) MySqlErrorCode.MixOfGroupFunctionAndFields ||
+						 ErrorCode == (int) MySqlErrorCode.SyntaxError ||
+						 ErrorCode == (int) MySqlErrorCode.TooLongString ||
+						 ErrorCode == (int) MySqlErrorCode.WrongColumnName ||
+						 ErrorCode == (int) MySqlErrorCode.DuplicateUnique ||
+						 ErrorCode == (int) MySqlErrorCode.PrimaryCannotHaveNull ||
+						 ErrorCode == (int) MySqlErrorCode.DivisionByZero ||
+						 ErrorCode == (int) MySqlErrorCode.DuplicateKeyEntry;
 
 			if (ignore)
 			{
@@ -10492,7 +10516,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DegToDMS(double degrees, out int d, out int m, out int s)
+		public void DegToDMS(decimal degrees, out int d, out int m, out int s)
 		{
 			int secs = (int)(degrees * 60 * 60);
 
