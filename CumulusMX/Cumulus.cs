@@ -10335,17 +10335,18 @@ namespace CumulusMX
 
 		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<string> Cmds)
 		{
-			var ignore = ErrorCode == (int) MySqlConnector.MySqlErrorCode.ParseError ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.EmptyQuery ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.TooBigSelect ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.InvalidUseOfNull ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.MixOfGroupFunctionAndFields ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.SyntaxError ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.TooLongString ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.WrongColumnName ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.DuplicateUnique ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.PrimaryCannotHaveNull ||
-						 ErrorCode == (int) MySqlConnector.MySqlErrorCode.DivisionByZero;
+			var ignore = ErrorCode == (int) MySqlErrorCode.ParseError ||
+						 ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
+						 ErrorCode == (int) MySqlErrorCode.TooBigSelect ||
+						 ErrorCode == (int) MySqlErrorCode.InvalidUseOfNull ||
+						 ErrorCode == (int) MySqlErrorCode.MixOfGroupFunctionAndFields ||
+						 ErrorCode == (int) MySqlErrorCode.SyntaxError ||
+						 ErrorCode == (int) MySqlErrorCode.TooLongString ||
+						 ErrorCode == (int) MySqlErrorCode.WrongColumnName ||
+						 ErrorCode == (int) MySqlErrorCode.DuplicateUnique ||
+						 ErrorCode == (int) MySqlErrorCode.PrimaryCannotHaveNull ||
+						 ErrorCode == (int) MySqlErrorCode.DivisionByZero ||
+						 ErrorCode == (int) MySqlErrorCode.DuplicateKeyEntry;
 
 			if (ignore)
 			{
