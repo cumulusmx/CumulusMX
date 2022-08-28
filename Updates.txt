@@ -1,3 +1,13 @@
+3.21.0 - b3204
+——————————————
+Fixed
+- FTP delete before upload logic changed.
+	- Previously, the existing file was deleted, then the new file uploaded. The process errored if the delete failed due to file not existing
+	- Now, the new file is uploaded to a tmp file, the original file is deleted (if it exists), then the tmp file is renamed to the final filename
+	- This has the advantage of minimising the time the remote file is unavailable
+
+
+
 3.20.1 - b3203
 ——————————————
 Fixed

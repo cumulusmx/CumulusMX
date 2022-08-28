@@ -8812,7 +8812,7 @@ namespace CumulusMX
 		// Return False if the connection is disposed, null, or not connected
 		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
+			string remotefiletmp = FTPRename || DeleteBeforeUpload ? remotefile + "tmp" : remotefile;
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
 			if (FtpOptions.Logging) FtpTrace.WriteLine("");
@@ -8824,51 +8824,62 @@ namespace CumulusMX
 					return true;
 				}
 
-				if (DeleteBeforeUpload)
-				{
-					// delete the existing file
-					try
-					{
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Deleting {remotefile}");
-						conn.DeleteFile(remotefile);
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
-						if (ex.InnerException != null)
-						{
-							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
-						}
-						return conn.IsConnected;
-					}
-				}
 
-				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
+				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefiletmp}");
 
-				var status = conn.UploadFile(localfile, remotefilename);
+				var status = conn.UploadFile(localfile, remotefiletmp);
 
 				if (status.IsFailure())
 				{
 					LogMessage($"FTP[{cycleStr}]: Upload of {localfile} to {remotefile} failed");
 				}
-				else if (FTPRename)
+				else
 				{
-					// rename the file
-					LogFtpDebugMessage($"FTP[{cycleStr}]: Renaming {remotefilename} to {remotefile}");
-
-					try
+					if (DeleteBeforeUpload)
 					{
-						conn.Rename(remotefilename, remotefile);
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Renamed {remotefilename}");
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
-						if (ex.InnerException != null)
+						// delete the existing file
+						try
 						{
-							LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
+							LogFtpDebugMessage($"FTP[{cycleStr}]: Deleting {remotefile}");
+							if (conn.FileExists(remotefile))
+							{
+								conn.DeleteFile(remotefile);
+							}
+							else
+							{
+								LogFtpDebugMessage($"FTP[{cycleStr}]: Cannot delete remote file {remotefile} as it does not exist");
+							}
 						}
-						return conn.IsConnected;
+						catch (Exception ex)
+						{
+							LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
+							if (ex.InnerException != null)
+							{
+								LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
+							}
+							return conn.IsConnected;
+						}
+					}
+
+					if (FTPRename || DeleteBeforeUpload)
+					{
+						// rename the file
+						LogFtpDebugMessage($"FTP[{cycleStr}]: Renaming {remotefiletmp} to {remotefile}");
+
+						try
+						{
+							conn.Rename(remotefiletmp, remotefile);
+							LogFtpDebugMessage($"FTP[{cycleStr}]: Renamed {remotefiletmp}");
+						}
+						catch (Exception ex)
+						{
+							LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefiletmp} to {remotefile} : {ex.Message}");
+							if (ex.InnerException != null)
+							{
+								LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
+							}
+							return conn.IsConnected;
+						}
 					}
 				}
 			}
