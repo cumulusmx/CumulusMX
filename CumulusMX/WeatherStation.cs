@@ -408,8 +408,17 @@ namespace CumulusMX
 			//RecentDataDb = new SQLiteConnection(":memory:", true);
 			RecentDataDb = new SQLiteConnection(cumulus.dbfile, false);
 			RecentDataDb.CreateTable<RecentData>();
+			RecentDataDb.CreateTable<SqlCache>();
 			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
 			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
+
+			// preload the failed sql cache - if any
+			var data = RecentDataDb.Query<SqlCache>("SELECT * FROM SqlCache ORDER BY key");
+
+			foreach (var rec in data)
+			{
+				cumulus.MySqlFailedList.Enqueue(rec);
+			}
 
 			var rnd = new Random();
 			versionCheckTime = new DateTime(1, 1, 1, rnd.Next(0, 23), rnd.Next(0, 59), 0);
@@ -12541,7 +12550,12 @@ namespace CumulusMX
 		public double avgPress { get; set; }
 	}
 
-
+	public class SqlCache
+	{
+		[AutoIncrement, PrimaryKey]
+		public int? key { get; set; }
+		public string statement { get; set; }
+	}
 
 	/*
 	public class StandardData

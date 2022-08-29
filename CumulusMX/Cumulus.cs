@@ -227,6 +227,7 @@ namespace CumulusMX
 		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
 
 		public volatile int WebUpdating;
+		public volatile bool SqlCatchingUp;
 
 		public double WindRoseAngle { get; set; }
 
@@ -490,8 +491,8 @@ namespace CumulusMX
 		private List<string> OWMList = new List<string>();
 
 		// Use thread safe queues for the MySQL command lists
-		private ConcurrentQueue<string> MySqlList = new ConcurrentQueue<string>();
-		public ConcurrentQueue<string> MySqlFailedList = new ConcurrentQueue<string>();
+		private ConcurrentQueue<SqlCache> MySqlList = new ConcurrentQueue<SqlCache>();
+		public ConcurrentQueue<SqlCache> MySqlFailedList = new ConcurrentQueue<SqlCache>();
 
 		// Calibration settings
 		/// <summary>
@@ -7142,7 +7143,7 @@ namespace CumulusMX
 				else
 				{
 					// save the string for later
-					MySqlList.Enqueue(queryString);
+					MySqlList.Enqueue(new SqlCache() { statement = queryString });
 				}
 			}
 		}
@@ -9324,7 +9325,7 @@ namespace CumulusMX
 			else
 			{
 				// not live, buffer the command for later
-				MySqlList.Enqueue(cmds[0]);
+				MySqlList.Enqueue(new SqlCache() { statement = cmds[0] });
 			}
 		}
 
@@ -9666,6 +9667,9 @@ namespace CumulusMX
 			{
 				if (!MySqlFailedList.IsEmpty)
 				{
+					// flag we are processing the queue so the next task doesn't try as well
+					SqlCatchingUp = true;
+
 					LogMessage($"{callingFunction}: Failed MySQL updates are present");
 					if (MySqlCheckConnection())
 					{
@@ -9681,14 +9685,18 @@ namespace CumulusMX
 						LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
 						if (callingFunction.StartsWith("Realtime["))
 						{
+							_ = station.RecentDataDb.Insert(new SqlCache() { statement = cmds[0] });
+
 							// don't bother buffering the realtime deletes - if present
-							MySqlFailedList.Enqueue(cmds[0]);
+							MySqlFailedList.Enqueue(new SqlCache() { statement = cmds[0] });
 						}
 						else
 						{
 							for (var i = 0; i < cmds.Count; i++)
 							{
-								MySqlFailedList.Enqueue(cmds[i]);
+								_ = station.RecentDataDb.Insert(new SqlCache() { statement = cmds[i] });
+
+								MySqlFailedList.Enqueue(new SqlCache() { statement = cmds[i] });
 							}
 						}
 					}
@@ -9696,6 +9704,7 @@ namespace CumulusMX
 					{
 						connectionOK = false;
 					}
+					SqlCatchingUp = false;
 				}
 
 				// now do what we came here to do
@@ -9707,6 +9716,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage($"{callingFunction}: Error - " + ex.Message);
+				SqlCatchingUp = false;
 			}
 		}
 
@@ -10185,23 +10195,27 @@ namespace CumulusMX
 
 		public async Task MySqlCommandAsync(string Cmd, string CallingFunction)
 		{
-			var Cmds = new ConcurrentQueue<string>();
-			Cmds.Enqueue(Cmd);
+			var Cmds = new ConcurrentQueue<SqlCache>();
+			Cmds.Enqueue(new SqlCache() { statement = Cmd });
 			await MySqlCommandAsync(Cmds, CallingFunction, false);
 		}
 
 		public async Task MySqlCommandAsync(List<string> Cmds, string CallingFunction)
 		{
-			var tempQ = new ConcurrentQueue<string>(Cmds);
+			var tempQ = new ConcurrentQueue<SqlCache>();
+			foreach (var cmd in Cmds)
+			{
+				tempQ.Enqueue(new SqlCache() { statement = cmd });
+			}
 			await MySqlCommandAsync(tempQ, CallingFunction, false);
 		}
 
-		public async Task MySqlCommandAsync(ConcurrentQueue<string> Cmds, string CallingFunction, bool UseFailedList)
+		public async Task MySqlCommandAsync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			await Task.Run(() =>
 			{
-				ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-				var cmdStr = "";
+				var queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+				SqlCache cachedCmd = null;
 
 				try
 				{
@@ -10214,11 +10228,11 @@ namespace CumulusMX
 							do
 							{
 								// Do not remove the item from the stack until we know the command worked
-								if (queue.TryPeek(out cmdStr))
+								if (queue.TryPeek(out cachedCmd))
 								{
-									using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+									using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 									{
-										LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
+										LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
 
 										if (transaction != null)
 										{
@@ -10228,8 +10242,14 @@ namespace CumulusMX
 										int aff = cmd.ExecuteNonQuery();
 										LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
 
-										// Success, pop the value from the queue
-										queue.TryDequeue(out cmdStr);
+										// Success, if using the failed list, delete from the database
+										if (UseFailedList)
+										{
+											station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
+										}
+
+										// and pop the value from the queue
+										queue.TryDequeue(out cachedCmd);
 									}
 								}
 							} while (!queue.IsEmpty);
@@ -10255,7 +10275,7 @@ namespace CumulusMX
 					// if debug logging is disable, then log the failing statement anyway
 					if (!DebuggingEnabled)
 					{
-						LogMessage($"{CallingFunction}: SQL = {cmdStr}");
+						LogMessage($"{CallingFunction}: SQL = {cachedCmd.statement}");
 					}
 
 
@@ -10276,15 +10296,15 @@ namespace CumulusMX
 
 		public void MySqlCommandSync(string Cmd, string CallingFunction)
 		{
-			var Cmds = new ConcurrentQueue<string>();
-			Cmds.Enqueue(Cmd);
+			var Cmds = new ConcurrentQueue<SqlCache>();
+			Cmds.Enqueue(new SqlCache() { statement = Cmd });
 			MySqlCommandSync(Cmds, CallingFunction, false);
 		}
 
-		public void MySqlCommandSync(ConcurrentQueue<string> Cmds, string CallingFunction, bool UseFailedList)
+		public void MySqlCommandSync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
 		{
-			ConcurrentQueue<string> queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-			var cmdStr = "";
+			var queue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+			SqlCache cachedCmd = null;
 
 			try
 			{
@@ -10297,12 +10317,12 @@ namespace CumulusMX
 						do
 						{
 							// Do not remove the item from the stack until we know the command worked
-							if (queue.TryPeek(out cmdStr))
+							if (queue.TryPeek(out cachedCmd))
 							{
 
-								using (MySqlCommand cmd = new MySqlCommand(cmdStr, mySqlConn))
+								using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 								{
-									LogDebugMessage($"{CallingFunction}: MySQL executing - {cmdStr}");
+									LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
 
 									if (transaction != null)
 									{
@@ -10312,8 +10332,13 @@ namespace CumulusMX
 									int aff = cmd.ExecuteNonQuery();
 									LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
 
-									// Success, pop the value from the stack
-									queue.TryDequeue(out cmdStr);
+									// Success, if using the failed list, delete from the databasec
+									if (UseFailedList)
+									{
+										station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
+									}
+									// and pop the value from the queue
+									queue.TryDequeue(out cachedCmd);
 								}
 
 								MySqlUploadAlarm.Triggered = false;
@@ -10339,7 +10364,7 @@ namespace CumulusMX
 				// if debug logging is disable, then log the failing statement anyway
 				if (!DebuggingEnabled)
 				{
-					LogMessage($"{CallingFunction}: SQL = {cmdStr}");
+					LogMessage($"{CallingFunction}: SQL = {cachedCmd}");
 				}
 
 				MySqlUploadAlarm.LastError = ex.Message;
@@ -10360,7 +10385,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<string> Cmds)
+		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<SqlCache> Cmds)
 		{
 			var ignore = ErrorCode == (int) MySqlErrorCode.ParseError ||
 						 ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
@@ -10383,11 +10408,20 @@ namespace CumulusMX
 			{
 				while (!Cmds.IsEmpty)
 				{
-					Cmds.TryDequeue(out var cmd);
-					if (!cmd.StartsWith("DELETE IGNORE FROM"))
+					try
 					{
-						LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
-						MySqlFailedList.Enqueue(cmd);
+						Cmds.TryDequeue(out var cmd);
+						if (!cmd.statement.StartsWith("DELETE IGNORE FROM"))
+						{
+							LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
+
+							_ = station.RecentDataDb.Insert(cmd);
+							MySqlFailedList.Enqueue(cmd);
+						}
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"{CallingFunction}: Error buffering command - " + ex.Message);
 					}
 				}
 			}

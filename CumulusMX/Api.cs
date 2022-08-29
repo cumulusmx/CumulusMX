@@ -1393,8 +1393,9 @@ namespace CumulusMX
 								var cnt = 0;
 								while (Program.cumulus.MySqlFailedList.TryDequeue(out var item))
 								{
-									cnt++;
+									cnt++;									
 								};
+								_ = Station.RecentDataDb.Execute("DELETE FROM SqlCache");
 								await writer.WriteAsync($"Failed queue cleared of {cnt} commands");
 								break;
 							default:
