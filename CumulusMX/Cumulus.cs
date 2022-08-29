@@ -8827,6 +8827,22 @@ namespace CumulusMX
 
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefiletmp}");
 
+				if (FTPRename || DeleteBeforeUpload)
+				{
+					// delete the existing tmp file
+					try
+					{
+						if (conn.FileExists(remotefiletmp))
+						{
+							conn.DeleteFile(remotefiletmp);
+						}
+					}
+					catch
+					{
+						// continue on error
+					}
+				}
+				
 				var status = conn.UploadFile(localfile, remotefiletmp);
 
 				if (status.IsFailure())
@@ -8857,7 +8873,7 @@ namespace CumulusMX
 							{
 								LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
 							}
-							return conn.IsConnected;
+							// continue on error
 						}
 					}
 
