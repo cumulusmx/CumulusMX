@@ -7,8 +7,12 @@ Fixed
 	- This has the advantage of minimising the time the remote file is unavailable
 - Local file copy giving "index out of bounds" error
 
+New
+- Failed MySQL commands are now can now be individually edited/deleted
+
 Changed
 - Failed MySQL commands are now stored in the SQLite database to persist across Cumulus runs
+- Third party components updated
 
 
 
