@@ -9685,18 +9685,21 @@ namespace CumulusMX
 						LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
 						if (callingFunction.StartsWith("Realtime["))
 						{
-							_ = station.RecentDataDb.Insert(new SqlCache() { statement = cmds[0] });
+							var tmp = new SqlCache() { statement = cmds[0] };
+							_ = station.RecentDataDb.Insert(tmp);
 
 							// don't bother buffering the realtime deletes - if present
-							MySqlFailedList.Enqueue(new SqlCache() { statement = cmds[0] });
+							MySqlFailedList.Enqueue(tmp);
 						}
 						else
 						{
 							for (var i = 0; i < cmds.Count; i++)
 							{
-								_ = station.RecentDataDb.Insert(new SqlCache() { statement = cmds[i] });
+								var tmp = new SqlCache() { statement = cmds[i] };
 
-								MySqlFailedList.Enqueue(new SqlCache() { statement = cmds[i] });
+								_ = station.RecentDataDb.Insert(tmp);
+
+								MySqlFailedList.Enqueue(tmp);
 							}
 						}
 					}

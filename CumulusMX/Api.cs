@@ -198,6 +198,9 @@ namespace CumulusMX
 							case "datalogs":
 								await writer.WriteAsync(dataEditor.EditDatalog(HttpContext));
 								break;
+							case "mysqlcache":
+								await writer.WriteAsync(dataEditor.EditMySqlCache(HttpContext));
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -263,6 +266,9 @@ namespace CumulusMX
 							case "diarysummary":
 								//return await this.JsonResponseAsync(Station.GetDiarySummary(year, month));
 								await writer.WriteAsync(Station.GetDiarySummary());
+								break;
+							case "mysqlcache.json":
+								await writer.WriteAsync(Station.GetCachedSqlCommands(draw, start, length, search));
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1396,7 +1402,16 @@ namespace CumulusMX
 									cnt++;									
 								};
 								_ = Station.RecentDataDb.Execute("DELETE FROM SqlCache");
-								await writer.WriteAsync($"Failed queue cleared of {cnt} commands");
+								string msg;
+								if (cnt == 0)
+								{
+									msg = "The MySQL cache is already empty!";
+								}
+								else
+								{
+									msg = $"Cached MySQL queue cleared of {cnt} commands";
+								}
+								await writer.WriteAsync(msg);
 								break;
 							default:
 								Response.StatusCode = 404;
