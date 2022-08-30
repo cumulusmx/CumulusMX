@@ -8161,7 +8161,7 @@ namespace CumulusMX
 
 		public void DoLocalCopy()
 		{
-			var remotePath = "";
+			var remotePath = FtpOptions.LocalCopyFolder;
 
 			try
 			{
@@ -8172,7 +8172,7 @@ namespace CumulusMX
 
 				if (FtpOptions.LocalCopyFolder.Length > 0)
 				{
-					remotePath = (FtpOptions.LocalCopyFolder[-1] == DirectorySeparator || FtpOptions.LocalCopyFolder[-1] == folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + DirectorySeparator;
+					remotePath = (FtpOptions.LocalCopyFolder.EndsWith(DirectorySeparator.ToString()) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2.ToString())) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + DirectorySeparator;
 				}
 				else
 				{
