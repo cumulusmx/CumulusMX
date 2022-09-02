@@ -333,7 +333,6 @@ namespace CumulusMX
 		private string UpdateMySQLTable(MySqlTable table)
 		{
 			string res;
-			int colsNow;
 			int cnt = 0;
 
 			try
@@ -381,7 +380,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						res = $"The {table.Name} table already has all the required columns = {table.Columns.Count}";
+						res = $"The {table.Name} table already has all the required columns. Required = {table.Columns.Count}, actual = {currCols.Count}";
 						cumulus.LogMessage("MySQL Update Table: " + res);
 					}
 				}

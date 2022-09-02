@@ -1,3 +1,18 @@
+3.21.0 - b3204
+——————————————
+Fixed
+- FTP delete before upload aborting if the initial delete fails due to file not existing
+- Local file copy giving "index out of bounds" error
+
+New
+- Failed MySQL commands are now can now be individually edited/deleted
+
+Changed
+- Failed MySQL commands are now stored in the SQLite database to persist across Cumulus runs
+- Third party components updated
+
+
+
 3.20.1 - b3203
 ——————————————
 Fixed

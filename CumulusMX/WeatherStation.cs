@@ -19,6 +19,7 @@ using Timer = System.Timers.Timer;
 using ServiceStack.Text;
 using System.Web;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {
@@ -408,11 +409,31 @@ namespace CumulusMX
 			//RecentDataDb = new SQLiteConnection(":memory:", true);
 			RecentDataDb = new SQLiteConnection(cumulus.dbfile, false);
 			RecentDataDb.CreateTable<RecentData>();
+			RecentDataDb.CreateTable<SqlCache>();
 			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
 			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
 
+			// preload the failed sql cache - if any
+			ReloadFailedMySQLCommands();
+
 			var rnd = new Random();
 			versionCheckTime = new DateTime(1, 1, 1, rnd.Next(0, 23), rnd.Next(0, 59), 0);
+		}
+
+		public void ReloadFailedMySQLCommands()
+		{
+			while (cumulus.MySqlFailedList.TryDequeue(out var tmp))
+			{
+				// do nothing
+			};
+
+			// preload the failed sql cache - if any
+			var data = RecentDataDb.Query<SqlCache>("SELECT * FROM SqlCache ORDER BY key");
+
+			foreach (var rec in data)
+			{
+				cumulus.MySqlFailedList.Enqueue(rec);
+			}
 		}
 
 		private void GetRainCounter()
@@ -10602,7 +10623,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.ToString());
+				cumulus.LogMessage("GetDayFile: Error - " + ex.ToString());
 			}
 
 			return "";
@@ -10820,6 +10841,75 @@ namespace CumulusMX
 			}
 
 			return "";
+		}
+
+
+		public string GetCachedSqlCommands(string draw, int start, int length, string search)
+		{
+			try
+			{
+				var filtered = 0;
+				var thisDraw = 0;
+
+				var json = new StringBuilder(350 * cumulus.MySqlFailedList.Count);
+
+				json.Append("{\"data\":[");
+
+				//var lines = File.ReadLines(cumulus.DayFile).Skip(start).Take(length);
+
+				foreach (var rec in cumulus.MySqlFailedList)
+				{
+					// if we have a search string and no match, skip to next line
+					if (!string.IsNullOrEmpty(search) && !rec.statement.Contains(search))
+					{
+						continue;
+					}
+
+					// this line either matches the search
+					filtered++;
+
+					// skip records until we get to the start entry
+					if (filtered <= start)
+					{
+						continue;
+					}
+
+					// only send the number requested
+					if (thisDraw < length)
+					{
+						// track the number of lines we have to return so far
+						thisDraw++;
+
+						json.Append($"[{rec.key},\"{rec.statement}\"],");
+					}
+					else if (string.IsNullOrEmpty(search))
+					{
+						// no search so we can bail out as we already know the total number of records
+						break;
+					}
+				}
+
+				// trim last ","
+				if (thisDraw > 0)
+					json.Length--;
+				json.Append("],\"recordsTotal\":");
+				json.Append(cumulus.MySqlFailedList.Count);
+				json.Append(",\"draw\":");
+				json.Append(draw);
+				json.Append(",\"recordsFiltered\":");
+				json.Append(string.IsNullOrEmpty(search) ? cumulus.MySqlFailedList.Count : filtered);
+				json.Append('}');
+
+				return json.ToString();
+
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage(ex.ToString());
+			}
+
+			return "";
+
 		}
 
 		public string GetUnits()
@@ -12541,7 +12631,12 @@ namespace CumulusMX
 		public double avgPress { get; set; }
 	}
 
-
+	public class SqlCache
+	{
+		[AutoIncrement, PrimaryKey]
+		public int? key { get; set; }
+		public string statement { get; set; }
+	}
 
 	/*
 	public class StandardData

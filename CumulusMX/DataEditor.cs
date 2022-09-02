@@ -4,7 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Web.UI;
 using EmbedIO;
+using Renci.SshNet.Common;
 using ServiceStack;
 
 namespace CumulusMX
@@ -3446,6 +3448,65 @@ namespace CumulusMX
 			var rec = new List<string>(newData.data);
 			rec.Insert(0, newData.line.ToString());
 			return rec.ToJson();
+		}
+
+		internal string EditMySqlCache(IHttpContext context)
+		{
+			var request = context.Request;
+			string text;
+			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+			{
+				text = reader.ReadToEnd();
+			}
+
+			var newData = text.FromJson<DayFileEditor>();
+
+			var newRec = new SqlCache()
+			{
+				key = newData.line,
+				statement = newData.data[0]
+			};
+
+			if (newData.action == "Edit")
+			{
+				try
+				{
+					station.RecentDataDb.Update(newRec);
+					station.ReloadFailedMySQLCommands();
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"EditMySqlCache: Failed, to update MySQL statement. Error = {ex.Message}");
+					context.Response.StatusCode = 500;
+
+					return "{\"errors\":{\"MySqlCache\":[\"Failed to update MySQL cache\"]}, \"data\":[\"" + newRec.statement + "\"]";
+				}
+			}
+			else if (newData.action == "Delete")
+			{
+				try
+				{
+					station.RecentDataDb.Delete(newRec);
+					station.ReloadFailedMySQLCommands();
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"EditMySqlCache: Failed, to delete MySQL statement. Error = {ex.Message}");
+					context.Response.StatusCode = 500;
+
+					return "{\"errors\":{\"MySqlCache\":[\"Failed to update MySQL cache\"]}, \"data\":[\"" + newRec.statement + "\"]";
+				}
+			}
+			else
+			{
+				cumulus.LogMessage($"EditMySqlCache: Unrecognised action = " + newData.action);
+				context.Response.StatusCode = 500;
+				return "{\"errors\":{\"SQL cache\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
+			}
+
+			// return the updated record
+			return $"[\"{newRec.statement}\"]";
+
 		}
 
 		private class DayFileEditor
