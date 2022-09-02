@@ -8825,9 +8825,6 @@ namespace CumulusMX
 					return true;
 				}
 
-
-				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefiletmp}");
-
 				if (FTPRename)
 				{
 					// delete the existing tmp file
