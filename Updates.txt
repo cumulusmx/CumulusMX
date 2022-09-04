@@ -1,3 +1,8 @@
+3.21.1 - b3205
+——————————————
+Fixed: Custom MySQL settings
+
+
 3.21.0 - b3204
 ——————————————
 NOTE: When running under Mono, this release REQUIRES Mono version 6.12 or later for email functions
