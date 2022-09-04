@@ -1,6 +1,13 @@
+3.21.2 - b3206
+——————————————
+Fixed
+- Pressure/Temperature trend alarms do not trigger until the first data has been received
+
+
 3.21.1 - b3205
 ——————————————
-Fixed: Custom MySQL settings
+Fixed
+- Custom MySQL settings
 
 
 3.21.0 - b3204

@@ -6288,14 +6288,19 @@ namespace CumulusMX
 				}
 				else
 				{
+					if (TempReadyToPlot)
+					{
+						// calculate and display the temp trend
+						temptrendval = (OutdoorTemperature - retVals[0].OutsideTemp) / 3.0F;
+						cumulus.TempChangeAlarm.CheckAlarm(temptrendval);
+					}
 
-					// calculate and display the temp trend
-					temptrendval = (OutdoorTemperature - retVals[0].OutsideTemp) / 3.0F;
-					cumulus.TempChangeAlarm.CheckAlarm(temptrendval);
-
-					// calculate and display the pressure trend
-					presstrendval = (Pressure - retVals[0].Pressure) / 3.0;
-					cumulus.PressChangeAlarm.CheckAlarm(presstrendval);
+					if (PressReadyToPlot)
+					{
+						// calculate and display the pressure trend
+						presstrendval = (Pressure - retVals[0].Pressure) / 3.0;
+						cumulus.PressChangeAlarm.CheckAlarm(presstrendval);
+					}
 
 					// Convert for display
 					//trendval = ConvertPressMBToUser(presstrendval);
