@@ -5161,8 +5161,8 @@ namespace CumulusMX
 			MySqlSettings.CustomSecs.Commands[0] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", "");
 			for (var i = 1; i < 10; i++)
 			{
-				if (ini.ValueExists("HTTP", "CustomMySqlSecondsCommandString" + i))
-					MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("HTTP", "CustomMySqlSecondsCommandString" + i, "");
+				if (ini.ValueExists("MySQL", "CustomMySqlSecondsCommandString" + i))
+					MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString" + i, "");
 			}
 
 			MySqlSettings.CustomSecs.Enabled = ini.GetValue("MySQL", "CustomMySqlSecondsEnabled", false);
@@ -5173,8 +5173,8 @@ namespace CumulusMX
 			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
 			for (var i = 1; i < 10; i++)
 			{
-				if (ini.ValueExists("HTTP", "CustomMySqlMinutesCommandString" + i))
-					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("HTTP", "CustomMySqlMinutesCommandString" + i, "");
+				if (ini.ValueExists("MySQL", "CustomMySqlMinutesCommandString" + i))
+					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, "");
 			}
 
 			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
@@ -5193,7 +5193,7 @@ namespace CumulusMX
 			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
 			for (var i = 1; i < 10; i++)
 			{
-				if (ini.ValueExists("HTTP", "CustomMySqlRolloverCommandString" + i))
+				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
 					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("HTTP", "CustomMySqlRolloverCommandString" + i, "");
 			}
 
@@ -6132,24 +6132,6 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "RealtimeTable", MySqlSettings.Realtime.TableName);
 			ini.SetValue("MySQL", "RealtimeRetention", MySqlSettings.RealtimeRetention);
 
-			for (var i = 1; i < 10; i++)
-			{
-				if (string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
-					ini.DeleteValue("MySQL", "CustomMySqlSecondsCommandString" + i);
-				else
-					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlSettings.CustomSecs.Commands[i]);
-
-				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
-					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
-				else
-					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
-
-				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
-					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
-				else
-					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
-			}
-
 			ini.SetValue("MySQL", "CustomMySqlSecondsEnabled", MySqlSettings.CustomSecs.Enabled);
 			ini.SetValue("MySQL", "CustomMySqlMinutesEnabled", MySqlSettings.CustomMins.Enabled);
 			ini.SetValue("MySQL", "CustomMySqlRolloverEnabled", MySqlSettings.CustomRollover.Enabled);
@@ -6174,7 +6156,7 @@ namespace CumulusMX
 				else
 					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
 
-				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+				if (string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
 				else
 					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
