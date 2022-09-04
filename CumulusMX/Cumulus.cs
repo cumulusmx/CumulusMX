@@ -5194,7 +5194,7 @@ namespace CumulusMX
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
-					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("HTTP", "CustomMySqlRolloverCommandString" + i, "");
+					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, "");
 			}
 
 			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
