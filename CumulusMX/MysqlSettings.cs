@@ -228,8 +228,7 @@ namespace CumulusMX
 				cumulus.MySqlSettings.CustomSecs.Enabled = settings.customseconds.enabled;
 				if (cumulus.MySqlSettings.CustomSecs.Enabled)
 				{
-					cumulus.MySqlSettings.CustomSecs.Commands[0] = settings.customseconds.command[0] ?? string.Empty;
-					for (var i = 1; i < 10; i++)
+					for (var i = 0; i < 10; i++)
 					{
 						if (i < settings.customseconds.command.Length)
 							cumulus.MySqlSettings.CustomSecs.Commands[i] = settings.customseconds.command[i] ?? null;
@@ -243,15 +242,13 @@ namespace CumulusMX
 				cumulus.MySqlSettings.CustomMins.Enabled = settings.customminutes.enabled;
 				if (cumulus.MySqlSettings.CustomMins.Enabled)
 				{
-					cumulus.MySqlSettings.CustomMins.Commands[0] = settings.customminutes.command[0] ?? string.Empty;
-					for (var i = 1; i < 10; i++)
+					for (var i = 0; i < 10; i++)
 					{
 						if (i < settings.customminutes.command.Length)
 							cumulus.MySqlSettings.CustomMins.Commands[i] = settings.customminutes.command[i] ?? null;
 						else
 							cumulus.MySqlSettings.CustomMins.Commands[i] = null;
 					}
-
 
 					cumulus.CustomMySqlMinutesIntervalIndex = settings.customminutes.intervalindex;
 					if (cumulus.CustomMySqlMinutesIntervalIndex >= 0 && cumulus.CustomMySqlMinutesIntervalIndex < cumulus.FactorsOf60.Length)
@@ -267,8 +264,7 @@ namespace CumulusMX
 				cumulus.MySqlSettings.CustomRollover.Enabled = settings.customrollover.enabled;
 				if (cumulus.MySqlSettings.CustomRollover.Enabled)
 				{
-					cumulus.MySqlSettings.CustomRollover.Commands[0] = settings.customrollover.command[0];
-					for (var i = 1; i < 10; i++)
+					for (var i = 0; i < 10; i++)
 					{
 						if (i < settings.customrollover.command.Length)
 							cumulus.MySqlSettings.CustomRollover.Commands[i] = settings.customrollover.command[i] ?? null;
