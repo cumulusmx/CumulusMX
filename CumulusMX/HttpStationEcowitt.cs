@@ -295,9 +295,12 @@ namespace CumulusMX
 					if ((recDate.Minute % 20) == 0 || lastMinute == -1 && data["runtime"] != null)
 					{
 						var runtime = Convert.ToInt32(data["runtime"]);
-						var uptime = TimeSpan.FromSeconds(runtime);
+						if (runtime > 0)
+						{
+							var uptime = TimeSpan.FromSeconds(runtime);
 
-						cumulus.LogMessage($"Ecowitt Gateway uptime = {runtime} secs - {uptime:c}");
+							cumulus.LogMessage($"Ecowitt Gateway uptime = {runtime} secs - {uptime:c}");
+						}
 					}
 
 					lastMinute = recDate.Minute;
