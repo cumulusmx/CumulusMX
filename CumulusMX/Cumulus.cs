@@ -27,6 +27,7 @@ using SQLite;
 using Renci.SshNet;
 using System.Collections.Concurrent;
 using System.Security.Authentication;
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -221,6 +222,9 @@ namespace CumulusMX
 		private readonly TokenParser customMysqlSecondsTokenParser = new TokenParser();
 		private readonly TokenParser customMysqlMinutesTokenParser = new TokenParser();
 		private readonly TokenParser customMysqlRolloverTokenParser = new TokenParser();
+		private readonly TokenParser customLogIntvlTokenParser = new TokenParser();
+		private readonly TokenParser customLogDailyTokenParser = new TokenParser();
+
 
 		public bool NormalRunning = false;
 
@@ -725,6 +729,9 @@ namespace CumulusMX
 		public AirLinkData airLinkDataIn;
 		public AirLinkData airLinkDataOut;
 
+		public CustomLogSettings[] CustomIntvlLogSettings = new CustomLogSettings[10];
+		public CustomLogSettings[] CustomDailyLogSettings = new CustomLogSettings[10];
+
 		public string[] StationDesc =
 		{
 			"Davis Vantage Pro",			// 0
@@ -1027,6 +1034,12 @@ namespace CumulusMX
 			};
 
 			ProgramOptions.Culture = new CultureConfig();
+
+			for (var i = 0; i < 10; i++)
+			{
+				CustomIntvlLogSettings[i] = new CustomLogSettings();
+				CustomDailyLogSettings[i] = new CustomLogSettings();
+			}
 
 			ReadIniFile();
 
@@ -1343,6 +1356,10 @@ namespace CumulusMX
 			customHttpMinutesTokenParser.OnToken += TokenParserOnToken;
 			customHttpRolloverTokenParser.OnToken += TokenParserOnToken;
 
+			customLogIntvlTokenParser.OnToken += TokenParserOnToken;
+			customLogDailyTokenParser.OnToken += TokenParserOnToken;
+
+
 			if (SmtpOptions.Enabled)
 			{
 				emailer = new EmailSender(this);
@@ -1445,6 +1462,7 @@ namespace CumulusMX
 			Api.noaaSettings = new NOAASettings(this);
 			Api.alarmSettings = new AlarmSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
+			Api.customLogs = new CustomLogs(this);
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
 			Api.wizard = new Wizard(this);
@@ -5275,6 +5293,56 @@ namespace CumulusMX
 			TempSumBase1 = ini.GetValue("TempSum", "BaseTemperature1", GrowingBase1);
 			TempSumBase2 = ini.GetValue("TempSum", "BaseTemperature2", GrowingBase2);
 
+			// Custom Log Settings
+			for (var i = 0; i < 10; i++)
+			{
+				if (ini.ValueExists("CustomLogs", "DailyFilename" + i))
+					CustomDailyLogSettings[i].FileName = ini.GetValue("CustomLogs", "DailyFilename" + i, "");
+
+				if (ini.ValueExists("CustomLogs", "DailyContent" + i))
+					CustomDailyLogSettings[i].ContentString = ini.GetValue("CustomLogs", "DailyContent" + i, "");
+
+				if (string.IsNullOrEmpty(CustomDailyLogSettings[i].FileName) || string.IsNullOrEmpty(CustomDailyLogSettings[i].ContentString))
+					CustomDailyLogSettings[i].Enabled = false;
+				else
+					CustomDailyLogSettings[i].Enabled = ini.GetValue("CustomLogs", "DailyEnabled" + i, false);
+
+
+
+				if (ini.ValueExists("CustomLogs", "IntervalFilename" + i))
+					CustomIntvlLogSettings[i].FileName = ini.GetValue("CustomLogs", "IntervalFilename" + i, "");
+
+				if (ini.ValueExists("CustomLogs", "IntervalContent" + i))
+					CustomIntvlLogSettings[i].ContentString = ini.GetValue("CustomLogs", "IntervalContent" + i, "");
+
+				if (string.IsNullOrEmpty(CustomIntvlLogSettings[i].FileName) || string.IsNullOrEmpty(CustomIntvlLogSettings[i].ContentString))
+					CustomIntvlLogSettings[i].Enabled = false;
+				else
+					CustomIntvlLogSettings[i].Enabled = ini.GetValue("CustomLogs", "IntervalEnabled" + i, false);
+
+				if (ini.ValueExists("CustomLogs", "IntervalIdx" + i))
+				{
+					CustomIntvlLogSettings[i].IntervalIdx = ini.GetValue("CustomLogs", "IntervalIdx" + i, DataLogInterval);
+
+					if (CustomIntvlLogSettings[i].IntervalIdx >= 0 && CustomIntvlLogSettings[i].IntervalIdx < FactorsOf60.Length)
+					{
+						CustomIntvlLogSettings[i].Interval = FactorsOf60[CustomIntvlLogSettings[i].IntervalIdx];
+					}
+					else
+					{
+						CustomIntvlLogSettings[i].Interval = FactorsOf60[DataLogInterval];
+						CustomIntvlLogSettings[i].IntervalIdx = DataLogInterval;
+						rewriteRequired = true;
+					}
+				}
+				else
+				{
+					CustomIntvlLogSettings[i].Interval = FactorsOf60[DataLogInterval];
+					CustomIntvlLogSettings[i].IntervalIdx = DataLogInterval;
+				}
+			}
+
+
 			LogMessage("Reading Cumulus.ini file completed");
 
 			if (rewriteRequired && File.Exists("Cumulus.ini"))
@@ -6219,6 +6287,44 @@ namespace CumulusMX
 			ini.SetValue("TempSum", "BaseTemperature1", TempSumBase1);
 			ini.SetValue("TempSum", "BaseTemperature2", TempSumBase2);
 
+
+			// Custom Daily Log Settings
+			for (var i = 0; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(CustomDailyLogSettings[i].FileName) && string.IsNullOrEmpty(CustomDailyLogSettings[i].ContentString))
+				{
+					ini.DeleteValue("CustomLogs", "DailyEnabled" + i);
+					ini.DeleteValue("CustomLogs", "DailyFilename" + i);
+					ini.DeleteValue("CustomLogs", "DailyContent" + i);
+				}
+				else
+				{
+					ini.SetValue("CustomLogs", "DailyEnabled" + i, CustomDailyLogSettings[i].Enabled);
+					ini.SetValue("CustomLogs", "DailyFilename" + i, CustomDailyLogSettings[i].FileName);
+					ini.SetValue("CustomLogs", "DailyContent" + i, CustomDailyLogSettings[i].ContentString);
+				}
+			}
+
+			// Custom Interval Log Settings
+			for (var i = 0; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(CustomIntvlLogSettings[i].FileName) && string.IsNullOrEmpty(CustomIntvlLogSettings[i].ContentString))
+				{
+					ini.DeleteValue("CustomLogs", "IntervalEnabled" + i);
+					ini.DeleteValue("CustomLogs", "IntervalFilename" + i);
+					ini.DeleteValue("CustomLogs", "IntervalContent" + i);
+					ini.DeleteValue("CustomLogs", "IntervalIdx" + i);
+				}
+				else
+				{
+					ini.SetValue("CustomLogs", "IntervalEnabled" + i, CustomIntvlLogSettings[i].Enabled);
+					ini.SetValue("CustomLogs", "IntervalFilename" + i, CustomIntvlLogSettings[i].FileName);
+					ini.SetValue("CustomLogs", "IntervalContent" + i, CustomIntvlLogSettings[i].ContentString);
+					ini.SetValue("CustomLogs", "IntervalIdx" + i, CustomIntvlLogSettings[i].IntervalIdx);
+				}
+			}
+
+
 			ini.Flush();
 
 			LogMessage("Completed writing Cumulus.ini file");
@@ -6974,6 +7080,24 @@ namespace CumulusMX
 			return Datapath + "AirLink" + datestring + "log.txt";
 		}
 
+		public string GetCustomIntvlLogFileName(int idx, DateTime thedate)
+		{
+			// First determine the date for the log file.
+			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
+			// before 'Now'
+			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
+
+			var datestring = logfiledate.ToString("yyyyMM");
+			datestring = datestring.Replace(".", "");
+
+			return Datapath + CustomIntvlLogSettings[idx].FileName + "-" + datestring + ".txt";
+		}
+
+		public string GetCustomDailyLogFileName(int idx)
+		{
+			return Datapath + CustomDailyLogSettings[idx].FileName + ".txt";
+		}
+
 		public const int NumLogFileFields = 29;
 
 		public async void DoLogFile(DateTime timestamp, bool live)
@@ -7453,6 +7577,121 @@ namespace CumulusMX
 			} while (!success && retries >= 0);
 		}
 
+		public void DoCustomIntervalLogs(DateTime timestamp)
+		{
+			for (var i = 0; i < 10; i++)
+			{
+				if (CustomIntvlLogSettings[i].Enabled)
+				{
+					DoCustomIntervalLog(i, timestamp);
+				}
+			}
+		}
+
+		private async void DoCustomIntervalLog(int idx, DateTime timestamp)
+		{
+			// Writes a custom log file
+
+			// create the filename
+			var filename = GetCustomIntvlLogFileName(idx, timestamp);
+
+			LogDebugMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Writing log entry for {timestamp}");
+
+			// create the line to be appended
+			var sb = new StringBuilder(256);
+
+			sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
+			sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
+
+			// process the webtags in the content string
+			customLogIntvlTokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
+			sb.Append(customLogIntvlTokenParser.ToStringFromString());
+
+			LogDataMessage("DoCustomIntervalLog: entry: " + sb);
+
+			var success = false;
+			var retries = LogFileRetries;
+			do
+			{
+				try
+				{
+					using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
+					using (StreamWriter file = new StreamWriter(fs))
+					{
+						file.WriteLine(sb);
+						file.Close();
+						fs.Close();
+
+						success = true;
+
+						LogDebugMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Log entry for {timestamp} written");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogDebugMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Error writing log entry for {timestamp} - {ex.Message}");
+					retries--;
+					await Task.Delay(250);
+				}
+			} while (!success && retries >= 0);
+		}
+
+		public void DoCustomDailyLogs(DateTime timestamp)
+		{
+			for (var i = 0; i < 10; i++)
+			{
+				if (CustomDailyLogSettings[i].Enabled)
+				{
+					DoCustomDailyLog(i, timestamp);
+				}
+			}
+		}
+
+		private async void DoCustomDailyLog(int idx, DateTime timestamp)
+		{
+			LogDebugMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Writing log entry");
+
+			// create the filename
+			var filename = GetCustomDailyLogFileName(idx);
+
+			string datestring = timestamp.AddDays(-1).ToString("dd/MM/yy");
+			// NB this string is just for logging, the dayfile update code is further down
+			var sb = new StringBuilder(300);
+			sb.Append(datestring + ListSeparator);
+
+			// process the webtags in the content string
+			customLogDailyTokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
+			sb.Append(customLogDailyTokenParser.ToStringFromString());
+
+			LogDataMessage("DoCustomDailyLog: entry: " + sb);
+
+			var success = false;
+			var retries = LogFileRetries;
+			do
+			{
+				try
+				{
+					using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
+					using (StreamWriter file = new StreamWriter(fs))
+					{
+						file.WriteLine(sb);
+						file.Close();
+						fs.Close();
+
+						success = true;
+
+						LogDebugMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Log entry written");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogDebugMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Error writing log entry - {ex.Message}");
+					retries--;
+					await Task.Delay(250);
+				}
+			} while (!success && retries >= 0);
+		}
+
 		public void BackupData(bool daily, DateTime timestamp)
 		{
 			string dirpath = daily ? backupPath + "daily" + DirectorySeparator : backupPath;
@@ -7524,6 +7763,7 @@ namespace CumulusMX
 				var AirLinkFile = GetAirLinkLogFileName(timestamp);
 				var AirLinkBackup = foldername + AirLinkFile.Replace(logFilePath, "");
 
+
 				if (!Directory.Exists(foldername))
 				{
 					Directory.CreateDirectory(foldername);
@@ -7540,6 +7780,22 @@ namespace CumulusMX
 					CopyBackupFile(dbfile, dbBackup);
 					CopyBackupFile(extraFile, extraBackup);
 					CopyBackupFile(AirLinkFile, AirLinkBackup);
+					// custom logs
+					for (var i = 0; i < 10; i++)
+					{
+						if (CustomIntvlLogSettings[i].Enabled)
+						{
+							var filename = GetCustomIntvlLogFileName(i, timestamp);
+							CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""));
+						}
+
+						if (CustomDailyLogSettings[i].Enabled)
+						{
+							var filename = GetCustomDailyLogFileName(i);
+							CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""));
+						}
+					}
+
 					// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
 					// as the month has not yet rolled over - only applies for start-up backups
 					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
@@ -7557,6 +7813,15 @@ namespace CumulusMX
 						CopyBackupFile(LogFile2, logbackup2, true);
 						CopyBackupFile(extraFile2, extraBackup2, true);
 						CopyBackupFile(AirLinkFile2, AirLinkBackup2, true);
+
+						for (var i = 0; i < 10; i++)
+						{
+							if (CustomIntvlLogSettings[i].Enabled)
+							{
+								var filename = GetCustomIntvlLogFileName(i, timestamp.AddDays(-1));
+								CopyBackupFile(filename, filename.Replace(logFilePath, ""), true);
+							}
+						}
 					}
 
 					LogMessage("Created backup folder " + foldername);
@@ -11358,6 +11623,15 @@ namespace CumulusMX
 			CustomMins.Commands = new string[10];
 			CustomRollover.Commands = new string[10];
 		}
+	}
+
+	public class CustomLogSettings
+	{
+		public bool Enabled { get; set; }
+		public string FileName { get; set; }
+		public string ContentString { get; set; }
+		public int Interval { get; set; }
+		public int IntervalIdx { get; set; }
 	}
 
 	public class MySqlTableSettings
