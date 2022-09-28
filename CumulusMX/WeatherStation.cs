@@ -1768,7 +1768,6 @@ namespace CumulusMX
 					if (now.Minute % cumulus.logints[cumulus.DataLogInterval] == 0)
 					{
 						cumulus.DoLogFile(now, true);
-						cumulus.DoCustomIntervalLogs(now);
 
 						if (cumulus.StationOptions.LogExtraSensors)
 						{

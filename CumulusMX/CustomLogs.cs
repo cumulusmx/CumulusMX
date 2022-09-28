@@ -122,6 +122,7 @@ namespace CumulusMX
 						cumulus.CustomIntvlLogSettings[i].FileName = null;
 						cumulus.CustomIntvlLogSettings[i].ContentString = null;
 						cumulus.CustomIntvlLogSettings[i].IntervalIdx = cumulus.DataLogInterval;
+						cumulus.CustomIntvlLogSettings[i].Interval = cumulus.FactorsOf60[cumulus.DataLogInterval];
 					}
 				}
 

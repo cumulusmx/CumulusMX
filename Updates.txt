@@ -1,4 +1,4 @@
-3.22.0 - b3207
+3.22.0 - b3208
 ——————————————
 New
 - Adds the ability to create custom data log files, both interval and daily

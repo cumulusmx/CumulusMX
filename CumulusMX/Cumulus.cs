@@ -7581,7 +7581,7 @@ namespace CumulusMX
 		{
 			for (var i = 0; i < 10; i++)
 			{
-				if (CustomIntvlLogSettings[i].Enabled)
+				if (CustomIntvlLogSettings[i].Enabled && timestamp.Minute % CustomIntvlLogSettings[i].Interval == 0)
 				{
 					DoCustomIntervalLog(i, timestamp);
 				}
