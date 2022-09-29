@@ -5,6 +5,7 @@ New
 
 Changed
 - MailKit and MimeKit updated to latest versions
+- The web tag <#timeJavaScript> now provides a value truncated to the current second
 
 
 3.21.2 - b3206

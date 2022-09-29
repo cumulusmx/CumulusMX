@@ -107,7 +107,7 @@ namespace CumulusMX
 					if (i < settings.interval.Count)
 					{	
 						cumulus.CustomIntvlLogSettings[i].FileName = settings.interval[i].filename ?? null;
-						cumulus.CustomIntvlLogSettings[i].ContentString = settings.interval[i].content ?? null;
+						cumulus.CustomIntvlLogSettings[i].ContentString = settings.interval[i].content.Replace("\n", "").Replace("\r", "") ?? null;
 						cumulus.CustomIntvlLogSettings[i].IntervalIdx = settings.interval[i].intervalidx;
 						cumulus.CustomIntvlLogSettings[i].Interval = cumulus.FactorsOf60[settings.interval[i].intervalidx];
 
@@ -175,7 +175,7 @@ namespace CumulusMX
 					{
 						cumulus.CustomDailyLogSettings[i].Enabled = settings.daily[i].enabled;
 						cumulus.CustomDailyLogSettings[i].FileName = settings.daily[i].filename ?? null;
-						cumulus.CustomDailyLogSettings[i].ContentString = settings.daily[i].content ?? null;
+						cumulus.CustomDailyLogSettings[i].ContentString = settings.daily[i].content.Replace("\n", "").Replace("\r", "") ?? null;
 
 						if (string.IsNullOrEmpty(cumulus.CustomDailyLogSettings[i].FileName) || string.IsNullOrEmpty(cumulus.CustomDailyLogSettings[i].ContentString))
 							cumulus.CustomDailyLogSettings[i].Enabled = false;

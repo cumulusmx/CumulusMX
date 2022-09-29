@@ -5300,7 +5300,7 @@ namespace CumulusMX
 					CustomDailyLogSettings[i].FileName = ini.GetValue("CustomLogs", "DailyFilename" + i, "");
 
 				if (ini.ValueExists("CustomLogs", "DailyContent" + i))
-					CustomDailyLogSettings[i].ContentString = ini.GetValue("CustomLogs", "DailyContent" + i, "");
+					CustomDailyLogSettings[i].ContentString = ini.GetValue("CustomLogs", "DailyContent" + i, "").Replace("\n", "").Replace("\r", "");
 
 				if (string.IsNullOrEmpty(CustomDailyLogSettings[i].FileName) || string.IsNullOrEmpty(CustomDailyLogSettings[i].ContentString))
 					CustomDailyLogSettings[i].Enabled = false;
@@ -5313,7 +5313,7 @@ namespace CumulusMX
 					CustomIntvlLogSettings[i].FileName = ini.GetValue("CustomLogs", "IntervalFilename" + i, "");
 
 				if (ini.ValueExists("CustomLogs", "IntervalContent" + i))
-					CustomIntvlLogSettings[i].ContentString = ini.GetValue("CustomLogs", "IntervalContent" + i, "");
+					CustomIntvlLogSettings[i].ContentString = ini.GetValue("CustomLogs", "IntervalContent" + i, "").Replace("\n", "").Replace("\r", "");
 
 				if (string.IsNullOrEmpty(CustomIntvlLogSettings[i].FileName) || string.IsNullOrEmpty(CustomIntvlLogSettings[i].ContentString))
 					CustomIntvlLogSettings[i].Enabled = false;
@@ -11680,5 +11680,4 @@ namespace CumulusMX
 			RainNorms = new double[13];
 		}
 	}
-
 }
