@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using System.Threading.Tasks;
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -167,6 +168,12 @@ namespace CumulusMX
 								if ((minute % 20) == 0)
 								{
 									GetSensorIdsNew();
+								}
+
+								// every day dump the clock drift at midday each day
+								if (minute == 0 && DateTime.Now.Hour == 12)
+								{
+									GetSystemInfo(true);
 								}
 							}
 						}
@@ -513,7 +520,7 @@ namespace CumulusMX
 					}
 				}
 
-				GetSystemInfo();
+				GetSystemInfo(false);
 
 				GetSensorIdsNew();
 			}
@@ -909,6 +916,7 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x18: //Date and time
+								// does not appear to be implemented
 								idx += 7;
 								break;
 							case 0x19: //Day max wind(m/s)
@@ -1277,7 +1285,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void GetSystemInfo()
+		private void GetSystemInfo(bool driftOnly)
 		{
 			cumulus.LogMessage("Reading Ecowitt system info");
 
@@ -1294,6 +1302,8 @@ namespace CumulusMX
 			// 10  - time zone index (?)
 			// 11  - DST 0-1 - false/true
 			// 12  - 0x?? - checksum
+
+			var now = DateTime.Now;
 
 			if (data == null)
 			{
@@ -1324,9 +1334,30 @@ namespace CumulusMX
 
 				var unix = GW1000Api.ConvertBigEndianUInt32(data, 6);
 				var date = Utils.FromUnixTime(unix);
-				var dst = data[11] != 0;
+				var autoDST = data[11] != 0;
 
-				cumulus.LogMessage($"GW1000 Info: frequency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {dst}");
+				// Ecowitt do not understand Unix time and add the DST to it!
+				if (autoDST && TimeZoneInfo.Local.IsDaylightSavingTime(date))
+				{
+					unix -= 3600;
+					date = date.AddHours(-1);
+				}
+
+				var clockdiff = now.ToUnixTime() - unix;
+
+				string slowfast;
+
+				if (clockdiff == 0)
+					slowfast = "off";
+				else if (clockdiff > 0)
+					slowfast = "slow";
+				else
+					slowfast = "fast";
+
+				if (!driftOnly)
+					cumulus.LogMessage($"Gateway Info: frequency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {autoDST}");
+
+				cumulus.LogMessage($"Gateway Info: Gateway clock is {Math.Abs(clockdiff)} secs {slowfast} compared to Cumulus");
 			}
 			catch (Exception ex)
 			{
