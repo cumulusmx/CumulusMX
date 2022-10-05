@@ -917,7 +917,7 @@ namespace CumulusMX
 								break;
 							case 0x18: //Date and time
 								// does not appear to be implemented
-								idx += 7;
+								idx += 6;
 								break;
 							case 0x19: //Day max wind(m/s)
 								idx += 2;
@@ -1064,7 +1064,14 @@ namespace CumulusMX
 							case 0x62: //Lightning strikes today
 								tempUint32 = GW1000Api.ConvertBigEndianUInt32(data, idx);
 								//cumulus.LogDebugMessage($"Lightning count={tempUint32}");
-								LightningStrikesToday = (int)tempUint32;
+								if (tempUint32 == 0 && dateTime.Minute == 59 && dateTime.Hour == 23)
+								{
+									// Ecowitt clock drift - if the count resets in the minute before midnight, ignore it until after midnight
+								}
+								else
+								{
+									LightningStrikesToday = (int) tempUint32;
+								}
 								idx += 4;
 								break;
 							// user temp = WH34 8 channel Soil or Water temperature sensors
@@ -1332,15 +1339,16 @@ namespace CumulusMX
 
 				var mainSensor = data[5] == 0 ? "WH24" : "Other than WH24";
 
-				var unix = GW1000Api.ConvertBigEndianUInt32(data, 6);
+				var unix = (int)GW1000Api.ConvertBigEndianUInt32(data, 6);
 				var date = Utils.FromUnixTime(unix);
 				var autoDST = data[11] != 0;
 
-				// Ecowitt do not understand Unix time and add the DST to it!
+				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
+				var offset = TimeZone.CurrentTimeZone.GetUtcOffset(now);
 				if (autoDST && TimeZoneInfo.Local.IsDaylightSavingTime(date))
 				{
-					unix -= 3600;
-					date = date.AddHours(-1);
+					unix -= (int)Math.Round(offset.TotalSeconds);
+					date = date.AddSeconds(-offset.TotalSeconds);
 				}
 
 				var clockdiff = now.ToUnixTime() - unix;
