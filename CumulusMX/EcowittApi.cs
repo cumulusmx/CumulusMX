@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reactive;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
@@ -1224,6 +1225,8 @@ namespace CumulusMX
 				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
 
 				cumulus.DoLogFile(rec.Key, false);
+				cumulus.DoCustomIntervalLogs(rec.Key);
+
 				if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(rec.Key);
 
 				//AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,

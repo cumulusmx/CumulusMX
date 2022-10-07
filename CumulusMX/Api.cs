@@ -23,6 +23,7 @@ namespace CumulusMX
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
+		public static CustomLogs customLogs;
 		public static Wizard wizard;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
@@ -1068,6 +1069,12 @@ namespace CumulusMX
 								Response.ContentType = "text/plain";
 								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
 								break;
+							case "customlogsintvl.json":
+								await writer.WriteAsync(customLogs.GetAlpacaFormDataIntvl());
+								break;
+							case "customlogsdaily.json":
+								await writer.WriteAsync(customLogs.GetAlpacaFormDataDaily());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -1145,6 +1152,12 @@ namespace CumulusMX
 								break;
 							case "wizard.json":
 								await writer.WriteAsync(wizard.UpdateConfig(HttpContext));
+								break;
+							case "updatecustomlogsintvl.json":
+								await writer.WriteAsync(customLogs.UpdateConfigIntvl(HttpContext));
+								break;
+							case "updatecustomlogsdaily.json":
+								await writer.WriteAsync(customLogs.UpdateConfigDaily(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;

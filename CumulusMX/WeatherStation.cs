@@ -20,6 +20,8 @@ using ServiceStack.Text;
 using System.Web;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
+using ServiceStack;
+using System.Reactive;
 
 namespace CumulusMX
 {
@@ -1789,6 +1791,9 @@ namespace CumulusMX
 					{
 						cumulus.CustomHttpMinutesUpdate();
 					}
+
+					// Custom Log files - interval logs
+					cumulus.DoCustomIntervalLogs(now);
 
 					if (cumulus.WebIntervalEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
@@ -4746,6 +4751,8 @@ namespace CumulusMX
 				{
 					cumulus.CustomHttpRolloverUpdate();
 				}
+
+				cumulus.DoCustomDailyLogs(timestamp);
 
 				// First save today"s extremes
 				DoDayfile(timestamp);
