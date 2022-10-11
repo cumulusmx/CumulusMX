@@ -1,3 +1,10 @@
+3.22.1 - b3212
+——————————————
+Fixed
+- NOAA Reports pages not working in all locales
+- RainRate sometimes giving wild values on start-up
+
+
 3.22.0 - b3211
 ——————————————
 New

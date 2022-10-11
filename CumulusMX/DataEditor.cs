@@ -664,7 +664,7 @@ namespace CumulusMX
 			switch (recordType)
 			{
 				case "alltime":
-					datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+					datefrom = cumulus.RecordsBeganDateTime;
 					break;
 				case "thisyear":
 					var now = DateTime.Now;
@@ -675,7 +675,7 @@ namespace CumulusMX
 					datefrom = new DateTime(now.Year, now.Month, 1).Date;
 					break;
 				default:
-					datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+					datefrom = cumulus.RecordsBeganDateTime;
 					break;
 			}
 			var dateto = DateTime.Now.Date;
@@ -2158,7 +2158,7 @@ namespace CumulusMX
 			const string monthFormat = "MMM yyyy";
 
 			var json = new StringBuilder("{", 25500);
-			var datefrom = DateTime.Parse(cumulus.RecordsBeganDate);
+			var datefrom = cumulus.RecordsBeganDateTime;
 			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
 			var dateto = DateTime.Now;
 			dateto = new DateTime(dateto.Year, dateto.Month, 1, 0, 0, 0);
