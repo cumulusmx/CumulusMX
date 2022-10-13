@@ -6489,7 +6489,6 @@ namespace CumulusMX
 				}
 				else
 				{
-
 					trendval = Math.Round(Raincounter - retDbl[0], cumulus.RainDPlaces);
 
 					if (trendval < 0)

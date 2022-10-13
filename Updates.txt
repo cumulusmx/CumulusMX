@@ -2,7 +2,7 @@
 ——————————————
 Fixed
 - NOAA Reports pages not working in all locales
-- RainRate sometimes giving wild values on start-up
+- RainRate sometimes giving wild values on start-up when CMX calculates rate
 
 
 3.22.0 - b3211
@@ -14,7 +14,6 @@ New
 Changed
 - MailKit and MimeKit updated to latest versions
 - The web tag <#TimeJavaScript> now provides a value truncated to the current second
-
 
 
 3.21.2 - b3206
