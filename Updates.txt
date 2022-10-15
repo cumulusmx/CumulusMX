@@ -3,6 +3,7 @@
 Fixed
 - NOAA Reports pages not working in all locales
 - RainRate sometimes giving wild values on start-up when CMX calculates rate
+- Amusing typo in default web site today/yesterday page
 
 
 3.22.0 - b3211
