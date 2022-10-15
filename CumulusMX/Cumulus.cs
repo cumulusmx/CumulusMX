@@ -4151,7 +4151,16 @@ namespace CumulusMX
 
 			RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
 
-			LogMessage("Cumulus start date: " + RecordsBeganDate);
+			try
+			{
+				RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
+			}
+			catch (Exception ex)
+			{
+				LogErrorMessage($"Error parsing the RecordsBegan date: {ex.Message}");
+			}
+
+			LogMessage($"Cumulus start date: {RecordsBeganDate}  Parsed: {RecordsBeganDateTime:yyyy-MM-dd}" );
 
 			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
 			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);
@@ -6778,6 +6787,7 @@ namespace CumulusMX
 		//public bool EWduplicatecheck { get; set; }
 
 		public string RecordsBeganDate { get; set; }
+		public DateTime RecordsBeganDateTime { get; set; }
 
 		//public bool EWdisablecheckinit { get; set; }
 

@@ -2486,13 +2486,13 @@ namespace CumulusMX
 
 		private string Tagrecordsbegandate(Dictionary<string,string> tagParams)
 		{
-			var begandate = DateTime.Parse(cumulus.RecordsBeganDate);
+			var begandate = cumulus.RecordsBeganDateTime;
 			return GetFormattedDateTime(begandate, "dd MMMM yyyy", tagParams);
 		}
 
 		private string TagDaysSinceRecordsBegan(Dictionary<string,string> tagParams)
 		{
-			var begandate = DateTime.Parse(cumulus.RecordsBeganDate);
+			var begandate = cumulus.RecordsBeganDateTime;
 			return (DateTime.Now - begandate).Days.ToString();
 		}
 

@@ -6275,6 +6275,7 @@ namespace CumulusMX
 		{
 			double trendval, retVal;
 			List<RecentData> retVals;
+			List<Double> retDbl;
 			var recTs = ts;
 
 			// if this is the special case of rollover processing, we want the High today record to on the previous day at 23:59 or 08:59
@@ -6405,16 +6406,15 @@ namespace CumulusMX
 
 				try
 				{
-					retVal = RecentDataDb.ExecuteScalar<double>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddMinutes(-5.5));
+					retDbl = RecentDataDb.Query<Double>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddMinutes(-5.5));
 
-					if (Raincounter < retVal)
+					if (retDbl.Count != 1 || Raincounter < retDbl[0])
 					{
 						RainRate = 0;
 					}
 					else
 					{
-
-						var raindiff = Math.Round(Raincounter - retVal, cumulus.RainDPlaces);
+						var raindiff = Math.Round(Raincounter - retDbl[0], cumulus.RainDPlaces);
 						//cumulus.LogMessage("raindiff = " + raindiff);
 
 						var timediffhours = 1.0 / 12.0;
@@ -6431,6 +6431,7 @@ namespace CumulusMX
 						{
 							// ignore
 							cumulus.LogSpikeRemoval("Max rainfall rate spike value exceed");
+							cumulus.LogSpikeRemoval($"Rate value = {ConvertUserRainToMM(tempRainRate):F2} SpikeMaxRainRate = {cumulus.Spike.MaxRainRate:F2}");
 							lastSpikeRemoval = DateTime.Now;
 							cumulus.SpikeAlarm.LastError = $"Max rainfall rate greater than spike value - Value={tempRainRate:F1}";
 							cumulus.SpikeAlarm.Triggered = true;
@@ -6479,17 +6480,16 @@ namespace CumulusMX
 
 			// calculate and display rainfall in last 24 hour
 			try
-			{ 
-				retVal = RecentDataDb.ExecuteScalar<double>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddDays(-1));
+			{
+				retDbl = RecentDataDb.Query<Double>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddDays(-1));
 
-				if (Raincounter < retVal)
+				if (retDbl.Count != 1 || Raincounter < retDbl[0])
 				{
 					RainLast24Hour = 0;
 				}
 				else
 				{
-
-					trendval = Math.Round(Raincounter - retVal, cumulus.RainDPlaces);
+					trendval = Math.Round(Raincounter - retDbl[0], cumulus.RainDPlaces);
 
 					if (trendval < 0)
 					{
