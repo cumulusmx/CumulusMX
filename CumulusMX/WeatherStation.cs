@@ -6270,7 +6270,7 @@ namespace CumulusMX
 
 		public void DoTrendValues(DateTime ts, bool rollover = false)
 		{
-			double trendval, retVal;
+			double trendval;
 			List<RecentData> retVals;
 			var recTs = ts;
 
