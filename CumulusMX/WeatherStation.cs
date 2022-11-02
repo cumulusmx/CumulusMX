@@ -7257,16 +7257,9 @@ namespace CumulusMX
 
 			try
 			{
-				var notPresent = 0.0;
-
-				// is the record going to be used for min/max record determination?
-				if (minMax)
-				{
-					notPresent = Cumulus.DefaultHiVal;
-				}
 				var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
 
-				// We allow int values to have a decimal point becuase log files sometimes get mangled by Excel etc!
+				// We allow int values to have a decimal point because log files sometimes get mangled by Excel etc!
 				var rec = new logfilerec()
 				{
 					Date = Utils.ddmmyyhhmmStrToDate(st[0], st[1]),
@@ -7282,22 +7275,79 @@ namespace CumulusMX
 					Raincounter = Convert.ToDouble(st[11]),
 					IndoorTemperature = Convert.ToDouble(st[12]),
 					IndoorHumidity = Convert.ToInt32(Convert.ToDouble(st[13])),
-					WindLatest = Convert.ToDouble(st[14]),
-					WindChill = st.Count > 15 ? Convert.ToDouble(st[15]) : notPresent,
-					HeatIndex = st.Count > 16 ? Convert.ToDouble(st[16]) : notPresent,
-					UV = st.Count > 17 ? Convert.ToDouble(st[17]) : notPresent,
-					SolarRad = st.Count > 18 ? Convert.ToDouble(st[18]) : notPresent,
-					ET = st.Count > 19 ? Convert.ToDouble(st[19]) : notPresent,
-					AnnualETTotal = st.Count > 20 ? Convert.ToDouble(st[20]) : notPresent,
-					ApparentTemperature = st.Count > 21 ? Convert.ToDouble(st[21]) : notPresent,
-					CurrentSolarMax = st.Count > 22 ? Convert.ToDouble(st[22]) : notPresent,
-					SunshineHours = st.Count > 23 ? Convert.ToDouble(st[23]) : notPresent,
-					Bearing = st.Count > 24 ? Convert.ToInt32(Convert.ToDouble(st[24])) : 0,
-					RG11RainToday = st.Count > 25 ? Convert.ToDouble(st[25]) : notPresent,
-					RainSinceMidnight = st.Count > 26 ? Convert.ToDouble(st[26]) : notPresent,
-					FeelsLike = st.Count > 27 ? Convert.ToDouble(st[27]) : notPresent,
-					Humidex = st.Count > 28 ? Convert.ToDouble(st[28]) : notPresent
+					WindLatest = Convert.ToDouble(st[14])
 				};
+
+
+				if (st.Count > 15 && !string.IsNullOrWhiteSpace(st[15]))
+					rec.WindChill = Convert.ToDouble(st[15]);
+				else
+					rec.WindChill = minMax ? Cumulus.DefaultLoVal : 0.0;
+
+				if (st.Count > 16 && !string.IsNullOrWhiteSpace(st[16]))
+					rec.HeatIndex = Convert.ToDouble(st[16]);
+				else
+					rec.HeatIndex = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 17 && !string.IsNullOrWhiteSpace(st[17]))
+					rec.UV = Convert.ToDouble(st[17]);
+				else
+					rec.UV = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 18 && !string.IsNullOrWhiteSpace(st[18]))
+					rec.SolarRad = Convert.ToDouble(st[18]);
+				else
+					rec.SolarRad = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 19 && !string.IsNullOrWhiteSpace(st[19]))
+					rec.ET = Convert.ToDouble(st[19]);
+				else
+					rec.ET = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 20 && !string.IsNullOrWhiteSpace(st[20]))
+					rec.AnnualETTotal = Convert.ToDouble(st[20]);
+				else
+					rec.AnnualETTotal = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 21 && !string.IsNullOrWhiteSpace(st[21]))
+					rec.ApparentTemperature = Convert.ToDouble(st[21]);
+				else
+					rec.ApparentTemperature = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 22 && !string.IsNullOrWhiteSpace(st[22]))
+					rec.CurrentSolarMax = Convert.ToDouble(st[22]);
+				else
+					rec.CurrentSolarMax = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 23 && !string.IsNullOrWhiteSpace(st[23]))
+					rec.SunshineHours = Convert.ToDouble(st[23]);
+				else
+					rec.SunshineHours = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 24 && !string.IsNullOrWhiteSpace(st[24]))
+					rec.Bearing = Convert.ToInt32(Convert.ToDouble(st[24]));
+				else
+					rec.Bearing = 0;
+
+				if (st.Count > 25 && !string.IsNullOrWhiteSpace(st[25]))
+					rec.RG11RainToday = Convert.ToDouble(st[25]);
+				else
+					rec.RG11RainToday = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 26 && !string.IsNullOrWhiteSpace(st[26]))
+					rec.RainSinceMidnight = Convert.ToDouble(st[26]);
+				else
+					rec.RainSinceMidnight = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 27 && !string.IsNullOrWhiteSpace(st[27]))
+					rec.FeelsLike = Convert.ToDouble(st[27]);
+				else
+					rec.FeelsLike = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 28 && !string.IsNullOrWhiteSpace(st[28]))
+					rec.Humidex = Convert.ToDouble(st[28]);
+				else
+					rec.Humidex = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				return rec;
 			}
