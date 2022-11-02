@@ -383,25 +383,25 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "tempdata.json":
-								await writer.WriteAsync(Station.GetTempGraphData());
+								await writer.WriteAsync(Station.GetTempGraphData(DateTime.Now));
 								break;
 							case "winddata.json":
-								await writer.WriteAsync(Station.GetWindGraphData());
+								await writer.WriteAsync(Station.GetWindGraphData(DateTime.Now));
 								break;
 							case "raindata.json":
-								await writer.WriteAsync(Station.GetRainGraphData());
+								await writer.WriteAsync(Station.GetRainGraphData(DateTime.Now));
 								break;
 							case "pressdata.json":
-								await writer.WriteAsync(Station.GetPressGraphData());
+								await writer.WriteAsync(Station.GetPressGraphData(DateTime.Now));
 								break;
 							case "wdirdata.json":
-								await writer.WriteAsync(Station.GetWindDirGraphData());
+								await writer.WriteAsync(Station.GetWindDirGraphData(DateTime.Now));
 								break;
 							case "humdata.json":
-								await writer.WriteAsync(Station.GetHumGraphData());
+								await writer.WriteAsync(Station.GetHumGraphData(DateTime.Now));
 								break;
 							case "solardata.json":
-								await writer.WriteAsync(Station.GetSolarGraphData());
+								await writer.WriteAsync(Station.GetSolarGraphData(DateTime.Now));
 								break;
 							case "dailyrain.json":
 								await writer.WriteAsync(Station.GetDailyRainGraphData());
@@ -419,7 +419,7 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetGraphConfig());
 								break;
 							case "airqualitydata.json":
-								await writer.WriteAsync(Station.GetAqGraphData());
+								await writer.WriteAsync(Station.GetAqGraphData(DateTime.Now));
 								break;
 							case "availabledata.json":
 								await writer.WriteAsync(Station.GetAvailGraphData());

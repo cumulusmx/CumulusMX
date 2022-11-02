@@ -2,6 +2,8 @@
 ——————————————
 Fixed
 - Updates and fixes to the MQTT library
+- Crash in the WLL station fetching Available Sensors from wl.com when it is unreachable
+- Recent data graph JSON files may contain differing numbers of records
 
 
 3.22.2 - b3213

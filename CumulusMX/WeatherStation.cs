@@ -1807,14 +1807,14 @@ namespace CumulusMX
 								cumulus.ftpThread.Abort();
 							cumulus.LogMessage("Trying new web update");
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now));
 							cumulus.ftpThread.IsBackground = true;
 							cumulus.ftpThread.Start();
 						}
 						else
 						{
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now));
 							cumulus.ftpThread.IsBackground = true;
 							cumulus.ftpThread.Start();
 						}
@@ -1822,7 +1822,7 @@ namespace CumulusMX
 					// We also want to kick off DoHTMLFiles if local copy is enabled
 					else if (cumulus.FtpOptions.LocalCopyEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
-						cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+						cumulus.ftpThread = new Thread(() =>cumulus.DoHTMLFiles(now));
 						cumulus.ftpThread.IsBackground = true;
 						cumulus.ftpThread.Start();
 					}
@@ -2158,7 +2158,7 @@ namespace CumulusMX
 			DoET(AnnualETTotal + newET, date);
 		}
 
-		public void CreateGraphDataFiles()
+		public void CreateGraphDataFiles(DateTime ts)
 		{
 			// Chart data for Highcharts graphs
 			string json = "";
@@ -2178,22 +2178,22 @@ namespace CumulusMX
 							json = GetAvailGraphData();
 							break;
 						case "tempdata.json":
-							json = GetTempGraphData();
+							json = GetTempGraphData(ts);
 							break;
 						case "pressdata.json":
-							json = GetPressGraphData();
+							json = GetPressGraphData(ts);
 							break;
 						case "winddata.json":
-							json = GetWindGraphData();
+							json = GetWindGraphData(ts);
 							break;
 						case "wdirdata.json":
-							json = GetWindDirGraphData();
+							json = GetWindDirGraphData(ts);
 							break;
 						case "humdata.json":
-							json = GetHumGraphData();
+							json = GetHumGraphData(ts);
 							break;
 						case "raindata.json":
-							json = GetRainGraphData();
+							json = GetRainGraphData(ts);
 							break;
 						case "dailyrain.json":
 							json = GetDailyRainGraphData();
@@ -2202,13 +2202,13 @@ namespace CumulusMX
 							json = GetDailyTempGraphData();
 							break;
 						case "solardata.json":
-							json = GetSolarGraphData();
+							json = GetSolarGraphData(ts);
 							break;
 						case "sunhours.json":
 							json = GetSunHoursGraphData();
 							break;
 						case "airquality.json":
-							json = GetAqGraphData();
+							json = GetAqGraphData(ts);
 							break;
 					}
 
@@ -2290,7 +2290,7 @@ namespace CumulusMX
 			}
 		}
 
-		public string GetSolarGraphData()
+		public string GetSolarGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
@@ -2298,7 +2298,7 @@ namespace CumulusMX
 			var sbSol = new StringBuilder("\"SolarRad\":[");
 			var sbMax = new StringBuilder("\"CurrentSolarMax\":[");
 
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2350,14 +2350,14 @@ namespace CumulusMX
 		}
 
 
-		public string GetRainGraphData()
+		public string GetRainGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
 			var sbRain = new StringBuilder("\"rfall\":[");
 			var sbRate = new StringBuilder("\"rrate\":[");
 
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2381,13 +2381,13 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetHumGraphData()
+		public string GetHumGraphData(DateTime ts)
 		{
 			var sb = new StringBuilder("{", 10240);
 			var sbOut = new StringBuilder("\"hum\":[");
 			var sbIn = new StringBuilder("\"inhum\":[");
 
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2430,11 +2430,11 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetWindDirGraphData()
+		public string GetWindDirGraphData(DateTime ts)
 		{
 			var sb = new StringBuilder("{\"bearing\":[");
 			var sbAvg = new StringBuilder("\"avgbearing\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2458,12 +2458,12 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetWindGraphData()
+		public string GetWindGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{\"wgust\":[");
 			var sbSpd = new StringBuilder("\"wspeed\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2487,11 +2487,11 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetPressGraphData()
+		public string GetPressGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{\"press\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2507,7 +2507,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetTempGraphData()
+		public string GetTempGraphData(DateTime ts)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2520,7 +2520,7 @@ namespace CumulusMX
 			var sbHeat = new StringBuilder("\"heatindex\":[");
 			var sbTemp = new StringBuilder("\"temp\":[");
 			var sbHumidex = new StringBuilder("\"humidex\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2634,14 +2634,14 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAqGraphData()
+		public string GetAqGraphData(DateTime ts)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
 			var sb2p5 = new StringBuilder("\"pm2p5\":[");
 			var sb10 = new StringBuilder(",\"pm10\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 
 			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink

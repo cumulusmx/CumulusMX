@@ -2185,6 +2185,8 @@ namespace CumulusMX
 				return;
 			}
 
+			var now = DateTime.Now;
+
 			if (WebUpdating == 1)
 			{
 				LogMessage("Warning, previous web update is still in progress, first chance, skipping this interval");
@@ -2197,13 +2199,13 @@ namespace CumulusMX
 					ftpThread.Abort();
 				LogMessage("Trying new web update");
 				WebUpdating = 1;
-				ftpThread = new Thread(DoHTMLFiles) { IsBackground = true };
+				ftpThread = new Thread(() => DoHTMLFiles(now)) { IsBackground = true };
 				ftpThread.Start();
 			}
 			else
 			{
 				WebUpdating = 1;
-				ftpThread = new Thread(DoHTMLFiles) { IsBackground = true };
+				ftpThread = new Thread(() => DoHTMLFiles(now)) { IsBackground = true };
 				ftpThread.Start();
 			}
 		}
@@ -8317,7 +8319,7 @@ namespace CumulusMX
 			Process.Start(start);
 		}
 
-		public void DoHTMLFiles()
+		public void DoHTMLFiles(DateTime ts)
 		{
 			try
 			{
@@ -8339,7 +8341,7 @@ namespace CumulusMX
 				LogDebugMessage("Done creating standard Data file");
 
 				LogDebugMessage("Creating graph data files");
-				station.CreateGraphDataFiles();
+				station.CreateGraphDataFiles(ts);
 				LogDebugMessage("Done creating graph data files");
 
 				//LogDebugMessage("Creating extra files");
