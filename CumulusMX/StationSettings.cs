@@ -1373,6 +1373,7 @@ namespace CumulusMX
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 				var json = WebUtility.UrlDecode(data);
+				var now = DateTime.Now;
 
 				// Dead simple (dirty), there is only one setting at present!
 				var includeGraphs = json.Contains("true");
@@ -1401,7 +1402,7 @@ namespace CumulusMX
 						cumulus.GraphDataFiles[i].CopyRequired = true;
 					}
 					cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
-					station.CreateGraphDataFiles();
+					station.CreateGraphDataFiles(now);
 
 					// (re)generate the daily graph data files, and upload if required
 					cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
@@ -1409,7 +1410,7 @@ namespace CumulusMX
 
 					cumulus.LogMessage("FTP Now: Trying new web update");
 					cumulus.WebUpdating = 1;
-					cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
+					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now)) { IsBackground = true };
 					cumulus.ftpThread.Start();
 					return "An existing FTP process was aborted, and a new FTP process invoked";
 				}
@@ -1422,14 +1423,14 @@ namespace CumulusMX
 					cumulus.GraphDataFiles[i].CopyRequired = true;
 				}
 				cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
-				station.CreateGraphDataFiles();
+				station.CreateGraphDataFiles(now);
 
 				// (re)generate the daily graph data files, and upload if required
 				cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
 				station.CreateEodGraphDataFiles();
 
 				cumulus.WebUpdating = 1;
-				cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles) { IsBackground = true };
+				cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now)) { IsBackground = true };
 				cumulus.ftpThread.Start();
 				return "FTP process invoked";
 			}

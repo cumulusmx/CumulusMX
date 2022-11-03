@@ -1,3 +1,15 @@
+3.22.3 - b3214
+——————————————
+Fixed
+- Updates and fixes to the MQTT library
+- Crash in the WLL station fetching Available Sensors from wl.com when it is unreachable
+- Recent data graph JSON files may contain differing numbers of records
+
+Changed
+- The records editors now cope with blank fields (above field 15 - Current Gust) in the monthly log files
+
+
+
 3.22.2 - b3213
 ——————————————
 Fixed

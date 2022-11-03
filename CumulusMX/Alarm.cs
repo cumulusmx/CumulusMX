@@ -68,7 +68,7 @@ namespace CumulusMX
 					// If we were not set before, so we need to send an email?
 					if (!triggered && Enabled)
 					{
-						cumulus.LogMessage($"Alarm ({Name}): Triggered");
+						cumulus.LogMessage($"Alarm ({Name}): Triggered, value = {Value}");
 
 						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 						{
@@ -202,7 +202,7 @@ namespace CumulusMX
 				// If we were not set before, so we need to send an email etc?
 				if (!upTriggered && Enabled)
 				{
-					cumulus.LogMessage($"Alarm ({Name}): Up triggered");
+					cumulus.LogMessage($"Alarm ({Name}): Up triggered, value = {Value}");
 
 					if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 					{
@@ -268,7 +268,7 @@ namespace CumulusMX
 				// If we were not set before, so we need to send an email?
 				if (!downTriggered && Enabled)
 				{
-					cumulus.LogMessage($"Alarm ({Name}): Down triggered");
+					cumulus.LogMessage($"Alarm ({Name}): Down triggered, value = {Value}");
 
 					if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 					{

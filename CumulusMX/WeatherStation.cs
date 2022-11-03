@@ -1807,14 +1807,14 @@ namespace CumulusMX
 								cumulus.ftpThread.Abort();
 							cumulus.LogMessage("Trying new web update");
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now));
 							cumulus.ftpThread.IsBackground = true;
 							cumulus.ftpThread.Start();
 						}
 						else
 						{
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now));
 							cumulus.ftpThread.IsBackground = true;
 							cumulus.ftpThread.Start();
 						}
@@ -1822,7 +1822,7 @@ namespace CumulusMX
 					// We also want to kick off DoHTMLFiles if local copy is enabled
 					else if (cumulus.FtpOptions.LocalCopyEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
-						cumulus.ftpThread = new Thread(cumulus.DoHTMLFiles);
+						cumulus.ftpThread = new Thread(() =>cumulus.DoHTMLFiles(now));
 						cumulus.ftpThread.IsBackground = true;
 						cumulus.ftpThread.Start();
 					}
@@ -2158,7 +2158,7 @@ namespace CumulusMX
 			DoET(AnnualETTotal + newET, date);
 		}
 
-		public void CreateGraphDataFiles()
+		public void CreateGraphDataFiles(DateTime ts)
 		{
 			// Chart data for Highcharts graphs
 			string json = "";
@@ -2178,22 +2178,22 @@ namespace CumulusMX
 							json = GetAvailGraphData();
 							break;
 						case "tempdata.json":
-							json = GetTempGraphData();
+							json = GetTempGraphData(ts);
 							break;
 						case "pressdata.json":
-							json = GetPressGraphData();
+							json = GetPressGraphData(ts);
 							break;
 						case "winddata.json":
-							json = GetWindGraphData();
+							json = GetWindGraphData(ts);
 							break;
 						case "wdirdata.json":
-							json = GetWindDirGraphData();
+							json = GetWindDirGraphData(ts);
 							break;
 						case "humdata.json":
-							json = GetHumGraphData();
+							json = GetHumGraphData(ts);
 							break;
 						case "raindata.json":
-							json = GetRainGraphData();
+							json = GetRainGraphData(ts);
 							break;
 						case "dailyrain.json":
 							json = GetDailyRainGraphData();
@@ -2202,13 +2202,13 @@ namespace CumulusMX
 							json = GetDailyTempGraphData();
 							break;
 						case "solardata.json":
-							json = GetSolarGraphData();
+							json = GetSolarGraphData(ts);
 							break;
 						case "sunhours.json":
 							json = GetSunHoursGraphData();
 							break;
 						case "airquality.json":
-							json = GetAqGraphData();
+							json = GetAqGraphData(ts);
 							break;
 					}
 
@@ -2290,7 +2290,7 @@ namespace CumulusMX
 			}
 		}
 
-		public string GetSolarGraphData()
+		public string GetSolarGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
@@ -2298,7 +2298,7 @@ namespace CumulusMX
 			var sbSol = new StringBuilder("\"SolarRad\":[");
 			var sbMax = new StringBuilder("\"CurrentSolarMax\":[");
 
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2350,14 +2350,14 @@ namespace CumulusMX
 		}
 
 
-		public string GetRainGraphData()
+		public string GetRainGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
 			var sbRain = new StringBuilder("\"rfall\":[");
 			var sbRate = new StringBuilder("\"rrate\":[");
 
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2381,13 +2381,13 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetHumGraphData()
+		public string GetHumGraphData(DateTime ts)
 		{
 			var sb = new StringBuilder("{", 10240);
 			var sbOut = new StringBuilder("\"hum\":[");
 			var sbIn = new StringBuilder("\"inhum\":[");
 
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2430,11 +2430,11 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetWindDirGraphData()
+		public string GetWindDirGraphData(DateTime ts)
 		{
 			var sb = new StringBuilder("{\"bearing\":[");
 			var sbAvg = new StringBuilder("\"avgbearing\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2458,12 +2458,12 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetWindGraphData()
+		public string GetWindGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{\"wgust\":[");
 			var sbSpd = new StringBuilder("\"wspeed\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2487,11 +2487,11 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetPressGraphData()
+		public string GetPressGraphData(DateTime ts)
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{\"press\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2507,7 +2507,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetTempGraphData()
+		public string GetTempGraphData(DateTime ts)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2520,7 +2520,7 @@ namespace CumulusMX
 			var sbHeat = new StringBuilder("\"heatindex\":[");
 			var sbTemp = new StringBuilder("\"temp\":[");
 			var sbHumidex = new StringBuilder("\"humidex\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >=?", dataFrom);
 
@@ -2634,14 +2634,14 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAqGraphData()
+		public string GetAqGraphData(DateTime ts)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
 			var sb2p5 = new StringBuilder("\"pm2p5\":[");
 			var sb10 = new StringBuilder(",\"pm10\":[");
-			var dataFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dataFrom = ts.AddHours(-cumulus.GraphHours);
 
 
 			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
@@ -7257,16 +7257,9 @@ namespace CumulusMX
 
 			try
 			{
-				var notPresent = 0.0;
-
-				// is the record going to be used for min/max record determination?
-				if (minMax)
-				{
-					notPresent = Cumulus.DefaultHiVal;
-				}
 				var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
 
-				// We allow int values to have a decimal point becuase log files sometimes get mangled by Excel etc!
+				// We allow int values to have a decimal point because log files sometimes get mangled by Excel etc!
 				var rec = new logfilerec()
 				{
 					Date = Utils.ddmmyyhhmmStrToDate(st[0], st[1]),
@@ -7282,22 +7275,79 @@ namespace CumulusMX
 					Raincounter = Convert.ToDouble(st[11]),
 					IndoorTemperature = Convert.ToDouble(st[12]),
 					IndoorHumidity = Convert.ToInt32(Convert.ToDouble(st[13])),
-					WindLatest = Convert.ToDouble(st[14]),
-					WindChill = st.Count > 15 ? Convert.ToDouble(st[15]) : notPresent,
-					HeatIndex = st.Count > 16 ? Convert.ToDouble(st[16]) : notPresent,
-					UV = st.Count > 17 ? Convert.ToDouble(st[17]) : notPresent,
-					SolarRad = st.Count > 18 ? Convert.ToDouble(st[18]) : notPresent,
-					ET = st.Count > 19 ? Convert.ToDouble(st[19]) : notPresent,
-					AnnualETTotal = st.Count > 20 ? Convert.ToDouble(st[20]) : notPresent,
-					ApparentTemperature = st.Count > 21 ? Convert.ToDouble(st[21]) : notPresent,
-					CurrentSolarMax = st.Count > 22 ? Convert.ToDouble(st[22]) : notPresent,
-					SunshineHours = st.Count > 23 ? Convert.ToDouble(st[23]) : notPresent,
-					Bearing = st.Count > 24 ? Convert.ToInt32(Convert.ToDouble(st[24])) : 0,
-					RG11RainToday = st.Count > 25 ? Convert.ToDouble(st[25]) : notPresent,
-					RainSinceMidnight = st.Count > 26 ? Convert.ToDouble(st[26]) : notPresent,
-					FeelsLike = st.Count > 27 ? Convert.ToDouble(st[27]) : notPresent,
-					Humidex = st.Count > 28 ? Convert.ToDouble(st[28]) : notPresent
+					WindLatest = Convert.ToDouble(st[14])
 				};
+
+
+				if (st.Count > 15 && !string.IsNullOrWhiteSpace(st[15]))
+					rec.WindChill = Convert.ToDouble(st[15]);
+				else
+					rec.WindChill = minMax ? Cumulus.DefaultLoVal : 0.0;
+
+				if (st.Count > 16 && !string.IsNullOrWhiteSpace(st[16]))
+					rec.HeatIndex = Convert.ToDouble(st[16]);
+				else
+					rec.HeatIndex = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 17 && !string.IsNullOrWhiteSpace(st[17]))
+					rec.UV = Convert.ToDouble(st[17]);
+				else
+					rec.UV = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 18 && !string.IsNullOrWhiteSpace(st[18]))
+					rec.SolarRad = Convert.ToDouble(st[18]);
+				else
+					rec.SolarRad = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 19 && !string.IsNullOrWhiteSpace(st[19]))
+					rec.ET = Convert.ToDouble(st[19]);
+				else
+					rec.ET = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 20 && !string.IsNullOrWhiteSpace(st[20]))
+					rec.AnnualETTotal = Convert.ToDouble(st[20]);
+				else
+					rec.AnnualETTotal = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 21 && !string.IsNullOrWhiteSpace(st[21]))
+					rec.ApparentTemperature = Convert.ToDouble(st[21]);
+				else
+					rec.ApparentTemperature = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 22 && !string.IsNullOrWhiteSpace(st[22]))
+					rec.CurrentSolarMax = Convert.ToDouble(st[22]);
+				else
+					rec.CurrentSolarMax = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 23 && !string.IsNullOrWhiteSpace(st[23]))
+					rec.SunshineHours = Convert.ToDouble(st[23]);
+				else
+					rec.SunshineHours = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 24 && !string.IsNullOrWhiteSpace(st[24]))
+					rec.Bearing = Convert.ToInt32(Convert.ToDouble(st[24]));
+				else
+					rec.Bearing = 0;
+
+				if (st.Count > 25 && !string.IsNullOrWhiteSpace(st[25]))
+					rec.RG11RainToday = Convert.ToDouble(st[25]);
+				else
+					rec.RG11RainToday = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 26 && !string.IsNullOrWhiteSpace(st[26]))
+					rec.RainSinceMidnight = Convert.ToDouble(st[26]);
+				else
+					rec.RainSinceMidnight = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 27 && !string.IsNullOrWhiteSpace(st[27]))
+					rec.FeelsLike = Convert.ToDouble(st[27]);
+				else
+					rec.FeelsLike = minMax ? Cumulus.DefaultHiVal : 0.0;
+
+				if (st.Count > 28 && !string.IsNullOrWhiteSpace(st[28]))
+					rec.Humidex = Convert.ToDouble(st[28]);
+				else
+					rec.Humidex = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				return rec;
 			}

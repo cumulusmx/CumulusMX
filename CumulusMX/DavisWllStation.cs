@@ -3258,6 +3258,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API exception: " + ex.Message);
+				return;
 			}
 
 			// Sensor types we are interested in...

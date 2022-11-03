@@ -812,13 +812,13 @@ namespace CumulusMX
 							}
 
 							// low chill
-							if (rec.WindChill > Cumulus.DefaultHiVal && rec.WindChill < lowWindChill.Value)
+							if (rec.WindChill < lowWindChill.Value)
 							{
 								lowWindChill.Value = rec.WindChill;
 								lowWindChill.Ts = rec.Date;
 							}
 							// hi heat
-							if (rec.HeatIndex > Cumulus.DefaultHiVal && rec.HeatIndex > highHeatInd.Value)
+							if (rec.HeatIndex > highHeatInd.Value)
 							{
 								highHeatInd.Value = rec.HeatIndex;
 								highHeatInd.Ts = rec.Date;
@@ -853,13 +853,10 @@ namespace CumulusMX
 							}
 
 							// hi/low humidex
-							if (rec.Humidex > Cumulus.DefaultHiVal)
+							if (rec.Humidex > highHumidex.Value)
 							{
-								if (rec.Humidex > highHumidex.Value)
-								{
-									highHumidex.Value = rec.Humidex;
-									highHumidex.Ts = rec.Date;
-								}
+								highHumidex.Value = rec.Humidex;
+								highHumidex.Ts = rec.Date;
 							}
 
 							// hi temp
@@ -2321,19 +2318,19 @@ namespace CumulusMX
 							}
 
 							// low chill
-							if (rec.WindChill > -9999 && rec.WindChill < lowWindChill[monthOffset].Value)
+							if (rec.WindChill < lowWindChill[monthOffset].Value)
 							{
 								lowWindChill[monthOffset].Value = rec.WindChill;
 								lowWindChill[monthOffset].Ts = rec.Date;
 							}
 							// hi heat
-							if (rec.HeatIndex > -9999 && rec.HeatIndex > highHeatInd[monthOffset].Value)
+							if (rec.HeatIndex > highHeatInd[monthOffset].Value)
 							{
 								highHeatInd[monthOffset].Value = rec.HeatIndex;
 								highHeatInd[monthOffset].Ts = rec.Date;
 							}
 
-							if (rec.ApparentTemperature > -9999)
+							if (rec.ApparentTemperature > Cumulus.DefaultHiVal)
 							{
 								// hi appt
 								if (rec.ApparentTemperature > highAppTemp[monthOffset].Value)
@@ -2349,7 +2346,7 @@ namespace CumulusMX
 								}
 							}
 
-							if (rec.FeelsLike > -9999)
+							if (rec.FeelsLike > Cumulus.DefaultHiVal)
 							{
 								// hi feels like
 								if (rec.FeelsLike > highFeelsLike[monthOffset].Value)
@@ -2366,7 +2363,7 @@ namespace CumulusMX
 							}
 
 							// hi humidex
-							if (rec.Humidex > -9999 && rec.Humidex > highHumidex[monthOffset].Value)
+							if (rec.Humidex > highHumidex[monthOffset].Value)
 							{
 								highHumidex[monthOffset].Value = rec.Humidex;
 								highHumidex[monthOffset].Ts = rec.Date;
