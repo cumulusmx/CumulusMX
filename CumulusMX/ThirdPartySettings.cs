@@ -272,8 +272,7 @@ namespace CumulusMX
 					cumulus.CustomHttpSecondsTimer.Enabled = cumulus.CustomHttpSecondsEnabled;
 					if (cumulus.CustomHttpSecondsEnabled)
 					{
-						cumulus.CustomHttpSecondsStrings[0] = settings.customhttp.customseconds.url[0] ?? string.Empty;
-						for (var i = 1; i < 10; i++)
+						for (var i = 0; i < 10; i++)
 						{
 							if (i < settings.customhttp.customseconds.url.Length)
 								cumulus.CustomHttpSecondsStrings[i] = settings.customhttp.customseconds.url[i] ?? null;
@@ -288,10 +287,9 @@ namespace CumulusMX
 					cumulus.CustomHttpMinutesEnabled = settings.customhttp.customminutes.enabled;
 					if (cumulus.CustomHttpMinutesEnabled)
 					{
-						cumulus.CustomHttpMinutesStrings[0] = settings.customhttp.customminutes.url[0] ?? string.Empty;
-						for (var i = 1; i < 10; i++)
+						for (var i = 0; i < 10; i++)
 						{
-							if (i < settings.customhttp.customseconds.url.Length)
+							if (i < settings.customhttp.customminutes.url.Length)
 								cumulus.CustomHttpMinutesStrings[i] = settings.customhttp.customminutes.url[i] ?? null;
 							else
 								cumulus.CustomHttpMinutesStrings[i] = null;
@@ -311,8 +309,7 @@ namespace CumulusMX
 					cumulus.CustomHttpRolloverEnabled = settings.customhttp.customrollover.enabled;
 					if (cumulus.CustomHttpRolloverEnabled)
 					{
-						cumulus.CustomHttpRolloverStrings[0] = settings.customhttp.customrollover.url[0] ?? string.Empty;
-						for (var i = 1; i < 10; i++)
+						for (var i = 0; i < 10; i++)
 						{
 							if (i < settings.customhttp.customrollover.url.Length)
 								cumulus.CustomHttpMinutesStrings[i] = settings.customhttp.customrollover.url[i] ?? null;

@@ -1,3 +1,9 @@
+3.22.4 - b3215
+——————————————
+Fixed
+- Removing last entry from Third Party custom HTTP lists
+
+
 3.22.3 - b3214
 ——————————————
 Fixed
