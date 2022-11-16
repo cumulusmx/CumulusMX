@@ -1695,7 +1695,7 @@ namespace CumulusMX
 			CheckForDataStopped();
 
 			CurrentSolarMax = AstroLib.SolarMax(now, (double) cumulus.Longitude, (double) cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
-			
+
 			if (!DataStopped)
 			{
 				if (((Pressure > 0) && TempReadyToPlot && WindReadyToPlot) || cumulus.StationOptions.NoSensorCheck)
@@ -4347,6 +4347,8 @@ namespace CumulusMX
 		public void DoSolarRad(int value, DateTime timestamp)
 		{
 			SolarRad = (value * cumulus.Calib.Solar.Mult) + cumulus.Calib.Solar.Offset;
+			if (SolarRad < 0)
+				SolarRad = 0;
 
 			if (SolarRad > HiLoToday.HighSolar)
 			{
@@ -6317,7 +6319,7 @@ namespace CumulusMX
 			}
 
 			try
-			{ 
+			{
 				// Do 1 hour trends
 				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >=? order by Timestamp limit 1", ts.AddHours(-1));
 
@@ -11180,7 +11182,7 @@ namespace CumulusMX
 			// remove trailing comma
 			if (sb[sb.Length - 1] == ',')
 				sb.Length--;
-			
+
 			sb.Append("]}");
 			return sb.ToString();
 		}

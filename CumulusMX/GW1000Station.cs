@@ -105,7 +105,7 @@ namespace CumulusMX
 
 			if (DoDiscovery())
 			{
-				PostDiscovery();         
+				PostDiscovery();
 			}
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -125,9 +125,6 @@ namespace CumulusMX
 			tmrDataWatchdog.AutoReset = true;
 			tmrDataWatchdog.Start();
 
-
-			// WLL does not provide a forecast string, so use the Cumulus forecast
-			cumulus.UseCumulusForecast = true;
 
 			// just incase we did not catch-up any history
 			DoDayResetIfNeeded();
@@ -153,7 +150,7 @@ namespace CumulusMX
 							dataLastRead = DateTime.Now;
 
 							// every 30 seconds read the rain rate
-							if (cumulus.Gw1000PrimaryRainSensor == 1 && (DateTime.Now - piezoLastRead).TotalSeconds >= 30)
+							if (cumulus.Gw1000PrimaryRainSensor == 1 && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cancellationToken.IsCancellationRequested)
 							{
 								GetPiezoRainData();
 								piezoLastRead = DateTime.Now;
@@ -165,7 +162,7 @@ namespace CumulusMX
 								lastMinute = minute;
 
 								// at the start of every 20 minutes to trigger battery status check
-								if ((minute % 20) == 0)
+								if ((minute % 20) == 0 && !cancellationToken.IsCancellationRequested)
 								{
 									GetSensorIdsNew();
 								}
@@ -206,7 +203,9 @@ namespace CumulusMX
 					}
 				}
 				// Catch the ThreadAbortException
-				catch (ThreadAbortException) {}
+				catch (ThreadAbortException)
+				{
+				}
 				finally
 				{
 					Api.CloseTcpPort();
@@ -220,9 +219,12 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing connection");
 			try
 			{
-				tokenSource.Cancel();
 				tmrDataWatchdog.Stop();
 				StopMinuteTimer();
+				if (tokenSource != null)
+				{
+					tokenSource.Cancel();
+				}
 				Task.WaitAll(historyTask, liveTask);
 			}
 			catch
@@ -428,6 +430,10 @@ namespace CumulusMX
 							cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
 						}
 						cumulus.WriteIniFile();
+					}
+					else
+					{
+						cumulus.LogMessage("The discovered IP address for the GW1000 matches our current one");
 					}
 				}
 				else if (discoveredDevices.Mac.Contains(macaddr))
@@ -685,7 +691,7 @@ namespace CumulusMX
 						}
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
-						break;	
+						break;
 
 					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
 						batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
@@ -694,7 +700,7 @@ namespace CumulusMX
 					case "WH68":
 					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 						battV = data[battPos] * 0.1;
-						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V 
+						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V
 						break;
 
 					case "WH25":
@@ -1155,6 +1161,10 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x81: // Piezo Rain Event
+								if (cumulus.Gw1000PrimaryRainSensor == 1)
+								{
+									StormRain = ConvertRainMMToUser(GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0);
+								}
 								idx += 2;
 								break;
 							case 0x82: // Piezo Hourly Rain
@@ -1179,7 +1189,7 @@ namespace CumulusMX
 							case 0x87: // Piezo Gain - doc says size = 2*10 ?
 								idx += 20;
 								break;
-							case 0x88: // Piezo Rain Reset Time 
+							case 0x88: // Piezo Rain Reset Time
 								idx += 3;
 								break;
 							default:
@@ -1393,17 +1403,17 @@ namespace CumulusMX
 			// - data(2)
 			// 10 = rain day
 			// - data(4)
-			// 11 = rain week 
+			// 11 = rain week
 			// - data(4)
-			// 12 = rain month 
+			// 12 = rain month
 			// - data(4)
-			// 13 = rain year 
+			// 13 = rain year
 			// - data(4)
-			// 0D = rain event 
+			// 0D = rain event
 			// - data(2)
-			// 0F = rain hour 
+			// 0F = rain hour
 			// - data(2)
-			// 80 = piezo rain rate 
+			// 80 = piezo rain rate
 			// - data(2)
 			// 83 = piezo rain day
 			// - data(4)
@@ -1427,6 +1437,7 @@ namespace CumulusMX
 
 			if (data == null)
 			{
+				cumulus.LogMessage("GetPiezoRainData: Nothing returned from Read Rain!");
 				return;
 			}
 
@@ -1458,7 +1469,7 @@ namespace CumulusMX
 						// all the four byte values we are ignoring
 						case 0x10: // rain day
 						case 0x11: // rain week
-						case 0x12: // rain month 
+						case 0x12: // rain month
 						case 0x13: // rain year
 						case 0x83: // piezo rain day
 						case 0x84: // piezo rain week
@@ -1595,20 +1606,7 @@ namespace CumulusMX
 		{
 			return (value & mask) == 0 ? "OK" : "Low";
 		}
-		
-		/*
-		private static string TestBattery1(UInt16 value, UInt16 mask)
-		{
-			return (value & mask) == 0 ? "OK" : "Low";
-		}
-		*/
-		/*
-		private static string TestBattery2(UInt16 value, UInt16 mask)
-		{
-			return (value & mask) > 1 ? "OK" : "Low";
-		}
-		*/
-		
+
 		private static string TestBattery3(byte value)
 		{
 			if (value == 6)
@@ -1624,7 +1622,7 @@ namespace CumulusMX
 
 			return value > 12 ? "OK" : "Low";
 		}
-		
+
 		private static double TestBattery10V(byte value)
 		{
 			return value / 10.0;
@@ -1637,13 +1635,6 @@ namespace CumulusMX
 
 			return volts > 1.2 ? "OK" : "Low";
 		}
-
-		/*
-		private static string TestBatteryPct(byte value)
-		{
-			return value >= 20 ? "OK" : "Low";
-		}
-		*/
 
 
 		private class Discovery
@@ -1674,8 +1665,8 @@ namespace CumulusMX
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
+					DataStopped = true;
 				}
-				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
 				if (DoDiscovery())

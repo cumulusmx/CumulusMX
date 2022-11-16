@@ -2,6 +2,8 @@
 ——————————————
 Fixed
 - Removing last entry from Third Party custom HTTP lists
+- Disallow negative solar rad values
+- Ecowitt piezo rain sensor (WS90) now supports storm event
 
 
 3.22.3 - b3214
