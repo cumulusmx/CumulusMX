@@ -4,6 +4,7 @@ Fixed
 - Removing last entry from Third Party custom HTTP lists
 - Disallow negative solar rad values
 - Ecowitt piezo rain sensor (WS90) now supports storm event
+- Davis Vantage VP2/Vue stations no longer download the entire logger contents on start-up when the station logging interval does not match the CMX interval
 
 
 3.22.3 - b3214
@@ -15,7 +16,6 @@ Fixed
 
 Changed
 - The records editors now cope with blank fields (above field 15 - Current Gust) in the monthly log files
-
 
 
 3.22.2 - b3213
