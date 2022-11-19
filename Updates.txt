@@ -5,6 +5,7 @@ Fixed
 - Disallow negative solar rad values
 - Ecowitt piezo rain sensor (WS90) now supports storm event
 - Davis Vantage VP2/Vue stations no longer download the entire logger contents on start-up when the station logging interval does not match the CMX interval
+- Catch errors in La Crosse WS2300 data handling - specifically fixes reported crashes in forecast data
 
 
 3.22.3 - b3214
