@@ -25,6 +25,11 @@ namespace CumulusMX
 		}
 
 
+		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
+		{
+			return new DateTime((dateTime.Ticks + intvl.Ticks - 1) / intvl.Ticks * intvl.Ticks, dateTime.Kind);
+		}
+
 		public static string ByteArrayToHexString(byte[] ba)
 		{
 			System.Text.StringBuilder hex = new System.Text.StringBuilder(ba.Length * 2);
@@ -158,6 +163,24 @@ namespace CumulusMX
 
 			// finally, give up and just return a 0.0.0.0 IP!
 			return IPAddress.Any;
+		}
+
+		public static void RunExternalTask(string task, string parameters, bool wait)
+		{
+			var process = new System.Diagnostics.Process();
+			process.StartInfo.FileName = task;
+			process.StartInfo.Arguments = parameters;
+			process.StartInfo.UseShellExecute = false;
+			//process.StartInfo.RedirectStandardOutput = true;
+			//process.StartInfo.RedirectStandardError = true;
+			process.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+			process.StartInfo.CreateNoWindow = true;
+			process.Start();
+
+			if (wait)
+			{
+				process.WaitForExit();
+			}
 		}
 	}
 }
