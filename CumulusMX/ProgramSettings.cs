@@ -20,18 +20,34 @@ namespace CumulusMX
 		public string GetAlpacaFormData()
 		{
 			// Build the settings data, convert to JSON, and return it
+
+			var startuptask = new JsonProgramSettingsTask()
+			{
+				task = cumulus.ProgramOptions.StartupTask,
+				taskparams = cumulus.ProgramOptions.StartupTaskParams,
+				wait = cumulus.ProgramOptions.StartupTaskWait
+			};
+
 			var startup = new JsonProgramSettingsStartupOptions()
 			{
 				startuphostping = cumulus.ProgramOptions.StartupPingHost,
 				startuppingescape = cumulus.ProgramOptions.StartupPingEscapeTime,
 				startupdelay = cumulus.ProgramOptions.StartupDelaySecs,
-				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime
+				startupdelaymaxuptime = cumulus.ProgramOptions.StartupDelayMaxUptime,
+				startuptask = startuptask
+			};
+
+			var shutdowntask = new JsonProgramSettingsTask()
+			{
+				task = cumulus.ProgramOptions.ShutdownTask,
+				taskparams = cumulus.ProgramOptions.ShutdownTaskParams
 			};
 
 			var shutdown = new JsonProgramSettingsShutdownOptions()
 			{
 				datastoppedexit = cumulus.ProgramOptions.DataStoppedExit,
-				datastoppedmins = cumulus.ProgramOptions.DataStoppedMins
+				datastoppedmins = cumulus.ProgramOptions.DataStoppedMins,
+				shutdowntask = shutdowntask
 			};
 
 			var logging = new JsonProgramSettingsLoggingOptions()
@@ -106,6 +122,13 @@ namespace CumulusMX
 				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
 				cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
 
+				cumulus.ProgramOptions.StartupTask = settings.startup.startuptask.task;
+				cumulus.ProgramOptions.StartupTaskParams = settings.startup.startuptask.taskparams;
+				cumulus.ProgramOptions.StartupTaskWait = settings.startup.startuptask.wait;
+
+				cumulus.ProgramOptions.ShutdownTask = settings.shutdown.shutdowntask.task;
+				cumulus.ProgramOptions.ShutdownTaskParams = settings.shutdown.shutdowntask.taskparams;
+
 				cumulus.ProgramOptions.DataStoppedExit = settings.shutdown.datastoppedexit;
 				cumulus.ProgramOptions.DataStoppedMins = settings.shutdown.datastoppedmins;
 
@@ -179,6 +202,14 @@ namespace CumulusMX
 		public int startuppingescape { get; set; }
 		public int startupdelay { get; set; }
 		public int startupdelaymaxuptime { get; set; }
+		public JsonProgramSettingsTask startuptask {get; set;}
+	}
+
+	public class JsonProgramSettingsTask
+	{
+		public string task { get; set; }
+		public string taskparams { get; set; }
+		public bool wait { get; set; }
 	}
 
 	public class JsonProgramSettingsLoggingOptions
@@ -202,5 +233,6 @@ namespace CumulusMX
 	{
 		public bool datastoppedexit { get; set; }
 		public int datastoppedmins { get; set; }
+		public JsonProgramSettingsTask shutdowntask { get; set; }
 	}
 }

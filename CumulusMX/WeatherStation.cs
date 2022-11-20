@@ -5438,15 +5438,7 @@ namespace CumulusMX
 					try
 					{
 						// Prepare the process to run
-						ProcessStartInfo start = new ProcessStartInfo();
-						// Enter in the command line arguments
-						start.Arguments = cumulus.DailyParams;
-						// Enter the executable to run, including the complete path
-						start.FileName = cumulus.DailyProgram;
-						// Don"t show a console window
-						start.CreateNoWindow = true;
-						// Run the external process
-						Process.Start(start);
+						Utils.RunExternalTask(cumulus.DailyProgram, cumulus.DailyParams, false);
 					}
 					catch (Exception ex)
 					{

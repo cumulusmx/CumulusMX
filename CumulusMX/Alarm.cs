@@ -89,15 +89,7 @@ namespace CumulusMX
 							{
 								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 								// Prepare the process to run
-								ProcessStartInfo start = new ProcessStartInfo();
-								// Enter in the command line arguments
-								start.Arguments = ActionParams;
-								// Enter the executable to run, including the complete path
-								start.FileName = Action;
-								// Don"t show a console window
-								start.CreateNoWindow = true;
-								// Run the external process
-								Process.Start(start);
+								Utils.RunExternalTask(Action, ActionParams, false);
 							}
 							catch (Exception ex)
 							{
@@ -219,15 +211,7 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 							// Prepare the process to run
-							ProcessStartInfo start = new ProcessStartInfo();
-							// Enter in the command line arguments
-							start.Arguments = ActionParams;
-							// Enter the executable to run, including the complete path
-							start.FileName = Action;
-							// Don"t show a console window
-							start.CreateNoWindow = true;
-							// Run the external process
-							Process.Start(start);
+							Utils.RunExternalTask(Action, ActionParams, false);
 						}
 						catch (Exception ex)
 						{
@@ -284,15 +268,7 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 							// Prepare the process to run
-							ProcessStartInfo start = new ProcessStartInfo();
-							// Enter in the command line arguments
-							start.Arguments = ActionParams;
-							// Enter the executable to run, including the complete path
-							start.FileName = Action;
-							// Don"t show a console window
-							start.CreateNoWindow = true;
-							// Run the external process
-							Process.Start(start);
+							Utils.RunExternalTask(Action, ActionParams, false);
 						}
 						catch (Exception ex)
 						{
