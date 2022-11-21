@@ -2872,9 +2872,10 @@ namespace CumulusMX
 					{
 						try
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}");
 							realtimeTokenParser.InputText = RealtimeParams;
-							Utils.RunExternalTask(RealtimeProgram, realtimeTokenParser.ToStringFromString(), false);
+							var args = realtimeTokenParser.ToStringFromString();
+							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
+							Utils.RunExternalTask(RealtimeProgram, args, false);
 						}
 						catch(Exception ex)
 						{
@@ -8342,11 +8343,12 @@ namespace CumulusMX
 			// do we have a shutdown task to run?
 			if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTask))
 			{
-				LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {ProgramOptions.ShutdownTaskParams}");
 				try
 				{
 					tokenParser.InputText = ProgramOptions.ShutdownTaskParams;
-					Utils.RunExternalTask(ProgramOptions.ShutdownTask, tokenParser.ToStringFromString(), false);
+					var args = tokenParser.ToStringFromString();
+					LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
+					Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
 				}
 				catch (Exception ex)
 				{
@@ -8432,11 +8434,12 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
-					LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + ExternalParams);
 					try
 					{
 						tokenParser.InputText = ExternalParams;
-						Utils.RunExternalTask(ExternalProgram, tokenParser.ToStringFromString(), false);
+						var args = tokenParser.ToStringFromString();
+						LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + args);
+						Utils.RunExternalTask(ExternalProgram, args, false);
 						LogDebugMessage("Interval: External program started");
 					}
 					catch (Exception ex)
