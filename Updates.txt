@@ -3,6 +3,7 @@
 New
 - You can now use web tags in all external program parameter strings (except start-up)
 	- Realtime, interval, daily, shutdown, and alarms
+- Indoor temperature and humidity now have spike checking, and linear calibration
 
 Changed
 - Lots of third party modules updated

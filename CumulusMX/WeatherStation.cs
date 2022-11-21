@@ -1258,7 +1258,9 @@ namespace CumulusMX
 		public double previousGust = 999;
 		private double previousWind = 999;
 		private int previousHum = 999;
+		private int previousInHum = 999;
 		private double previousTemp = 999;
+		private double previousInTemp = 999;
 
 
 		public void UpdateDegreeDays(int interval)
@@ -2953,13 +2955,35 @@ namespace CumulusMX
 
 		public void DoIndoorHumidity(int hum)
 		{
-			IndoorHumidity = hum;
+			// Spike check
+			if ((previousInHum != 999) && (Math.Abs(hum - previousInHum) > cumulus.Spike.InHumDiff))
+			{
+				cumulus.LogSpikeRemoval("Indoor humidity difference greater than specified; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={hum} OldVal={previousInHum} SpikeDiff={cumulus.Spike.InHumDiff:F1}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastError = $"Indoor humidity difference greater than spike value - NewVal={hum} OldVal={previousInHum}";
+				cumulus.SpikeAlarm.Triggered = true;
+				return;
+			}
+
+			IndoorHumidity = (int)Math.Round((hum * cumulus.Calib.InHum.Mult) + cumulus.Calib.InHum.Offset);
 			HaveReadData = true;
 		}
 
 		public void DoIndoorTemp(double temp)
 		{
-			IndoorTemperature = temp + cumulus.Calib.InTemp.Offset;
+			// Spike check
+			if ((previousInTemp != 999) && (Math.Abs(temp - previousInTemp) > cumulus.Spike.InTempDiff))
+			{
+				cumulus.LogSpikeRemoval("Indoor temperature difference greater than specified; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={temp} OldVal={previousInTemp} SpikeDiff={cumulus.Spike.InTempDiff:F1}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastError = $"Indoor temperature difference greater than spike value - NewVal={temp} OldVal={previousInTemp}";
+				cumulus.SpikeAlarm.Triggered = true;
+				return;
+			}
+
+			IndoorTemperature = (temp * cumulus.Calib.InTemp.Mult) + cumulus.Calib.InTemp.Offset;
 			HaveReadData = true;
 		}
 

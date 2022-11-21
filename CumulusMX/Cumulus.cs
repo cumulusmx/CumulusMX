@@ -4181,6 +4181,8 @@ namespace CumulusMX
 			Spike.WindDiff = ini.GetValue("Station", "EWwinddiff", 999.0);
 			Spike.MaxRainRate = ini.GetValue("Station", "EWmaxRainRate", 999.0);
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
+			Spike.InTempDiff = ini.GetValue("Station", "EWinTempdiff", 999.0);
+			Spike.InHumDiff = ini.GetValue("Station", "EWinHumiditydiff", 999.0);
 
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
@@ -5011,10 +5013,11 @@ namespace CumulusMX
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
 			Calib.Hum.Offset = ini.GetValue("Offsets", "HumOffset", 0);
 			Calib.WindDir.Offset = ini.GetValue("Offsets", "WindDirOffset", 0);
-			Calib.InTemp.Offset = ini.GetValue("Offsets", "InTempOffset", 0.0);
 			Calib.Solar.Offset = ini.GetValue("Offsets", "SolarOffset", 0.0);
 			Calib.UV.Offset = ini.GetValue("Offsets", "UVOffset", 0.0);
 			Calib.WetBulb.Offset = ini.GetValue("Offsets", "WetBulbOffset", 0.0);
+			Calib.InTemp.Offset = ini.GetValue("Offsets", "InTempOffset", 0.0);
+			Calib.InHum.Offset = ini.GetValue("Offsets", "InHumOffset", 0);
 
 			Calib.Press.Mult = ini.GetValue("Offsets", "PressMult", 1.0);
 			Calib.WindSpeed.Mult = ini.GetValue("Offsets", "WindSpeedMult", 1.0);
@@ -5027,6 +5030,8 @@ namespace CumulusMX
 			Calib.Solar.Mult = ini.GetValue("Offsets", "SolarMult", 1.0);
 			Calib.UV.Mult = ini.GetValue("Offsets", "UVMult", 1.0);
 			Calib.WetBulb.Mult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
+			Calib.InTemp.Mult = ini.GetValue("Offsets", "InTempMult", 1.0);
+			Calib.InHum.Mult = ini.GetValue("Offsets", "InHumMult", 1.0);
 
 			Limit.TempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
 			Limit.TempLow = ini.GetValue("Limits", "TempLowC", -60.0);
@@ -5540,6 +5545,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWwinddiff", Spike.WindDiff);
 			ini.SetValue("Station", "EWmaxHourlyRain", Spike.MaxHourlyRain);
 			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate);
+			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff);
+			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
 			ini.SetValue("Station", "RainDayThreshold", RainDayThreshold);
@@ -6105,11 +6112,12 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "TempOffset", Calib.Temp.Offset);
 			ini.SetValue("Offsets", "HumOffset", Calib.Hum.Offset);
 			ini.SetValue("Offsets", "WindDirOffset", Calib.WindDir.Offset);
-			ini.SetValue("Offsets", "InTempOffset", Calib.InTemp.Offset);
 			ini.SetValue("Offsets", "UVOffset", Calib.UV.Offset);
 			ini.SetValue("Offsets", "SolarOffset", Calib.Solar.Offset);
 			ini.SetValue("Offsets", "WetBulbOffset", Calib.WetBulb.Offset);
 			//ini.SetValue("Offsets", "DavisCalcAltPressOffset", DavisCalcAltPressOffset);
+			ini.SetValue("Offsets", "InTempOffset", Calib.InTemp.Offset);
+			ini.SetValue("Offsets", "InHumOffset", Calib.InHum.Offset);
 
 			ini.SetValue("Offsets", "PressMult", Calib.Press.Mult);
 			ini.SetValue("Offsets", "WindSpeedMult", Calib.WindSpeed.Mult);
@@ -6122,6 +6130,8 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "SolarMult", Calib.Solar.Mult);
 			ini.SetValue("Offsets", "UVMult", Calib.UV.Mult);
 			ini.SetValue("Offsets", "WetBulbMult", Calib.WetBulb.Mult);
+			ini.SetValue("Offsets", "InTempMult", Calib.InTemp.Mult);
+			ini.SetValue("Offsets", "InHumMult", Calib.InHum.Mult);
 
 			ini.SetValue("Limits", "TempHighC", Limit.TempHigh);
 			ini.SetValue("Limits", "TempLowC", Limit.TempLow);
@@ -11045,14 +11055,13 @@ namespace CumulusMX
 		public void LogOffsetsMultipliers()
 		{
 			LogMessage("Offsets and Multipliers:");
-			LogMessage($"PO={Calib.Press.Offset:F3} TO={Calib.Temp.Offset:F3} HO={Calib.Hum.Offset} WDO={Calib.WindDir.Offset} ITO={Calib.InTemp.Offset:F3} SO={Calib.Solar.Offset:F3} UVO={Calib.UV.Offset:F3}");
+			LogMessage($"PO={Calib.Press.Offset:F3} TO={Calib.Temp.Offset:F3} HO={Calib.Hum.Offset} WDO={Calib.WindDir.Offset} SO={Calib.Solar.Offset:F3} UVO={Calib.UV.Offset:F3} ITO={Calib.InTemp.Offset} IHO={Calib.InHum.Offset}");
 			LogMessage($"PM={Calib.Press.Mult:F3} WSM={Calib.WindSpeed.Mult:F3} WGM={Calib.WindGust.Mult:F3} TM={Calib.Temp.Mult:F3} TM2={Calib.Temp.Mult2:F3} " +
-						$"HM={Calib.Hum.Mult:F3} HM2={Calib.Hum.Mult2:F3} RM={Calib.Rain.Mult:F3} SM={Calib.Solar.Mult:F3} UVM={Calib.UV.Mult:F3}");
+						$"HM={Calib.Hum.Mult:F3} HM2={Calib.Hum.Mult2:F3} RM={Calib.Rain.Mult:F3} SM={Calib.Solar.Mult:F3} UVM={Calib.UV.Mult:F3} ITM={Calib.InTemp.Mult} IHM={Calib.InHum.Mult}");
 			LogMessage("Spike removal:");
-			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3}");
+			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3} ITD={Spike.InTempDiff:F3} IHD={Spike.InHumDiff:F3}");
 			LogMessage("Limits:");
 			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} GH={Limit.WindHigh:F3}");
-
 		}
 
 		private void LogPrimaryAqSensor()
