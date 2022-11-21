@@ -1,3 +1,11 @@
+3.23.0 - b3216
+——————————————
+Changed
+- Lots of third party modules updated
+
+
+
+
 3.22.4 - b3215
 ——————————————
 Fixed
@@ -6,7 +14,7 @@ Fixed
 - Ecowitt piezo rain sensor (WS90) now supports storm event
 - Davis Vantage VP2/Vue stations no longer download the entire logger contents on start-up when the station logging interval does not match the CMX interval
 - Catch errors in La Crosse WS2300 data handling - specifically fixes reported crashes in forecast data
-- Added a cache-buster to the default website index page - just upload the new index.htm file
+- Added a moon image cache-buster to the default website index page - just upload the new index.htm file
 
 New
 - Adds start-up and shutdown tasks - see Program Settings
