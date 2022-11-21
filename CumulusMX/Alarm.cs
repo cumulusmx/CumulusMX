@@ -87,9 +87,12 @@ namespace CumulusMX
 						{
 							try
 							{
-								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 								// Prepare the process to run
-								Utils.RunExternalTask(Action, ActionParams, false);
+								var parser = new TokenParser();
+								parser.InputText = ActionParams;
+								var args = parser.ToStringFromString();
+								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+								Utils.RunExternalTask(Action, args, false);
 							}
 							catch (Exception ex)
 							{
@@ -209,9 +212,12 @@ namespace CumulusMX
 					{
 						try
 						{
-							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 							// Prepare the process to run
-							Utils.RunExternalTask(Action, ActionParams, false);
+							var parser = new TokenParser();
+							parser.InputText = ActionParams;
+							var args = parser.ToStringFromString();
+							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+							Utils.RunExternalTask(Action, args, false);
 						}
 						catch (Exception ex)
 						{
@@ -266,9 +272,12 @@ namespace CumulusMX
 					{
 						try
 						{
-							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 							// Prepare the process to run
-							Utils.RunExternalTask(Action, ActionParams, false);
+							var parser = new TokenParser();
+							parser.InputText = ActionParams;
+							var args = parser.ToStringFromString();
+							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+							Utils.RunExternalTask(Action, args, false);
 						}
 						catch (Exception ex)
 						{

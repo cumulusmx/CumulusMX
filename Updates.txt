@@ -1,9 +1,12 @@
 3.23.0 - b3216
 ——————————————
+New
+- You can now use web tags in all external program parameter strings (except start-up)
+	- Realtime, interval, daily, shutdown, and alarms
+
 Changed
 - Lots of third party modules updated
-
-
+	- EmbedIO, MailKit, MimeKit, MQTTnet, MySqlConnector, ServiceStack.Text
 
 
 3.22.4 - b3215

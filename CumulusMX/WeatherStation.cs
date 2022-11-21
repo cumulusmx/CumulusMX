@@ -19,6 +19,7 @@ using Timer = System.Timers.Timer;
 using ServiceStack.Text;
 using System.Web;
 using System.Threading.Tasks;
+using EmbedIO.Utilities;
 
 namespace CumulusMX
 {
@@ -5434,11 +5435,14 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
-					cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + cumulus.DailyParams);
 					try
 					{
 						// Prepare the process to run
-						Utils.RunExternalTask(cumulus.DailyProgram, cumulus.DailyParams, false);
+						var parser = new TokenParser();
+						parser.InputText = cumulus.DailyParams;
+						var args = parser.ToStringFromString();
+						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
+						Utils.RunExternalTask(cumulus.DailyProgram, args, false);
 					}
 					catch (Exception ex)
 					{
