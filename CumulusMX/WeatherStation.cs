@@ -10931,6 +10931,7 @@ namespace CumulusMX
 				var filtered = 0;
 				var thisDraw = 0;
 
+
 				var json = new StringBuilder(350 * cumulus.MySqlFailedList.Count);
 
 				json.Append("{\"data\":[");

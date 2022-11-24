@@ -4,6 +4,7 @@ New
 - You can now use web tags in all external program parameter strings (except start-up)
 	- Realtime, interval, daily, shutdown, and alarms
 - Indoor temperature and humidity now have spike checking, and linear calibration
+- The Data Logs viewers and Purge MySQL Cache now have multi-select enabled for deleting entries
 
 Changed
 - Lots of third party modules updated
