@@ -5,6 +5,9 @@ New
 	- Realtime, interval, daily, shutdown, and alarms
 - Indoor temperature and humidity now have spike checking, and linear calibration
 - The Data Logs viewers and Purge MySQL Cache now have multi-select enabled for deleting entries
+- Two new web tags for the last MySQL insert times that can be used in custom MySQL commands
+	<#MySqlRealtimeTime> = time of last real-time table insert
+	<#MySqlIntervalTime> = time of last interval data table insert
 
 Changed
 - Lots of third party modules updated

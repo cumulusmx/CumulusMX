@@ -714,7 +714,8 @@ namespace CumulusMX
 
 		public MySqlGeneralSettings MySqlSettings = new MySqlGeneralSettings();
 
-		private int RealtimeMySqlLastMinute = -1;
+		public DateTime MySqlLastRealtimeTime;
+		public DateTime MySqlILastntervalTime;
 
 		internal MySqlTable RealtimeTable;
 		internal MySqlTable MonthlyTable;
@@ -7264,8 +7265,9 @@ namespace CumulusMX
 
 			if (MySqlSettings.Monthly.Enabled)
 			{
-
 				var InvC = new CultureInfo("");
+
+				MySqlILastntervalTime = timestamp;
 
 				StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
 				values.Append(" Values('");
@@ -9547,10 +9549,10 @@ namespace CumulusMX
 			if (!MySqlSettings.Realtime.Enabled)
 				return;
 
-			if (MySqlSettings.RealtimeLimit1Minute && RealtimeMySqlLastMinute == timestamp.Minute)
+			if (MySqlSettings.RealtimeLimit1Minute && MySqlLastRealtimeTime.Minute == timestamp.Minute)
 				return;
 
-			RealtimeMySqlLastMinute = timestamp.Minute;
+			MySqlLastRealtimeTime = timestamp;
 
 			var InvC = new CultureInfo("");
 
