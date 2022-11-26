@@ -8,6 +8,17 @@ New
 - Two new web tags for the last MySQL insert times that can be used in custom MySQL commands
 	<#MySqlRealtimeTime> = time of last real-time table insert
 	<#MySqlIntervalTime> = time of last interval data table insert
+- Most weather value web tags now perform unit conversion. Specify the web tag parameter: unit=[xx]
+	Where [xx] is one of the following (case sensitive):
+		Temperature: C | F
+		Pressure   : hPa | mb | kPa | inHg
+		Wind       : mph | kph | ms | kt
+		Rainfall   : mm | in
+		Wind run   : km | mi | Nm
+	You may also need to override the number of decimal places when converting.
+	For example when converting native mb or hPa to kPa, you would also need to add "dp=2"
+		<#press unit=kPa dp=2>
+
 
 Changed
 - Lots of third party modules updated

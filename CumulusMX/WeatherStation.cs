@@ -5974,7 +5974,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public virtual double ConvertUserWindToMS(double value)
+		public double ConvertUserWindToMS(double value)
 		{
 			switch (cumulus.Units.Wind)
 			{
@@ -6016,7 +6016,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="value">Windrun in configured units</param>
 		/// <returns>Wind in km</returns>
-		public virtual double ConvertWindRunToKm(double value)
+		public double ConvertWindRunToKm(double value)
 		{
 			switch (cumulus.Units.Wind)
 			{
@@ -6026,7 +6026,49 @@ namespace CumulusMX
 				case 1: // mph
 					return value / 0.621371192;
 				case 3: // knots
-					return value / 0.539956803;
+					return value / 0.539957;
+				default:
+					return 0;
+			}
+		}
+
+		/// <summary>
+		///  Converts windrun supplied in user units to miles
+		/// </summary>
+		/// <param name="value">Windrun in configured units</param>
+		/// <returns>Wind in mi</returns>
+		public double ConvertWindRunToMi(double value)
+		{
+			switch (cumulus.Units.Wind)
+			{
+				case 0: // m/s
+				case 2: // km/h
+					return value * 0.621371192;
+				case 1: // mph
+					return value;
+				case 3: // knots
+					return value / 0.8689762;
+				default:
+					return 0;
+			}
+		}
+
+		/// <summary>
+		///  Converts windrun supplied in user units to nautical miles
+		/// </summary>
+		/// <param name="value">Windrun in configured units</param>
+		/// <returns>Wind in Nm</returns>
+		public double ConvertWindRunToNm(double value)
+		{
+			switch (cumulus.Units.Wind)
+			{
+				case 0: // m/s
+				case 2: // km/h
+					return value * 0.539956803;
+				case 1: // mph
+					return value * 0.8689762;
+				case 3: // knots
+					return value;
 				default:
 					return 0;
 			}
