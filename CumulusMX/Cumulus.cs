@@ -7156,7 +7156,7 @@ namespace CumulusMX
 
 				StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
 				values.Append(" Values('");
-				values.Append(timestamp.ToString("yy-MM-dd HH:mm") + "',");
+				values.Append(timestamp.ToString("yyyy-MM-dd HH:mm") + "',");
 				values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ",");
 				values.Append(station.OutdoorHumidity + ",");
 				values.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ",");
@@ -9443,7 +9443,7 @@ namespace CumulusMX
 
 			StringBuilder values = new StringBuilder(RealtimeTable.StartOfInsert, 1024);
 			values.Append(" Values('");
-			values.Append(timestamp.ToString("yy-MM-dd HH:mm:ss") + "',");
+			values.Append(timestamp.ToString("yyyy-MM-dd HH:mm:ss") + "',");
 			values.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ',');
 			values.Append(station.OutdoorHumidity.ToString() + ',');
 			values.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ',');
