@@ -4595,6 +4595,11 @@ namespace CumulusMX
 			GraphOptions.TempSumVisible0 = ini.GetValue("Graphs", "TempSumVisible0", true);
 			GraphOptions.TempSumVisible1 = ini.GetValue("Graphs", "TempSumVisible1", true);
 			GraphOptions.TempSumVisible2 = ini.GetValue("Graphs", "TempSumVisible2", true);
+			GraphOptions.ExtraTempVisible = ini.GetValue("Graphs", "ExtraTempVisible", new bool[10]);
+			GraphOptions.ExtraHumVisible = ini.GetValue("Graphs", "ExtraHumVisible", new bool[10]);
+			GraphOptions.SoilTempVisible = ini.GetValue("Graphs", "SoilTempVisible", new bool[16]);
+			GraphOptions.SoilMoistVisible = ini.GetValue("Graphs", "SoilMoistVisible", new bool[16]);
+			GraphOptions.UserTempVisible = ini.GetValue("Graphs", "UserTempVisible", new bool[8]);
 
 
 			Wund.ID = ini.GetValue("Wunderground", "ID", "");
@@ -6242,6 +6247,11 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "TempSumVisible0", GraphOptions.TempSumVisible0);
 			ini.SetValue("Graphs", "TempSumVisible1", GraphOptions.TempSumVisible1);
 			ini.SetValue("Graphs", "TempSumVisible2", GraphOptions.TempSumVisible2);
+			ini.SetValue("Graphs", "ExtraTempVisible", GraphOptions.ExtraTempVisible);
+			ini.SetValue("Graphs", "ExtraHumVisible", GraphOptions.ExtraHumVisible);
+			ini.SetValue("Graphs", "SoilTempVisible", GraphOptions.SoilTempVisible);
+			ini.SetValue("Graphs", "SoilMoistVisible", GraphOptions.SoilMoistVisible);
+			ini.SetValue("Graphs", "UserTempVisible", GraphOptions.UserTempVisible);
 
 
 			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
@@ -6397,36 +6407,13 @@ namespace CumulusMX
 			IniFile ini = new IniFile("strings.ini");
 
 			// forecast
-
 			ForecastNotAvailable = ini.GetValue("Forecast", "notavailable", ForecastNotAvailable);
 
 			exceptional = ini.GetValue("Forecast", "exceptional", exceptional);
-			zForecast[0] = ini.GetValue("Forecast", "forecast1", zForecast[0]);
-			zForecast[1] = ini.GetValue("Forecast", "forecast2", zForecast[1]);
-			zForecast[2] = ini.GetValue("Forecast", "forecast3", zForecast[2]);
-			zForecast[3] = ini.GetValue("Forecast", "forecast4", zForecast[3]);
-			zForecast[4] = ini.GetValue("Forecast", "forecast5", zForecast[4]);
-			zForecast[5] = ini.GetValue("Forecast", "forecast6", zForecast[5]);
-			zForecast[6] = ini.GetValue("Forecast", "forecast7", zForecast[6]);
-			zForecast[7] = ini.GetValue("Forecast", "forecast8", zForecast[7]);
-			zForecast[8] = ini.GetValue("Forecast", "forecast9", zForecast[8]);
-			zForecast[9] = ini.GetValue("Forecast", "forecast10", zForecast[9]);
-			zForecast[10] = ini.GetValue("Forecast", "forecast11", zForecast[10]);
-			zForecast[11] = ini.GetValue("Forecast", "forecast12", zForecast[11]);
-			zForecast[12] = ini.GetValue("Forecast", "forecast13", zForecast[12]);
-			zForecast[13] = ini.GetValue("Forecast", "forecast14", zForecast[13]);
-			zForecast[14] = ini.GetValue("Forecast", "forecast15", zForecast[14]);
-			zForecast[15] = ini.GetValue("Forecast", "forecast16", zForecast[15]);
-			zForecast[16] = ini.GetValue("Forecast", "forecast17", zForecast[16]);
-			zForecast[17] = ini.GetValue("Forecast", "forecast18", zForecast[17]);
-			zForecast[18] = ini.GetValue("Forecast", "forecast19", zForecast[18]);
-			zForecast[19] = ini.GetValue("Forecast", "forecast20", zForecast[19]);
-			zForecast[20] = ini.GetValue("Forecast", "forecast21", zForecast[20]);
-			zForecast[21] = ini.GetValue("Forecast", "forecast22", zForecast[21]);
-			zForecast[22] = ini.GetValue("Forecast", "forecast23", zForecast[22]);
-			zForecast[23] = ini.GetValue("Forecast", "forecast24", zForecast[23]);
-			zForecast[24] = ini.GetValue("Forecast", "forecast25", zForecast[24]);
-			zForecast[25] = ini.GetValue("Forecast", "forecast26", zForecast[25]);
+			for (var i = 0; i <= 25; i++)
+			{
+				zForecast[i] = ini.GetValue("Forecast", "forecast" + (i + 1), zForecast[i]);
+			}
 			// moon phases
 			NewMoon = ini.GetValue("MoonPhases", "Newmoon", NewMoon);
 			WaxingCrescent = ini.GetValue("MoonPhases", "WaxingCrescent", WaxingCrescent);
@@ -6478,103 +6465,45 @@ namespace CumulusMX
 			compassp[14] = ini.GetValue("Compass", "NW", compassp[14]);
 			compassp[15] = ini.GetValue("Compass", "NNW", compassp[15]);
 
-			// Extra temperature captions (for Extra Sensor Data screen)
-			ExtraTempCaptions[1] = ini.GetValue("ExtraTempCaptions", "Sensor1", ExtraTempCaptions[1]);
-			ExtraTempCaptions[2] = ini.GetValue("ExtraTempCaptions", "Sensor2", ExtraTempCaptions[2]);
-			ExtraTempCaptions[3] = ini.GetValue("ExtraTempCaptions", "Sensor3", ExtraTempCaptions[3]);
-			ExtraTempCaptions[4] = ini.GetValue("ExtraTempCaptions", "Sensor4", ExtraTempCaptions[4]);
-			ExtraTempCaptions[5] = ini.GetValue("ExtraTempCaptions", "Sensor5", ExtraTempCaptions[5]);
-			ExtraTempCaptions[6] = ini.GetValue("ExtraTempCaptions", "Sensor6", ExtraTempCaptions[6]);
-			ExtraTempCaptions[7] = ini.GetValue("ExtraTempCaptions", "Sensor7", ExtraTempCaptions[7]);
-			ExtraTempCaptions[8] = ini.GetValue("ExtraTempCaptions", "Sensor8", ExtraTempCaptions[8]);
-			ExtraTempCaptions[9] = ini.GetValue("ExtraTempCaptions", "Sensor9", ExtraTempCaptions[9]);
-			ExtraTempCaptions[10] = ini.GetValue("ExtraTempCaptions", "Sensor10", ExtraTempCaptions[10]);
+			for (var i = 1; i <= 4; i++)
+			{
+				// leaf temp captions (for Extra Sensor Data screen)
+				LeafTempCaptions[i] = ini.GetValue("LeafTempCaptions", "Sensor" + i, LeafTempCaptions[i]);
 
-			// Extra humidity captions (for Extra Sensor Data screen)
-			ExtraHumCaptions[1] = ini.GetValue("ExtraHumCaptions", "Sensor1", ExtraHumCaptions[1]);
-			ExtraHumCaptions[2] = ini.GetValue("ExtraHumCaptions", "Sensor2", ExtraHumCaptions[2]);
-			ExtraHumCaptions[3] = ini.GetValue("ExtraHumCaptions", "Sensor3", ExtraHumCaptions[3]);
-			ExtraHumCaptions[4] = ini.GetValue("ExtraHumCaptions", "Sensor4", ExtraHumCaptions[4]);
-			ExtraHumCaptions[5] = ini.GetValue("ExtraHumCaptions", "Sensor5", ExtraHumCaptions[5]);
-			ExtraHumCaptions[6] = ini.GetValue("ExtraHumCaptions", "Sensor6", ExtraHumCaptions[6]);
-			ExtraHumCaptions[7] = ini.GetValue("ExtraHumCaptions", "Sensor7", ExtraHumCaptions[7]);
-			ExtraHumCaptions[8] = ini.GetValue("ExtraHumCaptions", "Sensor8", ExtraHumCaptions[8]);
-			ExtraHumCaptions[9] = ini.GetValue("ExtraHumCaptions", "Sensor9", ExtraHumCaptions[9]);
-			ExtraHumCaptions[10] = ini.GetValue("ExtraHumCaptions", "Sensor10", ExtraHumCaptions[10]);
+				// air quality captions (for Extra Sensor Data screen)
+				AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + i, AirQualityCaptions[i]);
+				AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg", AirQualityAvgCaptions[1]);
+			}
 
-			// Extra dew point captions (for Extra Sensor Data screen)
-			ExtraDPCaptions[1] = ini.GetValue("ExtraDPCaptions", "Sensor1", ExtraDPCaptions[1]);
-			ExtraDPCaptions[2] = ini.GetValue("ExtraDPCaptions", "Sensor2", ExtraDPCaptions[2]);
-			ExtraDPCaptions[3] = ini.GetValue("ExtraDPCaptions", "Sensor3", ExtraDPCaptions[3]);
-			ExtraDPCaptions[4] = ini.GetValue("ExtraDPCaptions", "Sensor4", ExtraDPCaptions[4]);
-			ExtraDPCaptions[5] = ini.GetValue("ExtraDPCaptions", "Sensor5", ExtraDPCaptions[5]);
-			ExtraDPCaptions[6] = ini.GetValue("ExtraDPCaptions", "Sensor6", ExtraDPCaptions[6]);
-			ExtraDPCaptions[7] = ini.GetValue("ExtraDPCaptions", "Sensor7", ExtraDPCaptions[7]);
-			ExtraDPCaptions[8] = ini.GetValue("ExtraDPCaptions", "Sensor8", ExtraDPCaptions[8]);
-			ExtraDPCaptions[9] = ini.GetValue("ExtraDPCaptions", "Sensor9", ExtraDPCaptions[9]);
-			ExtraDPCaptions[10] = ini.GetValue("ExtraDPCaptions", "Sensor10", ExtraDPCaptions[10]);
+			for (var i = 1; i <= 8; i++)
+			{
+				// leaf wetness captions (for Extra Sensor Data screen)
+				LeafWetnessCaptions[i] = ini.GetValue("LeafWetnessCaptions", "Sensor" + i, LeafWetnessCaptions[i]);
 
-			// soil temp captions (for Extra Sensor Data screen)
-			SoilTempCaptions[1] = ini.GetValue("SoilTempCaptions", "Sensor1", SoilTempCaptions[1]);
-			SoilTempCaptions[2] = ini.GetValue("SoilTempCaptions", "Sensor2", SoilTempCaptions[2]);
-			SoilTempCaptions[3] = ini.GetValue("SoilTempCaptions", "Sensor3", SoilTempCaptions[3]);
-			SoilTempCaptions[4] = ini.GetValue("SoilTempCaptions", "Sensor4", SoilTempCaptions[4]);
-			SoilTempCaptions[5] = ini.GetValue("SoilTempCaptions", "Sensor5", SoilTempCaptions[5]);
-			SoilTempCaptions[6] = ini.GetValue("SoilTempCaptions", "Sensor6", SoilTempCaptions[6]);
-			SoilTempCaptions[7] = ini.GetValue("SoilTempCaptions", "Sensor7", SoilTempCaptions[7]);
-			SoilTempCaptions[8] = ini.GetValue("SoilTempCaptions", "Sensor8", SoilTempCaptions[8]);
-			SoilTempCaptions[9] = ini.GetValue("SoilTempCaptions", "Sensor9", SoilTempCaptions[9]);
-			SoilTempCaptions[10] = ini.GetValue("SoilTempCaptions", "Sensor10", SoilTempCaptions[10]);
-			SoilTempCaptions[11] = ini.GetValue("SoilTempCaptions", "Sensor11", SoilTempCaptions[11]);
-			SoilTempCaptions[12] = ini.GetValue("SoilTempCaptions", "Sensor12", SoilTempCaptions[12]);
-			SoilTempCaptions[13] = ini.GetValue("SoilTempCaptions", "Sensor13", SoilTempCaptions[13]);
-			SoilTempCaptions[14] = ini.GetValue("SoilTempCaptions", "Sensor14", SoilTempCaptions[14]);
-			SoilTempCaptions[15] = ini.GetValue("SoilTempCaptions", "Sensor15", SoilTempCaptions[15]);
-			SoilTempCaptions[16] = ini.GetValue("SoilTempCaptions", "Sensor16", SoilTempCaptions[16]);
+				// User temperature captions (for Extra Sensor Data screen)
+				UserTempCaptions[i] = ini.GetValue("UserTempCaptions", "Sensor" + i, UserTempCaptions[i]);
+			}
 
-			// soil moisture captions (for Extra Sensor Data screen)
-			SoilMoistureCaptions[1] = ini.GetValue("SoilMoistureCaptions", "Sensor1", SoilMoistureCaptions[1]);
-			SoilMoistureCaptions[2] = ini.GetValue("SoilMoistureCaptions", "Sensor2", SoilMoistureCaptions[2]);
-			SoilMoistureCaptions[3] = ini.GetValue("SoilMoistureCaptions", "Sensor3", SoilMoistureCaptions[3]);
-			SoilMoistureCaptions[4] = ini.GetValue("SoilMoistureCaptions", "Sensor4", SoilMoistureCaptions[4]);
-			SoilMoistureCaptions[5] = ini.GetValue("SoilMoistureCaptions", "Sensor5", SoilMoistureCaptions[5]);
-			SoilMoistureCaptions[6] = ini.GetValue("SoilMoistureCaptions", "Sensor6", SoilMoistureCaptions[6]);
-			SoilMoistureCaptions[7] = ini.GetValue("SoilMoistureCaptions", "Sensor7", SoilMoistureCaptions[7]);
-			SoilMoistureCaptions[8] = ini.GetValue("SoilMoistureCaptions", "Sensor8", SoilMoistureCaptions[8]);
-			SoilMoistureCaptions[9] = ini.GetValue("SoilMoistureCaptions", "Sensor9", SoilMoistureCaptions[9]);
-			SoilMoistureCaptions[10] = ini.GetValue("SoilMoistureCaptions", "Sensor10", SoilMoistureCaptions[10]);
-			SoilMoistureCaptions[11] = ini.GetValue("SoilMoistureCaptions", "Sensor11", SoilMoistureCaptions[11]);
-			SoilMoistureCaptions[12] = ini.GetValue("SoilMoistureCaptions", "Sensor12", SoilMoistureCaptions[12]);
-			SoilMoistureCaptions[13] = ini.GetValue("SoilMoistureCaptions", "Sensor13", SoilMoistureCaptions[13]);
-			SoilMoistureCaptions[14] = ini.GetValue("SoilMoistureCaptions", "Sensor14", SoilMoistureCaptions[14]);
-			SoilMoistureCaptions[15] = ini.GetValue("SoilMoistureCaptions", "Sensor15", SoilMoistureCaptions[15]);
-			SoilMoistureCaptions[16] = ini.GetValue("SoilMoistureCaptions", "Sensor16", SoilMoistureCaptions[16]);
+			for (var i = 1; i <= 10; i++)
+			{
+				// Extra temperature captions (for Extra Sensor Data screen)
+				ExtraTempCaptions[i] = ini.GetValue("ExtraTempCaptions", "Sensor" + i, ExtraTempCaptions[i]);
 
-			// leaf temp captions (for Extra Sensor Data screen)
-			LeafTempCaptions[1] = ini.GetValue("LeafTempCaptions", "Sensor1", LeafTempCaptions[1]);
-			LeafTempCaptions[2] = ini.GetValue("LeafTempCaptions", "Sensor2", LeafTempCaptions[2]);
-			LeafTempCaptions[3] = ini.GetValue("LeafTempCaptions", "Sensor3", LeafTempCaptions[3]);
-			LeafTempCaptions[4] = ini.GetValue("LeafTempCaptions", "Sensor4", LeafTempCaptions[4]);
+				// Extra humidity captions (for Extra Sensor Data screen)
+				ExtraHumCaptions[i] = ini.GetValue("ExtraHumCaptions", "Sensor" + i, ExtraHumCaptions[i]);
 
-			// leaf wetness captions (for Extra Sensor Data screen)
-			LeafWetnessCaptions[1] = ini.GetValue("LeafWetnessCaptions", "Sensor1", LeafWetnessCaptions[1]);
-			LeafWetnessCaptions[2] = ini.GetValue("LeafWetnessCaptions", "Sensor2", LeafWetnessCaptions[2]);
-			LeafWetnessCaptions[3] = ini.GetValue("LeafWetnessCaptions", "Sensor3", LeafWetnessCaptions[3]);
-			LeafWetnessCaptions[4] = ini.GetValue("LeafWetnessCaptions", "Sensor4", LeafWetnessCaptions[4]);
-			LeafWetnessCaptions[5] = ini.GetValue("LeafWetnessCaptions", "Sensor5", LeafWetnessCaptions[5]);
-			LeafWetnessCaptions[6] = ini.GetValue("LeafWetnessCaptions", "Sensor6", LeafWetnessCaptions[6]);
-			LeafWetnessCaptions[7] = ini.GetValue("LeafWetnessCaptions", "Sensor7", LeafWetnessCaptions[7]);
-			LeafWetnessCaptions[8] = ini.GetValue("LeafWetnessCaptions", "Sensor8", LeafWetnessCaptions[8]);
+				// Extra dew point captions (for Extra Sensor Data screen)
+				ExtraDPCaptions[i] = ini.GetValue("ExtraDPCaptions", "Sensor" + i, ExtraDPCaptions[i]);
+			}
 
-			// air quality captions (for Extra Sensor Data screen)
-			AirQualityCaptions[1] = ini.GetValue("AirQualityCaptions", "Sensor1", AirQualityCaptions[1]);
-			AirQualityCaptions[2] = ini.GetValue("AirQualityCaptions", "Sensor2", AirQualityCaptions[2]);
-			AirQualityCaptions[3] = ini.GetValue("AirQualityCaptions", "Sensor3", AirQualityCaptions[3]);
-			AirQualityCaptions[4] = ini.GetValue("AirQualityCaptions", "Sensor4", AirQualityCaptions[4]);
-			AirQualityAvgCaptions[1] = ini.GetValue("AirQualityCaptions", "SensorAvg1", AirQualityAvgCaptions[1]);
-			AirQualityAvgCaptions[2] = ini.GetValue("AirQualityCaptions", "SensorAvg2", AirQualityAvgCaptions[2]);
-			AirQualityAvgCaptions[3] = ini.GetValue("AirQualityCaptions", "SensorAvg3", AirQualityAvgCaptions[3]);
-			AirQualityAvgCaptions[4] = ini.GetValue("AirQualityCaptions", "SensorAvg4", AirQualityAvgCaptions[4]);
+			for (var i = 1; i <= 16; i++)
+			{
+				// soil temp captions (for Extra Sensor Data screen)
+				SoilTempCaptions[i] = ini.GetValue("SoilTempCaptions", "Sensor" + i, SoilTempCaptions[i]);
+
+				// soil moisture captions (for Extra Sensor Data screen)
+				SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", "Sensor" + i, SoilMoistureCaptions[i]);
+			}
 
 			// CO2 captions - Ecowitt WH45 sensor
 			CO2_CurrentCaption = ini.GetValue("CO2Captions", "CO2-Current", CO2_CurrentCaption);
@@ -6584,74 +6513,30 @@ namespace CumulusMX
 			CO2_pm10Caption = ini.GetValue("CO2Captions", "CO2-Pm10", CO2_pm10Caption);
 			CO2_pm10_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm10-24hr", CO2_pm10_24hrCaption);
 
-			// User temperature captions (for Extra Sensor Data screen)
-			UserTempCaptions[1] = ini.GetValue("UserTempCaptions", "Sensor1", UserTempCaptions[1]);
-			UserTempCaptions[2] = ini.GetValue("UserTempCaptions", "Sensor2", UserTempCaptions[2]);
-			UserTempCaptions[3] = ini.GetValue("UserTempCaptions", "Sensor3", UserTempCaptions[3]);
-			UserTempCaptions[4] = ini.GetValue("UserTempCaptions", "Sensor4", UserTempCaptions[4]);
-			UserTempCaptions[5] = ini.GetValue("UserTempCaptions", "Sensor5", UserTempCaptions[5]);
-			UserTempCaptions[6] = ini.GetValue("UserTempCaptions", "Sensor6", UserTempCaptions[6]);
-			UserTempCaptions[7] = ini.GetValue("UserTempCaptions", "Sensor7", UserTempCaptions[7]);
-			UserTempCaptions[8] = ini.GetValue("UserTempCaptions", "Sensor8", UserTempCaptions[8]);
 
 			thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", thereWillBeMinSLessDaylightTomorrow);
 			thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", thereWillBeMinSMoreDaylightTomorrow);
 
+			// Davis forecast 1
 			DavisForecast1[0] = ini.GetValue("DavisForecast1", "forecast1", DavisForecast1[0]);
-			DavisForecast1[1] = ini.GetValue("DavisForecast1", "forecast2", DavisForecast1[1]) + " ";
-			DavisForecast1[2] = ini.GetValue("DavisForecast1", "forecast3", DavisForecast1[2]) + " ";
-			DavisForecast1[3] = ini.GetValue("DavisForecast1", "forecast4", DavisForecast1[3]) + " ";
-			DavisForecast1[4] = ini.GetValue("DavisForecast1", "forecast5", DavisForecast1[4]) + " ";
-			DavisForecast1[5] = ini.GetValue("DavisForecast1", "forecast6", DavisForecast1[5]) + " ";
-			DavisForecast1[6] = ini.GetValue("DavisForecast1", "forecast7", DavisForecast1[6]) + " ";
-			DavisForecast1[7] = ini.GetValue("DavisForecast1", "forecast8", DavisForecast1[7]) + " ";
-			DavisForecast1[8] = ini.GetValue("DavisForecast1", "forecast9", DavisForecast1[8]) + " ";
-			DavisForecast1[9] = ini.GetValue("DavisForecast1", "forecast10", DavisForecast1[9]) + " ";
-			DavisForecast1[10] = ini.GetValue("DavisForecast1", "forecast11", DavisForecast1[10]) + " ";
-			DavisForecast1[11] = ini.GetValue("DavisForecast1", "forecast12", DavisForecast1[11]) + " ";
-			DavisForecast1[12] = ini.GetValue("DavisForecast1", "forecast13", DavisForecast1[12]) + " ";
-			DavisForecast1[13] = ini.GetValue("DavisForecast1", "forecast14", DavisForecast1[13]) + " ";
-			DavisForecast1[14] = ini.GetValue("DavisForecast1", "forecast15", DavisForecast1[14]) + " ";
-			DavisForecast1[15] = ini.GetValue("DavisForecast1", "forecast16", DavisForecast1[15]) + " ";
-			DavisForecast1[16] = ini.GetValue("DavisForecast1", "forecast17", DavisForecast1[16]) + " ";
-			DavisForecast1[17] = ini.GetValue("DavisForecast1", "forecast18", DavisForecast1[17]) + " ";
-			DavisForecast1[18] = ini.GetValue("DavisForecast1", "forecast19", DavisForecast1[18]) + " ";
-			DavisForecast1[19] = ini.GetValue("DavisForecast1", "forecast20", DavisForecast1[19]) + " ";
-			DavisForecast1[20] = ini.GetValue("DavisForecast1", "forecast21", DavisForecast1[20]) + " ";
-			DavisForecast1[21] = ini.GetValue("DavisForecast1", "forecast22", DavisForecast1[21]) + " ";
-			DavisForecast1[22] = ini.GetValue("DavisForecast1", "forecast23", DavisForecast1[22]) + " ";
-			DavisForecast1[23] = ini.GetValue("DavisForecast1", "forecast24", DavisForecast1[23]) + " ";
-			DavisForecast1[24] = ini.GetValue("DavisForecast1", "forecast25", DavisForecast1[24]) + " ";
-			DavisForecast1[25] = ini.GetValue("DavisForecast1", "forecast26", DavisForecast1[25]) + " ";
+			for (var i = 1; i <= 25; i++)
+			{
+				DavisForecast1[i] = ini.GetValue("DavisForecast1", "forecast" + (i + 1), DavisForecast1[i]) + " ";
+			}
 			DavisForecast1[26] = ini.GetValue("DavisForecast1", "forecast27", DavisForecast1[26]);
 
+			// Davis forecast 2
 			DavisForecast2[0] = ini.GetValue("DavisForecast2", "forecast1", DavisForecast2[0]);
-			DavisForecast2[1] = ini.GetValue("DavisForecast2", "forecast2", DavisForecast2[1]) + " ";
-			DavisForecast2[2] = ini.GetValue("DavisForecast2", "forecast3", DavisForecast2[2]) + " ";
-			DavisForecast2[3] = ini.GetValue("DavisForecast2", "forecast4", DavisForecast2[3]) + " ";
-			DavisForecast2[4] = ini.GetValue("DavisForecast2", "forecast5", DavisForecast2[5]) + " ";
-			DavisForecast2[5] = ini.GetValue("DavisForecast2", "forecast6", DavisForecast2[5]) + " ";
-			DavisForecast2[6] = ini.GetValue("DavisForecast2", "forecast7", DavisForecast2[6]) + " ";
-			DavisForecast2[7] = ini.GetValue("DavisForecast2", "forecast8", DavisForecast2[7]) + " ";
-			DavisForecast2[8] = ini.GetValue("DavisForecast2", "forecast9", DavisForecast2[8]) + " ";
-			DavisForecast2[9] = ini.GetValue("DavisForecast2", "forecast10", DavisForecast2[9]) + " ";
-			DavisForecast2[10] = ini.GetValue("DavisForecast2", "forecast11", DavisForecast2[10]) + " ";
-			DavisForecast2[11] = ini.GetValue("DavisForecast2", "forecast12", DavisForecast2[11]) + " ";
-			DavisForecast2[12] = ini.GetValue("DavisForecast2", "forecast13", DavisForecast2[12]) + " ";
-			DavisForecast2[13] = ini.GetValue("DavisForecast2", "forecast14", DavisForecast2[13]) + " ";
-			DavisForecast2[14] = ini.GetValue("DavisForecast2", "forecast15", DavisForecast2[14]) + " ";
-			DavisForecast2[15] = ini.GetValue("DavisForecast2", "forecast16", DavisForecast2[15]) + " ";
-			DavisForecast2[16] = ini.GetValue("DavisForecast2", "forecast17", DavisForecast2[16]) + " ";
-			DavisForecast2[17] = ini.GetValue("DavisForecast2", "forecast18", DavisForecast2[17]) + " ";
-			DavisForecast2[18] = ini.GetValue("DavisForecast2", "forecast19", DavisForecast2[18]) + " ";
+			for (var i = 1; i <= 18; i++)
+			{
+				DavisForecast2[i] = ini.GetValue("DavisForecast2", "forecast" + (i + 1), DavisForecast2[i]) + " ";
+			}
 
-			DavisForecast3[0] = ini.GetValue("DavisForecast3", "forecast1", DavisForecast3[0]);
-			DavisForecast3[1] = ini.GetValue("DavisForecast3", "forecast2", DavisForecast3[1]);
-			DavisForecast3[2] = ini.GetValue("DavisForecast3", "forecast3", DavisForecast3[2]);
-			DavisForecast3[3] = ini.GetValue("DavisForecast3", "forecast4", DavisForecast3[3]);
-			DavisForecast3[4] = ini.GetValue("DavisForecast3", "forecast5", DavisForecast3[4]);
-			DavisForecast3[5] = ini.GetValue("DavisForecast3", "forecast6", DavisForecast3[5]);
-			DavisForecast3[6] = ini.GetValue("DavisForecast3", "forecast7", DavisForecast3[6]);
+			// Davis forecast 3
+			for (var i = 0; i <= 6; i++)
+			{
+				DavisForecast3[i] = ini.GetValue("DavisForecast3", "forecast" + (i + 1), DavisForecast3[i]);
+			}
 
 			// alarm emails
 			AlarmEmailSubject = ini.GetValue("AlarmEmails", "subject", "Cumulus MX Alarm");
@@ -11448,6 +11333,11 @@ namespace CumulusMX
 		public bool TempSumVisible0 { get; set; }
 		public bool TempSumVisible1 { get; set; }
 		public bool TempSumVisible2 { get; set; }
+		public bool[] ExtraTempVisible = new bool[10];
+		public bool[] ExtraHumVisible = new bool[10];
+		public bool[] SoilTempVisible = new bool[16];
+		public bool[] SoilMoistVisible = new bool[16];
+		public bool[] UserTempVisible = new bool[8];
 	}
 
 	public class SelectaChartOptions

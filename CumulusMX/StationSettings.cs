@@ -131,9 +131,9 @@ namespace CumulusMX
 
 			var weatherflow = new JsonStationSettingsWeatherFlow()
 			{
-				deviceid = cumulus.WeatherFlowOptions.WFDeviceId, 
-				tcpport = cumulus.WeatherFlowOptions.WFTcpPort, 
-				token = cumulus.WeatherFlowOptions.WFToken, 
+				deviceid = cumulus.WeatherFlowOptions.WFDeviceId,
+				tcpport = cumulus.WeatherFlowOptions.WFTcpPort,
+				token = cumulus.WeatherFlowOptions.WFToken,
 				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
 			};
 
@@ -339,12 +339,42 @@ namespace CumulusMX
 				graphGrowingDegreeDaysVis2 = cumulus.GraphOptions.GrowingDegreeDaysVisible2
 			};
 
+			var graphDataExtraTemp = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.ExtraTempVisible
+			};
+
+			var graphDataExtraHum = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.ExtraHumVisible
+			};
+
+			var graphDataSoilTemp = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.SoilTempVisible
+			};
+
+			var graphDataSoilMoist = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.SoilMoistVisible
+			};
+
+			var graphDataUserTemp = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.UserTempVisible
+			};
+
 			var graphDataVis = new JsonStationSettingsGraphVisibility()
 			{
 				temperature = graphDataTemp,
 				humidity = graphDataHum,
 				solar = graphDataSolar,
-				degreedays = graphDataDegreeDays
+				degreedays = graphDataDegreeDays,
+				extratemp = graphDataExtraTemp,
+				extrahum = graphDataExtraHum,
+				soiltemp = graphDataSoilTemp,
+				soilmoist = graphDataSoilMoist,
+				usertemp = graphDataUserTemp
 			};
 
 			var graphs = new JsonStationSettingsGraphs()
@@ -595,10 +625,15 @@ namespace CumulusMX
 					cumulus.GraphOptions.TempSumVisible2 = settings.Graphs.datavisibility.temperature.graphTempSumVis2;
 					cumulus.GraphOptions.GrowingDegreeDaysVisible1 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis1;
 					cumulus.GraphOptions.GrowingDegreeDaysVisible2 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis2;
+					cumulus.GraphOptions.ExtraTempVisible = settings.Graphs.datavisibility.extratemp.sensors;
+					cumulus.GraphOptions.ExtraHumVisible = settings.Graphs.datavisibility.extrahum.sensors;
+					cumulus.GraphOptions.SoilTempVisible = settings.Graphs.datavisibility.soiltemp.sensors;
+					cumulus.GraphOptions.SoilMoistVisible = settings.Graphs.datavisibility.soilmoist.sensors;
+					cumulus.GraphOptions.UserTempVisible = settings.Graphs.datavisibility.usertemp.sensors;
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing Graph hours: " + ex.Message;
+					var msg = "Error processing Graph settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1892,6 +1927,11 @@ namespace CumulusMX
 		public JsonStationSettingsGraphDataHumidity humidity { get; set; }
 		public JsonStationSettingsGraphDataSolar solar { get; set; }
 		public JsonStationSettingsGraphDataDegreeDays degreedays { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors extratemp { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors extrahum { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors soiltemp { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors soilmoist { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors usertemp { get; set; }
 	}
 
 	public class JsonStationSettingsGraphDataTemperature
@@ -1931,6 +1971,10 @@ namespace CumulusMX
 		public bool graphGrowingDegreeDaysVis2 { get; set; }
 	}
 
+	public class JsonStationSettingsGraphDataExtraSensors
+	{
+		public bool[] sensors { get; set; }
+	}
 	public class JsonSelectaChartSettings
 	{
 		public string[] series { get; set; }
