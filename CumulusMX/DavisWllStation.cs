@@ -380,7 +380,7 @@ namespace CumulusMX
 
 			StopMinuteTimer();
 			try
-			{ 
+			{
 				if (tokenSource != null)
 				{
 					tokenSource.Cancel();
@@ -679,6 +679,7 @@ namespace CumulusMX
 				multicastsBad++;
 				var msg = string.Format("WLL broadcast: Error processing broadcast. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 				cumulus.LogMessage(msg);
+				cumulus.LogMessage("WLL broadcast: Received: " + broadcastJson);
 			}
 		}
 
@@ -1672,7 +1673,7 @@ namespace CumulusMX
 				else // No idea what we got, dump it to the log
 				{
 					cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
-					cumulus.LogDataMessage("GetWlHistoricData: Received: " + responseBody);
+					cumulus.LogMessage("GetWlHistoricData: Received: " + responseBody);
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
