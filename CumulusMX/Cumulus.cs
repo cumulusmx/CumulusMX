@@ -4600,6 +4600,14 @@ namespace CumulusMX
 			GraphOptions.SoilTempVisible = ini.GetValue("Graphs", "SoilTempVisible", new bool[16]);
 			GraphOptions.SoilMoistVisible = ini.GetValue("Graphs", "SoilMoistVisible", new bool[16]);
 			GraphOptions.UserTempVisible = ini.GetValue("Graphs", "UserTempVisible", new bool[8]);
+			GraphOptions.CO2Sensor.CO2 = ini.GetValue("Graphs", "CO2-CO2", false);
+			GraphOptions.CO2Sensor.CO2Avg = ini.GetValue("Graphs", "CO2-CO2Avg", false);
+			GraphOptions.CO2Sensor.Pm25 = ini.GetValue("Graphs", "CO2-Pm25", false);
+			GraphOptions.CO2Sensor.Pm25Avg = ini.GetValue("Graphs", "CO2-Pm25Avg", false);
+			GraphOptions.CO2Sensor.Pm10 = ini.GetValue("Graphs", "CO2-Pm10", false);
+			GraphOptions.CO2Sensor.Pm10Avg = ini.GetValue("Graphs", "CO2-Pm10Avg", false);
+			GraphOptions.CO2Sensor.Temp = ini.GetValue("Graphs", "CO2-Temp", false);
+			GraphOptions.CO2Sensor.Hum = ini.GetValue("Graphs", "CO2-Hum", false);
 
 
 			Wund.ID = ini.GetValue("Wunderground", "ID", "");
@@ -6252,6 +6260,14 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "SoilTempVisible", GraphOptions.SoilTempVisible);
 			ini.SetValue("Graphs", "SoilMoistVisible", GraphOptions.SoilMoistVisible);
 			ini.SetValue("Graphs", "UserTempVisible", GraphOptions.UserTempVisible);
+			ini.SetValue("Graphs", "CO2-CO2", GraphOptions.CO2Sensor.CO2);
+			ini.SetValue("Graphs", "CO2-CO2Avg", GraphOptions.CO2Sensor.CO2Avg);
+			ini.SetValue("Graphs", "CO2-Pm25", GraphOptions.CO2Sensor.Pm25);
+			ini.SetValue("Graphs", "CO2-Pm25Avg", GraphOptions.CO2Sensor.Pm25Avg);
+			ini.SetValue("Graphs", "CO2-Pm10", GraphOptions.CO2Sensor.Pm10);
+			ini.SetValue("Graphs", "CO2-Pm10Avg", GraphOptions.CO2Sensor.Pm10Avg);
+			ini.SetValue("Graphs", "CO2-Temp", GraphOptions.CO2Sensor.Temp);
+			ini.SetValue("Graphs", "CO2-Hum", GraphOptions.CO2Sensor.Hum);
 
 
 			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
@@ -11338,6 +11354,24 @@ namespace CumulusMX
 		public bool[] SoilTempVisible = new bool[16];
 		public bool[] SoilMoistVisible = new bool[16];
 		public bool[] UserTempVisible = new bool[8];
+		public GrapOptionsCo2Sensor CO2Sensor { get; set; }
+
+		public GraphOptions()
+		{
+			CO2Sensor = new GrapOptionsCo2Sensor();
+		}
+	}
+
+	public class GrapOptionsCo2Sensor
+	{
+		public bool CO2 { get; set; }
+		public bool CO2Avg { get; set; }
+		public bool Pm25 { get; set; }
+		public bool Pm25Avg { get; set; }
+		public bool Pm10 { get; set; }
+		public bool Pm10Avg { get; set; }
+		public bool Temp { get; set; }
+		public bool Hum { get; set; }
 	}
 
 	public class SelectaChartOptions

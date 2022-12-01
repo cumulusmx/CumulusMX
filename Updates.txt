@@ -19,7 +19,7 @@ New
 	For example when converting native mb or hPa to kPa, you would also need to add "dp=2"
 		<#press unit=kPa dp=2>
 - Adds graphing of some extra sensors on the local dashboard interface
-	Implemented for: Extra Temperatures, Extra Humidity's, Soil Temps, Soil Moistures, and User Temps
+	Implemented for: Extra Temperatures, Extra Humidity's, Soil Temps, Soil Moistures, User Temps, and CO₂
 
 Changed
 - Lots of third party modules updated

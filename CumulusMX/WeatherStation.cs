@@ -3285,6 +3285,211 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		public string GetCo2SensorGraphData(DateTime ts)
+		{
+			bool append = false;
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{", 10240);
+
+			var sbCo2 = new StringBuilder("\"CO2\":[");
+			var sbCo2Avg = new StringBuilder("\"CO2 Average\":[");
+			var sbPm25 = new StringBuilder("\"PM2.5\":[");
+			var sbPm25Avg = new StringBuilder("\"PM 2.5 Average\":[");
+			var sbPm10 = new StringBuilder("\"PM 10\":[");
+			var sbPm10Avg = new StringBuilder("\"PM 10 Average\":[");
+			var sbTemp = new StringBuilder("\"Temperature\":[");
+			var sbHum = new StringBuilder("\"Humidity\":[");
+
+
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(datefrom);
+
+			var finished = false;
+			var entrydate = new DateTime();
+			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					int linenum = 0;
+					int errorCount = 0;
+					double temp;
+					int tempInt;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+
+								if (entrydate >= datefrom)
+								{
+									if (cumulus.GraphOptions.CO2Sensor.CO2 && double.TryParse(st[84], out temp))
+										sbCo2.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.CO2Avg && double.TryParse(st[85], out temp))
+										sbCo2Avg.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.Pm25 && double.TryParse(st[86], out temp))
+										sbPm25.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.Pm25Avg && double.TryParse(st[87], out temp))
+										sbPm25Avg.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.Pm10 && double.TryParse(st[88], out temp))
+										sbPm10.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.Pm10Avg && double.TryParse(st[89], out temp))
+										sbPm10Avg.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.Temp && double.TryParse(st[90], out temp))
+										sbTemp.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
+
+									if (cumulus.GraphOptions.CO2Sensor.Hum && int.TryParse(st[91], out tempInt))
+										sbHum.Append($"[{DateTimeToUnix(entrydate) * 1000},{tempInt}],");
+								}
+							}
+							catch (Exception ex)
+							{
+
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+
+					}
+				}
+
+				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				{
+					finished = true;
+				}
+				else
+				{
+					datefrom = datefrom.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(datefrom);
+				}
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.CO2)
+			{
+				if (sbCo2[sbCo2.Length - 1] == ',')
+					sbCo2.Length--;
+
+				sbCo2.Append(']');
+				sb.Append(sbCo2);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.CO2Avg)
+			{
+				if (sbCo2Avg[sbCo2Avg.Length - 1] == ',')
+					sbCo2Avg.Length--;
+
+				sbCo2Avg.Append(']');
+				sb.Append((append ? "," : "") + sbCo2Avg);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.Pm25)
+			{
+				if (sbPm25[sbPm25.Length - 1] == ',')
+					sbPm25.Length--;
+
+				sbPm25.Append(']');
+				sb.Append((append ? "," : "") + sbPm25);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.Pm25Avg)
+			{
+				if (sbPm25Avg[sbPm25Avg.Length - 1] == ',')
+					sbPm25Avg.Length--;
+
+				sbPm25Avg.Append(']');
+				sb.Append((append ? "," : "") + sbPm25Avg);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.Pm10)
+			{
+				if (sbPm10[sbPm10.Length - 1] == ',')
+					sbPm10.Length--;
+
+				sbPm10.Append(']');
+				sb.Append((append ? "," : "") + sbPm10);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.Pm10Avg)
+			{
+				if (sbPm10Avg[sbPm10Avg.Length - 1] == ',')
+					sbPm10Avg.Length--;
+
+				sbPm10Avg.Append(']');
+				sb.Append((append ? "," : "") + sbPm10Avg);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.Temp)
+			{
+				if (sbTemp[sbTemp.Length - 1] == ',')
+					sbTemp.Length--;
+
+				sbTemp.Append(']');
+				sb.Append((append ? "," : "") + sbTemp);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.CO2Sensor.Hum)
+			{
+				if (sbHum[sbHum.Length - 1] == ',')
+					sbHum.Length--;
+
+				sbHum.Append(']');
+				sb.Append((append ? "," : "") + sbHum);
+				append = true;
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+
 		public void AddRecentDataEntry(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
 			double appTemp, double insideTemp, int insideHum, double solarMax, double rainrate, double pm2p5, double pm10)
@@ -11882,6 +12087,34 @@ namespace CumulusMX
 					if (cumulus.GraphOptions.UserTempVisible[i])
 						json.Append($"\"{cumulus.UserTempCaptions[i + 1]}\",");
 				}
+				if (json[json.Length - 1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
+			// CO2
+			if (cumulus.GraphOptions.CO2Sensor.CO2 || cumulus.GraphOptions.CO2Sensor.CO2Avg || cumulus.GraphOptions.CO2Sensor.Pm25 || cumulus.GraphOptions.CO2Sensor.Pm25Avg ||
+				cumulus.GraphOptions.CO2Sensor.Pm10 || cumulus.GraphOptions.CO2Sensor.Pm10Avg || cumulus.GraphOptions.CO2Sensor.Temp || cumulus.GraphOptions.CO2Sensor.Hum)
+			{
+				json.Append(",\"CO2\":[");
+				if (cumulus.GraphOptions.CO2Sensor.CO2)
+					json.Append("\"CO2\",");
+				if (cumulus.GraphOptions.CO2Sensor.CO2Avg)
+					json.Append("\"CO2Avg\",");
+				if (cumulus.GraphOptions.CO2Sensor.Pm25)
+					json.Append("\"PM25\",");
+				if (cumulus.GraphOptions.CO2Sensor.Pm25Avg)
+					json.Append("\"PM25Avg\",");
+				if (cumulus.GraphOptions.CO2Sensor.Pm10)
+					json.Append("\"PM10\",");
+				if (cumulus.GraphOptions.CO2Sensor.Pm10Avg)
+					json.Append("\"PM10Avg\",");
+				if (cumulus.GraphOptions.CO2Sensor.Temp)
+					json.Append("\"Temp\",");
+				if (cumulus.GraphOptions.CO2Sensor.Hum)
+					json.Append("\"Hum\"");
+
 				if (json[json.Length - 1] == ',')
 					json.Length--;
 

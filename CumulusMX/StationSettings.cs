@@ -5,6 +5,7 @@ using System.Threading;
 using ServiceStack.Text;
 using EmbedIO;
 using System.Reflection;
+using static Swan.Terminal;
 
 namespace CumulusMX
 {
@@ -364,6 +365,18 @@ namespace CumulusMX
 				sensors = cumulus.GraphOptions.UserTempVisible
 			};
 
+			var graphDataCo2 = new JsonStationSettingsGraphDataCo2()
+			{
+				co2 = cumulus.GraphOptions.CO2Sensor.CO2,
+				co2avg = cumulus.GraphOptions.CO2Sensor.CO2Avg,
+				pm25 = cumulus.GraphOptions.CO2Sensor.Pm25,
+				pm25avg = cumulus.GraphOptions.CO2Sensor.Pm25Avg,
+				pm10 = cumulus.GraphOptions.CO2Sensor.Pm10,
+				pm10avg = cumulus.GraphOptions.CO2Sensor.Pm10Avg,
+				temp = cumulus.GraphOptions.CO2Sensor.Temp,
+				hum = cumulus.GraphOptions.CO2Sensor.Hum
+			};
+
 			var graphDataVis = new JsonStationSettingsGraphVisibility()
 			{
 				temperature = graphDataTemp,
@@ -374,7 +387,8 @@ namespace CumulusMX
 				extrahum = graphDataExtraHum,
 				soiltemp = graphDataSoilTemp,
 				soilmoist = graphDataSoilMoist,
-				usertemp = graphDataUserTemp
+				usertemp = graphDataUserTemp,
+				co2 = graphDataCo2
 			};
 
 			var graphs = new JsonStationSettingsGraphs()
@@ -630,6 +644,14 @@ namespace CumulusMX
 					cumulus.GraphOptions.SoilTempVisible = settings.Graphs.datavisibility.soiltemp.sensors;
 					cumulus.GraphOptions.SoilMoistVisible = settings.Graphs.datavisibility.soilmoist.sensors;
 					cumulus.GraphOptions.UserTempVisible = settings.Graphs.datavisibility.usertemp.sensors;
+					cumulus.GraphOptions.CO2Sensor.CO2 = settings.Graphs.datavisibility.co2.co2;
+					cumulus.GraphOptions.CO2Sensor.CO2Avg = settings.Graphs.datavisibility.co2.co2avg;
+					cumulus.GraphOptions.CO2Sensor.Pm25 = settings.Graphs.datavisibility.co2.pm25;
+					cumulus.GraphOptions.CO2Sensor.Pm25Avg = settings.Graphs.datavisibility.co2.pm25avg;
+					cumulus.GraphOptions.CO2Sensor.Pm10 = settings.Graphs.datavisibility.co2.pm10;
+					cumulus.GraphOptions.CO2Sensor.Pm10Avg = settings.Graphs.datavisibility.co2.pm10avg;
+					cumulus.GraphOptions.CO2Sensor.Temp = settings.Graphs.datavisibility.co2.temp;
+					cumulus.GraphOptions.CO2Sensor.Hum = settings.Graphs.datavisibility.co2.hum;
 				}
 				catch (Exception ex)
 				{
@@ -1921,6 +1943,18 @@ namespace CumulusMX
 		public JsonStationSettingsGraphVisibility datavisibility { get; set; }
 	}
 
+	public class JsonStationSettingsGraphDataCo2
+	{
+		public bool co2 { get; set; }
+		public bool co2avg { get; set; }
+		public bool pm25 { get; set; }
+		public bool pm25avg { get; set; }
+		public bool pm10 { get; set; }
+		public bool pm10avg { get; set; }
+		public bool temp { get; set; }
+		public bool hum { get; set; }
+	}
+
 	public class JsonStationSettingsGraphVisibility
 	{
 		public JsonStationSettingsGraphDataTemperature temperature { get; set; }
@@ -1932,6 +1966,7 @@ namespace CumulusMX
 		public JsonStationSettingsGraphDataExtraSensors soiltemp { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors soilmoist { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors usertemp { get; set; }
+		public JsonStationSettingsGraphDataCo2 co2 { get; set; }
 	}
 
 	public class JsonStationSettingsGraphDataTemperature
