@@ -25,6 +25,7 @@ Changed
 - Lots of third party modules updated
 	- EmbedIO, MailKit, MimeKit, MQTTnet, MySqlConnector, ServiceStack.Text
 - Davis WLL: Badly formatted broadcast messages are now dumped to the log file
+- Removed fictional Leaf Temperature values from the Extra Sensors screen
 
 Fixed
 - Spurious alarm cleared messages when the alarms are not enabled
