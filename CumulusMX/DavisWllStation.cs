@@ -551,11 +551,11 @@ namespace CumulusMX
 		{
 			try
 			{
-				cumulus.LogDataMessage("WLL Broadcast: " + broadcastJson);
 
 				// sanity check
 				if (broadcastJson.StartsWith("{\"did\":"))
 				{
+					cumulus.LogDataMessage("WLL Broadcast: " + broadcastJson);
 					var json = broadcastJson.FromJson<WllBroadcast>();
 					// The WLL sends the timestamp in Unix ticks, and in UTC
 					// rather than rely on the WLL clock being correct, we will use our local time
@@ -665,11 +665,18 @@ namespace CumulusMX
 					cumulus.DataStoppedAlarm.Triggered = false;
 					multicastsGood++;
 				}
+				else if (broadcastJson.StartsWith("STR_BCAST"))
+				{
+					var msg = broadcastJson.Replace(((char)0x00), '.').Replace(((char) 0x1c), '.');
+					cumulus.LogMessage("WLL broadcast: Received spurious message from printer utility(?) starting with \"STR_BCAST\"");
+					cumulus.LogDataMessage("WLL broadcast: Message = " + msg);
+				}
 				else
 				{
 					multicastsBad++;
 					var msg = string.Format("WLL broadcast: Invalid payload in message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float)(multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 					cumulus.LogMessage(msg);
+					cumulus.LogMessage("WLL broadcast: Received: " + broadcastJson);
 				}
 			}
 			catch (Exception exp)
