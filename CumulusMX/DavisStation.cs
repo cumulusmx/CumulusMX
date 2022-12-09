@@ -2079,7 +2079,7 @@ namespace CumulusMX
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 
-			cumulus.LogMessage("Roll-over hour = " + rollHour);
+			cumulus.LogMessage("GetArchiveData: Roll-over hour = " + rollHour);
 
 			bool rolloverdone = luhour == rollHour;
 
@@ -2087,6 +2087,14 @@ namespace CumulusMX
 
 			// work out the next logger interval after the last CMX update
 			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime, TimeSpan.FromMinutes(loggerInterval));
+
+			// check if the calculated logger time is later than now!
+			if (nextLoggerTime > DateTime.Now)
+			{
+				// nothing to do, presumably we were just restarted
+				cumulus.LogMessage($"GetArchiveData: Last logger entry is later than our last update time, skipping logger download");
+				return;
+			}
 
 			// construct date and time of last record read
 			int vantageDateStamp = nextLoggerTime.Day + nextLoggerTime.Month*32 + (nextLoggerTime.Year - 2000) * 512;

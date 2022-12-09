@@ -29,6 +29,7 @@ Changed
 
 Fixed
 - Spurious alarm cleared messages when the alarms are not enabled
+- Davis VP2 logger downloading entire contents if CMX was restarted before the next console log interval
 
 
 3.22.4 - b3215
