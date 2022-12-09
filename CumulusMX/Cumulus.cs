@@ -193,6 +193,8 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
+		private FileStream _linuxLockFile;
+
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
 
@@ -1063,10 +1065,66 @@ namespace CumulusMX
 
 
 			// Do we prevent more than one copy of CumulusMX running?
-			try
+			if (Platform.Substring(0, 3) == "Win")
 			{
-				if (!Program.appMutex.WaitOne(0, false))
+				try
 				{
+					if (!Program.appMutex.WaitOne(0, false))
+					{
+						if (ProgramOptions.WarnMultiple)
+						{
+							LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
+							LogConsoleMessage("Program exit");
+							LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
+							LogMessage("Stop second instance: Program exit");
+							Program.exitSystem = true;
+							return;
+						}
+						else
+						{
+							LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
+							LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
+						}
+					}
+					else
+					{
+						LogMessage("Stop second instance: No other running instances of Cumulus found");
+					}
+				}
+				catch (AbandonedMutexException)
+				{
+					LogMessage("Stop second instance: Abandoned Mutex Error!");
+					LogMessage("Stop second instance: Was a previous copy of Cumulus terminated from task manager, or otherwise forcibly stopped?");
+					LogMessage("Stop second instance: Continuing this instance of Cumulus");
+				}
+				catch (Exception ex)
+				{
+					LogMessage("Stop second instance: Mutex Error! - " + ex);
+					if (ProgramOptions.WarnMultiple)
+					{
+						LogMessage("Stop second instance: Terminating this instance of Cumulus");
+						Program.exitSystem = true;
+						return;
+					}
+					else
+					{
+						LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
+					}
+				}
+			}
+			else // Unix
+			{
+				try
+				{
+					// must include Write access in order to lock file - /tmp seems to be universal across Linux and Mac
+					_linuxLockFile = new FileStream("/tmp/" + Program.AppGuid + ".lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+					_linuxLockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
+
+					LogMessage("Stop second instance: No other running instances of Cumulus found");
+				}
+				catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32)
+				{
+					// sharing violation
 					if (ProgramOptions.WarnMultiple)
 					{
 						LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
@@ -1082,29 +1140,19 @@ namespace CumulusMX
 						LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
 					}
 				}
-				else
+				catch (Exception ex)
 				{
-					LogMessage("Stop second instance: No other running instances of Cumulus found");
-				}
-			}
-			catch (AbandonedMutexException)
-			{
-				LogMessage("Stop second instance: Abandoned Mutex Error!");
-				LogMessage("Stop second instance: Was a previous copy of Cumulus terminated from task manager, or otherwise forcibly stopped?");
-				LogMessage("Stop second instance: Continuing this instance of Cumulus");
-			}
-			catch (Exception ex)
-			{
-				LogMessage("Stop second instance: Mutex Error! - " + ex);
-				if (ProgramOptions.WarnMultiple)
-				{
-					LogMessage("Stop second instance: Terminating this instance of Cumulus");
-					Program.exitSystem = true;
-					return;
-				}
-				else
-				{
-					LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
+					LogMessage("Stop second instance: File Error! - " + ex);
+					if (ProgramOptions.WarnMultiple)
+					{
+						LogMessage("Stop second instance: Terminating this instance of Cumulus");
+						Program.exitSystem = true;
+						return;
+					}
+					else
+					{
+						LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
+					}
 				}
 			}
 
