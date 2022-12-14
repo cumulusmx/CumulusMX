@@ -194,6 +194,7 @@ namespace CumulusMX
 		//public Dataunits Units;
 
 		private FileStream _linuxLockFile;
+		private static string _linuxLockFilename = "/tmp/" + Program.AppGuid + ".lock";
 
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
@@ -1117,8 +1118,17 @@ namespace CumulusMX
 				try
 				{
 					// must include Write access in order to lock file - /tmp seems to be universal across Linux and Mac
-					_linuxLockFile = new FileStream("/tmp/" + Program.AppGuid + ".lock", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+					_linuxLockFile = new FileStream(_linuxLockFilename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 					_linuxLockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
+
+					using (var thisProcess = System.Diagnostics.Process.GetCurrentProcess())
+					{
+						var procId = thisProcess.Id.ToString().ToAsciiBytes();
+						_linuxLockFile.Write(procId, 0, procId.Length);
+						_linuxLockFile.Flush();
+					}
+					// give everyone access to the file
+					Utils.RunExternalTask("chmod", "777 " + _linuxLockFilename + " 2>/dev/null", false);
 
 					LogMessage("Stop second instance: No other running instances of Cumulus found");
 				}
@@ -8329,6 +8339,7 @@ namespace CumulusMX
 					LogMessage("Releasing lock file...");
 					_linuxLockFile.Close();
 					_linuxLockFile.Dispose();
+					File.Delete(_linuxLockFilename);
 				}
 			}
 			catch { }
