@@ -1117,14 +1117,14 @@ namespace CumulusMX
 				try
 				{
 					// must include Write access in order to lock file - /tmp seems to be universal across Linux and Mac
-					_linuxLockFile = new FileStream("/tmp/" + Program.AppGuid + ".lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+					_linuxLockFile = new FileStream("/tmp/" + Program.AppGuid + ".lock", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 					_linuxLockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
 
 					LogMessage("Stop second instance: No other running instances of Cumulus found");
 				}
-				catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32)
+				catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32 || (ex.HResult & 0x0000FFFF) == 33)
 				{
-					// sharing violation
+					// sharing violation 32, or lock violation 33
 					if (ProgramOptions.WarnMultiple)
 					{
 						LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
@@ -1143,9 +1143,14 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage("Stop second instance: File Error! - " + ex);
+					LogMessage("Stop second instance: File HResult - " + ex.HResult);
+					LogMessage("Stop second instance: File HResult - " + (ex.HResult & 0x0000FFFF));
+
 					if (ProgramOptions.WarnMultiple)
 					{
 						LogMessage("Stop second instance: Terminating this instance of Cumulus");
+						LogConsoleMessage("An error occurred during second instance detection and 'Stop second instance' is enabled - terminating", ConsoleColor.Red);
+						LogConsoleMessage("Program exit");
 						Program.exitSystem = true;
 						return;
 					}
@@ -8316,6 +8321,17 @@ namespace CumulusMX
 					LogMessage($"Error running shutdown task: {ex.Message}");
 				}
 			}
+
+			try
+			{
+				if (null != _linuxLockFile)
+				{
+					LogMessage("Releasing lock file...");
+					_linuxLockFile.Close();
+					_linuxLockFile.Dispose();
+				}
+			}
+			catch { }
 
 			LogMessage("Station shutdown complete");
 		}

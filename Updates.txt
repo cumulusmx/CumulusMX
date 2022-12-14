@@ -1,4 +1,4 @@
-3.23.0 - b3216
+3.23.0 - b3217
 ——————————————
 New
 - You can now use web tags in all external program parameter strings (except start-up)
@@ -16,13 +16,13 @@ New
 		Rainfall   : mm | in
 		Wind run   : km | mi | Nm
 	You may also need to override the number of decimal places when converting.
-	For example when converting native mb or hPa to kPa, you would also need to add "dp=2"
+	For example, when converting native mb or hPa to kPa or inHg, you would also need to add "dp=2"
 		<#press unit=kPa dp=2>
 - Adds graphing of some extra sensors on the local dashboard interface
 	Implemented for: Extra Temperatures, Extra Humidity's, Soil Temps, Soil Moistures, User Temps, and CO₂
 
 Changed
-- Lots of third party modules updated
+- Lots of third-party modules updated
 	- EmbedIO, MailKit, MimeKit, MQTTnet, MySqlConnector, ServiceStack.Text
 - Davis WLL: Badly formatted broadcast messages are now dumped to the log file, and printer utility broadcasts logged separately
 - Removed fictional Leaf Temperature values from the Extra Sensors screen
@@ -30,6 +30,7 @@ Changed
 Fixed
 - Spurious alarm cleared messages when the alarms are not enabled
 - Davis VP2 logger downloading entire contents if CMX was restarted before the next console log interval
+- Stop second instance on Linux, this now uses a lock file to prevent a second instance from running
 
 
 3.22.4 - b3215
