@@ -158,10 +158,10 @@ namespace CumulusMX
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
-				var unit = tagParams.Get("unit");
-				if (unit == "C")
+				var unit = tagParams.Get("unit").ToLower();
+				if (unit == "c")
 					return station.ConvertUserTempToC(val);
-				else if (unit == "F")
+				else if (unit == "f")
 					return station.ConvertUserTempToF(val);
 			}
 			return val;
@@ -171,10 +171,10 @@ namespace CumulusMX
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
-				var unit = tagParams.Get("unit");
-				if (unit == "C" && cumulus.Units.Temp == 1)
+				var unit = tagParams.Get("unit").ToLower();
+				if (unit == "c" && cumulus.Units.Temp == 1)
 					return val / 1.8;
-				else if (unit == "F" && cumulus.Units.Temp == 0)
+				else if (unit == "f" && cumulus.Units.Temp == 0)
 					return val * 1.8;
 			}
 			return val;
@@ -184,12 +184,12 @@ namespace CumulusMX
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
-				var unit = tagParams.Get("unit");
-				if (unit == "hPa" || unit == "mb")
+				var unit = tagParams.Get("unit").ToLower();
+				if (unit == "hpa" || unit == "mb")
 					return station.ConvertUserPressureToHPa(val);
-				else if (unit == "kPa")
+				else if (unit == "kpa")
 					return station.ConvertUserPressureToHPa(val) / 10;
-				else if (unit == "inHg")
+				else if (unit == "inhg")
 					return station.ConvertUserPressToIN(val);
 			}
 			return val;
@@ -199,7 +199,7 @@ namespace CumulusMX
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
-				var unit = tagParams.Get("unit");
+				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "mm")
 					return station.ConvertUserRainToMM(val);
 				else if (unit == "in")
@@ -212,7 +212,7 @@ namespace CumulusMX
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
-				var unit = tagParams.Get("unit");
+				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "mph")
 					return station.ConvertUserWindToMPH(val);
 				else if (unit == "kph")
@@ -229,12 +229,12 @@ namespace CumulusMX
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
-				var unit = tagParams.Get("unit");
+				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "mi")
 					return station.ConvertWindRunToMi(val);
 				else if (unit == "km")
 					return station.ConvertWindRunToKm(val);
-				else if (unit == "Nm")
+				else if (unit == "nm")
 					return station.ConvertWindRunToNm(val);
 			}
 			return val;
