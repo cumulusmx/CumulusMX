@@ -56,6 +56,8 @@ namespace CumulusMX
 					station.RainToday = raintoday;
 					station.raindaystart = station.Raincounter - (station.RainToday / cumulus.Calib.Rain.Mult);
 					cumulus.LogMessage("After rain today edit,  raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.raindaystart.ToString(cumulus.RainFormat));
+					// force the rainthismonth/rainthisyear values to be recalculated
+					station.UpdateYearMonthRainfall();
 				}
 				catch (Exception ex)
 				{

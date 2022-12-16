@@ -542,7 +542,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
 			rainthismonth = 0;
 			rainthisyear = 0;
-			// get today"s date for month check; allow for 0900 roll-over
+			// get today's date for month check; allow for 0900 roll-over
 			var hourInc = cumulus.GetHourInc();
 			var ModifiedNow = DateTime.Now.AddHours(hourInc);
 			// avoid any funny locale peculiarities on date formats
@@ -585,6 +585,17 @@ namespace CumulusMX
 			}
 			RainMonth = rainthismonth;
 			RainYear = rainthisyear;
+		}
+
+		public void UpdateYearMonthRainfall()
+		{
+			var _month = RainMonth;
+			var _year = RainYear;
+			RainMonth = rainthismonth + RainToday;
+			RainYear = rainthisyear + RainToday;
+			cumulus.LogMessage($"Rainthismonth Updated from: {_month.ToString(cumulus.RainFormat)} to: {RainMonth.ToString(cumulus.RainFormat)}");
+			cumulus.LogMessage($"Rainthisyear Updated from: {_year.ToString(cumulus.RainFormat)} to: {RainYear.ToString(cumulus.RainFormat)}");
+
 		}
 
 		public void ReadTodayFile()

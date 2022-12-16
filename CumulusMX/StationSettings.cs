@@ -774,8 +774,8 @@ namespace CumulusMX
 				{
 					cumulus.Altitude = settings.general.Location.altitude;
 					cumulus.AltitudeInFeet = (settings.general.Location.altitudeunit == "feet");
-					cumulus.LocationName = settings.general.Location.sitename ?? string.Empty;
-					cumulus.LocationDesc = settings.general.Location.description ?? string.Empty;
+					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.general.Location.sitename) ? null : settings.general.Location.sitename.Trim();
+					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.general.Location.description) ? null : settings.general.Location.description.Trim();
 
 					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0));
 					if (settings.general.Location.Latitude.hemisphere == "South")
@@ -884,7 +884,7 @@ namespace CumulusMX
 						cumulus.DavisOptions.ConnectionType = settings.davisvp2.davisconn.conntype;
 						if (settings.davisvp2.davisconn.tcpsettings != null)
 						{
-							cumulus.DavisOptions.IPAddr = settings.davisvp2.davisconn.tcpsettings.ipaddress ?? string.Empty;
+							cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.davisvp2.davisconn.tcpsettings.ipaddress) ? null : settings.davisvp2.davisconn.tcpsettings.ipaddress.Trim();
 							cumulus.DavisOptions.PeriodicDisconnectInterval = settings.davisvp2.davisconn.tcpsettings.disconperiod;
 						}
 						cumulus.DavisOptions.ReadReceptionStats = settings.davisvp2.advanced.readreceptionstats;
@@ -896,7 +896,7 @@ namespace CumulusMX
 						cumulus.StationOptions.ClockSettingHour = settings.davisvp2.advanced.syncclockhour;
 						if (cumulus.DavisOptions.ConnectionType == 0)
 						{
-							cumulus.ComportName = settings.davisvp2.davisconn.comportname;
+							cumulus.ComportName = string.IsNullOrWhiteSpace(settings.davisvp2.davisconn.comportname) ? null : settings.davisvp2.davisconn.comportname.Trim();
 							cumulus.DavisOptions.BaudRate = settings.davisvp2.advanced.baudrate;
 						}
 						else // TCP/IP
@@ -923,10 +923,10 @@ namespace CumulusMX
 					{
 						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
 						cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
-						cumulus.DavisOptions.IPAddr = settings.daviswll.network.ipaddress ?? string.Empty;
+						cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
 
-						cumulus.WllApiKey = settings.daviswll.api.apiKey;
-						cumulus.WllApiSecret = settings.daviswll.api.apiSecret;
+						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
+						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.daviswll.api.apiStationId;
 
 						cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
@@ -1024,9 +1024,9 @@ namespace CumulusMX
 				{
 					if (settings.gw1000 != null)
 					{
-						cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.gw1000.ipaddress) ? null : settings.gw1000.ipaddress.Trim();
 						cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
-						cumulus.Gw1000MacAddress = settings.gw1000.macaddress;
+						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.gw1000.macaddress) ? null : settings.gw1000.macaddress.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1043,8 +1043,8 @@ namespace CumulusMX
 					if (settings.ecowitt != null)
 					{
 						cumulus.EcowittSetCustomServer = settings.ecowitt.setcustom;
-						cumulus.EcowittGatewayAddr = settings.ecowitt.gwaddr;
-						cumulus.EcowittLocalAddr = settings.ecowitt.localaddr;
+						cumulus.EcowittGatewayAddr = string.IsNullOrWhiteSpace(settings.ecowitt.gwaddr) ? null : settings.ecowitt.gwaddr.Trim();
+						cumulus.EcowittLocalAddr = string.IsNullOrWhiteSpace(settings.ecowitt.localaddr) ? null : settings.ecowitt.localaddr.Trim();
 						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
 					}
 				}
@@ -1161,7 +1161,7 @@ namespace CumulusMX
 					{
 						cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
 						cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
-						cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
+						cumulus.WeatherFlowOptions.WFToken = string.IsNullOrWhiteSpace(settings.weatherflow.token) ? null : settings.weatherflow.token.Trim();
 						cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
 					}
 				}
@@ -1179,7 +1179,7 @@ namespace CumulusMX
 					if (settings.easyw != null)
 					{
 						cumulus.EwOptions.Interval = settings.easyw.interval;
-						cumulus.EwOptions.Filename = settings.easyw.filename;
+						cumulus.EwOptions.Filename = string.IsNullOrWhiteSpace(settings.easyw.filename) ? null : settings.easyw.filename.Trim();
 						cumulus.EwOptions.MinPressMB = settings.easyw.minpressmb;
 						cumulus.EwOptions.MaxPressMB = settings.easyw.maxpressmb;
 						cumulus.EwOptions.MaxRainTipDiff = settings.easyw.raintipdiff;
@@ -1220,7 +1220,7 @@ namespace CumulusMX
 				{
 					if (settings.imet != null)
 					{
-						cumulus.ComportName = settings.imet.comportname ?? cumulus.ComportName;
+						cumulus.ComportName = string.IsNullOrWhiteSpace(settings.imet.comportname) ? cumulus.ComportName : settings.imet.comportname.Trim();
 						cumulus.ImetOptions.BaudRate = settings.imet.baudrate;
 						cumulus.StationOptions.SyncTime = settings.imet.advanced.syncstationclock;
 						cumulus.StationOptions.ClockSettingHour = settings.imet.advanced.syncclockhour;
@@ -1242,7 +1242,7 @@ namespace CumulusMX
 				{
 					if (settings.wmr928 != null)
 					{
-						cumulus.ComportName = settings.wmr928.comportname ?? cumulus.ComportName;
+						cumulus.ComportName = string.IsNullOrWhiteSpace(settings.wmr928.comportname) ? cumulus.ComportName : settings.wmr928.comportname.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1258,9 +1258,9 @@ namespace CumulusMX
 				{
 					if (settings.ecowittapi != null)
 					{
-						cumulus.EcowittApplicationKey = settings.ecowittapi.applicationkey;
-						cumulus.EcowittUserApiKey = settings.ecowittapi.userkey;
-						cumulus.EcowittMacAddress = settings.ecowittapi.mac;
+						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.ecowittapi.applicationkey) ? null : settings.ecowittapi.applicationkey.Trim();
+						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.ecowittapi.userkey) ? null : settings.ecowittapi.userkey.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1351,12 +1351,12 @@ namespace CumulusMX
 				// General Advanced
 				try
 				{
-					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate;
+					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate.Trim();
 					cumulus.RecordsBeganDateTime = DateTime.Parse(cumulus.RecordsBeganDate);
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing General Advanced settings: " + ex.Message;
+					var msg = "Error processing Records Began Date: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;

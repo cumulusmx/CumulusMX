@@ -117,17 +117,17 @@ namespace CumulusMX
 			try
 			{
 				cumulus.ProgramOptions.EnableAccessibility = settings.accessible;
-				cumulus.ProgramOptions.StartupPingHost = settings.startup.startuphostping;
+				cumulus.ProgramOptions.StartupPingHost = (settings.startup.startuphostping ?? string.Empty).Trim();
 				cumulus.ProgramOptions.StartupPingEscapeTime = settings.startup.startuppingescape;
 				cumulus.ProgramOptions.StartupDelaySecs = settings.startup.startupdelay;
 				cumulus.ProgramOptions.StartupDelayMaxUptime = settings.startup.startupdelaymaxuptime;
 
-				cumulus.ProgramOptions.StartupTask = settings.startup.startuptask.task;
-				cumulus.ProgramOptions.StartupTaskParams = settings.startup.startuptask.taskparams;
+				cumulus.ProgramOptions.StartupTask = (settings.startup.startuptask.task ?? string.Empty).Trim();
+				cumulus.ProgramOptions.StartupTaskParams = (settings.startup.startuptask.taskparams ?? string.Empty).Trim();
 				cumulus.ProgramOptions.StartupTaskWait = settings.startup.startuptask.wait;
 
-				cumulus.ProgramOptions.ShutdownTask = settings.shutdown.shutdowntask.task;
-				cumulus.ProgramOptions.ShutdownTaskParams = settings.shutdown.shutdowntask.taskparams;
+				cumulus.ProgramOptions.ShutdownTask = (settings.shutdown.shutdowntask.task ?? string.Empty).Trim();
+				cumulus.ProgramOptions.ShutdownTaskParams = (settings.shutdown.shutdowntask.taskparams ?? string.Empty).Trim();
 
 				cumulus.ProgramOptions.DataStoppedExit = settings.shutdown.datastoppedexit;
 				cumulus.ProgramOptions.DataStoppedMins = settings.shutdown.datastoppedmins;

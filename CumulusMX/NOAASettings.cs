@@ -149,12 +149,12 @@ namespace CumulusMX
 				cumulus.NOAAconf.Create = settings.autosave;
 				if (cumulus.NOAAconf.Create)
 				{
-					cumulus.NOAAconf.Name = settings.sitedetails.sitename;
-					cumulus.NOAAconf.City = settings.sitedetails.city;
-					cumulus.NOAAconf.State = settings.sitedetails.state;
+					cumulus.NOAAconf.Name = string.IsNullOrWhiteSpace(settings.sitedetails.sitename) ? null : settings.sitedetails.sitename.Trim();
+					cumulus.NOAAconf.City = string.IsNullOrWhiteSpace(settings.sitedetails.city) ? null : settings.sitedetails.city.Trim();
+					cumulus.NOAAconf.State = string.IsNullOrWhiteSpace(settings.sitedetails.state) ? null : settings.sitedetails.state.Trim();
 
-					cumulus.NOAAconf.MonthFile = settings.outputfiles.monthfileformat;
-					cumulus.NOAAconf.YearFile = settings.outputfiles.yearfileformat;
+					cumulus.NOAAconf.MonthFile = string.IsNullOrWhiteSpace(settings.outputfiles.monthfileformat) ? null : settings.outputfiles.monthfileformat.Trim();
+					cumulus.NOAAconf.YearFile =	string.IsNullOrWhiteSpace(settings.outputfiles.yearfileformat) ? null : settings.outputfiles.yearfileformat.Trim();
 
 					cumulus.NOAAconf.Use12hour = settings.options.timeformat == 1;
 					cumulus.NOAAconf.UseUtf8 = settings.options.utf8;
@@ -162,10 +162,10 @@ namespace CumulusMX
 					cumulus.NOAAconf.UseMinMaxAvg = settings.options.minmaxavg;
 
 					cumulus.NOAAconf.AutoFtp = settings.ftp.autotransfer;
-					cumulus.NOAAconf.FtpFolder = settings.ftp.dstfolder;
+					cumulus.NOAAconf.FtpFolder = string.IsNullOrWhiteSpace(settings.ftp.dstfolder) ? null : settings.ftp.dstfolder.Trim();
 
 					cumulus.NOAAconf.AutoCopy = settings.copy.autotransfer;
-					cumulus.NOAAconf.CopyFolder = settings.copy.dstfolder;
+					cumulus.NOAAconf.CopyFolder = string.IsNullOrWhiteSpace(settings.copy.dstfolder) ? null : settings.copy.dstfolder.Trim();
 
 					cumulus.NOAAconf.HeatThreshold = settings.thresholds.heatingthreshold;
 					cumulus.NOAAconf.CoolThreshold = settings.thresholds.coolingthreshold;

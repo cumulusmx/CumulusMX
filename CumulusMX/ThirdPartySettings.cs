@@ -58,10 +58,10 @@ namespace CumulusMX
 						cumulus.Wund.SendUV = settings.wunderground.includeuv;
 						cumulus.Wund.SendAirQuality = settings.wunderground.includeaq;
 						cumulus.Wund.Interval = settings.wunderground.interval;
-						cumulus.Wund.PW = settings.wunderground.password ?? string.Empty;
+						cumulus.Wund.PW = string.IsNullOrWhiteSpace(settings.wunderground.password) ? string.Empty : settings.wunderground.password.Trim();
 						cumulus.Wund.RapidFireEnabled = settings.wunderground.rapidfire;
 						cumulus.Wund.SendAverage = settings.wunderground.sendavgwind;
-						cumulus.Wund.ID = settings.wunderground.stationid ?? string.Empty;
+						cumulus.Wund.ID = string.IsNullOrWhiteSpace(settings.wunderground.stationid) ? string.Empty : settings.wunderground.stationid.Trim();
 						cumulus.Wund.CatchUp = settings.wunderground.catchup;
 						cumulus.Wund.SynchronisedUpdate = (!cumulus.Wund.RapidFireEnabled) && (60 % cumulus.Wund.Interval == 0);
 
@@ -86,7 +86,7 @@ namespace CumulusMX
 						//cumulus.WindySendSolar = settings.windy.includesolar;
 						cumulus.Windy.SendUV = settings.windy.includeuv;
 						cumulus.Windy.Interval = settings.windy.interval;
-						cumulus.Windy.ApiKey = settings.windy.apikey;
+						cumulus.Windy.ApiKey = string.IsNullOrWhiteSpace(settings.windy.apikey) ? string.Empty : settings.windy.apikey.Trim();
 						cumulus.Windy.StationIdx = settings.windy.stationidx;
 						cumulus.Windy.CatchUp = settings.windy.catchup;
 					}
@@ -106,9 +106,9 @@ namespace CumulusMX
 					if (cumulus.AWEKAS.Enabled)
 					{
 						cumulus.AWEKAS.Interval = settings.awekas.interval;
-						cumulus.AWEKAS.Lang = settings.awekas.lang;
-						cumulus.AWEKAS.PW = settings.awekas.password ?? string.Empty;
-						cumulus.AWEKAS.ID = settings.awekas.user ?? string.Empty;
+						cumulus.AWEKAS.Lang = string.IsNullOrWhiteSpace(settings.awekas.lang) ? string.Empty : settings.awekas.lang.Trim();
+						cumulus.AWEKAS.PW = string.IsNullOrWhiteSpace(settings.awekas.password) ? string.Empty : settings.awekas.password.Trim();
+						cumulus.AWEKAS.ID = string.IsNullOrWhiteSpace(settings.awekas.user) ? string.Empty : settings.awekas.user.Trim();
 						cumulus.AWEKAS.SendSolar = settings.awekas.includesolar;
 						cumulus.AWEKAS.SendUV = settings.awekas.includeuv;
 						cumulus.AWEKAS.SendSoilTemp = settings.awekas.includesoiltemp;
@@ -136,8 +136,8 @@ namespace CumulusMX
 					cumulus.WCloud.Enabled = settings.weathercloud.enabled;
 					if (cumulus.WCloud.Enabled)
 					{
-						cumulus.WCloud.ID = settings.weathercloud.wid ?? string.Empty;
-						cumulus.WCloud.PW = settings.weathercloud.key ?? string.Empty;
+						cumulus.WCloud.ID = string.IsNullOrWhiteSpace(settings.weathercloud.wid) ? string.Empty : settings.weathercloud.wid.Trim();
+						cumulus.WCloud.PW = string.IsNullOrWhiteSpace(settings.weathercloud.key) ? string.Empty : settings.weathercloud.key.Trim();
 						cumulus.WCloud.Interval = settings.weathercloud.interval;
 						cumulus.WCloud.SendSolar = settings.weathercloud.includesolar;
 						cumulus.WCloud.SendUV = settings.weathercloud.includeuv;
@@ -165,8 +165,8 @@ namespace CumulusMX
 						cumulus.PWS.Interval = settings.pwsweather.interval;
 						cumulus.PWS.SendSolar = settings.pwsweather.includesolar;
 						cumulus.PWS.SendUV = settings.pwsweather.includeuv;
-						cumulus.PWS.PW = settings.pwsweather.password ?? string.Empty;
-						cumulus.PWS.ID = settings.pwsweather.stationid ?? string.Empty;
+						cumulus.PWS.PW = string.IsNullOrWhiteSpace(settings.pwsweather.password) ? string.Empty : settings.pwsweather.password.Trim();
+						cumulus.PWS.ID = string.IsNullOrWhiteSpace(settings.pwsweather.stationid) ? string.Empty : settings.pwsweather.stationid.Trim();
 						cumulus.PWS.CatchUp = settings.pwsweather.catchup;
 					}
 				}
@@ -189,8 +189,8 @@ namespace CumulusMX
 						cumulus.WOW.SendSoilTemp = settings.wow.includesoiltemp;
 						cumulus.WOW.SoilTempSensor = settings.wow.soiltempsensor;
 						cumulus.WOW.Interval = settings.wow.interval;
-						cumulus.WOW.PW = settings.wow.password ?? string.Empty;
-						cumulus.WOW.ID = settings.wow.stationid ?? string.Empty;
+						cumulus.WOW.PW = string.IsNullOrWhiteSpace(settings.wow.password) ? string.Empty : settings.wow.password.Trim();
+						cumulus.WOW.ID = string.IsNullOrWhiteSpace(settings.wow.stationid) ? string.Empty : settings.wow.stationid.Trim();
 						cumulus.WOW.CatchUp = settings.wow.catchup;
 					}
 				}
@@ -208,12 +208,12 @@ namespace CumulusMX
 					cumulus.APRS.Enabled = settings.cwop.enabled;
 					if (cumulus.APRS.Enabled)
 					{
-						cumulus.APRS.ID = settings.cwop.id ?? string.Empty; ;
+						cumulus.APRS.ID = string.IsNullOrWhiteSpace(settings.cwop.id) ? string.Empty : settings.cwop.id.Trim(); ;
 						cumulus.APRS.Interval = settings.cwop.interval;
 						cumulus.APRS.SendSolar = settings.cwop.includesolar;
-						cumulus.APRS.PW = settings.cwop.password ?? string.Empty; ;
+						cumulus.APRS.PW = string.IsNullOrWhiteSpace(settings.cwop.password) ? string.Empty : settings.cwop.password.Trim(); ;
 						cumulus.APRS.Port = settings.cwop.port;
-						cumulus.APRS.Server = settings.cwop.server ?? string.Empty; ;
+						cumulus.APRS.Server = string.IsNullOrWhiteSpace(settings.cwop.server) ? string.Empty : settings.cwop.server.Trim(); ;
 					}
 				}
 				catch (Exception ex)
@@ -231,8 +231,8 @@ namespace CumulusMX
 					if (cumulus.OpenWeatherMap.Enabled)
 					{
 						cumulus.OpenWeatherMap.CatchUp = settings.openweathermap.catchup;
-						cumulus.OpenWeatherMap.PW = settings.openweathermap.apikey;
-						cumulus.OpenWeatherMap.ID = settings.openweathermap.stationid;
+						cumulus.OpenWeatherMap.PW = string.IsNullOrWhiteSpace(settings.openweathermap.apikey) ? string.Empty : settings.openweathermap.apikey.Trim();
+						cumulus.OpenWeatherMap.ID = string.IsNullOrWhiteSpace(settings.openweathermap.stationid) ? string.Empty : settings.openweathermap.stationid.Trim();
 						cumulus.OpenWeatherMap.Interval = settings.openweathermap.interval;
 					}
 				}
@@ -250,8 +250,8 @@ namespace CumulusMX
 					cumulus.WindGuru.Enabled = settings.windguru.enabled;
 					if (cumulus.WindGuru.Enabled)
 					{
-						cumulus.WindGuru.ID = settings.windguru.uid;
-						cumulus.WindGuru.PW = settings.windguru.password;
+						cumulus.WindGuru.ID = string.IsNullOrWhiteSpace(settings.windguru.uid) ? string.Empty : settings.windguru.uid.Trim();
+						cumulus.WindGuru.PW = string.IsNullOrWhiteSpace(settings.windguru.password) ? string.Empty : settings.windguru.password.Trim();
 						cumulus.WindGuru.SendRain = settings.windguru.includerain;
 						cumulus.WindGuru.Interval = settings.windguru.interval;
 					}
@@ -275,7 +275,7 @@ namespace CumulusMX
 						for (var i = 0; i < 10; i++)
 						{
 							if (i < settings.customhttp.customseconds.url.Length)
-								cumulus.CustomHttpSecondsStrings[i] = settings.customhttp.customseconds.url[i] ?? null;
+								cumulus.CustomHttpSecondsStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customseconds.url[i]) ? null : settings.customhttp.customseconds.url[i].Trim();
 							else
 								cumulus.CustomHttpSecondsStrings[i] = null;
 						}
@@ -290,7 +290,7 @@ namespace CumulusMX
 						for (var i = 0; i < 10; i++)
 						{
 							if (i < settings.customhttp.customminutes.url.Length)
-								cumulus.CustomHttpMinutesStrings[i] = settings.customhttp.customminutes.url[i] ?? null;
+								cumulus.CustomHttpMinutesStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customminutes.url[i]) ? null : settings.customhttp.customminutes.url[i].Trim();
 							else
 								cumulus.CustomHttpMinutesStrings[i] = null;
 						}
@@ -312,7 +312,7 @@ namespace CumulusMX
 						for (var i = 0; i < 10; i++)
 						{
 							if (i < settings.customhttp.customrollover.url.Length)
-								cumulus.CustomHttpMinutesStrings[i] = settings.customhttp.customrollover.url[i] ?? null;
+								cumulus.CustomHttpMinutesStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customrollover.url[i]) ? null : settings.customhttp.customrollover.url[i].Trim();
 							else
 								cumulus.CustomHttpMinutesStrings[i] = null;
 						}

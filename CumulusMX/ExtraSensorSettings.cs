@@ -210,15 +210,15 @@ namespace CumulusMX
 				try
 				{
 					cumulus.AirLinkIsNode = settings.airLink.isNode;
-					cumulus.AirLinkApiKey = settings.airLink.apiKey;
-					cumulus.AirLinkApiSecret = settings.airLink.apiSecret;
+					cumulus.AirLinkApiKey = (settings.airLink.apiKey ?? string.Empty).Trim();
+					cumulus.AirLinkApiSecret = (settings.airLink.apiSecret ?? string.Empty).Trim();
 					cumulus.AirLinkAutoUpdateIpAddress = settings.airLink.autoUpdateIp;
 
 					cumulus.AirLinkInEnabled = settings.airLink.indoor.enabled;
 					if (cumulus.AirLinkInEnabled)
 					{
-						cumulus.AirLinkInIPAddr = settings.airLink.indoor.ipAddress;
-						cumulus.AirLinkInHostName = settings.airLink.indoor.hostname;
+						cumulus.AirLinkInIPAddr = (settings.airLink.indoor.ipAddress ?? string.Empty).Trim();
+						cumulus.AirLinkInHostName = (settings.airLink.indoor.hostname ?? string.Empty).Trim();
 						cumulus.AirLinkInStationId = settings.airLink.indoor.stationId;
 						if (cumulus.AirLinkInStationId < 10 && cumulus.AirLinkIsNode)
 						{
@@ -228,8 +228,8 @@ namespace CumulusMX
 					cumulus.AirLinkOutEnabled = settings.airLink.outdoor.enabled;
 					if (cumulus.AirLinkOutEnabled)
 					{
-						cumulus.AirLinkOutIPAddr = settings.airLink.outdoor.ipAddress;
-						cumulus.AirLinkOutHostName = settings.airLink.outdoor.hostname;
+						cumulus.AirLinkOutIPAddr = (settings.airLink.outdoor.ipAddress ?? string.Empty).Trim();
+						cumulus.AirLinkOutHostName = (settings.airLink.outdoor.hostname ?? string.Empty).Trim();
 						cumulus.AirLinkOutStationId = settings.airLink.outdoor.stationId;
 						if (cumulus.AirLinkOutStationId < 10 && cumulus.AirLinkIsNode)
 						{
@@ -420,7 +420,7 @@ namespace CumulusMX
 					cumulus.RG11Enabled = settings.rg11.port1.enabled;
 					if (cumulus.RG11Enabled)
 					{
-						cumulus.RG11Port = settings.rg11.port1.commPort;
+						cumulus.RG11Port = (settings.rg11.port1.commPort ?? string.Empty).Trim();
 						cumulus.RG11TBRmode = settings.rg11.port1.tipMode;
 						cumulus.RG11tipsize = settings.rg11.port1.tipSize;
 						cumulus.RG11IgnoreFirst = settings.rg11.port1.ignoreFirst;
@@ -430,7 +430,7 @@ namespace CumulusMX
 					cumulus.RG11Enabled2 = settings.rg11.port2.enabled;
 					if (cumulus.RG11Enabled2)
 					{
-						cumulus.RG11Port2 = settings.rg11.port2.commPort;
+						cumulus.RG11Port2 = (settings.rg11.port2.commPort ?? string.Empty).Trim();
 						cumulus.RG11TBRmode2 = settings.rg11.port2.tipMode;
 						cumulus.RG11tipsize2 = settings.rg11.port2.tipSize;
 						cumulus.RG11IgnoreFirst2 = settings.rg11.port2.ignoreFirst;
