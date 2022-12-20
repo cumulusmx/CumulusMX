@@ -165,14 +165,14 @@ namespace CumulusMX
 			return IPAddress.Any;
 		}
 
-		public static void RunExternalTask(string task, string parameters, bool wait)
+		public static void RunExternalTask(string task, string parameters, bool wait, bool redirectError = false)
 		{
 			var process = new System.Diagnostics.Process();
 			process.StartInfo.FileName = task;
 			process.StartInfo.Arguments = parameters;
 			process.StartInfo.UseShellExecute = false;
 			//process.StartInfo.RedirectStandardOutput = true;
-			//process.StartInfo.RedirectStandardError = true;
+			process.StartInfo.RedirectStandardError = redirectError;
 			process.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 			process.StartInfo.CreateNoWindow = true;
 			process.Start();

@@ -1128,7 +1128,7 @@ namespace CumulusMX
 						_linuxLockFile.Flush();
 					}
 					// give everyone access to the file
-					Utils.RunExternalTask("chmod", "777 " + _linuxLockFilename + " 2>/dev/null", false);
+					Utils.RunExternalTask("chmod", "777 " + _linuxLockFilename, false, true);
 
 					LogMessage("Stop second instance: No other running instances of Cumulus found");
 				}

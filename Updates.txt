@@ -1,11 +1,5 @@
-3.23.0 - b3218
+3.23.0 - b3219
 ——————————————
-
-beta 3128 fixes
-- Now trims all text input fields in the settings pages
-- Fix Custom HTTP intervals from trying to process null entries
-- Web tag units= parameters are now case insensitive
-
 New
 - You can now use web tags in all external program parameter strings (except start-up)
 	- Realtime, interval, daily, shutdown, and alarms
@@ -33,11 +27,13 @@ Changed
 - Davis WLL: Badly formatted broadcast messages are now dumped to the log file, and printer utility broadcasts logged separately
 - Removed fictional Leaf Temperature values from the Extra Sensors screen
 - The Rain Today editor now immediately updates the rainfall this year/month values
+- Now trims all text input fields in the settings pages
 
 Fixed
 - Spurious alarm cleared messages when the alarms are not enabled
 - Davis VP2 logger downloading entire contents if CMX was restarted before the next console log interval
 - Stop second instance on Linux, this now uses a lock file to prevent a second instance from running
+- Fix Custom HTTP intervals from trying to process null entries
 
 
 3.22.4 - b3215
