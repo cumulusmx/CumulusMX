@@ -2780,13 +2780,20 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-
+								errorCount++;
+								cumulus.LogErrorMessage($"GetExtraTempGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetExtraTempGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-
+						cumulus.LogErrorMessage($"GetExtraTempGraphData: Error reading {logFile}. Error - {ex.Message}");
 					}
 				}
 
@@ -2897,13 +2904,20 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-
+								errorCount++;
+								cumulus.LogErrorMessage($"GetExtraHumGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetExtraHumGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-
+						cumulus.LogErrorMessage($"GetExtraHumGraphData: Error reading {logFile}. Error - {ex.Message}");
 					}
 				}
 
@@ -3019,13 +3033,20 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-
+								errorCount++;
+								cumulus.LogErrorMessage($"GetSoilTempGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetSoilTempGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-
+						cumulus.LogErrorMessage($"GetSoilTempGraphData: Error reading {logFile}. Error - {ex.Message}");
 					}
 				}
 
@@ -3141,13 +3162,20 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-
+								errorCount++;
+								cumulus.LogErrorMessage($"GetSoilMoistGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetSoilMoistGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-
+						cumulus.LogErrorMessage($"GetSoilMoistGraphData: Error reading {logFile}. Error - {ex.Message}");
 					}
 				}
 
@@ -3258,13 +3286,20 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-
+								errorCount++;
+								cumulus.LogErrorMessage($"GetUserTempGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetUserTempGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-
+						cumulus.LogErrorMessage($"GetUserTempGraphData: Error reading {logFile}. Error - {ex.Message}");
 					}
 				}
 
@@ -3395,13 +3430,20 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-
+								errorCount++;
+								cumulus.LogErrorMessage($"GetCo2SensorGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetCo2SensorGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-
+						cumulus.LogErrorMessage($"GetCo2SensorGraphData: Error reading {logFile}. Error - {ex.Message}");
 					}
 				}
 
