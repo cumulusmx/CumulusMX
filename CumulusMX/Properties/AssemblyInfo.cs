@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Version 3.23.0 - Build 3219")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Cumulus MX - BETA")]
+[assembly: AssemblyProduct("Cumulus MX")]
 [assembly: AssemblyCopyright("Copyright ©  2015-2022 Cumulus MX")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
