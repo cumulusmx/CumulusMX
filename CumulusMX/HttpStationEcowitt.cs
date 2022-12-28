@@ -148,6 +148,8 @@ namespace CumulusMX
 		public override void Stop()
 		{
 			stopping = true;
+			Api.stationEcowitt = null;
+			Api.stationEcowittExtra = null;
 			if (station == null)
 			{
 				StopMinuteTimer();
@@ -272,7 +274,7 @@ namespace CumulusMX
 		}
 
 		public string ApplyData(string dataString, bool main, DateTime? ts = null)
-		{ 
+		{
 			var procName = main ? "ApplyData" : "ApplyExtraData";
 			var thisStation = main ? this : station;
 			string thisTemp = null;
@@ -789,7 +791,7 @@ namespace CumulusMX
 				}
 
 				if (main)
-				{ 
+				{
 					// Do derived values after the primary values
 
 					// === Dewpoint ===
