@@ -34,6 +34,8 @@ Fixed
 - Davis VP2 logger downloading entire contents if CMX was restarted before the next console log interval
 - Stop second instance on Linux, this now uses a lock file to prevent a second instance from running
 - Fix Custom HTTP intervals from trying to process null entries
+- Fix for Davis WLL missed broadcast package counter not being incremented
+- Fix for Davis WLL processing broadcast messages twice or more on systems with both IPv4 and IPv6 enabled
 
 
 3.22.4 - b3215
