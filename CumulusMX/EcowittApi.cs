@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Reactive;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
@@ -65,7 +66,7 @@ namespace CumulusMX
 		}
 
 
-		internal bool GetHistoricData(DateTime startTime, DateTime endTime)
+		internal bool GetHistoricData(DateTime startTime, DateTime endTime, CancellationToken token)
 		{
 			var data = new EcowittHistoricData();
 
@@ -267,7 +268,7 @@ namespace CumulusMX
 								}
 
 								cumulus.LogMessage("API.GetHistoricData: System Busy or Rate Limited, waiting 5 secs before retry...");
-								System.Threading.Thread.Sleep(5000);
+								Task.Delay(5000, token).Wait();
 							}
 							else
 							{
@@ -292,7 +293,10 @@ namespace CumulusMX
 					//
 				} while (!success);
 
-				ProcessHistoryData(data);
+				if (!token.IsCancellationRequested)
+				{
+					ProcessHistoryData(data, token);
+				}
 
 				return true;
 			}
@@ -305,7 +309,7 @@ namespace CumulusMX
 
 		}
 
-		private void ProcessHistoryData(EcowittHistoricData data)
+		private void ProcessHistoryData(EcowittHistoricData data, CancellationToken token)
 		{
 			// allocate a dictionary of data objects, keyed on the timestamp
 			var buffer = new SortedDictionary<DateTime, EcowittApi.HistoricData>();
@@ -1163,6 +1167,11 @@ namespace CumulusMX
 
 			foreach (var rec in buffer)
 			{
+				if (token.IsCancellationRequested)
+				{
+					return;
+				}
+
 				cumulus.LogMessage("Processing data for " + rec.Key);
 
 				var h = rec.Key.Hour;

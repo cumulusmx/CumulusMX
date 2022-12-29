@@ -292,7 +292,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			EcowittApi.GetHistoricData(startTime, endTime);
+			EcowittApi.GetHistoricData(startTime, endTime, cancellationToken);
 		}
 
 		private Discovery DiscoverGW1000()
