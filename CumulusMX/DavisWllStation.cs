@@ -417,6 +417,17 @@ namespace CumulusMX
 
 					if (CheckIpValid(ip))
 					{
+						var timeSinceLastMessage = (int) (DateTime.Now.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
+						if (timeSinceLastMessage > 1500)
+						{
+							// Another broadcast is due in the next second or less
+							var delay = Math.Max(200, 2600 - timeSinceLastMessage);
+							cumulus.LogDebugMessage($"GetWllRealtime: Delaying {delay} ms");
+							tmrRealtime.Stop();
+							await Task.Delay(delay);
+							tmrRealtime.Start();
+						}
+
 						var urlRealtime = "http://" + ip + "/v1/real_time?duration=" + cumulus.WllBroadcastDuration;
 
 						cumulus.LogDebugMessage($"GetWllRealtime: Sending GET real time request to WLL: {urlRealtime} ...");
