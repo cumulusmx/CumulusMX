@@ -43,7 +43,7 @@ namespace CumulusMX
 			}
 
 			// Let's decode the Unix ts to DateTime
-			JsConfig.Init(new Config { 
+			JsConfig.Init(new Config {
 				DateHandler = DateHandler.UnixTime
 			});
 
@@ -229,7 +229,7 @@ namespace CumulusMX
 						// get the sensor data
 						var histObj = responseBody.FromJson<EcowittHistoricResp>();
 
-						if (histObj != null) 
+						if (histObj != null)
 						{
 							// success
 							if (histObj.code == 0)
@@ -371,7 +371,7 @@ namespace CumulusMX
 			if (data.outdoor != null)
 			{
 				try
-				{ 
+				{
 					// Temperature
 					if (data.outdoor.temperature != null && data.outdoor.temperature.list != null)
 					{
@@ -418,7 +418,7 @@ namespace CumulusMX
 							}
 						}
 					}
-					
+
 					// Dewpoint
 					if (data.outdoor.dew_point != null && data.outdoor.dew_point.list != null)
 					{
@@ -497,7 +497,7 @@ namespace CumulusMX
 							}
 						}
 					}
-					
+
 					// Direction
 					if (data.wind.wind_direction != null && data.wind.wind_direction.list != null)
 					{
@@ -566,7 +566,7 @@ namespace CumulusMX
 				{
 					if (cumulus.Gw1000PrimaryRainSensor == 0)
 					{
-						// rain rate 
+						// rain rate
 						if (data.rainfall.rain_rate != null && data.rainfall.rain_rate.list != null)
 						{
 							foreach (var item in data.rainfall.rain_rate.list)
@@ -614,7 +614,7 @@ namespace CumulusMX
 					}
 					else // rainfall piezo
 					{
-						// rain rate 
+						// rain rate
 						if (data.rainfall_piezo.rain_rate != null && data.rainfall_piezo.rain_rate.list != null)
 						{
 							foreach (var item in data.rainfall_piezo.rain_rate.list)
@@ -693,7 +693,7 @@ namespace CumulusMX
 							}
 						}
 					}
-					
+
 					// uvi
 					if (data.solar_and_uvi.uvi != null && data.solar_and_uvi.uvi.list != null)
 					{
@@ -808,7 +808,7 @@ namespace CumulusMX
 								}
 							}
 						}
-						
+
 						// humidity
 						if (srcTH.humidity != null && srcTH.humidity.list != null)
 						{
@@ -956,7 +956,7 @@ namespace CumulusMX
 							}
 						}
 					}
-					
+
 					// 24 Avg
 					if (data.indoor_co2.average24h != null && data.indoor_co2.average24h.list != null)
 					{
@@ -1012,7 +1012,7 @@ namespace CumulusMX
 							}
 						}
 					}
-					
+
 					// 24 Avg
 					if (data.co2_aqi_combo.average24h != null && data.co2_aqi_combo.average24h.list != null)
 					{
@@ -1205,6 +1205,9 @@ namespace CumulusMX
 					cumulus.LogDebugMessage("Adding 5 minutes to Sunshine Hours");
 				}
 
+				// add in archive period minutes worth of temperature to the temp samples
+				station.tempsamplestoday += 5;
+				station.TempTotalToday += (station.OutdoorTemperature * 5);
 
 				// add in 'following interval' minutes worth of wind speed to windrun
 				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + 5 + " minutes = " +
@@ -1265,7 +1268,10 @@ namespace CumulusMX
 					var dirVal = (int)rec.Value.WindDir.Value;
 
 					station.DoWind(gustVal, dirVal, spdVal, rec.Key);
-
+				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Insufficient data process wind");
 				}
 			}
 			catch (Exception ex)
@@ -1281,11 +1287,20 @@ namespace CumulusMX
 				{
 					station.DoIndoorHumidity(rec.Value.IndoorHum.Value);
 				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Missing indoor humidity data");
+				}
 
 				if (rec.Value.Humidity.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 				{
 					station.DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
 				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Missing outdoor humidity data");
+				}
+
 			}
 			catch (Exception ex)
 			{
@@ -1302,6 +1317,10 @@ namespace CumulusMX
 					station.DoPressure(pressVal, rec.Key);
 					station.UpdatePressureTrendString();
 				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Missing pressure data");
+				}
 			}
 			catch (Exception ex)
 			{
@@ -1317,6 +1336,10 @@ namespace CumulusMX
 					var tempVal = (double)rec.Value.IndoorTemp;
 					station.DoIndoorTemp(tempVal);
 				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Missing indoor temperature data");
+				}
 			}
 			catch (Exception ex)
 			{
@@ -1331,6 +1354,10 @@ namespace CumulusMX
 				{
 					var tempVal = (double)rec.Value.Temp;
 					station.DoOutdoorTemp(tempVal, rec.Key);
+				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Missing outdoor temperature data");
 				}
 			}
 			catch (Exception ex)
@@ -1359,6 +1386,10 @@ namespace CumulusMX
 					var rainVal = (double)rec.Value.RainYear;
 					var rateVal = rRate;
 					station.DoRain(rainVal, rateVal, rec.Key);
+				}
+				else
+				{
+					cumulus.LogMessage("ApplyHistoricData: Missing rain data");
 				}
 			}
 			catch (Exception ex)
@@ -1753,7 +1784,7 @@ namespace CumulusMX
 		{
 			public EcowittHistoricDataTypeInt soilmoisture { get; set; }
 		}
-		
+
 		internal class EcowittHistoricDataTemp
 		{
 			public EcowittHistoricDataTypeDbl temperature { get; set; }
@@ -1767,7 +1798,7 @@ namespace CumulusMX
 		internal class EcowittHistoricDataLightning
 		{
 			public EcowittHistoricDataTypeDbl distance { get; set; }
-			public EcowittHistoricDataTypeInt count	{ get; set; }	
+			public EcowittHistoricDataTypeInt count	{ get; set; }
 		}
 
 		[DataContract]

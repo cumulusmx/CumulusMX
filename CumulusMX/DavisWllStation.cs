@@ -479,11 +479,11 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				var timeSinceLastMessage = (int) DateTime.Now.Subtract(LastDataReadTimestamp).TotalMilliseconds;
+				var timeSinceLastMessage = (int) (DateTime.Now.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
 				if (timeSinceLastMessage > 1500)
 				{
-					// Another broadcast is due, half a second or so
-					var delay = Math.Max(200, 2500 - timeSinceLastMessage);
+					// Another broadcast is due in the next second or less
+					var delay = Math.Max(200, 2600 - timeSinceLastMessage);
 					cumulus.LogDebugMessage($"GetWllCurrent: Delaying {delay} ms");
 					tmrCurrent.Stop();
 					await Task.Delay(delay);
