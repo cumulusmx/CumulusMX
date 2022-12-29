@@ -38,6 +38,7 @@ Fixed
 	- Missed broadcast package counter not being incremented
 	- No longer processes broadcast messages twice or more on systems with multiple network interfaces
 	- Improved collision avoidance between broadcasts and API requests
+	- Possible fix for the memory leak when running under Mono
 - Ecowitt
 	- Fix for missing average temperature calculation during Ecowitt historic catch-up
 	- Historic catch-up is now cancellable with Ctrl-C
