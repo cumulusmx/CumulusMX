@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Web.UI;
 using EmbedIO;
@@ -55,6 +56,8 @@ namespace CumulusMX
 					station.RainToday = raintoday;
 					station.raindaystart = station.Raincounter - (station.RainToday / cumulus.Calib.Rain.Mult);
 					cumulus.LogMessage("After rain today edit,  raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.raindaystart.ToString(cumulus.RainFormat));
+					// force the rainthismonth/rainthisyear values to be recalculated
+					station.UpdateYearMonthRainfall();
 				}
 				catch (Exception ex)
 				{
@@ -781,7 +784,7 @@ namespace CumulusMX
 						foreach (var line in logfile)
 						{
 							// process each record in the file
-							linenum++; 
+							linenum++;
 
 							var rec = station.ParseLogFileRec(line, true);
 
@@ -1085,7 +1088,7 @@ namespace CumulusMX
 								dayLowTemp.Value = rec.OutdoorTemperature;
 								dayWindRun = 0;
 								totalRainfall += dayRain;
-								
+
 								_day24h = rain24h;
 								_dayTs = rec.Date;
 							}
@@ -3278,161 +3281,198 @@ namespace CumulusMX
 
 			// read dayfile into a List
 			var lines = File.ReadAllLines(cumulus.DayFileName).ToList();
-
-			var lineNum = newData.line - 1; // our List is zero relative
+			string newLine;
 
 			if (newData.action == "Edit")
 			{
-				// replace the edited line
-				var orgLine = lines[lineNum];
-				var newLine = string.Join(cumulus.ListSeparator, newData.data);
-
-				lines[lineNum] = newLine;
-
-				// Update the in memory record
 				try
 				{
-					station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
+					var lineNum = newData.lines[0] - 1; // we want a zero relative index
 
-					// write dayfile back again
-					File.WriteAllLines(cumulus.DayFileName, lines);
-					cumulus.LogMessage($"EditDayFile: Changed dayfile line {lineNum + 1}, original = {orgLine}");
-					cumulus.LogMessage($"EditDayFile: Changed dayfile line {lineNum + 1},      new = {newLine}");
-				}
-				catch
-				{
-					cumulus.LogMessage("EditDayFile: Failed, new data does not match required values");
-					cumulus.LogMessage("EditDayFile: Data received - " + newLine);
-					context.Response.StatusCode = 500;
+					// replace the edited line
+					var orgLine = lines[lineNum];
+					newLine = string.Join(cumulus.ListSeparator, newData.data[0]);
 
-					return "{\"errors\":{\"Logfile\":[\"<br>Failed, new data does not match required values\"]}}";
-				}
+					var sep = Utils.GetLogFileSeparator(orgLine, cumulus.ListSeparator);
 
-				// Update the MySQL record
-				if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
-					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
-					cumulus.MySqlSettings.UpdateOnEdit
-					)
-				{
-					var updateStr = "";
-
-					try
+					// check if the dates match
+					if (orgLine.Split(sep[0])[0] == newData.data[0][0])
 					{
-						var InvC = new CultureInfo("");
-						var updt = new StringBuilder(1024);
+						lines[lineNum] = newLine;
 
-						updt.Append($"UPDATE {cumulus.MySqlSettings.Dayfile.TableName} SET ");
-						updt.Append($"HighWindGust={station.DayFile[lineNum].HighGust.ToString(cumulus.WindFormat, InvC)},");
-						updt.Append($"HWindGBear={station.DayFile[lineNum].HighGustBearing},");
-						updt.Append($"THWindG={station.DayFile[lineNum].HighGustTime:\\'HH:mm\\'},");
-						updt.Append($"MinTemp={station.DayFile[lineNum].LowTemp.ToString(cumulus.TempFormat, InvC)},");
-						updt.Append($"TMinTemp={station.DayFile[lineNum].LowTempTime:\\'HH:mm\\'},");
-						updt.Append($"MaxTemp={station.DayFile[lineNum].HighTemp.ToString(cumulus.TempFormat, InvC)},");
-						updt.Append($"TMaxTemp={station.DayFile[lineNum].HighTempTime:\\'HH:mm\\'},");
-						updt.Append($"MinPress={station.DayFile[lineNum].LowPress.ToString(cumulus.PressFormat, InvC)},");
-						updt.Append($"TMinPress={station.DayFile[lineNum].LowPressTime:\\'HH:mm\\'},");
-						updt.Append($"MaxPress={station.DayFile[lineNum].HighPress.ToString(cumulus.PressFormat, InvC)},");
-						updt.Append($"TMaxPress={station.DayFile[lineNum].HighPressTime:\\'HH:mm\\'},");
-						updt.Append($"MaxRainRate={station.DayFile[lineNum].HighRainRate.ToString(cumulus.RainFormat, InvC)},");
-						updt.Append($"TMaxRR={station.DayFile[lineNum].HighRainRateTime:\\'HH:mm\\'},");
-						updt.Append($"TotRainFall={station.DayFile[lineNum].TotalRain.ToString(cumulus.RainFormat, InvC)},");
-						updt.Append($"AvgTemp={station.DayFile[lineNum].AvgTemp.ToString(cumulus.TempFormat, InvC)},");
-						updt.Append($"TotWindRun={station.DayFile[lineNum].WindRun.ToString("F1", InvC)},");
-						updt.Append($"HighAvgWSpeed={station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
-						updt.Append($"THAvgWSpeed={station.DayFile[lineNum].HighAvgWindTime:\\'HH:mm\\'},");
-						updt.Append($"LowHum={(station.DayFile[lineNum].LowHumidity < 9999 ? station.DayFile[lineNum].LowHumidity.ToString() : "NULL")},");
-						updt.Append($"TLowHum={(station.DayFile[lineNum].LowHumidity < 9999 ? $"'{station.DayFile[lineNum].LowHumidityTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"HighHum={(station.DayFile[lineNum].HighHumidity > -9999 ? station.DayFile[lineNum].HighHumidity.ToString() : "NULL")},");
-						updt.Append($"THighHum={(station.DayFile[lineNum].HighHumidity > -9999 ? $"'{station.DayFile[lineNum].HighHumidityTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"TotalEvap={station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
-						updt.Append($"HoursSun={station.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
-						updt.Append($"HighHeatInd={(station.DayFile[lineNum].HighHeatIndex > -9999 ? station.DayFile[lineNum].HighHeatIndex.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"THighHeatInd={(station.DayFile[lineNum].HighHeatIndex > -9999 ? $"'{station.DayFile[lineNum].HighHeatIndexTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"HighAppTemp={(station.DayFile[lineNum].HighAppTemp > -9999 ? station.DayFile[lineNum].HighAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"THighAppTemp={(station.DayFile[lineNum].HighAppTemp > -9999 ? $"'{station.DayFile[lineNum].HighAppTempTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < 9999 ? station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"TLowAppTemp={(station.DayFile[lineNum].LowAppTemp < 9999 ? $"'{station.DayFile[lineNum].LowAppTempTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
-						updt.Append($"THighHourRain={station.DayFile[lineNum].HighHourlyRainTime:\\'HH:mm\\'},");
-						updt.Append($"LowWindChill={(station.DayFile[lineNum].LowWindChill < 9999 ? station.DayFile[lineNum].LowWindChill.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"TLowWindChill={(station.DayFile[lineNum].LowWindChill < 9999 ? $"'{station.DayFile[lineNum].LowWindChillTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"HighDewPoint={(station.DayFile[lineNum].HighDewPoint > -9999 ? station.DayFile[lineNum].HighDewPoint.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"THighDewPoint={(station.DayFile[lineNum].HighDewPoint > -9999 ? $"'{station.DayFile[lineNum].HighDewPointTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"LowDewPoint={(station.DayFile[lineNum].LowDewPoint < 9999 ? station.DayFile[lineNum].LowDewPoint.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"TLowDewPoint={(station.DayFile[lineNum].LowDewPoint < 9999 ? $"'{station.DayFile[lineNum].LowDewPointTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"DomWindDir={station.DayFile[lineNum].DominantWindBearing},");
-						updt.Append($"HeatDegDays={station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC)},");
-						updt.Append($"CoolDegDays={station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC)},");
-						updt.Append($"HighSolarRad={station.DayFile[lineNum].HighSolar},");
-						updt.Append($"THighSolarRad={station.DayFile[lineNum].HighSolarTime:\\'HH:mm\\'},");
-						updt.Append($"HighUV={station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC)},");
-						updt.Append($"THighUV={station.DayFile[lineNum].HighUvTime:\\'HH:mm\\'},");
-						updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
-						updt.Append($"DomWindDirSym='{station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
-						updt.Append($"MaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > -9999 ? station.DayFile[lineNum].HighFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"TMaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > -9999 ? $"'{station.DayFile[lineNum].HighFeelsLikeTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"MinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < 9999 ? station.DayFile[lineNum].LowFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"TMinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < 9999 ? $"'{station.DayFile[lineNum].LowFeelsLikeTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"MaxHumidex={(station.DayFile[lineNum].HighHumidex > -9999 ? station.DayFile[lineNum].HighHumidex.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-						updt.Append($"TMaxHumidex={(station.DayFile[lineNum].HighHumidex > -9999 ? $"'{station.DayFile[lineNum].HighHumidexTime.ToString("HH:mm")}'" : "NULL")},");
-						updt.Append($"ChillHours={(station.DayFile[lineNum].ChillHours > -9999 ? station.DayFile[lineNum].ChillHours.ToString("F1", InvC) : "NULL")},");
-						updt.Append($"HighRain24h={(station.DayFile[lineNum].HighRain24h > -9999 ? station.DayFile[lineNum].HighRain24h.ToString(cumulus.RainFormat, InvC) : "NULL")},");
-						updt.Append($"THighRain24h={(station.DayFile[lineNum].HighRain24h > -9999 ? $"'{station.DayFile[lineNum].HighRain24hTime.ToString("HH:mm")}'" : "NULL")} ");
+						// Update the in memory record
+						try
+						{
+							station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
 
-						updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
-						updateStr = updt.ToString();
+							// write dayfile back again
+							File.WriteAllLines(cumulus.DayFileName, lines);
+							cumulus.LogMessage($"EditDayFile: Changed dayfile line {lineNum + 1}, original = {orgLine}");
+							cumulus.LogMessage($"EditDayFile: Changed dayfile line {lineNum + 1},      new = {newLine}");
+						}
+						catch
+						{
+							cumulus.LogMessage("EditDayFile: Failed, new data does not match required values");
+							cumulus.LogMessage("EditDayFile: Data received - " + newLine);
+							context.Response.StatusCode = 500;
 
-						cumulus.MySqlCommandSync(updateStr, "EditDayFile");
-						cumulus.LogMessage($"EditDayFile: SQL Updated");
+							return "{\"errors\":{\"Logfile\":[\"<br>Failed, new data does not match required values\"]}}";
+						}
+
+						// Update the MySQL record
+						if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
+							cumulus.MySqlSettings.UpdateOnEdit
+							)
+						{
+							var updateStr = "";
+
+							try
+							{
+								var InvC = new CultureInfo("");
+								var updt = new StringBuilder(1024);
+
+								updt.Append($"UPDATE {cumulus.MySqlSettings.Dayfile.TableName} SET ");
+								updt.Append($"HighWindGust={station.DayFile[lineNum].HighGust.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"HWindGBear={station.DayFile[lineNum].HighGustBearing},");
+								updt.Append($"THWindG={station.DayFile[lineNum].HighGustTime:\\'HH:mm\\'},");
+								updt.Append($"MinTemp={station.DayFile[lineNum].LowTemp.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"TMinTemp={station.DayFile[lineNum].LowTempTime:\\'HH:mm\\'},");
+								updt.Append($"MaxTemp={station.DayFile[lineNum].HighTemp.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"TMaxTemp={station.DayFile[lineNum].HighTempTime:\\'HH:mm\\'},");
+								updt.Append($"MinPress={station.DayFile[lineNum].LowPress.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"TMinPress={station.DayFile[lineNum].LowPressTime:\\'HH:mm\\'},");
+								updt.Append($"MaxPress={station.DayFile[lineNum].HighPress.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"TMaxPress={station.DayFile[lineNum].HighPressTime:\\'HH:mm\\'},");
+								updt.Append($"MaxRainRate={station.DayFile[lineNum].HighRainRate.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"TMaxRR={station.DayFile[lineNum].HighRainRateTime:\\'HH:mm\\'},");
+								updt.Append($"TotRainFall={station.DayFile[lineNum].TotalRain.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"AvgTemp={station.DayFile[lineNum].AvgTemp.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"TotWindRun={station.DayFile[lineNum].WindRun.ToString("F1", InvC)},");
+								updt.Append($"HighAvgWSpeed={station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
+								updt.Append($"THAvgWSpeed={station.DayFile[lineNum].HighAvgWindTime:\\'HH:mm\\'},");
+								updt.Append($"LowHum={(station.DayFile[lineNum].LowHumidity < 9999 ? station.DayFile[lineNum].LowHumidity.ToString() : "NULL")},");
+								updt.Append($"TLowHum={(station.DayFile[lineNum].LowHumidity < 9999 ? $"'{station.DayFile[lineNum].LowHumidityTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"HighHum={(station.DayFile[lineNum].HighHumidity > -9999 ? station.DayFile[lineNum].HighHumidity.ToString() : "NULL")},");
+								updt.Append($"THighHum={(station.DayFile[lineNum].HighHumidity > -9999 ? $"'{station.DayFile[lineNum].HighHumidityTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TotalEvap={station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"HoursSun={station.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
+								updt.Append($"HighHeatInd={(station.DayFile[lineNum].HighHeatIndex > -9999 ? station.DayFile[lineNum].HighHeatIndex.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"THighHeatInd={(station.DayFile[lineNum].HighHeatIndex > -9999 ? $"'{station.DayFile[lineNum].HighHeatIndexTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"HighAppTemp={(station.DayFile[lineNum].HighAppTemp > -9999 ? station.DayFile[lineNum].HighAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"THighAppTemp={(station.DayFile[lineNum].HighAppTemp > -9999 ? $"'{station.DayFile[lineNum].HighAppTempTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < 9999 ? station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TLowAppTemp={(station.DayFile[lineNum].LowAppTemp < 9999 ? $"'{station.DayFile[lineNum].LowAppTempTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"THighHourRain={station.DayFile[lineNum].HighHourlyRainTime:\\'HH:mm\\'},");
+								updt.Append($"LowWindChill={(station.DayFile[lineNum].LowWindChill < 9999 ? station.DayFile[lineNum].LowWindChill.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TLowWindChill={(station.DayFile[lineNum].LowWindChill < 9999 ? $"'{station.DayFile[lineNum].LowWindChillTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"HighDewPoint={(station.DayFile[lineNum].HighDewPoint > -9999 ? station.DayFile[lineNum].HighDewPoint.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"THighDewPoint={(station.DayFile[lineNum].HighDewPoint > -9999 ? $"'{station.DayFile[lineNum].HighDewPointTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"LowDewPoint={(station.DayFile[lineNum].LowDewPoint < 9999 ? station.DayFile[lineNum].LowDewPoint.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TLowDewPoint={(station.DayFile[lineNum].LowDewPoint < 9999 ? $"'{station.DayFile[lineNum].LowDewPointTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"DomWindDir={station.DayFile[lineNum].DominantWindBearing},");
+								updt.Append($"HeatDegDays={station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC)},");
+								updt.Append($"CoolDegDays={station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC)},");
+								updt.Append($"HighSolarRad={station.DayFile[lineNum].HighSolar},");
+								updt.Append($"THighSolarRad={station.DayFile[lineNum].HighSolarTime:\\'HH:mm\\'},");
+								updt.Append($"HighUV={station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC)},");
+								updt.Append($"THighUV={station.DayFile[lineNum].HighUvTime:\\'HH:mm\\'},");
+								updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
+								updt.Append($"DomWindDirSym='{station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
+								updt.Append($"MaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > -9999 ? station.DayFile[lineNum].HighFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TMaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > -9999 ? $"'{station.DayFile[lineNum].HighFeelsLikeTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"MinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < 9999 ? station.DayFile[lineNum].LowFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TMinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < 9999 ? $"'{station.DayFile[lineNum].LowFeelsLikeTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"MaxHumidex={(station.DayFile[lineNum].HighHumidex > -9999 ? station.DayFile[lineNum].HighHumidex.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TMaxHumidex={(station.DayFile[lineNum].HighHumidex > -9999 ? $"'{station.DayFile[lineNum].HighHumidexTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"ChillHours={(station.DayFile[lineNum].ChillHours > -9999 ? station.DayFile[lineNum].ChillHours.ToString("F1", InvC) : "NULL")},");
+								updt.Append($"HighRain24h={(station.DayFile[lineNum].HighRain24h > -9999 ? station.DayFile[lineNum].HighRain24h.ToString(cumulus.RainFormat, InvC) : "NULL")},");
+								updt.Append($"THighRain24h={(station.DayFile[lineNum].HighRain24h > -9999 ? $"'{station.DayFile[lineNum].HighRain24hTime.ToString("HH:mm")}'" : "NULL")} ");
+
+								updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
+								updateStr = updt.ToString();
+
+								cumulus.MySqlCommandSync(updateStr, "EditDayFile");
+								cumulus.LogMessage($"EditDayFile: SQL Updated");
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"EditDayFile: Failed, to update MySQL. Error = {ex.Message}");
+								cumulus.LogMessage($"EditDayFile: SQL Update statement = {updateStr}");
+								context.Response.StatusCode = 501;  // Use 501 to signal that SQL failed but file update was OK
+
+								return "{\"errors\":{\"Dayfile\":[\"<br>Updated the dayfile OK\"], \"MySQL\":[\"<br>Failed to update MySQL\"]}}";
+							}
+						}
 					}
-					catch (Exception ex)
+					else
 					{
-						cumulus.LogMessage($"EditDayFile: Failed, to update MySQL. Error = {ex.Message}");
-						cumulus.LogMessage($"EditDayFile: SQL Update statement = {updateStr}");
-						context.Response.StatusCode = 501;  // Use 501 to signal that SQL failed but file update was OK
-						var thisrec = new List<string>(newData.data);
-						thisrec.Insert(0, newData.line.ToString());
-
-						return "{\"errors\":{\"Dayfile\":[\"<br>Updated the dayfile OK\"], \"MySQL\":[\"<br>Failed to update MySQL\"]}, \"data\":" + thisrec.ToJson() + "}";
+						// ohoh! The dates do not match
+						cumulus.LogMessage($"EditDayFile: Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}");
+						return $"{{\"errors\":{{\"General\":[\"<br>Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}\"]}}}}";
 					}
 				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"EditDayFile: Failed. Error = {ex.Message}");
+					return "{\"errors\":{\"General\":[\"<br>Error occurred: " + ex.Message + "\"]}}";
+				}
 
+				// we need to add the line num to the returned data
+				return "[" + newData.lines[0] + "," + newData.data[0].ToJson().Substring(1);
 			}
 			else if (newData.action == "Delete")
 			{
-				// Just double check we are deleting the correct line - see if the dates match
-				var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
-				var lineData = lines[lineNum].Split(sep[0]);
-				if (lineData[0] == newData.data[0])
+				// process the lines in reverse order so we do not mess up the indexes
+				for (var i = newData.lines.Length - 1; i >= 0; i--)
 				{
-					var thisrec = new List<string>(newData.data);
-					thisrec.Insert(0, newData.line.ToString());
+					var lineNum = newData.lines[i] - 1; // we want a zero relative index
+
+					// Just double check we are deleting the correct line - see if the dates match
+					var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
+					var lineData = lines[lineNum].Split(sep[0]);
+					var formDate = newData.data[i][0];
+					if (lineData[0] != formDate)
+					{
+						cumulus.LogMessage($"EditDayFile: Entry deletion failed. Line to delete does not match the file contents");
+						cumulus.LogMessage($"EditDayFile: Line: {lineNum + 1}, filedate = {lineData[0]}, formdate = {formDate}");
+						context.Response.StatusCode = 500;
+						return $"{{\"errors\":{{\"Logfile\":[\"<br>Failed, line to delete does not match the file contents\", \"<br>Line: {lineNum + 1}, filedate = {lineData[0]}, formdate = {formDate}\"]}}}}";
+					}
 
 					try
 					{
+						// remove from file array
 						lines.RemoveAt(lineNum);
 						// Update the in memory record
 						station.DayFile.RemoveAt(lineNum);
-
-						// write dayfile back again
-						File.WriteAllLines(cumulus.DayFileName, lines);
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogMessage($"EditDayFile: Entry deletion failed. Error = - " + ex.Message);
-						cumulus.LogMessage($"EditDayFile: Entry data = " + thisrec.ToJson());
+						cumulus.LogMessage($"EditDayFile: Entry data = " + newData.data[i]);
 						context.Response.StatusCode = 500;
 						return "{\"errors\":{\"Logfile\":[\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
 					}
 				}
-				else
+
+				// finally re-write the dayfile
+				try
 				{
-					cumulus.LogMessage($"EditDayFile: Entry deletion failed. Line to delete does not match the file contents");
-					context.Response.StatusCode = 500;
-					return "{\"errors\":{\"Logfile\":[\"<br>Failed, line to delete does not match the file contents\"]}}";
+					// write dayfile back again
+					File.WriteAllLines(cumulus.DayFileName, lines);
 				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"EditDayFile: Error writing to the dayfile. Error = - " + ex.Message);
+					context.Response.StatusCode = 500;
+					return "{\"errors\":{\"Logfile\":[\"<br>Error writing to the dayfile. Error: " + ex.Message + "\"]}}";
+				}
+
+				return "{\"errors\":null}";
 			}
 			else
 			{
@@ -3440,11 +3480,6 @@ namespace CumulusMX
 				context.Response.StatusCode = 500;
 				return "{\"errors\":{\"Logfile\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
 			}
-
-			// return the updated record
-			var rec = new List<string>(newData.data);
-			rec.Insert(0, newData.line.ToString());
-			return rec.ToJson();
 		}
 
 		internal string EditMySqlCache(IHttpContext context)
@@ -3456,18 +3491,21 @@ namespace CumulusMX
 				text = reader.ReadToEnd();
 			}
 
-			var newData = text.FromJson<DayFileEditor>();
+			var newData = text.FromJson<MySqlCacheEditor>();
 
-			var newRec = new SqlCache()
-			{
-				key = newData.line,
-				statement = newData.data[0]
-			};
 
 			if (newData.action == "Edit")
 			{
+				SqlCache newRec = null;
+
 				try
 				{
+					newRec = new SqlCache()
+					{
+						key = newData.keys[0],
+						statement = newData.statements[0]
+					};
+
 					station.RecentDataDb.Update(newRec);
 					station.ReloadFailedMySQLCommands();
 				}
@@ -3478,12 +3516,24 @@ namespace CumulusMX
 
 					return "{\"errors\":{\"MySqlCache\":[\"Failed to update MySQL cache\"]}, \"data\":[\"" + newRec.statement + "\"]";
 				}
+
+				// return the updated record
+				return $"[{newData.keys[0]},\"{newData.statements[0]}\"]";
 			}
 			else if (newData.action == "Delete")
 			{
+				var newRec = new SqlCache();
+
 				try
 				{
-					station.RecentDataDb.Delete(newRec);
+					for (var i = 0; i < newData.keys.Length; i++)
+					{
+						newRec.key = newData.keys[i];
+						newRec.statement = newData.statements[i];
+
+						station.RecentDataDb.Delete(newRec);
+					}
+
 					station.ReloadFailedMySQLCommands();
 				}
 				catch (Exception ex)
@@ -3493,6 +3543,8 @@ namespace CumulusMX
 
 					return "{\"errors\":{\"MySqlCache\":[\"Failed to update MySQL cache\"]}, \"data\":[\"" + newRec.statement + "\"]";
 				}
+
+				return "{\"errors\":null}";
 			}
 			else
 			{
@@ -3500,17 +3552,13 @@ namespace CumulusMX
 				context.Response.StatusCode = 500;
 				return "{\"errors\":{\"SQL cache\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
 			}
-
-			// return the updated record
-			return $"[\"{newRec.statement}\"]";
-
 		}
 
 		private class DayFileEditor
 		{
 			public string action { get; set; }
-			public int line { get; set; }
-			public string[] data { get; set; }
+			public int[] lines { get; set; }
+			public string[][] data { get; set; }
 		}
 
 		internal string EditDatalog(IHttpContext context)
@@ -3518,6 +3566,9 @@ namespace CumulusMX
 			var request = context.Request;
 			string text;
 			var InvC = new CultureInfo("");
+			var lastMonth = -1;
+			var lines = new List<string>();
+			var logfile = "";
 
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
@@ -3526,207 +3577,245 @@ namespace CumulusMX
 
 			var newData = text.FromJson<DatalogEditor>();
 
-			// date will format "dd-mm-yy" or "dd/mm/yy"
-			// Get a timestamp
-			var ts = Utils.ddmmyyStrToDate(newData.date);
-
-			var logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
-
-			// read the log file into a List
-			var lines = File.ReadAllLines(logfile).ToList();
-
-			var lineNum = newData.line - 1; // our List is zero relative
-
 			if (newData.action == "Edit")
 			{
+				var lineNum = newData.lines[0] - 1; // our List is zero relative
+
 				// replace the edited line
 				var orgLine = lines[lineNum];
-				var newLine = String.Join(cumulus.ListSeparator, newData.data);
+				var newLine = String.Join(cumulus.ListSeparator, newData.data[0]);
 
-				lines[lineNum] = newLine;
+				// test if we are updating the correct entry
+				var orgArr = orgLine.Split(cumulus.ListSeparator[0]);
 
-				try
-				{
-					// write logfile back again
-					File.WriteAllLines(logfile, lines);
-					cumulus.LogMessage($"EditDataLog: Changed Log file [{logfile}] line {lineNum + 1}, original = {orgLine}");
-					cumulus.LogMessage($"EditDataLog: Changed Log file [{logfile}] line {lineNum + 1},      new = {newLine}");
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage("EditDataLog: Failed, error = " + ex.Message);
-					cumulus.LogMessage("EditDataLog: Data received - " + newLine);
-					context.Response.StatusCode = 500;
-
-					return "{\"errors\":{\"Logfile\":[\"<br>Failed to update, error = " + ex.Message + "\"]}}";
-				}
-				
-				// Update internal database
-				// This does not really work, as the recent data is every minute, the logged data could be every 5, 15, 30 minutes
-
-				var LogRec = station.ParseLogFileRec(newLine, false);
-				/*
-				// first check if the record is on the recent data table
-				try
+				if (orgArr[0] == newData.data[0][0] && orgArr[1] == newData.data[0][1])
 				{
 
-					var updt = new StringBuilder(1024);
-					var updtRec = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp=?)", LogRec.Date)[0];
-					if (updtRec != null)
-					{
-						updtRec.AppTemp = LogRec.ApparentTemperature;
-						updtRec.DewPoint = LogRec.OutdoorDewpoint;
-						updtRec.FeelsLike = LogRec.FeelsLike;
-						updtRec.HeatIndex = LogRec.HeatIndex;
-						updtRec.Humidex = LogRec.Humidex;
-						updtRec.Humidity = LogRec.OutdoorHumidity;
-						updtRec.IndoorHumidity = LogRec.IndoorHumidity;
-						updtRec.IndoorTemp = LogRec.IndoorTemperature;
-						updtRec.OutsideTemp = LogRec.OutdoorTemperature;
-						updtRec.Pressure = LogRec.Pressure;
-						updtRec.raincounter = LogRec.Raincounter;
-						updtRec.RainRate = LogRec.RainRate;
-						updtRec.RainToday = LogRec.RainToday;
-						updtRec.SolarMax = (int)LogRec.CurrentSolarMax;
-						updtRec.SolarRad = (int)LogRec.SolarRad;
-						updtRec.UV = LogRec.UV;
-						updtRec.WindAvgDir = LogRec.AvgBearing;
-						updtRec.WindChill = LogRec.WindChill;
-						updtRec.WindDir = LogRec.Bearing;
-						updtRec.WindGust = LogRec.RecentMaxGust;
-						updtRec.WindLatest = LogRec.WindLatest;
-						updtRec.WindSpeed = LogRec.WindAverage;
-
-						var rowCnt = station.RecentDataDb.Update(updtRec);
-						if (rowCnt != 1)
-						{
-							cumulus.LogMessage("EditDataLog: Failed to update SQLite database");
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogMessage($"EditDataLog: Failed to update SQLite. Error = {ex.Message}");
-				}
-				*/
-
-				// Update the MySQL record
-				if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
-					!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
-					cumulus.MySqlSettings.UpdateOnEdit
-					)
-				{
-					// Only the monthly log file is stored in MySQL
-					if (!newData.extra)
-					{
-						var updateStr = "";
-
-						try
-						{
-							var updt = new StringBuilder(1024);
-
-
-							updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
-							updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Humidity={ LogRec.OutdoorHumidity},");
-							updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
-							updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
-							updt.Append($"Windbearing={LogRec.AvgBearing},");
-							updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
-							updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"InsideTemp={LogRec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"InsideHumidity={LogRec.IndoorHumidity},");
-							updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
-							updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
-							updt.Append($"SolarRad={LogRec.SolarRad},");
-							updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
-							updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
-							updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
-							updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
-							updt.Append($"CurrWindBearing={LogRec.Bearing},");
-							updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
-							updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
-							updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
-
-							updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
-							updateStr = updt.ToString();
-
-
-							cumulus.MySqlCommandSync(updateStr, "EditLogFile");
-							cumulus.LogMessage($"EditDataLog: SQL Updated");
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
-							cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
-							context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
-							var thisrec = new List<string>(newData.data);
-							thisrec.Insert(0, newData.line.ToString());
-
-							return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }, \"data\":" + thisrec.ToJson() + "}";
-						}
-
-					}
-				}
-			}
-			else if (newData.action == "Delete")
-			{
-				// Just double check we are deleting the correct line - see if the date and .Ts match
-				var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
-				var lineData = lines[lineNum].Split(sep[0]);
-				if (lineData[0] == newData.data[0] && lineData[1] == newData.data[1])
-				{
-					var thisrec = new List<string>(newData.data);
-					thisrec.Insert(0, newData.line.ToString());
+					lines[lineNum] = newLine;
 
 					try
 					{
-						lines.RemoveAt(lineNum);
 						// write logfile back again
 						File.WriteAllLines(logfile, lines);
-						cumulus.LogMessage($"EditDataLog: Entry deleted - " + thisrec.ToJson());
+						cumulus.LogMessage($"EditDataLog: Changed Log file [{logfile}] line {lineNum + 1}, original = {orgLine}");
+						cumulus.LogMessage($"EditDataLog: Changed Log file [{logfile}] line {lineNum + 1},      new = {newLine}");
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"EditDataLog: Entry deletion failed. Error = - " + ex.Message);
-						cumulus.LogMessage($"EditDataLog: Entry data = - " + thisrec.ToJson());
+						cumulus.LogMessage("EditDataLog: Failed, error = " + ex.Message);
+						cumulus.LogMessage("EditDataLog: Data received - " + newLine);
 						context.Response.StatusCode = 500;
-						return "{\"errors\": { \"Logfile\": [\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
+
+						return "{\"errors\":{\"Logfile\":[\"<br>Failed to update, error = " + ex.Message + "\"]}}";
+					}
+
+					// Update internal database
+					// This does not really work, as the recent data is every minute, the logged data could be every 5, 15, 30 minutes
+
+					var LogRec = station.ParseLogFileRec(newLine, false);
+					/*
+					// first check if the record is on the recent data table
+					try
+					{
+
+						var updt = new StringBuilder(1024);
+						var updtRec = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp=?)", LogRec.Date)[0];
+						if (updtRec != null)
+						{
+							updtRec.AppTemp = LogRec.ApparentTemperature;
+							updtRec.DewPoint = LogRec.OutdoorDewpoint;
+							updtRec.FeelsLike = LogRec.FeelsLike;
+							updtRec.HeatIndex = LogRec.HeatIndex;
+							updtRec.Humidex = LogRec.Humidex;
+							updtRec.Humidity = LogRec.OutdoorHumidity;
+							updtRec.IndoorHumidity = LogRec.IndoorHumidity;
+							updtRec.IndoorTemp = LogRec.IndoorTemperature;
+							updtRec.OutsideTemp = LogRec.OutdoorTemperature;
+							updtRec.Pressure = LogRec.Pressure;
+							updtRec.raincounter = LogRec.Raincounter;
+							updtRec.RainRate = LogRec.RainRate;
+							updtRec.RainToday = LogRec.RainToday;
+							updtRec.SolarMax = (int)LogRec.CurrentSolarMax;
+							updtRec.SolarRad = (int)LogRec.SolarRad;
+							updtRec.UV = LogRec.UV;
+							updtRec.WindAvgDir = LogRec.AvgBearing;
+							updtRec.WindChill = LogRec.WindChill;
+							updtRec.WindDir = LogRec.Bearing;
+							updtRec.WindGust = LogRec.RecentMaxGust;
+							updtRec.WindLatest = LogRec.WindLatest;
+							updtRec.WindSpeed = LogRec.WindAverage;
+
+							var rowCnt = station.RecentDataDb.Update(updtRec);
+							if (rowCnt != 1)
+							{
+								cumulus.LogMessage("EditDataLog: Failed to update SQLite database");
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"EditDataLog: Failed to update SQLite. Error = {ex.Message}");
+					}
+					*/
+
+					// Update the MySQL record
+					if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
+						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
+						cumulus.MySqlSettings.UpdateOnEdit
+						)
+					{
+						// Only the monthly log file is stored in MySQL
+						if (!newData.extra)
+						{
+							var updateStr = "";
+
+							try
+							{
+								var updt = new StringBuilder(1024);
+
+
+								updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
+								updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Humidity={LogRec.OutdoorHumidity},");
+								updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
+								updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"Windbearing={LogRec.AvgBearing},");
+								updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"InsideTemp={LogRec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"InsideHumidity={LogRec.IndoorHumidity},");
+								updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
+								updt.Append($"SolarRad={LogRec.SolarRad},");
+								updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
+								updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
+								updt.Append($"CurrWindBearing={LogRec.Bearing},");
+								updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
+								updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
+								updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
+
+								updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
+								updateStr = updt.ToString();
+
+
+								cumulus.MySqlCommandSync(updateStr, "EditLogFile");
+								cumulus.LogMessage($"EditDataLog: SQL Updated");
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
+								cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
+								context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
+
+								return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }}";
+							}
+
+						}
 					}
 				}
 				else
 				{
-					cumulus.LogMessage($"EditDataLog: Entry deletion failed. Line to delete does not match the file contents");
-					context.Response.StatusCode = 500;
-					return "{\"errors\":{\"Logfile\":[\"Failed, line to delete does not match the file contents\"]}}";
+					// oh-oh! The date/times do not match
+					// ohoh! The dates do not match
+					cumulus.LogMessage($"EditDataLog: Dates do not match. FormDate: {newData.data[0][0]} {newData.data[0][1]}, FileDate: {orgArr[0]} {orgArr[1]}");
+					return $"{{\"errors\":{{\"General\":[\"<br>Dates do not match. FormDate: {newData.data[0][0]} {newData.data[0][1]}, FileDate: {orgArr[0]} {orgArr[1]}\"]}}}}";
 				}
 			}
+			else if (newData.action == "Delete")
+			{
+				// process the lines in reverse order so we do not mess up the indexes
+				for (var i = newData.lines.Length - 1; i >= 0; i--)
+				{
+					// first get the correct log file - if we don't have it already
+					// date will format "dd-mm-yy" or "dd/mm/yy"
+					// Get a timestamp
+					var ts = Utils.ddmmyyStrToDate(newData.data[i][0]);
 
+					if (ts.Month != lastMonth)
+					{
+						logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
 
-			// return the updated record
-			var rec = new List<string>(newData.data);
-			rec.Insert(0, newData.line.ToString());
-			return rec.ToJson();
+						// read the log file into a List
+						lines.Clear();
+						lines = File.ReadAllLines(logfile).ToList();
+					}
+
+					var lineNum = newData.lines[i] - 1; // we want a zero relative index
+
+					// Just double check we are deleting the correct line - see if the date and .Ts match
+					var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
+					var lineData = lines[lineNum].Split(sep[0]);
+					if (lineData[0] == newData.data[i][0] && lineData[1] == newData.data[i][1])
+					{
+						var thisrec = new List<string>(newData.data[i]);
+						thisrec.Insert(0, newData.lines[i].ToString());
+
+						try
+						{
+							lines.RemoveAt(lineNum);
+							cumulus.LogMessage($"EditDataLog: Entry deleted - " + thisrec.ToJson());
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogMessage($"EditDataLog: Entry deletion failed. Error = - " + ex.Message);
+							cumulus.LogMessage($"EditDataLog: Entry data = - " + thisrec.ToJson());
+							context.Response.StatusCode = 500;
+							return "{\"errors\": { \"Logfile\": [\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
+						}
+					}
+					else
+					{
+						cumulus.LogMessage($"EditDataLog: Error. Line to delete {newData.data[i][0]} {newData.data[i][1]} does not match the file contents {lineData[0]} {lineData[1]}");
+						context.Response.StatusCode = 500;
+						return "{\"errors\":{\"Logfile\":[\"Failed, line to delete does not match the file contents\"]}}";
+					}
+				}
+
+				// finally re-write the dayfile
+				try
+				{
+					// write logfile back again
+					File.WriteAllLines(logfile, lines);
+
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogMessage($"EditDataLog: Error writing to the logfile {logfile}. Error = - {ex.Message}");
+					context.Response.StatusCode = 500;
+					return "{\"errors\":{\"Logfile\":[\"<br>Error writing to the logfile " + logfile + ". Error: " + ex.Message + "\"]}}";
+				}
+
+			}
+
+			return "{\"errors\":null}";
 		}
 
 		private class DatalogEditor
 		{
 			public string action { get; set; }
-			public int line { get; set; }
-			public string date { get; set; }
+			public int[] lines { get; set; }
 			public bool extra { get; set; }
-			public string[] data { get; set; }
+			public string[][] data { get; set; }
+		}
+
+		private class MySqlCacheEditor
+		{
+			public string action { get; set; }
+			public int[] keys { get; set; }
+			public string[] statements { get; set; }
 		}
 
 

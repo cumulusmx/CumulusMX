@@ -7,6 +7,7 @@
 			Temp = new Settings();
 			InTemp = new Settings();
 			Hum = new Settings();
+			InHum = new Settings();
 			Press = new Settings();
 			Rain = new Settings();
 			WindSpeed = new Settings();
@@ -19,6 +20,7 @@
 		public Settings Temp { get; set; }
 		public Settings InTemp { get; set; }
 		public Settings Hum { get; set; }
+		public Settings InHum { get; set; }
 		public Settings Press { get; set; }
 		public Settings Rain { get; set; }
 		public Settings WindSpeed { get; set; }
@@ -54,5 +56,7 @@
 		public double HumidityDiff = 999;
 		public double PressDiff = 999;
 		public double TempDiff = 999;
+		public double InTempDiff = 999;
+		public double InHumDiff = 999;
 	}
 }

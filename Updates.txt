@@ -1,3 +1,49 @@
+3.23.0 - b3220
+——————————————
+New
+- You can now use web tags in all external program parameter strings (except start-up)
+	- Realtime, interval, daily, shutdown, and alarms
+- Indoor temperature and humidity now have spike checking, and linear calibration
+- The Data Logs viewers and Purge MySQL Cache now have multi-select enabled for deleting entries
+- Two new web tags for the last MySQL insert times that can be used in custom MySQL commands
+	<#MySqlRealtimeTime> = time of last real-time table insert
+	<#MySqlIntervalTime> = time of last interval data table insert
+- Most weather value web tags now perform unit conversion. Specify the web tag parameter: unit=[xx]
+	Where [xx] is one of the following (case insensitive):
+		Temperature: C | F
+		Pressure   : hPa | mb | kPa | inHg
+		Wind       : mph | kph | ms | kt
+		Rainfall   : mm | in
+		Wind run   : km | mi | Nm
+	You may also need to override the number of decimal places when converting.
+	For example, when converting native mb or hPa to kPa or inHg, you would also need to add "dp=2"
+		<#press unit=kPa dp=2>
+- Adds graphing of some extra sensors on the local dashboard interface
+	Implemented for: Extra Temperatures, Extra Humidity's, Soil Temps, Soil Moistures, User Temps, and CO₂
+
+Changed
+- Lots of third-party modules updated
+	- EmbedIO, MailKit, MimeKit, MQTTnet, MySqlConnector, ServiceStack.Text
+- Davis WLL: Badly formatted broadcast messages are now dumped to the log file, and printer utility broadcasts logged separately
+- Removed fictional Leaf Temperature values from the Extra Sensors screen
+- The Rain Today editor now immediately updates the rainfall this year/month values
+- Now trims all text input fields in the settings pages
+
+Fixed
+- Spurious alarm cleared messages when the alarms are not enabled
+- Davis VP2 logger downloading entire contents if CMX was restarted before the next console log interval
+- Stop second instance on Linux, this now uses a lock file to prevent a second instance from running
+- Fix Custom HTTP intervals from trying to process null entries
+- Davis WLL
+	- Missed broadcast package counter not being incremented
+	- No longer processes broadcast messages twice or more on systems with multiple network interfaces
+	- Improved collision avoidance between broadcasts and API requests
+	- Possible fix for the memory leak when running under Mono
+- Ecowitt
+	- Fix for missing average temperature calculation during Ecowitt historic catch-up
+	- Historic catch-up is now cancellable with Ctrl-C
+
+
 3.22.4 - b3215
 ——————————————
 Fixed
@@ -6,7 +52,7 @@ Fixed
 - Ecowitt piezo rain sensor (WS90) now supports storm event
 - Davis Vantage VP2/Vue stations no longer download the entire logger contents on start-up when the station logging interval does not match the CMX interval
 - Catch errors in La Crosse WS2300 data handling - specifically fixes reported crashes in forecast data
-- Added a cache-buster to the default website index page - just upload the new index.htm file
+- Added a moon image cache-buster to the default website index page - just upload the new index.htm file
 
 New
 - Adds start-up and shutdown tasks - see Program Settings

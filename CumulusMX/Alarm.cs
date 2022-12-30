@@ -8,7 +8,22 @@ namespace CumulusMX
 		public Cumulus cumulus { get; set; }
 
 		public string Name { get; }
-		public bool Enabled { get; set; }
+		public virtual bool Enabled
+		{
+			get => enabled;
+			set
+			{
+				enabled = value;
+
+				// if we are disabled, clear any exisitng alarms
+				if (!value)
+				{
+					triggered = false;
+					triggerCount = 0;
+					triggeredTime = DateTime.MinValue;
+				}
+			}
+		}
 		public double Value { get; set; }
 		public bool Sound { get; set; }
 		public string SoundFile { get; set; }
@@ -17,7 +32,7 @@ namespace CumulusMX
 			get => triggered;
 			set
 			{
-				if (cumulus.NormalRunning)
+				if (enabled && cumulus.NormalRunning)
 				{
 					doTriggered(value);
 				}
@@ -37,6 +52,7 @@ namespace CumulusMX
 		public int TriggerThreshold { get; set; }
 
 		AlarmTypes type;
+		private protected bool enabled;
 		bool triggered;
 		int triggerCount = 0;
 		DateTime triggeredTime;
@@ -49,7 +65,7 @@ namespace CumulusMX
 
 		public void CheckAlarm(double value)
 		{
-			if (cumulus.NormalRunning)
+			if (enabled && cumulus.NormalRunning)
 			{
 				doTriggered((type == AlarmTypes.Above && value > Value) || (type == AlarmTypes.Below && value < Value));
 			}
@@ -66,7 +82,7 @@ namespace CumulusMX
 				if (triggerCount >= TriggerThreshold)
 				{
 					// If we were not set before, so we need to send an email?
-					if (!triggered && Enabled)
+					if (!triggered)
 					{
 						cumulus.LogMessage($"Alarm ({Name}): Triggered, value = {Value}");
 
@@ -87,9 +103,12 @@ namespace CumulusMX
 						{
 							try
 							{
-								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 								// Prepare the process to run
-								Utils.RunExternalTask(Action, ActionParams, false);
+								var parser = new TokenParser();
+								parser.InputText = ActionParams;
+								var args = parser.ToStringFromString();
+								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+								Utils.RunExternalTask(Action, args, false);
 							}
 							catch (Exception ex)
 							{
@@ -133,13 +152,32 @@ namespace CumulusMX
 		{
 		}
 
+		public override bool Enabled
+		{
+			get => enabled;
+			set
+			{
+				enabled = value;
+
+				// if we are disabled, clear any exisitng alarms
+				if (!value)
+				{
+					upTriggered = false;
+					UpTriggeredTime = DateTime.MinValue;
+
+					downTriggered = false;
+					DownTriggeredTime = DateTime.MinValue;
+				}
+			}
+		}
+
 		bool upTriggered;
 		public bool UpTriggered
 		{
 			get => upTriggered;
 			set
 			{
-				if (cumulus.NormalRunning)
+				if (enabled && cumulus.NormalRunning)
 				{
 					doUpTriggered(value);
 				}
@@ -154,7 +192,7 @@ namespace CumulusMX
 			get => downTriggered;
 			set
 			{
-				if (cumulus.NormalRunning)
+				if (enabled && cumulus.NormalRunning)
 				{
 					doDownTriggered(value);
 				}
@@ -166,7 +204,7 @@ namespace CumulusMX
 
 		public new void CheckAlarm(double value)
 		{
-			if (cumulus.NormalRunning)
+			if (enabled && cumulus.NormalRunning)
 			{
 
 				if (value > Value)
@@ -192,7 +230,7 @@ namespace CumulusMX
 			if (value)
 			{
 				// If we were not set before, so we need to send an email etc?
-				if (!upTriggered && Enabled)
+				if (!upTriggered)
 				{
 					cumulus.LogMessage($"Alarm ({Name}): Up triggered, value = {Value}");
 
@@ -209,9 +247,12 @@ namespace CumulusMX
 					{
 						try
 						{
-							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 							// Prepare the process to run
-							Utils.RunExternalTask(Action, ActionParams, false);
+							var parser = new TokenParser();
+							parser.InputText = ActionParams;
+							var args = parser.ToStringFromString();
+							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+							Utils.RunExternalTask(Action, args, false);
 						}
 						catch (Exception ex)
 						{
@@ -266,9 +307,12 @@ namespace CumulusMX
 					{
 						try
 						{
-							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {ActionParams}");
 							// Prepare the process to run
-							Utils.RunExternalTask(Action, ActionParams, false);
+							var parser = new TokenParser();
+							parser.InputText = ActionParams;
+							var args = parser.ToStringFromString();
+							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+							Utils.RunExternalTask(Action, args, false);
 						}
 						catch (Exception ex)
 						{

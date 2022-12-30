@@ -15,7 +15,7 @@ namespace CumulusMX
 		public static bool exitSystem = false;
 		public static bool service = false;
 		public static TextWriterTraceListener svcTextListener;
-		const string AppGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
+		public const string AppGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 		public static Mutex appMutex;
 		public static DateTime StartTime;
 
@@ -260,7 +260,7 @@ namespace CumulusMX
 
 				try
 				{
-					if (appMutex.WaitOne(0, false))
+					if (windows && appMutex.WaitOne(0, false))
 					{
 						Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Releasing Mutex");
 						Trace.Flush();

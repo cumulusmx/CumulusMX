@@ -67,7 +67,7 @@ namespace CumulusMX
 				try
 				{
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-					{ 
+					{
 						switch (req)
 						{
 							case "raintodayeditdata.json":
@@ -420,6 +420,24 @@ namespace CumulusMX
 								break;
 							case "airqualitydata.json":
 								await writer.WriteAsync(Station.GetAqGraphData(DateTime.Now));
+								break;
+							case "extratemp.json":
+								await writer.WriteAsync(Station.GetExtraTempGraphData(DateTime.Now));
+								break;
+							case "extrahum.json":
+								await writer.WriteAsync(Station.GetExtraHumGraphData(DateTime.Now));
+								break;
+							case "soiltemp.json":
+								await writer.WriteAsync(Station.GetSoilTempGraphData(DateTime.Now));
+								break;
+							case "soilmoist.json":
+								await writer.WriteAsync(Station.GetSoilMoistGraphData(DateTime.Now));
+								break;
+							case "usertemp.json":
+								await writer.WriteAsync(Station.GetUserTempGraphData(DateTime.Now));
+								break;
+							case "co2sensor.json":
+								await writer.WriteAsync(Station.GetCo2SensorGraphData(DateTime.Now));
 								break;
 							case "availabledata.json":
 								await writer.WriteAsync(Station.GetAvailGraphData());
@@ -1412,7 +1430,7 @@ namespace CumulusMX
 								var cnt = 0;
 								while (Program.cumulus.MySqlFailedList.TryDequeue(out var item))
 								{
-									cnt++;									
+									cnt++;
 								};
 								_ = Station.RecentDataDb.Execute("DELETE FROM SqlCache");
 								string msg;

@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CumulusMX
@@ -20,6 +21,8 @@ namespace CumulusMX
 		private readonly WeatherStation station;
 		private bool starting = true;
 		private bool stopping = false;
+		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+		private CancellationToken cancellationToken;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		private bool reportStationType = true;
 		private int lastMinute = -1;
@@ -117,7 +120,7 @@ namespace CumulusMX
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
 
-
+			cancellationToken = tokenSource.Token;
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (mainStation)
@@ -148,6 +151,12 @@ namespace CumulusMX
 		public override void Stop()
 		{
 			stopping = true;
+			Api.stationEcowitt = null;
+			Api.stationEcowittExtra = null;
+			if (tokenSource != null)
+			{
+				tokenSource.Cancel();
+			}
 			if (station == null)
 			{
 				StopMinuteTimer();
@@ -209,7 +218,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime);
+			ecowittApi.GetHistoricData(startTime, endTime, cancellationToken);
 
 		}
 
@@ -272,7 +281,7 @@ namespace CumulusMX
 		}
 
 		public string ApplyData(string dataString, bool main, DateTime? ts = null)
-		{ 
+		{
 			var procName = main ? "ApplyData" : "ApplyExtraData";
 			var thisStation = main ? this : station;
 			string thisTemp = null;
@@ -789,7 +798,7 @@ namespace CumulusMX
 				}
 
 				if (main)
-				{ 
+				{
 					// Do derived values after the primary values
 
 					// === Dewpoint ===

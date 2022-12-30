@@ -5,6 +5,7 @@ using System.Threading;
 using ServiceStack.Text;
 using EmbedIO;
 using System.Reflection;
+using static Swan.Terminal;
 
 namespace CumulusMX
 {
@@ -131,9 +132,9 @@ namespace CumulusMX
 
 			var weatherflow = new JsonStationSettingsWeatherFlow()
 			{
-				deviceid = cumulus.WeatherFlowOptions.WFDeviceId, 
-				tcpport = cumulus.WeatherFlowOptions.WFTcpPort, 
-				token = cumulus.WeatherFlowOptions.WFToken, 
+				deviceid = cumulus.WeatherFlowOptions.WFDeviceId,
+				tcpport = cumulus.WeatherFlowOptions.WFTcpPort,
+				token = cumulus.WeatherFlowOptions.WFToken,
 				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
 			};
 
@@ -339,12 +340,55 @@ namespace CumulusMX
 				graphGrowingDegreeDaysVis2 = cumulus.GraphOptions.GrowingDegreeDaysVisible2
 			};
 
+			var graphDataExtraTemp = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.ExtraTempVisible
+			};
+
+			var graphDataExtraHum = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.ExtraHumVisible
+			};
+
+			var graphDataSoilTemp = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.SoilTempVisible
+			};
+
+			var graphDataSoilMoist = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.SoilMoistVisible
+			};
+
+			var graphDataUserTemp = new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.UserTempVisible
+			};
+
+			var graphDataCo2 = new JsonStationSettingsGraphDataCo2()
+			{
+				co2 = cumulus.GraphOptions.CO2Sensor.CO2,
+				co2avg = cumulus.GraphOptions.CO2Sensor.CO2Avg,
+				pm25 = cumulus.GraphOptions.CO2Sensor.Pm25,
+				pm25avg = cumulus.GraphOptions.CO2Sensor.Pm25Avg,
+				pm10 = cumulus.GraphOptions.CO2Sensor.Pm10,
+				pm10avg = cumulus.GraphOptions.CO2Sensor.Pm10Avg,
+				temp = cumulus.GraphOptions.CO2Sensor.Temp,
+				hum = cumulus.GraphOptions.CO2Sensor.Hum
+			};
+
 			var graphDataVis = new JsonStationSettingsGraphVisibility()
 			{
 				temperature = graphDataTemp,
 				humidity = graphDataHum,
 				solar = graphDataSolar,
-				degreedays = graphDataDegreeDays
+				degreedays = graphDataDegreeDays,
+				extratemp = graphDataExtraTemp,
+				extrahum = graphDataExtraHum,
+				soiltemp = graphDataSoilTemp,
+				soilmoist = graphDataSoilMoist,
+				usertemp = graphDataUserTemp,
+				co2 = graphDataCo2
 			};
 
 			var graphs = new JsonStationSettingsGraphs()
@@ -595,10 +639,23 @@ namespace CumulusMX
 					cumulus.GraphOptions.TempSumVisible2 = settings.Graphs.datavisibility.temperature.graphTempSumVis2;
 					cumulus.GraphOptions.GrowingDegreeDaysVisible1 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis1;
 					cumulus.GraphOptions.GrowingDegreeDaysVisible2 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis2;
+					cumulus.GraphOptions.ExtraTempVisible = settings.Graphs.datavisibility.extratemp.sensors;
+					cumulus.GraphOptions.ExtraHumVisible = settings.Graphs.datavisibility.extrahum.sensors;
+					cumulus.GraphOptions.SoilTempVisible = settings.Graphs.datavisibility.soiltemp.sensors;
+					cumulus.GraphOptions.SoilMoistVisible = settings.Graphs.datavisibility.soilmoist.sensors;
+					cumulus.GraphOptions.UserTempVisible = settings.Graphs.datavisibility.usertemp.sensors;
+					cumulus.GraphOptions.CO2Sensor.CO2 = settings.Graphs.datavisibility.co2.co2;
+					cumulus.GraphOptions.CO2Sensor.CO2Avg = settings.Graphs.datavisibility.co2.co2avg;
+					cumulus.GraphOptions.CO2Sensor.Pm25 = settings.Graphs.datavisibility.co2.pm25;
+					cumulus.GraphOptions.CO2Sensor.Pm25Avg = settings.Graphs.datavisibility.co2.pm25avg;
+					cumulus.GraphOptions.CO2Sensor.Pm10 = settings.Graphs.datavisibility.co2.pm10;
+					cumulus.GraphOptions.CO2Sensor.Pm10Avg = settings.Graphs.datavisibility.co2.pm10avg;
+					cumulus.GraphOptions.CO2Sensor.Temp = settings.Graphs.datavisibility.co2.temp;
+					cumulus.GraphOptions.CO2Sensor.Hum = settings.Graphs.datavisibility.co2.hum;
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing Graph hours: " + ex.Message;
+					var msg = "Error processing Graph settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -717,8 +774,8 @@ namespace CumulusMX
 				{
 					cumulus.Altitude = settings.general.Location.altitude;
 					cumulus.AltitudeInFeet = (settings.general.Location.altitudeunit == "feet");
-					cumulus.LocationName = settings.general.Location.sitename ?? string.Empty;
-					cumulus.LocationDesc = settings.general.Location.description ?? string.Empty;
+					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.general.Location.sitename) ? null : settings.general.Location.sitename.Trim();
+					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.general.Location.description) ? null : settings.general.Location.description.Trim();
 
 					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0));
 					if (settings.general.Location.Latitude.hemisphere == "South")
@@ -827,7 +884,7 @@ namespace CumulusMX
 						cumulus.DavisOptions.ConnectionType = settings.davisvp2.davisconn.conntype;
 						if (settings.davisvp2.davisconn.tcpsettings != null)
 						{
-							cumulus.DavisOptions.IPAddr = settings.davisvp2.davisconn.tcpsettings.ipaddress ?? string.Empty;
+							cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.davisvp2.davisconn.tcpsettings.ipaddress) ? null : settings.davisvp2.davisconn.tcpsettings.ipaddress.Trim();
 							cumulus.DavisOptions.PeriodicDisconnectInterval = settings.davisvp2.davisconn.tcpsettings.disconperiod;
 						}
 						cumulus.DavisOptions.ReadReceptionStats = settings.davisvp2.advanced.readreceptionstats;
@@ -839,7 +896,7 @@ namespace CumulusMX
 						cumulus.StationOptions.ClockSettingHour = settings.davisvp2.advanced.syncclockhour;
 						if (cumulus.DavisOptions.ConnectionType == 0)
 						{
-							cumulus.ComportName = settings.davisvp2.davisconn.comportname;
+							cumulus.ComportName = string.IsNullOrWhiteSpace(settings.davisvp2.davisconn.comportname) ? null : settings.davisvp2.davisconn.comportname.Trim();
 							cumulus.DavisOptions.BaudRate = settings.davisvp2.advanced.baudrate;
 						}
 						else // TCP/IP
@@ -866,10 +923,10 @@ namespace CumulusMX
 					{
 						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
 						cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
-						cumulus.DavisOptions.IPAddr = settings.daviswll.network.ipaddress ?? string.Empty;
+						cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
 
-						cumulus.WllApiKey = settings.daviswll.api.apiKey;
-						cumulus.WllApiSecret = settings.daviswll.api.apiSecret;
+						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
+						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.daviswll.api.apiStationId;
 
 						cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
@@ -967,9 +1024,9 @@ namespace CumulusMX
 				{
 					if (settings.gw1000 != null)
 					{
-						cumulus.Gw1000IpAddress = settings.gw1000.ipaddress;
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.gw1000.ipaddress) ? null : settings.gw1000.ipaddress.Trim();
 						cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
-						cumulus.Gw1000MacAddress = settings.gw1000.macaddress;
+						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.gw1000.macaddress) ? null : settings.gw1000.macaddress.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -986,8 +1043,8 @@ namespace CumulusMX
 					if (settings.ecowitt != null)
 					{
 						cumulus.EcowittSetCustomServer = settings.ecowitt.setcustom;
-						cumulus.EcowittGatewayAddr = settings.ecowitt.gwaddr;
-						cumulus.EcowittLocalAddr = settings.ecowitt.localaddr;
+						cumulus.EcowittGatewayAddr = string.IsNullOrWhiteSpace(settings.ecowitt.gwaddr) ? null : settings.ecowitt.gwaddr.Trim();
+						cumulus.EcowittLocalAddr = string.IsNullOrWhiteSpace(settings.ecowitt.localaddr) ? null : settings.ecowitt.localaddr.Trim();
 						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
 					}
 				}
@@ -1104,7 +1161,7 @@ namespace CumulusMX
 					{
 						cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
 						cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
-						cumulus.WeatherFlowOptions.WFToken = settings.weatherflow.token;
+						cumulus.WeatherFlowOptions.WFToken = string.IsNullOrWhiteSpace(settings.weatherflow.token) ? null : settings.weatherflow.token.Trim();
 						cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
 					}
 				}
@@ -1122,7 +1179,7 @@ namespace CumulusMX
 					if (settings.easyw != null)
 					{
 						cumulus.EwOptions.Interval = settings.easyw.interval;
-						cumulus.EwOptions.Filename = settings.easyw.filename;
+						cumulus.EwOptions.Filename = string.IsNullOrWhiteSpace(settings.easyw.filename) ? null : settings.easyw.filename.Trim();
 						cumulus.EwOptions.MinPressMB = settings.easyw.minpressmb;
 						cumulus.EwOptions.MaxPressMB = settings.easyw.maxpressmb;
 						cumulus.EwOptions.MaxRainTipDiff = settings.easyw.raintipdiff;
@@ -1163,7 +1220,7 @@ namespace CumulusMX
 				{
 					if (settings.imet != null)
 					{
-						cumulus.ComportName = settings.imet.comportname ?? cumulus.ComportName;
+						cumulus.ComportName = string.IsNullOrWhiteSpace(settings.imet.comportname) ? cumulus.ComportName : settings.imet.comportname.Trim();
 						cumulus.ImetOptions.BaudRate = settings.imet.baudrate;
 						cumulus.StationOptions.SyncTime = settings.imet.advanced.syncstationclock;
 						cumulus.StationOptions.ClockSettingHour = settings.imet.advanced.syncclockhour;
@@ -1185,7 +1242,7 @@ namespace CumulusMX
 				{
 					if (settings.wmr928 != null)
 					{
-						cumulus.ComportName = settings.wmr928.comportname ?? cumulus.ComportName;
+						cumulus.ComportName = string.IsNullOrWhiteSpace(settings.wmr928.comportname) ? cumulus.ComportName : settings.wmr928.comportname.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1201,9 +1258,9 @@ namespace CumulusMX
 				{
 					if (settings.ecowittapi != null)
 					{
-						cumulus.EcowittApplicationKey = settings.ecowittapi.applicationkey;
-						cumulus.EcowittUserApiKey = settings.ecowittapi.userkey;
-						cumulus.EcowittMacAddress = settings.ecowittapi.mac;
+						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.ecowittapi.applicationkey) ? null : settings.ecowittapi.applicationkey.Trim();
+						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.ecowittapi.userkey) ? null : settings.ecowittapi.userkey.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1294,12 +1351,12 @@ namespace CumulusMX
 				// General Advanced
 				try
 				{
-					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate;
+					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate.Trim();
 					cumulus.RecordsBeganDateTime = DateTime.Parse(cumulus.RecordsBeganDate);
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing General Advanced settings: " + ex.Message;
+					var msg = "Error processing Records Began Date: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1886,12 +1943,30 @@ namespace CumulusMX
 		public JsonStationSettingsGraphVisibility datavisibility { get; set; }
 	}
 
+	public class JsonStationSettingsGraphDataCo2
+	{
+		public bool co2 { get; set; }
+		public bool co2avg { get; set; }
+		public bool pm25 { get; set; }
+		public bool pm25avg { get; set; }
+		public bool pm10 { get; set; }
+		public bool pm10avg { get; set; }
+		public bool temp { get; set; }
+		public bool hum { get; set; }
+	}
+
 	public class JsonStationSettingsGraphVisibility
 	{
 		public JsonStationSettingsGraphDataTemperature temperature { get; set; }
 		public JsonStationSettingsGraphDataHumidity humidity { get; set; }
 		public JsonStationSettingsGraphDataSolar solar { get; set; }
 		public JsonStationSettingsGraphDataDegreeDays degreedays { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors extratemp { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors extrahum { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors soiltemp { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors soilmoist { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors usertemp { get; set; }
+		public JsonStationSettingsGraphDataCo2 co2 { get; set; }
 	}
 
 	public class JsonStationSettingsGraphDataTemperature
@@ -1931,6 +2006,10 @@ namespace CumulusMX
 		public bool graphGrowingDegreeDaysVis2 { get; set; }
 	}
 
+	public class JsonStationSettingsGraphDataExtraSensors
+	{
+		public bool[] sensors { get; set; }
+	}
 	public class JsonSelectaChartSettings
 	{
 		public string[] series { get; set; }

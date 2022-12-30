@@ -36,6 +36,7 @@ namespace CumulusMX
 		public override void Stop()
 		{
 			stopping = true;
+			Api.stationWund = null;
 			StopMinuteTimer();
 		}
 

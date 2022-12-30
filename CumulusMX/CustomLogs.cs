@@ -105,13 +105,13 @@ namespace CumulusMX
 				for (var i = 0; i < 10; i++)
 				{
 					if (i < settings.interval.Count)
-					{	
-						cumulus.CustomIntvlLogSettings[i].FileName = settings.interval[i].filename ?? null;
-						cumulus.CustomIntvlLogSettings[i].ContentString = settings.interval[i].content.Replace("\n", "").Replace("\r", "") ?? null;
+					{
+						cumulus.CustomIntvlLogSettings[i].FileName = string.IsNullOrWhiteSpace(settings.interval[i].filename) ? null : settings.interval[i].filename.Trim();
+						cumulus.CustomIntvlLogSettings[i].ContentString = string.IsNullOrWhiteSpace(settings.interval[i].content) ? null : settings.interval[i].content.Replace("\n", "").Replace("\r", "").Trim();
 						cumulus.CustomIntvlLogSettings[i].IntervalIdx = settings.interval[i].intervalidx;
 						cumulus.CustomIntvlLogSettings[i].Interval = cumulus.FactorsOf60[settings.interval[i].intervalidx];
 
-						if (string.IsNullOrEmpty(cumulus.CustomIntvlLogSettings[i].FileName) || string.IsNullOrEmpty(cumulus.CustomIntvlLogSettings[i].ContentString))
+						if (null == cumulus.CustomIntvlLogSettings[i].FileName || null == cumulus.CustomIntvlLogSettings[i].ContentString)
 							cumulus.CustomIntvlLogSettings[i].Enabled = false;
 						else
 							cumulus.CustomIntvlLogSettings[i].Enabled = settings.interval[i].enabled;
@@ -174,10 +174,10 @@ namespace CumulusMX
 					if (i < settings.daily.Count)
 					{
 						cumulus.CustomDailyLogSettings[i].Enabled = settings.daily[i].enabled;
-						cumulus.CustomDailyLogSettings[i].FileName = settings.daily[i].filename ?? null;
-						cumulus.CustomDailyLogSettings[i].ContentString = settings.daily[i].content.Replace("\n", "").Replace("\r", "") ?? null;
+						cumulus.CustomDailyLogSettings[i].FileName = string.IsNullOrEmpty(settings.daily[i].filename) ? null : settings.daily[i].filename.Trim();
+						cumulus.CustomDailyLogSettings[i].ContentString = string.IsNullOrEmpty(settings.daily[i].content) ? null : settings.daily[i].content.Replace("\n", "").Replace("\r", "").Trim();
 
-						if (string.IsNullOrEmpty(cumulus.CustomDailyLogSettings[i].FileName) || string.IsNullOrEmpty(cumulus.CustomDailyLogSettings[i].ContentString))
+						if (null == cumulus.CustomDailyLogSettings[i].FileName || null == cumulus.CustomDailyLogSettings[i].ContentString)
 							cumulus.CustomDailyLogSettings[i].Enabled = false;
 						else
 							cumulus.CustomDailyLogSettings[i].Enabled = settings.daily[i].enabled;

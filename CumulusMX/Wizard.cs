@@ -221,20 +221,20 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.internet.ftp.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.Directory = settings.internet.ftp.directory ?? string.Empty;
+						cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
 						cumulus.FtpOptions.Port = settings.internet.ftp.ftpport;
-						cumulus.FtpOptions.Hostname = settings.internet.ftp.hostname ?? string.Empty;
+						cumulus.FtpOptions.Hostname = string.IsNullOrWhiteSpace(settings.internet.ftp.hostname) ? string.Empty : settings.internet.ftp.hostname.Trim();
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.ftp.sslftp;
-						cumulus.FtpOptions.Password = settings.internet.ftp.password ?? string.Empty;
-						cumulus.FtpOptions.Username = settings.internet.ftp.username ?? string.Empty;
-						cumulus.FtpOptions.SshAuthen = settings.internet.ftp.sshAuth ?? string.Empty;
-						cumulus.FtpOptions.SshPskFile = settings.internet.ftp.pskFile ?? string.Empty;
+						cumulus.FtpOptions.Password = string.IsNullOrWhiteSpace(settings.internet.ftp.password) ? string.Empty : settings.internet.ftp.password.Trim();
+						cumulus.FtpOptions.Username = string.IsNullOrWhiteSpace(settings.internet.ftp.username) ? string.Empty : settings.internet.ftp.username.Trim();
+						cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
+						cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
 					}
 
 					cumulus.FtpOptions.LocalCopyEnabled = settings.internet.copy.localcopy;
 					if (cumulus.FtpOptions.LocalCopyEnabled)
 					{
-						cumulus.FtpOptions.LocalCopyFolder = settings.internet.copy.localcopyfolder;
+						cumulus.FtpOptions.LocalCopyFolder = string.IsNullOrWhiteSpace(settings.internet.copy.localcopyfolder) ? string.Empty : settings.internet.copy.localcopyfolder.Trim();
 					}
 
 					// Now flag all the standard files to FTP/Copy or not
@@ -339,8 +339,8 @@ namespace CumulusMX
 				{
 					cumulus.Altitude = settings.location.altitude;
 					cumulus.AltitudeInFeet = (settings.location.altitudeunit == "feet");
-					cumulus.LocationName = settings.location.sitename ?? string.Empty;
-					cumulus.LocationDesc = settings.location.description ?? string.Empty;
+					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.location.sitename) ? string.Empty : settings.location.sitename.Trim();
+					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.location.description) ? string.Empty : settings.location.description.Trim();
 
 					cumulus.Latitude = settings.location.latitude;
 
@@ -438,12 +438,12 @@ namespace CumulusMX
 						cumulus.DavisOptions.ConnectionType = settings.station.davisvp2.conntype;
 						if (settings.station.davisvp2.tcpsettings != null)
 						{
-							cumulus.DavisOptions.IPAddr = settings.station.davisvp2.tcpsettings.ipaddress ?? string.Empty;
+							cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.station.davisvp2.tcpsettings.ipaddress) ? string.Empty : settings.station.davisvp2.tcpsettings.ipaddress.Trim();
 							cumulus.DavisOptions.PeriodicDisconnectInterval = settings.station.davisvp2.tcpsettings.disconperiod;
 						}
 						if (cumulus.DavisOptions.ConnectionType == 0)
 						{
-							cumulus.ComportName = settings.station.davisvp2.comportname;
+							cumulus.ComportName = string.IsNullOrWhiteSpace(settings.station.davisvp2.comportname) ? string.Empty : settings.station.davisvp2.comportname.Trim();
 						}
 
 						// set defaults for Davis
@@ -470,10 +470,10 @@ namespace CumulusMX
 					{
 						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
 						cumulus.WLLAutoUpdateIpAddress = settings.station.daviswll.network.autoDiscover;
-						cumulus.DavisOptions.IPAddr = settings.station.daviswll.network.ipaddress ?? string.Empty;
+						cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.station.daviswll.network.ipaddress) ? string.Empty : settings.station.daviswll.network.ipaddress.Trim();
 
-						cumulus.WllApiKey = settings.station.daviswll.api.apiKey;
-						cumulus.WllApiSecret = settings.station.daviswll.api.apiSecret;
+						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiKey) ? string.Empty : settings.station.daviswll.api.apiKey.Trim();
+						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiSecret) ? string.Empty : settings.station.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.station.daviswll.api.apiStationId;
 
 						cumulus.WllPrimaryRain = settings.station.daviswll.primary.rain;
@@ -497,9 +497,9 @@ namespace CumulusMX
 				{
 					if (settings.station.gw1000 != null)
 					{
-						cumulus.Gw1000IpAddress = settings.station.gw1000.ipaddress;
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.station.gw1000.ipaddress) ? string.Empty : settings.station.gw1000.ipaddress.Trim();
 						cumulus.Gw1000AutoUpdateIpAddress = settings.station.gw1000.autoDiscover;
-						cumulus.Gw1000MacAddress = settings.station.gw1000.macaddress;
+						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.station.gw1000.macaddress) ? string.Empty : settings.station.gw1000.macaddress.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -517,7 +517,7 @@ namespace CumulusMX
 					{
 						cumulus.WeatherFlowOptions.WFDeviceId = settings.station.weatherflow.deviceid;
 						cumulus.WeatherFlowOptions.WFTcpPort = settings.station.weatherflow.tcpport;
-						cumulus.WeatherFlowOptions.WFToken = settings.station.weatherflow.token;
+						cumulus.WeatherFlowOptions.WFToken = string.IsNullOrWhiteSpace(settings.station.weatherflow.token) ? string.Empty : settings.station.weatherflow.token.Trim();
 						cumulus.WeatherFlowOptions.WFDaysHist = settings.station.weatherflow.dayshistory;
 					}
 				}
@@ -552,7 +552,7 @@ namespace CumulusMX
 					if (settings.station.easyw != null)
 					{
 						cumulus.EwOptions.Interval = settings.station.easyw.interval;
-						cumulus.EwOptions.Filename = settings.station.easyw.filename;
+						cumulus.EwOptions.Filename = string.IsNullOrWhiteSpace(settings.station.easyw.filename) ? string.Empty : settings.station.easyw.filename.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -568,7 +568,7 @@ namespace CumulusMX
 				{
 					if (settings.station.imet != null)
 					{
-						cumulus.ComportName = settings.station.imet.comportname ?? cumulus.ComportName;
+						cumulus.ComportName = string.IsNullOrWhiteSpace(settings.station.imet.comportname) ? cumulus.ComportName : settings.station.imet.comportname.Trim();
 						cumulus.ImetOptions.BaudRate = settings.station.imet.baudrate;
 					}
 				}
@@ -585,7 +585,7 @@ namespace CumulusMX
 				{
 					if (settings.station.wmr928 != null)
 					{
-						cumulus.ComportName = settings.station.wmr928.comportname ?? cumulus.ComportName;
+						cumulus.ComportName = string.IsNullOrWhiteSpace(settings.station.wmr928.comportname) ? cumulus.ComportName : settings.station.wmr928.comportname.Trim();
 					}
 				}
 				catch (Exception ex)
