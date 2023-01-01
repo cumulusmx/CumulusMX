@@ -4660,6 +4660,7 @@ namespace CumulusMX
 			GraphOptions.TempSumVisible2 = ini.GetValue("Graphs", "TempSumVisible2", true);
 			GraphOptions.ExtraTempVisible = ini.GetValue("Graphs", "ExtraTempVisible", new bool[10]);
 			GraphOptions.ExtraHumVisible = ini.GetValue("Graphs", "ExtraHumVisible", new bool[10]);
+			GraphOptions.ExtraDewPointVisible = ini.GetValue("Graphs", "ExtraDewPointVisible", new bool[10]);
 			GraphOptions.SoilTempVisible = ini.GetValue("Graphs", "SoilTempVisible", new bool[16]);
 			GraphOptions.SoilMoistVisible = ini.GetValue("Graphs", "SoilMoistVisible", new bool[16]);
 			GraphOptions.UserTempVisible = ini.GetValue("Graphs", "UserTempVisible", new bool[8]);
@@ -6320,6 +6321,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "TempSumVisible2", GraphOptions.TempSumVisible2);
 			ini.SetValue("Graphs", "ExtraTempVisible", GraphOptions.ExtraTempVisible);
 			ini.SetValue("Graphs", "ExtraHumVisible", GraphOptions.ExtraHumVisible);
+			ini.SetValue("Graphs", "ExtraDewPointVisible", GraphOptions.ExtraDewPointVisible);
 			ini.SetValue("Graphs", "SoilTempVisible", GraphOptions.SoilTempVisible);
 			ini.SetValue("Graphs", "SoilMoistVisible", GraphOptions.SoilMoistVisible);
 			ini.SetValue("Graphs", "UserTempVisible", GraphOptions.UserTempVisible);
@@ -11432,6 +11434,7 @@ namespace CumulusMX
 		public bool TempSumVisible2 { get; set; }
 		public bool[] ExtraTempVisible = new bool[10];
 		public bool[] ExtraHumVisible = new bool[10];
+		public bool[] ExtraDewPointVisible = new bool[10];
 		public bool[] SoilTempVisible = new bool[16];
 		public bool[] SoilMoistVisible = new bool[16];
 		public bool[] UserTempVisible = new bool[8];

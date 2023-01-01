@@ -1,3 +1,13 @@
+3.23.1 - b3221
+——————————————
+New
+- Adds dew point to extra sensor graphing
+- Add extra sensors to the dashboard selecta-a-chart
+
+Fixed
+- Extra sensor graphs stopping at month end
+
+
 3.23.0 - b3220
 ——————————————
 New

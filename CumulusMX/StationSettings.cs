@@ -350,6 +350,11 @@ namespace CumulusMX
 				sensors = cumulus.GraphOptions.ExtraHumVisible
 			};
 
+			var graphDataExtraDP= new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.ExtraDewPointVisible
+			};
+
 			var graphDataSoilTemp = new JsonStationSettingsGraphDataExtraSensors()
 			{
 				sensors = cumulus.GraphOptions.SoilTempVisible
@@ -385,6 +390,7 @@ namespace CumulusMX
 				degreedays = graphDataDegreeDays,
 				extratemp = graphDataExtraTemp,
 				extrahum = graphDataExtraHum,
+				extradew = graphDataExtraDP,
 				soiltemp = graphDataSoilTemp,
 				soilmoist = graphDataSoilMoist,
 				usertemp = graphDataUserTemp,
@@ -641,6 +647,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.GrowingDegreeDaysVisible2 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis2;
 					cumulus.GraphOptions.ExtraTempVisible = settings.Graphs.datavisibility.extratemp.sensors;
 					cumulus.GraphOptions.ExtraHumVisible = settings.Graphs.datavisibility.extrahum.sensors;
+					cumulus.GraphOptions.ExtraDewPointVisible = settings.Graphs.datavisibility.extradew.sensors;
 					cumulus.GraphOptions.SoilTempVisible = settings.Graphs.datavisibility.soiltemp.sensors;
 					cumulus.GraphOptions.SoilMoistVisible = settings.Graphs.datavisibility.soilmoist.sensors;
 					cumulus.GraphOptions.UserTempVisible = settings.Graphs.datavisibility.usertemp.sensors;
@@ -1963,6 +1970,7 @@ namespace CumulusMX
 		public JsonStationSettingsGraphDataDegreeDays degreedays { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors extratemp { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors extrahum { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors extradew { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors soiltemp { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors soilmoist { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors usertemp { get; set; }
