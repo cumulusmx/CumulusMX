@@ -6,6 +6,7 @@ New
 
 Fixed
 - Extra sensor graphs stopping at month end
+- Start-up/rollover backups were copying Custom logs to the CMX root folder rather than the backup folder
 
 
 3.23.0 - b3220

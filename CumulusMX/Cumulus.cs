@@ -7849,7 +7849,7 @@ namespace CumulusMX
 							if (CustomIntvlLogSettings[i].Enabled)
 							{
 								var filename = GetCustomIntvlLogFileName(i, timestamp.AddDays(-1));
-								CopyBackupFile(filename, filename.Replace(logFilePath, ""), true);
+								CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""), true);
 							}
 						}
 					}
