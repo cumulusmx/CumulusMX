@@ -851,15 +851,15 @@ namespace CumulusMX
 			string text;
 			if (Math.Abs(station.temptrendval) < 0.001)
 			{
-				text =  cumulus.Steady;
+				text =  cumulus.Trans.Steady;
 			}
 			else if (station.temptrendval > 0)
 			{
-				text = cumulus.Rising;
+				text = cumulus.Trans.Rising;
 			}
 			else
 			{
-				text = cumulus.Falling;
+				text = cumulus.Trans.Falling;
 			}
 			return text;
 		}

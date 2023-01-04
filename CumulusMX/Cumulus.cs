@@ -228,6 +228,7 @@ namespace CumulusMX
 		private readonly TokenParser customLogIntvlTokenParser = new TokenParser();
 		private readonly TokenParser customLogDailyTokenParser = new TokenParser();
 
+		internal Lang Trans = new Lang();
 
 		public bool NormalRunning = false;
 
@@ -252,114 +253,6 @@ namespace CumulusMX
 		//public int UnitMult = 1000;
 
 		public int GraphDays = 31;
-
-		public string NewMoon = "New Moon",
-			WaxingCrescent = "Waxing Crescent",
-			FirstQuarter = "First Quarter",
-			WaxingGibbous = "Waxing Gibbous",
-			FullMoon = "Full Moon",
-			WaningGibbous = "Waning Gibbous",
-			LastQuarter = "Last Quarter",
-			WaningCrescent = "Waning Crescent";
-
-		public string Calm = "Calm",
-			Lightair = "Light air",
-			Lightbreeze = "Light breeze",
-			Gentlebreeze = "Gentle breeze",
-			Moderatebreeze = "Moderate breeze",
-			Freshbreeze = "Fresh breeze",
-			Strongbreeze = "Strong breeze",
-			Neargale = "Near gale",
-			Gale = "Gale",
-			Stronggale = "Strong gale",
-			Storm = "Storm",
-			Violentstorm = "Violent storm",
-			Hurricane = "Hurricane";
-
-		public string Risingveryrapidly = "Rising very rapidly",
-			Risingquickly = "Rising quickly",
-			Rising = "Rising",
-			Risingslowly = "Rising slowly",
-			Steady = "Steady",
-			Fallingslowly = "Falling slowly",
-			Falling = "Falling",
-			Fallingquickly = "Falling quickly",
-			Fallingveryrapidly = "Falling very rapidly";
-
-		public string[] compassp = { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
-
-		public string[] zForecast =
-		{
-			"Settled fine", "Fine weather", "Becoming fine", "Fine, becoming less settled", "Fine, possible showers", "Fairly fine, improving",
-			"Fairly fine, possible showers early", "Fairly fine, showery later", "Showery early, improving", "Changeable, mending",
-			"Fairly fine, showers likely", "Rather unsettled clearing later", "Unsettled, probably improving", "Showery, bright intervals",
-			"Showery, becoming less settled", "Changeable, some rain", "Unsettled, short fine intervals", "Unsettled, rain later", "Unsettled, some rain",
-			"Mostly very unsettled", "Occasional rain, worsening", "Rain at times, very unsettled", "Rain at frequent intervals", "Rain, very unsettled",
-			"Stormy, may improve", "Stormy, much rain"
-		};
-
-		public string[] DavisForecast1 =
-		{
-			"FORECAST REQUIRES 3 HRS. OF RECENT DATA",
-			"Mostly cloudy with little temperature change.",
-			"Mostly cloudy and cooler.",
-			"Clearing, cooler and windy.",
-			"Clearing and cooler.",
-			"Increasing clouds and cooler.",
-			"Increasing clouds with little temperature change.",
-			"Increasing clouds and warmer.",
-			"Mostly clear for 12 to 24 hours with little temperature change.",
-			"Mostly clear for 6 to 12 hours with little temperature change.",
-			"Mostly clear and warmer. ", "Mostly clear for 12 to 24 hours and cooler.",
-			"Mostly clear for 12 hours with little temperature change.",
-			"Mostly clear with little temperature change.",
-			"Mostly clear and cooler.",
-			"Partially cloudy, Rain and/or snow possible or continuing.",
-			"Partially cloudy, Snow possible or continuing.",
-			"Partially cloudy, Rain possible or continuing.",
-			"Mostly cloudy, Rain and/or snow possible or continuing.",
-			"Mostly cloudy, Snow possible or continuing.",
-			"Mostly cloudy, Rain possible or continuing.",
-			"Mostly cloudy. ", "Partially cloudy.",
-			"Mostly clear.",
-			"Partly cloudy with little temperature change.",
-			"Partly cloudy and cooler.",
-			"Unknown forecast rule."
-		};
-
-		public string[] DavisForecast2 =
-		{
-			"",
-			"Precipitation possible within 48 hours.",
-			"Precipitation possible within 24 to 48 hours.",
-			"Precipitation possible within 24 hours.",
-			"Precipitation possible within 12 to 24 hours.",
-			"Precipitation possible within 12 hours, possibly heavy at times.",
-			"Precipitation possible within 12 hours.",
-			"Precipitation possible within 6 to 12 hours. ",
-			"Precipitation possible within 6 to 12 hours, possibly heavy at times.",
-			"Precipitation possible and windy within 6 hours.",
-			"Precipitation possible within 6 hours.",
-			"Precipitation ending in 12 to 24 hours.",
-			"Precipitation possibly heavy at times and ending within 12 hours.",
-			"Precipitation ending within 12 hours.",
-			"Precipitation ending within 6 hours.",
-			"Precipitation likely, possibly heavy at times.",
-			"Precipitation likely.",
-			"Precipitation continuing, possibly heavy at times.",
-			"Precipitation continuing."
-		};
-
-		public string[] DavisForecast3 =
-		{
-			"",
-			"Windy with possible wind shift to the W, SW, or S.",
-			"Possible wind shift to the W, SW, or S.",
-			"Windy with possible wind shift to the W, NW, or N.",
-			"Possible wind shift to the W, NW, or N.",
-			"Windy.",
-			"Increasing winds."
-		};
 
 		public int[,] DavisForecastLookup =
 		{
@@ -541,8 +434,6 @@ namespace CumulusMX
 
 		public SolarOptions SolarOptions = new SolarOptions();
 
-		public string AlarmEmailPreamble;
-		public string AlarmEmailSubject;
 		public string AlarmFromEmail;
 		public string[] AlarmDestEmail;
 		public bool AlarmEmailHtml;
@@ -647,8 +538,6 @@ namespace CumulusMX
 		public int RecentDataDays = 7;
 
 		public int RealtimeInterval;
-
-		public string ForecastNotAvailable = "Not available";
 
 		public WebServer httpServer;
 
@@ -1544,6 +1433,7 @@ namespace CumulusMX
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
 			Api.wizard = new Wizard(this);
+			Api.langSettings = new LangSettings(this);
 
 			_ = httpServer.RunAsync();
 
@@ -2499,12 +2389,28 @@ namespace CumulusMX
 						LogMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 						HttpUploadAlarm.LastError = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
 						HttpUploadAlarm.Triggered = true;
+						AWEKAS.Updating = false;
+						return;
 					}
 					else
 					{
 						HttpUploadAlarm.Triggered = false;
 					}
-					var respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
+
+					AwekasResponse respJson;
+					try
+					{
+						respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
+					}
+					catch (Exception ex)
+					{
+						LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
+						LogMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
+						HttpUploadAlarm.LastError = "AWEKAS deserializing response: " + ex.Message;
+						HttpUploadAlarm.Triggered = true;
+						AWEKAS.Updating = false;
+						return;
+					}
 
 					// Check the status response
 					if (respJson.status == 2)
@@ -3466,21 +3372,21 @@ namespace CumulusMX
 			// Full =   6 -   0 - 354
 			// 3rd  = 276 - 270 - 264
 			if (MoonPhaseAngle < 174 && MoonPhaseAngle > 96)
-				MoonPhaseString = WaxingCrescent;
+				MoonPhaseString = Trans.WaxingCrescent;
 			else if (MoonPhaseAngle <= 96 && MoonPhaseAngle >= 84)
-				MoonPhaseString = FirstQuarter;
+				MoonPhaseString = Trans.FirstQuarter;
 			else if (MoonPhaseAngle < 84 && MoonPhaseAngle > 6)
-				MoonPhaseString = WaxingGibbous;
+				MoonPhaseString = Trans.WaxingGibbous;
 			else if (MoonPhaseAngle <= 6 || MoonPhaseAngle >= 354)
-				MoonPhaseString = FullMoon;
+				MoonPhaseString = Trans.FullMoon;
 			else if (MoonPhaseAngle < 354 && MoonPhaseAngle > 276)
-				MoonPhaseString = WaningGibbous;
+				MoonPhaseString = Trans.WaningGibbous;
 			else if (MoonPhaseAngle <= 276 && MoonPhaseAngle >= 264)
-				MoonPhaseString = LastQuarter;
+				MoonPhaseString = Trans.LastQuarter;
 			else if (MoonPhaseAngle < 264 && MoonPhaseAngle > 186)
-				MoonPhaseString = WaningCrescent;
+				MoonPhaseString = Trans.WaningCrescent;
 			else
-				MoonPhaseString = NewMoon;
+				MoonPhaseString = Trans.NewMoon;
 		}
 
 		internal void DoMoonImage()
@@ -3810,7 +3716,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					TomorrowDayLengthText = string.Format(thereWillBeMinSLessDaylightTomorrow, tomorrowmins, tomorrowsecs);
+					TomorrowDayLengthText = string.Format(Trans.thereWillBeMinSLessDaylightTomorrow, tomorrowmins, tomorrowsecs);
 				}
 				catch (Exception)
 				{
@@ -3821,7 +3727,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					TomorrowDayLengthText = string.Format(thereWillBeMinSMoreDaylightTomorrow, tomorrowmins, tomorrowsecs);
+					TomorrowDayLengthText = string.Format(Trans.thereWillBeMinSMoreDaylightTomorrow, tomorrowmins, tomorrowsecs);
 				}
 				catch (Exception)
 				{
@@ -6488,140 +6394,138 @@ namespace CumulusMX
 			IniFile ini = new IniFile("strings.ini");
 
 			// forecast
-			ForecastNotAvailable = ini.GetValue("Forecast", "notavailable", ForecastNotAvailable);
+			Trans.ForecastNotAvailable = ini.GetValue("Forecast", "notavailable", "Not available");
 
-			exceptional = ini.GetValue("Forecast", "exceptional", exceptional);
+			Trans.Exceptional = ini.GetValue("Forecast", "exceptional", "Exceptional Weather");
 			for (var i = 0; i <= 25; i++)
 			{
-				zForecast[i] = ini.GetValue("Forecast", "forecast" + (i + 1), zForecast[i]);
+				Trans.zForecast[i] = ini.GetValue("Forecast", "forecast" + (i + 1), Trans.zForecast[i]);
 			}
 			// moon phases
-			NewMoon = ini.GetValue("MoonPhases", "Newmoon", NewMoon);
-			WaxingCrescent = ini.GetValue("MoonPhases", "WaxingCrescent", WaxingCrescent);
-			FirstQuarter = ini.GetValue("MoonPhases", "FirstQuarter", FirstQuarter);
-			WaxingGibbous = ini.GetValue("MoonPhases", "WaxingGibbous", WaxingGibbous);
-			FullMoon = ini.GetValue("MoonPhases", "Fullmoon", FullMoon);
-			WaningGibbous = ini.GetValue("MoonPhases", "WaningGibbous", WaningGibbous);
-			LastQuarter = ini.GetValue("MoonPhases", "LastQuarter", LastQuarter);
-			WaningCrescent = ini.GetValue("MoonPhases", "WaningCrescent", WaningCrescent);
+			Trans.NewMoon = ini.GetValue("MoonPhases", "Newmoon", "New Moon");
+			Trans.WaxingCrescent = ini.GetValue("MoonPhases", "WaxingCrescent", "Waxing Crescent");
+			Trans.FirstQuarter = ini.GetValue("MoonPhases", "FirstQuarter", "First Quarter");
+			Trans.WaxingGibbous = ini.GetValue("MoonPhases", "WaxingGibbous", "Waxing Gibbous");
+			Trans.FullMoon = ini.GetValue("MoonPhases", "Fullmoon", "Full Moon");
+			Trans.WaningGibbous = ini.GetValue("MoonPhases", "WaningGibbous", "Waning Gibbous");
+			Trans.LastQuarter = ini.GetValue("MoonPhases", "LastQuarter", "Last Quarter");
+			Trans.WaningCrescent = ini.GetValue("MoonPhases", "WaningCrescent", "Waning Crescent");
 			// Beaufort
-			Calm = ini.GetValue("Beaufort", "Calm", Calm);
-			Lightair = ini.GetValue("Beaufort", "Lightair", Lightair);
-			Lightbreeze = ini.GetValue("Beaufort", "Lightbreeze", Lightbreeze);
-			Gentlebreeze = ini.GetValue("Beaufort", "Gentlebreeze", Gentlebreeze);
-			Moderatebreeze = ini.GetValue("Beaufort", "Moderatebreeze", Moderatebreeze);
-			Freshbreeze = ini.GetValue("Beaufort", "Freshbreeze", Freshbreeze);
-			Strongbreeze = ini.GetValue("Beaufort", "Strongbreeze", Strongbreeze);
-			Neargale = ini.GetValue("Beaufort", "Neargale", Neargale);
-			Gale = ini.GetValue("Beaufort", "Gale", Gale);
-			Stronggale = ini.GetValue("Beaufort", "Stronggale", Stronggale);
-			Storm = ini.GetValue("Beaufort", "Storm", Storm);
-			Violentstorm = ini.GetValue("Beaufort", "Violentstorm", Violentstorm);
-			Hurricane = ini.GetValue("Beaufort", "Hurricane", Hurricane);
+			Trans.Calm = ini.GetValue("Beaufort", "Calm", "Calm");
+			Trans.Lightair = ini.GetValue("Beaufort", "Lightair", "Light air");
+			Trans.Lightbreeze = ini.GetValue("Beaufort", "Lightbreeze", "Light breeze");
+			Trans.Gentlebreeze = ini.GetValue("Beaufort", "Gentlebreeze", "Gentle breeze");
+			Trans.Moderatebreeze = ini.GetValue("Beaufort", "Moderatebreeze", "Moderate breeze");
+			Trans.Freshbreeze = ini.GetValue("Beaufort", "Freshbreeze", "Fresh breeze");
+			Trans.Strongbreeze = ini.GetValue("Beaufort", "Strongbreeze", "Strong breeze");
+			Trans.Neargale = ini.GetValue("Beaufort", "Neargale", "Near gale");
+			Trans.Gale = ini.GetValue("Beaufort", "Gale", "Gale");
+			Trans.Stronggale = ini.GetValue("Beaufort", "Stronggale", "Strong gale");
+			Trans.Storm = ini.GetValue("Beaufort", "Storm", "Storm");
+			Trans.Violentstorm = ini.GetValue("Beaufort", "Violentstorm", "Violent storm");
+			Trans.Hurricane = ini.GetValue("Beaufort", "Hurricane", "Hurricane");
+			Trans.Unknown = ini.GetValue("Beaufort", "Unknown", "UNKNOWN");
 			// trends
-			Risingveryrapidly = ini.GetValue("Trends", "Risingveryrapidly", Risingveryrapidly);
-			Risingquickly = ini.GetValue("Trends", "Risingquickly", Risingquickly);
-			Rising = ini.GetValue("Trends", "Rising", Rising);
-			Risingslowly = ini.GetValue("Trends", "Risingslowly", Risingslowly);
-			Steady = ini.GetValue("Trends", "Steady", Steady);
-			Fallingslowly = ini.GetValue("Trends", "Fallingslowly", Fallingslowly);
-			Falling = ini.GetValue("Trends", "Falling", Falling);
-			Fallingquickly = ini.GetValue("Trends", "Fallingquickly", Fallingquickly);
-			Fallingveryrapidly = ini.GetValue("Trends", "Fallingveryrapidly", Fallingveryrapidly);
+			Trans.Risingveryrapidly = ini.GetValue("Trends", "Risingveryrapidly", "Rising very rapidly");
+			Trans.Risingquickly = ini.GetValue("Trends", "Risingquickly", "Rising quickly");
+			Trans.Rising = ini.GetValue("Trends", "Rising", "Rising");
+			Trans.Risingslowly = ini.GetValue("Trends", "Risingslowly", "Rising slowly");
+			Trans.Steady = ini.GetValue("Trends", "Steady", "Steady");
+			Trans.Fallingslowly = ini.GetValue("Trends", "Fallingslowly", "Falling slowly");
+			Trans.Falling = ini.GetValue("Trends", "Falling", "Falling");
+			Trans.Fallingquickly = ini.GetValue("Trends", "Fallingquickly", "Falling quickly");
+			Trans.Fallingveryrapidly = ini.GetValue("Trends", "Fallingveryrapidly", "Falling very rapidly");
 			// compass points
-			compassp[0] = ini.GetValue("Compass", "N", compassp[0]);
-			compassp[1] = ini.GetValue("Compass", "NNE", compassp[1]);
-			compassp[2] = ini.GetValue("Compass", "NE", compassp[2]);
-			compassp[3] = ini.GetValue("Compass", "ENE", compassp[3]);
-			compassp[4] = ini.GetValue("Compass", "E", compassp[4]);
-			compassp[5] = ini.GetValue("Compass", "ESE", compassp[5]);
-			compassp[6] = ini.GetValue("Compass", "SE", compassp[6]);
-			compassp[7] = ini.GetValue("Compass", "SSE", compassp[7]);
-			compassp[8] = ini.GetValue("Compass", "S", compassp[8]);
-			compassp[9] = ini.GetValue("Compass", "SSW", compassp[9]);
-			compassp[10] = ini.GetValue("Compass", "SW", compassp[10]);
-			compassp[11] = ini.GetValue("Compass", "WSW", compassp[11]);
-			compassp[12] = ini.GetValue("Compass", "W", compassp[12]);
-			compassp[13] = ini.GetValue("Compass", "WNW", compassp[13]);
-			compassp[14] = ini.GetValue("Compass", "NW", compassp[14]);
-			compassp[15] = ini.GetValue("Compass", "NNW", compassp[15]);
+			Trans.compassp[0] = ini.GetValue("Compass", "N", "N");
+			Trans.compassp[1] = ini.GetValue("Compass", "NNE", "NNE");
+			Trans.compassp[2] = ini.GetValue("Compass", "NE", "NE");
+			Trans.compassp[3] = ini.GetValue("Compass", "ENE", "ENE");
+			Trans.compassp[4] = ini.GetValue("Compass", "E", "E");
+			Trans.compassp[5] = ini.GetValue("Compass", "ESE", "ESE");
+			Trans.compassp[6] = ini.GetValue("Compass", "SE", "SE");
+			Trans.compassp[7] = ini.GetValue("Compass", "SSE", "SSE");
+			Trans.compassp[8] = ini.GetValue("Compass", "S", "S");
+			Trans.compassp[9] = ini.GetValue("Compass", "SSW", "SSW");
+			Trans.compassp[10] = ini.GetValue("Compass", "SW", "SW");
+			Trans.compassp[11] = ini.GetValue("Compass", "WSW", "WSW");
+			Trans.compassp[12] = ini.GetValue("Compass", "W", "W");
+			Trans.compassp[13] = ini.GetValue("Compass", "WNW", "WNW");
+			Trans.compassp[14] = ini.GetValue("Compass", "NW", "NW");
+			Trans.compassp[15] = ini.GetValue("Compass", "NNW", "NNW");
 
-			for (var i = 1; i <= 4; i++)
+			for (var i = 0; i < 4; i++)
 			{
-				// leaf temp captions (for Extra Sensor Data screen)
-				LeafTempCaptions[i] = ini.GetValue("LeafTempCaptions", "Sensor" + i, LeafTempCaptions[i]);
-
 				// air quality captions (for Extra Sensor Data screen)
-				AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + i, AirQualityCaptions[i]);
-				AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg", AirQualityAvgCaptions[1]);
+				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
+				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[1]);
 			}
 
-			for (var i = 1; i <= 8; i++)
+			for (var i = 0; i < 8; i++)
 			{
 				// leaf wetness captions (for Extra Sensor Data screen)
-				LeafWetnessCaptions[i] = ini.GetValue("LeafWetnessCaptions", "Sensor" + i, LeafWetnessCaptions[i]);
+				Trans.LeafWetnessCaptions[i] = ini.GetValue("LeafWetnessCaptions", "Sensor" + (i + 1), Trans.LeafWetnessCaptions[i]);
 
 				// User temperature captions (for Extra Sensor Data screen)
-				UserTempCaptions[i] = ini.GetValue("UserTempCaptions", "Sensor" + i, UserTempCaptions[i]);
+				Trans.UserTempCaptions[i] = ini.GetValue("UserTempCaptions", "Sensor" + (i + 1), Trans.UserTempCaptions[i]);
 			}
 
-			for (var i = 1; i <= 10; i++)
+			for (var i = 0; i < 10; i++)
 			{
 				// Extra temperature captions (for Extra Sensor Data screen)
-				ExtraTempCaptions[i] = ini.GetValue("ExtraTempCaptions", "Sensor" + i, ExtraTempCaptions[i]);
+				Trans.ExtraTempCaptions[i] = ini.GetValue("ExtraTempCaptions", "Sensor" + (i + 1), Trans.ExtraTempCaptions[i]);
 
 				// Extra humidity captions (for Extra Sensor Data screen)
-				ExtraHumCaptions[i] = ini.GetValue("ExtraHumCaptions", "Sensor" + i, ExtraHumCaptions[i]);
+				Trans.ExtraHumCaptions[i] = ini.GetValue("ExtraHumCaptions", "Sensor" + (i + 1), Trans.ExtraHumCaptions[i]);
 
 				// Extra dew point captions (for Extra Sensor Data screen)
-				ExtraDPCaptions[i] = ini.GetValue("ExtraDPCaptions", "Sensor" + i, ExtraDPCaptions[i]);
+				Trans.ExtraDPCaptions[i] = ini.GetValue("ExtraDPCaptions", "Sensor" + (i + 1), Trans.ExtraDPCaptions[i]);
 			}
 
-			for (var i = 1; i <= 16; i++)
+			for (var i = 0; i < 16; i++)
 			{
 				// soil temp captions (for Extra Sensor Data screen)
-				SoilTempCaptions[i] = ini.GetValue("SoilTempCaptions", "Sensor" + i, SoilTempCaptions[i]);
+				Trans.SoilTempCaptions[i] = ini.GetValue("SoilTempCaptions", "Sensor" + (i + 1), Trans.SoilTempCaptions[i]);
 
 				// soil moisture captions (for Extra Sensor Data screen)
-				SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", "Sensor" + i, SoilMoistureCaptions[i]);
+				Trans.SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", "Sensor" + (i + 1), Trans.SoilMoistureCaptions[i]);
 			}
 
 			// CO2 captions - Ecowitt WH45 sensor
-			CO2_CurrentCaption = ini.GetValue("CO2Captions", "CO2-Current", CO2_CurrentCaption);
-			CO2_24HourCaption = ini.GetValue("CO2Captions", "CO2-24hr", CO2_24HourCaption);
-			CO2_pm2p5Caption = ini.GetValue("CO2Captions", "CO2-Pm2p5", CO2_pm2p5Caption);
-			CO2_pm2p5_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm2p5-24hr", CO2_pm2p5_24hrCaption);
-			CO2_pm10Caption = ini.GetValue("CO2Captions", "CO2-Pm10", CO2_pm10Caption);
-			CO2_pm10_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm10-24hr", CO2_pm10_24hrCaption);
+			Trans.CO2_CurrentCaption = ini.GetValue("CO2Captions", "CO2-Current", "CO&#8322 Current");
+			Trans.CO2_24HourCaption = ini.GetValue("CO2Captions", "CO2-24hr", "CO&#8322 24h avg");
+			Trans.CO2_pm2p5Caption = ini.GetValue("CO2Captions", "CO2-Pm2p5", "PM 2.5");
+			Trans.CO2_pm2p5_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm2p5-24hr", "PM 2.5 24h avg");
+			Trans.CO2_pm10Caption = ini.GetValue("CO2Captions", "CO2-Pm10", "PM 10");
+			Trans.CO2_pm10_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm10-24hr", "PM 10 24h avg");
 
 
-			thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", thereWillBeMinSLessDaylightTomorrow);
-			thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", thereWillBeMinSMoreDaylightTomorrow);
+			Trans.thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
+			Trans.thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
 
 			// Davis forecast 1
-			DavisForecast1[0] = ini.GetValue("DavisForecast1", "forecast1", DavisForecast1[0]);
+			Trans.DavisForecast1[0] = ini.GetValue("DavisForecast1", "forecast1", Trans.DavisForecast1[0]);
 			for (var i = 1; i <= 25; i++)
 			{
-				DavisForecast1[i] = ini.GetValue("DavisForecast1", "forecast" + (i + 1), DavisForecast1[i]) + " ";
+				Trans.DavisForecast1[i] = ini.GetValue("DavisForecast1", "forecast" + (i + 1), Trans.DavisForecast1[i]) + " ";
 			}
-			DavisForecast1[26] = ini.GetValue("DavisForecast1", "forecast27", DavisForecast1[26]);
+			Trans.DavisForecast1[26] = ini.GetValue("DavisForecast1", "forecast27", Trans.DavisForecast1[26]);
 
 			// Davis forecast 2
-			DavisForecast2[0] = ini.GetValue("DavisForecast2", "forecast1", DavisForecast2[0]);
+			Trans.DavisForecast2[0] = ini.GetValue("DavisForecast2", "forecast1", Trans.DavisForecast2[0]);
 			for (var i = 1; i <= 18; i++)
 			{
-				DavisForecast2[i] = ini.GetValue("DavisForecast2", "forecast" + (i + 1), DavisForecast2[i]) + " ";
+				Trans.DavisForecast2[i] = ini.GetValue("DavisForecast2", "forecast" + (i + 1), Trans.DavisForecast2[i]) + " ";
 			}
 
 			// Davis forecast 3
 			for (var i = 0; i <= 6; i++)
 			{
-				DavisForecast3[i] = ini.GetValue("DavisForecast3", "forecast" + (i + 1), DavisForecast3[i]);
+				Trans.DavisForecast3[i] = ini.GetValue("DavisForecast3", "forecast" + (i + 1), Trans.DavisForecast3[i]);
 			}
 
 			// alarm emails
-			AlarmEmailSubject = ini.GetValue("AlarmEmails", "subject", "Cumulus MX Alarm");
-			AlarmEmailPreamble = ini.GetValue("AlarmEmails", "preamble", "A Cumulus MX alarm has been triggered.");
+			Trans.AlarmEmailSubject = ini.GetValue("AlarmEmails", "subject", "Cumulus MX Alarm");
+			Trans.AlarmEmailPreamble = ini.GetValue("AlarmEmails", "preamble", "A Cumulus MX alarm has been triggered.");
 			HighGustAlarm.EmailMsg = ini.GetValue("AlarmEmails", "windGustAbove", "A wind gust above {0} {1} has occurred.");
 			HighPressAlarm.EmailMsg = ini.GetValue("AlarmEmails", "pressureAbove", "The pressure has risen above {0} {1}.");
 			HighTempAlarm.EmailMsg = ini.GetValue("AlarmEmails", "tempAbove", "The temperature has risen above {0} {1}.");
@@ -6642,6 +6546,173 @@ namespace CumulusMX
 			HttpUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "httpStopped", "HTTP uploads are failing.");
 			MySqlUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "mySqlStopped", "MySQL uploads are failing.");
 			IsRainingAlarm.EmailMsg = ini.GetValue("AlarmEmails", "isRaining", "It has started to rain.");
+
+			if (!File.Exists("strings.ini"))
+			{
+				WriteStringsFile();
+			}
+		}
+
+		public void WriteStringsFile()
+		{
+			LogMessage("Writing strings.ini file");
+
+			IniFile ini = new IniFile("strings.ini");
+
+			// forecast
+			ini.SetValue("Forecast", "notavailable", Trans.ForecastNotAvailable);
+
+			ini.SetValue("Forecast", "exceptional", Trans.Exceptional);
+			for (var i = 0; i <= 25; i++)
+			{
+				ini.SetValue("Forecast", "forecast" + (i + 1), Trans.zForecast[i]);
+			}
+			// moon phases
+			ini.SetValue("MoonPhases", "Newmoon", Trans.NewMoon);
+			ini.SetValue("MoonPhases", "WaxingCrescent", Trans.WaxingCrescent);
+			ini.SetValue("MoonPhases", "FirstQuarter", Trans.FirstQuarter);
+			ini.SetValue("MoonPhases", "WaxingGibbous", Trans.WaxingGibbous);
+			ini.SetValue("MoonPhases", "Fullmoon", Trans.FullMoon);
+			ini.SetValue("MoonPhases", "WaningGibbous", Trans.WaningGibbous);
+			ini.SetValue("MoonPhases", "LastQuarter", Trans.LastQuarter);
+			ini.SetValue("MoonPhases", "WaningCrescent", Trans.WaningCrescent);
+			// Beaufort
+			ini.SetValue("Beaufort", "Calm", Trans.Calm);
+			ini.SetValue("Beaufort", "Lightair", Trans.Lightair);
+			ini.SetValue("Beaufort", "Lightbreeze", Trans.Lightbreeze);
+			ini.SetValue("Beaufort", "Gentlebreeze", Trans.Gentlebreeze);
+			ini.SetValue("Beaufort", "Moderatebreeze", Trans.Moderatebreeze);
+			ini.SetValue("Beaufort", "Freshbreeze", Trans.Freshbreeze);
+			ini.SetValue("Beaufort", "Strongbreeze", Trans.Strongbreeze);
+			ini.SetValue("Beaufort", "Neargale", Trans.Neargale);
+			ini.SetValue("Beaufort", "Gale", Trans.Gale);
+			ini.SetValue("Beaufort", "Stronggale", Trans.Stronggale);
+			ini.SetValue("Beaufort", "Storm", Trans.Storm);
+			ini.SetValue("Beaufort", "Violentstorm", Trans.Violentstorm);
+			ini.SetValue("Beaufort", "Hurricane", Trans.Hurricane);
+			ini.SetValue("Beaufort", "Unknown", Trans.Unknown);
+			// trends
+			ini.SetValue("Trends", "Risingveryrapidly", Trans.Risingveryrapidly);
+			ini.SetValue("Trends", "Risingquickly", Trans.Risingquickly);
+			ini.SetValue("Trends", "Rising", Trans.Rising);
+			ini.SetValue("Trends", "Risingslowly", Trans.Risingslowly);
+			ini.SetValue("Trends", "Steady", Trans.Steady);
+			ini.SetValue("Trends", "Fallingslowly", Trans.Fallingslowly);
+			ini.SetValue("Trends", "Falling", Trans.Falling);
+			ini.SetValue("Trends", "Fallingquickly", Trans.Fallingquickly);
+			ini.SetValue("Trends", "Fallingveryrapidly", Trans.Fallingveryrapidly);
+			// compass points
+			ini.SetValue("Compass", "N", Trans.compassp[0]);
+			ini.SetValue("Compass", "NNE", Trans.compassp[1]);
+			ini.SetValue("Compass", "NE", Trans.compassp[2]);
+			ini.SetValue("Compass", "ENE", Trans.compassp[3]);
+			ini.SetValue("Compass", "E", Trans.compassp[4]);
+			ini.SetValue("Compass", "ESE", Trans.compassp[5]);
+			ini.SetValue("Compass", "SE", Trans.compassp[6]);
+			ini.SetValue("Compass", "SSE", Trans.compassp[7]);
+			ini.SetValue("Compass", "S", Trans.compassp[8]);
+			ini.SetValue("Compass", "SSW", Trans.compassp[9]);
+			ini.SetValue("Compass", "SW", Trans.compassp[10]);
+			ini.SetValue("Compass", "WSW", Trans.compassp[11]);
+			ini.SetValue("Compass", "W", Trans.compassp[12]);
+			ini.SetValue("Compass", "WNW", Trans.compassp[13]);
+			ini.SetValue("Compass", "NW", Trans.compassp[14]);
+			ini.SetValue("Compass", "NNW", Trans.compassp[15]);
+
+			for (var i = 0; i < 4; i++)
+			{
+				// air quality captions (for Extra Sensor Data screen)
+				ini.SetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
+				ini.SetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[1]);
+			}
+
+			for (var i = 0; i < 8; i++)
+			{
+				// leaf wetness captions (for Extra Sensor Data screen)
+				ini.SetValue("LeafWetnessCaptions", "Sensor" + (i + 1), Trans.LeafWetnessCaptions[i]);
+
+				// User temperature captions (for Extra Sensor Data screen)
+				ini.SetValue("UserTempCaptions", "Sensor" + (i + 1), Trans.UserTempCaptions[i]);
+			}
+
+			for (var i = 0; i < 10; i++)
+			{
+				// Extra temperature captions (for Extra Sensor Data screen)
+				ini.SetValue("ExtraTempCaptions", "Sensor" + (i + 1), Trans.ExtraTempCaptions[i]);
+
+				// Extra humidity captions (for Extra Sensor Data screen)
+				ini.SetValue("ExtraHumCaptions", "Sensor" + (i + 1), Trans.ExtraHumCaptions[i]);
+
+				// Extra dew point captions (for Extra Sensor Data screen)
+				ini.SetValue("ExtraDPCaptions", "Sensor" + (i + 1), Trans.ExtraDPCaptions[i]);
+			}
+
+			for (var i = 0; i < 16; i++)
+			{
+				// soil temp captions (for Extra Sensor Data screen)
+				ini.SetValue("SoilTempCaptions", "Sensor" + (i + 1), Trans.SoilTempCaptions[i]);
+
+				// soil moisture captions (for Extra Sensor Data screen)
+				ini.SetValue("SoilMoistureCaptions", "Sensor" + (i + 1), Trans.SoilMoistureCaptions[i]);
+			}
+
+			// CO2 captions - Ecowitt WH45 sensor
+			ini.SetValue("CO2Captions", "CO2-Current", Trans.CO2_CurrentCaption);
+			ini.SetValue("CO2Captions", "CO2-24hr", Trans.CO2_24HourCaption);
+			ini.SetValue("CO2Captions", "CO2-Pm2p5", Trans.CO2_pm2p5Caption);
+			ini.SetValue("CO2Captions", "CO2-Pm2p5-24hr", Trans.CO2_pm2p5_24hrCaption);
+			ini.SetValue("CO2Captions", "CO2-Pm10", Trans.CO2_pm10Caption);
+			ini.SetValue("CO2Captions", "CO2-Pm10-24hr", Trans.CO2_pm10_24hrCaption);
+
+
+			ini.SetValue("Solar", "LessDaylightTomorrow", Trans.thereWillBeMinSLessDaylightTomorrow);
+			ini.SetValue("Solar", "MoreDaylightTomorrow", Trans.thereWillBeMinSMoreDaylightTomorrow);
+
+			// Davis forecast 1
+			for (var i = 0; i <= 26; i++)
+			{
+				ini.SetValue("DavisForecast1", "forecast" + (i + 1), Trans.DavisForecast1[i]);
+			}
+
+			// Davis forecast 2
+			for (var i = 0; i <= 18; i++)
+			{
+				ini.SetValue("DavisForecast2", "forecast" + (i + 1), Trans.DavisForecast2[i]);
+			}
+
+			// Davis forecast 3
+			for (var i = 0; i <= 6; i++)
+			{
+				ini.SetValue("DavisForecast3", "forecast" + (i + 1), Trans.DavisForecast3[i]);
+			}
+
+			// alarm emails
+			ini.SetValue("AlarmEmails", "subject", Trans.AlarmEmailSubject);
+			ini.SetValue("AlarmEmails", "preamble", Trans.AlarmEmailPreamble);
+			ini.SetValue("AlarmEmails", "windGustAbove", HighGustAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "pressureAbove", HighPressAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "tempAbove", HighTempAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "pressBelow", LowPressAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "tempBelow", LowTempAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "pressDown", PressChangeAlarm.EmailMsgDn);
+			ini.SetValue("AlarmEmails", "pressUp", PressChangeAlarm.EmailMsgUp);
+			ini.SetValue("AlarmEmails", "rainAbove", HighRainTodayAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "rainRateAbove", HighRainRateAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "sensorLost", SensorAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "tempDown", TempChangeAlarm.EmailMsgDn);
+			ini.SetValue("AlarmEmails", "tempUp", TempChangeAlarm.EmailMsgUp);
+			ini.SetValue("AlarmEmails", "windAbove", HighWindAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "dataStopped", DataStoppedAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "batteryLow", BatteryLowAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "dataSpike", SpikeAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "upgrade", UpgradeAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "httpStopped", HttpUploadAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "mySqlStopped", MySqlUploadAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "isRaining", IsRainingAlarm.EmailMsg);
+
+			ini.Flush();
+
+			LogMessage("Completed writing strings.ini file");
 		}
 
 
@@ -6982,27 +7053,7 @@ namespace CumulusMX
 		public FileGenerationFtpOptions[] GraphDataEodFiles;
 
 
-		public string exceptional = "Exceptional Weather";
 //		private WebSocketServer wsServer;
-		public string[] ExtraTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-		public string[] ExtraHumCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-		public string[] ExtraDPCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
-		public string[] SoilTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
-		public string[] SoilMoistureCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
-		public string[] AirQualityCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
-		public string[] AirQualityAvgCaptions = { "", "Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4" };
-		public string[] LeafTempCaptions = { "", "Temp 1", "Temp 2", "Temp 3", "Temp 4" };
-		public string[] LeafWetnessCaptions = { "", "Wetness 1", "Wetness 2", "Wetness 3", "Wetness 4", "Wetness 5", "Wetness 6", "Wetness 7", "Wetness 8" };
-		public string[] UserTempCaptions = { "", "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8" };
-		private string thereWillBeMinSLessDaylightTomorrow = "There will be {0}min {1}s less daylight tomorrow";
-		private string thereWillBeMinSMoreDaylightTomorrow = "There will be {0}min {1}s more daylight tomorrow";
-		// WH45 CO2 sensor captions
-		public string CO2_CurrentCaption = "CO&#8322 Current";
-		public string CO2_24HourCaption = "CO&#8322 24h avg";
-		public string CO2_pm2p5Caption = "PM 2.5";
-		public string CO2_pm2p5_24hrCaption = "PM 2.5 24h avg";
-		public string CO2_pm10Caption = "PM 10";
-		public string CO2_pm10_24hrCaption = "PM 10 24h avg";
 
 		/*
 		public string Getversion()
@@ -7783,6 +7834,7 @@ namespace CumulusMX
 				var diarybackup = foldername + "diary.db";
 				var configbackup = foldername + "Cumulus.ini";
 				var dbBackup = foldername + "cumulusmx.db";
+				var stringsbackup = foldername + "strings.ini";
 
 				var LogFile = GetLogFileName(timestamp);
 				var logbackup = foldername + LogFile.Replace(logFilePath, "");
@@ -7810,6 +7862,7 @@ namespace CumulusMX
 					CopyBackupFile(dbfile, dbBackup);
 					CopyBackupFile(extraFile, extraBackup);
 					CopyBackupFile(AirLinkFile, AirLinkBackup);
+					CopyBackupFile("strings.ini", stringsbackup);
 					// custom logs
 					for (var i = 0; i < 10; i++)
 					{
@@ -8215,33 +8268,33 @@ namespace CumulusMX
 			switch (force)
 			{
 				case 0:
-					return Calm;
+					return Trans.Calm;
 				case 1:
-					return Lightair;
+					return Trans.Lightair;
 				case 2:
-					return Lightbreeze;
+					return Trans.Lightbreeze;
 				case 3:
-					return Gentlebreeze;
+					return Trans.Gentlebreeze;
 				case 4:
-					return Moderatebreeze;
+					return Trans.Moderatebreeze;
 				case 5:
-					return Freshbreeze;
+					return Trans.Freshbreeze;
 				case 6:
-					return Strongbreeze;
+					return Trans.Strongbreeze;
 				case 7:
-					return Neargale;
+					return Trans.Neargale;
 				case 8:
-					return Gale;
+					return Trans.Gale;
 				case 9:
-					return Stronggale;
+					return Trans.Stronggale;
 				case 10:
-					return Storm;
+					return Trans.Storm;
 				case 11:
-					return Violentstorm;
+					return Trans.Violentstorm;
 				case 12:
-					return Hurricane;
+					return Trans.Hurricane;
 				default:
-					return "UNKNOWN";
+					return Trans.Unknown;
 			}
 		}
 

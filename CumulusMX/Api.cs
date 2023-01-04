@@ -25,6 +25,7 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings;
 		public static CustomLogs customLogs;
 		public static Wizard wizard;
+		internal static LangSettings langSettings;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
@@ -1067,6 +1068,9 @@ namespace CumulusMX
 								break;
 							case "calibrationdata.json":
 								await writer.WriteAsync(calibrationSettings.GetAlpacaFormData());
+								break;
+							case "langdata.json":
+								await writer.WriteAsync(langSettings.GetAlpacaFormData());
 								break;
 							case "noaadata.json":
 								await writer.WriteAsync(noaaSettings.GetAlpacaFormData());

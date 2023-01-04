@@ -1666,7 +1666,7 @@ namespace CumulusMX
 					}
 				}
 
-				var forecast = (cumulus.DavisForecast1[key1] + cumulus.DavisForecast2[key2] + cumulus.DavisForecast3[key3]).Trim();
+				var forecast = (cumulus.Trans.DavisForecast1[key1] + cumulus.Trans.DavisForecast2[key2] + cumulus.Trans.DavisForecast3[key3]).Trim();
 
 				DoForecast(forecast, false);
 

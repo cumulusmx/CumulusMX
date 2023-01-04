@@ -382,8 +382,8 @@ namespace CumulusMX
 				MonthlyRecs[i] = new AllTimeRecords();
 			}
 
-			CumulusForecast = cumulus.ForecastNotAvailable;
-			wsforecast = cumulus.ForecastNotAvailable;
+			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
+			wsforecast = cumulus.Trans.ForecastNotAvailable;
 
 			ExtraTemp = new double[11];
 			ExtraHum = new double[11];
@@ -1030,16 +1030,16 @@ namespace CumulusMX
 					break;
 			}
 
-			if (threeHourlyPressureChangeMb > 6) Presstrendstr = cumulus.Risingveryrapidly;
-			else if (threeHourlyPressureChangeMb > 3.5) Presstrendstr = cumulus.Risingquickly;
-			else if (threeHourlyPressureChangeMb > 1.5) Presstrendstr = cumulus.Rising;
-			else if (threeHourlyPressureChangeMb > 0.1) Presstrendstr = cumulus.Risingslowly;
-			else if (threeHourlyPressureChangeMb > -0.1) Presstrendstr = cumulus.Steady;
-			else if (threeHourlyPressureChangeMb > -1.5) Presstrendstr = cumulus.Fallingslowly;
-			else if (threeHourlyPressureChangeMb > -3.5) Presstrendstr = cumulus.Falling;
-			else if (threeHourlyPressureChangeMb > -6) Presstrendstr = cumulus.Fallingquickly;
+			if (threeHourlyPressureChangeMb > 6) Presstrendstr = cumulus.Trans.Risingveryrapidly;
+			else if (threeHourlyPressureChangeMb > 3.5) Presstrendstr = cumulus.Trans.Risingquickly;
+			else if (threeHourlyPressureChangeMb > 1.5) Presstrendstr = cumulus.Trans.Rising;
+			else if (threeHourlyPressureChangeMb > 0.1) Presstrendstr = cumulus.Trans.Risingslowly;
+			else if (threeHourlyPressureChangeMb > -0.1) Presstrendstr = cumulus.Trans.Steady;
+			else if (threeHourlyPressureChangeMb > -1.5) Presstrendstr = cumulus.Trans.Fallingslowly;
+			else if (threeHourlyPressureChangeMb > -3.5) Presstrendstr = cumulus.Trans.Falling;
+			else if (threeHourlyPressureChangeMb > -6) Presstrendstr = cumulus.Trans.Fallingquickly;
 			else
-				Presstrendstr = cumulus.Fallingveryrapidly;
+				Presstrendstr = cumulus.Trans.Fallingveryrapidly;
 		}
 
 		public string Presstrendstr { get; set; }
@@ -1143,8 +1143,6 @@ namespace CumulusMX
 		public double Pressure { get; set; } = 0;
 
 		public double StationPressure { get; set; }
-
-		public string Forecast { get; set; } = "Forecast: ";
 
 		/// <summary>
 		/// Outdoor temp
@@ -2712,7 +2710,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.ExtraTempVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.ExtraTempVisible[i])
-					sbExt[i] = new StringBuilder($"\"{cumulus.ExtraTempCaptions[i+1]}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.ExtraTempCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -2836,7 +2834,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.ExtraDewPointVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.ExtraDewPointVisible[i])
-					sbExt[i] = new StringBuilder($"\"{cumulus.ExtraDPCaptions[i + 1]}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.ExtraDPCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -2960,7 +2958,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.ExtraHumVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.ExtraHumVisible[i])
-					sbExt[i] = new StringBuilder($"\"{cumulus.ExtraHumCaptions[i + 1]}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.ExtraHumCaptions[i]}\":[");
 			}
 
 
@@ -3085,7 +3083,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.SoilTempVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.SoilTempVisible[i])
-					sbExt[i] = new StringBuilder($"\"{cumulus.SoilTempCaptions[i + 1]}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.SoilTempCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -3214,7 +3212,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.SoilMoistVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.SoilMoistVisible[i])
-					sbExt[i] = new StringBuilder($"\"{cumulus.SoilMoistureCaptions[i + 1]}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.SoilMoistureCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -3343,7 +3341,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.UserTempVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.UserTempVisible[i])
-					sbExt[i] = new StringBuilder($"\"{cumulus.UserTempCaptions[i + 1]}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.UserTempCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -7142,7 +7140,7 @@ namespace CumulusMX
 
 		public string CompassPoint(int bearing)
 		{
-			return bearing == 0 ? "-" : cumulus.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
+			return bearing == 0 ? "-" : cumulus.Trans.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
 		}
 
 		public void StartLoop()
@@ -8647,70 +8645,70 @@ namespace CumulusMX
 			if (z_north)
 			{
 				// North hemisphere
-				if (z_wind == cumulus.compassp[0]) // N
+				if (z_wind == cumulus.Trans.compassp[0]) // N
 				{
 					z_hpa += 6F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[1]) // NNE
+				else if (z_wind == cumulus.Trans.compassp[1]) // NNE
 				{
 					z_hpa += 5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[2]) // NE
+				else if (z_wind == cumulus.Trans.compassp[2]) // NE
 				{
 					//			z_hpa += 4 ;
 					z_hpa += 5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[3]) // ENE
+				else if (z_wind == cumulus.Trans.compassp[3]) // ENE
 				{
 					z_hpa += 2F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[4]) // E
+				else if (z_wind == cumulus.Trans.compassp[4]) // E
 				{
 					z_hpa -= 0.5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[5]) // ESE
+				else if (z_wind == cumulus.Trans.compassp[5]) // ESE
 				{
 					//			z_hpa -= 3 ;
 					z_hpa -= 2F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[6]) // SE
+				else if (z_wind == cumulus.Trans.compassp[6]) // SE
 				{
 					z_hpa -= 5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[7]) // SSE
+				else if (z_wind == cumulus.Trans.compassp[7]) // SSE
 				{
 					z_hpa -= 8.5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[8]) // S
+				else if (z_wind == cumulus.Trans.compassp[8]) // S
 				{
 					//			z_hpa -= 11 ;
 					z_hpa -= 12F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[9]) // SSW
+				else if (z_wind == cumulus.Trans.compassp[9]) // SSW
 				{
 					z_hpa -= 10F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[10]) // SW
+				else if (z_wind == cumulus.Trans.compassp[10]) // SW
 				{
 					z_hpa -= 6F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[11]) // WSW
+				else if (z_wind == cumulus.Trans.compassp[11]) // WSW
 				{
 					z_hpa -= 4.5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[12]) // W
+				else if (z_wind == cumulus.Trans.compassp[12]) // W
 				{
 					z_hpa -= 3F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[13]) // WNW
+				else if (z_wind == cumulus.Trans.compassp[13]) // WNW
 				{
 					z_hpa -= 0.5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[14]) // NW
+				else if (z_wind == cumulus.Trans.compassp[14]) // NW
 				{
 					z_hpa += 1.5F / 100 * z_range;
 				}
-				else if (z_wind == cumulus.compassp[15]) // NNW
+				else if (z_wind == cumulus.Trans.compassp[15]) // NNW
 				{
 					z_hpa += 3F / 100F * z_range;
 				}
@@ -8732,70 +8730,70 @@ namespace CumulusMX
 			else
 			{
 				// must be South hemisphere
-				if (z_wind == cumulus.compassp[8]) // S
+				if (z_wind == cumulus.Trans.compassp[8]) // S
 				{
 					z_hpa += 6F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[9]) // SSW
+				else if (z_wind == cumulus.Trans.compassp[9]) // SSW
 				{
 					z_hpa += 5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[10]) // SW
+				else if (z_wind == cumulus.Trans.compassp[10]) // SW
 				{
 					//			z_hpa += 4 ;
 					z_hpa += 5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[11]) // WSW
+				else if (z_wind == cumulus.Trans.compassp[11]) // WSW
 				{
 					z_hpa += 2F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[12]) // W
+				else if (z_wind == cumulus.Trans.compassp[12]) // W
 				{
 					z_hpa -= 0.5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[13]) // WNW
+				else if (z_wind == cumulus.Trans.compassp[13]) // WNW
 				{
 					//			z_hpa -= 3 ;
 					z_hpa -= 2F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[14]) // NW
+				else if (z_wind == cumulus.Trans.compassp[14]) // NW
 				{
 					z_hpa -= 5F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[15]) // NNW
+				else if (z_wind == cumulus.Trans.compassp[15]) // NNW
 				{
 					z_hpa -= 8.5F / 100 * z_range;
 				}
-				else if (z_wind == cumulus.compassp[0]) // N
+				else if (z_wind == cumulus.Trans.compassp[0]) // N
 				{
 					//			z_hpa -= 11 ;
 					z_hpa -= 12F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[1]) // NNE
+				else if (z_wind == cumulus.Trans.compassp[1]) // NNE
 				{
 					z_hpa -= 10F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[2]) // NE
+				else if (z_wind == cumulus.Trans.compassp[2]) // NE
 				{
 					z_hpa -= 6F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[3]) // ENE
+				else if (z_wind == cumulus.Trans.compassp[3]) // ENE
 				{
 					z_hpa -= 4.5F / 100 * z_range; //
 				}
-				else if (z_wind == cumulus.compassp[4]) // E
+				else if (z_wind == cumulus.Trans.compassp[4]) // E
 				{
 					z_hpa -= 3F / 100F * z_range;
 				}
-				else if (z_wind == cumulus.compassp[5]) // ESE
+				else if (z_wind == cumulus.Trans.compassp[5]) // ESE
 				{
 					z_hpa -= 0.5F / 100 * z_range;
 				}
-				else if (z_wind == cumulus.compassp[6]) // SE
+				else if (z_wind == cumulus.Trans.compassp[6]) // SE
 				{
 					z_hpa += 1.5F / 100 * z_range;
 				}
-				else if (z_wind == cumulus.compassp[7]) // SSE
+				else if (z_wind == cumulus.Trans.compassp[7]) // SSE
 				{
 					z_hpa += 3F / 100F * z_range;
 				}
@@ -8826,31 +8824,31 @@ namespace CumulusMX
 			if (z_option < 0)
 			{
 				z_option = 0;
-				z_output.Append($"{cumulus.exceptional}, ");
+				z_output.Append($"{cumulus.Trans.Exceptional}, ");
 			}
 			if (z_option > 21)
 			{
 				z_option = 21;
-				z_output.Append($"{cumulus.exceptional}, ");
+				z_output.Append($"{cumulus.Trans.Exceptional}, ");
 			}
 
 			if (z_trend == 1)
 			{
 				// rising
 				Forecastnumber = cumulus.riseOptions[z_option] + 1;
-				z_output.Append(cumulus.zForecast[cumulus.riseOptions[z_option]]);
+				z_output.Append(cumulus.Trans.zForecast[cumulus.riseOptions[z_option]]);
 			}
 			else if (z_trend == 2)
 			{
 				// falling
 				Forecastnumber = cumulus.fallOptions[z_option] + 1;
-				z_output.Append(cumulus.zForecast[cumulus.fallOptions[z_option]]);
+				z_output.Append(cumulus.Trans.zForecast[cumulus.fallOptions[z_option]]);
 			}
 			else
 			{
 				// must be "steady"
 				Forecastnumber = cumulus.steadyOptions[z_option] + 1;
-				z_output.Append(cumulus.zForecast[cumulus.steadyOptions[z_option]]);
+				z_output.Append(cumulus.Trans.zForecast[cumulus.steadyOptions[z_option]]);
 			}
 			return z_output.ToString();
 		}
@@ -10963,7 +10961,7 @@ namespace CumulusMX
 			for (int sensor = 1; sensor < 11; sensor++)
 			{
 				json.Append("[\"");
-				json.Append(cumulus.ExtraTempCaptions[sensor]);
+				json.Append(cumulus.Trans.ExtraTempCaptions[sensor - 1]);
 				json.Append("\",\"");
 				json.Append(ExtraTemp[sensor].ToString(cumulus.TempFormat));
 				json.Append("\",\"&deg;");
@@ -10987,7 +10985,7 @@ namespace CumulusMX
 			for (int sensor = 1; sensor < 9; sensor++)
 			{
 				json.Append("[\"");
-				json.Append(cumulus.UserTempCaptions[sensor]);
+				json.Append(cumulus.Trans.UserTempCaptions[sensor - 1]);
 				json.Append("\",\"");
 				json.Append(UserTemp[sensor].ToString(cumulus.TempFormat));
 				json.Append("\",\"&deg;");
@@ -11011,7 +11009,7 @@ namespace CumulusMX
 			for (int sensor = 1; sensor < 11; sensor++)
 			{
 				json.Append("[\"");
-				json.Append(cumulus.ExtraHumCaptions[sensor]);
+				json.Append(cumulus.Trans.ExtraHumCaptions[sensor - 1]);
 				json.Append("\",\"");
 				json.Append(ExtraHum[sensor].ToString(cumulus.HumFormat));
 				json.Append("\",\"%\"]");
@@ -11033,7 +11031,7 @@ namespace CumulusMX
 			for (int sensor = 1; sensor < 11; sensor++)
 			{
 				json.Append("[\"");
-				json.Append(cumulus.ExtraDPCaptions[sensor]);
+				json.Append(cumulus.Trans.ExtraDPCaptions[sensor - 1]);
 				json.Append("\",\"");
 				json.Append(ExtraDewPoint[sensor].ToString(cumulus.TempFormat));
 				json.Append("\",\"&deg;");
@@ -11056,7 +11054,7 @@ namespace CumulusMX
 
 			for (var i = 1; i <= 16; i++)
 			{
-				json.Append($"[\"{cumulus.SoilTempCaptions[i]}\",\"{SoilTemp[i].ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{SoilTemp[i].ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 			}
 			json.Length--;
 			json.Append("]}");
@@ -11067,22 +11065,22 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[1]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[2]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[3]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[4]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[5]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[6]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[7]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[8]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[9]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[10]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[11]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[12]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[13]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[14]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[15]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.SoilMoistureCaptions[16]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"]");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11091,14 +11089,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append($"[\"{cumulus.AirQualityCaptions[1]}\",\"{AirQuality1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityCaptions[2]}\",\"{AirQuality2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityCaptions[3]}\",\"{AirQuality3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityCaptions[4]}\",\"{AirQuality4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityAvgCaptions[1]}\",\"{AirQualityAvg1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityAvgCaptions[2]}\",\"{AirQualityAvg2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityAvgCaptions[3]}\",\"{AirQualityAvg3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.AirQualityAvgCaptions[4]}\",\"{AirQualityAvg4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[0]}\",\"{AirQuality1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[1]}\",\"{AirQuality2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[2]}\",\"{AirQuality3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[3]}\",\"{AirQuality4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[0]}\",\"{AirQualityAvg1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[1]}\",\"{AirQualityAvg2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[2]}\",\"{AirQualityAvg3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[3]}\",\"{AirQualityAvg4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11107,12 +11105,12 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append($"[\"{cumulus.CO2_CurrentCaption}\",\"{CO2}\",\"{cumulus.Units.CO2UnitText}\"],");
-			json.Append($"[\"{cumulus.CO2_24HourCaption}\",\"{CO2_24h}\",\"{cumulus.Units.CO2UnitText}\"],");
-			json.Append($"[\"{cumulus.CO2_pm2p5Caption}\",\"{CO2_pm2p5:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+			json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{CO2}\",\"{cumulus.Units.CO2UnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{CO2_24h}\",\"{cumulus.Units.CO2UnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{CO2_pm2p5:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11132,10 +11130,8 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			//json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			//json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11144,12 +11140,10 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			//json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			//json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11158,16 +11152,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			//json.Append($"[\"{cumulus.LeafTempCaptions[1]}\",\"{LeafTemp1.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			//json.Append($"[\"{cumulus.LeafTempCaptions[2]}\",\"{LeafTemp2.ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[1]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[2]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[3]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[4]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[5]}\",\"{LeafWetness5.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[6]}\",\"{LeafWetness6.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[7]}\",\"{LeafWetness7.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.LeafWetnessCaptions[8]}\",\"{LeafWetness8.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[4]}\",\"{LeafWetness5.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[5]}\",\"{LeafWetness6.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[6]}\",\"{LeafWetness7.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[7]}\",\"{LeafWetness8.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -12204,7 +12196,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.ExtraTempVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.ExtraTempVisible[i])
-						json.Append($"\"{cumulus.ExtraTempCaptions[i + 1]}\",");
+						json.Append($"\"{cumulus.Trans.ExtraTempCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -12219,7 +12211,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.ExtraHumVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.ExtraHumVisible[i])
-						json.Append($"\"{cumulus.ExtraHumCaptions[i + 1]}\",");
+						json.Append($"\"{cumulus.Trans.ExtraHumCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -12234,7 +12226,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.ExtraDewPointVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.ExtraDewPointVisible[i])
-						json.Append($"\"{cumulus.ExtraDPCaptions[i + 1]}\",");
+						json.Append($"\"{cumulus.Trans.ExtraDPCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -12250,7 +12242,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.SoilTempVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.SoilTempVisible[i])
-						json.Append($"\"{cumulus.SoilTempCaptions[i + 1]}\",");
+						json.Append($"\"{cumulus.Trans.SoilTempCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -12265,7 +12257,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.SoilMoistVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.SoilMoistVisible[i])
-						json.Append($"\"{cumulus.SoilMoistureCaptions[i + 1]}\",");
+						json.Append($"\"{cumulus.Trans.SoilMoistureCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -12280,7 +12272,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.UserTempVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.UserTempVisible[i])
-						json.Append($"\"{cumulus.UserTempCaptions[i + 1]}\",");
+						json.Append($"\"{cumulus.Trans.UserTempCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;

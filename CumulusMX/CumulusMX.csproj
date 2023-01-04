@@ -216,6 +216,8 @@
     <Compile Include="ImetStation.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="InternetSettings.cs" />
+    <Compile Include="Lang.cs" />
+    <Compile Include="LangSettings.cs" />
     <Compile Include="MeteoLib.cs" />
     <Compile Include="MoonriseMoonset.cs" />
     <Compile Include="MqttPublisher.cs" />

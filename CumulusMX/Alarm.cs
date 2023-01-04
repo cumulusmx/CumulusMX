@@ -91,12 +91,12 @@ namespace CumulusMX
 							cumulus.LogMessage($"Alarm ({Name}): Sending email");
 
 							// Construct the message - preamble, plus values
-							var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
+							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
 							if (!string.IsNullOrEmpty(LastError))
 							{
 								msg += "\r\nLast error: " + LastError;
 							}
-							cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+							cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 						}
 
 						if (!string.IsNullOrEmpty(Action))
@@ -239,8 +239,8 @@ namespace CumulusMX
 						cumulus.LogMessage($"Alarm ({Name}): Sending email");
 
 						// Construct the message - preamble, plus values
-						var msg = cumulus.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
 
 					if (!string.IsNullOrEmpty(Action))
@@ -299,8 +299,8 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage($"Alarm ({Name}): Sending email");
 						// Construct the message - preamble, plus values
-						var msg = cumulus.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
-						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
+						var msg = cumulus.Trans.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
+						cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml);
 					}
 
 					if (!string.IsNullOrEmpty(Action))

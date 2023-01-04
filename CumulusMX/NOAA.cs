@@ -100,7 +100,7 @@ namespace CumulusMX
 
 		private  string CompassPoint(int bearing)
 		{
-			return cumulus.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
+			return cumulus.Trans.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
 		}
 
 		private static decimal Frac(decimal num)
