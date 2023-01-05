@@ -38,6 +38,7 @@ namespace CumulusMX
 		private readonly HttpClient dogsBodyClient = new HttpClient();
 		private readonly bool checkWllGustValues;
 		private bool broadcastReceived;
+		private bool broadcastStopped;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow;
 		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -46,6 +47,7 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
+		private double currentAvgWindSpd = 0;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -122,9 +124,9 @@ namespace CumulusMX
 			}
 			else
 			{
-				// User period is less than 10 minutes, so we cannot use the station 10 min gust values
+				// User period is less than 10 minutes
 				CalcRecentMaxGust = true;
-				checkWllGustValues = false;
+				checkWllGustValues = true;
 			}
 
 
@@ -537,6 +539,16 @@ namespace CumulusMX
 								cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
 							else
 								cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
+
+							if (!DataStopped)
+							{
+								cumulus.LogMessage($"ERROR: No current data received from the WLL, DataStopped triggered");
+
+								DataStopped = true;
+								DataStoppedTime = DateTime.Now;
+								cumulus.DataStoppedAlarm.LastError = "No current data is being received from the WLL";
+								cumulus.DataStoppedAlarm.Triggered = true;
+							}
 						}
 						retry++;
 
@@ -545,7 +557,7 @@ namespace CumulusMX
 						Thread.Sleep(1000);
 						tmrCurrent.Start();
 					}
-				} while (retry < 3);
+				} while (retry <= 3);
 
 				//cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");
 				WebReq.Release();
@@ -585,8 +597,8 @@ namespace CumulusMX
 								// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
 								int windDir = rec.wind_dir_last ?? 0;
 
-								// No average in the broadcast data, so use last value from current - allow for calibration
-								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, WindAverage / cumulus.Calib.WindSpeed.Mult, dateTime);
+								// No average in the broadcast data, so use last value from current
+								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, currentAvgWindSpd, dateTime);
 
 								var gust = ConvertWindMPHToUser(rec.wind_speed_hi_last_10_min);
 								var gustCal = gust * cumulus.Calib.WindGust.Mult;
@@ -670,6 +682,7 @@ namespace CumulusMX
 					UpdateMQTT();
 
 					broadcastReceived = true;
+					broadcastStopped = false;
 					DataStopped = false;
 					cumulus.DataStoppedAlarm.Triggered = false;
 					multicastsGood++;
@@ -841,21 +854,45 @@ namespace CumulusMX
 								*/
 								try
 								{
-									cumulus.LogDebugMessage($"WLL current: using wind data from TxId {data1.txid}");
+									cumulus.LogDebugMessage($"WLL current: using average wind speed data from TxId {data1.txid}");
 
 									// pesky null values from WLL when it is calm
-									int wdir = data1.wind_dir_last.HasValue ? data1.wind_dir_last.Value : 0;
-									double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
-									double wspdAvg10min = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
+									if (cumulus.StationOptions.AvgSpeedMinutes == 1)
+										currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_1_min ?? 0);
+									else if (cumulus.StationOptions.AvgSpeedMinutes < 10)
+										currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_2_min ?? 0);
+									else
+										currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
 
-									DoWind(wind, wdir, wspdAvg10min, dateTime);
+									// Only use wind data from current if we are not receiving broadcasts
+									if (broadcastStopped)
+									{
+										cumulus.LogDebugMessage($"WLL current: no broadcast data so using full wind data from TxId {data1.txid}");
 
-									//WindAverage = wspdAvg10min * cumulus.Calib.WindSpeed.Mult;
+										// pesky null values from WLL when it is calm
+										int wdir = data1.wind_dir_last ?? 0;
+										double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
 
-									// Wind data can be a bit out of date compared to the broadcasts (1 minute update), so only use gust broadcast data
-									/*
-									var gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min);
+										DoWind(wind, wdir, currentAvgWindSpd, dateTime);
+									}
+
+									double gust;
+									int gustDir;
+									if (cumulus.StationOptions.PeakGustMinutes < 10)
+									{
+										gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
+										gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+									}
+									else
+									{
+										gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min ?? 0);
+										gustDir = data1.wind_dir_at_hi_speed_last_10_min ?? 0;
+
+									}
+
+									ConvertWindMPHToUser(gust);
 									var gustCal = gust * cumulus.Calib.WindGust.Mult;
+
 
 									if (checkWllGustValues)
 									{
@@ -865,15 +902,15 @@ namespace CumulusMX
 										if (gustCal > RecentMaxGust)
 										{
 											// Check for spikes, and set highs
-											if (CheckHighGust(gustCal, data1.wind_dir_at_hi_speed_last_10_min, dateTime))
+											if (CheckHighGust(gustCal, gustDir, dateTime))
 											{
-												cumulus.LogDebugMessage("Setting max gust from current 10 min value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+												cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
 												// add to recent values so normal calculation includes this value
 												WindRecent[nextwind].Gust = gust; // use uncalibrated value
-												WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+												WindRecent[nextwind].Speed = currentAvgWindSpd;
 												WindRecent[nextwind].Timestamp = dateTime;
-												nextwind = (nextwind + 1) % cumulus.MaxWindRecent;
+												nextwind = (nextwind + 1) % MaxWindRecent;
 
 												RecentMaxGust = gustCal;
 											}
@@ -882,12 +919,11 @@ namespace CumulusMX
 									else if (!CalcRecentMaxGust)
 									{
 										// Check for spikes, and set highs
-										if (CheckHighGust(gustCal, data1.wind_dir_at_hi_speed_last_10_min, dateTime))
+										if (CheckHighGust(gustCal, gustDir, dateTime))
 										{
 											RecentMaxGust = gustCal;
 										}
 									}
-									*/
 								}
 								catch (Exception ex)
 								{
@@ -915,7 +951,7 @@ namespace CumulusMX
 								*/
 
 
-								cumulus.LogDebugMessage($"WLL current: using rain data from TxId {data1.txid}");
+								cumulus.LogDebugMessage($"WLL current: using storm rain data from TxId {data1.txid}");
 
 								if (data1.rain_size.HasValue)
 								{
@@ -956,18 +992,37 @@ namespace CumulusMX
 									}
 								}
 
-								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use storm data
+								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use storm data unless we are not receiving broadcasts
 
 								// All rainfall values supplied as *tip counts*
-								//double rain = ConvertRainINToUser((double)rec["rainfall_year"]);
-								//double rainrate = ConvertRainINToUser((double)rec["rain_rate_last"]);
+								if (!broadcastStopped)
+								{
+									cumulus.LogDebugMessage($"WLL current: Skipping rain data from TxId {data1.txid} as broadcasts are being received ok");
+								}
+								else
+								{
+									cumulus.LogDebugMessage($"WLL current: No broadcast data so using rain data from TxId {data1.txid}");
 
-								//if (rainrate < 0)
-								//{
-								//	rainrate = 0;
-								//}
+									if (!data1.rainfall_year.HasValue || !data1.rain_rate_last.HasValue || !data1.rain_size.HasValue)
+									{
+										cumulus.LogDebugMessage("WLL current: No rain values present!");
+									}
+									else
+									{
+										// double check that the rainfall isn't out of date so we double count when it catches up
+										var rain = ConvertRainClicksToUser(data1.rainfall_year.Value, data1.rain_size.Value);
+										var rainrate = ConvertRainClicksToUser(data1.rain_rate_last.Value, data1.rain_size.Value);
 
-								//DoRain(rain, rainrate, dateTime);
+										if (rain > 0 && rain < Raincounter)
+										{
+											cumulus.LogDebugMessage("WLL current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
+										}
+										else
+										{
+											DoRain(rain, rainrate, dateTime);
+										}
+									}
+								}
 
 								if (!data1.rain_storm.HasValue || !data1.rain_storm_start_at.HasValue || !data1.rain_size.HasValue)
 								{
@@ -3324,13 +3379,13 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
-				if (!DataStopped)
+				if (cumulus.WllTriggerDataStoppedOnBroadcast && !DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
 				}
-				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastError = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
+				broadcastStopped = true;
 				// Try and give the broadcasts a kick in case the last command did not get through
 				GetWllRealtime(null, null);
 			}

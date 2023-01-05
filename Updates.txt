@@ -15,11 +15,19 @@ Fixed
 ——————————————
 New
 - Adds dew point to extra sensor graphing
-- Add extra sensors to the dashboard selecta-a-chart
+- Add extra sensors to the dashboard select-a-chart
+
+Changed
+- Davis WLL now fully falls back to the local API current conditions for rain and wind data if broadcasts stop being received for 30 seconds
+	- There is now a new Advanced setting for the WLL: Trigger DataStopped on Broadcast stop
+		Previously if broadcast stopped being received, a full DataStopped condition and alarm was triggered
+		Now CMX falls back to using the local API for all data
+		This new configuration setting allows you set the DataStopped only when both broadcasts AND local API responses stop being received
 
 Fixed
 - Extra sensor graphs stopping at month end
 - Start-up/rollover backups were copying Custom logs to the CMX root folder rather than the backup folder
+- Davis WLL not updating the gust value if broadcast data stops being received
 
 
 3.23.0 - b3220

@@ -413,7 +413,8 @@ namespace CumulusMX
 			var wllAdvanced = new JsonStationSettingsWLLAdvanced()
 			{
 				raingaugetype = cumulus.DavisOptions.RainGaugeType,
-				tcpport = cumulus.DavisOptions.TCPPort
+				tcpport = cumulus.DavisOptions.TCPPort,
+				datastopped = cumulus.WllTriggerDataStoppedOnBroadcast
 			};
 
 			var wllApi = new JsonStationSettingsWLLApi()
@@ -985,6 +986,8 @@ namespace CumulusMX
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
 						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
+						cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
+
 
 						// Automatically enable extra logging?
 						// Should we auto disable it too?
@@ -1850,6 +1853,7 @@ namespace CumulusMX
 	{
 		public int raingaugetype { get; set; }
 		public int tcpport { get; set; }
+		public bool datastopped { get; set; }
 	}
 
 	internal class JsonStationSettingsWLLNetwork
