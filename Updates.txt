@@ -6,9 +6,9 @@ New
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message
+- The Dashboard page now shows times in your locale format
 
 Fixed
-- AWEKAS producing and exception message when it has already logged the response as invalid
 
 
 3.23.1 - b3221
@@ -28,6 +28,9 @@ Fixed
 - Extra sensor graphs stopping at month end
 - Start-up/rollover backups were copying Custom logs to the CMX root folder rather than the backup folder
 - Davis WLL not updating the gust value if broadcast data stops being received
+- AWEKAS:
+	- Missing "&" on soil temperatures
+	- producing and exception message when it has already logged the response as invalid
 
 
 3.23.0 - b3220
