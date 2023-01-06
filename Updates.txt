@@ -15,6 +15,9 @@ Fixed
 - Extra sensor graphs stopping at month end
 - Start-up/rollover backups were copying Custom logs to the CMX root folder rather than the backup folder
 - Davis WLL not updating the gust value if broadcast data stops being received
+- AWEKAS:
+	- Missing "&" on soil temperatures
+	- producing an exception message when it has already logged the response as invalid
 
 
 3.23.0 - b3220

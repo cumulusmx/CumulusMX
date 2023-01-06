@@ -2499,6 +2499,7 @@ namespace CumulusMX
 						LogMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 						HttpUploadAlarm.LastError = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
 						HttpUploadAlarm.Triggered = true;
+						return;
 					}
 					else
 					{
