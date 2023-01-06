@@ -9918,9 +9918,9 @@ namespace CumulusMX
 
 			if (cumulus.AWEKAS.SendSoilTemp)
 			{
-				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
+					if (started) sb.Append('&'); else started = true;
 					sb.Append($"soiltemp{i}=" + ConvertUserTempToC(SoilTemp[i]).ToString("F1", InvC));
 				}
 			}
