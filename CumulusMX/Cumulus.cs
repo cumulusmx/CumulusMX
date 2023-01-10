@@ -2499,6 +2499,7 @@ namespace CumulusMX
 						LogMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 						HttpUploadAlarm.LastError = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
 						HttpUploadAlarm.Triggered = true;
+						return;
 					}
 					else
 					{
@@ -4346,6 +4347,7 @@ namespace CumulusMX
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
 			WllStationId = ini.GetValue("WLL", "WLStationId", -1);
 			//if (WllStationId == "-1") WllStationId = "";
+			WllTriggerDataStoppedOnBroadcast = ini.GetValue("WLL", "DataStoppedOnBroadcast", true);
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", WllBroadcastDuration);
 			WllBroadcastPort = ini.GetValue("WLL", "BroadcastPort", WllBroadcastPort);
@@ -4660,6 +4662,7 @@ namespace CumulusMX
 			GraphOptions.TempSumVisible2 = ini.GetValue("Graphs", "TempSumVisible2", true);
 			GraphOptions.ExtraTempVisible = ini.GetValue("Graphs", "ExtraTempVisible", new bool[10]);
 			GraphOptions.ExtraHumVisible = ini.GetValue("Graphs", "ExtraHumVisible", new bool[10]);
+			GraphOptions.ExtraDewPointVisible = ini.GetValue("Graphs", "ExtraDewPointVisible", new bool[10]);
 			GraphOptions.SoilTempVisible = ini.GetValue("Graphs", "SoilTempVisible", new bool[16]);
 			GraphOptions.SoilMoistVisible = ini.GetValue("Graphs", "SoilMoistVisible", new bool[16]);
 			GraphOptions.UserTempVisible = ini.GetValue("Graphs", "UserTempVisible", new bool[8]);
@@ -5664,6 +5667,7 @@ namespace CumulusMX
 			ini.SetValue("WLL", "WLv2ApiKey", WllApiKey);
 			ini.SetValue("WLL", "WLv2ApiSecret", WllApiSecret);
 			ini.SetValue("WLL", "WLStationId", WllStationId);
+			ini.SetValue("WLL", "DataStoppedOnBroadcast", WllTriggerDataStoppedOnBroadcast);
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimaryTempHumTxId", WllPrimaryTempHum);
 			ini.SetValue("WLL", "PrimaryWindTxId", WllPrimaryWind);
@@ -6320,6 +6324,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "TempSumVisible2", GraphOptions.TempSumVisible2);
 			ini.SetValue("Graphs", "ExtraTempVisible", GraphOptions.ExtraTempVisible);
 			ini.SetValue("Graphs", "ExtraHumVisible", GraphOptions.ExtraHumVisible);
+			ini.SetValue("Graphs", "ExtraDewPointVisible", GraphOptions.ExtraDewPointVisible);
 			ini.SetValue("Graphs", "SoilTempVisible", GraphOptions.SoilTempVisible);
 			ini.SetValue("Graphs", "SoilMoistVisible", GraphOptions.SoilMoistVisible);
 			ini.SetValue("Graphs", "UserTempVisible", GraphOptions.UserTempVisible);
@@ -6886,7 +6891,7 @@ namespace CumulusMX
 		public string WllApiSecret;
 		public int WllStationId;
 		public int WllParentId;
-
+		public bool WllTriggerDataStoppedOnBroadcast; // trigger a data stopped state if broadcasts stop being received but current data is OK
 		/// <value>Read-only setting, default 20 minutes (1200 sec)</value>
 		public int WllBroadcastDuration = 1200;
 		/// <value>Read-only setting, default 22222</value>
@@ -7847,7 +7852,7 @@ namespace CumulusMX
 							if (CustomIntvlLogSettings[i].Enabled)
 							{
 								var filename = GetCustomIntvlLogFileName(i, timestamp.AddDays(-1));
-								CopyBackupFile(filename, filename.Replace(logFilePath, ""), true);
+								CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""), true);
 							}
 						}
 					}
@@ -11432,6 +11437,7 @@ namespace CumulusMX
 		public bool TempSumVisible2 { get; set; }
 		public bool[] ExtraTempVisible = new bool[10];
 		public bool[] ExtraHumVisible = new bool[10];
+		public bool[] ExtraDewPointVisible = new bool[10];
 		public bool[] SoilTempVisible = new bool[16];
 		public bool[] SoilMoistVisible = new bool[16];
 		public bool[] UserTempVisible = new bool[8];

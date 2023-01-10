@@ -350,6 +350,11 @@ namespace CumulusMX
 				sensors = cumulus.GraphOptions.ExtraHumVisible
 			};
 
+			var graphDataExtraDP= new JsonStationSettingsGraphDataExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.ExtraDewPointVisible
+			};
+
 			var graphDataSoilTemp = new JsonStationSettingsGraphDataExtraSensors()
 			{
 				sensors = cumulus.GraphOptions.SoilTempVisible
@@ -385,6 +390,7 @@ namespace CumulusMX
 				degreedays = graphDataDegreeDays,
 				extratemp = graphDataExtraTemp,
 				extrahum = graphDataExtraHum,
+				extradew = graphDataExtraDP,
 				soiltemp = graphDataSoilTemp,
 				soilmoist = graphDataSoilMoist,
 				usertemp = graphDataUserTemp,
@@ -407,7 +413,8 @@ namespace CumulusMX
 			var wllAdvanced = new JsonStationSettingsWLLAdvanced()
 			{
 				raingaugetype = cumulus.DavisOptions.RainGaugeType,
-				tcpport = cumulus.DavisOptions.TCPPort
+				tcpport = cumulus.DavisOptions.TCPPort,
+				datastopped = cumulus.WllTriggerDataStoppedOnBroadcast
 			};
 
 			var wllApi = new JsonStationSettingsWLLApi()
@@ -641,6 +648,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.GrowingDegreeDaysVisible2 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis2;
 					cumulus.GraphOptions.ExtraTempVisible = settings.Graphs.datavisibility.extratemp.sensors;
 					cumulus.GraphOptions.ExtraHumVisible = settings.Graphs.datavisibility.extrahum.sensors;
+					cumulus.GraphOptions.ExtraDewPointVisible = settings.Graphs.datavisibility.extradew.sensors;
 					cumulus.GraphOptions.SoilTempVisible = settings.Graphs.datavisibility.soiltemp.sensors;
 					cumulus.GraphOptions.SoilMoistVisible = settings.Graphs.datavisibility.soilmoist.sensors;
 					cumulus.GraphOptions.UserTempVisible = settings.Graphs.datavisibility.usertemp.sensors;
@@ -978,6 +986,8 @@ namespace CumulusMX
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
 						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
+						cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
+
 
 						// Automatically enable extra logging?
 						// Should we auto disable it too?
@@ -1843,6 +1853,7 @@ namespace CumulusMX
 	{
 		public int raingaugetype { get; set; }
 		public int tcpport { get; set; }
+		public bool datastopped { get; set; }
 	}
 
 	internal class JsonStationSettingsWLLNetwork
@@ -1963,6 +1974,7 @@ namespace CumulusMX
 		public JsonStationSettingsGraphDataDegreeDays degreedays { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors extratemp { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors extrahum { get; set; }
+		public JsonStationSettingsGraphDataExtraSensors extradew { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors soiltemp { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors soilmoist { get; set; }
 		public JsonStationSettingsGraphDataExtraSensors usertemp { get; set; }

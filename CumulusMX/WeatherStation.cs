@@ -2715,14 +2715,14 @@ namespace CumulusMX
 					sbExt[i] = new StringBuilder($"\"{cumulus.ExtraTempCaptions[i+1]}\":[");
 			}
 
-			var datefrom = ts.AddHours(-cumulus.GraphHours);
-
-			// get the log file name to start
-			var logFile = cumulus.GetExtraLogFileName(datefrom);
-
 			var finished = false;
 			var entrydate = new DateTime();
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] +1));
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -2797,20 +2797,144 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				if (entrydate >= dateto || fileDate > dateto)
 				{
 					finished = true;
 				}
 				else
 				{
-					datefrom = datefrom.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(datefrom);
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
 
 			for (var i = 0; i < cumulus.GraphOptions.ExtraTempVisible.Length; i++)
 			{
 				if (cumulus.GraphOptions.ExtraTempVisible[i])
+				{
+					if (sbExt[i][sbExt[i].Length - 1] == ',')
+						sbExt[i].Length--;
+
+					sbExt[i].Append(']');
+					sb.Append((append ? "," : "") + sbExt[i]);
+					append = true;
+				}
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetExtraDewpointGraphData(DateTime ts)
+		{
+			bool append = false;
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{", 10240);
+
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.ExtraDewPointVisible.Length];
+
+			for (var i = 0; i < cumulus.GraphOptions.ExtraDewPointVisible.Length; i++)
+			{
+				if (cumulus.GraphOptions.ExtraDewPointVisible[i])
+					sbExt[i] = new StringBuilder($"\"{cumulus.ExtraDPCaptions[i + 1]}\":[");
+			}
+
+			var finished = false;
+			var entrydate = new DateTime();
+			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(fileDate);
+
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					int linenum = 0;
+					int errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+
+								if (entrydate >= datefrom)
+								{
+									// entry is from required period
+									var temp = 0.0;
+									for (var i = 0; i < cumulus.GraphOptions.ExtraDewPointVisible.Length; i++)
+									{
+										if (cumulus.GraphOptions.ExtraDewPointVisible[i] && double.TryParse(st[i + 22], out temp))
+											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								errorCount++;
+								cumulus.LogErrorMessage($"GetExtraDewpointGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetExtraDewpointGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"GetExtraDewpointGraphData: Error reading {logFile}. Error - {ex.Message}");
+					}
+				}
+
+				if (entrydate >= dateto || fileDate > dateto)
+				{
+					finished = true;
+				}
+				else
+				{
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
+				}
+			}
+
+			for (var i = 0; i < cumulus.GraphOptions.ExtraDewPointVisible.Length; i++)
+			{
+				if (cumulus.GraphOptions.ExtraDewPointVisible[i])
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -2839,14 +2963,15 @@ namespace CumulusMX
 					sbExt[i] = new StringBuilder($"\"{cumulus.ExtraHumCaptions[i + 1]}\":[");
 			}
 
-			var datefrom = ts.AddHours(-cumulus.GraphHours);
-
-			// get the log file name to start
-			var logFile = cumulus.GetExtraLogFileName(datefrom);
 
 			var finished = false;
 			var entrydate = new DateTime();
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(datefrom);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -2921,14 +3046,14 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				if (entrydate >= dateto || fileDate > dateto)
 				{
 					finished = true;
 				}
 				else
 				{
-					datefrom = datefrom.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(datefrom);
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
 
@@ -2963,14 +3088,14 @@ namespace CumulusMX
 					sbExt[i] = new StringBuilder($"\"{cumulus.SoilTempCaptions[i + 1]}\":[");
 			}
 
-			var datefrom = ts.AddHours(-cumulus.GraphHours);
-
-			// get the log file name to start
-			var logFile = cumulus.GetExtraLogFileName(datefrom);
-
 			var finished = false;
 			var entrydate = new DateTime();
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(datefrom);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -3050,14 +3175,14 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				if (entrydate >= dateto || fileDate > dateto)
 				{
 					finished = true;
 				}
 				else
 				{
-					datefrom = datefrom.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(datefrom);
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
 
@@ -3092,14 +3217,14 @@ namespace CumulusMX
 					sbExt[i] = new StringBuilder($"\"{cumulus.SoilMoistureCaptions[i + 1]}\":[");
 			}
 
-			var datefrom = ts.AddHours(-cumulus.GraphHours);
-
-			// get the log file name to start
-			var logFile = cumulus.GetExtraLogFileName(datefrom);
-
 			var finished = false;
 			var entrydate = new DateTime();
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(datefrom);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -3179,14 +3304,14 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				if (entrydate >= dateto || fileDate > dateto)
 				{
 					finished = true;
 				}
 				else
 				{
-					datefrom = datefrom.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(datefrom);
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
 
@@ -3221,14 +3346,14 @@ namespace CumulusMX
 					sbExt[i] = new StringBuilder($"\"{cumulus.UserTempCaptions[i + 1]}\":[");
 			}
 
-			var datefrom = ts.AddHours(-cumulus.GraphHours);
-
-			// get the log file name to start
-			var logFile = cumulus.GetExtraLogFileName(datefrom);
-
 			var finished = false;
 			var entrydate = new DateTime();
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(datefrom);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -3303,14 +3428,14 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				if (entrydate >= dateto || fileDate > dateto)
 				{
 					finished = true;
 				}
 				else
 				{
-					datefrom = datefrom.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(datefrom);
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
 
@@ -3347,14 +3472,15 @@ namespace CumulusMX
 			var sbHum = new StringBuilder("\"Humidity\":[");
 
 
+			var finished = false;
+			var entrydate = new DateTime();
+			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var datefrom = ts.AddHours(-cumulus.GraphHours);
+			var fileDate = datefrom;
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(datefrom);
 
-			var finished = false;
-			var entrydate = new DateTime();
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
@@ -3447,14 +3573,14 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || datefrom > dateto.AddMonths(1))
+				if (entrydate >= dateto || fileDate > dateto)
 				{
 					finished = true;
 				}
 				else
 				{
-					datefrom = datefrom.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(datefrom);
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
 
@@ -9843,9 +9969,9 @@ namespace CumulusMX
 
 			if (cumulus.AWEKAS.SendSoilTemp)
 			{
-				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
+					if (started) sb.Append('&'); else started = true;
 					sb.Append($"soiltemp{i}=" + ConvertUserTempToC(SoilTemp[i]).ToString("F1", InvC));
 				}
 			}
@@ -12078,7 +12204,7 @@ namespace CumulusMX
 				for (var i = 0; i < cumulus.GraphOptions.ExtraTempVisible.Length; i++)
 				{
 					if (cumulus.GraphOptions.ExtraTempVisible[i])
-						json.Append($"\"{cumulus.ExtraTempCaptions[i+1]}\",");
+						json.Append($"\"{cumulus.ExtraTempCaptions[i + 1]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -12100,6 +12226,22 @@ namespace CumulusMX
 
 				json.Append(']');
 			}
+
+			// Extra dew point
+			if (cumulus.GraphOptions.ExtraDewPointVisible.Contains(true))
+			{
+				json.Append(",\"ExtraDewPoint\":[");
+				for (var i = 0; i < cumulus.GraphOptions.ExtraDewPointVisible.Length; i++)
+				{
+					if (cumulus.GraphOptions.ExtraDewPointVisible[i])
+						json.Append($"\"{cumulus.ExtraDPCaptions[i + 1]}\",");
+				}
+				if (json[json.Length - 1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
 
 			// Soil Temp
 			if (cumulus.GraphOptions.SoilTempVisible.Contains(true))
