@@ -18,7 +18,7 @@ Fixed
 - AWEKAS:
 	- Missing "&" on soil temperatures
 	- producing an exception message when it has already logged the response as invalid
-
+- Log file editor broken in v3.23.0
 
 3.23.0 - b3220
 ——————————————
