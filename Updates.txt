@@ -7,7 +7,7 @@ New
 Changed
 - Davis WLL now fully falls back to the local API current conditions for rain and wind data if broadcasts stop being received for 30 seconds
 	- There is now a new Advanced setting for the WLL: Trigger DataStopped on Broadcast stop
-		Previously if broadcast stopped being received, a full DataStopped condition and alarm was triggered
+		Previously if broadcasts stopped being received, a full DataStopped condition and alarm was triggered
 		Now CMX falls back to using the local API for all data
 		This new configuration setting allows you set the DataStopped only when both broadcasts AND local API responses stop being received
 
@@ -19,6 +19,7 @@ Fixed
 	- Missing "&" on soil temperatures
 	- producing an exception message when it has already logged the response as invalid
 - Log file editor broken in v3.23.0
+
 
 3.23.0 - b3220
 ——————————————
