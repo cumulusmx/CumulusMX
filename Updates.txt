@@ -7,6 +7,7 @@ New
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message
 - The Dashboard page now shows times in your locale format
+- Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
 
 Fixed
 

@@ -26,6 +26,7 @@ namespace CumulusMX
 		public static CustomLogs customLogs;
 		public static Wizard wizard;
 		internal static LangSettings langSettings;
+		internal static DisplaySettings displaySettings;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
@@ -1100,6 +1101,9 @@ namespace CumulusMX
 							case "customlogsdaily.json":
 								await writer.WriteAsync(customLogs.GetAlpacaFormDataDaily());
 								break;
+							case "displayoptions.json":
+								await writer.WriteAsync(displaySettings.GetAlpacaFormData());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -1183,6 +1187,9 @@ namespace CumulusMX
 								break;
 							case "updatecustomlogsdaily.json":
 								await writer.WriteAsync(customLogs.UpdateConfigDaily(HttpContext));
+								break;
+							case "updatedisplay.json":
+								await writer.WriteAsync(displaySettings.UpdateConfig(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;

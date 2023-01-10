@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -400,6 +401,32 @@ namespace CumulusMX
 			return ret;
 		}
 
+		// *** Encode string array - very basic, no escaped quotes allowed
+		private string EncodeStringArray(string[] Value)
+		{
+			if (Value == null) return null;
+
+			StringBuilder sb = new StringBuilder();
+			foreach (string b in Value)
+			{
+				sb.Append($"\"{b}\",");
+			}
+			if (sb[sb.Length - 1] == ',')
+				sb.Length--;
+
+			return sb.ToString();
+		}
+
+		// *** Decode string array - very basic, no escaped quotes allowed
+		private string[] DecodeStringArray(string Value, int Length)
+		{
+			if (Value == null) return null;
+
+			var x = Value.Substring(1, Value.Length - 2);
+
+			return x.Split(new string[] { "\",\"" }, StringSplitOptions.None);
+		}
+
 		// *** Getters for various types ***
 		internal bool GetValue(string SectionName, string Key, bool DefaultValue)
 		{
@@ -459,6 +486,20 @@ namespace CumulusMX
 			}
 		}
 
+		internal string[] GetValue(string SectionName, string Key, string[] DefaultValue)
+		{
+			string StringValue = GetValue(SectionName, Key, EncodeStringArray(DefaultValue));
+			try
+			{
+				return DecodeStringArray(StringValue, DefaultValue.Length);
+			}
+			catch (FormatException)
+			{
+				return DefaultValue;
+			}
+		}
+
+
 		internal DateTime GetValue(string SectionName, string Key, DateTime DefaultValue)
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
@@ -496,6 +537,11 @@ namespace CumulusMX
 		internal void SetValue(string SectionName, string Key, bool[] Value)
 		{
 			SetValue(SectionName, Key, EncodeBoolArray(Value));
+		}
+
+		internal void SetValue(string SectionName, string Key, string[] Value)
+		{
+			SetValue(SectionName, Key, EncodeStringArray(Value));
 		}
 
 		internal void SetValue(string SectionName, string Key, DateTime Value)

@@ -61,15 +61,6 @@ namespace CumulusMX
 				advanced = optionsAdv
 			};
 
-			// Display Options
-			var displayOptions = new JsonDisplayOptions()
-			{
-				windrosepoints = cumulus.NumWindRosePoints,
-				useapparent = cumulus.DisplayOptions.UseApparent,
-				displaysolar = cumulus.DisplayOptions.ShowSolar,
-				displayuv = cumulus.DisplayOptions.ShowUV
-			};
-
 			// Units > Advanced
 			var unitsAdv = new JsonStationSettingsUnitsAdvanced
 			{
@@ -303,107 +294,6 @@ namespace CumulusMX
 				month = cumulus.ChillHourSeasonStart
 			};
 
-			var graphDataTemp = new JsonStationSettingsGraphDataTemperature()
-			{
-				graphTempVis = cumulus.GraphOptions.TempVisible,
-				graphInTempVis = cumulus.GraphOptions.InTempVisible,
-				graphHeatIndexVis = cumulus.GraphOptions.HIVisible,
-				graphDewPointVis = cumulus.GraphOptions.DPVisible,
-				graphWindChillVis = cumulus.GraphOptions.WCVisible,
-				graphAppTempVis = cumulus.GraphOptions.AppTempVisible,
-				graphFeelsLikeVis = cumulus.GraphOptions.FeelsLikeVisible,
-				graphHumidexVis = cumulus.GraphOptions.HumidexVisible,
-				graphDailyAvgTempVis = cumulus.GraphOptions.DailyAvgTempVisible,
-				graphDailyMaxTempVis = cumulus.GraphOptions.DailyMaxTempVisible,
-				graphDailyMinTempVis = cumulus.GraphOptions.DailyMinTempVisible,
-				graphTempSumVis0 = cumulus.GraphOptions.TempSumVisible0,
-				graphTempSumVis1 = cumulus.GraphOptions.TempSumVisible1,
-				graphTempSumVis2 = cumulus.GraphOptions.TempSumVisible2
-			};
-
-			var graphDataHum = new JsonStationSettingsGraphDataHumidity()
-			{
-				graphHumVis = cumulus.GraphOptions.OutHumVisible,
-				graphInHumVis = cumulus.GraphOptions.InHumVisible
-			};
-
-			var graphDataSolar = new JsonStationSettingsGraphDataSolar()
-			{
-				graphUvVis = cumulus.GraphOptions.UVVisible,
-				graphSolarVis = cumulus.GraphOptions.SolarVisible,
-				graphSunshineVis = cumulus.GraphOptions.SunshineVisible
-			};
-
-			var graphDataDegreeDays = new JsonStationSettingsGraphDataDegreeDays()
-			{
-				graphGrowingDegreeDaysVis1 = cumulus.GraphOptions.GrowingDegreeDaysVisible1,
-				graphGrowingDegreeDaysVis2 = cumulus.GraphOptions.GrowingDegreeDaysVisible2
-			};
-
-			var graphDataExtraTemp = new JsonStationSettingsGraphDataExtraSensors()
-			{
-				sensors = cumulus.GraphOptions.ExtraTempVisible
-			};
-
-			var graphDataExtraHum = new JsonStationSettingsGraphDataExtraSensors()
-			{
-				sensors = cumulus.GraphOptions.ExtraHumVisible
-			};
-
-			var graphDataExtraDP= new JsonStationSettingsGraphDataExtraSensors()
-			{
-				sensors = cumulus.GraphOptions.ExtraDewPointVisible
-			};
-
-			var graphDataSoilTemp = new JsonStationSettingsGraphDataExtraSensors()
-			{
-				sensors = cumulus.GraphOptions.SoilTempVisible
-			};
-
-			var graphDataSoilMoist = new JsonStationSettingsGraphDataExtraSensors()
-			{
-				sensors = cumulus.GraphOptions.SoilMoistVisible
-			};
-
-			var graphDataUserTemp = new JsonStationSettingsGraphDataExtraSensors()
-			{
-				sensors = cumulus.GraphOptions.UserTempVisible
-			};
-
-			var graphDataCo2 = new JsonStationSettingsGraphDataCo2()
-			{
-				co2 = cumulus.GraphOptions.CO2Sensor.CO2,
-				co2avg = cumulus.GraphOptions.CO2Sensor.CO2Avg,
-				pm25 = cumulus.GraphOptions.CO2Sensor.Pm25,
-				pm25avg = cumulus.GraphOptions.CO2Sensor.Pm25Avg,
-				pm10 = cumulus.GraphOptions.CO2Sensor.Pm10,
-				pm10avg = cumulus.GraphOptions.CO2Sensor.Pm10Avg,
-				temp = cumulus.GraphOptions.CO2Sensor.Temp,
-				hum = cumulus.GraphOptions.CO2Sensor.Hum
-			};
-
-			var graphDataVis = new JsonStationSettingsGraphVisibility()
-			{
-				temperature = graphDataTemp,
-				humidity = graphDataHum,
-				solar = graphDataSolar,
-				degreedays = graphDataDegreeDays,
-				extratemp = graphDataExtraTemp,
-				extrahum = graphDataExtraHum,
-				extradew = graphDataExtraDP,
-				soiltemp = graphDataSoilTemp,
-				soilmoist = graphDataSoilMoist,
-				usertemp = graphDataUserTemp,
-				co2 = graphDataCo2
-			};
-
-			var graphs = new JsonStationSettingsGraphs()
-			{
-				graphdays = cumulus.GraphDays,
-				graphhours = cumulus.GraphHours,
-				datavisibility = graphDataVis
-			};
-
 			var wllNetwork = new JsonStationSettingsWLLNetwork()
 			{
 				autoDiscover = cumulus.WLLAutoUpdateIpAddress,
@@ -531,9 +421,7 @@ namespace CumulusMX
 				AnnualRainfall = annualrainfall,
 				GrowingDD = growingdd,
 				TempSum = tempsum,
-				ChillHrs = chillhrs,
-				Graphs = graphs,
-				DisplayOptions = displayOptions
+				ChillHrs = chillhrs
 			};
 
 			//return JsonConvert.SerializeObject(data);
@@ -619,56 +507,6 @@ namespace CumulusMX
 			// process the settings
 			try
 			{
-				// Graph Config
-				try
-				{
-					cumulus.GraphHours = settings.Graphs.graphhours;
-					cumulus.RecentDataDays = (int)Math.Ceiling(Math.Max(7, cumulus.GraphHours / 24.0));
-					cumulus.GraphDays = settings.Graphs.graphdays;
-					cumulus.GraphOptions.TempVisible = settings.Graphs.datavisibility.temperature.graphTempVis;
-					cumulus.GraphOptions.InTempVisible = settings.Graphs.datavisibility.temperature.graphInTempVis;
-					cumulus.GraphOptions.HIVisible = settings.Graphs.datavisibility.temperature.graphHeatIndexVis;
-					cumulus.GraphOptions.DPVisible = settings.Graphs.datavisibility.temperature.graphDewPointVis;
-					cumulus.GraphOptions.WCVisible = settings.Graphs.datavisibility.temperature.graphWindChillVis;
-					cumulus.GraphOptions.AppTempVisible = settings.Graphs.datavisibility.temperature.graphAppTempVis;
-					cumulus.GraphOptions.FeelsLikeVisible = settings.Graphs.datavisibility.temperature.graphFeelsLikeVis;
-					cumulus.GraphOptions.HumidexVisible = settings.Graphs.datavisibility.temperature.graphHumidexVis;
-					cumulus.GraphOptions.OutHumVisible = settings.Graphs.datavisibility.humidity.graphHumVis;
-					cumulus.GraphOptions.InHumVisible = settings.Graphs.datavisibility.humidity.graphInHumVis;
-					cumulus.GraphOptions.UVVisible = settings.Graphs.datavisibility.solar.graphUvVis;
-					cumulus.GraphOptions.SolarVisible = settings.Graphs.datavisibility.solar.graphSolarVis;
-					cumulus.GraphOptions.SunshineVisible = settings.Graphs.datavisibility.solar.graphSunshineVis;
-					cumulus.GraphOptions.DailyAvgTempVisible = settings.Graphs.datavisibility.temperature.graphDailyAvgTempVis;
-					cumulus.GraphOptions.DailyMaxTempVisible = settings.Graphs.datavisibility.temperature.graphDailyMaxTempVis;
-					cumulus.GraphOptions.DailyMinTempVisible = settings.Graphs.datavisibility.temperature.graphDailyMinTempVis;
-					cumulus.GraphOptions.TempSumVisible0 = settings.Graphs.datavisibility.temperature.graphTempSumVis0;
-					cumulus.GraphOptions.TempSumVisible1 = settings.Graphs.datavisibility.temperature.graphTempSumVis1;
-					cumulus.GraphOptions.TempSumVisible2 = settings.Graphs.datavisibility.temperature.graphTempSumVis2;
-					cumulus.GraphOptions.GrowingDegreeDaysVisible1 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis1;
-					cumulus.GraphOptions.GrowingDegreeDaysVisible2 = settings.Graphs.datavisibility.degreedays.graphGrowingDegreeDaysVis2;
-					cumulus.GraphOptions.ExtraTempVisible = settings.Graphs.datavisibility.extratemp.sensors;
-					cumulus.GraphOptions.ExtraHumVisible = settings.Graphs.datavisibility.extrahum.sensors;
-					cumulus.GraphOptions.ExtraDewPointVisible = settings.Graphs.datavisibility.extradew.sensors;
-					cumulus.GraphOptions.SoilTempVisible = settings.Graphs.datavisibility.soiltemp.sensors;
-					cumulus.GraphOptions.SoilMoistVisible = settings.Graphs.datavisibility.soilmoist.sensors;
-					cumulus.GraphOptions.UserTempVisible = settings.Graphs.datavisibility.usertemp.sensors;
-					cumulus.GraphOptions.CO2Sensor.CO2 = settings.Graphs.datavisibility.co2.co2;
-					cumulus.GraphOptions.CO2Sensor.CO2Avg = settings.Graphs.datavisibility.co2.co2avg;
-					cumulus.GraphOptions.CO2Sensor.Pm25 = settings.Graphs.datavisibility.co2.pm25;
-					cumulus.GraphOptions.CO2Sensor.Pm25Avg = settings.Graphs.datavisibility.co2.pm25avg;
-					cumulus.GraphOptions.CO2Sensor.Pm10 = settings.Graphs.datavisibility.co2.pm10;
-					cumulus.GraphOptions.CO2Sensor.Pm10Avg = settings.Graphs.datavisibility.co2.pm10avg;
-					cumulus.GraphOptions.CO2Sensor.Temp = settings.Graphs.datavisibility.co2.temp;
-					cumulus.GraphOptions.CO2Sensor.Hum = settings.Graphs.datavisibility.co2.hum;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Graph settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// Annual Rainfall
 				try
 				{
@@ -841,29 +679,6 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Options settings: " + ex.Message;
-					cumulus.LogMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
-				// Display Options
-				try
-				{
-					// bug catch in case user has the old JSON config files that do not work.
-					if (settings.DisplayOptions.windrosepoints == 0)
-						settings.DisplayOptions.windrosepoints = 8;
-					else if (settings.DisplayOptions.windrosepoints == 1)
-						settings.DisplayOptions.windrosepoints = 16;
-
-					cumulus.NumWindRosePoints = settings.DisplayOptions.windrosepoints;
-					cumulus.WindRoseAngle = 360.0 / cumulus.NumWindRosePoints;
-					cumulus.DisplayOptions.UseApparent = settings.DisplayOptions.useapparent;
-					cumulus.DisplayOptions.ShowSolar = settings.DisplayOptions.displaysolar;
-					cumulus.DisplayOptions.ShowUV = settings.DisplayOptions.displayuv;
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing Display Options settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -1586,8 +1401,6 @@ namespace CumulusMX
 		public JsonGrowingDDSettings GrowingDD { get; set; }
 		public JsonTempSumSettings TempSum { get; set; }
 		public JsonChillHours ChillHrs { get; set; }
-		public JsonStationSettingsGraphs Graphs { get; set; }
-		public JsonDisplayOptions DisplayOptions { get; set; }
 	}
 
 	internal class JsonStationGeneral
@@ -1946,82 +1759,6 @@ namespace CumulusMX
 		public int rainseasonstart { get; set; }
 	}
 
-	public class JsonStationSettingsGraphs
-	{
-		public int graphhours { get; set; }
-		public int graphdays { get; set; }
-
-		public JsonStationSettingsGraphVisibility datavisibility { get; set; }
-	}
-
-	public class JsonStationSettingsGraphDataCo2
-	{
-		public bool co2 { get; set; }
-		public bool co2avg { get; set; }
-		public bool pm25 { get; set; }
-		public bool pm25avg { get; set; }
-		public bool pm10 { get; set; }
-		public bool pm10avg { get; set; }
-		public bool temp { get; set; }
-		public bool hum { get; set; }
-	}
-
-	public class JsonStationSettingsGraphVisibility
-	{
-		public JsonStationSettingsGraphDataTemperature temperature { get; set; }
-		public JsonStationSettingsGraphDataHumidity humidity { get; set; }
-		public JsonStationSettingsGraphDataSolar solar { get; set; }
-		public JsonStationSettingsGraphDataDegreeDays degreedays { get; set; }
-		public JsonStationSettingsGraphDataExtraSensors extratemp { get; set; }
-		public JsonStationSettingsGraphDataExtraSensors extrahum { get; set; }
-		public JsonStationSettingsGraphDataExtraSensors extradew { get; set; }
-		public JsonStationSettingsGraphDataExtraSensors soiltemp { get; set; }
-		public JsonStationSettingsGraphDataExtraSensors soilmoist { get; set; }
-		public JsonStationSettingsGraphDataExtraSensors usertemp { get; set; }
-		public JsonStationSettingsGraphDataCo2 co2 { get; set; }
-	}
-
-	public class JsonStationSettingsGraphDataTemperature
-	{
-		public bool graphTempVis { get; set; }
-		public bool graphInTempVis { get; set; }
-		public bool graphHeatIndexVis { get; set; }
-		public bool graphDewPointVis { get; set; }
-		public bool graphWindChillVis { get; set; }
-		public bool graphAppTempVis { get; set; }
-		public bool graphFeelsLikeVis { get; set; }
-		public bool graphHumidexVis { get; set; }
-		public bool graphDailyAvgTempVis { get; set; }
-		public bool graphDailyMaxTempVis { get; set; }
-		public bool graphDailyMinTempVis { get; set; }
-		public bool graphTempSumVis0 { get; set; }
-		public bool graphTempSumVis1 { get; set; }
-		public bool graphTempSumVis2 { get; set; }
-	}
-
-	public class JsonStationSettingsGraphDataHumidity
-	{
-		public bool graphHumVis { get; set; }
-		public bool graphInHumVis { get; set; }
-	}
-
-	public class JsonStationSettingsGraphDataSolar
-	{
-		public bool graphUvVis { get; set; }
-		public bool graphSolarVis { get; set; }
-		public bool graphSunshineVis { get; set; }
-	}
-
-	public class JsonStationSettingsGraphDataDegreeDays
-	{
-		public bool graphGrowingDegreeDaysVis1 { get; set; }
-		public bool graphGrowingDegreeDaysVis2 { get; set; }
-	}
-
-	public class JsonStationSettingsGraphDataExtraSensors
-	{
-		public bool[] sensors { get; set; }
-	}
 	public class JsonSelectaChartSettings
 	{
 		public string[] series { get; set; }
