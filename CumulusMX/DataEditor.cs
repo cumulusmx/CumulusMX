@@ -3568,7 +3568,7 @@ namespace CumulusMX
 			var InvC = new CultureInfo("");
 			var lastMonth = -1;
 			var lines = new List<string>();
-			var logfile = "";
+			var logfile = string.Empty;
 
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
 			{
@@ -3579,6 +3579,16 @@ namespace CumulusMX
 
 			if (newData.action == "Edit")
 			{
+				// Get the log file date
+				var ts = Utils.ddmmyyStrToDate(newData.data[0][0]);
+
+				logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
+
+				// read the log file into a List
+				lines.Clear();
+				lines = File.ReadAllLines(logfile).ToList();
+
+
 				var lineNum = newData.lines[0] - 1; // our List is zero relative
 
 				// replace the edited line
