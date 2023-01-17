@@ -4559,9 +4559,9 @@ namespace CumulusMX
 			GraphOptions.Visible.UV = ini.GetValue("Graphs", "UVVisible", true);
 			GraphOptions.Visible.Solar = ini.GetValue("Graphs", "SolarVisible", true);
 			GraphOptions.Visible.Sunshine = ini.GetValue("Graphs", "SunshineVisible", true);
-			GraphOptions.Visible.DailyAvgTemp = ini.GetValue("Graphs", "DailyAvgTempVisible", true);
-			GraphOptions.Visible.DailyMaxTemp = ini.GetValue("Graphs", "DailyMaxTempVisible", true);
-			GraphOptions.Visible.DailyMinTemp = ini.GetValue("Graphs", "DailyMinTempVisible", true);
+			GraphOptions.Visible.AvgTemp = ini.GetValue("Graphs", "DailyAvgTempVisible", true);
+			GraphOptions.Visible.MaxTemp = ini.GetValue("Graphs", "DailyMaxTempVisible", true);
+			GraphOptions.Visible.MinTemp = ini.GetValue("Graphs", "DailyMinTempVisible", true);
 			GraphOptions.Visible.GrowingDegreeDays1 = ini.GetValue("Graphs", "GrowingDegreeDaysVisible1", true);
 			GraphOptions.Visible.GrowingDegreeDays2 = ini.GetValue("Graphs", "GrowingDegreeDaysVisible2", true);
 			GraphOptions.Visible.TempSum0 = ini.GetValue("Graphs", "TempSumVisible0", true);
@@ -4582,54 +4582,62 @@ namespace CumulusMX
 			GraphOptions.Visible.CO2Sensor.Temp = ini.GetValue("Graphs", "CO2-Temp", false);
 			GraphOptions.Visible.CO2Sensor.Hum = ini.GetValue("Graphs", "CO2-Hum", false);
 
-			GraphOptions.Colour.Temp = ini.GetValue("Graphs", "TempColour", "#ff0000");
-			GraphOptions.Colour.InTemp = ini.GetValue("Graphs", "InTempColour", "#50b432");
-			GraphOptions.Colour.HeatIndex= ini.GetValue("Graphs", "HIColour", "#9161c9");
-			GraphOptions.Colour.DewPoint = ini.GetValue("Graphs", "DPColour", "#ffff00");
-			GraphOptions.Colour.WindChill = ini.GetValue("Graphs", "WCColour", "#ffa500");
-			GraphOptions.Colour.AppTemp = ini.GetValue("Graphs", "AppTempColour", "#00fffe");
-			GraphOptions.Colour.FeelsLike = ini.GetValue("Graphs", "FeelsLikeColour", "#00fffe");
-			GraphOptions.Colour.Humidex = ini.GetValue("Graphs", "HumidexColour", "#008000");
-			GraphOptions.Colour.InHum = ini.GetValue("Graphs", "InHumColour", "#008000");
-			GraphOptions.Colour.OutHum = ini.GetValue("Graphs", "OutHumColour", "#ff0000");
-			GraphOptions.Colour.Press = ini.GetValue("Graphs", "PressureColour", "#6495ed");
-			GraphOptions.Colour.WindGust = ini.GetValue("Graphs", "WindGustColour", "#ff0000");
-			GraphOptions.Colour.WindAvg = ini.GetValue("Graphs", "WindAvgColour", "#6495ed");
-			GraphOptions.Colour.WindBearing = ini.GetValue("Graphs", "WindBearingColour", "#6495ed");
-			GraphOptions.Colour.WindBearingAvg = ini.GetValue("Graphs", "WindBearingAvgColour", "#ff0000");
-			GraphOptions.Colour.Rainfall = ini.GetValue("Graphs", "Rainfall", "#6495ed");
-			GraphOptions.Colour.RainRate = ini.GetValue("Graphs", "RainRate", "#ff0000");
-			GraphOptions.Colour.UV = ini.GetValue("Graphs", "UVColour", "#8a2be2");
-			GraphOptions.Colour.Solar = ini.GetValue("Graphs", "SolarColour", "#ff8c00");
-			GraphOptions.Colour.SolarTheoretical = ini.GetValue("Graphs", "SolarTheoreticalColour", "#6464ff");
-			GraphOptions.Colour.Sunshine = ini.GetValue("Graphs", "SunshineColour", "#ff8c00");
-			GraphOptions.Colour.DailyAvgTemp = ini.GetValue("Graphs", "DailyAvgTempColour", "#008000");
-			GraphOptions.Colour.DailyMaxTemp = ini.GetValue("Graphs", "DailyMaxTempColour", "#ff0000");
-			GraphOptions.Colour.DailyMinTemp = ini.GetValue("Graphs", "DailyMinTempColour", "#6495ed");
-			GraphOptions.Colour.GrowingDegreeDays1 = ini.GetValue("Graphs", "GrowingDegreeDaysColour1", "#008000");
-			GraphOptions.Colour.GrowingDegreeDays2 = ini.GetValue("Graphs", "GrowingDegreeDaysColour2", "#0000cd");
-			GraphOptions.Colour.TempSum0 = ini.GetValue("Graphs", "TempSumColour0", "#0");
-			GraphOptions.Colour.TempSum1 = ini.GetValue("Graphs", "TempSumColour1", "#008000");
-			GraphOptions.Colour.TempSum2 = ini.GetValue("Graphs", "TempSumColour2", "#0");
-			GraphOptions.Colour.Pm2p5 = ini.GetValue("Graphs", "Pm2p5Colour", "#6495ed");
-			GraphOptions.Colour.Pm10 = ini.GetValue("Graphs", "Pm2p5Colour", "#008000");
-			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#ffff00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#f0e68c", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#0" };
+			GraphOptions.Colour.Temp = ini.GetValue("GraphColours", "TempColour", "#ff0000");
+			GraphOptions.Colour.InTemp = ini.GetValue("GraphColours", "InTempColour", "#50b432");
+			GraphOptions.Colour.HeatIndex= ini.GetValue("GraphColours", "HIColour", "#9161c9");
+			GraphOptions.Colour.DewPoint = ini.GetValue("GraphColours", "DPColour", "#ffff00");
+			GraphOptions.Colour.WindChill = ini.GetValue("GraphColours", "WCColour", "#ffa500");
+			GraphOptions.Colour.AppTemp = ini.GetValue("GraphColours", "AppTempColour", "#00fffe");
+			GraphOptions.Colour.FeelsLike = ini.GetValue("GraphColours", "FeelsLikeColour", "#00fffe");
+			GraphOptions.Colour.Humidex = ini.GetValue("GraphColours", "HumidexColour", "#008000");
+			GraphOptions.Colour.InHum = ini.GetValue("GraphColours", "InHumColour", "#008000");
+			GraphOptions.Colour.OutHum = ini.GetValue("GraphColours", "OutHumColour", "#ff0000");
+			GraphOptions.Colour.Press = ini.GetValue("GraphColours", "PressureColour", "#6495ed");
+			GraphOptions.Colour.WindGust = ini.GetValue("GraphColours", "WindGustColour", "#ff0000");
+			GraphOptions.Colour.WindAvg = ini.GetValue("GraphColours", "WindAvgColour", "#6495ed");
+			GraphOptions.Colour.WindRun = ini.GetValue("GraphColours", "WindRunColour", "#3dd457");
+			GraphOptions.Colour.WindBearing = ini.GetValue("GraphColours", "WindBearingColour", "#6495ed");
+			GraphOptions.Colour.WindBearingAvg = ini.GetValue("GraphColours", "WindBearingAvgColour", "#ff0000");
+			GraphOptions.Colour.Rainfall = ini.GetValue("GraphColours", "Rainfall", "#6495ed");
+			GraphOptions.Colour.RainRate = ini.GetValue("GraphColours", "RainRate", "#ff0000");
+			GraphOptions.Colour.UV = ini.GetValue("GraphColours", "UVColour", "#8a2be2");
+			GraphOptions.Colour.Solar = ini.GetValue("GraphColours", "SolarColour", "#ff8c00");
+			GraphOptions.Colour.SolarTheoretical = ini.GetValue("GraphColours", "SolarTheoreticalColour", "#6464ff");
+			GraphOptions.Colour.Sunshine = ini.GetValue("GraphColours", "SunshineColour", "#ff8c00");
+			GraphOptions.Colour.MaxTemp = ini.GetValue("GraphColours", "MaxTempColour", "#ff0000");
+			GraphOptions.Colour.AvgTemp = ini.GetValue("GraphColours", "AvgTempColour", "#008000");
+			GraphOptions.Colour.MinTemp = ini.GetValue("GraphColours", "MinTempColour", "#6495ed");
+			GraphOptions.Colour.MaxPress = ini.GetValue("GraphColours", "MaxPressColour", "#6495ed");
+			GraphOptions.Colour.MinPress = ini.GetValue("GraphColours", "MinPressColour", "#39ef74");
+			GraphOptions.Colour.MaxOutHum = ini.GetValue("GraphColours", "MaxHumColour", "#6495ed");
+			GraphOptions.Colour.MinOutHum = ini.GetValue("GraphColours", "MinHumColour", "#39ef74");
+			GraphOptions.Colour.HeatIndex = ini.GetValue("GraphColours", "MaxHIColour", "#ffa500");
+			GraphOptions.Colour.MaxDew = ini.GetValue("GraphColours", "MaxDPColour", "#dada00");
+			GraphOptions.Colour.MinDew = ini.GetValue("GraphColours", "MinDPColour", "#ffc0cb");
+			GraphOptions.Colour.MaxFeels = ini.GetValue("GraphColours", "MaxFeelsLikeColour", "#00ffff");
+			GraphOptions.Colour.MinFeels = ini.GetValue("GraphColours", "MinFeelsLikeColour", "#800080");
+			GraphOptions.Colour.MaxApp = ini.GetValue("GraphColours", "MaxAppTempColour", "#808080");
+			GraphOptions.Colour.MinApp = ini.GetValue("GraphColours", "MinAppTempColour", "#a52a2a");
+			GraphOptions.Colour.MaxHumidex = ini.GetValue("GraphColours", "MaxHumidexColour", "#c7b72a");
+			GraphOptions.Colour.Pm2p5 = ini.GetValue("GraphColours", "Pm2p5Colour", "#6495ed");
+			GraphOptions.Colour.Pm10 = ini.GetValue("GraphColours", "Pm2p5Colour", "#008000");
+			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
 			var colours10 = colours16.Take(10).ToArray();
 			var colours8 = colours16.Take(8).ToArray();
-			GraphOptions.Colour.ExtraTemp = ini.GetValue("Graphs", "ExtraTempColour", colours10);
-			GraphOptions.Colour.ExtraHum = ini.GetValue("Graphs", "ExtraHumColour", colours10);
-			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("Graphs", "ExtraDewPointColour", colours10);
-			GraphOptions.Colour.SoilTemp = ini.GetValue("Graphs", "SoilTempColour", colours16.ToArray());
-			GraphOptions.Colour.SoilMoist = ini.GetValue("Graphs", "SoilMoistColour", colours16.ToArray());
-			GraphOptions.Colour.UserTemp = ini.GetValue("Graphs", "UserTempColour", colours8);
-			GraphOptions.Colour.CO2Sensor.CO2 = ini.GetValue("Graphs", "CO2-CO2Colour", "#dc143c");
-			GraphOptions.Colour.CO2Sensor.CO2Avg = ini.GetValue("Graphs", "CO2-CO2AvgColour", "#8b0000");
-			GraphOptions.Colour.CO2Sensor.Pm25 = ini.GetValue("Graphs", "CO2-Pm25Colour", "#00bfff");
-			GraphOptions.Colour.CO2Sensor.Pm25Avg = ini.GetValue("Graphs", "CO2-Pm25AvgColour", "#1e90ff");
-			GraphOptions.Colour.CO2Sensor.Pm10 = ini.GetValue("Graphs", "CO2-Pm10Colour", "#d2691e");
-			GraphOptions.Colour.CO2Sensor.Pm10Avg = ini.GetValue("Graphs", "CO2-Pm10AvgColour", "#b8860b");
-			GraphOptions.Colour.CO2Sensor.Temp = ini.GetValue("Graphs", "CO2-TempColour", "#ff0000");
-			GraphOptions.Colour.CO2Sensor.Hum = ini.GetValue("Graphs", "CO2-HumColour", "#008000");
+			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours10);
+			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours10);
+			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours10);
+			GraphOptions.Colour.SoilTemp = ini.GetValue("GraphColours", "SoilTempColour", colours16.ToArray());
+			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
+			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
+			GraphOptions.Colour.CO2Sensor.CO2 = ini.GetValue("GraphColours", "CO2-CO2Colour", "#dc143c");
+			GraphOptions.Colour.CO2Sensor.CO2Avg = ini.GetValue("GraphColours", "CO2-CO2AvgColour", "#8b0000");
+			GraphOptions.Colour.CO2Sensor.Pm25 = ini.GetValue("GraphColours", "CO2-Pm25Colour", "#00bfff");
+			GraphOptions.Colour.CO2Sensor.Pm25Avg = ini.GetValue("GraphColours", "CO2-Pm25AvgColour", "#1e90ff");
+			GraphOptions.Colour.CO2Sensor.Pm10 = ini.GetValue("GraphColours", "CO2-Pm10Colour", "#d2691e");
+			GraphOptions.Colour.CO2Sensor.Pm10Avg = ini.GetValue("GraphColours", "CO2-Pm10AvgColour", "#b8860b");
+			GraphOptions.Colour.CO2Sensor.Temp = ini.GetValue("GraphColours", "CO2-TempColour", "#ff0000");
+			GraphOptions.Colour.CO2Sensor.Hum = ini.GetValue("GraphColours", "CO2-HumColour", "#008000");
 
 
 			Wund.ID = ini.GetValue("Wunderground", "ID", "");
@@ -6270,9 +6278,9 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "UVVisible", GraphOptions.Visible.UV);
 			ini.SetValue("Graphs", "SolarVisible", GraphOptions.Visible.Solar);
 			ini.SetValue("Graphs", "SunshineVisible", GraphOptions.Visible.Sunshine);
-			ini.SetValue("Graphs", "DailyAvgTempVisible", GraphOptions.Visible.DailyAvgTemp);
-			ini.SetValue("Graphs", "DailyMaxTempVisible", GraphOptions.Visible.DailyMaxTemp);
-			ini.SetValue("Graphs", "DailyMinTempVisible", GraphOptions.Visible.DailyMinTemp);
+			ini.SetValue("Graphs", "DailyAvgTempVisible", GraphOptions.Visible.AvgTemp);
+			ini.SetValue("Graphs", "DailyMaxTempVisible", GraphOptions.Visible.MaxTemp);
+			ini.SetValue("Graphs", "DailyMinTempVisible", GraphOptions.Visible.MinTemp);
 			ini.SetValue("Graphs", "GrowingDegreeDaysVisible1", GraphOptions.Visible.GrowingDegreeDays1);
 			ini.SetValue("Graphs", "GrowingDegreeDaysVisible2", GraphOptions.Visible.GrowingDegreeDays2);
 			ini.SetValue("Graphs", "TempSumVisible0", GraphOptions.Visible.TempSum0);
@@ -6293,49 +6301,57 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "CO2-Temp", GraphOptions.Visible.CO2Sensor.Temp);
 			ini.SetValue("Graphs", "CO2-Hum", GraphOptions.Visible.CO2Sensor.Hum);
 
-			ini.SetValue("Graphs", "TempColour", GraphOptions.Colour.Temp);
-			ini.SetValue("Graphs", "InTempColour", GraphOptions.Colour.InTemp);
-			ini.SetValue("Graphs", "HIColour", GraphOptions.Colour.HeatIndex);
-			ini.SetValue("Graphs", "DPColour", GraphOptions.Colour.DewPoint);
-			ini.SetValue("Graphs", "WCColour", GraphOptions.Colour.WindChill);
-			ini.SetValue("Graphs", "AppTempColour", GraphOptions.Colour.AppTemp);
-			ini.SetValue("Graphs", "FeelsLikeColour", GraphOptions.Colour.FeelsLike);
-			ini.SetValue("Graphs", "HumidexColour", GraphOptions.Colour.Humidex);
-			ini.SetValue("Graphs", "InHumColour", GraphOptions.Colour.InHum);
-			ini.SetValue("Graphs", "OutHumColour", GraphOptions.Colour.OutHum);
-			ini.SetValue("Graphs", "PressureColour", GraphOptions.Colour.Press);
-			ini.SetValue("Graphs", "WindGustColour", GraphOptions.Colour.WindGust);
-			ini.SetValue("Graphs", "WindAvgColour", GraphOptions.Colour.WindAvg);
-			ini.SetValue("Graphs", "Rainfall", GraphOptions.Colour.Rainfall);
-			ini.SetValue("Graphs", "RainRate", GraphOptions.Colour.RainRate);
-			ini.SetValue("Graphs", "UVColour", GraphOptions.Colour.UV);
-			ini.SetValue("Graphs", "SolarColour", GraphOptions.Colour.Solar);
-			ini.SetValue("Graphs", "SolarTheoreticalColour", GraphOptions.Colour.SolarTheoretical);
-			ini.SetValue("Graphs", "SunshineColour", GraphOptions.Colour.Sunshine);
-			ini.SetValue("Graphs", "DailyAvgTempColour", GraphOptions.Colour.DailyAvgTemp);
-			ini.SetValue("Graphs", "DailyMaxTempColour", GraphOptions.Colour.DailyMaxTemp);
-			ini.SetValue("Graphs", "DailyMinTempColour", GraphOptions.Colour.DailyMinTemp);
-			ini.SetValue("Graphs", "GrowingDegreeDaysColour1", GraphOptions.Colour.GrowingDegreeDays1);
-			ini.SetValue("Graphs", "GrowingDegreeDaysColour2", GraphOptions.Colour.GrowingDegreeDays2);
-			ini.SetValue("Graphs", "TempSumColour0", GraphOptions.Colour.TempSum0);
-			ini.SetValue("Graphs", "TempSumColour1", GraphOptions.Colour.TempSum1);
-			ini.SetValue("Graphs", "TempSumColour2", GraphOptions.Colour.TempSum2);
-			ini.SetValue("Graphs", "Pm2p5Colour", GraphOptions.Colour.Pm2p5);
-			ini.SetValue("Graphs", "Pm2p5Colour", GraphOptions.Colour.Pm10);
-			ini.SetValue("Graphs", "ExtraTempColour", GraphOptions.Colour.ExtraTemp);
-			ini.SetValue("Graphs", "ExtraHumColour", GraphOptions.Colour.ExtraHum);
-			ini.SetValue("Graphs", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
-			ini.SetValue("Graphs", "SoilTempColour", GraphOptions.Colour.SoilTemp);
-			ini.SetValue("Graphs", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
-			ini.SetValue("Graphs", "UserTempColour", GraphOptions.Colour.UserTemp);
-			ini.SetValue("Graphs", "CO2-CO2Colour", GraphOptions.Colour.CO2Sensor.CO2);
-			ini.SetValue("Graphs", "CO2-CO2AvgColour", GraphOptions.Colour.CO2Sensor.CO2Avg);
-			ini.SetValue("Graphs", "CO2-Pm25Colour", GraphOptions.Colour.CO2Sensor.Pm25);
-			ini.SetValue("Graphs", "CO2-Pm25AvgColour", GraphOptions.Colour.CO2Sensor.Pm25Avg);
-			ini.SetValue("Graphs", "CO2-Pm10Colour", GraphOptions.Colour.CO2Sensor.Pm10);
-			ini.SetValue("Graphs", "CO2-Pm10AvgColour", GraphOptions.Colour.CO2Sensor.Pm10Avg);
-			ini.SetValue("Graphs", "CO2-TempColour", GraphOptions.Colour.CO2Sensor.Temp);
-			ini.SetValue("Graphs", "CO2-HumColour", GraphOptions.Colour.CO2Sensor.Hum);
+			ini.SetValue("GraphColours", "TempColour", GraphOptions.Colour.Temp);
+			ini.SetValue("GraphColours", "InTempColour", GraphOptions.Colour.InTemp);
+			ini.SetValue("GraphColours", "HIColour", GraphOptions.Colour.HeatIndex);
+			ini.SetValue("GraphColours", "DPColour", GraphOptions.Colour.DewPoint);
+			ini.SetValue("GraphColours", "WCColour", GraphOptions.Colour.WindChill);
+			ini.SetValue("GraphColours", "AppTempColour", GraphOptions.Colour.AppTemp);
+			ini.SetValue("GraphColours", "FeelsLikeColour", GraphOptions.Colour.FeelsLike);
+			ini.SetValue("GraphColours", "HumidexColour", GraphOptions.Colour.Humidex);
+			ini.SetValue("GraphColours", "InHumColour", GraphOptions.Colour.InHum);
+			ini.SetValue("GraphColours", "OutHumColour", GraphOptions.Colour.OutHum);
+			ini.SetValue("GraphColours", "PressureColour", GraphOptions.Colour.Press);
+			ini.SetValue("GraphColours", "WindGustColour", GraphOptions.Colour.WindGust);
+			ini.SetValue("GraphColours", "WindAvgColour", GraphOptions.Colour.WindAvg);
+			ini.SetValue("GraphColours", "WindRunColour", GraphOptions.Colour.WindRun);
+			ini.SetValue("GraphColours", "Rainfall", GraphOptions.Colour.Rainfall);
+			ini.SetValue("GraphColours", "RainRate", GraphOptions.Colour.RainRate);
+			ini.SetValue("GraphColours", "UVColour", GraphOptions.Colour.UV);
+			ini.SetValue("GraphColours", "SolarColour", GraphOptions.Colour.Solar);
+			ini.SetValue("GraphColours", "SolarTheoreticalColour", GraphOptions.Colour.SolarTheoretical);
+			ini.SetValue("GraphColours", "SunshineColour", GraphOptions.Colour.Sunshine);
+			ini.SetValue("GraphColours", "MaxTempColour", GraphOptions.Colour.MaxTemp);
+			ini.SetValue("GraphColours", "AvgTempColour", GraphOptions.Colour.AvgTemp);
+			ini.SetValue("GraphColours", "MinTempColour", GraphOptions.Colour.MinTemp);
+			ini.SetValue("GraphColours", "MaxPressColour", GraphOptions.Colour.MaxPress);
+			ini.SetValue("GraphColours", "MinPressColour", GraphOptions.Colour.MinPress);
+			ini.SetValue("GraphColours", "MaxHumColour", GraphOptions.Colour.MaxOutHum);
+			ini.SetValue("GraphColours", "MinHumColour", GraphOptions.Colour.MinOutHum);
+			ini.SetValue("GraphColours", "MaxHIColour", GraphOptions.Colour.HeatIndex);
+			ini.SetValue("GraphColours", "MaxDPColour", GraphOptions.Colour.MaxDew);
+			ini.SetValue("GraphColours", "MinDPColour", GraphOptions.Colour.MinDew);
+			ini.SetValue("GraphColours", "MaxFeelsLikeColour", GraphOptions.Colour.MaxFeels);
+			ini.SetValue("GraphColours", "MinFeelsLikeColour", GraphOptions.Colour.MinFeels);
+			ini.SetValue("GraphColours", "MaxAppTempColour", GraphOptions.Colour.MaxApp);
+			ini.SetValue("GraphColours", "MinAppTempColour", GraphOptions.Colour.MinApp);
+			ini.SetValue("GraphColours", "MaxHumidexColour", GraphOptions.Colour.MaxHumidex);
+			ini.SetValue("GraphColours", "Pm2p5Colour", GraphOptions.Colour.Pm2p5);
+			ini.SetValue("GraphColours", "Pm2p5Colour", GraphOptions.Colour.Pm10);
+			ini.SetValue("GraphColours", "ExtraTempColour", GraphOptions.Colour.ExtraTemp);
+			ini.SetValue("GraphColours", "ExtraHumColour", GraphOptions.Colour.ExtraHum);
+			ini.SetValue("GraphColours", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
+			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
+			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
+			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
+			ini.SetValue("GraphColours", "CO2-CO2Colour", GraphOptions.Colour.CO2Sensor.CO2);
+			ini.SetValue("GraphColours", "CO2-CO2AvgColour", GraphOptions.Colour.CO2Sensor.CO2Avg);
+			ini.SetValue("GraphColours", "CO2-Pm25Colour", GraphOptions.Colour.CO2Sensor.Pm25);
+			ini.SetValue("GraphColours", "CO2-Pm25AvgColour", GraphOptions.Colour.CO2Sensor.Pm25Avg);
+			ini.SetValue("GraphColours", "CO2-Pm10Colour", GraphOptions.Colour.CO2Sensor.Pm10);
+			ini.SetValue("GraphColours", "CO2-Pm10AvgColour", GraphOptions.Colour.CO2Sensor.Pm10Avg);
+			ini.SetValue("GraphColours", "CO2-TempColour", GraphOptions.Colour.CO2Sensor.Temp);
+			ini.SetValue("GraphColours", "CO2-HumColour", GraphOptions.Colour.CO2Sensor.Hum);
 
 			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
 			ini.SetValue("MySQL", "Port", (int) MySqlConnSettings.Port);
@@ -11556,122 +11572,6 @@ namespace CumulusMX
 		public double RStransfactorDec { get; set; }
 		public double BrasTurbidityJun { get; set; }
 		public double BrasTurbidityDec { get; set; }
-	}
-
-	public class GraphOptions
-	{
-		public GraphOptionsVisible Visible { get; set; }
-		public GraphOptionsColour Colour { get; set; }
-
-		public GraphOptions()
-		{
-			Visible = new GraphOptionsVisible();
-			Visible.CO2Sensor = new GraphOptionsCo2Sensor();
-			Colour = new GraphOptionsColour();
-		}
-	}
-
-	public class GraphOptionsVisible
-	{
-		public bool Temp { get; set; }
-		public bool InTemp { get; set; }
-		public bool HeatIndex { get; set; }
-		public bool DewPoint { get; set; }
-		public bool WindChill { get; set; }
-		public bool AppTemp { get; set; }
-		public bool FeelsLike { get; set; }
-		public bool Humidex { get; set; }
-		public bool InHum { get; set; }
-		public bool OutHum { get; set; }
-		public bool UV { get; set; }
-		public bool Solar { get; set; }
-		public bool Sunshine { get; set; }
-		public bool DailyMaxTemp { get; set; }
-		public bool DailyAvgTemp { get; set; }
-		public bool DailyMinTemp { get; set; }
-		public bool GrowingDegreeDays1 { get; set; }
-		public bool GrowingDegreeDays2 { get; set; }
-		public bool TempSum0 { get; set; }
-		public bool TempSum1 { get; set; }
-		public bool TempSum2 { get; set; }
-		public bool[] ExtraTemp = new bool[10];
-		public bool[] ExtraHum = new bool[10];
-		public bool[] ExtraDewPoint = new bool[10];
-		public bool[] SoilTemp = new bool[16];
-		public bool[] SoilMoist = new bool[16];
-		public bool[] UserTemp = new bool[8];
-		public GraphOptionsCo2Sensor CO2Sensor { get; set; }
-	}
-
-	public class GraphOptionsCo2Sensor
-	{
-		public bool CO2 { get; set; }
-		public bool CO2Avg { get; set; }
-		public bool Pm25 { get; set; }
-		public bool Pm25Avg { get; set; }
-		public bool Pm10 { get; set; }
-		public bool Pm10Avg { get; set; }
-		public bool Temp { get; set; }
-		public bool Hum { get; set; }
-	}
-
-	public class GraphOptionsColour
-	{
-		public string Temp { get; set; }
-		public string InTemp { get; set; }
-		public string HeatIndex { get; set; }
-		public string DewPoint { get; set; }
-		public string WindChill { get; set; }
-		public string AppTemp { get; set; }
-		public string FeelsLike { get; set; }
-		public string Humidex { get; set; }
-		public string InHum { get; set; }
-		public string OutHum { get; set; }
-		public string Press { get; set; }
-		public string WindGust { get; set; }
-		public string WindAvg { get; set; }
-		public string WindBearing { get; set; }
-		public string WindBearingAvg { get; set; }
-		public string UV { get; set; }
-		public string Rainfall { get; set; }
-		public string RainRate { get; set; }
-		public string Solar { get; set; }
-		public string SolarTheoretical { get; set; }
-		public string Sunshine { get; set; }
-		public string DailyMaxTemp { get; set; }
-		public string DailyAvgTemp { get; set; }
-		public string DailyMinTemp { get; set; }
-		public string GrowingDegreeDays1 { get; set; }
-		public string GrowingDegreeDays2 { get; set; }
-		public string TempSum0 { get; set; }
-		public string TempSum1 { get; set; }
-		public string TempSum2 { get; set; }
-		public string Pm2p5 { get; set; }
-		public string Pm10 { get; set; }
-		public string[] ExtraTemp = new string[10];
-		public string[] ExtraHum = new string[10];
-		public string[] ExtraDewPoint = new string[10];
-		public string[] SoilTemp = new string[16];
-		public string[] SoilMoist = new string[16];
-		public string[] UserTemp = new string[8];
-		public GraphOptionsCo2SensorColour CO2Sensor { get; set; }
-
-		public GraphOptionsColour()
-		{
-			CO2Sensor = new GraphOptionsCo2SensorColour();
-		}
-	}
-
-	public class GraphOptionsCo2SensorColour
-	{
-		public string CO2 { get; set; }
-		public string CO2Avg { get; set; }
-		public string Pm25 { get; set; }
-		public string Pm25Avg { get; set; }
-		public string Pm10 { get; set; }
-		public string Pm10Avg { get; set; }
-		public string Temp { get; set; }
-		public string Hum { get; set; }
 	}
 
 

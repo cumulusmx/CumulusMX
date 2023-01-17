@@ -209,6 +209,7 @@
     <Compile Include="ExtraSensorSettings.cs" />
     <Compile Include="FOStation.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="GraphOptions.cs" />
     <Compile Include="GW1000Api.cs" />
     <Compile Include="GW1000Station.cs" />
     <Compile Include="HttpStationAmbient.cs" />

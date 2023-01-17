@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EmbedIO;
 using Org.BouncyCastle.Utilities.Collections;
 using ServiceStack.Text;
+using static Swan.Terminal;
 
 namespace CumulusMX
 {
@@ -49,9 +50,9 @@ namespace CumulusMX
 				AppTemp = cumulus.GraphOptions.Visible.AppTemp,
 				FeelsLike = cumulus.GraphOptions.Visible.FeelsLike,
 				Humidex = cumulus.GraphOptions.Visible.Humidex,
-				DailyAvgTemp = cumulus.GraphOptions.Visible.DailyAvgTemp,
-				DailyMaxTemp = cumulus.GraphOptions.Visible.DailyMaxTemp,
-				DailyMinTemp = cumulus.GraphOptions.Visible.DailyMinTemp
+				AvgTemp = cumulus.GraphOptions.Visible.AvgTemp,
+				MaxTemp = cumulus.GraphOptions.Visible.MaxTemp,
+				MinTemp = cumulus.GraphOptions.Visible.MinTemp
 			};
 
 			var graphVisHum = new JsonGraphVisHumidity()
@@ -153,9 +154,18 @@ namespace CumulusMX
 
 			var graphColDailyTemp = new JsonGraphColDailyTemp()
 			{
-				DailyAvgTemp = cumulus.GraphOptions.Colour.DailyAvgTemp,
-				DailyMaxTemp = cumulus.GraphOptions.Colour.DailyMaxTemp,
-				DailyMinTemp = cumulus.GraphOptions.Colour.DailyMinTemp,
+				AvgTemp = cumulus.GraphOptions.Colour.AvgTemp,
+				MaxTemp = cumulus.GraphOptions.Colour.MaxTemp,
+				MinTemp = cumulus.GraphOptions.Colour.MinTemp,
+				MinDewPoint = cumulus.GraphOptions.Colour.MinDew,
+				MaxDewPoint = cumulus.GraphOptions.Colour.MaxDew,
+				MinAppTemp = cumulus.GraphOptions.Colour.MinApp,
+				MaxAppTemp = cumulus.GraphOptions.Colour.MaxApp,
+				MinFeelsLike = cumulus.GraphOptions.Colour.MinFeels,
+				MaxFeelsLike = cumulus.GraphOptions.Colour.MaxFeels,
+				MinWindChill = cumulus.GraphOptions.Colour.MinWindChill,
+				MaxHeatIndex = cumulus.GraphOptions.Colour.MaxHeatIndex,
+				MaxHumidex = cumulus.GraphOptions.Colour.MaxHumidex
 			};
 
 			var graphColHum = new JsonGraphColHumidity()
@@ -164,15 +174,29 @@ namespace CumulusMX
 				InHum = cumulus.GraphOptions.Colour.InHum
 			};
 
+			var graphColDailyHum = new JsonGraphColDailyMaxMin()
+			{
+				Max = cumulus.GraphOptions.Colour.MaxOutHum,
+				Min = cumulus.GraphOptions.Colour.MinOutHum
+			};
+
+
 			var graphColPress = new JsonGraphColPress()
 			{
 				Press = cumulus.GraphOptions.Colour.Press
 			};
 
+			var graphColDailyPress = new JsonGraphColDailyMaxMin()
+			{
+				Max = cumulus.GraphOptions.Colour.MaxPress,
+				Min = cumulus.GraphOptions.Colour.MinPress
+			};
+
 			var graphColWind = new JsonGraphColWind()
 			{
 				WindAvg = cumulus.GraphOptions.Colour.WindAvg,
-				WindGust = cumulus.GraphOptions.Colour.WindGust
+				WindGust = cumulus.GraphOptions.Colour.WindGust,
+				WindRun = cumulus.GraphOptions.Colour.WindRun
 			};
 
 			var graphColBearing = new JsonGraphColWindBearing()
@@ -193,19 +217,6 @@ namespace CumulusMX
 				Solar = cumulus.GraphOptions.Colour.Solar,
 				CurrentSolarMax= cumulus.GraphOptions.Colour.SolarTheoretical,
 				Sunshine = cumulus.GraphOptions.Colour.Sunshine
-			};
-
-			var graphColDegreeDays = new JsonGraphColDegreeDays()
-			{
-				GrowingDegreeDays1 = cumulus.GraphOptions.Colour.GrowingDegreeDays1,
-				GrowingDegreeDays2 = cumulus.GraphOptions.Colour.GrowingDegreeDays2
-			};
-
-			var graphColTempSum = new JsonGraphColTempSum()
-			{
-				TempSum0 = cumulus.GraphOptions.Colour.TempSum0,
-				TempSum1 = cumulus.GraphOptions.Colour.TempSum1,
-				TempSum2 = cumulus.GraphOptions.Colour.TempSum2
 			};
 
 			var graphColAQ = new JsonGraphColAQ()
@@ -261,13 +272,13 @@ namespace CumulusMX
 				temperature = graphColTemp,
 				dailytemp = graphColDailyTemp,
 				humidity = graphColHum,
+				dailyhum = graphColDailyHum,
 				press = graphColPress,
+				dailypress = graphColDailyPress,
 				wind = graphColWind,
 				bearing = graphColBearing,
 				rain = grapColRain,
 				solar = graphColSolar,
-				degreedays = graphColDegreeDays,
-				tempsum = graphColTempSum,
 				aq = graphColAQ,
 				extratemp = graphColExtraTemp,
 				extrahum = graphColExtraHum,
@@ -349,9 +360,9 @@ namespace CumulusMX
 					cumulus.GraphOptions.Visible.UV = settings.Graphs.datavisibility.solar.UV;
 					cumulus.GraphOptions.Visible.Solar = settings.Graphs.datavisibility.solar.Solar;
 					cumulus.GraphOptions.Visible.Sunshine = settings.Graphs.datavisibility.solar.Sunshine;
-					cumulus.GraphOptions.Visible.DailyAvgTemp = settings.Graphs.datavisibility.temperature.DailyAvgTemp;
-					cumulus.GraphOptions.Visible.DailyMaxTemp = settings.Graphs.datavisibility.temperature.DailyMaxTemp;
-					cumulus.GraphOptions.Visible.DailyMinTemp = settings.Graphs.datavisibility.temperature.DailyMinTemp;
+					cumulus.GraphOptions.Visible.AvgTemp = settings.Graphs.datavisibility.temperature.AvgTemp;
+					cumulus.GraphOptions.Visible.MaxTemp = settings.Graphs.datavisibility.temperature.MaxTemp;
+					cumulus.GraphOptions.Visible.MinTemp = settings.Graphs.datavisibility.temperature.MinTemp;
 					cumulus.GraphOptions.Visible.TempSum0 = settings.Graphs.datavisibility.tempsum.TempSum0;
 					cumulus.GraphOptions.Visible.TempSum1 = settings.Graphs.datavisibility.tempsum.TempSum1;
 					cumulus.GraphOptions.Visible.TempSum2 = settings.Graphs.datavisibility.tempsum.TempSum2;
@@ -380,35 +391,54 @@ namespace CumulusMX
 					cumulus.GraphOptions.Colour.AppTemp = settings.Graphs.colour.temperature.AppTemp;
 					cumulus.GraphOptions.Colour.FeelsLike = settings.Graphs.colour.temperature.FeelsLike;
 					cumulus.GraphOptions.Colour.Humidex = settings.Graphs.colour.temperature.Humidex;
+
 					cumulus.GraphOptions.Colour.OutHum = settings.Graphs.colour.humidity.Hum;
 					cumulus.GraphOptions.Colour.InHum = settings.Graphs.colour.humidity.InHum;
 					cumulus.GraphOptions.Colour.Press = settings.Graphs.colour.press.Press;
+
 					cumulus.GraphOptions.Colour.WindGust = settings.Graphs.colour.wind.WindGust;
 					cumulus.GraphOptions.Colour.WindAvg = settings.Graphs.colour.wind.WindAvg;
+					cumulus.GraphOptions.Colour.WindRun = settings.Graphs.colour.wind.WindRun;
 					cumulus.GraphOptions.Colour.WindBearing = settings.Graphs.colour.bearing.Bearing;
 					cumulus.GraphOptions.Colour.WindBearingAvg = settings.Graphs.colour.bearing.BearingAvg;
+
 					cumulus.GraphOptions.Colour.Rainfall = settings.Graphs.colour.rain.Rain;
 					cumulus.GraphOptions.Colour.RainRate = settings.Graphs.colour.rain.RainRate;
+
 					cumulus.GraphOptions.Colour.UV = settings.Graphs.colour.solar.UV;
 					cumulus.GraphOptions.Colour.Solar = settings.Graphs.colour.solar.Solar;
 					cumulus.GraphOptions.Colour.SolarTheoretical = settings.Graphs.colour.solar.CurrentSolarMax;
 					cumulus.GraphOptions.Colour.Sunshine = settings.Graphs.colour.solar.Sunshine;
-					cumulus.GraphOptions.Colour.DailyAvgTemp = settings.Graphs.colour.dailytemp.DailyAvgTemp;
-					cumulus.GraphOptions.Colour.DailyMaxTemp = settings.Graphs.colour.dailytemp.DailyMaxTemp;
-					cumulus.GraphOptions.Colour.DailyMinTemp = settings.Graphs.colour.dailytemp.DailyMinTemp;
-					cumulus.GraphOptions.Colour.TempSum0 = settings.Graphs.colour.tempsum.TempSum0;
-					cumulus.GraphOptions.Colour.TempSum1 = settings.Graphs.colour.tempsum.TempSum1;
-					cumulus.GraphOptions.Colour.TempSum2 = settings.Graphs.colour.tempsum.TempSum2;
-					cumulus.GraphOptions.Colour.GrowingDegreeDays1 = settings.Graphs.colour.degreedays.GrowingDegreeDays1;
-					cumulus.GraphOptions.Colour.GrowingDegreeDays2 = settings.Graphs.colour.degreedays.GrowingDegreeDays2;
+
+					cumulus.GraphOptions.Colour.AvgTemp = settings.Graphs.colour.dailytemp.AvgTemp;
+					cumulus.GraphOptions.Colour.MaxTemp = settings.Graphs.colour.dailytemp.MaxTemp;
+					cumulus.GraphOptions.Colour.MinTemp = settings.Graphs.colour.dailytemp.MinTemp;
+					cumulus.GraphOptions.Colour.MinDew = settings.Graphs.colour.dailytemp.MinDewPoint;
+					cumulus.GraphOptions.Colour.MaxDew = settings.Graphs.colour.dailytemp.MaxDewPoint;
+					cumulus.GraphOptions.Colour.MinApp = settings.Graphs.colour.dailytemp.MinAppTemp;
+					cumulus.GraphOptions.Colour.MaxApp = settings.Graphs.colour.dailytemp.MaxAppTemp;
+					cumulus.GraphOptions.Colour.MinFeels = settings.Graphs.colour.dailytemp.MinFeelsLike;
+					cumulus.GraphOptions.Colour.MaxFeels = settings.Graphs.colour.dailytemp.MaxFeelsLike;
+					cumulus.GraphOptions.Colour.MinWindChill = settings.Graphs.colour.dailytemp.MinWindChill;
+					cumulus.GraphOptions.Colour.MaxHeatIndex = settings.Graphs.colour.dailytemp.MaxHeatIndex;
+					cumulus.GraphOptions.Colour.MaxHumidex = settings.Graphs.colour.dailytemp.MaxHumidex;
+
+					cumulus.GraphOptions.Colour.MaxPress = settings.Graphs.colour.dailypress.Max;
+					cumulus.GraphOptions.Colour.MinPress = settings.Graphs.colour.dailypress.Min;
+
+					cumulus.GraphOptions.Colour.MaxOutHum = settings.Graphs.colour.dailyhum.Max;
+					cumulus.GraphOptions.Colour.MinOutHum= settings.Graphs.colour.dailyhum.Min;
+
 					cumulus.GraphOptions.Colour.Pm2p5 = settings.Graphs.colour.aq.Pm2p5;
 					cumulus.GraphOptions.Colour.Pm10 = settings.Graphs.colour.aq.Pm10;
+
 					cumulus.GraphOptions.Colour.ExtraTemp = settings.Graphs.colour.extratemp.sensors;
 					cumulus.GraphOptions.Colour.ExtraHum = settings.Graphs.colour.extrahum.sensors;
 					cumulus.GraphOptions.Colour.ExtraDewPoint = settings.Graphs.colour.extradew.sensors;
 					cumulus.GraphOptions.Colour.SoilTemp = settings.Graphs.colour.soiltemp.sensors;
 					cumulus.GraphOptions.Colour.SoilMoist = settings.Graphs.colour.soilmoist.sensors;
 					cumulus.GraphOptions.Colour.UserTemp = settings.Graphs.colour.usertemp.sensors;
+
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2 = settings.Graphs.colour.co2.co2;
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2Avg = settings.Graphs.colour.co2.co2avg;
 					cumulus.GraphOptions.Colour.CO2Sensor.Pm25 = settings.Graphs.colour.co2.pm25;
@@ -521,9 +551,9 @@ namespace CumulusMX
 			public bool AppTemp { get; set; }
 			public bool FeelsLike { get; set; }
 			public bool Humidex { get; set; }
-			public bool DailyAvgTemp { get; set; }
-			public bool DailyMaxTemp { get; set; }
-			public bool DailyMinTemp { get; set; }
+			public bool AvgTemp { get; set; }
+			public bool MaxTemp { get; set; }
+			public bool MinTemp { get; set; }
 		}
 
 		private class JsonGraphVisHumidity
@@ -562,13 +592,13 @@ namespace CumulusMX
 			public JsonGraphColTemperature temperature { get; set; }
 			public JsonGraphColDailyTemp dailytemp { get; set; }
 			public JsonGraphColHumidity humidity { get; set; }
+			public JsonGraphColDailyMaxMin dailyhum { get; set; }
 			public JsonGraphColPress press { get; set; }
+			public JsonGraphColDailyMaxMin dailypress { get; set; }
 			public JsonGraphColWind wind { get; set; }
 			public JsonGraphColWindBearing bearing { get; set; }
 			public jsonGraphColRain rain { get; set; }
 			public JsonGraphColSolar solar { get; set; }
-			public JsonGraphColDegreeDays degreedays { get; set; }
-			public JsonGraphColTempSum tempsum { get; set; }
 			public JsonGraphColAQ aq { get; set; }
 			public JsonGraphColExtraSensors extratemp { get; set; }
 			public JsonGraphColExtraSensors extrahum { get; set; }
@@ -594,9 +624,18 @@ namespace CumulusMX
 
 		private class JsonGraphColDailyTemp
 		{
-			public string DailyAvgTemp { get; set; }
-			public string DailyMaxTemp { get; set; }
-			public string DailyMinTemp { get; set; }
+			public string AvgTemp { get; set; }
+			public string MaxTemp { get; set; }
+			public string MinTemp { get; set; }
+			public string MaxDewPoint{ get; set; }
+			public string MinDewPoint { get; set; }
+			public string MaxHeatIndex { get; set; }
+			public string MinWindChill { get; set; }
+			public string MaxAppTemp { get; set; }
+			public string MinAppTemp { get; set; }
+			public string MaxFeelsLike { get; set; }
+			public string MinFeelsLike { get; set; }
+			public string MaxHumidex { get; set; }
 		}
 
 		private class JsonGraphColHumidity
@@ -610,10 +649,17 @@ namespace CumulusMX
 			public string Press { get; set; }
 		}
 
+		private class JsonGraphColDailyMaxMin
+		{
+			public string Max { get; set; }
+			public string Min { get; set; }
+		}
+
 		private class JsonGraphColWind
 		{
 			public string WindGust { get; set; }
 			public string WindAvg { get; set; }
+			public string WindRun { get; set; }
 		}
 
 		private class JsonGraphColWindBearing
@@ -634,19 +680,6 @@ namespace CumulusMX
 			public string Solar { get; set; }
 			public string CurrentSolarMax { get; set; }
 			public string Sunshine { get; set; }
-		}
-
-		private class JsonGraphColDegreeDays
-		{
-			public string GrowingDegreeDays1 { get; set; }
-			public string GrowingDegreeDays2 { get; set; }
-		}
-
-		private class JsonGraphColTempSum
-		{
-			public string TempSum0 { get; set; }
-			public string TempSum1 { get; set; }
-			public string TempSum2 { get; set; }
 		}
 
 		private class JsonGraphColAQ
