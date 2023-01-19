@@ -1,9 +1,12 @@
-3.24.0 - b322?
+3.24.0 - b3222
 ——————————————
 New
 - Adds the customisable strings to the dashboard interface
 - Strings.ini is also added to the backup routine
 - Adds customisable graph data series colours to the dashboard and default web site
+- Two new web tags for signed string values of pressure and temperature trends
+	<#presstrendsigned>
+	<#temptrendsigned>
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message

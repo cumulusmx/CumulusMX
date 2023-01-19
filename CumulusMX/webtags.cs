@@ -106,7 +106,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals)
+		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals, string format=null)
 		{
 			string ret;
 			try
@@ -114,9 +114,15 @@ namespace CumulusMX
 				if (tagParams.Get("tc") == "y")
 					return Math.Truncate(val).ToString();
 
-				int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
-
-				ret = val.ToString("F" + dp);
+				if (null != format)
+				{
+					ret = val.ToString(format);
+				}
+				else
+				{
+					int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
+					ret = val.ToString("F" + dp);
+				}
 
 				if (tagParams.Get("rc") == "y")
 				{
@@ -615,6 +621,12 @@ namespace CumulusMX
 			return CheckRcDp(CheckPressUnit(station.presstrendval, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
+		private string Tagpresstrendsigned(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckPressUnit(station.presstrendval, tagParams), tagParams, cumulus.PressDPlaces, cumulus.PressTrendFormat);
+		}
+
+
 		private string TagPressChangeLast3Hours(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(CheckPressUnit(station.presstrendval * 3, tagParams), tagParams, cumulus.PressDPlaces);
@@ -844,6 +856,11 @@ namespace CumulusMX
 		private string Tagtemptrend(Dictionary<string,string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnitAbs(station.temptrendval, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string Tagtemptrendsigned(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnitAbs(station.temptrendval, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempTrendFormat);
 		}
 
 		private string Tagtemptrendtext(Dictionary<string,string> tagParams)
@@ -5552,6 +5569,7 @@ namespace CumulusMX
 				{ "temprange", Tagtemprange },
 				{ "temprangeY", TagtemprangeY },
 				{ "temptrend", Tagtemptrend },
+				{ "temptrendsigned", Tagtemptrendsigned },
 				{ "temptrendtext", Tagtemptrendtext },
 				{ "temptrendenglish", Tagtemptrendenglish },
 				{ "TempChangeLastHour", TagTempChangeLastHour },
@@ -5570,6 +5588,7 @@ namespace CumulusMX
 				{ "dew", Tagdew },
 				{ "wetbulb", Tagwetbulb },
 				{ "presstrendval", Tagpresstrendval },
+				{ "presstrendsigned", Tagpresstrendsigned },
 				{ "PressChangeLast3Hours", TagPressChangeLast3Hours },
 				{ "windrunY", TagwindrunY },
 				{ "domwindbearingY", TagdomwindbearingY },
