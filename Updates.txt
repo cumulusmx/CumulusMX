@@ -3,6 +3,7 @@
 New
 - Adds the customisable strings to the dashboard interface
 - Strings.ini is also added to the backup routine
+- Adds customisable graph data series colours to the dashboard and default web site
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message
@@ -10,6 +11,7 @@ Changed
 - Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
 
 Fixed
+- Adds missing Wind Chill from the historic graphs on the dashboard and default web site
 
 
 3.23.1 - b3221

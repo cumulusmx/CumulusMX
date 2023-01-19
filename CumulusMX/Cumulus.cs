@@ -1294,7 +1294,8 @@ namespace CumulusMX
 			SunFormat = "F" + SunshineDPlaces;
 			ETFormat = "F" + (RainDPlaces + 1);
 			WindRunFormat = "F" + WindRunDPlaces;
-			TempTrendFormat = "+0.0;-0.0;0";
+			TempTrendFormat = "+0.0;-0.0;0.0";
+			PressTrendFormat = $"+0.{new string('0', PressDPlaces)};-0.{new string('0', PressDPlaces)};0.{new string('0', PressDPlaces)}";
 			AirQualityFormat = "F" + AirQualityDPlaces;
 
 
@@ -4611,7 +4612,7 @@ namespace CumulusMX
 			GraphOptions.Colour.MinPress = ini.GetValue("GraphColours", "MinPressColour", "#39ef74");
 			GraphOptions.Colour.MaxOutHum = ini.GetValue("GraphColours", "MaxHumColour", "#6495ed");
 			GraphOptions.Colour.MinOutHum = ini.GetValue("GraphColours", "MinHumColour", "#39ef74");
-			GraphOptions.Colour.HeatIndex = ini.GetValue("GraphColours", "MaxHIColour", "#ffa500");
+			GraphOptions.Colour.MaxHeatIndex = ini.GetValue("GraphColours", "MaxHIColour", "#ffa500");
 			GraphOptions.Colour.MaxDew = ini.GetValue("GraphColours", "MaxDPColour", "#dada00");
 			GraphOptions.Colour.MinDew = ini.GetValue("GraphColours", "MinDPColour", "#ffc0cb");
 			GraphOptions.Colour.MaxFeels = ini.GetValue("GraphColours", "MaxFeelsLikeColour", "#00ffff");
@@ -6328,7 +6329,7 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "MinPressColour", GraphOptions.Colour.MinPress);
 			ini.SetValue("GraphColours", "MaxHumColour", GraphOptions.Colour.MaxOutHum);
 			ini.SetValue("GraphColours", "MinHumColour", GraphOptions.Colour.MinOutHum);
-			ini.SetValue("GraphColours", "MaxHIColour", GraphOptions.Colour.HeatIndex);
+			ini.SetValue("GraphColours", "MaxHIColour", GraphOptions.Colour.MaxHeatIndex);
 			ini.SetValue("GraphColours", "MaxDPColour", GraphOptions.Colour.MaxDew);
 			ini.SetValue("GraphColours", "MinDPColour", GraphOptions.Colour.MinDew);
 			ini.SetValue("GraphColours", "MaxFeelsLikeColour", GraphOptions.Colour.MaxFeels);
@@ -7056,6 +7057,7 @@ namespace CumulusMX
 
 		public bool DavisStation { get; set; }
 		public string TempTrendFormat { get; set; }
+		public string PressTrendFormat { get; set; }
 		public string AppDir { get; set; }
 
 		public int Manufacturer { get; set; }
@@ -9630,10 +9632,7 @@ namespace CumulusMX
 					file.Write(Units.PressText + ' ');                                             // 16
 					file.Write(Units.RainText + ' ');                                              // 17
 					file.Write(station.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
-					if (station.presstrendval > 0)
-						file.Write('+' + station.presstrendval.ToString(PressFormat, InvC) + ' '); // 19
-					else
-						file.Write(station.presstrendval.ToString(PressFormat, InvC) + ' ');
+					file.Write(station.presstrendval.ToString(PressTrendFormat, InvC) + ' ');      // 19
 					file.Write(station.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 					file.Write(station.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 					file.Write(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
@@ -9642,7 +9641,7 @@ namespace CumulusMX
 					file.Write(station.WindChill.ToString(TempFormat, InvC) + ' ');                // 25
 					file.Write(station.temptrendval.ToString(TempTrendFormat, InvC) + ' ');        // 26
 					file.Write(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ' ');       // 27
-					file.Write(station.HiLoToday.HighTempTime.ToString("HH:mm "));                // 28
+					file.Write(station.HiLoToday.HighTempTime.ToString("HH:mm "));                 // 28
 					file.Write(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ' ');        // 29
 					file.Write(station.HiLoToday.LowTempTime.ToString("HH:mm "));                  // 30
 					file.Write(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' ');    // 31
