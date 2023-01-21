@@ -16,6 +16,10 @@ Changed
 Fixed
 - Adds missing Wind Chill from the historic graphs on the dashboard and default web site
 
+Removed
+- Local API calls:
+	/api/extra/leaf.json
+	/api/extra/leaf4.json
 
 3.23.1 - b3221
 ——————————————

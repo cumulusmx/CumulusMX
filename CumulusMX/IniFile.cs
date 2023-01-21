@@ -427,6 +427,29 @@ namespace CumulusMX
 			return x.Split(new string[] { "\",\"" }, StringSplitOptions.None);
 		}
 
+		private string EncodeIntArray(int[] Value)
+		{
+			if (Value == null) return null;
+
+
+			return string.Join(",", Value);
+		}
+
+		// *** Decode string array - very basic, no escaped quotes allowed
+		private int[] DecodeIntArray(string Value, int Length)
+		{
+			if (Value == null) return null;
+
+			var arr = Value.Split(',');
+			var ret = new int[Math.Max(arr.Length, Length)];
+			for (var i = 0; i < ret.Length; i++)
+			{
+				ret[i] = Convert.ToInt32(arr[i]);
+			}
+
+			return ret;
+		}
+
 		// *** Getters for various types ***
 		internal bool GetValue(string SectionName, string Key, bool DefaultValue)
 		{
@@ -499,6 +522,19 @@ namespace CumulusMX
 			}
 		}
 
+		internal int[] GetValue(string SectionName, string Key, int[] DefaultValue)
+		{
+			string StringValue = GetValue(SectionName, Key, EncodeIntArray(DefaultValue));
+			try
+			{
+				return DecodeIntArray(StringValue, DefaultValue.Length);
+			}
+			catch (FormatException)
+			{
+				return DefaultValue;
+			}
+		}
+
 
 		internal DateTime GetValue(string SectionName, string Key, DateTime DefaultValue)
 		{
@@ -542,6 +578,11 @@ namespace CumulusMX
 		internal void SetValue(string SectionName, string Key, string[] Value)
 		{
 			SetValue(SectionName, Key, EncodeStringArray(Value));
+		}
+
+		internal void SetValue(string SectionName, string Key, int[] Value)
+		{
+			SetValue(SectionName, Key, EncodeIntArray(Value));
 		}
 
 		internal void SetValue(string SectionName, string Key, DateTime Value)

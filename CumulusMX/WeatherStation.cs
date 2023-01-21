@@ -21,6 +21,7 @@ using System.Web;
 using System.Threading.Tasks;
 using EmbedIO.Utilities;
 using FluentFTP.Helpers;
+using CumulusMX;
 
 namespace CumulusMX
 {
@@ -2136,13 +2137,13 @@ namespace CumulusMX
 					switch (cumulus.GraphDataFiles[i].LocalFileName)
 					{
 						case "graphconfig.json":
-							json = GetGraphConfig();
+							json = GetGraphConfig(false);
 							break;
 						case "availabledata.json":
-							json = GetAvailGraphData();
+							json = GetAvailGraphData(false);
 							break;
 						case "tempdata.json":
-							json = GetTempGraphData(ts);
+							json = GetTempGraphData(ts, false);
 							break;
 						case "pressdata.json":
 							json = GetPressGraphData(ts);
@@ -2154,7 +2155,7 @@ namespace CumulusMX
 							json = GetWindDirGraphData(ts);
 							break;
 						case "humdata.json":
-							json = GetHumGraphData(ts);
+							json = GetHumGraphData(ts, false);
 							break;
 						case "raindata.json":
 							json = GetRainGraphData(ts);
@@ -2163,13 +2164,13 @@ namespace CumulusMX
 							json = GetDailyRainGraphData();
 							break;
 						case "dailytemp.json":
-							json = GetDailyTempGraphData();
+							json = GetDailyTempGraphData(false);
 							break;
 						case "solardata.json":
-							json = GetSolarGraphData(ts);
+							json = GetSolarGraphData(ts, false);
 							break;
 						case "sunhours.json":
-							json = GetSunHoursGraphData();
+							json = GetSunHoursGraphData(false);
 							break;
 						case "airquality.json":
 							json = GetAqGraphData(ts);
@@ -2209,7 +2210,7 @@ namespace CumulusMX
 					switch (cumulus.GraphDataEodFiles[i].LocalFileName)
 					{
 						case "alldailytempdata.json":
-							json = GetAllDailyTempGraphData();
+							json = GetAllDailyTempGraphData(false);
 							break;
 						case "alldailypressdata.json":
 							json = GetAllDailyPressGraphData();
@@ -2224,13 +2225,13 @@ namespace CumulusMX
 							json = GetAllDailyRainGraphData();
 							break;
 						case "alldailysolardata.json":
-							json = GetAllDailySolarGraphData();
+							json = GetAllDailySolarGraphData(false);
 							break;
 						case "alldailydegdaydata.json":
-							json = GetAllDegreeDaysGraphData();
+							json = GetAllDegreeDaysGraphData(false);
 							break;
 						case "alltempsumdata.json":
-							json = GetAllTempSumGraphData();
+							json = GetAllTempSumGraphData(false);
 							break;
 					}
 
@@ -2254,7 +2255,7 @@ namespace CumulusMX
 			}
 		}
 
-		public string GetSolarGraphData(DateTime ts)
+		public string GetSolarGraphData(DateTime ts, bool local)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
@@ -2268,12 +2269,12 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				if (cumulus.GraphOptions.Visible.UV)
+				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
 					sbUv.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].UV.ToString(cumulus.UVFormat, InvC)}],");
 				}
 
-				if (cumulus.GraphOptions.Visible.Solar)
+				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				{
 					sbSol.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{(int)data[i].SolarRad}],");
 
@@ -2282,7 +2283,7 @@ namespace CumulusMX
 			}
 
 
-			if (cumulus.GraphOptions.Visible.UV)
+			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 			{
 				if (sbUv[sbUv.Length - 1] == ',')
 					sbUv.Length--;
@@ -2290,7 +2291,7 @@ namespace CumulusMX
 				sbUv.Append(']');
 				sb.Append(sbUv);
 			}
-			if (cumulus.GraphOptions.Visible.Solar)
+			if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 			{
 				if (sbSol[sbSol.Length - 1] == ',')
 				{
@@ -2300,7 +2301,7 @@ namespace CumulusMX
 
 				sbSol.Append(']');
 				sbMax.Append(']');
-				if (cumulus.GraphOptions.Visible.UV)
+				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
 					sb.Append(',');
 				}
@@ -2345,7 +2346,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetHumGraphData(DateTime ts)
+		public string GetHumGraphData(DateTime ts, bool local)
 		{
 			var sb = new StringBuilder("{", 10240);
 			var sbOut = new StringBuilder("\"hum\":[");
@@ -2357,17 +2358,17 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				if (cumulus.GraphOptions.Visible.OutHum)
+				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				{
 					sbOut.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].Humidity}],");
 				}
-				if (cumulus.GraphOptions.Visible.InHum)
+				if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 				{
 					sbIn.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].IndoorHumidity}],");
 				}
 			}
 
-			if (cumulus.GraphOptions.Visible.OutHum)
+			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 			{
 				if (sbOut[sbOut.Length - 1] == ',')
 					sbOut.Length--;
@@ -2377,14 +2378,14 @@ namespace CumulusMX
 				sb.Append(sbOut);
 			}
 
-			if (cumulus.GraphOptions.Visible.InHum)
+			if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 			{
 				if (sbIn[sbIn.Length - 1] == ',')
 					sbIn.Length--;
 
 				sbIn.Append(']');
 
-				if (cumulus.GraphOptions.Visible.OutHum)
+				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 					sb.Append(',');
 
 				sb.Append(sbIn);
@@ -2471,7 +2472,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetTempGraphData(DateTime ts)
+		public string GetTempGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2490,32 +2491,32 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				if (cumulus.GraphOptions.Visible.InTemp)
+				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 					sbIn.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].IndoorTemp.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.DewPoint)
+				if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 					sbDew.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].DewPoint.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.AppTemp)
+				if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 					sbApp.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].AppTemp.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.FeelsLike)
+				if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 					sbFeel.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.WindChill)
+				if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 					sbChill.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].WindChill.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.HeatIndex)
+				if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 					sbHeat.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.Temp)
+				if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
 					sbTemp.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].OutsideTemp.ToString(cumulus.TempFormat, InvC)}],");
 
-				if (cumulus.GraphOptions.Visible.Humidex)
+				if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 					sbHumidex.Append($"[{DateTimeToUnix(data[i].Timestamp) * 1000},{data[i].Humidex.ToString(cumulus.TempFormat, InvC)}],");
 			}
 
-			if (cumulus.GraphOptions.Visible.InTemp)
+			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 			{
 				if (sbIn[sbIn.Length - 1] == ',')
 					sbIn.Length--;
@@ -2525,7 +2526,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.DewPoint)
+			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 			{
 				if (sbDew[sbDew.Length - 1] == ',')
 					sbDew.Length--;
@@ -2535,7 +2536,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.AppTemp)
+			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 			{
 				if (sbApp[sbApp.Length - 1] == ',')
 					sbApp.Length--;
@@ -2545,7 +2546,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.FeelsLike)
+			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 			{
 				if (sbFeel[sbFeel.Length - 1] == ',')
 					sbFeel.Length--;
@@ -2555,7 +2556,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.WindChill)
+			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 			{
 				if (sbChill[sbChill.Length - 1] == ',')
 					sbChill.Length--;
@@ -2565,7 +2566,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.HeatIndex)
+			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 			{
 				if (sbHeat[sbHeat.Length - 1] == ',')
 					sbHeat.Length--;
@@ -2575,7 +2576,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.Temp)
+			if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
 			{
 				if (sbTemp[sbTemp.Length - 1] == ',')
 					sbTemp.Length--;
@@ -2585,7 +2586,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.Humidex)
+			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 			{
 				if (sbHumidex[sbHumidex.Length - 1] == ',')
 					sbHumidex.Length--;
@@ -2651,7 +2652,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraTempGraphData(DateTime ts)
+		public string GetExtraTempGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2665,11 +2666,11 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt= new StringBuilder[cumulus.GraphOptions.Visible.ExtraTemp.Length];
+			StringBuilder[] sbExt= new StringBuilder[cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length];
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.ExtraTemp[i])
+				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
 					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
 			}
 
@@ -2729,9 +2730,9 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
-									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Length; i++)
+									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraTemp[i] && double.TryParse(st[i + 2], out temp))
+										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local) && double.TryParse(st[i + 2], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -2766,9 +2767,9 @@ namespace CumulusMX
 				}
 			}
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.ExtraTemp[i])
+				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -2783,7 +2784,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraDewpointGraphData(DateTime ts)
+		public string GetExtraDewpointGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2797,11 +2798,11 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraDewPoint.Length];
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length];
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.ExtraDewPoint[i])
+				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
 					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
 			}
 
@@ -2861,9 +2862,9 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
-									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Length; i++)
+									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraDewPoint[i] && double.TryParse(st[i + 22], out temp))
+										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local) && double.TryParse(st[i + 22], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -2898,9 +2899,9 @@ namespace CumulusMX
 				}
 			}
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.ExtraDewPoint[i])
+				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -2915,7 +2916,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraHumGraphData(DateTime ts)
+		public string GetExtraHumGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2929,11 +2930,11 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraHum.Length];
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraHum.Vals.Length];
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.ExtraHum[i])
+				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
 					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
 			}
 
@@ -2994,9 +2995,9 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0;
-									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Length; i++)
+									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraHum[i] && int.TryParse(st[i + 12], out temp))
+										if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local) && int.TryParse(st[i + 12], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp}],");
 									}
 								}
@@ -3031,9 +3032,9 @@ namespace CumulusMX
 				}
 			}
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.ExtraHum[i])
+				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -3048,7 +3049,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSoilTempGraphData(DateTime ts)
+		public string GetSoilTempGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3062,11 +3063,11 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilTemp.Length];
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilTemp.Vals.Length];
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.SoilTemp[i])
+				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
 					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
 			}
 
@@ -3128,12 +3129,12 @@ namespace CumulusMX
 									var temp = 0.0;
 									for (var i = 0; i < 4; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilTemp[i] && double.TryParse(st[i + 32], out temp))
+										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 32], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 									for (var i = 4; i < 16; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilTemp[i] && double.TryParse(st[i + 40], out temp))
+										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 40], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -3168,9 +3169,9 @@ namespace CumulusMX
 				}
 			}
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.SoilTemp[i])
+				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -3185,7 +3186,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSoilMoistGraphData(DateTime ts)
+		public string GetSoilMoistGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3199,11 +3200,11 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilMoist.Length];
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilMoist.Vals.Length];
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.SoilMoist[i])
+				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
 					sbExt[i] = new StringBuilder($"\"sensor {i +1 }\":[");
 			}
 
@@ -3265,12 +3266,12 @@ namespace CumulusMX
 									var temp = 0;
 									for (var i = 0; i < 4; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilMoist[i] && int.TryParse(st[i + 36], out temp))
+										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local) && int.TryParse(st[i + 36], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp}],");
 									}
 									for (var i = 4; i < 16; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilMoist[i] && int.TryParse(st[i + 52], out temp))
+										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local) && int.TryParse(st[i + 52], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp}],");
 									}
 								}
@@ -3305,9 +3306,9 @@ namespace CumulusMX
 				}
 			}
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.SoilMoist[i])
+				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -3322,7 +3323,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetUserTempGraphData(DateTime ts)
+		public string GetUserTempGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3336,11 +3337,11 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.UserTemp.Length];
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.UserTemp.Vals.Length];
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.UserTemp[i])
+				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
 					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
 			}
 
@@ -3400,9 +3401,9 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
-									for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Length; i++)
+									for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.UserTemp[i] && double.TryParse(st[i + 76], out temp))
+										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local) && double.TryParse(st[i + 76], out temp))
 											sbExt[i].Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -3437,9 +3438,9 @@ namespace CumulusMX
 				}
 			}
 
-			for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Length; i++)
+			for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 			{
-				if (cumulus.GraphOptions.Visible.UserTemp[i])
+				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -3454,7 +3455,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetCo2SensorGraphData(DateTime ts)
+		public string GetCo2SensorGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3535,28 +3536,28 @@ namespace CumulusMX
 
 								if (entrydate >= datefrom)
 								{
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2 && double.TryParse(st[84], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && double.TryParse(st[84], out temp))
 										sbCo2.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg && double.TryParse(st[85], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && double.TryParse(st[85], out temp))
 										sbCo2Avg.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25 && double.TryParse(st[86], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && double.TryParse(st[86], out temp))
 										sbPm25.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg && double.TryParse(st[87], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && double.TryParse(st[87], out temp))
 										sbPm25Avg.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10 && double.TryParse(st[88], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && double.TryParse(st[88], out temp))
 										sbPm10.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg && double.TryParse(st[89], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && double.TryParse(st[89], out temp))
 										sbPm10Avg.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp && double.TryParse(st[90], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && double.TryParse(st[90], out temp))
 										sbTemp.Append($"[{DateTimeToUnix(entrydate) * 1000},{temp.ToString(cumulus.TempFormat, InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum && int.TryParse(st[91], out tempInt))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && int.TryParse(st[91], out tempInt))
 										sbHum.Append($"[{DateTimeToUnix(entrydate) * 1000},{tempInt}],");
 								}
 							}
@@ -3590,7 +3591,7 @@ namespace CumulusMX
 				}
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
 			{
 				if (sbCo2[sbCo2.Length - 1] == ',')
 					sbCo2.Length--;
@@ -3600,7 +3601,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
 			{
 				if (sbCo2Avg[sbCo2Avg.Length - 1] == ',')
 					sbCo2Avg.Length--;
@@ -3610,7 +3611,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
 			{
 				if (sbPm25[sbPm25.Length - 1] == ',')
 					sbPm25.Length--;
@@ -3620,7 +3621,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
 			{
 				if (sbPm25Avg[sbPm25Avg.Length - 1] == ',')
 					sbPm25Avg.Length--;
@@ -3630,7 +3631,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
 			{
 				if (sbPm10[sbPm10.Length - 1] == ',')
 					sbPm10.Length--;
@@ -3640,7 +3641,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
 			{
 				if (sbPm10Avg[sbPm10Avg.Length - 1] == ',')
 					sbPm10Avg.Length--;
@@ -3650,7 +3651,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
 			{
 				if (sbTemp[sbTemp.Length - 1] == ',')
 					sbTemp.Length--;
@@ -3660,7 +3661,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Hum)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
 			{
 				if (sbHum[sbHum.Length - 1] == ',')
 					sbHum.Length--;
@@ -10968,19 +10969,20 @@ namespace CumulusMX
 
 			for (int sensor = 1; sensor < 11; sensor++)
 			{
-				json.Append("[\"");
-				json.Append(cumulus.Trans.ExtraTempCaptions[sensor - 1]);
-				json.Append("\",\"");
-				json.Append(ExtraTemp[sensor].ToString(cumulus.TempFormat));
-				json.Append("\",\"&deg;");
-				json.Append(cumulus.Units.TempText[1].ToString());
-				json.Append("\"]");
-
-				if (sensor < 10)
+				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(sensor - 1, true))
 				{
-					json.Append(',');
+					json.Append("[\"");
+					json.Append(cumulus.Trans.ExtraTempCaptions[sensor - 1]);
+					json.Append("\",\"");
+					json.Append(ExtraTemp[sensor].ToString(cumulus.TempFormat));
+					json.Append("\",\"&deg;");
+					json.Append(cumulus.Units.TempText[1].ToString());
+					json.Append("\"],");
 				}
 			}
+
+			if (json[json.Length - 1] == ',')
+				json.Length--;
 
 			json.Append("]}");
 			return json.ToString();
@@ -10992,19 +10994,20 @@ namespace CumulusMX
 
 			for (int sensor = 1; sensor < 9; sensor++)
 			{
-				json.Append("[\"");
-				json.Append(cumulus.Trans.UserTempCaptions[sensor - 1]);
-				json.Append("\",\"");
-				json.Append(UserTemp[sensor].ToString(cumulus.TempFormat));
-				json.Append("\",\"&deg;");
-				json.Append(cumulus.Units.TempText[1].ToString());
-				json.Append("\"]");
-
-				if (sensor < 8)
+				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(sensor - 1, true))
 				{
-					json.Append(',');
+					json.Append("[\"");
+					json.Append(cumulus.Trans.UserTempCaptions[sensor - 1]);
+					json.Append("\",\"");
+					json.Append(UserTemp[sensor].ToString(cumulus.TempFormat));
+					json.Append("\",\"&deg;");
+					json.Append(cumulus.Units.TempText[1].ToString());
+					json.Append("\"],");
 				}
 			}
+
+			if (json[json.Length - 1] == ',')
+				json.Length--;
 
 			json.Append("]}");
 			return json.ToString();
@@ -11016,17 +11019,17 @@ namespace CumulusMX
 
 			for (int sensor = 1; sensor < 11; sensor++)
 			{
-				json.Append("[\"");
-				json.Append(cumulus.Trans.ExtraHumCaptions[sensor - 1]);
-				json.Append("\",\"");
-				json.Append(ExtraHum[sensor].ToString(cumulus.HumFormat));
-				json.Append("\",\"%\"]");
-
-				if (sensor < 10)
+				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(sensor - 1, true))
 				{
-					json.Append(',');
+					json.Append("[\"");
+					json.Append(cumulus.Trans.ExtraHumCaptions[sensor - 1]);
+					json.Append("\",\"");
+					json.Append(ExtraHum[sensor].ToString(cumulus.HumFormat));
+					json.Append("\",\"%\"],");
 				}
 			}
+			if (json[json.Length - 1] == ',')
+				json.Length--;
 
 			json.Append("]}");
 			return json.ToString();
@@ -11038,19 +11041,20 @@ namespace CumulusMX
 
 			for (int sensor = 1; sensor < 11; sensor++)
 			{
-				json.Append("[\"");
-				json.Append(cumulus.Trans.ExtraDPCaptions[sensor - 1]);
-				json.Append("\",\"");
-				json.Append(ExtraDewPoint[sensor].ToString(cumulus.TempFormat));
-				json.Append("\",\"&deg;");
-				json.Append(cumulus.Units.TempText[1].ToString());
-				json.Append("\"]");
-
-				if (sensor < 10)
+				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(sensor - 1, true))
 				{
-					json.Append(',');
+					json.Append("[\"");
+					json.Append(cumulus.Trans.ExtraDPCaptions[sensor - 1]);
+					json.Append("\",\"");
+					json.Append(ExtraDewPoint[sensor].ToString(cumulus.TempFormat));
+					json.Append("\",\"&deg;");
+					json.Append(cumulus.Units.TempText[1].ToString());
+					json.Append("\"],");
 				}
 			}
+
+			if (json[json.Length - 1] == ',')
+				json.Length--;
 
 			json.Append("]}");
 			return json.ToString();
@@ -11062,9 +11066,15 @@ namespace CumulusMX
 
 			for (var i = 1; i <= 16; i++)
 			{
-				json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{SoilTemp[i].ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i - 1, true))
+				{
+					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{SoilTemp[i].ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+				}
 			}
-			json.Length--;
+
+			if (json[json.Length - 1] == ',')
+				json.Length--;
+
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11073,52 +11083,99 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"]");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(0, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(1, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(2, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(3, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(4, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(5, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(6, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(7, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(8, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(9, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(10, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(11, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(12, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(13, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(14, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(15, true))
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"]");
+
+			if (json[json.Length - 1] == ',')
+				json.Length--;
+
 			json.Append("]}");
 			return json.ToString();
 		}
 
-		public string GetAirQuality()
+		public string GetAirQuality(bool local)
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
+			if (cumulus.GraphOptions.Visible.AqSensor.IsVisible(local))
+			{
+				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(0, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[0]}\",\"{AirQuality1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(1, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[1]}\",\"{AirQuality2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(2, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[2]}\",\"{AirQuality3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(3, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[3]}\",\"{AirQuality4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(0, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[0]}\",\"{AirQualityAvg1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(1, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[1]}\",\"{AirQualityAvg2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(2, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[2]}\",\"{AirQualityAvg3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(3, local))
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[3]}\",\"{AirQualityAvg4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+			}
 
-			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[0]}\",\"{AirQuality1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[1]}\",\"{AirQuality2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[2]}\",\"{AirQuality3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityCaptions[3]}\",\"{AirQuality4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[0]}\",\"{AirQualityAvg1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[1]}\",\"{AirQualityAvg2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[2]}\",\"{AirQualityAvg3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[3]}\",\"{AirQualityAvg4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+			if (json[json.Length - 1] == ',')
+				json.Length--;
+
 			json.Append("]}");
 			return json.ToString();
 		}
 
-		public string GetCO2sensor()
+		public string GetCO2sensor(bool local)
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{CO2}\",\"{cumulus.Units.CO2UnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{CO2_24h}\",\"{cumulus.Units.CO2UnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{CO2_pm2p5:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+			if (cumulus.GraphOptions.Visible.CO2Sensor.IsVisible(local))
+			{
+				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{CO2}\",\"{cumulus.Units.CO2UnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{CO2_24h}\",\"{cumulus.Units.CO2UnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{CO2_pm2p5:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+			}
+
+			if (json[json.Length - 1] == ',')
+				json.Length--;
+
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11134,40 +11191,32 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
-		public string GetLeaf()
+		public string GetLeaf8(bool local)
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
+			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
+			{
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(0, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(1, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(2, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(3, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(4, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[4]}\",\"{LeafWetness5.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(5, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[5]}\",\"{LeafWetness6.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(6, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[6]}\",\"{LeafWetness7.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(7, local))
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[7]}\",\"{LeafWetness8.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
+			}
 
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
-			json.Append("]}");
-			return json.ToString();
-		}
+			if (json[json.Length - 1] == ',')
+				json.Length--;
 
-		public string GetLeaf4()
-		{
-			var json = new StringBuilder("{\"data\":[", 256);
-
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
-			json.Append("]}");
-			return json.ToString();
-		}
-
-		public string GetLeaf8()
-		{
-			var json = new StringBuilder("{\"data\":[", 256);
-
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[4]}\",\"{LeafWetness5.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[5]}\",\"{LeafWetness6.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[6]}\",\"{LeafWetness7.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-			json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[7]}\",\"{LeafWetness8.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -12051,7 +12100,7 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
-		public string GetGraphConfig()
+		public string GetGraphConfig(bool local)
 		{
 			var json = new StringBuilder(200);
 			json.Append('{');
@@ -12073,26 +12122,26 @@ namespace CumulusMX
 			#region recent
 
 			// temp
-			if (cumulus.GraphOptions.Visible.Temp)
+			if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
 				json.Append($"\"temp\":{{\"name\":\"Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.Temp}\"}},");
-			if (cumulus.GraphOptions.Visible.AppTemp)
+			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 				json.Append($"\"apptemp\":{{\"name\":\"Apparent Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.AppTemp}\"}},");
-			if (cumulus.GraphOptions.Visible.FeelsLike)
+			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 				json.Append($"\"feelslike\":{{\"name\":\"Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.FeelsLike}\"}},");
-			if (cumulus.GraphOptions.Visible.WindChill)
+			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 				json.Append($"\"wchill\":{{\"name\":\"Wind Chill\",\"colour\":\"{cumulus.GraphOptions.Colour.WindChill}\"}},");
-			if (cumulus.GraphOptions.Visible.HeatIndex)
+			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 				json.Append($"\"heatindex\":{{\"name\":\"Heat Index\",\"colour\":\"{cumulus.GraphOptions.Colour.HeatIndex}\"}},");
-			if (cumulus.GraphOptions.Visible.DewPoint)
+			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 				json.Append($"\"dew\":{{\"name\":\"Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.DewPoint}\"}},");
-			if (cumulus.GraphOptions.Visible.Humidex)
+			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 				json.Append($"\"humidex\":{{\"name\":\"Humidex\",\"colour\":\"{cumulus.GraphOptions.Colour.Humidex}\"}},");
-			if (cumulus.GraphOptions.Visible.InTemp)
+			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 				json.Append($"\"intemp\":{{\"name\":\"Indoor Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.InTemp}\"}},");
 			// hum
-			if (cumulus.GraphOptions.Visible.OutHum)
+			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				json.Append($"\"hum\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.OutHum}\"}},");
-			if (cumulus.GraphOptions.Visible.InHum)
+			if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 				json.Append($"\"inhum\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.InHum}\"}},");
 			// press
 			json.Append($"\"press\":{{\"name\":\"Pressure\",\"colour\":\"{cumulus.GraphOptions.Colour.Press}\"}},");
@@ -12106,12 +12155,12 @@ namespace CumulusMX
 			json.Append($"\"rfall\":{{\"name\":\"Rainfall\",\"colour\":\"{cumulus.GraphOptions.Colour.Rainfall}\"}},");
 			json.Append($"\"rrate\":{{\"name\":\"Rainfall Rate\",\"colour\":\"{cumulus.GraphOptions.Colour.RainRate}\"}},");
 			// solar
-			if (cumulus.GraphOptions.Visible.Solar)
+			if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				json.Append($"\"solarrad\":{{\"name\":\"Solar Irradiation\",\"colour\":\"{cumulus.GraphOptions.Colour.Solar}\"}},");
 			json.Append($"\"currentsolarmax\":{{\"name\":\"Solar theoretical\",\"colour\":\"{cumulus.GraphOptions.Colour.SolarTheoretical}\"}},");
-			if (cumulus.GraphOptions.Visible.UV)
+			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				json.Append($"\"uv\":{{\"name\":\"UV-I\",\"colour\":\"{cumulus.GraphOptions.Colour.UV}\"}},");
-			if (cumulus.GraphOptions.Visible.Sunshine)
+			if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 				json.Append($"\"sunshine\":{{\"name\":\"Sunshine\",\"colour\":\"{cumulus.GraphOptions.Colour.Sunshine}\"}},");
 			// aq
 			json.Append($"\"pm2p5\":{{\"name\":\"PM 2.5\",\"colour\":\"{cumulus.GraphOptions.Colour.Pm2p5}\"}},");
@@ -12122,16 +12171,18 @@ namespace CumulusMX
 			#region daily
 
 			// growing deg days
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1)
+			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 				json.Append($"\"growingdegreedays1\":{{\"name\":\"GDD#1\"}},");
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays2)
+			if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 				json.Append($"\"growingdegreedays2\":{{\"name\":\"GDD#2\"}},");
+			// TODO: temp sum
+
 			// daily temps
-			if (cumulus.GraphOptions.Visible.AvgTemp)
+			if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
 				json.Append($"\"avgtemp\":{{\"name\":\"Average Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.AvgTemp}\"}},");
-			if (cumulus.GraphOptions.Visible.MaxTemp)
+			if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
 				json.Append($"\"maxtemp\":{{\"name\":\"Maximum Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxTemp}\"}},");
-			if (cumulus.GraphOptions.Visible.MinTemp)
+			if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
 				json.Append($"\"mintemp\":{{\"name\":\"Minimum Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.MinTemp}\"}},");
 
 			json.Append($"\"maxpress\":{{\"name\":\"High Pressure\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxPress}\"}},");
@@ -12140,26 +12191,26 @@ namespace CumulusMX
 			json.Append($"\"maxhum\":{{\"name\":\"Maximum Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxOutHum}\"}},");
 			json.Append($"\"minhum\":{{\"name\":\"Minimum Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.MinOutHum}\"}},");
 
-			if (cumulus.GraphOptions.Visible.DewPoint)
+			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 			{
 				json.Append($"\"mindew\":{{\"name\":\"Minumim Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MinDew}\"}},");
 				json.Append($"\"maxdew\":{{\"name\":\"Maximum Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxDew}\"}},");
 			}
-			if (cumulus.GraphOptions.Visible.WindChill)
+			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 				json.Append($"\"minwindchill\":{{\"name\":\"Wind Chill\",\"colour\":\"{cumulus.GraphOptions.Colour.MinWindChill}\"}},");
-			if (cumulus.GraphOptions.Visible.AppTemp)
+			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 			{
 				json.Append($"\"minapp\":{{\"name\":\"Minumim Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MinApp}\"}},");
 				json.Append($"\"maxapp\":{{\"name\":\"Maximum Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxApp}\"}},");
 			}
-			if (cumulus.GraphOptions.Visible.FeelsLike)
+			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 			{
 				json.Append($"\"minfeels\":{{\"name\":\"Minumim Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MinFeels}\"}},");
 				json.Append($"\"maxfeels\":{{\"name\":\"Maximum Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxFeels}\"}},");
 			}
-			if (cumulus.GraphOptions.Visible.HeatIndex)
+			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 				json.Append($"\"maxheatindex\":{{\"name\":\"Heat Index\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHeatIndex}\"}},");
-			if (cumulus.GraphOptions.Visible.Humidex)
+			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 				json.Append($"\"maxhumidex\":{{\"name\":\"Humidex\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHumidex}\"}},");
 
 			#endregion daily
@@ -12167,40 +12218,40 @@ namespace CumulusMX
 			#region extra sensors
 
 			// extra temp
-			if (cumulus.GraphOptions.Visible.ExtraTemp.Contains(true))
+			if (cumulus.GraphOptions.Visible.ExtraTemp.IsVisible(local))
 				json.Append($"\"extratemp\":{{\"name\":[\"{cumulus.Trans.ExtraTempCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.ExtraTemp.Join("\",\"")}\"]}},");
 			// extra hum
-			if (cumulus.GraphOptions.Visible.ExtraHum.Contains(true))
+			if (cumulus.GraphOptions.Visible.ExtraHum.IsVisible(local))
 				json.Append($"\"extrahum\":{{\"name\":[\"{cumulus.Trans.ExtraHumCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.ExtraHum.Join("\",\"")}\"]}},");
 			// extra dewpoint
-			if (cumulus.GraphOptions.Visible.ExtraDewPoint.Contains(true))
+			if (cumulus.GraphOptions.Visible.ExtraDewPoint.IsVisible(local))
 				json.Append($"\"extradew\":{{\"name\":[\"{cumulus.Trans.ExtraDPCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.ExtraDewPoint.Join("\",\"")}\"]}},");
 			// extra user temps
-			if (cumulus.GraphOptions.Visible.UserTemp.Contains(true))
+			if (cumulus.GraphOptions.Visible.UserTemp.IsVisible(local))
 				json.Append($"\"usertemp\":{{\"name\":[\"{cumulus.Trans.UserTempCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.UserTemp.Join("\",\"")}\"]}},");
 			// soil temps
-			if (cumulus.GraphOptions.Visible.SoilTemp.Contains(true))
+			if (cumulus.GraphOptions.Visible.SoilTemp.IsVisible(local))
 				json.Append($"\"soiltemp\":{{\"name\":[\"{cumulus.Trans.SoilTempCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.SoilTemp.Join("\",\"")}\"]}},");
 			// soil temps
-			if (cumulus.GraphOptions.Visible.SoilMoist.Contains(true))
+			if (cumulus.GraphOptions.Visible.SoilMoist.IsVisible(local))
 				json.Append($"\"soilmoist\":{{\"name\":[\"{cumulus.Trans.SoilMoistureCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.SoilMoist.Join("\",\"")}\"]}},");
 			// CO2
 			json.Append("\"co2\":{");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
 				json.Append($"\"co2\":{{\"name\":\"CO₂\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.CO2}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
 				json.Append($"\"co2average\":{{\"name\":\"CO₂ Average\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.CO2Avg}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
 				json.Append($"\"pm10\":{{\"name\":\"PM 10\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm10}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
 				json.Append($"\"pm10average\":{{\"name\":\"PM 10 Avg\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm10Avg}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
 				json.Append($"\"pm2.5\":{{\"name\":\"PM 2.5\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm25}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
 				json.Append($"\"pm2.5average\":{{\"name\":\"PM 2.5 Avg\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm25Avg}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Hum)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
 				json.Append($"\"humidity\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Hum}\"}},");
-			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
 				json.Append($"\"temperature\":{{\"name\":\"Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Temp}\"}}");
 			json.Append("},");
 
@@ -12216,35 +12267,35 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
-		public string GetAvailGraphData()
+		public string GetAvailGraphData(bool local)
 		{
 			var json = new StringBuilder(200);
 
 			// Temp values
 			json.Append("{\"Temperature\":[");
 
-			if (cumulus.GraphOptions.Visible.Temp)
+			if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
 				json.Append("\"Temperature\",");
 
-			if (cumulus.GraphOptions.Visible.InTemp)
+			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 				json.Append("\"Indoor Temp\",");
 
-			if (cumulus.GraphOptions.Visible.HeatIndex)
+			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 				json.Append("\"Heat Index\",");
 
-			if (cumulus.GraphOptions.Visible.DewPoint)
+			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 				json.Append("\"Dew Point\",");
 
-			if (cumulus.GraphOptions.Visible.WindChill)
+			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 				json.Append("\"Wind Chill\",");
 
-			if (cumulus.GraphOptions.Visible.AppTemp)
+			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 				json.Append("\"Apparent Temp\",");
 
-			if (cumulus.GraphOptions.Visible.FeelsLike)
+			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 				json.Append("\"Feels Like\",");
 
-			if (cumulus.GraphOptions.Visible.Humidex)
+			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 				json.Append("\"Humidex\",");
 
 			if (json[json.Length - 1] == ',')
@@ -12253,10 +12304,10 @@ namespace CumulusMX
 			// humidity values
 			json.Append("],\"Humidity\":[");
 
-			if (cumulus.GraphOptions.Visible.OutHum)
+			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				json.Append("\"Humidity\",");
 
-			if (cumulus.GraphOptions.Visible.InHum)
+			if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 				json.Append("\"Indoor Hum\",");
 
 			if (json[json.Length - 1] == ',')
@@ -12272,15 +12323,15 @@ namespace CumulusMX
 			// rain
 			json.Append("\"Rain\":[\"Rainfall\",\"Rainfall Rate\"]");
 
-			if (cumulus.GraphOptions.Visible.AvgTemp || cumulus.GraphOptions.Visible.MaxTemp || cumulus.GraphOptions.Visible.MinTemp)
+			if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local) || cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local) || cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
 			{
 				json.Append(",\"DailyTemps\":[");
 
-				if (cumulus.GraphOptions.Visible.AvgTemp)
+				if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
 					json.Append("\"AvgTemp\",");
-				if (cumulus.GraphOptions.Visible.MaxTemp)
+				if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
 					json.Append("\"MaxTemp\",");
-				if (cumulus.GraphOptions.Visible.MinTemp)
+				if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
 					json.Append("\"MinTemp\",");
 
 				if (json[json.Length - 1] == ',')
@@ -12291,14 +12342,14 @@ namespace CumulusMX
 
 
 			// solar values
-			if (cumulus.GraphOptions.Visible.Solar || cumulus.GraphOptions.Visible.UV)
+			if (cumulus.GraphOptions.Visible.Solar.IsVisible(local) || cumulus.GraphOptions.Visible.UV.IsVisible(local))
 			{
 				json.Append(",\"Solar\":[");
 
-				if (cumulus.GraphOptions.Visible.Solar)
+				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 					json.Append("\"Solar Rad\",");
 
-				if (cumulus.GraphOptions.Visible.UV)
+				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 					json.Append("\"UV Index\",");
 
 				if (json[json.Length - 1] == ',')
@@ -12308,7 +12359,7 @@ namespace CumulusMX
 			}
 
 			// Sunshine
-			if (cumulus.GraphOptions.Visible.Sunshine)
+			if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 			{
 				json.Append(",\"Sunshine\":[\"sunhours\"]");
 			}
@@ -12332,13 +12383,13 @@ namespace CumulusMX
 			}
 
 			// Degree Days
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1 || cumulus.GraphOptions.Visible.GrowingDegreeDays2)
+			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) || cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 			{
 				json.Append(",\"DegreeDays\":[");
-				if (cumulus.GraphOptions.Visible.GrowingDegreeDays1)
+				if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 					json.Append("\"GDD1\",");
 
-				if (cumulus.GraphOptions.Visible.GrowingDegreeDays2)
+				if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 					json.Append("\"GDD2\"");
 
 				if (json[json.Length - 1] == ',')
@@ -12348,14 +12399,14 @@ namespace CumulusMX
 			}
 
 			// Temp Sum
-			if (cumulus.GraphOptions.Visible.TempSum0 || cumulus.GraphOptions.Visible.TempSum1 || cumulus.GraphOptions.Visible.TempSum2)
+			if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 			{
 				json.Append(",\"TempSum\":[");
-				if (cumulus.GraphOptions.Visible.TempSum0)
+				if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
 					json.Append("\"Sum0\",");
-				if (cumulus.GraphOptions.Visible.TempSum1)
+				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 					json.Append("\"Sum1\",");
-				if (cumulus.GraphOptions.Visible.TempSum2)
+				if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 					json.Append("\"Sum2\"");
 
 				if (json[json.Length - 1] == ',')
@@ -12365,12 +12416,12 @@ namespace CumulusMX
 			}
 
 			// Extra temperature
-			if (cumulus.GraphOptions.Visible.ExtraTemp.Contains(true))
+			if (cumulus.GraphOptions.Visible.ExtraTemp.IsVisible(local))
 			{
 				json.Append(",\"ExtraTemp\":[");
-				for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Length; i++)
+				for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 				{
-					if (cumulus.GraphOptions.Visible.ExtraTemp[i])
+					if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.ExtraTempCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
@@ -12380,12 +12431,12 @@ namespace CumulusMX
 			}
 
 			// Extra humidity
-			if (cumulus.GraphOptions.Visible.ExtraHum.Contains(true))
+			if (cumulus.GraphOptions.Visible.ExtraHum.IsVisible(local))
 			{
 				json.Append(",\"ExtraHum\":[");
-				for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Length; i++)
+				for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 				{
-					if (cumulus.GraphOptions.Visible.ExtraHum[i])
+					if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.ExtraHumCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
@@ -12395,12 +12446,12 @@ namespace CumulusMX
 			}
 
 			// Extra dew point
-			if (cumulus.GraphOptions.Visible.ExtraDewPoint.Contains(true))
+			if (cumulus.GraphOptions.Visible.ExtraDewPoint.IsVisible(local))
 			{
 				json.Append(",\"ExtraDewPoint\":[");
-				for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Length; i++)
+				for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 				{
-					if (cumulus.GraphOptions.Visible.ExtraDewPoint[i])
+					if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.ExtraDPCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
@@ -12411,12 +12462,12 @@ namespace CumulusMX
 
 
 			// Soil Temp
-			if (cumulus.GraphOptions.Visible.SoilTemp.Contains(true))
+			if (cumulus.GraphOptions.Visible.SoilTemp.IsVisible(local))
 			{
 				json.Append(",\"SoilTemp\":[");
-				for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Length; i++)
+				for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 				{
-					if (cumulus.GraphOptions.Visible.SoilTemp[i])
+					if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.SoilTempCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
@@ -12426,12 +12477,12 @@ namespace CumulusMX
 			}
 
 			// Soil Moisture
-			if (cumulus.GraphOptions.Visible.SoilMoist.Contains(true))
+			if (cumulus.GraphOptions.Visible.SoilMoist.IsVisible(local))
 			{
 				json.Append(",\"SoilMoist\":[");
-				for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Length; i++)
+				for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 				{
-					if (cumulus.GraphOptions.Visible.SoilMoist[i])
+					if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.SoilMoistureCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
@@ -12441,12 +12492,12 @@ namespace CumulusMX
 			}
 
 			// User Temp
-			if (cumulus.GraphOptions.Visible.UserTemp.Contains(true))
+			if (cumulus.GraphOptions.Visible.UserTemp.IsVisible(local))
 			{
 				json.Append(",\"UserTemp\":[");
-				for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Length; i++)
+				for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 				{
-					if (cumulus.GraphOptions.Visible.UserTemp[i])
+					if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.UserTempCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
@@ -12456,25 +12507,24 @@ namespace CumulusMX
 			}
 
 			// CO2
-			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2 || cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg || cumulus.GraphOptions.Visible.CO2Sensor.Pm25 || cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg ||
-				cumulus.GraphOptions.Visible.CO2Sensor.Pm10 || cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg || cumulus.GraphOptions.Visible.CO2Sensor.Temp || cumulus.GraphOptions.Visible.CO2Sensor.Hum)
+			if (cumulus.GraphOptions.Visible.CO2Sensor.IsVisible(local))
 			{
 				json.Append(",\"CO2\":[");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
 					json.Append("\"CO2\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
 					json.Append("\"CO2Avg\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
 					json.Append("\"PM25\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
 					json.Append("\"PM25Avg\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
 					json.Append("\"PM10\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
 					json.Append("\"PM10Avg\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
 					json.Append("\"Temp\",");
-				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum)
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
 					json.Append("\"Hum\"");
 
 				if (json[json.Length - 1] == ',')
@@ -12515,11 +12565,11 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSunHoursGraphData()
+		public string GetSunHoursGraphData(bool local)
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{", 10000);
-			if (cumulus.GraphOptions.Visible.Sunshine)
+			if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 			{
 				var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);
 				var data = DayFile.Where(rec => rec.Date >= datefrom).ToList();
@@ -12542,7 +12592,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetDailyTempGraphData()
+		public string GetDailyTempGraphData(bool local)
 		{
 			var InvC = new CultureInfo("");
 			var datefrom = DateTime.Now.AddDays(-cumulus.GraphDays - 1);
@@ -12550,7 +12600,7 @@ namespace CumulusMX
 			var append = false;
 			StringBuilder sb = new StringBuilder("{");
 
-			if (cumulus.GraphOptions.Visible.MinTemp)
+			if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
 			{
 				sb.Append("\"mintemp\":[");
 
@@ -12567,7 +12617,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.MaxTemp)
+			if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
 			{
 				if (append)
 					sb.Append(',');
@@ -12587,7 +12637,7 @@ namespace CumulusMX
 				append = true;
 			}
 
-			if (cumulus.GraphOptions.Visible.AvgTemp)
+			if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
 			{
 				if (append)
 					sb.Append(',');
@@ -12609,7 +12659,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAllDailyTempGraphData()
+		public string GetAllDailyTempGraphData(bool local)
 		{
 			var InvC = new CultureInfo("");
 			/* returns:
@@ -12641,16 +12691,16 @@ namespace CumulusMX
 				{
 					var recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 					// lo temp
-					if (cumulus.GraphOptions.Visible.MinTemp)
+					if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
 						minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}],");
 					// hi temp
-					if (cumulus.GraphOptions.Visible.MaxTemp)
+					if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
 						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}],");
 					// avg temp
-					if (cumulus.GraphOptions.Visible.AvgTemp)
+					if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
 						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}],");
 
-					if (cumulus.GraphOptions.Visible.HeatIndex)
+					if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 					{
 						// hi heat index
 						if (DayFile[i].HighHeatIndex > -999)
@@ -12658,7 +12708,7 @@ namespace CumulusMX
 						else
 							heatIdx.Append($"[{recDate},null],");
 					}
-					if (cumulus.GraphOptions.Visible.AppTemp)
+					if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 					{
 						// hi app temp
 						if (DayFile[i].HighAppTemp > -999)
@@ -12673,7 +12723,7 @@ namespace CumulusMX
 							minApp.Append($"[{recDate},null],");
 					}
 					// lo wind chill
-					if (cumulus.GraphOptions.Visible.WindChill)
+					if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 					{
 						if (DayFile[i].LowWindChill < 999)
 							windChill.Append($"[{recDate},{DayFile[i].LowWindChill.ToString(cumulus.TempFormat, InvC)}],");
@@ -12681,7 +12731,7 @@ namespace CumulusMX
 							windChill.Append($"[{recDate},null],");
 					}
 
-					if (cumulus.GraphOptions.Visible.DewPoint)
+					if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 					{
 						// hi dewpt
 						if (DayFile[i].HighDewPoint > -999)
@@ -12696,7 +12746,7 @@ namespace CumulusMX
 							minDew.Append($"[{recDate},null],");
 					}
 
-					if (cumulus.GraphOptions.Visible.FeelsLike)
+					if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 					{
 						// hi feels like
 						if (DayFile[i].HighFeelsLike > -999)
@@ -12711,7 +12761,7 @@ namespace CumulusMX
 							minFeels.Append($"[{recDate},null],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Humidex)
+					if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 					{
 						// hi humidex
 						if (DayFile[i].HighHumidex > -999)
@@ -12728,44 +12778,44 @@ namespace CumulusMX
 			avgTemp.Length--;
 
 
-			if (cumulus.GraphOptions.Visible.MinTemp)
+			if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
 				sb.Append("\"minTemp\":" + minTemp.ToString() + "],");
-			if (cumulus.GraphOptions.Visible.MaxTemp)
+			if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
 				sb.Append("\"maxTemp\":" + maxTemp.ToString() + "],");
-			if (cumulus.GraphOptions.Visible.AvgTemp)
+			if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
 				sb.Append("\"avgTemp\":" + avgTemp.ToString() + "],");
-			if (cumulus.GraphOptions.Visible.HeatIndex)
+			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 			{
 				heatIdx.Length--;
 				sb.Append("\"heatIndex\":" + heatIdx.ToString() + "],");
 			}
-			if (cumulus.GraphOptions.Visible.AppTemp)
+			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 			{
 				maxApp.Length--;
 				minApp.Length--;
 				sb.Append("\"maxApp\":" + maxApp.ToString() + "],");
 				sb.Append("\"minApp\":" + minApp.ToString() + "],");
 			}
-			if (cumulus.GraphOptions.Visible.WindChill)
+			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 			{
 				windChill.Length--;
 				sb.Append("\"windChill\":" + windChill.ToString() + "],");
 			}
-			if (cumulus.GraphOptions.Visible.DewPoint)
+			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 			{
 				maxDew.Length--;
 				minDew.Length--;
 				sb.Append("\"maxDew\":" + maxDew.ToString() + "],");
 				sb.Append("\"minDew\":" + minDew.ToString() + "],");
 			}
-			if (cumulus.GraphOptions.Visible.FeelsLike)
+			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 			{
 				maxFeels.Length--;
 				minFeels.Length--;
 				sb.Append("\"maxFeels\":" + maxFeels.ToString() + "],");
 				sb.Append("\"minFeels\":" + minFeels.ToString() + "],");
 			}
-			if (cumulus.GraphOptions.Visible.Humidex)
+			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 			{
 				humidex.Length--;
 				sb.Append("\"humidex\":" + humidex.ToString() + "],");
@@ -12979,7 +13029,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAllDailySolarGraphData()
+		public string GetAllDailySolarGraphData(bool local)
 		{
 			var InvC = new CultureInfo("");
 
@@ -13003,19 +13053,19 @@ namespace CumulusMX
 				{
 					long recDate = DateTimeToUnix(DayFile[i].Date) * 1000;
 
-					if (cumulus.GraphOptions.Visible.Sunshine)
+					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 					{
 						// sunshine hours
 						sunHours.Append($"[{recDate},{DayFile[i].SunShineHours.ToString(InvC)}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Solar)
+					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 					{
 						// hi solar rad
 						solarRad.Append($"[{recDate},{DayFile[i].HighSolar}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.UV)
+					if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 					{
 						// hi UV-I
 						uvi.Append($"[{recDate},{DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC)}],");
@@ -13023,24 +13073,24 @@ namespace CumulusMX
 				}
 			}
 
-			if (cumulus.GraphOptions.Visible.Sunshine)
+			if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 			{
 				sunHours.Length--;
 				sb.Append("\"sunHours\":" + sunHours.ToString() + "]");
 			}
 
-			if (cumulus.GraphOptions.Visible.Solar)
+			if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 			{
-				if (cumulus.GraphOptions.Visible.Sunshine)
+				if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 					sb.Append(',');
 
 				solarRad.Length--;
 				sb.Append("\"solarRad\":" + solarRad.ToString() + "]");
 			}
 
-			if (cumulus.GraphOptions.Visible.UV)
+			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 			{
-				if (cumulus.GraphOptions.Visible.Sunshine || cumulus.GraphOptions.Visible.Solar)
+				if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local) || cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 					sb.Append(',');
 
 				uvi.Length--;
@@ -13051,7 +13101,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAllDegreeDaysGraphData()
+		public string GetAllDegreeDaysGraphData(bool local)
 		{
 			var InvC = new CultureInfo("");
 
@@ -13076,7 +13126,7 @@ namespace CumulusMX
 			var annualGrowingDegDays2 = 0.0;
 
 			// Read the day file list and extract the data from there
-			if (DayFile.Count() > 0 && (cumulus.GraphOptions.Visible.GrowingDegreeDays1 || cumulus.GraphOptions.Visible.GrowingDegreeDays2))
+			if (DayFile.Count() > 0 && (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) || cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local)))
 			{
 				// we have to detect a new growing deg day year is starting
 				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1);
@@ -13096,11 +13146,11 @@ namespace CumulusMX
 					startYear = DayFile[0].Date.Year;
 				}
 
-				if (cumulus.GraphOptions.Visible.GrowingDegreeDays1)
+				if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 				{
 					growdegdaysYears1.Append($"\"{startYear}\":");
 				}
-				if (cumulus.GraphOptions.Visible.GrowingDegreeDays2)
+				if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 				{
 					growdegdaysYears2.Append($"\"{startYear}\":");
 				}
@@ -13111,7 +13161,7 @@ namespace CumulusMX
 					// we have rolled over into a new GDD year, write out what we have and reset
 					if (DayFile[i].Date >= nextYear)
 					{
-						if (cumulus.GraphOptions.Visible.GrowingDegreeDays1 && growYear1.Length > 10)
+						if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) && growYear1.Length > 10)
 						{
 							// remove last comma
 							growYear1.Length--;
@@ -13122,7 +13172,7 @@ namespace CumulusMX
 
 							growYear1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
 						}
-						if (cumulus.GraphOptions.Visible.GrowingDegreeDays2 && growYear2.Length > 10)
+						if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local) && growYear2.Length > 10)
 						{
 							// remove last comma
 							growYear2.Length--;
@@ -13157,7 +13207,7 @@ namespace CumulusMX
 					// make all series the same year so they plot together
 					long recDate = DateTimeToUnix(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day)) * 1000;
 
-					if (cumulus.GraphOptions.Visible.GrowingDegreeDays1)
+					if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 					{
 						// growing degree days
 						var gdd = MeteoLib.GrowingDegreeDays(ConvertUserTempToC(DayFile[i].HighTemp), ConvertUserTempToC(DayFile[i].LowTemp), ConvertUserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
@@ -13168,7 +13218,7 @@ namespace CumulusMX
 						growYear1.Append($"[{recDate},{annualGrowingDegDays1.ToString("F1", InvC)}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.GrowingDegreeDays2)
+					if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 					{
 						// growing degree days
 						var gdd = MeteoLib.GrowingDegreeDays(ConvertUserTempToC(DayFile[i].HighTemp), ConvertUserTempToC(DayFile[i].LowTemp), ConvertUserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
@@ -13182,7 +13232,7 @@ namespace CumulusMX
 			}
 
 			// remove last commas from the years arrays and close them off
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1)
+			if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 			{
 				if (growYear1[growYear1.Length - 1] == ',')
 				{
@@ -13200,7 +13250,7 @@ namespace CumulusMX
 				// add to main json
 				sb.Append("\"GDD1\":" + growdegdaysYears1 + "},");
 			}
-			if (cumulus.GraphOptions.Visible.GrowingDegreeDays2)
+			if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 			{
 				if (growYear2[growYear2.Length - 1] == ',')
 				{
@@ -13225,7 +13275,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAllTempSumGraphData()
+		public string GetAllTempSumGraphData(bool local)
 		{
 			var InvC = new CultureInfo("");
 
@@ -13252,7 +13302,7 @@ namespace CumulusMX
 			var options = $"\"options\":{{\"sumBase1\":{cumulus.TempSumBase1},\"sumBase2\":{cumulus.TempSumBase2},\"startMon\":{cumulus.TempSumYearStarts}}}";
 
 			// Read the day file list and extract the data from there
-			if (DayFile.Count() > 0 && (cumulus.GraphOptions.Visible.TempSum0 || cumulus.GraphOptions.Visible.TempSum1 || cumulus.GraphOptions.Visible.TempSum2))
+			if (DayFile.Count() > 0 && (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local)))
 			{
 				// we have to detect a new year is starting
 				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1);
@@ -13272,15 +13322,15 @@ namespace CumulusMX
 					startYear = DayFile[0].Date.Year;
 				}
 
-				if (cumulus.GraphOptions.Visible.TempSum0)
+				if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
 				{
 					tempSumYears0.Append($"\"{startYear}\":");
 				}
-				if (cumulus.GraphOptions.Visible.TempSum1)
+				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 				{
 					tempSumYears1.Append($"\"{startYear}\":");
 				}
-				if (cumulus.GraphOptions.Visible.TempSum2)
+				if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 				{
 					tempSumYears2.Append($"\"{startYear}\":");
 				}
@@ -13290,7 +13340,7 @@ namespace CumulusMX
 					// we have rolled over into a new GDD year, write out what we have and reset
 					if (DayFile[i].Date >= nextYear)
 					{
-						if (cumulus.GraphOptions.Visible.TempSum0 && tempSum0.Length > 10)
+						if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) && tempSum0.Length > 10)
 						{
 							// remove last comma
 							tempSum0.Length--;
@@ -13301,7 +13351,7 @@ namespace CumulusMX
 
 							tempSum0.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
 						}
-						if (cumulus.GraphOptions.Visible.TempSum1 && tempSum1.Length > 10)
+						if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) && tempSum1.Length > 10)
 						{
 							// remove last comma
 							tempSum1.Length--;
@@ -13312,7 +13362,7 @@ namespace CumulusMX
 
 							tempSum1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
 						}
-						if (cumulus.GraphOptions.Visible.TempSum2 && tempSum2.Length > 10)
+						if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local) && tempSum2.Length > 10)
 						{
 							// remove last comma
 							tempSum2.Length--;
@@ -13347,19 +13397,19 @@ namespace CumulusMX
 
 					long recDate = DateTimeToUnix(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day)) * 1000;
 
-					if (cumulus.GraphOptions.Visible.TempSum0)
+					if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
 					{
 						// annual accumulation
 						annualTempSum0 += DayFile[i].AvgTemp;
 						tempSum0.Append($"[{recDate},{annualTempSum0.ToString("F0", InvC)}],");
 					}
-					if (cumulus.GraphOptions.Visible.TempSum1)
+					if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 					{
 						// annual accumulation
 						annualTempSum1 += DayFile[i].AvgTemp - cumulus.TempSumBase1;
 						tempSum1.Append($"[{recDate},{annualTempSum1.ToString("F0", InvC)}],");
 					}
-					if (cumulus.GraphOptions.Visible.TempSum2)
+					if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 					{
 						// annual accumulation
 						annualTempSum2 += DayFile[i].AvgTemp - cumulus.TempSumBase2;
@@ -13369,7 +13419,7 @@ namespace CumulusMX
 			}
 
 			// remove last commas from the years arrays and close them off
-			if (cumulus.GraphOptions.Visible.TempSum0)
+			if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
 			{
 				if (tempSum0[tempSum0.Length - 1] == ',')
 				{
@@ -13387,10 +13437,10 @@ namespace CumulusMX
 				// add to main json
 				sb.Append("\"Sum0\":" + tempSumYears0 + "}");
 
-				if (cumulus.GraphOptions.Visible.TempSum1 || cumulus.GraphOptions.Visible.TempSum2)
+				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 					sb.Append(',');
 			}
-			if (cumulus.GraphOptions.Visible.TempSum1)
+			if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 			{
 				if (tempSum1[tempSum1.Length - 1] == ',')
 				{
@@ -13408,7 +13458,7 @@ namespace CumulusMX
 				// add to main json
 				sb.Append("\"Sum1\":" + tempSumYears1 + "},");
 			}
-			if (cumulus.GraphOptions.Visible.TempSum2)
+			if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
 			{
 				if (tempSum2[tempSum2.Length - 1] == ',')
 				{
