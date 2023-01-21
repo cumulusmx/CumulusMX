@@ -338,7 +338,7 @@ namespace CumulusMX
 			// get the response
 			try
 			{
-				cumulus.LogMessage("Updating station settings");
+				cumulus.LogMessage("Updating display settings");
 
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
@@ -510,9 +510,9 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error processing Station settings: " + ex.Message;
+				var msg = "Error processing Display settings: " + ex.Message;
 				cumulus.LogMessage(msg);
-				cumulus.LogDebugMessage("Station Data: " + json);
+				cumulus.LogDebugMessage("Display Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
 			}
