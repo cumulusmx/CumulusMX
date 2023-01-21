@@ -15,6 +15,7 @@ Changed
 
 Fixed
 - Adds missing Wind Chill from the historic graphs on the dashboard and default web site
+- Now ignores AirLink zero values when the percent in last hour is also zero. This occurs during a restart of AirLink
 
 Removed
 - Local API calls:

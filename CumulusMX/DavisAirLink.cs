@@ -380,6 +380,13 @@ namespace CumulusMX
 				// The current conditions is sent as an array, even though it only contains 1 record
 				var rec = json.data.conditions.First();
 
+				// First check for system start-up and zero values
+				if (rec.pct_pm_data_last_1_hour == 0 && rec.pm2p5_last == 0 && rec.pm_10_last == 0)
+				{
+					cumulus.LogMessage("Ignoring AirLink data with zero values and percent in last hour is also 0 - possibly restarted");
+					return;
+				}
+
 				var type = rec.data_structure_type;
 
 				switch (type)
