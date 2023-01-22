@@ -430,7 +430,7 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetExtraHumGraphData(DateTime.Now, true));
 								break;
 							case "extradew.json":
-								await writer.WriteAsync(Station.GetExtraDewpointGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetExtraDewPointGraphData(DateTime.Now, true));
 								break;
 							case "soiltemp.json":
 								await writer.WriteAsync(Station.GetSoilTempGraphData(DateTime.Now, true));

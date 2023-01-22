@@ -4067,26 +4067,6 @@ namespace CumulusMX
 			return CheckRcDp(station.CO2_humidity, tagParams, cumulus.HumDPlaces);
 		}
 
-		private string TagLeafTemp1(Dictionary<string,string> tagParams)
-		{
-			return CheckRcDp(CheckTempUnit(station.LeafTemp1, tagParams), tagParams, cumulus.TempDPlaces);
-		}
-
-		private string TagLeafTemp2(Dictionary<string,string> tagParams)
-		{
-			return CheckRcDp(CheckTempUnit(station.LeafTemp2, tagParams), tagParams, cumulus.TempDPlaces);
-		}
-
-		private string TagLeafTemp3(Dictionary<string, string> tagParams)
-		{
-			return CheckRcDp(CheckTempUnit(station.LeafTemp3, tagParams), tagParams, cumulus.TempDPlaces);
-		}
-
-		private string TagLeafTemp4(Dictionary<string, string> tagParams)
-		{
-			return CheckRcDp(CheckTempUnit(station.LeafTemp4, tagParams), tagParams, cumulus.TempDPlaces);
-		}
-
 		private string TagLeakSensor1(Dictionary<string, string> tagParams)
 		{
 			return station.LeakSensor1.ToString();
@@ -6043,10 +6023,6 @@ namespace CumulusMX
 				{ "LightningDistance", TagLightningDistance },
 				{ "LightningTime", TagLightningTime },
 				{ "LightningStrikesToday", TagLightningStrikesToday },
-				{ "LeafTemp1", TagLeafTemp1 },
-				{ "LeafTemp2", TagLeafTemp2 },
-				{ "LeafTemp3", TagLeafTemp3 },
-				{ "LeafTemp4", TagLeafTemp4 },
 				{ "LeafWetness1", TagLeafWetness1 },
 				{ "LeafWetness2", TagLeafWetness2 },
 				{ "LeafWetness3", TagLeafWetness3 },

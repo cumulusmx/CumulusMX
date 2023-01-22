@@ -7,10 +7,16 @@ New
 - Two new web tags for signed string values of pressure and temperature trends
 	<#presstrendsigned>
 	<#temptrendsigned>
+- The data visibility has been changed from a simple off/on to a tri-state. You can now select between off|Visible|Dashboard Only
+	- Visible means the data will be shown on both the local dash and the default web site
+	- Dashboard Only means the data can only be viewed on the CMX local interface.
+		You may wish to use this to hide sensitive data like indoor temperatures which can indicate if you are home or not
+	- Any data previous flagged as Visible, will migrate to the new Visible state
+- Extra Sensor graph data can now be sent to the default web site
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message
-- The Dashboard page now shows times in your locale format
+- The Dashboard page now shows times in your locale format (12/24 hour)
 - Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
 
 Fixed
@@ -21,6 +27,7 @@ Removed
 - Local API calls:
 	/api/extra/leaf.json
 	/api/extra/leaf4.json
+- Redundant web tags <#leaftemp[1-4]>
 
 3.23.1 - b3221
 ——————————————

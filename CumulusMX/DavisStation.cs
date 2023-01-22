@@ -1826,26 +1826,6 @@ namespace CumulusMX
 					{
 						DoLeafWetness(loopData.LeafWetness4, 4);
 					}
-
-					if (loopData.LeafTemp1 < 255 && loopData.LeafTemp1 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp1 - 90), 1);
-					}
-
-					if (loopData.LeafTemp2 < 255 && loopData.LeafTemp2 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp2 - 90), 2);
-					}
-
-					if (loopData.LeafTemp3 < 255 && loopData.LeafTemp3 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp3 - 90), 3);
-					}
-
-					if (loopData.LeafTemp4 < 255 && loopData.LeafTemp4 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp4 - 90), 4);
-					}
 				}
 				UpdateStatusPanel(DateTime.Now);
 				UpdateMQTT();
@@ -2665,16 +2645,6 @@ namespace CumulusMX
 								if (archiveData.LeafWetness2 >= 0 && archiveData.LeafWetness2 < 16)
 								{
 									DoLeafWetness(LeafWetness2, 2);
-								}
-
-								if (archiveData.LeafTemp1 < 255 && archiveData.LeafTemp1 > 0)
-								{
-									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp1 - 90), 1);
-								}
-
-								if (archiveData.LeafTemp2 < 255 && archiveData.LeafTemp2 > 0)
-								{
-									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp2 - 90), 2);
 								}
 							}
 

@@ -768,163 +768,213 @@ namespace CumulusMX
 			WCloud.DefaultInterval = 10;
 			OpenWeatherMap.DefaultInterval = 15;
 
-			StdWebFiles = new FileGenerationFtpOptions[2];
-			StdWebFiles[0] = new FileGenerationFtpOptions()
+			StdWebFiles = new FileGenerationFtpOptions[]
 			{
-				TemplateFileName = WebPath + "websitedataT.json",
-				LocalPath = WebPath,
-				LocalFileName = "websitedata.json",
-				RemoteFileName = "websitedata.json"
-			};
-			StdWebFiles[1] = new FileGenerationFtpOptions()
-			{
-				LocalPath = "",
-				LocalFileName = "wxnow.txt",
-				RemoteFileName = "wxnow.txt"
-			};
-
-			RealtimeFiles = new FileGenerationFtpOptions[2];
-			RealtimeFiles[0] = new FileGenerationFtpOptions()
-			{
-				LocalFileName = "realtime.txt",
-				RemoteFileName = "realtime.txt"
-			};
-			RealtimeFiles[1] = new FileGenerationFtpOptions()
-			{
-				TemplateFileName = WebPath + "realtimegaugesT.txt",
-				LocalPath = WebPath,
-				LocalFileName = "realtimegauges.txt",
-				RemoteFileName = "realtimegauges.txt"
+				new FileGenerationFtpOptions()
+				{
+					TemplateFileName = WebPath + "websitedataT.json",
+					LocalPath = WebPath,
+					LocalFileName = "websitedata.json",
+					RemoteFileName = "websitedata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = "",
+					LocalFileName = "wxnow.txt",
+					RemoteFileName = "wxnow.txt"
+				}
 			};
 
-			GraphDataFiles = new FileGenerationFtpOptions[13];
-			GraphDataFiles[0] = new FileGenerationFtpOptions()
+			RealtimeFiles = new FileGenerationFtpOptions[]
 			{
-				LocalPath = WebPath,
-				LocalFileName = "graphconfig.json",
-				RemoteFileName = "graphconfig.json"
-			};
-			GraphDataFiles[1] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "availabledata.json",
-				RemoteFileName = "availabledata.json"
-			};
-			GraphDataFiles[2] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "tempdata.json",
-				RemoteFileName = "tempdata.json"
-			};
-			GraphDataFiles[3] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "pressdata.json",
-				RemoteFileName = "pressdata.json"
-			};
-			GraphDataFiles[4] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "winddata.json",
-				RemoteFileName = "winddata.json"
-			};
-			GraphDataFiles[5] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "wdirdata.json",
-				RemoteFileName = "wdirdata.json"
-			};
-			GraphDataFiles[6] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "humdata.json",
-				RemoteFileName = "humdata.json"
-			};
-			GraphDataFiles[7] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "raindata.json",
-				RemoteFileName = "raindata.json"
-			};
-			GraphDataFiles[8] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "dailyrain.json",
-				RemoteFileName = "dailyrain.json"
-			};
-			GraphDataFiles[9] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "dailytemp.json",
-				RemoteFileName = "dailytemp.json"
-			};
-			GraphDataFiles[10] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "solardata.json",
-				RemoteFileName = "solardata.json"
-			};
-			GraphDataFiles[11] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "sunhours.json",
-				RemoteFileName = "sunhours.json"
-			};
-			GraphDataFiles[12] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "airquality.json",
-				RemoteFileName = "airquality.json"
+				new FileGenerationFtpOptions()
+				{
+					LocalFileName = "realtime.txt",
+					RemoteFileName = "realtime.txt"
+				},
+				new FileGenerationFtpOptions()
+				{
+					TemplateFileName = WebPath + "realtimegaugesT.txt",
+					LocalPath = WebPath,
+					LocalFileName = "realtimegauges.txt",
+					RemoteFileName = "realtimegauges.txt"
+				}
 			};
 
-			GraphDataEodFiles = new FileGenerationFtpOptions[8];
-			GraphDataEodFiles[0] = new FileGenerationFtpOptions()
+			GraphDataFiles = new FileGenerationFtpOptions[]
 			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailytempdata.json",
-				RemoteFileName = "alldailytempdata.json"
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "graphconfig.json",
+					RemoteFileName = "graphconfig.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "availabledata.json",
+					RemoteFileName = "availabledata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "tempdata.json",
+					RemoteFileName = "tempdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "pressdata.json",
+					RemoteFileName = "pressdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "winddata.json",
+					RemoteFileName = "winddata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "wdirdata.json",
+					RemoteFileName = "wdirdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "humdata.json",
+					RemoteFileName = "humdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "raindata.json",
+					RemoteFileName = "raindata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "dailyrain.json",
+					RemoteFileName = "dailyrain.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "dailytemp.json",
+					RemoteFileName = "dailytemp.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "solardata.json",
+					RemoteFileName = "solardata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "sunhours.json",
+					RemoteFileName = "sunhours.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "airquality.json",
+					RemoteFileName = "airquality.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "extratempdata.json",
+					RemoteFileName = "extratempdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "extrathumdata.json",
+					RemoteFileName = "extrahumdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "extratdewdata.json",
+					RemoteFileName = "extradewdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "soiltempdata.json",
+					RemoteFileName = "soiltempdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "soilmoistdata.json",
+					RemoteFileName = "soilmoistdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "usertempdata.json",
+					RemoteFileName = "usertempdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "co2sensordata.json",
+					RemoteFileName = "co2sensordata.json"
+				}
 			};
-			GraphDataEodFiles[1] = new FileGenerationFtpOptions()
+
+			GraphDataEodFiles = new FileGenerationFtpOptions[]
 			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailypressdata.json",
-				RemoteFileName = "alldailypressdata.json"
-			};
-			GraphDataEodFiles[2] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailywinddata.json",
-				RemoteFileName = "alldailywinddata.json"
-			};
-			GraphDataEodFiles[3] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailyhumdata.json",
-				RemoteFileName = "alldailyhumdata.json"
-			};
-			GraphDataEodFiles[4] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailyraindata.json",
-				RemoteFileName = "alldailyraindata.json"
-			};
-			GraphDataEodFiles[5] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailysolardata.json",
-				RemoteFileName = "alldailysolardata.json"
-			};
-			GraphDataEodFiles[6] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "alldailydegdaydata.json",
-				RemoteFileName = "alldailydegdaydata.json"
-			};
-			GraphDataEodFiles[7] = new FileGenerationFtpOptions()
-			{
-				LocalPath = WebPath,
-				LocalFileName = "alltempsumdata.json",
-				RemoteFileName = "alltempsumdata.json"
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailytempdata.json",
+					RemoteFileName = "alldailytempdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailypressdata.json",
+					RemoteFileName = "alldailypressdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailywinddata.json",
+					RemoteFileName = "alldailywinddata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailyhumdata.json",
+					RemoteFileName = "alldailyhumdata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailyraindata.json",
+					RemoteFileName = "alldailyraindata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailysolardata.json",
+					RemoteFileName = "alldailysolardata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailydegdaydata.json",
+					RemoteFileName = "alldailydegdaydata.json"
+				},
+				new FileGenerationFtpOptions()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alltempsumdata.json",
+					RemoteFileName = "alltempsumdata.json"
+				}
 			};
 
 			ProgramOptions.Culture = new CultureConfig();
@@ -7517,8 +7567,8 @@ namespace CumulusMX
 			sb.Append(station.SoilMoisture3 + ListSeparator);                      //38
 			sb.Append(station.SoilMoisture4 + ListSeparator);                      //39
 
-			sb.Append(station.LeafTemp1.ToString(TempFormat) + ListSeparator);     //40
-			sb.Append(station.LeafTemp2.ToString(TempFormat) + ListSeparator);     //41
+			sb.Append("0" + ListSeparator);     //40 - was leaf temp 1
+			sb.Append("0" + ListSeparator);     //41 - was leaf temp 2
 
 			sb.Append(station.LeafWetness1.ToString(LeafWetFormat) + ListSeparator);	//42
 			sb.Append(station.LeafWetness2.ToString(LeafWetFormat) + ListSeparator);    //43

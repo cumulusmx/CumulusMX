@@ -1379,15 +1379,6 @@ namespace CumulusMX
 		public DateTime LightningTime { get; set; }
 		public int LightningStrikesToday { get; set; }
 
-		public double LeafTemp1 { get; set; }
-		public double LeafTemp2 { get; set; }
-		public double LeafTemp3 { get; set; }
-		public double LeafTemp4 { get; set; }
-		public double LeafTemp5 { get; set; }
-		public double LeafTemp6 { get; set; }
-		public double LeafTemp7 { get; set; }
-		public double LeafTemp8 { get; set; }
-
 		public double LeafWetness1 { get; set; }
 		public double LeafWetness2 { get; set; }
 		public double LeafWetness3 { get; set; }
@@ -2175,6 +2166,27 @@ namespace CumulusMX
 						case "airquality.json":
 							json = GetAqGraphData(ts);
 							break;
+						case "extratempdata.json":
+							json = GetExtraTempGraphData(ts, false);
+							break;
+						case "extrahumdata.json":
+							json = GetExtraHumGraphData(ts, false);
+							break;
+						case "extratdewdata.json":
+							json = GetExtraDewPointGraphData(ts, false);
+							break;
+						case "soiltempdata.json":
+							json = GetSoilTempGraphData(ts, false);
+							break;
+						case "soilmoistdata.json":
+							json = GetSoilMoistGraphData(ts, false);
+							break;
+						case "usertempdata.json":
+							json = GetUserTempGraphData(ts, false);
+							break;
+						case "co2sensordata.json":
+							json = GetCo2SensorGraphData(ts, false);
+							break;
 					}
 
 					try
@@ -2784,7 +2796,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraDewpointGraphData(DateTime ts, bool local)
+		public string GetExtraDewPointGraphData(DateTime ts, bool local)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -8622,25 +8634,6 @@ namespace CumulusMX
 			{
 				IsRaining = value >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
 				cumulus.IsRainingAlarm.Triggered = IsRaining;
-			}
-		}
-
-		public void DoLeafTemp(double value, int index)
-		{
-			switch (index)
-			{
-				case 1:
-					LeafTemp1 = value;
-					break;
-				case 2:
-					LeafTemp2 = value;
-					break;
-				case 3:
-					LeafTemp3 = value;
-					break;
-				case 4:
-					LeafTemp4 = value;
-					break;
 			}
 		}
 
