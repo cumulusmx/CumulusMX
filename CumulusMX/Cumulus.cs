@@ -4716,6 +4716,10 @@ namespace CumulusMX
 			Wund.SendLeafWetness1 = ini.GetValue("Wunderground", "SendLeafWetness1", false);
 			Wund.SendLeafWetness2 = ini.GetValue("Wunderground", "SendLeafWetness2", false);
 			Wund.SendAirQuality = ini.GetValue("Wunderground", "SendAirQuality", false);
+			Wund.SendExtraTemp1 = ini.GetValue("Wunderground", "SendExtraTemp1", 0);
+			Wund.SendExtraTemp2 = ini.GetValue("Wunderground", "SendExtraTemp2", 0);
+			Wund.SendExtraTemp3 = ini.GetValue("Wunderground", "SendExtraTemp3", 0);
+			Wund.SendExtraTemp4 = ini.GetValue("Wunderground", "SendExtraTemp4", 0);
 			Wund.SendAverage = ini.GetValue("Wunderground", "SendAverage", false);
 			Wund.CatchUp = ini.GetValue("Wunderground", "CatchUp", true);
 
@@ -5923,6 +5927,10 @@ namespace CumulusMX
 			ini.SetValue("Wunderground", "SendLeafWetness1", Wund.SendLeafWetness1);
 			ini.SetValue("Wunderground", "SendLeafWetness2", Wund.SendLeafWetness2);
 			ini.SetValue("Wunderground", "SendAirQuality", Wund.SendAirQuality);
+			ini.SetValue("Wunderground", "SendExtraTemp1", Wund.SendExtraTemp1);
+			ini.SetValue("Wunderground", "SendExtraTemp2", Wund.SendExtraTemp2);
+			ini.SetValue("Wunderground", "SendExtraTemp3", Wund.SendExtraTemp3);
+			ini.SetValue("Wunderground", "SendExtraTemp4", Wund.SendExtraTemp4);
 
 			ini.SetValue("Windy", "APIkey", Windy.ApiKey);
 			ini.SetValue("Windy", "StationIdx", Windy.StationIdx);
@@ -11777,6 +11785,10 @@ namespace CumulusMX
 		public bool SendSoilMoisture4;
 		public bool SendLeafWetness1;
 		public bool SendLeafWetness2;
+		public int SendExtraTemp1;
+		public int SendExtraTemp2;
+		public int SendExtraTemp3;
+		public int SendExtraTemp4;
 		public int ErrorFlagCount;
 	}
 

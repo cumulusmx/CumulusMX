@@ -10273,6 +10273,23 @@ namespace CumulusMX
 				}
 			}
 
+			if (cumulus.Wund.SendExtraTemp1 > 0 && cumulus.Wund.SendExtraTemp1 <= 10)
+			{
+				Data.Append($"&temp2f={TempFstr(ExtraTemp[cumulus.Wund.SendExtraTemp1])}");
+			}
+			if (cumulus.Wund.SendExtraTemp2 > 0 && cumulus.Wund.SendExtraTemp2 <= 10)
+			{
+				Data.Append($"&temp3f={TempFstr(ExtraTemp[cumulus.Wund.SendExtraTemp2])}");
+			}
+			if (cumulus.Wund.SendExtraTemp3 > 0 && cumulus.Wund.SendExtraTemp3 <= 10)
+			{
+				Data.Append($"&temp4f={TempFstr(ExtraTemp[cumulus.Wund.SendExtraTemp3])}");
+			}
+			if (cumulus.Wund.SendExtraTemp4 > 0 && cumulus.Wund.SendExtraTemp4 <= 10)
+			{
+				Data.Append($"&temp5f={TempFstr(ExtraTemp[cumulus.Wund.SendExtraTemp4])}");
+			}
+
 			Data.Append($"&softwaretype=Cumulus%20v{cumulus.Version}");
 			Data.Append("&action=updateraw");
 			if (cumulus.Wund.RapidFireEnabled && !catchup)

@@ -13,6 +13,7 @@ New
 		You may wish to use this to hide sensitive data like indoor temperatures which can indicate if you are home or not
 	- Any data previous flagged as Visible, will migrate to the new Visible state
 - Extra Sensor graph data can now be sent to the default web site
+- You can now send additional four extra temperature readings to Weather Underground
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message

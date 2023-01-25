@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Net;
 using EmbedIO;
+using static Swan.Terminal;
 
 namespace CumulusMX
 {
@@ -64,6 +65,10 @@ namespace CumulusMX
 						cumulus.Wund.ID = string.IsNullOrWhiteSpace(settings.wunderground.stationid) ? string.Empty : settings.wunderground.stationid.Trim();
 						cumulus.Wund.CatchUp = settings.wunderground.catchup;
 						cumulus.Wund.SynchronisedUpdate = (!cumulus.Wund.RapidFireEnabled) && (60 % cumulus.Wund.Interval == 0);
+						cumulus.Wund.SendExtraTemp1 = settings.wunderground.extratemp1;
+						cumulus.Wund.SendExtraTemp2 = settings.wunderground.extratemp2;
+						cumulus.Wund.SendExtraTemp3 = settings.wunderground.extratemp3;
+						cumulus.Wund.SendExtraTemp4 = settings.wunderground.extratemp4;
 
 						cumulus.WundTimer.Interval = cumulus.Wund.RapidFireEnabled ? 5000 : cumulus.Wund.Interval * 60 * 1000;
 						cumulus.WundTimer.Enabled = cumulus.Wund.Enabled && !cumulus.Wund.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.Wund.ID) && !string.IsNullOrWhiteSpace(cumulus.Wund.PW);
@@ -358,7 +363,11 @@ namespace CumulusMX
 				rapidfire = cumulus.Wund.RapidFireEnabled,
 				sendavgwind = cumulus.Wund.SendAverage,
 				stationid = cumulus.Wund.ID,
-				includeaq = cumulus.Wund.SendAirQuality
+				includeaq = cumulus.Wund.SendAirQuality,
+				extratemp1 = cumulus.Wund.SendExtraTemp1,
+				extratemp2 = cumulus.Wund.SendExtraTemp2,
+				extratemp3 = cumulus.Wund.SendExtraTemp3,
+				extratemp4 = cumulus.Wund.SendExtraTemp4,
 			};
 
 			var windysettings = new JsonThirdPartySettingsWindy()
@@ -569,6 +578,10 @@ namespace CumulusMX
 		public string stationid { get; set; }
 		public string password { get; set; }
 		public int interval { get; set; }
+		public int extratemp1 { get; set; }
+		public int extratemp2 { get; set; }
+		public int extratemp3 { get; set; }
+		public int extratemp4 { get; set; }
 	}
 
 	public class JsonThirdPartySettingsWindy
