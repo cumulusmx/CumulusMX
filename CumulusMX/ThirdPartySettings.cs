@@ -317,9 +317,9 @@ namespace CumulusMX
 						for (var i = 0; i < 10; i++)
 						{
 							if (i < settings.customhttp.customrollover.url.Length)
-								cumulus.CustomHttpMinutesStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customrollover.url[i]) ? null : settings.customhttp.customrollover.url[i].Trim();
+								cumulus.CustomHttpRolloverStrings[i] = string.IsNullOrWhiteSpace(settings.customhttp.customrollover.url[i]) ? null : settings.customhttp.customrollover.url[i].Trim();
 							else
-								cumulus.CustomHttpMinutesStrings[i] = null;
+								cumulus.CustomHttpRolloverStrings[i] = null;
 						}
 					}
 				}
