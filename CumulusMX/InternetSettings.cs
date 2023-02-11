@@ -58,31 +58,43 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.website.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.Directory = settings.website.directory ?? string.Empty;
-						cumulus.FtpOptions.Port = settings.website.ftpport;
-						cumulus.FtpOptions.Hostname = settings.website.hostname ?? string.Empty;
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.website.sslftp;
-						cumulus.FtpOptions.Password = settings.website.password ?? string.Empty;
-						cumulus.FtpOptions.Username = settings.website.username ?? string.Empty;
-						cumulus.FtpOptions.SshAuthen = settings.website.sshAuth ?? string.Empty;
-						cumulus.FtpOptions.SshPskFile = settings.website.pskFile ?? string.Empty;
-
-						cumulus.DeleteBeforeUpload = settings.website.general.ftpdelete;
-						cumulus.FTPRename = settings.website.general.ftprename;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						{
+							cumulus.FtpOptions.Directory = settings.website.directory ?? string.Empty;
+							cumulus.FtpOptions.Port = settings.website.ftpport;
+							cumulus.FtpOptions.Hostname = settings.website.hostname ?? string.Empty;
+							cumulus.FtpOptions.Password = settings.website.password ?? string.Empty;
+							cumulus.FtpOptions.Username = settings.website.username ?? string.Empty;
+						}
 
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
 						{
+							cumulus.DeleteBeforeUpload = settings.website.general.ftpdelete;
+							cumulus.FTPRename = settings.website.general.ftprename;
 							cumulus.FtpOptions.AutoDetect = settings.website.advanced.autodetect;
 							cumulus.FtpOptions.ActiveMode = settings.website.advanced.activeftp;
 							cumulus.FtpOptions.DisableEPSV = settings.website.advanced.disableftpsepsv;
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						{
+							cumulus.FtpOptions.SshAuthen = settings.website.sshAuth ?? string.Empty;
+							cumulus.FtpOptions.SshPskFile = settings.website.pskFile ?? string.Empty;
 						}
 
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
 						{
 							cumulus.FtpOptions.DisableExplicit = settings.website.advanced.disableftpsexplicit;
 							cumulus.FtpOptions.IgnoreCertErrors = settings.website.advanced.ignorecerts;
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
+						{
+							cumulus.FtpOptions.PhpUrl = settings.website.phpurl;
+							cumulus.FtpOptions.PhpSecret = settings.website.phpsecret;
 						}
 					}
 
@@ -114,8 +126,8 @@ namespace CumulusMX
 						for (var i = 0; i < cumulus.RealtimeFiles.Length; i++)
 						{
 							cumulus.RealtimeFiles[i].Create = settings.websettings.realtime.files[i].create;
-							cumulus.RealtimeFiles[i].FTP = cumulus.RealtimeFiles[i].Create && settings.websettings.realtime.files[i].ftp;
-							cumulus.RealtimeFiles[i].Copy = cumulus.RealtimeFiles[i].Create && settings.websettings.realtime.files[i].copy;
+							cumulus.RealtimeFiles[i].FTP = settings.websettings.realtime.files[i].ftp;
+							cumulus.RealtimeFiles[i].Copy = settings.websettings.realtime.files[i].copy;
 						}
 					}
 					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeIntervalEnabled;
@@ -135,22 +147,22 @@ namespace CumulusMX
 						for (var i = 0; i < cumulus.StdWebFiles.Length; i++)
 						{
 							cumulus.StdWebFiles[i].Create = settings.websettings.interval.stdfiles.files[i].create;
-							cumulus.StdWebFiles[i].FTP = cumulus.StdWebFiles[i].Create && settings.websettings.interval.stdfiles.files[i].ftp;
-							cumulus.StdWebFiles[i].Copy = cumulus.StdWebFiles[i].Create && settings.websettings.interval.stdfiles.files[i].copy;
+							cumulus.StdWebFiles[i].FTP = settings.websettings.interval.stdfiles.files[i].ftp;
+							cumulus.StdWebFiles[i].Copy = settings.websettings.interval.stdfiles.files[i].copy;
 						}
 
 						for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 						{
 							cumulus.GraphDataFiles[i].Create = settings.websettings.interval.graphfiles.files[i].create;
-							cumulus.GraphDataFiles[i].FTP = cumulus.GraphDataFiles[i].Create && settings.websettings.interval.graphfiles.files[i].ftp;
-							cumulus.GraphDataFiles[i].Copy = cumulus.GraphDataFiles[i].Create && settings.websettings.interval.graphfiles.files[i].copy;
+							cumulus.GraphDataFiles[i].FTP = settings.websettings.interval.graphfiles.files[i].ftp;
+							cumulus.GraphDataFiles[i].Copy = settings.websettings.interval.graphfiles.files[i].copy;
 						}
 
 						for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 						{
 							cumulus.GraphDataEodFiles[i].Create = settings.websettings.interval.graphfileseod.files[i].create;
-							cumulus.GraphDataEodFiles[i].FTP = cumulus.GraphDataEodFiles[i].Create && settings.websettings.interval.graphfileseod.files[i].ftp;
-							cumulus.GraphDataEodFiles[i].Copy = cumulus.GraphDataEodFiles[i].Create && settings.websettings.interval.graphfileseod.files[i].copy;
+							cumulus.GraphDataEodFiles[i].FTP = settings.websettings.interval.graphfileseod.files[i].ftp;
+							cumulus.GraphDataEodFiles[i].Copy = settings.websettings.interval.graphfileseod.files[i].copy;
 						}
 					}
 				}
@@ -375,6 +387,8 @@ namespace CumulusMX
 				username = cumulus.FtpOptions.Username,
 				sshAuth = cumulus.FtpOptions.SshAuthen,
 				pskFile = cumulus.FtpOptions.SshPskFile,
+				phpurl = cumulus.FtpOptions.PhpUrl,
+				phpsecret = cumulus.FtpOptions.PhpSecret,
 				general = websettingsgeneral,
 				advanced = websettingsadvanced
 			};
@@ -681,6 +695,8 @@ namespace CumulusMX
 		public string password { get; set; }
 		public string sshAuth { get; set; }
 		public string pskFile { get; set; }
+		public string phpurl { get; set; }
+		public string phpsecret { get; set; }
 		public JsonInternetSettingsWebSettingsGeneral general { get; set; }
 		public JsonInternetSettingsWebsiteAdvanced advanced { get; set; }
 	}

@@ -5,6 +5,12 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Swan;
+using Renci.SshNet.Messages;
+using System.Security.Cryptography;
+using ServiceStack;
+using System.IO;
+using System.Text;
+using static SQLite.SQLite3;
 
 // A rag tag of useful functions
 
@@ -19,11 +25,15 @@ namespace CumulusMX
 			return utcTime.ToLocalTime();
 		}
 
-		public static int ToUnixTime(DateTime dateTime)
+		public static long ToUnixTime(DateTime dateTime)
 		{
-			return (int)dateTime.ToUniversalTime().ToUnixEpochDate();
+			return (long)dateTime.ToUniversalTime().ToUnixEpochDate();
 		}
 
+		public static long ToJsTime(DateTime dateTime)
+		{
+			return ToUnixTime(dateTime) * 1000;
+		}
 
 		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
 		{
@@ -51,6 +61,20 @@ namespace CumulusMX
 		public static string GetMd5String(string str)
 		{
 			return GetMd5String(System.Text.Encoding.ASCII.GetBytes(str));
+		}
+
+		public static string GetSHA256Hash(string key, string data)
+		{
+			// Initialize the keyed hash object.
+			using (HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes()))
+			{
+				// convert string to stream
+				byte[] byteArray = Encoding.UTF8.GetBytes(data);
+				MemoryStream stream = new MemoryStream(byteArray);
+				// Compute the hash of the input string.
+				byte[] hashValue = hmac.ComputeHash(stream);
+				return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
+			}
 		}
 
 		public static bool ValidateIPv4(string ipString)
@@ -193,6 +217,16 @@ namespace CumulusMX
 				if (b1[i] != b2[i]) return false;
 			}
 			return true;
+		}
+
+		public static Exception GetOriginalException(Exception ex)
+		{
+			while (ex.InnerException != null)
+			{
+				ex = ex.InnerException;
+			}
+
+			return ex;
 		}
 	}
 }

@@ -144,7 +144,9 @@ namespace CumulusMX
 				password = cumulus.FtpOptions.Password,
 				username = cumulus.FtpOptions.Username,
 				sshAuth = cumulus.FtpOptions.SshAuthen,
-				pskFile = cumulus.FtpOptions.SshPskFile
+				pskFile = cumulus.FtpOptions.SshPskFile,
+				phpurl = cumulus.FtpOptions.PhpUrl,
+				phpsecret = cumulus.FtpOptions.PhpSecret,
 			};
 			var internet = new JsonWizardInternet()
 			{
@@ -221,14 +223,27 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.internet.ftp.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
-						cumulus.FtpOptions.Port = settings.internet.ftp.ftpport;
-						cumulus.FtpOptions.Hostname = string.IsNullOrWhiteSpace(settings.internet.ftp.hostname) ? string.Empty : settings.internet.ftp.hostname.Trim();
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.ftp.sslftp;
-						cumulus.FtpOptions.Password = string.IsNullOrWhiteSpace(settings.internet.ftp.password) ? string.Empty : settings.internet.ftp.password.Trim();
-						cumulus.FtpOptions.Username = string.IsNullOrWhiteSpace(settings.internet.ftp.username) ? string.Empty : settings.internet.ftp.username.Trim();
-						cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
-						cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						{
+							cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
+							cumulus.FtpOptions.Port = settings.internet.ftp.ftpport;
+							cumulus.FtpOptions.Hostname = string.IsNullOrWhiteSpace(settings.internet.ftp.hostname) ? string.Empty : settings.internet.ftp.hostname.Trim();
+							cumulus.FtpOptions.Password = string.IsNullOrWhiteSpace(settings.internet.ftp.password) ? string.Empty : settings.internet.ftp.password.Trim();
+							cumulus.FtpOptions.Username = string.IsNullOrWhiteSpace(settings.internet.ftp.username) ? string.Empty : settings.internet.ftp.username.Trim();
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						{
+							cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
+							cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
+						{
+							cumulus.FtpOptions.PhpUrl = settings.internet.ftp.phpurl;
+							cumulus.FtpOptions.PhpSecret = settings.internet.ftp.phpsecret;
+						}
 					}
 
 					cumulus.FtpOptions.LocalCopyEnabled = settings.internet.copy.localcopy;
@@ -732,7 +747,8 @@ namespace CumulusMX
 		public string password { get; set; }
 		public string sshAuth { get; set; }
 		public string pskFile { get; set; }
-
+		public string phpurl { get; set; }
+		public string phpsecret { get; set; }
 	}
 
 	internal class JsonWizardWebSite

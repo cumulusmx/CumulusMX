@@ -913,8 +913,14 @@ namespace CumulusMX
 
 		private string Tagaltimeterpressure(Dictionary<string,string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.AltimeterPressure, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckPressUnit(station.AltimeterPressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
+
+		private string Tagstationpressure(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckPressUnit(station.StationPressure, tagParams), tagParams, cumulus.PressDPlaces);
+		}
+
 
 		private string Tagpresstrend(Dictionary<string,string> tagParams)
 		{
@@ -5560,6 +5566,7 @@ namespace CumulusMX
 				{ "humidex", Taghumidex },
 				{ "press", Tagpress },
 				{ "altimeterpressure", Tagaltimeterpressure },
+				{ "stationpressure", Tagstationpressure },
 				{ "presstrend", Tagpresstrend },
 				{ "presstrendenglish", Tagpresstrendenglish },
 				{ "cloudbase", Tagcloudbase },

@@ -385,25 +385,25 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "tempdata.json":
-								await writer.WriteAsync(Station.GetTempGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetTempGraphData(false, true));
 								break;
 							case "winddata.json":
-								await writer.WriteAsync(Station.GetWindGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetWindGraphData(false));
 								break;
 							case "raindata.json":
-								await writer.WriteAsync(Station.GetRainGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetRainGraphData(false));
 								break;
 							case "pressdata.json":
-								await writer.WriteAsync(Station.GetPressGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetPressGraphData(false));
 								break;
 							case "wdirdata.json":
-								await writer.WriteAsync(Station.GetWindDirGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetWindDirGraphData(false));
 								break;
 							case "humdata.json":
-								await writer.WriteAsync(Station.GetHumGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetHumGraphData(false, true));
 								break;
 							case "solardata.json":
-								await writer.WriteAsync(Station.GetSolarGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetSolarGraphData(false, true));
 								break;
 							case "dailyrain.json":
 								await writer.WriteAsync(Station.GetDailyRainGraphData());
@@ -421,28 +421,28 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							case "airqualitydata.json":
-								await writer.WriteAsync(Station.GetAqGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetAqGraphData(false));
 								break;
 							case "extratemp.json":
-								await writer.WriteAsync(Station.GetExtraTempGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetExtraTempGraphData(false, true));
 								break;
 							case "extrahum.json":
-								await writer.WriteAsync(Station.GetExtraHumGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetExtraHumGraphData(false, true));
 								break;
 							case "extradew.json":
-								await writer.WriteAsync(Station.GetExtraDewPointGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetExtraDewPointGraphData(false, true));
 								break;
 							case "soiltemp.json":
-								await writer.WriteAsync(Station.GetSoilTempGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetSoilTempGraphData(false, true));
 								break;
 							case "soilmoist.json":
-								await writer.WriteAsync(Station.GetSoilMoistGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true));
 								break;
 							case "usertemp.json":
-								await writer.WriteAsync(Station.GetUserTempGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetUserTempGraphData(false, true));
 								break;
 							case "co2sensor.json":
-								await writer.WriteAsync(Station.GetCo2SensorGraphData(DateTime.Now, true));
+								await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true));
 								break;
 							case "availabledata.json":
 								await writer.WriteAsync(Station.GetAvailGraphData(true));
@@ -1089,6 +1089,10 @@ namespace CumulusMX
 								Response.ContentType = "text/plain";
 								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
 								break;
+							case "csvseparator.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
+								break;
 							case "customlogsintvl.json":
 								await writer.WriteAsync(customLogs.GetAlpacaFormDataIntvl());
 								break;
@@ -1483,7 +1487,7 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "ftpnow.json":
-								await writer.WriteAsync(stationSettings.FtpNow(HttpContext));
+								await writer.WriteAsync(stationSettings.UploadNow(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;

@@ -54,12 +54,12 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
-				Exception te = ex;
-				while (te != null)
+				if (ex.InnerException != null)
 				{
-					cumulus.LogConsoleMessage($"Error getting history data: {te.Message}", ConsoleColor.Red);
-					te = te.InnerException;
+					ex = Utils.GetOriginalException(ex);
+					cumulus.LogMessage($"Base Error getting history data: {ex.Message}");
 				}
+
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
@@ -362,6 +362,7 @@ namespace CumulusMX.Tempest
 		{
 			tokenSource = new CancellationTokenSource();
 			_listenTask = new Task(() => ListenForPackets(tokenSource.Token));
+			ExclusiveAddressUse = false;
 		}
 
 		public event EventHandler<PacketReceivedArgs> PacketReceived;

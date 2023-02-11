@@ -3580,7 +3580,7 @@ namespace CumulusMX
 			if (newData.action == "Edit")
 			{
 				// Get the log file date
-				var ts = Utils.ddmmyyStrToDate(newData.data[0][0]);
+				var ts = Utils.ddmmyyhhmmStrToDate(newData.data[0][0], newData.data[0][1]);
 
 				logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
 

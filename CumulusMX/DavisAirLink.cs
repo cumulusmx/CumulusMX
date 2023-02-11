@@ -637,7 +637,7 @@ namespace CumulusMX
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 			var startTime = Utils.ToUnixTime(airLinkLastUpdateTime);
-			int endTime = unixDateTime;
+			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
 
 			// The API call is limited to fetching 24 hours of data
@@ -1089,7 +1089,7 @@ namespace CumulusMX
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
-			int endTime = unixDateTime;
+			long endTime = unixDateTime;
 
 			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
 

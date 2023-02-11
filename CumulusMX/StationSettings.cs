@@ -1244,7 +1244,7 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		internal string FtpNow(IHttpContext context)
+		internal string UploadNow(IHttpContext context)
 		{
 			if (station == null)
 			{
@@ -1261,64 +1261,56 @@ namespace CumulusMX
 				var includeGraphs = json.Contains("true");
 
 				if (!cumulus.FtpOptions.Enabled && !cumulus.FtpOptions.LocalCopyEnabled)
-					return "FTP/local copy is not enabled!";
+					return "Upload/local copy is not enabled!";
 
 
 				if (cumulus.WebUpdating == 1)
 				{
-					cumulus.LogMessage("FTP Now: Warning, a previous web update is still in progress, first chance, skipping attempt");
+					cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, first chance, skipping attempt");
 					return "A web update is already in progress";
 				}
 
+				var returnMsg = "Upload process invoked";
+
 				if (cumulus.WebUpdating >= 2)
 				{
-					cumulus.LogMessage("FTP Now: Warning, a previous web update is still in progress, second chance, aborting connection");
+					cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, second chance, aborting connection");
 					if (cumulus.ftpThread.ThreadState == ThreadState.Running)
 						cumulus.ftpThread.Abort();
 
-					// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
-					for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
-					{
-						cumulus.GraphDataFiles[i].CreateRequired = true;
-						cumulus.GraphDataFiles[i].FtpRequired = true;
-						cumulus.GraphDataFiles[i].CopyRequired = true;
-					}
-					cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
-					station.CreateGraphDataFiles(now);
-
-					// (re)generate the daily graph data files, and upload if required
-					cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
-					station.CreateEodGraphDataFiles();
-
-					cumulus.LogMessage("FTP Now: Trying new web update");
-					cumulus.WebUpdating = 1;
-					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now)) { IsBackground = true };
-					cumulus.ftpThread.Start();
-					return "An existing FTP process was aborted, and a new FTP process invoked";
+					returnMsg = "An existing upload process was aborted, and a new FTP process invoked";
 				}
 
 				// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
+				cumulus.LogDebugMessage("Upload Now: Flagging the graph data files for full recreation, if required");
 				for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 				{
 					cumulus.GraphDataFiles[i].CreateRequired = true;
 					cumulus.GraphDataFiles[i].FtpRequired = true;
 					cumulus.GraphDataFiles[i].CopyRequired = true;
+					cumulus.GraphDataFiles[i].Incremental = false;
+					cumulus.GraphDataFiles[i].LastDataTime = DateTime.MinValue;
 				}
-				cumulus.LogDebugMessage("FTP Now: Re-Generating the graph data files, if required");
-				station.CreateGraphDataFiles(now);
 
 				// (re)generate the daily graph data files, and upload if required
-				cumulus.LogDebugMessage("FTP Now: Generating the daily graph data files, if required");
-				station.CreateEodGraphDataFiles();
+				cumulus.LogDebugMessage("Upload Now: Flagging the daily graph data files for full recreation, if required");
+				for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
+				{
+					cumulus.GraphDataEodFiles[i].CreateRequired = true;
+					cumulus.GraphDataEodFiles[i].FtpRequired = true;
+					cumulus.GraphDataEodFiles[i].CopyRequired = true;
+					cumulus.GraphDataEodFiles[i].Incremental = false;
+					cumulus.GraphDataEodFiles[i].LastDataTime = DateTime.MinValue;
+				}
 
 				cumulus.WebUpdating = 1;
-				cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles(now)) { IsBackground = true };
+				cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 				cumulus.ftpThread.Start();
-				return "FTP process invoked";
+				return returnMsg;
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"FTP Now: {ex.Message}");
+				cumulus.LogMessage($"Upload Now: {ex.Message}");
 				context.Response.StatusCode = 500;
 				return $"Error: {ex.Message}";
 			}
