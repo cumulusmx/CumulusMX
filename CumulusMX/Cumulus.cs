@@ -5331,6 +5331,7 @@ namespace CumulusMX
 			NOAAconf.YearFile = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAconf.UseUtf8 = ini.GetValue("NOAA", "NOAAUseUTF8", true);
 			NOAAconf.UseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
+			NOAAconf.UseNoaaHeatCoolDays = ini.GetValue("NOAA", "UseNoaaHeatCoolDays", false);
 			NOAAconf.UseMinMaxAvg = ini.GetValue("NOAA", "UseMinMaxAvg", false);
 
 			NOAAconf.TempNorms[1] = ini.GetValue("NOAA", "NOAATempNormJan", -1000.0);
@@ -6352,6 +6353,7 @@ namespace CumulusMX
 			ini.SetValue("NOAA", "YearFileFormat", NOAAconf.YearFile);
 			ini.SetValue("NOAA", "NOAAUseUTF8", NOAAconf.UseUtf8);
 			ini.SetValue("NOAA", "UseDotDecimal", NOAAconf.UseDotDecimal);
+			ini.SetValue("NOAA", "UseNoaaHeatCoolDays", NOAAconf.UseNoaaHeatCoolDays);
 			ini.SetValue("NOAA", "UseMinMaxAvg", NOAAconf.UseMinMaxAvg);
 
 			ini.SetValue("NOAA", "NOAATempNormJan", NOAAconf.TempNorms[1]);
@@ -11727,12 +11729,12 @@ namespace CumulusMX
 			}
 			else if (input == "<noaayearfile>")
 			{
-				NOAAReports noaa = new NOAAReports(this);
+				NOAAReports noaa = new NOAAReports(this, station);
 				return noaa.GetLastNoaaYearReportFilename(dat, true);
 			}
 			else if (input == "<noaamonthfile>")
 			{
-				NOAAReports noaa = new NOAAReports(this);
+				NOAAReports noaa = new NOAAReports(this, station);
 				return noaa.GetLastNoaaMonthReportFilename(dat, true);
 			}
 
@@ -11755,12 +11757,12 @@ namespace CumulusMX
 			}
 			else if (input.Contains("<noaayearfile>"))
 			{
-				NOAAReports noaa = new NOAAReports(this);
+				NOAAReports noaa = new NOAAReports(this, station);
 				return input.Replace("<noaayearfile>", Path.GetFileName(noaa.GetLastNoaaYearReportFilename(dat, false)));
 			}
 			else if (input.Contains("<noaamonthfile>"))
 			{
-				NOAAReports noaa = new NOAAReports(this);
+				NOAAReports noaa = new NOAAReports(this, station);
 				return input.Replace("<noaamonthfile>", Path.GetFileName(noaa.GetLastNoaaMonthReportFilename(dat, false)));
 			}
 
@@ -12411,6 +12413,7 @@ namespace CumulusMX
 		public bool Use12hour { get; set; }
 		public bool UseUtf8 { get; set; }
 		public bool UseMinMaxAvg { get; set; }
+		public bool UseNoaaHeatCoolDays { get; set; }
 		public bool UseDotDecimal { get; set; }
 		public bool Create { get; set; }
 		public bool AutoFtp { get; set; }

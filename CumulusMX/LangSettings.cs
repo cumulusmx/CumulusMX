@@ -253,15 +253,15 @@ namespace CumulusMX
 				// trends
 				try
 				{
-					cumulus.Trans.Risingveryrapidly = settings.trends.Risingveryrapidly;
-					cumulus.Trans.Risingquickly = settings.trends.Risingquickly;
-					cumulus.Trans.Rising = settings.trends.Rising;
-					cumulus.Trans.Risingslowly = settings.trends.Risingslowly;
-					cumulus.Trans.Steady = settings.trends.Steady;
-					cumulus.Trans.Fallingslowly = settings.trends.Fallingslowly;
-					cumulus.Trans.Falling = settings.trends.Falling;
-					cumulus.Trans.Fallingquickly = settings.trends.Fallingquickly;
-					cumulus.Trans.Fallingveryrapidly = settings.trends.Fallingveryrapidly;
+					cumulus.Trans.Risingveryrapidly = settings.trends.Risingveryrapidly.Trim();
+					cumulus.Trans.Risingquickly = settings.trends.Risingquickly.Trim();
+					cumulus.Trans.Rising = settings.trends.Rising.Trim();
+					cumulus.Trans.Risingslowly = settings.trends.Risingslowly.Trim();
+					cumulus.Trans.Steady = settings.trends.Steady.Trim();
+					cumulus.Trans.Fallingslowly = settings.trends.Fallingslowly.Trim();
+					cumulus.Trans.Falling = settings.trends.Falling.Trim();
+					cumulus.Trans.Fallingquickly = settings.trends.Fallingquickly.Trim();
+					cumulus.Trans.Fallingveryrapidly = settings.trends.Fallingveryrapidly.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -288,8 +288,8 @@ namespace CumulusMX
 				// solar
 				try
 				{
-					cumulus.Trans.thereWillBeMinSLessDaylightTomorrow = settings.solar.lessdaylight;
-					cumulus.Trans.thereWillBeMinSMoreDaylightTomorrow = settings.solar.moredaylight;
+					cumulus.Trans.thereWillBeMinSLessDaylightTomorrow = settings.solar.lessdaylight.Trim();
+					cumulus.Trans.thereWillBeMinSMoreDaylightTomorrow = settings.solar.moredaylight.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -305,9 +305,9 @@ namespace CumulusMX
 				{
 					cumulus.Trans.DavisForecast1 = settings.davisForecast.forecast1;
 					for (var i = 1; i <= settings.davisForecast.forecast2.Length; i++)
-						cumulus.Trans.DavisForecast2[i] = settings.davisForecast.forecast2[i-1];
+						cumulus.Trans.DavisForecast2[i] = settings.davisForecast.forecast2[i-1].Trim();
 					for (var i = 1; i <= settings.davisForecast.forecast3.Length; i++)
-						cumulus.Trans.DavisForecast3[i] = settings.davisForecast.forecast3[i-1];
+						cumulus.Trans.DavisForecast3[i] = settings.davisForecast.forecast3[i-1].Trim();
 				}
 				catch (Exception ex)
 				{
@@ -320,12 +320,12 @@ namespace CumulusMX
 				// CO2
 				try
 				{
-					cumulus.Trans.CO2_CurrentCaption = settings.co2.Current;
-					cumulus.Trans.CO2_24HourCaption = settings.co2.Hr24;
-					cumulus.Trans.CO2_pm2p5Caption = settings.co2.Pm2p5;
-					cumulus.Trans.CO2_pm2p5_24hrCaption = settings.co2.Pm2p5_24hr;
-					cumulus.Trans.CO2_pm10Caption = settings.co2.Pm10;
-					cumulus.Trans.CO2_pm10_24hrCaption = settings.co2.Pm10_24hr;
+					cumulus.Trans.CO2_CurrentCaption = settings.co2.Current.Trim();
+					cumulus.Trans.CO2_24HourCaption = settings.co2.Hr24.Trim();
+					cumulus.Trans.CO2_pm2p5Caption = settings.co2.Pm2p5.Trim();
+					cumulus.Trans.CO2_pm2p5_24hrCaption = settings.co2.Pm2p5_24hr.Trim();
+					cumulus.Trans.CO2_pm10Caption = settings.co2.Pm10.Trim();
+					cumulus.Trans.CO2_pm10_24hrCaption = settings.co2.Pm10_24hr.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -338,27 +338,27 @@ namespace CumulusMX
 				// Alarms
 				try
 				{
-					cumulus.Trans.AlarmEmailSubject = settings.alarms.subject;
-					cumulus.Trans.AlarmEmailPreamble = settings.alarms.preamble;
-					cumulus.HighGustAlarm.EmailMsg = settings.alarms.windGustAbove;
-					cumulus.HighPressAlarm.EmailMsg = settings.alarms.pressureAbove;
-					cumulus.HighTempAlarm.EmailMsg = settings.alarms.tempAbove;
-					cumulus.LowPressAlarm.EmailMsg = settings.alarms.pressBelow;
-					cumulus.LowTempAlarm.EmailMsg = settings.alarms.tempBelow;
-					cumulus.PressChangeAlarm.EmailMsgDn = settings.alarms.pressDown;
-					cumulus.PressChangeAlarm.EmailMsgUp = settings.alarms.pressUp;
-					cumulus.HighRainTodayAlarm.EmailMsg = settings.alarms.rainAbove;
-					cumulus.HighRainRateAlarm.EmailMsg = settings.alarms.rainRateAbove;
-					cumulus.SensorAlarm.EmailMsg = settings.alarms.sensorLost;
-					cumulus.TempChangeAlarm.EmailMsgDn = settings.alarms.tempDown;
-					cumulus.TempChangeAlarm.EmailMsgUp = settings.alarms.tempUp;
-					cumulus.HighWindAlarm.EmailMsg = settings.alarms.windAbove;
-					cumulus.DataStoppedAlarm.EmailMsg = settings.alarms.dataStopped;
-					cumulus.BatteryLowAlarm.EmailMsg = settings.alarms.batteryLow;
-					cumulus.SpikeAlarm.EmailMsg = settings.alarms.dataSpike;
-					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.upgrade;
-					cumulus.HttpUploadAlarm.EmailMsg = settings.alarms.httpStopped;
-					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.mySqlStopped;
+					cumulus.Trans.AlarmEmailSubject = settings.alarms.subject.Trim();
+					cumulus.Trans.AlarmEmailPreamble = settings.alarms.preamble.Trim();
+					cumulus.HighGustAlarm.EmailMsg = settings.alarms.windGustAbove.Trim();
+					cumulus.HighPressAlarm.EmailMsg = settings.alarms.pressureAbove.Trim();
+					cumulus.HighTempAlarm.EmailMsg = settings.alarms.tempAbove.Trim();
+					cumulus.LowPressAlarm.EmailMsg = settings.alarms.pressBelow.Trim();
+					cumulus.LowTempAlarm.EmailMsg = settings.alarms.tempBelow.Trim();
+					cumulus.PressChangeAlarm.EmailMsgDn = settings.alarms.pressDown.Trim();
+					cumulus.PressChangeAlarm.EmailMsgUp = settings.alarms.pressUp.Trim();
+					cumulus.HighRainTodayAlarm.EmailMsg = settings.alarms.rainAbove.Trim();
+					cumulus.HighRainRateAlarm.EmailMsg = settings.alarms.rainRateAbove.Trim();
+					cumulus.SensorAlarm.EmailMsg = settings.alarms.sensorLost.Trim();
+					cumulus.TempChangeAlarm.EmailMsgDn = settings.alarms.tempDown.Trim();
+					cumulus.TempChangeAlarm.EmailMsgUp = settings.alarms.tempUp.Trim();
+					cumulus.HighWindAlarm.EmailMsg = settings.alarms.windAbove.Trim();
+					cumulus.DataStoppedAlarm.EmailMsg = settings.alarms.dataStopped.Trim();
+					cumulus.BatteryLowAlarm.EmailMsg = settings.alarms.batteryLow.Trim();
+					cumulus.SpikeAlarm.EmailMsg = settings.alarms.dataSpike.Trim();
+					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.upgrade.Trim();
+					cumulus.HttpUploadAlarm.EmailMsg = settings.alarms.httpStopped.Trim();
+					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.mySqlStopped.Trim();
 				}
 				catch (Exception ex)
 				{

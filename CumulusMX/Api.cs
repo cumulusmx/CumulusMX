@@ -1189,6 +1189,9 @@ namespace CumulusMX
 							case "updatedisplay.json":
 								await writer.WriteAsync(displaySettings.UpdateConfig(HttpContext));
 								break;
+							case "updatelanguage.json":
+								await writer.WriteAsync(langSettings.UpdateConfig(HttpContext));
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -1209,7 +1212,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/reports/{req}")]
 			public async Task GetData(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
+				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1257,7 +1260,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/genreports/{req}")]
 			public async Task GenReports(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
+				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);

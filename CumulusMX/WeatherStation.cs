@@ -6420,7 +6420,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NOAA noaa = new NOAA(cumulus);
+						NOAA noaa = new NOAA(cumulus, this);
 						var utf8WithoutBom = new System.Text.UTF8Encoding(false);
 						var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
 

@@ -1,35 +1,61 @@
+b3223
+—————
+- Fix Extra Files prefixing local path with CMX web folder path
+- Fix for websitedata.json only being uploaded once
+- upload.php - test for null and zero length data values
+- Fix error "Index was outside the bounds of the array" in the Upload Now function
+- Adds the HighCharts accessibility module to all charts
+- Copy of interval files no longer requires them to be Created locally
+- Removes Locale Strings from the dashboard menu
+
+
 3.24.0 - b3222
 ——————————————
 New
-- Adds the customisable strings to the dashboard interface
-- Strings.ini is also added to the backup routine
+- Strings.ini is now created and used by all instances, it has also added to the backup routine
 - Adds customisable graph data series colours to the dashboard and default web site
 - Two new web tags for signed string values of pressure and temperature trends
 	<#presstrendsigned>
 	<#temptrendsigned>
-- The data visibility has been changed from a simple off/on to a tri-state. You can now select between off|Visible|Dashboard Only
+- A new web tag for the station pressure (the absolute pressure reading) <#stationpressure>
+- The data visibility has been changed from a simple off/on to a tri-state. You can now select between Off|Visible|Dashboard Only
 	- Visible means the data will be shown on both the local dash and the default web site
 	- Dashboard Only means the data can only be viewed on the CMX local interface.
 		You may wish to use this to hide sensitive data like indoor temperatures which can indicate if you are home or not
 	- Any data previous flagged as Visible, will migrate to the new Visible state
 - Extra Sensor graph data can now be sent to the default web site
 - You can now send additional four extra temperature readings to Weather Underground
+- New PHP upload alternative to FTP/SFTP
+	- This uses a secure PHP script on your web server to upload the data rather than using an FTP service
+	- The graph recent data files are sent incrementally using this mechanism, cutting bandwidth usage
+		- On starting CMX a full copy of each data file is sent
+		- Thereafter only the new data for the interval is sent, and the PHP upload script appends this to the existing file, and trims out old data
+	- The generation of local copies of the data files is now optional
+		- You can deselect the "Generate" option if you do not require a file to be written to the CMX folders. This will reduce disk I/O, a concern for rPi users with SD cards
+- Adds the HighCharts accessibility module to all charts with the default basic settings. See:- https://www.highcharts.com/accessibility/
+- Adds the simplified NOAA cooling/heating day calculation to the NOAA reports settings
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message
-- The Dashboard page now shows times in your locale format (12/24 hour)
+- The Dashboard page can now shows times in your locale format (12/24 hour) - See Program Settings|General Options
 - Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
+- Custom Logs settings screen now shows examples with the correct CSV separator for the CMX locale
+- Tempest station now forces the UDP listening port to be opened in shared mode
 
 Fixed
 - Adds missing Wind Chill from the historic graphs on the dashboard and default web site
 - Now ignores AirLink zero values when the percent in last hour is also zero. This occurs during a restart of AirLink
 - Third party custom rollover URLs overwriting custom minute values on save
+- The monthly data editors were not handing start/end dates of the first of the month correctly when using a 9am rollover
+- The #altimeterpressure web tag was defaulting to using 1 decimal place for all units
+- Dashboard menu wrapping
 
 Removed
 - Local API calls:
 	/api/extra/leaf.json
 	/api/extra/leaf4.json
 - Redundant web tags <#leaftemp[1-4]>
+
 
 3.23.1 - b3221
 ——————————————
@@ -50,7 +76,7 @@ Fixed
 - Davis WLL not updating the gust value if broadcast data stops being received
 - AWEKAS:
 	- Missing "&" on soil temperatures
-	- producing and exception message when it has already logged the response as invalid
+	- Producing an exception message when it has already logged the response as invalid
 
 
 3.23.0 - b3220
@@ -302,15 +328,18 @@ Removed
 
 3.18.0 - b3190
 ——————————————
-- Fix: Adds Ecowitt Wh40 battery state decode
-- Fix: Increase the sensitivity of the rain counter reset and make it "unit aware"
+Fixed
+- Adds Ecowitt Wh40 battery state decode
+- Increase the sensitivity of the rain counter reset and make it "unit aware"
 
-- Change: Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
-- Change: Weather Diary editor changed to improve accessibility of the Date Picker
-- Change: Records editors changed to improve accessibility, they now also use pop-up editors
-- Change: Records editors now have the ability to click on the values/timestamps of the log files and have them copied to the record value/timestamp
+Changed
+- Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
+- Weather Diary editor changed to improve accessibility of the Date Picker
+- Records editors changed to improve accessibility, they now also use pop-up editors
+- Records editors now have the ability to click on the values/timestamps of the log files and have them copied to the record value/timestamp
 
-- New: Additional web tags for today and yesterday high and low temperatures using a midnight rollover. Obviously if you use a midnight rollover
+New
+- Additional web tags for today and yesterday high and low temperatures using a midnight rollover. Obviously if you use a midnight rollover
   for your met day then these tags will return the same values as the existing hi/lo temp web tags.
 	<#tempMidnightTH>, <#TtempMidnightTH>, <#tempMidnightTL>, <#TtempMidnightTL>
 	<#tempMidnightYH>, <#TtempMidnightYH>, <#tempMidnightYL>, <#TtempMidnightYL>

@@ -5,24 +5,23 @@ using System.Text;
 
 namespace CumulusMX
 {
-	public class NOAAReports
+	internal class NOAAReports
 	{
 		private readonly Cumulus cumulus;
-		//private WeatherStation station;
+		private readonly WeatherStation station;
 		private List<string> report;
 		//private string[] report;
 		private string noaafile;
 
-		public NOAAReports(Cumulus cumulus)
-		//public NOAAReports()
+		public NOAAReports(Cumulus cumulus, WeatherStation station)
 		{
 			this.cumulus = cumulus;
-			//this.station = station;
+			this.station = station;
 		}
 
 		public List<string> GenerateNoaaYearReport(int year)
 		{
-			NOAA noaa = new NOAA(cumulus);
+			NOAA noaa = new NOAA(cumulus, station);
 			DateTime noaats = new DateTime(year, 1, 1);
 
 			cumulus.LogMessage("Creating NOAA yearly report");
@@ -47,7 +46,7 @@ namespace CumulusMX
 
 		public List<string> GenerateNoaaMonthReport(int year, int month)
 		{
-			NOAA noaa = new NOAA(cumulus);
+			NOAA noaa = new NOAA(cumulus, station);
 			DateTime noaats = new DateTime(year, month, 1);
 
 			cumulus.LogMessage("Creating NOAA monthly report");
