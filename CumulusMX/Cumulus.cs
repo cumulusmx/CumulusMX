@@ -9293,7 +9293,7 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogDebugMessage($"FTP[Int]: Base exception - {ex.Message}");
+							LogFtpMessage($"FTP[Int]: Base exception - {ex.Message}");
 						}
 
 						if ((uint)ex.HResult == 0x80004005) // Could not resolve host
@@ -9573,7 +9573,8 @@ namespace CumulusMX
 
 							if (UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[i].RemoteFileName, -1, false, true))
 							{
-								StdWebFiles[i].FtpRequired = false;
+								// No standard files are "one offs" at present
+								//StdWebFiles[i].FtpRequired = false;
 							}
 						}
 						catch (Exception e)
@@ -9716,7 +9717,7 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogDebugMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
 						}
 						// continue on error
 					}
@@ -9754,7 +9755,7 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogDebugMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
 						}
 
 						return conn.IsConnected;
@@ -9841,7 +9842,7 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogDebugMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
+							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
 						}
 
 						// Lets start again anyway! Too hard to tell if the error is recoverable
@@ -9870,7 +9871,7 @@ namespace CumulusMX
 						if (ex.InnerException != null)
 						{
 							ex = Utils.GetOriginalException(ex);
-							LogDebugMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
+							LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
 						}
 
 						return true;
@@ -9889,7 +9890,7 @@ namespace CumulusMX
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
-					LogDebugMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
+					LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
 				}
 
 			}
@@ -9925,28 +9926,7 @@ namespace CumulusMX
 					data  = File.ReadAllText(localfile, utf8);
 				}
 
-				using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
-				{
-					var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
-					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data.Substring(0, Math.Min(50, data.Length)));
-					// disable expect 100 - PHP doesn'mainThread support it
-					request.Headers.ExpectContinue = false;
-					request.Headers.Add("ACTION", "replace");
-					request.Headers.Add("FILE", remotefile);
-					request.Headers.Add("TS", unixTs);
-					request.Headers.Add("SIGNATURE", signature);
-					request.Headers.Add("BINARY", binary ? "1" : "0");
-					request.Content = new StringContent(data, utf8, "application/octet-stream");
-
-					var response = httpclient.SendAsync(request).Result;
-
-					//response.EnsureSuccessStatusCode();
-					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
-					LogDebugMessage($"PHP[{cycleStr}]: Response code - {response.StatusCode}");
-					LogDebugMessage($"PHP[{cycleStr}]: Response text:\n{responseBodyAsText}");
-
-					return response.StatusCode == HttpStatusCode.OK;
-				}
+				return UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary);
 			}
 			catch (Exception ex)
 			{
@@ -9959,6 +9939,11 @@ namespace CumulusMX
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
+			if (string.IsNullOrEmpty(data))
+			{
+				LogMessage($"PHP[{cycleStr}]: The data string is empty, ignoring this upload");
+			}
+
 			try
 			{
 				var encoding = new UTF8Encoding(false);
@@ -9966,8 +9951,8 @@ namespace CumulusMX
 				using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
 				{
 					var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
-					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data.Substring(0, Math.Min(50, data.Length)));
-					// disable expect 100 - PHP doesn'mainThread support it
+					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data.Substring(0, data.Length - 1));
+					// disable expect 100 - PHP doesn't support it
 					request.Headers.ExpectContinue = false;
 					request.Headers.Add("ACTION", incremental ? "append" : "replace");
 					request.Headers.Add("FILE", remotefile);
@@ -10000,11 +9985,11 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogDebugMessage($"PHP[{cycleStr}]: Error - {ex.Message}");
+				LogMessage($"PHP[{cycleStr}]: Error - {ex.Message}");
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
-					LogDebugMessage($"PHP[{cycleStr}]: Base exception - {ex.Message}");
+					LogMessage($"PHP[{cycleStr}]: Base exception - {ex.Message}");
 				}
 				return false;
 			}
