@@ -1,5 +1,15 @@
+b3225
+- Adds PHP advanced option to ignore certificate errors
+
+b3224
+- Fixes empty graph data files when using FTP
+- Fixes Locale Strings update error
+- Fixes AQ data missing from default web site Recent graph
+- The standard file options Create/Upload/Copy are now fully independent for all upload methods - FTP/SFTP/PHP
+- Fixes my test system "secret" being left in the upload.php script
+- Adds the simplified NOAA cooling/heating day calculation to the NOAA reports settings
+
 b3223
-—————
 - Fix Extra Files prefixing local path with CMX web folder path
 - Fix for websitedata.json only being uploaded once
 - upload.php - test for null and zero length data values

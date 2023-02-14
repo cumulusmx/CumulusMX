@@ -513,7 +513,7 @@ namespace CumulusMX
 		public Alarm DataStoppedAlarm = new Alarm("Data Stopped", AlarmTypes.Trigger);
 		public Alarm BatteryLowAlarm = new Alarm("Battery Low", AlarmTypes.Trigger);
 		public Alarm SensorAlarm = new Alarm("Sensor Data Stopped", AlarmTypes.Trigger);
-		public Alarm SpikeAlarm = new Alarm("Data Spike",AlarmTypes.Trigger);
+		public Alarm SpikeAlarm = new Alarm("Data Spike", AlarmTypes.Trigger);
 		public Alarm HighWindAlarm = new Alarm("High Wind", AlarmTypes.Above);
 		public Alarm HighGustAlarm = new Alarm("High Gust", AlarmTypes.Above);
 		public Alarm HighRainRateAlarm = new Alarm("High Rainfall Rate", AlarmTypes.Above);
@@ -600,10 +600,8 @@ namespace CumulusMX
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		// PHP upload HTTP
-		private static readonly HttpClientHandler phpUploadHttpHandler = new HttpClientHandler();
-		private readonly HttpClient phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
-		private static readonly HttpClientHandler phpRealtimeUploadHttpHandler = new HttpClientHandler();
-		private readonly HttpClient phpRealtimeUploadHttpClient = new HttpClient(phpRealtimeUploadHttpHandler);
+		private HttpClient phpUploadHttpClient;
+		private HttpClient phpRealtimeUploadHttpClient;
 
 		public Thread ftpThread;
 		public Thread MySqlCatchupThread;
@@ -901,13 +899,13 @@ namespace CumulusMX
 				new FileGenerationOptions()		// 14
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extrathumdata.json",
+					LocalFileName = "extrahumdata.json",
 					RemoteFileName = "extrahumdata.json"
 				},
 				new FileGenerationOptions()		// 15
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extratdewdata.json",
+					LocalFileName = "extradewdata.json",
 					RemoteFileName = "extradewdata.json"
 				},
 				new FileGenerationOptions()		// 16
@@ -1368,6 +1366,7 @@ namespace CumulusMX
 
 			SetUpHttpProxy();
 
+			SetupPhpUploadClient();
 
 			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
@@ -1621,15 +1620,15 @@ namespace CumulusMX
 
 				if (StationType == StationTypes.HttpWund)
 				{
-					Api.stationWund = (HttpStationWund)station;
+					Api.stationWund = (HttpStationWund) station;
 				}
 				else if (StationType == StationTypes.HttpEcowitt)
 				{
-					Api.stationEcowitt = (HttpStationEcowitt)station;
+					Api.stationEcowitt = (HttpStationEcowitt) station;
 				}
 				else if (StationType == StationTypes.HttpAmbient)
 				{
-					Api.stationAmbient = (HttpStationAmbient)station;
+					Api.stationAmbient = (HttpStationAmbient) station;
 				}
 
 				LogMessage("Creating extra sensors");
@@ -1770,6 +1769,19 @@ namespace CumulusMX
 					customHttpRolloverHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
 				}
 			}
+		}
+
+		internal void SetupPhpUploadClient()
+		{
+			var phpUploadHttpHandler = new HttpClientHandler
+			{
+				ClientCertificateOptions = ClientCertificateOption.Manual,
+				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) => {
+					return FtpOptions.PhpIgnoreCertErrors ? true : errors == System.Net.Security.SslPolicyErrors.None;
+				}
+			};
+			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
+			phpRealtimeUploadHttpClient = new HttpClient(phpUploadHttpHandler);
 		}
 
 		private void CustomHttpSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -3171,35 +3183,43 @@ namespace CumulusMX
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
-				if (RealtimeFiles[i].FTP && (RealtimeFiles[i].Create || FtpOptions.FtpMode == FtpProtocols.PHP))
+				if (RealtimeFiles[i].FTP)
 				{
 					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
 					var localFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
 					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
 
-					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+					string data = string.Empty;
+					// realtime file
+					if (RealtimeFiles[i].LocalFileName == "realtime.txt")
 					{
-						_= UploadFile(RealtimeSSH, localFile, remoteFile, cycle);
+						data = CreateRealtimeFileString(cycle);
 					}
-					else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						UploadFile(RealtimeFTP, localFile, remoteFile, cycle);
-					}
-					else if (FtpOptions.FtpMode == FtpProtocols.PHP)
-					{
-						// realtime file
-						if (RealtimeFiles[i].LocalFileName == "realtime.txt")
-						{
-							var data = CreateRealtimeFileString(cycle);
-							UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle);
-						}
 
-						if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+					if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+					{
+						data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, tokenParser, true, true);
+					}
+
+					if (FtpOptions.FtpMode != FtpProtocols.PHP)
+					{
+						using (var dataStream = GenerateStreamFromString(data))
 						{
-							var data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, tokenParser, true, true);
-							UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle, false, true);
+							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							{
+
+								_ = UploadStream(RealtimeSSH, remoteFile, dataStream, cycle);
+							}
+							else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+							{
+								_ = UploadStream(RealtimeFTP, remoteFile, dataStream, cycle);
+							}
 						}
+					}
+					else // PHP
+					{
+						UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle);
 						// no realtime files are incremental, so no need to update LastDataTime
 					}
 				}
@@ -4546,6 +4566,7 @@ namespace CumulusMX
 			FtpOptions.PhpSecret = ini.GetValue("FTP site", "PHP-Secret", "");
 			if (FtpOptions.PhpSecret == string.Empty)
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
+			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
 			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);
@@ -5970,6 +5991,7 @@ namespace CumulusMX
 			// PHP upload options
 			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
 			ini.SetValue("FTP site", "PHP-Secret", FtpOptions.PhpSecret);
+			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
 
 
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);
@@ -8837,8 +8859,13 @@ namespace CumulusMX
 					try
 					{
 						dstfile = remotePath + StdWebFiles[i].RemoteFileName;
-						// the files are no longer created when using PHP upload, so gen them on the fly
-						if (FtpOptions.Enabled && FtpOptions.FtpMode == FtpProtocols.PHP)
+						// the files are no longer always created, so gen them on the fly if required
+						if (StdWebFiles[i].Create)
+						{
+							srcfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+							File.Copy(srcfile, dstfile, true);
+						}
+						else
 						{
 							string text;
 							if (StdWebFiles[i].LocalFileName == "wxnow.txt")
@@ -8854,11 +8881,6 @@ namespace CumulusMX
 								file.WriteLine(text);
 								file.Close();
 							}
-						}
-						else
-						{
-							srcfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-							File.Copy(srcfile, dstfile, true);
 						}
 						success++;
 					}
@@ -8886,7 +8908,12 @@ namespace CumulusMX
 						dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
 
 						// the files are no longer created when using PHP upload, so gen them on the fly
-						if (!GraphDataFiles[i].Create)
+						if (GraphDataFiles[i].Create)
+						{
+							srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+							File.Copy(srcfile, dstfile, true);
+						}
+						else
 						{
 							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
 							using (FileStream fs = File.Create(dstfile))
@@ -8894,11 +8921,6 @@ namespace CumulusMX
 								var data = new UTF8Encoding(true).GetBytes(text);
 								fs.Write(data, 0, data.Length);
 							}
-						}
-						else
-						{
-							srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-							File.Copy(srcfile, dstfile, true);
 						}
 						// The config files only need uploading once per change
 						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
@@ -8930,7 +8952,12 @@ namespace CumulusMX
 						dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 
 						// the files are no longer created when using PHP upload, so gen them on the fly
-						if (!GraphDataEodFiles[i].Create)
+						if (GraphDataEodFiles[i].Create)
+						{
+							srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+							File.Copy(srcfile, dstfile, true);
+						}
+						else
 						{
 							var text = station.CreateEodGraphDataJson(GraphDataFiles[i].LocalFileName);
 							using (FileStream fs = File.Create(dstfile))
@@ -8938,11 +8965,6 @@ namespace CumulusMX
 								var data = new UTF8Encoding(true).GetBytes(text);
 								fs.Write(data, 0, data.Length);
 							}
-						}
-						else
-						{
-							srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-							File.Copy(srcfile, dstfile, true);
 						}
 						// Uploaded OK, reset the upload required flag
 						GraphDataEodFiles[i].CopyRequired = false;
@@ -9137,7 +9159,7 @@ namespace CumulusMX
 							// standard files
 							for (var i = 0; i < StdWebFiles.Length; i++)
 							{
-								if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
+								if (StdWebFiles[i].FTP)
 								{
 									try
 									{
@@ -9145,9 +9167,21 @@ namespace CumulusMX
 										var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
 										LogFtpDebugMessage("SFTP[Int]: Uploading standard Data file: " + localFile);
 
-										UploadFile(conn, localFile, remotefile, -1);
-										// Uploaded OK, reset the upload required flag
-										StdWebFiles[i].FtpRequired = false;
+										string data;
+
+										if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+										{
+											data = station.CreateWxnowFileString();
+										}
+										else
+										{
+											data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true, true);
+										}
+
+										using (var dataStream = GenerateStreamFromString(data))
+										{
+											UploadStream(conn, remotefile, dataStream);
+										}
 									}
 									catch (Exception e)
 									{
@@ -9168,9 +9202,18 @@ namespace CumulusMX
 									{
 										LogFtpDebugMessage("SFTP[Int]: Uploading graph data file: " + uploadfile);
 
-										UploadFile(conn, uploadfile, remotefile, -1);
-										// Uploaded OK, reset the upload required flag
-										GraphDataFiles[i].FtpRequired = false;
+										var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+
+										using (var dataStream = GenerateStreamFromString(json))
+										{
+											UploadStream(conn, remotefile, dataStream);
+										}
+
+										// Uploaded OK, reset the upload required flag for the static files
+										if (i == 0 || i == 1)
+										{
+											GraphDataFiles[i].FtpRequired = false;
+										}
 									}
 									catch (Exception e)
 									{
@@ -9190,7 +9233,12 @@ namespace CumulusMX
 									{
 										LogFtpMessage("SFTP[Int]: Uploading daily graph data file: " + uploadfile);
 
-										UploadFile(conn, uploadfile, remotefile, -1);
+										var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+
+										using (var dataStream = GenerateStreamFromString(json))
+										{
+											UploadStream(conn, remotefile, dataStream, -1);
+										}
 										// Uploaded OK, reset the upload required flag
 										GraphDataEodFiles[i].FtpRequired = false;
 									}
@@ -9388,14 +9436,29 @@ namespace CumulusMX
 						// standard files
 						for (int i = 0; i < StdWebFiles.Length; i++)
 						{
-							if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
+							if (StdWebFiles[i].FTP)
 							{
 								try
 								{
 									var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 									LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile);
 
-									UploadFile(conn, localfile, remotePath + StdWebFiles[i].RemoteFileName);
+									string data;
+
+									if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+									{
+										data = station.CreateWxnowFileString();
+									}
+									else
+									{
+										data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true, true);
+									}
+
+									using (var dataStream = GenerateStreamFromString(data))
+									{
+										UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, -1);
+									}
+
 									// Uploaded OK, reset the upload required flag
 									StdWebFiles[i].FtpRequired = false;
 								}
@@ -9415,9 +9478,19 @@ namespace CumulusMX
 									var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
 									var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
 									LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile);
-									UploadFile(conn, localfile, remotefile);
+
+									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+
+									using (var dataStream = GenerateStreamFromString(json))
+									{
+										UploadStream(conn, remotefile, dataStream);
+									}
+
 									// Uploaded OK, reset the upload required flag
-									GraphDataFiles[i].FtpRequired = false;
+									if (i == 0 || i == 1)
+									{
+										GraphDataFiles[i].FtpRequired = false;
+									}
 								}
 								catch (Exception e)
 								{
@@ -9437,14 +9510,20 @@ namespace CumulusMX
 								{
 									LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile);
 
-									UploadFile(conn, localfile, remotefile, -1);
+									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+
+									using (var dataStream = GenerateStreamFromString(json))
+									{
+										UploadStream(conn, remotefile, dataStream);
+									}
+
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[i].FtpRequired = false;
 								}
 								catch (Exception e)
 								{
-									LogFtpMessage($"SFTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].LocalFileName}]");
-									LogFtpMessage($"SFTP[Int]: Error = {e}");
+									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].LocalFileName}]");
+									LogFtpMessage($"FTP[Int]: Error = {e}");
 								}
 							}
 						}
@@ -9556,7 +9635,7 @@ namespace CumulusMX
 				// standard files
 				for (int i = 0; i < StdWebFiles.Length; i++)
 				{
-					if (StdWebFiles[i].FTP && StdWebFiles[i].FtpRequired)
+					if (StdWebFiles[i].FTP)
 					{
 						try
 						{
@@ -9668,7 +9747,36 @@ namespace CumulusMX
 
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1, string data = null)
+		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
+		{
+			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+
+			if (FtpOptions.Logging) FtpTrace.WriteLine("");
+			try
+			{
+				if (!File.Exists(localfile))
+				{
+					LogMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
+					return true;
+				}
+
+				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				{
+					UploadStream(conn, remotefile, istream, cycle);
+				}
+			}
+			catch (Exception ex)
+			{
+				LogFtpMessage($"FTP[{cycleStr}]: Error reading {localfile} - {ex.Message}");
+				if (ex.InnerException != null)
+				{
+					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
+				}
+			}
+
+			return conn.IsConnected;
+		}
+		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
@@ -9676,9 +9784,9 @@ namespace CumulusMX
 			if (FtpOptions.Logging) FtpTrace.WriteLine("");
 			try
 			{
-				if (null != data && !File.Exists(localfile))
+				if (dataStream.Length == 0)
 				{
-					LogMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
+					LogMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
 					return true;
 				}
 
@@ -9725,21 +9833,14 @@ namespace CumulusMX
 					}
 				}
 
-				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {localfile} to {remotefiletmp}");
+				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefiletmp}");
 
 				FtpStatus status;
-				if (null == data)
-				{
-					status = conn.Upload(GenerateStreamFromString(data), remotefiletmp);
-				}
-				else
-				{
-					status = conn.UploadFile(localfile, remotefiletmp);
-				}
+				status = conn.Upload(dataStream, remotefiletmp);
 
 				if (status.IsFailure())
 				{
-					LogMessage($"FTP[{cycleStr}]: Upload of {localfile} to {remotefile} failed");
+					LogMessage($"FTP[{cycleStr}]: Upload of {remotefile} failed");
 				}
 				else if (FTPRename)
 				{
@@ -9766,7 +9867,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {localfile} to {remotefile} : {ex.Message}");
+				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}");
 				if (ex.InnerException != null)
 				{
 					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}");
@@ -9785,11 +9886,11 @@ namespace CumulusMX
 			stream.Position = 0;
 			return stream;
 		}
+
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadFile(SftpClient conn, string localfile, string remotefile, int cycle, string data = null)
+		private bool UploadFile(SftpClient conn, string localfile, string remotefile, int cycle=-1)
 		{
-			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
 			if (!File.Exists(localfile))
@@ -9814,43 +9915,83 @@ namespace CumulusMX
 
 			try
 			{
-				// No delete before upload required for SFTP as we use the overwrite flag
-
-
-				using (Stream istream = data == null ? new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) : GenerateStreamFromString(data))
+				using (Stream istream = new FileStream(localfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				{
-					try
+					UploadStream(conn, remotefile, istream, cycle);
+				}
+			}
+			catch (Exception ex)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: Error reading {localfile} - {ex.Message}");
+				if (ex.InnerException != null)
+				{
+					ex = Utils.GetOriginalException(ex);
+					LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
+				}
+
+			}
+			return true;
+		}
+
+		private bool UploadStream(SftpClient conn, string remotefile, Stream dataStream, int cycle=-1)
+		{
+			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
+			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+
+			if (dataStream.Length == 0)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
+				return false;
+			}
+
+			try
+			{
+				if (conn == null || !conn.IsConnected)
+				{
+					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
+					return false;
+				}
+			}
+			catch (ObjectDisposedException)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
+				return false;
+			}
+
+			try
+			{
+				// No delete before upload required for SFTP as we use the overwrite flag
+				try
+				{
+					LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploading {remotefilename}");
+
+					conn.OperationTimeout = TimeSpan.FromSeconds(15);
+					conn.UploadFile(dataStream, remotefilename, true);
+					dataStream.Close();
+
+					LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploaded {remotefilename}");
+				}
+				catch (ObjectDisposedException)
+				{
+					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
+					return false;
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefilename} : {ex.Message}");
+
+					if (ex.Message.Contains("Permission denied")) // Non-fatal
+						return true;
+
+					if (ex.InnerException != null)
 					{
-						LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploading {localfile} to {remotefilename}");
-
-						conn.OperationTimeout = TimeSpan.FromSeconds(15);
-						conn.UploadFile(istream, remotefilename, true);
-						istream.Close();
-
-						LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploaded {localfile}");
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
 					}
-					catch (ObjectDisposedException)
-					{
-						LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-						return false;
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefilename} : {ex.Message}");
 
-						if (ex.Message.Contains("Permission denied")) // Non-fatal
-							return true;
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
-						}
-
-						// Lets start again anyway! Too hard to tell if the error is recoverable
-							conn.Dispose();
-						return false;
-					}
+					// Lets start again anyway! Too hard to tell if the error is recoverable
+					conn.Dispose();
+					return false;
 				}
 
 				if (FTPRename)
@@ -9879,7 +10020,7 @@ namespace CumulusMX
 						return true;
 					}
 				}
-				LogFtpDebugMessage($"SFTP[{cycleStr}]: Completed uploading {localfile} to {remotefile}");
+				LogFtpDebugMessage($"SFTP[{cycleStr}]: Completed uploading {remotefile}");
 			}
 			catch (ObjectDisposedException)
 			{
@@ -9888,7 +10029,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {localfile} to {remotefile} - {ex.Message}");
+				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefile} - {ex.Message}");
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
@@ -9996,7 +10137,6 @@ namespace CumulusMX
 				return false;
 			}
 		}
-
 
 		public void LogMessage(string message)
 		{
@@ -10952,9 +11092,7 @@ namespace CumulusMX
 					try
 					{
 						using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
-#pragma warning disable CS0642 // Possible mistaken empty statement
-							;
-#pragma warning restore CS0642 // Possible mistaken empty statement
+						{/* Noop */}
 					}
 					catch (NotImplementedException)
 					{
@@ -12034,6 +12172,7 @@ namespace CumulusMX
 		public string LocalCopyFolder { get; set; }
 		public string PhpUrl { get; set; }
 		public string PhpSecret { get; set; }
+		public bool PhpIgnoreCertErrors { get; set; }
 	}
 
 	public class FileGenerationOptions

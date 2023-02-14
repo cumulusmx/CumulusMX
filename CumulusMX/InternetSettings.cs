@@ -95,6 +95,7 @@ namespace CumulusMX
 						{
 							cumulus.FtpOptions.PhpUrl = settings.website.phpurl;
 							cumulus.FtpOptions.PhpSecret = settings.website.phpsecret;
+							cumulus.FtpOptions.PhpIgnoreCertErrors = settings.website.advanced.phpignorecerts;
 						}
 					}
 
@@ -154,14 +155,22 @@ namespace CumulusMX
 						for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 						{
 							cumulus.GraphDataFiles[i].Create = settings.websettings.interval.graphfiles.files[i].create;
+							if (!cumulus.GraphDataFiles[i].FTP && settings.websettings.interval.graphfiles.files[i].ftp)
+								cumulus.GraphDataFiles[i].FtpRequired = true;
 							cumulus.GraphDataFiles[i].FTP = settings.websettings.interval.graphfiles.files[i].ftp;
+							if (!cumulus.GraphDataFiles[i].Copy && settings.websettings.interval.graphfiles.files[i].copy)
+								cumulus.GraphDataFiles[i].CopyRequired = true;
 							cumulus.GraphDataFiles[i].Copy = settings.websettings.interval.graphfiles.files[i].copy;
 						}
 
 						for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 						{
 							cumulus.GraphDataEodFiles[i].Create = settings.websettings.interval.graphfileseod.files[i].create;
+							if (!cumulus.GraphDataEodFiles[i].FTP && settings.websettings.interval.graphfileseod.files[i].ftp)
+								cumulus.GraphDataEodFiles[i].FtpRequired = true;
 							cumulus.GraphDataEodFiles[i].FTP = settings.websettings.interval.graphfileseod.files[i].ftp;
+							if (!cumulus.GraphDataEodFiles[i].Copy && settings.websettings.interval.graphfileseod.files[i].copy)
+								cumulus.GraphDataEodFiles[i].CopyRequired = true;
 							cumulus.GraphDataEodFiles[i].Copy = settings.websettings.interval.graphfileseod.files[i].copy;
 						}
 					}
@@ -364,7 +373,8 @@ namespace CumulusMX
 				activeftp = cumulus.FtpOptions.ActiveMode,
 				disableftpsepsv = cumulus.FtpOptions.DisableEPSV,
 				disableftpsexplicit = cumulus.FtpOptions.DisableExplicit,
-				ignorecerts = cumulus.FtpOptions.IgnoreCertErrors
+				ignorecerts = cumulus.FtpOptions.IgnoreCertErrors,
+				phpignorecerts = cumulus.FtpOptions.PhpIgnoreCertErrors
 			};
 
 			var websettingsgeneral = new JsonInternetSettingsWebSettingsGeneral()
@@ -680,6 +690,7 @@ namespace CumulusMX
 		public bool disableftpsepsv { get; set; }
 		public bool disableftpsexplicit { get; set; }
 		public bool ignorecerts { get; set; }
+		public bool phpignorecerts { get; set; }
 	}
 
 	public class JsonInternetSettingsWebsite

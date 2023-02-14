@@ -2142,9 +2142,6 @@ namespace CumulusMX
 						{
 							cumulus.GraphDataFiles[i].CreateRequired = false;
 						}
-						// set the flag to upload the file - if required
-						cumulus.GraphDataFiles[i].FtpRequired = true;
-						cumulus.GraphDataFiles[i].CopyRequired = true;
 					}
 					catch (Exception ex)
 					{

@@ -256,21 +256,18 @@ namespace CumulusMX
 					// do not process last entry = wxnow.txt, it is not used by the standard site
 					for (var i = 0; i < cumulus.StdWebFiles.Length - 1; i++)
 					{
-						cumulus.StdWebFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.StdWebFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.StdWebFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and graph data files
 					for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 					{
-						cumulus.GraphDataFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.GraphDataFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.GraphDataFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and EOD data files
 					for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 					{
-						cumulus.GraphDataEodFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.GraphDataEodFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.GraphDataEodFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
@@ -282,7 +279,6 @@ namespace CumulusMX
 					//cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 
 					// realtimegauges.txt IS used by the standard site
-					cumulus.RealtimeFiles[1].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 					cumulus.RealtimeFiles[1].FTP = cumulus.FtpOptions.Enabled;
 					cumulus.RealtimeFiles[1].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 

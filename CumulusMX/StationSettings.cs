@@ -1223,14 +1223,6 @@ namespace CumulusMX
 
 				// Save the settings
 				cumulus.WriteIniFile();
-
-				// Graph configs may have changed, so re-create and upload the json files - just flag everything!
-				for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
-				{
-					cumulus.GraphDataFiles[i].CreateRequired = true;
-					cumulus.GraphDataFiles[i].FtpRequired = true;
-					cumulus.GraphDataFiles[i].CopyRequired = true;
-				}
 			}
 			catch (Exception ex)
 			{
