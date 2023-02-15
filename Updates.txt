@@ -1,5 +1,7 @@
-b3225
+b3225/b3226
 - Adds PHP advanced option to ignore certificate errors
+- Adds compression for PHP uploads with a data payload > 500 bytes
+- Extra Files no longer create local "tmp" files when processed
 
 b3224
 - Fixes empty graph data files when using FTP

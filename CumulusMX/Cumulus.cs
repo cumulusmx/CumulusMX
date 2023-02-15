@@ -32,6 +32,7 @@ using System.Drawing;
 using System.Web.UI.WebControls;
 using System.Runtime.InteropServices.ComTypes;
 using System.Web;
+using System.Web.Caching;
 
 namespace CumulusMX
 {
@@ -600,8 +601,8 @@ namespace CumulusMX
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		// PHP upload HTTP
-		private HttpClient phpUploadHttpClient;
-		private HttpClient phpRealtimeUploadHttpClient;
+		internal HttpClient phpUploadHttpClient;
+		internal HttpClient phpRealtimeUploadHttpClient;
 
 		public Thread ftpThread;
 		public Thread MySqlCatchupThread;
@@ -1366,7 +1367,11 @@ namespace CumulusMX
 
 			SetUpHttpProxy();
 
-			SetupPhpUploadClient();
+			if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				SetupPhpUploadClients();
+				TestPhpUploadCompression();
+			}
 
 			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
@@ -1771,7 +1776,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal void SetupPhpUploadClient()
+		internal void SetupPhpUploadClients()
 		{
 			var phpUploadHttpHandler = new HttpClientHandler
 			{
@@ -1782,6 +1787,29 @@ namespace CumulusMX
 			};
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
 			phpRealtimeUploadHttpClient = new HttpClient(phpUploadHttpHandler);
+		}
+
+
+		internal async void TestPhpUploadCompression()
+		{
+			LogDebugMessage("Testing PHP upload compression");
+			using (var request = new HttpRequestMessage(HttpMethod.Get, FtpOptions.PhpUrl))
+			{
+				try
+				{
+					request.Headers.Add("Accept", "text/html");
+					request.Headers.Add("Accept-Encoding", "gzip, deflate");
+					var response = await phpUploadHttpClient.SendAsync(request);
+					var encoding = response.Content.Headers.ContentEncoding;
+
+					FtpOptions.PhpCompression = encoding.Count == 0 ? "none" : encoding.First();
+
+				}
+				catch (Exception ex)
+				{
+
+				}
+			}
 		}
 
 		private void CustomHttpSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -3240,32 +3268,58 @@ namespace CumulusMX
 						remotefile = GetRemoteFileName(remotefile, DateTime.Now);
 
 						// all checks OK, file needs to be uploaded
-						if (ExtraFiles[i].process && FtpOptions.FtpMode != FtpProtocols.PHP)
-						{
-							// we've already processed the file
-							uploadfile += "tmp";
-						}
 						LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
-						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+
+						string data = string.Empty;
+
+						if (ExtraFiles[i].process)
 						{
-							UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
+							data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
 						}
-						else if (FtpOptions.FtpMode == FtpProtocols.SFTP)
-						{
-							UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
-						}
-						else if (FtpOptions.FtpMode == FtpProtocols.PHP)
+
+						if (FtpOptions.FtpMode == FtpProtocols.PHP)
 						{
 							if (ExtraFiles[i].process)
 							{
-								var data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
 								UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[i].binary, ExtraFiles[i].UTF8);
 							}
 							else
 							{
-								UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle);
+								UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[i].binary);
 							}
 							// no extra files are incremental for now, so no need to update LastDataTime
+							continue;
+						}
+
+						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+						{
+							if (ExtraFiles[i].process)
+							{
+								using (var strm = GenerateStreamFromString(data))
+								{
+									UploadStream(RealtimeSSH,remotefile, strm, cycle);
+								}
+							}
+							else
+							{
+								UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
+							}
+							continue;
+						}
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							if (ExtraFiles[i].process)
+							{
+								using (var strm = GenerateStreamFromString(data))
+								{
+									UploadStream(RealtimeFTP, remotefile, strm, cycle);
+								}
+							}
+							else
+							{
+								UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
+							}
 						}
 					}
 					else
@@ -3309,23 +3363,6 @@ namespace CumulusMX
 						if (File.Exists(uploadfile))
 						{
 							remotefile = GetRemoteFileName(remotefile, DateTime.Now);
-
-							// PHP uploads do not use the intermediate file
-							if (ExtraFiles[i].process && FtpOptions.Enabled && FtpOptions.FtpMode != FtpProtocols.PHP)
-							{
-								// process the file
-								try
-								{
-									LogDebugMessage($"Realtime[{cycle}]: Processing extra file[{i}] - {uploadfile}");
-									ProcessTemplateFile(uploadfile, uploadfile + "tmp", realtimeTokenParser, false);
-								}
-								catch (Exception ex)
-								{
-									LogMessage($"Realtime[{cycle}]: Error processing extra file [{uploadfile}] to [{uploadfile}]. Error = {ex.Message}");
-									continue;
-								}
-								uploadfile += "tmp";
-							}
 
 							if (!ExtraFiles[i].FTP)
 							{
@@ -8675,7 +8712,7 @@ namespace CumulusMX
 			LogMessage("Station shutdown complete");
 		}
 
-		public void DoHTMLFiles()
+		public async void DoHTMLFiles()
 		{
 			try
 			{
@@ -8716,7 +8753,7 @@ namespace CumulusMX
 						var uploadfile = ExtraFiles[i].local;
 						var remotefile = ExtraFiles[i].remote;
 
-						if ((uploadfile.Length > 0) && (remotefile.Length > 0))
+						if ((uploadfile.Length > 0) && (remotefile.Length > 0) && !ExtraFiles[i].FTP)
 						{
 							uploadfile = GetUploadFilename(uploadfile, DateTime.Now);
 
@@ -8724,28 +8761,25 @@ namespace CumulusMX
 							{
 								remotefile = GetRemoteFileName(remotefile, DateTime.Now);
 
-								if (ExtraFiles[i].process)
+								// just copy the file
+								LogDebugMessage($"Interval: Copying extra file[{i}] {uploadfile} to {remotefile}");
+								try
 								{
-									LogDebugMessage($"Interval: Processing extra file[{i}] - {uploadfile}");
-									// process the file
-									ProcessTemplateFile(uploadfile, uploadfile + "tmp", tokenParser, false);
-									uploadfile += "tmp";
-								}
-
-								if (!ExtraFiles[i].FTP)
-								{
-									// just copy the file
-									LogDebugMessage($"Interval: Copying extra file[{i}] {uploadfile} to {remotefile}");
-									try
+									if (ExtraFiles[i].process)
+									{
+										var data = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+										File.WriteAllText(remotefile, data);
+									}
+									else
 									{
 										File.Copy(uploadfile, remotefile, true);
 									}
-									catch (Exception ex)
-									{
-										LogDebugMessage($"Interval: Error copying extra file[{i}]: " + ex.Message);
-									}
-									//LogDebugMessage("Finished copying extra file " + uploadfile);
 								}
+								catch (Exception ex)
+								{
+									LogDebugMessage($"Interval: Error copying extra file[{i}]: " + ex.Message);
+								}
+								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
 							else
 							{
@@ -9129,15 +9163,20 @@ namespace CumulusMX
 										remotefile = GetRemoteFileName(remotefile, logDay);
 
 										// all checks OK, file needs to be uploaded
-										if (ExtraFiles[i].process)
-										{
-											// we've already processed the file
-											uploadfile += "tmp";
-										}
-
 										try
 										{
-											UploadFile(conn, uploadfile, remotefile, -1);
+											if (ExtraFiles[i].process)
+											{
+												var data = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+												using (var strm = GenerateStreamFromString(data))
+												{
+													UploadStream(conn, remotefile, strm, -1);
+												}
+											}
+											else
+											{
+												UploadFile(conn, uploadfile, remotefile, -1);
+											}
 										}
 										catch (Exception e)
 										{
@@ -9407,15 +9446,21 @@ namespace CumulusMX
 									LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
 
 									// all checks OK, file needs to be uploaded
-									if (ExtraFiles[i].process)
-									{
-										// we've already processed the file
-										uploadfile += "tmp";
-									}
 
 									try
 									{
-										UploadFile(conn, uploadfile, remotefile);
+										if (ExtraFiles[i].process)
+										{
+											var data = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+											using (var strm = GenerateStreamFromString(data))
+											{
+												UploadStream(conn, remotefile, strm, -1);
+											}
+										}
+										else
+										{
+											UploadFile(conn, uploadfile, remotefile);
+										}
 									}
 									catch (Exception e)
 									{
@@ -9607,12 +9652,14 @@ namespace CumulusMX
 							{
 								if (ExtraFiles[i].process)
 								{
+									var encoding = UTF8encode ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
+									tokenParser.Encoding = encoding;
+
 									var data = ProcessTemplateFile2String(uploadfile, tokenParser, false);
 									UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile);
 								}
 								else
 								{
-
 									UploadFile(phpUploadHttpClient, uploadfile, remotefile);
 								}
 							}
@@ -10106,7 +10153,45 @@ namespace CumulusMX
 					request.Headers.Add("TS", unixTs);
 					request.Headers.Add("SIGNATURE", signature);
 					request.Headers.Add("BINARY", binary ? "1" : "0");
-					request.Content = new StringContent(data, encoding, "application/octet-stream");
+					// Compress? if supported and payload exceeds 500 bytes
+					if (data.Length < 500 || FtpOptions.PhpCompression == "none")
+					{
+						request.Content = new StringContent(data, encoding, "application/octet-stream");
+					}
+					else
+					{
+						using (var ms = new System.IO.MemoryStream())
+						{
+							if (FtpOptions.PhpCompression == "gzip")
+							{
+								using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+								{
+									var byteData = encoding.GetBytes(data);
+									zipped.Write(byteData, 0, byteData.Length);
+								}
+							}
+							else if (FtpOptions.PhpCompression == "deflate")
+							{
+								using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+								{
+									var byteData = encoding.GetBytes(data);
+									zipped.Write(byteData, 0, byteData.Length);
+								}
+							}
+
+							ms.Position = 0;
+							byte[] compressed = new byte[ms.Length];
+							ms.Read(compressed, 0, compressed.Length);
+
+							MemoryStream outStream = new MemoryStream(compressed);
+
+							StreamContent streamContent = new StreamContent(outStream);
+							streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
+							streamContent.Headers.ContentLength = outStream.Length;
+
+							request.Content = streamContent;
+						}
+					}
 
 					var response = httpclient.SendAsync(request).Result;
 
@@ -10897,22 +10982,22 @@ namespace CumulusMX
 						{
 							remotefile = GetRemoteFileName(remotefile, logDay);
 
-							if (ExtraFiles[i].process || !(FtpOptions.Enabled && FtpOptions.FtpMode == FtpProtocols.PHP))
+							if (!ExtraFiles[i].FTP)
 							{
-								LogDebugMessage("EOD: Processing extra file " + uploadfile);
-								// process the file
-								var utf8WithoutBom = new UTF8Encoding(false);
-								var encoding = UTF8encode ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
-								tokenParser.Encoding = encoding;
-								tokenParser.SourceFile = uploadfile;
-								var output = tokenParser.ToString();
 								uploadfile += "tmp";
 								try
 								{
-									using (StreamWriter file = new StreamWriter(uploadfile, false, encoding))
+									if (ExtraFiles[i].process)
 									{
-										file.Write(output);
-										file.Close();
+										LogDebugMessage("EOD: Processing extra file " + uploadfile);
+										// process the file
+										var output = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+										File.WriteAllText(remotefile, output);
+									}
+									else
+									{
+										LogDebugMessage("EOD: Copying extra file " + uploadfile);
+										File.Copy(uploadfile, remotefile);
 									}
 								}
 								catch (Exception ex)
@@ -12173,6 +12258,7 @@ namespace CumulusMX
 		public string PhpUrl { get; set; }
 		public string PhpSecret { get; set; }
 		public bool PhpIgnoreCertErrors { get; set; }
+		public string PhpCompression { get; set; } = "none";
 	}
 
 	public class FileGenerationOptions

@@ -58,6 +58,15 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.website.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
+						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && (Cumulus.FtpProtocols) settings.website.sslftp == Cumulus.FtpProtocols.PHP)
+						{
+							// switching to PHP, make sure the HTTPclients are initialised
+							if (cumulus.phpUploadHttpClient == null)
+							{
+								cumulus.SetupPhpUploadClients();
+								cumulus.TestPhpUploadCompression();
+							}
+						}
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.website.sslftp;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
@@ -578,8 +587,7 @@ namespace CumulusMX
 		public string GetExtraWebFilesData()
 		{
 			var json = new StringBuilder(10240);
-			json.Append("{\"metadata\":[{\"name\":\"local\",\"label\":\"Local Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"Destination Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"Process\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"Realtime\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"FTP\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"Binary\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"End of day\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[");
-
+			json.Append("{\"metadata\":[{\"name\":\"local\",\"label\":\"Local Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"Destination Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"Process\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"Realtime\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"Upload\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"Binary\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"End of day\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[");
 			for (int i = 0; i < Cumulus.numextrafiles; i++)
 			{
 				var local = cumulus.ExtraFiles[i].local.Replace("\\", "\\\\").Replace("/", "\\/");
