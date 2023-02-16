@@ -1804,10 +1804,18 @@ namespace CumulusMX
 
 					FtpOptions.PhpCompression = encoding.Count == 0 ? "none" : encoding.First();
 
+					if (FtpOptions.PhpCompression == "none")
+					{
+						LogDebugMessage("PHP upload does not support compression");
+					}
+					else
+					{
+						LogDebugMessage($"PHP upload supports {FtpOptions.PhpCompression} compression");
+					}
 				}
 				catch (Exception ex)
 				{
-
+					LogMessage("TestPhpUploadCompression: Error - " + ex.Message);
 				}
 			}
 		}
@@ -2929,7 +2937,7 @@ namespace CumulusMX
 
 								try
 								{
-									RealtimeUpload(cycle);
+									RealtimeUpload(cycle).Wait();
 									realtimeFTPRetries = 0;
 								}
 								catch (Exception ex)
@@ -3200,9 +3208,10 @@ namespace CumulusMX
 		}
 
 
-		private void RealtimeUpload(byte cycle)
+		private async Task RealtimeUpload(byte cycle)
 		{
 			var remotePath = "";
+			var tasklist = new List<Task>();
 
 			if (FtpOptions.Directory.Length > 0)
 			{
@@ -3216,7 +3225,7 @@ namespace CumulusMX
 					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
 					var localFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].LocalFileName}");
+					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
 
 					string data = string.Empty;
 					// realtime file
@@ -3247,7 +3256,8 @@ namespace CumulusMX
 					}
 					else // PHP
 					{
-						UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle);
+						tasklist.Add(UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle));
+						//await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle);
 						// no realtime files are incremental, so no need to update LastDataTime
 					}
 				}
@@ -3279,15 +3289,17 @@ namespace CumulusMX
 
 						if (FtpOptions.FtpMode == FtpProtocols.PHP)
 						{
+							var idx = i;
 							if (ExtraFiles[i].process)
 							{
-								UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[i].binary, ExtraFiles[i].UTF8);
+								tasklist.Add(UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8));
 							}
 							else
 							{
-								UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[i].binary);
+								tasklist.Add(UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary));
 							}
 							// no extra files are incremental for now, so no need to update LastDataTime
+
 							continue;
 						}
 
@@ -3328,6 +3340,8 @@ namespace CumulusMX
 					}
 				}
 			}
+
+			Task.WaitAll(tasklist.ToArray());
 		}
 
 		private void CreateRealtimeHTMLfiles(int cycle)
@@ -8950,11 +8964,7 @@ namespace CumulusMX
 						else
 						{
 							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
-							using (FileStream fs = File.Create(dstfile))
-							{
-								var data = new UTF8Encoding(true).GetBytes(text);
-								fs.Write(data, 0, data.Length);
-							}
+							File.WriteAllText(dstfile, text);
 						}
 						// The config files only need uploading once per change
 						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
@@ -8994,11 +9004,7 @@ namespace CumulusMX
 						else
 						{
 							var text = station.CreateEodGraphDataJson(GraphDataFiles[i].LocalFileName);
-							using (FileStream fs = File.Create(dstfile))
-							{
-								var data = new UTF8Encoding(true).GetBytes(text);
-								fs.Write(data, 0, data.Length);
-							}
+							File.WriteAllText(dstfile, text);
 						}
 						// Uploaded OK, reset the upload required flag
 						GraphDataEodFiles[i].CopyRequired = false;
@@ -9034,9 +9040,10 @@ namespace CumulusMX
 		}
 
 
-		public void DoIntervalUpload()
+		public async Task DoIntervalUpload()
 		{
 			var remotePath = "";
+			var tasklist = new List<Task>();
 
 			if (!FtpOptions.Enabled || !FtpOptions.IntervalEnabled)
 				return;
@@ -9224,7 +9231,7 @@ namespace CumulusMX
 									}
 									catch (Exception e)
 									{
-										LogFtpMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].LocalFileName}]");
+										LogFtpMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
 									}
 								}
@@ -9509,7 +9516,7 @@ namespace CumulusMX
 								}
 								catch (Exception e)
 								{
-									LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].LocalFileName}: {e}");
+									LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}");
 								}
 							}
 						}
@@ -9539,7 +9546,7 @@ namespace CumulusMX
 								}
 								catch (Exception e)
 								{
-									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].LocalFileName}]");
+									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]");
 									LogFtpMessage($"FTP[Int]: Error = {e}");
 								}
 							}
@@ -9567,7 +9574,7 @@ namespace CumulusMX
 								}
 								catch (Exception e)
 								{
-									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].LocalFileName}]");
+									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]");
 									LogFtpMessage($"FTP[Int]: Error = {e}");
 								}
 							}
@@ -9609,12 +9616,12 @@ namespace CumulusMX
 						var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
 						var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-						UploadFile(phpUploadHttpClient, uploadfile, remotefile);
+						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile));
 
 						uploadfile = ReportPath + NOAAconf.LatestYearReport;
 						remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-						UploadFile(phpUploadHttpClient, uploadfile, remotefile);
+						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile));
 						LogFtpDebugMessage("PHP[Int]: Upload of NOAA reports complete");
 						NOAAconf.NeedFtp = false;
 					}
@@ -9656,11 +9663,11 @@ namespace CumulusMX
 									tokenParser.Encoding = encoding;
 
 									var data = ProcessTemplateFile2String(uploadfile, tokenParser, false);
-									UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile);
+									tasklist.Add(UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile));
 								}
 								else
 								{
-									UploadFile(phpUploadHttpClient, uploadfile, remotefile);
+									tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile));
 								}
 							}
 							catch (Exception e)
@@ -9686,7 +9693,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + StdWebFiles[i].LocalFileName);
+							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + StdWebFiles[i].RemoteFileName);
 
 							string data;
 
@@ -9699,15 +9706,23 @@ namespace CumulusMX
 								data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true, true);
 							}
 
-							if (UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[i].RemoteFileName, -1, false, true))
+							//if (UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[i].RemoteFileName, -1, false, true))
+							var idx = i;
+
+							var task = Task.Factory.StartNew(async () =>
 							{
-								// No standard files are "one offs" at present
-								//StdWebFiles[i].FtpRequired = false;
-							}
+								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true))
+								{
+									// No standard files are "one offs" at present
+									//StdWebFiles[i].FtpRequired = false;
+								}
+							});
+
+							tasklist.Add(task);
 						}
 						catch (Exception e)
 						{
-							LogMessage($"PHP[Int]: Error uploading file {StdWebFiles[i].LocalFileName}: {e}");
+							LogMessage($"PHP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}");
 						}
 					}
 				}
@@ -9725,24 +9740,33 @@ namespace CumulusMX
 							var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, true);
 							var remotefile = GraphDataFiles[i].RemoteFileName;
 							LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[i].LocalFileName);
-							if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
+
+							var idx = i;
+
+							var task = Task.Factory.StartNew(async () =>
 							{
-								// The config files only need uploading once per change
-								if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
-									GraphDataFiles[i].LocalFileName == "graphconfig.json")
+								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
+								//if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
 								{
-									GraphDataFiles[i].FtpRequired = false;
+									// The config files only need uploading once per change
+									if (GraphDataFiles[idx].LocalFileName == "availabledata.json" ||
+										GraphDataFiles[idx].LocalFileName == "graphconfig.json")
+									{
+										GraphDataFiles[idx].FtpRequired = false;
+									}
+									else
+									{
+										GraphDataFiles[idx].LastDataTime = DateTime.Now;
+										GraphDataFiles[idx].Incremental = true;
+									}
 								}
-								else
-								{
-									GraphDataFiles[i].LastDataTime = DateTime.Now;
-									GraphDataFiles[i].Incremental = true;
-								}
-							}
+							});
+
+							tasklist.Add(task);
 						}
 						catch (Exception e)
 						{
-							LogMessage($"PHP[Int]: Error uploading graph data file [{GraphDataFiles[i].LocalFileName}]");
+							LogMessage($"PHP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]");
 							LogMessage($"PHP[Int]: Error = {e}");
 						}
 					}
@@ -9758,15 +9782,22 @@ namespace CumulusMX
 							LogMessage("PHP[Int]: Uploading daily graph data file: " + GraphDataEodFiles[i].LocalFileName);
 							var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 
-							if (UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+							var idx = i;
+
+							var task = Task.Factory.StartNew(async () =>
 							{
-								// Uploaded OK, reset the upload required flag
-								GraphDataEodFiles[i].FtpRequired = false;
-							}
+								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+								{
+									// Uploaded OK, reset the upload required flag
+									GraphDataEodFiles[idx].FtpRequired = false;
+								}
+							});
+
+							tasklist.Add(task);
 						}
 						catch (Exception e)
 						{
-							LogMessage($"PHP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].LocalFileName}]");
+							LogMessage($"PHP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]");
 							LogMessage($"PHP[Int]: Error = {e}");
 						}
 					}
@@ -9777,17 +9808,27 @@ namespace CumulusMX
 					try
 					{
 						LogDebugMessage("PHP[Int]: Uploading Moon image file");
-						if (UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
+						var task = Task.Factory.StartNew(async () =>
 						{
-							// clear the image ready for FTP flag, only upload once an hour
-							MoonImage.ReadyToFtp = false;
-						}
+							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
+							{
+								// clear the image ready for FTP flag, only upload once an hour
+								MoonImage.ReadyToFtp = false;
+							}
+						});
+
+						tasklist.Add(task);
 					}
 					catch (Exception e)
 					{
 						LogMessage($"PHP[Int]: Error uploading moon image - {e.Message}");
 					}
 				}
+
+				await Task.WhenAll(tasklist.ToArray());
+				// wait for all messages to be written to the log
+				await Task.Delay(500);
+
 				LogDebugMessage("PHP[Int]: Upload process complete");
 			}
 		}
@@ -10089,7 +10130,7 @@ namespace CumulusMX
 
 		// Return True if the upload worked
 		// Return False if the upload failed
-		private bool UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false)
+		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false)
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
@@ -10109,14 +10150,14 @@ namespace CumulusMX
 				if (binary)
 				{
 					// change binary files to base64 string
-					data = Convert.ToBase64String(File.ReadAllBytes(localfile));
+					data = Convert.ToBase64String(await Utils.ReadAllBytesAsync(localfile));
 				}
 				else
 				{
-					data  = File.ReadAllText(localfile, utf8);
+					data = await Utils.ReadAllTextAsync(localfile, utf8);
 				}
 
-				return UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary);
+				return await UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary);
 			}
 			catch (Exception ex)
 			{
@@ -10125,7 +10166,7 @@ namespace CumulusMX
 			}
 		}
 
-		private bool UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle = -1, bool binary = false, bool utf8=true)
+		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle = -1, bool binary = false, bool utf8=true)
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
@@ -10141,7 +10182,7 @@ namespace CumulusMX
 				using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
 				{
 					var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
-					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data.Substring(0, data.Length - 1));
+					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
 					// disable expect 100 - PHP doesn't support it
 					request.Headers.ExpectContinue = false;
 					request.Headers.Add("ACTION", incremental ? "append" : "replace");
@@ -10193,19 +10234,20 @@ namespace CumulusMX
 						}
 					}
 
-					var response = httpclient.SendAsync(request).Result;
+					//var response = httpclient.SendAsync(request).Result;
+					var response = await httpclient.SendAsync(request);
 
 					//response.EnsureSuccessStatusCode();
-					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
-						LogMessage($"PHP[{cycleStr}]: Response code - {response.StatusCode}");
-						LogMessage($"PHP[{cycleStr}]: Response text:\n{responseBodyAsText}");
+						LogMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+						LogMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
 					}
 					else
 					{
-						LogDebugMessage($"PHP[{cycleStr}]: Response code - {response.StatusCode}");
-						LogDebugMessage($"PHP[{cycleStr}]: Response text:\n{responseBodyAsText}");
+						LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+						LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
 					}
 
 					return response.StatusCode == HttpStatusCode.OK;

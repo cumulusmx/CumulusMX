@@ -11,6 +11,8 @@ using ServiceStack;
 using System.IO;
 using System.Text;
 using static SQLite.SQLite3;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 // A rag tag of useful functions
 
@@ -227,6 +229,41 @@ namespace CumulusMX
 			}
 
 			return ex;
+		}
+
+		public static async Task<string> ReadAllTextAsync(string path, Encoding encoding)
+		{
+			const int DefaultBufferSize = 4096;
+			const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
+
+			var text = string.Empty;
+
+			// Open the FileStream with the same FileMode, FileAccess
+			// and FileShare as a call to File.OpenText would've done.
+			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions))
+			using (var reader = new StreamReader(stream, encoding))
+			{
+				text = await reader.ReadToEndAsync();
+			}
+
+			return text;
+		}
+
+		public static async Task<Byte[]> ReadAllBytesAsync(string path)
+		{
+			const int DefaultBufferSize = 4096;
+			const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
+
+			Byte[] data;
+
+			// Open the FileStream with the same FileMode, FileAccess
+			// and FileShare as a call to File.OpenText would've done.
+			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions))
+			{
+				data = await stream.ReadFullyAsync();
+			}
+
+			return data;
 		}
 	}
 }
