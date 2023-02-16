@@ -1145,7 +1145,7 @@ namespace CumulusMX
 		/// </summary>
 		public double Pressure { get; set; } = 0;
 
-		public double StationPressure { get; set; }
+		public double StationPressure { get; set; } = 0;
 
 		/// <summary>
 		/// Outdoor temp

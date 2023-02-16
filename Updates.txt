@@ -1,3 +1,6 @@
+b3227
+- Adds fix for missing Davis LOOP2 absolute pressure value
+
 b3225/b3226
 - Adds PHP advanced option to ignore certificate errors
 - Adds compression for PHP uploads with a data payload > 500 bytes
@@ -62,6 +65,7 @@ Fixed
 - The monthly data editors were not handing start/end dates of the first of the month correctly when using a 9am rollover
 - The #altimeterpressure web tag was defaulting to using 1 decimal place for all units
 - Dashboard menu wrapping
+- Davis VP2/Vue LOOP2 absolute pressure values < 20 inHg are now ignored. Altimeter pressure is set to sea level pressure, station pressure = 0
 
 Removed
 - Local API calls:
