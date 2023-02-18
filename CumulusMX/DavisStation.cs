@@ -1968,7 +1968,7 @@ namespace CumulusMX
 				// Extract station pressure, and use it to calculate altimeter pressure
 
 				// first sanity check - one user was getting zero values!
-				if (loopData.AbsolutePressure > 20)
+				if (loopData.AbsolutePressure < 20)
 				{
 					cumulus.LogDebugMessage("LOOP2: Ignoring absolute pressure value < 20 inHg");
 					// no absolute, so just make altimeter = sl pressure

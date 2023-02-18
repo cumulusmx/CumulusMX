@@ -67,14 +67,17 @@ namespace CumulusMX
 
 		public static string GetSHA256Hash(string key, string data)
 		{
+			byte[] hashValue;
 			// Initialize the keyed hash object.
 			using (HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes()))
 			{
 				// convert string to stream
 				byte[] byteArray = Encoding.UTF8.GetBytes(data);
-				MemoryStream stream = new MemoryStream(byteArray);
-				// Compute the hash of the input string.
-				byte[] hashValue = hmac.ComputeHash(stream);
+				using (MemoryStream stream = new MemoryStream(byteArray))
+				{
+					// Compute the hash of the input string.
+					hashValue = hmac.ComputeHash(stream);
+				}
 				return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
 			}
 		}

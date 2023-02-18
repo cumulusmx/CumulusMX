@@ -1800,6 +1800,7 @@ namespace CumulusMX
 					request.Headers.Add("Accept", "text/html");
 					request.Headers.Add("Accept-Encoding", "gzip, deflate");
 					var response = await phpUploadHttpClient.SendAsync(request);
+					response.EnsureSuccessStatusCode();
 					var encoding = response.Content.Headers.ContentEncoding;
 
 					FtpOptions.PhpCompression = encoding.Count == 0 ? "none" : encoding.First();
@@ -3228,19 +3229,20 @@ namespace CumulusMX
 					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
 
 					string data = string.Empty;
-					// realtime file
-					if (RealtimeFiles[i].LocalFileName == "realtime.txt")
-					{
-						data = CreateRealtimeFileString(cycle);
-					}
-
-					if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
-					{
-						data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, tokenParser, true, true);
-					}
 
 					if (FtpOptions.FtpMode != FtpProtocols.PHP)
 					{
+						// realtime file
+						if (RealtimeFiles[i].LocalFileName == "realtime.txt")
+						{
+							data = CreateRealtimeFileString(cycle);
+						}
+
+						if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+						{
+							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, tokenParser, true, true);
+						}
+
 						using (var dataStream = GenerateStreamFromString(data))
 						{
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
@@ -3256,9 +3258,23 @@ namespace CumulusMX
 					}
 					else // PHP
 					{
-						tasklist.Add(UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle));
-						//await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[i].RemoteFileName, cycle);
-						// no realtime files are incremental, so no need to update LastDataTime
+						var idx = i;
+						tasklist.Add(Task.Run(async () =>
+						{
+							// realtime file
+							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
+							{
+								data = CreateRealtimeFileString(cycle);
+							}
+
+							if (RealtimeFiles[idx].LocalFileName == "realtimegauges.txt")
+							{
+								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
+							}
+
+							_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
+							// no realtime files are incremental, so no need to update LastDataTime
+						}));
 					}
 				}
 			}
@@ -3282,17 +3298,20 @@ namespace CumulusMX
 
 						string data = string.Empty;
 
-						if (ExtraFiles[i].process)
-						{
-							data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
-						}
-
 						if (FtpOptions.FtpMode == FtpProtocols.PHP)
 						{
 							var idx = i;
 							if (ExtraFiles[i].process)
 							{
-								tasklist.Add(UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8));
+								tasklist.Add(Task.Run(async () =>
+								{
+									if (ExtraFiles[idx].process)
+									{
+										data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
+									}
+
+									_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8);
+								}));
 							}
 							else
 							{
@@ -3301,6 +3320,11 @@ namespace CumulusMX
 							// no extra files are incremental for now, so no need to update LastDataTime
 
 							continue;
+						}
+
+						if (ExtraFiles[i].process)
+						{
+							data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
 						}
 
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
@@ -9662,8 +9686,11 @@ namespace CumulusMX
 									var encoding = UTF8encode ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
 									tokenParser.Encoding = encoding;
 
-									var data = ProcessTemplateFile2String(uploadfile, tokenParser, false);
-									tasklist.Add(UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile));
+									tasklist.Add(Task.Run(async () =>
+									{
+										var data = await ProcessTemplateFile2StringAsync(uploadfile, false);
+										_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile);
+									}));
 								}
 								else
 								{
@@ -9695,30 +9722,28 @@ namespace CumulusMX
 						{
 							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + StdWebFiles[i].RemoteFileName);
 
-							string data;
 
-							if (StdWebFiles[i].LocalFileName == "wxnow.txt")
-							{
-								data = station.CreateWxnowFileString();
-							}
-							else
-							{
-								data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true, true);
-							}
-
-							//if (UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[i].RemoteFileName, -1, false, true))
 							var idx = i;
 
-							var task = Task.Factory.StartNew(async () =>
+							tasklist.Add(Task.Run(async () =>
 							{
+								string data;
+
+								if (StdWebFiles[idx].LocalFileName == "wxnow.txt")
+								{
+									data = station.CreateWxnowFileString();
+								}
+								else
+								{
+									data = await ProcessTemplateFile2StringAsync(StdWebFiles[idx].TemplateFileName, true, true);
+								}
+
 								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true))
 								{
 									// No standard files are "one offs" at present
 									//StdWebFiles[i].FtpRequired = false;
 								}
-							});
-
-							tasklist.Add(task);
+							}));
 						}
 						catch (Exception e)
 						{
@@ -9743,7 +9768,7 @@ namespace CumulusMX
 
 							var idx = i;
 
-							var task = Task.Factory.StartNew(async () =>
+							tasklist.Add(Task.Run(async () =>
 							{
 								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
 								//if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
@@ -9760,9 +9785,7 @@ namespace CumulusMX
 										GraphDataFiles[idx].Incremental = true;
 									}
 								}
-							});
-
-							tasklist.Add(task);
+							}));
 						}
 						catch (Exception e)
 						{
@@ -9784,16 +9807,14 @@ namespace CumulusMX
 
 							var idx = i;
 
-							var task = Task.Factory.StartNew(async () =>
+							tasklist.Add(Task.Run(async () =>
 							{
 								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
 								{
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[idx].FtpRequired = false;
 								}
-							});
-
-							tasklist.Add(task);
+							}));
 						}
 						catch (Exception e)
 						{
@@ -9808,16 +9829,14 @@ namespace CumulusMX
 					try
 					{
 						LogDebugMessage("PHP[Int]: Uploading Moon image file");
-						var task = Task.Factory.StartNew(async () =>
+						tasklist.Add(Task.Run(async () =>
 						{
 							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
 							}
-						});
-
-						tasklist.Add(task);
+						}));
 					}
 					catch (Exception e)
 					{
@@ -9826,8 +9845,6 @@ namespace CumulusMX
 				}
 
 				await Task.WhenAll(tasklist.ToArray());
-				// wait for all messages to be written to the log
-				await Task.Delay(500);
 
 				LogDebugMessage("PHP[Int]: Upload process complete");
 			}
@@ -10247,7 +10264,7 @@ namespace CumulusMX
 					else
 					{
 						LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-						LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
+						LogDataMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
 					}
 
 					return response.StatusCode == HttpStatusCode.OK;
@@ -10631,8 +10648,38 @@ namespace CumulusMX
 			if (File.Exists(templatefile))
 			{
 				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
-				parser.SourceFile = template;
+				parser.SourceFile = templatefile;
 				return parser.ToString();
+			}
+			else
+			{
+				LogMessage($"ProcessTemplateFile: Error, template file not found - {templatefile}");
+			}
+			return string.Empty;
+		}
+
+		private async Task<string> ProcessTemplateFile2StringAsync(string template, bool useAppDir, bool utf8 = false)
+		{
+			string templatefile = template;
+
+			if (useAppDir)
+			{
+				templatefile = AppDir + template;
+			}
+
+			if (File.Exists(templatefile))
+			{
+				var parser = new TokenParser();
+				parser.OnToken += TokenParserOnToken;
+
+				using (StreamReader sr = File.OpenText(templatefile))
+				{
+					// only set the soruce file for error messages
+					parser.SourceFile = template;
+					parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
+					parser.InputText = await sr.ReadToEndAsync();
+				}
+				return parser.ToStringFromString();
 			}
 			else
 			{
