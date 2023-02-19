@@ -4788,7 +4788,7 @@ namespace CumulusMX
 				// scale rainfall rate
 				RainRate = rate * cumulus.Calib.Rain.Mult;
 
-				if (cumulus.StationOptions.UseRainForIsRaining)
+				if (cumulus.StationOptions.UseRainForIsRaining == 1)
 				{
 					IsRaining = RainRate > 0;
 					cumulus.IsRainingAlarm.Triggered = IsRaining;
@@ -4831,13 +4831,13 @@ namespace CumulusMX
 					// rain has occurred
 					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
 
-					if (cumulus.StationOptions.UseRainForIsRaining)
+					if (cumulus.StationOptions.UseRainForIsRaining == 1)
 					{
 						IsRaining = true;
 						cumulus.IsRainingAlarm.Triggered = true;
 					}
 				}
-				else if (cumulus.StationOptions.UseRainForIsRaining && RainRate <= 0)
+				else if (cumulus.StationOptions.UseRainForIsRaining == 1 && RainRate <= 0)
 				{
 					IsRaining = false;
 					cumulus.IsRainingAlarm.Triggered = false;

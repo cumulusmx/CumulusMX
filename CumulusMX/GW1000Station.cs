@@ -150,7 +150,7 @@ namespace CumulusMX
 							dataLastRead = DateTime.Now;
 
 							// every 30 seconds read the rain rate
-							if (cumulus.Gw1000PrimaryRainSensor == 1 && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cancellationToken.IsCancellationRequested)
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cancellationToken.IsCancellationRequested)
 							{
 								GetPiezoRainData();
 								piezoLastRead = DateTime.Now;
@@ -1477,11 +1477,20 @@ namespace CumulusMX
 							idx += 4;
 							break;
 						case 0x80: // piezo rain rate
-							rRate = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+							if (cumulus.StationOptions.UseRainForIsRaining == 2 && cumulus.Gw1000PrimaryRainSensor != 1)
+							{
+								IsRaining = GW1000Api.ConvertBigEndianUInt16(data, idx) > 0;
+								cumulus.IsRainingAlarm.Triggered = IsRaining;
+							}
+							else
+							{
+								rRate = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+							}
 							idx += 2;
 							break;
 						case 0x86: // piezo rain year
-							rain = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
+							if (cumulus.Gw1000PrimaryRainSensor == 1)
+								rain = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
 							idx += 4;
 							break;
 						case 0x87: // piezo gain 0-9
@@ -1516,16 +1525,19 @@ namespace CumulusMX
 
 				} while (idx < size);
 
-				if (rRate.HasValue && rain.HasValue)
+				if (cumulus.Gw1000PrimaryRainSensor == 1)
 				{
+					if (rRate.HasValue && rain.HasValue)
+					{
 #if DEBUG
-					cumulus.LogDebugMessage($"GetPiezoRainData: Rain Year: {rain:f1} mm, Rate: {rRate:f1} mm/hr");
+						cumulus.LogDebugMessage($"GetPiezoRainData: Rain Year: {rain:f1} mm, Rate: {rRate:f1} mm/hr");
 #endif
-					DoRain(ConvertRainMMToUser(rain.Value), ConvertRainMMToUser(rRate.Value), DateTime.Now);
-				}
-				else
-				{
-					cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
+						DoRain(ConvertRainMMToUser(rain.Value), ConvertRainMMToUser(rRate.Value), DateTime.Now);
+					}
+					else
+					{
+						cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
+					}
 				}
 			}
 			catch (Exception ex)

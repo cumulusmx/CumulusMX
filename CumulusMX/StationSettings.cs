@@ -39,7 +39,6 @@ namespace CumulusMX
 				recordtimeout = cumulus.RecordSetTimeoutHrs,
 				snowdepthhour = cumulus.SnowDepthHour,
 				raindaythreshold = cumulus.RainDayThreshold,
-				userainforisraining = cumulus.StationOptions.UseRainForIsRaining
 			};
 
 			// Common Settings
@@ -58,6 +57,7 @@ namespace CumulusMX
 				nosensorcheck = cumulus.StationOptions.NoSensorCheck,
 				leafwetisrainingidx = cumulus.StationOptions.LeafWetnessIsRainingIdx,
 				leafwetisrainingthrsh = cumulus.StationOptions.LeafWetnessIsRainingThrsh,
+				userainforisraining = cumulus.StationOptions.UseRainForIsRaining,
 				advanced = optionsAdv
 			};
 
@@ -665,6 +665,7 @@ namespace CumulusMX
 					cumulus.StationOptions.NoSensorCheck = settings.Options.nosensorcheck;
 					cumulus.StationOptions.LeafWetnessIsRainingIdx = settings.Options.leafwetisrainingidx;
 					cumulus.StationOptions.LeafWetnessIsRainingThrsh = settings.Options.leafwetisrainingthrsh;
+					cumulus.StationOptions.UseRainForIsRaining = settings.Options.userainforisraining;
 
 					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.advanced.usespeedforavg;
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
@@ -674,7 +675,6 @@ namespace CumulusMX
 					cumulus.RecordSetTimeoutHrs = settings.Options.advanced.recordtimeout;
 					cumulus.SnowDepthHour = settings.Options.advanced.snowdepthhour;
 					cumulus.RainDayThreshold = settings.Options.advanced.raindaythreshold;
-					cumulus.StationOptions.UseRainForIsRaining = settings.Options.advanced.userainforisraining;
 				}
 				catch (Exception ex)
 				{
@@ -1438,7 +1438,6 @@ namespace CumulusMX
 		public int recordtimeout { get; set; }
 		public int snowdepthhour { get; set; }
 		public double raindaythreshold { get; set; }
-		public bool userainforisraining { get; set; }
 	}
 
 	internal class JsonStationSettingsOptions
@@ -1459,6 +1458,7 @@ namespace CumulusMX
 		public bool nosensorcheck { get; set; }
 		public int leafwetisrainingidx { get; set; }
 		public double leafwetisrainingthrsh { get; set; }
+		public int userainforisraining { get; set; }
 		public JsonStationSettingsOptionsAdvanced advanced { get; set; }
 	}
 

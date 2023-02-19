@@ -507,6 +507,11 @@ namespace CumulusMX
 						{
 							rain = data["yearlyrainin"] ?? data["totalrainin"];
 							rRate = data["rainratein"];
+							if (cumulus.StationOptions.UseRainForIsRaining == 2)
+							{
+								IsRaining = Convert.ToDouble(data["​rrain_piezo"], invNum) > 0;
+								cumulus.IsRainingAlarm.Triggered = IsRaining;
+							}
 						}
 						else
 						{

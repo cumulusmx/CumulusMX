@@ -3,6 +3,7 @@ b3227
 - PHP uploads are now fully async - they may be limited by the OS. For instance I think Windows only allows 4 to run concurrently to the same server.
 - CMX is now capable of running as a 64 bit application
 - Fix - Update the interface/lib files for the log editors
+- You can now use the Ecowitt WS90 haptic rain sensor for "Is Raining" if you are using a tipping bucket sensor as the primary rain sensor
 
 b3225/b3226
 - Adds PHP advanced option to ignore certificate errors
@@ -54,6 +55,8 @@ New
 - Adds the HighCharts accessibility module to all charts with the default basic settings. See:- https://www.highcharts.com/accessibility/
 - Adds the simplified NOAA cooling/heating day calculation to the NOAA reports settings
 - Cumulus MX will now run as a 64 bit application on 64 bit operating systems
+- You can now use the Ecowitt WS90 haptic rain sensor for "Is Raining" if you are using a tipping bucket sensor as the primary rain sensor
+	- See Station Options > Common Options
 
 Changed
 - Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message

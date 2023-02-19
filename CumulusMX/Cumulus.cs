@@ -1013,8 +1013,6 @@ namespace CumulusMX
 
 			LogMessage(DateTime.Now.ToString("G"));
 
-
-
 			// Do we prevent more than one copy of CumulusMX running?
 			if (Platform.Substring(0, 3) == "Win")
 			{
@@ -4209,7 +4207,7 @@ namespace CumulusMX
 			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
-			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", false);
+			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", 1);  // 0=station, 1=rain sensor, 2=haptic sensor
 			StationOptions.LeafWetnessIsRainingIdx = ini.GetValue("Station", "LeafWetnessIsRainingIdx", -1);
 			StationOptions.LeafWetnessIsRainingThrsh = ini.GetValue("Station", "LeafWetnessIsRainingVal", 0.0);
 
@@ -12316,7 +12314,7 @@ namespace CumulusMX
 		public int AvgBearingMinutes { get; set; }
 		public int AvgSpeedMinutes { get; set; }
 		public int PeakGustMinutes { get; set; }
-		public bool UseRainForIsRaining { get; set; }
+		public int UseRainForIsRaining { get; set; }
 		public int LeafWetnessIsRainingIdx { get; set; }
 		public double LeafWetnessIsRainingThrsh { get; set; }
 	}
