@@ -7735,13 +7735,14 @@ namespace CumulusMX
 			var filedate = datefrom;
 			string logFile = cumulus.GetLogFileName(filedate);
 			bool finished = false;
+			int numtoadd = 0;
 			int numadded = 0;
 
 			var rowsToAdd = new List<RecentData>();
 
 			cumulus.LogMessage($"LoadRecent: Attempting to load {cumulus.RecentDataDays} days of entries to recent data list");
 
-			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
+			// try and find the first entry in the database
 			try
 			{
 				var start = RecentDataDb.ExecuteScalar<DateTime>("select MAX(Timestamp) from RecentData");
@@ -7805,7 +7806,7 @@ namespace CumulusMX
 										Pm2p5 = -1,
 										Pm10 = -1
 									});
-									++numadded;
+									++numtoadd;
 								}
 							}
 							catch (Exception e)
@@ -7829,7 +7830,7 @@ namespace CumulusMX
 					try
 					{
 						if (rowsToAdd.Count > 0)
-							RecentDataDb.InsertAllOrIgnore(rowsToAdd);
+							numadded = RecentDataDb.InsertAll(rowsToAdd, "OR IGNORE");
 					}
 					catch (Exception e)
 					{
@@ -7848,7 +7849,7 @@ namespace CumulusMX
 					logFile = cumulus.GetLogFileName(filedate);
 				}
 			}
-			cumulus.LogMessage($"LoadRecent: Loaded {numadded} new entries to recent database");
+			cumulus.LogMessage($"LoadRecent: Loaded {numadded} of {numtoadd} new entries to recent database");
 		}
 
 		private void LoadRecentAqFromDataLogs(DateTime ts)
