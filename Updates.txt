@@ -1,9 +1,10 @@
 b3227
 - Adds fix for missing Davis LOOP2 absolute pressure value
-- PHP uploads are now fully async - they may be limited by the OS. For instance I think Windows only allows 4 to run concurrently to the same server.
+- PHP uploads are now fully async - they may be limited by the OS. For instance I think Windows only allows 4 to run concurrently to the same server
 - CMX is now capable of running as a 64 bit application
 - Fix - Update the interface/lib files for the log editors
 - You can now use the Ecowitt WS90 haptic rain sensor for "Is Raining" if you are using a tipping bucket sensor as the primary rain sensor
+- The "Stop second instance" option now only prevents two instances *using the same port* from running
 
 b3225/b3226
 - Adds PHP advanced option to ignore certificate errors
@@ -64,6 +65,8 @@ Changed
 - Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
 - Custom Logs settings screen now shows examples with the correct CSV separator for the CMX locale
 - Tempest station now forces the UDP listening port to be opened in shared mode
+- The "Stop second instance" option has been rewritten. It now only prevents two instances *using the same port* from running
+	- This change means for it to work ALL running instances must be v3.24.0 or later
 
 Fixed
 - Adds missing Wind Chill from the historic graphs on the dashboard and default web site

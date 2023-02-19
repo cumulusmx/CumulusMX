@@ -33,6 +33,8 @@ using System.Web.UI.WebControls;
 using System.Runtime.InteropServices.ComTypes;
 using System.Web;
 using System.Web.Caching;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace CumulusMX
 {
@@ -199,8 +201,8 @@ namespace CumulusMX
 
 		//public Dataunits Units;
 
-		private FileStream _linuxLockFile;
-		private static string _linuxLockFilename = "/tmp/" + Program.AppGuid + ".lock";
+		private FileStream _lockFile;
+		private static string _lockFilename;
 
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
@@ -721,11 +723,13 @@ namespace CumulusMX
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
+			var boolWindows = Platform.Substring(0, 3) == "Win";
+
 			// Set the default comport name depending on platform
-			DefaultComportName = Platform.Substring(0, 3) == "Win" ? "COM1" : "/dev/ttyUSB0";
+			DefaultComportName = boolWindows ? "COM1" : "/dev/ttyUSB0";
 
 			// determine system uptime based on OS
-			if (Platform.Substring(0, 3) == "Win")
+			if (boolWindows)
 			{
 				try
 				{
@@ -997,6 +1001,9 @@ namespace CumulusMX
 
 			ReadIniFile();
 
+			// Do we prevent more than one copy of CumulusMX running?
+			CheckForSingleInstance(boolWindows);
+
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -1013,118 +1020,12 @@ namespace CumulusMX
 
 			LogMessage(DateTime.Now.ToString("G"));
 
-			// Do we prevent more than one copy of CumulusMX running?
-			if (Platform.Substring(0, 3) == "Win")
-			{
-				try
-				{
-					if (!Program.appMutex.WaitOne(0, false))
-					{
-						if (ProgramOptions.WarnMultiple)
-						{
-							LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
-							LogConsoleMessage("Program exit");
-							LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
-							LogMessage("Stop second instance: Program exit");
-							Program.exitSystem = true;
-							return;
-						}
-						else
-						{
-							LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
-							LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
-						}
-					}
-					else
-					{
-						LogMessage("Stop second instance: No other running instances of Cumulus found");
-					}
-				}
-				catch (AbandonedMutexException)
-				{
-					LogMessage("Stop second instance: Abandoned Mutex Error!");
-					LogMessage("Stop second instance: Was a previous copy of Cumulus terminated from task manager, or otherwise forcibly stopped?");
-					LogMessage("Stop second instance: Continuing this instance of Cumulus");
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Stop second instance: Mutex Error! - " + ex);
-					if (ProgramOptions.WarnMultiple)
-					{
-						LogMessage("Stop second instance: Terminating this instance of Cumulus");
-						Program.exitSystem = true;
-						return;
-					}
-					else
-					{
-						LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
-					}
-				}
-			}
-			else // Unix
-			{
-				try
-				{
-					// must include Write access in order to lock file - /tmp seems to be universal across Linux and Mac
-					_linuxLockFile = new FileStream(_linuxLockFilename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-					_linuxLockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
-
-					using (var thisProcess = System.Diagnostics.Process.GetCurrentProcess())
-					{
-						var procId = thisProcess.Id.ToString().ToAsciiBytes();
-						_linuxLockFile.Write(procId, 0, procId.Length);
-						_linuxLockFile.Flush();
-					}
-					// give everyone access to the file
-					Utils.RunExternalTask("chmod", "777 " + _linuxLockFilename, false, true);
-
-					LogMessage("Stop second instance: No other running instances of Cumulus found");
-				}
-				catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32 || (ex.HResult & 0x0000FFFF) == 33)
-				{
-					// sharing violation 32, or lock violation 33
-					if (ProgramOptions.WarnMultiple)
-					{
-						LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
-						LogConsoleMessage("Program exit");
-						LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
-						LogMessage("Stop second instance: Program exit");
-						Program.exitSystem = true;
-						return;
-					}
-					else
-					{
-						LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
-						LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
-					}
-				}
-				catch (Exception ex)
-				{
-					LogMessage("Stop second instance: File Error! - " + ex);
-					LogMessage("Stop second instance: File HResult - " + ex.HResult);
-					LogMessage("Stop second instance: File HResult - " + (ex.HResult & 0x0000FFFF));
-
-					if (ProgramOptions.WarnMultiple)
-					{
-						LogMessage("Stop second instance: Terminating this instance of Cumulus");
-						LogConsoleMessage("An error occurred during second instance detection and 'Stop second instance' is enabled - terminating", ConsoleColor.Red);
-						LogConsoleMessage("Program exit");
-						Program.exitSystem = true;
-						return;
-					}
-					else
-					{
-						LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
-					}
-				}
-			}
-
 			// Do we delay the start of Cumulus MX for a fixed period?
 			if (ProgramOptions.StartupDelaySecs > 0)
 			{
 				// Check uptime
 				double ts = -1;
-				if (Platform.Substring(0, 3) == "Win" && UpTime != null)
+				if (boolWindows && UpTime != null)
 				{
 					UpTime.NextValue();
 					ts = UpTime.NextValue();
@@ -8119,6 +8020,87 @@ namespace CumulusMX
 			} while (!success && retries >= 0);
 		}
 
+		private void CheckForSingleInstance(bool Windows)
+		{
+			try
+			{
+				if (Windows)
+				{
+					var tempFolder = Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine);
+					_lockFilename = tempFolder + "\\cumulusmx-" + wsPort + ".lock";
+				}
+				else
+				{
+					// /tmp seems to be universal across Linux and Mac
+					_lockFilename = "/tmp/cumulusmx-" + wsPort + ".lock";
+				}
+
+				LogMessage("Creating lock file " + _lockFilename);
+				// must include Write access in order to lock file
+				_lockFile = new FileStream(_lockFilename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+
+				using (var thisProcess = System.Diagnostics.Process.GetCurrentProcess())
+				{
+					var procId = thisProcess.Id.ToString().ToAsciiBytes();
+					_lockFile.Write(procId, 0, procId.Length);
+					_lockFile.Flush();
+				}
+				_lockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
+
+				// give everyone access to the file
+				if (Windows)
+				{
+					FileInfo fileInfo = new FileInfo(_lockFilename);
+					FileSecurity accessControl = fileInfo.GetAccessControl();
+					accessControl.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.FullControl, AccessControlType.Allow));
+					fileInfo.SetAccessControl(accessControl);
+				}
+				else
+				{
+					Utils.RunExternalTask("chmod", "777 " + _lockFilename, false, true);
+				}
+
+				LogMessage("Stop second instance: No other running instances of Cumulus found");
+			}
+			catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32 || (ex.HResult & 0x0000FFFF) == 33)
+			{
+				// sharing violation 32, or lock violation 33
+				if (ProgramOptions.WarnMultiple)
+				{
+					LogConsoleMessage("Cumulus is already running - terminating", ConsoleColor.Red);
+					LogConsoleMessage("Program exit");
+					LogMessage("Stop second instance: Cumulus is already running and 'Stop second instance' is enabled - terminating");
+					LogMessage("Stop second instance: Program exit");
+					Environment.Exit(3);
+					return;
+				}
+				else
+				{
+					LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
+					LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage("Stop second instance: File Error! - " + ex);
+				LogMessage("Stop second instance: File HResult - " + ex.HResult);
+				LogMessage("Stop second instance: File HResult - " + (ex.HResult & 0x0000FFFF));
+
+				if (ProgramOptions.WarnMultiple)
+				{
+					LogMessage("Stop second instance: Terminating this instance of Cumulus");
+					LogConsoleMessage("An error occurred during second instance detection and 'Stop second instance' is enabled - terminating", ConsoleColor.Red);
+					LogConsoleMessage("Program exit");
+					Environment.Exit(3);
+					return;
+				}
+				else
+				{
+					LogMessage("Stop second instance: 'Stop second instance' is disabled - continuing this instance of Cumulus");
+				}
+			}
+		}
+
 		public void BackupData(bool daily, DateTime timestamp)
 		{
 			string dirpath = daily ? backupPath + "daily" + DirectorySeparator : backupPath;
@@ -8735,12 +8717,12 @@ namespace CumulusMX
 
 			try
 			{
-				if (null != _linuxLockFile)
+				if (null != _lockFile)
 				{
 					LogMessage("Releasing lock file...");
-					_linuxLockFile.Close();
-					_linuxLockFile.Dispose();
-					File.Delete(_linuxLockFilename);
+					_lockFile.Close();
+					_lockFile.Dispose();
+					File.Delete(_lockFilename);
 				}
 			}
 			catch { }

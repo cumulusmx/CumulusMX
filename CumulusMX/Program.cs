@@ -16,7 +16,6 @@ namespace CumulusMX
 		public static bool service = false;
 		public static TextWriterTraceListener svcTextListener;
 		public const string AppGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
-		public static Mutex appMutex;
 		public static DateTime StartTime;
 
 		public static int httpport = 8998;
@@ -221,55 +220,42 @@ namespace CumulusMX
 				}
 			}
 
-			using (appMutex = new Mutex(false, "Global\\" + AppGuid))
-			{
-				// Interactive seems to be always false under mono :(
+			// Interactive seems to be always false under mono :(
 
-				if (windows && !Environment.UserInteractive)
+			if (windows && !Environment.UserInteractive)
+			{
+				// Windows and not interactive - must be a service
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
+				svcTextListener.Flush();
+				service = true;
+				// Launch as a Windows Service
+				ServiceBase.Run(new CumulusService());
+			}
+			else
+			{
+				if (Environment.UserInteractive ||(!windows && !service))
 				{
-					// Windows and not interactive - must be a service
-					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
-					svcTextListener.Flush();
-					service = true;
-					// Launch as a Windows Service
-					ServiceBase.Run(new CumulusService());
+					// Windows interactive or Linux and no service flag
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
+					service = false;
 				}
 				else
 				{
-					if (Environment.UserInteractive ||(!windows && !service))
-					{
-						// Windows interactive or Linux and no service flag
-						svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
-						service = false;
-					}
-					else
-					{
-						// Must be a Linux service
-						svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Linux service");
-						service = true;
-					}
-					svcTextListener.Flush();
-					// Launch normally - Linux Service runs like this too
-					RunAsAConsole(httpport, debug);
+					// Must be a Linux service
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Linux service");
+					service = true;
 				}
-
-				while (!exitSystem)
-				{
-					Thread.Sleep(500);
-				}
-
-				try
-				{
-					if (windows && appMutex.WaitOne(0, false))
-					{
-						Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Releasing Mutex");
-						Trace.Flush();
-						appMutex.ReleaseMutex();
-					}
-					Environment.Exit(0);
-				}
-				catch {}
+				svcTextListener.Flush();
+				// Launch normally - Linux Service runs like this too
+				RunAsAConsole(httpport, debug);
 			}
+
+			while (!exitSystem)
+			{
+				Thread.Sleep(500);
+			}
+
+			Environment.Exit(0);
 		}
 
 		private static void Usage()
