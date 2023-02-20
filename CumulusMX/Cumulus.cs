@@ -723,6 +723,13 @@ namespace CumulusMX
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
+			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
+
+			// copy the correct sqlite DLL for your bitness
+			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + "sqlite3.dll";
+			var dstfile = "sqlite3.dll";
+			File.Copy(srcfile, dstfile, true);
+
 			var boolWindows = Platform.Substring(0, 3) == "Win";
 
 			// Set the default comport name depending on platform
@@ -8827,7 +8834,7 @@ namespace CumulusMX
 
 				DoLocalCopy();
 
-				DoIntervalUpload();
+				await DoIntervalUpload();
 			}
 			finally
 			{
