@@ -28,7 +28,7 @@ namespace CumulusMX
 
 		private int maxArchiveRuns = 1;
 
-		private bool connectedOk = false;
+		//private bool connectedOk = false;
 		private bool dataReceived = false;
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
@@ -144,7 +144,7 @@ namespace CumulusMX
 
 					while (!cancellationToken.IsCancellationRequested)
 					{
-						if (connectedOk)
+						if (Api.Connected)
 						{
 							GetLiveData();
 							dataLastRead = DateTime.Now;
@@ -177,8 +177,8 @@ namespace CumulusMX
 						else
 						{
 							cumulus.LogMessage("Attempting to reconnect to Ecowitt device...");
-							connectedOk = Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
-							if (connectedOk)
+							Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
+							if (Api.Connected)
 							{
 								cumulus.LogMessage("Reconnected to Ecowitt device");
 								GetLiveData();
@@ -493,9 +493,9 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
 
-			connectedOk = Api.OpenTcpPort(ipaddr, AtPort);
+			Api.OpenTcpPort(ipaddr, AtPort);
 
-			if (connectedOk)
+			if (Api.Connected)
 			{
 				cumulus.LogMessage("Connected OK");
 				cumulus.LogConsoleMessage("Connected to station", ConsoleColor.White, true);
@@ -506,7 +506,7 @@ namespace CumulusMX
 				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red, true);
 			}
 
-			if (connectedOk)
+			if (Api.Connected)
 			{
 				// Get the firmware version as check we are communicating
 				GW1000FirmwareVersion = GetFirmwareVersion();

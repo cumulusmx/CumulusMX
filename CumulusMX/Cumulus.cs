@@ -723,8 +723,10 @@ namespace CumulusMX
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
-			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
+			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")}bit process");
 
+			// Messy, but Windows and Linux use different mechanisms for loading DLLs, neither are very pretty
+			// Simplest method is to leave them searching the application directory, and copy the correct file there before it is loaded by the first SQlite connect()
 			// copy the correct sqlite DLL for your bitness
 			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + "sqlite3.dll";
 			var dstfile = "sqlite3.dll";

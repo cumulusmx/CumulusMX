@@ -218,8 +218,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <Content Include="sqlite3-x64.dll" />
-    <Content Include="sqlite3-x86.dll" />
+    <Content Include="Libs\sqlite3-x64.dll" />
+    <Content Include="Libs\sqlite3-x86.dll" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EmbedIO">
@@ -255,9 +255,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(ProjectDir)..\Updates.txt" "$(TargetDir)\Updates.txt"
-xcopy "$(ProjectDir)\sqlite3-x86.dll" "$(TargetDir)\x86\sqlite3.dll" /D /-I /Q
-xcopy "$(ProjectDir)\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q</PostBuildEvent>
+    <PostBuildEvent>echo Starting post-build tasks
+xcopy "$(ProjectDir)..\Updates.txt" "$(TargetDir)\Updates.txt" /D /-I /Q
+xcopy "$(ProjectDir)\Libs\sqlite3-x86.dll" "$(TargetDir)\x86\sqlite3.dll" /D /-I /Q
+xcopy "$(ProjectDir)\Libs\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
