@@ -29,7 +29,7 @@ namespace CumulusMX
 
 		public static long ToUnixTime(DateTime dateTime)
 		{
-			return (long)dateTime.ToUniversalTime().ToUnixEpochDate();
+			return (long)dateTime.ToUnixEpochDate();
 		}
 
 		public static long ToJsTime(DateTime dateTime)
