@@ -9743,8 +9743,7 @@ namespace CumulusMX
 
 				var oldest = DateTime.Now.AddHours(-GraphHours);
 				// Munge date/time into UTC becuase we use local time as UTC for highCharts consistency across TZs
-				DateTime.SpecifyKind(oldest, DateTimeKind.Utc);
-				var oldestTs = Utils.ToJsTime(oldest).ToString();
+				var oldestTs = Utils.ToPseudoJSTime(oldest).ToString();
 
 				for (int i = 0; i < GraphDataFiles.Length; i++)
 				{

@@ -13,6 +13,7 @@ using System.Text;
 using static SQLite.SQLite3;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using ServiceStack.Text;
 
 // A rag tag of useful functions
 
@@ -22,20 +23,35 @@ namespace CumulusMX
 	{
 		public static DateTime FromUnixTime(long unixTime)
 		{
-			// WWL uses UTC ticks, convert to local time
+			// Cconvert Unix TS seconds to local time
 			var utcTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTime);
 			return utcTime.ToLocalTime();
 		}
 
 		public static long ToUnixTime(DateTime dateTime)
 		{
-			return (long)dateTime.ToUnixEpochDate();
+			return (long) dateTime.ToUnixEpochDate();
 		}
 
 		public static long ToJsTime(DateTime dateTime)
 		{
-			return ToUnixTime(dateTime) * 1000;
+			return (long) dateTime.ToUnixEpochDate() * 1000;
 		}
+
+		// SPECIAL Unix TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
+		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
+		public static long ToPseudoUnixTime(DateTime timestamp)
+		{
+			return (long) DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate();
+		}
+
+		// SPECIAL JS TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
+		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
+		public static long ToPseudoJSTime(DateTime timestamp)
+		{
+			return (long) DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate() * 1000;
+		}
+
 
 		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
 		{
