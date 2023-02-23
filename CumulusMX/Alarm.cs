@@ -103,7 +103,7 @@ namespace CumulusMX
 									// delay for 0, 60, 120 seconds
 									System.Threading.Thread.Sleep(i * 60000);
 
-									cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i-1}");
+									cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i + 1}");
 
 									if (await cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml))
 									{
@@ -260,7 +260,7 @@ namespace CumulusMX
 								// delay for 0, 60, 120 seconds
 								System.Threading.Thread.Sleep(i * 60000);
 
-								cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i - 1}");
+								cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i + 1}");
 
 								if (await cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml))
 								{
@@ -334,7 +334,7 @@ namespace CumulusMX
 								// delay for 0, 60, 120 seconds
 								System.Threading.Thread.Sleep(i * 60000);
 
-								cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i - 1}");
+								cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i + 1}");
 
 								if (await cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml))
 								{
