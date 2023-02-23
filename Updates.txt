@@ -55,8 +55,8 @@ New
 	- The graph recent data files are sent incrementally using this mechanism, cutting bandwidth usage
 		- On starting CMX a full copy of each data file is sent
 		- Thereafter only the new data for the interval is sent, and the PHP upload script appends this to the existing file, and trims out old data
-	- The generation of local copies of the data files is now optional
-		- You can deselect the "Generate" option if you do not require a file to be written to the CMX folders. This will reduce disk I/O, a concern for rPi users with SD cards
+- The generation of local copies of the data files is now optional
+	- You can deselect the "Generate" option if you do not require a file to be written to the CMX folders. This will reduce disk I/O, a concern for rPi users with SD cards
 - Adds the HighCharts accessibility module to all charts with the default basic settings. See:- https://www.highcharts.com/accessibility/
 - Adds the simplified NOAA cooling/heating day calculation to the NOAA reports settings
 - Cumulus MX will now run as a 64 bit application on 64 bit operating systems
@@ -71,6 +71,7 @@ Changed
 - Tempest station now forces the UDP listening port to be opened in shared mode
 - The "Stop second instance" option has been rewritten. It now only prevents two instances *using the same port* from running
 	- This change means for it to work ALL running instances must be v3.24.0 or later
+- Alarm emails sends are now retried twice on failure
 
 Fixed
 - Adds missing Wind Chill from the historic graphs on the dashboard and default web site

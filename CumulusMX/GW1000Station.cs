@@ -1411,7 +1411,7 @@ namespace CumulusMX
 			// - data(4)
 			// 0D = rain event
 			// - data(2)
-			// 0F = rain hour (from doc v1.6.7 = rain gain!)
+			// 0F = rain gain
 			// - data(2)
 			// 80 = piezo rain rate
 			// - data(2)
