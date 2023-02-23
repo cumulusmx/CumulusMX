@@ -1,3 +1,7 @@
+b3228
+- Fix for PHP incremental uploads trimming of old data not taking account of TZ
+- Add retries to Alarm email sends
+
 b3227
 - Adds fix for missing Davis LOOP2 absolute pressure value
 - PHP uploads are now fully async - they may be limited by the OS. For instance I think Windows only allows 4 to run concurrently to the same server

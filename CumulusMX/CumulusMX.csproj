@@ -256,9 +256,9 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo Starting post-build tasks
-xcopy "$(ProjectDir)..\Updates.txt" "$(TargetDir)\Updates.txt" /D /-I /Q
-xcopy "$(ProjectDir)\Libs\sqlite3-x86.dll" "$(TargetDir)\x86\sqlite3.dll" /D /-I /Q
-xcopy "$(ProjectDir)\Libs\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q</PostBuildEvent>
+xcopy "$(ProjectDir)..\Updates.txt" "$(TargetDir)\Updates.txt" /D /-I /Q /Y
+xcopy "$(ProjectDir)\Libs\sqlite3-x86.dll" "$(TargetDir)\x86\sqlite3.dll" /D /-I /Q /Y
+xcopy "$(ProjectDir)\Libs\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q /Y</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
