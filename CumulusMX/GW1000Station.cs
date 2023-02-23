@@ -1411,7 +1411,7 @@ namespace CumulusMX
 			// - data(4)
 			// 0D = rain event
 			// - data(2)
-			// 0F = rain hour
+			// 0F = rain hour (from doc v1.6.7 = rain gain!)
 			// - data(2)
 			// 80 = piezo rain rate
 			// - data(2)
@@ -1464,7 +1464,7 @@ namespace CumulusMX
 						// all the two byte values we are ignoring
 						case 0x0E: // rain rate
 						case 0x0D: // rain event
-						case 0x0F: // rain hour
+						case 0x0F: // rain gain
 						case 0x81: // piezo rain event
 							idx += 2;
 							break;
