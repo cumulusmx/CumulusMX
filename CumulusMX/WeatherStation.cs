@@ -12261,6 +12261,7 @@ namespace CumulusMX
 			// soil temps
 			if (cumulus.GraphOptions.Visible.SoilMoist.IsVisible(local))
 				json.Append($"\"soilmoist\":{{\"name\":[\"{cumulus.Trans.SoilMoistureCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.SoilMoist.Join("\",\"")}\"]}},");
+
 			// CO2
 			json.Append("\"co2\":{");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
@@ -12279,6 +12280,9 @@ namespace CumulusMX
 				json.Append($"\"humidity\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Hum}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
 				json.Append($"\"temperature\":{{\"name\":\"Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Temp}\"}}");
+			// remove trailing comma
+			if (json[-1] == ',')
+				json.Length--;
 			json.Append("},");
 
 			#endregion extra sensors

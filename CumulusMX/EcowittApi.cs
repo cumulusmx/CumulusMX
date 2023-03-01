@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using HttpClient = System.Net.Http.HttpClient;
 using System.Reactive;
 using System.Runtime.Serialization;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
+using static ServiceStack.Diagnostics.Events;
 
 namespace CumulusMX
 {
@@ -18,14 +20,13 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
-		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private static readonly HttpClientHandler httpHandler = new HttpClientHandler();
-		private readonly HttpClient httpClient = new HttpClient(httpHandler);
+		private static readonly HttpClient httpClient = new HttpClient(httpHandler);
 
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
 
-		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is dealyed
+		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
@@ -42,6 +43,8 @@ namespace CumulusMX
 					httpHandler.Credentials = new NetworkCredential(cumulus.HTTPProxyUser, cumulus.HTTPProxyPassword);
 				}
 			}
+
+			httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
 			// Let's decode the Unix ts to DateTime
 			JsConfig.Init(new Config {

@@ -1431,7 +1431,7 @@ namespace CumulusMX
 			// - data(3)
 			// 7A = primary rain selection (0=No sensor, 1=Tipper, 2=Piezo)
 			// - data(1)
-			// 7B = ???
+			// 7B = solar gain compensation
 			// - data(1)
 			// 85 - checksum
 
@@ -1518,8 +1518,10 @@ namespace CumulusMX
 								cumulus.LogDebugMessage("Unkown rain sensor selection value = " + sensor);
 #endif
 							break;
-						case 0x7B: // Unknown
-							cumulus.LogDebugMessage($"GetPiezoRainData: Error: Unknown value type 0x7B found, value = {data[idx]}");
+						case 0x7B: // Solar gain compensation
+#if DEBUG
+							cumulus.LogDebugMessage($"GetPiezoRainData: Solar gain compensation = {(data[idx] == '0' ? "disabled" : "enabled")}");
+#endif
 							idx += 1;
 							break;
 						default:

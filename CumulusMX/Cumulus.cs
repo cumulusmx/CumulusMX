@@ -1,6 +1,19 @@
+using EmbedIO;
+using EmbedIO.WebApi;
+using EmbedIO.Files;
+using EmbedIO.Utilities;
+using FluentFTP;
+using FluentFTP.Helpers;
+using MySqlConnector;
+using Renci.SshNet;
+using SQLite;
+using ServiceStack;
+using ServiceStack.Text;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.IO.Ports;
@@ -11,30 +24,18 @@ using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.AccessControl;
+using System.Security.Authentication;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using MySqlConnector;
-using FluentFTP;
-using FluentFTP.Helpers;
-using ServiceStack.Text;
-using EmbedIO;
-using EmbedIO.WebApi;
-using EmbedIO.Files;
 using Timer = System.Timers.Timer;
-using SQLite;
-using Renci.SshNet;
-using System.Collections.Concurrent;
-using System.Security.Authentication;
-using ServiceStack;
-using System.Drawing;
-using System.Web.UI.WebControls;
-using System.Runtime.InteropServices.ComTypes;
 using System.Web;
 using System.Web.Caching;
-using System.Security.AccessControl;
-using System.Security.Principal;
+using System.Web.UI.WebControls;
 
 namespace CumulusMX
 {
@@ -2307,6 +2308,7 @@ namespace CumulusMX
 
 			try
 			{
+				WindyhttpClient.DefaultRequestHeaders.ConnectionClose = true;
 				HttpResponseMessage response = await WindyhttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);

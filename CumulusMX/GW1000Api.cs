@@ -160,30 +160,7 @@ namespace CumulusMX
 				stream.ReadTimeout = 2500;
 				stream.Write(bytes, 0, bytes.Length);
 
-				tmrComm.Start(3000);
-
-				while (tmrComm.timedout == false)
-				{
-					if (stream.DataAvailable)
-					{
-						while (stream.DataAvailable)
-						{
-							// Read the current character
-							var ch = stream.ReadByte();
-							if (ch > -1)
-							{
-								buffer[bytesRead] = (byte) ch;
-								bytesRead++;
-								//cumulus.LogMessage("Received " + ch.ToString("X2"));
-							}
-						}
-						tmrComm.Stop();
-					}
-					else
-					{
-						Task.Delay(20).Wait();
-					}
-				}
+				bytesRead = stream.Read(buffer, 0, buffer.Length);
 
 				// Check the response is to our command and checksum is OK
 				if (bytesRead == 0 || buffer[2] != (byte) command || !ChecksumOk(buffer, (int) Enum.Parse(typeof(CommandRespSize), cmdName)))
