@@ -13,7 +13,6 @@ namespace CumulusMX
 	internal class GW1000Api
 	{
 		private readonly Cumulus cumulus;
-		//private NetworkStream stream;
 		private TcpClient socket;
 		private string ipAddress = null;
 		private int tcpPort = 0;
@@ -45,6 +44,8 @@ namespace CumulusMX
 
 					if (!socket.Connected)
 					{
+						cumulus.LogDebugMessage("Error: Ecowitt Gateway Connect attempt " + attempt + " FAILED");
+
 						try
 						{
 							socket.Close();
@@ -53,13 +54,14 @@ namespace CumulusMX
 						catch
 						{ }
 						socket = null;
+						Thread.Sleep(5000 * attempt);
 					}
 
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogMessage("Error opening TCP port: " + ex.Message);
-					Thread.Sleep(5000);
+					Thread.Sleep(5000 * attempt);
 				}
 			}
 
@@ -113,11 +115,13 @@ namespace CumulusMX
 			}
 			catch (ObjectDisposedException)
 			{
-				socket = null;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("Error closing TCP port: " + ex.Message);
+			}
+			finally
+			{
 				socket = null;
 			}
 		}

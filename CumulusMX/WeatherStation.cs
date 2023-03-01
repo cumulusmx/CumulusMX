@@ -12281,7 +12281,7 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
 				json.Append($"\"temperature\":{{\"name\":\"Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Temp}\"}}");
 			// remove trailing comma
-			if (json[-1] == ',')
+			if (json[json.Length - 1] == ',')
 				json.Length--;
 			json.Append("},");
 

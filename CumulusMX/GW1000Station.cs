@@ -1509,13 +1509,13 @@ namespace CumulusMX
 							var sensor = data[idx++];
 #if DEBUG
 							if (sensor == 0)
-								cumulus.LogDebugMessage("No rain sensor available");
+								cumulus.LogDebugMessage("GetPiezoRainData: No rain sensor available");
 							else if (sensor == 1)
-								cumulus.LogDebugMessage("Traditional rain sensor selected");
+								cumulus.LogDebugMessage("GetPiezoRainData: Traditional rain sensor selected");
 							else if (sensor == 2)
-								cumulus.LogDebugMessage("Piezo rain sensor selected");
+								cumulus.LogDebugMessage("GetPiezoRainData: Piezo rain sensor selected");
 							else
-								cumulus.LogDebugMessage("Unkown rain sensor selection value = " + sensor);
+								cumulus.LogDebugMessage("GetPiezoRainData: Unkown rain sensor selection value = " + sensor);
 #endif
 							break;
 						case 0x7B: // Solar gain compensation

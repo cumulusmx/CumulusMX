@@ -46,6 +46,7 @@ Fixed
 - Dashboard menu wrapping
 - Davis VP2/Vue LOOP2 absolute pressure values < 20 inHg are now ignored. Altimeter pressure is set to sea level pressure, station pressure = 0
 - Extra temp/hum/dewpoint not being saved for sensor #10
+- Ecowitt Local API failing to reconnect after network outage
 
 Removed
 - Local API calls:
