@@ -70,6 +70,13 @@ namespace CumulusMX
 		{
 			var totalentries = datalist.Count;
 
+			if (totalentries == 0)
+			{
+				cumulus.LogMessage("No history data to process");
+				cumulus.LogConsoleMessage("No history data to process");
+				return;
+			}
+
 			cumulus.LogMessage("Processing history data, number of entries = " + totalentries);
 			cumulus.LogConsoleMessage(
 				$"Processing history data for {totalentries} records. {DateTime.Now.ToLongTimeString()}");
@@ -358,11 +365,13 @@ namespace CumulusMX.Tempest
 		private readonly Task _listenTask;
 		private readonly CancellationTokenSource tokenSource;
 
-		public EventClient(int port) : base(port)
+		public EventClient(int port)
 		{
 			tokenSource = new CancellationTokenSource();
 			_listenTask = new Task(() => ListenForPackets(tokenSource.Token));
+			// force shared port as Mono defaults to exclusive
 			ExclusiveAddressUse = false;
+			Client.Bind(new IPEndPoint(IPAddress.Any, port));
 		}
 
 		public event EventHandler<PacketReceivedArgs> PacketReceived;
