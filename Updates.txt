@@ -1,4 +1,4 @@
-3.24.0 - b3229
+3.24.0 - b3230
 ——————————————
 New
 - Strings.ini is now created and used by all instances, it has also added to the backup routine
@@ -10,10 +10,10 @@ New
 - The data visibility has been changed from a simple off/on to a tri-state. You can now select between Off|Visible|Dashboard Only
 	- Visible means the data will be shown on both the local dash and the default web site
 	- Dashboard Only means the data can only be viewed on the CMX local interface.
-		You may wish to use this to hide sensitive data like indoor temperatures which can indicate if you are home or not
+		You may wish to use this to hide sensitive data like indoor temperatures on the public web site which can indicate if you are home or not
 	- Any data previous flagged as Visible, will migrate to the new Visible state
 - Extra Sensor graph data can now be sent to the default web site
-- You can now send additional four extra temperature readings to Weather Underground
+- You can now send an additional four extra temperature readings to Weather Underground
 - New PHP upload alternative to FTP/SFTP
 	- This uses a secure PHP script on your web server to upload the data rather than using an FTP service
 	- The graph recent data files are sent incrementally using this mechanism, cutting bandwidth usage
@@ -28,21 +28,21 @@ New
 	- See Station Options > Common Options
 
 Changed
-- Entry errors in the settings screen used to output a invalid pattern and regex message. They now output and English language message
+- Some entry errors in the settings screen used to output a invalid pattern and regex message. They now output an English language message
 - The Dashboard page can now shows times in your locale format (12/24 hour) - See Program Settings|General Options
 - Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
 - Custom Logs settings screen now shows examples with the correct CSV separator for the CMX locale
 - Tempest station now forces the UDP listening port to be opened in shared mode
 - The "Stop second instance" option has been rewritten. It now only prevents two instances *using the same port* from running
 	- This change means for it to work ALL running instances must be v3.24.0 or later
-- Alarm emails sends are now retried twice on failure
+- Alarm email sends are now retried twice on failure
 
 Fixed
 - Adds missing Wind Chill from the historic graphs on the dashboard and default web site
 - Now ignores AirLink zero values when the percent in last hour is also zero. This occurs during a restart of AirLink
 - Third party custom rollover URLs overwriting custom minute values on save
 - The monthly data editors were not handing start/end dates of the first of the month correctly when using a 9am rollover
-- The #altimeterpressure web tag was defaulting to using 1 decimal place for all units
+- The <#altimeterpressure> web tag was defaulting to using 1 decimal place for all units
 - Dashboard menu wrapping
 - Davis VP2/Vue LOOP2 absolute pressure values < 20 inHg are now ignored. Altimeter pressure is set to sea level pressure, station pressure = 0
 - Extra temp/hum/dewpoint not being saved for sensor #10

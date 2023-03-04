@@ -607,7 +607,7 @@ namespace CumulusMX
 				{
 					Checksum += data[i];
 				}
-				Data[-1] = Checksum;
+				Data[Data.Length - 1] = Checksum;
 			}
 		}
 

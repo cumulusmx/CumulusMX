@@ -13,7 +13,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.IO.Ports;
@@ -24,9 +23,7 @@ using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security.AccessControl;
-using System.Security.Authentication;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
@@ -36,6 +33,7 @@ using Timer = System.Timers.Timer;
 using System.Web;
 using System.Web.Caching;
 using System.Web.UI.WebControls;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CumulusMX
 {
@@ -731,7 +729,17 @@ namespace CumulusMX
 			// copy the correct sqlite DLL for your bitness
 			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + "sqlite3.dll";
 			var dstfile = "sqlite3.dll";
-			File.Copy(srcfile, dstfile, true);
+			if (File.Exists(srcfile))
+			{
+				File.Copy(srcfile, dstfile, true);
+			}
+			else
+			{
+				LogMessage("Error: cannot find the file: " + srcfile);
+				LogConsoleMessage("Error: cannot find the file: " + srcfile);
+				Program.exitSystem = true;
+				return;
+			}
 
 			var boolWindows = Platform.Substring(0, 3) == "Win";
 
@@ -3087,8 +3095,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
-				// do the copy if enabled, AND protocol is PHP, or the create option is enabled
-				if  (RealtimeFiles[i].Copy && (RealtimeFiles[i].Create || (FtpOptions.Enabled && FtpOptions.FtpMode == FtpProtocols.PHP)))
+				if (RealtimeFiles[i].Copy)
 				{
 					var dstFile = dstPath + RealtimeFiles[i].RemoteFileName;
 					var srcFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
@@ -3096,18 +3103,25 @@ namespace CumulusMX
 					try
 					{
 						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
-						if (FtpOptions.FtpMode == FtpProtocols.PHP)
+
+						if (RealtimeFiles[i].Create)
 						{
-							var data = CreateRealtimeFileString(cycle) + "\n";
-							using (FileStream fs = File.Create(dstFile))
-							{
-								byte[] info = new UTF8Encoding(true).GetBytes(data);
-								fs.Write(info, 0, info.Length);
-							}
+							File.Copy(srcFile, dstFile, true);
 						}
 						else
 						{
-							File.Copy(srcFile, dstFile, true);
+							var text = String.Empty;
+
+							if (RealtimeFiles[i].LocalFileName == "realtime.txt")
+							{
+								text = CreateRealtimeFileString(cycle);
+							}
+							else if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+							{
+								text = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, realtimeTokenParser, false);
+							}
+
+							File.WriteAllText(dstFile, text);
 						}
 					}
 					catch (Exception ex)
@@ -3280,19 +3294,20 @@ namespace CumulusMX
 
 		private void CreateRealtimeHTMLfiles(int cycle)
 		{
-			for (var i = 0; i < RealtimeFiles.Length; i++)
+			// file [0] is the realtime.txt - it does not need a template processing
+			for (var i = 1; i < RealtimeFiles.Length; i++)
 			{
 				if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
 				{
 					var destFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
+					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
 					try
 					{
-						LogDebugMessage($"Realtime[{cycle}]: Processing realtime file - {RealtimeFiles[i].LocalFileName}");
 						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
 					}
 					catch (Exception ex)
 					{
-						LogDebugMessage($"Realtime[{cycle}]: Error processing file [{RealtimeFiles[i].LocalFileName}] to [{destFile}]. Error = {ex.Message}");
+						LogDebugMessage($"Realtime[{cycle}]: Error creating file [{RealtimeFiles[i].LocalFileName}] to [{destFile}]. Error = {ex.Message}");
 					}
 				}
 			}
@@ -3318,7 +3333,7 @@ namespace CumulusMX
 								try
 								{
 									LogDebugMessage($"Realtime[{cycle}]: Copying extra file[{i}] {uploadfile} to {remotefile}");
-									if (ExtraFiles[i].process && FtpOptions.Enabled && FtpOptions.FtpMode == FtpProtocols.PHP)
+									if (ExtraFiles[i].process)
 									{
 										ProcessTemplateFile(uploadfile, remotefile, realtimeTokenParser, false);
 									}
@@ -8790,7 +8805,6 @@ namespace CumulusMX
 							{
 								remotefile = GetRemoteFileName(remotefile, DateTime.Now);
 
-								// just copy the file
 								LogDebugMessage($"Interval: Copying extra file[{i}] {uploadfile} to {remotefile}");
 								try
 								{
@@ -8801,6 +8815,7 @@ namespace CumulusMX
 									}
 									else
 									{
+										// just copy the file
 										File.Copy(uploadfile, remotefile, true);
 									}
 								}
@@ -8939,11 +8954,8 @@ namespace CumulusMX
 							{
 								text = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true);
 							}
-							using (StreamWriter file = new StreamWriter(dstfile, false))
-							{
-								file.WriteLine(text);
-								file.Close();
-							}
+
+							File.WriteAllText(dstfile, text);
 						}
 						success++;
 					}
@@ -10184,6 +10196,8 @@ namespace CumulusMX
 				LogMessage($"PHP[{cycleStr}]: The data string is empty, ignoring this upload");
 			}
 
+			LogDebugMessage($"PHP[{cycleStr}]: Uploading {remotefile}");
+
 			try
 			{
 				var encoding = new UTF8Encoding(false);
@@ -10350,11 +10364,7 @@ namespace CumulusMX
 			try
 			{
 				LogDebugMessage($"Realtime[{cycle}]: Creating realtime.txt");
-				using (StreamWriter file = new StreamWriter(filename, false))
-				{
-					file.WriteLine(CreateRealtimeFileString(cycle));
-					file.Close();
-				}
+				File.WriteAllText(filename, CreateRealtimeFileString(cycle));
 			}
 			catch (Exception ex)
 			{
@@ -10434,7 +10444,6 @@ namespace CumulusMX
 
 			try
 			{
-				LogDebugMessage($"Realtime[{cycle}]: Creating realtime.txt");
 				var InvC = new CultureInfo("");
 				var sb = new StringBuilder();
 
