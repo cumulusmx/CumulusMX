@@ -1217,7 +1217,8 @@ namespace CumulusMX
 
 			// Open diary database (create file if it doesn't exist)
 			//DiaryDB = new SQLiteConnection(diaryfile, flags, true);  // We should be using this - storing datetime as ticks, but historically string storage has been used, so we are stuck with it?
-			DiaryDB = new SQLiteConnection(diaryfile, flags);
+			//DiaryDB = new SQLiteConnection(diaryfile, flags, false);
+			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd 00:00:00"));
 			DiaryDB.CreateTable<DiaryData>();
 
 			try

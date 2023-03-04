@@ -409,8 +409,12 @@ namespace CumulusMX
 			GetRainCounter();
 			GetRainFallTotals();
 
+			// Open database (create file if it doesn't exist)
+			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
+
 			//RecentDataDb = new SQLiteConnection(":memory:", true);
-			RecentDataDb = new SQLiteConnection(cumulus.dbfile, false);
+			//RecentDataDb = new SQLiteConnection(cumulus.dbfile, false);
+			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
 			RecentDataDb.CreateTable<RecentData>();
 			RecentDataDb.CreateTable<SqlCache>();
 			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
