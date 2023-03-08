@@ -66,10 +66,12 @@ namespace CumulusMX
 		} // end Tmonthsummary
 
 		private readonly Cumulus cumulus;
+		private readonly WeatherStation station;
 
-		public NOAA(Cumulus cumulus)
+		public NOAA(Cumulus cumulus, WeatherStation station)
 		{
 			this.cumulus = cumulus;
+			this.station = station;
 		}
 
 		/// <summary>
@@ -100,7 +102,7 @@ namespace CumulusMX
 
 		private  string CompassPoint(int bearing)
 		{
-			return cumulus.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
+			return cumulus.Trans.compassp[(((bearing * 100) + 1125) % 36000) / 2250];
 		}
 
 		private static decimal Frac(decimal num)
@@ -347,40 +349,66 @@ namespace CumulusMX
 
 					if (meantemp > -1000)
 					{
-						// heating degree day
-						idx = 40;
-						if ((st.Count > idx) && (st[idx].Length > 0))
+						if (cumulus.NOAAconf.UseNoaaHeatCoolDays)
 						{
-							// read HDD from dayfile.txt
-							dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
-							totalheating += double.Parse(st[idx]);
-						}
-						else if (meantemp < cumulus.NOAAconf.HeatThreshold)
-						{
-							dayList[daynumber].heatingdegdays = cumulus.NOAAconf.HeatThreshold - meantemp;
-							totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
-						}
-						else
-						{
-							dayList[daynumber].heatingdegdays = 0;
-						}
+							// use the simple NOAA calculation
+							// https://www.weather.gov/key/climate_heat_cool
+							// mean = (high + low) / 2
+							// mean > 65F = cooling = high - 65
+							// mean < 65F = heating = 65 - low
+							if (station.ConvertUserTempToF(meantemp) > 65)
+							{
+								dayList[daynumber].heatingdegdays = 0;
+								dayList[daynumber].coolingdegdays = dayList[daynumber].maxtemp - station.ConvertTempFToUser(65);
+								totalcooling += dayList[daynumber].coolingdegdays;
+							}
+							else
+							{
+								dayList[daynumber].coolingdegdays = 0;
+								dayList[daynumber].heatingdegdays = station.ConvertTempFToUser(65) - dayList[daynumber].mintemp;
+								totalheating += dayList[daynumber].heatingdegdays;
+							}
 
-						// cooling degree days
-						idx = 41;
-						if ((st.Count > idx) && (st[idx] != string.Empty))
-						{
-							// read HDD from dayfile.txt
-							dayList[daynumber].coolingdegdays = double.Parse(st[idx]);
-							totalcooling += double.Parse(st[idx]);
-						}
-						else if (meantemp > cumulus.NOAAconf.CoolThreshold)
-						{
-							dayList[daynumber].coolingdegdays = meantemp - cumulus.NOAAconf.CoolThreshold;
-							totalcooling += meantemp - cumulus.NOAAconf.CoolThreshold;
 						}
 						else
 						{
-							dayList[daynumber].coolingdegdays = 0;
+							// Use the MX minute by minute heat/cool days calculation
+
+							// heating degree day
+							idx = 40;
+							if ((st.Count > idx) && (st[idx].Length > 0))
+							{
+								// read HDD from dayfile.txt
+								dayList[daynumber].heatingdegdays = double.Parse(st[idx]);
+								totalheating += double.Parse(st[idx]);
+							}
+							else if (meantemp < cumulus.NOAAconf.HeatThreshold)
+							{
+								dayList[daynumber].heatingdegdays = cumulus.NOAAconf.HeatThreshold - meantemp;
+								totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
+							}
+							else
+							{
+								dayList[daynumber].heatingdegdays = 0;
+							}
+
+							// cooling degree days
+							idx = 41;
+							if ((st.Count > idx) && (st[idx] != string.Empty))
+							{
+								// read CDD from dayfile.txt
+								dayList[daynumber].coolingdegdays = double.Parse(st[idx]);
+								totalcooling += double.Parse(st[idx]);
+							}
+							else if (meantemp > cumulus.NOAAconf.CoolThreshold)
+							{
+								dayList[daynumber].coolingdegdays = meantemp - cumulus.NOAAconf.CoolThreshold;
+								totalcooling += meantemp - cumulus.NOAAconf.CoolThreshold;
+							}
+							else
+							{
+								dayList[daynumber].coolingdegdays = 0;
+							}
 						}
 					}
 
@@ -862,30 +890,55 @@ namespace CumulusMX
 						{
 							MonthList[month].mintempcount2 ++;
 						}
-						// heating degree days
-						if ((st.Count > 40) && (st[40].Length > 0))
+
+						if (cumulus.NOAAconf.UseNoaaHeatCoolDays)
 						{
-							// read HDD from dayfile.txt
-							MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + Convert.ToDouble(st[40]);
-							totalheating += Convert.ToDouble(st[40]);
+							// use the simple NOAA calculation
+							// https://www.weather.gov/key/climate_heat_cool
+							// mean = (high + low) / 2
+							// mean > 65F = cooling = high - 65
+							// mean < 65F = heating = 65 - low
+							if (station.ConvertUserTempToF(meantemp) > 65)
+							{
+								var cool = Convert.ToDouble(st[6]) - station.ConvertTempFToUser(65);
+								MonthList[month].coolingdegdays += cool;
+								totalcooling += cool;
+							}
+							else
+							{
+								var heat = station.ConvertTempFToUser(65) - Convert.ToDouble(st[4]);
+								MonthList[month].heatingdegdays += heat;
+								totalheating += heat;
+							}
 						}
-						else if (meantemp < cumulus.NOAAconf.HeatThreshold)
+						else
 						{
-							MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + cumulus.NOAAconf.HeatThreshold - meantemp;
-							totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
+							// heating degree days
+							if ((st.Count > 40) && (st[40].Length > 0))
+							{
+								// read HDD from dayfile.txt
+								MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + Convert.ToDouble(st[40]);
+								totalheating += Convert.ToDouble(st[40]);
+							}
+							else if (meantemp < cumulus.NOAAconf.HeatThreshold)
+							{
+								MonthList[month].heatingdegdays = MonthList[month].heatingdegdays + cumulus.NOAAconf.HeatThreshold - meantemp;
+								totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
+							}
+							// cooling degree days
+							if ((st.Count > 41) && (st[41].Length > 0))
+							{
+								// read CDD from dayfile.txt
+								MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + Convert.ToDouble(st[41]);
+								totalcooling += Convert.ToDouble(st[41]);
+							}
+							else if (meantemp > cumulus.NOAAconf.CoolThreshold)
+							{
+								MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + meantemp - cumulus.NOAAconf.CoolThreshold;
+								totalcooling += meantemp - cumulus.NOAAconf.CoolThreshold;
+							}
 						}
-						// cooling degree days
-						if ((st.Count > 41) && (st[41].Length > 0))
-						{
-							// read HDD from dayfile.txt
-							MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + Convert.ToDouble(st[41]);
-							totalcooling += Convert.ToDouble(st[41]);
-						}
-						else if (meantemp > cumulus.NOAAconf.CoolThreshold)
-						{
-							MonthList[month].coolingdegdays = MonthList[month].coolingdegdays + meantemp - cumulus.NOAAconf.CoolThreshold;
-							totalcooling += meantemp - cumulus.NOAAconf.CoolThreshold;
-						}
+
 						// Rain days
 						var rainvalue = Convert.ToDouble(st[14]);
 						MonthList[month].totrain = MonthList[month].totrain + rainvalue;

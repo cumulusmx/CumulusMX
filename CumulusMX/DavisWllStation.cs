@@ -535,10 +535,8 @@ namespace CumulusMX
 						if (retry == 3)
 						{
 							cumulus.LogMessage("GetWllCurrent: Error processing WLL response");
-							if (ex.InnerException == null)
-								cumulus.LogMessage($"GetWllCurrent: Error: {ex.Message}");
-							else
-								cumulus.LogMessage($"GetWllCurrent: Error: {ex.InnerException.Message}");
+							ex = Utils.GetOriginalException(ex);
+							cumulus.LogMessage($"GetWllCurrent: Base exception - {ex.Message}");
 
 							if (!DataStopped)
 							{
@@ -1611,7 +1609,7 @@ namespace CumulusMX
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 			var startTime = Utils.ToUnixTime(cumulus.LastUpdateTime);
-			int endTime = unixDateTime;
+			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
 
 			// The API call is limited to fetching 24 hours of data
@@ -1752,9 +1750,12 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("GetWlHistoricData:  Exception: " + ex.Message);
-				if (ex.InnerException != null) {
-					cumulus.LogMessage("GetWlHistoricData:  Inner Exception: " + ex.InnerException.Message);
+				if (ex.InnerException != null)
+				{
+					ex = Utils.GetOriginalException(ex);
+					cumulus.LogMessage($"GetWlHistoricData: Base exception - {ex.Message}");
 				}
+
 				cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 				return;
 			}
@@ -2969,7 +2970,7 @@ namespace CumulusMX
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 			var startTime = unixDateTime - weatherLinkArchiveInterval;
-			int endTime = unixDateTime;
+			long endTime = unixDateTime;
 
 			cumulus.LogDebugMessage($"WLL Health: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
 

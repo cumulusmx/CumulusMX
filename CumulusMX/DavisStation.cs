@@ -1666,7 +1666,7 @@ namespace CumulusMX
 					}
 				}
 
-				var forecast = (cumulus.DavisForecast1[key1] + cumulus.DavisForecast2[key2] + cumulus.DavisForecast3[key3]).Trim();
+				var forecast = (cumulus.Trans.DavisForecast1[key1] + cumulus.Trans.DavisForecast2[key2] + cumulus.Trans.DavisForecast3[key3]).Trim();
 
 				DoForecast(forecast, false);
 
@@ -1826,26 +1826,6 @@ namespace CumulusMX
 					{
 						DoLeafWetness(loopData.LeafWetness4, 4);
 					}
-
-					if (loopData.LeafTemp1 < 255 && loopData.LeafTemp1 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp1 - 90), 1);
-					}
-
-					if (loopData.LeafTemp2 < 255 && loopData.LeafTemp2 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp2 - 90), 2);
-					}
-
-					if (loopData.LeafTemp3 < 255 && loopData.LeafTemp3 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp3 - 90), 3);
-					}
-
-					if (loopData.LeafTemp4 < 255 && loopData.LeafTemp4 > 0)
-					{
-						DoLeafTemp(ConvertTempFToUser(loopData.LeafTemp4 - 90), 4);
-					}
 				}
 				UpdateStatusPanel(DateTime.Now);
 				UpdateMQTT();
@@ -1986,22 +1966,34 @@ namespace CumulusMX
 				DateTime now = DateTime.Now;
 
 				// Extract station pressure, and use it to calculate altimeter pressure
-				// Spike removal is in mb/hPa
-				var pressUser = ConvertPressINHGToUser(loopData.AbsolutePressure);
-				var pressMB = ConvertUserPressToMB(pressUser);
-				if ((previousPressStation == 9999) || (Math.Abs(pressMB - previousPressStation) < cumulus.Spike.PressDiff))
+
+				// first sanity check - one user was getting zero values!
+				if (loopData.AbsolutePressure < 20)
 				{
-					previousPressStation = pressMB;
-					StationPressure = ConvertPressINHGToUser(loopData.AbsolutePressure);
-					AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+					cumulus.LogDebugMessage("LOOP2: Ignoring absolute pressure value < 20 inHg");
+					// no absolute, so just make altimeter = sl pressure
+					AltimeterPressure = Pressure;
+					StationPressure = 0;
 				}
 				else
 				{
-					cumulus.LogSpikeRemoval("Station Pressure difference greater than specified; reading ignored");
-					cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPressStation:F1} SpikePressDiff={cumulus.Spike.PressDiff:F1} HighLimit={cumulus.Limit.PressHigh:F1} LowLimit={cumulus.Limit.PressLow:F1}");
-					lastSpikeRemoval = DateTime.Now;
-					cumulus.SpikeAlarm.LastError = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
-					cumulus.SpikeAlarm.Triggered = true;
+					// Spike removal is in mb/hPa
+					var pressUser = ConvertPressINHGToUser(loopData.AbsolutePressure);
+					var pressMB = ConvertUserPressToMB(pressUser);
+					if ((previousPressStation == 9999) || (Math.Abs(pressMB - previousPressStation) < cumulus.Spike.PressDiff))
+					{
+						previousPressStation = pressMB;
+						StationPressure = ConvertPressINHGToUser(loopData.AbsolutePressure);
+						AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+					}
+					else
+					{
+						cumulus.LogSpikeRemoval("Station Pressure difference greater than specified; reading ignored");
+						cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPressStation:F1} SpikePressDiff={cumulus.Spike.PressDiff:F1} HighLimit={cumulus.Limit.PressHigh:F1} LowLimit={cumulus.Limit.PressLow:F1}");
+						lastSpikeRemoval = DateTime.Now;
+						cumulus.SpikeAlarm.LastError = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
+						cumulus.SpikeAlarm.Triggered = true;
+					}
 				}
 
 				double wind = ConvertWindMPHToUser(loopData.CurrentWindSpeed);
@@ -2665,16 +2657,6 @@ namespace CumulusMX
 								if (archiveData.LeafWetness2 >= 0 && archiveData.LeafWetness2 < 16)
 								{
 									DoLeafWetness(LeafWetness2, 2);
-								}
-
-								if (archiveData.LeafTemp1 < 255 && archiveData.LeafTemp1 > 0)
-								{
-									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp1 - 90), 1);
-								}
-
-								if (archiveData.LeafTemp2 < 255 && archiveData.LeafTemp2 > 0)
-								{
-									DoLeafTemp(ConvertTempFToUser(archiveData.LeafTemp2 - 90), 2);
 								}
 							}
 

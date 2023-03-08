@@ -144,7 +144,9 @@ namespace CumulusMX
 				password = cumulus.FtpOptions.Password,
 				username = cumulus.FtpOptions.Username,
 				sshAuth = cumulus.FtpOptions.SshAuthen,
-				pskFile = cumulus.FtpOptions.SshPskFile
+				pskFile = cumulus.FtpOptions.SshPskFile,
+				phpurl = cumulus.FtpOptions.PhpUrl,
+				phpsecret = cumulus.FtpOptions.PhpSecret,
 			};
 			var internet = new JsonWizardInternet()
 			{
@@ -221,14 +223,27 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.internet.ftp.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
-						cumulus.FtpOptions.Port = settings.internet.ftp.ftpport;
-						cumulus.FtpOptions.Hostname = string.IsNullOrWhiteSpace(settings.internet.ftp.hostname) ? string.Empty : settings.internet.ftp.hostname.Trim();
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.ftp.sslftp;
-						cumulus.FtpOptions.Password = string.IsNullOrWhiteSpace(settings.internet.ftp.password) ? string.Empty : settings.internet.ftp.password.Trim();
-						cumulus.FtpOptions.Username = string.IsNullOrWhiteSpace(settings.internet.ftp.username) ? string.Empty : settings.internet.ftp.username.Trim();
-						cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
-						cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						{
+							cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
+							cumulus.FtpOptions.Port = settings.internet.ftp.ftpport;
+							cumulus.FtpOptions.Hostname = string.IsNullOrWhiteSpace(settings.internet.ftp.hostname) ? string.Empty : settings.internet.ftp.hostname.Trim();
+							cumulus.FtpOptions.Password = string.IsNullOrWhiteSpace(settings.internet.ftp.password) ? string.Empty : settings.internet.ftp.password.Trim();
+							cumulus.FtpOptions.Username = string.IsNullOrWhiteSpace(settings.internet.ftp.username) ? string.Empty : settings.internet.ftp.username.Trim();
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						{
+							cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
+							cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
+						}
+
+						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
+						{
+							cumulus.FtpOptions.PhpUrl = settings.internet.ftp.phpurl;
+							cumulus.FtpOptions.PhpSecret = settings.internet.ftp.phpsecret;
+						}
 					}
 
 					cumulus.FtpOptions.LocalCopyEnabled = settings.internet.copy.localcopy;
@@ -241,21 +256,18 @@ namespace CumulusMX
 					// do not process last entry = wxnow.txt, it is not used by the standard site
 					for (var i = 0; i < cumulus.StdWebFiles.Length - 1; i++)
 					{
-						cumulus.StdWebFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.StdWebFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.StdWebFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and graph data files
 					for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 					{
-						cumulus.GraphDataFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.GraphDataFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.GraphDataFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and EOD data files
 					for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 					{
-						cumulus.GraphDataEodFiles[i].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 						cumulus.GraphDataEodFiles[i].FTP = cumulus.FtpOptions.Enabled;
 						cumulus.GraphDataEodFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
@@ -267,7 +279,6 @@ namespace CumulusMX
 					//cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 
 					// realtimegauges.txt IS used by the standard site
-					cumulus.RealtimeFiles[1].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
 					cumulus.RealtimeFiles[1].FTP = cumulus.FtpOptions.Enabled;
 					cumulus.RealtimeFiles[1].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 
@@ -732,7 +743,8 @@ namespace CumulusMX
 		public string password { get; set; }
 		public string sshAuth { get; set; }
 		public string pskFile { get; set; }
-
+		public string phpurl { get; set; }
+		public string phpsecret { get; set; }
 	}
 
 	internal class JsonWizardWebSite

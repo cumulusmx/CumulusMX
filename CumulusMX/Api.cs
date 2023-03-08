@@ -25,6 +25,8 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings;
 		public static CustomLogs customLogs;
 		public static Wizard wizard;
+		internal static LangSettings langSettings;
+		internal static DisplaySettings displaySettings;
 		internal static AlarmSettings alarmSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
@@ -383,67 +385,67 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "tempdata.json":
-								await writer.WriteAsync(Station.GetTempGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetTempGraphData(false, true));
 								break;
 							case "winddata.json":
-								await writer.WriteAsync(Station.GetWindGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetWindGraphData(false));
 								break;
 							case "raindata.json":
-								await writer.WriteAsync(Station.GetRainGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetRainGraphData(false));
 								break;
 							case "pressdata.json":
-								await writer.WriteAsync(Station.GetPressGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetPressGraphData(false));
 								break;
 							case "wdirdata.json":
-								await writer.WriteAsync(Station.GetWindDirGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetWindDirGraphData(false));
 								break;
 							case "humdata.json":
-								await writer.WriteAsync(Station.GetHumGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetHumGraphData(false, true));
 								break;
 							case "solardata.json":
-								await writer.WriteAsync(Station.GetSolarGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetSolarGraphData(false, true));
 								break;
 							case "dailyrain.json":
 								await writer.WriteAsync(Station.GetDailyRainGraphData());
 								break;
 							case "sunhours.json":
-								await writer.WriteAsync(Station.GetSunHoursGraphData());
+								await writer.WriteAsync(Station.GetSunHoursGraphData(true));
 								break;
 							case "dailytemp.json":
-								await writer.WriteAsync(Station.GetDailyTempGraphData());
+								await writer.WriteAsync(Station.GetDailyTempGraphData(true));
 								break;
 							case "units.json":
 								await writer.WriteAsync(Station.GetUnits());
 								break;
 							case "graphconfig.json":
-								await writer.WriteAsync(Station.GetGraphConfig());
+								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							case "airqualitydata.json":
-								await writer.WriteAsync(Station.GetAqGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetAqGraphData(false));
 								break;
 							case "extratemp.json":
-								await writer.WriteAsync(Station.GetExtraTempGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetExtraTempGraphData(false, true));
 								break;
 							case "extrahum.json":
-								await writer.WriteAsync(Station.GetExtraHumGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetExtraHumGraphData(false, true));
 								break;
 							case "extradew.json":
-								await writer.WriteAsync(Station.GetExtraDewpointGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetExtraDewPointGraphData(false, true));
 								break;
 							case "soiltemp.json":
-								await writer.WriteAsync(Station.GetSoilTempGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetSoilTempGraphData(false, true));
 								break;
 							case "soilmoist.json":
-								await writer.WriteAsync(Station.GetSoilMoistGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true));
 								break;
 							case "usertemp.json":
-								await writer.WriteAsync(Station.GetUserTempGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetUserTempGraphData(false, true));
 								break;
 							case "co2sensor.json":
-								await writer.WriteAsync(Station.GetCo2SensorGraphData(DateTime.Now));
+								await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true));
 								break;
 							case "availabledata.json":
-								await writer.WriteAsync(Station.GetAvailGraphData());
+								await writer.WriteAsync(Station.GetAvailGraphData(true));
 								break;
 							case "selectachart.json":
 								await writer.WriteAsync(Station.GetSelectaChartOptions());
@@ -516,7 +518,7 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "tempdata.json":
-								await writer.WriteAsync(Station.GetAllDailyTempGraphData());
+								await writer.WriteAsync(Station.GetAllDailyTempGraphData(true));
 								break;
 							case "winddata.json":
 								await writer.WriteAsync(Station.GetAllDailyWindGraphData());
@@ -534,19 +536,19 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetAllDailyHumGraphData());
 								break;
 							case "solardata.json":
-								await writer.WriteAsync(Station.GetAllDailySolarGraphData());
+								await writer.WriteAsync(Station.GetAllDailySolarGraphData(true));
 								break;
 							case "degdaydata.json":
-								await writer.WriteAsync(Station.GetAllDegreeDaysGraphData());
+								await writer.WriteAsync(Station.GetAllDegreeDaysGraphData(true));
 								break;
 							case "tempsumdata.json":
-								await writer.WriteAsync(Station.GetAllTempSumGraphData());
+								await writer.WriteAsync(Station.GetAllTempSumGraphData(true));
 								break;
 							case "units.json":
 								await writer.WriteAsync(Station.GetUnits());
 								break;
 							case "graphconfig.json":
-								await writer.WriteAsync(Station.GetGraphConfig());
+								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -952,17 +954,11 @@ namespace CumulusMX
 							case "soilmoisture.json":
 								await writer.WriteAsync(Station.GetSoilMoisture());
 								break;
-							case "leaf.json":
-								await writer.WriteAsync(Station.GetLeaf());
-								break;
-							case "leaf4.json":
-								await writer.WriteAsync(Station.GetLeaf4());
-								break;
 							case "leaf8.json":
-								await writer.WriteAsync(Station.GetLeaf8());
+								await writer.WriteAsync(Station.GetLeaf8(true));
 								break;
 							case "airqual.json":
-								await writer.WriteAsync(Station.GetAirQuality());
+								await writer.WriteAsync(Station.GetAirQuality(true));
 								break;
 							case "lightning.json":
 								await writer.WriteAsync(Station.GetLightning());
@@ -991,7 +987,7 @@ namespace CumulusMX
 								break;
 
 							case "co2sensor.json":
-								await writer.WriteAsync(Station.GetCO2sensor());
+								await writer.WriteAsync(Station.GetCO2sensor(true));
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1068,6 +1064,9 @@ namespace CumulusMX
 							case "calibrationdata.json":
 								await writer.WriteAsync(calibrationSettings.GetAlpacaFormData());
 								break;
+							case "langdata.json":
+								await writer.WriteAsync(langSettings.GetAlpacaFormData());
+								break;
 							case "noaadata.json":
 								await writer.WriteAsync(noaaSettings.GetAlpacaFormData());
 								break;
@@ -1090,11 +1089,18 @@ namespace CumulusMX
 								Response.ContentType = "text/plain";
 								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
 								break;
+							case "csvseparator.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
+								break;
 							case "customlogsintvl.json":
 								await writer.WriteAsync(customLogs.GetAlpacaFormDataIntvl());
 								break;
 							case "customlogsdaily.json":
 								await writer.WriteAsync(customLogs.GetAlpacaFormDataDaily());
+								break;
+							case "displayoptions.json":
+								await writer.WriteAsync(displaySettings.GetAlpacaFormData());
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1180,6 +1186,12 @@ namespace CumulusMX
 							case "updatecustomlogsdaily.json":
 								await writer.WriteAsync(customLogs.UpdateConfigDaily(HttpContext));
 								break;
+							case "updatedisplay.json":
+								await writer.WriteAsync(displaySettings.UpdateConfig(HttpContext));
+								break;
+							case "updatelanguage.json":
+								await writer.WriteAsync(langSettings.UpdateConfig(HttpContext));
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -1200,7 +1212,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/reports/{req}")]
 			public async Task GetData(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
+				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1248,7 +1260,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/genreports/{req}")]
 			public async Task GenReports(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus);
+				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1478,7 +1490,7 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "ftpnow.json":
-								await writer.WriteAsync(stationSettings.FtpNow(HttpContext));
+								await writer.WriteAsync(stationSettings.UploadNow(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;

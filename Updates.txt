@@ -1,3 +1,60 @@
+3.24.0 - b3231
+——————————————
+New
+- Strings.ini is now created and used by all instances, it has also added to the backup routine
+- Adds customisable graph data series colours to the dashboard and default web site
+- Two new web tags for signed string values of pressure and temperature trends
+	<#presstrendsigned>
+	<#temptrendsigned>
+- A new web tag for the station pressure (the absolute pressure reading) <#stationpressure>
+- The data visibility has been changed from a simple off/on to a tri-state. You can now select between Off|Visible|Dashboard Only
+	- Visible means the data will be shown on both the local dash and the default web site
+	- Dashboard Only means the data can only be viewed on the CMX local interface.
+		You may wish to use this to hide sensitive data like indoor temperatures on the public web site which can indicate if you are home or not
+	- Any data previous flagged as Visible, will migrate to the new Visible state
+- Extra Sensor graph data can now be sent to the default web site
+- You can now send an additional four extra temperature readings to Weather Underground
+- New PHP upload alternative to FTP/SFTP
+	- This uses a secure PHP script on your web server to upload the data rather than using an FTP service
+	- The graph recent data files are sent incrementally using this mechanism, cutting bandwidth usage
+		- On starting CMX a full copy of each data file is sent
+		- Thereafter only the new data for the interval is sent, and the PHP upload script appends this to the existing file, and trims out old data
+- The generation of local copies of the data files is now optional
+	- You can deselect the "Generate" option if you do not require a file to be written to the CMX folders. This will reduce disk I/O, a concern for rPi users with SD cards
+- Adds the HighCharts accessibility module to all charts with the default basic settings. See:- https://www.highcharts.com/accessibility/
+- Adds the simplified NOAA cooling/heating day calculation to the NOAA reports settings
+- Cumulus MX will now run as a 64 bit application on 64 bit operating systems
+- You can now use the Ecowitt WS90 haptic rain sensor for "Is Raining" if you are using a tipping bucket sensor as the primary rain sensor
+	- See Station Options > Common Options
+
+Changed
+- Some entry errors in the settings screen used to output a invalid pattern and regex message. They now output an English language message
+- The Dashboard page can now shows times in your locale format (12/24 hour) - See Program Settings|General Options
+- Moved the existing Graph and Display settings from Station Settings to a new Display Settings page
+- Custom Logs settings screen now shows examples with the correct CSV separator for the CMX locale
+- Tempest station now forces the UDP listening port to be opened in shared mode
+- The "Stop second instance" option has been rewritten. It now only prevents two instances *using the same port* from running
+	- This change means for it to work ALL running instances must be v3.24.0 or later
+- Alarm email sends are now retried twice on failure
+
+Fixed
+- Adds missing Wind Chill from the historic graphs on the dashboard and default web site
+- Now ignores AirLink zero values when the percent in last hour is also zero. This occurs during a restart of AirLink
+- Third party custom rollover URLs overwriting custom minute values on save
+- The monthly data editors were not handing start/end dates of the first of the month correctly when using a 9am rollover
+- The <#altimeterpressure> web tag was defaulting to using 1 decimal place for all units
+- Dashboard menu wrapping
+- Davis VP2/Vue LOOP2 absolute pressure values < 20 inHg are now ignored. Altimeter pressure is set to sea level pressure, station pressure = 0
+- Extra temp/hum/dewpoint not being saved for sensor #10
+- Ecowitt Local API failing to reconnect after network outage
+
+Removed
+- Local API calls:
+	/api/extra/leaf.json
+	/api/extra/leaf4.json
+- Redundant web tags <#leaftemp[1-4]>
+
+
 3.23.1 - b3221
 ——————————————
 New
@@ -9,7 +66,7 @@ Changed
 	- There is now a new Advanced setting for the WLL: Trigger DataStopped on Broadcast stop
 		Previously if broadcasts stopped being received, a full DataStopped condition and alarm was triggered
 		Now CMX falls back to using the local API for all data
-		This new configuration setting allows you set the DataStopped only when both broadcasts AND local API responses stop being received
+		This new configuration setting allows you to set the DataStopped only when both broadcasts AND local API responses stop being received
 
 Fixed
 - Extra sensor graphs stopping at month end
@@ -17,8 +74,7 @@ Fixed
 - Davis WLL not updating the gust value if broadcast data stops being received
 - AWEKAS:
 	- Missing "&" on soil temperatures
-	- producing an exception message when it has already logged the response as invalid
-- Log file editor broken in v3.23.0
+	- Producing an exception message when it has already logged the response as invalid
 
 
 3.23.0 - b3220
@@ -270,15 +326,18 @@ Removed
 
 3.18.0 - b3190
 ——————————————
-- Fix: Adds Ecowitt Wh40 battery state decode
-- Fix: Increase the sensitivity of the rain counter reset and make it "unit aware"
+Fixed
+- Adds Ecowitt Wh40 battery state decode
+- Increase the sensitivity of the rain counter reset and make it "unit aware"
 
-- Change: Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
-- Change: Weather Diary editor changed to improve accessibility of the Date Picker
-- Change: Records editors changed to improve accessibility, they now also use pop-up editors
-- Change: Records editors now have the ability to click on the values/timestamps of the log files and have them copied to the record value/timestamp
+Changed
+- Lots of third party libraries updated to the latest versions. This should improve SFTP and FTPS connectivity amongst other things
+- Weather Diary editor changed to improve accessibility of the Date Picker
+- Records editors changed to improve accessibility, they now also use pop-up editors
+- Records editors now have the ability to click on the values/timestamps of the log files and have them copied to the record value/timestamp
 
-- New: Additional web tags for today and yesterday high and low temperatures using a midnight rollover. Obviously if you use a midnight rollover
+New
+- Additional web tags for today and yesterday high and low temperatures using a midnight rollover. Obviously if you use a midnight rollover
   for your met day then these tags will return the same values as the existing hi/lo temp web tags.
 	<#tempMidnightTH>, <#TtempMidnightTH>, <#tempMidnightTL>, <#TtempMidnightTL>
 	<#tempMidnightYH>, <#TtempMidnightYH>, <#tempMidnightYL>, <#TtempMidnightYL>

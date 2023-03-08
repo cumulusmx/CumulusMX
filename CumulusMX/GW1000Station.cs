@@ -28,7 +28,7 @@ namespace CumulusMX
 
 		private int maxArchiveRuns = 1;
 
-		private bool connectedOk = false;
+		//private bool connectedOk = false;
 		private bool dataReceived = false;
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
@@ -144,13 +144,13 @@ namespace CumulusMX
 
 					while (!cancellationToken.IsCancellationRequested)
 					{
-						if (connectedOk)
+						if (Api.Connected)
 						{
 							GetLiveData();
 							dataLastRead = DateTime.Now;
 
 							// every 30 seconds read the rain rate
-							if (cumulus.Gw1000PrimaryRainSensor == 1 && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cancellationToken.IsCancellationRequested)
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cancellationToken.IsCancellationRequested)
 							{
 								GetPiezoRainData();
 								piezoLastRead = DateTime.Now;
@@ -177,8 +177,8 @@ namespace CumulusMX
 						else
 						{
 							cumulus.LogMessage("Attempting to reconnect to Ecowitt device...");
-							connectedOk = Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
-							if (connectedOk)
+							Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
+							if (Api.Connected)
 							{
 								cumulus.LogMessage("Reconnected to Ecowitt device");
 								GetLiveData();
@@ -493,9 +493,9 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Using IP address = " + ipaddr + " Port = " + AtPort);
 
-			connectedOk = Api.OpenTcpPort(ipaddr, AtPort);
+			Api.OpenTcpPort(ipaddr, AtPort);
 
-			if (connectedOk)
+			if (Api.Connected)
 			{
 				cumulus.LogMessage("Connected OK");
 				cumulus.LogConsoleMessage("Connected to station", ConsoleColor.White, true);
@@ -506,7 +506,7 @@ namespace CumulusMX
 				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red, true);
 			}
 
-			if (connectedOk)
+			if (Api.Connected)
 			{
 				// Get the firmware version as check we are communicating
 				GW1000FirmwareVersion = GetFirmwareVersion();
@@ -1411,7 +1411,7 @@ namespace CumulusMX
 			// - data(4)
 			// 0D = rain event
 			// - data(2)
-			// 0F = rain hour
+			// 0F = rain gain
 			// - data(2)
 			// 80 = piezo rain rate
 			// - data(2)
@@ -1430,6 +1430,8 @@ namespace CumulusMX
 			// 88 = rain reset time (hr, day [sun-0], month [jan=0])
 			// - data(3)
 			// 7A = primary rain selection (0=No sensor, 1=Tipper, 2=Piezo)
+			// - data(1)
+			// 7B = solar gain compensation
 			// - data(1)
 			// 85 - checksum
 
@@ -1462,7 +1464,7 @@ namespace CumulusMX
 						// all the two byte values we are ignoring
 						case 0x0E: // rain rate
 						case 0x0D: // rain event
-						case 0x0F: // rain hour
+						case 0x0F: // rain gain
 						case 0x81: // piezo rain event
 							idx += 2;
 							break;
@@ -1477,11 +1479,20 @@ namespace CumulusMX
 							idx += 4;
 							break;
 						case 0x80: // piezo rain rate
-							rRate = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+							if (cumulus.StationOptions.UseRainForIsRaining == 2 && cumulus.Gw1000PrimaryRainSensor != 1)
+							{
+								IsRaining = GW1000Api.ConvertBigEndianUInt16(data, idx) > 0;
+								cumulus.IsRainingAlarm.Triggered = IsRaining;
+							}
+							else
+							{
+								rRate = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+							}
 							idx += 2;
 							break;
 						case 0x86: // piezo rain year
-							rain = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
+							if (cumulus.Gw1000PrimaryRainSensor == 1)
+								rain = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
 							idx += 4;
 							break;
 						case 0x87: // piezo gain 0-9
@@ -1498,14 +1509,20 @@ namespace CumulusMX
 							var sensor = data[idx++];
 #if DEBUG
 							if (sensor == 0)
-								cumulus.LogDebugMessage("No rain sensor available");
+								cumulus.LogDebugMessage("GetPiezoRainData: No rain sensor available");
 							else if (sensor == 1)
-								cumulus.LogDebugMessage("Traditional rain sensor selected");
+								cumulus.LogDebugMessage("GetPiezoRainData: Traditional rain sensor selected");
 							else if (sensor == 2)
-								cumulus.LogDebugMessage("Piezo rain sensor selected");
+								cumulus.LogDebugMessage("GetPiezoRainData: Piezo rain sensor selected");
 							else
-								cumulus.LogDebugMessage("Unkown rain sensor selection value = " + sensor);
+								cumulus.LogDebugMessage("GetPiezoRainData: Unkown rain sensor selection value = " + sensor);
 #endif
+							break;
+						case 0x7B: // Solar gain compensation
+#if DEBUG
+							cumulus.LogDebugMessage($"GetPiezoRainData: Solar gain compensation = {(data[idx] == '0' ? "disabled" : "enabled")}");
+#endif
+							idx += 1;
 							break;
 						default:
 							cumulus.LogDebugMessage($"GetPiezoRainData: Error: Unknown value type found = {data[idx - 1]}, at position = {idx - 1}");
@@ -1516,16 +1533,19 @@ namespace CumulusMX
 
 				} while (idx < size);
 
-				if (rRate.HasValue && rain.HasValue)
+				if (cumulus.Gw1000PrimaryRainSensor == 1)
 				{
+					if (rRate.HasValue && rain.HasValue)
+					{
 #if DEBUG
-					cumulus.LogDebugMessage($"GetPiezoRainData: Rain Year: {rain:f1} mm, Rate: {rRate:f1} mm/hr");
+						cumulus.LogDebugMessage($"GetPiezoRainData: Rain Year: {rain:f1} mm, Rate: {rRate:f1} mm/hr");
 #endif
-					DoRain(ConvertRainMMToUser(rain.Value), ConvertRainMMToUser(rRate.Value), DateTime.Now);
-				}
-				else
-				{
-					cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
+						DoRain(ConvertRainMMToUser(rain.Value), ConvertRainMMToUser(rRate.Value), DateTime.Now);
+					}
+					else
+					{
+						cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
+					}
 				}
 			}
 			catch (Exception ex)

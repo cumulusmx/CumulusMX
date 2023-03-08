@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -12,11 +13,9 @@ namespace CumulusMX
 	internal class GW1000Api
 	{
 		private readonly Cumulus cumulus;
-		private NetworkStream stream;
 		private TcpClient socket;
 		private string ipAddress = null;
-		private int tcpPort =	0;
-		private bool connected = false;
+		private int tcpPort = 0;
 		private bool connecting = false;
 
 		internal GW1000Api(Cumulus cuml)
@@ -45,6 +44,8 @@ namespace CumulusMX
 
 					if (!socket.Connected)
 					{
+						cumulus.LogDebugMessage("Error: Ecowitt Gateway Connect attempt " + attempt + " FAILED");
+
 						try
 						{
 							socket.Close();
@@ -53,14 +54,15 @@ namespace CumulusMX
 						catch
 						{ }
 						socket = null;
+						Thread.Sleep(5000 * attempt);
 					}
 
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogMessage("Error opening TCP port: " + ex.Message);
+					Thread.Sleep(5000 * attempt);
 				}
-				Thread.Sleep(5000);
 			}
 
 			// Set the timeout of the underlying stream
@@ -68,18 +70,22 @@ namespace CumulusMX
 			{
 				try
 				{
-					stream = socket.GetStream();
-					stream.ReadTimeout = 2500;
-					cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
-					connecting = false;
+					if (socket.Connected)
+					{
+						cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
+						connecting = false;
+					}
+					else
+					{
+						cumulus.LogDebugMessage("Ecowitt Gateway failed to reconnect");
+					}
 
-					connected = true;
 				}
 				catch (ObjectDisposedException)
 				{
 					socket = null;
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					cumulus.LogMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
 				}
@@ -109,31 +115,27 @@ namespace CumulusMX
 			}
 			catch (ObjectDisposedException)
 			{
-				socket = null;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("Error closing TCP port: " + ex.Message);
+			}
+			finally
+			{
 				socket = null;
 			}
-			connected = false;
-		}
-
-		internal bool ReOpenTcpPort()
-		{
-			return OpenTcpPort(ipAddress, tcpPort);
 		}
 
 		internal byte[] DoCommand(Commands command, byte[] data = null)
 		{
-			if (!connected)
+			if (!Connected)
 			{
 				// Are we already reconnecting?
 				if (connecting)
 					// yep - so wait reconnect to complete
 					return null;
 				// no, try a reconnect
-				else if (!ReOpenTcpPort())
+				else if (!OpenTcpPort(ipAddress, tcpPort))
 					// that didn;t work, give up and return nothing
 					return null;
 			}
@@ -146,52 +148,31 @@ namespace CumulusMX
 			if (data == null)
 			{
 				var payload = new CommandPayload(command);
-				bytes = payload.Serialise();
+				bytes = payload.Data;
 			}
 			else
 			{
 				var payload = new CommandWritePayload(command, data);
-				bytes = payload.Serialise();
+				bytes = payload.Data;
 			}
 
 			var tmrComm = new WeatherStation.CommTimer();
 
 			try
 			{
+				var stream = socket.GetStream();
+				stream.ReadTimeout = 2500;
 				stream.Write(bytes, 0, bytes.Length);
 
-				tmrComm.Start(3000);
-
-				while (tmrComm.timedout == false)
-				{
-					if (stream.DataAvailable)
-					{
-						while (stream.DataAvailable)
-						{
-							// Read the current character
-							var ch = stream.ReadByte();
-							if (ch > -1)
-							{
-								buffer[bytesRead] = (byte)ch;
-								bytesRead++;
-								//cumulus.LogMessage("Received " + ch.ToString("X2"));
-							}
-						}
-						tmrComm.Stop();
-					}
-					else
-					{
-						Task.Delay(20).Wait();
-					}
-				}
+				bytesRead = stream.Read(buffer, 0, buffer.Length);
 
 				// Check the response is to our command and checksum is OK
-				if (bytesRead == 0 || buffer[2] != (byte)command || !ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)))
+				if (bytesRead == 0 || buffer[2] != (byte) command || !ChecksumOk(buffer, (int) Enum.Parse(typeof(CommandRespSize), cmdName)))
 				{
 					if (bytesRead > 0)
 					{
 						cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
-						cumulus.LogDebugMessage($"command resp={buffer[2]}, checksum=" + (ChecksumOk(buffer, (int)Enum.Parse(typeof(CommandRespSize), cmdName)) ? "OK" : "BAD"));
+						cumulus.LogDebugMessage($"command resp={buffer[2]}, checksum=" + (ChecksumOk(buffer, (int) Enum.Parse(typeof(CommandRespSize), cmdName)) ? "OK" : "BAD"));
 						cumulus.LogDataMessage("Received " + BitConverter.ToString(buffer, 0, bytesRead - 1));
 					}
 					else
@@ -210,7 +191,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"DoCommand({cmdName}): Error - " + ex.Message);
 				cumulus.LogMessage("Attempting to reopen the TCP port");
 				Thread.Sleep(1000);
-				ReOpenTcpPort();
+				OpenTcpPort(ipAddress, tcpPort);
 				return null;
 			}
 			// Return the data we want out of the buffer
@@ -254,7 +235,7 @@ namespace CumulusMX
 				return false;
 			}
 
-			byte checksum = (byte)(data[2] + data[3]);
+			byte checksum = (byte) (data[2] + data[3]);
 			for (var i = 4; i <= size; i++)
 			{
 				checksum += data[i];
@@ -269,6 +250,33 @@ namespace CumulusMX
 			return true;
 		}
 
+
+		public bool Connected
+		{
+			get
+			{
+				if (socket == null)
+				{
+					return false;
+				}
+				else
+				{
+					try
+					{
+						return socket.Connected;
+					}
+					catch (ObjectDisposedException)
+					{
+						return false;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogDebugMessage("Error getting TCPClient connected status: " + ex.Message);
+						return false;
+					}
+				}
+			}
+		}
 
 		internal enum Commands : byte
 		{
@@ -376,7 +384,7 @@ namespace CumulusMX
 			Wh25,           // 4 04
 			Wh26,           // 5 05
 			Wh31Ch1,        // 6 06
-			Wh31Ch2,        // 7 07 
+			Wh31Ch2,        // 7 07
 			Wh31Ch3,        // 8 08
 			Wh31Ch4,        // 9 09
 			Wh31Ch5,        // 10 0A
@@ -561,87 +569,45 @@ namespace CumulusMX
 		*/
 
 
-
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 		private struct CommandPayload
 		{
-			private readonly ushort Header;
-			private readonly byte Command;
-			private readonly byte Size;
-			private readonly byte Checksum;
+			public readonly byte[] Data;
 
 			public CommandPayload(Commands command) : this()
 			{
-				//ushort header;
-				Header = 0xffff;
-				Command = (byte)command;
-				Size = (byte)(Marshal.SizeOf(typeof(CommandPayload)) - 3);
-				Checksum = (byte)(Command + Size);
+				// header, header, command, size, checksum
+				Data = new byte[] { 0xff, 0xff, (byte) command, 3, (byte) (command + 3) };
 			}
-			// This will be serialised in little endian format
 			public byte[] Serialise()
 			{
 				// allocate a byte array for the struct data
-				var buffer = new byte[Marshal.SizeOf(typeof(CommandPayload)) - 1];
-
-				// Allocate a GCHandle and get the array pointer
-				var gch = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-				var pBuffer = gch.AddrOfPinnedObject();
-
-				// copy data from struct to array and unpin the gc pointer
-				Marshal.StructureToPtr(this, pBuffer, false);
-				gch.Free();
-
-				return buffer;
+				return Data;
 			}
 		}
 
 
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 		private struct CommandWritePayload
 		{
-			private readonly ushort Header;
-			private readonly byte Command;
-			private readonly byte Size;
 			public byte[] Data;
-			private readonly byte Checksum;
 
 			public CommandWritePayload(Commands command, byte[] data) : this()
 			{
-				//ushort header;
-				Header = 0xffff;
-				Command = (byte)command;
-				if (data != null)
-				{
-				}
-				Data = data;
-				Size = (byte)(3 + data.Length);
-				Checksum = (byte)(Command + Size);
+				// header, header, command, size, data[], checksum
+
+				Data = new byte[5 + data.Length];
+
+				Data[0] = (byte) 0xff;
+				Data[1] = (byte) 0xff;
+				Data[2] = (byte) command;
+				Data[3] = (byte) (3 + data.Length);
+				data.CopyTo(Data, 4);
+
+				var Checksum = (byte)(command + Data[3]);
 				for (int i = 0; i < data.Length; i++)
 				{
 					Checksum += data[i];
 				}
-			}
-			// This will be serialised in little endian format
-			public byte[] Serialise()
-			{
-				// allocate a byte array for the struct data
-				// fixed size = header=2, command=1, size=1, checksum=1 = 5
-				// plus the data size
-				var totalSize = 5 + Data.Length;
-				var buffer = new byte[totalSize];
-
-				buffer[0] = 0xff;
-				buffer[1] = 0xff;
-				buffer[2] = Command;
-				buffer[3] = (byte)Size;
-				for (int i = 0; i < Data.Length; i++)
-				{
-					buffer[4 + i] = Data[i];
-				}
-				buffer[4 + Data.Length] = Checksum;
-
-				return buffer;
+				Data[Data.Length - 1] = Checksum;
 			}
 		}
 

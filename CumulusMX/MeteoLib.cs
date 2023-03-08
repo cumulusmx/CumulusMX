@@ -462,5 +462,55 @@ namespace CumulusMX
 
 			return et0;
 		}
+
+		/// <summary>
+		/// Calculates the Davis version (almost) of Evapotranspiration
+		/// </summary>
+		/// <returns>ET for past hour in mm</returns>
+		/*
+		public static double CalulateEvapotranspiration(DateTime ts)
+		{
+			var onehourago = ts.AddHours(-1);
+
+			// Mean temperature in Fahrenheit
+			var result = RecentDataDb.Query<AvgData>("select avg(OutsideTemp) temp, avg(WindSpeed) wind, avg(SolarRad) solar, avg(Humidity) hum from RecentData where Timestamp >= ?", onehourago);
+
+			var meanTempC = ConvertUserTempToC(result[0].temp);
+			var meanTempK = meanTempC + 273.16;
+			var meanWind = ConvertUserWindToMS(result[0].wind);
+			var meanHum = result[0].hum;
+			var meanSolar = result[0].solar;
+			var pressure = ConvertUserPressToMB(AltimeterPressure) / 100;  // need kPa
+
+			var satVapPress = SaturationVapourPressure2008(meanTempC);
+			var waterVapour = satVapPress * meanHum / 100;
+
+			var delta = satVapPress / meanTempK * ((6790.4985 / meanTempK) - 5.02808);
+
+			var gamma = 0.000646 * (1 + 0.000946 * meanTempC) * pressure;
+
+			var weighting = delta / (delta + gamma);
+
+			double windFunc;
+			if (meanSolar > 0)
+				windFunc = 0.030 + 0.0576 * meanWind;
+			else
+				windFunc = 0.125 + 0.0439 * meanWind;
+
+			var lambda = 69.5 * (1 - 0.000946 * meanTempC);
+
+			//TODO: Need to calculate the net radiation rather than use meanSolar - need mean theoretical solar value for this
+			var meanSolarMax = 0.0; //TODO
+
+			// clear sky - meanSolar/meanSolarMax >= 1, c <= 1, solar elevation > 10 deg
+			var clearSky = (1.333 - 1.333 * meanSolar / meanSolarMax);
+
+			var netSolar = 0.0; //TODO
+
+			var ET = weighting * netSolar / lambda + (1 - weighting) * (satVapPress - waterVapour) * windFunc;
+
+			return ET;
+		}
+		*/
 	}
 }

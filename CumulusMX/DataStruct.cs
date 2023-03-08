@@ -717,7 +717,7 @@ namespace CumulusMX
 		[DataMember(Name = "TempTrend")]
 		public string TempTrendRounded
 		{
-			get => TempTrend.ToString("+0.0;-0.0;0.0");
+			get => TempTrend.ToString(cumulus.TempTrendFormat);
 			set { }
 		}
 
@@ -727,11 +727,7 @@ namespace CumulusMX
 		[DataMember(Name = "PressTrend")]
 		public string PressTrendRounded
 		{
-			get {
-				var dps = new string('0', cumulus.PressDPlaces);
-				var format = $"+0.{dps};-0.{dps};0.{dps}";
-				return PressTrend.ToString(format);
-			}
+			get => PressTrend.ToString(cumulus.PressTrendFormat);
 			set { }
 		}
 

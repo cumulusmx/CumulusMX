@@ -5,6 +5,15 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Swan;
+using Renci.SshNet.Messages;
+using System.Security.Cryptography;
+using ServiceStack;
+using System.IO;
+using System.Text;
+using static SQLite.SQLite3;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using ServiceStack.Text;
 
 // A rag tag of useful functions
 
@@ -14,14 +23,33 @@ namespace CumulusMX
 	{
 		public static DateTime FromUnixTime(long unixTime)
 		{
-			// WWL uses UTC ticks, convert to local time
+			// Cconvert Unix TS seconds to local time
 			var utcTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTime);
 			return utcTime.ToLocalTime();
 		}
 
-		public static int ToUnixTime(DateTime dateTime)
+		public static long ToUnixTime(DateTime dateTime)
 		{
-			return (int)dateTime.ToUniversalTime().ToUnixEpochDate();
+			return (long) dateTime.ToUnixEpochDate();
+		}
+
+		public static long ToJsTime(DateTime dateTime)
+		{
+			return (long) dateTime.ToUnixEpochDate() * 1000;
+		}
+
+		// SPECIAL Unix TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
+		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
+		public static long ToPseudoUnixTime(DateTime timestamp)
+		{
+			return (long) DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate();
+		}
+
+		// SPECIAL JS TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
+		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
+		public static long ToPseudoJSTime(DateTime timestamp)
+		{
+			return (long) DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate() * 1000;
 		}
 
 
@@ -51,6 +79,23 @@ namespace CumulusMX
 		public static string GetMd5String(string str)
 		{
 			return GetMd5String(System.Text.Encoding.ASCII.GetBytes(str));
+		}
+
+		public static string GetSHA256Hash(string key, string data)
+		{
+			byte[] hashValue;
+			// Initialize the keyed hash object.
+			using (HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes()))
+			{
+				// convert string to stream
+				byte[] byteArray = Encoding.UTF8.GetBytes(data);
+				using (MemoryStream stream = new MemoryStream(byteArray))
+				{
+					// Compute the hash of the input string.
+					hashValue = hmac.ComputeHash(stream);
+				}
+				return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
+			}
 		}
 
 		public static bool ValidateIPv4(string ipString)
@@ -193,6 +238,51 @@ namespace CumulusMX
 				if (b1[i] != b2[i]) return false;
 			}
 			return true;
+		}
+
+		public static Exception GetOriginalException(Exception ex)
+		{
+			while (ex.InnerException != null)
+			{
+				ex = ex.InnerException;
+			}
+
+			return ex;
+		}
+
+		public static async Task<string> ReadAllTextAsync(string path, Encoding encoding)
+		{
+			const int DefaultBufferSize = 4096;
+			const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
+
+			var text = string.Empty;
+
+			// Open the FileStream with the same FileMode, FileAccess
+			// and FileShare as a call to File.OpenText would've done.
+			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions))
+			using (var reader = new StreamReader(stream, encoding))
+			{
+				text = await reader.ReadToEndAsync();
+			}
+
+			return text;
+		}
+
+		public static async Task<Byte[]> ReadAllBytesAsync(string path)
+		{
+			const int DefaultBufferSize = 4096;
+			const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
+
+			Byte[] data;
+
+			// Open the FileStream with the same FileMode, FileAccess
+			// and FileShare as a call to File.OpenText would've done.
+			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions))
+			{
+				data = await stream.ReadFullyAsync();
+			}
+
+			return data;
 		}
 	}
 }
