@@ -62,13 +62,13 @@ namespace CumulusMX
 			var options = new JsonProgramSettingsGeneralOptions()
 			{
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
-				listwebtags = cumulus.ProgramOptions.ListWebTags,
-				timeFormat = cumulus.ProgramOptions.TimeFormat
+				listwebtags = cumulus.ProgramOptions.ListWebTags
 			};
 
 			var culture = new JsonProgramSettingsCultureOptions()
 			{
-				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator
+				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator,
+				timeFormat = cumulus.ProgramOptions.TimeFormat
 			};
 
 			var settings = new JsonProgramSettings()
@@ -140,7 +140,7 @@ namespace CumulusMX
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
-				cumulus.ProgramOptions.TimeFormat = settings.options.timeFormat;
+				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
 
 
@@ -227,11 +227,11 @@ namespace CumulusMX
 	{
 		public bool stopsecondinstance { get; set; }
 		public bool listwebtags { get; set; }
-		public string timeFormat { get; set; }
 	}
 	public class JsonProgramSettingsCultureOptions
 	{
 		public bool removespacefromdateseparator { get; set; }
+		public string timeFormat { get; set; }
 	}
 	public class JsonProgramSettingsShutdownOptions
 	{
