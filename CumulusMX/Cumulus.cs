@@ -4039,8 +4039,11 @@ namespace CumulusMX
 				CultureInfo.DefaultThreadCurrentCulture = newCulture;
 			}
 
+			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
+
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
+
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
 			{
@@ -5617,11 +5620,13 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "DataStoppedExit", ProgramOptions.DataStoppedExit);
 			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
+			ini.SetValue("Program", "TimeFormat", ProgramOptions.TimeFormat);
 
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
+
 
 
 			ini.SetValue("Station", "Type", StationType);
@@ -12256,6 +12261,7 @@ namespace CumulusMX
 		public CultureConfig Culture { get; set; }
 		public bool DataStoppedExit { get; set; }
 		public int DataStoppedMins { get; set; }
+		public string TimeFormat { get; set; }
 	}
 
 	public class CultureConfig

@@ -62,7 +62,8 @@ namespace CumulusMX
 			var options = new JsonProgramSettingsGeneralOptions()
 			{
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
-				listwebtags = cumulus.ProgramOptions.ListWebTags
+				listwebtags = cumulus.ProgramOptions.ListWebTags,
+				timeFormat = cumulus.ProgramOptions.TimeFormat
 			};
 
 			var culture = new JsonProgramSettingsCultureOptions()
@@ -139,7 +140,9 @@ namespace CumulusMX
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
+				cumulus.ProgramOptions.TimeFormat = settings.options.timeFormat;
 				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
+
 
 				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 				{
@@ -224,6 +227,7 @@ namespace CumulusMX
 	{
 		public bool stopsecondinstance { get; set; }
 		public bool listwebtags { get; set; }
+		public string timeFormat { get; set; }
 	}
 	public class JsonProgramSettingsCultureOptions
 	{

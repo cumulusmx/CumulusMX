@@ -1549,7 +1549,7 @@ namespace CumulusMX
 			webSocketSemaphore.Release();
 		}
 
-		private string getTimeString(DateTime time)
+		private string getTimeString(DateTime time, string format = "HH:mm")
 		{
 			if (time <= DateTime.MinValue)
 			{
@@ -1557,11 +1557,11 @@ namespace CumulusMX
 			}
 			else
 			{
-				return time.ToString("HH:mm");
+				return time.ToString(format);
 			}
 		}
 
-		private string getTimeString(TimeSpan timespan)
+		private string getTimeString(TimeSpan timespan, string format = "HH:mm")
 		{
 			try
 			{
@@ -1572,7 +1572,7 @@ namespace CumulusMX
 
 				DateTime dt = DateTime.MinValue.Add(timespan);
 
-				return getTimeString(dt);
+				return getTimeString(dt, format);
 			}
 			catch (Exception e)
 			{
@@ -11360,21 +11360,21 @@ namespace CumulusMX
 			json.Append("[\"High Temperature\",\"");
 			json.Append(HiLoToday.HighTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighTempTime.ToShortTimeString());
+			json.Append(HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighTempTime.ToShortTimeString());
+			json.Append(HiLoYest.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Temperature\",\"");
 			json.Append(HiLoToday.LowTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowTempTime.ToShortTimeString());
+			json.Append(HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowTempTime.ToShortTimeString());
+			json.Append(HiLoYest.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Temperature Range\",\"");
@@ -11397,110 +11397,90 @@ namespace CumulusMX
 			json.Append("[\"High Apparent Temperature\",\"");
 			json.Append(HiLoToday.HighAppTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighAppTempTime.ToShortTimeString());
+			json.Append(HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighAppTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighAppTempTime.ToShortTimeString());
+			json.Append(HiLoYest.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Apparent Temperature\",\"");
 			json.Append(HiLoToday.LowAppTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowAppTempTime.ToShortTimeString());
+			json.Append(HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowAppTemp.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowAppTempTime.ToShortTimeString());
+			json.Append(HiLoYest.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Feels Like\",\"");
 			json.Append(HiLoToday.HighFeelsLike.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighFeelsLikeTime.ToShortTimeString());
+			json.Append(HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighFeelsLike.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighFeelsLikeTime.ToShortTimeString());
+			json.Append(HiLoYest.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Feels Like\",\"");
 			json.Append(HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowFeelsLikeTime.ToShortTimeString());
+			json.Append(HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowFeelsLike.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowFeelsLikeTime.ToShortTimeString());
+			json.Append(HiLoYest.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Humidex\",\"");
 			json.Append(HiLoToday.HighHumidex.ToString(cumulus.TempFormat));
 			json.Append("\",\"");
-			json.Append(HiLoToday.HighHumidexTime.ToShortTimeString());
+			json.Append(HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighHumidex.ToString(cumulus.TempFormat));
 			json.Append("\",\"");
-			json.Append(HiLoYest.HighHumidexTime.ToShortTimeString());
+			json.Append(HiLoYest.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 			json.Append("[\"High Dew Point\",\"");
 			json.Append(HiLoToday.HighDewPoint.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighDewPointTime.ToShortTimeString());
+			json.Append(HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighDewPoint.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighDewPointTime.ToShortTimeString());
+			json.Append(HiLoYest.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Dew Point\",\"");
 			json.Append(HiLoToday.LowDewPoint.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowDewPointTime.ToShortTimeString());
+			json.Append(HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowDewPoint.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowDewPointTime.ToShortTimeString());
+			json.Append(HiLoYest.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Wind Chill\",\"");
 			json.Append(HiLoToday.LowWindChill.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowWindChillTime.ToShortTimeString());
+			json.Append(HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowWindChill.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowWindChillTime.ToShortTimeString());
+			json.Append(HiLoYest.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Heat Index\",\"");
 			json.Append(HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighHeatIndexTime.ToShortTimeString());
+			json.Append(HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighHeatIndex.ToString(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighHeatIndexTime.ToShortTimeString());
-			json.Append(closeStr);
-
-			json.Append("[\"Low Wind Chill\",\"");
-			json.Append(HiLoToday.LowWindChill.ToString(cumulus.TempFormat));
-			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowWindChillTime.ToShortTimeString());
-			json.Append(sepStr);
-			json.Append(HiLoYest.LowWindChill.ToString(cumulus.TempFormat));
-			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowWindChillTime.ToShortTimeString());
-			json.Append(closeStr);
-
-			json.Append("[\"High Heat Index\",\"");
-			json.Append(HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat));
-			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighHeatIndexTime.ToShortTimeString());
-			json.Append(sepStr);
-			json.Append(HiLoYest.HighHeatIndex.ToString(cumulus.TempFormat));
-			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighHeatIndexTime.ToShortTimeString());
+			json.Append(HiLoYest.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -11516,21 +11496,21 @@ namespace CumulusMX
 			json.Append("[\"High Humidity\",\"");
 			json.Append(HiLoToday.HighHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoToday.HighHumidityTime.ToShortTimeString());
+			json.Append(HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoYest.HighHumidityTime.ToShortTimeString());
+			json.Append(HiLoYest.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Low Humidity\",\"");
 			json.Append(HiLoToday.LowHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoToday.LowHumidityTime.ToShortTimeString());
+			json.Append(HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoYest.LowHumidityTime.ToShortTimeString());
+			json.Append(HiLoYest.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -11559,36 +11539,36 @@ namespace CumulusMX
 			json.Append(HiLoToday.HighRainRate.ToString(cumulus.RainFormat));
 			json.Append(unitStr + "/hr");
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighRainRateTime.ToShortTimeString());
+			json.Append(HiLoToday.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighRainRate.ToString(cumulus.RainFormat));
 			json.Append(unitStr + "/hr");
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighRainRateTime.ToShortTimeString());
+			json.Append(HiLoYest.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"High Hourly Rain\",\"");
 			json.Append(HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighHourlyRainTime.ToShortTimeString());
+			json.Append(HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighHourlyRain.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHourlyRainTime.ToShortTimeString());
+			json.Append(HiLoYest.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"High 24 Hour Rain\",\"");
 			json.Append(HiLoToday.HighRain24h.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighRain24hTime.ToShortTimeString());
+			json.Append(HiLoToday.HighRain24hTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighRain24h.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighRain24hTime.ToShortTimeString());
+			json.Append(HiLoYest.HighRain24hTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 
@@ -11605,24 +11585,24 @@ namespace CumulusMX
 			json.Append(HiLoToday.HighGust.ToString(cumulus.WindFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighGustTime.ToShortTimeString());
+			json.Append(HiLoToday.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighGust.ToString(cumulus.WindFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighGustTime.ToShortTimeString());
+			json.Append(HiLoYest.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Highest Speed\",\"");
 			json.Append(HiLoToday.HighWind.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighWindTime.ToShortTimeString());
+			json.Append(HiLoToday.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighWind.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighWindTime.ToShortTimeString());
+			json.Append(HiLoYest.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Wind Run\",\"");
@@ -11663,24 +11643,24 @@ namespace CumulusMX
 			json.Append(HiLoToday.HighPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighPressTime.ToShortTimeString());
+			json.Append(HiLoToday.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighPressTime.ToShortTimeString());
+			json.Append(HiLoYest.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Low Pressure\",\"");
 			json.Append(HiLoToday.LowPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.LowPressTime.ToShortTimeString());
+			json.Append(HiLoToday.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.LowPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowPressTime.ToShortTimeString());
+			json.Append(HiLoYest.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -11696,12 +11676,12 @@ namespace CumulusMX
 			json.Append(HiLoToday.HighSolar.ToString("F0"));
 			json.Append("&nbsp;W/m2");
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighSolarTime.ToShortTimeString());
+			json.Append(HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighSolar.ToString("F0"));
 			json.Append("&nbsp;W/m2");
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighSolarTime.ToShortTimeString());
+			json.Append(HiLoYest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Hours of Sunshine\",\"");
@@ -13536,24 +13516,24 @@ namespace CumulusMX
 
 			var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
 				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
-				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString("t"), HiLoToday.HighWind,
+				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighWind,
 				HiLoToday.HighGustBearing, cumulus.Units.WindText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
-				HiLoToday.HighTempTime.ToString("t"), HiLoToday.LowTempTime.ToString("t"), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString("t"),
-				HiLoToday.LowPressTime.ToString("t"), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString("t"), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
-				HiLoToday.HighHumidityTime.ToString("t"), HiLoToday.LowHumidityTime.ToString("t"), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
-				HiLoToday.HighDewPoint, HiLoToday.LowDewPoint, HiLoToday.HighDewPointTime.ToString("t"), HiLoToday.LowDewPointTime.ToString("t"), HiLoToday.LowWindChill,
-				HiLoToday.LowWindChillTime.ToString("t"), (int)SolarRad, (int)HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString("t"), UV, HiLoToday.HighUv,
-				HiLoToday.HighUvTime.ToString("t"), forecaststr, getTimeString(cumulus.SunRiseTime), getTimeString(cumulus.SunSetTime),
-				getTimeString(cumulus.MoonRiseTime), getTimeString(cumulus.MoonSetTime), HiLoToday.HighHeatIndex, HiLoToday.HighHeatIndexTime.ToString("t"), HiLoToday.HighAppTemp,
-				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString("t"), HiLoToday.LowAppTempTime.ToString("t"), (int)Math.Round(CurrentSolarMax),
+				HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
+				HiLoToday.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
+				HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
+				HiLoToday.HighDewPoint, HiLoToday.LowDewPoint, HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowWindChill,
+				HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), (int)SolarRad, (int)HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, HiLoToday.HighUv,
+				HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
+				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHeatIndex, HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighAppTemp,
+				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), (int)Math.Round(CurrentSolarMax),
 				AllTime.HighPress.Val, AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
-				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString("t"), "F" + cumulus.Beaufort(HiLoToday.HighWind), "F" + cumulus.Beaufort(WindAverage),
+				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + cumulus.Beaufort(HiLoToday.HighWind), "F" + cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString("T"), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 				cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
 				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered, cumulus.IsRainingAlarm.Triggered,
-				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString("t"), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString("t"),
-				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString("t"));
+				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
+				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 
 			try
 			{
