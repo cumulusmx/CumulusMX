@@ -9,6 +9,7 @@ Fixed
 - Issues in 3.24.0 with Select-a-graph not working on the dashboard and default web site
 - Extra sensor names not saving in Locale strings
 - Implements the dashboard time format override - just on the Dashboard and Today/Yesterday screens for now
+- Extra Dew Point graph data file was empty
 
 
 

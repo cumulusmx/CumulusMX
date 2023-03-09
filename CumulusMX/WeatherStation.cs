@@ -2178,7 +2178,7 @@ namespace CumulusMX
 					return GetExtraTempGraphData(incremental, false);
 				case "extrahumdata.json":
 					return GetExtraHumGraphData(incremental, false);
-				case "extratdewdata.json":
+				case "extradewdata.json":
 					return GetExtraDewPointGraphData(incremental, false);
 				case "soiltempdata.json":
 					return GetSoilTempGraphData(incremental, false);
