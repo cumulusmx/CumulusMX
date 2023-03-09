@@ -2668,7 +2668,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
-					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.ExtraTempCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -2800,7 +2800,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
-					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.ExtraDPCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -2932,7 +2932,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
-					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.ExtraHumCaptions[i]}\":[");
 			}
 
 
@@ -3065,7 +3065,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
-					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.SoilTempCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -3202,7 +3202,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
-					sbExt[i] = new StringBuilder($"\"sensor {i +1 }\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.SoilMoistureCaptions[i]}\":[");
 			}
 
 			var finished = false;
@@ -3339,7 +3339,7 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
-					sbExt[i] = new StringBuilder($"\"sensor {i + 1}\":[");
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.UserTempCaptions[i]}\":[");
 			}
 
 			var finished = false;
