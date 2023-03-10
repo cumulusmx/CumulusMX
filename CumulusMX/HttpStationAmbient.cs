@@ -202,16 +202,26 @@ namespace CumulusMX
 						// baromrelin
 
 						var press = data["baromrelin"];
+						var stnPress = data["baromabsin"];
 
 						if (press == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing baro pressure");
+							cumulus.LogMessage("ProcessData: Error, missing baro pressure");
 						}
 						else
 						{
 							var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
 							DoPressure(pressVal, recDate);
 							UpdatePressureTrendString();
+						}
+
+						if (stnPress == null)
+						{
+							cumulus.LogDebugMessage("ProcessData: Error, missing absolute baro pressure");
+						}
+						else
+						{
+							StationPressure = ConvertPressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture));
 						}
 					}
 					catch (Exception ex)

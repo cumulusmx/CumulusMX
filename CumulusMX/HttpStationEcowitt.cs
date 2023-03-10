@@ -411,6 +411,7 @@ namespace CumulusMX
 						// baromrelin
 
 						var press = data["baromrelin"];
+						var stnPress = data["baromabsin"];
 
 						if (press == null)
 						{
@@ -421,6 +422,15 @@ namespace CumulusMX
 							var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press, invNum));
 							DoPressure(pressVal, recDate);
 							UpdatePressureTrendString();
+						}
+
+						if (stnPress == null)
+						{
+							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
+						}
+						else
+						{
+							StationPressure = ConvertPressINHGToUser(Convert.ToDouble(stnPress, invNum));
 						}
 					}
 					catch (Exception ex)
