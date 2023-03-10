@@ -2129,7 +2129,8 @@ namespace CumulusMX
 						}
 
 						// The config files only need creating once per change
-						if (cumulus.GraphDataFiles[i].LocalFileName == "availabledata.json" || cumulus.GraphDataFiles[i].LocalFileName == "graphconfig.json")
+						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+						if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
 						{
 							cumulus.GraphDataFiles[i].CreateRequired = false;
 						}
@@ -2219,6 +2220,20 @@ namespace CumulusMX
 						cumulus.LogMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}");
 					}
 				}
+			}
+		}
+
+		public void CreateDailyGraphDataFiles()
+		{
+			// skip 0 & 1 = config files
+			// daily rain = 8
+			// daily temp = 9
+			// sun hours = 11
+			for (var i = 2; i < cumulus.GraphDataFiles.Length; i++)
+			{
+				cumulus.GraphDataFiles[i].CreateRequired = true;
+				cumulus.GraphDataFiles[i].CopyRequired = true;
+				cumulus.GraphDataFiles[i].FtpRequired = true;
 			}
 		}
 
@@ -6457,6 +6472,7 @@ namespace CumulusMX
 
 				// Do the Daily graph data files
 				CreateEodGraphDataFiles();
+				CreateDailyGraphDataFiles();
 				cumulus.LogMessage("If required the daily graph data files will be uploaded at next web update");
 
 

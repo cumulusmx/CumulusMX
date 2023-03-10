@@ -9000,8 +9000,8 @@ namespace CumulusMX
 							File.WriteAllText(dstfile, text);
 						}
 						// The config files only need uploading once per change
-						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
-							GraphDataFiles[i].LocalFileName == "graphconfig.json")
+						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+						if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
 						{
 							GraphDataFiles[i].CopyRequired = false;
 						}
@@ -9036,7 +9036,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var text = station.CreateEodGraphDataJson(GraphDataFiles[i].LocalFileName);
+							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 							File.WriteAllText(dstfile, text);
 						}
 						// Uploaded OK, reset the upload required flag
@@ -9057,10 +9057,10 @@ namespace CumulusMX
 			{
 				try
 				{
-					LogDebugMessage("LocalCopy: Copying Moon image file");
+					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
 					File.Copy("web" + DirectorySeparator + "moon.png", MoonImage.CopyDest, true);
 					LogDebugMessage("LocalCopy: Done copying Moon image file");
-					// clear the image ready for FTP flag, only upload once an hour
+					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
 				}
 				catch (Exception e)
@@ -9772,7 +9772,7 @@ namespace CumulusMX
 						try
 						{
 							// we want incremental data for PHP
-							var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, true);
+							var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, GraphDataFiles[i].Incremental);
 							var remotefile = GraphDataFiles[i].RemoteFileName;
 							LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[i].LocalFileName);
 
@@ -9784,8 +9784,8 @@ namespace CumulusMX
 								//if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
 								{
 									// The config files only need uploading once per change
-									if (GraphDataFiles[idx].LocalFileName == "availabledata.json" ||
-										GraphDataFiles[idx].LocalFileName == "graphconfig.json")
+									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+									if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
 									{
 										GraphDataFiles[idx].FtpRequired = false;
 									}

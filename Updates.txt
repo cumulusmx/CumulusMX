@@ -4,12 +4,14 @@ New
 
 Changed
 - Extra sensor graph data files now use customised sensor names
+- The "recent" daily data graphs - daiyrain.json, dailytemp.json, sunhours - are now only created at start-up and daily rollover
 
 Fixed
 - Issues in 3.24.0 with Select-a-graph not working on the dashboard and default web site
 - Extra sensor names not saving in Locale strings
 - Implements the dashboard time format override - just on the Dashboard and Today/Yesterday screens for now
 - Extra Dew Point graph data file was empty
+- The initial PHP Upload of graph data files sent 7 days of data regardless of the Graph Hours setting
 
 
 
