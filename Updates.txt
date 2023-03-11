@@ -1,3 +1,16 @@
+3.24.2 - b3235
+——————————————
+New
+- none
+
+Changed
+- none
+
+Fixed
+- Davis VP2 logger suppression of full logger downloads if CMX is stopped and immediately restarted fractionally after a logging interval
+
+
+
 3.24.1 - b3234
 ——————————————
 New

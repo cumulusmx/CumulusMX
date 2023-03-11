@@ -2078,7 +2078,7 @@ namespace CumulusMX
 			bool midnightraindone = luhour == 0;
 
 			// work out the next logger interval after the last CMX update
-			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime, TimeSpan.FromMinutes(loggerInterval));
+			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime.AddMinutes(-1), TimeSpan.FromMinutes(loggerInterval));
 
 			// check if the calculated logger time is later than now!
 			if (nextLoggerTime > DateTime.Now)
