@@ -16,7 +16,7 @@ namespace CumulusMX
 	 * 8*   Outdoor temp        float   Celsius
 	 * 9*   Dew point           float   Celsius
 	 * 10*  Wind chill          float   Celsius
-	 * 11   Absolute press      float   mB/hPa
+	 * 11*  Absolute press      float   mB/hPa
 	 * 12*  Relative press      float   mB/hPa
 	 * 13*  Wind average        float   m/s
 	 * 14   Wind average        int     Beaufort
@@ -57,6 +57,7 @@ namespace CumulusMX
 		private const int EW_OUTDOOR_TEMP = 9;
 		private const int EW_DEW_POINT = 10;
 		private const int EW_WIND_CHILL = 11;
+		private const int EW_ABS_PRESSURE = 12;
 		private const int EW_REL_PRESSURE = 13;
 		private const int EW_AVERAGE_WIND = 14;
 		private const int EW_WIND_GUST = 16;
@@ -149,6 +150,8 @@ namespace CumulusMX
 
 					DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
 					UpdatePressureTrendString();
+
+					StationPressure = ConvertPressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE]));
 
 					DoIndoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
 

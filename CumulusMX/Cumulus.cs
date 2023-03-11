@@ -910,8 +910,7 @@ namespace CumulusMX
 				{
 					LocalPath = WebPath,
 					LocalFileName = "airquality.json",
-					RemoteFileName = "airquality.json",
-					Incremental = true
+					RemoteFileName = "airquality.json"
 				},
 				new FileGenerationOptions()		// 13
 				{
@@ -4039,8 +4038,11 @@ namespace CumulusMX
 				CultureInfo.DefaultThreadCurrentCulture = newCulture;
 			}
 
+			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
+
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
+
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
 			{
@@ -5617,11 +5619,13 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "DataStoppedExit", ProgramOptions.DataStoppedExit);
 			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
+			ini.SetValue("Program", "TimeFormat", ProgramOptions.TimeFormat);
 
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
+
 
 
 			ini.SetValue("Station", "Type", StationType);
@@ -8995,8 +8999,8 @@ namespace CumulusMX
 							File.WriteAllText(dstfile, text);
 						}
 						// The config files only need uploading once per change
-						if (GraphDataFiles[i].LocalFileName == "availabledata.json" ||
-							GraphDataFiles[i].LocalFileName == "graphconfig.json")
+						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+						if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
 						{
 							GraphDataFiles[i].CopyRequired = false;
 						}
@@ -9031,7 +9035,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var text = station.CreateEodGraphDataJson(GraphDataFiles[i].LocalFileName);
+							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 							File.WriteAllText(dstfile, text);
 						}
 						// Uploaded OK, reset the upload required flag
@@ -9052,10 +9056,10 @@ namespace CumulusMX
 			{
 				try
 				{
-					LogDebugMessage("LocalCopy: Copying Moon image file");
+					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
 					File.Copy("web" + DirectorySeparator + "moon.png", MoonImage.CopyDest, true);
 					LogDebugMessage("LocalCopy: Done copying Moon image file");
-					// clear the image ready for FTP flag, only upload once an hour
+					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
 				}
 				catch (Exception e)
@@ -9722,16 +9726,14 @@ namespace CumulusMX
 				{
 					if (StdWebFiles[i].FTP)
 					{
-						try
+						var idx = i;
+
+						tasklist.Add(Task.Run(async () =>
 						{
-							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + StdWebFiles[i].RemoteFileName);
-
-
-							var idx = i;
-
-							tasklist.Add(Task.Run(async () =>
+							string data;
+							try
 							{
-								string data;
+								LogDebugMessage("PHP[Int]: Uploading standard Data file: " + StdWebFiles[idx].RemoteFileName);
 
 								if (StdWebFiles[idx].LocalFileName == "wxnow.txt")
 								{
@@ -9747,12 +9749,12 @@ namespace CumulusMX
 									// No standard files are "one offs" at present
 									//StdWebFiles[i].FtpRequired = false;
 								}
-							}));
-						}
-						catch (Exception e)
-						{
-							LogMessage($"PHP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}");
-						}
+							}
+							catch (Exception e)
+							{
+								LogMessage($"PHP[Int]: Error uploading file {StdWebFiles[idx].RemoteFileName}: {e}");
+							}
+						}));
 					}
 				}
 
@@ -9764,23 +9766,24 @@ namespace CumulusMX
 				{
 					if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
 					{
-						try
+						var idx = i;
+
+						tasklist.Add(Task.Run(async () =>
 						{
-							// we want incremental data for PHP
-							var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, true);
-							var remotefile = GraphDataFiles[i].RemoteFileName;
-							LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[i].LocalFileName);
-
-							var idx = i;
-
-							tasklist.Add(Task.Run(async () =>
+							try
 							{
+
+								// we want incremental data for PHP
+								var json = station.CreateGraphDataJson(GraphDataFiles[idx].LocalFileName, GraphDataFiles[idx].Incremental);
+								var remotefile = GraphDataFiles[idx].RemoteFileName;
+								LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[idx].LocalFileName);
+
 								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
 								//if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
 								{
 									// The config files only need uploading once per change
-									if (GraphDataFiles[idx].LocalFileName == "availabledata.json" ||
-										GraphDataFiles[idx].LocalFileName == "graphconfig.json")
+									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+									if (idx == 0 || idx == 1 || idx == 8 || idx == 9 || idx == 11)
 									{
 										GraphDataFiles[idx].FtpRequired = false;
 									}
@@ -9790,13 +9793,13 @@ namespace CumulusMX
 										GraphDataFiles[idx].Incremental = true;
 									}
 								}
-							}));
-						}
-						catch (Exception e)
-						{
-							LogMessage($"PHP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]");
-							LogMessage($"PHP[Int]: Error = {e}");
-						}
+							}
+							catch (Exception e)
+							{
+								LogMessage($"PHP[Int]: Error uploading graph data file [{GraphDataFiles[idx].RemoteFileName}]");
+								LogMessage($"PHP[Int]: Error = {e}");
+							}
+						}));
 					}
 				}
 
@@ -9804,49 +9807,50 @@ namespace CumulusMX
 				{
 					if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 					{
-						var remotefile = GraphDataEodFiles[i].RemoteFileName;
-						try
+						var idx = i;
+
+						tasklist.Add(Task.Run(async () =>
 						{
-							LogMessage("PHP[Int]: Uploading daily graph data file: " + GraphDataEodFiles[i].LocalFileName);
-							var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
-
-							var idx = i;
-
-							tasklist.Add(Task.Run(async () =>
+							var remotefile = GraphDataEodFiles[idx].RemoteFileName;
+							try
 							{
+								LogMessage("PHP[Int]: Uploading daily graph data file: " + GraphDataEodFiles[idx].LocalFileName);
+								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[idx].LocalFileName);
+
 								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
 								{
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[idx].FtpRequired = false;
 								}
-							}));
-						}
-						catch (Exception e)
-						{
-							LogMessage($"PHP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]");
-							LogMessage($"PHP[Int]: Error = {e}");
-						}
+							}
+							catch (Exception e)
+							{
+								LogMessage($"PHP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[idx].RemoteFileName}]");
+								LogMessage($"PHP[Int]: Error = {e}");
+							}
+						}));
 					}
 				}
 
 				if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 				{
-					try
+					tasklist.Add(Task.Run(async () =>
 					{
-						LogDebugMessage("PHP[Int]: Uploading Moon image file");
-						tasklist.Add(Task.Run(async () =>
+						try
 						{
+							LogDebugMessage("PHP[Int]: Uploading Moon image file");
+
 							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
 							}
-						}));
-					}
-					catch (Exception e)
-					{
-						LogMessage($"PHP[Int]: Error uploading moon image - {e.Message}");
-					}
+						}
+						catch (Exception e)
+						{
+							LogMessage($"PHP[Int]: Error uploading moon image - {e.Message}");
+						}
+					}));
 				}
 
 				await Task.WhenAll(tasklist.ToArray());
@@ -12256,6 +12260,7 @@ namespace CumulusMX
 		public CultureConfig Culture { get; set; }
 		public bool DataStoppedExit { get; set; }
 		public int DataStoppedMins { get; set; }
+		public string TimeFormat { get; set; }
 	}
 
 	public class CultureConfig

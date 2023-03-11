@@ -852,6 +852,8 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x08: //Absolute Barometric (hPa)
+								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+								StationPressure = ConvertPressMBToUser(tempUint16 / 10.0);
 								idx += 2;
 								break;
 							case 0x09: //Relative Barometric (hPa)

@@ -317,6 +317,24 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Extra Sensors
+				try
+				{
+					cumulus.Trans.ExtraTempCaptions = settings.extraTemp;
+					cumulus.Trans.ExtraHumCaptions = settings.extraHum;
+					cumulus.Trans.ExtraDPCaptions = settings.extraDP;
+					cumulus.Trans.UserTempCaptions = settings.userTemp;
+					cumulus.Trans.SoilTempCaptions = settings.soilTemp;
+					cumulus.Trans.SoilMoistureCaptions = settings.soilMoist;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Extra Sensor Names: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// CO2
 				try
 				{
