@@ -165,7 +165,10 @@ namespace CumulusMX
 						{
 							cumulus.GraphDataFiles[i].Create = settings.websettings.interval.graphfiles.files[i].create;
 							if (!cumulus.GraphDataFiles[i].FTP && settings.websettings.interval.graphfiles.files[i].ftp)
+							{
 								cumulus.GraphDataFiles[i].FtpRequired = true;
+								cumulus.GraphDataFiles[i].Incremental = false;
+							}
 							cumulus.GraphDataFiles[i].FTP = settings.websettings.interval.graphfiles.files[i].ftp;
 							if (!cumulus.GraphDataFiles[i].Copy && settings.websettings.interval.graphfiles.files[i].copy)
 								cumulus.GraphDataFiles[i].CopyRequired = true;

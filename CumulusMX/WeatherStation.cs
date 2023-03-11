@@ -2112,9 +2112,6 @@ namespace CumulusMX
 			string json = "";
 			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
-				// We double up the meaning of .FtpRequired to creation as well.
-				// The FtpRequired flag is only cleared for the config files that are pretty static so it is pointless
-				// recreating them every update too.
 				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
 				{
 					json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
