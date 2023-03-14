@@ -4040,6 +4040,12 @@ namespace CumulusMX
 			}
 
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
+			if (ProgramOptions.TimeFormat == "t")
+				ProgramOptions.TimeFormatLong = "T";
+			else if (ProgramOptions.TimeFormat == "h:mm tt")
+				ProgramOptions.TimeFormatLong = "h:mm:ss tt";
+			else
+				ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
@@ -12282,6 +12288,7 @@ namespace CumulusMX
 		public bool DataStoppedExit { get; set; }
 		public int DataStoppedMins { get; set; }
 		public string TimeFormat { get; set; }
+		public string TimeFormatLong { get; set; }
 	}
 
 	public class CultureConfig
