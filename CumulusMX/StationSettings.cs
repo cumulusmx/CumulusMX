@@ -1275,20 +1275,24 @@ namespace CumulusMX
 				}
 
 				// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
-				cumulus.LogDebugMessage("Upload Now: Flagging the graph data files for full recreation, if required");
+				cumulus.LogDebugMessage("Upload Now: Flagging the graph data files for recreation and upload/copy");
+				if (options.graphs)
+					cumulus.LogDebugMessage("Upload Now: Flagging graph data files for full upload rather than incremental");
+
 				for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 				{
 					cumulus.GraphDataFiles[i].CreateRequired = true;
 					cumulus.GraphDataFiles[i].FtpRequired = true;
 					cumulus.GraphDataFiles[i].CopyRequired = true;
-					cumulus.GraphDataFiles[i].Incremental = false;
+					if (options.graphs)
+						cumulus.GraphDataFiles[i].Incremental = false;
 					cumulus.GraphDataFiles[i].LastDataTime = DateTime.MinValue;
 				}
 
 				// (re)generate the daily graph data files, and upload if required
 				if (options.dailygraphs)
 				{
-					cumulus.LogDebugMessage("Upload Now: Flagging the daily graph data files for full recreation, if required");
+					cumulus.LogDebugMessage("Upload Now: Flagging the daily graph data files for recreation and upload/copy");
 					for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 					{
 						cumulus.GraphDataEodFiles[i].CreateRequired = true;
@@ -1302,6 +1306,7 @@ namespace CumulusMX
 				// flag the latest NOAA files for upload
 				if (options.noaa)
 				{
+					cumulus.LogDebugMessage("Upload Now: Flagging the latest NOAA report files for upload/copy");
 					cumulus.NOAAconf.NeedFtp = true;
 					cumulus.NOAAconf.NeedCopy = true;
 				}
@@ -1323,6 +1328,7 @@ namespace CumulusMX
 		{
 			public bool dailygraphs { get; set; }
 			public bool noaa { get; set; }
+			public bool graphs { get; set; }
 		}
 
 		internal string SetSelectaChartOptions(IHttpContext context)
