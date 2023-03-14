@@ -6,6 +6,8 @@ using ServiceStack.Text;
 using EmbedIO;
 using System.Reflection;
 using static Swan.Terminal;
+using Swan.Formatters;
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -1249,8 +1251,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data);
 				var now = DateTime.Now;
 
-				// Dead simple (dirty), there is only one setting at present!
-				var includeGraphs = json.Contains("true");
+				var options = json.FromJson<UploadNowData>();
 
 				if (!cumulus.FtpOptions.Enabled && !cumulus.FtpOptions.LocalCopyEnabled)
 					return "Upload/local copy is not enabled!";
@@ -1285,14 +1286,24 @@ namespace CumulusMX
 				}
 
 				// (re)generate the daily graph data files, and upload if required
-				cumulus.LogDebugMessage("Upload Now: Flagging the daily graph data files for full recreation, if required");
-				for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
+				if (options.dailygraphs)
 				{
-					cumulus.GraphDataEodFiles[i].CreateRequired = true;
-					cumulus.GraphDataEodFiles[i].FtpRequired = true;
-					cumulus.GraphDataEodFiles[i].CopyRequired = true;
-					cumulus.GraphDataEodFiles[i].Incremental = false;
-					cumulus.GraphDataEodFiles[i].LastDataTime = DateTime.MinValue;
+					cumulus.LogDebugMessage("Upload Now: Flagging the daily graph data files for full recreation, if required");
+					for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
+					{
+						cumulus.GraphDataEodFiles[i].CreateRequired = true;
+						cumulus.GraphDataEodFiles[i].FtpRequired = true;
+						cumulus.GraphDataEodFiles[i].CopyRequired = true;
+						cumulus.GraphDataEodFiles[i].Incremental = false;
+						cumulus.GraphDataEodFiles[i].LastDataTime = DateTime.MinValue;
+					}
+				}
+
+				// flag the latest NOAA files for upload
+				if (options.noaa)
+				{
+					cumulus.NOAAconf.NeedFtp = true;
+					cumulus.NOAAconf.NeedCopy = true;
 				}
 
 				cumulus.WebUpdating = 1;
@@ -1306,6 +1317,12 @@ namespace CumulusMX
 				context.Response.StatusCode = 500;
 				return $"Error: {ex.Message}";
 			}
+		}
+
+		private class UploadNowData
+		{
+			public bool dailygraphs { get; set; }
+			public bool noaa { get; set; }
 		}
 
 		internal string SetSelectaChartOptions(IHttpContext context)

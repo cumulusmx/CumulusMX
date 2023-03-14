@@ -1,14 +1,16 @@
 3.24.2 - b3235
 ——————————————
 New
-- none
+- Extra Files now allows you to use the variables <custinterval1> thru <custinterval10> in the source and destination fields to specify custom log files to be uploaded/copied
+- Copy/Upload Now! gets a new option to transfer the latest NOAA monthly/year reports
 
 Changed
 - none
 
 Fixed
 - Davis VP2 logger suppression of full logger downloads if CMX is stopped and immediately restarted fractionally after a logging interval
-
+- Extra Files with EOD flag having "tmp" appended to all source files
+- Not running as a 64 bit application on Windows
 
 
 3.24.1 - b3234
