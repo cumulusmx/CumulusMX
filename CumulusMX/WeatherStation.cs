@@ -2194,6 +2194,7 @@ namespace CumulusMX
 		public void CreateEodGraphDataFiles()
 		{
 			string json = "";
+
 			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 			{
 				if (cumulus.GraphDataEodFiles[i].Create)
@@ -2203,20 +2204,17 @@ namespace CumulusMX
 					try
 					{
 						var dest = cumulus.GraphDataEodFiles[i].LocalPath + cumulus.GraphDataEodFiles[i].LocalFileName;
-						using (var file = new StreamWriter(dest, false))
-						{
-							file.WriteLine(json);
-							file.Close();
-						}
-						// Now set the flag that upload is required (if enabled)
-						cumulus.GraphDataEodFiles[i].FtpRequired = true;
-						cumulus.GraphDataEodFiles[i].CopyRequired = true;
+						File.WriteAllText(dest, json);
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}");
 					}
 				}
+
+				// Now set the flag that upload is required (if enabled)
+				cumulus.GraphDataEodFiles[i].FtpRequired = true;
+				cumulus.GraphDataEodFiles[i].CopyRequired = true;
 			}
 		}
 
