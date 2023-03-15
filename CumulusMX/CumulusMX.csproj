@@ -57,6 +57,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowedReferenceRelatedFileExtensions>".pdb"=""</AllowedReferenceRelatedFileExtensions>
     <DebugSymbols>false</DebugSymbols>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup>
