@@ -12,6 +12,8 @@ Fixed
 - Extra Files with EOD flag having "tmp" appended to all source files
 - Not running as a 64 bit application on Windows
 - NOAA report PHP uploads were no using the UTF8 flag
+- Davis WLL using "stale" current wind gust data
+- Daily graphs not being uploaded/copied after day reset
 
 
 3.24.1 - b3234

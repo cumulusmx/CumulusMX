@@ -259,7 +259,7 @@ namespace CumulusMX
 				// Create a current conditions thread to poll readings every 10 seconds as temperature updates every 10 seconds
 				GetWllCurrent(null, null);
 				tmrCurrent.Elapsed += GetWllCurrent;
-				tmrCurrent.Interval = 10 * 1000;  // Every 10 seconds
+				tmrCurrent.Interval = 20 * 1000;  // Every 10 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
@@ -910,15 +910,20 @@ namespace CumulusMX
 												WindRecent[nextwind].Timestamp = dateTime;
 												nextwind = (nextwind + 1) % MaxWindRecent;
 
-												RecentMaxGust = gustCal;
+												if (broadcastStopped)
+												{
+													// if we are not receiving live broadcasts, then use current gust value)
+													RecentMaxGust = gustCal;
+												}
 											}
 										}
 									}
 									else if (!CalcRecentMaxGust)
 									{
 										// Check for spikes, and set highs
-										if (CheckHighGust(gustCal, gustDir, dateTime))
+										if (CheckHighGust(gustCal, gustDir, dateTime) && broadcastStopped)
 										{
+											// if we are not receiving live broadcasts, then use current gust value
 											RecentMaxGust = gustCal;
 										}
 									}
