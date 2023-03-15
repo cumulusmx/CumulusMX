@@ -12,6 +12,10 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
+using HttpClient = System.Net.Http.HttpClient;
+using static CumulusMX.EmailSender;
+using static ServiceStack.Diagnostics.Events;
 
 namespace CumulusMX
 {
@@ -28,6 +32,7 @@ namespace CumulusMX
 		private int lastMinute = -1;
 		private EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
+		private List<HttpClient> httpForwarders = new List<HttpClient>();
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
 		{
@@ -255,11 +260,12 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"{procName}: Processing posted data");
 
 				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
-				text = System.Text.RegularExpressions.Regex.Replace(text, "PASSKEY=[^&]+", "PASSKEY=<PassKey>");
 
-				cumulus.LogDataMessage($"{procName}: Payload = {text}");
+				cumulus.LogDataMessage($"{procName}: Payload = {System.Text.RegularExpressions.Regex.Replace(text, "PASSKEY=[^&]+", "PASSKEY=<PassKey>")}");
 
 				var retVal = ApplyData(text, main, ts);
+
+				ForwardData(text);
 
 				if (retVal != "")
 				{
@@ -1337,6 +1343,45 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+			}
+		}
+
+		private async Task ForwardData(string data)
+		{
+			var encoding = new UTF8Encoding(false);
+
+			for (int i = 0; i < cumulus.EcowittForwarders.Length; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
+				{
+					var url = cumulus.EcowittForwarders[i];
+					var idx = i;
+					cumulus.LogDebugMessage("ForwardData: Forwarding Ecowitt data to: " + url);
+
+					if (i + 1 > httpForwarders.Count) {
+						httpForwarders.Add(new HttpClient());
+						httpForwarders[i].Timeout = TimeSpan.FromSeconds(5);
+					}
+
+					// we are just going to fire and forget
+					Task.Run(() =>
+					{
+						try
+						{
+							using (var request = new HttpRequestMessage(HttpMethod.Post, url))
+							{
+								request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
+								var response = httpForwarders[idx].SendAsync(request).Result;
+								cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
+							}
+						}
+						catch (Exception ex)
+						{
+							var msg = ex.Message + (ex.InnerException != null ? " (" + ex.InnerException.Message + ")" : "");
+							cumulus.LogMessage($"ForwardData: Error forwarding to {url}: {msg}");
+						}
+					});
+				}
 			}
 		}
 	}

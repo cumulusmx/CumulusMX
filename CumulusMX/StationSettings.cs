@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Reflection;
 using ServiceStack.Text;
 using EmbedIO;
-using System.Reflection;
 using static Swan.Terminal;
 using Swan.Formatters;
 using ServiceStack;
@@ -160,6 +161,16 @@ namespace CumulusMX
 				localaddr = cumulus.EcowittLocalAddr,
 				interval = cumulus.EcowittCustomInterval
 			};
+
+			ecowitt.forward = new List<JsonEcowittForward>();
+
+			for (var i = 0; i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
+				{
+					ecowitt.forward.Add(new JsonEcowittForward() { url = cumulus.EcowittForwarders[i] });
+				}
+			}
 
 			var ecowittapi = new JsonStationSettingsEcowittApi()
 			{
@@ -873,6 +884,18 @@ namespace CumulusMX
 						cumulus.EcowittGatewayAddr = string.IsNullOrWhiteSpace(settings.ecowitt.gwaddr) ? null : settings.ecowitt.gwaddr.Trim();
 						cumulus.EcowittLocalAddr = string.IsNullOrWhiteSpace(settings.ecowitt.localaddr) ? null : settings.ecowitt.localaddr.Trim();
 						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
+
+						for (var i = 0; i < 10; i++)
+						{
+							if (i < settings.ecowitt.forward.Count)
+							{
+								cumulus.EcowittForwarders[i] = string.IsNullOrWhiteSpace(settings.ecowitt.forward[i].url) ? null : settings.ecowitt.forward[i].url.Trim();
+							}
+							else
+							{
+								cumulus.EcowittForwarders[i] = null;
+							}
+						}
 					}
 				}
 				catch (Exception ex)
@@ -1569,6 +1592,12 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
+		public List<JsonEcowittForward> forward { get; set; }
+	}
+
+	internal class JsonEcowittForward
+	{
+		public string url { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowittApi
