@@ -34,6 +34,7 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.UI.WebControls;
 using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
 
 namespace CumulusMX
 {
@@ -722,7 +723,7 @@ namespace CumulusMX
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
-			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")}bit process");
+			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
 
 			// Messy, but Windows and Linux use different mechanisms for loading DLLs, neither are very pretty
 			// Simplest method is to leave them searching the application directory, and copy the correct file there before it is loaded by the first SQlite connect()
@@ -1709,7 +1710,7 @@ namespace CumulusMX
 
 		internal async void TestPhpUploadCompression()
 		{
-			LogDebugMessage("Testing PHP upload compression");
+			LogDebugMessage($"Testing PHP upload compression: '{FtpOptions.PhpUrl}'");
 			using (var request = new HttpRequestMessage(HttpMethod.Get, FtpOptions.PhpUrl))
 			{
 				try
@@ -3239,7 +3240,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								tasklist.Add(UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary));
+								tasklist.Add(UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8));
 							}
 							// no extra files are incremental for now, so no need to update LastDataTime
 
@@ -4039,6 +4040,12 @@ namespace CumulusMX
 			}
 
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
+			if (ProgramOptions.TimeFormat == "t")
+				ProgramOptions.TimeFormatLong = "T";
+			else if (ProgramOptions.TimeFormat == "h:mm tt")
+				ProgramOptions.TimeFormatLong = "h:mm:ss tt";
+			else
+				ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
@@ -9648,12 +9655,12 @@ namespace CumulusMX
 						var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
 						var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile));
+						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8));
 
 						uploadfile = ReportPath + NOAAconf.LatestYearReport;
 						remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile));
+						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8));
 						LogFtpDebugMessage("PHP[Int]: Upload of NOAA reports complete");
 						NOAAconf.NeedFtp = false;
 					}
@@ -9689,20 +9696,20 @@ namespace CumulusMX
 							// all checks OK, file needs to be uploaded
 							try
 							{
+								var idx = i;
+
 								if (ExtraFiles[i].process)
 								{
-									var encoding = UTF8encode ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
-									tokenParser.Encoding = encoding;
 
 									tasklist.Add(Task.Run(async () =>
 									{
-										var data = await ProcessTemplateFile2StringAsync(uploadfile, false);
-										_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile);
+										var data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
+										_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, ExtraFiles[idx].UTF8);
 									}));
 								}
 								else
 								{
-									tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile));
+									tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8));
 								}
 							}
 							catch (Exception e)
@@ -10156,7 +10163,7 @@ namespace CumulusMX
 
 		// Return True if the upload worked
 		// Return False if the upload failed
-		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false)
+		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8=true)
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
@@ -10170,7 +10177,7 @@ namespace CumulusMX
 					return false;
 				}
 
-				var utf8 = new UTF8Encoding(false);
+				var encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
 
 				string data;
 				if (binary)
@@ -10180,7 +10187,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					data = await Utils.ReadAllTextAsync(localfile, utf8);
+					data = await Utils.ReadAllTextAsync(localfile, encoding);
 				}
 
 				return await UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary);
@@ -11076,32 +11083,6 @@ namespace CumulusMX
 						if (File.Exists(uploadfile))
 						{
 							remotefile = GetRemoteFileName(remotefile, logDay);
-
-							if (!ExtraFiles[i].FTP)
-							{
-								uploadfile += "tmp";
-								try
-								{
-									if (ExtraFiles[i].process)
-									{
-										LogDebugMessage("EOD: Processing extra file " + uploadfile);
-										// process the file
-										var output = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
-										File.WriteAllText(remotefile, output);
-									}
-									else
-									{
-										LogDebugMessage("EOD: Copying extra file " + uploadfile);
-										File.Copy(uploadfile, remotefile);
-									}
-								}
-								catch (Exception ex)
-								{
-									LogDebugMessage("EOD: Error writing file " + uploadfile);
-									LogDebugMessage(ex.Message);
-								}
-								//LogDebugMessage("Finished processing extra file " + uploadfile);
-							}
 
 							if (ExtraFiles[i].FTP)
 							{
@@ -12055,6 +12036,29 @@ namespace CumulusMX
 				NOAAReports noaa = new NOAAReports(this, station);
 				return noaa.GetLastNoaaMonthReportFilename(dat, true);
 			}
+			else if (input.StartsWith("<custinterval"))
+			{
+				try
+				{
+					Match match = Regex.Match(input, @"<custinterval([0-9]{1,2})>");
+
+					if (match.Success)
+					{
+						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
+
+						return GetCustomIntvlLogFileName(idx, dat);
+					}
+					else
+					{
+						LogMessage("GetUploadFilename: No match found for <custinterval[1-10]> in " + input);
+						return input;
+					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage($"GetUploadFilename: Error processing <custinterval[1-10]>, value='{input}', error: {ex.Message}");
+				}
+			}
 
 			return input;
 		}
@@ -12082,6 +12086,29 @@ namespace CumulusMX
 			{
 				NOAAReports noaa = new NOAAReports(this, station);
 				return input.Replace("<noaamonthfile>", Path.GetFileName(noaa.GetLastNoaaMonthReportFilename(dat, false)));
+			}
+			else if (input.Contains("<custinterval"))
+			{
+				try
+				{
+					Match match = Regex.Match(input, @"<custinterval([0-9]{1,2})>");
+
+					if (match.Success)
+					{
+						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
+
+						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, dat)));
+					}
+					else
+					{
+						LogMessage("GetRemoteFileName: No match found for <custinterval[1-10]> in " + input);
+						return input;
+					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage($"GetRemoteFileName: Error processing <custinterval[1-10]>, input='{input}', error: {ex.Message}");
+				}
 			}
 
 			return input;
@@ -12261,6 +12288,7 @@ namespace CumulusMX
 		public bool DataStoppedExit { get; set; }
 		public int DataStoppedMins { get; set; }
 		public string TimeFormat { get; set; }
+		public string TimeFormatLong { get; set; }
 	}
 
 	public class CultureConfig

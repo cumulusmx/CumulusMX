@@ -1,3 +1,21 @@
+3.24.2 - b3235
+——————————————
+New
+- Extra Files now allows you to use the variables <custinterval1> thru <custinterval10> in the source and destination fields to specify custom log files to be uploaded/copied
+- Copy/Upload Now! gets a new option to transfer the latest NOAA monthly/year reports
+
+Changed
+- Copy/Upload Now! the upload of full rather than incremental versions of graph data files is now optional
+
+Fixed
+- Davis VP2 logger suppression of full logger downloads if CMX is stopped and immediately restarted fractionally after a logging interval
+- Extra Files with EOD flag having "tmp" appended to all source files
+- Not running as a 64 bit application on Windows
+- NOAA report PHP uploads were no using the UTF8 flag
+- Davis WLL using "stale" current wind gust data
+- Daily graphs not being uploaded/copied after day reset
+
+
 3.24.1 - b3234
 ——————————————
 New

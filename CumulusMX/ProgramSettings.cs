@@ -143,6 +143,13 @@ namespace CumulusMX
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
 
+				if (cumulus.ProgramOptions.TimeFormat == "t")
+					cumulus.ProgramOptions.TimeFormatLong = "T";
+				else if (cumulus.ProgramOptions.TimeFormat == "h:mm tt")
+					cumulus.ProgramOptions.TimeFormatLong = "h:mm:ss tt";
+				else
+					cumulus.ProgramOptions.TimeFormatLong = "HH:mm:ss";
+
 
 				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 				{
