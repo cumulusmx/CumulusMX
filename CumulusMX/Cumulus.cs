@@ -10234,94 +10234,115 @@ namespace CumulusMX
 
 			LogDebugMessage($"PHP[{cycleStr}]: Uploading {remotefile}");
 
-			try
+			// we will try this twice incase the first attempt fails with a closed connection
+			var retry = 0;
+			do
 			{
-				var encoding = new UTF8Encoding(false);
-
-				using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
+				try
 				{
-					var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
-					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
-					// disable expect 100 - PHP doesn't support it
-					request.Headers.ExpectContinue = false;
-					request.Headers.Add("ACTION", incremental ? "append" : "replace");
-					request.Headers.Add("FILE", remotefile);
-					if (incremental)
+					var encoding = new UTF8Encoding(false);
+
+					using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
 					{
-						request.Headers.Add("OLDEST", oldest);
-					}
-					request.Headers.Add("TS", unixTs);
-					request.Headers.Add("SIGNATURE", signature);
-					request.Headers.Add("BINARY", binary ? "1" : "0");
-					// Compress? if supported and payload exceeds 500 bytes
-					if (data.Length < 500 || FtpOptions.PhpCompression == "none")
-					{
-						request.Content = new StringContent(data, encoding, "application/octet-stream");
-					}
-					else
-					{
-						using (var ms = new System.IO.MemoryStream())
+						var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
+						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
+						// disable expect 100 - PHP doesn't support it
+						request.Headers.ExpectContinue = false;
+						request.Headers.Add("ACTION", incremental ? "append" : "replace");
+						request.Headers.Add("FILE", remotefile);
+						if (incremental)
 						{
-							if (FtpOptions.PhpCompression == "gzip")
-							{
-								using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
-								{
-									var byteData = encoding.GetBytes(data);
-									zipped.Write(byteData, 0, byteData.Length);
-								}
-							}
-							else if (FtpOptions.PhpCompression == "deflate")
-							{
-								using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
-								{
-									var byteData = encoding.GetBytes(data);
-									zipped.Write(byteData, 0, byteData.Length);
-								}
-							}
-
-							ms.Position = 0;
-							byte[] compressed = new byte[ms.Length];
-							ms.Read(compressed, 0, compressed.Length);
-
-							MemoryStream outStream = new MemoryStream(compressed);
-
-							StreamContent streamContent = new StreamContent(outStream);
-							streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
-							streamContent.Headers.ContentLength = outStream.Length;
-
-							request.Content = streamContent;
+							request.Headers.Add("OLDEST", oldest);
 						}
-					}
+						request.Headers.Add("TS", unixTs);
+						request.Headers.Add("SIGNATURE", signature);
+						request.Headers.Add("BINARY", binary ? "1" : "0");
+						// Compress? if supported and payload exceeds 500 bytes
+						if (data.Length < 500 || FtpOptions.PhpCompression == "none")
+						{
+							request.Content = new StringContent(data, encoding, "application/octet-stream");
+						}
+						else
+						{
+							using (var ms = new System.IO.MemoryStream())
+							{
+								if (FtpOptions.PhpCompression == "gzip")
+								{
+									using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+									{
+										var byteData = encoding.GetBytes(data);
+										zipped.Write(byteData, 0, byteData.Length);
+									}
+								}
+								else if (FtpOptions.PhpCompression == "deflate")
+								{
+									using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+									{
+										var byteData = encoding.GetBytes(data);
+										zipped.Write(byteData, 0, byteData.Length);
+									}
+								}
 
-					//var response = httpclient.SendAsync(request).Result;
-					var response = await httpclient.SendAsync(request);
+								ms.Position = 0;
+								byte[] compressed = new byte[ms.Length];
+								ms.Read(compressed, 0, compressed.Length);
 
-					//response.EnsureSuccessStatusCode();
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
-					{
-						LogMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-						LogMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
-					}
-					else
-					{
-						LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-						LogDataMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
-					}
+								MemoryStream outStream = new MemoryStream(compressed);
 
-					return response.StatusCode == HttpStatusCode.OK;
+								StreamContent streamContent = new StreamContent(outStream);
+								streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
+								streamContent.Headers.ContentLength = outStream.Length;
+
+								request.Content = streamContent;
+							}
+						}
+
+						//var response = httpclient.SendAsync(request).Result;
+						var response = await httpclient.SendAsync(request);
+
+						//response.EnsureSuccessStatusCode();
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						if (response.StatusCode != HttpStatusCode.OK)
+						{
+							LogMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+							LogMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
+						}
+						else
+						{
+							LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+							LogDataMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
+						}
+
+						return response.StatusCode == HttpStatusCode.OK;
+					}
 				}
-			}
-			catch (Exception ex)
-			{
-				LogMessage($"PHP[{cycleStr}]: Error - {ex.Message}");
-				if (ex.InnerException != null)
+				catch (System.Net.Http.HttpRequestException ex)
 				{
-					ex = Utils.GetOriginalException(ex);
-					LogMessage($"PHP[{cycleStr}]: Base exception - {ex.Message}");
+					LogMessage($"PHP[{cycleStr}]: Error uploading to {remotefile} - {ex.Message}");
+					if (ex.InnerException != null)
+					{
+						var baseEx = Utils.GetOriginalException((Exception) ex);
+						LogMessage($"PHP[{cycleStr}]: Base exception - {baseEx.Message}");
+					}
+					retry++;
+					if (retry < 2)
+					{
+						LogMessage($"PHP[{cycleStr}] Retrying upload to {remotefile}");
+					}
 				}
-				return false;
-			}
+				catch (Exception ex)
+				{
+					LogMessage($"PHP[{cycleStr}]: Error uploading to {remotefile} - {ex.Message}");
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogMessage($"PHP[{cycleStr}]: Base exception - {ex.Message}");
+					}
+					retry = 99;
+				}
+			} while (retry < 2);
+
+			return false;
 		}
 
 		public void LogMessage(string message)
