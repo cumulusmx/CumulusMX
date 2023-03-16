@@ -8,6 +8,7 @@ using System.Web;
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
+using SQLite;
 using Swan.Formatters;
 
 namespace CumulusMX
@@ -378,6 +379,15 @@ namespace CumulusMX
 					return;
 				}
 
+				var incremental = false;
+				DateTime? start = null;
+
+				if (this.Request.QueryString.AllKeys.Contains("start") && long.TryParse(this.Request.QueryString.Get("start"), out long ts))
+				{
+					start = Utils.FromUnixTime(ts);
+					incremental = true;
+				}
+
 				try
 				{
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
@@ -385,25 +395,25 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "tempdata.json":
-								await writer.WriteAsync(Station.GetTempGraphData(false, true));
+								await writer.WriteAsync(Station.GetTempGraphData(incremental, true, start));
 								break;
 							case "winddata.json":
-								await writer.WriteAsync(Station.GetWindGraphData(false));
+								await writer.WriteAsync(Station.GetWindGraphData(incremental, start));
 								break;
 							case "raindata.json":
-								await writer.WriteAsync(Station.GetRainGraphData(false));
+								await writer.WriteAsync(Station.GetRainGraphData(incremental, start));
 								break;
 							case "pressdata.json":
-								await writer.WriteAsync(Station.GetPressGraphData(false));
+								await writer.WriteAsync(Station.GetPressGraphData(incremental, start));
 								break;
 							case "wdirdata.json":
-								await writer.WriteAsync(Station.GetWindDirGraphData(false));
+								await writer.WriteAsync(Station.GetWindDirGraphData(incremental, start));
 								break;
 							case "humdata.json":
-								await writer.WriteAsync(Station.GetHumGraphData(false, true));
+								await writer.WriteAsync(Station.GetHumGraphData(incremental, true, start));
 								break;
 							case "solardata.json":
-								await writer.WriteAsync(Station.GetSolarGraphData(false, true));
+								await writer.WriteAsync(Station.GetSolarGraphData(incremental, true, start));
 								break;
 							case "dailyrain.json":
 								await writer.WriteAsync(Station.GetDailyRainGraphData());
@@ -421,31 +431,31 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							case "airqualitydata.json":
-								await writer.WriteAsync(Station.GetAqGraphData(false));
+								await writer.WriteAsync(Station.GetAqGraphData(incremental, start));
 								break;
 							case "extratemp.json":
-								await writer.WriteAsync(Station.GetExtraTempGraphData(false, true));
+								await writer.WriteAsync(Station.GetExtraTempGraphData(incremental, true, start));
 								break;
 							case "extrahum.json":
-								await writer.WriteAsync(Station.GetExtraHumGraphData(false, true));
+								await writer.WriteAsync(Station.GetExtraHumGraphData(incremental, true, start));
 								break;
 							case "extradew.json":
-								await writer.WriteAsync(Station.GetExtraDewPointGraphData(false, true));
+								await writer.WriteAsync(Station.GetExtraDewPointGraphData(incremental, true, start));
 								break;
 							case "soiltemp.json":
-								await writer.WriteAsync(Station.GetSoilTempGraphData(false, true));
+								await writer.WriteAsync(Station.GetSoilTempGraphData(incremental, true, start));
 								break;
 							case "soilmoist.json":
-								await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true));
+								await writer.WriteAsync(Station.GetSoilMoistGraphData(incremental, true, start));
 								break;
 							case "leafwetness.json":
-								await writer.WriteAsync(Station.GetLeafWetnessGraphData(false, true));
+								await writer.WriteAsync(Station.GetLeafWetnessGraphData(incremental, true, start));
 								break;
 							case "usertemp.json":
-								await writer.WriteAsync(Station.GetUserTempGraphData(false, true));
+								await writer.WriteAsync(Station.GetUserTempGraphData(incremental, true, start));
 								break;
 							case "co2sensor.json":
-								await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true));
+								await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
 								break;
 							case "availabledata.json":
 								await writer.WriteAsync(Station.GetAvailGraphData(true));
