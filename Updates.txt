@@ -2,6 +2,7 @@
 ——————————————
 New
 - Add data forwarding for HTTP (Ecowitt) stations
+- Adds Leaf Wetness as a recent and select-a graph option - also added to chart colour picker
 
 Changed
 - None

@@ -157,6 +157,7 @@ namespace CumulusMX
 			public string[] ExtraDewPoint = new string[10];
 			public string[] SoilTemp = new string[16];
 			public string[] SoilMoist = new string[16];
+			public string[] LeafWetness = new string[2];
 			public string[] UserTemp = new string[8];
 			// daily values
 			public string MaxTemp { get; set; }

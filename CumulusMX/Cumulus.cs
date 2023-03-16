@@ -954,6 +954,12 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "co2sensordata.json",
 					RemoteFileName = "co2sensordata.json"
+				},
+				new FileGenerationOptions()     // 20
+				{
+					LocalPath = WebPath,
+					LocalFileName = "leafwetdata.json",
+					RemoteFileName = "leafwetdata.json"
 				}
 			};
 
@@ -4779,11 +4785,13 @@ namespace CumulusMX
 			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
 			var colours10 = colours16.Take(10).ToArray();
 			var colours8 = colours16.Take(8).ToArray();
+			var colours2 = colours16.Take(2).ToArray();
 			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours10);
 			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours10);
 			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours10);
 			GraphOptions.Colour.SoilTemp = ini.GetValue("GraphColours", "SoilTempColour", colours16.ToArray());
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
+			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
 			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
 			GraphOptions.Colour.CO2Sensor.CO2 = ini.GetValue("GraphColours", "CO2-CO2Colour", "#dc143c");
 			GraphOptions.Colour.CO2Sensor.CO2Avg = ini.GetValue("GraphColours", "CO2-CO2AvgColour", "#8b0000");
@@ -6528,6 +6536,8 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
 			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
 			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
+			ini.SetValue("GraphColours", "LeafWetness", GraphOptions.Colour.LeafWetness);
+
 			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
 			ini.SetValue("GraphColours", "CO2-CO2Colour", GraphOptions.Colour.CO2Sensor.CO2);
 			ini.SetValue("GraphColours", "CO2-CO2AvgColour", GraphOptions.Colour.CO2Sensor.CO2Avg);

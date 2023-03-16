@@ -2182,6 +2182,8 @@ namespace CumulusMX
 					return GetSoilTempGraphData(incremental, false);
 				case "soilmoistdata.json":
 					return GetSoilMoistGraphData(incremental, false);
+				case "leafwetdata.json":
+					return GetLeafWetnessGraphData(incremental, false);
 				case "usertempdata.json":
 					return GetUserTempGraphData(incremental, false);
 				case "co2sensordata.json":
@@ -3316,6 +3318,138 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
+				{
+					if (sbExt[i][sbExt[i].Length - 1] == ',')
+						sbExt[i].Length--;
+
+					sbExt[i].Append("]");
+					sb.Append((append ? "," : "") + sbExt[i]);
+					append = true;
+				}
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetLeafWetnessGraphData(bool incremental, bool local)
+		{
+			bool append = false;
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{", 10240);
+
+			/* returns data in the form of an object with properties for each data series
+			{
+				"sensor 1": [[time,val],[time,val],...],
+				"sensor 4": [[time,val],[time,val],...],
+
+			}
+			*/
+
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.LeafWetness.Vals.Length];
+
+			for (var i = 0; i < cumulus.GraphOptions.Visible.LeafWetness.Vals.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.LeafWetnessCaptions[i]}\":[");
+			}
+
+			var finished = false;
+			var entrydate = new DateTime();
+			var dateFrom = incremental ? cumulus.GraphDataFiles[20].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var fileDate = dateFrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(dateFrom);
+
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					int linenum = 0;
+					int errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+
+								if (entrydate > dateFrom)
+								{
+									// entry is from required period
+									var temp = 0;
+									for (var i = 0; i < 2; i++)
+									{
+										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && int.TryParse(st[i + 42], out temp))
+											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								errorCount++;
+								cumulus.LogErrorMessage($"GetLeafWetnessGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetLeafWetnessGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"GetLeafWetnessGraphData: Error reading {logFile}. Error - {ex.Message}");
+					}
+				}
+
+				if (entrydate >= dateto || fileDate > dateto)
+				{
+					finished = true;
+				}
+				else
+				{
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
+				}
+			}
+
+			for (var i = 0; i < 2; i++)
+			{
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
 				{
 					if (sbExt[i][sbExt[i].Length - 1] == ',')
 						sbExt[i].Length--;
@@ -12256,6 +12390,9 @@ namespace CumulusMX
 			// soil temps
 			if (cumulus.GraphOptions.Visible.SoilMoist.IsVisible(local))
 				json.Append($"\"soilmoist\":{{\"name\":[\"{cumulus.Trans.SoilMoistureCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.SoilMoist.Join("\",\"")}\"]}},");
+			// leaf wetness
+			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
+				json.Append($"\"leafwet\":{{\"name\":[\"{cumulus.Trans.LeafWetnessCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.LeafWetness.Join("\",\"")}\"]}},");
 
 			// CO2
 			json.Append("\"co2\":{");
@@ -12524,6 +12661,21 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.UserTempCaptions[i]}\",");
+				}
+				if (json[json.Length - 1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
+			// Leaf wetness
+			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
+			{
+				json.Append(",\"LeafWetness\":[");
+				for (var i = 0; i < cumulus.GraphOptions.Visible.LeafWetness.Vals.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
+						json.Append($"\"{cumulus.Trans.LeafWetnessCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
