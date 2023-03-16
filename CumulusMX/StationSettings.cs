@@ -1263,8 +1263,11 @@ namespace CumulusMX
 
 		internal string UploadNow(IHttpContext context)
 		{
+			cumulus.LogDebugMessage("Upload Now: Starting process");
+
 			if (station == null)
 			{
+				cumulus.LogDebugMessage("Upload Now: Not possible, station is not initialised}");
 				return "Not possible, station is not initialised}";
 			}
 
@@ -1290,11 +1293,20 @@ namespace CumulusMX
 
 				if (cumulus.WebUpdating >= 2)
 				{
-					cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, second chance, aborting connection");
-					if (cumulus.ftpThread.ThreadState == ThreadState.Running)
-						cumulus.ftpThread.Abort();
+					try
+					{
+						cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, second chance, aborting connection");
+						if (cumulus.ftpThread.ThreadState == ThreadState.Running)
+							cumulus.ftpThread.Abort();
 
-					returnMsg = "An existing upload process was aborted, and a new FTP process invoked";
+						returnMsg = "An existing upload process was aborted, and a new FTP process invoked";
+					}
+					catch (Exception ex)
+					{
+						returnMsg = "Error aborting a currently running upload";
+						cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+						return returnMsg;
+					}
 				}
 
 				// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
@@ -1334,14 +1346,24 @@ namespace CumulusMX
 					cumulus.NOAAconf.NeedCopy = true;
 				}
 
-				cumulus.WebUpdating = 1;
-				cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
-				cumulus.ftpThread.Start();
-				return returnMsg;
+				try
+				{
+					cumulus.WebUpdating = 1;
+					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
+					cumulus.ftpThread.Start();
+					return returnMsg;
+				}
+				catch(Exception ex)
+				{
+					returnMsg = "Error starting a new upload";
+					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+					return returnMsg;
+				}
+				cumulus.LogDebugMessage("Upload Now: Process complete");
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Upload Now: {ex.Message}");
+				cumulus.LogMessage($"Upload Now: General error: {ex.Message}");
 				context.Response.StatusCode = 500;
 				return $"Error: {ex.Message}";
 			}
