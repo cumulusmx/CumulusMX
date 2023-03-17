@@ -39,7 +39,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"Error creating NOAA yearly report: {e.Message}");
 				throw;
 			}
-			return File.ReadAllText(noaafile);
+			return report;
 		}
 
 		public string GenerateNoaaMonthReport(int year, int month)
@@ -66,7 +66,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"Error creating NOAA yearly report '{reportName}': {e.Message}");
 				throw;
 			}
-			return File.ReadAllText(noaafile);
+			return report;
 		}
 
 		public string GetNoaaYearReport(int year)
@@ -78,7 +78,8 @@ namespace CumulusMX
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
 				noaafile = cumulus.ReportPath + reportName;
-				report = File.Exists(noaafile) ? File.ReadAllText(noaafile) : "That report does not exist";
+				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
+				report = File.Exists(noaafile) ? File.ReadAllText(noaafile, encoding) : "That report does not exist";
 			}
 			catch (Exception e)
 			{
@@ -97,7 +98,8 @@ namespace CumulusMX
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);
 				noaafile = cumulus.ReportPath + reportName;
-				report = File.Exists(noaafile) ? File.ReadAllText(noaafile) : "That report does not exist";
+				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
+				report = File.Exists(noaafile) ? File.ReadAllText(noaafile, encoding) : "That report does not exist";
 			}
 			catch (Exception e)
 			{
