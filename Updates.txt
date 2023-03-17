@@ -1,11 +1,13 @@
 3.25.0 - b3236
 ——————————————
 New
-- Add data forwarding for HTTP (Ecowitt) stations
+- Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
 - Adds Leaf Wetness as a recent and select-a graph option - also added to chart colour picker
+- Adds a retry on failure for PHP Uploads
+- Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 
 Changed
-- None
+- NOAA reports now display invalid symbols when loading file that have not be saved as UTF-8
 
 Fixed
 - None
