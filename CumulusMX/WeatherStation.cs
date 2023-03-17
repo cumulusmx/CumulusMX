@@ -6693,29 +6693,18 @@ namespace CumulusMX
 				{
 					try
 					{
-						NOAA noaa = new NOAA(cumulus, this);
-						var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-						var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-
-						List<string> report;
+						var noaa = new NOAAReports(cumulus, this);
 
 						DateTime noaats = timestamp.AddDays(-1);
 
 						// do monthly NOAA report
 						cumulus.LogMessage("Creating NOAA monthly report for " + noaats.ToLongDateString());
-						report = noaa.CreateMonthlyReport(noaats);
-						cumulus.NOAAconf.LatestMonthReport = FormatDateTime(cumulus.NOAAconf.MonthFile, noaats);
-						string noaafile = cumulus.ReportPath + cumulus.NOAAconf.LatestMonthReport;
-						cumulus.LogMessage("Saving monthly report as " + noaafile);
-						File.WriteAllLines(noaafile, report, encoding);
+
+						_ = noaa.GenerateNoaaMonthReport(noaats.Year, noaats.Month);
 
 						// do yearly NOAA report
 						cumulus.LogMessage("Creating NOAA yearly report");
-						report = noaa.CreateYearlyReport(noaats);
-						cumulus.NOAAconf.LatestYearReport = FormatDateTime(cumulus.NOAAconf.YearFile, noaats);
-						noaafile = cumulus.ReportPath + cumulus.NOAAconf.LatestYearReport;
-						cumulus.LogMessage("Saving yearly report as " + noaafile);
-						File.WriteAllLines(noaafile, report, encoding);
+						_ = noaa.GenerateNoaaYearReport(noaats.Year);
 					}
 					catch (Exception ex)
 					{
@@ -8437,7 +8426,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[19], out varDbl))
 					rec.LowHumidity = Convert.ToInt32(varDbl);
 				else
-					rec.LowHumidity = 9999;
+					rec.LowHumidity = (int)Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[20].Length == 5)
 					rec.LowHumidityTime = GetDateTime(rec.Date, st[20]);
@@ -8445,13 +8434,15 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[21], out varDbl))
 					rec.HighHumidity = Convert.ToInt32(varDbl);
 				else
-					rec.HighHumidity = -9999;
+					rec.HighHumidity = (int)Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[22].Length == 5)
 					rec.HighHumidityTime = GetDateTime(rec.Date, st[22]);
 
 				if (st.Count > idx++ && double.TryParse(st[23], out varDbl))
 					rec.ET = varDbl;
+				else
+					rec.ET = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[24], out varDbl))
 					rec.SunShineHours = varDbl;
@@ -8459,7 +8450,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[25], out varDbl))
 					rec.HighHeatIndex = varDbl;
 				else
-					rec.HighHeatIndex = -9999;
+					rec.HighHeatIndex = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[26].Length == 5)
 					rec.HighHeatIndexTime = GetDateTime(rec.Date, st[26]);
@@ -8467,7 +8458,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[27], out varDbl))
 					rec.HighAppTemp = varDbl;
 				else
-					rec.HighAppTemp = -9999;
+					rec.HighAppTemp = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[28].Length == 5)
 					rec.HighAppTempTime = GetDateTime(rec.Date, st[28]);
@@ -8475,13 +8466,15 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[29], out varDbl))
 					rec.LowAppTemp = varDbl;
 				else
-					rec.LowAppTemp = 9999;
+					rec.LowAppTemp = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[30].Length == 5)
 					rec.LowAppTempTime = GetDateTime(rec.Date, st[30]);
 
 				if (st.Count > idx++ && double.TryParse(st[31], out varDbl))
 					rec.HighHourlyRain = varDbl;
+				else
+					rec.HighHourlyRain = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[32].Length == 5)
 					rec.HighHourlyRainTime = GetDateTime(rec.Date, st[32]);
@@ -8489,7 +8482,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[33], out varDbl))
 					rec.LowWindChill = varDbl;
 				else
-					rec.LowWindChill = 9999;
+					rec.LowWindChill = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[34].Length == 5)
 					rec.LowWindChillTime = GetDateTime(rec.Date, st[34]);
@@ -8497,7 +8490,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[35], out varDbl))
 					rec.HighDewPoint = varDbl;
 				else
-					rec.HighDewPoint = -9999;
+					rec.HighDewPoint = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[36].Length == 5)
 					rec.HighDewPointTime = GetDateTime(rec.Date, st[36]);
@@ -8505,28 +8498,38 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[37], out varDbl))
 					rec.LowDewPoint = varDbl;
 				else
-					rec.LowDewPoint = 9999;
+					rec.LowDewPoint = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[38].Length == 5)
 					rec.LowDewPointTime = GetDateTime(rec.Date, st[38]);
 
 				if (st.Count > idx++ && double.TryParse(st[39], out varDbl))
 					rec.DominantWindBearing = Convert.ToInt32(varDbl);
+				else
+					rec.DominantWindBearing = (int)Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[40], out varDbl))
 					rec.HeatingDegreeDays = varDbl;
+				else
+					rec.HeatingDegreeDays = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[41], out varDbl))
 					rec.CoolingDegreeDays = varDbl;
+				else
+					rec.CoolingDegreeDays = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[42], out varDbl))
 					rec.HighSolar = Convert.ToInt32(varDbl);
+				else
+					rec.HighSolar = (int)Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[43].Length == 5)
 					rec.HighSolarTime = GetDateTime(rec.Date, st[43]);
 
 				if (st.Count > idx++ && double.TryParse(st[44], out varDbl))
 					rec.HighUv = varDbl;
+				else
+					rec.HighUv = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[45].Length == 5)
 					rec.HighUvTime = GetDateTime(rec.Date, st[45]);
@@ -8534,7 +8537,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[46], out varDbl))
 					rec.HighFeelsLike = varDbl;
 				else
-					rec.HighFeelsLike = -9999;
+					rec.HighFeelsLike = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[47].Length == 5)
 					rec.HighFeelsLikeTime = GetDateTime(rec.Date, st[47]);
@@ -8542,7 +8545,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[48], out varDbl))
 					rec.LowFeelsLike = varDbl;
 				else
-					rec.LowFeelsLike = 9999;
+					rec.LowFeelsLike = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[49].Length == 5)
 					rec.LowFeelsLikeTime = GetDateTime(rec.Date, st[49]);
@@ -8550,7 +8553,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[50], out varDbl))
 					rec.HighHumidex = varDbl;
 				else
-					rec.HighHumidex = -9999;
+					rec.HighHumidex = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[51].Length == 5)
 					rec.HighHumidexTime = GetDateTime(rec.Date, st[51]);
@@ -8558,12 +8561,12 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[52], out varDbl))
 					rec.ChillHours = varDbl;
 				else
-					rec.ChillHours = -9999;
+					rec.ChillHours = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[53], out varDbl))
 					rec.HighRain24h = varDbl;
 				else
-					rec.HighRain24h = -9999;
+					rec.HighRain24h = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[54].Length == 5)
 					rec.HighRain24hTime = GetDateTime(rec.Date, st[54]);
@@ -13371,19 +13374,19 @@ namespace CumulusMX
 				{
 					long recDate = Utils.ToPseudoJSTime(DayFile[i].Date);
 
-					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
+					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local) && DayFile[i].SunShineHours > Cumulus.DefaultHiVal)
 					{
 						// sunshine hours
 						sunHours.Append($"[{recDate},{DayFile[i].SunShineHours.ToString(InvC)}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
+					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local) && DayFile[i].HighSolar > Cumulus.DefaultHiVal)
 					{
 						// hi solar rad
 						solarRad.Append($"[{recDate},{DayFile[i].HighSolar}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+					if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && DayFile[i].HighUv > Cumulus.DefaultHiVal)
 					{
 						// hi UV-I
 						uvi.Append($"[{recDate},{DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC)}],");

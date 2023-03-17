@@ -4673,7 +4673,7 @@ namespace CumulusMX
 				ExtraFiles[i].process = ini.GetValue("FTP site", "ExtraProcess" + i, false);
 				ExtraFiles[i].binary = ini.GetValue("FTP site", "ExtraBinary" + i, false);
 				ExtraFiles[i].realtime = ini.GetValue("FTP site", "ExtraRealtime" + i, false);
-				ExtraFiles[i].FTP = ini.GetValue("FTP site", "ExtraFTP" + i, true);
+				ExtraFiles[i].FTP = ini.GetValue("FTP site", "ExtraFTP" + i, false);
 				ExtraFiles[i].UTF8 = ini.GetValue("FTP site", "ExtraUTF" + i, false);
 				ExtraFiles[i].endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false);
 			}

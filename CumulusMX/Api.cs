@@ -1246,7 +1246,7 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "noaayear":
-								await writer.WriteAsync(String.Join("\n", noaarpts.GetNoaaYearReport(year).ToArray()));
+								await writer.WriteAsync(noaarpts.GetNoaaYearReport(year));
 								break;
 							case "noaamonth":
 								if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
@@ -1255,7 +1255,7 @@ namespace CumulusMX
 									Response.StatusCode = 406;
 									return;
 								}
-								await writer.WriteAsync(String.Join("\n", noaarpts.GetNoaaMonthReport(year, month).ToArray()));
+								await writer.WriteAsync(noaarpts.GetNoaaMonthReport(year, month));
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1292,7 +1292,7 @@ namespace CumulusMX
 						switch (req)
 						{
 							case "noaayear":
-								await writer.WriteAsync(String.Join("\n", noaarpts.GenerateNoaaYearReport(year).ToArray()));
+								await writer.WriteAsync(noaarpts.GenerateNoaaYearReport(year));
 								break;
 							case "noaamonth":
 								if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
@@ -1301,7 +1301,7 @@ namespace CumulusMX
 									Response.StatusCode = 406;
 									return;
 								}
-								await writer.WriteAsync(String.Join("\n", noaarpts.GenerateNoaaMonthReport(year, month).ToArray()));
+								await writer.WriteAsync(noaarpts.GenerateNoaaMonthReport(year, month));
 								break;
 							default:
 								Response.StatusCode = 404;
