@@ -7,10 +7,10 @@ New
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 
 Changed
-- NOAA reports now display invalid symbols when loading file that have not be saved as UTF-8
+- None
 
 Fixed
-- None
+- Real-time FTP/SFTP upload of realtimegauges.txt could corrupt concurrent FTP/SFTP interval uploads of processed files
 
 
 

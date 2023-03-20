@@ -35,6 +35,7 @@ using System.Web.Caching;
 using System.Web.UI.WebControls;
 using static System.Net.Mime.MediaTypeNames;
 using System.Text.RegularExpressions;
+using System.Numerics;
 
 namespace CumulusMX
 {
@@ -3171,7 +3172,7 @@ namespace CumulusMX
 
 						if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
 						{
-							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, tokenParser, true, true);
+							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, realtimeTokenParser, true, true);
 						}
 
 						using (var dataStream = GenerateStreamFromString(data))
@@ -9715,7 +9716,6 @@ namespace CumulusMX
 						{
 							remotefile = GetRemoteFileName(remotefile, logDay);
 
-							LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: " + uploadfile);
 
 							// all checks OK, file needs to be uploaded
 							try
@@ -9724,7 +9724,7 @@ namespace CumulusMX
 
 								if (ExtraFiles[i].process)
 								{
-
+									LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: {uploadfile} to: {remotefile} (Processed)");
 									tasklist.Add(Task.Run(async () =>
 									{
 										var data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
@@ -9733,12 +9733,13 @@ namespace CumulusMX
 								}
 								else
 								{
+									LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: {uploadfile} to: {remotefile}");
 									tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8));
 								}
 							}
 							catch (Exception e)
 							{
-								LogMessage($"PHP[Int]: Error uploading file[{i}] {uploadfile}: {e.Message}");
+								LogMessage($"PHP[Int]: Error uploading file[{i}] {uploadfile} to: {remotefile}: {e.Message}");
 							}
 						}
 						else
@@ -9803,14 +9804,12 @@ namespace CumulusMX
 						{
 							try
 							{
-
 								// we want incremental data for PHP
 								var json = station.CreateGraphDataJson(GraphDataFiles[idx].LocalFileName, GraphDataFiles[idx].Incremental);
 								var remotefile = GraphDataFiles[idx].RemoteFileName;
 								LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[idx].LocalFileName);
 
 								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
-								//if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
 								{
 									// The config files only need uploading once per change
 									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
@@ -10214,7 +10213,7 @@ namespace CumulusMX
 					data = await Utils.ReadAllTextAsync(localfile, encoding);
 				}
 
-				return await UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary);
+				return await UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary, utf8);
 			}
 			catch (Exception ex)
 			{
@@ -10229,10 +10228,10 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(data))
 			{
-				LogMessage($"PHP[{cycleStr}]: The data string is empty, ignoring this upload");
+				LogMessage($"PHP[{cycleStr}]: Uploading to {remotefile}. Error: The data string is empty, ignoring this upload");
 			}
 
-			LogDebugMessage($"PHP[{cycleStr}]: Uploading {remotefile}");
+			LogDebugMessage($"PHP[{cycleStr}]: Uploading to {remotefile}");
 
 			// we will try this twice incase the first attempt fails with a closed connection
 			var retry = 0;
@@ -10257,6 +10256,7 @@ namespace CumulusMX
 						request.Headers.Add("TS", unixTs);
 						request.Headers.Add("SIGNATURE", signature);
 						request.Headers.Add("BINARY", binary ? "1" : "0");
+						request.Headers.Add("UTF8", utf8 ? "1" : "0");
 						// Compress? if supported and payload exceeds 500 bytes
 						if (data.Length < 500 || FtpOptions.PhpCompression == "none")
 						{
@@ -10304,13 +10304,13 @@ namespace CumulusMX
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
-							LogMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-							LogMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
+							LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+							LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 						}
 						else
 						{
-							LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-							LogDataMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
+							LogDebugMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+							LogDataMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 						}
 
 						return response.StatusCode == HttpStatusCode.OK;
@@ -10729,15 +10729,9 @@ namespace CumulusMX
 			{
 				var parser = new TokenParser();
 				parser.OnToken += TokenParserOnToken;
-
-				using (StreamReader sr = File.OpenText(templatefile))
-				{
-					// only set the soruce file for error messages
-					parser.SourceFile = template;
-					parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
-					parser.InputText = await sr.ReadToEndAsync();
-				}
-				return parser.ToStringFromString();
+				parser.SourceFile = templatefile;
+				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
+				return await parser.ToStringAsync();
 			}
 			else
 			{
