@@ -9,6 +9,7 @@ using EmbedIO;
 using static Swan.Terminal;
 using Swan.Formatters;
 using ServiceStack;
+using System.Globalization;
 
 namespace CumulusMX
 {
@@ -398,7 +399,7 @@ namespace CumulusMX
 
 			var generalAdvanced = new JsonStationSettingsAdvanced()
 			{
-				recsbegandate = cumulus.RecordsBeganDate
+				recsbegandate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd")
 			};
 
 			var general = new JsonStationGeneral()
@@ -1201,8 +1202,7 @@ namespace CumulusMX
 				// General Advanced
 				try
 				{
-					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate.Trim();
-					cumulus.RecordsBeganDateTime = DateTime.Parse(cumulus.RecordsBeganDate);
+					cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.general.advanced.recsbegandate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
 				}
 				catch (Exception ex)
 				{

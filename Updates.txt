@@ -7,11 +7,12 @@ New
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 
 Changed
-- None
+- Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD
+	The existing entry will be migrated and removed automatically
 
 Fixed
 - Real-time FTP/SFTP upload of realtimegauges.txt could corrupt concurrent FTP/SFTP interval uploads of processed files
-
+- Extra web files was performing the EOD copy before the daily graphs had been created
 
 
 3.24.2 - b3235

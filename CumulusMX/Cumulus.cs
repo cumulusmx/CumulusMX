@@ -4303,18 +4303,26 @@ namespace CumulusMX
 
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
-			RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
-
-			try
+			if (ini.ValueExists("Station", "StartDate"))
 			{
-				RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
+				var RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
+				try
+				{
+					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
+					rewriteRequired = true;
+				}
+				catch (Exception ex)
+				{
+					LogErrorMessage($"Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				LogErrorMessage($"Error parsing the RecordsBegan date: {ex.Message}");
+				var RecordsBeganDate = ini.GetValue("Station", "StartDateIso", DateTime.Now.ToString("yyyy-MM-dd"));
+				RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 			}
 
-			LogMessage($"Cumulus start date: {RecordsBeganDate}  Parsed: {RecordsBeganDateTime:yyyy-MM-dd}" );
+			LogMessage($"Cumulus start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}" );
 
 			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
 			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);
@@ -5731,7 +5739,7 @@ namespace CumulusMX
 
 			ini.SetValue("Station", "LocName", LocationName);
 			ini.SetValue("Station", "LocDesc", LocationDesc);
-			ini.SetValue("Station", "StartDate", RecordsBeganDate);
+			ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd"));
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
 			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
@@ -7185,7 +7193,6 @@ namespace CumulusMX
 
 		//public bool EWduplicatecheck { get; set; }
 
-		public string RecordsBeganDate { get; set; }
 		public DateTime RecordsBeganDateTime { get; set; }
 
 		//public bool EWdisablecheckinit { get; set; }
@@ -11138,10 +11145,14 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage("EOD: Error copying extra file: " + ex.Message);
+									LogDebugMessage($"EOD: Error copying extra file {uploadfile} to {remotefile}: {ex.Message}");
 								}
 								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
+						}
+						else
+						{
+							LogMessage($"EOD: Error extra file {uploadfile} not found");
 						}
 					}
 				}

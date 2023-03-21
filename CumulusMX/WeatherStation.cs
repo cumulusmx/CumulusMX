@@ -6721,6 +6721,11 @@ namespace CumulusMX
 					cumulus.LogMessage("NOAA reports will be uploaded at next web update");
 				}
 
+				// Do the Daily graph data files
+				CreateEodGraphDataFiles();
+				CreateDailyGraphDataFiles();
+				cumulus.LogMessage("If required the daily graph data files will be uploaded at next web update");
+
 				// Do the End of day Extra files
 				// This will set a flag to transfer on next FTP if required
 				cumulus.DoExtraEndOfDayFiles();
@@ -6728,12 +6733,6 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("Extra files will be uploaded at next web update");
 				}
-
-				// Do the Daily graph data files
-				CreateEodGraphDataFiles();
-				CreateDailyGraphDataFiles();
-				cumulus.LogMessage("If required the daily graph data files will be uploaded at next web update");
-
 
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
