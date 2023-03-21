@@ -1649,6 +1649,7 @@ namespace CumulusMX
 				// If enabled generate the daily graph data files, and upload at first opportunity
 				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
+				station.CreateDailyGraphDataFiles();
 			}
 
 			LogDebugMessage("Lock: Cumulus releasing the lock");
