@@ -36,6 +36,7 @@ using System.Web.UI.WebControls;
 using static System.Net.Mime.MediaTypeNames;
 using System.Text.RegularExpressions;
 using System.Numerics;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace CumulusMX
 {
@@ -241,7 +242,7 @@ namespace CumulusMX
 
 		public bool NormalRunning = false;
 
-		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
+		private TraceListener FtpTraceListener;
 
 		public volatile int WebUpdating;
 		public volatile bool SqlCatchingUp;
@@ -663,6 +664,7 @@ namespace CumulusMX
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul" };
 
 		public string loggingfile;
+		public string ftpLogfile;
 
 		//private PingReply pingReply;
 
@@ -684,7 +686,8 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
+			loggingfile = RemoveOldDiagsFiles("CMX");
+			ftpLogfile = RemoveOldDiagsFiles("FTP");
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
 			Program.svcTextListener.Flush();
@@ -692,6 +695,11 @@ namespace CumulusMX
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
+
+			if (FtpOptions.Logging)
+			{
+				CreateFtpLogFile(ftpLogfile);
+			}
 
 			// Read the configuration file
 
@@ -1599,8 +1607,6 @@ namespace CumulusMX
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
 				RealtimeTimer.AutoReset = true;
 
-				SetFtpLogging(FtpOptions.Logging);
-
 				WundTimer.Elapsed += WundTimerTick;
 				AwekasTimer.Elapsed += AwekasTimerTick;
 				WebTimer.Elapsed += WebTimerTick;
@@ -2036,25 +2042,6 @@ namespace CumulusMX
 			HighWindAlarm.Units = Units.WindText;
 			HighGustAlarm.Units = Units.WindText;
 		}
-
-		public void SetFtpLogging(bool isSet)
-		{
-			try
-			{
-				FtpTrace.RemoveListener(FtpTraceListener);
-			}
-			catch
-			{
-				// ignored
-			}
-
-			if (isSet)
-			{
-				FtpTrace.AddListener(FtpTraceListener);
-				FtpTrace.FlushOnWrite = true;
-			}
-		}
-
 
 		/*
 		private string LocalIPAddress()
@@ -2936,7 +2923,7 @@ namespace CumulusMX
 							}
 							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
 							{
-								RealtimeFTP.UngracefullDisconnection = true;
+								RealtimeFTP.Config.DisconnectWithQuit = false;
 								RealtimeFTP.Disconnect();
 							}
 							LogMessage("RealtimeReconnect: Realtime ftp disconnected");
@@ -2952,7 +2939,7 @@ namespace CumulusMX
 						finally
 						{
 							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
-								RealtimeFTP.UngracefullDisconnection = false;
+								RealtimeFTP.Config.DisconnectWithQuit = true;
 						}
 
 						// Attempt a simple reconnect
@@ -3227,6 +3214,7 @@ namespace CumulusMX
 						remotefile = GetRemoteFileName(remotefile, DateTime.Now);
 
 						// all checks OK, file needs to be uploaded
+						LogFtpMessage("");
 						LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
 
 						string data = string.Empty;
@@ -3959,21 +3947,43 @@ namespace CumulusMX
 			}
 		}
 
-		private string RemoveOldDiagsFiles(string directory)
+		public string RemoveOldDiagsFiles(string logType)
 		{
 			const int maxEntries = 12;
 
-			List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
+			var directory = "MXdiags" + DirectorySeparator;
+			string filename = string.Empty;
 
-			fileEntries.Sort();
-
-			while (fileEntries.Count >= maxEntries)
+			if (logType == "CMX")
 			{
-				File.Delete(fileEntries.First());
-				fileEntries.RemoveAt(0);
+				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
+
+				fileEntries.Sort();
+
+				while (fileEntries.Count >= maxEntries)
+				{
+					File.Delete(fileEntries.First());
+					fileEntries.RemoveAt(0);
+				}
+
+				filename = $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+			}
+			else if (logType == "FTP")
+			{
+				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+FTP-\d{8}-\d{6}\.txt").Success));
+
+				fileEntries.Sort();
+
+				while (fileEntries.Count >= maxEntries)
+				{
+					File.Delete(fileEntries.First());
+					fileEntries.RemoveAt(0);
+				}
+
+				filename=  $"{directory}FTP-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
 			}
 
-			return $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+			return filename;
 		}
 
 		public void RotateLogFiles()
@@ -3984,13 +3994,39 @@ namespace CumulusMX
 			if (logfileSize > 20971520)
 			{
 				var oldfile = loggingfile;
-				loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
+				loggingfile = RemoveOldDiagsFiles("CMX");
 				LogMessage("Rotating log file, new log file will be: " + loggingfile.Split(DirectorySeparator).Last());
 				TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 				Trace.Listeners.Remove("MXlog");
 				Trace.Listeners.Add(myTextListener);
 				LogMessage("Rotated log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
 			}
+
+			// cycle the FTP log file
+			if (FtpOptions.Logging && File.Exists(ftpLogfile))
+			{
+				logfileSize = new FileInfo(ftpLogfile).Length;
+				// if > 20 MB
+				if (logfileSize > 20971520)
+				{
+					var oldfile = ftpLogfile;
+					ftpLogfile = RemoveOldDiagsFiles("FTP");
+					LogFtpMessage("Rotating FTP log file, new log file will be: " + ftpLogfile.Split(DirectorySeparator).Last());
+					CreateFtpLogFile(ftpLogfile);
+					LogFtpMessage("Rotated FTP log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
+				}
+			}
+		}
+
+		public void CreateFtpLogFile(string filename)
+		{
+			if (FtpTraceListener != null)
+			{
+				FtpTraceListener.Close();
+				FtpTraceListener.Dispose();
+			}
+			FtpTraceListener = new TextWriterTraceListener(ftpLogfile, "ftplog");
+			LogFtpMessage("Create FTP log file: " + ftpLogfile.Split(DirectorySeparator).Last());
 		}
 
 		private void ReadIniFile()
@@ -9403,11 +9439,12 @@ namespace CumulusMX
 			{
 				using (FtpClient conn = new FtpClient())
 				{
-					if (FtpOptions.Logging) FtpTrace.WriteLine(""); // insert a blank line
+					LogFtpMessage(""); // insert a blank line
 					LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname);
 					conn.Host = FtpOptions.Hostname;
 					conn.Port = FtpOptions.Port;
 					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+					conn.LegacyLogger = LogFluentFtpMessage;
 
 					if (!FtpOptions.AutoDetect)
 					{
@@ -9416,8 +9453,8 @@ namespace CumulusMX
 						{
 							// Explicit = Current protocol - connects using FTP and switches to TLS
 							// Implicit = Old depreciated protocol - connects using TLS
-							conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.DataConnectionEncryption = true;
+							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.Config.DataConnectionEncryption = true;
 							// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 							// b3155 - switch to default again - this will use the highest version available in the OS
 							//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
@@ -9425,17 +9462,17 @@ namespace CumulusMX
 
 						if (FtpOptions.ActiveMode)
 						{
-							conn.DataConnectionType = FtpDataConnectionType.PORT;
+							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
 						}
 						else if (FtpOptions.DisableEPSV)
 						{
-							conn.DataConnectionType = FtpDataConnectionType.PASV;
+							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
 						}
 					}
 
 					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 					{
-						conn.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 					}
 
 					try
@@ -9472,8 +9509,6 @@ namespace CumulusMX
 						return;
 					}
 
-					conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
-
 					if (conn.IsConnected)
 					{
 						if (NOAAconf.NeedFtp)
@@ -9481,6 +9516,7 @@ namespace CumulusMX
 							try
 							{
 								// upload NOAA reports
+								LogFtpMessage("");
 								LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports");
 
 								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
@@ -9522,6 +9558,7 @@ namespace CumulusMX
 								{
 									remotefile = GetRemoteFileName(remotefile, logDay);
 
+									LogFtpMessage("");
 									LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
 
 									// all checks OK, file needs to be uploaded
@@ -9656,6 +9693,7 @@ namespace CumulusMX
 						{
 							try
 							{
+								LogFtpMessage("");
 								LogFtpDebugMessage("FTP[Int]: Uploading Moon image file");
 								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest);
 								// clear the image ready for FTP flag, only upload once an hour
@@ -9903,7 +9941,8 @@ namespace CumulusMX
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
-			if (FtpOptions.Logging) FtpTrace.WriteLine("");
+			LogFtpMessage("");
+
 			try
 			{
 				if (!File.Exists(localfile))
@@ -9928,12 +9967,12 @@ namespace CumulusMX
 
 			return conn.IsConnected;
 		}
+
 		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
-			if (FtpOptions.Logging) FtpTrace.WriteLine("");
 			try
 			{
 				if (dataStream.Length == 0)
@@ -9988,7 +10027,7 @@ namespace CumulusMX
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefiletmp}");
 
 				FtpStatus status;
-				status = conn.Upload(dataStream, remotefiletmp);
+				status = conn.UploadStream(dataStream, remotefiletmp);
 
 				if (status.IsFailure())
 				{
@@ -10376,19 +10415,37 @@ namespace CumulusMX
 
 		public void LogFtpMessage(string message)
 		{
-			LogMessage(message);
-			if (FtpOptions.Logging)
-			{
-				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-			}
+			if (!string.IsNullOrEmpty(message))
+				LogMessage(message);
+			LogFluentFtpMessage(FtpTraceLevel.Info, message);
 		}
 
 		public void LogFtpDebugMessage(string message)
 		{
 			if (FtpOptions.Logging)
 			{
-				LogDebugMessage(message);
-				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				if (!string.IsNullOrEmpty(message))
+					LogDebugMessage(message);
+				LogFluentFtpMessage(FtpTraceLevel.Info, message);
+			}
+		}
+
+		public void LogFluentFtpMessage(FtpTraceLevel level, string message)
+		{
+			if (FtpOptions.Logging)
+			{
+				try
+				{
+					if (string.IsNullOrEmpty(message))
+						FtpTraceListener.WriteLine(string.Empty);
+					else
+						FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+					FtpTraceListener.Flush();
+				}
+				catch (Exception ex)
+				{
+					LogDebugMessage($"LogFluentFtpMessage: Error = {ex.Message}");
+				}
 			}
 		}
 
@@ -11201,15 +11258,15 @@ namespace CumulusMX
 			RealtimeFTP.Host = FtpOptions.Hostname;
 			RealtimeFTP.Port = FtpOptions.Port;
 			RealtimeFTP.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-			RealtimeFTP.SocketPollInterval = 20000; // increase beyond the timeout values
-			RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout values
+			RealtimeFTP.LegacyLogger = LogFluentFtpMessage;
 
 			if (!FtpOptions.AutoDetect)
 			{
 				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 				{
-					RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-					RealtimeFTP.DataConnectionEncryption = true;
+					RealtimeFTP.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+					RealtimeFTP.Config.DataConnectionEncryption = true;
 					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 					// b3155 - switch to default again - this will use the highest version available in the OS
 					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
@@ -11218,23 +11275,23 @@ namespace CumulusMX
 
 				if (FtpOptions.ActiveMode)
 				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PORT;
 					LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
 				}
 				else if (FtpOptions.DisableEPSV)
 				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PASV;
 					LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
 				}
 				else
 				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
+					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.EPSV;
 				}
 			}
 
 			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+				RealtimeFTP.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 			}
 
 			if (FtpOptions.Enabled)
@@ -11251,7 +11308,7 @@ namespace CumulusMX
 						RealtimeFTP.Connect();
 					}
 					LogMessage("RealtimeFTPLogin: Realtime FTP connected");
-					RealtimeFTP.SocketKeepAlive = true;
+					RealtimeFTP.Config.SocketKeepAlive = true;
 				}
 				catch (Exception ex)
 				{

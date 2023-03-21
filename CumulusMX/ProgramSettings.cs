@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading;
 using ServiceStack.Text;
 using EmbedIO;
+using System.Diagnostics;
 
 namespace CumulusMX
 {
@@ -177,8 +178,12 @@ namespace CumulusMX
 
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
+					if (settings.logging.ftplogging)
+					{
+						cumulus.ftpLogfile = cumulus.RemoveOldDiagsFiles("FTP");
+						cumulus.CreateFtpLogFile(cumulus.ftpLogfile);
+					}
 					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
-					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
 			}
 			catch (Exception ex)
