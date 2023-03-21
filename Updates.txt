@@ -9,6 +9,8 @@ New
 Changed
 - Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD
 	The existing entry will be migrated and removed automatically
+- Switched back to current builds of FluentFTP as a fix is now incorporated for Mono errors
+	- This has meant a change to the FTP logging processes. FTP logs are now created in the MXdiags folder, and cycled like the main CMX log files
 
 Fixed
 - Real-time FTP/SFTP upload of realtimegauges.txt could corrupt concurrent FTP/SFTP interval uploads of processed files
