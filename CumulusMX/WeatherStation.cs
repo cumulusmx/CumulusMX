@@ -2195,13 +2195,11 @@ namespace CumulusMX
 
 		public void CreateEodGraphDataFiles()
 		{
-			string json = "";
-
 			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 			{
 				if (cumulus.GraphDataEodFiles[i].Create)
 				{
-					json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].LocalFileName);
+					var json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].LocalFileName);
 
 					try
 					{
@@ -2226,9 +2224,25 @@ namespace CumulusMX
 			// daily rain = 8
 			// daily temp = 9
 			// sun hours = 11
-			for (var i = 2; i < cumulus.GraphDataFiles.Length; i++)
+			var eod = new int[] { 8, 9, 11 };
+
+			foreach (var i in eod)
 			{
-				cumulus.GraphDataFiles[i].CreateRequired = true;
+				if (cumulus.GraphDataFiles[i].Create)
+				{
+					var json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
+
+					try
+					{
+						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
+						File.WriteAllText(dest, json);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}");
+					}
+				}
+
 				cumulus.GraphDataFiles[i].CopyRequired = true;
 				cumulus.GraphDataFiles[i].FtpRequired = true;
 			}
@@ -6729,6 +6743,7 @@ namespace CumulusMX
 				// Do the End of day Extra files
 				// This will set a flag to transfer on next FTP if required
 				cumulus.DoExtraEndOfDayFiles();
+
 				if (cumulus.EODfilesNeedFTP)
 				{
 					cumulus.LogMessage("Extra files will be uploaded at next web update");
