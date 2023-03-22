@@ -95,7 +95,7 @@ namespace CumulusMX
 							{
 								msg += "\r\nLast error: " + LastError;
 							}
-							Task.Run(async () =>
+							_ = Task.Run(async () =>
 							{
 								// try to send the email 3 times
 								for (int i = 0; i < 3; i++)
@@ -252,7 +252,7 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
-						Task.Run(async () =>
+						_ = Task.Run(async () =>
 						{
 							// try to send the email 3 times
 							for (int i = 0; i < 3; i++)
@@ -326,7 +326,7 @@ namespace CumulusMX
 					{
 						// Construct the message - preamble, plus values
 						var msg = cumulus.Trans.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
-						Task.Run(async () =>
+						_ = Task.Run(async () =>
 						{
 							// try to send the email 3 times
 							for (int i = 0; i < 3; i++)

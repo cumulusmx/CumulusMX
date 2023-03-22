@@ -1351,15 +1351,14 @@ namespace CumulusMX
 					cumulus.WebUpdating = 1;
 					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 					cumulus.ftpThread.Start();
-					return returnMsg;
 				}
 				catch(Exception ex)
 				{
 					returnMsg = "Error starting a new upload";
 					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
-					return returnMsg;
 				}
 				cumulus.LogDebugMessage("Upload Now: Process complete");
+				return returnMsg;
 			}
 			catch (Exception ex)
 			{

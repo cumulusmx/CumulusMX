@@ -1364,14 +1364,14 @@ namespace CumulusMX
 					}
 
 					// we are just going to fire and forget
-					Task.Run(() =>
+					_ = Task.Run(async () =>
 					{
 						try
 						{
 							using (var request = new HttpRequestMessage(HttpMethod.Post, url))
 							{
 								request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
-								var response = httpForwarders[idx].SendAsync(request).Result;
+								var response = await httpForwarders[idx].SendAsync(request);
 								cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
 							}
 						}

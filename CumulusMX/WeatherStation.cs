@@ -1539,7 +1539,7 @@ namespace CumulusMX
 				cumulus.WebSock.SendMessage(GetCurrentData());
 
 				// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
-				Thread.Sleep(500);
+				await Task.Delay(500);
 			}
 			catch (Exception ex)
 			{

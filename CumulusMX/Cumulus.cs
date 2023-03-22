@@ -1109,7 +1109,7 @@ namespace CumulusMX
 				do
 				{
 					var pingTimeoutDT = DateTime.Now.AddSeconds(pingTimeoutSecs);
-					var pingTokenSource = new CancellationTokenSource();
+					var pingTokenSource = new CancellationTokenSource(pingTimeoutSecs * 1000);
 					var pingCancelToken = pingTokenSource.Token;
 
 					LogDebugMessage($"Starting PING #{attempt} task with time-out of {pingTimeoutSecs} seconds");
@@ -2871,7 +2871,7 @@ namespace CumulusMX
 
 								try
 								{
-									RealtimeUpload(cycle).Wait();
+									RealtimeUpload(cycle);
 									realtimeFTPRetries = 0;
 								}
 								catch (Exception ex)
@@ -3148,7 +3148,7 @@ namespace CumulusMX
 		}
 
 
-		private async Task RealtimeUpload(byte cycle)
+		private void RealtimeUpload(byte cycle)
 		{
 			var remotePath = "";
 			var tasklist = new List<Task>();
@@ -3198,7 +3198,7 @@ namespace CumulusMX
 					else // PHP
 					{
 						var idx = i;
-						var task = new Task(() =>
+						var task = new Task(async () =>
 						{
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
@@ -3208,10 +3208,10 @@ namespace CumulusMX
 
 							if (RealtimeFiles[idx].LocalFileName == "realtimegauges.txt")
 							{
-								data = ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true).Result;
+								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
 							}
 
-							_ = UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle).Result;
+							_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
 							// no realtime files are incremental, so no need to update LastDataTime
 						}, TaskCreationOptions.LongRunning);
 
@@ -3263,7 +3263,7 @@ namespace CumulusMX
 							{
 								var task = new Task(() =>
 								{
-									UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8);
+									_ = UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8).Result;
 								}, TaskCreationOptions.LongRunning);
 
 								tasklist.Add(task);
@@ -9757,9 +9757,9 @@ namespace CumulusMX
 						var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
 						var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-						var task1 = new Task(() =>
+						var task1 = new Task(async () =>
 						{
-							UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
 						}, TaskCreationOptions.LongRunning);
 
 						tasklist.Add(task1);
@@ -9768,9 +9768,9 @@ namespace CumulusMX
 						uploadfile = ReportPath + NOAAconf.LatestYearReport;
 						remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-						var task2 = new Task(() =>
+						var task2 = new Task(async () =>
 						{
-							UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
 						}, TaskCreationOptions.LongRunning);
 
 						tasklist.Add(task2);
@@ -9816,10 +9816,10 @@ namespace CumulusMX
 								{
 									LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: {uploadfile} to: {remotefile} (Processed)");
 
-									var task = new Task(() =>
+									var task = new Task(async () =>
 									{
 										var data = ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8).Result;
-										_ = UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, ExtraFiles[idx].UTF8).Result;
+										_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, ExtraFiles[idx].UTF8);
 									}, TaskCreationOptions.LongRunning);
 
 									tasklist.Add(task);
@@ -9829,9 +9829,9 @@ namespace CumulusMX
 								{
 									LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: {uploadfile} to: {remotefile}");
 
-									var task = new Task(() =>
+									var task = new Task(async () =>
 									{
-										UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8);
+										_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8);
 									}, TaskCreationOptions.LongRunning);
 
 									tasklist.Add(task);
@@ -9861,7 +9861,7 @@ namespace CumulusMX
 					{
 						var idx = i;
 
-						var task = new Task(() =>
+						var task = new Task(async () =>
 						{
 							string data;
 							try
@@ -9874,10 +9874,10 @@ namespace CumulusMX
 								}
 								else
 								{
-									data = ProcessTemplateFile2StringAsync(StdWebFiles[idx].TemplateFileName, true, true).Result;
+									data = await ProcessTemplateFile2StringAsync(StdWebFiles[idx].TemplateFileName, true, true);
 								}
 
-								if (UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true).Result)
+								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true))
 								{
 									// No standard files are "one offs" at present
 									//StdWebFiles[i].FtpRequired = false;
@@ -9904,7 +9904,7 @@ namespace CumulusMX
 					{
 						var idx = i;
 
-						var task = new Task(() =>
+						var task = new Task(async () =>
 						{
 							try
 							{
@@ -9913,7 +9913,7 @@ namespace CumulusMX
 								var remotefile = GraphDataFiles[idx].RemoteFileName;
 								LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[idx].LocalFileName);
 
-								if (UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true).Result)
+								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
 								{
 									// The config files only need uploading once per change
 									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
@@ -9946,7 +9946,7 @@ namespace CumulusMX
 					{
 						var idx = i;
 
-						var task = new Task(() =>
+						var task = new Task(async () =>
 						{
 							var remotefile = GraphDataEodFiles[idx].RemoteFileName;
 							try
@@ -9954,7 +9954,7 @@ namespace CumulusMX
 								LogMessage("PHP[Int]: Uploading daily graph data file: " + GraphDataEodFiles[idx].LocalFileName);
 								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[idx].LocalFileName);
 
-								if (UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true).Result)
+								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
 								{
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[idx].FtpRequired = false;
@@ -9974,13 +9974,13 @@ namespace CumulusMX
 
 				if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 				{
-					var task = new Task(() =>
+					var task = new Task(async () =>
 					{
 						try
 						{
 							LogDebugMessage("PHP[Int]: Uploading Moon image file");
 
-							if (UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true).Result)
+							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
