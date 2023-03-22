@@ -605,6 +605,7 @@ namespace CumulusMX
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		// PHP upload HTTP
+		internal HttpClientHandler phpUploadHttpHandler;
 		internal HttpClient phpUploadHttpClient;
 		internal HttpClient phpRealtimeUploadHttpClient;
 
@@ -1298,13 +1299,13 @@ namespace CumulusMX
 
 			ReadStringsFile();
 
-			SetUpHttpProxy();
-
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
 				SetupPhpUploadClients();
 				TestPhpUploadCompression();
 			}
+
+			SetUpHttpProxy();
 
 			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
@@ -1710,15 +1711,33 @@ namespace CumulusMX
 
 		internal void SetupPhpUploadClients()
 		{
-			var phpUploadHttpHandler = new HttpClientHandler
+			phpUploadHttpHandler = new HttpClientHandler
 			{
 				ClientCertificateOptions = ClientCertificateOption.Manual,
-				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) => {
+				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) =>
+				{
 					return FtpOptions.PhpIgnoreCertErrors ? true : errors == System.Net.Security.SslPolicyErrors.None;
-				}
+				},
+				MaxConnectionsPerServer = 50,
+				AllowAutoRedirect = false,
+
 			};
+
+			if (!string.IsNullOrEmpty(HTTPProxyName))
+			{
+				phpUploadHttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				phpUploadHttpHandler.UseProxy = true;
+				if (!string.IsNullOrEmpty(HTTPProxyUser))
+				{
+					phpUploadHttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+				}
+			}
+
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
 			phpRealtimeUploadHttpClient = new HttpClient(phpUploadHttpHandler);
+
+			phpUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
+			phpRealtimeUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
 		}
 
 
@@ -3179,7 +3198,7 @@ namespace CumulusMX
 					else // PHP
 					{
 						var idx = i;
-						tasklist.Add(Task.Run(async () =>
+						var task = new Task(() =>
 						{
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
@@ -3189,12 +3208,15 @@ namespace CumulusMX
 
 							if (RealtimeFiles[idx].LocalFileName == "realtimegauges.txt")
 							{
-								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
+								data = ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true).Result;
 							}
 
-							_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
+							_ = UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle).Result;
 							// no realtime files are incremental, so no need to update LastDataTime
-						}));
+						}, TaskCreationOptions.LongRunning);
+
+						tasklist.Add(task);
+						task.Start();
 					}
 				}
 			}
@@ -3224,19 +3246,28 @@ namespace CumulusMX
 							var idx = i;
 							if (ExtraFiles[i].process)
 							{
-								tasklist.Add(Task.Run(async () =>
+								var task = new Task(() =>
 								{
 									if (ExtraFiles[idx].process)
 									{
-										data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
+										data = ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8).Result;
 									}
 
-									_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8);
-								}));
+									_ = UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8).Result;
+								}, TaskCreationOptions.LongRunning);
+
+								tasklist.Add(task);
+								task.Start();
 							}
 							else
 							{
-								tasklist.Add(UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8));
+								var task = new Task(() =>
+								{
+									UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8);
+								}, TaskCreationOptions.LongRunning);
+
+								tasklist.Add(task);
+								task.Start();
 							}
 							// no extra files are incremental for now, so no need to update LastDataTime
 
@@ -9726,12 +9757,25 @@ namespace CumulusMX
 						var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
 						var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8));
+						var task1 = new Task(() =>
+						{
+							UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+						}, TaskCreationOptions.LongRunning);
+
+						tasklist.Add(task1);
+						task1.Start();
 
 						uploadfile = ReportPath + NOAAconf.LatestYearReport;
 						remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8));
+						var task2 = new Task(() =>
+						{
+							UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+						}, TaskCreationOptions.LongRunning);
+
+						tasklist.Add(task2);
+						task2.Start();
+
 						LogFtpDebugMessage("PHP[Int]: Upload of NOAA reports complete");
 						NOAAconf.NeedFtp = false;
 					}
@@ -9771,16 +9815,27 @@ namespace CumulusMX
 								if (ExtraFiles[i].process)
 								{
 									LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: {uploadfile} to: {remotefile} (Processed)");
-									tasklist.Add(Task.Run(async () =>
+
+									var task = new Task(() =>
 									{
-										var data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
-										_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, ExtraFiles[idx].UTF8);
-									}));
+										var data = ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8).Result;
+										_ = UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, ExtraFiles[idx].UTF8).Result;
+									}, TaskCreationOptions.LongRunning);
+
+									tasklist.Add(task);
+									task.Start();
 								}
 								else
 								{
 									LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: {uploadfile} to: {remotefile}");
-									tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8));
+
+									var task = new Task(() =>
+									{
+										UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8);
+									}, TaskCreationOptions.LongRunning);
+
+									tasklist.Add(task);
+									task.Start();
 								}
 							}
 							catch (Exception e)
@@ -9806,7 +9861,7 @@ namespace CumulusMX
 					{
 						var idx = i;
 
-						tasklist.Add(Task.Run(async () =>
+						var task = new Task(() =>
 						{
 							string data;
 							try
@@ -9819,10 +9874,10 @@ namespace CumulusMX
 								}
 								else
 								{
-									data = await ProcessTemplateFile2StringAsync(StdWebFiles[idx].TemplateFileName, true, true);
+									data = ProcessTemplateFile2StringAsync(StdWebFiles[idx].TemplateFileName, true, true).Result;
 								}
 
-								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true))
+								if (UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true).Result)
 								{
 									// No standard files are "one offs" at present
 									//StdWebFiles[i].FtpRequired = false;
@@ -9832,7 +9887,10 @@ namespace CumulusMX
 							{
 								LogMessage($"PHP[Int]: Error uploading file {StdWebFiles[idx].RemoteFileName}: {e}");
 							}
-						}));
+						}, TaskCreationOptions.LongRunning);
+
+						tasklist.Add(task);
+						task.Start();
 					}
 				}
 
@@ -9846,7 +9904,7 @@ namespace CumulusMX
 					{
 						var idx = i;
 
-						tasklist.Add(Task.Run(async () =>
+						var task = new Task(() =>
 						{
 							try
 							{
@@ -9855,7 +9913,7 @@ namespace CumulusMX
 								var remotefile = GraphDataFiles[idx].RemoteFileName;
 								LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[idx].LocalFileName);
 
-								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
+								if (UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true).Result)
 								{
 									// The config files only need uploading once per change
 									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
@@ -9875,7 +9933,10 @@ namespace CumulusMX
 								LogMessage($"PHP[Int]: Error uploading graph data file [{GraphDataFiles[idx].RemoteFileName}]");
 								LogMessage($"PHP[Int]: Error = {e}");
 							}
-						}));
+						}, TaskCreationOptions.LongRunning);
+
+						tasklist.Add(task);
+						task.Start();
 					}
 				}
 
@@ -9885,7 +9946,7 @@ namespace CumulusMX
 					{
 						var idx = i;
 
-						tasklist.Add(Task.Run(async () =>
+						var task = new Task(() =>
 						{
 							var remotefile = GraphDataEodFiles[idx].RemoteFileName;
 							try
@@ -9893,7 +9954,7 @@ namespace CumulusMX
 								LogMessage("PHP[Int]: Uploading daily graph data file: " + GraphDataEodFiles[idx].LocalFileName);
 								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[idx].LocalFileName);
 
-								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+								if (UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true).Result)
 								{
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[idx].FtpRequired = false;
@@ -9904,19 +9965,22 @@ namespace CumulusMX
 								LogMessage($"PHP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[idx].RemoteFileName}]");
 								LogMessage($"PHP[Int]: Error = {e}");
 							}
-						}));
+						}, TaskCreationOptions.LongRunning);
+
+						tasklist.Add(task);
+						task.Start();
 					}
 				}
 
 				if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 				{
-					tasklist.Add(Task.Run(async () =>
+					var task = new Task(() =>
 					{
 						try
 						{
 							LogDebugMessage("PHP[Int]: Uploading Moon image file");
 
-							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
+							if (UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true).Result)
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
@@ -9926,10 +9990,18 @@ namespace CumulusMX
 						{
 							LogMessage($"PHP[Int]: Error uploading moon image - {e.Message}");
 						}
-					}));
+					}, TaskCreationOptions.LongRunning);
+
+					tasklist.Add(task);
+					task.Start();
 				}
 
 				await Task.WhenAll(tasklist.ToArray());
+
+				foreach (var task in tasklist)
+				{
+					task.Dispose();
+				}
 
 				LogDebugMessage("PHP[Int]: Upload process complete");
 			}
@@ -10284,6 +10356,9 @@ namespace CumulusMX
 			var retry = 0;
 			do
 			{
+				MemoryStream outStream = null;
+				StreamContent streamContent = null;
+
 				try
 				{
 					var encoding = new UTF8Encoding(false);
@@ -10292,6 +10367,7 @@ namespace CumulusMX
 					{
 						var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
 						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
+
 						// disable expect 100 - PHP doesn't support it
 						request.Headers.ExpectContinue = false;
 						request.Headers.Add("ACTION", incremental ? "append" : "replace");
@@ -10334,9 +10410,8 @@ namespace CumulusMX
 								byte[] compressed = new byte[ms.Length];
 								ms.Read(compressed, 0, compressed.Length);
 
-								MemoryStream outStream = new MemoryStream(compressed);
-
-								StreamContent streamContent = new StreamContent(outStream);
+								outStream = new MemoryStream(compressed);
+								streamContent = new StreamContent(outStream);
 								streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
 								streamContent.Headers.ContentLength = outStream.Length;
 
@@ -10344,23 +10419,29 @@ namespace CumulusMX
 							}
 						}
 
-						//var response = httpclient.SendAsync(request).Result;
-						var response = await httpclient.SendAsync(request);
-
-						//response.EnsureSuccessStatusCode();
-						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						if (response.StatusCode != HttpStatusCode.OK)
+						using (var response = await httpclient.SendAsync(request))
 						{
-							LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-							LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
-						}
-						else
-						{
-							LogDebugMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-							LogDataMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
-						}
+							//response.EnsureSuccessStatusCode();
+							var responseBodyAsText = await response.Content.ReadAsStringAsync();
+							if (response.StatusCode != HttpStatusCode.OK)
+							{
+								LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+								LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
+							}
+							else
+							{
+								LogDebugMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+								LogDataMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
+							}
 
-						return response.StatusCode == HttpStatusCode.OK;
+							if (outStream != null)
+								outStream.Dispose();
+
+							if (streamContent != null)
+								streamContent.Dispose();
+
+							return response.StatusCode == HttpStatusCode.OK;
+						}
 					}
 				}
 				catch (System.Net.Http.HttpRequestException ex)
@@ -10386,6 +10467,14 @@ namespace CumulusMX
 						LogMessage($"PHP[{cycleStr}]: Base exception - {ex.Message}");
 					}
 					retry = 99;
+				}
+				finally
+				{
+					if (outStream != null)
+						outStream.Dispose();
+
+					if (streamContent != null)
+						streamContent.Dispose();
 				}
 			} while (retry < 2);
 
@@ -10422,7 +10511,7 @@ namespace CumulusMX
 
 		public void LogFtpDebugMessage(string message)
 		{
-			if (FtpOptions.Logging)
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.SFTP))
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
@@ -10432,7 +10521,7 @@ namespace CumulusMX
 
 		public void LogFluentFtpMessage(FtpTraceLevel level, string message)
 		{
-			if (FtpOptions.Logging)
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.SFTP))
 			{
 				try
 				{

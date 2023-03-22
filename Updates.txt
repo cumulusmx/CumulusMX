@@ -3,7 +3,6 @@
 New
 - Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
 - Adds Leaf Wetness as a recent and select-a graph option - also added to chart colour picker
-- Adds a retry on failure for PHP Uploads
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 
 Changed
@@ -11,10 +10,12 @@ Changed
 	The existing entry will be migrated and removed automatically
 - Switched back to current builds of FluentFTP as a fix is now incorporated for Mono errors
 	- This has meant a change to the FTP logging processes. FTP logs are now created in the MXdiags folder, and cycled like the main CMX log files
+- Adds a retry on failure for PHP Uploads
 
 Fixed
 - Real-time FTP/SFTP upload of realtimegauges.txt could corrupt concurrent FTP/SFTP interval uploads of processed files
 - Extra web files was performing the EOD copy before the daily graphs had been created
+- Possible fix for Child process count increasing when using PHP upload
 
 
 3.24.2 - b3235
