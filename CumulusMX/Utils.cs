@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using ServiceStack.Text;
 using System.Threading;
+using System.Web.UI.WebControls;
 
 // A rag tag of useful functions
 
@@ -328,6 +329,28 @@ namespace CumulusMX
 			}
 
 			return data;
+		}
+
+		public static bool FilesEqual(string path1, string path2)
+		{
+			// very crude check - highly unlikey different versions will have the same file lengths
+			// if one or both files do not exist, catch the error and fail the check
+			try
+			{
+				var fi1 = new FileInfo(path1);
+				var fi2 = new FileInfo(path2);
+
+				if (fi1.Length != fi2.Length)
+					return false;
+				else
+				{
+					return System.Diagnostics.FileVersionInfo.GetVersionInfo(path1).FileVersion == System.Diagnostics.FileVersionInfo.GetVersionInfo(path2).FileVersion;
+				}
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		/*

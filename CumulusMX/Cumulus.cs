@@ -757,25 +757,29 @@ namespace CumulusMX
 			// copy the correct sqlite DLL for your bitness
 			var dstfile = "sqlite3.dll";
 			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + dstfile;
-			try
+			if (!Utils.FilesEqual(srcfile, dstfile))
 			{
-				File.Copy(srcfile, dstfile, true);
-			}
-			catch (FileNotFoundException)
-			{
-				var msg = "Error: cannot find the file: " + srcfile;
-				LogMessage(msg);
-				LogConsoleMessage(msg);
-				Program.exitSystem = true;
-				return;
-			}
-			catch (Exception ex)
-			{
-				var msg = $"Error copying file {srcfile}: {ex.Message}";
-				LogMessage(msg);
-				LogConsoleMessage(msg);
-				Program.exitSystem = true;
-				return;
+				try
+				{
+					LogMessage($"Copying {srcfile} to {dstfile}");
+					File.Copy(srcfile, dstfile, true);
+				}
+				catch (FileNotFoundException)
+				{
+					var msg = "Error: cannot find the file: " + srcfile;
+					LogMessage(msg);
+					LogConsoleMessage(msg);
+					Program.exitSystem = true;
+					return;
+				}
+				catch (Exception ex)
+				{
+					var msg = $"Error copying file {srcfile}: {ex.Message}";
+					LogMessage(msg);
+					LogConsoleMessage(msg);
+					Program.exitSystem = true;
+					return;
+				}
 			}
 
 			var boolWindows = Platform.Substring(0, 3) == "Win";
