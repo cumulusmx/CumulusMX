@@ -33,9 +33,6 @@ namespace CumulusMX
 
 		private readonly System.Timers.Timer tmrDataWatchdog;
 
-		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
-		private CancellationToken cancellationToken;
-
 		private readonly Task historyTask;
 		private Task liveTask;
 
@@ -96,8 +93,6 @@ namespace CumulusMX
 				cumulus.LogMessage("Using the piezo rain sensor data");
 			}
 
-			cancellationToken = tokenSource.Token;
-
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
 
@@ -110,7 +105,7 @@ namespace CumulusMX
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
-			historyTask = Task.Run(getAndProcessHistoryData, cancellationToken);
+			historyTask = Task.Run(getAndProcessHistoryData, cumulus.cancellationToken);
 		}
 
 
@@ -142,7 +137,7 @@ namespace CumulusMX
 					var dataLastRead = DateTime.MinValue;
 					double delay;
 
-					while (!cancellationToken.IsCancellationRequested)
+					while (!cumulus.cancellationToken.IsCancellationRequested)
 					{
 						if (Api.Connected)
 						{
@@ -150,7 +145,7 @@ namespace CumulusMX
 							dataLastRead = DateTime.Now;
 
 							// every 30 seconds read the rain rate
-							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cancellationToken.IsCancellationRequested)
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.Now - piezoLastRead).TotalSeconds >= 30 && !cumulus.cancellationToken.IsCancellationRequested)
 							{
 								GetPiezoRainData();
 								piezoLastRead = DateTime.Now;
@@ -162,7 +157,7 @@ namespace CumulusMX
 								lastMinute = minute;
 
 								// at the start of every 20 minutes to trigger battery status check
-								if ((minute % 20) == 0 && !cancellationToken.IsCancellationRequested)
+								if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
 								{
 									GetSensorIdsNew();
 								}
@@ -187,7 +182,7 @@ namespace CumulusMX
 							{
 								// add a small extra delay before trying again
 								cumulus.LogMessage("Delaying before attempting reconnect");
-								if (cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
+								if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
 								{
 									break;
 								}
@@ -196,7 +191,7 @@ namespace CumulusMX
 
 						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
 
-						if (cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
+						if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
 						{
 							break;
 						}
@@ -211,7 +206,7 @@ namespace CumulusMX
 					Api.CloseTcpPort();
 					cumulus.LogMessage("Local API task ended");
 				}
-			}, cancellationToken);
+			}, cumulus.cancellationToken);
 		}
 
 		public override void Stop()
@@ -221,10 +216,6 @@ namespace CumulusMX
 			{
 				tmrDataWatchdog.Stop();
 				StopMinuteTimer();
-				if (tokenSource != null)
-				{
-					tokenSource.Cancel();
-				}
 				Task.WaitAll(historyTask, liveTask);
 			}
 			catch
@@ -257,7 +248,7 @@ namespace CumulusMX
 					{
 						GetHistoricData();
 						archiveRun++;
-					} while (archiveRun < maxArchiveRuns && !cancellationToken.IsCancellationRequested);
+					} while (archiveRun < maxArchiveRuns && !cumulus.cancellationToken.IsCancellationRequested);
 				}
 				catch (Exception ex)
 				{
@@ -268,7 +259,7 @@ namespace CumulusMX
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.syncInit.Release();
 
-			if (cancellationToken.IsCancellationRequested)
+			if (cumulus.cancellationToken.IsCancellationRequested)
 			{
 				return;
 			}
@@ -292,7 +283,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			EcowittApi.GetHistoricData(startTime, endTime, cancellationToken);
+			EcowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 		}
 
 		private Discovery DiscoverGW1000()

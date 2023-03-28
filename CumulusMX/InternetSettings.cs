@@ -105,6 +105,7 @@ namespace CumulusMX
 							cumulus.FtpOptions.PhpUrl = settings.website.phpurl;
 							cumulus.FtpOptions.PhpSecret = settings.website.phpsecret;
 							cumulus.FtpOptions.PhpIgnoreCertErrors = settings.website.advanced.phpignorecerts;
+							cumulus.FtpOptions.MaxConcurrentUploads = settings.website.advanced.maxuploads;
 						}
 					}
 
@@ -386,7 +387,8 @@ namespace CumulusMX
 				disableftpsepsv = cumulus.FtpOptions.DisableEPSV,
 				disableftpsexplicit = cumulus.FtpOptions.DisableExplicit,
 				ignorecerts = cumulus.FtpOptions.IgnoreCertErrors,
-				phpignorecerts = cumulus.FtpOptions.PhpIgnoreCertErrors
+				phpignorecerts = cumulus.FtpOptions.PhpIgnoreCertErrors,
+				maxuploads = cumulus.FtpOptions.MaxConcurrentUploads
 			};
 
 			var websettingsgeneral = new JsonInternetSettingsWebSettingsGeneral()
@@ -702,6 +704,7 @@ namespace CumulusMX
 		public bool disableftpsexplicit { get; set; }
 		public bool ignorecerts { get; set; }
 		public bool phpignorecerts { get; set; }
+		public int maxuploads { get; set; }
 	}
 
 	public class JsonInternetSettingsWebsite
