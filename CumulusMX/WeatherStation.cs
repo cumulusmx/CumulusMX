@@ -6715,10 +6715,12 @@ namespace CumulusMX
 						cumulus.LogMessage("Creating NOAA monthly report for " + noaats.ToLongDateString());
 
 						_ = noaa.GenerateNoaaMonthReport(noaats.Year, noaats.Month);
+						cumulus.NOAAconf.LatestMonthReport = noaats.ToString(cumulus.NOAAconf.MonthFile);
 
 						// do yearly NOAA report
 						cumulus.LogMessage("Creating NOAA yearly report");
 						_ = noaa.GenerateNoaaYearReport(noaats.Year);
+						cumulus.NOAAconf.LatestYearReport = noaats.ToString(cumulus.NOAAconf.YearFile);
 					}
 					catch (Exception ex)
 					{
