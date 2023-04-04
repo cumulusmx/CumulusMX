@@ -4,7 +4,7 @@ New
 - Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
 - Adds Leaf Wetness as a recent and select-a graph option - also added to chart colour picker
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
-- The number of concurrent PHP uploads can be configured in Internet Settings | Web/Upload site | Advanced Settings (default=4)
+- The number of concurrent PHP uploads can be configured in Internet Settings | Web/Upload site | Advanced Settings (defaults Windows=4, Mono=1)
 - Non-linear calibrations can now be applied to all applicable values
 
 Changed

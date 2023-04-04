@@ -678,7 +678,7 @@ namespace CumulusMX
 		public readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 		public CancellationToken cancellationToken;
 
-
+		private static bool boolWindows;
 		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
 			cancellationToken = tokenSource.Token;
@@ -782,7 +782,7 @@ namespace CumulusMX
 				}
 			}
 
-			var boolWindows = Platform.Substring(0, 3) == "Win";
+			boolWindows = Platform.Substring(0, 3) == "Win";
 
 			// Set the default comport name depending on platform
 			DefaultComportName = boolWindows ? "COM1" : "/dev/ttyUSB0";
@@ -4799,7 +4799,7 @@ namespace CumulusMX
 			if (FtpOptions.PhpSecret == string.Empty)
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
-			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", 4);
+			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", boolWindows ? 4 : 1);
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
 			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);
