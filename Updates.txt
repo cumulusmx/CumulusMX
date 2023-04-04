@@ -1,4 +1,4 @@
-3.25.0 - b3237
+3.25.0 - b3238
 ——————————————
 New
 - Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
