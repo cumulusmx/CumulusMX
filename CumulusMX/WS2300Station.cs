@@ -328,7 +328,7 @@ namespace CumulusMX
 				{
 					if (historydata.dewpoint < ConvertUserTempToC(60))
 					{
-						DoOutdoorDewpoint(CalibrateTemp(historydata.dewpoint), timestamp);
+						DoOutdoorDewpoint(cumulus.Calib.Temp.Calibrate(historydata.dewpoint), timestamp);
 					}
 				}
 
@@ -667,7 +667,7 @@ namespace CumulusMX
 
 				if ((Pressure > 850) && (Pressure < 1200))
 				{
-					StationPressure = pressure * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
+					StationPressure = ConvertPressMBToUser(pressure * pressure + cumulus.Calib.Press.Mult2 + pressure * cumulus.Calib.Press.Mult + ConvertPressMBToUser(cumulus.Calib.Press.Offset));
 					// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
 				}
 			}

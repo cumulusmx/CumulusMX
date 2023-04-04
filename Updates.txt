@@ -6,6 +6,7 @@ New
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 - The number of concurrent PHP uploads can be configured in Internet Settings | Web/Upload site | Advanced Settings (default=4)
 
+
 Changed
 - Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD
 	The existing entry will be migrated and removed automatically
@@ -19,6 +20,7 @@ Fixed
 - Real-time FTP/SFTP upload of realtimegauges.txt could corrupt concurrent FTP/SFTP interval uploads of processed files
 - Extra web files was performing the EOD copy before the daily graphs had been created
 - Possible fix for Child process count increasing when using PHP upload
+- The monthly and extra data log file editors now show the correct date for 9/10am rollover configurations before the daily rollover
 
 
 3.24.2 - b3235

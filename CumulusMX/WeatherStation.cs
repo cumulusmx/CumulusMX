@@ -4285,7 +4285,7 @@ namespace CumulusMX
 				return;
 			}
 
-			IndoorTemperature = (temp * cumulus.Calib.InTemp.Mult) + cumulus.Calib.InTemp.Offset;
+			IndoorTemperature = cumulus.Calib.InTemp.Calibrate(temp);
 			HaveReadData = true;
 		}
 
@@ -4373,10 +4373,6 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public double CalibrateTemp(double temp)
-		{
-			return (temp * temp * cumulus.Calib.Temp.Mult2) + (temp * cumulus.Calib.Temp.Mult) + cumulus.Calib.Temp.Offset;
-		}
 
 		public void DoOutdoorTemp(double temp, DateTime timestamp)
 		{
@@ -4396,7 +4392,7 @@ namespace CumulusMX
 
 			// UpdateStatusPanel;
 			// update global temp
-			OutdoorTemperature = CalibrateTemp(temp);
+			OutdoorTemperature = cumulus.Calib.Temp.Calibrate(temp);
 
 			double tempinC = ConvertUserTempToC(OutdoorTemperature);
 
@@ -4846,7 +4842,7 @@ namespace CumulusMX
 
 			previousPress = pressMB;
 
-			Pressure = sl * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
+			Pressure = cumulus.Calib.Press.Calibrate(sl);
 			if (cumulus.Manufacturer == cumulus.DAVIS)
 			{
 				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
@@ -5380,7 +5376,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
+		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp, bool speedparcalibrated=false)
 		{
 #if DEBUG
 			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1}");
@@ -5425,11 +5421,12 @@ namespace CumulusMX
 				}
 			}
 			var uncalibratedgust = gustpar;
-			calibratedgust = uncalibratedgust * cumulus.Calib.WindGust.Mult;
+			calibratedgust = cumulus.Calib.WindGust.Calibrate(uncalibratedgust);
+			var calibratedspeed = speedparcalibrated ? speedpar : cumulus.Calib.WindSpeed.Calibrate(speedpar);
 
-			WindLatest = cumulus.StationOptions.UseSpeedForLatest ? speedpar * cumulus.Calib.WindSpeed.Mult : calibratedgust;
+			WindLatest = cumulus.StationOptions.UseSpeedForLatest ? calibratedspeed : calibratedgust;
 
-			windspeeds[nextwindvalue] = gustpar;
+			windspeeds[nextwindvalue] = calibratedgust;
 			windbears[nextwindvalue] = Bearing;
 
 			// Recalculate wind rose data
@@ -5481,8 +5478,8 @@ namespace CumulusMX
 			// check for monthly all time records (and set)
 			CheckMonthlyAlltime("HighGust", calibratedgust, true, timestamp);
 
-			WindRecent[nextwind].Gust = gustpar;
-			WindRecent[nextwind].Speed = speedpar;
+			WindRecent[nextwind].Gust = calibratedgust;
+			WindRecent[nextwind].Speed = calibratedspeed;
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -5511,10 +5508,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				WindAverage = speedpar;
+				WindAverage = calibratedspeed;
 			}
-
-			WindAverage *= cumulus.Calib.WindSpeed.Mult;
 
 			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
 
@@ -5533,7 +5528,7 @@ namespace CumulusMX
 						}
 					}
 				}
-				RecentMaxGust = maxgust * cumulus.Calib.WindGust.Mult;
+				RecentMaxGust = maxgust;
 			}
 
 			cumulus.HighGustAlarm.CheckAlarm(RecentMaxGust);
@@ -5656,7 +5651,7 @@ namespace CumulusMX
 
 		public void DoUV(double value, DateTime timestamp)
 		{
-			UV = (value * cumulus.Calib.UV.Mult) + cumulus.Calib.UV.Offset;
+			UV = cumulus.Calib.UV.Calibrate(value);
 			if (UV < 0)
 				UV = 0;
 			if (UV > 16)
@@ -5673,7 +5668,7 @@ namespace CumulusMX
 
 		public void DoSolarRad(int value, DateTime timestamp)
 		{
-			SolarRad = (value * cumulus.Calib.Solar.Mult) + cumulus.Calib.Solar.Offset;
+			SolarRad = cumulus.Calib.Solar.Calibrate(value);
 			if (SolarRad < 0)
 				SolarRad = 0;
 
@@ -5713,7 +5708,7 @@ namespace CumulusMX
 
 		{
 			WetBulb = ConvertTempCToUser(temp);
-			WetBulb = (WetBulb * cumulus.Calib.WetBulb.Mult) + cumulus.Calib.WetBulb.Offset;
+			WetBulb = cumulus.Calib.WetBulb.Calibrate(WetBulb);
 
 			// calculate RH
 			double TempDry = ConvertUserTempToC(OutdoorTemperature);
@@ -10681,10 +10676,10 @@ namespace CumulusMX
 				}
 			}
 			// average the values
-			double avgwind = totalwind / numvalues * cumulus.Calib.WindSpeed.Mult;
+			double avgwind = totalwind / numvalues;
 
-			maxwind *= cumulus.Calib.WindGust.Mult;
-			minwind *= cumulus.Calib.WindGust.Mult;
+			maxwind = maxwind;
+			minwind = minwind;
 
 
 			StringBuilder URL = new StringBuilder("http://www.windguru.cz/upload/api.php?", 1024);

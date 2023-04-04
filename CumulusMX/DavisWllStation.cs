@@ -591,7 +591,7 @@ namespace CumulusMX
 								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, currentAvgWindSpd, dateTime);
 
 								var gust = ConvertWindMPHToUser(rec.wind_speed_hi_last_10_min);
-								var gustCal = gust * cumulus.Calib.WindGust.Mult;
+								var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
 								if (checkWllGustValues)
 								{
 									if (gustCal > RecentMaxGust)
@@ -605,8 +605,8 @@ namespace CumulusMX
 											cumulus.LogDebugMessage("Set max gust from broadcast 10 min high value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
 											// add to recent values so normal calculation includes this value
-											WindRecent[nextwind].Gust = gust; // use uncalibrated value
-											WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+											WindRecent[nextwind].Gust = gustCal; // use calibrated value
+											WindRecent[nextwind].Speed = WindAverage;
 											WindRecent[nextwind].Timestamp = dateTime;
 											nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -881,7 +881,7 @@ namespace CumulusMX
 									}
 
 									ConvertWindMPHToUser(gust);
-									var gustCal = gust * cumulus.Calib.WindGust.Mult;
+									var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
 
 
 									if (checkWllGustValues)
@@ -897,8 +897,8 @@ namespace CumulusMX
 												cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
 												// add to recent values so normal calculation includes this value
-												WindRecent[nextwind].Gust = gust; // use uncalibrated value
-												WindRecent[nextwind].Speed = currentAvgWindSpd;
+												WindRecent[nextwind].Gust = gustCal; // use calibrated value
+												WindRecent[nextwind].Speed = cumulus.Calib.WindSpeed.Calibrate(currentAvgWindSpd);
 												WindRecent[nextwind].Timestamp = dateTime;
 												nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -2232,7 +2232,7 @@ namespace CumulusMX
 
 								if (data11.wind_speed_avg != null)
 								{
-									WindAverage = ConvertWindMPHToUser((double)data11.wind_speed_avg) * cumulus.Calib.WindSpeed.Mult;
+									WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertWindMPHToUser((double)data11.wind_speed_avg));
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
 									int interval = data11.arch_int / 60;
