@@ -5,7 +5,7 @@ New
 - Adds Leaf Wetness as a recent and select-a graph option - also added to chart colour picker
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 - The number of concurrent PHP uploads can be configured in Internet Settings | Web/Upload site | Advanced Settings (default=4)
-
+- Non-linear calibrations can now be applied to all applicable values
 
 Changed
 - Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD
