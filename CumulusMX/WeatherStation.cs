@@ -1744,6 +1744,12 @@ namespace CumulusMX
 						cumulus.CustomMysqlMinutesTimerTick();
 					}
 
+					// Custom MySQL Timed interval
+					if (cumulus.MySqlSettings.CustomTimed.Enabled)
+					{
+						cumulus.CustomMySqlTimedUpdate(now);
+					}
+
 					// Custom HTTP update - minutes interval
 					if (cumulus.CustomHttpMinutesEnabled && now.Minute % cumulus.CustomHttpMinutesInterval == 0)
 					{

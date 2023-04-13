@@ -40,6 +40,8 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.CompilerServices;
 using Swan;
 using System.Data.Common;
+using System.Runtime.Serialization;
+using System.Xml.Linq;
 
 namespace CumulusMX
 {
@@ -631,6 +633,7 @@ namespace CumulusMX
 		private bool customMySqlSecondsUpdateInProgress;
 		private bool customMySqlMinutesUpdateInProgress;
 		private bool customMySqlRolloverUpdateInProgress;
+		private bool customMySqlTimedUpdateInProgress;
 
 		private static HttpFiles httpFiles;
 
@@ -5686,7 +5689,22 @@ namespace CumulusMX
 				CustomMySqlMinutesIntervalIndex = 6;
 				rewriteRequired = true;
 			}
+
+			// MySql - Timed
+			MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
+			for (var i = 0; i < 10; i++)
+			{
+				MySqlSettings.CustomTimed.Commands[i] = ini.GetValue("MySQL", "CustomMySqlTimedCommandString" + i, "");
+				MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
+				MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440);
+
+				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
+					MySqlSettings.CustomTimed.SetInitialNextInterval(i, DateTime.Now);
+			}
+
+
 			// MySQL - custom roll-over
+			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
 			for (var i = 1; i < 10; i++)
 			{
@@ -5694,7 +5712,6 @@ namespace CumulusMX
 					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, "");
 			}
 
-			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 
 			// Custom HTTP - seconds
 			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
@@ -6822,7 +6839,6 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
 
-
 			for (var i = 1; i < 10; i++)
 			{
 				if (string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
@@ -6840,6 +6856,26 @@ namespace CumulusMX
 				else
 					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
 			}
+
+			// MySql - Timed
+			ini.SetValue("MySQL", "CustomMySqlTimedEnabled", MySqlSettings.CustomTimed.Enabled);
+
+			for (var i = 0; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
+				{
+					ini.DeleteValue("MySQL", "CustomMySqlTimedCommandString" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlTimedStartTime" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlTimedInterval" + i);
+				}
+				else
+				{
+					ini.SetValue("MySQL", "CustomMySqlTimedCommandString" + i, MySqlSettings.CustomTimed.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlTimedStartTime" + i, MySqlSettings.CustomTimed.GetStartTimeString(i));
+					ini.SetValue("MySQL", "CustomMySqlTimedInterval" + i, MySqlSettings.CustomTimed.Intervals[i]);
+				}
+			}
+
 
 			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsStrings[0]);
 			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesStrings[0]);
@@ -12020,6 +12056,40 @@ namespace CumulusMX
 			}
 		}
 
+		internal async void CustomMySqlTimedUpdate(DateTime now)
+		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
+			if (!customMySqlTimedUpdateInProgress)
+			{
+				customMySqlTimedUpdateInProgress = true;
+
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
+				for (var i = 0; i < 10; i++)
+				{
+					try
+					{
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+						{
+							tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", tokenParser.ToStringFromString());
+							MySqlSettings.CustomTimed.SetNextInterval(i, now);
+						}
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage($"CustomSqlTimed[{i}]: Error excuting: {MySqlSettings.CustomTimed.Commands[i]} ", ex);
+					}
+				}
+				customMySqlTimedUpdateInProgress = false;
+			}
+		}
 
 		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
 		{
@@ -13755,6 +13825,7 @@ namespace CumulusMX
 		public MySqlTableSettings CustomSecs { get; set; }
 		public MySqlTableSettings CustomMins { get; set; }
 		public MySqlTableSettings CustomRollover { get; set; }
+		public MySqlTableTimedSettings CustomTimed { get; set; }
 
 		public MySqlGeneralSettings()
 		{
@@ -13764,10 +13835,15 @@ namespace CumulusMX
 			CustomSecs = new MySqlTableSettings();
 			CustomMins = new MySqlTableSettings();
 			CustomRollover = new MySqlTableSettings();
+			CustomTimed = new MySqlTableTimedSettings();
 
 			CustomSecs.Commands = new string[10];
 			CustomMins.Commands = new string[10];
 			CustomRollover.Commands = new string[10];
+			CustomTimed.Commands = new string[10];
+			CustomTimed.Intervals = new int[10];
+			CustomTimed.StartTimes = new TimeSpan[10];
+			CustomTimed.NextUpdate = new DateTime[10];
 		}
 	}
 
@@ -13786,6 +13862,50 @@ namespace CumulusMX
 		public string TableName { get; set; }
 		public string[] Commands { get; set; }
 		public int Interval { get; set; }
+	}
+
+	public class MySqlTableTimedSettings : MySqlTableSettings
+	{
+		public TimeSpan[] StartTimes { get; set; }
+		public int[] Intervals { get; set; }
+		public DateTime[] NextUpdate { get; set; }
+
+
+		public void SetStartTime(int idx, string val)
+		{
+			StartTimes[idx] = TimeSpan.ParseExact(val, "hh\\:mm", CultureInfo.InvariantCulture);
+		}
+
+		public string GetStartTimeString(int idx)
+		{
+			return StartTimes[idx].ToString("hh\\:mm", CultureInfo.InvariantCulture);
+		}
+
+		public void SetInitialNextInterval(int idx, DateTime now)
+		{
+			NextUpdate[idx] = now.Date + StartTimes[idx];
+		}
+
+		public void SetNextInterval(int idx, DateTime now)
+		{
+			// We always revert to the start time so we remain consistent across DST changes
+			NextUpdate[idx] = now.Date + StartTimes[idx];
+
+			if (Intervals[idx] == 0)
+			{
+				// timed but no repeat interval, add a day
+				NextUpdate[idx] = NextUpdate[idx].AddDays(1);
+			}
+			else
+			{
+				// Timed and we have now set the start, add on intervals until we reach the future
+				while (NextUpdate[idx] <= now)
+				{
+					NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
+				}
+			}
+		}
+
 	}
 
 	public class NOAAconfig

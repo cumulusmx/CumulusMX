@@ -11,6 +11,7 @@ New
 	- This can be done at any interval, starting when CMX starts
 	- Or you can specify a start time and interval. For example you want to download a forecast image that is updated at 06:00, 12:00, 18:00
 		- You could specify an interval of 6 hours starting at 06:01. The image will then be downloaded at 06:01, 12:01 and 18:01
+- Custom MySQL commands now have a new option of Timed updates. These work the same as the HTTP Files timed uploads
 
 Changed
 - Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD
