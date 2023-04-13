@@ -637,6 +637,8 @@ namespace CumulusMX
 		private bool customMySqlMinutesUpdateInProgress;
 		private bool customMySqlRolloverUpdateInProgress;
 
+		private static HttpFiles httpFiles;
+
 		public AirLinkData airLinkDataIn;
 		public AirLinkData airLinkDataOut;
 
@@ -679,6 +681,8 @@ namespace CumulusMX
 		public CancellationToken cancellationToken;
 
 		private static bool boolWindows;
+
+
 		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
 			cancellationToken = tokenSource.Token;
@@ -1421,6 +1425,8 @@ namespace CumulusMX
 			// switch off logging from Unosquare.Swan which underlies embedIO
 			Swan.Logging.Logger.NoLogging();
 
+			httpFiles = new HttpFiles(this);
+
 			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 			var htmlRootPath = Path.Combine(assemblyPath, "interface");
 
@@ -1464,6 +1470,7 @@ namespace CumulusMX
 			Api.alarmSettings = new AlarmSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
 			Api.customLogs = new CustomLogs(this);
+			Api.httpFiles = httpFiles;
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
 			Api.wizard = new Wizard(this);
@@ -4872,6 +4879,11 @@ namespace CumulusMX
 				GraphDataEodFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
 
+			for (var i = 0; i < HttpFilesConfig.Length; i++)
+			{
+				HttpFilesConfig[i] = new HttpFileProps();
+			}
+
 			FTPRename = ini.GetValue("FTP site", "FTPRename", true);
 			UTF8encode = ini.GetValue("FTP site", "UTF8encode", true);
 			DeleteBeforeUpload = ini.GetValue("FTP site", "DeleteBeforeUpload", false);
@@ -5740,6 +5752,24 @@ namespace CumulusMX
 					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, "");
 			}
 
+			// Http files
+			for (var i = 0; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "HttpFileUrl" + i))
+				{
+					HttpFilesConfig[i].Enabled = ini.GetValue("HTTP", "HttpFileEnabled" + i, false);
+					HttpFilesConfig[i].Url = ini.GetValue("HTTP", "HttpFileUrl" + i, "");
+					HttpFilesConfig[i].Remote = ini.GetValue("HTTP", "HttpFileRemote" + i, "");
+					HttpFilesConfig[i].Interval = ini.GetValue("HTTP", "HttpFileInterval" + i, 0);
+					HttpFilesConfig[i].Upload = ini.GetValue("HTTP", "HttpFileUpload" + i, false);
+					HttpFilesConfig[i].Timed = ini.GetValue("HTTP", "HttpFileTimed" + i, false);
+					HttpFilesConfig[i].StartTimeString = ini.GetValue("HTTP", "HttpFileStartTime" + i, "00:00");
+					if (HttpFilesConfig[i].Timed)
+					{
+						HttpFilesConfig[i].SetInitialNextInterval(DateTime.Now);
+					}
+				}
+			}
 
 			// Select-a-Chart settings
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
@@ -6854,6 +6884,31 @@ namespace CumulusMX
 			ini.SetValue("HTTP", "CustomHttpSecondsInterval", CustomHttpSecondsInterval);
 			ini.SetValue("HTTP", "CustomHttpMinutesIntervalIndex", CustomHttpMinutesIntervalIndex);
 
+			// Http files
+			for (var i = 0; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(HttpFilesConfig[i].Url) && string.IsNullOrEmpty(HttpFilesConfig[i].Remote))
+				{
+					ini.DeleteValue("HTTP", "HttpFileEnabled" + i);
+					ini.DeleteValue("HTTP", "HttpFileUrl" + i);
+					ini.DeleteValue("HTTP", "HttpFileRemote" + i);
+					ini.DeleteValue("HTTP", "HttpFileInterval" + i);
+					ini.DeleteValue("HTTP", "HttpFileUpload" + i);
+					ini.DeleteValue("HTTP", "HttpFileTimed" + i);
+					ini.DeleteValue("HTTP", "HttpFileStartTime" + i);
+				}
+				else
+				{
+					ini.SetValue("HTTP", "HttpFileEnabled" + i, HttpFilesConfig[i].Enabled);
+					ini.SetValue("HTTP", "HttpFileUrl" + i, HttpFilesConfig[i].Url);
+					ini.SetValue("HTTP", "HttpFileRemote" + i, HttpFilesConfig[i].Remote);
+					ini.SetValue("HTTP", "HttpFileInterval" + i, HttpFilesConfig[i].Interval);
+					ini.SetValue("HTTP", "HttpFileUpload" + i, HttpFilesConfig[i].Upload);
+					ini.SetValue("HTTP", "HttpFileTimed" + i, HttpFilesConfig[i].Timed);
+					ini.SetValue("HTTP", "HttpFileStartTime" + i, HttpFilesConfig[i].StartTimeString);
+				}
+			}
+
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
 			{
 				ini.SetValue("Select-a-Chart", "Series" + i, SelectaChartOptions.series[i]);
@@ -7277,6 +7332,8 @@ namespace CumulusMX
 		public string ExternalProgram { get; set; }
 
 		public TExtraFiles[] ExtraFiles = new TExtraFiles[numextrafiles];
+
+		public HttpFileProps[] HttpFilesConfig = new HttpFileProps[10];
 
 		//public int MaxFTPconnectRetries { get; set; }
 
@@ -9031,7 +9088,7 @@ namespace CumulusMX
 					MySqlRealtimeFile(999, true);
 				}
 
-				LogDebugMessage("Creating standard web files");
+				LogDebugMessage("Interval: Creating standard web files");
 				for (var i = 0; i < StdWebFiles.Length; i++)
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
@@ -9047,13 +9104,13 @@ namespace CumulusMX
 						}
 					}
 				}
-				LogDebugMessage("Done creating standard Data file");
+				LogDebugMessage("Interval: Done creating standard Data file");
 
-				LogDebugMessage("Creating graph data files");
+				LogDebugMessage("Interval: Creating graph data files");
 				station.CreateGraphDataFiles();
-				LogDebugMessage("Done creating graph data files");
+				LogDebugMessage("Interval: Done creating graph data files");
 
-				//LogDebugMessage("Creating extra files");
+				LogDebugMessage("Interval: Creating extra files");
 				// handle any extra files
 				for (int i = 0; i < numextrafiles; i++)
 				{
@@ -9098,6 +9155,8 @@ namespace CumulusMX
 					}
 				}
 
+				LogDebugMessage("Interval: Done creating extra files");
+
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
 					try
@@ -9113,8 +9172,6 @@ namespace CumulusMX
 						LogMessage("Interval: Error starting external program: " + ex.Message);
 					}
 				}
-
-				//LogDebugMessage("Done creating extra files");
 
 				DoLocalCopy();
 
@@ -9331,6 +9388,358 @@ namespace CumulusMX
 			LogDebugMessage("LocalCopy: Copy process complete");
 		}
 
+
+		public void DoHttpFiles(DateTime now)
+		{
+			// sanity check - is there anything to do?
+			if (HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now).Count() == 0)
+			{
+#if DEBUG
+				LogDebugMessage("ProcessHttpFiles: No files to process at this time");
+#endif
+				return;
+			}
+
+			// second sanity check, are there any local copies?
+			var localOnly = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && !x.Upload);
+			if (localOnly.Count() > 0)
+			{
+				LogDebugMessage("ProcessHttpFiles: Creating local http files");
+				localOnly
+				.ToList()
+				.ForEach(async item =>
+				{
+					var downloadfile = item.Url;
+					var remotefile = item.Remote;
+
+					// just create a file from the download
+					httpFiles.DownloadHttpFile(item.Url, item.Remote);
+
+					item.SetNextInterval(now);
+				});
+				LogDebugMessage("ProcessHttpFiles: Done creating local http files");
+			}
+
+			// third sanity check, are there any uploads?
+			var uploads = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload);
+			if (uploads.Count() == 0)
+			{
+				return;
+			}
+
+			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+			{
+				ConnectionInfo connectionInfo;
+				if (FtpOptions.SshAuthen == "password")
+				{
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
+					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password authentication");
+				}
+				else if (FtpOptions.SshAuthen == "psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("ProcessHttpFiles: Connecting using PSK authentication");
+				}
+				else if (FtpOptions.SshAuthen == "password_psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password or PSK authentication");
+				}
+				else
+				{
+					LogFtpMessage($"ProcessHttpFiles: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
+					return;
+				}
+
+				try
+				{
+					using (SftpClient conn = new SftpClient(connectionInfo))
+					{
+						// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
+						try
+						{
+							using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
+								_ = 0; // do nothing
+						}
+						catch (NotImplementedException)
+						{
+							var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
+							foreach (var algName in algsToRemove)
+								connectionInfo.HostKeyAlgorithms.Remove(algName);
+						}
+
+						try
+						{
+							LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+							conn.Connect();
+							if (ServicePointManager.DnsRefreshTimeout == 0)
+							{
+								ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+							}
+						}
+						catch (Exception ex)
+						{
+							LogFtpMessage($"ProcessHttpFiles: Error connecting SFTP - {ex.Message}");
+
+							if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+							{
+								// Disable the DNS cache for the next query
+								ServicePointManager.DnsRefreshTimeout = 0;
+							}
+							return;
+						}
+
+						uploads
+						.ToList()
+						.ForEach(item =>
+						{
+							Stream strm = null;
+
+							try
+							{
+
+								if (cancellationToken.IsCancellationRequested)
+									return;
+
+								strm = httpFiles.DownloadHttpFileStream(item.Url);
+								UploadStream(conn, item.Remote, strm, -1);
+
+								item.SetNextInterval(now);
+							}
+							catch (Exception ex) when (!(ex is TaskCanceledException))
+							{
+								LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}", ex);
+							}
+							finally
+							{
+								if (null != strm)
+									strm.Dispose();
+							}
+						});
+
+						LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+
+						if (conn.IsConnected)
+						{
+							try
+							{
+								// do not error on disconnect
+								conn.Disconnect();
+							}
+							catch { }
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"ProcessHttpFiles: Error using SFTP connection - {ex.Message}");
+				}
+				LogFtpDebugMessage("ProcessHttpFiles: Connection process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+				using (FtpClient conn = new FtpClient())
+				{
+					LogFtpMessage(""); // insert a blank line
+					LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname);
+					conn.Host = FtpOptions.Hostname;
+					conn.Port = FtpOptions.Port;
+					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+					conn.LegacyLogger = LogFluentFtpMessage;
+
+					if (!FtpOptions.AutoDetect)
+					{
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							// Explicit = Current protocol - connects using FTP and switches to TLS
+							// Implicit = Old depreciated protocol - connects using TLS
+							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.Config.DataConnectionEncryption = true;
+							// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
+							// b3155 - switch to default again - this will use the highest version available in the OS
+							//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+						}
+
+						if (FtpOptions.ActiveMode)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
+						}
+						else if (FtpOptions.DisableEPSV)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
+						}
+					}
+
+					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+					{
+						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+					}
+
+					try
+					{
+						if (FtpOptions.AutoDetect)
+						{
+							conn.AutoConnect();
+						}
+						else
+						{
+							conn.Connect();
+						}
+
+						if (ServicePointManager.DnsRefreshTimeout == 0)
+						{
+							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+						}
+					}
+					catch (Exception ex)
+					{
+						LogFtpMessage("ProcessHttpFiles: Error connecting ftp - " + ex.Message);
+
+						if (ex.InnerException != null)
+						{
+							ex = Utils.GetOriginalException(ex);
+							LogFtpMessage($"ProcessHttpFiles: Base exception - {ex.Message}");
+						}
+
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+						{
+							// Disable the DNS cache for the next query
+							ServicePointManager.DnsRefreshTimeout = 0;
+						}
+						return;
+					}
+
+					LogDebugMessage("ProcessHttpFiles: Uploading http files");
+
+					uploads
+					.ToList()
+					.ForEach(item =>
+					{
+						Stream strm = null;
+
+						try
+						{
+
+							if (cancellationToken.IsCancellationRequested)
+								return;
+
+							strm = httpFiles.DownloadHttpFileStream(item.Url);
+							UploadStream(conn, item.Remote, strm, -1);
+
+							item.SetNextInterval(now);
+						}
+						catch (Exception ex) when (!(ex is TaskCanceledException))
+						{
+							LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}", ex);
+						}
+						finally
+						{
+							if (null != strm)
+								strm.Dispose();
+						}
+					});
+
+					LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+
+
+					if (conn.IsConnected)
+					{
+						conn.Disconnect();
+						LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname);
+					}
+				}
+				LogFtpMessage("ProcessHttpFiles: Process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				var tasklist = new List<Task>();
+				var taskCount = 0;
+				var runningTaskCount = 0;
+
+				LogDebugMessage("ProcessHttpFiles: Uploading http files");
+
+				HttpFilesConfig
+				.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload)
+				.ToList()
+				.ForEach(async item =>
+				{
+					Interlocked.Increment(ref taskCount);
+
+					var downloadfile = item.Url;
+					var remotefile = item.Remote;
+
+#if DEBUG
+					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
+						{
+
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							var content = await httpFiles.DownloadHttpFileBase64String(item.Url);
+							_ = await UploadString(phpUploadHttpClient, false, null, content, item.Remote, -1, true);
+
+							item.SetNextInterval(now);
+						}
+						catch (Exception ex) when (!(ex is TaskCanceledException))
+						{
+							LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {downloadfile} to: {remotefile}", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
+
+				});
+
+				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+				// wait for all the files to start
+				while (runningTaskCount < taskCount)
+				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						LogDebugMessage("ProcessHttpFiles: Upload process aborted");
+						return;
+					}
+					Thread.Sleep(10);
+				}
+
+				// wait for all the files to complete
+				Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				//LogDebugMessage($"ProcessHttpFiles: Files upload complete, {tasklist.Count()} files processed");
+
+				if (cancellationToken.IsCancellationRequested)
+				{
+					LogDebugMessage($"ProcessHttpFiles: Upload process aborted");
+					return;
+				}
+
+				LogDebugMessage($"ProcessHttpFiles: Upload process complete, {tasklist.Count()} files processed");
+				tasklist.Clear();
+			}
+		}
 
 		public async Task DoIntervalUpload()
 		{
@@ -10005,88 +10414,89 @@ namespace CumulusMX
 				// Extra files
 				LogDebugMessage("PHP[Int]: Extra Files upload starting");
 
-				ExtraFiles.Where(x =>
+				ExtraFiles
+				.Where(x =>
 					x.local.Length > 0 &&
 					x.remote.Length > 0 &&
 					!x.realtime &&
 					(EODfilesNeedFTP || (EODfilesNeedFTP == x.endofday)) &&
 					x.FTP)
-					.ToList()
-					.ForEach(async item =>
+				.ToList()
+				.ForEach(async item =>
+				{
+					Interlocked.Increment(ref taskCount);
+
+					var uploadfile = item.local;
+					var remotefile = item.remote;
+
+					if (!File.Exists(uploadfile))
 					{
-						Interlocked.Increment(ref taskCount);
+						LogMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!");
+						return;
+					}
 
-						var uploadfile = item.local;
-						var remotefile = item.remote;
-
-						if (!File.Exists(uploadfile))
-						{
-							LogMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!");
-							return;
-						}
-
-						try {
+					try {
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 #endif
-						}
-						catch (OperationCanceledException)
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
+
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
 						{
-							return;
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
+							var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+
+							uploadfile = GetUploadFilename(uploadfile, logDay);
+
+							remotefile = GetRemoteFileName(remotefile, logDay);
+
+							// all checks OK, file needs to be uploaded
+							if (item.process)
+							{
+								LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
+
+								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, item.UTF8);
+							}
+							else
+							{
+								LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile}");
+
+								_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, item.UTF8);
+							}
 						}
-
-
-						tasklist.Add(Task.Run(async () =>
+						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
-							try
-							{
-								if (cancellationToken.IsCancellationRequested)
-									return false;
-
-								// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-								var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-
-								uploadfile = GetUploadFilename(uploadfile, logDay);
-
-								remotefile = GetRemoteFileName(remotefile, logDay);
-
-								// all checks OK, file needs to be uploaded
-								if (item.process)
-								{
-									LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
-
-									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
-									_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, item.UTF8);
-								}
-								else
-								{
-									LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile}");
-
-									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, item.UTF8);
-								}
-							}
-							catch (Exception ex) when (!(ex is TaskCanceledException))
-							{
-								LogExceptionMessage($"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}", ex);
-							}
-							finally
-							{
-								uploadCountLimitSemaphoreSlim.Release();
+							LogExceptionMessage($"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
-							}
+						}
 
-							// no void return which cannot be tracked
-							return true;
-						}, cancellationToken));
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
 
-						Interlocked.Increment(ref runningTaskCount);
-					});
+					Interlocked.Increment(ref runningTaskCount);
+				});
 
 				// wait for all the extra files to start
 				//while (runningTaskCount < taskCount)
@@ -10110,9 +10520,10 @@ namespace CumulusMX
 				// standard files
 				LogDebugMessage("PHP[Int]: Standard files upload starting");
 
-				StdWebFiles.Where(x => x.FTP)
-					.ToList()
-					.ForEach(async item =>
+				StdWebFiles
+				.Where(x => x.FTP)
+				.ToList()
+				.ForEach(async item =>
 					{
 						Interlocked.Increment(ref taskCount);
 						try
@@ -10197,71 +10608,72 @@ namespace CumulusMX
 				var oldestTs = Utils.ToPseudoJSTime(oldest).ToString();
 				var configFiles = new string[] { "graphconfig.json", "availabledata.json", "dailyrain.json", "dailytemp.json", "sunhours.json" };
 
-				GraphDataFiles.Where(x => x.FTP && x.FtpRequired)
-					.ToList()
-					.ForEach(async item =>
-					{
-						Interlocked.Increment(ref taskCount);
-						try {
+				GraphDataFiles
+				.Where(x => x.FTP && x.FtpRequired)
+				.ToList()
+				.ForEach(async item =>
+				{
+					Interlocked.Increment(ref taskCount);
+					try {
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 #endif
-						}
-						catch (OperationCanceledException)
-						{
-							return;
-						}
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
 
 
-						tasklist.Add(Task.Run(async () =>
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
 						{
-							try
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							// we want incremental data for PHP
+							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
+							var remotefile = item.RemoteFileName;
+							LogDebugMessage("PHP[Int]: Uploading graph data file: " + item.LocalFileName);
+
+							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
 							{
-								if (cancellationToken.IsCancellationRequested)
-									return false;
-
-								// we want incremental data for PHP
-								var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
-								var remotefile = item.RemoteFileName;
-								LogDebugMessage("PHP[Int]: Uploading graph data file: " + item.LocalFileName);
-
-								if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
+								// The config files only need uploading once per change
+								// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+								if (configFiles.Any(item.LocalFileName.Contains))
 								{
-									// The config files only need uploading once per change
-									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-									if (configFiles.Any(item.LocalFileName.Contains))
-									{
-										item.FtpRequired = false;
-									}
-									else
-									{
-										item.LastDataTime = DateTime.Now;
-										item.Incremental = true;
-									}
+									item.FtpRequired = false;
+								}
+								else
+								{
+									item.LastDataTime = DateTime.Now;
+									item.Incremental = true;
 								}
 							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage($"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]", ex);
-							}
-							finally
-							{
-								uploadCountLimitSemaphoreSlim.Release();
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage($"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
-							}
+						}
 
-							// no void return which cannot be tracked
-							return true;
-						}, cancellationToken));
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
 
-						Interlocked.Increment(ref runningTaskCount);
-					});
+					Interlocked.Increment(ref runningTaskCount);
+				});
 
 				// wait for all the graph files to start
 				//while (runningTaskCount < taskCount)
@@ -10281,62 +10693,63 @@ namespace CumulusMX
 				// EOD Graph Data Files
 				LogDebugMessage("PHP[Int]: EOD Graph files upload starting");
 
-				GraphDataEodFiles.Where(x => x.FTP && x.FtpRequired)
-					.ToList()
-					.ForEach(async item =>
-					{
-						Interlocked.Increment(ref taskCount);
+				GraphDataEodFiles
+				.Where(x => x.FTP && x.FtpRequired)
+				.ToList()
+				.ForEach(async item =>
+				{
+					Interlocked.Increment(ref taskCount);
 
+					try
+					{
+#if DEBUG
+						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
+
+					tasklist.Add(Task.Run(async () =>
+					{
 						try
 						{
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							var remotefile = item.RemoteFileName;
+							LogMessage("PHP[Int]: Uploading daily graph data file: " + item.LocalFileName);
+							var json = station.CreateEodGraphDataJson(item.LocalFileName);
+
+							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+							{
+								// Uploaded OK, reset the upload required flag
+								item.FtpRequired = false;
+							}
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage($"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-							LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-#else
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
-						catch (OperationCanceledException)
-						{
-							return;
-						}
 
-						tasklist.Add(Task.Run(async () =>
-						{
-							try
-							{
-								if (cancellationToken.IsCancellationRequested)
-									return false;
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
 
-								var remotefile = item.RemoteFileName;
-								LogMessage("PHP[Int]: Uploading daily graph data file: " + item.LocalFileName);
-								var json = station.CreateEodGraphDataJson(item.LocalFileName);
-
-								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
-								{
-									// Uploaded OK, reset the upload required flag
-									item.FtpRequired = false;
-								}
-							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage($"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]", ex);
-							}
-							finally
-							{
-								uploadCountLimitSemaphoreSlim.Release();
-#if DEBUG
-								LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-#endif
-							}
-
-							// no void return which cannot be tracked
-							return true;
-						}, cancellationToken));
-
-						Interlocked.Increment(ref runningTaskCount);
-					});
+					Interlocked.Increment(ref runningTaskCount);
+				});
 
 				// wait for all the EOD files to start
 				//while (runningTaskCount < taskCount)

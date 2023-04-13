@@ -6,6 +6,11 @@ New
 - Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
 - The number of concurrent PHP uploads can be configured in Internet Settings | Web/Upload site | Advanced Settings (defaults Windows=4, Mono=1)
 - Non-linear calibrations can now be applied to all applicable values
+- A new download file/upload to web option:- HTTP Files
+	- This allows you to download a file from any http URL and either save it locally, or upload it to your web site
+	- This can be done at any interval, starting when CMX starts
+	- Or you can specify a start time and interval. For example you want to download a forecast image that is updated at 06:00, 12:00, 18:00
+		- You could specify an interval of 6 hours starting at 06:01. The image will then be downloaded at 06:01, 12:01 and 18:01
 
 Changed
 - Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD

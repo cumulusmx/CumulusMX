@@ -1883,6 +1883,8 @@ namespace CumulusMX
 					{
 						CreateWxnowFile();
 					}
+
+					cumulus.DoHttpFiles(now);
 				}
 				else
 				{

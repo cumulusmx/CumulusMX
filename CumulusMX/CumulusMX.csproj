@@ -146,6 +146,7 @@
     <Compile Include="HttpStationAmbient.cs" />
     <Compile Include="HttpStationEcowitt.cs" />
     <Compile Include="HttpStationWund.cs" />
+    <Compile Include="HttpFiles.cs" />
     <Compile Include="ImetStation.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="InternetSettings.cs" />

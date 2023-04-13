@@ -25,6 +25,7 @@ namespace CumulusMX
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
 		public static CustomLogs customLogs;
+		internal static HttpFiles httpFiles;
 		public static Wizard wizard;
 		internal static LangSettings langSettings;
 		internal static DisplaySettings displaySettings;
@@ -1115,6 +1116,9 @@ namespace CumulusMX
 							case "displayoptions.json":
 								await writer.WriteAsync(displaySettings.GetAlpacaFormData());
 								break;
+							case "httpfiles.json":
+								await writer.WriteAsync(httpFiles.GetAlpacaFormData());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -1204,6 +1208,9 @@ namespace CumulusMX
 								break;
 							case "updatelanguage.json":
 								await writer.WriteAsync(langSettings.UpdateConfig(HttpContext));
+								break;
+							case "updatehttpfiles.json":
+								await writer.WriteAsync(httpFiles.UpdateConfig(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;
