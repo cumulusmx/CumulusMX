@@ -6754,6 +6754,7 @@ namespace CumulusMX
 					{
 						// Prepare the process to run
 						var parser = new TokenParser();
+						parser.OnToken += cumulus.TokenParserOnToken;
 						parser.InputText = cumulus.DailyParams;
 						var args = parser.ToStringFromString();
 						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);

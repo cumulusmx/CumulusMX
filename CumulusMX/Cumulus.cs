@@ -235,11 +235,6 @@ namespace CumulusMX
 		private readonly WebTags webtags;
 		private readonly TokenParser tokenParser;
 		private readonly TokenParser realtimeTokenParser;
-		private readonly TokenParser customMysqlSecondsTokenParser = new TokenParser();
-		private readonly TokenParser customMysqlMinutesTokenParser = new TokenParser();
-		private readonly TokenParser customMysqlRolloverTokenParser = new TokenParser();
-		private readonly TokenParser customLogIntvlTokenParser = new TokenParser();
-		private readonly TokenParser customLogDailyTokenParser = new TokenParser();
 
 		internal Lang Trans = new Lang();
 
@@ -1344,14 +1339,9 @@ namespace CumulusMX
 
 			SetUpHttpProxy();
 
-			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
 			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
 			CustomMysqlSecondsTimer.Elapsed += CustomMysqlSecondsTimerTick;
 			CustomMysqlSecondsTimer.AutoReset = true;
-
-			customMysqlMinutesTokenParser.OnToken += TokenParserOnToken;
-
-			customMysqlRolloverTokenParser.OnToken += TokenParserOnToken;
 
 			CustomHttpSecondsTimer = new Timer { Interval = CustomHttpSecondsInterval * 1000 };
 			CustomHttpSecondsTimer.Elapsed += CustomHttpSecondsTimerTick;
@@ -1360,10 +1350,6 @@ namespace CumulusMX
 			customHttpSecondsTokenParser.OnToken += TokenParserOnToken;
 			customHttpMinutesTokenParser.OnToken += TokenParserOnToken;
 			customHttpRolloverTokenParser.OnToken += TokenParserOnToken;
-
-			customLogIntvlTokenParser.OnToken += TokenParserOnToken;
-			customLogDailyTokenParser.OnToken += TokenParserOnToken;
-
 
 			if (SmtpOptions.Enabled)
 			{
@@ -8278,9 +8264,12 @@ namespace CumulusMX
 			sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
 			sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
 
+			var tokenParser = new TokenParser();
+			tokenParser.OnToken += TokenParserOnToken;
+
 			// process the webtags in the content string
-			customLogIntvlTokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
-			sb.Append(customLogIntvlTokenParser.ToStringFromString());
+			tokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
+			sb.Append(tokenParser.ToStringFromString());
 
 			LogDataMessage("DoCustomIntervalLog: entry: " + sb);
 
@@ -8334,9 +8323,12 @@ namespace CumulusMX
 			var sb = new StringBuilder(300);
 			sb.Append(datestring + ListSeparator);
 
+			var tokenParser = new TokenParser();
+			tokenParser.OnToken += TokenParserOnToken;
+
 			// process the webtags in the content string
-			customLogDailyTokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
-			sb.Append(customLogDailyTokenParser.ToStringFromString());
+			tokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
+			sb.Append(tokenParser.ToStringFromString());
 
 			LogDataMessage("DoCustomDailyLog: entry: " + sb);
 
@@ -11937,14 +11929,17 @@ namespace CumulusMX
 			{
 				customMySqlSecondsUpdateInProgress = true;
 
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
 						{
-							customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlSecs[{i}]", customMysqlSecondsTokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlSettings.CustomSecs.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlSecs[{i}]", tokenParser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
@@ -11969,14 +11964,17 @@ namespace CumulusMX
 			{
 				customMySqlMinutesUpdateInProgress = true;
 
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
 						{
-							customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", customMysqlMinutesTokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
@@ -12000,14 +11998,17 @@ namespace CumulusMX
 			{
 				customMySqlRolloverUpdateInProgress = true;
 
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
 						{
-							customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", customMysqlRolloverTokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", tokenParser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
