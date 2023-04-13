@@ -1,4 +1,4 @@
-3.25.0 - b3238
+3.25.0 - b3239
 ——————————————
 New
 - Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
@@ -27,7 +27,7 @@ Fixed
 - Extra web files was performing the EOD copy before the daily graphs had been created
 - Possible fix for Child process count increasing when using PHP upload
 - The monthly and extra data log file editors now show the correct date for 9/10am rollover configurations before the daily rollover
-
+- Real time SFTP not reconnecting when SFTP object is null or not connected
 
 3.24.2 - b3235
 ——————————————
