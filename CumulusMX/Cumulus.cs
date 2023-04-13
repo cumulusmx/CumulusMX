@@ -2932,7 +2932,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"Realtime[{cycle}]: Error during update: {ex.Message}");
+				LogExceptionMessage($"Realtime[{cycle}]: Error during update", ex);
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
 					RealtimeFTPReconnect();
@@ -11034,12 +11034,14 @@ namespace CumulusMX
 				if (conn == null || !conn.IsConnected)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {localfile}");
+					RealtimeFTPReconnect();
 					return false;
 				}
 			}
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {localfile}");
+				RealtimeFTPReconnect();
 				return false;
 			}
 
@@ -11079,12 +11081,14 @@ namespace CumulusMX
 				if (conn == null || !conn.IsConnected)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
+					RealtimeFTPReconnect();
 					return false;
 				}
 			}
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
+				RealtimeFTPReconnect();
 				return false;
 			}
 
