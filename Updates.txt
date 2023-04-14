@@ -29,6 +29,7 @@ Fixed
 - The monthly and extra data log file editors now show the correct date for 9/10am rollover configurations before the daily rollover
 - Real time SFTP not reconnecting when SFTP object is null or not connected
 
+
 3.24.2 - b3235
 ——————————————
 New

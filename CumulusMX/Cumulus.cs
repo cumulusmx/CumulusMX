@@ -13907,6 +13907,11 @@ namespace CumulusMX
 				{
 					NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
 				}
+
+				// have we rolled over a day and the next interval would be prior to the start time?
+				// if so, bump up the next interval to the daily start time
+				if (NextUpdate[idx].TimeOfDay < StartTimes[idx])
+					NextUpdate[idx] = NextUpdate[idx].Date + StartTimes[idx];
 			}
 		}
 

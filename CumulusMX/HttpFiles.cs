@@ -282,6 +282,11 @@ namespace CumulusMX
 			{
 				NextDownload = NextDownload.AddMinutes(Interval);
 			}
+
+			// If timed and we have rolled over a day and the next interval would be prior to the start time?
+			// if so, bump up the next interval to the daily start time
+			if (Timed && NextDownload.TimeOfDay < StartTime)
+				NextDownload = NextDownload.Date + StartTime;
 		}
 	}
 }
