@@ -9441,11 +9441,11 @@ namespace CumulusMX
 					var remotefile = item.Remote;
 
 					// just create a file from the download
-					httpFiles.DownloadHttpFile(item.Url, item.Remote);
+					await httpFiles.DownloadHttpFile(item.Url, item.Remote);
 
 					item.SetNextInterval(now);
 				});
-				LogDebugMessage("ProcessHttpFiles: Done creating local http files");
+				LogDebugMessage("ProcessHttpFiles: Done creating local http file taks, not waiting for them to complete");
 			}
 
 			// third sanity check, are there any uploads?

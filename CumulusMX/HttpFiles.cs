@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using EmbedIO;
 using Org.BouncyCastle.Asn1.Cms;
 using ServiceStack;
@@ -146,16 +147,10 @@ namespace CumulusMX
 
 			try
 			{
-				var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
-				var sendTask = client.SendAsync(request);
-				var response = sendTask.Result.EnsureSuccessStatusCode();
-
-				using (var httpStream = await response.Content.ReadAsStreamAsync())
-				using (var fileStream = File.Create(filename))
-				using (var reader = new StreamReader(httpStream))
+				var response = await client.GetAsync(new Uri(modUrl));
+				using (var fileStream = new FileStream(filename, FileMode.Create))
 				{
-					httpStream.CopyTo(fileStream);
-					fileStream.Flush();
+					await response.Content.CopyToAsync(fileStream);
 				}
 
 				cumulus.LogDebugMessage($"DownloadHttpFile: Download from {url} to {filename} complete");
@@ -264,17 +259,6 @@ namespace CumulusMX
 			{
 				// We always revert to the start time so we remain consistent across DST changes
 				NextDownload = now.Date + StartTime;
-
-				/*
-				if (NextDownload > now)
-				{
-					// it's not yet reached the start time, so back up until we are less than now
-					do
-					{
-						NextDownload = NextDownload.AddMinutes(-Interval);
-					} while (NextDownload > now);
-				}
-				*/
 			}
 
 			// Not timed or timed and we have now set the start, add on intervals until we reach the future
