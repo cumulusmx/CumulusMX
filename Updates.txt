@@ -1,4 +1,4 @@
-3.25.0 - b3239
+3.25.0 - b3240
 ——————————————
 New
 - Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
@@ -28,6 +28,10 @@ Fixed
 - Possible fix for Child process count increasing when using PHP upload
 - The monthly and extra data log file editors now show the correct date for 9/10am rollover configurations before the daily rollover
 - Real time SFTP not reconnecting when SFTP object is null or not connected
+- The following processes now abort processing if they are called before the core met data is available
+	Custom Interval Logs, Custom MySQL: Realtime, Interval, and Timed commands
+- Real time FTP login was sometimes being attempted even if FTP was disabled completely - occurred if the real time FTP option was left enabled
+
 
 
 3.24.2 - b3235

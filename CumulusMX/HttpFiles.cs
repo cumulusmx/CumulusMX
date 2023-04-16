@@ -7,7 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+//using System.Net.Security;
 using System.Runtime.Serialization;
+//using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Hosting;
@@ -23,11 +25,35 @@ namespace CumulusMX
 	internal class HttpFiles
 	{
 		private readonly Cumulus cumulus;
-		private HttpClient client = new HttpClient();
+		private HttpClient client;
 
 		public HttpFiles(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
+
+			var handler = new HttpClientHandler()
+			{
+				SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
+				/*
+				ServerCertificateCustomValidationCallback = (HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors) =>
+				{
+					// It is possible to inspect the certificate provided by the server.
+					cumulus.LogDebugMessage($"Http File: Requested URI : {requestMessage.RequestUri}");
+					cumulus.LogDebugMessage($"Http File: Name          : {certificate.GetName()}");
+					cumulus.LogDebugMessage($"Http File: Effective date: {certificate.GetEffectiveDateString()}");
+					cumulus.LogDebugMessage($"Http File: Exp date      : {certificate.GetExpirationDateString()}");
+					cumulus.LogDebugMessage($"Http File: Issuer        : {certificate.Issuer}");
+					cumulus.LogDebugMessage($"Http File: Subject       : {certificate.Subject}");
+
+					// Based on the custom logic it is possible to decide whether the client considers certificate valid or not
+					cumulus.LogDebugMessage($"Http File: Errors        : {sslErrors}");
+					return sslErrors == SslPolicyErrors.None;
+				}
+				*/
+			};
+			handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+
+			client = new HttpClient(handler);
 		}
 
 		public string GetAlpacaFormData()
@@ -138,7 +164,6 @@ namespace CumulusMX
 			}
 			return "success";
 		}
-
 
 		public async Task DownloadHttpFile(string url, string filename)
 		{

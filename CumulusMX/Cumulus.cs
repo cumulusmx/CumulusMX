@@ -8276,6 +8276,13 @@ namespace CumulusMX
 
 		public void DoCustomIntervalLogs(DateTime timestamp)
 		{
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"DoCustomIntervalLogs: Not all data is ready, aborting process");
+				return;
+			}
+
 			for (var i = 0; i < 10; i++)
 			{
 				if (CustomIntvlLogSettings[i].Enabled && timestamp.Minute % CustomIntvlLogSettings[i].Interval == 0)
@@ -9445,7 +9452,7 @@ namespace CumulusMX
 
 					item.SetNextInterval(now);
 				});
-				LogDebugMessage("ProcessHttpFiles: Done creating local http file taks, not waiting for them to complete");
+				LogDebugMessage("ProcessHttpFiles: Done creating local http file tasks, not waiting for them to complete");
 			}
 
 			// third sanity check, are there any uploads?
@@ -11959,9 +11966,10 @@ namespace CumulusMX
 				return;
 			}
 
-			if (station.DataStopped)
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
-				// No data coming in, do not do anything
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"CustomMySqlTimedUpdate: Not all data is ready, aborting process");
 				return;
 			}
 
@@ -11997,6 +12005,13 @@ namespace CumulusMX
 			if (station.DataStopped)
 			{
 				// No data coming in, do not do anything
+				return;
+			}
+
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"CustomMysqlMinutesTimerTick: Not all data is ready, aborting process");
 				return;
 			}
 
@@ -12065,6 +12080,13 @@ namespace CumulusMX
 			if (station.DataStopped)
 			{
 				// No data coming in, do not do anything
+				return;
+			}
+
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"CustomMySqlTimedUpdate: Not all data is ready, aborting process");
 				return;
 			}
 
