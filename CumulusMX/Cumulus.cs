@@ -11786,7 +11786,7 @@ namespace CumulusMX
 
 			if (RealtimeIntervalEnabled)
 			{
-				if (FtpOptions.RealtimeEnabled && FtpOptions.FtpMode != FtpProtocols.PHP)
+				if (FtpOptions.Enabled && FtpOptions.RealtimeEnabled && FtpOptions.FtpMode != FtpProtocols.PHP)
 				{
 					LogConsoleMessage("Connecting real time FTP");
 
