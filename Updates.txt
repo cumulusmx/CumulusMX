@@ -1,4 +1,4 @@
-3.25.0 - b3240
+3.25.0 - b3241
 ——————————————
 New
 - Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
@@ -31,6 +31,7 @@ Fixed
 - The following processes now abort processing if they are called before the core met data is available
 	Custom Interval Logs, Custom MySQL: Realtime, Interval, and Timed commands
 - Real time FTP login was sometimes being attempted even if FTP was disabled completely - occurred if the real time FTP option was left enabled
+- 24 hour times on the dashboard showing as 24:nn after midnight rather than 00:nn
 
 
 
