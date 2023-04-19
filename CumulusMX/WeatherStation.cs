@@ -10687,10 +10687,6 @@ namespace CumulusMX
 			// average the values
 			double avgwind = totalwind / numvalues;
 
-			maxwind = maxwind;
-			minwind = minwind;
-
-
 			StringBuilder URL = new StringBuilder("http://www.windguru.cz/upload/api.php?", 1024);
 
 			URL.Append("uid=" + HttpUtility.UrlEncode(cumulus.WindGuru.ID));
