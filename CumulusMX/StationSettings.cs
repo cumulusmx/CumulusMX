@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Reflection;
 using ServiceStack.Text;
 using EmbedIO;
-using System.Reflection;
 using static Swan.Terminal;
 using Swan.Formatters;
 using ServiceStack;
+using System.Globalization;
 
 namespace CumulusMX
 {
@@ -160,6 +162,16 @@ namespace CumulusMX
 				localaddr = cumulus.EcowittLocalAddr,
 				interval = cumulus.EcowittCustomInterval
 			};
+
+			ecowitt.forward = new List<JsonEcowittForward>();
+
+			for (var i = 0; i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
+				{
+					ecowitt.forward.Add(new JsonEcowittForward() { url = cumulus.EcowittForwarders[i] });
+				}
+			}
 
 			var ecowittapi = new JsonStationSettingsEcowittApi()
 			{
@@ -387,7 +399,7 @@ namespace CumulusMX
 
 			var generalAdvanced = new JsonStationSettingsAdvanced()
 			{
-				recsbegandate = cumulus.RecordsBeganDate
+				recsbegandate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd")
 			};
 
 			var general = new JsonStationGeneral()
@@ -873,6 +885,18 @@ namespace CumulusMX
 						cumulus.EcowittGatewayAddr = string.IsNullOrWhiteSpace(settings.ecowitt.gwaddr) ? null : settings.ecowitt.gwaddr.Trim();
 						cumulus.EcowittLocalAddr = string.IsNullOrWhiteSpace(settings.ecowitt.localaddr) ? null : settings.ecowitt.localaddr.Trim();
 						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
+
+						for (var i = 0; i < 10; i++)
+						{
+							if (i < settings.ecowitt.forward.Count)
+							{
+								cumulus.EcowittForwarders[i] = string.IsNullOrWhiteSpace(settings.ecowitt.forward[i].url) ? null : settings.ecowitt.forward[i].url.Trim();
+							}
+							else
+							{
+								cumulus.EcowittForwarders[i] = null;
+							}
+						}
 					}
 				}
 				catch (Exception ex)
@@ -1178,8 +1202,7 @@ namespace CumulusMX
 				// General Advanced
 				try
 				{
-					cumulus.RecordsBeganDate = settings.general.advanced.recsbegandate.Trim();
-					cumulus.RecordsBeganDateTime = DateTime.Parse(cumulus.RecordsBeganDate);
+					cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.general.advanced.recsbegandate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
 				}
 				catch (Exception ex)
 				{
@@ -1240,8 +1263,11 @@ namespace CumulusMX
 
 		internal string UploadNow(IHttpContext context)
 		{
+			cumulus.LogDebugMessage("Upload Now: Starting process");
+
 			if (station == null)
 			{
+				cumulus.LogDebugMessage("Upload Now: Not possible, station is not initialised}");
 				return "Not possible, station is not initialised}";
 			}
 
@@ -1267,11 +1293,20 @@ namespace CumulusMX
 
 				if (cumulus.WebUpdating >= 2)
 				{
-					cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, second chance, aborting connection");
-					if (cumulus.ftpThread.ThreadState == ThreadState.Running)
-						cumulus.ftpThread.Abort();
+					try
+					{
+						cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, second chance, aborting connection");
+						if (cumulus.ftpThread.ThreadState == ThreadState.Running)
+							cumulus.ftpThread.Abort();
 
-					returnMsg = "An existing upload process was aborted, and a new FTP process invoked";
+						returnMsg = "An existing upload process was aborted, and a new FTP process invoked";
+					}
+					catch (Exception ex)
+					{
+						returnMsg = "Error aborting a currently running upload";
+						cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+						return returnMsg;
+					}
 				}
 
 				// Graph configs may have changed, so force re-create and upload the json files - just flag everything!
@@ -1311,14 +1346,23 @@ namespace CumulusMX
 					cumulus.NOAAconf.NeedCopy = true;
 				}
 
-				cumulus.WebUpdating = 1;
-				cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
-				cumulus.ftpThread.Start();
+				try
+				{
+					cumulus.WebUpdating = 1;
+					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
+					cumulus.ftpThread.Start();
+				}
+				catch(Exception ex)
+				{
+					returnMsg = "Error starting a new upload";
+					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+				}
+				cumulus.LogDebugMessage("Upload Now: Process complete");
 				return returnMsg;
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Upload Now: {ex.Message}");
+				cumulus.LogMessage($"Upload Now: General error: {ex.Message}");
 				context.Response.StatusCode = 500;
 				return $"Error: {ex.Message}";
 			}
@@ -1569,6 +1613,12 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
+		public List<JsonEcowittForward> forward { get; set; }
+	}
+
+	internal class JsonEcowittForward
+	{
+		public string url { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowittApi

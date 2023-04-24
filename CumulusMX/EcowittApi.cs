@@ -21,7 +21,7 @@ namespace CumulusMX
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
 
-		private static readonly HttpClientHandler httpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler httpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private static readonly HttpClient httpClient = new HttpClient(httpHandler);
 
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";

@@ -14,6 +14,8 @@ using static SQLite.SQLite3;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using ServiceStack.Text;
+using System.Threading;
+using System.Web.UI.WebControls;
 
 // A rag tag of useful functions
 
@@ -210,6 +212,50 @@ namespace CumulusMX
 			return IPAddress.Any;
 		}
 
+		public static string ExceptionToString(Exception ex)
+		{
+			var sb = new StringBuilder();
+
+			sb.AppendLine("Exception Type: " + ex.GetType().FullName);
+			sb.AppendLine("Message: " + ex.Message);
+			//sb.AppendLine("Source: " + ex.Source);
+			foreach (var key in ex.Data.Keys)
+			{
+				sb.AppendLine(key.ToString() + ": " + ex.Data[key].ToString());
+			}
+
+			/*
+			if (String.IsNullOrEmpty(ex.StackTrace))
+			{
+				sb.AppendLine("Environment Stack Trace: " + ex.StackTrace);
+			}
+			else
+			{
+				sb.AppendLine("Stack Trace: " + ex.StackTrace);
+			}
+			*/
+
+			/*
+			var st = new StackTrace(ex, true);
+			foreach (var frame in st.GetFrames())
+			{
+				if (frame.GetFileLineNumber() < 1)
+					continue;
+
+				sb.Append("File: " + frame.GetFileName());
+				sb.AppendLine("  Linenumber: " + frame.GetFileLineNumber());
+			}
+			*/
+
+			if (ex.InnerException != null)
+			{
+				sb.AppendLine("Inner Exception... ");
+				sb.AppendLine(ExceptionToString(ex.InnerException));
+			}
+
+			return sb.ToString();
+		}
+
 		public static void RunExternalTask(string task, string parameters, bool wait, bool redirectError = false)
 		{
 			var process = new System.Diagnostics.Process();
@@ -284,5 +330,68 @@ namespace CumulusMX
 
 			return data;
 		}
+
+		public static bool FilesEqual(string path1, string path2)
+		{
+			// very crude check - highly unlikey different versions will have the same file lengths
+			// if one or both files do not exist, catch the error and fail the check
+			try
+			{
+				var fi1 = new FileInfo(path1);
+				var fi2 = new FileInfo(path2);
+
+				if (fi1.Length != fi2.Length)
+					return false;
+				else
+				{
+					return System.Diagnostics.FileVersionInfo.GetVersionInfo(path1).FileVersion == System.Diagnostics.FileVersionInfo.GetVersionInfo(path2).FileVersion;
+				}
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		/*
+		public static class ParallelAsync
+		{
+			public static async Task ForeachAsync<T>(IEnumerable<T> source, int maxParallelCount, Func<T, Task> action)
+			{
+				using (SemaphoreSlim completeSemphoreSlim = new SemaphoreSlim(1))
+				using (SemaphoreSlim taskCountLimitSemaphoreSlim = new SemaphoreSlim(maxParallelCount))
+				{
+					await completeSemphoreSlim.WaitAsync();
+					int runningtaskCount = source.Count();
+
+					foreach (var item in source)
+					{
+						await taskCountLimitSemaphoreSlim.WaitAsync();
+
+						_ = Task.Run(async () =>
+						{
+							try
+							{
+								await action(item).ContinueWith(task =>
+								{
+									Interlocked.Decrement(ref runningtaskCount);
+									if (runningtaskCount == 0)
+									{
+										completeSemphoreSlim.Release();
+									}
+								});
+							}
+							finally
+							{
+								taskCountLimitSemaphoreSlim.Release();
+							}
+						});
+					}
+
+					await completeSemphoreSlim.WaitAsync();
+				}
+			}
+		}
+		*/
 	}
 }

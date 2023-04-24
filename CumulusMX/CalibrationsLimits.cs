@@ -1,4 +1,6 @@
-﻿namespace CumulusMX
+﻿using System;
+
+namespace CumulusMX
 {
 	public class Calibrations
 	{
@@ -35,6 +37,11 @@
 		public double Offset = 0;
 		public double Mult = 1;
 		public double Mult2 = 0;
+
+		public double Calibrate(double value)
+		{
+			return value * value * Mult2 + value * Mult + Offset;
+		}
 	}
 
 	public class Limits

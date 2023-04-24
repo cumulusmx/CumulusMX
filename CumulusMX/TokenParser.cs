@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -210,6 +211,12 @@ namespace CumulusMX
 			int i = 0;
 			int len = InputText.Length;
 
+			if (len == 0)
+			{
+				Program.cumulus.LogMessage($"TokenParser error in file: {SourceFile}, InputString is zero length");
+				return $"TokenParser error in file: {SourceFile}, InputString is zero length";
+			}
+
 			Regex rx = new Regex("<#[^>]*?(?:(?:(\")[^\"]*?\\1)[^>]*?)*>", RegexOptions.Compiled);
 			// Find matches.
 			MatchCollection matches = rx.Matches(InputText);
@@ -338,9 +345,28 @@ namespace CumulusMX
 			string result;
 			try
 			{
-				using (TextReader reader = new StreamReader(SourceFile, Encoding))
+				using (var reader = new StreamReader(File.OpenRead(SourceFile), Encoding))
 				{
 					InputText = reader.ReadToEnd();
+				}
+				result = Parse3();
+			}
+			catch (Exception e)
+			{
+				result = e.ToString();
+			}
+			return result;
+		}
+
+		public async Task<string> ToStringAsync()
+		{
+			//TextReader reader;
+			string result;
+			try
+			{
+				using (var reader = new StreamReader(File.OpenRead(SourceFile), Encoding))
+				{
+					InputText = await reader.ReadToEndAsync();
 				}
 				result = Parse3();
 			}

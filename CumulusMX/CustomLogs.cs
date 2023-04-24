@@ -205,30 +205,27 @@ namespace CumulusMX
 			return "success";
 		}
 
-	}
 
-	public class CustomLogsSettings
-	{
-		public bool accessible { get; set; }
-		public List<CustomLogsDailySettings> daily { get; set; }
-		public List<CustomLogsIntervalSettings> interval { get; set; }
-	}
+		private class CustomLogsSettings
+		{
+			public bool accessible { get; set; }
+			public List<CustomLogsDailySettings> daily { get; set; }
+			public List<CustomLogsIntervalSettings> interval { get; set; }
+		}
 
+		private class CustomLogsDailySettings
+		{
+			public bool enabled { get; set; }
+			public string filename { get; set; }
+			public string content { get; set; }
+		}
 
-	public class CustomLogsDailySettings
-	{
-		public bool enabled { get; set; }
-		public string filename { get; set; }
-		public string content { get; set; }
-	}
-
-
-
-	public class CustomLogsIntervalSettings
-	{
-		public bool enabled { get; set; }
-		public string filename { get; set; }
-		public string content { get; set; }
-		public int intervalidx { get; set; }
+		private class CustomLogsIntervalSettings
+		{
+			public bool enabled { get; set; }
+			public string filename { get; set; }
+			public string content { get; set; }
+			public int intervalidx { get; set; }
+		}
 	}
 }

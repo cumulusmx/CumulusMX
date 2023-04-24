@@ -1539,7 +1539,7 @@ namespace CumulusMX
 				cumulus.WebSock.SendMessage(GetCurrentData());
 
 				// We can't be sure when the broadcast completes because it is async internally, so the best we can do is wait a short time
-				Thread.Sleep(500);
+				await Task.Delay(500);
 			}
 			catch (Exception ex)
 			{
@@ -1744,6 +1744,12 @@ namespace CumulusMX
 						cumulus.CustomMysqlMinutesTimerTick();
 					}
 
+					// Custom MySQL Timed interval
+					if (cumulus.MySqlSettings.CustomTimed.Enabled)
+					{
+						cumulus.CustomMySqlTimedUpdate(now);
+					}
+
 					// Custom HTTP update - minutes interval
 					if (cumulus.CustomHttpMinutesEnabled && now.Minute % cumulus.CustomHttpMinutesInterval == 0)
 					{
@@ -1883,6 +1889,8 @@ namespace CumulusMX
 					{
 						CreateWxnowFile();
 					}
+
+					cumulus.DoHttpFiles(now);
 				}
 				else
 				{
@@ -2182,6 +2190,8 @@ namespace CumulusMX
 					return GetSoilTempGraphData(incremental, false);
 				case "soilmoistdata.json":
 					return GetSoilMoistGraphData(incremental, false);
+				case "leafwetdata.json":
+					return GetLeafWetnessGraphData(incremental, false);
 				case "usertempdata.json":
 					return GetUserTempGraphData(incremental, false);
 				case "co2sensordata.json":
@@ -2193,13 +2203,11 @@ namespace CumulusMX
 
 		public void CreateEodGraphDataFiles()
 		{
-			string json = "";
-
 			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 			{
 				if (cumulus.GraphDataEodFiles[i].Create)
 				{
-					json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].LocalFileName);
+					var json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].LocalFileName);
 
 					try
 					{
@@ -2224,9 +2232,25 @@ namespace CumulusMX
 			// daily rain = 8
 			// daily temp = 9
 			// sun hours = 11
-			for (var i = 2; i < cumulus.GraphDataFiles.Length; i++)
+			var eod = new int[] { 8, 9, 11 };
+
+			foreach (var i in eod)
 			{
-				cumulus.GraphDataFiles[i].CreateRequired = true;
+				if (cumulus.GraphDataFiles[i].Create)
+				{
+					var json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
+
+					try
+					{
+						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
+						File.WriteAllText(dest, json);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+					}
+				}
+
 				cumulus.GraphDataFiles[i].CopyRequired = true;
 				cumulus.GraphDataFiles[i].FtpRequired = true;
 			}
@@ -2257,7 +2281,7 @@ namespace CumulusMX
 		}
 
 
-		public string GetSolarGraphData(bool incremental, bool local)
+		public string GetSolarGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
@@ -2265,7 +2289,16 @@ namespace CumulusMX
 			var sbSol = new StringBuilder("\"SolarRad\":[");
 			var sbMax = new StringBuilder("\"CurrentSolarMax\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[10].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[10].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2317,14 +2350,23 @@ namespace CumulusMX
 		}
 
 
-		public string GetRainGraphData(bool incremental)
+		public string GetRainGraphData(bool incremental, DateTime? start = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
 			var sbRain = new StringBuilder("\"rfall\":[");
 			var sbRate = new StringBuilder("\"rrate\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[7].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[7].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2348,13 +2390,22 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetHumGraphData(bool incremental, bool local)
+		public string GetHumGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			var sb = new StringBuilder("{", 10240);
 			var sbOut = new StringBuilder("\"hum\":[");
 			var sbIn = new StringBuilder("\"inhum\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[6].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[6].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2397,12 +2448,21 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetWindDirGraphData(bool incremental)
+		public string GetWindDirGraphData(bool incremental, DateTime? start = null)
 		{
 			var sb = new StringBuilder("{\"bearing\":[");
 			var sbAvg = new StringBuilder("\"avgbearing\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[5].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[5].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2426,13 +2486,21 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetWindGraphData(bool incremental)
+		public string GetWindGraphData(bool incremental, DateTime? start = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{\"wgust\":[");
 			var sbSpd = new StringBuilder("\"wspeed\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[4].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[4].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2456,12 +2524,21 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetPressGraphData(bool incremental)
+		public string GetPressGraphData(bool incremental, DateTime? start = null)
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{\"press\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[3].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[3].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2477,7 +2554,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetTempGraphData(bool incremental, bool local)
+		public string GetTempGraphData(bool incremental, bool local, DateTime? start=null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2491,7 +2568,15 @@ namespace CumulusMX
 			var sbTemp = new StringBuilder("\"temp\":[");
 			var sbHumidex = new StringBuilder("\"humidex\":[");
 
-			var dateFrom = incremental ? cumulus.GraphDataFiles[2].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[2].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2605,7 +2690,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAqGraphData(bool incremental)
+		public string GetAqGraphData(bool incremental, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2618,7 +2703,15 @@ namespace CumulusMX
 			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
 				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
-				var dateFrom = incremental ? cumulus.GraphDataFiles[12].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+				DateTime dateFrom;
+				if (incremental)
+				{
+					dateFrom = start ?? cumulus.GraphDataFiles[12].LastDataTime;
+				}
+				else
+				{
+					dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+				}
 
 				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
 
@@ -2659,7 +2752,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraTempGraphData(bool incremental, bool local)
+		public string GetExtraTempGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2683,7 +2776,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[13].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[13].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] +1));
 			var fileDate = dateFrom;
 
@@ -2791,7 +2893,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraDewPointGraphData(bool incremental, bool local)
+		public string GetExtraDewPointGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2815,7 +2917,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[15].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[15].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
@@ -2923,7 +3034,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraHumGraphData(bool incremental, bool local)
+		public string GetExtraHumGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2948,7 +3059,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[14].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[14].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
@@ -3056,7 +3176,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSoilTempGraphData(bool incremental, bool local)
+		public string GetSoilTempGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3080,7 +3200,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[16].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[16].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
@@ -3193,7 +3322,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSoilMoistGraphData(bool incremental, bool local)
+		public string GetSoilMoistGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3217,7 +3346,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[17].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[17].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
@@ -3330,7 +3468,148 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetUserTempGraphData(bool incremental, bool local)
+		public string GetLeafWetnessGraphData(bool incremental, bool local, DateTime? start = null)
+		{
+			bool append = false;
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{", 10240);
+
+			/* returns data in the form of an object with properties for each data series
+			{
+				"sensor 1": [[time,val],[time,val],...],
+				"sensor 4": [[time,val],[time,val],...],
+
+			}
+			*/
+
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.LeafWetness.Vals.Length];
+
+			for (var i = 0; i < cumulus.GraphOptions.Visible.LeafWetness.Vals.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.LeafWetnessCaptions[i]}\":[");
+			}
+
+			var finished = false;
+			var entrydate = new DateTime();
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[20].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
+			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var fileDate = dateFrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(dateFrom);
+
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					int linenum = 0;
+					int errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+
+								if (entrydate > dateFrom)
+								{
+									// entry is from required period
+									var temp = 0;
+									for (var i = 0; i < 2; i++)
+									{
+										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && int.TryParse(st[i + 42], out temp))
+											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								errorCount++;
+								cumulus.LogErrorMessage($"GetLeafWetnessGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetLeafWetnessGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"GetLeafWetnessGraphData: Error reading {logFile}. Error - {ex.Message}");
+					}
+				}
+
+				if (entrydate >= dateto || fileDate > dateto)
+				{
+					finished = true;
+				}
+				else
+				{
+					fileDate = fileDate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(fileDate);
+				}
+			}
+
+			for (var i = 0; i < 2; i++)
+			{
+				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
+				{
+					if (sbExt[i][sbExt[i].Length - 1] == ',')
+						sbExt[i].Length--;
+
+					sbExt[i].Append("]");
+					sb.Append((append ? "," : "") + sbExt[i]);
+					append = true;
+				}
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetUserTempGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3354,7 +3633,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[18].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[18].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
@@ -3462,7 +3750,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetCo2SensorGraphData(bool incremental, bool local)
+		public string GetCo2SensorGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3488,7 +3776,16 @@ namespace CumulusMX
 
 			var finished = false;
 			var entrydate = new DateTime();
-			var dateFrom = incremental ? cumulus.GraphDataFiles[19].LastDataTime : DateTime.Now.AddHours(-cumulus.GraphHours);
+			DateTime dateFrom;
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[19].LastDataTime;
+			}
+			else
+			{
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+			}
+
 			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
@@ -3996,7 +4293,7 @@ namespace CumulusMX
 				return;
 			}
 
-			IndoorTemperature = (temp * cumulus.Calib.InTemp.Mult) + cumulus.Calib.InTemp.Offset;
+			IndoorTemperature = cumulus.Calib.InTemp.Calibrate(temp);
 			HaveReadData = true;
 		}
 
@@ -4084,10 +4381,6 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public double CalibrateTemp(double temp)
-		{
-			return (temp * temp * cumulus.Calib.Temp.Mult2) + (temp * cumulus.Calib.Temp.Mult) + cumulus.Calib.Temp.Offset;
-		}
 
 		public void DoOutdoorTemp(double temp, DateTime timestamp)
 		{
@@ -4107,7 +4400,7 @@ namespace CumulusMX
 
 			// UpdateStatusPanel;
 			// update global temp
-			OutdoorTemperature = CalibrateTemp(temp);
+			OutdoorTemperature = cumulus.Calib.Temp.Calibrate(temp);
 
 			double tempinC = ConvertUserTempToC(OutdoorTemperature);
 
@@ -4557,7 +4850,7 @@ namespace CumulusMX
 
 			previousPress = pressMB;
 
-			Pressure = sl * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
+			Pressure = cumulus.Calib.Press.Calibrate(sl);
 			if (cumulus.Manufacturer == cumulus.DAVIS)
 			{
 				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
@@ -5091,7 +5384,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
+		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp, bool speedparcalibrated=false)
 		{
 #if DEBUG
 			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1}");
@@ -5136,11 +5429,12 @@ namespace CumulusMX
 				}
 			}
 			var uncalibratedgust = gustpar;
-			calibratedgust = uncalibratedgust * cumulus.Calib.WindGust.Mult;
+			calibratedgust = cumulus.Calib.WindGust.Calibrate(uncalibratedgust);
+			var calibratedspeed = speedparcalibrated ? speedpar : cumulus.Calib.WindSpeed.Calibrate(speedpar);
 
-			WindLatest = cumulus.StationOptions.UseSpeedForLatest ? speedpar * cumulus.Calib.WindSpeed.Mult : calibratedgust;
+			WindLatest = cumulus.StationOptions.UseSpeedForLatest ? calibratedspeed : calibratedgust;
 
-			windspeeds[nextwindvalue] = gustpar;
+			windspeeds[nextwindvalue] = calibratedgust;
 			windbears[nextwindvalue] = Bearing;
 
 			// Recalculate wind rose data
@@ -5192,8 +5486,8 @@ namespace CumulusMX
 			// check for monthly all time records (and set)
 			CheckMonthlyAlltime("HighGust", calibratedgust, true, timestamp);
 
-			WindRecent[nextwind].Gust = gustpar;
-			WindRecent[nextwind].Speed = speedpar;
+			WindRecent[nextwind].Gust = calibratedgust;
+			WindRecent[nextwind].Speed = calibratedspeed;
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -5222,10 +5516,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				WindAverage = speedpar;
+				WindAverage = calibratedspeed;
 			}
-
-			WindAverage *= cumulus.Calib.WindSpeed.Mult;
 
 			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
 
@@ -5244,7 +5536,7 @@ namespace CumulusMX
 						}
 					}
 				}
-				RecentMaxGust = maxgust * cumulus.Calib.WindGust.Mult;
+				RecentMaxGust = maxgust;
 			}
 
 			cumulus.HighGustAlarm.CheckAlarm(RecentMaxGust);
@@ -5367,7 +5659,7 @@ namespace CumulusMX
 
 		public void DoUV(double value, DateTime timestamp)
 		{
-			UV = (value * cumulus.Calib.UV.Mult) + cumulus.Calib.UV.Offset;
+			UV = cumulus.Calib.UV.Calibrate(value);
 			if (UV < 0)
 				UV = 0;
 			if (UV > 16)
@@ -5384,7 +5676,7 @@ namespace CumulusMX
 
 		public void DoSolarRad(int value, DateTime timestamp)
 		{
-			SolarRad = (value * cumulus.Calib.Solar.Mult) + cumulus.Calib.Solar.Offset;
+			SolarRad = cumulus.Calib.Solar.Calibrate(value);
 			if (SolarRad < 0)
 				SolarRad = 0;
 
@@ -5424,7 +5716,7 @@ namespace CumulusMX
 
 		{
 			WetBulb = ConvertTempCToUser(temp);
-			WetBulb = (WetBulb * cumulus.Calib.WetBulb.Mult) + cumulus.Calib.WetBulb.Offset;
+			WetBulb = cumulus.Calib.WetBulb.Calibrate(WetBulb);
 
 			// calculate RH
 			double TempDry = ConvertUserTempToC(OutdoorTemperature);
@@ -6418,29 +6710,20 @@ namespace CumulusMX
 				{
 					try
 					{
-						NOAA noaa = new NOAA(cumulus, this);
-						var utf8WithoutBom = new System.Text.UTF8Encoding(false);
-						var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : System.Text.Encoding.GetEncoding("iso-8859-1");
-
-						List<string> report;
+						var noaa = new NOAAReports(cumulus, this);
 
 						DateTime noaats = timestamp.AddDays(-1);
 
 						// do monthly NOAA report
 						cumulus.LogMessage("Creating NOAA monthly report for " + noaats.ToLongDateString());
-						report = noaa.CreateMonthlyReport(noaats);
-						cumulus.NOAAconf.LatestMonthReport = FormatDateTime(cumulus.NOAAconf.MonthFile, noaats);
-						string noaafile = cumulus.ReportPath + cumulus.NOAAconf.LatestMonthReport;
-						cumulus.LogMessage("Saving monthly report as " + noaafile);
-						File.WriteAllLines(noaafile, report, encoding);
+
+						_ = noaa.GenerateNoaaMonthReport(noaats.Year, noaats.Month);
+						cumulus.NOAAconf.LatestMonthReport = noaats.ToString(cumulus.NOAAconf.MonthFile);
 
 						// do yearly NOAA report
 						cumulus.LogMessage("Creating NOAA yearly report");
-						report = noaa.CreateYearlyReport(noaats);
-						cumulus.NOAAconf.LatestYearReport = FormatDateTime(cumulus.NOAAconf.YearFile, noaats);
-						noaafile = cumulus.ReportPath + cumulus.NOAAconf.LatestYearReport;
-						cumulus.LogMessage("Saving yearly report as " + noaafile);
-						File.WriteAllLines(noaafile, report, encoding);
+						_ = noaa.GenerateNoaaYearReport(noaats.Year);
+						cumulus.NOAAconf.LatestYearReport = noaats.ToString(cumulus.NOAAconf.YearFile);
 					}
 					catch (Exception ex)
 					{
@@ -6457,19 +6740,19 @@ namespace CumulusMX
 					cumulus.LogMessage("NOAA reports will be uploaded at next web update");
 				}
 
-				// Do the End of day Extra files
-				// This will set a flag to transfer on next FTP if required
-				cumulus.DoExtraEndOfDayFiles();
-				if (cumulus.EODfilesNeedFTP)
-				{
-					cumulus.LogMessage("Extra files will be uploaded at next web update");
-				}
-
 				// Do the Daily graph data files
 				CreateEodGraphDataFiles();
 				CreateDailyGraphDataFiles();
 				cumulus.LogMessage("If required the daily graph data files will be uploaded at next web update");
 
+				// Do the End of day Extra files
+				// This will set a flag to transfer on next FTP if required
+				cumulus.DoExtraEndOfDayFiles();
+
+				if (cumulus.EODfilesNeedFTP)
+				{
+					cumulus.LogMessage("Extra files will be uploaded at next web update");
+				}
 
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
@@ -6477,6 +6760,7 @@ namespace CumulusMX
 					{
 						// Prepare the process to run
 						var parser = new TokenParser();
+						parser.OnToken += cumulus.TokenParserOnToken;
 						parser.InputText = cumulus.DailyParams;
 						var args = parser.ToStringFromString();
 						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
@@ -8162,7 +8446,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[19], out varDbl))
 					rec.LowHumidity = Convert.ToInt32(varDbl);
 				else
-					rec.LowHumidity = 9999;
+					rec.LowHumidity = (int)Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[20].Length == 5)
 					rec.LowHumidityTime = GetDateTime(rec.Date, st[20]);
@@ -8170,13 +8454,15 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[21], out varDbl))
 					rec.HighHumidity = Convert.ToInt32(varDbl);
 				else
-					rec.HighHumidity = -9999;
+					rec.HighHumidity = (int)Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[22].Length == 5)
 					rec.HighHumidityTime = GetDateTime(rec.Date, st[22]);
 
 				if (st.Count > idx++ && double.TryParse(st[23], out varDbl))
 					rec.ET = varDbl;
+				else
+					rec.ET = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[24], out varDbl))
 					rec.SunShineHours = varDbl;
@@ -8184,7 +8470,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[25], out varDbl))
 					rec.HighHeatIndex = varDbl;
 				else
-					rec.HighHeatIndex = -9999;
+					rec.HighHeatIndex = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[26].Length == 5)
 					rec.HighHeatIndexTime = GetDateTime(rec.Date, st[26]);
@@ -8192,7 +8478,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[27], out varDbl))
 					rec.HighAppTemp = varDbl;
 				else
-					rec.HighAppTemp = -9999;
+					rec.HighAppTemp = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[28].Length == 5)
 					rec.HighAppTempTime = GetDateTime(rec.Date, st[28]);
@@ -8200,13 +8486,15 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[29], out varDbl))
 					rec.LowAppTemp = varDbl;
 				else
-					rec.LowAppTemp = 9999;
+					rec.LowAppTemp = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[30].Length == 5)
 					rec.LowAppTempTime = GetDateTime(rec.Date, st[30]);
 
 				if (st.Count > idx++ && double.TryParse(st[31], out varDbl))
 					rec.HighHourlyRain = varDbl;
+				else
+					rec.HighHourlyRain = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[32].Length == 5)
 					rec.HighHourlyRainTime = GetDateTime(rec.Date, st[32]);
@@ -8214,7 +8502,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[33], out varDbl))
 					rec.LowWindChill = varDbl;
 				else
-					rec.LowWindChill = 9999;
+					rec.LowWindChill = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[34].Length == 5)
 					rec.LowWindChillTime = GetDateTime(rec.Date, st[34]);
@@ -8222,7 +8510,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[35], out varDbl))
 					rec.HighDewPoint = varDbl;
 				else
-					rec.HighDewPoint = -9999;
+					rec.HighDewPoint = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[36].Length == 5)
 					rec.HighDewPointTime = GetDateTime(rec.Date, st[36]);
@@ -8230,28 +8518,38 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[37], out varDbl))
 					rec.LowDewPoint = varDbl;
 				else
-					rec.LowDewPoint = 9999;
+					rec.LowDewPoint = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[38].Length == 5)
 					rec.LowDewPointTime = GetDateTime(rec.Date, st[38]);
 
 				if (st.Count > idx++ && double.TryParse(st[39], out varDbl))
 					rec.DominantWindBearing = Convert.ToInt32(varDbl);
+				else
+					rec.DominantWindBearing = (int)Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[40], out varDbl))
 					rec.HeatingDegreeDays = varDbl;
+				else
+					rec.HeatingDegreeDays = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[41], out varDbl))
 					rec.CoolingDegreeDays = varDbl;
+				else
+					rec.CoolingDegreeDays = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[42], out varDbl))
 					rec.HighSolar = Convert.ToInt32(varDbl);
+				else
+					rec.HighSolar = (int)Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[43].Length == 5)
 					rec.HighSolarTime = GetDateTime(rec.Date, st[43]);
 
 				if (st.Count > idx++ && double.TryParse(st[44], out varDbl))
 					rec.HighUv = varDbl;
+				else
+					rec.HighUv = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[45].Length == 5)
 					rec.HighUvTime = GetDateTime(rec.Date, st[45]);
@@ -8259,7 +8557,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[46], out varDbl))
 					rec.HighFeelsLike = varDbl;
 				else
-					rec.HighFeelsLike = -9999;
+					rec.HighFeelsLike = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[47].Length == 5)
 					rec.HighFeelsLikeTime = GetDateTime(rec.Date, st[47]);
@@ -8267,7 +8565,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[48], out varDbl))
 					rec.LowFeelsLike = varDbl;
 				else
-					rec.LowFeelsLike = 9999;
+					rec.LowFeelsLike = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[49].Length == 5)
 					rec.LowFeelsLikeTime = GetDateTime(rec.Date, st[49]);
@@ -8275,7 +8573,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[50], out varDbl))
 					rec.HighHumidex = varDbl;
 				else
-					rec.HighHumidex = -9999;
+					rec.HighHumidex = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[51].Length == 5)
 					rec.HighHumidexTime = GetDateTime(rec.Date, st[51]);
@@ -8283,12 +8581,12 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[52], out varDbl))
 					rec.ChillHours = varDbl;
 				else
-					rec.ChillHours = -9999;
+					rec.ChillHours = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[53], out varDbl))
 					rec.HighRain24h = varDbl;
 				else
-					rec.HighRain24h = -9999;
+					rec.HighRain24h = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[54].Length == 5)
 					rec.HighRain24hTime = GetDateTime(rec.Date, st[54]);
@@ -10387,11 +10685,7 @@ namespace CumulusMX
 				}
 			}
 			// average the values
-			double avgwind = totalwind / numvalues * cumulus.Calib.WindSpeed.Mult;
-
-			maxwind *= cumulus.Calib.WindGust.Mult;
-			minwind *= cumulus.Calib.WindGust.Mult;
-
+			double avgwind = totalwind / numvalues;
 
 			StringBuilder URL = new StringBuilder("http://www.windguru.cz/upload/api.php?", 1024);
 
@@ -12256,6 +12550,9 @@ namespace CumulusMX
 			// soil temps
 			if (cumulus.GraphOptions.Visible.SoilMoist.IsVisible(local))
 				json.Append($"\"soilmoist\":{{\"name\":[\"{cumulus.Trans.SoilMoistureCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.SoilMoist.Join("\",\"")}\"]}},");
+			// leaf wetness
+			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
+				json.Append($"\"leafwet\":{{\"name\":[\"{cumulus.Trans.LeafWetnessCaptions.Join("\",\"")}\"],\"colour\":[\"{cumulus.GraphOptions.Colour.LeafWetness.Join("\",\"")}\"]}},");
 
 			// CO2
 			json.Append("\"co2\":{");
@@ -12524,6 +12821,21 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.UserTempCaptions[i]}\",");
+				}
+				if (json[json.Length - 1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
+			// Leaf wetness
+			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
+			{
+				json.Append(",\"LeafWetness\":[");
+				for (var i = 0; i < cumulus.GraphOptions.Visible.LeafWetness.Vals.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
+						json.Append($"\"{cumulus.Trans.LeafWetnessCaptions[i]}\",");
 				}
 				if (json[json.Length - 1] == ',')
 					json.Length--;
@@ -13078,19 +13390,19 @@ namespace CumulusMX
 				{
 					long recDate = Utils.ToPseudoJSTime(DayFile[i].Date);
 
-					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
+					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local) && DayFile[i].SunShineHours > Cumulus.DefaultHiVal)
 					{
 						// sunshine hours
 						sunHours.Append($"[{recDate},{DayFile[i].SunShineHours.ToString(InvC)}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
+					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local) && DayFile[i].HighSolar > Cumulus.DefaultHiVal)
 					{
 						// hi solar rad
 						solarRad.Append($"[{recDate},{DayFile[i].HighSolar}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+					if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && DayFile[i].HighUv > Cumulus.DefaultHiVal)
 					{
 						// hi UV-I
 						uvi.Append($"[{recDate},{DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC)}],");

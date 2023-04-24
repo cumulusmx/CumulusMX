@@ -1,3 +1,40 @@
+3.25.0 - b3241
+——————————————
+New
+- Add data forwarding for HTTP (Ecowitt) stations (EXPERIMENTAL for now)
+- Adds Leaf Wetness as a recent and select-a graph option - also added to chart colour picker
+- Local API, graph data requests now support the URL parameter start=nnnnn where nnnnn = Unix timestamp for first data values
+- The number of concurrent PHP uploads can be configured in Internet Settings | Web/Upload site | Advanced Settings (defaults Windows=4, Mono=1)
+- Non-linear calibrations can now be applied to all applicable values
+- A new download file/upload to web option:- HTTP Files
+	- This allows you to download a file from any http URL and either save it locally, or upload it to your web site
+	- This can be done at any interval, starting when CMX starts
+	- Or you can specify a start time and interval. For example you want to download a forecast image that is updated at 06:00, 12:00, 18:00
+		- You could specify an interval of 6 hours starting at 06:01. The image will then be downloaded at 06:01, 12:01 and 18:01
+- Custom MySQL commands now have a new option of Timed updates. These work the same as the HTTP Files timed uploads
+
+Changed
+- Deprecate the StartDate entry in cumulus.ini. The new entry is called StartDateIso and has a consistent format across locales of YYYY-MM-DD
+	The existing entry will be migrated and removed automatically
+- Switched to the latest current build of FluentFTP as a fix is now been incorporated for Mono errors
+	- This has meant a change to the FTP logging processes. FTP logs are now created in the MXdiags folder, and cycled like the main CMX log files
+- Adds a retry on failure for PHP Uploads
+- PHP Uploads now restricted to prevent excessive process generation under Mono
+- All HTTPS operations (Third Party, Custom, Catch-up from cloud etc) now use TLS 1.2 and TLS 1.3 only
+
+Fixed
+- Real-time FTP/SFTP upload of realtimegauges.txt could corrupt concurrent FTP/SFTP interval uploads of processed files
+- Extra web files was performing the EOD copy before the daily graphs had been created
+- Possible fix for Child process count increasing when using PHP upload
+- The monthly and extra data log file editors now show the correct date for 9/10am rollover configurations before the daily rollover
+- Real time SFTP not reconnecting when SFTP object is null or not connected
+- The following processes now abort processing if they are called before the core met data is available
+	Custom Interval Logs, Custom MySQL: Realtime, Interval, and Timed commands
+- Real time FTP login was sometimes being attempted even if FTP was disabled completely - occurred if the real time FTP option was left enabled
+- 24 hour times on the dashboard showing as 24:nn after midnight rather than 00:nn
+
+
+
 3.24.2 - b3235
 ——————————————
 New

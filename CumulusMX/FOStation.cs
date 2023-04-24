@@ -1217,7 +1217,9 @@ namespace CumulusMX
 					// Get station pressure in hPa by subtracting offset and calibrating
 					// EWpressure offset is difference between rel and abs in hPa
 					// PressOffset is user calibration in user units.
-					pressure = (pressure - pressureOffset) * ConvertUserPressureToHPa(cumulus.Calib.Press.Mult) + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
+					var offsetPress = pressure - pressureOffset;
+					pressure = offsetPress * offsetPress * cumulus.Calib.Press.Mult2 +  offsetPress * cumulus.Calib.Press.Mult + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
+
 					StationPressure = ConvertPressMBToUser(pressure);
 
 					UpdatePressureTrendString();
