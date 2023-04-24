@@ -27,7 +27,7 @@ namespace CumulusMX
 		private bool startupDayResetIfRequired = true;
 		private int maxArchiveRuns = 1;
 
-		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient wlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly HttpClient dogsBodyClient = new HttpClient();
 		private const int WeatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load

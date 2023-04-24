@@ -1016,10 +1016,10 @@ namespace CumulusMX
 
 		private string Tagwspddata(Dictionary<string,string> tagParams)
 		{
-			var sb = new StringBuilder((station.windspeeds[0]*cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+			var sb = new StringBuilder((station.windspeeds[0]).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 			for (var i = 1; i < station.numwindvalues; i++)
 			{
-				sb.Append("," + (station.windspeeds[i]*cumulus.Calib.WindGust.Mult).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
+				sb.Append("," + (station.windspeeds[i]).ToString(cumulus.WindFormat, CultureInfo.InvariantCulture));
 			}
 
 			return sb.ToString();
@@ -3525,7 +3525,7 @@ namespace CumulusMX
 				start = new DateTime(end.Year, end.Month, 1);
 			}
 
-			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours), tagParams, 1);
+			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours == Cumulus.DefaultHiVal ? 0 : rec.SunShineHours), tagParams, 1);
 		}
 
 		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
@@ -3552,7 +3552,7 @@ namespace CumulusMX
 				start = new DateTime(end.Year, 1, 1);
 			}
 
-			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours), tagParams, 1);
+			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours == Cumulus.DefaultHiVal ? 0 : x.SunShineHours), tagParams, 1);
 		}
 
 

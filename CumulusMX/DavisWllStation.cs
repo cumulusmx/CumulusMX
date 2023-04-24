@@ -33,7 +33,7 @@ namespace CumulusMX
 		private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
-		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient wlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly HttpClient dogsBodyClient = new HttpClient();
 		private readonly bool checkWllGustValues;
@@ -41,8 +41,6 @@ namespace CumulusMX
 		private bool broadcastStopped;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow;
-		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
-		private CancellationToken cancellationToken;
 		private Task broadcastTask;
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
@@ -69,8 +67,6 @@ namespace CumulusMX
 			// Formats to use for the different date kinds
 			string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
 			string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
-
-			cancellationToken = tokenSource.Token;
 
 			ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 			{
@@ -295,12 +291,12 @@ namespace CumulusMX
 					{
 						udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-						while (!cancellationToken.IsCancellationRequested)
+						while (!cumulus.cancellationToken.IsCancellationRequested)
 						{
 							try
 							{
 								var broadcastTask = udpClient.ReceiveAsync();
-								var timeoutTask = Task.Delay(3000, cancellationToken); // We should get a message every 2.5 seconds
+								var timeoutTask = Task.Delay(3000, cumulus.cancellationToken); // We should get a message every 2.5 seconds
 
 								// wait for a broadcast message, a timeout, or a cancellation request
 								await Task.WhenAny(broadcastTask, timeoutTask);
@@ -326,7 +322,7 @@ namespace CumulusMX
 						}
 					}
 					cumulus.LogMessage("WLL broadcast listener stopped");
-				}, cancellationToken);
+				}, cumulus.cancellationToken);
 
 				cumulus.LogMessage($"WLL Now listening on broadcast port {port}");
 
@@ -377,10 +373,6 @@ namespace CumulusMX
 			StopMinuteTimer();
 			try
 			{
-				if (tokenSource != null)
-				{
-					tokenSource.Cancel();
-				}
 				if (bw != null && bw.WorkerSupportsCancellation)
 				{
 					bw.CancelAsync();
@@ -599,7 +591,7 @@ namespace CumulusMX
 								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, currentAvgWindSpd, dateTime);
 
 								var gust = ConvertWindMPHToUser(rec.wind_speed_hi_last_10_min);
-								var gustCal = gust * cumulus.Calib.WindGust.Mult;
+								var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
 								if (checkWllGustValues)
 								{
 									if (gustCal > RecentMaxGust)
@@ -613,8 +605,8 @@ namespace CumulusMX
 											cumulus.LogDebugMessage("Set max gust from broadcast 10 min high value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
 											// add to recent values so normal calculation includes this value
-											WindRecent[nextwind].Gust = gust; // use uncalibrated value
-											WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+											WindRecent[nextwind].Gust = gustCal; // use calibrated value
+											WindRecent[nextwind].Speed = WindAverage;
 											WindRecent[nextwind].Timestamp = dateTime;
 											nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -889,7 +881,7 @@ namespace CumulusMX
 									}
 
 									ConvertWindMPHToUser(gust);
-									var gustCal = gust * cumulus.Calib.WindGust.Mult;
+									var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
 
 
 									if (checkWllGustValues)
@@ -905,8 +897,8 @@ namespace CumulusMX
 												cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 
 												// add to recent values so normal calculation includes this value
-												WindRecent[nextwind].Gust = gust; // use uncalibrated value
-												WindRecent[nextwind].Speed = currentAvgWindSpd;
+												WindRecent[nextwind].Gust = gustCal; // use calibrated value
+												WindRecent[nextwind].Speed = cumulus.Calib.WindSpeed.Calibrate(currentAvgWindSpd);
 												WindRecent[nextwind].Timestamp = dateTime;
 												nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -2240,7 +2232,7 @@ namespace CumulusMX
 
 								if (data11.wind_speed_avg != null)
 								{
-									WindAverage = ConvertWindMPHToUser((double)data11.wind_speed_avg) * cumulus.Calib.WindSpeed.Mult;
+									WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertWindMPHToUser((double)data11.wind_speed_avg));
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
 									int interval = data11.arch_int / 60;

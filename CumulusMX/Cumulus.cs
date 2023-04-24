@@ -9,9 +9,11 @@ using Renci.SshNet;
 using SQLite;
 using ServiceStack;
 using ServiceStack.Text;
+using Swan;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -19,13 +21,19 @@ using System.IO.Ports;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using static System.Net.Mime.MediaTypeNames;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -33,8 +41,7 @@ using Timer = System.Timers.Timer;
 using System.Web;
 using System.Web.Caching;
 using System.Web.UI.WebControls;
-using static System.Net.Mime.MediaTypeNames;
-using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace CumulusMX
 {
@@ -230,17 +237,12 @@ namespace CumulusMX
 		private readonly WebTags webtags;
 		private readonly TokenParser tokenParser;
 		private readonly TokenParser realtimeTokenParser;
-		private readonly TokenParser customMysqlSecondsTokenParser = new TokenParser();
-		private readonly TokenParser customMysqlMinutesTokenParser = new TokenParser();
-		private readonly TokenParser customMysqlRolloverTokenParser = new TokenParser();
-		private readonly TokenParser customLogIntvlTokenParser = new TokenParser();
-		private readonly TokenParser customLogDailyTokenParser = new TokenParser();
 
 		internal Lang Trans = new Lang();
 
 		public bool NormalRunning = false;
 
-		private static readonly TraceListener FtpTraceListener = new TextWriterTraceListener("ftplog.txt", "ftplog");
+		private TraceListener FtpTraceListener;
 
 		public volatile int WebUpdating;
 		public volatile bool SqlCatchingUp;
@@ -553,29 +555,29 @@ namespace CumulusMX
 		public MxWebSocket WebSock;
 
 
-		private static readonly HttpClientHandler WUhttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler WUhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
 
-		private static readonly HttpClientHandler WindyhttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler WindyhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient WindyhttpClient = new HttpClient(WindyhttpHandler);
 
-		private static readonly HttpClientHandler WindGuruhttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler WindGuruhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient WindGuruhttpClient = new HttpClient(WindGuruhttpHandler);
 
-		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
 
-		private static readonly HttpClientHandler WCloudhttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler WCloudhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient WCloudhttpClient = new HttpClient(WCloudhttpHandler);
 
-		private static readonly HttpClientHandler PWShttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler PWShttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient PWShttpClient = new HttpClient(PWShttpHandler);
 
-		private static readonly HttpClientHandler WOWhttpHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler WOWhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient WOWhttpClient = new HttpClient(WOWhttpHandler);
 
 		// Custom HTTP - seconds
-		private static readonly HttpClientHandler customHttpSecondsHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler customHttpSecondsHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient customHttpSecondsClient = new HttpClient(customHttpSecondsHandler);
 		private bool updatingCustomHttpSeconds;
 		private readonly TokenParser customHttpSecondsTokenParser = new TokenParser();
@@ -585,7 +587,7 @@ namespace CumulusMX
 		internal int CustomHttpSecondsInterval;
 
 		// Custom HTTP - minutes
-		private static readonly HttpClientHandler customHttpMinutesHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler customHttpMinutesHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient customHttpMinutesClient = new HttpClient(customHttpMinutesHandler);
 		private bool updatingCustomHttpMinutes;
 		private readonly TokenParser customHttpMinutesTokenParser = new TokenParser();
@@ -595,7 +597,7 @@ namespace CumulusMX
 		internal int CustomHttpMinutesIntervalIndex;
 
 		// Custom HTTP - roll-over
-		private static readonly HttpClientHandler customHttpRolloverHandler = new HttpClientHandler();
+		private static readonly HttpClientHandler customHttpRolloverHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
 		private bool updatingCustomHttpRollover;
 		private readonly TokenParser customHttpRolloverTokenParser = new TokenParser();
@@ -603,6 +605,7 @@ namespace CumulusMX
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		// PHP upload HTTP
+		internal HttpClientHandler phpUploadHttpHandler;
 		internal HttpClient phpUploadHttpClient;
 		internal HttpClient phpRealtimeUploadHttpClient;
 
@@ -630,6 +633,9 @@ namespace CumulusMX
 		private bool customMySqlSecondsUpdateInProgress;
 		private bool customMySqlMinutesUpdateInProgress;
 		private bool customMySqlRolloverUpdateInProgress;
+		private bool customMySqlTimedUpdateInProgress;
+
+		private static HttpFiles httpFiles;
 
 		public AirLinkData airLinkDataIn;
 		public AirLinkData airLinkDataOut;
@@ -662,11 +668,23 @@ namespace CumulusMX
 		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul" };
 
 		public string loggingfile;
+		public string ftpLogfile;
 
 		//private PingReply pingReply;
 
+		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
+
+		// Global cancellation token for when CMX is stopping
+		public readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+		public CancellationToken cancellationToken;
+
+		private static bool boolWindows;
+
+
 		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
 		{
+			cancellationToken = tokenSource.Token;
+
 			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
 			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
 			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
@@ -683,7 +701,8 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
-			loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
+			loggingfile = RemoveOldDiagsFiles("CMX");
+			ftpLogfile = RemoveOldDiagsFiles("FTP");
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
 			Program.svcTextListener.Flush();
@@ -691,6 +710,11 @@ namespace CumulusMX
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
+
+			if (FtpOptions.Logging)
+			{
+				CreateFtpLogFile(ftpLogfile);
+			}
 
 			// Read the configuration file
 
@@ -715,6 +739,11 @@ namespace CumulusMX
 					LogMessage("Mono version: " + displayName.Invoke(null, null));
 			}
 
+			// restrict the threadpool size - for Mono which does not seem to have very good pool management!
+			ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize);
+			ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize);
+
+
 			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
 
 			LogMessage("Platform: " + Platform);
@@ -728,21 +757,34 @@ namespace CumulusMX
 			// Messy, but Windows and Linux use different mechanisms for loading DLLs, neither are very pretty
 			// Simplest method is to leave them searching the application directory, and copy the correct file there before it is loaded by the first SQlite connect()
 			// copy the correct sqlite DLL for your bitness
-			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + "sqlite3.dll";
 			var dstfile = "sqlite3.dll";
-			if (File.Exists(srcfile))
+			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + dstfile;
+			if (!Utils.FilesEqual(srcfile, dstfile))
 			{
-				File.Copy(srcfile, dstfile, true);
-			}
-			else
-			{
-				LogMessage("Error: cannot find the file: " + srcfile);
-				LogConsoleMessage("Error: cannot find the file: " + srcfile);
-				Program.exitSystem = true;
-				return;
+				try
+				{
+					LogMessage($"Copying {srcfile} to {dstfile}");
+					File.Copy(srcfile, dstfile, true);
+				}
+				catch (FileNotFoundException)
+				{
+					var msg = "Error: cannot find the file: " + srcfile;
+					LogMessage(msg);
+					LogConsoleMessage(msg);
+					Program.exitSystem = true;
+					return;
+				}
+				catch (Exception ex)
+				{
+					var msg = $"Error copying file {srcfile}: {ex.Message}";
+					LogMessage(msg);
+					LogConsoleMessage(msg);
+					Program.exitSystem = true;
+					return;
+				}
 			}
 
-			var boolWindows = Platform.Substring(0, 3) == "Win";
+			boolWindows = Platform.Substring(0, 3) == "Win";
 
 			// Set the default comport name depending on platform
 			DefaultComportName = boolWindows ? "COM1" : "/dev/ttyUSB0";
@@ -954,6 +996,12 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "co2sensordata.json",
 					RemoteFileName = "co2sensordata.json"
+				},
+				new FileGenerationOptions()     // 20
+				{
+					LocalPath = WebPath,
+					LocalFileName = "leafwetdata.json",
+					RemoteFileName = "leafwetdata.json"
 				}
 			};
 
@@ -1021,6 +1069,10 @@ namespace CumulusMX
 
 			// Do we prevent more than one copy of CumulusMX running?
 			CheckForSingleInstance(boolWindows);
+
+			if (FtpOptions.FtpMode == FtpProtocols.PHP)
+				LogMessage("Maximum concurrent PHP Uploads = " + FtpOptions.MaxConcurrentUploads);
+			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
@@ -1093,7 +1145,7 @@ namespace CumulusMX
 				do
 				{
 					var pingTimeoutDT = DateTime.Now.AddSeconds(pingTimeoutSecs);
-					var pingTokenSource = new CancellationTokenSource();
+					var pingTokenSource = new CancellationTokenSource(pingTimeoutSecs * 1000);
 					var pingCancelToken = pingTokenSource.Token;
 
 					LogDebugMessage($"Starting PING #{attempt} task with time-out of {pingTimeoutSecs} seconds");
@@ -1276,14 +1328,11 @@ namespace CumulusMX
 			PressTrendFormat = $"+0.{new string('0', PressDPlaces)};-0.{new string('0', PressDPlaces)};0.{new string('0', PressDPlaces)}";
 			AirQualityFormat = "F" + AirQualityDPlaces;
 
-
 			SetupRealtimeMySqlTable();
 			SetupMonthlyMySqlTable();
 			SetupDayfileMySqlTable();
 
 			ReadStringsFile();
-
-			SetUpHttpProxy();
 
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
@@ -1291,14 +1340,11 @@ namespace CumulusMX
 				TestPhpUploadCompression();
 			}
 
-			customMysqlSecondsTokenParser.OnToken += TokenParserOnToken;
+			SetUpHttpProxy();
+
 			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
 			CustomMysqlSecondsTimer.Elapsed += CustomMysqlSecondsTimerTick;
 			CustomMysqlSecondsTimer.AutoReset = true;
-
-			customMysqlMinutesTokenParser.OnToken += TokenParserOnToken;
-
-			customMysqlRolloverTokenParser.OnToken += TokenParserOnToken;
 
 			CustomHttpSecondsTimer = new Timer { Interval = CustomHttpSecondsInterval * 1000 };
 			CustomHttpSecondsTimer.Elapsed += CustomHttpSecondsTimerTick;
@@ -1307,10 +1353,6 @@ namespace CumulusMX
 			customHttpSecondsTokenParser.OnToken += TokenParserOnToken;
 			customHttpMinutesTokenParser.OnToken += TokenParserOnToken;
 			customHttpRolloverTokenParser.OnToken += TokenParserOnToken;
-
-			customLogIntvlTokenParser.OnToken += TokenParserOnToken;
-			customLogDailyTokenParser.OnToken += TokenParserOnToken;
-
 
 			if (SmtpOptions.Enabled)
 			{
@@ -1372,6 +1414,8 @@ namespace CumulusMX
 			// switch off logging from Unosquare.Swan which underlies embedIO
 			Swan.Logging.Logger.NoLogging();
 
+			httpFiles = new HttpFiles(this);
+
 			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 			var htmlRootPath = Path.Combine(assemblyPath, "interface");
 
@@ -1415,6 +1459,7 @@ namespace CumulusMX
 			Api.alarmSettings = new AlarmSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
 			Api.customLogs = new CustomLogs(this);
+			Api.httpFiles = httpFiles;
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
 			Api.wizard = new Wizard(this);
@@ -1592,8 +1637,6 @@ namespace CumulusMX
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
 				RealtimeTimer.AutoReset = true;
 
-				SetFtpLogging(FtpOptions.Logging);
-
 				WundTimer.Elapsed += WundTimerTick;
 				AwekasTimer.Elapsed += AwekasTimerTick;
 				WebTimer.Elapsed += WebTimerTick;
@@ -1642,6 +1685,7 @@ namespace CumulusMX
 				// If enabled generate the daily graph data files, and upload at first opportunity
 				LogDebugMessage("Generating the daily graph data files");
 				station.CreateEodGraphDataFiles();
+				station.CreateDailyGraphDataFiles();
 			}
 
 			LogDebugMessage("Lock: Cumulus releasing the lock");
@@ -1696,15 +1740,33 @@ namespace CumulusMX
 
 		internal void SetupPhpUploadClients()
 		{
-			var phpUploadHttpHandler = new HttpClientHandler
+			phpUploadHttpHandler = new HttpClientHandler
 			{
 				ClientCertificateOptions = ClientCertificateOption.Manual,
-				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) => {
+				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) =>
+				{
 					return FtpOptions.PhpIgnoreCertErrors ? true : errors == System.Net.Security.SslPolicyErrors.None;
-				}
+				},
+				MaxConnectionsPerServer = 50,
+				AllowAutoRedirect = false,
+				SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
 			};
+
+			if (!string.IsNullOrEmpty(HTTPProxyName))
+			{
+				phpUploadHttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				phpUploadHttpHandler.UseProxy = true;
+				if (!string.IsNullOrEmpty(HTTPProxyUser))
+				{
+					phpUploadHttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+				}
+			}
+
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
 			phpRealtimeUploadHttpClient = new HttpClient(phpUploadHttpHandler);
+
+			phpUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
+			phpRealtimeUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
 		}
 
 
@@ -2028,25 +2090,6 @@ namespace CumulusMX
 			HighWindAlarm.Units = Units.WindText;
 			HighGustAlarm.Units = Units.WindText;
 		}
-
-		public void SetFtpLogging(bool isSet)
-		{
-			try
-			{
-				FtpTrace.RemoveListener(FtpTraceListener);
-			}
-			catch
-			{
-				// ignored
-			}
-
-			if (isSet)
-			{
-				FtpTrace.AddListener(FtpTraceListener);
-				FtpTrace.FlushOnWrite = true;
-			}
-		}
-
 
 		/*
 		private string LocalIPAddress()
@@ -2857,7 +2900,7 @@ namespace CumulusMX
 
 								try
 								{
-									RealtimeUpload(cycle).Wait();
+									RealtimeUpload(cycle);
 									realtimeFTPRetries = 0;
 								}
 								catch (Exception ex)
@@ -2889,7 +2932,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"Realtime[{cycle}]: Error during update: {ex.Message}");
+				LogExceptionMessage($"Realtime[{cycle}]: Error during update", ex);
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
 					RealtimeFTPReconnect();
@@ -2928,7 +2971,7 @@ namespace CumulusMX
 							}
 							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
 							{
-								RealtimeFTP.UngracefullDisconnection = true;
+								RealtimeFTP.Config.DisconnectWithQuit = false;
 								RealtimeFTP.Disconnect();
 							}
 							LogMessage("RealtimeReconnect: Realtime ftp disconnected");
@@ -2944,7 +2987,7 @@ namespace CumulusMX
 						finally
 						{
 							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
-								RealtimeFTP.UngracefullDisconnection = false;
+								RealtimeFTP.Config.DisconnectWithQuit = true;
 						}
 
 						// Attempt a simple reconnect
@@ -3134,15 +3177,21 @@ namespace CumulusMX
 		}
 
 
-		private async Task RealtimeUpload(byte cycle)
+		private async void RealtimeUpload(byte cycle)
 		{
 			var remotePath = "";
 			var tasklist = new List<Task>();
+
+			var taskCount = 0;
+			var runningTaskCount = 0;
+
 
 			if (FtpOptions.Directory.Length > 0)
 			{
 				remotePath = (FtpOptions.Directory.EndsWith("/") ? FtpOptions.Directory : FtpOptions.Directory + "/");
 			}
+
+			LogDebugMessage($"Realtime[{cycle}]: Real time files starting");
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
@@ -3165,7 +3214,7 @@ namespace CumulusMX
 
 						if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
 						{
-							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, tokenParser, true, true);
+							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, realtimeTokenParser, true, true);
 						}
 
 						using (var dataStream = GenerateStreamFromString(data))
@@ -3183,9 +3232,30 @@ namespace CumulusMX
 					}
 					else // PHP
 					{
+						try
+						{
+#if DEBUG
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+							uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+#endif
+						}
+						catch (OperationCanceledException)
+						{
+							return;
+						}
+
+
+						Interlocked.Increment(ref taskCount);
+
 						var idx = i;
 						tasklist.Add(Task.Run(async () =>
 						{
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
 							{
@@ -3197,100 +3267,187 @@ namespace CumulusMX
 								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
 							}
 
-							_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
-							// no realtime files are incremental, so no need to update LastDataTime
-						}));
+							try
+							{
+								_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
+								// no realtime files are incremental, so no need to update LastDataTime
+							}
+							finally
+							{
+								uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+							}
+							return true;
+						}, cancellationToken));
+
+						Interlocked.Increment(ref runningTaskCount);
 					}
 				}
+			}
+
+			if (FtpOptions.FtpMode != FtpProtocols.PHP)
+			{
+				LogDebugMessage($"Realtime[{cycle}]: Real time files complete");
 			}
 
 			// Extra files
-			for (int i = 0; i < numextrafiles; i++)
+
+			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
-				var uploadfile = ExtraFiles[i].local;
-				var remotefile = ExtraFiles[i].remote;
+				LogDebugMessage($"Realtime[{cycle}]: Extra Files starting");
 
-				if ((uploadfile.Length > 0) && (remotefile.Length > 0) && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
+				ExtraFiles.Where(x => x.local.Length > 0 && x.remote.Length > 0 && x.realtime && x.FTP)
+					.ToList()
+					.ForEach(async item =>
+					{
+						Interlocked.Increment(ref taskCount);
+
+						var uploadfile = item.local;
+						var remotefile = item.remote;
+
+						uploadfile = GetUploadFilename(uploadfile, DateTime.Now);
+
+						if (!File.Exists(uploadfile))
+						{
+							LogMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
+							return;
+						}
+
+						try
+						{
+#if DEBUG
+							LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+						}
+						catch (OperationCanceledException)
+						{
+							return;
+						}
+
+
+						tasklist.Add(Task.Run(async () =>
+						{
+							try
+							{
+								if (cancellationToken.IsCancellationRequested)
+									return false;
+
+								remotefile = GetRemoteFileName(remotefile, DateTime.Now);
+
+								// all checks OK, file needs to be uploaded
+								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web file {uploadfile} to {remotefile}");
+
+								if (item.process)
+								{
+									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+
+									_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, item.binary, item.UTF8);
+								}
+								else
+								{
+									_ = await UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, item.binary, item.UTF8);
+								}
+								// no extra files are incremental for now, so no need to update LastDataTime
+							}
+							finally
+							{
+								uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+								LogDebugMessage($"Realtime[{cycle}]: Extra Web File {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+							}
+
+							// no void return which cannot be tracked
+							return true;
+						}, cancellationToken));
+
+						Interlocked.Increment(ref runningTaskCount);
+					});
+
+				// wait for all the tasks to start
+				while (runningTaskCount < taskCount)
 				{
-					uploadfile = GetUploadFilename(uploadfile, DateTime.Now);
+					if (cancellationToken.IsCancellationRequested)
+						return;
 
-					if (File.Exists(uploadfile))
+					await Task.Delay(10);
+				}
+
+				// wait for all the tasks to complete
+				Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count()} files uploaded");
+				tasklist.Clear();
+			}
+			else
+			{
+				for (int i = 0; i < numextrafiles; i++)
+				{
+					var uploadfile = ExtraFiles[i].local;
+					var remotefile = ExtraFiles[i].remote;
+
+					if ((uploadfile.Length > 0) && (remotefile.Length > 0) && ExtraFiles[i].realtime && ExtraFiles[i].FTP)
 					{
-						remotefile = GetRemoteFileName(remotefile, DateTime.Now);
+						uploadfile = GetUploadFilename(uploadfile, DateTime.Now);
 
-						// all checks OK, file needs to be uploaded
-						LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
-
-						string data = string.Empty;
-
-						if (FtpOptions.FtpMode == FtpProtocols.PHP)
+						if (File.Exists(uploadfile))
 						{
-							var idx = i;
+							remotefile = GetRemoteFileName(remotefile, DateTime.Now);
+
+							// all checks OK, file needs to be uploaded
+							LogFtpMessage("");
+							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web file[{i}] {uploadfile} to {remotefile}");
+
+							string data = string.Empty;
+
 							if (ExtraFiles[i].process)
 							{
-								tasklist.Add(Task.Run(async () =>
+								data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
+							}
+
+							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							{
+								if (ExtraFiles[i].process)
 								{
-									if (ExtraFiles[idx].process)
+									using (var strm = GenerateStreamFromString(data))
 									{
-										data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
+										UploadStream(RealtimeSSH, remotefile, strm, cycle);
 									}
-
-									_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8);
-								}));
-							}
-							else
-							{
-								tasklist.Add(UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, ExtraFiles[idx].binary, ExtraFiles[idx].UTF8));
-							}
-							// no extra files are incremental for now, so no need to update LastDataTime
-
-							continue;
-						}
-
-						if (ExtraFiles[i].process)
-						{
-							data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
-						}
-
-						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
-						{
-							if (ExtraFiles[i].process)
-							{
-								using (var strm = GenerateStreamFromString(data))
+								}
+								else
 								{
-									UploadStream(RealtimeSSH,remotefile, strm, cycle);
+									UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
+								}
+								continue;
+							}
+
+							if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+							{
+								if (ExtraFiles[i].process)
+								{
+									using (var strm = GenerateStreamFromString(data))
+									{
+										UploadStream(RealtimeFTP, remotefile, strm, cycle);
+									}
+								}
+								else
+								{
+									UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
 								}
 							}
-							else
-							{
-								UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
-							}
-							continue;
 						}
-
-						if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+						else
 						{
-							if (ExtraFiles[i].process)
-							{
-								using (var strm = GenerateStreamFromString(data))
-								{
-									UploadStream(RealtimeFTP, remotefile, strm, cycle);
-								}
-							}
-							else
-							{
-								UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
-							}
+							LogMessage($"Realtime[{cycle}]: Warning, extra web file[{i}] not found! - {uploadfile}");
 						}
-					}
-					else
-					{
-						LogMessage($"Realtime[{cycle}]: Warning, extra web file[{i}] not found! - {uploadfile}");
 					}
 				}
 			}
-
-			Task.WaitAll(tasklist.ToArray());
 		}
 
 		private void CreateRealtimeHTMLfiles(int cycle)
@@ -3951,21 +4108,43 @@ namespace CumulusMX
 			}
 		}
 
-		private string RemoveOldDiagsFiles(string directory)
+		public string RemoveOldDiagsFiles(string logType)
 		{
 			const int maxEntries = 12;
 
-			List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
+			var directory = "MXdiags" + DirectorySeparator;
+			string filename = string.Empty;
 
-			fileEntries.Sort();
-
-			while (fileEntries.Count >= maxEntries)
+			if (logType == "CMX")
 			{
-				File.Delete(fileEntries.First());
-				fileEntries.RemoveAt(0);
+				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
+
+				fileEntries.Sort();
+
+				while (fileEntries.Count >= maxEntries)
+				{
+					File.Delete(fileEntries.First());
+					fileEntries.RemoveAt(0);
+				}
+
+				filename = $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+			}
+			else if (logType == "FTP")
+			{
+				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+FTP-\d{8}-\d{6}\.txt").Success));
+
+				fileEntries.Sort();
+
+				while (fileEntries.Count >= maxEntries)
+				{
+					File.Delete(fileEntries.First());
+					fileEntries.RemoveAt(0);
+				}
+
+				filename=  $"{directory}FTP-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
 			}
 
-			return $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+			return filename;
 		}
 
 		public void RotateLogFiles()
@@ -3976,13 +4155,39 @@ namespace CumulusMX
 			if (logfileSize > 20971520)
 			{
 				var oldfile = loggingfile;
-				loggingfile = RemoveOldDiagsFiles("MXdiags" + DirectorySeparator);
+				loggingfile = RemoveOldDiagsFiles("CMX");
 				LogMessage("Rotating log file, new log file will be: " + loggingfile.Split(DirectorySeparator).Last());
 				TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 				Trace.Listeners.Remove("MXlog");
 				Trace.Listeners.Add(myTextListener);
 				LogMessage("Rotated log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
 			}
+
+			// cycle the FTP log file
+			if (FtpOptions.Logging && File.Exists(ftpLogfile))
+			{
+				logfileSize = new FileInfo(ftpLogfile).Length;
+				// if > 20 MB
+				if (logfileSize > 20971520)
+				{
+					var oldfile = ftpLogfile;
+					ftpLogfile = RemoveOldDiagsFiles("FTP");
+					LogFtpMessage("Rotating FTP log file, new log file will be: " + ftpLogfile.Split(DirectorySeparator).Last());
+					CreateFtpLogFile(ftpLogfile);
+					LogFtpMessage("Rotated FTP log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
+				}
+			}
+		}
+
+		public void CreateFtpLogFile(string filename)
+		{
+			if (FtpTraceListener != null)
+			{
+				FtpTraceListener.Close();
+				FtpTraceListener.Dispose();
+			}
+			FtpTraceListener = new TextWriterTraceListener(ftpLogfile, "ftplog");
+			LogFtpMessage("Create FTP log file: " + ftpLogfile.Split(DirectorySeparator).Last());
 		}
 
 		private void ReadIniFile()
@@ -4296,18 +4501,26 @@ namespace CumulusMX
 
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
-			RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
-
-			try
+			if (ini.ValueExists("Station", "StartDate"))
 			{
-				RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
+				var RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
+				try
+				{
+					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
+					rewriteRequired = true;
+				}
+				catch (Exception ex)
+				{
+					LogErrorMessage($"Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				LogErrorMessage($"Error parsing the RecordsBegan date: {ex.Message}");
+				var RecordsBeganDate = ini.GetValue("Station", "StartDateIso", DateTime.Now.ToString("yyyy-MM-dd"));
+				RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 			}
 
-			LogMessage($"Cumulus start date: {RecordsBeganDate}  Parsed: {RecordsBeganDateTime:yyyy-MM-dd}" );
+			LogMessage($"Cumulus start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}" );
 
 			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500);
 			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500);
@@ -4469,6 +4682,11 @@ namespace CumulusMX
 			{
 				EcowittMapWN34[i] = ini.GetValue("GW1000", "WN34MapChan" + i, 0);
 			}
+			// forwarders
+			for (int i = 0; i < EcowittForwarders.Length; i++)
+			{
+				EcowittForwarders[i] = ini.GetValue("GW1000", "Forwarder" + i, "");
+			}
 
 			// Ambient settings
 			AmbientExtraEnabled = ini.GetValue("Ambient", "ExtraSensorDataEnabled", false);
@@ -4577,6 +4795,7 @@ namespace CumulusMX
 			if (FtpOptions.PhpSecret == string.Empty)
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
+			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", boolWindows ? 4 : 1);
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
 			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);
@@ -4649,6 +4868,11 @@ namespace CumulusMX
 				GraphDataEodFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
 
+			for (var i = 0; i < HttpFilesConfig.Length; i++)
+			{
+				HttpFilesConfig[i] = new HttpFileProps();
+			}
+
 			FTPRename = ini.GetValue("FTP site", "FTPRename", true);
 			UTF8encode = ini.GetValue("FTP site", "UTF8encode", true);
 			DeleteBeforeUpload = ini.GetValue("FTP site", "DeleteBeforeUpload", false);
@@ -4662,7 +4886,7 @@ namespace CumulusMX
 				ExtraFiles[i].process = ini.GetValue("FTP site", "ExtraProcess" + i, false);
 				ExtraFiles[i].binary = ini.GetValue("FTP site", "ExtraBinary" + i, false);
 				ExtraFiles[i].realtime = ini.GetValue("FTP site", "ExtraRealtime" + i, false);
-				ExtraFiles[i].FTP = ini.GetValue("FTP site", "ExtraFTP" + i, true);
+				ExtraFiles[i].FTP = ini.GetValue("FTP site", "ExtraFTP" + i, false);
 				ExtraFiles[i].UTF8 = ini.GetValue("FTP site", "ExtraUTF" + i, false);
 				ExtraFiles[i].endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false);
 			}
@@ -4774,11 +4998,13 @@ namespace CumulusMX
 			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
 			var colours10 = colours16.Take(10).ToArray();
 			var colours8 = colours16.Take(8).ToArray();
+			var colours2 = colours16.Take(2).ToArray();
 			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours10);
 			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours10);
 			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours10);
 			GraphOptions.Colour.SoilTemp = ini.GetValue("GraphColours", "SoilTempColour", colours16.ToArray());
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
+			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
 			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
 			GraphOptions.Colour.CO2Sensor.CO2 = ini.GetValue("GraphColours", "CO2-CO2Colour", "#dc143c");
 			GraphOptions.Colour.CO2Sensor.CO2Avg = ini.GetValue("GraphColours", "CO2-CO2AvgColour", "#8b0000");
@@ -5221,15 +5447,23 @@ namespace CumulusMX
 			Calib.WindSpeed.Mult = ini.GetValue("Offsets", "WindSpeedMult", 1.0);
 			Calib.WindGust.Mult = ini.GetValue("Offsets", "WindGustMult", 1.0);
 			Calib.Temp.Mult = ini.GetValue("Offsets", "TempMult", 1.0);
-			Calib.Temp.Mult2 = ini.GetValue("Offsets", "TempMult2", 0.0);
 			Calib.Hum.Mult = ini.GetValue("Offsets", "HumMult", 1.0);
-			Calib.Hum.Mult2 = ini.GetValue("Offsets", "HumMult2", 0.0);
 			Calib.Rain.Mult = ini.GetValue("Offsets", "RainMult", 1.0);
 			Calib.Solar.Mult = ini.GetValue("Offsets", "SolarMult", 1.0);
 			Calib.UV.Mult = ini.GetValue("Offsets", "UVMult", 1.0);
 			Calib.WetBulb.Mult = ini.GetValue("Offsets", "WetBulbMult", 1.0);
 			Calib.InTemp.Mult = ini.GetValue("Offsets", "InTempMult", 1.0);
 			Calib.InHum.Mult = ini.GetValue("Offsets", "InHumMult", 1.0);
+
+			Calib.Press.Mult2 = ini.GetValue("Offsets", "PressMult2", 0.0);
+			Calib.WindSpeed.Mult2 = ini.GetValue("Offsets", "WindSpeedMult2", 0.0);
+			Calib.WindGust.Mult2 = ini.GetValue("Offsets", "WindGustMult2", 0.0);
+			Calib.Temp.Mult2 = ini.GetValue("Offsets", "TempMult2", 0.0);
+			Calib.Hum.Mult2 = ini.GetValue("Offsets", "HumMult2", 0.0);
+			Calib.InTemp.Mult2 = ini.GetValue("Offsets", "InTempMult2", 0.0);
+			Calib.InHum.Mult2 = ini.GetValue("Offsets", "InHumMult2", 0.0);
+			Calib.Solar.Mult2 = ini.GetValue("Offsets", "SolarMult2", 0.0);
+			Calib.UV.Mult2 = ini.GetValue("Offsets", "UVMult2", 0.0);
 
 			Limit.TempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
 			Limit.TempLow = ini.GetValue("Limits", "TempLowC", -60.0);
@@ -5455,7 +5689,22 @@ namespace CumulusMX
 				CustomMySqlMinutesIntervalIndex = 6;
 				rewriteRequired = true;
 			}
+
+			// MySql - Timed
+			MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
+			for (var i = 0; i < 10; i++)
+			{
+				MySqlSettings.CustomTimed.Commands[i] = ini.GetValue("MySQL", "CustomMySqlTimedCommandString" + i, "");
+				MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
+				MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440);
+
+				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
+					MySqlSettings.CustomTimed.SetInitialNextInterval(i, DateTime.Now);
+			}
+
+
 			// MySQL - custom roll-over
+			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
 			for (var i = 1; i < 10; i++)
 			{
@@ -5463,7 +5712,6 @@ namespace CumulusMX
 					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, "");
 			}
 
-			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 
 			// Custom HTTP - seconds
 			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
@@ -5507,6 +5755,24 @@ namespace CumulusMX
 					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, "");
 			}
 
+			// Http files
+			for (var i = 0; i < 10; i++)
+			{
+				if (ini.ValueExists("HTTP", "HttpFileUrl" + i))
+				{
+					HttpFilesConfig[i].Enabled = ini.GetValue("HTTP", "HttpFileEnabled" + i, false);
+					HttpFilesConfig[i].Url = ini.GetValue("HTTP", "HttpFileUrl" + i, "");
+					HttpFilesConfig[i].Remote = ini.GetValue("HTTP", "HttpFileRemote" + i, "");
+					HttpFilesConfig[i].Interval = ini.GetValue("HTTP", "HttpFileInterval" + i, 0);
+					HttpFilesConfig[i].Upload = ini.GetValue("HTTP", "HttpFileUpload" + i, false);
+					HttpFilesConfig[i].Timed = ini.GetValue("HTTP", "HttpFileTimed" + i, false);
+					HttpFilesConfig[i].StartTimeString = ini.GetValue("HTTP", "HttpFileStartTime" + i, "00:00");
+					if (HttpFilesConfig[i].Timed)
+					{
+						HttpFilesConfig[i].SetInitialNextInterval(DateTime.Now);
+					}
+				}
+			}
 
 			// Select-a-Chart settings
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
@@ -5717,7 +5983,7 @@ namespace CumulusMX
 
 			ini.SetValue("Station", "LocName", LocationName);
 			ini.SetValue("Station", "LocDesc", LocationDesc);
-			ini.SetValue("Station", "StartDate", RecordsBeganDate);
+			ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd"));
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
 			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
@@ -5855,6 +6121,14 @@ namespace CumulusMX
 			for (int i = 1; i <= 8; i++)
 			{
 				ini.SetValue("GW1000", "WN34MapChan" + i, EcowittMapWN34[i]);
+			}
+			// forwarders
+			for (int i = 0; i < EcowittForwarders.Length; i++)
+			{
+				if (string.IsNullOrEmpty(EcowittForwarders[i]))
+					ini.DeleteValue("GW1000", "Forwarder" + i);
+				else
+					ini.SetValue("GW1000", "Forwarder" + i, EcowittForwarders[i].ToString());
 			}
 
 			// Ambient settings
@@ -6004,6 +6278,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
 			ini.SetValue("FTP site", "PHP-Secret", FtpOptions.PhpSecret);
 			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
+			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
 
 
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);
@@ -6334,15 +6609,23 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "WindSpeedMult", Calib.WindSpeed.Mult);
 			ini.SetValue("Offsets", "WindGustMult", Calib.WindGust.Mult);
 			ini.SetValue("Offsets", "TempMult", Calib.Temp.Mult);
-			ini.SetValue("Offsets", "TempMult2", Calib.Temp.Mult2);
 			ini.SetValue("Offsets", "HumMult", Calib.Hum.Mult);
-			ini.SetValue("Offsets", "HumMult2", Calib.Hum.Mult2);
 			ini.SetValue("Offsets", "RainMult", Calib.Rain.Mult);
 			ini.SetValue("Offsets", "SolarMult", Calib.Solar.Mult);
 			ini.SetValue("Offsets", "UVMult", Calib.UV.Mult);
 			ini.SetValue("Offsets", "WetBulbMult", Calib.WetBulb.Mult);
 			ini.SetValue("Offsets", "InTempMult", Calib.InTemp.Mult);
 			ini.SetValue("Offsets", "InHumMult", Calib.InHum.Mult);
+
+			ini.SetValue("Offsets", "PressMult2", Calib.Press.Mult2);
+			ini.SetValue("Offsets", "WindSpeedMult2", Calib.WindSpeed.Mult2);
+			ini.SetValue("Offsets", "WindGustMult2", Calib.WindGust.Mult2);
+			ini.SetValue("Offsets", "TempMult2", Calib.Temp.Mult2);
+			ini.SetValue("Offsets", "HumMult2", Calib.Hum.Mult2);
+			ini.SetValue("Offsets", "InTempMult2", Calib.InTemp.Mult2);
+			ini.SetValue("Offsets", "InHumMult2", Calib.InHum.Mult2);
+			ini.SetValue("Offsets", "SolarMult2", Calib.Solar.Mult2);
+			ini.SetValue("Offsets", "UVMult2", Calib.UV.Mult2);
 
 			ini.SetValue("Limits", "TempHighC", Limit.TempHigh);
 			ini.SetValue("Limits", "TempLowC", Limit.TempLow);
@@ -6515,6 +6798,8 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
 			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
 			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
+			ini.SetValue("GraphColours", "LeafWetness", GraphOptions.Colour.LeafWetness);
+
 			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
 			ini.SetValue("GraphColours", "CO2-CO2Colour", GraphOptions.Colour.CO2Sensor.CO2);
 			ini.SetValue("GraphColours", "CO2-CO2AvgColour", GraphOptions.Colour.CO2Sensor.CO2Avg);
@@ -6554,7 +6839,6 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
 
-
 			for (var i = 1; i < 10; i++)
 			{
 				if (string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
@@ -6572,6 +6856,26 @@ namespace CumulusMX
 				else
 					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
 			}
+
+			// MySql - Timed
+			ini.SetValue("MySQL", "CustomMySqlTimedEnabled", MySqlSettings.CustomTimed.Enabled);
+
+			for (var i = 0; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
+				{
+					ini.DeleteValue("MySQL", "CustomMySqlTimedCommandString" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlTimedStartTime" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlTimedInterval" + i);
+				}
+				else
+				{
+					ini.SetValue("MySQL", "CustomMySqlTimedCommandString" + i, MySqlSettings.CustomTimed.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlTimedStartTime" + i, MySqlSettings.CustomTimed.GetStartTimeString(i));
+					ini.SetValue("MySQL", "CustomMySqlTimedInterval" + i, MySqlSettings.CustomTimed.Intervals[i]);
+				}
+			}
+
 
 			ini.SetValue("HTTP", "CustomHttpSecondsString", CustomHttpSecondsStrings[0]);
 			ini.SetValue("HTTP", "CustomHttpMinutesString", CustomHttpMinutesStrings[0]);
@@ -6601,6 +6905,31 @@ namespace CumulusMX
 
 			ini.SetValue("HTTP", "CustomHttpSecondsInterval", CustomHttpSecondsInterval);
 			ini.SetValue("HTTP", "CustomHttpMinutesIntervalIndex", CustomHttpMinutesIntervalIndex);
+
+			// Http files
+			for (var i = 0; i < 10; i++)
+			{
+				if (string.IsNullOrEmpty(HttpFilesConfig[i].Url) && string.IsNullOrEmpty(HttpFilesConfig[i].Remote))
+				{
+					ini.DeleteValue("HTTP", "HttpFileEnabled" + i);
+					ini.DeleteValue("HTTP", "HttpFileUrl" + i);
+					ini.DeleteValue("HTTP", "HttpFileRemote" + i);
+					ini.DeleteValue("HTTP", "HttpFileInterval" + i);
+					ini.DeleteValue("HTTP", "HttpFileUpload" + i);
+					ini.DeleteValue("HTTP", "HttpFileTimed" + i);
+					ini.DeleteValue("HTTP", "HttpFileStartTime" + i);
+				}
+				else
+				{
+					ini.SetValue("HTTP", "HttpFileEnabled" + i, HttpFilesConfig[i].Enabled);
+					ini.SetValue("HTTP", "HttpFileUrl" + i, HttpFilesConfig[i].Url);
+					ini.SetValue("HTTP", "HttpFileRemote" + i, HttpFilesConfig[i].Remote);
+					ini.SetValue("HTTP", "HttpFileInterval" + i, HttpFilesConfig[i].Interval);
+					ini.SetValue("HTTP", "HttpFileUpload" + i, HttpFilesConfig[i].Upload);
+					ini.SetValue("HTTP", "HttpFileTimed" + i, HttpFilesConfig[i].Timed);
+					ini.SetValue("HTTP", "HttpFileStartTime" + i, HttpFilesConfig[i].StartTimeString);
+				}
+			}
 
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
 			{
@@ -7026,6 +7355,8 @@ namespace CumulusMX
 
 		public TExtraFiles[] ExtraFiles = new TExtraFiles[numextrafiles];
 
+		public HttpFileProps[] HttpFilesConfig = new HttpFileProps[10];
+
 		//public int MaxFTPconnectRetries { get; set; }
 
 		public bool DeleteBeforeUpload { get; set; }
@@ -7082,6 +7413,7 @@ namespace CumulusMX
 		public string EcowittExtraGatewayAddr { get; set; }
 		public string EcowittExtraLocalAddr { get; set; }
 		public int EcowittExtraCustomInterval { get; set; }
+		public string[] EcowittForwarders = new string[10];
 
 		public int[] EcowittMapWN34 = new int[9];
 
@@ -7160,7 +7492,6 @@ namespace CumulusMX
 
 		//public bool EWduplicatecheck { get; set; }
 
-		public string RecordsBeganDate { get; set; }
 		public DateTime RecordsBeganDateTime { get; set; }
 
 		//public bool EWdisablecheckinit { get; set; }
@@ -7945,6 +8276,13 @@ namespace CumulusMX
 
 		public void DoCustomIntervalLogs(DateTime timestamp)
 		{
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"DoCustomIntervalLogs: Not all data is ready, aborting process");
+				return;
+			}
+
 			for (var i = 0; i < 10; i++)
 			{
 				if (CustomIntvlLogSettings[i].Enabled && timestamp.Minute % CustomIntvlLogSettings[i].Interval == 0)
@@ -7969,9 +8307,12 @@ namespace CumulusMX
 			sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
 			sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
 
+			var tokenParser = new TokenParser();
+			tokenParser.OnToken += TokenParserOnToken;
+
 			// process the webtags in the content string
-			customLogIntvlTokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
-			sb.Append(customLogIntvlTokenParser.ToStringFromString());
+			tokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
+			sb.Append(tokenParser.ToStringFromString());
 
 			LogDataMessage("DoCustomIntervalLog: entry: " + sb);
 
@@ -8025,9 +8366,12 @@ namespace CumulusMX
 			var sb = new StringBuilder(300);
 			sb.Append(datestring + ListSeparator);
 
+			var tokenParser = new TokenParser();
+			tokenParser.OnToken += TokenParserOnToken;
+
 			// process the webtags in the content string
-			customLogDailyTokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
-			sb.Append(customLogDailyTokenParser.ToStringFromString());
+			tokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
+			sb.Append(tokenParser.ToStringFromString());
 
 			LogDataMessage("DoCustomDailyLog: entry: " + sb);
 
@@ -8685,6 +9029,7 @@ namespace CumulusMX
 
 			try
 			{
+				tokenSource.Cancel();
 				LogMessage("Stopping timers");
 				RealtimeTimer.Stop();
 				WundTimer.Stop();
@@ -8778,7 +9123,7 @@ namespace CumulusMX
 					MySqlRealtimeFile(999, true);
 				}
 
-				LogDebugMessage("Creating standard web files");
+				LogDebugMessage("Interval: Creating standard web files");
 				for (var i = 0; i < StdWebFiles.Length; i++)
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
@@ -8794,13 +9139,13 @@ namespace CumulusMX
 						}
 					}
 				}
-				LogDebugMessage("Done creating standard Data file");
+				LogDebugMessage("Interval: Done creating standard Data file");
 
-				LogDebugMessage("Creating graph data files");
+				LogDebugMessage("Interval: Creating graph data files");
 				station.CreateGraphDataFiles();
-				LogDebugMessage("Done creating graph data files");
+				LogDebugMessage("Interval: Done creating graph data files");
 
-				//LogDebugMessage("Creating extra files");
+				LogDebugMessage("Interval: Creating extra files");
 				// handle any extra files
 				for (int i = 0; i < numextrafiles; i++)
 				{
@@ -8845,6 +9190,8 @@ namespace CumulusMX
 					}
 				}
 
+				LogDebugMessage("Interval: Done creating extra files");
+
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
 					try
@@ -8860,8 +9207,6 @@ namespace CumulusMX
 						LogMessage("Interval: Error starting external program: " + ex.Message);
 					}
 				}
-
-				//LogDebugMessage("Done creating extra files");
 
 				DoLocalCopy();
 
@@ -9079,10 +9424,361 @@ namespace CumulusMX
 		}
 
 
+		public void DoHttpFiles(DateTime now)
+		{
+			// sanity check - is there anything to do?
+			if (HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now).Count() == 0)
+			{
+#if DEBUG
+				LogDebugMessage("ProcessHttpFiles: No files to process at this time");
+#endif
+				return;
+			}
+
+			// second sanity check, are there any local copies?
+			var localOnly = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && !x.Upload);
+			if (localOnly.Count() > 0)
+			{
+				LogDebugMessage("ProcessHttpFiles: Creating local http files");
+				localOnly
+				.ToList()
+				.ForEach(async item =>
+				{
+					var downloadfile = item.Url;
+					var remotefile = item.Remote;
+
+					// just create a file from the download
+					await httpFiles.DownloadHttpFile(item.Url, item.Remote);
+
+					item.SetNextInterval(now);
+				});
+				LogDebugMessage("ProcessHttpFiles: Done creating local http file tasks, not waiting for them to complete");
+			}
+
+			// third sanity check, are there any uploads?
+			var uploads = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload);
+			if (uploads.Count() == 0)
+			{
+				return;
+			}
+
+			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+			{
+				ConnectionInfo connectionInfo;
+				if (FtpOptions.SshAuthen == "password")
+				{
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
+					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password authentication");
+				}
+				else if (FtpOptions.SshAuthen == "psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("ProcessHttpFiles: Connecting using PSK authentication");
+				}
+				else if (FtpOptions.SshAuthen == "password_psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password or PSK authentication");
+				}
+				else
+				{
+					LogFtpMessage($"ProcessHttpFiles: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
+					return;
+				}
+
+				try
+				{
+					using (SftpClient conn = new SftpClient(connectionInfo))
+					{
+						// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
+						try
+						{
+							using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
+								_ = 0; // do nothing
+						}
+						catch (NotImplementedException)
+						{
+							var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
+							foreach (var algName in algsToRemove)
+								connectionInfo.HostKeyAlgorithms.Remove(algName);
+						}
+
+						try
+						{
+							LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+							conn.Connect();
+							if (ServicePointManager.DnsRefreshTimeout == 0)
+							{
+								ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+							}
+						}
+						catch (Exception ex)
+						{
+							LogFtpMessage($"ProcessHttpFiles: Error connecting SFTP - {ex.Message}");
+
+							if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+							{
+								// Disable the DNS cache for the next query
+								ServicePointManager.DnsRefreshTimeout = 0;
+							}
+							return;
+						}
+
+						uploads
+						.ToList()
+						.ForEach(item =>
+						{
+							Stream strm = null;
+
+							try
+							{
+
+								if (cancellationToken.IsCancellationRequested)
+									return;
+
+								strm = httpFiles.DownloadHttpFileStream(item.Url);
+								UploadStream(conn, item.Remote, strm, -1);
+
+								item.SetNextInterval(now);
+							}
+							catch (Exception ex) when (!(ex is TaskCanceledException))
+							{
+								LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}", ex);
+							}
+							finally
+							{
+								if (null != strm)
+									strm.Dispose();
+							}
+						});
+
+						LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+
+						if (conn.IsConnected)
+						{
+							try
+							{
+								// do not error on disconnect
+								conn.Disconnect();
+							}
+							catch { }
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"ProcessHttpFiles: Error using SFTP connection - {ex.Message}");
+				}
+				LogFtpDebugMessage("ProcessHttpFiles: Connection process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+				using (FtpClient conn = new FtpClient())
+				{
+					LogFtpMessage(""); // insert a blank line
+					LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname);
+					conn.Host = FtpOptions.Hostname;
+					conn.Port = FtpOptions.Port;
+					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+					conn.LegacyLogger = LogFluentFtpMessage;
+
+					if (!FtpOptions.AutoDetect)
+					{
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							// Explicit = Current protocol - connects using FTP and switches to TLS
+							// Implicit = Old depreciated protocol - connects using TLS
+							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.Config.DataConnectionEncryption = true;
+							// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
+							// b3155 - switch to default again - this will use the highest version available in the OS
+							//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
+						}
+
+						if (FtpOptions.ActiveMode)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
+						}
+						else if (FtpOptions.DisableEPSV)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
+						}
+					}
+
+					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+					{
+						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+					}
+
+					try
+					{
+						if (FtpOptions.AutoDetect)
+						{
+							conn.AutoConnect();
+						}
+						else
+						{
+							conn.Connect();
+						}
+
+						if (ServicePointManager.DnsRefreshTimeout == 0)
+						{
+							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+						}
+					}
+					catch (Exception ex)
+					{
+						LogFtpMessage("ProcessHttpFiles: Error connecting ftp - " + ex.Message);
+
+						if (ex.InnerException != null)
+						{
+							ex = Utils.GetOriginalException(ex);
+							LogFtpMessage($"ProcessHttpFiles: Base exception - {ex.Message}");
+						}
+
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+						{
+							// Disable the DNS cache for the next query
+							ServicePointManager.DnsRefreshTimeout = 0;
+						}
+						return;
+					}
+
+					LogDebugMessage("ProcessHttpFiles: Uploading http files");
+
+					uploads
+					.ToList()
+					.ForEach(item =>
+					{
+						Stream strm = null;
+
+						try
+						{
+
+							if (cancellationToken.IsCancellationRequested)
+								return;
+
+							strm = httpFiles.DownloadHttpFileStream(item.Url);
+							UploadStream(conn, item.Remote, strm, -1);
+
+							item.SetNextInterval(now);
+						}
+						catch (Exception ex) when (!(ex is TaskCanceledException))
+						{
+							LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}", ex);
+						}
+						finally
+						{
+							if (null != strm)
+								strm.Dispose();
+						}
+					});
+
+					LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+
+
+					if (conn.IsConnected)
+					{
+						conn.Disconnect();
+						LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname);
+					}
+				}
+				LogFtpMessage("ProcessHttpFiles: Process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				var tasklist = new List<Task>();
+				var taskCount = 0;
+				var runningTaskCount = 0;
+
+				LogDebugMessage("ProcessHttpFiles: Uploading http files");
+
+				HttpFilesConfig
+				.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload)
+				.ToList()
+				.ForEach(async item =>
+				{
+					Interlocked.Increment(ref taskCount);
+
+					var downloadfile = item.Url;
+					var remotefile = item.Remote;
+
+#if DEBUG
+					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
+						{
+
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							var content = await httpFiles.DownloadHttpFileBase64String(item.Url);
+							_ = await UploadString(phpUploadHttpClient, false, null, content, item.Remote, -1, true);
+
+							item.SetNextInterval(now);
+						}
+						catch (Exception ex) when (!(ex is TaskCanceledException))
+						{
+							LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {downloadfile} to: {remotefile}", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
+
+				});
+
+				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+				// wait for all the files to start
+				while (runningTaskCount < taskCount)
+				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						LogDebugMessage("ProcessHttpFiles: Upload process aborted");
+						return;
+					}
+					Thread.Sleep(10);
+				}
+
+				// wait for all the files to complete
+				Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				//LogDebugMessage($"ProcessHttpFiles: Files upload complete, {tasklist.Count()} files processed");
+
+				if (cancellationToken.IsCancellationRequested)
+				{
+					LogDebugMessage($"ProcessHttpFiles: Upload process aborted");
+					return;
+				}
+
+				LogDebugMessage($"ProcessHttpFiles: Upload process complete, {tasklist.Count()} files processed");
+				tasklist.Clear();
+			}
+		}
+
 		public async Task DoIntervalUpload()
 		{
 			var remotePath = "";
-			var tasklist = new List<Task>();
 
 			if (!FtpOptions.Enabled || !FtpOptions.IntervalEnabled)
 				return;
@@ -9149,7 +9845,7 @@ namespace CumulusMX
 						{
 							LogFtpMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
 
-							if ((uint)ex.HResult == 0x80004005) // Could not resolve host
+							if ((uint) ex.HResult == 0x80004005) // Could not resolve host
 							{
 								// Disable the DNS cache for the next query
 								ServicePointManager.DnsRefreshTimeout = 0;
@@ -9370,11 +10066,12 @@ namespace CumulusMX
 			{
 				using (FtpClient conn = new FtpClient())
 				{
-					if (FtpOptions.Logging) FtpTrace.WriteLine(""); // insert a blank line
+					LogFtpMessage(""); // insert a blank line
 					LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname);
 					conn.Host = FtpOptions.Hostname;
 					conn.Port = FtpOptions.Port;
 					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+					conn.LegacyLogger = LogFluentFtpMessage;
 
 					if (!FtpOptions.AutoDetect)
 					{
@@ -9383,8 +10080,8 @@ namespace CumulusMX
 						{
 							// Explicit = Current protocol - connects using FTP and switches to TLS
 							// Implicit = Old depreciated protocol - connects using TLS
-							conn.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.DataConnectionEncryption = true;
+							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.Config.DataConnectionEncryption = true;
 							// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 							// b3155 - switch to default again - this will use the highest version available in the OS
 							//conn.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
@@ -9392,17 +10089,17 @@ namespace CumulusMX
 
 						if (FtpOptions.ActiveMode)
 						{
-							conn.DataConnectionType = FtpDataConnectionType.PORT;
+							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
 						}
 						else if (FtpOptions.DisableEPSV)
 						{
-							conn.DataConnectionType = FtpDataConnectionType.PASV;
+							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
 						}
 					}
 
 					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 					{
-						conn.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 					}
 
 					try
@@ -9431,15 +10128,13 @@ namespace CumulusMX
 							LogFtpMessage($"FTP[Int]: Base exception - {ex.Message}");
 						}
 
-						if ((uint)ex.HResult == 0x80004005) // Could not resolve host
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
 						{
 							// Disable the DNS cache for the next query
 							ServicePointManager.DnsRefreshTimeout = 0;
 						}
 						return;
 					}
-
-					conn.EnableThreadSafeDataConnections = false; // use same connection for all transfers
 
 					if (conn.IsConnected)
 					{
@@ -9448,6 +10143,7 @@ namespace CumulusMX
 							try
 							{
 								// upload NOAA reports
+								LogFtpMessage("");
 								LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports");
 
 								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
@@ -9489,6 +10185,7 @@ namespace CumulusMX
 								{
 									remotefile = GetRemoteFileName(remotefile, logDay);
 
+									LogFtpMessage("");
 									LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
 
 									// all checks OK, file needs to be uploaded
@@ -9623,6 +10320,7 @@ namespace CumulusMX
 						{
 							try
 							{
+								LogFtpMessage("");
 								LogFtpDebugMessage("FTP[Int]: Uploading Moon image file");
 								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest);
 								// clear the image ready for FTP flag, only upload once an hour
@@ -9645,206 +10343,488 @@ namespace CumulusMX
 			{
 				LogDebugMessage("PHP[Int]: Upload process starting");
 
+				var tasklist = new List<Task>();
+				var taskCount = 0;
+				var runningTaskCount = 0;
+
 				if (NOAAconf.NeedFtp)
 				{
-					try
+					// upload NOAA Monthly report
+					Interlocked.Increment(ref taskCount);
+
+					tasklist.Add(Task.Run(async () =>
 					{
-						// upload NOAA reports
-						LogFtpDebugMessage("PHP[Int]: Uploading NOAA reports");
+						try
+						{
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							LogDebugMessage($"PHP[Int]: NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+							if (cancellationToken.IsCancellationRequested)
+								return false;
 
-						var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
-						var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
+							LogDebugMessage("PHP[Int]: Uploading NOAA Month report");
 
-						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8));
+							var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-						uploadfile = ReportPath + NOAAconf.LatestYearReport;
-						remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
 
-						tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8));
-						LogFtpDebugMessage("PHP[Int]: Upload of NOAA reports complete");
-						NOAAconf.NeedFtp = false;
-					}
-					catch (Exception e)
+						}
+						catch (OperationCanceledException)
+						{
+							return false;
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage($"PHP[Int]: Error uploading NOAA files", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
+
+					// upload NOAA Annual report
+					Interlocked.Increment(ref taskCount);
+
+					tasklist.Add(Task.Run(async () =>
 					{
-						LogFtpMessage($"PHP[Int]: Error uploading NOAA files: {e.Message}");
-					}
+						try
+						{
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							LogDebugMessage($"PHP[Int]: NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							LogDebugMessage("PHP[Int]: Uploading NOAA Year report");
+
+							var uploadfile = ReportPath + NOAAconf.LatestYearReport;
+							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
+
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+
+							LogDebugMessage("PHP[Int]: Upload of NOAA reports complete");
+							NOAAconf.NeedFtp = false;
+						}
+						catch (OperationCanceledException)
+						{
+							return false;
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage($"PHP[Int]: Error uploading NOAA Year file", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
 				}
 
 				// Extra files
-				for (int i = 0; i < numextrafiles; i++)
+				LogDebugMessage("PHP[Int]: Extra Files upload starting");
+
+				ExtraFiles
+				.Where(x =>
+					x.local.Length > 0 &&
+					x.remote.Length > 0 &&
+					!x.realtime &&
+					(EODfilesNeedFTP || (EODfilesNeedFTP == x.endofday)) &&
+					x.FTP)
+				.ToList()
+				.ForEach(async item =>
 				{
-					var uploadfile = ExtraFiles[i].local;
-					var remotefile = ExtraFiles[i].remote;
+					Interlocked.Increment(ref taskCount);
 
-					if ((uploadfile.Length > 0) &&
-						(remotefile.Length > 0) &&
-						!ExtraFiles[i].realtime &&
-						(EODfilesNeedFTP || (EODfilesNeedFTP == ExtraFiles[i].endofday)) &&
-						ExtraFiles[i].FTP)
+					var uploadfile = item.local;
+					var remotefile = item.remote;
+
+					if (!File.Exists(uploadfile))
 					{
-						// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-						var logDay = ExtraFiles[i].endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+						LogMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!");
+						return;
+					}
 
-						uploadfile = GetUploadFilename(uploadfile, logDay);
+					try {
+#if DEBUG
+					LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
 
-						if (File.Exists(uploadfile))
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
 						{
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
+							var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+
+							uploadfile = GetUploadFilename(uploadfile, logDay);
+
 							remotefile = GetRemoteFileName(remotefile, logDay);
 
-							LogDebugMessage($"PHP[Int]: Uploading Extra file[{i}]: " + uploadfile);
-
 							// all checks OK, file needs to be uploaded
-							try
+							if (item.process)
 							{
-								var idx = i;
+								LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
 
-								if (ExtraFiles[i].process)
-								{
-
-									tasklist.Add(Task.Run(async () =>
-									{
-										var data = await ProcessTemplateFile2StringAsync(uploadfile, false, ExtraFiles[idx].UTF8);
-										_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, ExtraFiles[idx].UTF8);
-									}));
-								}
-								else
-								{
-									tasklist.Add(UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, ExtraFiles[idx].UTF8));
-								}
+								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, -1, false, item.UTF8);
 							}
-							catch (Exception e)
+							else
 							{
-								LogMessage($"PHP[Int]: Error uploading file[{i}] {uploadfile}: {e.Message}");
+								LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile}");
+
+								_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, item.UTF8);
 							}
 						}
-						else
+						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
-							LogMessage($"PHP[Int]: Extra web file[{i}] - {uploadfile} - not found!");
+							LogExceptionMessage($"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}", ex);
 						}
-					}
-				}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
+				});
+
+				// wait for all the extra files to start
+				//while (runningTaskCount < taskCount)
+				//{
+				//	await Task.Delay(100);
+				//}
+				// wait for all the extra files to complete
+				//await Task.WhenAll(tasklist);
+				//LogDebugMessage($"PHP[Int]: Extra Files upload complete, {tasklist.Count()} files processed");
+
+				//tasklist.Clear();
+				//taskCount = 0;
+				//runningTaskCount = 0;
+
 				if (EODfilesNeedFTP)
 				{
 					EODfilesNeedFTP = false;
 				}
 
+
 				// standard files
-				for (int i = 0; i < StdWebFiles.Length; i++)
-				{
-					if (StdWebFiles[i].FTP)
+				LogDebugMessage("PHP[Int]: Standard files upload starting");
+
+				StdWebFiles
+				.Where(x => x.FTP)
+				.ToList()
+				.ForEach(async item =>
 					{
-						var idx = i;
+						Interlocked.Increment(ref taskCount);
+						try
+						{
+#if DEBUG
+						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+						}
+						catch (OperationCanceledException)
+						{
+							return;
+						}
+
 
 						tasklist.Add(Task.Run(async () =>
 						{
-							string data;
 							try
 							{
-								LogDebugMessage("PHP[Int]: Uploading standard Data file: " + StdWebFiles[idx].RemoteFileName);
+								if (cancellationToken.IsCancellationRequested)
+									return false;
 
-								if (StdWebFiles[idx].LocalFileName == "wxnow.txt")
+								string data;
+								LogDebugMessage("PHP[Int]: Uploading standard Data file: " + item.RemoteFileName);
+
+								if (item.LocalFileName == "wxnow.txt")
 								{
 									data = station.CreateWxnowFileString();
 								}
 								else
 								{
-									data = await ProcessTemplateFile2StringAsync(StdWebFiles[idx].TemplateFileName, true, true);
+									data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
 								}
 
-								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, StdWebFiles[idx].RemoteFileName, -1, false, true))
+								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, -1, false, true))
 								{
 									// No standard files are "one offs" at present
 									//StdWebFiles[i].FtpRequired = false;
 								}
 							}
-							catch (Exception e)
+							catch (Exception ex)
 							{
-								LogMessage($"PHP[Int]: Error uploading file {StdWebFiles[idx].RemoteFileName}: {e}");
+								LogExceptionMessage($"PHP[Int]: Error uploading file {item.RemoteFileName}", ex);
 							}
-						}));
-					}
-				}
+							finally
+							{
+								uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+								LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+							}
+
+							// no void return which cannot be tracked
+							return true;
+						}, cancellationToken));
+
+						Interlocked.Increment(ref runningTaskCount);
+					});
+
+				// wait for all the standard files to start
+				//while (runningTaskCount < taskCount)
+				//{
+				//	await Task.Delay(100);
+				//}
+				// wait for all the standard files to complete
+				//await Task.WhenAll(tasklist);
+				//LogDebugMessage($"PHP[Int]: Standard files upload complete, {tasklist.Count()} files processed");
+
+				//tasklist.Clear();
+				//taskCount = 0;
+				//runningTaskCount = 0;
+
+
+				// Graph Data Files
+				LogDebugMessage("PHP[Int]: Graph files upload starting");
 
 				var oldest = DateTime.Now.AddHours(-GraphHours);
 				// Munge date/time into UTC becuase we use local time as UTC for highCharts consistency across TZs
 				var oldestTs = Utils.ToPseudoJSTime(oldest).ToString();
+				var configFiles = new string[] { "graphconfig.json", "availabledata.json", "dailyrain.json", "dailytemp.json", "sunhours.json" };
 
-				for (int i = 0; i < GraphDataFiles.Length; i++)
+				GraphDataFiles
+				.Where(x => x.FTP && x.FtpRequired)
+				.ToList()
+				.ForEach(async item =>
 				{
-					if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
-					{
-						var idx = i;
-
-						tasklist.Add(Task.Run(async () =>
-						{
-							try
-							{
-
-								// we want incremental data for PHP
-								var json = station.CreateGraphDataJson(GraphDataFiles[idx].LocalFileName, GraphDataFiles[idx].Incremental);
-								var remotefile = GraphDataFiles[idx].RemoteFileName;
-								LogDebugMessage("PHP[Int]: Uploading graph data file: " + GraphDataFiles[idx].LocalFileName);
-
-								if (await UploadString(phpUploadHttpClient, GraphDataFiles[idx].Incremental, oldestTs, json, remotefile, -1, false, true))
-								//if (UploadString(phpUploadHttpClient, GraphDataFiles[i].Incremental, oldestTs, json, remotefile, -1, false, true))
-								{
-									// The config files only need uploading once per change
-									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-									if (idx == 0 || idx == 1 || idx == 8 || idx == 9 || idx == 11)
-									{
-										GraphDataFiles[idx].FtpRequired = false;
-									}
-									else
-									{
-										GraphDataFiles[idx].LastDataTime = DateTime.Now;
-										GraphDataFiles[idx].Incremental = true;
-									}
-								}
-							}
-							catch (Exception e)
-							{
-								LogMessage($"PHP[Int]: Error uploading graph data file [{GraphDataFiles[idx].RemoteFileName}]");
-								LogMessage($"PHP[Int]: Error = {e}");
-							}
-						}));
+					Interlocked.Increment(ref taskCount);
+					try {
+#if DEBUG
+					LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
 					}
-				}
-
-				for (int i = 0; i < GraphDataEodFiles.Length; i++)
-				{
-					if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
+					catch (OperationCanceledException)
 					{
-						var idx = i;
-
-						tasklist.Add(Task.Run(async () =>
-						{
-							var remotefile = GraphDataEodFiles[idx].RemoteFileName;
-							try
-							{
-								LogMessage("PHP[Int]: Uploading daily graph data file: " + GraphDataEodFiles[idx].LocalFileName);
-								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[idx].LocalFileName);
-
-								if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
-								{
-									// Uploaded OK, reset the upload required flag
-									GraphDataEodFiles[idx].FtpRequired = false;
-								}
-							}
-							catch (Exception e)
-							{
-								LogMessage($"PHP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[idx].RemoteFileName}]");
-								LogMessage($"PHP[Int]: Error = {e}");
-							}
-						}));
+						return;
 					}
-				}
 
-				if (MoonImage.Ftp && MoonImage.ReadyToFtp)
-				{
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							// we want incremental data for PHP
+							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
+							var remotefile = item.RemoteFileName;
+							LogDebugMessage("PHP[Int]: Uploading graph data file: " + item.LocalFileName);
+
+							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
+							{
+								// The config files only need uploading once per change
+								// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+								if (configFiles.Any(item.LocalFileName.Contains))
+								{
+									item.FtpRequired = false;
+								}
+								else
+								{
+									item.LastDataTime = DateTime.Now;
+									item.Incremental = true;
+								}
+							}
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage($"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
+				});
+
+				// wait for all the graph files to start
+				//while (runningTaskCount < taskCount)
+				//{
+				//	await Task.Delay(100);
+				//}
+				// wait for all the graph files to complete
+				//await Task.WhenAll(tasklist);
+				//LogDebugMessage($"PHP[Int]: Graph files upload complete, {tasklist.Count()} files processed");
+
+				//tasklist.Clear();
+				//taskCount = 0;
+				//runningTaskCount = 0;
+
+
+
+				// EOD Graph Data Files
+				LogDebugMessage("PHP[Int]: EOD Graph files upload starting");
+
+				GraphDataEodFiles
+				.Where(x => x.FTP && x.FtpRequired)
+				.ToList()
+				.ForEach(async item =>
+				{
+					Interlocked.Increment(ref taskCount);
+
+					try
+					{
+#if DEBUG
+						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
+						{
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							var remotefile = item.RemoteFileName;
+							LogMessage("PHP[Int]: Uploading daily graph data file: " + item.LocalFileName);
+							var json = station.CreateEodGraphDataJson(item.LocalFileName);
+
+							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+							{
+								// Uploaded OK, reset the upload required flag
+								item.FtpRequired = false;
+							}
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage($"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]", ex);
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
+				});
+
+				// wait for all the EOD files to start
+				//while (runningTaskCount < taskCount)
+				//{
+				//	await Task.Delay(100);
+				//}
+				// wait for all the EOD files to complete
+				//await Task.WhenAll(tasklist);
+				//LogDebugMessage($"PHP[Int]: EOD Graph files upload complete, {tasklist.Count()} files processed");
+				//tasklist.Clear();
+
+
+
+				// Moon image
+				if (MoonImage.Ftp && MoonImage.ReadyToFtp)
+				{
+					Interlocked.Increment(ref taskCount);
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
+						{
+#if DEBUG
+						LogDebugMessage($"PHP[Int]: Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						LogDebugMessage($"PHP[Int]: Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+
+#endif
+						}
+						catch (OperationCanceledException)
+						{
+							return false;
+						}
+
+
+						try
+						{
+
 							LogDebugMessage("PHP[Int]: Uploading Moon image file");
 
 							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
@@ -9853,17 +10833,52 @@ namespace CumulusMX
 								MoonImage.ReadyToFtp = false;
 							}
 						}
-						catch (Exception e)
+						catch (Exception ex)
 						{
-							LogMessage($"PHP[Int]: Error uploading moon image - {e.Message}");
+							LogExceptionMessage("PHP[Int]: Error uploading moon image", ex);
 						}
-					}));
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+							LogDebugMessage($"PHP[Int]: Moon image released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+						}
+
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
+
+					Interlocked.Increment(ref runningTaskCount);
 				}
 
-				await Task.WhenAll(tasklist.ToArray());
+				// wait for all the EOD files to start
+				while (runningTaskCount < taskCount)
+				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						LogDebugMessage($"PHP[Int]: Upload process aborted");
+						return;
+					}
+					await Task.Delay(10);
+				}
+				// wait for all the EOD files to complete
+				Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				//LogDebugMessage($"PHP[Int]: EOD Graph files upload complete, {tasklist.Count()} files processed");
 
-				LogDebugMessage("PHP[Int]: Upload process complete");
+				if (cancellationToken.IsCancellationRequested)
+				{
+					LogDebugMessage($"PHP[Int]: Upload process aborted");
+					return;
+				}
+
+				LogDebugMessage($"PHP[Int]: Upload process complete, {tasklist.Count()} files processed");
+				tasklist.Clear();
+
+				return;
 			}
+
+			LogDebugMessage("PHP[Int]: Upload process complete");
 		}
 
 		// Return True if the connection still exists
@@ -9872,7 +10887,8 @@ namespace CumulusMX
 		{
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
-			if (FtpOptions.Logging) FtpTrace.WriteLine("");
+			LogFtpMessage("");
+
 			try
 			{
 				if (!File.Exists(localfile))
@@ -9897,12 +10913,12 @@ namespace CumulusMX
 
 			return conn.IsConnected;
 		}
+
 		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
 
-			if (FtpOptions.Logging) FtpTrace.WriteLine("");
 			try
 			{
 				if (dataStream.Length == 0)
@@ -9957,7 +10973,7 @@ namespace CumulusMX
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefiletmp}");
 
 				FtpStatus status;
-				status = conn.Upload(dataStream, remotefiletmp);
+				status = conn.UploadStream(dataStream, remotefiletmp);
 
 				if (status.IsFailure())
 				{
@@ -10025,12 +11041,14 @@ namespace CumulusMX
 				if (conn == null || !conn.IsConnected)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {localfile}");
+					RealtimeFTPReconnect();
 					return false;
 				}
 			}
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {localfile}");
+				RealtimeFTPReconnect();
 				return false;
 			}
 
@@ -10070,12 +11088,14 @@ namespace CumulusMX
 				if (conn == null || !conn.IsConnected)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
+					RealtimeFTPReconnect();
 					return false;
 				}
 			}
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
+				RealtimeFTPReconnect();
 				return false;
 			}
 
@@ -10190,7 +11210,7 @@ namespace CumulusMX
 					data = await Utils.ReadAllTextAsync(localfile, encoding);
 				}
 
-				return await UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary);
+				return await UploadString(httpclient, false, string.Empty, data, remotefile, cycle, binary, utf8);
 			}
 			catch (Exception ex)
 			{
@@ -10205,99 +11225,128 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(data))
 			{
-				LogMessage($"PHP[{cycleStr}]: The data string is empty, ignoring this upload");
+				LogMessage($"PHP[{cycleStr}]: Uploading to {remotefile}. Error: The data string is empty, ignoring this upload");
 			}
 
-			LogDebugMessage($"PHP[{cycleStr}]: Uploading {remotefile}");
+			LogDebugMessage($"PHP[{cycleStr}]: Uploading to {remotefile}");
 
-			try
+			// we will try this twice incase the first attempt fails with a closed connection
+			var retry = 0;
+			do
 			{
-				var encoding = new UTF8Encoding(false);
+				MemoryStream outStream = null;
+				StreamContent streamContent = null;
 
-				using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
+				try
 				{
-					var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
-					var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
-					// disable expect 100 - PHP doesn't support it
-					request.Headers.ExpectContinue = false;
-					request.Headers.Add("ACTION", incremental ? "append" : "replace");
-					request.Headers.Add("FILE", remotefile);
-					if (incremental)
+					var encoding = new UTF8Encoding(false);
+
+					using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
 					{
-						request.Headers.Add("OLDEST", oldest);
-					}
-					request.Headers.Add("TS", unixTs);
-					request.Headers.Add("SIGNATURE", signature);
-					request.Headers.Add("BINARY", binary ? "1" : "0");
-					// Compress? if supported and payload exceeds 500 bytes
-					if (data.Length < 500 || FtpOptions.PhpCompression == "none")
-					{
-						request.Content = new StringContent(data, encoding, "application/octet-stream");
-					}
-					else
-					{
-						using (var ms = new System.IO.MemoryStream())
+						var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
+						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
+
+						// disable expect 100 - PHP doesn't support it
+						request.Headers.ExpectContinue = false;
+						request.Headers.Add("ACTION", incremental ? "append" : "replace");
+						request.Headers.Add("FILE", remotefile);
+						if (incremental)
 						{
-							if (FtpOptions.PhpCompression == "gzip")
+							request.Headers.Add("OLDEST", oldest);
+						}
+						request.Headers.Add("TS", unixTs);
+						request.Headers.Add("SIGNATURE", signature);
+						request.Headers.Add("BINARY", binary ? "1" : "0");
+						request.Headers.Add("UTF8", utf8 ? "1" : "0");
+						// Compress? if supported and payload exceeds 500 bytes
+						if (data.Length < 500 || FtpOptions.PhpCompression == "none")
+						{
+							request.Content = new StringContent(data, encoding, "application/octet-stream");
+						}
+						else
+						{
+							using (var ms = new System.IO.MemoryStream())
 							{
-								using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+								if (FtpOptions.PhpCompression == "gzip")
 								{
-									var byteData = encoding.GetBytes(data);
-									zipped.Write(byteData, 0, byteData.Length);
+									using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+									{
+										var byteData = encoding.GetBytes(data);
+										zipped.Write(byteData, 0, byteData.Length);
+									}
 								}
+								else if (FtpOptions.PhpCompression == "deflate")
+								{
+									using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+									{
+										var byteData = encoding.GetBytes(data);
+										zipped.Write(byteData, 0, byteData.Length);
+									}
+								}
+
+								ms.Position = 0;
+								byte[] compressed = new byte[ms.Length];
+								ms.Read(compressed, 0, compressed.Length);
+
+								outStream = new MemoryStream(compressed);
+								streamContent = new StreamContent(outStream);
+								streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
+								streamContent.Headers.ContentLength = outStream.Length;
+
+								request.Content = streamContent;
 							}
-							else if (FtpOptions.PhpCompression == "deflate")
+						}
+
+						using (var response = await httpclient.SendAsync(request))
+						{
+							//response.EnsureSuccessStatusCode();
+							var responseBodyAsText = await response.Content.ReadAsStringAsync();
+							if (response.StatusCode != HttpStatusCode.OK)
 							{
-								using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
-								{
-									var byteData = encoding.GetBytes(data);
-									zipped.Write(byteData, 0, byteData.Length);
-								}
+								LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+								LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
+							}
+							else
+							{
+								LogDebugMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+								LogDataMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 							}
 
-							ms.Position = 0;
-							byte[] compressed = new byte[ms.Length];
-							ms.Read(compressed, 0, compressed.Length);
+							if (outStream != null)
+								outStream.Dispose();
 
-							MemoryStream outStream = new MemoryStream(compressed);
+							if (streamContent != null)
+								streamContent.Dispose();
 
-							StreamContent streamContent = new StreamContent(outStream);
-							streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
-							streamContent.Headers.ContentLength = outStream.Length;
-
-							request.Content = streamContent;
+							return response.StatusCode == HttpStatusCode.OK;
 						}
 					}
-
-					//var response = httpclient.SendAsync(request).Result;
-					var response = await httpclient.SendAsync(request);
-
-					//response.EnsureSuccessStatusCode();
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
-					{
-						LogMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-						LogMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
-					}
-					else
-					{
-						LogDebugMessage($"PHP[{cycleStr}]: {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-						LogDataMessage($"PHP[{cycleStr}]: {remotefile}: Response text follows:\n{responseBodyAsText}");
-					}
-
-					return response.StatusCode == HttpStatusCode.OK;
 				}
-			}
-			catch (Exception ex)
-			{
-				LogMessage($"PHP[{cycleStr}]: Error - {ex.Message}");
-				if (ex.InnerException != null)
+				catch (System.Net.Http.HttpRequestException ex)
 				{
-					ex = Utils.GetOriginalException(ex);
-					LogMessage($"PHP[{cycleStr}]: Base exception - {ex.Message}");
+					LogExceptionMessage($"PHP[{cycleStr}]: Error uploading to {remotefile}", ex);
+					retry++;
+					if (retry < 2)
+					{
+						LogMessage($"PHP[{cycleStr}] Retrying upload to {remotefile}");
+					}
 				}
-				return false;
-			}
+				catch (Exception ex)
+				{
+					LogExceptionMessage($"PHP[{cycleStr}]: Error uploading to {remotefile}", ex);
+					retry = 99;
+				}
+				finally
+				{
+					if (outStream != null)
+						outStream.Dispose();
+
+					if (streamContent != null)
+						streamContent.Dispose();
+				}
+			} while (retry < 2);
+
+			return false;
 		}
 
 		public void LogMessage(string message)
@@ -10323,19 +11372,37 @@ namespace CumulusMX
 
 		public void LogFtpMessage(string message)
 		{
-			LogMessage(message);
-			if (FtpOptions.Logging)
-			{
-				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-			}
+			if (!string.IsNullOrEmpty(message))
+				LogMessage(message);
+			LogFluentFtpMessage(FtpTraceLevel.Info, message);
 		}
 
 		public void LogFtpDebugMessage(string message)
 		{
-			if (FtpOptions.Logging)
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.SFTP))
 			{
-				LogDebugMessage(message);
-				FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				if (!string.IsNullOrEmpty(message))
+					LogDebugMessage(message);
+				LogFluentFtpMessage(FtpTraceLevel.Info, message);
+			}
+		}
+
+		public void LogFluentFtpMessage(FtpTraceLevel level, string message)
+		{
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.SFTP))
+			{
+				try
+				{
+					if (string.IsNullOrEmpty(message))
+						FtpTraceListener.WriteLine(string.Empty);
+					else
+						FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+					FtpTraceListener.Flush();
+				}
+				catch (Exception ex)
+				{
+					LogDebugMessage($"LogFluentFtpMessage: Error = {ex.Message}");
+				}
 			}
 		}
 
@@ -10354,6 +11421,12 @@ namespace CumulusMX
 
 			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			Program.svcTextListener.Flush();
+		}
+
+		public void LogExceptionMessage(string message, Exception ex)
+		{
+			LogMessage(message);
+			LogMessage(message + " - " + Utils.ExceptionToString(ex));
 		}
 
 		/*
@@ -10684,15 +11757,9 @@ namespace CumulusMX
 			{
 				var parser = new TokenParser();
 				parser.OnToken += TokenParserOnToken;
-
-				using (StreamReader sr = File.OpenText(templatefile))
-				{
-					// only set the soruce file for error messages
-					parser.SourceFile = template;
-					parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
-					parser.InputText = await sr.ReadToEndAsync();
-				}
-				return parser.ToStringFromString();
+				parser.SourceFile = templatefile;
+				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
+				return await parser.ToStringAsync();
 			}
 			else
 			{
@@ -10719,7 +11786,7 @@ namespace CumulusMX
 
 			if (RealtimeIntervalEnabled)
 			{
-				if (FtpOptions.RealtimeEnabled && FtpOptions.FtpMode != FtpProtocols.PHP)
+				if (FtpOptions.Enabled && FtpOptions.RealtimeEnabled && FtpOptions.FtpMode != FtpProtocols.PHP)
 				{
 					LogConsoleMessage("Connecting real time FTP");
 
@@ -10899,9 +11966,10 @@ namespace CumulusMX
 				return;
 			}
 
-			if (station.DataStopped)
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
-				// No data coming in, do not do anything
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"CustomMySqlTimedUpdate: Not all data is ready, aborting process");
 				return;
 			}
 
@@ -10909,14 +11977,17 @@ namespace CumulusMX
 			{
 				customMySqlSecondsUpdateInProgress = true;
 
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
 						{
-							customMysqlSecondsTokenParser.InputText = MySqlSettings.CustomSecs.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlSecs[{i}]", customMysqlSecondsTokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlSettings.CustomSecs.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlSecs[{i}]", tokenParser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
@@ -10937,9 +12008,19 @@ namespace CumulusMX
 				return;
 			}
 
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"CustomMysqlMinutesTimerTick: Not all data is ready, aborting process");
+				return;
+			}
+
 			if (!customMySqlMinutesUpdateInProgress)
 			{
 				customMySqlMinutesUpdateInProgress = true;
+
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
 
 				for (var i = 0; i < 10; i++)
 				{
@@ -10947,8 +12028,8 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
 						{
-							customMysqlMinutesTokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", customMysqlMinutesTokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
@@ -10972,14 +12053,17 @@ namespace CumulusMX
 			{
 				customMySqlRolloverUpdateInProgress = true;
 
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
 						{
-							customMysqlRolloverTokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", customMysqlRolloverTokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", tokenParser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
@@ -10991,6 +12075,47 @@ namespace CumulusMX
 			}
 		}
 
+		internal async void CustomMySqlTimedUpdate(DateTime now)
+		{
+			if (station.DataStopped)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"CustomMySqlTimedUpdate: Not all data is ready, aborting process");
+				return;
+			}
+
+			if (!customMySqlTimedUpdateInProgress)
+			{
+				customMySqlTimedUpdateInProgress = true;
+
+				var tokenParser = new TokenParser();
+				tokenParser.OnToken += TokenParserOnToken;
+
+				for (var i = 0; i < 10; i++)
+				{
+					try
+					{
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+						{
+							tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+							await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", tokenParser.ToStringFromString());
+							MySqlSettings.CustomTimed.SetNextInterval(i, now);
+						}
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage($"CustomSqlTimed[{i}]: Error excuting: {MySqlSettings.CustomTimed.Commands[i]} ", ex);
+					}
+				}
+				customMySqlTimedUpdateInProgress = false;
+			}
+		}
 
 		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
 		{
@@ -11099,10 +12224,14 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage("EOD: Error copying extra file: " + ex.Message);
+									LogDebugMessage($"EOD: Error copying extra file {uploadfile} to {remotefile}: {ex.Message}");
 								}
 								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
+						}
+						else
+						{
+							LogMessage($"EOD: Error extra file {uploadfile} not found");
 						}
 					}
 				}
@@ -11150,15 +12279,15 @@ namespace CumulusMX
 			RealtimeFTP.Host = FtpOptions.Hostname;
 			RealtimeFTP.Port = FtpOptions.Port;
 			RealtimeFTP.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-			RealtimeFTP.SocketPollInterval = 20000; // increase beyond the timeout values
-			RealtimeFTP.EnableThreadSafeDataConnections = false; // use same connection for all transfers
+			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout values
+			RealtimeFTP.LegacyLogger = LogFluentFtpMessage;
 
 			if (!FtpOptions.AutoDetect)
 			{
 				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 				{
-					RealtimeFTP.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-					RealtimeFTP.DataConnectionEncryption = true;
+					RealtimeFTP.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+					RealtimeFTP.Config.DataConnectionEncryption = true;
 					// b3045 - switch from System.Net.Ftp.Client to FluentFTP allows us to specify protocols
 					// b3155 - switch to default again - this will use the highest version available in the OS
 					//RealtimeFTP.SslProtocols = SslProtocols.Default | SslProtocols.Tls11 | SslProtocols.Tls12;
@@ -11167,23 +12296,23 @@ namespace CumulusMX
 
 				if (FtpOptions.ActiveMode)
 				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PORT;
+					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PORT;
 					LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
 				}
 				else if (FtpOptions.DisableEPSV)
 				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.PASV;
+					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PASV;
 					LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
 				}
 				else
 				{
-					RealtimeFTP.DataConnectionType = FtpDataConnectionType.EPSV;
+					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.EPSV;
 				}
 			}
 
 			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+				RealtimeFTP.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
 			}
 
 			if (FtpOptions.Enabled)
@@ -11200,7 +12329,7 @@ namespace CumulusMX
 						RealtimeFTP.Connect();
 					}
 					LogMessage("RealtimeFTPLogin: Realtime FTP connected");
-					RealtimeFTP.SocketKeepAlive = true;
+					RealtimeFTP.Config.SocketKeepAlive = true;
 				}
 				catch (Exception ex)
 				{
@@ -11801,7 +12930,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Failed to get the latest build version from GitHub: " + ex.Message);
+				LogExceptionMessage("Failed to get the latest build version from GitHub", ex);
 			}
 		}
 
@@ -11829,7 +12958,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogDebugMessage("CustomHttpSeconds: " + ex.Message);
+						LogExceptionMessage("CustomHttpSeconds: Error occurred", ex);
 					}
 				}
 
@@ -11864,7 +12993,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogDebugMessage("CustomHttpMinutes: " + ex.Message);
+						LogExceptionMessage("CustomHttpMinutes: Error ocurred", ex);
 					}
 				}
 
@@ -11895,7 +13024,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogDebugMessage("CustomHttpRollover: " + ex.Message);
+						LogExceptionMessage("CustomHttpRollover: Error occurred", ex);
 					}
 				}
 
@@ -12116,10 +13245,12 @@ namespace CumulusMX
 
 		public void LogOffsetsMultipliers()
 		{
-			LogMessage("Offsets and Multipliers:");
-			LogMessage($"PO={Calib.Press.Offset:F3} TO={Calib.Temp.Offset:F3} HO={Calib.Hum.Offset} WDO={Calib.WindDir.Offset} SO={Calib.Solar.Offset:F3} UVO={Calib.UV.Offset:F3} ITO={Calib.InTemp.Offset} IHO={Calib.InHum.Offset}");
-			LogMessage($"PM={Calib.Press.Mult:F3} WSM={Calib.WindSpeed.Mult:F3} WGM={Calib.WindGust.Mult:F3} TM={Calib.Temp.Mult:F3} TM2={Calib.Temp.Mult2:F3} " +
-						$"HM={Calib.Hum.Mult:F3} HM2={Calib.Hum.Mult2:F3} RM={Calib.Rain.Mult:F3} SM={Calib.Solar.Mult:F3} UVM={Calib.UV.Mult:F3} ITM={Calib.InTemp.Mult} IHM={Calib.InHum.Mult}");
+			LogMessage("Offsets:");
+			LogMessage($"P={Calib.Press.Offset:F3} T={Calib.Temp.Offset:F3} H={Calib.Hum.Offset} WD={Calib.WindDir.Offset} S={Calib.Solar.Offset:F3} UV={Calib.UV.Offset:F3} IT={Calib.InTemp.Offset:F3} IH={Calib.InHum.Offset:F3}");
+			LogMessage("Multipliers:");
+			LogMessage($"P={Calib.Press.Mult:F3} WS={Calib.WindSpeed.Mult:F3} WG={Calib.WindGust.Mult:F3} T={Calib.Temp.Mult:F3} H={Calib.Hum.Mult:F3} R={Calib.Rain.Mult:F3} S={Calib.Solar.Mult:F3} UV={Calib.UV.Mult:F3} IT={Calib.InTemp.Mult:F3} IH={Calib.InHum.Mult:F3}");
+			LogMessage("Multipliers2:");
+			LogMessage($"P={Calib.Press.Mult2:F3} WS={Calib.WindSpeed.Mult2:F3} WG={Calib.WindGust.Mult2:F3} T={Calib.Temp.Mult2:F3} H={Calib.Hum.Mult2:F3} S={Calib.Solar.Mult2:F3} UV={Calib.UV.Mult2:F3} IT={Calib.InTemp.Mult2:F3} IH={Calib.InHum.Mult2:F3}");
 			LogMessage("Spike removal:");
 			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3} ITD={Spike.InTempDiff:F3} IHD={Spike.InHumDiff:F3}");
 			LogMessage("Limits:");
@@ -12383,6 +13514,7 @@ namespace CumulusMX
 		public string PhpSecret { get; set; }
 		public bool PhpIgnoreCertErrors { get; set; }
 		public string PhpCompression { get; set; } = "none";
+		public int MaxConcurrentUploads { get; set; }
 	}
 
 	public class FileGenerationOptions
@@ -12719,6 +13851,7 @@ namespace CumulusMX
 		public MySqlTableSettings CustomSecs { get; set; }
 		public MySqlTableSettings CustomMins { get; set; }
 		public MySqlTableSettings CustomRollover { get; set; }
+		public MySqlTableTimedSettings CustomTimed { get; set; }
 
 		public MySqlGeneralSettings()
 		{
@@ -12728,10 +13861,15 @@ namespace CumulusMX
 			CustomSecs = new MySqlTableSettings();
 			CustomMins = new MySqlTableSettings();
 			CustomRollover = new MySqlTableSettings();
+			CustomTimed = new MySqlTableTimedSettings();
 
 			CustomSecs.Commands = new string[10];
 			CustomMins.Commands = new string[10];
 			CustomRollover.Commands = new string[10];
+			CustomTimed.Commands = new string[10];
+			CustomTimed.Intervals = new int[10];
+			CustomTimed.StartTimes = new TimeSpan[10];
+			CustomTimed.NextUpdate = new DateTime[10];
 		}
 	}
 
@@ -12750,6 +13888,55 @@ namespace CumulusMX
 		public string TableName { get; set; }
 		public string[] Commands { get; set; }
 		public int Interval { get; set; }
+	}
+
+	public class MySqlTableTimedSettings : MySqlTableSettings
+	{
+		public TimeSpan[] StartTimes { get; set; }
+		public int[] Intervals { get; set; }
+		public DateTime[] NextUpdate { get; set; }
+
+
+		public void SetStartTime(int idx, string val)
+		{
+			StartTimes[idx] = TimeSpan.ParseExact(val, "hh\\:mm", CultureInfo.InvariantCulture);
+		}
+
+		public string GetStartTimeString(int idx)
+		{
+			return StartTimes[idx].ToString("hh\\:mm", CultureInfo.InvariantCulture);
+		}
+
+		public void SetInitialNextInterval(int idx, DateTime now)
+		{
+			NextUpdate[idx] = now.Date + StartTimes[idx];
+		}
+
+		public void SetNextInterval(int idx, DateTime now)
+		{
+			// We always revert to the start time so we remain consistent across DST changes
+			NextUpdate[idx] = now.Date + StartTimes[idx];
+
+			if (Intervals[idx] == 0)
+			{
+				// timed but no repeat interval, add a day
+				NextUpdate[idx] = NextUpdate[idx].AddDays(1);
+			}
+			else
+			{
+				// Timed and we have now set the start, add on intervals until we reach the future
+				while (NextUpdate[idx] <= now)
+				{
+					NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
+				}
+
+				// have we rolled over a day and the next interval would be prior to the start time?
+				// if so, bump up the next interval to the daily start time
+				if (NextUpdate[idx].TimeOfDay < StartTimes[idx])
+					NextUpdate[idx] = NextUpdate[idx].Date + StartTimes[idx];
+			}
+		}
+
 	}
 
 	public class NOAAconfig

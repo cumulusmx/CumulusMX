@@ -269,6 +269,11 @@ namespace CumulusMX
 				sensors = cumulus.GraphOptions.Colour.SoilMoist
 			};
 
+			var graphColLeafWet = new JsonGraphColExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.Colour.LeafWetness
+			};
+
 			var graphColUserTemp = new JsonGraphColExtraSensors()
 			{
 				sensors = cumulus.GraphOptions.Colour.UserTemp
@@ -304,6 +309,7 @@ namespace CumulusMX
 				extradew = graphColExtraDP,
 				soiltemp = graphColSoilTemp,
 				soilmoist = graphColSoilMoist,
+				leafwet = graphColLeafWet,
 				usertemp = graphColUserTemp,
 				co2 = graphColCo2
 			};
@@ -465,6 +471,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.Colour.ExtraDewPoint = settings.Graphs.colour.extradew.sensors;
 					cumulus.GraphOptions.Colour.SoilTemp = settings.Graphs.colour.soiltemp.sensors;
 					cumulus.GraphOptions.Colour.SoilMoist = settings.Graphs.colour.soilmoist.sensors;
+					cumulus.GraphOptions.Colour.LeafWetness = settings.Graphs.colour.leafwet.sensors;
 					cumulus.GraphOptions.Colour.UserTemp = settings.Graphs.colour.usertemp.sensors;
 
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2 = settings.Graphs.colour.co2.co2;
@@ -663,6 +670,7 @@ namespace CumulusMX
 			public JsonGraphColExtraSensors extradew { get; set; }
 			public JsonGraphColExtraSensors soiltemp { get; set; }
 			public JsonGraphColExtraSensors soilmoist { get; set; }
+			public JsonGraphColExtraSensors leafwet { get; set; }
 			public JsonGraphColExtraSensors usertemp { get; set; }
 			public JsonGraphColCo2 co2 { get; set; }
 		}

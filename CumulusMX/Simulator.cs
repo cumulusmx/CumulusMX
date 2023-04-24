@@ -11,8 +11,6 @@ namespace CumulusMX
 	internal class Simulator : WeatherStation
 	{
 		private bool stop;
-		private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
-		private CancellationToken cancellationToken;
 
 		private readonly DataSet currData;
 
@@ -27,8 +25,6 @@ namespace CumulusMX
 			cumulus.LogMessage("Station type = Simulator");
 
 			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime);
-
-			cancellationToken = tokenSource.Token;
 
 			random = new Random();
 
@@ -68,7 +64,7 @@ namespace CumulusMX
 					UpdateStatusPanel(now);
 					UpdateMQTT();
 
-					if (cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(dataUpdateRate)))
+					if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(dataUpdateRate)))
 					{
 						break;
 					}
@@ -96,8 +92,6 @@ namespace CumulusMX
 			cumulus.LogMessage("Stopping data generation task");
 			try
 			{
-				if (tokenSource != null)
-					tokenSource.Cancel();
 				cumulus.LogMessage("Waiting for data generation to complete");
 			}
 			catch (Exception ex)
@@ -111,7 +105,7 @@ namespace CumulusMX
 		{
 			cumulus.LogDataMessage($"Simulated data: temp={ConvertTempCToUser(currData.tempVal):f1}, hum={currData.humVal}, gust={ConvertWindMPHToUser(currData.windSpeedVal):f2}, dir={currData.windBearingVal}, press={ConvertPressMBToUser(currData.pressureVal):f2}, r.rate={ConvertRainMMToUser(currData.rainRateVal):f2}");
 
-			DoWind(ConvertWindMPHToUser(currData.windSpeedVal), currData.windBearingVal, WindAverage / cumulus.Calib.WindSpeed.Mult, recDate);
+			DoWind(ConvertWindMPHToUser(currData.windSpeedVal), currData.windBearingVal, WindAverage, recDate, true);
 
 			var rain = Raincounter + ConvertRainMMToUser(currData.rainRateVal * dataUpdateRate / 1000 / 3600);
 
@@ -148,7 +142,7 @@ namespace CumulusMX
 				solar = CurrentSolarMax * 0.9;
 				solarIntialised = true;
 			}
-			
+
 			// aim for 85% of theoretical in the morning, 75% after local noon
 			double factor;
 			if (recDate.IsDaylightSavingTime())
@@ -180,7 +174,7 @@ namespace CumulusMX
 		}
 
 
-		private class DataSet 
+		private class DataSet
 		{
 			private readonly MeanRevertingRandomWalk temperature;
 			private readonly MeanRevertingRandomWalk humidity;

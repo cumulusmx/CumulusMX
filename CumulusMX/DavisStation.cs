@@ -2001,7 +2001,7 @@ namespace CumulusMX
 				// Use current average as we don't have a new value in LOOP2. Allow for calibration.
 				if (loopData.CurrentWindSpeed < 200)
 				{
-					DoWind(wind, loopData.WindDirection, WindAverage / cumulus.Calib.WindSpeed.Mult, now);
+					DoWind(wind, loopData.WindDirection, WindAverage, now, true);
 				}
 				else
 				{
@@ -2012,7 +2012,7 @@ namespace CumulusMX
 				if (loopData.WindGust10Min < 200 && cumulus.StationOptions.PeakGustMinutes >= 10)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
-					var gust10min = ConvertWindMPHToUser(loopData.WindGust10Min)*cumulus.Calib.WindGust.Mult;
+					var gust10min = cumulus.Calib.WindSpeed.Calibrate(ConvertWindMPHToUser(loopData.WindGust10Min));
 					var gustdir = loopData.WindGustDir;
 
 					cumulus.LogDebugMessage("LOOP2: 10-min gust: " + gust10min.ToString(cumulus.WindFormat));
@@ -2023,8 +2023,8 @@ namespace CumulusMX
 						if (CheckHighGust(gust10min, gustdir, now))
 						{
 							// add to recent values so normal calculation includes this value
-							WindRecent[nextwind].Gust = ConvertWindMPHToUser(loopData.WindGust10Min);
-							WindRecent[nextwind].Speed = WindAverage / cumulus.Calib.WindSpeed.Mult;
+							WindRecent[nextwind].Gust = cumulus.Calib.WindSpeed.Calibrate(loopData.WindGust10Min);
+							WindRecent[nextwind].Speed = WindAverage;
 							WindRecent[nextwind].Timestamp = now;
 							nextwind = (nextwind + 1) % MaxWindRecent;
 

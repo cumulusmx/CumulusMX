@@ -7,6 +7,10 @@ using EmbedIO;
 using System.Text;
 using MySqlConnector.Logging;
 using System.Collections.Generic;
+using Org.BouncyCastle.Asn1.Cms;
+using System.Globalization;
+using System.Runtime.Serialization;
+using System.Xml.Linq;
 
 namespace CumulusMX
 {
@@ -21,7 +25,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var server = new JsonMysqlSettingsServer()
+			var server = new JsonSettingsServer()
 			{
 				database = cumulus.MySqlConnSettings.Database,
 				host = cumulus.MySqlConnSettings.Server,
@@ -30,7 +34,7 @@ namespace CumulusMX
 				user = cumulus.MySqlConnSettings.UserID
 			};
 
-			var monthly = new JsonMysqlSettingsMonthly()
+			var monthly = new JsonSettingsMonthly()
 			{
 				enabled = cumulus.MySqlSettings.Monthly.Enabled,
 				table = cumulus.MySqlSettings.Monthly.TableName
@@ -40,7 +44,7 @@ namespace CumulusMX
 			var retenVal = string.IsNullOrEmpty(reten[0]) ? 7 : int.Parse(reten[0]);
 			var retenUnit = reten.Length > 1 && !string.IsNullOrEmpty(reten[1]) ? reten[1].ToUpper().TrimEnd('S') : "DAY";
 
-			var realtime = new JsonMysqlSettingsRealtime()
+			var realtime = new JsonSettingsRealtime()
 			{
 				enabled = cumulus.MySqlSettings.Realtime.Enabled,
 				retentionVal = retenVal,
@@ -49,13 +53,13 @@ namespace CumulusMX
 				limit1min = cumulus.MySqlSettings.RealtimeLimit1Minute && cumulus.RealtimeInterval < 60000  // do not enable if real time interval is greater than 1 minute
 			};
 
-			var dayfile = new JsonMysqlSettingsDayfile()
+			var dayfile = new JsonSettingsDayfile()
 			{
 				enabled = cumulus.MySqlSettings.Dayfile.Enabled,
 				table = cumulus.MySqlSettings.Dayfile.TableName
 			};
 
-			var customseconds = new JsonMysqlSettingsCustomSeconds()
+			var customseconds = new JsonSettingsCustomSeconds()
 			{
 				enabled = cumulus.MySqlSettings.CustomSecs.Enabled,
 				interval = cumulus.MySqlSettings.CustomSecs.Interval
@@ -78,7 +82,7 @@ namespace CumulusMX
 			}
 
 
-			var customminutes = new JsonMysqlSettingsCustomMinutes()
+			var customminutes = new JsonSettingsCustomMinutes()
 			{
 				enabled = cumulus.MySqlSettings.CustomMins.Enabled,
 				intervalindex = cumulus.CustomMySqlMinutesIntervalIndex
@@ -99,7 +103,7 @@ namespace CumulusMX
 					customminutes.command[index++] = cumulus.MySqlSettings.CustomMins.Commands[i];
 			}
 
-			var customrollover = new JsonMysqlSettingsCustomRollover()
+			var customrollover = new JsonSettingsCustomRollover()
 			{
 				enabled = cumulus.MySqlSettings.CustomRollover.Enabled
 			};
@@ -119,14 +123,48 @@ namespace CumulusMX
 					customrollover.command[index++] = cumulus.MySqlSettings.CustomRollover.Commands[i];
 			}
 
+			var customtimed = new JsonSettingsCustomTimed()
+			{
+				enabled = cumulus.MySqlSettings.CustomTimed.Enabled,
+				entries = Array.Empty<JsonCustomTimed>()
+			};
 
-			var options = new JsonMysqlSettingsOptions()
+			cmdCnt = 0;
+			for (var i = 0;i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomTimed.Commands[i]))
+					cmdCnt++;
+			}
+			if (cmdCnt > 0)
+			{
+				customtimed.entries = new JsonCustomTimed[cmdCnt];
+
+				index = 0;
+				for (var i = 0; i < 10; i++)
+				{
+					customtimed.entries[index] = new JsonCustomTimed();
+
+					if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomTimed.Commands[i]))
+					{
+						customtimed.entries[index].command = cumulus.MySqlSettings.CustomTimed.Commands[i];
+						customtimed.entries[index].starttime = cumulus.MySqlSettings.CustomTimed.StartTimes[i];
+						customtimed.entries[index].interval = cumulus.MySqlSettings.CustomTimed.Intervals[i];
+						customtimed.entries[index].repeat = customtimed.entries[index].interval != 1440;
+						index++;
+
+						if (index == cmdCnt)
+							break;
+					}
+				}
+			}
+
+			var options = new JsonSettingsOptions()
 			{
 				updateonedit = cumulus.MySqlSettings.UpdateOnEdit,
 				bufferonerror = cumulus.MySqlSettings.BufferOnfailure,
 			};
 
-			var data = new JsonMysqlSettings()
+			var data = new JsonSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				server = server,
@@ -136,7 +174,8 @@ namespace CumulusMX
 				dayfile = dayfile,
 				customseconds = customseconds,
 				customminutes = customminutes,
-				customrollover = customrollover
+				customrollover = customrollover,
+				customtimed = customtimed
 			};
 
 			return data.ToJson();
@@ -145,7 +184,7 @@ namespace CumulusMX
 		public string UpdateConfig(IHttpContext context)
 		{
 			string json = "";
-			JsonMysqlSettings settings;
+			JsonSettings settings;
 			try
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
@@ -154,7 +193,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data.Substring(5));
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonMysqlSettings>();
+				settings = json.FromJson<JsonSettings>();
 			}
 			catch (Exception ex)
 			{
@@ -272,6 +311,28 @@ namespace CumulusMX
 							cumulus.MySqlSettings.CustomRollover.Commands[i] = null;
 					}
 
+				}
+				// custom timed
+				cumulus.MySqlSettings.CustomTimed.Enabled = settings.customtimed.enabled;
+				if (cumulus.MySqlSettings.CustomTimed.Enabled && null != settings.customtimed.entries)
+				{
+					for (var i = 0; i < 10; i++)
+					{
+						if (i < settings.customtimed.entries.Length)
+						{
+							cumulus.MySqlSettings.CustomTimed.Commands[i] = String.IsNullOrWhiteSpace(settings.customtimed.entries[i].command) ? null : settings.customtimed.entries[i].command.Trim();
+							cumulus.MySqlSettings.CustomTimed.StartTimes[i] = settings.customtimed.entries[i].starttime;
+							cumulus.MySqlSettings.CustomTimed.Intervals[i] = settings.customtimed.entries[i].interval;
+
+						}
+						else
+						{
+							cumulus.MySqlSettings.CustomTimed.Commands[i] = null;
+							cumulus.MySqlSettings.CustomTimed.StartTimes[i] = TimeSpan.Zero;
+							cumulus.MySqlSettings.CustomTimed.Intervals[i] = 0;
+
+						}
+					}
 				}
 
 				// Save the settings
@@ -406,7 +467,7 @@ namespace CumulusMX
 		public string CreateRealtimeSQL(IHttpContext context)
 		{
 			context.Response.StatusCode = 200;
-			return  "{\"result\":\"" + CreateMySQLTable(cumulus.RealtimeTable.CreateCommand) + "\"}";
+			return "{\"result\":\"" + CreateMySQLTable(cumulus.RealtimeTable.CreateCommand) + "\"}";
 		}
 
 		public string UpdateMonthlySQL(IHttpContext context)
@@ -423,74 +484,97 @@ namespace CumulusMX
 		{
 			return "{\"result\":\"" + UpdateMySQLTable(cumulus.RealtimeTable) + "\"}";
 		}
-	}
 
-	public class JsonMysqlSettings
-	{
-		public bool accessible {get; set;}
-		public JsonMysqlSettingsServer server { get; set; }
-		public JsonMysqlSettingsOptions options { get; set; }
-		public JsonMysqlSettingsMonthly monthly { get; set; }
-		public JsonMysqlSettingsRealtime realtime { get; set; }
-		public JsonMysqlSettingsDayfile dayfile { get; set; }
-		public JsonMysqlSettingsCustomSeconds customseconds { get; set; }
-		public JsonMysqlSettingsCustomMinutes customminutes { get; set; }
-		public JsonMysqlSettingsCustomRollover customrollover { get; set; }
-	}
+		private class JsonSettings
+		{
+			public bool accessible { get; set; }
+			public JsonSettingsServer server { get; set; }
+			public JsonSettingsOptions options { get; set; }
+			public JsonSettingsMonthly monthly { get; set; }
+			public JsonSettingsRealtime realtime { get; set; }
+			public JsonSettingsDayfile dayfile { get; set; }
+			public JsonSettingsCustomSeconds customseconds { get; set; }
+			public JsonSettingsCustomMinutes customminutes { get; set; }
+			public JsonSettingsCustomRollover customrollover { get; set; }
+			public JsonSettingsCustomTimed customtimed { get; set; }
+		}
 
-	public class JsonMysqlSettingsServer
-	{
-		public string host { get; set; }
-		public uint port { get; set; }
-		public string user { get; set; }
-		public string pass { get; set; }
-		public string database { get; set; }
-	}
+		private class JsonSettingsServer
+		{
+			public string host { get; set; }
+			public uint port { get; set; }
+			public string user { get; set; }
+			public string pass { get; set; }
+			public string database { get; set; }
+		}
 
-	public class JsonMysqlSettingsOptions
-	{
-		public bool updateonedit { get; set; }
-		public bool bufferonerror { get; set; }
-	}
+		private class JsonSettingsOptions
+		{
+			public bool updateonedit { get; set; }
+			public bool bufferonerror { get; set; }
+		}
 
-	public class JsonMysqlSettingsMonthly
-	{
-		public bool enabled { get; set; }
-		public string table { get; set; }
-	}
+		private class JsonSettingsMonthly
+		{
+			public bool enabled { get; set; }
+			public string table { get; set; }
+		}
 
-	public class JsonMysqlSettingsRealtime
-	{
-		public bool enabled { get; set; }
-		public string table { get; set; }
-		public int retentionVal { get; set; }
-		public string retentionUnit { get; set; }
-		public bool limit1min { get; set; }
-	}
+		private class JsonSettingsRealtime
+		{
+			public bool enabled { get; set; }
+			public string table { get; set; }
+			public int retentionVal { get; set; }
+			public string retentionUnit { get; set; }
+			public bool limit1min { get; set; }
+		}
 
-	public class JsonMysqlSettingsDayfile
-	{
-		public bool enabled { get; set; }
-		public string table { get; set; }
-	}
+		private class JsonSettingsDayfile
+		{
+			public bool enabled { get; set; }
+			public string table { get; set; }
+		}
 
-	public class JsonMysqlSettingsCustomSeconds
-	{
-		public bool enabled { get; set; }
-		public string[] command { get; set; }
-		public int interval { get; set; }
-	}
+		private class JsonSettingsCustomSeconds
+		{
+			public bool enabled { get; set; }
+			public string[] command { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonMysqlSettingsCustomMinutes
-	{
-		public bool enabled { get; set; }
-		public string[] command { get; set; }
-		public int intervalindex { get; set; }
-	}
+		private class JsonSettingsCustomMinutes
+		{
+			public bool enabled { get; set; }
+			public string[] command { get; set; }
+			public int intervalindex { get; set; }
+		}
 
-	public class JsonMysqlSettingsCustomRollover
-	{
-		public bool enabled { get; set; }
-		public string[] command { get; set; }
+		private class JsonSettingsCustomRollover
+		{
+			public bool enabled { get; set; }
+			public string[] command { get; set; }
+		}
+
+		private class JsonSettingsCustomTimed
+		{
+			public bool enabled { get; set; }
+			public JsonCustomTimed[] entries { get; set; }
+		}
+
+		private class JsonCustomTimed
+		{
+			public string command { get; set; }
+			public int interval { get; set; }
+			[IgnoreDataMember]
+			public TimeSpan starttime { get; set; }
+
+			[DataMember(Name = "starttimestr")]
+			public string starttimestring
+			{
+				get => starttime.ToString("hh\\:mm", CultureInfo.InvariantCulture);
+				set => starttime = TimeSpan.ParseExact(value, "hh\\:mm", CultureInfo.InvariantCulture);
+			}
+			public bool repeat { get; set; }
+		}
 	}
 }
