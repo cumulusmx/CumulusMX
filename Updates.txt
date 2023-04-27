@@ -1,12 +1,15 @@
 3.25.1 - b3242
 ——————————————
 New
+- None
 
 Changed
+- None
 
 Fixed
 - Tempest station now forces MX to calculate the average wind speed
 - Leaf wetness sensor name changes not being saved in Locale strings
+- Leaf wetness graph data empty for Davis sensors
 
 
 3.25.0 - b3241

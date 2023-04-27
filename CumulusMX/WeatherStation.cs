@@ -3554,10 +3554,10 @@ namespace CumulusMX
 								if (entrydate > dateFrom)
 								{
 									// entry is from required period
-									var temp = 0;
+									var temp = 0.0;
 									for (var i = 0; i < 2; i++)
 									{
-										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && int.TryParse(st[i + 42], out temp))
+										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && double.TryParse(st[i + 42], out temp))
 											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
 									}
 								}
