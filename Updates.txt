@@ -6,7 +6,7 @@ Changed
 
 Fixed
 - Tempest station now forces MX to calculate the average wind speed
-
+- Leaf wetness sensor name changes not being saved in Locale strings
 
 
 3.25.0 - b3241
