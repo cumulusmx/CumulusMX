@@ -9,6 +9,7 @@
 //     Date        :  7/20/2008
 // ********************************************************************************
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,8 +31,35 @@ namespace CumulusMX
 
 		public Encoding Encoding { set; get; }
 
+		public string TimeInvariantResult { set; get; }
+		public bool GenerateTimeInvariantResult { set; get; }
+
 		public delegate void TokenHandler(string strToken, ref string strReplacement);
 		public event TokenHandler OnToken;
+
+		private static List<string> timeVariantTags = new List<string>()
+		{
+			"time",
+			"DaysSince30Dec1899",
+			"timeUTC",
+			"timehhmmss",
+			"timeJavaScript",
+			"timeUnix",
+			"date",
+			"yesterday",
+			"metdate",
+			"metdateyesterday",
+			"day",
+			"dayname",
+			"shortdayname",
+			"month",
+			"monthname",
+			"shortmonthname",
+			"year",
+			"shortyear",
+			"hour",
+			"minute"
+		};
 
 		public TokenParser()
 		{
@@ -205,6 +233,7 @@ namespace CumulusMX
 		{
 			// Preallocate SB memory to double input size
 			StringBuilder outText = new StringBuilder(InputText.Length * 2);
+			StringBuilder timeInvariantText = new StringBuilder(InputText.Length * 2);
 			String token = string.Empty;
 			String replacement = string.Empty;
 
@@ -226,6 +255,9 @@ namespace CumulusMX
 				foreach (Match match in matches)
 				{
 					outText.Append(InputText.Substring(i, match.Index - i));
+					if (GenerateTimeInvariantResult)
+						timeInvariantText.Append(InputText.Substring(i, match.Index - i));
+
 					try
 					{
 						// strip the "<#" ">" characters from the token string
@@ -233,6 +265,13 @@ namespace CumulusMX
 						token = token.Substring(2, token.Length - 3);
 						OnToken(token, ref replacement);
 						outText.Append(replacement);
+						if (GenerateTimeInvariantResult)
+						{
+							if (timeVariantTags.Contains(token))
+								timeInvariantText.Append(match.Value);
+							else
+								timeInvariantText.Append(replacement);
+						}
 					}
 					catch (Exception e)
 					{
@@ -250,12 +289,17 @@ namespace CumulusMX
 					i = match.Index + match.Length;
 				}
 				outText.Append(InputText.Substring(i, InputText.Length - i));
+				if (GenerateTimeInvariantResult)
+					timeInvariantText.Append(InputText.Substring(i, InputText.Length - i));
 			}
 			else
 			{
 				outText.Append(InputText);
+				if (GenerateTimeInvariantResult)
+					timeInvariantText.Append(InputText);
 			}
 
+			TimeInvariantResult = timeInvariantText.ToString();
 			return outText.ToString();
 		}
 

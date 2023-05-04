@@ -14,6 +14,7 @@ namespace CumulusMX
 		private static Cumulus cumulus;
 		private static MqttClient mqttClient;
 		public static bool configured;
+		private static Dictionary<String, String> publishedTopics;
 
 		public static void Setup(Cumulus cumulus)
 		{
@@ -73,6 +74,8 @@ namespace CumulusMX
 					cumulus.LogMessage("Error: MQTT reconnection to server failed");
 				}
 			});
+
+			publishedTopics = new Dictionary<string, string>();
 
 			configured = true;
 		}
@@ -140,12 +143,32 @@ namespace CumulusMX
 				foreach (var feed in templateObj.topics)
 				{
 					var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
+					if (feedType != "Interval")
+					{
+						mqttTokenParser.GenerateTimeInvariantResult = true;
+					}
+
 					mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
 					mqttTokenParser.InputText = feed.data;
 					string message = mqttTokenParser.ToStringFromString();
 
-					// send the message
-					_ = SendMessageAsync(feed.topic, message, feed.retain);
+						if (feedType != "Interval")
+					{
+						if (!(publishedTopics.ContainsKey(feed.data) && (publishedTopics[feed.data] == mqttTokenParser.TimeInvariantResult)))
+						{
+							// send the message
+							_ = SendMessageAsync(feed.topic, message, feed.retain);
+
+							if (publishedTopics.ContainsKey(feed.data))
+								publishedTopics[feed.data] = mqttTokenParser.TimeInvariantResult;
+							else
+								publishedTopics.Add(feed.data, mqttTokenParser.TimeInvariantResult);
+						}
+					}
+					else
+					{
+						_ = SendMessageAsync(feed.topic, message, feed.retain);
+					}
 				}
 			}
 			catch (Exception ex)
