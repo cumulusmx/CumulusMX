@@ -117,6 +117,7 @@ namespace CumulusMX
 		public static void UpdateMQTTfeed(string feedType)
 		{
 			var template = "mqtt/";
+			bool useAltResult = false;
 
 			if (feedType == "Interval")
 			{
@@ -142,27 +143,30 @@ namespace CumulusMX
 			{
 				foreach (var feed in templateObj.topics)
 				{
+					useAltResult = false;
 					var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
-					if (feedType != "Interval")
+
+					if ((feedType == "DataUpdate") && (feed.doNotTriggerOnTags != null))
 					{
-						mqttTokenParser.GenerateTimeInvariantResult = true;
+						useAltResult = true;
+						mqttTokenParser.AltResultNoParseList = feed.doNotTriggerOnTags;
 					}
 
 					mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
 					mqttTokenParser.InputText = feed.data;
 					string message = mqttTokenParser.ToStringFromString();
 
-						if (feedType != "Interval")
+					if (useAltResult)
 					{
-						if (!(publishedTopics.ContainsKey(feed.data) && (publishedTopics[feed.data] == mqttTokenParser.TimeInvariantResult)))
+						if (!(publishedTopics.ContainsKey(feed.data) && (publishedTopics[feed.data] == mqttTokenParser.AltResult)))
 						{
 							// send the message
 							_ = SendMessageAsync(feed.topic, message, feed.retain);
 
 							if (publishedTopics.ContainsKey(feed.data))
-								publishedTopics[feed.data] = mqttTokenParser.TimeInvariantResult;
+								publishedTopics[feed.data] = mqttTokenParser.AltResult;
 							else
-								publishedTopics.Add(feed.data, mqttTokenParser.TimeInvariantResult);
+								publishedTopics.Add(feed.data, mqttTokenParser.AltResult);
 						}
 					}
 					else
@@ -173,6 +177,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
+				Console.WriteLine(ex.ToString());
 				cumulus.LogMessage($"UpdateMQTTfeed: Error process the template file [{template}], error = {ex.Message}");
 			}
 		}

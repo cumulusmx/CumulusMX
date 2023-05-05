@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -31,35 +32,30 @@ namespace CumulusMX
 
 		public Encoding Encoding { set; get; }
 
-		public string TimeInvariantResult { set; get; }
-		public bool GenerateTimeInvariantResult { set; get; }
+		private string _AltList;
+		public string AltResultNoParseList
+		{
+			set
+			{
+				_AltList = value;
+				AltTags = value.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+			}
+			
+			get
+			{
+				return _AltList;
+			}
+		}
+
+		private List<string> AltTags = null;
+
+		public string AltResult { set; get; }
+
 
 		public delegate void TokenHandler(string strToken, ref string strReplacement);
 		public event TokenHandler OnToken;
 
-		private static List<string> timeVariantTags = new List<string>()
-		{
-			"time",
-			"DaysSince30Dec1899",
-			"timeUTC",
-			"timehhmmss",
-			"timeJavaScript",
-			"timeUnix",
-			"date",
-			"yesterday",
-			"metdate",
-			"metdateyesterday",
-			"day",
-			"dayname",
-			"shortdayname",
-			"month",
-			"monthname",
-			"shortmonthname",
-			"year",
-			"shortyear",
-			"hour",
-			"minute"
-		};
+
 
 		public TokenParser()
 		{
@@ -233,7 +229,7 @@ namespace CumulusMX
 		{
 			// Preallocate SB memory to double input size
 			StringBuilder outText = new StringBuilder(InputText.Length * 2);
-			StringBuilder timeInvariantText = new StringBuilder(InputText.Length * 2);
+			StringBuilder altOutText = new StringBuilder(InputText.Length * 2);
 			String token = string.Empty;
 			String replacement = string.Empty;
 
@@ -255,8 +251,8 @@ namespace CumulusMX
 				foreach (Match match in matches)
 				{
 					outText.Append(InputText.Substring(i, match.Index - i));
-					if (GenerateTimeInvariantResult)
-						timeInvariantText.Append(InputText.Substring(i, match.Index - i));
+					if (AltTags != null)
+						altOutText.Append(InputText.Substring(i, match.Index - i));
 
 					try
 					{
@@ -265,12 +261,13 @@ namespace CumulusMX
 						token = token.Substring(2, token.Length - 3);
 						OnToken(token, ref replacement);
 						outText.Append(replacement);
-						if (GenerateTimeInvariantResult)
+						if (AltTags != null)
 						{
-							if (timeVariantTags.Contains(token))
-								timeInvariantText.Append(match.Value);
+							string[] baseToken = token.Split(' ');
+							if (AltTags.Contains(baseToken[0]))
+								altOutText.Append(match.Value);
 							else
-								timeInvariantText.Append(replacement);
+								altOutText.Append(replacement);
 						}
 					}
 					catch (Exception e)
@@ -289,17 +286,17 @@ namespace CumulusMX
 					i = match.Index + match.Length;
 				}
 				outText.Append(InputText.Substring(i, InputText.Length - i));
-				if (GenerateTimeInvariantResult)
-					timeInvariantText.Append(InputText.Substring(i, InputText.Length - i));
+				if (AltTags != null)
+					altOutText.Append(InputText.Substring(i, InputText.Length - i));
 			}
 			else
 			{
 				outText.Append(InputText);
-				if (GenerateTimeInvariantResult)
-					timeInvariantText.Append(InputText);
+				if (AltTags != null)
+					altOutText.Append(InputText);
 			}
 
-			TimeInvariantResult = timeInvariantText.ToString();
+			AltResult = altOutText.ToString();
 			return outText.ToString();
 		}
 
