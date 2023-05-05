@@ -5278,6 +5278,7 @@ namespace CumulusMX
 				// user wants to display station forecast
 				forecaststr = wsforecast;
 			}
+
 			// determine whether we need to update the Cumulus forecast; user may have chosen to only update once an hour, but
 			// we still need to do that once to get an initial forecast
 			if ((!FirstForecastDone) || (!cumulus.HourlyForecast) || (hourly && cumulus.HourlyForecast))
@@ -5384,7 +5385,9 @@ namespace CumulusMX
 		}
 		*/
 
-		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp, bool speedparcalibrated=false)
+
+		// Use -1 for the average if you want to feedback the current average for a calculated moving average
+		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
 #if DEBUG
 			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1}");
@@ -5410,6 +5413,9 @@ namespace CumulusMX
 			previousGust = windGustMS;
 			previousWind = windAvgMS;
 
+			calibratedgust = cumulus.Calib.WindGust.Calibrate(gustpar);
+			var calibratedspeed = speedpar < 0 ? WindAverage : cumulus.Calib.WindSpeed.Calibrate(speedpar);
+
 			// use bearing of zero when calm
 			if ((Math.Abs(gustpar) < 0.001) && cumulus.StationOptions.UseZeroBearing)
 			{
@@ -5428,9 +5434,6 @@ namespace CumulusMX
 					Bearing = 360;
 				}
 			}
-			var uncalibratedgust = gustpar;
-			calibratedgust = cumulus.Calib.WindGust.Calibrate(uncalibratedgust);
-			var calibratedspeed = speedparcalibrated ? speedpar : cumulus.Calib.WindSpeed.Calibrate(speedpar);
 
 			WindLatest = cumulus.StationOptions.UseSpeedForLatest ? calibratedspeed : calibratedgust;
 
@@ -5458,46 +5461,22 @@ namespace CumulusMX
 			}
 
 			nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
-			if (calibratedgust > HiLoToday.HighGust)
-			{
-				HiLoToday.HighGust = calibratedgust;
-				HiLoToday.HighGustTime = timestamp;
-				HiLoToday.HighGustBearing = Bearing;
-				WriteTodayFile(timestamp, false);
-			}
-			if (calibratedgust > ThisMonth.HighGust.Val)
-			{
-				ThisMonth.HighGust.Val = calibratedgust;
-				ThisMonth.HighGust.Ts = timestamp;
-				WriteMonthIniFile();
-			}
-			if (calibratedgust > ThisYear.HighGust.Val)
-			{
-				ThisYear.HighGust.Val = calibratedgust;
-				ThisYear.HighGust.Ts = timestamp;
-				WriteYearIniFile();
-			}
-			// All time high gust?
-			if (calibratedgust > AllTime.HighGust.Val)
-			{
-				SetAlltime(AllTime.HighGust, calibratedgust, timestamp);
-			}
 
-			// check for monthly all time records (and set)
-			CheckMonthlyAlltime("HighGust", calibratedgust, true, timestamp);
+			CheckHighGust(calibratedgust, Bearing, timestamp);
 
 			WindRecent[nextwind].Gust = calibratedgust;
 			WindRecent[nextwind].Speed = calibratedspeed;
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
 
-			if (cumulus.StationOptions.UseWind10MinAvg)
+			if (cumulus.StationOptions.CalcuateAverageWindSpeed)
 			{
 				int numvalues = 0;
 				double totalwind = 0;
+				var fromTime = timestamp - cumulus.AvgSpeedTime;
 				for (int i = 0; i < MaxWindRecent; i++)
 				{
-					if (timestamp - WindRecent[i].Timestamp <= cumulus.AvgSpeedTime)
+					if (WindRecent[i].Timestamp >= fromTime)
 					{
 						numvalues++;
 						if (cumulus.StationOptions.UseSpeedForAvgCalc)
@@ -5519,46 +5498,27 @@ namespace CumulusMX
 				WindAverage = calibratedspeed;
 			}
 
-			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
-
-
 			if (CalcRecentMaxGust)
 			{
 				// Find recent max gust
+				var fromTime = timestamp - cumulus.PeakGustTime;
+
 				double maxgust = 0;
 				for (int i = 0; i <= MaxWindRecent - 1; i++)
 				{
-					if (timestamp - WindRecent[i].Timestamp <= cumulus.PeakGustTime)
+					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > maxgust)
 					{
-						if (WindRecent[i].Gust > maxgust)
-						{
-							maxgust = WindRecent[i].Gust;
-						}
+						maxgust = WindRecent[i].Gust;
 					}
 				}
 				RecentMaxGust = maxgust;
 			}
+			else
+			{
+				RecentMaxGust = calibratedgust;
+			}
 
-			cumulus.HighGustAlarm.CheckAlarm(RecentMaxGust);
-
-			if (WindAverage > HiLoToday.HighWind)
-			{
-				HiLoToday.HighWind = WindAverage;
-				HiLoToday.HighWindTime = timestamp;
-				WriteTodayFile(timestamp, false);
-			}
-			if (WindAverage > ThisMonth.HighWind.Val)
-			{
-				ThisMonth.HighWind.Val = WindAverage;
-				ThisMonth.HighWind.Ts = timestamp;
-				WriteMonthIniFile();
-			}
-			if (WindAverage > ThisYear.HighWind.Val)
-			{
-				ThisYear.HighWind.Val = WindAverage;
-				ThisYear.HighWind.Ts = timestamp;
-				WriteYearIniFile();
-			}
+			CheckHighAvgSpeed(timestamp);
 
 			WindVec[nextwindvec].X = calibratedgust * Math.Sin(DegToRad(Bearing));
 			WindVec[nextwindvec].Y = calibratedgust * Math.Cos(DegToRad(Bearing));
@@ -5644,18 +5604,49 @@ namespace CumulusMX
 				BearingRangeTo10 = 0;
 			}
 
-			// All time high wind speed?
-			if (WindAverage > AllTime.HighWind.Val)
-			{
-				SetAlltime(AllTime.HighWind, WindAverage, timestamp);
-			}
-
-			// check for monthly all time records (and set)
-			CheckMonthlyAlltime("HighWind", WindAverage, true, timestamp);
-
 			WindReadyToPlot = true;
 			HaveReadData = true;
 		}
+
+		// called at start-up to initialise the gust and average speeds from the recent data to avoid zero values
+		public void InitialiseWind()
+		{
+			// first the average
+			var fromTime = DateTime.Now - cumulus.AvgSpeedTime;
+			var numvalues = 0;
+			var totalwind = 0.0;
+
+			for (int i = 0; i < MaxWindRecent; i++)
+			{
+				if (WindRecent[i].Timestamp >= fromTime)
+				{
+					numvalues++;
+					totalwind += WindRecent[i].Speed;
+				}
+			}
+			// average the values
+			if (numvalues > 0)
+				WindAverage = totalwind / numvalues;
+
+			// now the gust
+			fromTime = DateTime.Now - cumulus.PeakGustTime;
+			numvalues = 0;
+			var peakGust = 0.0;
+
+			for (int i = 0; i < MaxWindRecent; i++)
+			{
+				if (WindRecent[i].Timestamp >= fromTime)
+				{
+					numvalues++;
+					if (WindRecent[i].Gust > peakGust)
+					{
+						peakGust = WindRecent[i].Gust;
+					}
+				}
+			}
+		}
+
+
 
 		public void DoUV(double value, DateTime timestamp)
 		{
@@ -6759,8 +6750,7 @@ namespace CumulusMX
 					try
 					{
 						// Prepare the process to run
-						var parser = new TokenParser();
-						parser.OnToken += cumulus.TokenParserOnToken;
+						var parser = new TokenParser(cumulus.TokenParserOnToken);
 						parser.InputText = cumulus.DailyParams;
 						var args = parser.ToStringFromString();
 						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
@@ -8010,6 +8000,7 @@ namespace CumulusMX
 			LoadRecentAqFromDataLogs(ts);
 			LoadLast3HourData(ts);
 			LoadRecentWindRose();
+			InitialiseWind();
 		}
 
 		private void LoadRecentFromDataLogs(DateTime ts)
@@ -13893,40 +13884,73 @@ namespace CumulusMX
 				return false;
 			}
 
-			if (gust > RecentMaxGust)
+			if (gust > HiLoToday.HighGust)
 			{
-				if (gust > HiLoToday.HighGust)
-				{
-					HiLoToday.HighGust = gust;
-					HiLoToday.HighGustTime = timestamp;
-					HiLoToday.HighGustBearing = gustdir;
-					WriteTodayFile(timestamp, false);
-				}
-				if (gust > ThisMonth.HighGust.Val)
-				{
-					ThisMonth.HighGust.Val = gust;
-					ThisMonth.HighGust.Ts = timestamp;
-					WriteMonthIniFile();
-				}
-				if (gust > ThisYear.HighGust.Val)
-				{
-					ThisYear.HighGust.Val = gust;
-					ThisYear.HighGust.Ts = timestamp;
-					WriteYearIniFile();
-				}
-				// All time high gust?
-				if (gust > AllTime.HighGust.Val)
-				{
-					SetAlltime(AllTime.HighGust, gust, timestamp);
-				}
-
-				// check for monthly all time records (and set)
-				CheckMonthlyAlltime("HighGust", gust, true, timestamp);
-
-				cumulus.HighGustAlarm.CheckAlarm(gust);
+				HiLoToday.HighGust = gust;
+				HiLoToday.HighGustTime = timestamp;
+				HiLoToday.HighGustBearing = gustdir;
+				WriteTodayFile(timestamp, false);
 			}
-			return true;
+			if (gust > ThisMonth.HighGust.Val)
+			{
+				ThisMonth.HighGust.Val = gust;
+				ThisMonth.HighGust.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+			if (gust > ThisYear.HighGust.Val)
+			{
+				ThisYear.HighGust.Val = gust;
+				ThisYear.HighGust.Ts = timestamp;
+				WriteYearIniFile();
+			}
+			// All time high gust?
+			if (gust > AllTime.HighGust.Val)
+			{
+				SetAlltime(AllTime.HighGust, gust, timestamp);
+			}
+
+			// check for monthly all time records (and set)
+			CheckMonthlyAlltime("HighGust", gust, true, timestamp);
+
+			cumulus.HighGustAlarm.CheckAlarm(gust);
+
+			return gust > RecentMaxGust;
 		}
+
+
+		public void CheckHighAvgSpeed(DateTime timestamp)
+		{
+			if (WindAverage > HiLoToday.HighWind)
+			{
+				HiLoToday.HighWind = WindAverage;
+				HiLoToday.HighWindTime = timestamp;
+				WriteTodayFile(timestamp, false);
+			}
+			if (WindAverage > ThisMonth.HighWind.Val)
+			{
+				ThisMonth.HighWind.Val = WindAverage;
+				ThisMonth.HighWind.Ts = timestamp;
+				WriteMonthIniFile();
+			}
+			if (WindAverage > ThisYear.HighWind.Val)
+			{
+				ThisYear.HighWind.Val = WindAverage;
+				ThisYear.HighWind.Ts = timestamp;
+				WriteYearIniFile();
+			}
+
+			// All time high wind speed?
+			if (WindAverage > AllTime.HighWind.Val)
+			{
+				SetAlltime(AllTime.HighWind, WindAverage, timestamp);
+			}
+
+			// check for monthly all time records (and set)
+			CheckMonthlyAlltime("HighWind", WindAverage, true, timestamp);
+
+			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
+		}
+
 
 		public void UpdateAPRS()
 		{

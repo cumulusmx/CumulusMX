@@ -9,15 +9,11 @@ namespace CumulusMX
 	public class ApiTagProcessor
 	{
 		private readonly Cumulus cumulus;
-		private readonly TokenParser tokenParser;
 		private WebTags webtags;
 
 		internal ApiTagProcessor(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-			tokenParser = new TokenParser();
-			tokenParser.OnToken += cumulus.TokenParserOnToken;
-			tokenParser.Encoding = new UTF8Encoding(false);
 		}
 
 		internal void SetWebTags(WebTags webtags)
@@ -91,6 +87,8 @@ namespace CumulusMX
 
 				cumulus.LogDataMessage($"API tag: Source = {request.RemoteEndPoint} Input string = {data}");
 
+				var tokenParser = new TokenParser(cumulus.TokenParserOnToken);
+				tokenParser.Encoding = new UTF8Encoding(false);
 				tokenParser.InputText = data;
 				var output = tokenParser.ToStringFromString();
 

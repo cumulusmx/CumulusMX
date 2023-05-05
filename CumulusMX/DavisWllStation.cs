@@ -36,7 +36,6 @@ namespace CumulusMX
 		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient wlHttpClient = new HttpClient(HistoricHttpHandler);
 		private readonly HttpClient dogsBodyClient = new HttpClient();
-		private readonly bool checkWllGustValues;
 		private bool broadcastReceived;
 		private bool broadcastStopped;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
@@ -45,7 +44,7 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
-		private double currentAvgWindSpd = 0;
+		private readonly bool checkWllGustValues;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -104,12 +103,17 @@ namespace CumulusMX
 			cumulus.LeafWetDPlaces = 1;
 			cumulus.LeafWetFormat = "F1";
 
+			// the broadcast data does not contain an average speed, and the current data is only updated once a minute, so make CMX calculate the average
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
+			// calculate it by averaging the gust values
+			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
+			/*
 			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
 			if (cumulus.StationOptions.PeakGustMinutes == 10)
 			{
-				CalcRecentMaxGust = false;
-				checkWllGustValues = false;
+				CalcRecentMaxGust = true;
+				checkWllGustValues = true;
 			}
 			else if (cumulus.StationOptions.PeakGustMinutes > 10)
 			{
@@ -124,6 +128,8 @@ namespace CumulusMX
 				CalcRecentMaxGust = true;
 				checkWllGustValues = true;
 			}
+			*/
+			CalcRecentMaxGust = true;
 
 
 			// Sanity check - do we have all the info we need?
@@ -585,43 +591,11 @@ namespace CumulusMX
 							try
 							{
 								// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
-								int windDir = rec.wind_dir_last ?? 0;
+								var windDir = (int) (rec.wind_dir_last ?? 0);
+								var spd = ConvertWindMPHToUser(rec.wind_speed_last);
 
-								// No average in the broadcast data, so use last value from current
-								DoWind(ConvertWindMPHToUser(rec.wind_speed_last), windDir, currentAvgWindSpd, dateTime);
-
-								var gust = ConvertWindMPHToUser(rec.wind_speed_hi_last_10_min);
-								var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
-								if (checkWllGustValues)
-								{
-									if (gustCal > RecentMaxGust)
-									{
-										// See if the station 10 min high speed is higher than our current 10-min max
-										// i.e. we missed the high gust
-
-										// Check for spikes, and set highs
-										if (CheckHighGust(gustCal, rec.wind_dir_at_hi_speed_last_10_min, dateTime))
-										{
-											cumulus.LogDebugMessage("Set max gust from broadcast 10 min high value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-
-											// add to recent values so normal calculation includes this value
-											WindRecent[nextwind].Gust = gustCal; // use calibrated value
-											WindRecent[nextwind].Speed = WindAverage;
-											WindRecent[nextwind].Timestamp = dateTime;
-											nextwind = (nextwind + 1) % MaxWindRecent;
-
-											RecentMaxGust = gustCal;
-										}
-									}
-								}
-								else if (!CalcRecentMaxGust)
-								{
-									// Check for spikes, and set highs
-									if (CheckHighGust(gustCal, rec.wind_dir_at_hi_speed_last_10_min, dateTime))
-									{
-										RecentMaxGust = gustCal;
-									}
-								}
+								// No average in the broadcast data, so use current average.
+								DoWind(spd, windDir, -1, dateTime);
 							}
 							catch (Exception ex)
 							{
@@ -844,79 +818,53 @@ namespace CumulusMX
 								*/
 								try
 								{
-									cumulus.LogDebugMessage($"WLL current: using average wind speed data from TxId {data1.txid}");
-
-									// pesky null values from WLL when it is calm
-									if (cumulus.StationOptions.AvgSpeedMinutes == 1)
-										currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_1_min ?? 0);
-									else if (cumulus.StationOptions.AvgSpeedMinutes < 10)
-										currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_2_min ?? 0);
-									else
-										currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
-
 									// Only use wind data from current if we are not receiving broadcasts
 									if (broadcastStopped)
 									{
-										cumulus.LogDebugMessage($"WLL current: no broadcast data so using full wind data from TxId {data1.txid}");
+										cumulus.LogDebugMessage($"WLL current: no broadcast data so using wind data from TxId {data1.txid}");
+
+										// pesky null values from WLL when it is calm
+										double currentAvgWindSpd;
+										if (cumulus.StationOptions.AvgSpeedMinutes == 1)
+											currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_1_min ?? 0);
+										else if (cumulus.StationOptions.AvgSpeedMinutes < 10)
+											currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_2_min ?? 0);
+										else
+											currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
+
 
 										// pesky null values from WLL when it is calm
 										int wdir = data1.wind_dir_last ?? 0;
 										double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
 
+										var savCalc = cumulus.StationOptions.CalcuateAverageWindSpeed;
+										cumulus.StationOptions.CalcuateAverageWindSpeed = false;
+										CalcRecentMaxGust = false;
 										DoWind(wind, wdir, currentAvgWindSpd, dateTime);
+										cumulus.StationOptions.CalcuateAverageWindSpeed = savCalc;
+										CalcRecentMaxGust = true;
 									}
 
-									double gust;
-									int gustDir;
-									if (cumulus.StationOptions.PeakGustMinutes < 10)
+									if (cumulus.StationOptions.PeakGustMinutes >= 2)
 									{
-										gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
-										gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
-									}
-									else
-									{
-										gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min ?? 0);
-										gustDir = data1.wind_dir_at_hi_speed_last_10_min ?? 0;
+										var gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
+										var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
+										var gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+										var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);
 
-									}
-
-									ConvertWindMPHToUser(gust);
-									var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
-
-
-									if (checkWllGustValues)
-									{
-										// See if the current speed is higher than the current 10-min max
+										// See if the current speed is higher than the current max
 										// We can then update the figure before the next data packet is read
 
-										if (gustCal > RecentMaxGust)
+										cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
+
+										if (gustCal > HiLoToday.HighGust)
 										{
 											// Check for spikes, and set highs
-											if (CheckHighGust(gustCal, gustDir, dateTime))
+											if (CheckHighGust(gustCal, gustDirCal, dateTime))
 											{
 												cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-
-												// add to recent values so normal calculation includes this value
-												WindRecent[nextwind].Gust = gustCal; // use calibrated value
-												WindRecent[nextwind].Speed = cumulus.Calib.WindSpeed.Calibrate(currentAvgWindSpd);
-												WindRecent[nextwind].Timestamp = dateTime;
-												nextwind = (nextwind + 1) % MaxWindRecent;
-
-												if (broadcastStopped)
-												{
-													// if we are not receiving live broadcasts, then use current gust value)
-													RecentMaxGust = gustCal;
-												}
+												RecentMaxGust = gustCal;
 											}
-										}
-									}
-									else if (!CalcRecentMaxGust)
-									{
-										// Check for spikes, and set highs
-										if (CheckHighGust(gustCal, gustDir, dateTime) && broadcastStopped)
-										{
-											// if we are not receiving live broadcasts, then use current gust value
-											RecentMaxGust = gustCal;
 										}
 									}
 								}
@@ -1510,8 +1458,6 @@ namespace CumulusMX
 			//}
 			cumulus.NormalRunning = true;
 
-			// restore settings
-			cumulus.StationOptions.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
 			CalcRecentMaxGust = savedCalculatePeakGust;
 
 			StartLoop();
@@ -1548,7 +1494,6 @@ namespace CumulusMX
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
-				savedUseSpeedForAvgCalc = cumulus.StationOptions.UseSpeedForAvgCalc;
 				cumulus.StationOptions.UseSpeedForAvgCalc = true;
 
 				// same for gust values
@@ -1571,11 +1516,17 @@ namespace CumulusMX
 					GetWlHistoricData(worker);
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns && worker.CancellationPending == false);
+
+				// restore the setting
+				cumulus.StationOptions.UseSpeedForAvgCalc = false;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
 			}
+
+			// force a calculation of the current gust and average wind speed so we do not get a zero values at startup
+
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
@@ -2222,8 +2173,11 @@ namespace CumulusMX
 							{
 								if (data11.wind_speed_hi != null && data11.wind_speed_hi_dir != null && data11.wind_speed_avg != null)
 								{
+									var gust = ConvertWindMPHToUser((double) data11.wind_speed_hi);
+									var spd = ConvertWindMPHToUser((double) data11.wind_speed_avg);
+									var dir = data11.wind_speed_hi_dir ?? 0;
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
-									DoWind(ConvertWindMPHToUser((double)data11.wind_speed_hi), (int)data11.wind_speed_hi_dir, ConvertWindMPHToUser((double)data11.wind_speed_avg), recordTs);
+									DoWind(gust, dir, spd, recordTs);
 								}
 								else
 								{

@@ -51,7 +51,7 @@ namespace CumulusMX
 			if (mainStation)
 			{
 				// does not provide 10 min average wind speeds
-				cumulus.StationOptions.UseWind10MinAvg = true;
+				cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 
 				// GW1000 does not provide an interval gust value, it gives us a 2 minute high
 				// The speed is the average for that update

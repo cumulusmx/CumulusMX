@@ -29,7 +29,7 @@ namespace CumulusMX
 			cumulus.StationOptions.CalculatedWC = true;
 
 			// Tempest does not provide average wind speeds
-			cumulus.StationOptions.UseWind10MinAvg = true;
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
@@ -339,7 +339,7 @@ namespace CumulusMX
 
 						DoWind(ConvertWindMSToUser((double) rw.WindSpeed),
 							rw.WindDirection,
-							ConvertWindMSToUser((double) rw.WindSpeed),
+							-1,
 							rw.Timestamp);
 						UpdateStatusPanel(rw.Timestamp);
 

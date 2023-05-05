@@ -235,8 +235,6 @@ namespace CumulusMX
 		public PerformanceCounter UpTime;
 
 		private readonly WebTags webtags;
-		private readonly TokenParser tokenParser;
-		private readonly TokenParser realtimeTokenParser;
 
 		internal Lang Trans = new Lang();
 
@@ -580,7 +578,6 @@ namespace CumulusMX
 		private static readonly HttpClientHandler customHttpSecondsHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient customHttpSecondsClient = new HttpClient(customHttpSecondsHandler);
 		private bool updatingCustomHttpSeconds;
-		private readonly TokenParser customHttpSecondsTokenParser = new TokenParser();
 		internal Timer CustomHttpSecondsTimer;
 		internal bool CustomHttpSecondsEnabled;
 		internal string[] CustomHttpSecondsStrings = new string[10];
@@ -590,7 +587,6 @@ namespace CumulusMX
 		private static readonly HttpClientHandler customHttpMinutesHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient customHttpMinutesClient = new HttpClient(customHttpMinutesHandler);
 		private bool updatingCustomHttpMinutes;
-		private readonly TokenParser customHttpMinutesTokenParser = new TokenParser();
 		internal bool CustomHttpMinutesEnabled;
 		internal string[] CustomHttpMinutesStrings = new string[10];
 		internal int CustomHttpMinutesInterval;
@@ -600,7 +596,6 @@ namespace CumulusMX
 		private static readonly HttpClientHandler customHttpRolloverHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
 		private readonly HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
 		private bool updatingCustomHttpRollover;
-		private readonly TokenParser customHttpRolloverTokenParser = new TokenParser();
 		internal bool CustomHttpRolloverEnabled;
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
@@ -1350,10 +1345,6 @@ namespace CumulusMX
 			CustomHttpSecondsTimer.Elapsed += CustomHttpSecondsTimerTick;
 			CustomHttpSecondsTimer.AutoReset = true;
 
-			customHttpSecondsTokenParser.OnToken += TokenParserOnToken;
-			customHttpMinutesTokenParser.OnToken += TokenParserOnToken;
-			customHttpRolloverTokenParser.OnToken += TokenParserOnToken;
-
 			if (SmtpOptions.Enabled)
 			{
 				emailer = new EmailSender(this);
@@ -1626,12 +1617,6 @@ namespace CumulusMX
 
 				Api.dataEditor.SetWebTags(webtags);
 				Api.tagProcessor.SetWebTags(webtags);
-
-				tokenParser = new TokenParser();
-				tokenParser.OnToken += TokenParserOnToken;
-
-				realtimeTokenParser = new TokenParser();
-				realtimeTokenParser.OnToken += TokenParserOnToken;
 
 				RealtimeTimer.Interval = RealtimeInterval;
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
@@ -2916,8 +2901,9 @@ namespace CumulusMX
 					{
 						try
 						{
-							realtimeTokenParser.InputText = RealtimeParams;
-							var args = realtimeTokenParser.ToStringFromString();
+							var parser = new TokenParser(TokenParserOnToken);
+							parser.InputText = RealtimeParams;
+							var args = parser.ToStringFromString();
 							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
 							Utils.RunExternalTask(RealtimeProgram, args, false);
 						}
@@ -3162,7 +3148,7 @@ namespace CumulusMX
 							}
 							else if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
 							{
-								text = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, realtimeTokenParser, false);
+								text = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, false);
 							}
 
 							File.WriteAllText(dstFile, text);
@@ -3214,7 +3200,7 @@ namespace CumulusMX
 
 						if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
 						{
-							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, realtimeTokenParser, true, true);
+							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, true, true);
 						}
 
 						using (var dataStream = GenerateStreamFromString(data))
@@ -3380,7 +3366,10 @@ namespace CumulusMX
 				}
 
 				// wait for all the tasks to complete
-				Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				if (tasklist.Count > 0)
+				{
+					Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				}
 				LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count()} files uploaded");
 				tasklist.Clear();
 			}
@@ -3407,7 +3396,7 @@ namespace CumulusMX
 
 							if (ExtraFiles[i].process)
 							{
-								data = ProcessTemplateFile2String(uploadfile, realtimeTokenParser, false, ExtraFiles[i].UTF8);
+								data = ProcessTemplateFile2String(uploadfile, false, ExtraFiles[i].UTF8);
 							}
 
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
@@ -3461,7 +3450,7 @@ namespace CumulusMX
 					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
 					try
 					{
-						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, realtimeTokenParser, true);
+						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true);
 					}
 					catch (Exception ex)
 					{
@@ -3493,7 +3482,7 @@ namespace CumulusMX
 									LogDebugMessage($"Realtime[{cycle}]: Copying extra file[{i}] {uploadfile} to {remotefile}");
 									if (ExtraFiles[i].process)
 									{
-										ProcessTemplateFile(uploadfile, remotefile, realtimeTokenParser, false);
+										ProcessTemplateFile(uploadfile, remotefile, false);
 									}
 									else
 									{
@@ -4346,7 +4335,7 @@ namespace CumulusMX
 			AltitudeInFeet = ini.GetValue("Station", "AltitudeInFeet", false);
 
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
-			StationOptions.UseWind10MinAvg = ini.GetValue("Station", "Wind10MinAverage", false);
+			StationOptions.CalcuateAverageWindSpeed = ini.GetValue("Station", "Wind10MinAverage", false);
 			StationOptions.UseSpeedForAvgCalc = ini.GetValue("Station", "UseSpeedForAvgCalc", false);
 			StationOptions.UseSpeedForLatest = ini.GetValue("Station", "UseSpeedForLatest", false);
 			StationOptions.UseRainForIsRaining = ini.GetValue("Station", "UseRainForIsRaining", 1);  // 0=station, 1=rain sensor, 2=haptic sensor
@@ -4994,7 +4983,7 @@ namespace CumulusMX
 			GraphOptions.Colour.MinApp = ini.GetValue("GraphColours", "MinAppTempColour", "#a52a2a");
 			GraphOptions.Colour.MaxHumidex = ini.GetValue("GraphColours", "MaxHumidexColour", "#c7b72a");
 			GraphOptions.Colour.Pm2p5 = ini.GetValue("GraphColours", "Pm2p5Colour", "#6495ed");
-			GraphOptions.Colour.Pm10 = ini.GetValue("GraphColours", "Pm2p5Colour", "#008000");
+			GraphOptions.Colour.Pm10 = ini.GetValue("GraphColours", "Pm10Colour", "#008000");
 			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
 			var colours10 = colours16.Take(10).ToArray();
 			var colours8 = colours16.Take(8).ToArray();
@@ -5911,7 +5900,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "Altitude", Altitude);
 			ini.SetValue("Station", "AltitudeInFeet", AltitudeInFeet);
 			ini.SetValue("Station", "Humidity98Fix", StationOptions.Humidity98Fix);
-			ini.SetValue("Station", "Wind10MinAverage", StationOptions.UseWind10MinAvg);
+			ini.SetValue("Station", "Wind10MinAverage", StationOptions.CalcuateAverageWindSpeed);
 			ini.SetValue("Station", "UseSpeedForAvgCalc", StationOptions.UseSpeedForAvgCalc);
 			ini.SetValue("Station", "AvgBearingMinutes", StationOptions.AvgBearingMinutes);
 			ini.SetValue("Station", "AvgSpeedMinutes", StationOptions.AvgSpeedMinutes);
@@ -6792,7 +6781,7 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "MinAppTempColour", GraphOptions.Colour.MinApp);
 			ini.SetValue("GraphColours", "MaxHumidexColour", GraphOptions.Colour.MaxHumidex);
 			ini.SetValue("GraphColours", "Pm2p5Colour", GraphOptions.Colour.Pm2p5);
-			ini.SetValue("GraphColours", "Pm2p5Colour", GraphOptions.Colour.Pm10);
+			ini.SetValue("GraphColours", "Pm10Colour", GraphOptions.Colour.Pm10);
 			ini.SetValue("GraphColours", "ExtraTempColour", GraphOptions.Colour.ExtraTemp);
 			ini.SetValue("GraphColours", "ExtraHumColour", GraphOptions.Colour.ExtraHum);
 			ini.SetValue("GraphColours", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
@@ -8307,8 +8296,7 @@ namespace CumulusMX
 			sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
 			sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
 
-			var tokenParser = new TokenParser();
-			tokenParser.OnToken += TokenParserOnToken;
+			var tokenParser = new TokenParser(TokenParserOnToken);
 
 			// process the webtags in the content string
 			tokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
@@ -8366,8 +8354,7 @@ namespace CumulusMX
 			var sb = new StringBuilder(300);
 			sb.Append(datestring + ListSeparator);
 
-			var tokenParser = new TokenParser();
-			tokenParser.OnToken += TokenParserOnToken;
+			var tokenParser = new TokenParser(TokenParserOnToken);
 
 			// process the webtags in the content string
 			tokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
@@ -9087,8 +9074,9 @@ namespace CumulusMX
 			{
 				try
 				{
-					tokenParser.InputText = ProgramOptions.ShutdownTaskParams;
-					var args = tokenParser.ToStringFromString();
+					var parser = new TokenParser(TokenParserOnToken);
+					parser.InputText = ProgramOptions.ShutdownTaskParams;
+					var args = parser.ToStringFromString();
 					LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
 					Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
 				}
@@ -9135,7 +9123,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, tokenParser, true);
+							ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, true);
 						}
 					}
 				}
@@ -9167,7 +9155,7 @@ namespace CumulusMX
 								{
 									if (ExtraFiles[i].process)
 									{
-										var data = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+										var data = ProcessTemplateFile2String(uploadfile, false, ExtraFiles[i].UTF8);
 										File.WriteAllText(remotefile, data);
 									}
 									else
@@ -9196,8 +9184,9 @@ namespace CumulusMX
 				{
 					try
 					{
-						tokenParser.InputText = ExternalParams;
-						var args = tokenParser.ToStringFromString();
+						var parser = new TokenParser(TokenParserOnToken);
+						parser.InputText = ExternalParams;
+						var args = parser.ToStringFromString();
 						LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + args);
 						Utils.RunExternalTask(ExternalProgram, args, false);
 						LogDebugMessage("Interval: External program started");
@@ -9309,7 +9298,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								text = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true);
+								text = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true);
 							}
 
 							File.WriteAllText(dstfile, text);
@@ -9909,7 +9898,7 @@ namespace CumulusMX
 										{
 											if (ExtraFiles[i].process)
 											{
-												var data = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+												var data = ProcessTemplateFile2String(uploadfile, false, ExtraFiles[i].UTF8);
 												using (var strm = GenerateStreamFromString(data))
 												{
 													UploadStream(conn, remotefile, strm, -1);
@@ -9956,7 +9945,7 @@ namespace CumulusMX
 										}
 										else
 										{
-											data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true, true);
+											data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true, true);
 										}
 
 										using (var dataStream = GenerateStreamFromString(data))
@@ -10194,7 +10183,7 @@ namespace CumulusMX
 									{
 										if (ExtraFiles[i].process)
 										{
-											var data = ProcessTemplateFile2String(uploadfile, tokenParser, false, ExtraFiles[i].UTF8);
+											var data = ProcessTemplateFile2String(uploadfile, false, ExtraFiles[i].UTF8);
 											using (var strm = GenerateStreamFromString(data))
 											{
 												UploadStream(conn, remotefile, strm, -1);
@@ -10239,7 +10228,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, tokenParser, true, true);
+										data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true, true);
 									}
 
 									using (var dataStream = GenerateStreamFromString(data))
@@ -10863,7 +10852,10 @@ namespace CumulusMX
 					await Task.Delay(10);
 				}
 				// wait for all the EOD files to complete
-				Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				if (tasklist.Count > 0)
+				{
+					Task.WaitAll(tasklist.ToArray(), cancellationToken);
+				}
 				//LogDebugMessage($"PHP[Int]: EOD Graph files upload complete, {tasklist.Count()} files processed");
 
 				if (cancellationToken.IsCancellationRequested)
@@ -11697,10 +11689,10 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessTemplateFile(string template, string outputfile, TokenParser parser, bool useAppDir)
+		private void ProcessTemplateFile(string template, string outputfile, bool useAppDir)
 		{
 
-			var output = ProcessTemplateFile2String(template, parser, useAppDir);
+			var output = ProcessTemplateFile2String(template, useAppDir);
 
 			if (output != string.Empty)
 			{
@@ -11722,7 +11714,7 @@ namespace CumulusMX
 			}
 		}
 
-		private string ProcessTemplateFile2String(string template, TokenParser parser, bool useAppDir, bool utf8=false)
+		private string ProcessTemplateFile2String(string template, bool useAppDir, bool utf8=false)
 		{
 			string templatefile = template;
 
@@ -11733,6 +11725,7 @@ namespace CumulusMX
 
 			if (File.Exists(templatefile))
 			{
+				var parser = new TokenParser(TokenParserOnToken);
 				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
 				parser.SourceFile = templatefile;
 				return parser.ToString();
@@ -11755,8 +11748,7 @@ namespace CumulusMX
 
 			if (File.Exists(templatefile))
 			{
-				var parser = new TokenParser();
-				parser.OnToken += TokenParserOnToken;
+				var parser = new TokenParser(TokenParserOnToken);
 				parser.SourceFile = templatefile;
 				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
 				return await parser.ToStringAsync();
@@ -11977,8 +11969,7 @@ namespace CumulusMX
 			{
 				customMySqlSecondsUpdateInProgress = true;
 
-				var tokenParser = new TokenParser();
-				tokenParser.OnToken += TokenParserOnToken;
+				var tokenParser = new TokenParser(TokenParserOnToken);
 
 				for (var i = 0; i < 10; i++)
 				{
@@ -12019,8 +12010,7 @@ namespace CumulusMX
 			{
 				customMySqlMinutesUpdateInProgress = true;
 
-				var tokenParser = new TokenParser();
-				tokenParser.OnToken += TokenParserOnToken;
+				var tokenParser = new TokenParser(TokenParserOnToken);
 
 				for (var i = 0; i < 10; i++)
 				{
@@ -12053,8 +12043,7 @@ namespace CumulusMX
 			{
 				customMySqlRolloverUpdateInProgress = true;
 
-				var tokenParser = new TokenParser();
-				tokenParser.OnToken += TokenParserOnToken;
+				var tokenParser = new TokenParser(TokenParserOnToken);
 
 				for (var i = 0; i < 10; i++)
 				{
@@ -12094,8 +12083,7 @@ namespace CumulusMX
 			{
 				customMySqlTimedUpdateInProgress = true;
 
-				var tokenParser = new TokenParser();
-				tokenParser.OnToken += TokenParserOnToken;
+				var tokenParser = new TokenParser(TokenParserOnToken);
 
 				for (var i = 0; i < 10; i++)
 				{
@@ -12946,8 +12934,9 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
 						{
-							customHttpSecondsTokenParser.InputText = CustomHttpSecondsStrings[i];
-							var processedString = customHttpSecondsTokenParser.ToStringFromString();
+							var parser = new TokenParser(TokenParserOnToken);
+							parser.InputText = CustomHttpSecondsStrings[i];
+							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
 							var response = await customHttpSecondsClient.GetAsync(processedString);
 							response.EnsureSuccessStatusCode();
@@ -12982,8 +12971,9 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpMinutesStrings[i]))
 						{
-							customHttpMinutesTokenParser.InputText = CustomHttpMinutesStrings[i];
-							var processedString = customHttpMinutesTokenParser.ToStringFromString();
+							var parser = new TokenParser(TokenParserOnToken);
+							parser.InputText = CustomHttpMinutesStrings[i];
+							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
 							var response = await customHttpMinutesClient.GetAsync(processedString);
 							var responseBodyAsText = await response.Content.ReadAsStringAsync();
@@ -13013,8 +13003,9 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
 						{
-							customHttpRolloverTokenParser.InputText = CustomHttpRolloverStrings[i];
-							var processedString = customHttpRolloverTokenParser.ToStringFromString();
+							var parser = new TokenParser(TokenParserOnToken);
+							parser.InputText = CustomHttpRolloverStrings[i];
+							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
 							var response = await customHttpRolloverClient.GetAsync(processedString);
 							var responseBodyAsText = await response.Content.ReadAsStringAsync();
@@ -13464,7 +13455,7 @@ namespace CumulusMX
 	public class StationOptions
 	{
 		public bool UseZeroBearing { get; set; }
-		public bool UseWind10MinAvg { get; set; }
+		public bool CalcuateAverageWindSpeed { get; set; }
 		public bool UseSpeedForAvgCalc { get; set; }
 		public bool UseSpeedForLatest { get; set; }
 		public bool Humidity98Fix { get; set; }

@@ -908,7 +908,7 @@ namespace CumulusMX
 				    !string.IsNullOrEmpty(sl[WINDPOS]) && double.TryParse(sl[WINDPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					windspeed = varDbl;
-					DoWind(ConvertWindMSToUser(windspeed), varInt, ConvertWindMSToUser(windspeed), now);
+					DoWind(ConvertWindMSToUser(windspeed), varInt, -1, now);
 				}
 				else
 				{

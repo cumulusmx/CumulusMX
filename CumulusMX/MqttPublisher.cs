@@ -139,8 +139,7 @@ namespace CumulusMX
 			{
 				foreach (var feed in templateObj.topics)
 				{
-					var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
-					mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
+					var mqttTokenParser = new TokenParser(cumulus.TokenParserOnToken) { Encoding = new System.Text.UTF8Encoding(false) };
 					mqttTokenParser.InputText = feed.data;
 					string message = mqttTokenParser.ToStringFromString();
 

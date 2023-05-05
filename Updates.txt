@@ -1,7 +1,7 @@
 3.25.1 - b3242
 ——————————————
 New
-- None
+- Adds the station name to the main dashboard page and email subject
 
 Changed
 - None
@@ -10,6 +10,13 @@ Fixed
 - Tempest station now forces MX to calculate the average wind speed
 - Leaf wetness sensor name changes not being saved in Locale strings
 - Leaf wetness graph data empty for Davis sensors
+- Average wind speed calculation for Davis VP, Davis WLL (when calibration applied), Imet, Tempest, WS2300 stations
+- Another average wind speed calculation for Davis VP and Davis WLL (when broadcasts are not being received)
+- Dashboard Local Time block - again!
+- Zero length string error processing web tags
+- Graph colours for PM2.5 and PM10 getting set to the same value
+- Uncaught expection (TaskList has null entry) in PHP uploads
+
 
 
 3.25.0 - b3241
