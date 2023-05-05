@@ -182,7 +182,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage($"DownloadHttpFile: Error downloading from {url} to {filename}", ex);
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFile: Error downloading from {url} to {filename}");
 			}
 		}
 
@@ -208,7 +208,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage($"DownloadHttpFileString: Error downloading from {url}", ex);
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileString: Error downloading from {url}");
 				return null;
 			}
 		}
@@ -229,7 +229,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage($"DownloadHttpFileStream: Error downloading from {url}", ex);
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileStream: Error downloading from {url}");
 				return null;
 			}
 

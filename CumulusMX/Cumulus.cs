@@ -2918,7 +2918,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogExceptionMessage($"Realtime[{cycle}]: Error during update", ex);
+				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
 					RealtimeFTPReconnect();
@@ -3368,7 +3368,15 @@ namespace CumulusMX
 				// wait for all the tasks to complete
 				if (tasklist.Count > 0)
 				{
-					Task.WaitAll(tasklist.ToArray(), cancellationToken);
+					try
+					{
+						Task.WaitAll(tasklist.ToArray(), cancellationToken);
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, $"Realtime[{cycle}]: Eror waiting on upload tasks");
+					}
+
 				}
 				LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count()} files uploaded");
 				tasklist.Clear();
@@ -9534,7 +9542,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex) when (!(ex is TaskCanceledException))
 							{
-								LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}", ex);
+								LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
 							}
 							finally
 							{
@@ -9658,7 +9666,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
-							LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}", ex);
+							LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
 						}
 						finally
 						{
@@ -9720,7 +9728,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
-							LogExceptionMessage($"ProcessHttpFiles: Error uploading http file {downloadfile} to: {remotefile}", ex);
+							LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {downloadfile} to: {remotefile}");
 						}
 						finally
 						{
@@ -10369,7 +10377,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage($"PHP[Int]: Error uploading NOAA files", ex);
+							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA files");
 						}
 						finally
 						{
@@ -10418,7 +10426,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage($"PHP[Int]: Error uploading NOAA Year file", ex);
+							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA Year file");
 						}
 						finally
 						{
@@ -10505,7 +10513,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
-							LogExceptionMessage($"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}", ex);
+							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}");
 						}
 						finally
 						{
@@ -10593,7 +10601,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogExceptionMessage($"PHP[Int]: Error uploading file {item.RemoteFileName}", ex);
+								LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
 							}
 							finally
 							{
@@ -10682,7 +10690,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage($"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]", ex);
+							LogExceptionMessage(ex, $"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]");
 						}
 						finally
 						{
@@ -10758,7 +10766,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage($"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]", ex);
+							LogExceptionMessage(ex, $"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]");
 						}
 						finally
 						{
@@ -10824,7 +10832,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage("PHP[Int]: Error uploading moon image", ex);
+							LogExceptionMessage(ex, "PHP[Int]: Error uploading moon image");
 						}
 						finally
 						{
@@ -10854,7 +10862,14 @@ namespace CumulusMX
 				// wait for all the EOD files to complete
 				if (tasklist.Count > 0)
 				{
-					Task.WaitAll(tasklist.ToArray(), cancellationToken);
+					try
+					{
+						Task.WaitAll(tasklist.ToArray(), cancellationToken);
+					}
+					catch(Exception ex)
+					{
+						LogExceptionMessage(ex, "PHP[Int]: Eror waiting on upload tasks");
+					}
 				}
 				//LogDebugMessage($"PHP[Int]: EOD Graph files upload complete, {tasklist.Count()} files processed");
 
@@ -11316,7 +11331,7 @@ namespace CumulusMX
 				}
 				catch (System.Net.Http.HttpRequestException ex)
 				{
-					LogExceptionMessage($"PHP[{cycleStr}]: Error uploading to {remotefile}", ex);
+					LogExceptionMessage(ex, $"PHP[{cycleStr}]: Error uploading to {remotefile}");
 					retry++;
 					if (retry < 2)
 					{
@@ -11325,7 +11340,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogExceptionMessage($"PHP[{cycleStr}]: Error uploading to {remotefile}", ex);
+					LogExceptionMessage(ex, $"PHP[{cycleStr}]: Error uploading to {remotefile}");
 					retry = 99;
 				}
 				finally
@@ -11415,7 +11430,7 @@ namespace CumulusMX
 			Program.svcTextListener.Flush();
 		}
 
-		public void LogExceptionMessage(string message, Exception ex)
+		public void LogExceptionMessage(Exception ex, string message)
 		{
 			LogMessage(message);
 			LogMessage(message + " - " + Utils.ExceptionToString(ex));
@@ -12098,7 +12113,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage($"CustomSqlTimed[{i}]: Error excuting: {MySqlSettings.CustomTimed.Commands[i]} ", ex);
+						LogExceptionMessage(ex, $"CustomSqlTimed[{i}]: Error excuting: {MySqlSettings.CustomTimed.Commands[i]} ");
 					}
 				}
 				customMySqlTimedUpdateInProgress = false;
@@ -12918,7 +12933,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogExceptionMessage("Failed to get the latest build version from GitHub", ex);
+				LogExceptionMessage(ex, "Failed to get the latest build version from GitHub");
 			}
 		}
 
@@ -12947,7 +12962,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage("CustomHttpSeconds: Error occurred", ex);
+						LogExceptionMessage(ex, "CustomHttpSeconds: Error occurred");
 					}
 				}
 
@@ -12983,7 +12998,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage("CustomHttpMinutes: Error ocurred", ex);
+						LogExceptionMessage(ex, "CustomHttpMinutes: Error ocurred");
 					}
 				}
 
@@ -13015,7 +13030,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage("CustomHttpRollover: Error occurred", ex);
+						LogExceptionMessage(ex, "CustomHttpRollover: Error occurred");
 					}
 				}
 
