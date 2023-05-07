@@ -117,7 +117,6 @@ namespace CumulusMX
 		public static void UpdateMQTTfeed(string feedType)
 		{
 			var template = "mqtt/";
-			bool useAltResult = false;
 
 			if (feedType == "Interval")
 			{
@@ -143,7 +142,7 @@ namespace CumulusMX
 			{
 				foreach (var feed in templateObj.topics)
 				{
-					useAltResult = false;
+					bool useAltResult = false;
 					var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
 
 					if ((feedType == "DataUpdate") && (feed.doNotTriggerOnTags != null))
@@ -177,7 +176,6 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.ToString());
 				cumulus.LogMessage($"UpdateMQTTfeed: Error process the template file [{template}], error = {ex.Message}");
 			}
 		}
