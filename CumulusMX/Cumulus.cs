@@ -9653,7 +9653,6 @@ namespace CumulusMX
 					{
 						try
 						{
-
 							if (cancellationToken.IsCancellationRequested)
 								return false;
 
