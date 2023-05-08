@@ -21,9 +21,6 @@ namespace CumulusMX
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
 
-		private static readonly HttpClientHandler httpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private static readonly HttpClient httpClient = new HttpClient(httpHandler);
-
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
@@ -33,18 +30,7 @@ namespace CumulusMX
 			cumulus = cuml;
 			station = stn;
 
-			// Configure a web proxy if required
-			if (!string.IsNullOrEmpty(cumulus.HTTPProxyName))
-			{
-				httpHandler.Proxy = new WebProxy(cumulus.HTTPProxyName, cumulus.HTTPProxyPort);
-				httpHandler.UseProxy = true;
-				if (!string.IsNullOrEmpty(cumulus.HTTPProxyUser))
-				{
-					httpHandler.Credentials = new NetworkCredential(cumulus.HTTPProxyUser, cumulus.HTTPProxyPassword);
-				}
-			}
-
-			httpClient.DefaultRequestHeaders.ConnectionClose = true;
+			//httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
 			// Let's decode the Unix ts to DateTime
 			JsConfig.Init(new Config {
@@ -203,7 +189,7 @@ namespace CumulusMX
 				do
 				{
 					// we want to do this synchronously, so .Result
-					using (HttpResponseMessage response = httpClient.GetAsync(url).Result)
+					using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
 					{
 						responseBody = response.Content.ReadAsStringAsync().Result;
 						responseCode = (int)response.StatusCode;

@@ -33,9 +33,6 @@ namespace CumulusMX
 		private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
-		private static readonly HttpClientHandler HistoricHttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient wlHttpClient = new HttpClient(HistoricHttpHandler);
-		private readonly HttpClient dogsBodyClient = new HttpClient();
 		private bool broadcastReceived;
 		private bool broadcastStopped;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
@@ -93,10 +90,10 @@ namespace CumulusMX
 			tmrBroadcastWatchdog = new System.Timers.Timer();
 			tmrHealth = new System.Timers.Timer();
 
-			wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
+			//wlHttpClient.Timeout = TimeSpan.FromSeconds(20); // 20 seconds for internet queries
 
 			// used for kicking real time, and getting current conditions
-			dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
+			//dogsBodyClient.Timeout = TimeSpan.FromSeconds(10); // 10 seconds for local queries
 			//dogsBodyClient.DefaultRequestHeaders.Add("Connection", "keep-alive"); - No persistent connections on the WLL
 
 			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
@@ -434,7 +431,7 @@ namespace CumulusMX
 
 						string responseBody;
 
-						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlRealtime))
+						using (var response = await Cumulus.MyHttpClient.GetAsync(urlRealtime))
 						{
 							responseBody = await response.Content.ReadAsStringAsync();
 							responseBody = responseBody.TrimEnd('\r', '\n');
@@ -512,7 +509,7 @@ namespace CumulusMX
 					try
 					{
 						string responseBody;
-						using (HttpResponseMessage response = await dogsBodyClient.GetAsync(urlCurrent))
+						using (var response = await Cumulus.MyHttpClient.GetAsync(urlCurrent))
 						{
 							response.EnsureSuccessStatusCode();
 							responseBody = await response.Content.ReadAsStringAsync();
@@ -1500,17 +1497,6 @@ namespace CumulusMX
 				savedCalculatePeakGust = CalcRecentMaxGust;
 				CalcRecentMaxGust = true;
 
-				// Configure a web proxy if required
-				if (!string.IsNullOrEmpty(cumulus.HTTPProxyName))
-				{
-					HistoricHttpHandler.Proxy = new WebProxy(cumulus.HTTPProxyName, cumulus.HTTPProxyPort);
-					HistoricHttpHandler.UseProxy = true;
-					if (!string.IsNullOrEmpty(cumulus.HTTPProxyUser))
-					{
-						HistoricHttpHandler.Credentials = new NetworkCredential(cumulus.HTTPProxyUser, cumulus.HTTPProxyPassword);
-					}
-				}
-
 				do
 				{
 					GetWlHistoricData(worker);
@@ -1630,7 +1616,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -2970,7 +2956,7 @@ namespace CumulusMX
 				string responseBody;
 				int responseCode;
 
-				using (HttpResponseMessage response = wlHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(historicUrl.ToString()).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -3148,7 +3134,7 @@ namespace CumulusMX
 				string responseBody;
 				int responseCode;
 
-				using (HttpResponseMessage response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(stationsUrl.ToString()).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -3263,7 +3249,7 @@ namespace CumulusMX
 				string responseBody;
 				int responseCode;
 
-				using (HttpResponseMessage response = wlHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(stationsUrl.ToString()).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -3373,7 +3359,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("GetSystemStatus: Getting WeatherLink.com system status");
 
 				// we want to do this synchronously, so .Result
-				using (HttpResponseMessage response = wlHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;

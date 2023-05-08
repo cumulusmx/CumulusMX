@@ -552,31 +552,10 @@ namespace CumulusMX
 		//public WebServer httpServer;
 		public MxWebSocket WebSock;
 
-
-		private static readonly HttpClientHandler WUhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient WUhttpClient = new HttpClient(WUhttpHandler);
-
-		private static readonly HttpClientHandler WindyhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient WindyhttpClient = new HttpClient(WindyhttpHandler);
-
-		private static readonly HttpClientHandler WindGuruhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient WindGuruhttpClient = new HttpClient(WindGuruhttpHandler);
-
-		private static readonly HttpClientHandler AwekashttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient AwekashttpClient = new HttpClient(AwekashttpHandler);
-
-		private static readonly HttpClientHandler WCloudhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient WCloudhttpClient = new HttpClient(WCloudhttpHandler);
-
-		private static readonly HttpClientHandler PWShttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient PWShttpClient = new HttpClient(PWShttpHandler);
-
-		private static readonly HttpClientHandler WOWhttpHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient WOWhttpClient = new HttpClient(WOWhttpHandler);
+		public static readonly HttpClient MyHttpClient = new HttpClient();
+		public static readonly HttpClientHandler MyHttpHandler = new HttpClientHandler();
 
 		// Custom HTTP - seconds
-		private static readonly HttpClientHandler customHttpSecondsHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient customHttpSecondsClient = new HttpClient(customHttpSecondsHandler);
 		private bool updatingCustomHttpSeconds;
 		internal Timer CustomHttpSecondsTimer;
 		internal bool CustomHttpSecondsEnabled;
@@ -584,8 +563,6 @@ namespace CumulusMX
 		internal int CustomHttpSecondsInterval;
 
 		// Custom HTTP - minutes
-		private static readonly HttpClientHandler customHttpMinutesHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient customHttpMinutesClient = new HttpClient(customHttpMinutesHandler);
 		private bool updatingCustomHttpMinutes;
 		internal bool CustomHttpMinutesEnabled;
 		internal string[] CustomHttpMinutesStrings = new string[10];
@@ -593,8 +570,6 @@ namespace CumulusMX
 		internal int CustomHttpMinutesIntervalIndex;
 
 		// Custom HTTP - roll-over
-		private static readonly HttpClientHandler customHttpRolloverHandler = new HttpClientHandler() { SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13 };
-		private readonly HttpClient customHttpRolloverClient = new HttpClient(customHttpRolloverHandler);
 		private bool updatingCustomHttpRollover;
 		internal bool CustomHttpRolloverEnabled;
 		internal string[] CustomHttpRolloverStrings = new string[10];
@@ -602,7 +577,6 @@ namespace CumulusMX
 		// PHP upload HTTP
 		internal HttpClientHandler phpUploadHttpHandler;
 		internal HttpClient phpUploadHttpClient;
-		internal HttpClient phpRealtimeUploadHttpClient;
 
 		public Thread ftpThread;
 		public Thread MySqlCatchupThread;
@@ -1329,13 +1303,16 @@ namespace CumulusMX
 
 			ReadStringsFile();
 
+			MyHttpClient.Timeout = new TimeSpan(0, 0, 15);  // 15 second timeout on all http calls
+
+			SetUpHttpProxy();
+
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
 				SetupPhpUploadClients();
 				TestPhpUploadCompression();
 			}
 
-			SetUpHttpProxy();
 
 			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
 			CustomMysqlSecondsTimer.Elapsed += CustomMysqlSecondsTimerTick;
@@ -1681,44 +1658,18 @@ namespace CumulusMX
 		{
 			if (!string.IsNullOrEmpty(HTTPProxyName))
 			{
-				WUhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				WUhttpHandler.UseProxy = true;
+				var proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
+				MyHttpHandler.Proxy = proxy;
+				MyHttpHandler.UseProxy = true;
 
-				PWShttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				PWShttpHandler.UseProxy = true;
-
-				WOWhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				WOWhttpHandler.UseProxy = true;
-
-				AwekashttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				AwekashttpHandler.UseProxy = true;
-
-				WindyhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				WindyhttpHandler.UseProxy = true;
-
-				WCloudhttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				WCloudhttpHandler.UseProxy = true;
-
-				customHttpSecondsHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				customHttpSecondsHandler.UseProxy = true;
-
-				customHttpMinutesHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				customHttpMinutesHandler.UseProxy = true;
-
-				customHttpRolloverHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				customHttpRolloverHandler.UseProxy = true;
+				phpUploadHttpHandler.Proxy = proxy;
+				phpUploadHttpHandler.UseProxy = true;
 
 				if (!string.IsNullOrEmpty(HTTPProxyUser))
 				{
-					WUhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					PWShttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					WOWhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					AwekashttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					WindyhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					WCloudhttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					customHttpSecondsHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					customHttpMinutesHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					customHttpRolloverHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					var creds = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
+					MyHttpHandler.Credentials = creds;
+					phpUploadHttpHandler.Credentials = creds;
 				}
 			}
 		}
@@ -1733,25 +1684,12 @@ namespace CumulusMX
 					return FtpOptions.PhpIgnoreCertErrors ? true : errors == System.Net.Security.SslPolicyErrors.None;
 				},
 				MaxConnectionsPerServer = 50,
-				AllowAutoRedirect = false,
-				SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
+				AllowAutoRedirect = false
 			};
 
-			if (!string.IsNullOrEmpty(HTTPProxyName))
-			{
-				phpUploadHttpHandler.Proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				phpUploadHttpHandler.UseProxy = true;
-				if (!string.IsNullOrEmpty(HTTPProxyUser))
-				{
-					phpUploadHttpHandler.Credentials = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-				}
-			}
-
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
-			phpRealtimeUploadHttpClient = new HttpClient(phpUploadHttpHandler);
 
 			phpUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
-			phpRealtimeUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
 		}
 
 
@@ -2294,25 +2232,27 @@ namespace CumulusMX
 
 			try
 			{
-				HttpResponseMessage response = await WUhttpClient.GetAsync(URL);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				if (response.StatusCode != HttpStatusCode.OK)
+				using (var response = await MyHttpClient.GetAsync(URL))
 				{
-					// Flag the error immediately if no rapid fire
-					// Flag error after every 12 rapid fire failures (1 minute)
-					Wund.ErrorFlagCount++;
-					if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					if (response.StatusCode != HttpStatusCode.OK)
 					{
-						LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
-						HttpUploadAlarm.LastError = "Wunderground: HTTP response - " + response.StatusCode;
-						HttpUploadAlarm.Triggered = true;
+						// Flag the error immediately if no rapid fire
+						// Flag error after every 12 rapid fire failures (1 minute)
+						Wund.ErrorFlagCount++;
+						if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
+						{
+							LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
+							HttpUploadAlarm.LastError = "Wunderground: HTTP response - " + response.StatusCode;
+							HttpUploadAlarm.Triggered = true;
+							Wund.ErrorFlagCount = 0;
+						}
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
 						Wund.ErrorFlagCount = 0;
 					}
-				}
-				else
-				{
-					HttpUploadAlarm.Triggered = false;
-					Wund.ErrorFlagCount = 0;
 				}
 			}
 			catch (Exception ex)
@@ -2345,19 +2285,20 @@ namespace CumulusMX
 
 			try
 			{
-				WindyhttpClient.DefaultRequestHeaders.ConnectionClose = true;
-				HttpResponseMessage response = await WindyhttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
-				if (response.StatusCode != HttpStatusCode.OK)
+				using (var response = await MyHttpClient.GetAsync(url))
 				{
-					LogMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
-					HttpUploadAlarm.LastError = "Windy: HTTP response - " + response.StatusCode;
-					HttpUploadAlarm.Triggered = true;
-				}
-				else
-				{
-					HttpUploadAlarm.Triggered = false;
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						LogMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
+						HttpUploadAlarm.LastError = "Windy: HTTP response - " + response.StatusCode;
+						HttpUploadAlarm.Triggered = true;
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
+					}
 				}
 			}
 			catch (Exception ex)
@@ -2390,18 +2331,20 @@ namespace CumulusMX
 
 			try
 			{
-				HttpResponseMessage response = await WindGuruhttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
-				if (response.StatusCode != HttpStatusCode.OK)
+				using (var response = await MyHttpClient.GetAsync(url))
 				{
-					LogMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
-					HttpUploadAlarm.LastError = "WindGuru: HTTP response - " + response.StatusCode;
-					HttpUploadAlarm.Triggered = true;
-				}
-				else
-				{
-					HttpUploadAlarm.Triggered = false;
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
+					if (response.StatusCode != HttpStatusCode.OK)
+					{
+						LogMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
+						HttpUploadAlarm.LastError = "WindGuru: HTTP response - " + response.StatusCode;
+						HttpUploadAlarm.Triggered = true;
+					}
+					else
+					{
+						HttpUploadAlarm.Triggered = false;
+					}
 				}
 			}
 			catch (Exception ex)
@@ -2438,7 +2381,7 @@ namespace CumulusMX
 
 			try
 			{
-				using (HttpResponseMessage response = await AwekashttpClient.GetAsync(url))
+				using (var response = await MyHttpClient.GetAsync(url))
 				{
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
@@ -2589,45 +2532,47 @@ namespace CumulusMX
 
 			try
 			{
-				HttpResponseMessage response = await WCloudhttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				var msg = "";
-				switch ((int)response.StatusCode)
+				using (var response = await MyHttpClient.GetAsync(url))
 				{
-					case 200:
-						msg = "Success";
-						HttpUploadAlarm.Triggered = false;
-						break;
-					case 400:
-						msg = "Bad request";
-						HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
-						HttpUploadAlarm.Triggered = true;
-						break;
-					case 401:
-						msg = "Incorrect WID or Key";
-						HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
-						HttpUploadAlarm.Triggered = true;
-						break;
-					case 429:
-						msg = "Too many requests";
-						HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
-						HttpUploadAlarm.Triggered = true;
-						break;
-					case 500:
-						msg = "Server error";
-						HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
-						HttpUploadAlarm.Triggered = true;
-						break;
-					default:
-						msg = "Unknown error";
-						HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
-						HttpUploadAlarm.Triggered = true;
-						break;
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					var msg = "";
+					switch ((int) response.StatusCode)
+					{
+						case 200:
+							msg = "Success";
+							HttpUploadAlarm.Triggered = false;
+							break;
+						case 400:
+							msg = "Bad request";
+							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.Triggered = true;
+							break;
+						case 401:
+							msg = "Incorrect WID or Key";
+							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.Triggered = true;
+							break;
+						case 429:
+							msg = "Too many requests";
+							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.Triggered = true;
+							break;
+						case 500:
+							msg = "Server error";
+							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.Triggered = true;
+							break;
+						default:
+							msg = "Unknown error";
+							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.Triggered = true;
+							break;
+					}
+					if ((int) response.StatusCode == 200)
+						LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
+					else
+						LogMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
 				}
-				if ((int)response.StatusCode == 200)
-					LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
-				else
-					LogMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
 			}
 			catch (Exception ex)
 			{
@@ -2661,10 +2606,9 @@ namespace CumulusMX
 
 			try
 			{
-				using (var client = new HttpClient())
+				var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+				using (var response = await MyHttpClient.PostAsync(url, data))
 				{
-					var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-					HttpResponseMessage response = await client.PostAsync(url, data);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 					LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
@@ -2699,9 +2643,8 @@ namespace CumulusMX
 			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
 			try
 			{
-				using (var client = new HttpClient())
+				using (var response = MyHttpClient.GetAsync(url).Result)
 				{
-					HttpResponseMessage response = client.GetAsync(url).Result;
 					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
 					LogDataMessage("OpenWeatherMap: Get Stations Response: " + response.StatusCode + ": " + responseBodyAsText);
 
@@ -2733,17 +2676,15 @@ namespace CumulusMX
 				sb.Append($"\"name\":\"{LocationName}\",");
 				sb.Append($"\"latitude\":{Latitude.ToString(invC)},");
 				sb.Append($"\"longitude\":{Longitude.ToString(invC)},");
-				sb.Append($"\"altitude\":{(int)station.AltitudeM(Altitude)}}}");
+				sb.Append($"\"altitude\":{(int) station.AltitudeM(Altitude)}}}");
 
 				LogMessage($"OpenWeatherMap: Creating new station");
 				LogMessage($"OpenWeatherMap: - {sb}");
 
+				var data = new StringContent(sb.ToString(), Encoding.UTF8, "application/json");
 
-				using (var client = new HttpClient())
+				using (var response = MyHttpClient.PostAsync(url, data).Result)
 				{
-					var data = new StringContent(sb.ToString(), Encoding.UTF8, "application/json");
-
-					HttpResponseMessage response = client.PostAsync(url, data).Result;
 					var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
 					var status = response.StatusCode == HttpStatusCode.Created ? "OK" : "Error";  // Returns a 201 response for OK
 					LogDebugMessage($"OpenWeatherMap: Create station response code = {status} - {response.StatusCode}");
@@ -3218,14 +3159,15 @@ namespace CumulusMX
 					}
 					else // PHP
 					{
+
 						try
 						{
 #if DEBUG
 							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-							uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-							uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 #endif
 						}
 						catch (OperationCanceledException)
@@ -3233,15 +3175,11 @@ namespace CumulusMX
 							return;
 						}
 
-
 						Interlocked.Increment(ref taskCount);
 
 						var idx = i;
 						tasklist.Add(Task.Run(async () =>
 						{
-							if (cancellationToken.IsCancellationRequested)
-								return false;
-
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
 							{
@@ -3255,7 +3193,7 @@ namespace CumulusMX
 
 							try
 							{
-								_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
+								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
 								// no realtime files are incremental, so no need to update LastDataTime
 							}
 							finally
@@ -3286,9 +3224,8 @@ namespace CumulusMX
 
 				ExtraFiles.Where(x => x.local.Length > 0 && x.remote.Length > 0 && x.realtime && x.FTP)
 					.ToList()
-					.ForEach(async item =>
+					.ForEach(item =>
 					{
-						Interlocked.Increment(ref taskCount);
 
 						var uploadfile = item.local;
 						var remotefile = item.remote;
@@ -3305,10 +3242,10 @@ namespace CumulusMX
 						{
 #if DEBUG
 							LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 							LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 #endif
 						}
 						catch (OperationCanceledException)
@@ -3316,6 +3253,7 @@ namespace CumulusMX
 							return;
 						}
 
+						Interlocked.Increment(ref taskCount);
 
 						tasklist.Add(Task.Run(async () =>
 						{
@@ -3333,11 +3271,11 @@ namespace CumulusMX
 								{
 									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 
-									_ = await UploadString(phpRealtimeUploadHttpClient, false, string.Empty, data, remotefile, cycle, item.binary, item.UTF8);
+									_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, remotefile, cycle, item.binary, item.UTF8);
 								}
 								else
 								{
-									_ = await UploadFile(phpRealtimeUploadHttpClient, uploadfile, remotefile, cycle, item.binary, item.UTF8);
+									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle, item.binary, item.UTF8);
 								}
 								// no extra files are incremental for now, so no need to update LastDataTime
 							}
@@ -9437,18 +9375,17 @@ namespace CumulusMX
 			if (localOnly.Count() > 0)
 			{
 				LogDebugMessage("ProcessHttpFiles: Creating local http files");
-				localOnly
-				.ToList()
-				.ForEach(async item =>
+				foreach (var item in localOnly)
 				{
-					var downloadfile = item.Url;
-					var remotefile = item.Remote;
+					_ = Task.Run(async () =>
+					{
+						// just create a file from the download
+						await httpFiles.DownloadHttpFile(item.Url, item.Remote);
 
-					// just create a file from the download
-					await httpFiles.DownloadHttpFile(item.Url, item.Remote);
+						item.SetNextInterval(now);
+					});
+				};
 
-					item.SetNextInterval(now);
-				});
 				LogDebugMessage("ProcessHttpFiles: Done creating local http file tasks, not waiting for them to complete");
 			}
 
@@ -9456,6 +9393,9 @@ namespace CumulusMX
 			var uploads = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload);
 			if (uploads.Count() == 0)
 			{
+#if DEBUG
+				LogDebugMessage("ProcessHttpFiles: No files to upload at this time");
+#endif
 				return;
 			}
 
@@ -9523,9 +9463,7 @@ namespace CumulusMX
 							return;
 						}
 
-						uploads
-						.ToList()
-						.ForEach(item =>
+						foreach (var item in uploads)
 						{
 							Stream strm = null;
 
@@ -9535,7 +9473,7 @@ namespace CumulusMX
 								if (cancellationToken.IsCancellationRequested)
 									return;
 
-								strm = httpFiles.DownloadHttpFileStream(item.Url);
+								strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
 								UploadStream(conn, item.Remote, strm, -1);
 
 								item.SetNextInterval(now);
@@ -9549,7 +9487,7 @@ namespace CumulusMX
 								if (null != strm)
 									strm.Dispose();
 							}
-						});
+						};
 
 						LogDebugMessage("ProcessHttpFiles: Done uploading http files");
 
@@ -9647,9 +9585,7 @@ namespace CumulusMX
 
 					LogDebugMessage("ProcessHttpFiles: Uploading http files");
 
-					uploads
-					.ToList()
-					.ForEach(item =>
+					foreach (var item in uploads)
 					{
 						Stream strm = null;
 
@@ -9659,7 +9595,7 @@ namespace CumulusMX
 							if (cancellationToken.IsCancellationRequested)
 								return;
 
-							strm = httpFiles.DownloadHttpFileStream(item.Url);
+							strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
 							UploadStream(conn, item.Remote, strm, -1);
 
 							item.SetNextInterval(now);
@@ -9673,7 +9609,7 @@ namespace CumulusMX
 							if (null != strm)
 								strm.Dispose();
 						}
-					});
+					};
 
 					LogDebugMessage("ProcessHttpFiles: Done uploading http files");
 
@@ -9698,7 +9634,7 @@ namespace CumulusMX
 				HttpFilesConfig
 				.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload)
 				.ToList()
-				.ForEach(async item =>
+				.ForEach(item =>
 				{
 					Interlocked.Increment(ref taskCount);
 
@@ -9707,10 +9643,10 @@ namespace CumulusMX
 
 #if DEBUG
 					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 #endif
 
 					tasklist.Add(Task.Run(async () =>
@@ -9722,7 +9658,7 @@ namespace CumulusMX
 								return false;
 
 							var content = await httpFiles.DownloadHttpFileBase64String(item.Url);
-							_ = await UploadString(phpUploadHttpClient, false, null, content, item.Remote, -1, true);
+							await UploadString(phpUploadHttpClient, false, null, content, item.Remote, -1, true);
 
 							item.SetNextInterval(now);
 						}
@@ -9742,7 +9678,6 @@ namespace CumulusMX
 					}, cancellationToken));
 
 					Interlocked.Increment(ref runningTaskCount);
-
 				});
 
 				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
@@ -10347,21 +10282,30 @@ namespace CumulusMX
 				if (NOAAconf.NeedFtp)
 				{
 					// upload NOAA Monthly report
+					try
+					{
+#if DEBUG
+						LogDebugMessage($"PHP[Int]: NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						LogDebugMessage($"PHP[Int]: NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
+
 					Interlocked.Increment(ref taskCount);
 
 					tasklist.Add(Task.Run(async () =>
 					{
+						if (cancellationToken.IsCancellationRequested)
+							return false;
+
 						try
 						{
-#if DEBUG
-							LogDebugMessage($"PHP[Int]: NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-							LogDebugMessage($"PHP[Int]: NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-#else
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-#endif
-							if (cancellationToken.IsCancellationRequested)
-								return false;
 
 							LogDebugMessage("PHP[Int]: Uploading NOAA Month report");
 
@@ -10370,10 +10314,6 @@ namespace CumulusMX
 
 							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
 
-						}
-						catch (OperationCanceledException)
-						{
-							return false;
 						}
 						catch (Exception ex)
 						{
@@ -10396,17 +10336,25 @@ namespace CumulusMX
 					// upload NOAA Annual report
 					Interlocked.Increment(ref taskCount);
 
+					try
+					{
+#if DEBUG
+						LogDebugMessage($"PHP[Int]: NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						LogDebugMessage($"PHP[Int]: NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
-#if DEBUG
-							LogDebugMessage($"PHP[Int]: NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-							LogDebugMessage($"PHP[Int]: NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-#else
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-#endif
 							if (cancellationToken.IsCancellationRequested)
 								return false;
 
@@ -10454,7 +10402,7 @@ namespace CumulusMX
 					(EODfilesNeedFTP || (EODfilesNeedFTP == x.endofday)) &&
 					x.FTP)
 				.ToList()
-				.ForEach(async item =>
+				.ForEach(item =>
 				{
 					Interlocked.Increment(ref taskCount);
 
@@ -10467,13 +10415,14 @@ namespace CumulusMX
 						return;
 					}
 
-					try {
+					try
+					{
 #if DEBUG
-					LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-					LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -10555,68 +10504,68 @@ namespace CumulusMX
 				StdWebFiles
 				.Where(x => x.FTP)
 				.ToList()
-				.ForEach(async item =>
+				.ForEach(item =>
+				{
+					Interlocked.Increment(ref taskCount);
+					try
 					{
-						Interlocked.Increment(ref taskCount);
-						try
-						{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 #endif
-						}
-						catch (OperationCanceledException)
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
+
+
+					tasklist.Add(Task.Run(async () =>
+					{
+						try
 						{
-							return;
+							if (cancellationToken.IsCancellationRequested)
+								return false;
+
+							string data;
+							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + item.RemoteFileName);
+
+							if (item.LocalFileName == "wxnow.txt")
+							{
+								data = station.CreateWxnowFileString();
+							}
+							else
+							{
+								data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
+							}
+
+							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, -1, false, true))
+							{
+								// No standard files are "one offs" at present
+								//StdWebFiles[i].FtpRequired = false;
+							}
 						}
-
-
-						tasklist.Add(Task.Run(async () =>
+						catch (Exception ex)
 						{
-							try
-							{
-								if (cancellationToken.IsCancellationRequested)
-									return false;
-
-								string data;
-								LogDebugMessage("PHP[Int]: Uploading standard Data file: " + item.RemoteFileName);
-
-								if (item.LocalFileName == "wxnow.txt")
-								{
-									data = station.CreateWxnowFileString();
-								}
-								else
-								{
-									data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
-								}
-
-								if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, -1, false, true))
-								{
-									// No standard files are "one offs" at present
-									//StdWebFiles[i].FtpRequired = false;
-								}
-							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
-							}
-							finally
-							{
-								uploadCountLimitSemaphoreSlim.Release();
+							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
+						}
+						finally
+						{
+							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
-							}
+						}
 
-							// no void return which cannot be tracked
-							return true;
-						}, cancellationToken));
+						// no void return which cannot be tracked
+						return true;
+					}, cancellationToken));
 
-						Interlocked.Increment(ref runningTaskCount);
-					});
+					Interlocked.Increment(ref runningTaskCount);
+				});
 
 				// wait for all the standard files to start
 				//while (runningTaskCount < taskCount)
@@ -10643,16 +10592,16 @@ namespace CumulusMX
 				GraphDataFiles
 				.Where(x => x.FTP && x.FtpRequired)
 				.ToList()
-				.ForEach(async item =>
+				.ForEach(item =>
 				{
 					Interlocked.Increment(ref taskCount);
 					try {
 #if DEBUG
-					LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-					LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -10728,7 +10677,7 @@ namespace CumulusMX
 				GraphDataEodFiles
 				.Where(x => x.FTP && x.FtpRequired)
 				.ToList()
-				.ForEach(async item =>
+				.ForEach(item =>
 				{
 					Interlocked.Increment(ref taskCount);
 
@@ -10736,10 +10685,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -10800,10 +10749,8 @@ namespace CumulusMX
 				{
 					Interlocked.Increment(ref taskCount);
 
-					tasklist.Add(Task.Run(async () =>
+					try
 					{
-						try
-						{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
@@ -10812,16 +10759,16 @@ namespace CumulusMX
 						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 
 #endif
-						}
-						catch (OperationCanceledException)
-						{
-							return false;
-						}
+					}
+					catch (OperationCanceledException)
+					{
+						return;
+					}
 
-
+					tasklist.Add(Task.Run(async () =>
+					{
 						try
 						{
-
 							LogDebugMessage("PHP[Int]: Uploading Moon image file");
 
 							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
@@ -12422,8 +12369,8 @@ namespace CumulusMX
 				LogMessage("Uploading WU archive #" + (i + 1));
 				try
 				{
-					HttpResponseMessage response = await WUhttpClient.GetAsync(WundList[i]);
-					LogMessage("WU Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+					using (var response = await MyHttpClient.GetAsync(WundList[i]))
+						LogMessage("WU Response: " + response.StatusCode + ": " + response.ReasonPhrase);
 				}
 				catch (Exception ex)
 				{
@@ -12446,8 +12393,8 @@ namespace CumulusMX
 				LogMessage("Uploading Windy archive #" + (i + 1));
 				try
 				{
-					HttpResponseMessage response = await WindyhttpClient.GetAsync(WindyList[i]);
-					LogMessage("Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+					using (var response = await MyHttpClient.GetAsync(WindyList[i]))
+						LogMessage("Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase);
 				}
 				catch (Exception ex)
 				{
@@ -12473,9 +12420,11 @@ namespace CumulusMX
 				LogMessage("Uploading PWS archive #" + (i + 1));
 				try
 				{
-					HttpResponseMessage response = await PWShttpClient.GetAsync(PWSList[i]);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+					using (var response = await MyHttpClient.GetAsync(PWSList[i]))
+					{
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -12501,9 +12450,11 @@ namespace CumulusMX
 				LogMessage("Uploading WOW archive #" + (i + 1));
 				try
 				{
-					HttpResponseMessage response = await PWShttpClient.GetAsync(WOWList[i]);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					LogMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+					using (var response = await MyHttpClient.GetAsync(WOWList[i]))
+					{
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						LogMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -12527,28 +12478,27 @@ namespace CumulusMX
 			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
 			string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
 
-			using (var client = new HttpClient())
+			for (int i = 0; i < OWMList.Count; i++)
 			{
-				for (int i = 0; i < OWMList.Count; i++)
-				{
-					LogMessage("Uploading OpenWeatherMap archive #" + (i + 1));
-					LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
-					LogDataMessage("OpenWeatherMap: Body = " + OWMList[i]);
+				LogMessage("Uploading OpenWeatherMap archive #" + (i + 1));
+				LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
+				LogDataMessage("OpenWeatherMap: Body = " + OWMList[i]);
 
-					try
+				try
+				{
+					using (var data = new StringContent(OWMList[i], Encoding.UTF8, "application/json"))
+					using (var response = await MyHttpClient.PostAsync(url, data))
 					{
-						var data = new StringContent(OWMList[i], Encoding.UTF8, "application/json");
-						HttpResponseMessage response = await client.PostAsync(url, data);
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 						if (response.StatusCode != HttpStatusCode.NoContent)
 							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
 					}
-					catch (Exception ex)
-					{
-						LogMessage("OpenWeatherMap: Update error = " + ex.Message);
-					}
+				}
+				catch (Exception ex)
+				{
+					LogMessage("OpenWeatherMap: Update error = " + ex.Message);
 				}
 			}
 
@@ -12575,18 +12525,20 @@ namespace CumulusMX
 
 				try
 				{
-					HttpResponseMessage response = await PWShttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
+					using (var response = await MyHttpClient.GetAsync(URL))
 					{
-						LogMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
-						HttpUploadAlarm.LastError = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
-						HttpUploadAlarm.Triggered = true;
-					}
-					else
-					{
-						LogDebugMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
-						HttpUploadAlarm.Triggered = false;
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						if (response.StatusCode != HttpStatusCode.OK)
+						{
+							LogMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
+							HttpUploadAlarm.LastError = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							HttpUploadAlarm.Triggered = true;
+						}
+						else
+						{
+							LogDebugMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+							HttpUploadAlarm.Triggered = false;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -12618,18 +12570,20 @@ namespace CumulusMX
 
 				try
 				{
-					HttpResponseMessage response = await WOWhttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
+					using (var response = await MyHttpClient.GetAsync(URL))
 					{
-						LogMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-						HttpUploadAlarm.LastError = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
-						HttpUploadAlarm.Triggered = true;
-					}
-					else
-					{
-						LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
-						HttpUploadAlarm.Triggered = false;
+						var responseBodyAsText = await response.Content.ReadAsStringAsync();
+						if (response.StatusCode != HttpStatusCode.OK)
+						{
+							LogMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+							HttpUploadAlarm.LastError = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							HttpUploadAlarm.Triggered = true;
+						}
+						else
+						{
+							LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+							HttpUploadAlarm.Triggered = false;
+						}
 					}
 				}
 				catch (Exception ex)
@@ -12901,34 +12855,35 @@ namespace CumulusMX
 
 		public async void GetLatestVersion()
 		{
-			var http = new HttpClient();
 			// Let this default to highest available version in the OS
 			//ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
 			try
 			{
-				var retVal = await http.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");
-				var latestUri = retVal.RequestMessage.RequestUri.AbsolutePath;
-				LatestBuild = new string(latestUri.Split('/').Last().Where(char.IsDigit).ToArray());
-				if (int.Parse(Build) < int.Parse(LatestBuild))
+				using (var retVal = await MyHttpClient.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest"))
 				{
-					var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
-					LogConsoleMessage(msg, ConsoleColor.Cyan);
-					LogMessage(msg);
-					UpgradeAlarm.LastError = $"Build {LatestBuild} is available";
-					UpgradeAlarm.Triggered = true;
-				}
-				else if (int.Parse(Build) == int.Parse(LatestBuild))
-				{
-					LogMessage("This Cumulus MX instance is running the latest version");
-					UpgradeAlarm.Triggered = false;
-				}
-				else if (int.Parse(Build) > int.Parse(LatestBuild))
-				{
-					LogMessage($"This Cumulus MX instance appears to be running a beta/test version. This build = {Build}, latest released build = {LatestBuild}");
-				}
-				else
-				{
-					LogMessage($"Could not determine if you are running the latest Cumulus MX build or not. This build = {Build}, latest build = {LatestBuild}");
+					var latestUri = retVal.RequestMessage.RequestUri.AbsolutePath;
+					LatestBuild = new string(latestUri.Split('/').Last().Where(char.IsDigit).ToArray());
+					if (int.Parse(Build) < int.Parse(LatestBuild))
+					{
+						var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
+						LogConsoleMessage(msg, ConsoleColor.Cyan);
+						LogMessage(msg);
+						UpgradeAlarm.LastError = $"Build {LatestBuild} is available";
+						UpgradeAlarm.Triggered = true;
+					}
+					else if (int.Parse(Build) == int.Parse(LatestBuild))
+					{
+						LogMessage("This Cumulus MX instance is running the latest version");
+						UpgradeAlarm.Triggered = false;
+					}
+					else if (int.Parse(Build) > int.Parse(LatestBuild))
+					{
+						LogMessage($"This Cumulus MX instance appears to be running a beta/test version. This build = {Build}, latest released build = {LatestBuild}");
+					}
+					else
+					{
+						LogMessage($"Could not determine if you are running the latest Cumulus MX build or not. This build = {Build}, latest build = {LatestBuild}");
+					}
 				}
 			}
 			catch (Exception ex)
@@ -12953,11 +12908,13 @@ namespace CumulusMX
 							parser.InputText = CustomHttpSecondsStrings[i];
 							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
-							var response = await customHttpSecondsClient.GetAsync(processedString);
-							response.EnsureSuccessStatusCode();
-							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							LogDebugMessage($"CustomHttpSeconds[{i}]: Response - {response.StatusCode}");
-							LogDataMessage($"CustomHttpSeconds[{i}]: Response Text - {responseBodyAsText}");
+							using (var response = await MyHttpClient.GetAsync(processedString))
+							{
+								response.EnsureSuccessStatusCode();
+								var responseBodyAsText = await response.Content.ReadAsStringAsync();
+								LogDebugMessage($"CustomHttpSeconds[{i}]: Response - {response.StatusCode}");
+								LogDataMessage($"CustomHttpSeconds[{i}]: Response Text - {responseBodyAsText}");
+							}
 						}
 					}
 					catch (Exception ex)
@@ -12990,10 +12947,12 @@ namespace CumulusMX
 							parser.InputText = CustomHttpMinutesStrings[i];
 							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
-							var response = await customHttpMinutesClient.GetAsync(processedString);
-							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
-							LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+							using (var response = await MyHttpClient.GetAsync(processedString))
+							{
+								var responseBodyAsText = await response.Content.ReadAsStringAsync();
+								LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
+								LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+							}
 						}
 					}
 					catch (Exception ex)
@@ -13022,10 +12981,12 @@ namespace CumulusMX
 							parser.InputText = CustomHttpRolloverStrings[i];
 							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
-							var response = await customHttpRolloverClient.GetAsync(processedString);
-							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
-							LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+							using (var response = await MyHttpClient.GetAsync(processedString))
+							{
+								var responseBodyAsText = await response.Content.ReadAsStringAsync();
+								LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
+								LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+							}
 						}
 					}
 					catch (Exception ex)

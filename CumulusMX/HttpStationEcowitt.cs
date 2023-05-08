@@ -13,7 +13,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
-using HttpClient = System.Net.Http.HttpClient;
 using static CumulusMX.EmailSender;
 using static ServiceStack.Diagnostics.Events;
 
@@ -30,7 +29,6 @@ namespace CumulusMX
 		private int lastMinute = -1;
 		private EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
-		private List<HttpClient> httpForwarders = new List<HttpClient>();
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
 		{
@@ -1350,11 +1348,6 @@ namespace CumulusMX
 					var idx = i;
 					cumulus.LogDebugMessage("ForwardData: Forwarding Ecowitt data to: " + url);
 
-					if (i + 1 > httpForwarders.Count) {
-						httpForwarders.Add(new HttpClient());
-						httpForwarders[i].Timeout = TimeSpan.FromSeconds(5);
-					}
-
 					// we are just going to fire and forget
 					_ = Task.Run(async () =>
 					{
@@ -1363,8 +1356,8 @@ namespace CumulusMX
 							using (var request = new HttpRequestMessage(HttpMethod.Post, url))
 							{
 								request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
-								var response = await httpForwarders[idx].SendAsync(request);
-								cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
+								using (var response = await Cumulus.MyHttpClient.SendAsync(request))
+									cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
 							}
 						}
 						catch (Exception ex)
