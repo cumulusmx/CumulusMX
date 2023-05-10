@@ -9025,9 +9025,14 @@ namespace CumulusMX
 			{
 				try
 				{
-					var parser = new TokenParser(TokenParserOnToken);
-					parser.InputText = ProgramOptions.ShutdownTaskParams;
-					var args = parser.ToStringFromString();
+					var args = string.Empty;
+
+					if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTaskParams))
+					{
+						var parser = new TokenParser(TokenParserOnToken);
+						parser.InputText = ProgramOptions.ShutdownTaskParams;
+						args = parser.ToStringFromString();
+					}
 					LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
 					Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
 				}
