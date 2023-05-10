@@ -6750,9 +6750,14 @@ namespace CumulusMX
 					try
 					{
 						// Prepare the process to run
-						var parser = new TokenParser(cumulus.TokenParserOnToken);
-						parser.InputText = cumulus.DailyParams;
-						var args = parser.ToStringFromString();
+						var args = string.Empty;
+
+						if (!string.IsNullOrEmpty(cumulus.DailyParams))
+						{
+							var parser = new TokenParser(cumulus.TokenParserOnToken);
+							parser.InputText = cumulus.DailyParams;
+							args = parser.ToStringFromString();
+						}
 						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
 						Utils.RunExternalTask(cumulus.DailyProgram, args, false);
 					}

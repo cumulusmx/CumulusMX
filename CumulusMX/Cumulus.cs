@@ -2842,9 +2842,14 @@ namespace CumulusMX
 					{
 						try
 						{
-							var parser = new TokenParser(TokenParserOnToken);
-							parser.InputText = RealtimeParams;
-							var args = parser.ToStringFromString();
+							var args = string.Empty;
+
+							if (!string.IsNullOrEmpty(RealtimeParams))
+							{
+								var parser = new TokenParser(TokenParserOnToken);
+								parser.InputText = RealtimeParams;
+								args = parser.ToStringFromString();
+							}
 							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
 							Utils.RunExternalTask(RealtimeProgram, args, false);
 						}
@@ -9130,9 +9135,14 @@ namespace CumulusMX
 				{
 					try
 					{
-						var parser = new TokenParser(TokenParserOnToken);
-						parser.InputText = ExternalParams;
-						var args = parser.ToStringFromString();
+						var args = string.Empty;
+
+						if (!string.IsNullOrEmpty(ExternalParams))
+						{
+							var parser = new TokenParser(TokenParserOnToken);
+							parser.InputText = ExternalParams;
+							args = parser.ToStringFromString();
+						}
 						LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + args);
 						Utils.RunExternalTask(ExternalProgram, args, false);
 						LogDebugMessage("Interval: External program started");

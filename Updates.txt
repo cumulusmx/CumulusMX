@@ -4,7 +4,7 @@ New
 - Adds the station name to the main dashboard page and email subject
 
 Changed
-- None
+- NOAA report selectors no longer limited to years greater than 2000
 
 Fixed
 - Tempest station now forces MX to calculate the average wind speed
@@ -15,11 +15,12 @@ Fixed
 - Dashboard Local Time block - again!
 - Zero length string error processing web tags
 - Graph colours for PM2.5 and PM10 getting set to the same value
-- Uncaught expection (TaskList has null entry) in PHP uploads
+- Uncaught exception (TaskList has null entry) in PHP uploads
 - 100% CPU bug in the new HTTP files on first processing of each file
 - Revert TLS1.2/1.3 changes in v3.25.0
 - Extensive HTTPClient code optimisations
 - Fix year bug reading from monthly log in NOAA monthly report generation
+- Fix suprious TokenParser messages from various extrernal task executions
 
 
 3.25.0 - b3241
