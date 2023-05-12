@@ -1,4 +1,4 @@
-3.25.1 - b3243
+3.25.1 - b3244
 ——————————————
 New
 - Adds the station name to the main dashboard page and email subject
@@ -20,7 +20,7 @@ Fixed
 - Revert TLS1.2/1.3 changes in v3.25.0
 - Extensive HTTPClient code optimisations
 - Fix year bug reading from monthly log in NOAA monthly report generation
-- Fix suprious TokenParser messages from various extrernal task executions
+- Fix spurious TokenParser messages from various external task executions
 
 
 3.25.0 - b3241
