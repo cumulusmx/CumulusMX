@@ -34,8 +34,9 @@ namespace CumulusMX
 				//cumulus.LogDebugMessage($"SendEmail: Has the lock");
 
 				var logMessage = ToLiteral(message);
+				var sendSubject = subject + " - " + cumulus.LocationName;
 
-				cumulus.LogMessage($"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{subject}], body [{logMessage}]...");
+				cumulus.LogMessage($"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{sendSubject}], body [{logMessage}]...");
 
 				var m = new MimeMessage();
 				m.From.Add(new MailboxAddress("", from));
@@ -43,7 +44,8 @@ namespace CumulusMX
 				{
 					m.To.Add(new MailboxAddress("", addr));
 				}
-				m.Subject = subject;
+
+				m.Subject = sendSubject;
 
 				BodyBuilder bodyBuilder = new BodyBuilder();
 				if (isHTML)

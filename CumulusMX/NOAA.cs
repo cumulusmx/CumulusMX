@@ -462,15 +462,11 @@ namespace CumulusMX
 						var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
 						st = new List<string>(line.Split(sep[0]));
 
-						idx = 0;
-						int entryday = Convert.ToInt32(st[idx].Substring(0, 2));
-						int entrymonth = Convert.ToInt32(st[idx].Substring(3, 2));
-						int entryyear = Convert.ToInt32(st[idx].Substring(6, 2));
 						idx = 1;
-						int entryhour = Convert.ToInt32(st[idx].Substring(0, 2));
-						int entryminute = Convert.ToInt32(st[idx].Substring(3, 2));
 
-						DateTime entrydate = new DateTime(entryyear, entrymonth, entryday, entryhour, entryminute, 0);
+						var entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+
+						//DateTime entrydate = new DateTime(entryyear, entrymonth, entryday, entryhour, entryminute, 0);
 
 						entrydate = entrydate.AddHours(cumulus.GetHourInc(entrydate));
 

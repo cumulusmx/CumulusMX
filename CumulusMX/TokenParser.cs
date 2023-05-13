@@ -33,8 +33,9 @@ namespace CumulusMX
 		public delegate void TokenHandler(string strToken, ref string strReplacement);
 		public event TokenHandler OnToken;
 
-		public TokenParser()
+		public TokenParser(TokenHandler tokenHandler)
 		{
+			OnToken = tokenHandler;
 		}
 
 		/*

@@ -28,7 +28,7 @@ namespace CumulusMX
 
 			//cumulus.StationOptions.CalculatedWC = true;
 			// Ambient does not provide average wind speeds
-			cumulus.StationOptions.UseWind10MinAvg = true;
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 			// Ambient does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
