@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 //using System.Net.Security;
 using System.Runtime.Serialization;
 //using System.Security.Cryptography.X509Certificates;
@@ -25,35 +26,10 @@ namespace CumulusMX
 	internal class HttpFiles
 	{
 		private readonly Cumulus cumulus;
-		private HttpClient client;
 
 		public HttpFiles(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-
-			var handler = new HttpClientHandler()
-			{
-				SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
-				/*
-				ServerCertificateCustomValidationCallback = (HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors) =>
-				{
-					// It is possible to inspect the certificate provided by the server.
-					cumulus.LogDebugMessage($"Http File: Requested URI : {requestMessage.RequestUri}");
-					cumulus.LogDebugMessage($"Http File: Name          : {certificate.GetName()}");
-					cumulus.LogDebugMessage($"Http File: Effective date: {certificate.GetEffectiveDateString()}");
-					cumulus.LogDebugMessage($"Http File: Exp date      : {certificate.GetExpirationDateString()}");
-					cumulus.LogDebugMessage($"Http File: Issuer        : {certificate.Issuer}");
-					cumulus.LogDebugMessage($"Http File: Subject       : {certificate.Subject}");
-
-					// Based on the custom logic it is possible to decide whether the client considers certificate valid or not
-					cumulus.LogDebugMessage($"Http File: Errors        : {sslErrors}");
-					return sslErrors == SslPolicyErrors.None;
-				}
-				*/
-			};
-			handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
-
-			client = new HttpClient(handler);
 		}
 
 		public string GetAlpacaFormData()
@@ -172,9 +148,10 @@ namespace CumulusMX
 
 			try
 			{
-				var response = await client.GetAsync(new Uri(modUrl));
+				using (var response = await Cumulus.MyHttpClient.GetAsync(new Uri(modUrl)))
 				using (var fileStream = new FileStream(filename, FileMode.Create))
 				{
+					response.EnsureSuccessStatusCode();
 					await response.Content.CopyToAsync(fileStream);
 				}
 
@@ -182,7 +159,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage($"DownloadHttpFile: Error downloading from {url} to {filename}", ex);
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFile: Error downloading from {url} to {filename}");
 			}
 		}
 
@@ -194,26 +171,28 @@ namespace CumulusMX
 
 			try
 			{
-				var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
-				var sendTask = client.SendAsync(request);
-				var response = sendTask.Result.EnsureSuccessStatusCode();
-				var bytes = await response.Content.ReadAsByteArrayAsync();
-
 				string ret = null;
-				if (bytes != null)
+				var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
+				var sendTask = Cumulus.MyHttpClient.SendAsync(request);
+				using (var response = sendTask.Result.EnsureSuccessStatusCode())
 				{
-					ret = Convert.ToBase64String(bytes);
+					var bytes = await response.Content.ReadAsByteArrayAsync();
+
+					if (bytes != null)
+					{
+						ret = Convert.ToBase64String(bytes);
+					}
 				}
 				return ret;
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage($"DownloadHttpFileString: Error downloading from {url}", ex);
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileString: Error downloading from {url}");
 				return null;
 			}
 		}
 
-		public Stream DownloadHttpFileStream(string url)
+		public async Task<Stream> DownloadHttpFileStream(string url)
 		{
 			var modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 
@@ -221,18 +200,18 @@ namespace CumulusMX
 
 			try
 			{
-				var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
-				var sendTask = client.SendAsync(request);
-				var response = sendTask.Result.EnsureSuccessStatusCode();
-
-				return response.Content.ReadAsStreamAsync().Result;
+				using (var request = new HttpRequestMessage(HttpMethod.Get, modUrl))
+				using (var response = await Cumulus.MyHttpClient.SendAsync(request))
+				{
+					response.EnsureSuccessStatusCode();
+					return response.Content.ReadAsStreamAsync().Result;
+				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage($"DownloadHttpFileStream: Error downloading from {url}", ex);
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileStream: Error downloading from {url}");
 				return null;
 			}
-
 		}
 
 		private class HttpFileSettings
@@ -284,6 +263,10 @@ namespace CumulusMX
 			{
 				// We always revert to the start time so we remain consistent across DST changes
 				NextDownload = now.Date + StartTime;
+			}
+			else if (NextDownload == DateTime.MinValue)
+			{
+				NextDownload = now;
 			}
 
 			// Not timed or timed and we have now set the start, add on intervals until we reach the future

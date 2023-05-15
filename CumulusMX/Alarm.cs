@@ -118,8 +118,7 @@ namespace CumulusMX
 							try
 							{
 								// Prepare the process to run
-								var parser = new TokenParser();
-								parser.OnToken += cumulus.TokenParserOnToken;
+								var parser = new TokenParser(cumulus.TokenParserOnToken);
 								parser.InputText = ActionParams;
 								var args = parser.ToStringFromString();
 								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
@@ -276,8 +275,7 @@ namespace CumulusMX
 						try
 						{
 							// Prepare the process to run
-							var parser = new TokenParser();
-							parser.OnToken += cumulus.TokenParserOnToken;
+							var parser = new TokenParser(cumulus.TokenParserOnToken);
 							parser.InputText = ActionParams;
 							var args = parser.ToStringFromString();
 							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
@@ -351,8 +349,7 @@ namespace CumulusMX
 						try
 						{
 							// Prepare the process to run
-							var parser = new TokenParser();
-							parser.OnToken += cumulus.TokenParserOnToken;
+							var parser = new TokenParser(cumulus.TokenParserOnToken);
 							parser.InputText = ActionParams;
 							var args = parser.ToStringFromString();
 							cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");

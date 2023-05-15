@@ -49,7 +49,7 @@ namespace CumulusMX
 			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// GW1000 does not provide 10 min average wind speeds
-			cumulus.StationOptions.UseWind10MinAvg = true;
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 
 			// GW1000 does not provide an interval gust value, it gives us a 30 second high
 			// so force using the wind speed for the average calculation

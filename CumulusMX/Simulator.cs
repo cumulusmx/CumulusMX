@@ -33,7 +33,7 @@ namespace CumulusMX
 			cumulus.StationOptions.CalculatedDP = true;
 			cumulus.StationOptions.CalculatedET = true;
 			cumulus.StationOptions.CalculatedWC = true;
-			cumulus.StationOptions.UseWind10MinAvg = true;
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
@@ -105,7 +105,7 @@ namespace CumulusMX
 		{
 			cumulus.LogDataMessage($"Simulated data: temp={ConvertTempCToUser(currData.tempVal):f1}, hum={currData.humVal}, gust={ConvertWindMPHToUser(currData.windSpeedVal):f2}, dir={currData.windBearingVal}, press={ConvertPressMBToUser(currData.pressureVal):f2}, r.rate={ConvertRainMMToUser(currData.rainRateVal):f2}");
 
-			DoWind(ConvertWindMPHToUser(currData.windSpeedVal), currData.windBearingVal, WindAverage, recDate, true);
+			DoWind(ConvertWindMPHToUser(currData.windSpeedVal), currData.windBearingVal, -1, recDate);
 
 			var rain = Raincounter + ConvertRainMMToUser(currData.rainRateVal * dataUpdateRate / 1000 / 3600);
 

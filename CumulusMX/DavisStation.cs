@@ -771,8 +771,6 @@ namespace CumulusMX
 			//{
 			//    CalcRecentMaxGust = false;
 			//}
-			// restore this setting
-			cumulus.StationOptions.UseSpeedForAvgCalc = savedUseSpeedForAvgCalc;
 			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
@@ -802,13 +800,16 @@ namespace CumulusMX
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
-				savedUseSpeedForAvgCalc = cumulus.StationOptions.UseSpeedForAvgCalc;
 				cumulus.StationOptions.UseSpeedForAvgCalc = true;
 				do
 				{
 					GetArchiveData();
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns);
+
+				// restore the setting
+				cumulus.StationOptions.UseSpeedForAvgCalc = false;
+
 			}
 			catch (Exception ex)
 			{
@@ -1580,24 +1581,10 @@ namespace CumulusMX
 					if (loopData.AvgWindSpeed == 255)
 					{
 						// The console hasn't calculated an average yet, set to zero
-						avgwind = 0;
+						avgwind = -1;
 					}
 
 					DoWind(wind, winddir, avgwind, now);
-
-					if (!CalcRecentMaxGust)
-					{
-						// See if the current speed is higher than the current 10-min max
-						// We can then update the figure before the next LOOP2 packet is read
-
-						CheckHighGust(WindLatest, winddir, now);
-
-						if (WindLatest > RecentMaxGust)
-						{
-							RecentMaxGust = WindLatest;
-							cumulus.LogDebugMessage("LOOP: Setting max gust from loop value: " + RecentMaxGust.ToString(cumulus.WindFormat));
-						}
-					}
 				}
 				else
 				{
@@ -2001,7 +1988,7 @@ namespace CumulusMX
 				// Use current average as we don't have a new value in LOOP2. Allow for calibration.
 				if (loopData.CurrentWindSpeed < 200)
 				{
-					DoWind(wind, loopData.WindDirection, WindAverage, now, true);
+					DoWind(wind, loopData.WindDirection, -1, now);
 				}
 				else
 				{
@@ -2017,19 +2004,16 @@ namespace CumulusMX
 
 					cumulus.LogDebugMessage("LOOP2: 10-min gust: " + gust10min.ToString(cumulus.WindFormat));
 
-					if (gust10min > RecentMaxGust)
+					if (CheckHighGust(gust10min, gustdir, now))
 					{
-						cumulus.LogDebugMessage("LOOP2: Using 10-min gust from loop2");
-						if (CheckHighGust(gust10min, gustdir, now))
-						{
-							// add to recent values so normal calculation includes this value
-							WindRecent[nextwind].Gust = cumulus.Calib.WindSpeed.Calibrate(loopData.WindGust10Min);
-							WindRecent[nextwind].Speed = WindAverage;
-							WindRecent[nextwind].Timestamp = now;
-							nextwind = (nextwind + 1) % MaxWindRecent;
+						cumulus.LogDebugMessage($"LOOP2: Setting max gust from loop2 10-min value: {gust10min.ToString(cumulus.WindFormat)} was: {RecentMaxGust.ToString(cumulus.WindFormat)}");
+						RecentMaxGust = gust10min;
 
-							RecentMaxGust = gust10min;
-						}
+						// add to recent values so normal calculation includes this value
+						WindRecent[nextwind].Gust = gust10min;
+						WindRecent[nextwind].Speed = WindAverage;
+						WindRecent[nextwind].Timestamp = now;
+						nextwind = (nextwind + 1) % MaxWindRecent;
 					}
 				}
 
@@ -3792,130 +3776,5 @@ namespace CumulusMX
 					return cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01;
 			}
 		}
-
-		/*private string[] forecastStrings =
-		{
-			"Mostly clear and cooler.", "Mostly clear with little temperature change.", "Mostly clear for 12 hours with little temperature change.",
-			"Mostly clear for 12 to 24 hours and cooler.", "Mostly clear with little temperature change.", "Partly cloudy and cooler.",
-			"Partly cloudy with little temperature change.", "Partly cloudy with little temperature change.", "Mostly clear and warmer.",
-			"Partly cloudy with little temperature change.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 24 to 48 hours.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds with little temperature change. Precipitation possible within 24 hours.",
-			"Mostly clear with little temperature change.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.",
-			"Increasing clouds with little temperature change. Precipitation possible within 12 hours.",
-			"Mostly clear with little temperature change.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 24 hours.",
-			"Mostly clear and warmer. Increasing winds.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation possible within 12 hours. Increasing winds.", "Mostly clear and warmer. Increasing winds.",
-			"Increasing clouds and warmer.", "Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation possible within 12 hours. Increasing winds.", "Mostly clear and warmer. Increasing winds.",
-			"Increasing clouds and warmer.", "Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation possible within 12 hours. Increasing winds.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly clear and warmer. Precipitation possible within 48 hours.", "Mostly clear and warmer.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds with little temperature change. Precipitation possible within 24 to 48 hours.",
-			"Increasing clouds with little temperature change.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 12 to 24 hours.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation possible within 12 to 24 hours. Windy.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 12 to 24 hours. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation possible within 6 to 12 hours.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 6 to 12 hours. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation possible within 12 to 24 hours. Windy.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and warmer. Precipitation possible within 12 hours.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and warmer. Precipitation likely.", "Clearing and cooler. Precipitation ending within 6 hours.",
-			"Partly cloudy with little temperature change.", "Clearing and cooler. Precipitation ending within 6 hours.",
-			"Mostly clear with little temperature change.", "Clearing and cooler. Precipitation ending within 6 hours.", "Partly cloudy and cooler.",
-			"Partly cloudy with little temperature change.", "Mostly clear and cooler.", "Clearing and cooler. Precipitation ending within 6 hours.",
-			"Mostly clear with little temperature change.", "Clearing and cooler. Precipitation ending within 6 hours.", "Mostly clear and cooler.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds with little temperature change. Precipitation possible within 24 hours.",
-			"Mostly cloudy and cooler. Precipitation continuing.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Mostly cloudy and cooler. Precipitation likely.",
-			"Mostly cloudy with little temperature change. Precipitation continuing.",
-			"Mostly cloudy with little temperature change. Precipitation likely.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Increasing clouds and cooler. Precipitation possible and windy within 6 hours.",
-			"Increasing clouds with little temperature change. Precipitation possible and windy within 6 hours.",
-			"Mostly cloudy and cooler. Precipitation continuing. Increasing winds.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Mostly cloudy and cooler. Precipitation likely. Increasing winds.",
-			"Mostly cloudy with little temperature change. Precipitation continuing. Increasing winds.",
-			"Mostly cloudy with little temperature change. Precipitation likely. Increasing winds.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 12 to 24 hours possible wind shift to the W, NW, or N.",
-			"Increasing clouds with little temperature change. Precipitation possible within 12 to 24 hours possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 6 hours possible wind shift to the W, NW, or N.",
-			"Increasing clouds with little temperature change. Precipitation possible within 6 hours possible wind shift to the W, NW, or N.",
-			"Mostly cloudy and cooler. Precipitation ending within 12 hours possible wind shift to the W, NW, or N.",
-			"Mostly cloudy and cooler. Possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation ending within 12 hours possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Possible wind shift to the W, NW, or N.",
-			"Mostly cloudy and cooler. Precipitation ending within 12 hours possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly cloudy and cooler. Precipitation possible within 24 hours possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation ending within 12 hours possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation possible within 24 hours possible wind shift to the W, NW, or N.",
-			"Clearing, cooler and windy. Precipitation ending within 6 hours.", "Clearing, cooler and windy.",
-			"Mostly cloudy and cooler. Precipitation ending within 6 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy and cooler. Windy with possible wind shift to the W, NW, or N.", "Clearing, cooler and windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly cloudy with little temperature change. Precipitation possible within 12 hours. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 12 hours, possibly heavy at times. Windy.",
-			"Mostly cloudy and cooler. Precipitation ending within 6 hours. Windy.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Mostly cloudy and cooler. Precipitation possible within 12 hours. Windy.",
-			"Mostly cloudy and cooler. Precipitation ending in 12 to 24 hours.", "Mostly cloudy and cooler.",
-			"Mostly cloudy and cooler. Precipitation continuing, possible heavy at times. Windy.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.", "Mostly cloudy and cooler. Precipitation possible within 6 to 12 hours. Windy.",
-			"Mostly cloudy with little temperature change. Precipitation continuing, possibly heavy at times. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly cloudy with little temperature change. Precipitation possible within 6 to 12 hours. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds with little temperature change. Precipitation possible within 12 hours, possibly heavy at times. Windy.",
-			"Mostly cloudy and cooler. Windy.", "Mostly cloudy and cooler. Precipitation continuing, possibly heavy at times. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly cloudy and cooler. Precipitation likely, possibly heavy at times. Windy.",
-			"Mostly cloudy with little temperature change. Precipitation continuing, possibly heavy at times. Windy.",
-			"Mostly cloudy with little temperature change. Precipitation likely, possibly heavy at times. Windy.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 6 hours. Windy.",
-			"Increasing clouds with little temperature change. Precipitation possible within 6 hours. Windy",
-			"Increasing clouds and cooler. Precipitation continuing. Windy with possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly cloudy and cooler. Precipitation likely. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation continuing. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation likely. Windy with possible wind shift to the W, NW, or N.",
-			"Increasing clouds and cooler. Precipitation possible within 6 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 6 hours possible wind shift to the W, NW, or N.",
-			"Increasing clouds with little temperature change. Precipitation possible within 6 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Increasing clouds with little temperature change. Precipitation possible within 6 hours possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 6 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Increasing clouds with little temperature change. Precipitation possible within 6 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Increasing clouds and cooler. Precipitation possible within 12 to 24 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Increasing clouds with little temperature change. Precipitation possible within 12 to 24 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy and cooler. Precipitation possibly heavy at times and ending within 12 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Partly cloudy with little temperature change.", "Mostly clear with little temperature change.",
-			"Mostly cloudy and cooler. Precipitation possible within 6 to 12 hours, possibly heavy at times. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation ending within 12 hours. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation possible within 6 to 12 hours, possibly heavy at times. Windy with possible wind shift to the W,NW, or N.",
-			"Mostly cloudy and cooler. Precipitation continuing.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.",
-			"Mostly cloudy and cooler. Precipitation likely. Windy with possible wind shift to the W, NW, or N.",
-			"Mostly cloudy with little temperature change. Precipitation continuing.",
-			"Mostly cloudy with little temperature change. Precipitation likely.", "Partly cloudy with little temperature change.",
-			"Mostly clear with little temperature change.",
-			"Mostly cloudy and cooler. Precipitation possible within 12 hours, possibly heavy at times. Windy.",
-			"FORECAST REQUIRES 3 HOURS OF RECENT DATA", "Mostly clear and cooler.", "Mostly clear and cooler.", "Mostly clear and cooler."
-		};*/
 	}
 }

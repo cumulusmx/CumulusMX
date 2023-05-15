@@ -326,6 +326,7 @@ namespace CumulusMX
 					cumulus.Trans.UserTempCaptions = settings.userTemp;
 					cumulus.Trans.SoilTempCaptions = settings.soilTemp;
 					cumulus.Trans.SoilMoistureCaptions = settings.soilMoist;
+					cumulus.Trans.LeafWetnessCaptions = settings.leafWet;
 				}
 				catch (Exception ex)
 				{

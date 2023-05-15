@@ -2593,14 +2593,12 @@ namespace CumulusMX
 
 		private string Tagrecordsbegandate(Dictionary<string,string> tagParams)
 		{
-			var begandate = cumulus.RecordsBeganDateTime;
-			return GetFormattedDateTime(begandate, "dd MMMM yyyy", tagParams);
+			return GetFormattedDateTime(cumulus.RecordsBeganDateTime, "dd MMMM yyyy", tagParams);
 		}
 
 		private string TagDaysSinceRecordsBegan(Dictionary<string,string> tagParams)
 		{
-			var begandate = cumulus.RecordsBeganDateTime;
-			return (DateTime.Now - begandate).Days.ToString();
+			return (DateTime.Now - cumulus.RecordsBeganDateTime).Days.ToString();
 		}
 
 		private string TagmintempH(Dictionary<string,string> tagParams)

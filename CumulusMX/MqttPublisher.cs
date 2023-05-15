@@ -143,7 +143,7 @@ namespace CumulusMX
 				foreach (var feed in templateObj.topics)
 				{
 					bool useAltResult = false;
-					var mqttTokenParser = new TokenParser { Encoding = new System.Text.UTF8Encoding(false) };
+					var mqttTokenParser = new TokenParser(cumulus.TokenParserOnToken) { Encoding = new System.Text.UTF8Encoding(false) };
 
 					if ((feedType == "DataUpdate") && (feed.doNotTriggerOnTags != null))
 					{
@@ -151,7 +151,6 @@ namespace CumulusMX
 						mqttTokenParser.AltResultNoParseList = feed.doNotTriggerOnTags;
 					}
 
-					mqttTokenParser.OnToken += cumulus.TokenParserOnToken;
 					mqttTokenParser.InputText = feed.data;
 					string message = mqttTokenParser.ToStringFromString();
 

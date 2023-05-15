@@ -690,7 +690,7 @@ namespace CumulusMX
 				if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.Spike.WindDiff)))
 				{
 					previouswind = wind;
-					DoWind(ConvertWindMSToUser(wind), (int)direction, ConvertWindMSToUser(wind), now);
+					DoWind(ConvertWindMSToUser(wind), (int)direction, -1, now);
 				}
 				else
 				{

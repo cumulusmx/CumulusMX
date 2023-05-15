@@ -294,7 +294,7 @@ namespace CumulusMX
 			double average = ConvertWindMSToUser((double)(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100)) / 10);
 			int bearing = BCDchartoint(buff[2]) / 10 + (BCDchartoint(buff[3]) * 10);
 
-			DoWind(current,bearing,average,DateTime.Now);
+			DoWind(current, bearing ,average, DateTime.Now);
 
 			// Extract wind chill
 			int wc = BCDchartoint(buff[16]);
