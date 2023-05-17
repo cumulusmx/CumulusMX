@@ -10797,12 +10797,12 @@ namespace CumulusMX
 		{
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
 			StringBuilder URL = new StringBuilder("http://www.pwsweather.com/pwsupdate/pwsupdate.php?ID=", 1024);
+			StringBuilder Data = new StringBuilder(1024);
 
-			pwstring = "&PASSWORD=" + cumulus.PWS.PW;
+			pwstring = "&PASSWORD=" + HttpUtility.UrlEncode(cumulus.PWS.PW);
 			URL.Append(cumulus.PWS.ID + pwstring);
 			URL.Append("&dateutc=" + dateUTC);
 
-			StringBuilder Data = new StringBuilder(1024);
 
 			// send average speed and bearing
 			Data.Append("&winddir=" + AvgBearing);
