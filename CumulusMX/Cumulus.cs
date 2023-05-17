@@ -13818,6 +13818,7 @@ namespace CumulusMX
 		public string topic { get; set; }
 		public string data { get; set; }
 		public bool retain { get; set; }
+		public string doNotTriggerOnTags { get; set; }
 	}
 
 	public class MySqlGeneralSettings
