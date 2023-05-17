@@ -14,6 +14,7 @@ namespace CumulusMX
 		private static Cumulus cumulus;
 		private static MqttClient mqttClient;
 		public static bool configured;
+		private static Dictionary<String, String> publishedTopics;
 
 		public static void Setup(Cumulus cumulus)
 		{
@@ -73,6 +74,8 @@ namespace CumulusMX
 					cumulus.LogMessage("Error: MQTT reconnection to server failed");
 				}
 			});
+
+			publishedTopics = new Dictionary<string, string>();
 
 			configured = true;
 		}
@@ -139,12 +142,35 @@ namespace CumulusMX
 			{
 				foreach (var feed in templateObj.topics)
 				{
+					bool useAltResult = false;
 					var mqttTokenParser = new TokenParser(cumulus.TokenParserOnToken) { Encoding = new System.Text.UTF8Encoding(false) };
+
+					if ((feedType == "DataUpdate") && (feed.doNotTriggerOnTags != null))
+					{
+						useAltResult = true;
+						mqttTokenParser.AltResultNoParseList = feed.doNotTriggerOnTags;
+					}
+
 					mqttTokenParser.InputText = feed.data;
 					string message = mqttTokenParser.ToStringFromString();
 
-					// send the message
-					_ = SendMessageAsync(feed.topic, message, feed.retain);
+					if (useAltResult)
+					{
+						if (!(publishedTopics.ContainsKey(feed.data) && (publishedTopics[feed.data] == mqttTokenParser.AltResult)))
+						{
+							// send the message
+							_ = SendMessageAsync(feed.topic, message, feed.retain);
+
+							if (publishedTopics.ContainsKey(feed.data))
+								publishedTopics[feed.data] = mqttTokenParser.AltResult;
+							else
+								publishedTopics.Add(feed.data, mqttTokenParser.AltResult);
+						}
+					}
+					else
+					{
+						_ = SendMessageAsync(feed.topic, message, feed.retain);
+					}
 				}
 			}
 			catch (Exception ex)

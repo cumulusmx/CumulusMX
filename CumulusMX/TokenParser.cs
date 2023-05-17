@@ -9,7 +9,9 @@
 //     Date        :  7/20/2008
 // ********************************************************************************
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -30,9 +32,30 @@ namespace CumulusMX
 
 		public Encoding Encoding { set; get; }
 
+		private string _AltList;
+		public string AltResultNoParseList
+		{
+			set
+			{
+				_AltList = value;
+				AltTags = value.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+			}
+			
+			get
+			{
+				return _AltList;
+			}
+		}
+
+		private List<string> AltTags = null;
+
+		public string AltResult { set; get; }
+
+
 		public delegate void TokenHandler(string strToken, ref string strReplacement);
 		public event TokenHandler OnToken;
 
+    
 		public TokenParser(TokenHandler tokenHandler)
 		{
 			OnToken = tokenHandler;
@@ -206,6 +229,7 @@ namespace CumulusMX
 		{
 			// Preallocate SB memory to double input size
 			StringBuilder outText = new StringBuilder(InputText.Length * 2);
+			StringBuilder altOutText = new StringBuilder(InputText.Length * 2);
 			String token = string.Empty;
 			String replacement = string.Empty;
 
@@ -227,6 +251,9 @@ namespace CumulusMX
 				foreach (Match match in matches)
 				{
 					outText.Append(InputText.Substring(i, match.Index - i));
+					if (AltTags != null)
+						altOutText.Append(InputText.Substring(i, match.Index - i));
+
 					try
 					{
 						// strip the "<#" ">" characters from the token string
@@ -234,6 +261,14 @@ namespace CumulusMX
 						token = token.Substring(2, token.Length - 3);
 						OnToken(token, ref replacement);
 						outText.Append(replacement);
+						if (AltTags != null)
+						{
+							string[] baseToken = token.Split(' ');
+							if (AltTags.Contains(baseToken[0]))
+								altOutText.Append(match.Value);
+							else
+								altOutText.Append(replacement);
+						}
 					}
 					catch (Exception e)
 					{
@@ -251,12 +286,17 @@ namespace CumulusMX
 					i = match.Index + match.Length;
 				}
 				outText.Append(InputText.Substring(i, InputText.Length - i));
+				if (AltTags != null)
+					altOutText.Append(InputText.Substring(i, InputText.Length - i));
 			}
 			else
 			{
 				outText.Append(InputText);
+				if (AltTags != null)
+					altOutText.Append(InputText);
 			}
 
+			AltResult = altOutText.ToString();
 			return outText.ToString();
 		}
 
