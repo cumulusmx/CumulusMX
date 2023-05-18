@@ -1,3 +1,28 @@
+3.26.0 - b3245
+——————————————
+New
+- MQTT has a new behaviour - Only update a topic if the data has changed
+	- If you add a new property called "doNotTriggerOnTags" to a topic, you can specify a list of web tokens. Adding this property with at least one entry triggers the new behaviour.
+	  The web tokens in the list are excluded from the comparison process, so for instance if you include a timestamp in your topic, you can exclude this from the change detection.
+	  For example:
+		{
+			"topic": "CumulusMX/TempUpdate",
+			"data": "\"time\":\"<#timehhmmss>\",\"temp\":<#temp rc=y>",
+			"retain": false,
+			"doNotTriggerOnTags": "timehhmmss"
+		}
+	Which now will only send a new MQTT message when CMX first starts, then only when the "#temp" value changes.
+
+Changed
+- Various third party libraries updated to current versions
+	- MailKit, MQTTnet, MySqlConnector, ServiceStack
+
+Fixed
+- PWS passwords are now URL encoded
+- Solar irradiation and theoretical solar are now stored as integers everywhere
+
+
+
 3.25.1 - b3244
 ——————————————
 New

@@ -7798,7 +7798,7 @@ namespace CumulusMX
 			sb.Append(station.ET.ToString(ETFormat) + ListSeparator);
 			sb.Append(station.AnnualETTotal.ToString(ETFormat) + ListSeparator);
 			sb.Append(station.ApparentTemperature.ToString(TempFormat) + ListSeparator);
-			sb.Append(Math.Round(station.CurrentSolarMax) + ListSeparator);
+			sb.Append(station.CurrentSolarMax + ListSeparator);
 			sb.Append(station.SunshineHours.ToString(SunFormat) + ListSeparator);
 			sb.Append(station.Bearing + ListSeparator);
 			sb.Append(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
@@ -7865,7 +7865,7 @@ namespace CumulusMX
 				values.Append(station.ET.ToString(ETFormat, InvC) + ",");
 				values.Append(station.AnnualETTotal.ToString(ETFormat, InvC) + ",");
 				values.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ",");
-				values.Append((Math.Round(station.CurrentSolarMax)) + ",");
+				values.Append(station.CurrentSolarMax + ",");
 				values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ",");
 				values.Append(station.Bearing + ",");
 				values.Append(station.RG11RainToday.ToString(RainFormat, InvC) + ",");
@@ -11640,7 +11640,7 @@ namespace CumulusMX
 			values.Append((CloudBaseInFeet ? "ft" : "m") + "',");
 			values.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ',');
 			values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ',');
-			values.Append(((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'");
+			values.Append(station.CurrentSolarMax + ",'");
 			values.Append((station.IsSunny ? "1" : "0") + "',");
 			values.Append(station.FeelsLike.ToString(TempFormat, InvC));
 			values.Append(')');
