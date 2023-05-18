@@ -705,7 +705,7 @@ namespace CumulusMX
 
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
-					LogMessage("Mono version: " + displayName.Invoke(null, null));
+					LogMessage("Mono version   : " + displayName.Invoke(null, null));
 			}
 
 			// restrict the threadpool size - for Mono which does not seem to have very good pool management!
@@ -715,9 +715,16 @@ namespace CumulusMX
 
 			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
 
-			LogMessage("Platform: " + Platform);
+			LogMessage("Platform       : " + Platform);
 
-			LogMessage("OS version: " + Environment.OSVersion);
+			try
+			{
+				LogMessage("OS Description : " + RuntimeInformation.OSDescription);
+			}
+			catch
+			{
+				LogMessage("OS Version     : " + Environment.OSVersion + " (possibly not accurate)");
+			}
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
