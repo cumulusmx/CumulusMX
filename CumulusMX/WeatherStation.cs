@@ -262,7 +262,7 @@ namespace CumulusMX
 			public DateTime HighDewPointTime;
 			public double LowDewPoint;
 			public DateTime LowDewPointTime;
-			public double HighSolar;
+			public int HighSolar;
 			public DateTime HighSolarTime;
 			public double HighUv;
 			public DateTime HighUvTime;
@@ -670,7 +670,7 @@ namespace CumulusMX
 			cumulus.NOAAconf.LatestYearReport = ini.GetValue("NOAA", "LatestYearlyReport", "");
 
 			// Solar
-			HiLoToday.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0.0);
+			HiLoToday.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0);
 			HiLoToday.HighSolarTime = ini.GetValue("Solar", "HighSolarRadTime", todayDate);
 			HiLoToday.HighUv = ini.GetValue("Solar", "HighUV", 0.0);
 			HiLoToday.HighUvTime = ini.GetValue("Solar", "HighUVTime", metoTodayDate);
@@ -1015,7 +1015,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Solar Radiation in W/m2
 		/// </summary>
-		public double SolarRad { get; set; } = 0;
+		public int SolarRad { get; set; } = 0;
 
 		/// <summary>
 		/// UV index
@@ -1403,7 +1403,7 @@ namespace CumulusMX
 
 		public double StartOfDaySunHourCounter { get; set; }
 
-		public double CurrentSolarMax { get; set; }
+		public int CurrentSolarMax { get; set; }
 
 		public double RG11RainToday { get; set; }
 
@@ -5667,7 +5667,14 @@ namespace CumulusMX
 
 		public void DoSolarRad(int value, DateTime timestamp)
 		{
-			SolarRad = cumulus.Calib.Solar.Calibrate(value);
+			try
+			{
+				SolarRad = (int) Math.Round(cumulus.Calib.Solar.Calibrate(value));
+			}
+			catch
+			{
+				SolarRad = 0;
+			}
 			if (SolarRad < 0)
 				SolarRad = 0;
 
@@ -6031,7 +6038,7 @@ namespace CumulusMX
 			HiLoYest.HighDewPoint = ini.GetValue("Dewpoint", "High", 0.0);
 			HiLoYest.HighDewPointTime = ini.GetValue("Dewpoint", "HTime", DateTime.MinValue);
 			// Solar
-			HiLoYest.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0.0);
+			HiLoYest.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0);
 			HiLoYest.HighSolarTime = ini.GetValue("Solar", "HighSolarRadTime", DateTime.MinValue);
 			HiLoYest.HighUv = ini.GetValue("Solar", "HighUV", 0.0);
 			HiLoYest.HighUvTime = ini.GetValue("Solar", "HighUVTime", DateTime.MinValue);
@@ -10063,7 +10070,7 @@ namespace CumulusMX
 			// solar
 			if (cumulus.WCloud.SendSolar)
 			{
-				sb.Append("&solarrad=" + (int)Math.Round(SolarRad * 10));
+				sb.Append("&solarrad=" + SolarRad * 10);
 			}
 
 			// uv
@@ -13844,7 +13851,7 @@ namespace CumulusMX
 				HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), (int)SolarRad, (int)HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, HiLoToday.HighUv,
 				HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
 				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHeatIndex, HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighAppTemp,
-				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), (int)Math.Round(CurrentSolarMax),
+				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
 				AllTime.HighPress.Val, AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + cumulus.Beaufort(HiLoToday.HighWind), "F" + cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString(cumulus.ProgramOptions.TimeFormatLong), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,

@@ -3485,12 +3485,12 @@ namespace CumulusMX
 
 		private string TagSolarRad(Dictionary<string,string> tagParams)
 		{
-			return ((int) station.SolarRad).ToString();
+			return station.SolarRad.ToString();
 		}
 
 		private string TagCurrentSolarMax(Dictionary<string,string> tagParams)
 		{
-			return ((int) Math.Round(station.CurrentSolarMax)).ToString();
+			return station.CurrentSolarMax.ToString();
 		}
 
 		private string TagSunshineHours(Dictionary<string,string> tagParams)

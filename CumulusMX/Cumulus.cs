@@ -705,7 +705,7 @@ namespace CumulusMX
 
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
-					LogMessage("Mono version: " + displayName.Invoke(null, null));
+					LogMessage("Mono version   : " + displayName.Invoke(null, null));
 			}
 
 			// restrict the threadpool size - for Mono which does not seem to have very good pool management!
@@ -715,9 +715,16 @@ namespace CumulusMX
 
 			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
 
-			LogMessage("Platform: " + Platform);
+			LogMessage("Platform       : " + Platform);
 
-			LogMessage("OS version: " + Environment.OSVersion);
+			try
+			{
+				LogMessage("OS Description : " + RuntimeInformation.OSDescription);
+			}
+			catch
+			{
+				LogMessage("OS Version     : " + Environment.OSVersion + " (possibly not accurate)");
+			}
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
@@ -7798,7 +7805,7 @@ namespace CumulusMX
 			sb.Append(station.ET.ToString(ETFormat) + ListSeparator);
 			sb.Append(station.AnnualETTotal.ToString(ETFormat) + ListSeparator);
 			sb.Append(station.ApparentTemperature.ToString(TempFormat) + ListSeparator);
-			sb.Append(Math.Round(station.CurrentSolarMax) + ListSeparator);
+			sb.Append(station.CurrentSolarMax + ListSeparator);
 			sb.Append(station.SunshineHours.ToString(SunFormat) + ListSeparator);
 			sb.Append(station.Bearing + ListSeparator);
 			sb.Append(station.RG11RainToday.ToString(RainFormat) + ListSeparator);
@@ -7865,7 +7872,7 @@ namespace CumulusMX
 				values.Append(station.ET.ToString(ETFormat, InvC) + ",");
 				values.Append(station.AnnualETTotal.ToString(ETFormat, InvC) + ",");
 				values.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ",");
-				values.Append((Math.Round(station.CurrentSolarMax)) + ",");
+				values.Append(station.CurrentSolarMax + ",");
 				values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ",");
 				values.Append(station.Bearing + ",");
 				values.Append(station.RG11RainToday.ToString(RainFormat, InvC) + ",");
@@ -11640,7 +11647,7 @@ namespace CumulusMX
 			values.Append((CloudBaseInFeet ? "ft" : "m") + "',");
 			values.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ',');
 			values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ',');
-			values.Append(((int)Math.Round(station.CurrentSolarMax)).ToString() + ",'");
+			values.Append(station.CurrentSolarMax + ",'");
 			values.Append((station.IsSunny ? "1" : "0") + "',");
 			values.Append(station.FeelsLike.ToString(TempFormat, InvC));
 			values.Append(')');
@@ -13827,6 +13834,7 @@ namespace CumulusMX
 		public string topic { get; set; }
 		public string data { get; set; }
 		public bool retain { get; set; }
+		public string doNotTriggerOnTags { get; set; }
 	}
 
 	public class MySqlGeneralSettings
