@@ -21,6 +21,7 @@ Fixed
 - PWS passwords are now URL encoded
 - Solar irradiation and theoretical solar are now stored as integers everywhere
 - Extra end of day files not being processed on copy
+- Davis VP2 stations creating incorrect values for Wind Run and Chill Hours if some logger data is missing
 
 
 3.25.1 - b3244

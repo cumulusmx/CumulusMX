@@ -824,7 +824,7 @@ namespace CumulusMX
 		{
 		}
 
-		private int calculateCRC(byte[] data)
+		private static int calculateCRC(byte[] data)
 		{
 			ushort crc = 0;
 			ushort[] crcTable =
@@ -871,7 +871,7 @@ namespace CumulusMX
 			return crc;
 		}
 
-		private bool CrcOk(byte[] data)
+		private static bool CrcOk(byte[] data)
 		{
 			return (calculateCRC(data) == 0);
 		}
@@ -2047,6 +2047,7 @@ namespace CumulusMX
 			const int pageSize = 267;
 			const int recordSize = 52;
 			bool ack;
+			bool starting = true;
 
 			NetworkStream stream = null;
 
@@ -2428,7 +2429,16 @@ namespace CumulusMX
 								midnightraindone = true;
 							}
 
-							int interval = (int)(timestamp - lastDataReadTime).TotalMinutes;
+							int interval;
+							if (starting && timestamp > nextLoggerTime)
+							{
+								interval = loggerInterval;
+								starting = false;
+							}
+							else
+							{
+								interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
+							}
 
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
 							{
