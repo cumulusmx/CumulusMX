@@ -20,7 +20,7 @@ Changed
 Fixed
 - PWS passwords are now URL encoded
 - Solar irradiation and theoretical solar are now stored as integers everywhere
-
+- Extra end of day files not being processed on copy
 
 
 3.25.1 - b3244
