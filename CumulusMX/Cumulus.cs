@@ -12184,11 +12184,20 @@ namespace CumulusMX
 								LogDebugMessage($"EOD: Copying extra file {uploadfile} to {remotefile}");
 								try
 								{
-									File.Copy(uploadfile, remotefile, true);
+									if (ExtraFiles[i].process)
+									{
+										var data = ProcessTemplateFile2String(uploadfile, false, ExtraFiles[i].UTF8);
+										File.WriteAllText(remotefile, data);
+									}
+									else
+									{
+										// just copy the file
+										File.Copy(uploadfile, remotefile, true);
+									}
 								}
 								catch (Exception ex)
 								{
-									LogDebugMessage($"EOD: Error copying extra file {uploadfile} to {remotefile}: {ex.Message}");
+									LogExceptionMessage(ex, $"EOD: Error copying extra file {uploadfile} to {remotefile}");
 								}
 								//LogDebugMessage("Finished copying extra file " + uploadfile);
 							}
