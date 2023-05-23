@@ -29,6 +29,9 @@ namespace CumulusMX
 
 			calculaterainrate = true;
 
+			// Imet does not provide average wind speeds
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
+
 			// Change the default dps for rain and sunshine from 1 to 2 for IMet stations
 			cumulus.RainDPlaces = cumulus.SunshineDPlaces = 2;
 			cumulus.RainDPlaceDefaults[0] = 2;  // mm
@@ -415,6 +418,9 @@ namespace CumulusMX
 			cumulus.LogConsoleMessage("Start reading history data...");
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
+			// use the wind speeds averages from the logger data
+			cumulus.StationOptions.CalcuateAverageWindSpeed = false;
+
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			bw = new BackgroundWorker();
@@ -440,6 +446,9 @@ namespace CumulusMX
 			//histprog.histprogPB.Value = 100;
 			//histprog.Close();
 			//mainWindow.FillLastHourGraphData();
+
+			// normal running
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 
 			cumulus.NormalRunning = true;
 			cumulus.LogMessage("Archive reading thread completed");
