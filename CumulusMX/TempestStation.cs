@@ -28,6 +28,9 @@ namespace CumulusMX
 			// Tempest does not provide wind chill
 			cumulus.StationOptions.CalculatedWC = true;
 
+			// Tempest does not provide average wind speeds
+			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
+
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			Task.Run(getAndProcessHistoryData);// grab old data, then start the station
