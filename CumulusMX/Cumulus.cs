@@ -680,11 +680,6 @@ namespace CumulusMX
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
 
-			if (FtpOptions.Logging)
-			{
-				CreateFtpLogFile(ftpLogfile);
-			}
-
 			// Read the configuration file
 
 			LogMessage(" ========================== Cumulus MX starting ==========================");
@@ -1047,8 +1042,15 @@ namespace CumulusMX
 			CheckForSingleInstance(boolWindows);
 
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
 				LogMessage("Maximum concurrent PHP Uploads = " + FtpOptions.MaxConcurrentUploads);
+			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
+
+			if (FtpOptions.Logging)
+			{
+				CreateFtpLogFile(ftpLogfile);
+			}
 
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
@@ -11376,7 +11378,11 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
+					LogExceptionMessage(ex, $"LogFluentFtpMessage: Error");
+					// Let's try closing and the existing log file and reopening
 					LogDebugMessage($"LogFluentFtpMessage: Error = {ex.Message}");
+					ftpLogfile = RemoveOldDiagsFiles("FTP");
+					CreateFtpLogFile(ftpLogfile);
 				}
 			}
 		}

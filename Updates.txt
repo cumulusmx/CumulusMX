@@ -23,7 +23,7 @@ Fixed
 - Extra end of day files not being processed on copy
 - Davis VP2 stations creating incorrect values for Wind Run and Chill Hours if some logger data is missing
 - Instromet station now forces MX to calculate the average wind speed
-
+- FTP logging errors when FTP logging is already enabled at start-up
 
 
 3.25.1 - b3244
