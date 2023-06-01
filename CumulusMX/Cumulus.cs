@@ -2143,14 +2143,6 @@ namespace CumulusMX
 			}
 		}
 
-		private void APRSTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrEmpty(APRS.ID))
-			{
-				station.UpdateAPRS();
-			}
-		}
-
 		private void WebTimerTick(object sender, ElapsedEventArgs e)
 		{
 			if (station.DataStopped)

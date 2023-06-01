@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using ServiceStack;
 using Swan;
 using System.Threading.Tasks;
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -637,43 +638,12 @@ namespace CumulusMX
 			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", apiKey },
-				{ "station-id", stationId.ToString() },
-				{ "t", unixDateTime.ToString() },
-				{ "start-timestamp", startTime.ToString() },
-				{ "end-timestamp", endTime.ToString() }
-			};
+			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
+			historicUrl.Append("?api-key=" + apiKey);
+			historicUrl.Append("&start-timestamp=" + startTime.ToString());
+			historicUrl.Append("&end-timestamp" + endTime.ToString());
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-
-			string data = dataStringBuilder.ToString();
-
-			string apiSignature = WlDotCom.CalculateApiSignature(apiSecret, data);
-
-			parameters.Remove("station-id");
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder historicUrl = new StringBuilder();
-			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + stationId + "?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				historicUrl.Append(entry.Key);
-				historicUrl.Append('=');
-				historicUrl.Append(entry.Value);
-				historicUrl.Append('&');
-			}
-			// remove the trailing "&"
-			historicUrl.Remove(historicUrl.Length - 1, 1);
-
-			string logUrl = historicUrl.ToString().Replace(apiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {logUrl}");
+			cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {historicUrl.ToString().Replace(apiKey, "API_KEY")}");
 			station.lastDataReadTime = airLinkLastUpdateTime;
 
 			WlHistory histObj;
@@ -686,8 +656,11 @@ namespace CumulusMX
 				string responseBody;
 				int responseCode;
 
+				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
+				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -1079,51 +1052,23 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", apiKey },
-				{ "station-id", stationId.ToString() },
-				{ "t", unixDateTime.ToString() },
-				{ "start-timestamp", startTime.ToString() },
-				{ "end-timestamp", endTime.ToString() }
-			};
+			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
+			historicUrl.Append("?api-key=" + apiKey);
+			historicUrl.Append("&start-timestamp=" + startTime.ToString());
+			historicUrl.Append("&end-timestamp" + endTime.ToString());
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-
-			string data = dataStringBuilder.ToString();
-
-			var apiSignature = WlDotCom.CalculateApiSignature(apiSecret, data);
-
-			parameters.Remove("station-id");
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder historicUrl = new StringBuilder();
-			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + stationId + "?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				historicUrl.Append(entry.Key);
-				historicUrl.Append('=');
-				historicUrl.Append(entry.Value);
-				historicUrl.Append('&');
-			}
-			// remove the trailing "&"
-			historicUrl.Remove(historicUrl.Length - 1, 1);
-
-			var logUrl = historicUrl.ToString().Replace(apiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"AirLinkHealth: WeatherLink URL = {logUrl}");
+			cumulus.LogDebugMessage($"AirLinkHealth: WeatherLink URL = {historicUrl.ToString().Replace(apiKey, "API_KEY")}");
 
 			try
 			{
 				string responseBody;
 				int responseCode;
 
+				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
+				request.Headers.Add("X-Api-Secret", apiSecret);
+
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -1356,39 +1301,20 @@ namespace CumulusMX
 				{ "t", unixDateTime.ToString() }
 			};
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-			string header = dataStringBuilder.ToString();
+			var stationsUrl = "https://api.weatherlink.com/v2/stations?api-key=" + cumulus.AirLinkApiKey;
 
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.AirLinkApiSecret, header);
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder stationsUrl = new StringBuilder();
-			stationsUrl.Append("https://api.weatherlink.com/v2/stations?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				stationsUrl.Append(entry.Key);
-				stationsUrl.Append('=');
-				stationsUrl.Append(entry.Value);
-				stationsUrl.Append('&');
-			}
-			// remove the trailing "&"
-			stationsUrl.Remove(stationsUrl.Length - 1, 1);
-
-			var logUrl = stationsUrl.ToString().Replace(cumulus.AirLinkApiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"WeatherLink Stations URL = {logUrl}");
+			cumulus.LogDebugMessage($"WeatherLink Stations URL = {stationsUrl.ToString().Replace(cumulus.AirLinkApiKey, "API_KEY")}");
 
 			try
 			{
 				string responseBody;
 				int responseCode;
-				// We want to do this synchronously
 
-				using (var response = Cumulus.MyHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				var request = new HttpRequestMessage(HttpMethod.Get, stationsUrl);
+				request.Headers.Add("X-Api-Secret", cumulus.AirLinkApiSecret);
+
+				// we want to do this synchronously, so .Result
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -1459,54 +1385,26 @@ namespace CumulusMX
 				return;
 			}
 
-			apiKey = cumulus.AirLinkApiKey;
-			apiSecret = cumulus.AirLinkApiSecret;
-
 			if ((indoor && cumulus.AirLinkInStationId < 10) || (!indoor && cumulus.AirLinkOutStationId < 10))
 			{
 				cumulus.LogMessage($"GetAvailableSensors: No WeatherLink AirLink API station ID has been configured, aborting!");
 				return;
 			}
 
+			var sensorsUrl = "https://api.weatherlink.com/v2/sensors?api-key=" + cumulus.AirLinkApiKey;
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", apiKey },
-				{ "t", unixDateTime.ToString() }
-			};
-
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-			string header = dataStringBuilder.ToString();
-
-			var apiSignature = WlDotCom.CalculateApiSignature(apiSecret, header);
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder sensorsUrl = new StringBuilder();
-			sensorsUrl.Append("https://api.weatherlink.com/v2/sensors?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				sensorsUrl.Append(entry.Key);
-				sensorsUrl.Append('=');
-				sensorsUrl.Append(entry.Value);
-				sensorsUrl.Append('&');
-			}
-			// remove the trailing "&"
-			sensorsUrl.Remove(sensorsUrl.Length - 1, 1);
-
-			var logUrl = sensorsUrl.ToString().Replace(apiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {logUrl}");
+			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {sensorsUrl.ToString().Replace(cumulus.AirLinkApiKey, "API_KEY")}");
 
 			try
 			{
 				string responseBody;
 				int responseCode;
-				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.GetAsync(sensorsUrl.ToString()).Result)
+
+				var request = new HttpRequestMessage(HttpMethod.Get, sensorsUrl);
+				request.Headers.Add("X-Api-Secret", cumulus.AirLinkApiSecret);
+
+				// we want to do this synchronously, so .Result
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;

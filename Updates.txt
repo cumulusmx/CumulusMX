@@ -17,6 +17,7 @@ Changed
 - Various third party libraries updated to current versions
 	- MailKit, MQTTnet, MySqlConnector, ServiceStack
 - PHP upload now sends a text/plain content header
+- Davis WLL and Airlink now use the new simplified access method to weatherlink.com V2 API
 
 Fixed
 - PWS passwords are now URL encoded

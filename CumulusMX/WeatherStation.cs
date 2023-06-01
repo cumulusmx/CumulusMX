@@ -13974,7 +13974,7 @@ namespace CumulusMX
 				return;
 			}
 
-			cumulus.LogMessage("Updating CWOP");
+			cumulus.LogDebugMessage("Updating CWOP");
 			using (var client = new TcpClient(cumulus.APRS.Server, cumulus.APRS.Port))
 			using (var ns = client.GetStream())
 			{
