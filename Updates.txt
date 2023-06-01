@@ -26,6 +26,13 @@ Fixed
 - FTP logging errors when FTP logging is already enabled at start-up
 
 
+3.25.2 - b3245
+——————————————
+Fixed
+- Davis WLL not doing historic catch-up or downloading stats from weatherlink.com
+
+
+
 3.25.1 - b3244
 ——————————————
 New
