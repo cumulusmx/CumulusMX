@@ -1,4 +1,4 @@
-3.26.0 - b3245
+3.26.0 - b3246
 ——————————————
 New
 - MQTT has a new behaviour - Only update a topic if the data has changed
@@ -16,6 +16,7 @@ New
 Changed
 - Various third party libraries updated to current versions
 	- MailKit, MQTTnet, MySqlConnector, ServiceStack
+- PHP upload now sends a text/plain content header
 
 Fixed
 - PWS passwords are now URL encoded

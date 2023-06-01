@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO.Ports;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
@@ -30,7 +28,7 @@ namespace CumulusMX
 		private readonly object threadSafer = new object();
 		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1, 1);
 		private bool startupDayResetIfRequired = true;
-		private bool savedUseSpeedForAvgCalc;
+		//private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 		private bool broadcastReceived;
@@ -41,7 +39,7 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
-		private readonly bool checkWllGustValues;
+		//private readonly bool checkWllGustValues;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{

@@ -11238,7 +11238,7 @@ namespace CumulusMX
 						// Compress? if supported and payload exceeds 500 bytes
 						if (data.Length < 500 || FtpOptions.PhpCompression == "none")
 						{
-							request.Content = new StringContent(data, encoding, "application/octet-stream");
+							request.Content = new StringContent(data, encoding, "text/plain");
 						}
 						else
 						{
@@ -11267,6 +11267,7 @@ namespace CumulusMX
 
 								outStream = new MemoryStream(compressed);
 								streamContent = new StreamContent(outStream);
+								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
 								streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
 								streamContent.Headers.ContentLength = outStream.Length;
 
@@ -11289,13 +11290,13 @@ namespace CumulusMX
 								LogDataMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 							}
 
-							if (outStream != null)
-								outStream.Dispose();
+								if (outStream != null)
+									outStream.Dispose();
 
-							if (streamContent != null)
-								streamContent.Dispose();
+								if (streamContent != null)
+									streamContent.Dispose();
 
-							return response.StatusCode == HttpStatusCode.OK;
+								return response.StatusCode == HttpStatusCode.OK;
 						}
 					}
 				}
