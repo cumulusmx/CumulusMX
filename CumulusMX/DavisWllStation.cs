@@ -1636,7 +1636,7 @@ namespace CumulusMX
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
-				else if (responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
 					// get the sensor data
 					int idxOfSensorWithMostRecs = 0;
@@ -2975,7 +2975,7 @@ namespace CumulusMX
 					return;
 				}
 
-				if (!responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+				if (!responseBody.StartsWith("{\"")) // basic sanity check
 				{
 					// No idea what we got, dump it to the log
 					cumulus.LogMessage("WLL Health: Invalid historic message received");
