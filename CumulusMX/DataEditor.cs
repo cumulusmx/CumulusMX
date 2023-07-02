@@ -3376,10 +3376,10 @@ namespace CumulusMX
 								updt.Append($"DomWindDir={station.DayFile[lineNum].DominantWindBearing},");
 								updt.Append($"HeatDegDays={(station.DayFile[lineNum].HeatingDegreeDays > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC)}'" : "NULL")},");
 								updt.Append($"CoolDegDays={(station.DayFile[lineNum].CoolingDegreeDays > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC)}'" : "NULL")},");
-								updt.Append($"HighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighSolar}'" : "NULL")},");
-								updt.Append($"THighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighSolarTime:\\'HH:mm\\}'" : "NULL")},");
+								updt.Append($"HighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighSolar.ToString()}'" : "NULL")},");
+								updt.Append($"THighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighSolarTime.ToString("HH:mm")}'" : "NULL")},");
 								updt.Append($"HighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC)}'" : "NULL")},");
-								updt.Append($"THighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighUvTime:\\'HH:mm\\'}'" : "NULL")},");
+								updt.Append($"THighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighUvTime.ToString("HH:mm")}'" : "NULL")},");
 								updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
 								updt.Append($"DomWindDirSym='{station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
 								updt.Append($"MaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");

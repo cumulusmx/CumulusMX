@@ -26,12 +26,13 @@ Fixed
 - Davis VP2 stations creating incorrect values for Wind Run and Chill Hours if some logger data is missing
 - Instromet station now forces MX to calculate the average wind speed
 - FTP logging errors when FTP logging is already enabled at start-up
+- Updating MySQL on DayFile edits was erroring with a blank SQL statement
 
 
 3.25.2 - b3245
 ——————————————
 Fixed
-- Davis WLL not doing historic catch-up or downloading stats from weatherlink.com
+- Davis WLL/AirLink not doing historic catch-up or downloading stats from weatherlink.com
 
 
 
