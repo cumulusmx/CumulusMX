@@ -42,7 +42,7 @@ namespace CumulusMX
 				m.From.Add(new MailboxAddress("", from));
 				foreach (var addr in to)
 				{
-					m.To.Add(new MailboxAddress("", addr));
+					m.Bcc.Add(new MailboxAddress("", addr));
 				}
 
 				m.Subject = sendSubject;
