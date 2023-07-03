@@ -105,7 +105,7 @@ namespace CumulusMX
 
 									cumulus.LogMessage($"Alarm ({Name}): Sending email - attempt {i + 1}");
 
-									if (await cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml))
+									if (await cumulus.emailer.SendEmail(cumulus.AlarmDestEmail, cumulus.AlarmFromEmail, cumulus.Trans.AlarmEmailSubject, msg, cumulus.AlarmEmailHtml, cumulus.AlarmEmailUseBcc))
 									{
 										break;
 									}

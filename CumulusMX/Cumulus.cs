@@ -445,6 +445,7 @@ namespace CumulusMX
 		public string AlarmFromEmail;
 		public string[] AlarmDestEmail;
 		public bool AlarmEmailHtml;
+		public bool AlarmEmailUseBcc;
 
 		public bool RealtimeIntervalEnabled; // The timer is to be started
 		private int realtimeFTPRetries; // Count of failed realtime FTP attempts
@@ -5373,6 +5374,7 @@ namespace CumulusMX
 			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", "");
 			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", "").Split(';');
 			AlarmEmailHtml = ini.GetValue("Alarms", "UseHTML", false);
+			AlarmEmailUseBcc = ini.GetValue("Alarms", "UseBCC", false);
 
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
@@ -6533,7 +6535,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", AlarmDestEmail.Join(";"));
 			ini.SetValue("Alarms", "UseHTML", AlarmEmailHtml);
-
+			ini.SetValue("Alarms", "UseBCC", AlarmEmailUseBcc);
 
 			ini.SetValue("Offsets", "PressOffset", Calib.Press.Offset);
 			ini.SetValue("Offsets", "TempOffset", Calib.Temp.Offset);

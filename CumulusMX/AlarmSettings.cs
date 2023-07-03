@@ -268,7 +268,8 @@ namespace CumulusMX
 			{
 				fromEmail = cumulus.AlarmFromEmail,
 				destEmail = cumulus.AlarmDestEmail.Join(";"),
-				useHtml = cumulus.AlarmEmailHtml
+				useHtml = cumulus.AlarmEmailHtml,
+				useBcc = cumulus.AlarmEmailUseBcc
 			};
 
 			var retObject = new JsonAlarmSettings()
@@ -559,6 +560,7 @@ namespace CumulusMX
 				}
 				cumulus.AlarmDestEmail = emails;
 				cumulus.AlarmEmailHtml = result.email.useHtml;
+				cumulus.AlarmEmailUseBcc = result.email.useBcc;
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -678,6 +680,7 @@ namespace CumulusMX
 		public string fromEmail { get; set; }
 		public string destEmail { get; set; }
 		public bool useHtml { get; set; }
+		public bool useBcc { get; set; }
 	}
 
 	public class JsonAlarmUnits
