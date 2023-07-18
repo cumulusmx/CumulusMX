@@ -417,6 +417,8 @@ namespace CumulusMX
 			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
 			RecentDataDb.CreateTable<RecentData>();
 			RecentDataDb.CreateTable<SqlCache>();
+			RecentDataDb.CreateTable<CWindRecent>();
+			RecentDataDb.Execute("create table if not exists WindRecentPointer (pntr INTEGER)");
 			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
 			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
 
@@ -1546,7 +1548,11 @@ namespace CumulusMX
 				cumulus.LogMessage("sendWebSocketData: Error - " + ex.Message);
 			}
 
-			webSocketSemaphore.Release();
+			try
+			{
+				webSocketSemaphore.Release();
+			}
+			catch { }
 		}
 
 		private string getTimeString(DateTime time, string format = "HH:mm")
@@ -5489,8 +5495,11 @@ namespace CumulusMX
 						}
 					}
 				}
-				// average the values
-				WindAverage = totalwind / numvalues;
+				// average the values, if we have enough samples
+				if (numvalues > 3)
+					WindAverage = totalwind / numvalues;
+				else
+					WindAverage = totalwind / 3;
 				//cumulus.LogDebugMessage("next=" + nextwind + " wind=" + uncalibratedgust + " tot=" + totalwind + " numv=" + numvalues + " avg=" + WindAverage);
 			}
 			else
@@ -5612,7 +5621,7 @@ namespace CumulusMX
 		public void InitialiseWind()
 		{
 			// first the average
-			var fromTime = DateTime.Now - cumulus.AvgSpeedTime;
+			var fromTime = cumulus.LastUpdateTime - cumulus.AvgSpeedTime;
 			var numvalues = 0;
 			var totalwind = 0.0;
 
@@ -5624,23 +5633,22 @@ namespace CumulusMX
 					totalwind += WindRecent[i].Speed;
 				}
 			}
-			// average the values
-			if (numvalues > 0)
+			// average the values, if we have enough samples
+			if (numvalues > 3)
 				WindAverage = totalwind / numvalues;
+			else
+				WindAverage = totalwind / 3;
 
 			// now the gust
 			fromTime = DateTime.Now - cumulus.PeakGustTime;
-			numvalues = 0;
-			var peakGust = 0.0;
 
 			for (int i = 0; i < MaxWindRecent; i++)
 			{
 				if (WindRecent[i].Timestamp >= fromTime)
 				{
-					numvalues++;
-					if (WindRecent[i].Gust > peakGust)
+					if (WindRecent[i].Gust > RecentMaxGust)
 					{
-						peakGust = WindRecent[i].Gust;
+						RecentMaxGust = WindRecent[i].Gust;
 					}
 				}
 			}
@@ -8010,6 +8018,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Loading last N hour data from data logs: " + ts);
 			LoadRecentFromDataLogs(ts);
 			LoadRecentAqFromDataLogs(ts);
+			LoadWindData();
 			LoadLast3HourData(ts);
 			LoadRecentWindRose();
 			InitialiseWind();
@@ -8314,14 +8323,28 @@ namespace CumulusMX
 
 			var result = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? and Timestamp <= ? order by Timestamp", datefrom, dateto);
 
+			// get the min and max timestamps from the recent wind array
+			var minWindTs = DateTime.MaxValue;
+			var maxWindTs = DateTime.MinValue;
+			foreach (var rec in WindRecent)
+			{
+				if (rec.Timestamp < minWindTs)
+					minWindTs = rec.Timestamp;
+				if (rec.Timestamp > maxWindTs)
+					maxWindTs = rec.Timestamp;
+			}
+
 			foreach (var rec in result)
 			{
 				try
 				{
-					WindRecent[nextwind].Gust = rec.WindGust;
-					WindRecent[nextwind].Speed = rec.WindSpeed;
-					WindRecent[nextwind].Timestamp = rec.Timestamp;
-					nextwind = (nextwind + 1) % MaxWindRecent;
+					if (rec.Timestamp < minWindTs || rec.Timestamp > maxWindTs)
+					{
+						WindRecent[nextwind].Gust = rec.WindGust;
+						WindRecent[nextwind].Speed = rec.WindSpeed;
+						WindRecent[nextwind].Timestamp = rec.Timestamp;
+						nextwind = (nextwind + 1) % MaxWindRecent;
+					}
 
 					WindVec[nextwindvec].X = rec.WindGust * Math.Sin(DegToRad(rec.WindDir));
 					WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(DegToRad(rec.WindDir));
@@ -8335,6 +8358,70 @@ namespace CumulusMX
 				}
 			}
 			cumulus.LogMessage($"LoadLast3Hour: Loaded {result.Count} entries to last 3 hour data list");
+		}
+
+		private void LoadWindData()
+		{
+			cumulus.LogMessage($"LoadWindData: Attempting to reload the wind speeds array");
+			var result = RecentDataDb.Query<CWindRecent>("select * from CWindRecent");
+
+			try
+			{
+				for (var i = 0; i < result.Count; i++)
+				{
+					WindRecent[i].Gust = result[i].Gust;
+					WindRecent[i].Speed = result[i].Speed;
+					WindRecent[i].Timestamp = result[i].Timestamp;
+				}
+			}
+			catch (Exception e)
+			{
+				cumulus.LogMessage($"LoadWindData: Error loading data from database : {e.Message}");
+			}
+
+			try
+			{
+				nextwind = RecentDataDb.ExecuteScalar<int>("select * from WindRecentPointer limit 1");
+			}
+			catch (Exception e)
+			{
+				cumulus.LogMessage($"LoadWindData: Error loading pointer from database : {e.Message}");
+			}
+
+			cumulus.LogMessage($"LoadWindData: Loaded {result.Count} entries to WindRecent data list");
+		}
+
+		public void SaveWindData()
+		{
+			cumulus.LogMessage($"SaveWindData: Attempting to save the wind speeds array");
+
+			RecentDataDb.BeginTransaction();
+
+			try
+			{
+				// first empty the tables
+				RecentDataDb.DeleteAll<CWindRecent>();
+				RecentDataDb.Execute("delete from WindRecentPointer");
+
+				// save the type array
+				for (int i = 0; i < WindRecent.Length; i++)
+				{
+					if (WindRecent[i].Timestamp > DateTime.MinValue)
+						RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp, WindRecent[i].Gust, WindRecent[i].Speed);
+				}
+
+				// and save the pointer
+				RecentDataDb.Execute("insert into WindRecentPointer (pntr) values (?)", nextwind);
+
+				RecentDataDb.Commit();
+
+				cumulus.LogMessage($"SaveWindData: Saved the wind speeds array");
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"SaveWindData: Error saving RecentWind to the database : {ex.Message}");
+				RecentDataDb.Rollback();
+			}
 		}
 
 		private static DateTime GetDateTime(DateTime date, string time)
@@ -14218,6 +14305,7 @@ namespace CumulusMX
 	//   public CumulusData(string connection) : base(connection) { }
 	//}
 
+	/*
 	public class Last3HourData
 	{
 		public DateTime timestamp;
@@ -14230,6 +14318,15 @@ namespace CumulusMX
 			pressure = press;
 			temperature = temp;
 		}
+	}
+	*/
+
+	public class CWindRecent
+	{
+		[PrimaryKey]
+		public DateTime Timestamp { get; set; }
+		public double Gust { get; set; }  // calibrated "gust" as read from station
+		public double Speed { get; set; } // calibrated "speed" as read from station
 	}
 
 	public class LastHourData

@@ -829,11 +829,10 @@ namespace CumulusMX
 										int wdir = data1.wind_dir_last ?? 0;
 										double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
 
-										var savCalc = cumulus.StationOptions.CalcuateAverageWindSpeed;
 										cumulus.StationOptions.CalcuateAverageWindSpeed = false;
 										CalcRecentMaxGust = false;
 										DoWind(wind, wdir, currentAvgWindSpd, dateTime);
-										cumulus.StationOptions.CalcuateAverageWindSpeed = savCalc;
+										cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 										CalcRecentMaxGust = true;
 									}
 

@@ -9019,6 +9019,7 @@ namespace CumulusMX
 					{
 						LogMessage("No data read this session, today.ini not written");
 					}
+					station.SaveWindData();
 				}
 				catch { }
 			}
