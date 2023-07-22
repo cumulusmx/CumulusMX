@@ -1978,7 +1978,7 @@ namespace CumulusMX
 						cumulus.LogSpikeRemoval("Station Pressure difference greater than specified; reading ignored");
 						cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPressStation:F1} SpikePressDiff={cumulus.Spike.PressDiff:F1} HighLimit={cumulus.Limit.PressHigh:F1} LowLimit={cumulus.Limit.PressLow:F1}");
 						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastError = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
+						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
 						cumulus.SpikeAlarm.Triggered = true;
 					}
 				}

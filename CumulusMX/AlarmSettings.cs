@@ -185,6 +185,19 @@ namespace CumulusMX
 					Action = cumulus.SensorAlarm.Action,
 					ActionParams = cumulus.SensorAlarm.ActionParams
 				},
+				newRecord = new JsonAlarmValues()
+				{
+					Enabled = cumulus.NewRecordAlarm.Enabled,
+					SoundEnabled = cumulus.NewRecordAlarm.Sound,
+					Sound = cumulus.NewRecordAlarm.SoundFile,
+					Notify = cumulus.NewRecordAlarm.Notify,
+					Email = cumulus.NewRecordAlarm.Email,
+					Latches = cumulus.NewRecordAlarm.Latch,
+					LatchHrs = cumulus.NewRecordAlarm.LatchHours,
+					Threshold = cumulus.NewRecordAlarm.TriggerThreshold,
+					Action = cumulus.NewRecordAlarm.Action,
+					ActionParams = cumulus.NewRecordAlarm.ActionParams
+				},
 				dataStopped = new JsonAlarmValues()
 				{
 					Enabled = cumulus.DataStoppedAlarm.Enabled,
@@ -449,6 +462,18 @@ namespace CumulusMX
 				cumulus.HighWindAlarm.Action = settings.windAbove.Action.Trim();
 				cumulus.HighWindAlarm.ActionParams = settings.windAbove.ActionParams.Trim();
 
+				cumulus.NewRecordAlarm.Enabled = settings.newRecord.Enabled;
+				cumulus.NewRecordAlarm.Sound = settings.newRecord.SoundEnabled;
+				cumulus.NewRecordAlarm.SoundFile = settings.newRecord.Sound.Trim();
+				cumulus.NewRecordAlarm.Notify = settings.newRecord.Notify;
+				cumulus.NewRecordAlarm.Email = settings.newRecord.Email;
+				cumulus.NewRecordAlarm.Latch = settings.newRecord.Latches;
+				cumulus.NewRecordAlarm.LatchHours = settings.newRecord.LatchHrs;
+				cumulus.NewRecordAlarm.TriggerThreshold = settings.newRecord.Threshold;
+				emailRequired = emailRequired || (cumulus.NewRecordAlarm.Email && cumulus.NewRecordAlarm.Enabled);
+				cumulus.NewRecordAlarm.Action = settings.newRecord.Action.Trim();
+				cumulus.NewRecordAlarm.ActionParams = settings.newRecord.ActionParams.Trim();
+
 				cumulus.SensorAlarm.Enabled = settings.contactLost.Enabled;
 				cumulus.SensorAlarm.Sound = settings.contactLost.SoundEnabled;
 				cumulus.SensorAlarm.SoundFile = settings.contactLost.Sound.Trim();
@@ -650,6 +675,7 @@ namespace CumulusMX
 		public JsonAlarmValues rainRateAbove { get; set; }
 		public JsonAlarmValues gustAbove { get; set; }
 		public JsonAlarmValues windAbove { get; set; }
+		public JsonAlarmValues newRecord { get; set; }
 		public JsonAlarmValues contactLost { get; set; }
 		public JsonAlarmValues dataStopped { get; set; }
 		public JsonAlarmValues batteryLow { get; set; }

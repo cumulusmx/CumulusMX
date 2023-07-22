@@ -1596,65 +1596,25 @@ namespace CumulusMX
 
 		private void ClearAlarms()
 		{
-			if (cumulus.DataStoppedAlarm.Latch && cumulus.DataStoppedAlarm.Triggered && DateTime.Now > cumulus.DataStoppedAlarm.TriggeredTime.AddHours(cumulus.DataStoppedAlarm.LatchHours))
-				cumulus.DataStoppedAlarm.Triggered = false;
-
-			if (cumulus.BatteryLowAlarm.Latch && cumulus.BatteryLowAlarm.Triggered && DateTime.Now > cumulus.BatteryLowAlarm.TriggeredTime.AddHours(cumulus.BatteryLowAlarm.LatchHours))
-				cumulus.BatteryLowAlarm.Triggered = false;
-
-			if (cumulus.SensorAlarm.Latch && cumulus.SensorAlarm.Triggered && DateTime.Now > cumulus.SensorAlarm.TriggeredTime.AddHours(cumulus.SensorAlarm.LatchHours))
-				cumulus.SensorAlarm.Triggered = false;
-
-			if (cumulus.SpikeAlarm.Latch && cumulus.SpikeAlarm.Triggered && DateTime.Now > cumulus.SpikeAlarm.TriggeredTime.AddHours(cumulus.SpikeAlarm.LatchHours))
-				cumulus.SpikeAlarm.Triggered = false;
-
-			if (cumulus.UpgradeAlarm.Latch && cumulus.UpgradeAlarm.Triggered && DateTime.Now > cumulus.UpgradeAlarm.TriggeredTime.AddHours(cumulus.UpgradeAlarm.LatchHours))
-				cumulus.UpgradeAlarm.Triggered = false;
-
-			if (cumulus.HttpUploadAlarm.Latch && cumulus.HttpUploadAlarm.Triggered && DateTime.Now > cumulus.HttpUploadAlarm.TriggeredTime.AddHours(cumulus.HttpUploadAlarm.LatchHours))
-				cumulus.HttpUploadAlarm.Triggered = false;
-
-			if (cumulus.MySqlUploadAlarm.Latch && cumulus.MySqlUploadAlarm.Triggered && DateTime.Now > cumulus.MySqlUploadAlarm.TriggeredTime.AddHours(cumulus.MySqlUploadAlarm.LatchHours))
-				cumulus.MySqlUploadAlarm.Triggered = false;
-
-			if (cumulus.HighWindAlarm.Latch && cumulus.HighWindAlarm.Triggered && DateTime.Now > cumulus.HighWindAlarm.TriggeredTime.AddHours(cumulus.HighWindAlarm.LatchHours))
-				cumulus.HighWindAlarm.Triggered = false;
-
-			if (cumulus.HighGustAlarm.Latch && cumulus.HighGustAlarm.Triggered && DateTime.Now > cumulus.HighGustAlarm.TriggeredTime.AddHours(cumulus.HighGustAlarm.LatchHours))
-				cumulus.HighGustAlarm.Triggered = false;
-
-			if (cumulus.HighRainRateAlarm.Latch && cumulus.HighRainRateAlarm.Triggered && DateTime.Now > cumulus.HighRainRateAlarm.TriggeredTime.AddHours(cumulus.HighRainRateAlarm.LatchHours))
-				cumulus.HighRainRateAlarm.Triggered = false;
-
-			if (cumulus.HighRainTodayAlarm.Latch && cumulus.HighRainTodayAlarm.Triggered && DateTime.Now > cumulus.HighRainTodayAlarm.TriggeredTime.AddHours(cumulus.HighRainTodayAlarm.LatchHours))
-				cumulus.HighRainTodayAlarm.Triggered = false;
-
-			if (cumulus.IsRainingAlarm.Latch && cumulus.IsRainingAlarm.Triggered && DateTime.Now > cumulus.IsRainingAlarm.TriggeredTime.AddHours(cumulus.IsRainingAlarm.LatchHours))
-				cumulus.IsRainingAlarm.Triggered = false;
-
-			if (cumulus.HighPressAlarm.Latch && cumulus.HighPressAlarm.Triggered && DateTime.Now > cumulus.HighPressAlarm.TriggeredTime.AddHours(cumulus.HighPressAlarm.LatchHours))
-				cumulus.HighPressAlarm.Triggered = false;
-
-			if (cumulus.LowPressAlarm.Latch && cumulus.LowPressAlarm.Triggered && DateTime.Now > cumulus.LowPressAlarm.TriggeredTime.AddHours(cumulus.LowPressAlarm.LatchHours))
-				cumulus.LowPressAlarm.Triggered = false;
-
-			if (cumulus.HighTempAlarm.Latch && cumulus.HighTempAlarm.Triggered && DateTime.Now > cumulus.HighTempAlarm.TriggeredTime.AddHours(cumulus.HighTempAlarm.LatchHours))
-				cumulus.HighTempAlarm.Triggered = false;
-
-			if (cumulus.LowTempAlarm.Latch && cumulus.LowTempAlarm.Triggered && DateTime.Now > cumulus.LowTempAlarm.TriggeredTime.AddHours(cumulus.LowTempAlarm.LatchHours))
-				cumulus.LowTempAlarm.Triggered = false;
-
-			if (cumulus.TempChangeAlarm.Latch && cumulus.TempChangeAlarm.UpTriggered && DateTime.Now > cumulus.TempChangeAlarm.UpTriggeredTime.AddHours(cumulus.TempChangeAlarm.LatchHours))
-				cumulus.TempChangeAlarm.UpTriggered = false;
-
-			if (cumulus.TempChangeAlarm.Latch && cumulus.TempChangeAlarm.DownTriggered && DateTime.Now > cumulus.TempChangeAlarm.DownTriggeredTime.AddHours(cumulus.TempChangeAlarm.LatchHours))
-				cumulus.TempChangeAlarm.DownTriggered = false;
-
-			if (cumulus.PressChangeAlarm.Latch && cumulus.PressChangeAlarm.UpTriggered && DateTime.Now > cumulus.PressChangeAlarm.UpTriggeredTime.AddHours(cumulus.PressChangeAlarm.LatchHours))
-				cumulus.PressChangeAlarm.UpTriggered = false;
-
-			if (cumulus.PressChangeAlarm.Latch && cumulus.PressChangeAlarm.DownTriggered && DateTime.Now > cumulus.PressChangeAlarm.DownTriggeredTime.AddHours(cumulus.PressChangeAlarm.LatchHours))
-				cumulus.PressChangeAlarm.DownTriggered = false;
+			cumulus.DataStoppedAlarm.ClearAlarm();
+			cumulus.BatteryLowAlarm.ClearAlarm();
+			cumulus.NewRecordAlarm.ClearAlarm();
+			cumulus.SensorAlarm.ClearAlarm();
+			cumulus.SpikeAlarm.ClearAlarm();
+			cumulus.UpgradeAlarm.ClearAlarm();
+			cumulus.HttpUploadAlarm.ClearAlarm();
+			cumulus.MySqlUploadAlarm.ClearAlarm();
+			cumulus.HighWindAlarm.ClearAlarm();
+			cumulus.HighGustAlarm.ClearAlarm();
+			cumulus.HighRainRateAlarm.ClearAlarm();
+			cumulus.HighRainTodayAlarm.ClearAlarm();
+			cumulus.IsRainingAlarm.ClearAlarm();
+			cumulus.HighPressAlarm.ClearAlarm();
+			cumulus.LowPressAlarm.ClearAlarm();
+			cumulus.HighTempAlarm.ClearAlarm();
+			cumulus.LowTempAlarm.ClearAlarm();
+			cumulus.TempChangeAlarm.ClearAlarm();
+			cumulus.PressChangeAlarm.ClearAlarm();
 		}
 
 		private void MinuteChanged(DateTime now)
@@ -4102,6 +4062,8 @@ namespace CumulusMX
 				data += APRSsolarradStr(SolarRad);
 			}
 
+
+
 			return data;
 		}
 
@@ -4277,7 +4239,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval("Indoor humidity difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={hum} OldVal={previousInHum} SpikeDiff={cumulus.Spike.InHumDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Indoor humidity difference greater than spike value - NewVal={hum} OldVal={previousInHum}";
+				cumulus.SpikeAlarm.LastMessage = $"Indoor humidity difference greater than spike value - NewVal={hum} OldVal={previousInHum}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -4294,7 +4256,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval("Indoor temperature difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={temp} OldVal={previousInTemp} SpikeDiff={cumulus.Spike.InTempDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Indoor temperature difference greater than spike value - NewVal={temp} OldVal={previousInTemp}";
+				cumulus.SpikeAlarm.LastMessage = $"Indoor temperature difference greater than spike value - NewVal={temp} OldVal={previousInTemp}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -4311,7 +4273,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval("Humidity difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={humpar} OldVal={previousHum} SpikeHumidityDiff={cumulus.Spike.HumidityDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Humidity difference greater than spike value - NewVal={humpar} OldVal={previousHum}";
+				cumulus.SpikeAlarm.LastMessage = $"Humidity difference greater than spike value - NewVal={humpar} OldVal={previousHum}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -4396,7 +4358,7 @@ namespace CumulusMX
 				tempC >= cumulus.Limit.TempHigh || tempC <= cumulus.Limit.TempLow)
 			{
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Temp difference greater than spike value - NewVal={tempC.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)}";
+				cumulus.SpikeAlarm.LastMessage = $"Temp difference greater than spike value - NewVal={tempC.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
 				cumulus.LogSpikeRemoval("Temp difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={tempC.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)} HighLimit={cumulus.Limit.TempHigh.ToString(cumulus.TempFormat)} LowLimit={cumulus.Limit.TempLow.ToString(cumulus.TempFormat)}");
@@ -4849,7 +4811,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval("Pressure difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPress:F1} SpikePressDiff={cumulus.Spike.PressDiff:F1} HighLimit={cumulus.Limit.PressHigh:F1} LowLimit={cumulus.Limit.PressLow:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPress:F1}";
+				cumulus.SpikeAlarm.LastMessage = $"Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPress:F1}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -4967,7 +4929,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval("Rain rate greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Rate value = {rainRateMM:F2} SpikeMaxRainRate = {cumulus.Spike.MaxRainRate:F2}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Rain rate greater than spike value - value = {rainRateMM:F2}mm/hr";
+				cumulus.SpikeAlarm.LastMessage = $"Rain rate greater than spike value - value = {rainRateMM:F2}mm/hr";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -5228,7 +5190,7 @@ namespace CumulusMX
 				{
 					var msg = $"Dew point greater than limit ({cumulus.Limit.DewHigh.ToString(cumulus.TempFormat)}); reading ignored: {dp.ToString(cumulus.TempFormat)}";
 					lastSpikeRemoval = DateTime.Now;
-					cumulus.SpikeAlarm.LastError = msg;
+					cumulus.SpikeAlarm.LastMessage = msg;
 					cumulus.SpikeAlarm.Triggered = true;
 					cumulus.LogSpikeRemoval(msg);
 				}
@@ -5411,7 +5373,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
 				cumulus.LogSpikeRemoval($"Wind: NewVal={windAvgMS:F1} OldVal={previousWind:F1} SpikeWindDiff={cumulus.Spike.WindDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Wind or gust difference greater than spike/limit value - Gust: NewVal={windGustMS:F1}m/s OldVal={previousGust:F1}m/s - Wind: NewVal={windAvgMS:F1}m/s OldVal={previousWind:F1}m/s";
+				cumulus.SpikeAlarm.LastMessage = $"Wind or gust difference greater than spike/limit value - Gust: NewVal={windGustMS:F1}m/s OldVal={previousGust:F1}m/s - Wind: NewVal={windAvgMS:F1}m/s OldVal={previousWind:F1}m/s";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -5778,6 +5740,9 @@ namespace CumulusMX
 				sb.Append(Environment.NewLine);
 				File.AppendAllText(cumulus.Alltimelogfile, sb.ToString());
 			}
+
+			cumulus.NewRecordAlarm.Triggered = true;
+			cumulus.NewRecordAlarm.LastMessage = rec.Desc + " = " + string.Format("{0,7:0.000}", value);
 		}
 
 		public void SetMonthlyAlltime(AllTimeRec rec, double value, DateTime timestamp)
@@ -7725,7 +7690,7 @@ namespace CumulusMX
 							// ignore
 							cumulus.LogSpikeRemoval("Max hourly rainfall spike value exceed");
 							lastSpikeRemoval = DateTime.Now;
-							cumulus.SpikeAlarm.LastError = $"Max hourly rainfall greater than spike value - Value={tempRainLastHour:F1}";
+							cumulus.SpikeAlarm.LastMessage = $"Max hourly rainfall greater than spike value - Value={tempRainLastHour:F1}";
 							cumulus.SpikeAlarm.Triggered = true;
 						}
 						else
@@ -7801,7 +7766,7 @@ namespace CumulusMX
 							cumulus.LogSpikeRemoval("Max rainfall rate spike value exceed");
 							cumulus.LogSpikeRemoval($"Rate value = {ConvertUserRainToMM(tempRainRate):F2} SpikeMaxRainRate = {cumulus.Spike.MaxRainRate:F2}");
 							lastSpikeRemoval = DateTime.Now;
-							cumulus.SpikeAlarm.LastError = $"Max rainfall rate greater than spike value - Value={tempRainRate:F1}";
+							cumulus.SpikeAlarm.LastMessage = $"Max rainfall rate greater than spike value - Value={tempRainRate:F1}";
 							cumulus.SpikeAlarm.Triggered = true;
 
 						}
@@ -13978,7 +13943,7 @@ namespace CumulusMX
 				cumulus.LogSpikeRemoval("Wind Gust difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastError = $"Wind Gust difference greater than spike value - NewVal={windGustMS:F1}, OldVal={previousGust:F1}";
+				cumulus.SpikeAlarm.LastMessage = $"Wind Gust difference greater than spike value - NewVal={windGustMS:F1}, OldVal={previousGust:F1}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return false;
 			}

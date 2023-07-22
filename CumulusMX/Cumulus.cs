@@ -532,6 +532,7 @@ namespace CumulusMX
 		public Alarm HttpUploadAlarm = new Alarm("HTTP Uploads", AlarmTypes.Trigger);
 		public Alarm MySqlUploadAlarm = new Alarm("MySQL Uploads", AlarmTypes.Trigger);
 		public Alarm IsRainingAlarm = new Alarm("IsRaining", AlarmTypes.Trigger);
+		public Alarm NewRecordAlarm = new Alarm("New Record", AlarmTypes.Trigger);
 
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
@@ -1384,6 +1385,7 @@ namespace CumulusMX
 			HttpUploadAlarm.cumulus = this;
 			MySqlUploadAlarm.cumulus = this;
 			IsRainingAlarm.cumulus = this;
+			NewRecordAlarm.cumulus = this;
 
 			GetLatestVersion();
 
@@ -2245,7 +2247,7 @@ namespace CumulusMX
 						if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
 						{
 							LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
-							HttpUploadAlarm.LastError = "Wunderground: HTTP response - " + response.StatusCode;
+							HttpUploadAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
 							HttpUploadAlarm.Triggered = true;
 							Wund.ErrorFlagCount = 0;
 						}
@@ -2260,7 +2262,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("Wunderground: ERROR - " + ex.Message);
-				HttpUploadAlarm.LastError = "Wunderground: " + ex.Message;
+				HttpUploadAlarm.LastMessage = "Wunderground: " + ex.Message;
 				HttpUploadAlarm.Triggered = true;
 			}
 			finally
@@ -2294,7 +2296,7 @@ namespace CumulusMX
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
 						LogMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
-						HttpUploadAlarm.LastError = "Windy: HTTP response - " + response.StatusCode;
+						HttpUploadAlarm.LastMessage = "Windy: HTTP response - " + response.StatusCode;
 						HttpUploadAlarm.Triggered = true;
 					}
 					else
@@ -2306,7 +2308,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("Windy: ERROR - " + ex.Message);
-				HttpUploadAlarm.LastError = "Windy: " + ex.Message;
+				HttpUploadAlarm.LastMessage = "Windy: " + ex.Message;
 				HttpUploadAlarm.Triggered = true;
 			}
 			finally
@@ -2340,7 +2342,7 @@ namespace CumulusMX
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
 						LogMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
-						HttpUploadAlarm.LastError = "WindGuru: HTTP response - " + response.StatusCode;
+						HttpUploadAlarm.LastMessage = "WindGuru: HTTP response - " + response.StatusCode;
 						HttpUploadAlarm.Triggered = true;
 					}
 					else
@@ -2352,7 +2354,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("WindGuru: ERROR - " + ex.Message);
-				HttpUploadAlarm.LastError = "WindGuru: " + ex.Message;
+				HttpUploadAlarm.LastMessage = "WindGuru: " + ex.Message;
 				HttpUploadAlarm.Triggered = true;
 			}
 			finally
@@ -2392,7 +2394,7 @@ namespace CumulusMX
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
 						LogMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-						HttpUploadAlarm.LastError = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
+						HttpUploadAlarm.LastMessage = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
 						HttpUploadAlarm.Triggered = true;
 						AWEKAS.Updating = false;
 						return;
@@ -2411,7 +2413,7 @@ namespace CumulusMX
 					{
 						LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
 						LogMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
-						HttpUploadAlarm.LastError = "AWEKAS deserializing response: " + ex.Message;
+						HttpUploadAlarm.LastMessage = "AWEKAS deserializing response: " + ex.Message;
 						HttpUploadAlarm.Triggered = true;
 						AWEKAS.Updating = false;
 						return;
@@ -2469,7 +2471,7 @@ namespace CumulusMX
 						else
 						{
 							LogMessage("AWEKAS: Unknown error");
-							HttpUploadAlarm.LastError = "AWEKAS: Unknown error";
+							HttpUploadAlarm.LastMessage = "AWEKAS: Unknown error";
 							HttpUploadAlarm.Triggered = true;
 						}
 					}
@@ -2504,7 +2506,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("AWEKAS: Exception = " + ex.Message);
-				HttpUploadAlarm.LastError = "AWEKAS: " + ex.Message;
+				HttpUploadAlarm.LastMessage = "AWEKAS: " + ex.Message;
 				HttpUploadAlarm.Triggered = true;
 			}
 			finally
@@ -2546,27 +2548,27 @@ namespace CumulusMX
 							break;
 						case 400:
 							msg = "Bad request";
-							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.LastMessage = "WeatherCloud: " + msg;
 							HttpUploadAlarm.Triggered = true;
 							break;
 						case 401:
 							msg = "Incorrect WID or Key";
-							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.LastMessage = "WeatherCloud: " + msg;
 							HttpUploadAlarm.Triggered = true;
 							break;
 						case 429:
 							msg = "Too many requests";
-							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.LastMessage = "WeatherCloud: " + msg;
 							HttpUploadAlarm.Triggered = true;
 							break;
 						case 500:
 							msg = "Server error";
-							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.LastMessage = "WeatherCloud: " + msg;
 							HttpUploadAlarm.Triggered = true;
 							break;
 						default:
 							msg = "Unknown error";
-							HttpUploadAlarm.LastError = "WeatherCloud: " + msg;
+							HttpUploadAlarm.LastMessage = "WeatherCloud: " + msg;
 							HttpUploadAlarm.Triggered = true;
 							break;
 					}
@@ -2579,7 +2581,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("WeatherCloud: ERROR - " + ex.Message);
-				HttpUploadAlarm.LastError = "WeatherCloud: " + ex.Message;
+				HttpUploadAlarm.LastMessage = "WeatherCloud: " + ex.Message;
 				HttpUploadAlarm.Triggered = true;
 			}
 			finally
@@ -2617,7 +2619,7 @@ namespace CumulusMX
 					if (response.StatusCode != HttpStatusCode.NoContent)
 					{
 						LogMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}");
-						HttpUploadAlarm.LastError = $"OpenWeatherMap: HTTP response - {response.StatusCode}, Response data = {responseBodyAsText}";
+						HttpUploadAlarm.LastMessage = $"OpenWeatherMap: HTTP response - {response.StatusCode}, Response data = {responseBodyAsText}";
 						HttpUploadAlarm.Triggered = true;
 					}
 					else
@@ -2629,7 +2631,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogMessage("OpenWeatherMap: ERROR - " + ex.Message);
-				HttpUploadAlarm.LastError = "OpenWeatherMap: " + ex.Message;
+				HttpUploadAlarm.LastMessage = "OpenWeatherMap: " + ex.Message;
 				HttpUploadAlarm.Triggered = true;
 			}
 			finally
@@ -5370,6 +5372,15 @@ namespace CumulusMX
 			MySqlUploadAlarm.Action = ini.GetValue("Alarms", "MySqlUploadAlarmAction", "");
 			MySqlUploadAlarm.ActionParams = ini.GetValue("Alarms", "MySqlUploadAlarmActionParams", "");
 
+			NewRecordAlarm.Enabled = ini.GetValue("Alarms", "NewRecordAlarmSet", true);
+			NewRecordAlarm.Sound = ini.GetValue("Alarms", "NewRecordAlarmSound", false);
+			NewRecordAlarm.SoundFile = ini.GetValue("Alarms", "NewRecordAlarmSoundFile", DefaultSoundFile);
+			NewRecordAlarm.Notify = ini.GetValue("Alarms", "NewRecordAlarmNotify", false);
+			NewRecordAlarm.Email = ini.GetValue("Alarms", "NewRecordAlarmEmail", false);
+			NewRecordAlarm.Latch = ini.GetValue("Alarms", "NewRecordAlarmLatch", false);
+			NewRecordAlarm.LatchHours = ini.GetValue("Alarms", "NewRecordAlarmLatchHours", 24);
+			NewRecordAlarm.Action = ini.GetValue("Alarms", "NewRecordAlarmAction", "");
+			NewRecordAlarm.ActionParams = ini.GetValue("Alarms", "NewRecordAlarmActionParams", "");
 
 			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", "");
 			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", "").Split(';');
@@ -6532,6 +6543,16 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "MySqlUploadAlarmAction", MySqlUploadAlarm.Action);
 			ini.SetValue("Alarms", "MySqlUploadAlarmActionParams", MySqlUploadAlarm.ActionParams);
 
+			ini.SetValue("Alarms", "NewRecordAlarmSet", NewRecordAlarm.Enabled);
+			ini.SetValue("Alarms", "NewRecordAlarmSound", NewRecordAlarm.Sound);
+			ini.SetValue("Alarms", "NewRecordAlarmSoundFile", NewRecordAlarm.SoundFile);
+			ini.SetValue("Alarms", "NewRecordAlarmNotify", NewRecordAlarm.Notify);
+			ini.SetValue("Alarms", "NewRecordAlarmEmail", NewRecordAlarm.Email);
+			ini.SetValue("Alarms", "NewRecordAlarmLatch", NewRecordAlarm.Latch);
+			ini.SetValue("Alarms", "NewRecordAlarmLatchHours", NewRecordAlarm.LatchHours);
+			ini.SetValue("Alarms", "NewRecordAlarmAction", NewRecordAlarm.Action);
+			ini.SetValue("Alarms", "NewRecordAlarmActionParams", NewRecordAlarm.ActionParams);
+
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", AlarmDestEmail.Join(";"));
 			ini.SetValue("Alarms", "UseHTML", AlarmEmailHtml);
@@ -7102,6 +7123,7 @@ namespace CumulusMX
 			HttpUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "httpStopped", "HTTP uploads are failing.");
 			MySqlUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "mySqlStopped", "MySQL uploads are failing.");
 			IsRainingAlarm.EmailMsg = ini.GetValue("AlarmEmails", "isRaining", "It has started to rain.");
+			NewRecordAlarm.EmailMsg = ini.GetValue("AlarmEmails", "newRecord", "A new all-time record has been set.");
 
 			if (!File.Exists("strings.ini"))
 			{
@@ -12563,7 +12585,7 @@ namespace CumulusMX
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
 							LogMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
-							HttpUploadAlarm.LastError = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							HttpUploadAlarm.LastMessage = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
 							HttpUploadAlarm.Triggered = true;
 						}
 						else
@@ -12576,7 +12598,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage("PWS update: " + ex.Message);
-					HttpUploadAlarm.LastError = "PWS: " + ex.Message;
+					HttpUploadAlarm.LastMessage = "PWS: " + ex.Message;
 					HttpUploadAlarm.Triggered = true;
 				}
 				finally
@@ -12608,7 +12630,7 @@ namespace CumulusMX
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
 							LogMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-							HttpUploadAlarm.LastError = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							HttpUploadAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
 							HttpUploadAlarm.Triggered = true;
 						}
 						else
@@ -12621,7 +12643,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogMessage("WOW update: " + ex.Message);
-					HttpUploadAlarm.LastError = "WOW: " + ex.Message;
+					HttpUploadAlarm.LastMessage = "WOW: " + ex.Message;
 					HttpUploadAlarm.Triggered = true;
 				}
 				finally
@@ -12717,7 +12739,7 @@ namespace CumulusMX
 					}
 
 
-					MySqlUploadAlarm.LastError = ex.Message;
+					MySqlUploadAlarm.LastMessage = ex.Message;
 					MySqlUploadAlarm.Triggered = true;
 
 					if (MySqlSettings.BufferOnfailure && !UseFailedList)
@@ -12805,7 +12827,7 @@ namespace CumulusMX
 					LogMessage($"{CallingFunction}: SQL = {cachedCmd}");
 				}
 
-				MySqlUploadAlarm.LastError = ex.Message;
+				MySqlUploadAlarm.LastMessage = ex.Message;
 				MySqlUploadAlarm.Triggered = true;
 
 				// do we save this command/commands on failure to be resubmitted?
@@ -12900,7 +12922,7 @@ namespace CumulusMX
 						var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
 						LogConsoleMessage(msg, ConsoleColor.Cyan);
 						LogMessage(msg);
-						UpgradeAlarm.LastError = $"Build {LatestBuild} is available";
+						UpgradeAlarm.LastMessage = $"Build {LatestBuild} is available";
 						UpgradeAlarm.Triggered = true;
 					}
 					else if (int.Parse(Build) == int.Parse(LatestBuild))

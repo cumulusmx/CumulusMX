@@ -130,7 +130,8 @@ namespace CumulusMX
 				dataSpike = cumulus.SpikeAlarm.EmailMsg,
 				upgrade = cumulus.UpgradeAlarm.EmailMsg,
 				httpStopped = cumulus.HttpUploadAlarm.EmailMsg,
-				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg
+				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg,
+				newRecord = cumulus.NewRecordAlarm.EmailMsg
 			};
 
 			var settings = new Settings()
@@ -378,6 +379,7 @@ namespace CumulusMX
 					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.upgrade.Trim();
 					cumulus.HttpUploadAlarm.EmailMsg = settings.alarms.httpStopped.Trim();
 					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.mySqlStopped.Trim();
+					cumulus.NewRecordAlarm.EmailMsg = settings.alarms.newRecord.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -505,6 +507,7 @@ namespace CumulusMX
 			public string upgrade { get; set; }
 			public string httpStopped { get; set; }
 			public string mySqlStopped { get; set; }
+			public string newRecord { get; set; }
 		}
 
 		private class Settings

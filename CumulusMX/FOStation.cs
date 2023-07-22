@@ -717,7 +717,7 @@ namespace CumulusMX
 				}
 
 				DataStopped = true;
-				cumulus.DataStoppedAlarm.LastError = "USB device no longer detected";
+				cumulus.DataStoppedAlarm.LastMessage = "USB device no longer detected";
 				cumulus.DataStoppedAlarm.Triggered = true;
 				return false;
 			}
@@ -737,7 +737,7 @@ namespace CumulusMX
 					DataStoppedTime = DateTime.Now;
 				}
 				DataStopped = true;
-				cumulus.DataStoppedAlarm.LastError = "Error reading data from station - it may need resetting. " + ex.Message;
+				cumulus.DataStoppedAlarm.LastMessage = "Error reading data from station - it may need resetting. " + ex.Message;
 				cumulus.DataStoppedAlarm.Triggered = true;
 				return false;
 			}
@@ -760,7 +760,7 @@ namespace CumulusMX
 						DataStoppedTime = DateTime.Now;
 					}
 					DataStopped = true;
-					cumulus.DataStoppedAlarm.LastError = "Error reading data from station - it may need resetting. " + ex.Message;
+					cumulus.DataStoppedAlarm.LastMessage = "Error reading data from station - it may need resetting. " + ex.Message;
 					cumulus.DataStoppedAlarm.Triggered = true;
 					return false;
 				}
@@ -802,7 +802,7 @@ namespace CumulusMX
 					DataStoppedTime = DateTime.Now;
 				}
 				DataStopped = true;
-				cumulus.DataStoppedAlarm.LastError = "Error sending command to station - it may need resetting: " + ex.Message;
+				cumulus.DataStoppedAlarm.LastMessage = "Error sending command to station - it may need resetting: " + ex.Message;
 				cumulus.DataStoppedAlarm.Triggered = true;
 				return false;
 			}

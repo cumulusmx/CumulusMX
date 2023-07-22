@@ -49,7 +49,7 @@ namespace CumulusMX
 		public double LatchHours { get; set; }
 		public string EmailMsg { get; set; }
 		public string Units { get; set; }
-		public string LastError { get; set; }
+		public string LastMessage { get; set; }
 		public int TriggerThreshold { get; set; }
 
 		AlarmTypes type;
@@ -72,6 +72,12 @@ namespace CumulusMX
 			}
 		}
 
+		public void ClearAlarm()
+		{
+			if (Latch && triggered && DateTime.Now > triggeredTime.AddHours(LatchHours))
+				doTriggered(false);
+		}
+
 		private void doTriggered(bool value)
 		{
 			if (value)
@@ -91,9 +97,9 @@ namespace CumulusMX
 						{
 							// Construct the message - preamble, plus values
 							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
-							if (!string.IsNullOrEmpty(LastError))
+							if (!string.IsNullOrEmpty(LastMessage))
 							{
-								msg += "\r\nLast error: " + LastError;
+								msg += "\r\nLast message: " + LastMessage;
 							}
 							_ = Task.Run(async () =>
 							{
@@ -237,6 +243,15 @@ namespace CumulusMX
 					doDownTriggered(false);
 				}
 			}
+		}
+
+		public void ClearAlarm()
+		{
+			if (Latch && upTriggered && DateTime.Now > UpTriggeredTime.AddHours(LatchHours))
+				doUpTriggered(false);
+
+			if (Latch && downTriggered && DateTime.Now > DownTriggeredTime.AddHours(LatchHours))
+				doDownTriggered(false);
 		}
 
 		private void doUpTriggered(bool value)

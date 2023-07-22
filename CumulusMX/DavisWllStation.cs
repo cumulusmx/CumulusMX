@@ -534,7 +534,7 @@ namespace CumulusMX
 
 								DataStopped = true;
 								DataStoppedTime = DateTime.Now;
-								cumulus.DataStoppedAlarm.LastError = "No current data is being received from the WLL";
+								cumulus.DataStoppedAlarm.LastMessage = "No current data is being received from the WLL";
 								cumulus.DataStoppedAlarm.Triggered = true;
 							}
 						}
@@ -3208,7 +3208,7 @@ namespace CumulusMX
 				{
 					DataStoppedTime = DateTime.Now;
 				}
-				cumulus.DataStoppedAlarm.LastError = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
+				cumulus.DataStoppedAlarm.LastMessage = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
 				broadcastStopped = true;
 				// Try and give the broadcasts a kick in case the last command did not get through

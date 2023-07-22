@@ -18,6 +18,7 @@ Changed
 	- MailKit, MQTTnet, MySqlConnector, ServiceStack
 - PHP upload now sends a text/plain content header
 - Davis WLL and Airlink now use the new simplified access method to weatherlink.com V2 API
+- MX now persists the internal recent wind data across restarts
 
 Fixed
 - PWS passwords are now URL encoded
@@ -27,6 +28,7 @@ Fixed
 - Instromet station now forces MX to calculate the average wind speed
 - FTP logging errors when FTP logging is already enabled at start-up
 - Updating MySQL on DayFile edits was erroring with a blank SQL statement
+
 
 
 3.25.2 - b3245
