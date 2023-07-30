@@ -1602,7 +1602,7 @@ namespace CumulusMX
 			cumulus.SensorAlarm.ClearAlarm();
 			cumulus.SpikeAlarm.ClearAlarm();
 			cumulus.UpgradeAlarm.ClearAlarm();
-			cumulus.HttpUploadAlarm.ClearAlarm();
+			cumulus.ThirdPartyAlarm.ClearAlarm();
 			cumulus.MySqlUploadAlarm.ClearAlarm();
 			cumulus.HighWindAlarm.ClearAlarm();
 			cumulus.HighGustAlarm.ClearAlarm();
@@ -1615,6 +1615,7 @@ namespace CumulusMX
 			cumulus.LowTempAlarm.ClearAlarm();
 			cumulus.TempChangeAlarm.ClearAlarm();
 			cumulus.PressChangeAlarm.ClearAlarm();
+			cumulus.FtpAlarm.ClearAlarm();
 		}
 
 		private void MinuteChanged(DateTime now)
@@ -3990,7 +3991,7 @@ namespace CumulusMX
 		public void CreateWxnowFile()
 		{
 			// Jun 01 2003 08:07
-			// 272/000g006t069r010p030P020h61b10150
+			// 272/000g006t069r010p030P020h61b10150CommentString
 
 			// 272 - wind direction - 272 degrees
 			// 010 - wind speed - 10 mph
@@ -4002,6 +4003,7 @@ namespace CumulusMX
 			// P020 - rain since midnight in hundredths of an inch - 0.2 inches
 			// h61 - humidity 61% (00 = 100%)
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
+			// CommentString - free format information text
 
 			var filename = cumulus.AppDir + cumulus.WxnowFile;
 
@@ -4016,7 +4018,7 @@ namespace CumulusMX
 		public string CreateWxnowFileString()
 		{
 			// Jun 01 2003 08:07
-			// 272/000g006t069r010p030P020h61b10150
+			// 272/000g006t069r010p030P020h61b10150CommentString
 
 			// 272 - wind direction - 272 degrees
 			// 010 - wind speed - 10 mph
@@ -4028,6 +4030,7 @@ namespace CumulusMX
 			// P020 - rain since midnight in hundredths of an inch - 0.2 inches
 			// h61 - humidity 61% (00 = 100%)
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
+			// CommentString - free format information text
 
 			var timestamp = DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
 
@@ -4062,7 +4065,14 @@ namespace CumulusMX
 				data += APRSsolarradStr(SolarRad);
 			}
 
+			if (!String.IsNullOrWhiteSpace(cumulus.WxnowComment))
+			{
+				var tokenParser = new TokenParser(cumulus.TokenParserOnToken);
 
+				// process the webtags in the content string
+				tokenParser.InputText = cumulus.WxnowComment;
+				data += tokenParser.ToStringFromString();
+			}
 
 			return data;
 		}
@@ -13909,7 +13919,7 @@ namespace CumulusMX
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToString(cumulus.ProgramOptions.TimeFormatLong), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				cumulus.LowTempAlarm.Triggered, cumulus.HighTempAlarm.Triggered, cumulus.TempChangeAlarm.UpTriggered, cumulus.TempChangeAlarm.DownTriggered, cumulus.HighRainTodayAlarm.Triggered, cumulus.HighRainRateAlarm.Triggered,
 				cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
-				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.HttpUploadAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered, cumulus.IsRainingAlarm.Triggered,
+				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.ThirdPartyAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered, cumulus.IsRainingAlarm.Triggered,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 

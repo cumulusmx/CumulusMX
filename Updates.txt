@@ -12,13 +12,15 @@ New
 			"doNotTriggerOnTags": "timehhmmss"
 		}
 	Which now will only send a new MQTT message when CMX first starts, then only when the "#temp" value changes.
+- Adds new alarm for any all-time record being set
+- Adds new alarm "Web upload errors" for errors in the FTP/PHP upload processes
 
 Changed
 - Various third party libraries updated to current versions
 	- MailKit, MQTTnet, MySqlConnector, ServiceStack
 - PHP upload now sends a text/plain content header
 - Davis WLL and Airlink now use the new simplified access method to weatherlink.com V2 API
-- MX now persists the internal recent wind data across restarts
+- MX now persists the internal recent wind data across restarts so gust and average speeds are consistent on a quick stop/start of MX
 
 Fixed
 - PWS passwords are now URL encoded

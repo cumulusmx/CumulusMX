@@ -129,9 +129,10 @@ namespace CumulusMX
 				batteryLow = cumulus.BatteryLowAlarm.EmailMsg,
 				dataSpike = cumulus.SpikeAlarm.EmailMsg,
 				upgrade = cumulus.UpgradeAlarm.EmailMsg,
-				httpStopped = cumulus.HttpUploadAlarm.EmailMsg,
+				httpStopped = cumulus.ThirdPartyAlarm.EmailMsg,
 				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg,
-				newRecord = cumulus.NewRecordAlarm.EmailMsg
+				newRecord = cumulus.NewRecordAlarm.EmailMsg,
+				ftpStopped =cumulus.FtpAlarm.EmailMsg
 			};
 
 			var settings = new Settings()
@@ -377,9 +378,10 @@ namespace CumulusMX
 					cumulus.BatteryLowAlarm.EmailMsg = settings.alarms.batteryLow.Trim();
 					cumulus.SpikeAlarm.EmailMsg = settings.alarms.dataSpike.Trim();
 					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.upgrade.Trim();
-					cumulus.HttpUploadAlarm.EmailMsg = settings.alarms.httpStopped.Trim();
+					cumulus.ThirdPartyAlarm.EmailMsg = settings.alarms.httpStopped.Trim();
 					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.mySqlStopped.Trim();
 					cumulus.NewRecordAlarm.EmailMsg = settings.alarms.newRecord.Trim();
+					cumulus.FtpAlarm.EmailMsg = settings.alarms.ftpStopped.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -508,6 +510,7 @@ namespace CumulusMX
 			public string httpStopped { get; set; }
 			public string mySqlStopped { get; set; }
 			public string newRecord { get; set; }
+			public string ftpStopped { get; set; }
 		}
 
 		private class Settings

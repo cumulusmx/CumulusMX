@@ -662,7 +662,7 @@ namespace CumulusMX
 			const string monthFormat = "MMM yyyy";
 
 			var json = new StringBuilder("{", 2048);
-			DateTime datefrom;
+			DateTime filedate, datefrom;
 
 			switch (recordType)
 			{
@@ -671,11 +671,13 @@ namespace CumulusMX
 					break;
 				case "thisyear":
 					var now = DateTime.Now;
-					datefrom = new DateTime(now.Year, 1, 1);
+					filedate = new DateTime(now.Year, 1, 1).Date;
+					datefrom = filedate.AddDays(-1);
 					break;
 				case "thismonth":
 					now = DateTime.Now;
-					datefrom = new DateTime(now.Year, now.Month, 1).Date;
+					filedate = new DateTime(now.Year, now.Month, 1).Date;
+					datefrom = filedate.AddDays(-1);
 					break;
 				default:
 					datefrom = cumulus.RecordsBeganDateTime;
@@ -684,7 +686,7 @@ namespace CumulusMX
 			var dateto = DateTime.Now.Date;
 
 			// we have to go back 24 hour to calculate rain in 24h value
-			var filedate = datefrom.AddDays(-1);
+			filedate = datefrom.AddDays(-1);
 
 			var logFile = cumulus.GetLogFileName(filedate);
 			var started = false;

@@ -251,16 +251,16 @@ namespace CumulusMX
 				},
 				httpUpload = new JsonAlarmValues()
 				{
-					Enabled = cumulus.HttpUploadAlarm.Enabled,
-					SoundEnabled = cumulus.HttpUploadAlarm.Sound,
-					Sound = cumulus.HttpUploadAlarm.SoundFile,
-					Notify = cumulus.HttpUploadAlarm.Notify,
-					Email = cumulus.HttpUploadAlarm.Email,
-					Latches = cumulus.HttpUploadAlarm.Latch,
-					LatchHrs = cumulus.HttpUploadAlarm.LatchHours,
-					Threshold = cumulus.HttpUploadAlarm.TriggerThreshold,
-					Action = cumulus.HttpUploadAlarm.Action,
-					ActionParams = cumulus.HttpUploadAlarm.ActionParams
+					Enabled = cumulus.ThirdPartyAlarm.Enabled,
+					SoundEnabled = cumulus.ThirdPartyAlarm.Sound,
+					Sound = cumulus.ThirdPartyAlarm.SoundFile,
+					Notify = cumulus.ThirdPartyAlarm.Notify,
+					Email = cumulus.ThirdPartyAlarm.Email,
+					Latches = cumulus.ThirdPartyAlarm.Latch,
+					LatchHrs = cumulus.ThirdPartyAlarm.LatchHours,
+					Threshold = cumulus.ThirdPartyAlarm.TriggerThreshold,
+					Action = cumulus.ThirdPartyAlarm.Action,
+					ActionParams = cumulus.ThirdPartyAlarm.ActionParams
 				},
 				mySqlUpload = new JsonAlarmValues()
 				{
@@ -274,6 +274,19 @@ namespace CumulusMX
 					Threshold = cumulus.MySqlUploadAlarm.TriggerThreshold,
 					Action = cumulus.MySqlUploadAlarm.Action,
 					ActionParams = cumulus.MySqlUploadAlarm.ActionParams
+				},
+				ftpUpload = new JsonAlarmValues()
+				{
+					Enabled = cumulus.FtpAlarm.Enabled,
+					SoundEnabled = cumulus.FtpAlarm.Sound,
+					Sound = cumulus.FtpAlarm.SoundFile,
+					Notify = cumulus.FtpAlarm.Notify,
+					Email = cumulus.FtpAlarm.Email,
+					Latches = cumulus.FtpAlarm.Latch,
+					LatchHrs = cumulus.FtpAlarm.LatchHours,
+					Threshold = cumulus.FtpAlarm.TriggerThreshold,
+					Action = cumulus.FtpAlarm.Action,
+					ActionParams = cumulus.FtpAlarm.ActionParams
 				}
 			};
 
@@ -533,17 +546,17 @@ namespace CumulusMX
 				cumulus.UpgradeAlarm.Action = settings.upgrade.Action.Trim();
 				cumulus.UpgradeAlarm.ActionParams = settings.upgrade.ActionParams.Trim();
 
-				cumulus.HttpUploadAlarm.Enabled = settings.httpUpload.Enabled;
-				cumulus.HttpUploadAlarm.Sound = settings.httpUpload.SoundEnabled;
-				cumulus.HttpUploadAlarm.SoundFile = settings.httpUpload.Sound.Trim();
-				cumulus.HttpUploadAlarm.Notify = settings.httpUpload.Notify;
-				cumulus.HttpUploadAlarm.Email = settings.httpUpload.Email;
-				cumulus.HttpUploadAlarm.Latch = settings.httpUpload.Latches;
-				cumulus.HttpUploadAlarm.LatchHours = settings.httpUpload.LatchHrs;
-				cumulus.HttpUploadAlarm.TriggerThreshold = settings.httpUpload.Threshold;
-				emailRequired = emailRequired || (cumulus.HttpUploadAlarm.Email && cumulus.HttpUploadAlarm.Enabled);
-				cumulus.HttpUploadAlarm.Action = settings.httpUpload.Action.Trim();
-				cumulus.HttpUploadAlarm.ActionParams = settings.httpUpload.ActionParams.Trim();
+				cumulus.ThirdPartyAlarm.Enabled = settings.httpUpload.Enabled;
+				cumulus.ThirdPartyAlarm.Sound = settings.httpUpload.SoundEnabled;
+				cumulus.ThirdPartyAlarm.SoundFile = settings.httpUpload.Sound.Trim();
+				cumulus.ThirdPartyAlarm.Notify = settings.httpUpload.Notify;
+				cumulus.ThirdPartyAlarm.Email = settings.httpUpload.Email;
+				cumulus.ThirdPartyAlarm.Latch = settings.httpUpload.Latches;
+				cumulus.ThirdPartyAlarm.LatchHours = settings.httpUpload.LatchHrs;
+				cumulus.ThirdPartyAlarm.TriggerThreshold = settings.httpUpload.Threshold;
+				emailRequired = emailRequired || (cumulus.ThirdPartyAlarm.Email && cumulus.ThirdPartyAlarm.Enabled);
+				cumulus.ThirdPartyAlarm.Action = settings.httpUpload.Action.Trim();
+				cumulus.ThirdPartyAlarm.ActionParams = settings.httpUpload.ActionParams.Trim();
 
 				cumulus.MySqlUploadAlarm.Enabled = settings.mySqlUpload.Enabled;
 				cumulus.MySqlUploadAlarm.Sound = settings.mySqlUpload.SoundEnabled;
@@ -556,6 +569,18 @@ namespace CumulusMX
 				emailRequired = emailRequired || (cumulus.MySqlUploadAlarm.Email && cumulus.MySqlUploadAlarm.Enabled);
 				cumulus.MySqlUploadAlarm.Action = settings.mySqlUpload.Action.Trim();
 				cumulus.MySqlUploadAlarm.ActionParams = settings.mySqlUpload.ActionParams.Trim();
+
+				cumulus.FtpAlarm.Enabled = settings.ftpUpload.Enabled;
+				cumulus.FtpAlarm.Sound = settings.ftpUpload.SoundEnabled;
+				cumulus.FtpAlarm.SoundFile = settings.ftpUpload.Sound.Trim();
+				cumulus.FtpAlarm.Notify = settings.ftpUpload.Notify;
+				cumulus.FtpAlarm.Email = settings.ftpUpload.Email;
+				cumulus.FtpAlarm.Latch = settings.ftpUpload.Latches;
+				cumulus.FtpAlarm.LatchHours = settings.ftpUpload.LatchHrs;
+				cumulus.FtpAlarm.TriggerThreshold = settings.ftpUpload.Threshold;
+				emailRequired = emailRequired || (cumulus.FtpAlarm.Email && cumulus.FtpAlarm.Enabled);
+				cumulus.FtpAlarm.Action = settings.ftpUpload.Action.Trim();
+				cumulus.FtpAlarm.ActionParams = settings.ftpUpload.ActionParams.Trim();
 
 				// validate the from email
 				if (emailRequired && !EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
@@ -684,6 +709,7 @@ namespace CumulusMX
 		public JsonAlarmValues httpUpload { get; set; }
 		public JsonAlarmValues mySqlUpload { get; set; }
 		public JsonAlarmValues isRaining { get; set; }
+		public JsonAlarmValues ftpUpload { get; set; }
 	}
 
 	public class JsonAlarmValues
