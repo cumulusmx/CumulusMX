@@ -14,6 +14,7 @@ New
 	Which now will only send a new MQTT message when CMX first starts, then only when the "#temp" value changes.
 - Adds new alarm for any all-time record being set
 - Adds new alarm "Web upload errors" for errors in the FTP/PHP upload processes
+- Adds the ability to append free text comments to the wxnow.txt file. You can also include web tags
 
 Changed
 - Various third party libraries updated to current versions
