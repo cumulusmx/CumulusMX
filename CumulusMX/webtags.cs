@@ -5400,6 +5400,15 @@ namespace CumulusMX
 			return CheckRcDp(CheckPressUnit(result.Count == 0 ? station.Pressure : result[0].Pressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
+		private string TagRecentRain(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select (select raincounter from RecentData order by Timestamp Desc limit 1) - raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
 		private string TagRecentRainToday(Dictionary<string,string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
@@ -6327,6 +6336,7 @@ namespace CumulusMX
 				{ "RecentHumidex", TagRecentHumidex },
 				{ "RecentHumidity", TagRecentHumidity },
 				{ "RecentPressure", TagRecentPressure },
+				{ "RecentRain", TagRecentRain },
 				{ "RecentRainToday", TagRecentRainToday },
 				{ "RecentSolarRad", TagRecentSolarRad },
 				{ "RecentUV", TagRecentUv },

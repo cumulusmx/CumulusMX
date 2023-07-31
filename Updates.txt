@@ -15,6 +15,7 @@ New
 - Adds new alarm for any all-time record being set
 - Adds new alarm "Web upload errors" for errors in the FTP/PHP upload processes
 - Adds the ability to append free text comments to the wxnow.txt file. You can also include web tags
+- New web tag for recent rainfall - <#RecentRain> - it takes the same parameters as the other RecentXxxx web tags, and defaults to todays total if the parameters are incorrect or no recent data is available
 
 Changed
 - Various third party libraries updated to current versions
