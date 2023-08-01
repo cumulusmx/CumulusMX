@@ -41,7 +41,6 @@ namespace CumulusMX
 		private Version fwVersion;
 		private string gatewayType;
 
-
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Units.AirQualityUnitText = "µg/m³";
@@ -663,6 +662,7 @@ namespace CumulusMX
 								batt += " dummy value?";
 							}
 						}
+
 						break;
 
 					case "WH65":
@@ -721,6 +721,8 @@ namespace CumulusMX
 
 				if (batt.Contains("Low"))
 					batteryLow = true;
+
+				SensorReception[type] = data[sigPos];
 
 				cumulus.LogDebugMessage($" - {type} sensor id = {id} signal = {data[sigPos]} battery = {batt}");
 			}

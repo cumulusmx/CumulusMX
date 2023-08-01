@@ -427,6 +427,8 @@ namespace CumulusMX
 
 			var rnd = new Random();
 			versionCheckTime = new DateTime(1, 1, 1, rnd.Next(0, 23), rnd.Next(0, 59), 0);
+
+			SensorReception = new Dictionary<string, byte>();
 		}
 
 		public void ReloadFailedMySQLCommands()
@@ -5865,6 +5867,8 @@ namespace CumulusMX
 		public int[] DavisTxRssi = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		public string DavisFirmwareVersion = "???";
 		public string GW1000FirmwareVersion = "???";
+
+		public static Dictionary<string, byte> SensorReception { get; set; }
 
 		//private bool manualftp;
 
