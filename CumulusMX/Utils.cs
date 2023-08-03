@@ -219,9 +219,12 @@ namespace CumulusMX
 			sb.AppendLine("Exception Type: " + ex.GetType().FullName);
 			sb.AppendLine("Message: " + ex.Message);
 			//sb.AppendLine("Source: " + ex.Source);
-			foreach (var key in ex.Data.Keys)
+			if (ex.Data.Keys.Count > 0)
 			{
-				sb.AppendLine(key.ToString() + ": " + ex.Data[key].ToString());
+				foreach (var key in ex.Data.Keys)
+				{
+					sb.AppendLine(key.ToString() + ": " + (ex.Data[key] is null ? "null" : ex.Data[key].ToString()));
+				}
 			}
 
 			/*

@@ -1646,6 +1646,12 @@ namespace CumulusMX
 
 				InitialiseRG11();
 
+				// Do the start-up  MySQL commands before the station is started
+				if (MySqlSettings.CustomStartUp.Enabled)
+				{
+					CustomMySqlStartUp();
+				}
+
 				if (station.timerStartNeeded)
 				{
 					StartTimersAndSensors();
@@ -5673,7 +5679,6 @@ namespace CumulusMX
 					MySqlSettings.CustomTimed.SetInitialNextInterval(i, DateTime.Now);
 			}
 
-
 			// MySQL - custom roll-over
 			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
@@ -5681,6 +5686,15 @@ namespace CumulusMX
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
 					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, "");
+			}
+
+			// MySQL - custom start-up
+			MySqlSettings.CustomStartUp.Enabled = ini.GetValue("MySQL", "CustomMySqlStartUpEnabled", false);
+			MySqlSettings.CustomStartUp.Commands[0] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString", "");
+			for (var i = 1; i < 10; i++)
+			{
+				if (ini.ValueExists("MySQL", "CustomMySqlStartUpCommandString" + i))
+					MySqlSettings.CustomStartUp.Commands[i] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString" + i, "");
 			}
 
 
@@ -6823,6 +6837,7 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlSecondsEnabled", MySqlSettings.CustomSecs.Enabled);
 			ini.SetValue("MySQL", "CustomMySqlMinutesEnabled", MySqlSettings.CustomMins.Enabled);
 			ini.SetValue("MySQL", "CustomMySqlRolloverEnabled", MySqlSettings.CustomRollover.Enabled);
+			ini.SetValue("MySQL", "CustomMySqlStartUpEnabled", MySqlSettings.CustomStartUp.Enabled);
 
 			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlSettings.CustomSecs.Interval);
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", CustomMySqlMinutesIntervalIndex);
@@ -6830,6 +6845,7 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlSettings.CustomSecs.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlSettings.CustomStartUp.Commands[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
@@ -6847,6 +6863,11 @@ namespace CumulusMX
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
 				else
 					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
+
+				if (string.IsNullOrEmpty(MySqlSettings.CustomStartUp.Commands[i]))
+					ini.DeleteValue("MySQL", "CustomMySqlStartUpCommandString" + i);
+				else
+					ini.SetValue("MySQL", "CustomMySqlStartUpCommandString" + i, MySqlSettings.CustomStartUp.Commands[i]);
 			}
 
 			// MySql - Timed
@@ -12269,6 +12290,30 @@ namespace CumulusMX
 			}
 		}
 
+		internal void CustomMySqlStartUp()
+		{
+			LogMessage("Starting custom start-up MySQL commands");
+
+			var tokenParser = new TokenParser(TokenParserOnToken);
+
+			for (var i = 0; i < 10; i++)
+			{
+				try
+				{
+					if (!string.IsNullOrEmpty(MySqlSettings.CustomStartUp.Commands[i]))
+					{
+						tokenParser.InputText = MySqlSettings.CustomStartUp.Commands[i];
+						MySqlCommandSync(tokenParser.ToStringFromString(), "CustomMySqlStartUp");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, $"CustomSqlStartUp[{i}]: Error excuting: {MySqlSettings.CustomStartUp.Commands[i]} ");
+				}
+			}
+			LogMessage("Custom start-up MySQL commands end");
+		}
+
 		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
 		{
 			await CheckMySQLFailedUploads(callingFunction, new List<string>() { cmd });
@@ -14031,6 +14076,8 @@ namespace CumulusMX
 		public MySqlTableSettings CustomMins { get; set; }
 		public MySqlTableSettings CustomRollover { get; set; }
 		public MySqlTableTimedSettings CustomTimed { get; set; }
+		public MySqlTableSettings CustomStartUp { get; set; }
+
 
 		public MySqlGeneralSettings()
 		{
@@ -14041,6 +14088,7 @@ namespace CumulusMX
 			CustomMins = new MySqlTableSettings();
 			CustomRollover = new MySqlTableSettings();
 			CustomTimed = new MySqlTableTimedSettings();
+			CustomStartUp = new MySqlTableSettings();
 
 			CustomSecs.Commands = new string[10];
 			CustomMins.Commands = new string[10];
@@ -14049,6 +14097,7 @@ namespace CumulusMX
 			CustomTimed.Intervals = new int[10];
 			CustomTimed.StartTimes = new TimeSpan[10];
 			CustomTimed.NextUpdate = new DateTime[10];
+			CustomStartUp.Commands = new string[10];
 		}
 	}
 

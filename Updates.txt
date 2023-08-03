@@ -1,4 +1,4 @@
-3.26.0 - b3246
+3.26.0 - b3247
 ——————————————
 New
 - MQTT has a new behaviour - Only update a topic if the data has changed
@@ -16,9 +16,13 @@ New
 - Adds new alarm "Web upload errors" for errors in the FTP/PHP upload processes
 - Adds the ability to append free text comments to the wxnow.txt file. You can also include web tags
 - New web tag for recent rainfall - <#RecentRain> - it takes the same parameters as the other RecentXxxx web tags, and defaults to today's total if the parameters are incorrect or no recent data is available
-- New web tag for Ecowitt sensor radio reception strength - <#EcowittReception> - it returns a string of comma separated sensor names and value. eg "WH80=4,WH41CH1=3"
-	The values are updated every 20 minutes along with the battery info
+- New web tag for Ecowitt sensor radio reception strength - <#EcowittReception>
+	- By default it returns a string of comma separated sensor names and value. eg "WH80=4,WH41CH1=3"
+	- You can add a parameter "format=json" - <#EcowittReception format=json> - and it will return a valid JSON string. eg. {"WH80":4,"WH41CH1":3}
+	- The values are updated every 20 minutes along with the battery info
+- The existing web tag <#txbattery> now also supports the format=json parameter which functions the same as #EcowittReception tag above
 - New alternative name for the existing web tag <#GW1000FirmwareVersion>, you can now use <#EcowittFirmwareVersion>
+- Adds Custom MySQL commands for when Cumulus starts up. These will be executed after the station is initialised, but before it start any historic catch-up or live processing
 
 Changed
 - Various third party libraries updated to current versions
@@ -35,7 +39,7 @@ Fixed
 - Instromet station now forces MX to calculate the average wind speed
 - FTP logging errors when FTP logging is already enabled at start-up
 - Updating MySQL on DayFile edits was erroring with a blank SQL statement
-- Davis stations spike in wind speed on stop/start of CMX
+- Davis stations spike in average wind speed on stop/start of CMX
 
 
 

@@ -1105,20 +1105,39 @@ namespace CumulusMX
 
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
 		{
+			var json = tagParams.Get("format") == "json";
+
 			if (string.IsNullOrEmpty(station.TxBatText))
 			{
-				return "";
+				return json ? "{}" : "";
 			}
+
+			string[] sl;
 
 			string channeltxt = tagParams.Get("channel");
 			if (channeltxt == null)
 			{
-				return station.TxBatText;
+				if (json)
+				{
+					var retVal = "{";
+					sl = station.TxBatText.Split(' ');
+
+					for (var i = 0; i < sl.Length; i++)
+					{
+						retVal += $"\"TX{i + 1}\":\"{sl[i].Substring(2)}\",";
+					}
+
+					return retVal.Remove(retVal.Length - 1) + "}";
+				}
+				else
+				{
+					return station.TxBatText;
+				}
 			}
 
 			// extract status for required channel
 			char[] delimiters = { ' ', '-' };
-			string[] sl = station.TxBatText.Split(delimiters);
+			sl = station.TxBatText.Split(delimiters);
 
 			int channel = int.Parse(channeltxt) * 2 - 1;
 
@@ -5279,20 +5298,34 @@ namespace CumulusMX
 
 		private string TagGw1000Reception(Dictionary<string, string> tagParams)
 		{
-			var retVal = string.Empty;
+			var json = tagParams.Get("format") == "json";
+
+			var retVal = json ? "{" : string.Empty;
+
 
 			if (WeatherStation.SensorReception.Count > 0)
 			{
 				foreach (var pair in WeatherStation.SensorReception)
 				{
-					retVal += pair.Key + "=" + pair.Value + ",";
+					if (json)
+					{
+						retVal += $"\"{pair.Key}\":{pair.Value},";
+					}
+					else
+					{
+						retVal += $"{pair.Key}={pair.Value},";
+					}
 				}
 
-				return retVal.Remove(retVal.Length - 1);
+				retVal = retVal.Remove(retVal.Length - 1);
+
+				retVal += json ? "}" : "";
+
+				return retVal;
 			}
 			else
 			{
-				retVal = "n/a";
+				retVal = json ? "{}" : "n/a";
 			}
 
 			return retVal;
