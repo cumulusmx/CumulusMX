@@ -1740,7 +1740,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("TestPhpUploadCompression: Error - " + ex.Message);
+					LogExceptionMessage(ex, "TestPhpUploadCompression: Error - ");
 				}
 			}
 		}
@@ -2844,7 +2844,7 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									LogMessage($"Realtime[{cycle}]: Error during realtime upload. Message = {ex.Message}");
+									LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
 								}
 								RealtimeFtpInProgress = false;
 							}

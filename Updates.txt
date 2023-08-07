@@ -22,7 +22,7 @@ New
 	- The values are updated every 20 minutes along with the battery info
 - The existing web tag <#txbattery> now also supports the format=json parameter which functions the same as #EcowittReception tag above
 - New alternative name for the existing web tag <#GW1000FirmwareVersion>, you can now use <#EcowittFirmwareVersion>
-- Adds Custom MySQL commands for when Cumulus starts up. These will be executed after the station is initialised, but before it start any historic catch-up or live processing
+- Adds Custom MySQL commands for when Cumulus starts up. These will be executed after the station is initialised, but before it starts any historic catch-up or live processing
 
 Changed
 - Various third party libraries updated to current versions
