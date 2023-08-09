@@ -1,12 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Ports;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Globalization;
-using System.Linq;
 
 namespace CumulusMX
 {

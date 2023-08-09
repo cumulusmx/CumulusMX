@@ -1,13 +1,15 @@
 ﻿using System;
-using MailKit.Net.Smtp;
-using MimeKit;
-using System.Text.RegularExpressions;
-using MailKit;
-using System.Threading;
-using System.IO;
-using System.CodeDom.Compiler;
 using System.CodeDom;
+using System.CodeDom.Compiler;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+
+using MailKit;
+using MailKit.Net.Smtp;
+
+using MimeKit;
 
 namespace CumulusMX
 {

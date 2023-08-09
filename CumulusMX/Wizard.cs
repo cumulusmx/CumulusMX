@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+
+using EmbedIO;
+
 using ServiceStack;
 using ServiceStack.Text;
-using EmbedIO;
 
 namespace CumulusMX
 {

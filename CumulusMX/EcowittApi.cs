@@ -4,15 +4,18 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using HttpClient = System.Net.Http.HttpClient;
 using System.Reactive;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ServiceStack;
 using ServiceStack.Text;
+
 using static ServiceStack.Diagnostics.Events;
+
+using HttpClient = System.Net.Http.HttpClient;
 
 namespace CumulusMX
 {

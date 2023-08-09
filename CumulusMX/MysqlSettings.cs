@@ -1,16 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
-using MySqlConnector;
-using ServiceStack;
-using EmbedIO;
-using System.Text;
-using MySqlConnector.Logging;
-using System.Collections.Generic;
-using Org.BouncyCastle.Asn1.Cms;
-using System.Globalization;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Xml.Linq;
+
+using EmbedIO;
+
+using MySqlConnector;
+using MySqlConnector.Logging;
+
+using Org.BouncyCastle.Asn1.Cms;
+
+using ServiceStack;
 
 namespace CumulusMX
 {

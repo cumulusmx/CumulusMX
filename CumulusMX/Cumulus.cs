@@ -1,19 +1,6 @@
-using EmbedIO;
-using EmbedIO.WebApi;
-using EmbedIO.Files;
-using EmbedIO.Utilities;
-using FluentFTP;
-using FluentFTP.Helpers;
-using MySqlConnector;
-using Renci.SshNet;
-using SQLite;
-using ServiceStack;
-using ServiceStack.Text;
-using Swan;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -21,15 +8,10 @@ using System.IO.Ports;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using static System.Net.Mime.MediaTypeNames;
-using System.Net.Sockets;
 using System.Net.NetworkInformation;
-using System.Numerics;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
@@ -37,11 +19,28 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using Timer = System.Timers.Timer;
-using System.Web;
-using System.Web.Caching;
 using System.Web.UI.WebControls;
-using System.Xml.Linq;
+
+using EmbedIO;
+using EmbedIO.Files;
+using EmbedIO.Utilities;
+using EmbedIO.WebApi;
+
+using FluentFTP;
+using FluentFTP.Helpers;
+
+using MySqlConnector;
+
+using Renci.SshNet;
+
+using ServiceStack;
+using ServiceStack.Text;
+
+using SQLite;
+
+using Swan;
+
+using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {

@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
-using ServiceStack.Text;
+
 using EmbedIO;
-using System.Diagnostics;
+
+using ServiceStack.Text;
 
 namespace CumulusMX
 {

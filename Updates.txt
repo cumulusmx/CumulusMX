@@ -1,4 +1,14 @@
-3.26.0 - b3247
+3.26.1 - b3249
+——————————————
+New
+
+Changed
+
+Fixed
+
+
+
+3.26.0 - b3248
 ——————————————
 New
 - MQTT has a new behaviour - Only update a topic if the data has changed

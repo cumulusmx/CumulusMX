@@ -1,10 +1,12 @@
-﻿using HidSharp;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Timers;
+
+using HidSharp;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX

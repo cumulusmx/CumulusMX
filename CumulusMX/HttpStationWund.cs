@@ -1,6 +1,7 @@
 ﻿using System;
-using EmbedIO;
 using System.Globalization;
+
+using EmbedIO;
 
 namespace CumulusMX
 {

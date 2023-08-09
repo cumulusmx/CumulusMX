@@ -5,7 +5,9 @@ using System.Globalization;
 using System.IO.Ports;
 using System.Threading;
 using System.Timers;
+
 using HidSharp;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
