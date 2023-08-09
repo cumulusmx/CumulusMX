@@ -197,7 +197,7 @@ namespace CumulusMX
 					.Select(g => g.Address)
 					.First();
 			}
-			catch {}
+			catch { }
 			try
 			{
 				// next just return the first IPv4 address found
@@ -210,7 +210,7 @@ namespace CumulusMX
 					}
 				}
 			}
-			catch {}
+			catch { }
 
 			// finally, give up and just return a 0.0.0.0 IP!
 			return IPAddress.Any;

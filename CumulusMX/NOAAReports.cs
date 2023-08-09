@@ -104,7 +104,7 @@ namespace CumulusMX
 			catch (Exception e)
 			{
 				cumulus.LogMessage($"Error getting NOAA monthly report '{reportName}': {e.Message}");
-				report = "Something went wrong!" ;
+				report = "Something went wrong!";
 			}
 			return report;
 		}
@@ -143,7 +143,7 @@ namespace CumulusMX
 				return logfiledate.ToString(cumulus.NOAAconf.YearFile);
 		}
 
-		public string GetLastNoaaMonthReportFilename (DateTime dat, bool fullPath)
+		public string GetLastNoaaMonthReportFilename(DateTime dat, bool fullPath)
 		{
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)

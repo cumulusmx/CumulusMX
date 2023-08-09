@@ -86,7 +86,7 @@ namespace CumulusMX
 					while (!exitSystem)
 					{
 						// Wait for a signal to be delivered
-						unixSignalWaitAny?.Invoke(null, new object[] {signals});
+						unixSignalWaitAny?.Invoke(null, new object[] { signals });
 
 						var msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external SIGTERM signal";
 						Console.WriteLine(msg);
@@ -149,13 +149,13 @@ namespace CumulusMX
 					switch (args[i])
 					{
 						case "-lang" when args.Length >= i:
-						{
-							var lang = args[++i];
+							{
+								var lang = args[++i];
 
-							CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-							CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
-							break;
-						}
+								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+								CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
+								break;
+							}
 						case "-port" when args.Length >= i:
 							httpport = Convert.ToInt32(args[++i]);
 							break;
@@ -168,39 +168,39 @@ namespace CumulusMX
 							Console.WriteLine("The use of the -wsport command line parameter is deprecated");
 							break;
 						case "-install" when windows:
-						{
-							if (SelfInstaller.InstallMe())
 							{
-								Console.WriteLine("Cumulus MX is now installed to run as service");
-								Environment.Exit(0);
-							}
-							else
-							{
-								Console.WriteLine("Cumulus MX failed to install as service");
-								Environment.Exit(1);
-							}
+								if (SelfInstaller.InstallMe())
+								{
+									Console.WriteLine("Cumulus MX is now installed to run as service");
+									Environment.Exit(0);
+								}
+								else
+								{
+									Console.WriteLine("Cumulus MX failed to install as service");
+									Environment.Exit(1);
+								}
 
-							break;
-						}
+								break;
+							}
 						case "-install":
 							Console.WriteLine("You can only install Cumulus MX as a service in Windows");
 							Environment.Exit(1);
 							break;
 						case "-uninstall" when windows:
-						{
-							if (SelfInstaller.UninstallMe())
 							{
-								Console.WriteLine("Cumulus MX is no longer installed to run as service");
-								Environment.Exit(0);
-							}
-							else
-							{
-								Console.WriteLine("Cumulus MX failed uninstall itself as service");
-								Environment.Exit(1);
-							}
+								if (SelfInstaller.UninstallMe())
+								{
+									Console.WriteLine("Cumulus MX is no longer installed to run as service");
+									Environment.Exit(0);
+								}
+								else
+								{
+									Console.WriteLine("Cumulus MX failed uninstall itself as service");
+									Environment.Exit(1);
+								}
 
-							break;
-						}
+								break;
+							}
 						case "-uninstall":
 							Console.WriteLine("You can only uninstall Cumulus MX as a service in Windows");
 							Environment.Exit(1);
@@ -233,7 +233,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (Environment.UserInteractive ||(!windows && !service))
+				if (Environment.UserInteractive || (!windows && !service))
 				{
 					// Windows interactive or Linux and no service flag
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
@@ -353,7 +353,7 @@ namespace CumulusMX
 		{
 			var reason = new[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
 
-			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external: " + reason[(int)sig]);
+			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external: " + reason[(int) sig]);
 
 			if (Program.cumulus != null)
 			{

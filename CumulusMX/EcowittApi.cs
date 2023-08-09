@@ -36,7 +36,8 @@ namespace CumulusMX
 			//httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
 			// Let's decode the Unix ts to DateTime
-			JsConfig.Init(new Config {
+			JsConfig.Init(new Config
+			{
 				DateHandler = DateHandler.UnixTime
 			});
 
@@ -195,7 +196,7 @@ namespace CumulusMX
 					using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
 					{
 						responseBody = response.Content.ReadAsStringAsync().Result;
-						responseCode = (int)response.StatusCode;
+						responseCode = (int) response.StatusCode;
 						cumulus.LogDebugMessage($"API.GetHistoricData: Ecowitt API Historic Response code: {responseCode}");
 						cumulus.LogDataMessage($"API.GetHistoricData: Ecowitt API Historic Response: {responseBody}");
 					}
@@ -679,12 +680,12 @@ namespace CumulusMX
 
 							if (buffer.ContainsKey(itemDate))
 							{
-								buffer[itemDate].Solar = (int)item.Value;
+								buffer[itemDate].Solar = (int) item.Value;
 							}
 							else
 							{
 								var newItem = new EcowittApi.HistoricData();
-								newItem.Solar = (int)item.Value;
+								newItem.Solar = (int) item.Value;
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -702,12 +703,12 @@ namespace CumulusMX
 
 							if (buffer.ContainsKey(itemDate))
 							{
-								buffer[itemDate].UVI = (int)item.Value;
+								buffer[itemDate].UVI = (int) item.Value;
 							}
 							else
 							{
 								var newItem = new EcowittApi.HistoricData();
-								newItem.UVI = (int)item.Value;
+								newItem.UVI = (int) item.Value;
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1102,7 +1103,7 @@ namespace CumulusMX
 				}
 			}
 			// 4 channel PM 2.5 sensors
-			for (var i = 1; i <= 4 ; i++)
+			for (var i = 1; i <= 4; i++)
 			{
 				EcowittHistoricDataPm25Aqi sensor = null;
 				switch (i)
@@ -1264,9 +1265,9 @@ namespace CumulusMX
 			{
 				if (rec.Value.WindGust.HasValue && rec.Value.WindSpd.HasValue && rec.Value.WindDir.HasValue)
 				{
-					var gustVal = (double)rec.Value.WindGust;
-					var spdVal = (double)rec.Value.WindSpd;
-					var dirVal = (int)rec.Value.WindDir.Value;
+					var gustVal = (double) rec.Value.WindGust;
+					var spdVal = (double) rec.Value.WindSpd;
+					var dirVal = (int) rec.Value.WindDir.Value;
 
 					station.DoWind(gustVal, dirVal, spdVal, rec.Key);
 				}
@@ -1314,7 +1315,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.Pressure.HasValue)
 				{
-					var pressVal = (double)rec.Value.Pressure;
+					var pressVal = (double) rec.Value.Pressure;
 					station.DoPressure(pressVal, rec.Key);
 					station.UpdatePressureTrendString();
 				}
@@ -1334,7 +1335,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.IndoorTemp.HasValue)
 				{
-					var tempVal = (double)rec.Value.IndoorTemp;
+					var tempVal = (double) rec.Value.IndoorTemp;
 					station.DoIndoorTemp(tempVal);
 				}
 				else
@@ -1353,7 +1354,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.Temp.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 				{
-					var tempVal = (double)rec.Value.Temp;
+					var tempVal = (double) rec.Value.Temp;
 					station.DoOutdoorTemp(tempVal, rec.Key);
 				}
 				else
@@ -1374,7 +1375,7 @@ namespace CumulusMX
 				{
 					// we have a rain rate, so we will NOT calculate it
 					station.calculaterainrate = false;
-					rRate = (double)rec.Value.RainRate;
+					rRate = (double) rec.Value.RainRate;
 				}
 				else
 				{
@@ -1384,7 +1385,7 @@ namespace CumulusMX
 
 				if (rec.Value.RainYear.HasValue)
 				{
-					var rainVal = (double)rec.Value.RainYear;
+					var rainVal = (double) rec.Value.RainYear;
 					var rateVal = rRate;
 					station.DoRain(rainVal, rateVal, rec.Key);
 				}
@@ -1418,7 +1419,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.UVI.HasValue)
 				{
-					station.DoUV((double)rec.Value.UVI, rec.Key);
+					station.DoUV((double) rec.Value.UVI, rec.Key);
 				}
 			}
 			catch (Exception ex)
@@ -1434,7 +1435,7 @@ namespace CumulusMX
 				{
 					if (rec.Value.ExtraTemp[i].HasValue)
 					{
-						var tempVal = (double)rec.Value.ExtraTemp[i];
+						var tempVal = (double) rec.Value.ExtraTemp[i];
 						if (i == cumulus.Gw1000PrimaryTHSensor)
 						{
 							station.DoOutdoorTemp(tempVal, rec.Key);
@@ -1471,11 +1472,11 @@ namespace CumulusMX
 					{
 						if (cumulus.EcowittMapWN34[i] == 0)
 						{
-							station.DoUserTemp((double)rec.Value.UserTemp[i], i);
+							station.DoUserTemp((double) rec.Value.UserTemp[i], i);
 						}
 						else
 						{
-							station.DoSoilTemp((double)rec.Value.UserTemp[i], cumulus.EcowittMapWN34[i]);
+							station.DoSoilTemp((double) rec.Value.UserTemp[i], cumulus.EcowittMapWN34[i]);
 						}
 					}
 				}
@@ -1489,7 +1490,7 @@ namespace CumulusMX
 				{
 					if (rec.Value.SoilMoist[i].HasValue)
 					{
-						station.DoSoilMoisture((double)rec.Value.SoilMoist[i], i);
+						station.DoSoilMoisture((double) rec.Value.SoilMoist[i], i);
 					}
 				}
 				catch (Exception ex)
@@ -1529,7 +1530,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.AqiComboPm25.HasValue)
 				{
-					station.CO2_pm2p5 = (double)rec.Value.AqiComboPm25.Value;
+					station.CO2_pm2p5 = (double) rec.Value.AqiComboPm25.Value;
 				}
 			}
 			catch (Exception ex)
@@ -1542,7 +1543,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.AqiComboPm10.HasValue)
 				{
-					station.CO2_pm10 = (double)rec.Value.AqiComboPm10.Value;
+					station.CO2_pm10 = (double) rec.Value.AqiComboPm10.Value;
 				}
 			}
 			catch (Exception ex)
@@ -1557,7 +1558,7 @@ namespace CumulusMX
 				{
 					if (rec.Value.pm25[i].HasValue)
 					{
-						station.DoAirQuality((double)rec.Value.pm25[i].Value, i);
+						station.DoAirQuality((double) rec.Value.pm25[i].Value, i);
 					}
 				}
 				catch (Exception ex)
@@ -1578,7 +1579,7 @@ namespace CumulusMX
 				}
 				else if (rec.Value.DewPoint.HasValue)
 				{
-					var val = (double)rec.Value.DewPoint;
+					var val = (double) rec.Value.DewPoint;
 					station.DoOutdoorDewpoint(val, rec.Key);
 				}
 			}
@@ -1799,14 +1800,14 @@ namespace CumulusMX
 		internal class EcowittHistoricDataLightning
 		{
 			public EcowittHistoricDataTypeDbl distance { get; set; }
-			public EcowittHistoricDataTypeInt count	{ get; set; }
+			public EcowittHistoricDataTypeInt count { get; set; }
 		}
 
 		[DataContract]
 		internal class EcowittHistoricDataCo2
 		{
 			public EcowittHistoricDataTypeInt co2 { get; set; }
-			[DataMember(Name= "24_hours_average")]
+			[DataMember(Name = "24_hours_average")]
 			public EcowittHistoricDataTypeInt average24h { get; set; }
 		}
 

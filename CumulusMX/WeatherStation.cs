@@ -1514,7 +1514,7 @@ namespace CumulusMX
 			}
 
 			// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds
-			if (LastDataReadTimestamp.AddSeconds(5) < timeNow && (int)timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
+			if (LastDataReadTimestamp.AddSeconds(5) < timeNow && (int) timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
 			{
 				_ = sendWebSocketData();
 			}
@@ -1765,7 +1765,7 @@ namespace CumulusMX
 					// We also want to kick off DoHTMLFiles if local copy is enabled
 					else if (cumulus.FtpOptions.LocalCopyEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
-						cumulus.ftpThread = new Thread(() =>cumulus.DoHTMLFiles());
+						cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles());
 						cumulus.ftpThread.IsBackground = true;
 						cumulus.ftpThread.Start();
 					}
@@ -1785,7 +1785,7 @@ namespace CumulusMX
 						cumulus.UpdateWindGuru(now);
 					}
 
-					if (cumulus.AWEKAS.Enabled && (now.Minute % ((double)cumulus.AWEKAS.Interval / 60) == 0) && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
+					if (cumulus.AWEKAS.Enabled && (now.Minute % ((double) cumulus.AWEKAS.Interval / 60) == 0) && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
 					{
 						cumulus.UpdateAwekas(now);
 					}
@@ -2287,9 +2287,9 @@ namespace CumulusMX
 
 				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				{
-					sbSol.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{(int)data[i].SolarRad}],");
+					sbSol.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{(int) data[i].SolarRad}],");
 
-					sbMax.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{(int)data[i].SolarMax}],");
+					sbMax.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{(int) data[i].SolarMax}],");
 				}
 			}
 
@@ -2530,7 +2530,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetTempGraphData(bool incremental, bool local, DateTime? start=null)
+		public string GetTempGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2676,8 +2676,8 @@ namespace CumulusMX
 
 
 			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
-			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
-				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+			if (cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined
+				&& cumulus.StationOptions.PrimaryAqSensor != (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				DateTime dateFrom;
 				if (incremental)
@@ -2697,9 +2697,9 @@ namespace CumulusMX
 					sb2p5.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{val}],");
 
 					// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-						cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-						cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2)
+					if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+						cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+						cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
 					{
 						append = true;
 						val = data[i].Pm10 == -1 ? "null" : data[i].Pm10.ToString("F1", InvC);
@@ -2742,7 +2742,7 @@ namespace CumulusMX
 			}
 			*/
 
-			StringBuilder[] sbExt= new StringBuilder[cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length];
+			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length];
 
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 			{
@@ -2762,7 +2762,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] +1));
+			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3971,7 +3971,7 @@ namespace CumulusMX
 					OutsideTemp = outsidetemp,
 					Pressure = pressure,
 					RainToday = rainToday,
-					SolarRad = (int)solarRad,
+					SolarRad = (int) solarRad,
 					UV = uv,
 					WindAvgDir = avgBearing,
 					WindGust = recentMaxGust,
@@ -3985,7 +3985,7 @@ namespace CumulusMX
 					AppTemp = appTemp,
 					IndoorTemp = insideTemp,
 					IndoorHumidity = insideHum,
-					SolarMax = (int)solarMax,
+					SolarMax = (int) solarMax,
 					RainRate = rainrate,
 					Pm2p5 = pm2p5,
 					Pm10 = pm10
@@ -4263,7 +4263,7 @@ namespace CumulusMX
 				return;
 			}
 
-			IndoorHumidity = (int)Math.Round((hum * cumulus.Calib.InHum.Mult) + cumulus.Calib.InHum.Offset);
+			IndoorHumidity = (int) Math.Round((hum * cumulus.Calib.InHum.Mult) + cumulus.Calib.InHum.Offset);
 			HaveReadData = true;
 		}
 
@@ -4308,7 +4308,7 @@ namespace CumulusMX
 			}
 
 			// apply offset and multipliers and round. This is different to C1, which truncates. I'm not sure why C1 does that
-			OutdoorHumidity = (int)Math.Round((OutdoorHumidity * OutdoorHumidity * cumulus.Calib.Hum.Mult2) + (OutdoorHumidity * cumulus.Calib.Hum.Mult) + cumulus.Calib.Hum.Offset);
+			OutdoorHumidity = (int) Math.Round((OutdoorHumidity * OutdoorHumidity * cumulus.Calib.Hum.Mult2) + (OutdoorHumidity * cumulus.Calib.Hum.Mult) + cumulus.Calib.Hum.Offset);
 
 			if (OutdoorHumidity < 0)
 			{
@@ -4485,7 +4485,7 @@ namespace CumulusMX
 			var tempinC = ConvertUserTempToC(OutdoorTemperature);
 
 			// Calculate cloud base
-			CloudBase = (int)Math.Floor((tempinF - ConvertUserTempToF(OutdoorDewpoint)) / 4.4 * 1000 / (cumulus.CloudBaseInFeet ? 1 : 3.2808399));
+			CloudBase = (int) Math.Floor((tempinF - ConvertUserTempToF(OutdoorDewpoint)) / 4.4 * 1000 / (cumulus.CloudBaseInFeet ? 1 : 3.2808399));
 			if (CloudBase < 0)
 				CloudBase = 0;
 
@@ -5222,7 +5222,7 @@ namespace CumulusMX
 		{
 			if ((channel > 0) && (channel < ExtraHum.Length))
 			{
-				ExtraHum[channel] = (int)hum;
+				ExtraHum[channel] = (int) hum;
 			}
 		}
 
@@ -5410,7 +5410,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				Bearing = (bearingpar + (int)cumulus.Calib.WindDir.Offset) % 360;
+				Bearing = (bearingpar + (int) cumulus.Calib.WindDir.Offset) % 360;
 				if (Bearing < 0)
 				{
 					Bearing = 360 + Bearing;
@@ -5437,7 +5437,7 @@ namespace CumulusMX
 
 				for (int i = 0; i < numwindvalues; i++)
 				{
-					int j = (((windbears[i] * 100) + 1125) % 36000) / (int)Math.Floor(cumulus.WindRoseAngle * 100);
+					int j = (((windbears[i] * 100) + 1125) % 36000) / (int) Math.Floor(cumulus.WindRoseAngle * 100);
 					windcounts[j] += windspeeds[i];
 				}
 			}
@@ -5536,7 +5536,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				AvgBearing = (int)Math.Round(RadToDeg(Math.Atan(totalwindY / totalwindX)));
+				AvgBearing = (int) Math.Round(RadToDeg(Math.Atan(totalwindY / totalwindX)));
 
 				if (totalwindX < 0)
 				{
@@ -5577,13 +5577,13 @@ namespace CumulusMX
 							diffTo = difference;
 							BearingRangeTo = WindVec[i].Bearing;
 							// Calculate rounded up value
-							BearingRangeTo10 = (int)(Math.Ceiling(WindVec[i].Bearing / 10.0) * 10);
+							BearingRangeTo10 = (int) (Math.Ceiling(WindVec[i].Bearing / 10.0) * 10);
 						}
 						if ((difference < diffFrom))
 						{
 							diffFrom = difference;
 							BearingRangeFrom = WindVec[i].Bearing;
-							BearingRangeFrom10 = (int)(Math.Floor(WindVec[i].Bearing / 10.0) * 10);
+							BearingRangeFrom10 = (int) (Math.Floor(WindVec[i].Bearing / 10.0) * 10);
 						}
 					}
 				}
@@ -5710,7 +5710,7 @@ namespace CumulusMX
 			double Es = MeteoLib.SaturationVapourPressure1980(TempDry);
 			double Ew = MeteoLib.SaturationVapourPressure1980(temp);
 			double E = Ew - (0.00066 * (1 + 0.00115 * temp) * (TempDry - temp) * 1013);
-			int hum = (int)(100 * (E / Es));
+			int hum = (int) (100 * (E / Es));
 			DoOutdoorHumidity(hum, timestamp);
 			// calculate DP
 			// Calculate DewPoint
@@ -6933,7 +6933,7 @@ namespace CumulusMX
 			strb.Append(DominantWindBearing + cumulus.ListSeparator);
 			strb.Append(HeatingDegreeDays.ToString("F1") + cumulus.ListSeparator);
 			strb.Append(CoolingDegreeDays.ToString("F1") + cumulus.ListSeparator);
-			strb.Append((int)HiLoToday.HighSolar + cumulus.ListSeparator);
+			strb.Append((int) HiLoToday.HighSolar + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighSolarTime.ToString("HH:mm") + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighUv.ToString(cumulus.UVFormat) + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighUvTime.ToString("HH:mm") + cumulus.ListSeparator);
@@ -7035,7 +7035,7 @@ namespace CumulusMX
 				DominantWindBearing = DominantWindBearing,
 				HeatingDegreeDays = HeatingDegreeDays,
 				CoolingDegreeDays = CoolingDegreeDays,
-				HighSolar = (int)HiLoToday.HighSolar,
+				HighSolar = (int) HiLoToday.HighSolar,
 				HighSolarTime = HiLoToday.HighSolarTime,
 				HighUv = HiLoToday.HighUv,
 				HighUvTime = HiLoToday.HighUvTime,
@@ -7102,7 +7102,7 @@ namespace CumulusMX
 				queryString.Append(DominantWindBearing + ",");
 				queryString.Append(HeatingDegreeDays.ToString("F1", InvC) + ",");
 				queryString.Append(CoolingDegreeDays.ToString("F1", InvC) + ",");
-				queryString.Append((int)HiLoToday.HighSolar + ",");
+				queryString.Append((int) HiLoToday.HighSolar + ",");
 				queryString.Append(HiLoToday.HighSolarTime.ToString("\\'HH:mm\\'") + ",");
 				queryString.Append(HiLoToday.HighUv.ToString(cumulus.UVFormat, InvC) + ",");
 				queryString.Append(HiLoToday.HighUvTime.ToString("\\'HH:mm\\'") + ",'");
@@ -7507,7 +7507,7 @@ namespace CumulusMX
 
 		private int calcavgbear(double x, double y)
 		{
-			var avg = 90 - (int)(RadToDeg(Math.Atan2(y, x)));
+			var avg = 90 - (int) (RadToDeg(Math.Atan2(y, x)));
 			if (avg < 0)
 			{
 				avg = 360 + avg;
@@ -7525,33 +7525,33 @@ namespace CumulusMX
 			// Check for Air Quality readings
 			switch (cumulus.StationOptions.PrimaryAqSensor)
 			{
-				case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+				case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 					if (cumulus.airLinkDataOut != null)
 					{
 						pm2p5 = cumulus.airLinkDataOut.pm2p5;
 						pm10 = cumulus.airLinkDataOut.pm10;
 					}
 					break;
-				case (int)Cumulus.PrimaryAqSensor.AirLinkIndoor:
+				case (int) Cumulus.PrimaryAqSensor.AirLinkIndoor:
 					if (cumulus.airLinkDataIn != null)
 					{
 						pm2p5 = cumulus.airLinkDataIn.pm2p5;
 						pm10 = cumulus.airLinkDataIn.pm10;
 					}
 					break;
-				case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+				case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
 					pm2p5 = AirQuality1;
 					break;
-				case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+				case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
 					pm2p5 = AirQuality2;
 					break;
-				case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+				case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
 					pm2p5 = AirQuality3;
 					break;
-				case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+				case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
 					pm2p5 = AirQuality3;
 					break;
-				case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 					pm2p5 = CO2_pm2p5;
 					pm10 = CO2_pm10;
 					break;
@@ -8071,7 +8071,7 @@ namespace CumulusMX
 										OutsideTemp = rec.OutdoorTemperature,
 										Pressure = rec.Pressure,
 										RainToday = rec.RainToday,
-										SolarRad = (int)rec.SolarRad,
+										SolarRad = (int) rec.SolarRad,
 										UV = rec.UV,
 										WindAvgDir = rec.AvgBearing,
 										WindGust = rec.RecentMaxGust,
@@ -8085,7 +8085,7 @@ namespace CumulusMX
 										AppTemp = rec.ApparentTemperature,
 										IndoorTemp = rec.IndoorTemperature,
 										IndoorHumidity = rec.IndoorHumidity,
-										SolarMax = (int)rec.CurrentSolarMax,
+										SolarMax = (int) rec.CurrentSolarMax,
 										RainRate = rec.RainRate,
 										Pm2p5 = -1,
 										Pm10 = -1
@@ -8165,13 +8165,13 @@ namespace CumulusMX
 
 			cumulus.LogMessage($"LoadRecentAqFromDataLogs: Attempting to load {cumulus.RecentDataDays} days of entries to Air Quality recent data");
 
-			if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
-				|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+			if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor
+				|| cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				logFile = cumulus.GetAirLinkLogFileName(filedate);
 			}
-			else if ((cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4) ||
-					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
+			else if ((cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4) ||
+					cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
 			{
 				logFile = cumulus.GetExtraLogFileName(filedate);
 			}
@@ -8206,19 +8206,19 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									double pm2p5, pm10;
-									if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+									if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 									{
 										// AirLink Indoor
 										pm2p5 = Convert.ToDouble(st[5]);
 										pm10 = Convert.ToDouble(st[10]);
 									}
-									else if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor)
+									else if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor)
 									{
 										// AirLink Outdoor
 										pm2p5 = Convert.ToDouble(st[32]);
 										pm10 = Convert.ToDouble(st[37]);
 									}
-									else if (cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
+									else if (cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4)
 									{
 										// Ecowitt sensor 1-4 - fields 68 -> 71
 										pm2p5 = Convert.ToDouble(st[67 + cumulus.StationOptions.PrimaryAqSensor]);
@@ -8265,14 +8265,14 @@ namespace CumulusMX
 				else
 				{
 					filedate = filedate.AddMonths(1);
-					if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor
-						|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor) // AirLink
+					if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor
+						|| cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor) // AirLink
 					{
 						logFile = cumulus.GetAirLinkLogFileName(filedate);
 					}
-					else if ((cumulus.StationOptions.PrimaryAqSensor >= (int)Cumulus.PrimaryAqSensor.Ecowitt1
-						&& cumulus.StationOptions.PrimaryAqSensor <= (int)Cumulus.PrimaryAqSensor.Ecowitt4)
-						|| cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
+					else if ((cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1
+						&& cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4)
+						|| cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
 					{
 						logFile = cumulus.GetExtraLogFileName(filedate);
 					}
@@ -8522,7 +8522,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[19], out varDbl))
 					rec.LowHumidity = Convert.ToInt32(varDbl);
 				else
-					rec.LowHumidity = (int)Cumulus.DefaultLoVal;
+					rec.LowHumidity = (int) Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[20].Length == 5)
 					rec.LowHumidityTime = GetDateTime(rec.Date, st[20]);
@@ -8530,7 +8530,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[21], out varDbl))
 					rec.HighHumidity = Convert.ToInt32(varDbl);
 				else
-					rec.HighHumidity = (int)Cumulus.DefaultHiVal;
+					rec.HighHumidity = (int) Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[22].Length == 5)
 					rec.HighHumidityTime = GetDateTime(rec.Date, st[22]);
@@ -8602,7 +8602,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[39], out varDbl))
 					rec.DominantWindBearing = Convert.ToInt32(varDbl);
 				else
-					rec.DominantWindBearing = (int)Cumulus.DefaultHiVal;
+					rec.DominantWindBearing = (int) Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && double.TryParse(st[40], out varDbl))
 					rec.HeatingDegreeDays = varDbl;
@@ -8617,7 +8617,7 @@ namespace CumulusMX
 				if (st.Count > idx++ && double.TryParse(st[42], out varDbl))
 					rec.HighSolar = Convert.ToInt32(varDbl);
 				else
-					rec.HighSolar = (int)Cumulus.DefaultHiVal;
+					rec.HighSolar = (int) Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[43].Length == 5)
 					rec.HighSolarTime = GetDateTime(rec.Date, st[43]);
@@ -8878,52 +8878,52 @@ namespace CumulusMX
 			switch (index)
 			{
 				case 1:
-					SoilMoisture1 = (int)value;
+					SoilMoisture1 = (int) value;
 					break;
 				case 2:
-					SoilMoisture2 = (int)value;
+					SoilMoisture2 = (int) value;
 					break;
 				case 3:
-					SoilMoisture3 = (int)value;
+					SoilMoisture3 = (int) value;
 					break;
 				case 4:
-					SoilMoisture4 = (int)value;
+					SoilMoisture4 = (int) value;
 					break;
 				case 5:
-					SoilMoisture5 = (int)value;
+					SoilMoisture5 = (int) value;
 					break;
 				case 6:
-					SoilMoisture6 = (int)value;
+					SoilMoisture6 = (int) value;
 					break;
 				case 7:
-					SoilMoisture7 = (int)value;
+					SoilMoisture7 = (int) value;
 					break;
 				case 8:
-					SoilMoisture8 = (int)value;
+					SoilMoisture8 = (int) value;
 					break;
 				case 9:
-					SoilMoisture9 = (int)value;
+					SoilMoisture9 = (int) value;
 					break;
 				case 10:
-					SoilMoisture10 = (int)value;
+					SoilMoisture10 = (int) value;
 					break;
 				case 11:
-					SoilMoisture11 = (int)value;
+					SoilMoisture11 = (int) value;
 					break;
 				case 12:
-					SoilMoisture12 = (int)value;
+					SoilMoisture12 = (int) value;
 					break;
 				case 13:
-					SoilMoisture13 = (int)value;
+					SoilMoisture13 = (int) value;
 					break;
 				case 14:
-					SoilMoisture14 = (int)value;
+					SoilMoisture14 = (int) value;
 					break;
 				case 15:
-					SoilMoisture15 = (int)value;
+					SoilMoisture15 = (int) value;
 					break;
 				case 16:
-					SoilMoisture16 = (int)value;
+					SoilMoisture16 = (int) value;
 					break;
 			}
 		}
@@ -9211,7 +9211,7 @@ namespace CumulusMX
 				z_hpa = z_baro_top - 1;
 			}
 
-			int z_option = (int)Math.Floor((z_hpa - z_baro_bottom) / z_constant);
+			int z_option = (int) Math.Floor((z_hpa - z_baro_bottom) / z_constant);
 
 			StringBuilder z_output = new StringBuilder(100);
 			if (z_option < 0)
@@ -10108,36 +10108,36 @@ namespace CumulusMX
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={cumulus.WCloud.ID}&key={pwstring}");
 
 			//Temperature
-			sb.Append("&tempin=" + (int)Math.Round(ConvertUserTempToC(IndoorTemperature) * 10));
-			sb.Append("&temp=" + (int)Math.Round(ConvertUserTempToC(OutdoorTemperature) * 10));
-			sb.Append("&chill=" + (int)Math.Round(ConvertUserTempToC(WindChill) * 10));
-			sb.Append("&dew=" + (int)Math.Round(ConvertUserTempToC(OutdoorDewpoint) * 10));
-			sb.Append("&heat=" + (int)Math.Round(ConvertUserTempToC(HeatIndex) * 10));
+			sb.Append("&tempin=" + (int) Math.Round(ConvertUserTempToC(IndoorTemperature) * 10));
+			sb.Append("&temp=" + (int) Math.Round(ConvertUserTempToC(OutdoorTemperature) * 10));
+			sb.Append("&chill=" + (int) Math.Round(ConvertUserTempToC(WindChill) * 10));
+			sb.Append("&dew=" + (int) Math.Round(ConvertUserTempToC(OutdoorDewpoint) * 10));
+			sb.Append("&heat=" + (int) Math.Round(ConvertUserTempToC(HeatIndex) * 10));
 
 			// Humidity
 			sb.Append("&humin=" + IndoorHumidity);
 			sb.Append("&hum=" + OutdoorHumidity);
 
 			// Wind
-			sb.Append("&wspd=" + (int)Math.Round(ConvertUserWindToMS(WindLatest) * 10));
-			sb.Append("&wspdhi=" + (int)Math.Round(ConvertUserWindToMS(RecentMaxGust) * 10));
-			sb.Append("&wspdavg=" + (int)Math.Round(ConvertUserWindToMS(WindAverage) * 10));
+			sb.Append("&wspd=" + (int) Math.Round(ConvertUserWindToMS(WindLatest) * 10));
+			sb.Append("&wspdhi=" + (int) Math.Round(ConvertUserWindToMS(RecentMaxGust) * 10));
+			sb.Append("&wspdavg=" + (int) Math.Round(ConvertUserWindToMS(WindAverage) * 10));
 
 			// Wind Direction
 			sb.Append("&wdir=" + Bearing);
 			sb.Append("&wdiravg=" + AvgBearing);
 
 			// Pressure
-			sb.Append("&bar=" + (int)Math.Round(ConvertUserPressToMB(Pressure) * 10));
+			sb.Append("&bar=" + (int) Math.Round(ConvertUserPressToMB(Pressure) * 10));
 
 			// rain
-			sb.Append("&rain=" + (int)Math.Round(ConvertUserRainToMM(RainToday) * 10));
-			sb.Append("&rainrate=" + (int)Math.Round(ConvertUserRainToMM(RainRate) * 10));
+			sb.Append("&rain=" + (int) Math.Round(ConvertUserRainToMM(RainToday) * 10));
+			sb.Append("&rainrate=" + (int) Math.Round(ConvertUserRainToMM(RainRate) * 10));
 
 			// ET
 			if (cumulus.WCloud.SendSolar && cumulus.Manufacturer == cumulus.DAVIS)
 			{
-				sb.Append("&et=" + (int)Math.Round(ConvertUserRainToMM(ET) * 10));
+				sb.Append("&et=" + (int) Math.Round(ConvertUserRainToMM(ET) * 10));
 			}
 
 			// solar
@@ -10149,7 +10149,7 @@ namespace CumulusMX
 			// uv
 			if (cumulus.WCloud.SendUV)
 			{
-				sb.Append("&uvi=" + (int)Math.Round(UV * 10));
+				sb.Append("&uvi=" + (int) Math.Round(UV * 10));
 			}
 
 			// aq
@@ -10157,7 +10157,7 @@ namespace CumulusMX
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+					case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							sb.Append($"&pm25={cumulus.airLinkDataOut.pm2p5:F0}");
@@ -10165,23 +10165,23 @@ namespace CumulusMX
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(cumulus.airLinkDataOut.pm2p5_24hr)}");
 						}
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
 						sb.Append($"&pm25={AirQuality1:F0}");
 						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg1)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
 						sb.Append($"&pm25={AirQuality2:F0}");
 						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg2)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
 						sb.Append($"&pm25={AirQuality3:F0}");
 						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg3)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
 						sb.Append($"&pm25={AirQuality4:F0}");
 						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(AirQualityAvg4)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						sb.Append($"&pm25={CO2_pm2p5:F0}");
 						sb.Append($"&pm10={CO2_pm10:F0}");
 						sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(CO2_pm2p5_24h)}");
@@ -10391,7 +10391,7 @@ namespace CumulusMX
 
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+					case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							sb.Append($"AqPM1={cumulus.airLinkDataOut.pm1.ToString("F1", InvC)}");
@@ -10401,23 +10401,23 @@ namespace CumulusMX
 							sb.Append($"&AqPM10_avg_24h={cumulus.airLinkDataOut.pm10_24hr.ToString("F1", InvC)}");
 						}
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
 						sb.Append($"AqPM2.5={AirQuality1.ToString("F1", InvC)}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg1.ToString("F1", InvC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
 						sb.Append($"AqPM2.5={AirQuality2.ToString("F1", InvC)}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg2.ToString("F1", InvC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
 						sb.Append($"AqPM2.5={AirQuality3.ToString("F1", InvC)}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg3.ToString("F1", InvC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
 						sb.Append($"AqPM2.5={AirQuality4.ToString("F1", InvC)}");
 						sb.Append($"&AqPM2.5_avg_24h={AirQualityAvg4.ToString("F1", InvC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						sb.Append($"AqPM2.5={CO2_pm2p5.ToString("F1", InvC)}");
 						sb.Append($"&AqPM2.5_avg_24h={CO2_pm2p5_24h.ToString("F1", InvC)}");
 						sb.Append($"&AqPM10={CO2_pm10.ToString("F1", InvC)}");
@@ -10639,26 +10639,26 @@ namespace CumulusMX
 			if (cumulus.Wund.SendLeafWetness2)
 				Data.Append($"&leafwetness2={LeafWetness2.ToString(cumulus.LeafWetFormat)}");
 
-			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined)
+			if (cumulus.Wund.SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+					case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							Data.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}&AqPM10={cumulus.airLinkDataOut.pm10.ToString("F1", invC)}");
 						}
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
 						Data.Append($"&AqPM2.5={AirQuality1.ToString("F1", invC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
 						Data.Append($"&AqPM2.5={AirQuality2.ToString("F1", invC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
 						Data.Append($"&AqPM2.5={AirQuality3.ToString("F1", invC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
 						Data.Append($"&AqPM2.5={AirQuality4.ToString("F1", invC)}");
 						break;
 				}
@@ -12111,7 +12111,7 @@ namespace CumulusMX
 					lineNum++;
 
 					// if we have a search string and no match, skip to next line
-					if (!string.IsNullOrEmpty(search) &&!line.Contains(search))
+					if (!string.IsNullOrEmpty(search) && !line.Contains(search))
 					{
 						continue;
 					}
@@ -12764,16 +12764,16 @@ namespace CumulusMX
 
 			// air quality
 			// Check if we are to generate AQ data at all. Only if a primary sensor is defined and it isn't the Indoor AirLink
-			if (cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined
-				&& cumulus.StationOptions.PrimaryAqSensor != (int)Cumulus.PrimaryAqSensor.AirLinkIndoor)
+			if (cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined
+				&& cumulus.StationOptions.PrimaryAqSensor != (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				json.Append(",\"AirQuality\":[");
 				json.Append("\"PM 2.5\"");
 
 				// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-				if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-					cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.EcowittCO2)
+				if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+					cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+					cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
 				{
 					json.Append(",\"PM 10\"");
 				}
@@ -13921,7 +13921,7 @@ namespace CumulusMX
 				HiLoToday.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
 				HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
 				HiLoToday.HighDewPoint, HiLoToday.LowDewPoint, HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowWindChill,
-				HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), (int)SolarRad, (int)HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, HiLoToday.HighUv,
+				HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), (int) SolarRad, (int) HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, HiLoToday.HighUv,
 				HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
 				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHeatIndex, HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighAppTemp,
 				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
@@ -14151,7 +14151,7 @@ namespace CumulusMX
 			}
 
 			cumulus.DegToDMS(lat, out d, out m, out s);
-			int hh = (int) Math.Round(s*100/60.0);
+			int hh = (int) Math.Round(s * 100 / 60.0);
 
 			return String.Format("{0:D2}{1:D2}.{2:D2}{3}", d, m, hh, dir);
 		}
@@ -14179,7 +14179,7 @@ namespace CumulusMX
 			}
 
 			cumulus.DegToDMS(lon, out d, out m, out s);
-			int hh = (int) Math.Round(s*100/60.0);
+			int hh = (int) Math.Round(s * 100 / 60.0);
 
 			return String.Format("{0:D3}{1:D2}.{2:D2}{3}", d, m, hh, dir);
 		}
@@ -14552,7 +14552,7 @@ namespace CumulusMX
 		public AllTimeRec LowAppTemp { get; set; } = new AllTimeRec(16);
 		public AllTimeRec HighHeatIndex { get; set; } = new AllTimeRec(17);
 		public AllTimeRec HighDewPoint { get; set; } = new AllTimeRec(18);
-		public AllTimeRec LowDewPoint{ get; set; } = new AllTimeRec(19);
+		public AllTimeRec LowDewPoint { get; set; } = new AllTimeRec(19);
 		public AllTimeRec HighWindRun { get; set; } = new AllTimeRec(20);
 		public AllTimeRec LongestDryPeriod { get; set; } = new AllTimeRec(21);
 		public AllTimeRec LongestWetPeriod { get; set; } = new AllTimeRec(22);

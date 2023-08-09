@@ -40,7 +40,7 @@ namespace CumulusMX
 				_AltList = value;
 				AltTags = value.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
 			}
-			
+
 			get
 			{
 				return _AltList;
@@ -55,7 +55,7 @@ namespace CumulusMX
 		public delegate void TokenHandler(string strToken, ref string strReplacement);
 		public event TokenHandler OnToken;
 
-    
+
 		public TokenParser(TokenHandler tokenHandler)
 		{
 			OnToken = tokenHandler;

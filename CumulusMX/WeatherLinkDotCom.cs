@@ -435,7 +435,7 @@ namespace CumulusMX
 	// WeatherLink.com status
 	public class WlComSystemStatus
 	{
-		public WlComSystemStatusResult result {get; set;}
+		public WlComSystemStatusResult result { get; set; }
 
 		public string ToString(bool PrintFullMessage)
 		{

@@ -26,7 +26,7 @@ namespace CumulusMX
 				description = cumulus.LocationDesc,
 				latitude = cumulus.Latitude,
 				longitude = cumulus.Longitude,
-				altitude = (int)cumulus.Altitude,
+				altitude = (int) cumulus.Altitude,
 				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
 			};
 
@@ -83,7 +83,7 @@ namespace CumulusMX
 			};
 
 			var weatherflow = new JsonStationSettingsWeatherFlow()
-				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
+			{ deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist };
 
 			var gw1000 = new JsonStationSettingsGw1000Conn()
 			{
@@ -141,7 +141,7 @@ namespace CumulusMX
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
-				sslftp = (int)cumulus.FtpOptions.FtpMode,
+				sslftp = (int) cumulus.FtpOptions.FtpMode,
 				hostname = cumulus.FtpOptions.Hostname,
 				password = cumulus.FtpOptions.Password,
 				username = cumulus.FtpOptions.Username,
@@ -225,7 +225,7 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.internet.ftp.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.ftp.sslftp;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.internet.ftp.sslftp;
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
 						{
 							cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
@@ -626,10 +626,10 @@ namespace CumulusMX
 
 		private string degToString(decimal degrees, bool lat)
 		{
-			var degs = (int)Math.Floor(Math.Abs(degrees));
+			var degs = (int) Math.Floor(Math.Abs(degrees));
 			var minsF = (Math.Abs(degrees) - degs) * 60;
-			var secs = (int)Math.Round((minsF - Math.Floor(minsF)) * 60);
-			var mins = (int)Math.Floor(minsF);
+			var secs = (int) Math.Round((minsF - Math.Floor(minsF)) * 60);
+			var mins = (int) Math.Floor(minsF);
 			string hemi;
 			if (lat)
 				hemi = degrees >= 0 ? "N" : "S";

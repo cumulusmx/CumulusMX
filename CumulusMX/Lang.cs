@@ -22,7 +22,7 @@ namespace CumulusMX
 
 			compassp = new string[16];
 
-			AirQualityCaptions =  new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
+			AirQualityCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
 			AirQualityAvgCaptions = new string[] { "Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4" };
 
 			LeafWetnessCaptions = new string[] { "Wetness 1", "Wetness 2", "Wetness 3", "Wetness 4", "Wetness 5", "Wetness 6", "Wetness 7", "Wetness 8" };
@@ -37,7 +37,7 @@ namespace CumulusMX
 
 			SoilTempCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
 
-			SoilMoistureCaptions = new string[] {"Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
+			SoilMoistureCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
 
 			DavisForecast1 = new string[]
 			{
@@ -113,7 +113,7 @@ namespace CumulusMX
 		public string FirstQuarter { get; set; }
 		public string WaxingGibbous { get; set; }
 		public string FullMoon { get; set; }
-		public string WaningGibbous  { get; set; }
+		public string WaningGibbous { get; set; }
 		public string LastQuarter { get; set; }
 		public string WaningCrescent { get; set; }
 		// Beaufort

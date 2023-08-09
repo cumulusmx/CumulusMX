@@ -650,7 +650,7 @@ namespace CumulusMX
 		{
 			if (data["solarradiation"] != null)
 			{
-				station.DoSolarRad((int)Convert.ToDouble(data["solarradiation"], CultureInfo.InvariantCulture), recDate);
+				station.DoSolarRad((int) Convert.ToDouble(data["solarradiation"], CultureInfo.InvariantCulture), recDate);
 			}
 		}
 

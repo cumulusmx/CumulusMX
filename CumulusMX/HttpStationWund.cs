@@ -297,7 +297,7 @@ namespace CumulusMX
 				{
 					DoWindChill(0, recDate);
 
-				// === Apparent/Feels Like ===
+					// === Apparent/Feels Like ===
 					if (data["humidity"] != null && data["humidity"] != "-9999")
 					{
 						DoApparentTemp(recDate);
@@ -357,7 +357,7 @@ namespace CumulusMX
 					var str = data["solarradiation"];
 					if (str != null && str != "-9999")
 					{
-						DoSolarRad((int)Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						DoSolarRad((int) Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
 					}
 				}
 				catch (Exception ex)

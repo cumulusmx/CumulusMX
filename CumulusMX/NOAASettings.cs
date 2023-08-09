@@ -23,7 +23,7 @@ namespace CumulusMX
 			//var InvC = new CultureInfo("");
 			var normalmeantemps = new JsonNOAASettingsNormalMeanTemps()
 			{
-				jan = Math.Round(cumulus.NOAAconf.TempNorms[1],cumulus.TempDPlaces),
+				jan = Math.Round(cumulus.NOAAconf.TempNorms[1], cumulus.TempDPlaces),
 				feb = Math.Round(cumulus.NOAAconf.TempNorms[2], cumulus.TempDPlaces),
 				mar = Math.Round(cumulus.NOAAconf.TempNorms[3], cumulus.TempDPlaces),
 				apr = Math.Round(cumulus.NOAAconf.TempNorms[4], cumulus.TempDPlaces),
@@ -157,7 +157,7 @@ namespace CumulusMX
 					cumulus.NOAAconf.State = string.IsNullOrWhiteSpace(settings.sitedetails.state) ? null : settings.sitedetails.state.Trim();
 
 					cumulus.NOAAconf.MonthFile = string.IsNullOrWhiteSpace(settings.outputfiles.monthfileformat) ? null : settings.outputfiles.monthfileformat.Trim();
-					cumulus.NOAAconf.YearFile =	string.IsNullOrWhiteSpace(settings.outputfiles.yearfileformat) ? null : settings.outputfiles.yearfileformat.Trim();
+					cumulus.NOAAconf.YearFile = string.IsNullOrWhiteSpace(settings.outputfiles.yearfileformat) ? null : settings.outputfiles.yearfileformat.Trim();
 
 					cumulus.NOAAconf.Use12hour = settings.options.timeformat == 1;
 					cumulus.NOAAconf.UseUtf8 = settings.options.utf8;
@@ -230,28 +230,28 @@ namespace CumulusMX
 	public class JsonNOAASettingsData
 	{
 		public bool accessible { get; set; }
-		public bool autosave {get; set; }
+		public bool autosave { get; set; }
 		public JsonNOAASettingsSite sitedetails { get; set; }
 		public JsonNOAASettingsOutput outputfiles { get; set; }
 		public JsonNOAASettingsOptions options { get; set; }
 		public JsonNOAASettingsFtpCopy ftp { get; set; }
 		public JsonNOAASettingsFtpCopy copy { get; set; }
 		public JsonNOAASettingsThresholds thresholds { get; set; }
-		public JsonNOAASettingsNormalMeanTemps normalmeantemps {get; set; }
-		public JsonNOAASettingsNormalRain normalrain {get; set; }
+		public JsonNOAASettingsNormalMeanTemps normalmeantemps { get; set; }
+		public JsonNOAASettingsNormalRain normalrain { get; set; }
 	}
 
 	public class JsonNOAASettingsSite
 	{
-		public string sitename {get; set; }
-		public string city {get; set; }
-		public string state {get; set; }
+		public string sitename { get; set; }
+		public string city { get; set; }
+		public string state { get; set; }
 	}
 
 	public class JsonNOAASettingsOutput
 	{
-		public string monthfileformat {get; set; }
-		public string yearfileformat {get; set; }
+		public string monthfileformat { get; set; }
+		public string yearfileformat { get; set; }
 	}
 
 	public class JsonNOAASettingsOptions
@@ -284,33 +284,33 @@ namespace CumulusMX
 
 	public class JsonNOAASettingsNormalMeanTemps
 	{
-		public double jan {get; set; }
-		public double feb {get; set; }
-		public double mar {get; set; }
-		public double apr {get; set; }
-		public double may {get; set; }
-		public double jun {get; set; }
-		public double jul {get; set; }
-		public double aug {get; set; }
-		public double sep {get; set; }
-		public double oct {get; set; }
-		public double nov {get; set; }
-		public double dec {get; set; }
+		public double jan { get; set; }
+		public double feb { get; set; }
+		public double mar { get; set; }
+		public double apr { get; set; }
+		public double may { get; set; }
+		public double jun { get; set; }
+		public double jul { get; set; }
+		public double aug { get; set; }
+		public double sep { get; set; }
+		public double oct { get; set; }
+		public double nov { get; set; }
+		public double dec { get; set; }
 	}
 
 	public class JsonNOAASettingsNormalRain
 	{
-		public double jan {get; set; }
-		public double feb {get; set; }
-		public double mar {get; set; }
-		public double apr {get; set; }
-		public double may {get; set; }
-		public double jun {get; set; }
-		public double jul {get; set; }
-		public double aug {get; set; }
-		public double sep {get; set; }
-		public double oct {get; set; }
-		public double nov {get; set; }
-		public double dec {get; set; }
+		public double jan { get; set; }
+		public double feb { get; set; }
+		public double mar { get; set; }
+		public double apr { get; set; }
+		public double may { get; set; }
+		public double jun { get; set; }
+		public double jul { get; set; }
+		public double aug { get; set; }
+		public double sep { get; set; }
+		public double oct { get; set; }
+		public double nov { get; set; }
+		public double dec { get; set; }
 	}
 }

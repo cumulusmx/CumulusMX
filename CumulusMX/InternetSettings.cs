@@ -70,7 +70,7 @@ namespace CumulusMX
 								cumulus.TestPhpUploadCompression();
 							}
 						}
-						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.website.sslftp;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.website.sslftp;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
@@ -410,7 +410,7 @@ namespace CumulusMX
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
-				sslftp = (int)cumulus.FtpOptions.FtpMode,
+				sslftp = (int) cumulus.FtpOptions.FtpMode,
 				hostname = cumulus.FtpOptions.Hostname,
 				password = cumulus.FtpOptions.Password,
 				username = cumulus.FtpOptions.Username,
@@ -459,7 +459,7 @@ namespace CumulusMX
 				};
 			}
 
-			for (var i =0; i < cumulus.GraphDataFiles.Length; i++)
+			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
 				websettingsinterval.graphfiles.files[i] = new JsonInternetSettingsFileSettings()
 				{

@@ -3368,7 +3368,7 @@ namespace CumulusMX
 								updt.Append($"THighHeatInd={(station.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHeatIndexTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
 								updt.Append($"THighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
-								updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ?  station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
 								updt.Append($"TLowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
 								updt.Append($"THighHourRain={station.DayFile[lineNum].HighHourlyRainTime:\\'HH:mm\\'},");

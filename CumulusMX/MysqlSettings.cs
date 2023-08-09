@@ -134,7 +134,7 @@ namespace CumulusMX
 			};
 
 			cmdCnt = 0;
-			for (var i = 0;i < 10; i++)
+			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomTimed.Commands[i]))
 					cmdCnt++;

@@ -73,7 +73,7 @@ namespace CumulusMX
 				retVal = Interpolate(0, 12, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
-			return (int)Math.Round(retVal);
+			return (int) Math.Round(retVal);
 		}
 
 		/*
@@ -145,7 +145,7 @@ namespace CumulusMX
 				retVal = Interpolate(0, 54, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
-			return (int)Math.Round(retVal);
+			return (int) Math.Round(retVal);
 		}
 
 
@@ -215,15 +215,15 @@ namespace CumulusMX
 		 */
 		public static double EU_AQIpm2p5h1(double pmVal)
 		{
-			if (pmVal > 110)		// Very High
+			if (pmVal > 110)        // Very High
 				return 5;
-			else if (pmVal >= 55)	// High
+			else if (pmVal >= 55)   // High
 				return 4 + Interpolate(55, 110, pmVal);
-			else if (pmVal >= 30)	// Medium
+			else if (pmVal >= 30)   // Medium
 				return 3 + Interpolate(30, 55, pmVal);
-			else if (pmVal >= 15)	// Low
+			else if (pmVal >= 15)   // Low
 				return 2 + Interpolate(15, 30, pmVal);
-			else					// Very Low
+			else                    // Very Low
 				return 1 + Interpolate(0, 15, pmVal);
 		}
 
@@ -233,15 +233,15 @@ namespace CumulusMX
 		*/
 		public static double EU_AQI2p5h24(double pmVal)
 		{
-			if (pmVal > 60)			// Very High
+			if (pmVal > 60)         // Very High
 				return 5;
-			else if (pmVal >= 30)	// High
+			else if (pmVal >= 30)   // High
 				return 4 + Interpolate(30, 60, pmVal);
-			else if (pmVal >= 20)	// Medium
+			else if (pmVal >= 20)   // Medium
 				return 3 + Interpolate(20, 30, pmVal);
-			else if (pmVal >= 10)	// Low
+			else if (pmVal >= 10)   // Low
 				return 2 + Interpolate(10, 20, pmVal);
-			else					// Very Low
+			else                    // Very Low
 				return 1 + Interpolate(0, 10, pmVal);
 		}
 
@@ -251,15 +251,15 @@ namespace CumulusMX
 		 */
 		public static double EU_AQI10h1(double pmVal)
 		{
-			if (pmVal > 180)		// Very High
+			if (pmVal > 180)        // Very High
 				return 5;
-			else if (pmVal >= 90)	// High
+			else if (pmVal >= 90)   // High
 				return 4 + Interpolate(90, 180, pmVal);
-			else if (pmVal >= 50)	// Medium
+			else if (pmVal >= 50)   // Medium
 				return 3 + Interpolate(50, 90, pmVal);
-			else if (pmVal >= 25)	// Low
+			else if (pmVal >= 25)   // Low
 				return 2 + Interpolate(25, 50, pmVal);
-			else					// Very Low
+			else                    // Very Low
 				return 1 + Interpolate(0, 25, pmVal);
 		}
 
@@ -269,15 +269,15 @@ namespace CumulusMX
 		*/
 		public static double EU_AQI10h24(double pmVal)
 		{
-			if (pmVal > 100)		// Very High
+			if (pmVal > 100)        // Very High
 				return 5;
-			else if (pmVal >= 50)	// High
+			else if (pmVal >= 50)   // High
 				return 4 + Interpolate(50, 100, pmVal);
-			else if (pmVal >= 30)	// Medium
+			else if (pmVal >= 30)   // Medium
 				return 3 + Interpolate(30, 50, pmVal);
-			else if (pmVal >= 15)	// Low
+			else if (pmVal >= 15)   // Low
 				return 2 + Interpolate(15, 30, pmVal);
-			else					// Very Low
+			else                    // Very Low
 				return 1 + Interpolate(0, 15, pmVal);
 		}
 
@@ -288,7 +288,7 @@ namespace CumulusMX
 		 */
 		public static int CA_AQHI(double pmVal)
 		{
-			var aqi = (int)(1000 / 10.4 * (Math.Exp(0.000487 * pmVal) - 1));
+			var aqi = (int) (1000 / 10.4 * (Math.Exp(0.000487 * pmVal) - 1));
 			return aqi < 1 ? 1 : aqi;
 		}
 

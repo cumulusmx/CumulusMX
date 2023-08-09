@@ -243,7 +243,7 @@ namespace CumulusMX
 
 			LatToDMS(cumulus.Latitude, out deg, out min, out sec, out hem);
 
-			var latitude = new JsonStationSettingsLatLong() {degrees = deg, minutes = min, seconds = sec, hemisphere = hem};
+			var latitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
 			LongToDMS(cumulus.Longitude, out deg, out min, out sec, out hem);
 
@@ -459,7 +459,7 @@ namespace CumulusMX
 				coordinate = longitude;
 				hem = "East";
 			}
-			int secs = (int)(coordinate * 60 * 60);
+			int secs = (int) (coordinate * 60 * 60);
 
 			s = secs % 60;
 
@@ -483,7 +483,7 @@ namespace CumulusMX
 				hem = "North";
 			}
 
-			int secs = (int)(coordinate * 60 * 60);
+			int secs = (int) (coordinate * 60 * 60);
 
 			s = secs % 60;
 
@@ -1356,7 +1356,7 @@ namespace CumulusMX
 					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 					cumulus.ftpThread.Start();
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					returnMsg = "Error starting a new upload";
 					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");

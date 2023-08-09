@@ -24,7 +24,7 @@ namespace CumulusMX
 
 			var mqttFactory = new MqttFactory();
 
-			mqttClient = (MqttClient)mqttFactory.CreateMqttClient();
+			mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
 
 			var clientId = Guid.NewGuid().ToString();
 

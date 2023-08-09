@@ -170,7 +170,7 @@ namespace CumulusMX
 			solar += volatility * (2 * random.NextDouble() - 1);
 			if (solar < 0 || CurrentSolarMax == 0)
 				solar = 0;
-			DoSolarRad((int)solar, recDate);
+			DoSolarRad((int) solar, recDate);
 		}
 
 
@@ -200,7 +200,7 @@ namespace CumulusMX
 				// Temperature - both annual and daily variations, daily offset by 0.1 of a day
 				var tempMean = new Func<DateTime, double>((x) => 15 + 10 * Math.Cos(x.DayOfYear / 365.0 * 2 * Math.PI) - 10 * Math.Cos((x.TimeOfDay.TotalDays - 0.1) * 2 * Math.PI));
 				// Wind - daily variation, offset by 0.1 of a day
-				var windMean = new Func<DateTime, double>((x) => 10 - 9.5 *  Math.Cos((x.TimeOfDay.TotalDays - 0.1) * 2 * Math.PI));
+				var windMean = new Func<DateTime, double>((x) => 10 - 9.5 * Math.Cos((x.TimeOfDay.TotalDays - 0.1) * 2 * Math.PI));
 				var windVolatility = new Func<DateTime, double>((x) => 2 - 1.5 * Math.Cos((x.TimeOfDay.TotalDays - 0.1) * 2 * Math.PI));
 				// Humidity - daily variation, offset by 0.1 of a day
 				var humMean = new Func<DateTime, double>((x) => 60 + 30 * Math.Cos((x.TimeOfDay.TotalDays - 0.1) * 2 * Math.PI));
@@ -224,16 +224,16 @@ namespace CumulusMX
 			public void SetNewData(DateTime readTime)
 			{
 				tempVal = temperature.GetValue(readTime);
-				humVal = (int)humidity.GetValue(readTime);
-				windSpeedVal  = Math.Round(windSpeed.GetValue(readTime), 1);
+				humVal = (int) humidity.GetValue(readTime);
+				windSpeedVal = Math.Round(windSpeed.GetValue(readTime), 1);
 				if (windSpeedVal > 0)
 				{
-					windBearingVal = ((int)windDirection.GetValue(readTime) % 360) + 1;
+					windBearingVal = ((int) windDirection.GetValue(readTime) % 360) + 1;
 				}
 				rainRateVal = rainRate.GetValue(readTime);
 				pressureVal = pressure.GetValue(readTime);
 				tempInVal = insideTemp.GetValue(readTime);
-				humInVal = (int)insideHum.GetValue(readTime);
+				humInVal = (int) insideHum.GetValue(readTime);
 			}
 		}
 

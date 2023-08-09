@@ -136,7 +136,7 @@ namespace CumulusMX
 				httpStopped = cumulus.ThirdPartyAlarm.EmailMsg,
 				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg,
 				newRecord = cumulus.NewRecordAlarm.EmailMsg,
-				ftpStopped =cumulus.FtpAlarm.EmailMsg
+				ftpStopped = cumulus.FtpAlarm.EmailMsg
 			};
 
 			var settings = new Settings()
@@ -158,7 +158,7 @@ namespace CumulusMX
 				solar = solar,
 				davisForecast = davisForecast,
 				co2 = co2,
-				alarms= alarms
+				alarms = alarms
 			};
 
 
@@ -311,9 +311,9 @@ namespace CumulusMX
 				{
 					cumulus.Trans.DavisForecast1 = settings.davisForecast.forecast1;
 					for (var i = 1; i <= settings.davisForecast.forecast2.Length; i++)
-						cumulus.Trans.DavisForecast2[i] = settings.davisForecast.forecast2[i-1].Trim();
+						cumulus.Trans.DavisForecast2[i] = settings.davisForecast.forecast2[i - 1].Trim();
 					for (var i = 1; i <= settings.davisForecast.forecast3.Length; i++)
-						cumulus.Trans.DavisForecast3[i] = settings.davisForecast.forecast3[i-1].Trim();
+						cumulus.Trans.DavisForecast3[i] = settings.davisForecast.forecast3[i - 1].Trim();
 				}
 				catch (Exception ex)
 				{

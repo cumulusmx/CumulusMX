@@ -50,7 +50,7 @@ namespace CumulusMX
 				InTemp = cumulus.GraphOptions.Visible.InTemp.Val,
 				HeatIndex = cumulus.GraphOptions.Visible.HeatIndex.Val,
 				DewPoint = cumulus.GraphOptions.Visible.DewPoint.Val,
-				WindChill =cumulus.GraphOptions.Visible.WindChill.Val,
+				WindChill = cumulus.GraphOptions.Visible.WindChill.Val,
 				AppTemp = cumulus.GraphOptions.Visible.AppTemp.Val,
 				FeelsLike = cumulus.GraphOptions.Visible.FeelsLike.Val,
 				Humidex = cumulus.GraphOptions.Visible.Humidex.Val,
@@ -238,7 +238,7 @@ namespace CumulusMX
 			{
 				UV = cumulus.GraphOptions.Colour.UV,
 				Solar = cumulus.GraphOptions.Colour.Solar,
-				CurrentSolarMax= cumulus.GraphOptions.Colour.SolarTheoretical,
+				CurrentSolarMax = cumulus.GraphOptions.Colour.SolarTheoretical,
 				Sunshine = cumulus.GraphOptions.Colour.Sunshine
 			};
 
@@ -465,7 +465,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.Colour.MinPress = settings.Graphs.colour.dailypress.Min;
 
 					cumulus.GraphOptions.Colour.MaxOutHum = settings.Graphs.colour.dailyhum.Max;
-					cumulus.GraphOptions.Colour.MinOutHum= settings.Graphs.colour.dailyhum.Min;
+					cumulus.GraphOptions.Colour.MinOutHum = settings.Graphs.colour.dailyhum.Min;
 
 					cumulus.GraphOptions.Colour.Pm2p5 = settings.Graphs.colour.aq.Pm2p5;
 					cumulus.GraphOptions.Colour.Pm10 = settings.Graphs.colour.aq.Pm10;
@@ -697,7 +697,7 @@ namespace CumulusMX
 			public string AvgTemp { get; set; }
 			public string MaxTemp { get; set; }
 			public string MinTemp { get; set; }
-			public string MaxDewPoint{ get; set; }
+			public string MaxDewPoint { get; set; }
 			public string MinDewPoint { get; set; }
 			public string MaxHeatIndex { get; set; }
 			public string MinWindChill { get; set; }

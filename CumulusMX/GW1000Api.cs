@@ -602,7 +602,7 @@ namespace CumulusMX
 				Data[3] = (byte) (3 + data.Length);
 				data.CopyTo(Data, 4);
 
-				var Checksum = (byte)(command + Data[3]);
+				var Checksum = (byte) (command + Data[3]);
 				for (int i = 0; i < data.Length; i++)
 				{
 					Checksum += data[i];
@@ -613,17 +613,17 @@ namespace CumulusMX
 
 		internal static UInt16 ConvertBigEndianUInt16(byte[] array, int start)
 		{
-			return (UInt16)(array[start] << 8 | array[start + 1]);
+			return (UInt16) (array[start] << 8 | array[start + 1]);
 		}
 
 		internal static Int16 ConvertBigEndianInt16(byte[] array, int start)
 		{
-			return (Int16)((array[start] << 8) + array[start + 1]);
+			return (Int16) ((array[start] << 8) + array[start + 1]);
 		}
 
 		internal static UInt32 ConvertBigEndianUInt32(byte[] array, int start)
 		{
-			return (UInt32)(array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
+			return (UInt32) (array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
 		}
 
 		internal static byte[] ConvertUInt16ToLittleEndianByteArray(UInt16 ui16)

@@ -219,7 +219,7 @@ namespace CumulusMX
 		public int startuppingescape { get; set; }
 		public int startupdelay { get; set; }
 		public int startupdelaymaxuptime { get; set; }
-		public JsonProgramSettingsTask startuptask {get; set;}
+		public JsonProgramSettingsTask startuptask { get; set; }
 	}
 
 	public class JsonProgramSettingsTask

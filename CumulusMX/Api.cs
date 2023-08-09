@@ -22,7 +22,7 @@ namespace CumulusMX
 		public static ProgramSettings programSettings;
 		internal static StationSettings stationSettings;
 		public static InternetSettings internetSettings;
-		public static ThirdPartySettings  thirdpartySettings;
+		public static ThirdPartySettings thirdpartySettings;
 		public static ExtraSensorSettings extraSensorSettings;
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
@@ -50,7 +50,7 @@ namespace CumulusMX
 				if (ch <= 0x7f)
 					sb.Append(ch);
 				else
-					sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int)ch);
+					sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int) ch);
 			}
 			return sb.ToString();
 		}
@@ -282,7 +282,8 @@ namespace CumulusMX
 								Response.StatusCode = 404;
 								break;
 						}
-					}				}
+					}
+				}
 				catch (Exception ex)
 				{
 					Program.cumulus.LogMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"");
@@ -471,7 +472,8 @@ namespace CumulusMX
 								Response.StatusCode = 404;
 								break;
 						}
-					}				}
+					}
+				}
 				catch (Exception ex)
 				{
 					Program.cumulus.LogMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
@@ -802,7 +804,7 @@ namespace CumulusMX
 						if (query.AllKeys.Contains("startdate"))
 						{
 							// we expect "yyyy-mm-dd"
-							var start  = query["startdate"].Split('-');
+							var start = query["startdate"].Split('-');
 
 							if (!Int32.TryParse(start[0], out startyear) || startyear < 2000 || startyear > 2050)
 							{

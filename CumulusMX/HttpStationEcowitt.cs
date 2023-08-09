@@ -952,7 +952,7 @@ namespace CumulusMX
 		{
 			if (data["solarradiation"] != null)
 			{
-				station.DoSolarRad((int)Convert.ToDouble(data["solarradiation"], invNum), recDate);
+				station.DoSolarRad((int) Convert.ToDouble(data["solarradiation"], invNum), recDate);
 			}
 		}
 
@@ -1151,18 +1151,18 @@ namespace CumulusMX
 			lowBatt = lowBatt || (data["wh90batt"] != null && Convert.ToDouble(data["wh90batt"], invNum) <= 2.4);
 			for (var i = 1; i < 5; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
+				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["pm25batt" + i] != null && data["pm25batt" + i] == "1");
 				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
-				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["tf_batt" + i] != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
+				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["tf_batt" + i] != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 			}
 
@@ -1265,25 +1265,25 @@ namespace CumulusMX
 						length += 2 + 2 + 1 + 1; // + port + interval + type + active
 						var send = new byte[length];
 						// set ID
-						send[0] = (byte)id.Length;
+						send[0] = (byte) id.Length;
 						Encoding.ASCII.GetBytes(id).CopyTo(send, 1);
 
 						// set password
 						idx = 1 + id.Length;
-						send[idx] = (byte)pass.Length;
+						send[idx] = (byte) pass.Length;
 						Encoding.ASCII.GetBytes(id).CopyTo(send, idx + 1);
 
 						// set server string length
 						idx += 1 + pass.Length;
-						send[idx] = (byte)customServer.Length;
+						send[idx] = (byte) customServer.Length;
 						// set server string
 						Encoding.ASCII.GetBytes(customServer).CopyTo(send, idx + 1);
 						idx += 1 + server.Length;
 						// set the port id
-						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort)customPort).CopyTo(send, idx);
+						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort) customPort).CopyTo(send, idx);
 						// set the interval
 						idx += 2;
-						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort)customIntv).CopyTo(send, idx);
+						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort) customIntv).CopyTo(send, idx);
 						// set type
 						idx += 2;
 						send[idx] = 0;
@@ -1310,10 +1310,10 @@ namespace CumulusMX
 					{
 						ecPath = customPath;
 						var path = new byte[ecPath.Length + wuPath.Length + 2];
-						path[0] = (byte)ecPath.Length;
+						path[0] = (byte) ecPath.Length;
 						Encoding.ASCII.GetBytes(ecPath).CopyTo(path, 1);
 						idx = 1 + ecPath.Length;
-						path[idx] = (byte)wuPath.Length;
+						path[idx] = (byte) wuPath.Length;
 						Encoding.ASCII.GetBytes(wuPath).CopyTo(path, idx + 1);
 
 						var retData = api.DoCommand(GW1000Api.Commands.CMD_WRITE_USER_PATH, path);

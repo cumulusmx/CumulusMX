@@ -666,7 +666,7 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {responseCode}");
 					cumulus.LogDataMessage($"GetWlHistoricData: WeatherLink API Historic Response: {responseBody}");
 				}
@@ -807,7 +807,7 @@ namespace CumulusMX
 					cumulus.DoAirLinkLogFile(timestamp);
 
 					if (!Program.service)
-						Console.Write("\r - processed " + (((double)dataIndex + 1) / noOfRecs).ToString("P0"));
+						Console.Write("\r - processed " + (((double) dataIndex + 1) / noOfRecs).ToString("P0"));
 					cumulus.LogMessage($"GetWlHistoricData: {(dataIndex + 1)} of {noOfRecs} archive entries processed");
 				}
 				catch (Exception ex)
@@ -936,7 +936,7 @@ namespace CumulusMX
 								// If we are the primary AQ sensor,
 								// and we are not linked to a WLL,
 								// then add the PM data into the graphdata list
-								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
+								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
 								{
 									//station.UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
 									station.UpdateRecentDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
@@ -967,7 +967,7 @@ namespace CumulusMX
 								// If we are the primary AQ sensor,
 								// and we are not linked to a WLL,
 								// then add the PM data into the graphdata list
-								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
+								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
 								{
 									//station.UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
 									station.UpdateRecentDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
@@ -1074,7 +1074,7 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDataMessage($"AirLinkHealth: WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
@@ -1223,7 +1223,7 @@ namespace CumulusMX
 					{
 						var upt = TimeSpan.FromSeconds(data.uptime);
 						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-								(int)upt.TotalDays,
+								(int) upt.TotalDays,
 								upt.Hours,
 								upt.Minutes,
 								upt.Seconds);
@@ -1238,7 +1238,7 @@ namespace CumulusMX
 					{
 						var upt = TimeSpan.FromSeconds(data.link_uptime);
 						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-								(int)upt.TotalDays,
+								(int) upt.TotalDays,
 								upt.Hours,
 								upt.Minutes,
 								upt.Seconds);
@@ -1269,8 +1269,8 @@ namespace CumulusMX
 
 					try
 					{
-						var txCnt = (int)data.tx_packets;
-						var rxCnt = (int)data.rx_packets;
+						var txCnt = (int) data.tx_packets;
+						var rxCnt = (int) data.rx_packets;
 						var dropped = data.dropped_packets;
 						var bad = data.packet_errors;
 						var error = data.network_error.HasValue ? data.network_error.Value.ToString() : "none";
@@ -1320,7 +1320,7 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
@@ -1408,7 +1408,7 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"GetAvailableSensors: WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
@@ -1714,17 +1714,17 @@ namespace CumulusMX
 			public double pm_2p5_nowcast { get; set; }
 
 
-			public double pm_10 { get; set; }		// Type 6
-			public double pm_10p0 { get; set; }	// Type 5
+			public double pm_10 { get; set; }       // Type 6
+			public double pm_10p0 { get; set; } // Type 5
 			public double pm_10_last { get; set; }
-			public double pm_10_last_1_hour { get; set; }		// Type 6
-			public double pm_10p0_last_1_hour { get; set; }	// Type 5
-			public double pm_10_last_3_hours { get; set; }		// Type 6
+			public double pm_10_last_1_hour { get; set; }       // Type 6
+			public double pm_10p0_last_1_hour { get; set; } // Type 5
+			public double pm_10_last_3_hours { get; set; }      // Type 6
 			public double pm_10p0_last_3_hours { get; set; }   // Type 5
-			public double pm_10_last_24_hours { get; set; }	// Type 6
+			public double pm_10_last_24_hours { get; set; } // Type 6
 			public double pm_10p0_last_24_hours { get; set; }  // Type 5
-			public double pm_10_nowcast { get; set; }		// Type 6
-			public double pm_10p0_nowcast { get; set; }	// Type 5
+			public double pm_10_nowcast { get; set; }       // Type 6
+			public double pm_10p0_nowcast { get; set; } // Type 5
 
 			public int pct_pm_data_last_1_hour { get; set; }
 			public int pct_pm_data_last_3_hours { get; set; }

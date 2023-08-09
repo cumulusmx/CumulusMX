@@ -14,7 +14,7 @@ using Swan;
 
 namespace CumulusMX
 {
-	public delegate string WebTagFunction(Dictionary<string,string> tagParams);
+	public delegate string WebTagFunction(Dictionary<string, string> tagParams);
 
 	internal class WebTags
 	{
@@ -5493,7 +5493,7 @@ namespace CumulusMX
 			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
-		private string TagRecentRainToday(Dictionary<string,string> tagParams)
+		private string TagRecentRainToday(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5502,7 +5502,7 @@ namespace CumulusMX
 			return CheckRcDp(CheckRainUnit(result.Count == 0 ? station.RainToday : result[0].RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
-		private string TagRecentSolarRad(Dictionary<string,string> tagParams)
+		private string TagRecentSolarRad(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5511,7 +5511,7 @@ namespace CumulusMX
 			return result.Count == 0 ? station.SolarRad.ToString("F0") : result[0].SolarRad.ToString("F0");
 		}
 
-		private string TagRecentUv(Dictionary<string,string> tagParams)
+		private string TagRecentUv(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5520,7 +5520,7 @@ namespace CumulusMX
 			return CheckRcDp(result.Count == 0 ? station.UV : result[0].UV, tagParams, cumulus.UVDPlaces);
 		}
 
-		private string TagRecentTs(Dictionary<string,string> tagParams)
+		private string TagRecentTs(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5530,52 +5530,52 @@ namespace CumulusMX
 		}
 
 		// Recent history with commas replaced
-		private string TagRcRecentOutsideTemp(Dictionary<string,string> tagParams)
+		private string TagRcRecentOutsideTemp(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentOutsideTemp(tagParams));
 		}
 
-		private string TagRcRecentWindSpeed(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindSpeed(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindSpeed(tagParams));
 		}
 
-		private string TagRcRecentWindGust(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindGust(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindGust(tagParams));
 		}
 
-		private string TagRcRecentWindLatest(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindLatest(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindLatest(tagParams));
 		}
 
-		private string TagRcRecentWindChill(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindChill(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindChill(tagParams));
 		}
 
-		private string TagRcRecentDewPoint(Dictionary<string,string> tagParams)
+		private string TagRcRecentDewPoint(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentDewPoint(tagParams));
 		}
 
-		private string TagRcRecentHeatIndex(Dictionary<string,string> tagParams)
+		private string TagRcRecentHeatIndex(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentHeatIndex(tagParams));
 		}
 
-		private string TagRcRecentPressure(Dictionary<string,string> tagParams)
+		private string TagRcRecentPressure(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentPressure(tagParams));
 		}
 
-		private string TagRcRecentRainToday(Dictionary<string,string> tagParams)
+		private string TagRcRecentRainToday(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentRainToday(tagParams));
 		}
 
-		private string TagRcRecentUv(Dictionary<string,string> tagParams)
+		private string TagRcRecentUv(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentUv(tagParams));
 		}
@@ -6522,7 +6522,7 @@ namespace CumulusMX
 			}
 		}
 
-		public string GetWebTagText(string tagString, Dictionary<string,string> tagParams)
+		public string GetWebTagText(string tagString, Dictionary<string, string> tagParams)
 		{
 			return webTagDictionary.ContainsKey(tagString) ? webTagDictionary[tagString](tagParams) : string.Copy(string.Empty);
 		}
