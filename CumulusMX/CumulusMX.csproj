@@ -265,10 +265,22 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>echo Starting post-build tasks
+    <PostBuildEvent>echo.
+echo Starting post-build tasks
+echo Copy Updates.txt
 xcopy "$(ProjectDir)..\Updates.txt" "$(TargetDir)\Updates.txt" /D /-I /Q /Y
+echo copy sqlite 32
 xcopy "$(ProjectDir)\Libs\sqlite3-x86.dll" "$(TargetDir)\x86\sqlite3.dll" /D /-I /Q /Y
-xcopy "$(ProjectDir)\Libs\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q /Y</PostBuildEvent>
+echo copy sqlite 64
+xcopy "$(ProjectDir)\Libs\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q /Y
+echo.
+echo Update Distribution folder
+echo copy MX exe
+xcopy "$(TargetPath)" "$(SolutionDir)..\CumulusMX-Dist\CumulusMX" /D /-I /Q /Y
+echo copy MX config
+xcopy "$(TargetDir)CumulusMX.exe.config" "$(SolutionDir)..\CumulusMX-Dist\CumulusMX" /D /-I /Q /Y
+
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

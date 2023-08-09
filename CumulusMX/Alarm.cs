@@ -245,7 +245,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void ClearAlarm()
+		public new void ClearAlarm()
 		{
 			if (Latch && upTriggered && DateTime.Now > UpTriggeredTime.AddHours(LatchHours))
 				doUpTriggered(false);

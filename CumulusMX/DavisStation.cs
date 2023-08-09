@@ -15,8 +15,6 @@ namespace CumulusMX
 		private readonly bool isSerial;
 		private readonly string ipaddr;
 		private readonly int port;
-		private bool savedUseSpeedForAvgCalc;
-		//private int min;
 		private int previousMinuteDisconnect = 60;
 		private const int ACK = 6;
 		private const int NACK = 33;

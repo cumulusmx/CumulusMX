@@ -1374,8 +1374,6 @@ namespace CumulusMX
 		private void GetAvailableSensors()
 		{
 			WlSensorList sensorsObj;
-			string apiKey;
-			string apiSecret;
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
