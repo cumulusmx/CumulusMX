@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO.Ports;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
@@ -15,6 +13,9 @@ using System.Threading.Tasks;
 using System.Timers;
 using Tmds.MDns;
 using Swan;
+using System.Web;
+using System.Net.Http;
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -30,7 +31,7 @@ namespace CumulusMX
 		private readonly object threadSafer = new object();
 		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1, 1);
 		private bool startupDayResetIfRequired = true;
-		private bool savedUseSpeedForAvgCalc;
+		//private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 		private bool broadcastReceived;
@@ -41,7 +42,7 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private readonly List<WlSensor> sensorList = new List<WlSensor>();
 		private readonly bool useWeatherLinkDotCom = true;
-		private readonly bool checkWllGustValues;
+		//private readonly bool checkWllGustValues;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -533,7 +534,7 @@ namespace CumulusMX
 
 								DataStopped = true;
 								DataStoppedTime = DateTime.Now;
-								cumulus.DataStoppedAlarm.LastError = "No current data is being received from the WLL";
+								cumulus.DataStoppedAlarm.LastMessage = "No current data is being received from the WLL";
 								cumulus.DataStoppedAlarm.Triggered = true;
 							}
 						}
@@ -828,11 +829,10 @@ namespace CumulusMX
 										int wdir = data1.wind_dir_last ?? 0;
 										double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
 
-										var savCalc = cumulus.StationOptions.CalcuateAverageWindSpeed;
 										cumulus.StationOptions.CalcuateAverageWindSpeed = false;
 										CalcRecentMaxGust = false;
 										DoWind(wind, wdir, currentAvgWindSpd, dateTime);
-										cumulus.StationOptions.CalcuateAverageWindSpeed = savCalc;
+										cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 										CalcRecentMaxGust = true;
 									}
 
@@ -1551,43 +1551,12 @@ namespace CumulusMX
 			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", cumulus.WllApiKey },
-				{ "station-id", cumulus.WllStationId.ToString() },
-				{ "t", unixDateTime.ToString() },
-				{ "start-timestamp", startTime.ToString() },
-				{ "end-timestamp", endTime.ToString() }
-			};
+			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
+			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
+			historicUrl.Append("&start-timestamp=" + startTime.ToString());
+			historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-
-			string data = dataStringBuilder.ToString();
-
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, data);
-
-			parameters.Remove("station-id");
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder historicUrl = new StringBuilder();
-			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId + "?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				historicUrl.Append(entry.Key);
-				historicUrl.Append('=');
-				historicUrl.Append(entry.Value);
-				historicUrl.Append('&');
-			}
-			// remove the trailing "&"
-			historicUrl.Remove(historicUrl.Length - 1, 1);
-
-			var logUrl = historicUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"WeatherLink URL = {logUrl}");
+			cumulus.LogDebugMessage($"WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
 
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
@@ -1609,8 +1578,11 @@ namespace CumulusMX
 				string responseBody;
 				int responseCode;
 
+				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
+				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(historicUrl.ToString()).Result)
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -2905,52 +2877,24 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"WLL Health: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", cumulus.WllApiKey },
-				{ "station-id", cumulus.WllStationId.ToString() },
-				{ "t", unixDateTime.ToString() },
-				{ "start-timestamp", startTime.ToString() },
-				{ "end-timestamp", endTime.ToString() }
-			};
+			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
+			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
+			historicUrl.Append("&start-timestamp=" + startTime.ToString());
+			historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-
-			string data = dataStringBuilder.ToString();
-
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, data);
-
-			parameters.Remove("station-id");
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder historicUrl = new StringBuilder();
-			historicUrl.Append("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId + "?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				historicUrl.Append(entry.Key);
-				historicUrl.Append('=');
-				historicUrl.Append(entry.Value);
-				historicUrl.Append('&');
-			}
-			// remove the trailing "&"
-			historicUrl.Remove(historicUrl.Length - 1, 1);
-
-			var logUrl = historicUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"WLL Health: WeatherLink URL = {logUrl}");
+			cumulus.LogDebugMessage($"WLL Health: WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
 
 			try
 			{
-				// we want to do this synchronously, so .Result
 				WlHistory histObj;
 				string responseBody;
 				int responseCode;
 
-				using (var response = Cumulus.MyHttpClient.GetAsync(historicUrl.ToString()).Result)
+				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
+				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+
+				// we want to do this synchronously, so .Result
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -3090,45 +3034,20 @@ namespace CumulusMX
 				return;
 			}
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", cumulus.WllApiKey },
-				{ "t", unixDateTime.ToString() }
-			};
+			var stationsUrl = "https://api.weatherlink.com/v2/stations?api-key=" + cumulus.WllApiKey;
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-			string header = dataStringBuilder.ToString();
-
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, header);
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder stationsUrl = new StringBuilder();
-			stationsUrl.Append("https://api.weatherlink.com/v2/stations?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				stationsUrl.Append(entry.Key);
-				stationsUrl.Append('=');
-				stationsUrl.Append(entry.Value);
-				stationsUrl.Append('&');
-			}
-			// remove the trailing "&"
-			stationsUrl.Remove(stationsUrl.Length - 1, 1);
-
-			var logUrl = stationsUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"WLLStations: URL = {logUrl}");
+			cumulus.LogDebugMessage($"WLLStations: URL = {stationsUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
 
 			try
 			{
-				// We want to do this synchronously
 				string responseBody;
 				int responseCode;
 
-				using (var response = Cumulus.MyHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				var request = new HttpRequestMessage(HttpMethod.Get, stationsUrl.ToString());
+				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+
+				// We want to do this synchronously
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int)response.StatusCode;
@@ -3203,50 +3122,24 @@ namespace CumulusMX
 				return;
 			}
 
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", cumulus.WllApiKey },
-				{ "t", unixDateTime.ToString() }
-			};
+			var stationsUrl = "https://api.weatherlink.com/v2/sensors?api-key=" + cumulus.WllApiKey;
 
-			StringBuilder dataStringBuilder = new StringBuilder();
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				dataStringBuilder.Append(entry.Key);
-				dataStringBuilder.Append(entry.Value);
-			}
-			string header = dataStringBuilder.ToString();
-
-			var apiSignature = WlDotCom.CalculateApiSignature(cumulus.WllApiSecret, header);
-			parameters.Add("api-signature", apiSignature);
-
-			StringBuilder stationsUrl = new StringBuilder();
-			stationsUrl.Append("https://api.weatherlink.com/v2/sensors?");
-			foreach (KeyValuePair<string, string> entry in parameters)
-			{
-				stationsUrl.Append(entry.Key);
-				stationsUrl.Append('=');
-				stationsUrl.Append(entry.Value);
-				stationsUrl.Append('&');
-			}
-			// remove the trailing "&"
-			stationsUrl.Remove(stationsUrl.Length - 1, 1);
-
-			var logUrl = stationsUrl.ToString().Replace(cumulus.WllApiKey, "<<API_KEY>>");
-			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {logUrl}");
+			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {stationsUrl.Replace(cumulus.WllApiKey, "API_KEY")}");
 
 			WlSensorList sensorsObj = new WlSensorList();
 
 			try
 			{
-				// We want to do this synchronously
 				string responseBody;
 				int responseCode;
+				var request = new HttpRequestMessage(HttpMethod.Get, stationsUrl);
+				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
-				using (var response = Cumulus.MyHttpClient.GetAsync(stationsUrl.ToString()).Result)
+				// We want to do this synchronously
+				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"GetAvailableSensors: WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
@@ -3315,7 +3208,7 @@ namespace CumulusMX
 				{
 					DataStoppedTime = DateTime.Now;
 				}
-				cumulus.DataStoppedAlarm.LastError = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
+				cumulus.DataStoppedAlarm.LastMessage = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
 				broadcastStopped = true;
 				// Try and give the broadcasts a kick in case the last command did not get through

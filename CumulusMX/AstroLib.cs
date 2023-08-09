@@ -4,7 +4,7 @@ namespace CumulusMX
 {
 	internal class AstroLib
 	{
-		public static double BrasSolar(double el, double erv, double nfac)
+		public static int BrasSolar(double el, double erv, double nfac)
 		{
 			// el      solar elevation deg from horizon
 			// erv     distance from earth to sun in AU
@@ -25,10 +25,10 @@ namespace CumulusMX
 			double al = 0.128 - (0.054 * Math.Log(m) / Math.Log(10));
 
 			// clear-sky solar radiation at earth surface on horizontal surface (W/m^2)
-			return i0 * Math.Exp(-nfac * al * m);
+			return (int) Math.Round(i0 * Math.Exp(-nfac * al * m));
 		}
 
-		public static double RyanStolzSolar(double el, double erv, double atc, double z)
+		public static int RyanStolzSolar(double el, double erv, double atc, double z)
 		{
 			// el      solar elevation deg from horizon
 			// erv     distance from earth to sun in AU
@@ -47,7 +47,7 @@ namespace CumulusMX
 
 			double rsToa = 1360 * sinal / (erv * erv); // RS on the top of atmosphere
 
-			return rsToa * Math.Pow(atc, rm); //RS on the ground
+			return (int) Math.Round(rsToa * Math.Pow(atc, rm)); //RS on the ground
 		}
 
 		private static double DegToRad(double angle)
@@ -60,8 +60,8 @@ namespace CumulusMX
 			return angle * (180.0 / Math.PI);
 		}
 
-		public static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
-									  out double solarelevation, SolarOptions options)
+		public static int SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
+									out double solarelevation, SolarOptions options)
 		{
 			double factor = 0;
 			if (options.SolarCalc == 0)
@@ -76,7 +76,7 @@ namespace CumulusMX
 		}
 
 
-		private static double SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
+		private static int SolarMax(DateTime timestamp, double longitude, double latitude, double altitude,
 									  out double solarelevation, double factor, int method)
 		{
 			DateTime utctime = timestamp.ToUniversalTime();
@@ -504,7 +504,7 @@ namespace CumulusMX
 			double e0 = calcMeanObliquityOfEcliptic(t);
 
 			double omega = 125.04 - 1934.136 * t;
-			
+
 			return e0 + 0.00256 * Math.Cos(DegToRad(omega));
 		}
 
@@ -543,7 +543,7 @@ namespace CumulusMX
 			//var solarNoonLst = (720.0 - 4 * longitude - eqOfTime + zone * 60.0) / 1440.0;
 			//var sunriseTimeLst = solarNoonLst - haSunRise * 4 / 1440.0;
 			//var sunsetTimeLst = solarNoonLst + haSunRise * 4 / 1440.0;
-			//var sunlightDurationMins = 8 * haSunRise; 
+			//var sunlightDurationMins = 8 * haSunRise;
 			var trueSolarTime = PutInRange(dateTime.TimeOfDay.TotalMinutes + eqOfTime + 4 * longitude - 60 * zone, 1440);
 			var hourAngle = trueSolarTime / 4.0 < 0 ? trueSolarTime / 4.0 + 180 : trueSolarTime / 4.0 - 180;
 			var solarZenithAngle = RadToDeg(Math.Acos(Math.Sin(DegToRad(latitude)) * Math.Sin(DegToRad(sunDec)) + Math.Cos(DegToRad(latitude)) * Math.Cos(DegToRad(sunDec)) * Math.Cos(DegToRad(hourAngle))));
@@ -636,7 +636,7 @@ namespace CumulusMX
 				Math.Sin(latitude * Deg2Rad) *
 				Math.Sin(declination) +
 				Math.Cos(latitude * Deg2Rad) *
-				Math.Cos(declination) * 
+				Math.Cos(declination) *
 				Math.Cos(hourAngle)
 			);
 

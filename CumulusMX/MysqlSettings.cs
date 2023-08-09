@@ -103,7 +103,7 @@ namespace CumulusMX
 					customminutes.command[index++] = cumulus.MySqlSettings.CustomMins.Commands[i];
 			}
 
-			var customrollover = new JsonSettingsCustomRollover()
+			var customrollover = new JsonSettingsCustomRolloverStart()
 			{
 				enabled = cumulus.MySqlSettings.CustomRollover.Enabled
 			};
@@ -158,6 +158,26 @@ namespace CumulusMX
 				}
 			}
 
+			var customstartup = new JsonSettingsCustomRolloverStart()
+			{
+				enabled = cumulus.MySqlSettings.CustomStartUp.Enabled
+			};
+
+			cmdCnt = 1;
+			for (var i = 1; i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomStartUp.Commands[i]))
+					cmdCnt++;
+			}
+			customstartup.command = new string[cmdCnt];
+
+			index = 0;
+			for (var i = 0; i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomStartUp.Commands[i]))
+					customstartup.command[index++] = cumulus.MySqlSettings.CustomStartUp.Commands[i];
+			}
+
 			var options = new JsonSettingsOptions()
 			{
 				updateonedit = cumulus.MySqlSettings.UpdateOnEdit,
@@ -175,7 +195,8 @@ namespace CumulusMX
 				customseconds = customseconds,
 				customminutes = customminutes,
 				customrollover = customrollover,
-				customtimed = customtimed
+				customtimed = customtimed,
+				customstart = customstartup
 			};
 
 			return data.ToJson();
@@ -310,7 +331,6 @@ namespace CumulusMX
 						else
 							cumulus.MySqlSettings.CustomRollover.Commands[i] = null;
 					}
-
 				}
 				// custom timed
 				cumulus.MySqlSettings.CustomTimed.Enabled = settings.customtimed.enabled;
@@ -332,6 +352,18 @@ namespace CumulusMX
 							cumulus.MySqlSettings.CustomTimed.Intervals[i] = 0;
 
 						}
+					}
+				}
+				// custom start-up
+				cumulus.MySqlSettings.CustomStartUp.Enabled = settings.customstart.enabled;
+				if (cumulus.MySqlSettings.CustomStartUp.Enabled)
+				{
+					for (var i = 0; i < 10; i++)
+					{
+						if (i < settings.customstart.command.Length)
+							cumulus.MySqlSettings.CustomStartUp.Commands[i] = String.IsNullOrWhiteSpace(settings.customstart.command[i]) ? null : settings.customstart.command[i].Trim();
+						else
+							cumulus.MySqlSettings.CustomStartUp.Commands[i] = null;
 					}
 				}
 
@@ -495,8 +527,9 @@ namespace CumulusMX
 			public JsonSettingsDayfile dayfile { get; set; }
 			public JsonSettingsCustomSeconds customseconds { get; set; }
 			public JsonSettingsCustomMinutes customminutes { get; set; }
-			public JsonSettingsCustomRollover customrollover { get; set; }
+			public JsonSettingsCustomRolloverStart customrollover { get; set; }
 			public JsonSettingsCustomTimed customtimed { get; set; }
+			public JsonSettingsCustomRolloverStart customstart { get; set; }
 		}
 
 		private class JsonSettingsServer
@@ -549,7 +582,7 @@ namespace CumulusMX
 			public int intervalindex { get; set; }
 		}
 
-		private class JsonSettingsCustomRollover
+		private class JsonSettingsCustomRolloverStart
 		{
 			public bool enabled { get; set; }
 			public string[] command { get; set; }

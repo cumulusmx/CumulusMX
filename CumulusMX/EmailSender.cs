@@ -24,7 +24,7 @@ namespace CumulusMX
 		}
 
 
-		public async Task<bool> SendEmail(string[] to, string from, string subject, string message, bool isHTML)
+		public async Task<bool> SendEmail(string[] to, string from, string subject, string message, bool isHTML, bool useBcc)
 		{
 			bool retVal = false;
 			try
@@ -42,7 +42,10 @@ namespace CumulusMX
 				m.From.Add(new MailboxAddress("", from));
 				foreach (var addr in to)
 				{
-					m.To.Add(new MailboxAddress("", addr));
+					if (useBcc)
+						m.Bcc.Add(new MailboxAddress("", addr));
+					else
+						m.To.Add(new MailboxAddress("", addr));
 				}
 
 				m.Subject = sendSubject;

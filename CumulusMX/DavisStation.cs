@@ -15,8 +15,6 @@ namespace CumulusMX
 		private readonly bool isSerial;
 		private readonly string ipaddr;
 		private readonly int port;
-		private bool savedUseSpeedForAvgCalc;
-		//private int min;
 		private int previousMinuteDisconnect = 60;
 		private const int ACK = 6;
 		private const int NACK = 33;
@@ -824,7 +822,7 @@ namespace CumulusMX
 		{
 		}
 
-		private int calculateCRC(byte[] data)
+		private static int calculateCRC(byte[] data)
 		{
 			ushort crc = 0;
 			ushort[] crcTable =
@@ -871,7 +869,7 @@ namespace CumulusMX
 			return crc;
 		}
 
-		private bool CrcOk(byte[] data)
+		private static bool CrcOk(byte[] data)
 		{
 			return (calculateCRC(data) == 0);
 		}
@@ -1978,7 +1976,7 @@ namespace CumulusMX
 						cumulus.LogSpikeRemoval("Station Pressure difference greater than specified; reading ignored");
 						cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPressStation:F1} SpikePressDiff={cumulus.Spike.PressDiff:F1} HighLimit={cumulus.Limit.PressHigh:F1} LowLimit={cumulus.Limit.PressLow:F1}");
 						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastError = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
+						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
 						cumulus.SpikeAlarm.Triggered = true;
 					}
 				}
@@ -2047,6 +2045,7 @@ namespace CumulusMX
 			const int pageSize = 267;
 			const int recordSize = 52;
 			bool ack;
+			bool starting = true;
 
 			NetworkStream stream = null;
 
@@ -2428,7 +2427,16 @@ namespace CumulusMX
 								midnightraindone = true;
 							}
 
-							int interval = (int)(timestamp - lastDataReadTime).TotalMinutes;
+							int interval;
+							if (starting && timestamp > nextLoggerTime)
+							{
+								interval = loggerInterval;
+								starting = false;
+							}
+							else
+							{
+								interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
+							}
 
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
 							{

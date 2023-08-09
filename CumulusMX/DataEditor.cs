@@ -662,7 +662,7 @@ namespace CumulusMX
 			const string monthFormat = "MMM yyyy";
 
 			var json = new StringBuilder("{", 2048);
-			DateTime datefrom;
+			DateTime filedate, datefrom;
 
 			switch (recordType)
 			{
@@ -671,11 +671,13 @@ namespace CumulusMX
 					break;
 				case "thisyear":
 					var now = DateTime.Now;
-					datefrom = new DateTime(now.Year, 1, 1);
+					filedate = new DateTime(now.Year, 1, 1).Date;
+					datefrom = filedate.AddDays(-1);
 					break;
 				case "thismonth":
 					now = DateTime.Now;
-					datefrom = new DateTime(now.Year, now.Month, 1).Date;
+					filedate = new DateTime(now.Year, now.Month, 1).Date;
+					datefrom = filedate.AddDays(-1);
 					break;
 				default:
 					datefrom = cumulus.RecordsBeganDateTime;
@@ -684,7 +686,7 @@ namespace CumulusMX
 			var dateto = DateTime.Now.Date;
 
 			// we have to go back 24 hour to calculate rain in 24h value
-			var filedate = datefrom.AddDays(-1);
+			filedate = datefrom.AddDays(-1);
 
 			var logFile = cumulus.GetLogFileName(filedate);
 			var started = false;
@@ -3354,43 +3356,43 @@ namespace CumulusMX
 								updt.Append($"HighAvgWSpeed={station.DayFile[lineNum].HighAvgWind.ToString(cumulus.WindAvgFormat, InvC)},");
 								updt.Append($"THAvgWSpeed={station.DayFile[lineNum].HighAvgWindTime:\\'HH:mm\\'},");
 								updt.Append($"LowHum={(station.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowHumidity.ToString() : "NULL")},");
-								updt.Append($"TLowHum={(station.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? $"'{station.DayFile[lineNum].LowHumidityTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TLowHum={(station.DayFile[lineNum].LowHumidity < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowHumidityTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighHum={(station.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidity.ToString() : "NULL")},");
-								updt.Append($"THighHum={(station.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighHumidityTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"THighHum={(station.DayFile[lineNum].HighHumidity > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidityTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"TotalEvap={station.DayFile[lineNum].ET.ToString(cumulus.ETFormat, InvC)},");
 								updt.Append($"HoursSun={station.DayFile[lineNum].SunShineHours.ToString(cumulus.SunFormat, InvC)},");
 								updt.Append($"HighHeatInd={(station.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHeatIndex.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"THighHeatInd={(station.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighHeatIndexTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"THighHeatInd={(station.DayFile[lineNum].HighHeatIndex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHeatIndexTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"THighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighAppTempTime.ToString("HH:mm")}'" : "NULL")},");
-								updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"TLowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? $"'{station.DayFile[lineNum].LowAppTempTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"THighAppTemp={(station.DayFile[lineNum].HighAppTemp > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"LowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ?  station.DayFile[lineNum].LowAppTemp.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"TLowAppTemp={(station.DayFile[lineNum].LowAppTemp < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowAppTempTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighHourRain={station.DayFile[lineNum].HighHourlyRain.ToString(cumulus.RainFormat, InvC)},");
 								updt.Append($"THighHourRain={station.DayFile[lineNum].HighHourlyRainTime:\\'HH:mm\\'},");
 								updt.Append($"LowWindChill={(station.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowWindChill.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"TLowWindChill={(station.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? $"'{station.DayFile[lineNum].LowWindChillTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TLowWindChill={(station.DayFile[lineNum].LowWindChill < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowWindChillTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HighDewPoint={(station.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighDewPoint.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"THighDewPoint={(station.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighDewPointTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"THighDewPoint={(station.DayFile[lineNum].HighDewPoint > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighDewPointTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"LowDewPoint={(station.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowDewPoint.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"TLowDewPoint={(station.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? $"'{station.DayFile[lineNum].LowDewPointTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TLowDewPoint={(station.DayFile[lineNum].LowDewPoint < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowDewPointTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"DomWindDir={station.DayFile[lineNum].DominantWindBearing},");
-								updt.Append($"HeatDegDays={(station.DayFile[lineNum].HeatingDegreeDays > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC)}'" : "NULL")},");
-								updt.Append($"CoolDegDays={(station.DayFile[lineNum].CoolingDegreeDays > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC)}'" : "NULL")},");
-								updt.Append($"HighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighSolar}'" : "NULL")},");
-								updt.Append($"THighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighSolarTime:\\'HH:mm\\}'" : "NULL")},");
-								updt.Append($"HighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC)}'" : "NULL")},");
-								updt.Append($"THighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighUvTime:\\'HH:mm\\'}'" : "NULL")},");
+								updt.Append($"HeatDegDays={(station.DayFile[lineNum].HeatingDegreeDays > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HeatingDegreeDays.ToString("F1", InvC) : "NULL")},");
+								updt.Append($"CoolDegDays={(station.DayFile[lineNum].CoolingDegreeDays > Cumulus.DefaultHiVal ? station.DayFile[lineNum].CoolingDegreeDays.ToString("F1", InvC) : "NULL")},");
+								updt.Append($"HighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighSolar.ToString() : "NULL")},");
+								updt.Append($"THighSolarRad={(station.DayFile[lineNum].HighSolar > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighSolarTime.ToString("\\'HH:mm\\'") : "NULL")},");
+								updt.Append($"HighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighUv.ToString(cumulus.UVFormat, InvC) : "NULL")},");
+								updt.Append($"THighUV={(station.DayFile[lineNum].HighUv > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighUvTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"HWindGBearSym='{station.CompassPoint(station.DayFile[lineNum].HighGustBearing)}',");
 								updt.Append($"DomWindDirSym='{station.CompassPoint(station.DayFile[lineNum].DominantWindBearing)}',");
 								updt.Append($"MaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"TMaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighFeelsLikeTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TMaxFeelsLike={(station.DayFile[lineNum].HighFeelsLike > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"MinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowFeelsLike.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"TMinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? $"'{station.DayFile[lineNum].LowFeelsLikeTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TMinFeelsLike={(station.DayFile[lineNum].LowFeelsLike < Cumulus.DefaultLoVal ? station.DayFile[lineNum].LowFeelsLikeTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"MaxHumidex={(station.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidex.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-								updt.Append($"TMaxHumidex={(station.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighHumidexTime.ToString("HH:mm")}'" : "NULL")},");
+								updt.Append($"TMaxHumidex={(station.DayFile[lineNum].HighHumidex > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighHumidexTime.ToString("\\'HH:mm\\'") : "NULL")},");
 								updt.Append($"ChillHours={(station.DayFile[lineNum].ChillHours > Cumulus.DefaultHiVal ? station.DayFile[lineNum].ChillHours.ToString("F1", InvC) : "NULL")},");
 								updt.Append($"HighRain24h={(station.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighRain24h.ToString(cumulus.RainFormat, InvC) : "NULL")},");
-								updt.Append($"THighRain24h={(station.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? $"'{station.DayFile[lineNum].HighRain24hTime.ToString("HH:mm")}'" : "NULL")} ");
+								updt.Append($"THighRain24h={(station.DayFile[lineNum].HighRain24h > Cumulus.DefaultHiVal ? station.DayFile[lineNum].HighRain24hTime.ToString("\\'HH:mm\\'") : "NULL")} ");
 
 								updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
 								updateStr = updt.ToString();
