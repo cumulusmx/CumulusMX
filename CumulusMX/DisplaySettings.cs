@@ -1,35 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 using EmbedIO;
 
-using Org.BouncyCastle.Utilities.Collections;
-
 using ServiceStack.Text;
 
-using static Swan.Terminal;
 
 namespace CumulusMX
 {
 	internal class DisplaySettings
 	{
 		private readonly Cumulus cumulus;
-		private WeatherStation station;
 
 		internal DisplaySettings(Cumulus cumulus)
 		{
 			this.cumulus = cumulus;
-		}
-
-		internal void SetStation(WeatherStation station)
-		{
-			this.station = station;
 		}
 
 		internal string GetAlpacaFormData()

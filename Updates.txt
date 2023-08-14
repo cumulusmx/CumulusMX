@@ -3,6 +3,7 @@
 New
 
 Changed
+- Internal changes to update the Visual Studio project files from the previous legacy version
 
 Fixed
 

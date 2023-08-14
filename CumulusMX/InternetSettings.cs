@@ -9,7 +9,6 @@ using EmbedIO;
 
 using ServiceStack;
 
-using static ServiceStack.Diagnostics.Events;
 
 namespace CumulusMX
 {

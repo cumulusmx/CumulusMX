@@ -11,9 +11,6 @@ using EmbedIO;
 using ServiceStack;
 using ServiceStack.Text;
 
-using Swan.Formatters;
-
-using static Swan.Terminal;
 
 namespace CumulusMX
 {

@@ -1,28 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web.Hosting;
 
 using EmbedIO;
-
-using Org.BouncyCastle.Asn1.Cms;
 
 using ServiceStack;
 using ServiceStack.Text;
 
-using Swan.Formatters;
-
-using static CumulusMX.Cumulus;
 
 namespace CumulusMX
 {

@@ -6,7 +6,6 @@ using EmbedIO;
 
 using ServiceStack;
 
-using static Swan.Terminal;
 
 namespace CumulusMX
 {

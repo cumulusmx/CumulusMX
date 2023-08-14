@@ -5,14 +5,10 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Xml.Linq;
 
 using EmbedIO;
 
 using MySqlConnector;
-using MySqlConnector.Logging;
-
-using Org.BouncyCastle.Asn1.Cms;
 
 using ServiceStack;
 

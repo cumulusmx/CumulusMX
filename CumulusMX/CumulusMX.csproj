@@ -1,16 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{67A70E28-25C7-4C7F-BD7B-959AE6834B2C}</ProjectGuid>
-    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CumulusMX</RootNamespace>
-    <AssemblyName>CumulusMX</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFramework>net48</TargetFramework>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -19,189 +13,24 @@
     <PublishUrl>C:\Users\mcrossley\Code\CumulusMX-Dist\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>3064</ApplicationRevision>
-    <ApplicationVersion>3.3.1.3064</ApplicationVersion>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <ExcludeDeploymentUrl>true</ExcludeDeploymentUrl>
-    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>0</WarningLevel>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>
-    </DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowedReferenceRelatedFileExtensions>".pdb"=""</AllowedReferenceRelatedFileExtensions>
-    <DebugSymbols>true</DebugSymbols>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup>
-    <ManifestCertificateThumbprint>FA8B5CBB94229C9648BA8B533426B5DB50CB03F8</ManifestCertificateThumbprint>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>CumulusMX_TemporaryKey.pfx</ManifestKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GenerateManifests>false</GenerateManifests>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignManifests>false</SignManifests>
-  </PropertyGroup>
-  <PropertyGroup />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <PropertyGroup>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetZone>LocalIntranet</TargetZone>
-  </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>CumulusMX.Program</StartupObject>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.WebRequest">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Tmds.MDns, Version=0.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\CumulusMX\CumulusMX\lib\Tmds.MDns.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AirQualityIndices.cs" />
-    <Compile Include="Alarm.cs" />
-    <Compile Include="Api.cs" />
-    <Compile Include="ApiTagProcessor.cs" />
-    <Compile Include="AstroLib.cs" />
-    <Compile Include="CalibrationsLimits.cs" />
-    <Compile Include="CalibrationSettings.cs" />
-    <Compile Include="Cumulus.cs" />
-    <Compile Include="CustomLogs.cs" />
-    <Compile Include="DataEditor.cs" />
-    <Compile Include="DataStruct.cs" />
-    <Compile Include="DavisAirLink.cs" />
-    <Compile Include="DavisWllStation.cs" />
-    <Compile Include="DisplaySettings.cs" />
-    <Compile Include="EasyWeather.cs" />
-    <Compile Include="EcowittApi.cs" />
-    <Compile Include="EmailSender.cs" />
-    <Compile Include="ExtraSensorSettings.cs" />
-    <Compile Include="FOStation.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="GraphOptions.cs" />
-    <Compile Include="GW1000Api.cs" />
-    <Compile Include="GW1000Station.cs" />
-    <Compile Include="HttpStationAmbient.cs" />
-    <Compile Include="HttpStationEcowitt.cs" />
-    <Compile Include="HttpStationWund.cs" />
-    <Compile Include="HttpFiles.cs" />
-    <Compile Include="ImetStation.cs" />
-    <Compile Include="IniFile.cs" />
-    <Compile Include="InternetSettings.cs" />
-    <Compile Include="Lang.cs" />
-    <Compile Include="LangSettings.cs" />
-    <Compile Include="MeteoLib.cs" />
-    <Compile Include="MoonriseMoonset.cs" />
-    <Compile Include="MqttPublisher.cs" />
-    <Compile Include="MysqlSettings.cs" />
-    <Compile Include="MySQLTable.cs" />
-    <Compile Include="NOAA.cs" />
-    <Compile Include="NOAAReports.cs" />
-    <Compile Include="AlarmSettings.cs" />
-    <Compile Include="NOAASettings.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="SelfInstaller.cs" />
-    <Compile Include="CumulusService.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="CumulusService.Designer.cs">
-      <DependentUpon>CumulusService.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ServiceCumulusInstaller.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Simulator.cs" />
-    <Compile Include="ProgramSettings.cs" />
-    <Compile Include="SQLite.cs" />
-    <Compile Include="StationSettings.cs" />
-    <Compile Include="SunriseSunset.cs" />
-    <Compile Include="ThirdPartySettings.cs" />
-    <Compile Include="TempestStation.cs" />
-    <Compile Include="TokenParser.cs" />
-    <Compile Include="Trig.cs" />
-    <Compile Include="DavisStation.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="WeatherData.cs" />
-    <Compile Include="WeatherDataCollection.cs" />
-    <Compile Include="WeatherLink.cs" />
-    <Compile Include="WeatherLinkDotCom.cs" />
-    <Compile Include="WeatherStation.cs" />
-    <Compile Include="MXWebSocket.cs" />
-    <Compile Include="WebTags.cs" />
-    <Compile Include="Wizard.cs" />
-    <Compile Include="WM918Station.cs" />
-    <Compile Include="WMR100Station.cs" />
-    <Compile Include="WMR200Station.cs" />
-    <Compile Include="WMR928Station.cs" />
-    <Compile Include="WS2300Station.cs" />
+    <Compile Remove="DataEditor-byDay.cs" />
+    <Compile Remove="MxFtpClient.cs" />
+    <Compile Remove="WeatherStation-byDay.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -214,13 +43,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
@@ -229,64 +51,35 @@
     <Content Include="Libs\sqlite3-x86.dll" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EmbedIO">
-      <Version>3.5.2</Version>
-    </PackageReference>
-    <PackageReference Include="FluentFTP">
-      <Version>47.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="HidSharp">
-      <Version>2.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="MailKit">
-      <Version>4.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="MQTTnet">
-      <Version>4.2.1.781</Version>
-    </PackageReference>
-    <PackageReference Include="MySqlConnector">
-      <Version>2.2.7</Version>
-    </PackageReference>
-    <PackageReference Include="Rx-Main">
-      <Version>2.2.5</Version>
-    </PackageReference>
-    <PackageReference Include="ServiceStack.Text">
-      <Version>6.10.0</Version>
-    </PackageReference>
-    <PackageReference Include="SSH.NET">
-      <Version>2020.0.2</Version>
-    </PackageReference>
-    <PackageReference Include="System.Diagnostics.DiagnosticSource">
-      <Version>7.0.2</Version>
-    </PackageReference>
-    <PackageReference Include="System.Text.Encoding.CodePages">
-      <Version>7.0.0</Version>
-    </PackageReference>
+    <PackageReference Include="EmbedIO" Version="3.5.2" />
+    <PackageReference Include="FluentFTP" Version="47.1.0" />
+    <PackageReference Include="HidSharp" Version="2.1.0" />
+    <PackageReference Include="MailKit" Version="4.1.0" />
+    <PackageReference Include="MQTTnet" Version="4.2.1.781" />
+    <PackageReference Include="MySqlConnector" Version="2.2.7" />
+    <PackageReference Include="ServiceStack.Text" Version="6.10.0" />
+    <PackageReference Include="SSH.NET" Version="2020.0.2" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
+    <Reference Include="Tmds.MDns">
+      <HintPath>lib\Tmds.MDns.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>echo.
-echo Starting post-build tasks
-echo Copy Updates.txt
-xcopy "$(ProjectDir)..\Updates.txt" "$(TargetDir)\Updates.txt" /D /-I /Q /Y
-echo copy sqlite 32
-xcopy "$(ProjectDir)\Libs\sqlite3-x86.dll" "$(TargetDir)\x86\sqlite3.dll" /D /-I /Q /Y
-echo copy sqlite 64
-xcopy "$(ProjectDir)\Libs\sqlite3-x64.dll" "$(TargetDir)\x64\sqlite3.dll" /D /-I /Q /Y
-echo.
-echo Update Distribution folder
-echo copy MX exe
-xcopy "$(TargetPath)" "$(SolutionDir)..\CumulusMX-Dist\CumulusMX" /D /-I /Q /Y
-echo copy MX config
-xcopy "$(TargetDir)CumulusMX.exe.config" "$(SolutionDir)..\CumulusMX-Dist\CumulusMX" /D /-I /Q /Y
-
-</PostBuildEvent>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
+    <FileVersion>$(PackageVersion)</FileVersion>
+    <OutputType>Exe</OutputType>
+    <StartupObject>CumulusMX.Program</StartupObject>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Copyright>Copyright ©  2015-2023 Cumulus MX</Copyright>
+    <Version>3.27.0.3249</Version>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 32&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x86.dll&quot; &quot;$(TargetDir)\x86\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 64&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x64.dll&quot; &quot;$(TargetDir)\x64\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y" />
   </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
