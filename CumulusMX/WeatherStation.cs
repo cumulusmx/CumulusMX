@@ -5372,9 +5372,8 @@ namespace CumulusMX
 		// Use -1 for the average if you want to feedback the current average for a calculated moving average
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
-#if DEBUG
-			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1}");
-#endif
+			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
+
 			// Spike removal is in m/s
 			var windGustMS = ConvertUserWindToMS(gustpar);
 			var windAvgMS = ConvertUserWindToMS(speedpar);
@@ -5452,6 +5451,10 @@ namespace CumulusMX
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
 
+#if DEBUGWIND
+			cumulus.LogDebugMessage($"Wind calc using speed: {cumulus.StationOptions.UseSpeedForAvgCalc}");
+#endif
+
 			if (cumulus.StationOptions.CalcuateAverageWindSpeed)
 			{
 				int numvalues = 0;
@@ -5461,6 +5464,10 @@ namespace CumulusMX
 				{
 					if (WindRecent[i].Timestamp >= fromTime)
 					{
+#if DEBUGWIND
+						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
+#endif
+
 						numvalues++;
 						if (cumulus.StationOptions.UseSpeedForAvgCalc)
 						{
@@ -5504,6 +5511,9 @@ namespace CumulusMX
 				RecentMaxGust = calibratedgust;
 			}
 
+#if DEBUGWIND
+			cumulus.LogDebugMessage($"New Wind Values: Gust:{RecentMaxGust:F1} Speed:{WindAverage:F1}");
+#endif
 			CheckHighAvgSpeed(timestamp);
 
 			WindVec[nextwindvec].X = calibratedgust * Math.Sin(DegToRad(Bearing));
@@ -5629,9 +5639,22 @@ namespace CumulusMX
 					}
 				}
 			}
+
+			cumulus.LogDebugMessage($"InitialiseWind: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 		}
 
+		public void AddValuesToRecentWind(double gust, double speed, DateTime start, DateTime end)
+		{
+			for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(5))
+			{
+				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 
+				WindRecent[nextwind].Gust = gust;
+				WindRecent[nextwind].Speed = speed;
+				WindRecent[nextwind].Timestamp = ts;
+				nextwind = (nextwind + 1) % MaxWindRecent;
+			}
+		}
 
 		public void DoUV(double value, DateTime timestamp)
 		{

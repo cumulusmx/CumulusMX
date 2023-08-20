@@ -2495,6 +2495,7 @@ namespace CumulusMX
 								}
 
 								DoWind(wind, (int) (bearing * 22.5), avgwind, timestamp);
+								AddValuesToRecentWind(avgwind, avgwind, timestamp.AddMinutes(-interval), timestamp);
 
 								if (ConvertUserWindToMS(WindAverage) < 1.5)
 								{

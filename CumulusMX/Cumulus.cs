@@ -1708,7 +1708,11 @@ namespace CumulusMX
 
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
 
-			phpUploadHttpClient.Timeout = TimeSpan.FromSeconds(20);
+
+			// persistent connection
+			phpUploadHttpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+			phpUploadHttpClient.DefaultRequestHeaders.Add("Keep-Alive", "timeout=600");
+			phpUploadHttpClient.Timeout = Timeout.InfiniteTimeSpan;
 		}
 
 
@@ -11430,7 +11434,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							using (var ms = new System.IO.MemoryStream())
+							using (var ms = new MemoryStream())
 							{
 								if (FtpOptions.PhpCompression == "gzip")
 								{

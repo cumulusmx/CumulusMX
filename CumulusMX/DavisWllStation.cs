@@ -1675,6 +1675,8 @@ namespace CumulusMX
 					var refData = sensorWithMostRecs.data[dataIndex].FromJsv<WlHistorySensorDataType13Baro>();
 					var timestamp = Utils.FromUnixTime(refData.ts);
 
+					cumulus.LogMessage($"GetWlHistoricData: Processing record {timestamp:yyyy-MM-dd HH:mm}");
+
 					var h = timestamp.Hour;
 
 					//  if outside roll-over hour, roll-over yet to be done
@@ -2131,6 +2133,7 @@ namespace CumulusMX
 									var dir = data11.wind_speed_hi_dir ?? 0;
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
 									DoWind(gust, dir, spd, recordTs);
+									AddValuesToRecentWind(spd, spd, recordTs.AddSeconds(-data11.arch_int), recordTs);
 								}
 								else
 								{

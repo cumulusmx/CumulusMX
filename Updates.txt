@@ -4,8 +4,10 @@ New
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
+- Additional keep-alive headers added to PHP uploads
 
 Fixed
+- Fix for Davis average wind spike on restarts with catch-up
 
 
 
