@@ -101,6 +101,8 @@ namespace CumulusMX
 							cumulus.LogMessage(msg);
 							if (cumulus.FineOffsetOptions.SetLoggerInterval)
 							{
+								var retries = 2;
+
 								cumulus.LogMessage($"Attempting to set console logging interval to {cumulus.logints[cumulus.DataLogInterval]} mins");
 								WriteAddress(0x10, (byte) cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
 								WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
@@ -108,7 +110,17 @@ namespace CumulusMX
 								{
 									Thread.Sleep(1000);  // sleep to let it reconfigure
 									ReadAddress(0x10, data);
-								} while (data[9] != 0);
+									retries--;
+								} while (data[0] != cumulus.logints[cumulus.DataLogInterval] && retries > 0);
+
+								if (data[0] == cumulus.logints[cumulus.DataLogInterval])
+								{
+									cumulus.LogMessage("Successfully set new logging interval");
+								}
+								else
+								{
+									cumulus.LogMessage("failed to set new logging interval");
+								}
 							}
 						}
 					}
