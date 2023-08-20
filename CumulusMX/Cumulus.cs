@@ -30,6 +30,8 @@ using FluentFTP.Helpers;
 
 using MySqlConnector;
 
+using Org.BouncyCastle.Asn1.Ocsp;
+
 using Renci.SshNet;
 
 using ServiceStack;
@@ -38,6 +40,8 @@ using ServiceStack.Text;
 using SQLite;
 
 using Swan;
+
+using static System.Net.Mime.MediaTypeNames;
 
 using Timer = System.Timers.Timer;
 
@@ -1707,7 +1711,6 @@ namespace CumulusMX
 			};
 
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
-
 
 			// persistent connection
 			phpUploadHttpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
@@ -11410,11 +11413,11 @@ namespace CumulusMX
 				{
 					var encoding = new UTF8Encoding(false);
 
-					using (var request = new HttpRequestMessage(HttpMethod.Post, FtpOptions.PhpUrl))
+					using (var request = new HttpRequestMessage())
 					{
 						var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
-						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
 
+						request.RequestUri = new Uri(FtpOptions.PhpUrl);
 						// disable expect 100 - PHP doesn't support it
 						request.Headers.ExpectContinue = false;
 						request.Headers.Add("ACTION", incremental ? "append" : "replace");
@@ -11423,49 +11426,83 @@ namespace CumulusMX
 						{
 							request.Headers.Add("OLDEST", oldest);
 						}
-						request.Headers.Add("TS", unixTs);
+
+						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
 						request.Headers.Add("SIGNATURE", signature);
+
+						request.Headers.Add("TS", unixTs);
 						request.Headers.Add("BINARY", binary ? "1" : "0");
 						request.Headers.Add("UTF8", utf8 ? "1" : "0");
-						// Compress? if supported and payload exceeds 500 bytes
-						if (data.Length < 500 || FtpOptions.PhpCompression == "none")
+
+						int len;
+						string encData = string.Empty;
+
+						if (binary)
 						{
-							request.Content = new StringContent(data, encoding, "text/plain");
+							len = data.Length;
 						}
 						else
 						{
-							using (var ms = new MemoryStream())
+							encData = Convert.ToBase64String(encoding.GetBytes(data));
+							len = encData.Length;
+						}
+
+						// if content < 7 KB-ish
+						if (len < 7000)
+						{
+
+							if (!binary)
 							{
-								if (FtpOptions.PhpCompression == "gzip")
+								data = encData;
+							}
+							// send data in GET headers
+							request.Method = HttpMethod.Get;
+							request.Headers.Add("DATA", data);
+						}
+						// else > 7 kB
+						else
+						{
+							// send as POST
+							request.Method = HttpMethod.Post;
+
+							// Compress? if supported and payload exceeds 500 bytes
+							if (data.Length >= 500 && FtpOptions.PhpCompression != "none")
+							{
+								using (var ms = new MemoryStream())
 								{
-									using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+									if (FtpOptions.PhpCompression == "gzip")
 									{
-										var byteData = encoding.GetBytes(data);
-										zipped.Write(byteData, 0, byteData.Length);
+										using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+										{
+											var byteData = encoding.GetBytes(data);
+											zipped.Write(byteData, 0, byteData.Length);
+										}
 									}
-								}
-								else if (FtpOptions.PhpCompression == "deflate")
-								{
-									using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+									else if (FtpOptions.PhpCompression == "deflate")
 									{
-										var byteData = encoding.GetBytes(data);
-										zipped.Write(byteData, 0, byteData.Length);
+										using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+										{
+											var byteData = encoding.GetBytes(data);
+											zipped.Write(byteData, 0, byteData.Length);
+										}
 									}
+
+									ms.Position = 0;
+									byte[] compressed = new byte[ms.Length];
+									ms.Read(compressed, 0, compressed.Length);
+
+									outStream = new MemoryStream(compressed);
+									streamContent = new StreamContent(outStream);
+									streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+									streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
+									streamContent.Headers.ContentLength = outStream.Length;
+
+									request.Content = streamContent;
 								}
-
-								ms.Position = 0;
-								byte[] compressed = new byte[ms.Length];
-								ms.Read(compressed, 0, compressed.Length);
-
-								outStream = new MemoryStream(compressed);
-								streamContent = new StreamContent(outStream);
-								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
-								streamContent.Headers.Add("Content-Encoding", FtpOptions.PhpCompression);
-								streamContent.Headers.ContentLength = outStream.Length;
-
-								request.Content = streamContent;
 							}
 						}
+
+						LogDebugMessage($"PHP[{cycleStr}]: Sending via {request.Method}");
 
 						using (var response = await httpclient.SendAsync(request))
 						{

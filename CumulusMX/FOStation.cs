@@ -101,6 +101,7 @@ namespace CumulusMX
 							cumulus.LogMessage(msg);
 							if (cumulus.FineOffsetOptions.SetLoggerInterval)
 							{
+								cumulus.LogMessage($"Attempting to set console logging interval to {cumulus.logints[cumulus.DataLogInterval]} mins");
 								WriteAddress(0x10, (byte) cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
 								WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
 								do
