@@ -111,6 +111,8 @@ namespace CumulusMX
 				httpStation.extraStation = 0;
 			else if (cumulus.AmbientExtraEnabled)
 				httpStation.extraStation = 1;
+			else if (cumulus.EcowittCloudExtraEnabled)
+				httpStation.extraStation = 2;
 			else
 				httpStation.extraStation = -1;
 
@@ -250,9 +252,11 @@ namespace CumulusMX
 				// Ecowitt Extra settings
 				try
 				{
-					if (settings.httpSensors.extraStation == 0)
+					if (settings.httpSensors.extraStation == 0 || settings.httpSensors.extraStation == 2)
 					{
-						cumulus.EcowittExtraEnabled = true;
+						cumulus.EcowittExtraEnabled = settings.httpSensors.extraStation == 0;
+						cumulus.EcowittCloudExtraEnabled = settings.httpSensors.extraStation == 2;
+
 						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;

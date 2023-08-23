@@ -1,6 +1,9 @@
-3.26.1 - b3249
+3.27.0 - b3250
 ——————————————
 New
+- Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
+	It grabs the data from the Ecowitt cloud servers. This data is updated once a minute, and is slightly less rich than the locally available API data.
+	This station can also be used as a source of Extra Sensor data for your primary station
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version

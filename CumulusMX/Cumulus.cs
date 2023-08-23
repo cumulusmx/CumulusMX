@@ -30,8 +30,6 @@ using FluentFTP.Helpers;
 
 using MySqlConnector;
 
-using Org.BouncyCastle.Asn1.Ocsp;
-
 using Renci.SshNet;
 
 using ServiceStack;
@@ -40,8 +38,6 @@ using ServiceStack.Text;
 using SQLite;
 
 using Swan;
-
-using static System.Net.Mime.MediaTypeNames;
 
 using Timer = System.Timers.Timer;
 
@@ -231,6 +227,7 @@ namespace CumulusMX
 
 		internal HttpStationEcowitt ecowittExtra;
 		internal HttpStationAmbient ambientExtra;
+		internal EcowittCloud ecowittCloudExtra;
 
 		public DateTime LastUpdateTime;
 
@@ -637,10 +634,11 @@ namespace CumulusMX
 			"HTTP Ecowitt",					// 14
 			"HTTP Ambient",					// 15
 			"WeatherFlow Tempest",			// 16
-			"Simulator"						// 17
+			"Simulator",					// 17
+			"Ecowitt Cloud"					// 18
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow" };
 
 		public string loggingfile;
 		public string ftpLogfile;
@@ -1558,6 +1556,10 @@ namespace CumulusMX
 					Manufacturer = SIMULATOR;
 					station = new Simulator(this);
 					break;
+				case StationTypes.EcowittCloud:
+					Manufacturer = ECOWITT;
+					station = new EcowittCloud(this);
+					break;
 				default:
 					LogConsoleMessage("Station type not set", ConsoleColor.Red);
 					LogMessage("Station type not set");
@@ -1604,6 +1606,10 @@ namespace CumulusMX
 				{
 					ambientExtra = new HttpStationAmbient(this, station);
 					Api.stationAmbientExtra = ambientExtra;
+				}
+				if (EcowittCloudExtraEnabled)
+				{
+					ecowittCloudExtra = new EcowittCloud(this, station);
 				}
 
 				webtags = new WebTags(this, station);
@@ -4610,6 +4616,7 @@ namespace CumulusMX
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
+			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
 			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
 			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
 			EcowittExtraUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
@@ -6085,6 +6092,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "PrimaryTHSensor", Gw1000PrimaryTHSensor);
 			ini.SetValue("GW1000", "PrimaryRainSensor", Gw1000PrimaryRainSensor);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
+			ini.SetValue("GW1000", "ExtraCloudSensorDataEnabled", EcowittCloudExtraEnabled);
 			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
 			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
 			ini.SetValue("GW1000", "ExtraSensorUseTempHum", EcowittExtraUseTempHum);
@@ -7411,6 +7419,7 @@ namespace CumulusMX
 		public bool AirLinkOutEnabled { get; set; }
 
 		public bool EcowittExtraEnabled { get; set; }
+		public bool EcowittCloudExtraEnabled { get; set; }
 		public bool EcowittExtraUseSolar { get; set; }
 		public bool EcowittExtraUseUv { get; set; }
 		public bool EcowittExtraUseTempHum { get; set; }
@@ -13629,6 +13638,7 @@ namespace CumulusMX
 		public const int HttpAmbient = 15;
 		public const int Tempest = 16;
 		public const int Simulator = 17;
+		public const int EcowittCloud = 18;
 	}
 
 	/*

@@ -5,9 +5,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FluentFTP.Helpers;
+
 using ServiceStack;
 using ServiceStack.Text;
 
+using Swan.Formatters;
+using Swan.Parsers;
 
 namespace CumulusMX
 {
@@ -17,8 +21,11 @@ namespace CumulusMX
 		private readonly WeatherStation station;
 
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
+		private static readonly string currentUrl = "https://api.ecowitt.net/api/v3/device/real_time?";
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
+
+		private DateTime LastCurrentDataTime = DateTime.MinValue;
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
@@ -195,7 +202,7 @@ namespace CumulusMX
 
 					if (responseCode != 200)
 					{
-						var historyError = responseBody.FromJson<EcowitHistErrorResp>();
+						var historyError = responseBody.FromJson<ErrorResp>();
 						cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}");
 						cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
 						cumulus.LastUpdateTime = endTime;
@@ -213,7 +220,7 @@ namespace CumulusMX
 					else if (responseBody.StartsWith("{\"code\":")) // sanity check
 					{
 						// get the sensor data
-						var histObj = responseBody.FromJson<EcowittHistoricResp>();
+						var histObj = responseBody.FromJson<HistoricResp>();
 
 						if (histObj != null)
 						{
@@ -291,7 +298,6 @@ namespace CumulusMX
 				cumulus.LastUpdateTime = endTime;
 				return false;
 			}
-
 		}
 
 		private void ProcessHistoryData(EcowittHistoricData data, CancellationToken token)
@@ -714,10 +720,10 @@ namespace CumulusMX
 			// Extra 8 channel sensors
 			for (var i = 1; i <= 8; i++)
 			{
-				EcowittApi.EcowittHistoricTempHum srcTH = null;
-				EcowittApi.EcowittHistoricDataSoil srcSoil = null;
-				EcowittApi.EcowittHistoricDataTemp srcTemp = null;
-				EcowittApi.EcowittHistoricDataLeaf srcLeaf = null;
+				EcowittApi.HistoricTempHum srcTH = null;
+				EcowittApi.HistoricDataSoil srcSoil = null;
+				EcowittApi.HistoricDataTemp srcTemp = null;
+				EcowittApi.HistoricDataLeaf srcLeaf = null;
 				switch (i)
 				{
 					case 1:
@@ -1097,7 +1103,7 @@ namespace CumulusMX
 			// 4 channel PM 2.5 sensors
 			for (var i = 1; i <= 4; i++)
 			{
-				EcowittHistoricDataPm25Aqi sensor = null;
+				HistoricDataPm25Aqi sensor = null;
 				switch (i)
 				{
 					case 1:
@@ -1247,7 +1253,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ApplyHistoricData(KeyValuePair<DateTime, EcowittApi.HistoricData> rec)
+		private void ApplyHistoricData(KeyValuePair<DateTime, HistoricData> rec)
 		{
 			// === Wind ==
 			// WindGust = max for period
@@ -1624,6 +1630,185 @@ namespace CumulusMX
 		}
 
 
+		// returns the data structure and the number of seconds to wait before the next update
+		internal CurrentDataData GetCurrentData(CancellationToken token, ref int delay)
+		{
+			cumulus.LogMessage("API.GetCurrentData: Get Ecowitt Current Data");
+
+			var sb = new StringBuilder(currentUrl);
+
+			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
+			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
+			sb.Append($"&mac={cumulus.EcowittMacAddress}");
+
+			// Request the data in the correct units
+			sb.Append($"&temp_unitid={cumulus.Units.Temp + 1}"); // 1=C, 2=F
+			sb.Append($"&pressure_unitid={(cumulus.Units.Press == 2 ? "4" : "3")}"); // 3=hPa, 4=inHg, 5=mmHg
+			string windUnit;
+			switch (cumulus.Units.Wind)
+			{
+				case 0: // m/s
+					windUnit = "6";
+					break;
+				case 1: // mph
+					windUnit = "9";
+					break;
+				case 2: // km/h
+					windUnit = "7";
+					break;
+				case 3: // knots
+					windUnit = "8";
+					break;
+				default:
+					windUnit = "?";
+					break;
+			}
+			sb.Append($"&wind_speed_unitid={windUnit}");
+			sb.Append($"&rainfall_unitid={cumulus.Units.Rain + 12}");
+
+			// available callbacks:
+			// all
+			//	outdoor, indoor, solar_and_uvi, rainfall, wind, pressure, lightning
+			//	indoor_co2, co2_aqi_combo, pm25_aqi_combo, pm10_aqi_combo, temp_and_humidity_aqi_combo
+			//	pm25_ch[1-4]
+			//	temp_and_humidity_ch[1-8]
+			//	soil_ch[1-8]
+			//	temp_ch[1-8]
+			//	leaf_ch[1-8]
+			//	batt
+
+			sb.Append("&call_back=all");
+
+			var url = sb.ToString();
+
+			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
+			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
+
+			CurrentData currObj;
+
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				// we want to do this synchronously, so .Result
+				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				{
+					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"API.GetCurrentData: Ecowitt API Current Response code: {responseCode}");
+					cumulus.LogDataMessage($"API.GetCurrentData: Ecowitt API Current Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					var currentError = responseBody.FromJson<ErrorResp>();
+					cumulus.LogMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
+					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					delay = 10;
+					return null;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("API.GetCurrentData: Ecowitt API Current: No data was returned.");
+					cumulus.LogConsoleMessage(" - No current data available");
+					delay = 10;
+					return null;
+				}
+				else if (responseBody.StartsWith("{\"code\":")) // sanity check
+				{
+					// get the sensor data
+					currObj = responseBody.FromJson<CurrentData>();
+
+					if (currObj != null)
+					{
+						// success
+						if (currObj.code == 0)
+						{
+							if (currObj.data == null)
+							{
+								// There was no data returned.
+								delay = 10;
+								return null;
+							}
+						}
+						else if (currObj.code == -1 || currObj.code == 45001)
+						{
+							// -1 = system busy, 45001 = rate limited
+
+							cumulus.LogMessage("API.GetCurrentData: System Busy or Rate Limited, waiting 5 secs before retry...");
+							delay = 5;
+							return null;
+						}
+						else
+						{
+							delay = 10;
+							return null;
+						}
+					}
+					else
+					{
+						delay = 10;
+						return null;
+					}
+
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogMessage("API.GetCurrentData: Invalid current message received");
+					cumulus.LogDataMessage("API.GetCurrentData: Received: " + responseBody);
+					delay = 10;
+					return null;
+				}
+
+				if (!token.IsCancellationRequested)
+				{
+					// indoor values should always be present, so use them for teh data timestamp
+					var dataTime = Utils.FromUnixTime(currObj.data.indoor.temperature.time);
+					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
+
+					if (dataTime != LastCurrentDataTime)
+					{
+						//ProcessCurrentData(currObj.data, token);
+						LastCurrentDataTime = dataTime;
+
+						// how many seconds to the next update?
+						// the data is updated once a minute, so wait for 5 seonds after the next update
+
+						var lastUpdate = (DateTime.Now - LastCurrentDataTime).TotalSeconds;
+						if (lastUpdate > 65)
+						{
+							// hum the data is already out of date, query again after a short delay
+							delay = 10;
+							return null;
+						}
+						else
+						{
+							delay = (int) (60 - lastUpdate + 3);
+							return currObj.data;
+						}
+					}
+					else
+					{
+						delay = 10;
+						return null;
+					}
+				}
+
+				delay = 20;
+				return null;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage("API.GetCurrentData: Exception: " + ex.Message);
+				delay = 10;
+				return null;
+			}
+		}
+
+
 		/*
 		private string ErrorCode(int code)
 		{
@@ -1656,7 +1841,7 @@ namespace CumulusMX
 		}
 		*/
 
-		private class EcowitHistErrorResp
+		private class ErrorResp
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
@@ -1664,7 +1849,7 @@ namespace CumulusMX
 			public object data { get; set; }
 		}
 
-		internal class EcowittHistoricResp
+		internal class HistoricResp
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
@@ -1676,141 +1861,141 @@ namespace CumulusMX
 		// refactor data as a dictionary object and parse each item indivually
 		internal class EcowittHistoricData
 		{
-			public EcowittHistoricTempHum indoor { get; set; }
-			public EcowittHistoricDataPressure pressure { get; set; }
-			public EcowittHistoricOutdoor outdoor { get; set; }
-			public EcowittHistoricDataWind wind { get; set; }
-			public EcowittHistoricDataSolar solar_and_uvi { get; set; }
-			public EcowittHistoricDataRainfall rainfall { get; set; }
-			public EcowittHistoricDataRainfall rainfall_piezo { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch1 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch2 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch3 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch4 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch5 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch6 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch7 { get; set; }
-			public EcowittHistoricTempHum temp_and_humidity_ch8 { get; set; }
-			public EcowittHistoricDataSoil soil_ch1 { get; set; }
-			public EcowittHistoricDataSoil soil_ch2 { get; set; }
-			public EcowittHistoricDataSoil soil_ch3 { get; set; }
-			public EcowittHistoricDataSoil soil_ch4 { get; set; }
-			public EcowittHistoricDataSoil soil_ch5 { get; set; }
-			public EcowittHistoricDataSoil soil_ch6 { get; set; }
-			public EcowittHistoricDataSoil soil_ch7 { get; set; }
-			public EcowittHistoricDataSoil soil_ch8 { get; set; }
-			public EcowittHistoricDataTemp temp_ch1 { get; set; }
-			public EcowittHistoricDataTemp temp_ch2 { get; set; }
-			public EcowittHistoricDataTemp temp_ch3 { get; set; }
-			public EcowittHistoricDataTemp temp_ch4 { get; set; }
-			public EcowittHistoricDataTemp temp_ch5 { get; set; }
-			public EcowittHistoricDataTemp temp_ch6 { get; set; }
-			public EcowittHistoricDataTemp temp_ch7 { get; set; }
-			public EcowittHistoricDataTemp temp_ch8 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch1 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch2 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch3 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch4 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch5 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch6 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch7 { get; set; }
-			public EcowittHistoricDataLeaf leaf_ch8 { get; set; }
-			public EcowittHistoricDataLightning lightning { get; set; }
-			public EcowittHistoricDataCo2 indoor_co2 { get; set; }
-			public EcowittHistoricDataCo2 co2_aqi_combo { get; set; }
-			public EcowittHistoricDataPm25Aqi pm25_aqi_combo { get; set; }
-			public EcowittHistoricDataPm10Aqi pm10_aqi_combo { get; set; }
-			public EcowittHistoricDataPm25Aqi pm25_ch1 { get; set; }
-			public EcowittHistoricDataPm25Aqi pm25_ch2 { get; set; }
-			public EcowittHistoricDataPm25Aqi pm25_ch3 { get; set; }
-			public EcowittHistoricDataPm25Aqi pm25_ch4 { get; set; }
+			public HistoricTempHum indoor { get; set; }
+			public HistoricDataPressure pressure { get; set; }
+			public HistoricOutdoor outdoor { get; set; }
+			public HistoricDataWind wind { get; set; }
+			public HistoricDataSolar solar_and_uvi { get; set; }
+			public HistoricDataRainfall rainfall { get; set; }
+			public HistoricDataRainfall rainfall_piezo { get; set; }
+			public HistoricTempHum temp_and_humidity_ch1 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch2 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch3 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch4 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch5 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch6 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch7 { get; set; }
+			public HistoricTempHum temp_and_humidity_ch8 { get; set; }
+			public HistoricDataSoil soil_ch1 { get; set; }
+			public HistoricDataSoil soil_ch2 { get; set; }
+			public HistoricDataSoil soil_ch3 { get; set; }
+			public HistoricDataSoil soil_ch4 { get; set; }
+			public HistoricDataSoil soil_ch5 { get; set; }
+			public HistoricDataSoil soil_ch6 { get; set; }
+			public HistoricDataSoil soil_ch7 { get; set; }
+			public HistoricDataSoil soil_ch8 { get; set; }
+			public HistoricDataTemp temp_ch1 { get; set; }
+			public HistoricDataTemp temp_ch2 { get; set; }
+			public HistoricDataTemp temp_ch3 { get; set; }
+			public HistoricDataTemp temp_ch4 { get; set; }
+			public HistoricDataTemp temp_ch5 { get; set; }
+			public HistoricDataTemp temp_ch6 { get; set; }
+			public HistoricDataTemp temp_ch7 { get; set; }
+			public HistoricDataTemp temp_ch8 { get; set; }
+			public HistoricDataLeaf leaf_ch1 { get; set; }
+			public HistoricDataLeaf leaf_ch2 { get; set; }
+			public HistoricDataLeaf leaf_ch3 { get; set; }
+			public HistoricDataLeaf leaf_ch4 { get; set; }
+			public HistoricDataLeaf leaf_ch5 { get; set; }
+			public HistoricDataLeaf leaf_ch6 { get; set; }
+			public HistoricDataLeaf leaf_ch7 { get; set; }
+			public HistoricDataLeaf leaf_ch8 { get; set; }
+			public HistoricDataLightning lightning { get; set; }
+			public HistoricDataCo2 indoor_co2 { get; set; }
+			public HistoricDataCo2 co2_aqi_combo { get; set; }
+			public HistoricDataPm25Aqi pm25_aqi_combo { get; set; }
+			public HistoricDataPm10Aqi pm10_aqi_combo { get; set; }
+			public HistoricDataPm25Aqi pm25_ch1 { get; set; }
+			public HistoricDataPm25Aqi pm25_ch2 { get; set; }
+			public HistoricDataPm25Aqi pm25_ch3 { get; set; }
+			public HistoricDataPm25Aqi pm25_ch4 { get; set; }
 
 		}
 
-		internal class EcowittHistoricDataTypeInt
+		internal class HistoricDataTypeInt
 		{
 			public string unit { get; set; }
 			public Dictionary<DateTime, int?> list { get; set; }
 		}
 
-		internal class EcowittHistoricDataTypeDbl
+		internal class HistoricDataTypeDbl
 		{
 			public string unit { get; set; }
 			public Dictionary<DateTime, decimal?> list { get; set; }
 		}
 
-		internal class EcowittHistoricTempHum
+		internal class HistoricTempHum
 		{
-			public EcowittHistoricDataTypeDbl temperature { get; set; }
-			public EcowittHistoricDataTypeInt humidity { get; set; }
+			public HistoricDataTypeDbl temperature { get; set; }
+			public HistoricDataTypeInt humidity { get; set; }
 		}
 
-		internal class EcowittHistoricOutdoor : EcowittHistoricTempHum
+		internal class HistoricOutdoor : HistoricTempHum
 		{
-			public EcowittHistoricDataTypeDbl dew_point { get; set; }
+			public HistoricDataTypeDbl dew_point { get; set; }
 		}
 
-		internal class EcowittHistoricDataPressure
+		internal class HistoricDataPressure
 		{
-			public EcowittHistoricDataTypeDbl relative { get; set; }
+			public HistoricDataTypeDbl relative { get; set; }
 		}
 
-		internal class EcowittHistoricDataWind
+		internal class HistoricDataWind
 		{
-			public EcowittHistoricDataTypeInt wind_direction { get; set; }
-			public EcowittHistoricDataTypeDbl wind_speed { get; set; }
-			public EcowittHistoricDataTypeDbl wind_gust { get; set; }
+			public HistoricDataTypeInt wind_direction { get; set; }
+			public HistoricDataTypeDbl wind_speed { get; set; }
+			public HistoricDataTypeDbl wind_gust { get; set; }
 		}
 
-		internal class EcowittHistoricDataSolar
+		internal class HistoricDataSolar
 		{
-			public EcowittHistoricDataTypeDbl solar { get; set; }
-			public EcowittHistoricDataTypeDbl uvi { get; set; }
+			public HistoricDataTypeDbl solar { get; set; }
+			public HistoricDataTypeDbl uvi { get; set; }
 		}
 
-		internal class EcowittHistoricDataRainfall
+		internal class HistoricDataRainfall
 		{
-			public EcowittHistoricDataTypeDbl rain_rate { get; set; }
-			public EcowittHistoricDataTypeDbl yearly { get; set; }
+			public HistoricDataTypeDbl rain_rate { get; set; }
+			public HistoricDataTypeDbl yearly { get; set; }
 		}
 
-		internal class EcowittHistoricDataSoil
+		internal class HistoricDataSoil
 		{
-			public EcowittHistoricDataTypeInt soilmoisture { get; set; }
+			public HistoricDataTypeInt soilmoisture { get; set; }
 		}
 
-		internal class EcowittHistoricDataTemp
+		internal class HistoricDataTemp
 		{
-			public EcowittHistoricDataTypeDbl temperature { get; set; }
+			public HistoricDataTypeDbl temperature { get; set; }
 		}
 
-		internal class EcowittHistoricDataLeaf
+		internal class HistoricDataLeaf
 		{
-			public EcowittHistoricDataTypeInt leaf_wetness { get; set; }
+			public HistoricDataTypeInt leaf_wetness { get; set; }
 		}
 
-		internal class EcowittHistoricDataLightning
+		internal class HistoricDataLightning
 		{
-			public EcowittHistoricDataTypeDbl distance { get; set; }
-			public EcowittHistoricDataTypeInt count { get; set; }
+			public HistoricDataTypeDbl distance { get; set; }
+			public HistoricDataTypeInt count { get; set; }
 		}
 
 		[DataContract]
-		internal class EcowittHistoricDataCo2
+		internal class HistoricDataCo2
 		{
-			public EcowittHistoricDataTypeInt co2 { get; set; }
+			public HistoricDataTypeInt co2 { get; set; }
 			[DataMember(Name = "24_hours_average")]
-			public EcowittHistoricDataTypeInt average24h { get; set; }
+			public HistoricDataTypeInt average24h { get; set; }
 		}
 
-		internal class EcowittHistoricDataPm25Aqi
+		internal class HistoricDataPm25Aqi
 		{
-			public EcowittHistoricDataTypeDbl pm25 { get; set; }
+			public HistoricDataTypeDbl pm25 { get; set; }
 		}
 
-		internal class EcowittHistoricDataPm10Aqi
+		internal class HistoricDataPm10Aqi
 		{
-			public EcowittHistoricDataTypeDbl pm10 { get; set; }
+			public HistoricDataTypeDbl pm10 { get; set; }
 		}
 
 		internal class HistoricData
@@ -1855,6 +2040,276 @@ namespace CumulusMX
 				UserTemp = new decimal?[9];
 				LeafWetness = new int?[9];
 			}
+		}
+
+
+
+
+		private class CurrentData
+		{
+			public int code { get; set; }
+			public string msg { get; set; }
+			public long time { get; set; }
+
+			public CurrentDataData data { get; set; }
+		}
+
+		internal class CurrentDataData
+		{
+			public CurrentOutdoor outdoor { get; set; }
+			public CurrentTempHum indoor { get; set; }
+			public CurrentSolar solar_and_uvi { get; set; }
+			public CurrentRain rainfall { get; set; }
+			public CurrentRain rainfall_piezo { get; set; }
+			public CurrentWind wind { get; set; }
+			public CurrentPress pressure { get; set; }
+			public CurrentLightning lightning { get; set; }
+			public CurrentCo2 indoor_co2 { get; set; }
+			public CurrentCo2 co2_aqi_combo { get; set; }
+			public CurrentPm25 pm25_aqi_combo { get; set; }
+			public CurrentPm10 pm10_aqi_combo { get; set; }
+			public CurrentTempHum t_rh_aqi_combo { get; set; }
+			public CurrentLeak water_leak { get; set; }
+			public CurrentPm25 pm25_ch1 { get; set; }
+			public CurrentPm25 pm25_ch2 { get; set; }
+			public CurrentPm25 pm25_ch3 { get; set; }
+			public CurrentPm25 pm25_ch4 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch1 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch2 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch3 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch4 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch5 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch6 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch7 { get; set; }
+			public CurrentTempHum temp_and_humidity_ch8 { get; set; }
+			public CurrentSoil soil_ch1 { get; set; }
+			public CurrentSoil soil_ch2 { get; set; }
+			public CurrentSoil soil_ch3 { get; set; }
+			public CurrentSoil soil_ch4 { get; set; }
+			public CurrentSoil soil_ch5 { get; set; }
+			public CurrentSoil soil_ch6 { get; set; }
+			public CurrentSoil soil_ch7 { get; set; }
+			public CurrentSoil soil_ch8 { get; set; }
+			public CurrentTemp temp_ch1 { get; set; }
+			public CurrentTemp temp_ch2 { get; set; }
+			public CurrentTemp temp_ch3 { get; set; }
+			public CurrentTemp temp_ch4 { get; set; }
+			public CurrentTemp temp_ch5 { get; set; }
+			public CurrentTemp temp_ch6 { get; set; }
+			public CurrentTemp temp_ch7 { get; set; }
+			public CurrentTemp temp_ch8 { get; set; }
+			public CurrentLeaf leaf_ch1 { get; set; }
+			public CurrentLeaf leaf_ch2 { get; set; }
+			public CurrentLeaf leaf_ch3 { get; set; }
+			public CurrentLeaf leaf_ch4 { get; set; }
+			public CurrentLeaf leaf_ch5 { get; set; }
+			public CurrentLeaf leaf_ch6 { get; set; }
+			public CurrentLeaf leaf_ch7 { get; set; }
+			public CurrentLeaf leaf_ch8 { get; set; }
+			public CurrentBattery battery { get; set; }
+		}
+
+		internal class CurrentOutdoor
+		{
+			public CurrentSensorValDbl temperature { get; set; }
+			public CurrentSensorValDbl feels_like { get; set; }
+			public CurrentSensorValDbl app_temp { get; set; }
+			public CurrentSensorValDbl dew_point { get; set; }
+			public CurrentSensorValInt humidity { get; set; }
+		}
+
+		internal class CurrentTemp
+		{
+			public CurrentSensorValDbl temperature { get; set; }
+		}
+
+		internal class CurrentTempHum
+		{
+			public CurrentSensorValDbl temperature { get; set; }
+			public CurrentSensorValInt humidity { get; set; }
+
+		}
+
+		internal class CurrentSolar
+		{
+			public CurrentSensorValDbl solar { get; set; }
+			public CurrentSensorValInt uvi { get; set; }
+		}
+
+		internal class CurrentRain
+		{
+			public CurrentSensorValDbl rain_rate { get; set; }
+			public CurrentSensorValDbl daily { get; set; }
+
+			[IgnoreDataMember]
+			public CurrentSensorValDbl Event { get; set; }
+
+			[DataMember(Name = "event")]
+			public CurrentSensorValDbl EventVal
+			{
+				get => Event;
+				set { Event = value; }
+			}
+
+
+			public CurrentSensorValDbl hourly { get; set; }
+			public CurrentSensorValDbl yearly { get; set; }
+		}
+
+		internal class CurrentWind
+		{
+			public CurrentSensorValDbl wind_speed { get; set; }
+			public CurrentSensorValDbl wind_gust { get; set; }
+			public CurrentSensorValInt wind_direction { get; set; }
+		}
+
+		internal class CurrentPress
+		{
+			public CurrentSensorValDbl relative { get; set; }
+			public CurrentSensorValDbl absolute { get; set; }
+		}
+
+		internal class CurrentLightning
+		{
+			public CurrentSensorValInt distance { get; set; }
+			public CurrentSensorValInt count { get; set; }
+		}
+
+		internal class CurrentCo2
+		{
+			public CurrentSensorValInt co2 { get; set; }
+
+			[IgnoreDataMember]
+			public int Avg24h { get; set; }
+
+			[DataMember(Name = "24_hours_average")]
+			public int Average
+			{
+				get => Avg24h;
+				set { Avg24h = value; }
+			}
+		}
+
+		internal class CurrentPm25
+		{
+			public CurrentSensorValInt real_time_aqi { get; set; }
+			public CurrentSensorValInt pm25 { get; set; }
+
+			[IgnoreDataMember]
+			public CurrentSensorValInt Avg24h { get; set; }
+
+			[DataMember(Name = "24_hours_aqi")]
+			public CurrentSensorValInt AvgVal
+			{
+				get => Avg24h;
+				set { Avg24h = value; }
+			}
+		}
+
+		internal class CurrentPm10
+		{
+			public CurrentSensorValInt real_time_aqi { get; set; }
+			public CurrentSensorValInt pm10 { get; set; }
+
+			[IgnoreDataMember]
+			public CurrentSensorValInt Avg24h { get; set; }
+
+			[DataMember(Name = "24_hours_aqi")]
+			public CurrentSensorValInt AvgVal
+			{
+				get => Avg24h;
+				set { Avg24h = value; }
+			}
+		}
+
+		internal class CurrentLeak
+		{
+			public CurrentSensorValInt leak_ch1 { get; set; }
+			public CurrentSensorValInt leak_ch2 { get; set; }
+			public CurrentSensorValInt leak_ch3 { get; set; }
+			public CurrentSensorValInt leak_ch4 { get; set; }
+		}
+
+		internal class CurrentSoil
+		{
+			public CurrentSensorValInt soilmoisture { get; set; }
+		}
+
+		internal class CurrentLeaf
+		{
+			public CurrentSensorValInt leaf_wetness { get; set; }
+		}
+
+		internal class CurrentBattery
+		{
+			public CurrentSensorValInt t_rh_p_sensor { get; set; }
+			public CurrentSensorValDbl ws1900_console { get; set; }
+			public CurrentSensorValDbl ws1800_console { get; set; }
+			public CurrentSensorValInt ws6006_console { get; set; }
+			public CurrentSensorValDbl console { get; set; }
+			public CurrentSensorValInt outdoor_t_rh_sensor { get; set; }
+			public CurrentSensorValDbl wind_sensor { get; set; }
+			public CurrentSensorValDbl haptic_array_battery { get; set; }
+			public CurrentSensorValDbl haptic_array_capacitor { get; set; }
+			public CurrentSensorValDbl sonic_array { get; set; }
+			public CurrentSensorValDbl rainfall_sensor { get; set; }
+			public CurrentSensorValInt sensor_array { get; set; }
+			public CurrentSensorValInt lightning_sensor { get; set; }
+			public CurrentSensorValInt aqi_combo_sensor { get; set; }
+			public CurrentSensorValInt water_leak_sensor_ch1 { get; set; }
+			public CurrentSensorValInt water_leak_sensor_ch2 { get; set; }
+			public CurrentSensorValInt water_leak_sensor_ch3 { get; set; }
+			public CurrentSensorValInt water_leak_sensor_ch4 { get; set; }
+			public CurrentSensorValInt pm25_sensor_ch1 { get; set; }
+			public CurrentSensorValInt pm25_sensor_ch2 { get; set; }
+			public CurrentSensorValInt pm25_sensor_ch3 { get; set; }
+			public CurrentSensorValInt pm25_sensor_ch4 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch1 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch2 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch3 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch4 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch5 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch6 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch7 { get; set; }
+			public CurrentSensorValInt temp_humidity_sensor_ch8 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch1 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch2 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch3 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch4 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch5 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch6 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch7 { get; set; }
+			public CurrentSensorValDbl soilmoisture_sensor_ch8 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch1 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch2 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch3 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch4 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch5 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch6 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch7 { get; set; }
+			public CurrentSensorValDbl temperature_sensor_ch8 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch1 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch2 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch3 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch4 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch5 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch6 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch7 { get; set; }
+			public CurrentSensorValDbl leaf_wetness_sensor_ch8 { get; set; }
+		}
+
+		internal class CurrentSensorValDbl
+		{
+			public long time { get; set; }
+			public string unit { get; set; }
+			public double value { get; set; }
+		}
+
+		internal class CurrentSensorValInt
+		{
+			public long time { get; set; }
+			public string unit { get; set; }
+			public int value { get; set; }
 		}
 
 	}
