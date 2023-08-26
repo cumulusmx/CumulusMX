@@ -12,7 +12,7 @@ using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {
-	internal class EcowittCloud : WeatherStation
+	internal class EcowittCloudStation : WeatherStation
 	{
 		private readonly WeatherStation station;
 		private EcowittApi ecowittApi;
@@ -21,7 +21,7 @@ namespace CumulusMX
 		private readonly bool main;
 
 
-		public EcowittCloud(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
+		public EcowittCloudStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
 		{
 			this.station = station;
 

@@ -227,7 +227,7 @@ namespace CumulusMX
 
 		internal HttpStationEcowitt ecowittExtra;
 		internal HttpStationAmbient ambientExtra;
-		internal EcowittCloud ecowittCloudExtra;
+		internal EcowittCloudStation ecowittCloudExtra;
 
 		public DateTime LastUpdateTime;
 
@@ -1555,7 +1555,7 @@ namespace CumulusMX
 					break;
 				case StationTypes.EcowittCloud:
 					Manufacturer = ECOWITT;
-					station = new EcowittCloud(this);
+					station = new EcowittCloudStation(this);
 					break;
 				default:
 					LogConsoleMessage("Station type not set", ConsoleColor.Red);
@@ -1606,7 +1606,7 @@ namespace CumulusMX
 				}
 				if (EcowittCloudExtraEnabled)
 				{
-					ecowittCloudExtra = new EcowittCloud(this, station);
+					ecowittCloudExtra = new EcowittCloudStation(this, station);
 				}
 
 				webtags = new WebTags(this, station);
