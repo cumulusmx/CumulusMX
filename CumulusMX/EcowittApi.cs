@@ -2107,6 +2107,7 @@ namespace CumulusMX
 			public CurrentLeaf leaf_ch7 { get; set; }
 			public CurrentLeaf leaf_ch8 { get; set; }
 			public CurrentBattery battery { get; set; }
+			public CurrentCamera camera { get; set; }
 		}
 
 		internal class CurrentOutdoor
@@ -2298,6 +2299,11 @@ namespace CumulusMX
 			public CurrentSensorValDbl leaf_wetness_sensor_ch8 { get; set; }
 		}
 
+		internal class CurrentCamera
+		{
+			public CurrentCameraVal photo { get; set; }
+		}
+
 		internal class CurrentSensorValDbl
 		{
 			public long time { get; set; }
@@ -2312,5 +2318,10 @@ namespace CumulusMX
 			public int value { get; set; }
 		}
 
+		internal class CurrentCameraVal
+		{
+			public long time { get; set; }
+			public string url { get; set; }
+		}
 	}
 }

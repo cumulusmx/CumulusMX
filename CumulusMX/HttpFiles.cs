@@ -18,10 +18,12 @@ namespace CumulusMX
 	internal class HttpFiles
 	{
 		private readonly Cumulus cumulus;
+		private readonly WeatherStation station;
 
-		public HttpFiles(Cumulus cumulus)
+		public HttpFiles(Cumulus cumulus, WeatherStation station)
 		{
 			this.cumulus = cumulus;
+			this.station = station;
 		}
 
 		public string GetAlpacaFormData()
@@ -135,8 +137,28 @@ namespace CumulusMX
 
 		public async Task DownloadHttpFile(string url, string filename)
 		{
+			string modUrl;
+
+			if (url == "<ecowittcameraurl>")
+			{
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				{
+					cumulus.LogMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
+					return;
+				}
+				else
+				{
+					url = station.EcowittCameraUrl;
+					// do not append timestamp, it is already unique
+					modUrl = url;
+				}
+			}
+			else
+			{
+				modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			}
+
 			cumulus.LogDebugMessage($"DownloadHttpFile: Downloading from {url} to {filename}");
-			var modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 
 			try
 			{

@@ -1397,8 +1397,6 @@ namespace CumulusMX
 			// switch off logging from Unosquare.Swan which underlies embedIO
 			Swan.Logging.Logger.NoLogging();
 
-			httpFiles = new HttpFiles(this);
-
 			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 			var htmlRootPath = Path.Combine(assemblyPath, "interface");
 
@@ -1442,7 +1440,6 @@ namespace CumulusMX
 			Api.alarmSettings = new AlarmSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
 			Api.customLogs = new CustomLogs(this);
-			Api.httpFiles = httpFiles;
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
 			Api.wizard = new Wizard(this);
@@ -1615,8 +1612,11 @@ namespace CumulusMX
 				webtags = new WebTags(this, station);
 				webtags.InitialiseWebtags();
 
+				httpFiles = new HttpFiles(this, station);
+
 				Api.dataEditor.SetWebTags(webtags);
 				Api.tagProcessor.SetWebTags(webtags);
+				Api.httpFiles = httpFiles;
 
 				RealtimeTimer.Interval = RealtimeInterval;
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
@@ -1653,6 +1653,7 @@ namespace CumulusMX
 				}
 
 				InitialiseRG11();
+
 
 				// Do the start-up  MySQL commands before the station is started
 				if (MySqlSettings.CustomStartUp.Enabled)

@@ -3245,6 +3245,11 @@ namespace CumulusMX
 			return cumulus.WebcamURL;
 		}
 
+		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
+		{
+			return string.IsNullOrEmpty(station.EcowittCameraUrl) ? string.Empty : station.EcowittCameraUrl;
+		}
+
 
 		private string Tagtempunit(Dictionary<string, string> tagParams)
 		{
@@ -4345,7 +4350,6 @@ namespace CumulusMX
 
 			return "0";
 		}
-
 
 		// Monthly highs and lows - values
 		private string TagMonthTempH(Dictionary<string, string> tagParams)
@@ -5963,6 +5967,7 @@ namespace CumulusMX
 				{ "forumurl", Tagforumurl },
 				{ "webcam", Tagwebcam },
 				{ "webcamurl", Tagwebcamurl },
+				{ "EcowittCameraUrl", TagEcowittCameraUrl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
 				{ "tempunitnoenc", Tagtempunitnoenc },

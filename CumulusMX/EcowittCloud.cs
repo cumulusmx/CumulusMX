@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Swan;
+
 using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
@@ -13,11 +15,6 @@ namespace CumulusMX
 	internal class EcowittCloud : WeatherStation
 	{
 		private readonly WeatherStation station;
-		private bool starting = true;
-		private bool stopping = false;
-		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
-		private bool reportStationType = true;
-		private int lastMinute = -1;
 		private EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
 		private Task liveTask;
@@ -132,16 +129,22 @@ namespace CumulusMX
 					var piezoLastRead = DateTime.MinValue;
 					var dataLastRead = DateTime.MinValue;
 					var delay = 0;
+					var nextFetch = DateTime.MinValue;
+
 
 					while (!cumulus.cancellationToken.IsCancellationRequested)
 					{
-						var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
-						if (data != null)
+						if (DateTime.Now >= nextFetch)
 						{
-							ProcessCurrentData(data, cumulus.cancellationToken);
+							var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
+							if (data != null)
+							{
+								ProcessCurrentData(data, cumulus.cancellationToken);
+							}
+							cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
+							nextFetch = DateTime.Now.AddSeconds(delay);
 						}
-						cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
-						Thread.Sleep(delay * 1000);
+						Thread.Sleep(1000);
 					}
 				}
 				catch (Exception ex)
@@ -156,8 +159,9 @@ namespace CumulusMX
 			if (station == null)
 			{
 				StopMinuteTimer();
+				liveTask.Wait();
 				cumulus.LogMessage("Ecowitt Cloud station Stopped");
-				}
+			}
 		}
 
 
@@ -466,6 +470,19 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage($"ProcessCurrentData: Error in Battery data - {ex.Message}");
+			}
+
+			// === Camera ===
+			try
+			{
+				if (data.camera != null && data.camera.photo != null)
+				{
+					EcowittCameraUrl = data.camera.photo.url;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}");
 			}
 
 
