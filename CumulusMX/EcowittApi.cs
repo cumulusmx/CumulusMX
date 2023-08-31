@@ -5,13 +5,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FluentFTP.Helpers;
 
 using ServiceStack;
 using ServiceStack.Text;
-
-using Swan.Formatters;
-using Swan.Parsers;
 
 namespace CumulusMX
 {
@@ -60,6 +56,8 @@ namespace CumulusMX
 
 		internal bool GetHistoricData(DateTime startTime, DateTime endTime, CancellationToken token)
 		{
+			// DOC: https://doc.ecowitt.net/web/#/apiv3en?page_id=19
+
 			var data = new EcowittHistoricData();
 
 			cumulus.LogMessage("API.GetHistoricData: Get Ecowitt Historic Data");
@@ -105,7 +103,7 @@ namespace CumulusMX
 					break;
 			}
 			sb.Append($"&wind_speed_unitid={windUnit}");
-			sb.Append($"&rainfall_unitid={cumulus.Units.Rain + 12}");
+			sb.Append($"&rainfall_unitid={cumulus.Units.Rain + 12}"); // 13=inches, 14=mm
 
 			// available callbacks:
 			//	outdoor, indoor, solar_and_uvi, rainfall, wind, pressure, lightning
@@ -1633,6 +1631,8 @@ namespace CumulusMX
 		// returns the data structure and the number of seconds to wait before the next update
 		internal CurrentDataData GetCurrentData(CancellationToken token, ref int delay)
 		{
+			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=17
+
 			cumulus.LogMessage("API.GetCurrentData: Get Ecowitt Current Data");
 
 			var sb = new StringBuilder(currentUrl);

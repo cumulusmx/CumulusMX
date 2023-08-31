@@ -16,6 +16,7 @@ Fixed
 - Fix for Davis average wind spike on restarts with catch-up
 - Bug in Fine Offset console logger interval setting
 - Error saving Locale Strings page - new all-time record alarm was missing
+- Fix Select-a-Charts for Davis soil moisture sensors limiting the graph to a maximum value of 100 cb
 
 
 

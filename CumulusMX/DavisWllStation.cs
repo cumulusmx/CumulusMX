@@ -924,6 +924,11 @@ namespace CumulusMX
 												cumulus.WriteIniFile();
 											}
 											break;
+
+										default:
+											cumulus.LogMessage($"Error: Unknown Davis rain tipper size defined in data = {data1.rain_size.Value}");
+											break;
+
 									}
 								}
 
@@ -1397,7 +1402,7 @@ namespace CumulusMX
 			return arrOctets.All(strOctet => byte.TryParse(strOctet, out result));
 		}
 
-		private void SetTxBatteryStatus(int txId, uint status)
+		private void SetTxBatteryStatus(int txId, int status)
 		{
 			// Split the string
 			var delimiters = new[] { ' ', '-' };
@@ -2702,7 +2707,7 @@ namespace CumulusMX
 
 				try
 				{
-					var data15 = sensor.data.Last().FromJsv<WlHistorySensorDataType15>();
+					var data15 = sensor.data.Last().FromJsv<WlHealthDataType15>();
 
 					var dat = Utils.FromUnixTime(data15.firmware_version);
 					DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
@@ -2793,7 +2798,7 @@ namespace CumulusMX
 					else
 						type = sensor.data_structure_type == 11 ? "ISS" : "Soil/Leaf";
 
-					var data = sensor.data.Last().FromJsv<WlHistoryHealthType11_13>();
+					var data = sensor.data.Last().FromJsv<WlHealthDataType11_13>();
 
 					cumulus.LogDebugMessage($"WLL Health - found health data for {type} device TxId = {data.tx_id}");
 
@@ -3390,7 +3395,7 @@ namespace CumulusMX
 			public int? solar_rad { get; set; }
 			public double? uv_index { get; set; }
 			public int? rx_state { get; set; }
-			public uint? trans_battery_flag { get; set; }
+			public int? trans_battery_flag { get; set; }
 			public int? rainfall_daily { get; set; }
 			public int? rainfall_monthly { get; set; }
 			public int? rainfall_year { get; set; }
@@ -3415,7 +3420,7 @@ namespace CumulusMX
 			public double? wet_leaf_1 { get; set; }
 			public double? wet_leaf_2 { get; set; }
 			public int rx_state { get; set; }
-			public uint? trans_battery_flag { get; set; }
+			public int? trans_battery_flag { get; set; }
 			public object this[string name]
 			{
 				get

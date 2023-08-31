@@ -754,14 +754,20 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// WLL
+				// WLL/Davis Cloud
 				try
 				{
 					if (settings.daviswll != null)
 					{
-						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
-						cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
-						cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
+						if (settings.general.stationtype == 11) // WLL only
+						{
+							cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
+							cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
+							cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
+
+							cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
+							cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
+						}
 
 						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
 						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
@@ -815,8 +821,6 @@ namespace CumulusMX
 						cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
-						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
-						cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
 
 
 						// Automatically enable extra logging?
@@ -840,7 +844,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing WLL settings: " + ex.Message;
+					var msg = "Error processing WLL/Davis Cloud settings: " + ex.Message;
 					cumulus.LogMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;

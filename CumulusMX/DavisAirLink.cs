@@ -685,43 +685,45 @@ namespace CumulusMX
 					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
-
-				if (!responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
-					cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
-					cumulus.LogDataMessage("GetWlHistoricData: Received: " + responseBody);
-					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
-					return;
-				}
 
-				histObj = responseBody.FromJson<WlHistory>();
+					histObj = responseBody.FromJson<WlHistory>();
 
-				// get the sensor data with the most number of history records
-				int idxOfSensorWithMostRecs = 0;
-				for (var i = 0; i < histObj.sensors.Count; i++)
-				{
-					if (histObj.sensors[i].sensor_type != 504)
+					// get the sensor data with the most number of history records
+					int idxOfSensorWithMostRecs = 0;
+					for (var i = 0; i < histObj.sensors.Count; i++)
 					{
-						var recs = histObj.sensors[i].data.Count;
-						if (recs > noOfRecs)
+						if (histObj.sensors[i].sensor_type != 504)
 						{
-							noOfRecs = recs;
-							idxOfSensorWithMostRecs = i;
+							var recs = histObj.sensors[i].data.Count;
+							if (recs > noOfRecs)
+							{
+								noOfRecs = recs;
+								idxOfSensorWithMostRecs = i;
+							}
 						}
 					}
+
+					sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
+
+					if (noOfRecs == 0)
+					{
+						cumulus.LogMessage("GetWlHistoricData: No historic data available");
+						cumulus.LogConsoleMessage(" - No historic data available");
+						airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
+						return;
+					}
+
+					cumulus.LogMessage($"GetWlHistoricData: Found {noOfRecs} historic records to process");
 				}
-
-				sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
-
-				if (noOfRecs == 0)
+				else // No idea what we got, dump it to the log
 				{
-					cumulus.LogMessage("GetWlHistoricData: No historic data available");
-					cumulus.LogConsoleMessage(" - No historic data available");
-					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
+					cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
+					cumulus.LogMessage("GetWlHistoricData: Received: " + responseBody);
+					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
-
-				cumulus.LogMessage($"GetWlHistoricData: Found {noOfRecs} historic records to process");
 			}
 			catch (Exception ex)
 			{

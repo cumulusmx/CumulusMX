@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Swan;
-
-using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {
