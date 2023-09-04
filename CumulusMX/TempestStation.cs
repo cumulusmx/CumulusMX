@@ -12,6 +12,8 @@ using CumulusMX.Tempest;
 
 using ServiceStack.Text;
 
+#pragma warning disable IDE0025
+
 namespace CumulusMX
 {
 	internal class TempestStation : WeatherStation

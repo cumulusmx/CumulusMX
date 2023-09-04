@@ -16,7 +16,13 @@ Fixed
 - Fix for Davis average wind spike on restarts with catch-up
 - Bug in Fine Offset console logger interval setting
 - Error saving Locale Strings page - new all-time record alarm was missing
-- Fix Select-a-Charts for Davis soil moisture sensors limiting the graph to a maximum value of 100 cb
+- Default Web Site:
+	- Fix Select-a-Charts for Davis soil moisture sensors limiting the graph to a maximum value of 100 cb
+		- webfiles\js\selectachart.js
+	- Fixed some rounding errors when converting windspeeds to non-native units
+		- webfiles\lib\steelseries\scripts\gauges.js
+- Ecowitt HTTP Station - fixed piezo rain rate not being decoded
+- All stations, fixed rain rate being recored as zero in the recent graphs when MX was calculating the rate rather than the station supplying it
 
 
 
