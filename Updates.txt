@@ -22,7 +22,7 @@ Fixed
 	- Fixed some rounding errors when converting windspeeds to non-native units
 		- webfiles\lib\steelseries\scripts\gauges.js
 - Ecowitt HTTP Station - fixed piezo rain rate not being decoded
-- All stations, fixed rain rate being recored as zero in the recent graphs when MX was calculating the rate rather than the station supplying it
+- All stations, fixed rain rate being recorded as zero in the recent graphs when MX was calculating the rate rather than the station supplying it
 
 
 

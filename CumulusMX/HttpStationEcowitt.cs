@@ -245,7 +245,6 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"{procName}: Processing posted data");
 
 				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
-				text = "PASSKEY=<PassKey>&stationtype=EasyWeatherPro_V5.1.1&runtime=4&dateutc=2023-09-03+07:29:16&tempinf=70.0&humidityin=89&baromrelin=29.811&baromabsin=29.811&tempf=52.7&humidity=92&winddir=223&windspeedmph=1.79&windgustmph=4.92&maxdailygust=15.88&solarradiation=39.31&uv=0&pm25_ch1=4.0&pm25_avg_24h_ch1=3.1&rrain_piezo=0.254&erain_piezo=0.126&hrain_piezo=0.016&drain_piezo=0.126&wrain_piezo=0.189&mrain_piezo=0.126&yrain_piezo=34.882&ws90cap_volt=3.7&ws90_ver=126&gain10_piezo=1.00&gain20_piezo=1.00&gain30_piezo=1.00&gain40_piezo=1.00&gain50_piezo=1.00&pm25batt1=3&wh90batt=2.94&freq=868M&model=HP2564AE_Pro_V1.8.1&interval=16";
 
 				cumulus.LogDataMessage($"{procName}: Payload = {System.Text.RegularExpressions.Regex.Replace(text, "PASSKEY=[^&]+", "PASSKEY=<PassKey>")}");
 
