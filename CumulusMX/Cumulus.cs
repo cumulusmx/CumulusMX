@@ -1484,6 +1484,7 @@ namespace CumulusMX
 			//LogDebugMessage("Lock: Cumulus has lock");
 
 			LogMessage("Opening station");
+			LogConsoleMessage($"Opening station type = {StationType}, Desc = {(StationType >= 0 ? StationDesc[StationType] : "Unknown")}");
 
 			switch (StationType)
 			{
@@ -1589,29 +1590,38 @@ namespace CumulusMX
 					Api.stationAmbient = (HttpStationAmbient) station;
 				}
 
-				LogMessage("Creating extra sensors");
 				if (AirLinkInEnabled)
 				{
+					LogMessage("Creating indoor AirLink station");
+					LogConsoleMessage($"Opening indoor AirLink");
 					airLinkDataIn = new AirLinkData();
 					airLinkIn = new DavisAirLink(this, true, station);
 				}
 				if (AirLinkOutEnabled)
 				{
+					LogMessage("Creating outdoor AirLink station");
+					LogConsoleMessage($"Opening outdoor AirLink");
 					airLinkDataOut = new AirLinkData();
 					airLinkOut = new DavisAirLink(this, false, station);
 				}
 				if (EcowittExtraEnabled)
 				{
+					LogMessage("Creating Ecowitt extra sensors station");
+					LogConsoleMessage($"Opening Ecowitt extra sensors");
 					ecowittExtra = new HttpStationEcowitt(this, station);
 					Api.stationEcowittExtra = ecowittExtra;
 				}
 				if (AmbientExtraEnabled)
 				{
+					LogMessage("Creating Ambient extra sensors station");
+					LogConsoleMessage($"Opening Ambient extra sensors");
 					ambientExtra = new HttpStationAmbient(this, station);
 					Api.stationAmbientExtra = ambientExtra;
 				}
 				if (EcowittCloudExtraEnabled)
 				{
+					LogMessage("Creating Ecowitt cloud extra sensors station");
+					LogConsoleMessage($"Opening Ecowitt cloud extra sensors");
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
 				}
 
@@ -2853,7 +2863,7 @@ namespace CumulusMX
 							if (!reconnecting || FtpOptions.FtpMode == FtpProtocols.PHP)
 							{
 								// Finally we can do some FTP!
-								RealtimeFtpInProgress = true;
+								//RealtimeFtpInProgress = true;
 
 								try
 								{
@@ -2864,7 +2874,7 @@ namespace CumulusMX
 								{
 									LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
 								}
-								RealtimeFtpInProgress = false;
+								//RealtimeFtpInProgress = false;
 							}
 						}
 					}
@@ -3150,6 +3160,7 @@ namespace CumulusMX
 			var taskCount = 0;
 			var runningTaskCount = 0;
 
+			RealtimeFtpInProgress = true;
 
 			if (FtpOptions.Directory.Length > 0)
 			{
@@ -3356,6 +3367,7 @@ namespace CumulusMX
 				}
 				LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count()} files uploaded");
 				tasklist.Clear();
+				RealtimeFtpInProgress = false;
 			}
 			else
 			{
@@ -3420,6 +3432,8 @@ namespace CumulusMX
 						}
 					}
 				}
+				// all done for none-PHP
+				RealtimeFtpInProgress = false;
 			}
 		}
 
