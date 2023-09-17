@@ -1483,8 +1483,9 @@ namespace CumulusMX
 			syncInit.Wait();
 			//LogDebugMessage("Lock: Cumulus has lock");
 
-			LogMessage("Opening station");
-			LogConsoleMessage($"Opening station type = {StationType}, Desc = {(StationType >= 0 ? StationDesc[StationType] : "Unknown")}");
+			LogMessage("Opening station type " + StationType);
+			if (StationType >= 0 && StationType < StationDesc.Length)
+				LogConsoleMessage($"Opening station type {StationType} - {StationDesc[StationType]}");
 
 			switch (StationType)
 			{
@@ -1566,7 +1567,7 @@ namespace CumulusMX
 
 				default:
 					LogConsoleMessage("Station type not set", ConsoleColor.Red);
-					LogMessage("Station type not set");
+					LogMessage("Station type not set = " + StationType);
 					break;
 			}
 
