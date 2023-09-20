@@ -191,7 +191,7 @@ namespace CumulusMX
 				//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 				// Create a current conditions thread to poll readings every 10 seconds as temperature updates every 10 seconds
-				GetWlCurrent(null, null);
+				var archInt = GetWlCurrent(null, null);
 				tmrCurrent.Elapsed += GetWlCurrent;
 				tmrCurrent.Interval = 60 * 1000;  // Every 60 seconds
 				tmrCurrent.AutoReset = true;
@@ -249,10 +249,9 @@ namespace CumulusMX
 			}
 		}
 
-		private async void GetWlCurrent(object source, ElapsedEventArgs e)
+		private async int GetWlCurrent(object source, ElapsedEventArgs e)
 		{
-			int retry = 1;
-
+			int archInterval = -1;
 
 			cumulus.LogMessage("GetWlCurrent: Get WL.com Current Data");
 
@@ -260,7 +259,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("GetWlCurrent: Missing WeatherLink API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
-				return;
+				return -1;
 			}
 
 			if (cumulus.WllStationId < 10)
@@ -302,7 +301,7 @@ namespace CumulusMX
 					var error = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"GetWlCurrent: WeatherLink API Current Error: {error.code}, {error.message}");
 					cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
-					return;
+					return -1;
 				}
 
 				currObj = responseBody.FromJson<WlCurrent>();
@@ -310,20 +309,20 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogMessage("GetWlCurrent: WeatherLink API Current: No data was returned. Check your Device Id.");
-					return;
+					return -1;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
 					if (currObj.sensors.Count == 0)
 					{
 						cumulus.LogMessage("GetWlCurrent: No current data available");
-						return;
+						return -1;
 					}
 					else
 					{
 						cumulus.LogMessage($"GetWlCurrent: Found {currObj.sensors.Count} sensors to process");
 
-						DecodeCurrent(currObj.sensors);
+						archInterval = DecodeCurrent(currObj.sensors);
 
 						if (startingUp)
 							startingUp = false;
@@ -333,7 +332,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("GetWlCurrent: Invalid current response received");
 					cumulus.LogMessage("Response body = " + responseBody.ToString());
-					return;
+					return -1;
 				}
 			}
 			catch (Exception ex)
@@ -344,13 +343,15 @@ namespace CumulusMX
 					ex = Utils.GetOriginalException(ex);
 					cumulus.LogMessage($"GetWlCurrent: Base exception - {ex.Message}");
 				}
-
-				return;
 			}
+
+			return archInterval;
 		}
 
-		private void DecodeCurrent(List<WlCurrentSensor> sensors)
+		private int DecodeCurrent(List<WlCurrentSensor> sensors)
 		{
+			int archInterval = -1;
+
 			try
 			{
 				var timestamp = DateTime.MinValue;
@@ -364,7 +365,201 @@ namespace CumulusMX
 						case 1: // VP2 ISS current record type A
 						case 2: // VP2 ISS record type B
 							{
-								cumulus.LogMessage("WL current: TODO - add VP ISS Current Data processing");
+								cumulus.LogDebugMessage("WL current: Processing VP ISS Current Data");
+								
+								// For some reason the API returns the data as an array, even though there is only one set of values?
+								var data = sensor.data[0].FromJsv<WLCurrentSensordDataType1_2>();
+
+								timestamp = Utils.FromUnixTime(data.ts);
+								if (timestamp > lastDataUpdate)
+									lastDataUpdate = timestamp;
+
+								archInterval = data
+								// No battery info in VP2 records
+								// No RX state in VP2 records
+
+								// Temperature & Humidity
+								/* Available fields
+									* "temp_out": 62.7,                              // most recent valid temperature **(°F)**
+									* "hum_out":1.1,                                 // most recent valid humidity **(%RH)**
+									* "dew_point": -0.3,                             // **(°F)**
+									* "heat_index": 5.5,                             // **(°F)**
+									* "wind_chill": 6.0,                             // **(°F)**
+									* "temp_in": 70.4,                               // **(°F)**
+									* "hum_in": 45,                                  // **(%RH)**
+									*/
+
+								try
+								{
+									cumulus.LogDebugMessage($"WL current: using temp/hum data from TxId {data.tx_id}");
+									if (data.hum_out.HasValue)
+										DoOutdoorHumidity(Convert.ToInt32(data.hum_out.Value), timestamp);
+
+									if (data.temp_out.HasValue)
+										DoOutdoorTemp(ConvertTempFToUser(data.temp_out.Value), timestamp);
+
+									if (data.dew_point.HasValue)
+										DoOutdoorDewpoint(ConvertTempFToUser(data.dew_point.Value), timestamp);
+
+									if (data.wind_chill.HasValue)
+									{
+										// use wind chill from WLL
+										DoWindChill(ConvertTempFToUser(data.wind_chill.Value), timestamp);
+									}
+									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
+									//TODO: Heat Index? rec["heat_index"] - No, Cumulus always calculates HI
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WL current: Error processing temperature values on TxId {data.tx_id}");
+									cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
+								}
+
+								// Extra temperature/humidity - only 7 in VP records
+								try
+								{
+									if (data.temp_extra_1.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_1.Value), 1);
+									if (data.temp_extra_2.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_2.Value), 2);
+									if (data.temp_extra_3.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_3.Value), 3);
+									if (data.temp_extra_4.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_4.Value), 4);
+									if (data.temp_extra_5.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_5.Value), 5);
+									if (data.temp_extra_6.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_6.Value), 6);
+									if (data.temp_extra_7.HasValue)
+										DoExtraTemp(ConvertTempFToUser(data.temp_extra_7.Value), 7);
+
+									if (data.hum_extra_1.HasValue)
+										DoExtraHum(data.hum_extra_1.Value, 1);
+									if (data.hum_extra_2.HasValue)
+										DoExtraHum(data.hum_extra_2.Value, 2);
+									if (data.hum_extra_3.HasValue)
+										DoExtraHum(data.hum_extra_3.Value, 3);
+									if (data.hum_extra_4.HasValue)
+										DoExtraHum(data.hum_extra_4.Value, 4);
+									if (data.hum_extra_5.HasValue)
+										DoExtraHum(data.hum_extra_5.Value, 5);
+									if (data.hum_extra_6.HasValue)
+										DoExtraHum(data.hum_extra_6.Value, 6);
+									if (data.hum_extra_7.HasValue)
+										DoExtraHum(data.hum_extra_7.Value, 7);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WL current: Error processing Extra temperature/humidity values on TxId {data.tx_id}");
+									cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
+								}
+
+
+								// wind
+								try
+								{
+									if (timestamp == DateTime.MinValue)
+										timestamp = Utils.FromUnixTime(data.ts);
+
+									var gust = ConvertWindMPHToUser(data.wind_gust_10_min ?? 0);
+									var avg = ConvertWindMPHToUser(data.wind_speed_10_min_avg ?? 0);
+									double wind = ConvertWindMPHToUser(data.wind_speed ?? 0);
+									int wdir = data.wind_dir ?? 0;
+
+									DoWind(gust, wdir, avg, timestamp);
+
+									RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WL current: Error processing wind speeds on TxId {data.tx_id}");
+									cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
+								}
+
+
+								// Rainfall
+								cumulus.LogDebugMessage($"WL current: Using rain data from TxId {data.tx_id}");
+
+								if (!data.rain_year_clicks.HasValue || !data.rain_rate_clicks.HasValue)
+								{
+									cumulus.LogDebugMessage("WL current: No rain values present!");
+								}
+								else
+								{
+									if (timestamp == DateTime.MinValue)
+										timestamp = Utils.FromUnixTime(data.ts);
+
+									// double check that the rainfall isn't out of date so we double count when it catches up
+									var rain = ConvertRainClicksToUser(data.rain_year_clicks.Value, cumulus.DavisOptions.RainGaugeType);
+									var rainrate = ConvertRainClicksToUser(data.rain_rate_clicks.Value, cumulus.DavisOptions.RainGaugeType);
+
+									if (rain > 0 && rain < Raincounter)
+									{
+										cumulus.LogDebugMessage("WL current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
+									}
+									else
+									{
+										DoRain(rain, rainrate, timestamp);
+									}
+								}
+
+								if (!data.rain_storm_clicks.HasValue)
+								{
+									cumulus.LogDebugMessage("WL current: No rain storm values present");
+								}
+								else
+								{
+									try
+									{
+										StormRain = ConvertRainClicksToUser(data.rain_storm_clicks.Value, cumulus.DavisOptions.RainGaugeType) * cumulus.Calib.Rain.Mult;
+										if (data.rain_storm_start_date.HasValue)
+											StartOfStorm = Utils.FromUnixTime(data.rain_storm_start_date.Value);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogMessage($"WL current: Error processing rain storm values on TxId {data.tx_id}");
+										cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
+									}
+								}
+
+
+								// UV
+								if (data.uv.HasValue)
+								{
+									try
+									{
+										cumulus.LogDebugMessage($"WL current: using UV data from TxId {data.tx_id}");
+										if (timestamp == DateTime.MinValue)
+											timestamp = Utils.FromUnixTime(data.ts);
+
+										DoUV(data.uv.Value, timestamp);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogMessage($"WL current: Error processing UV value on TxId {data.tx_id}");
+										cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
+									}
+								}
+
+
+								// Solar
+								if (data.solar_rad.HasValue)
+								{
+									try
+									{
+										cumulus.LogDebugMessage($"WL current: using solar data from TxId {data.tx_id}");
+										if (timestamp == DateTime.MinValue)
+											timestamp = Utils.FromUnixTime(data.ts);
+
+										DoSolarRad(data.solar_rad.Value, timestamp);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogMessage($"WL current: Error processing Solar value on TxId {data.tx_id}");
+										cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
+									}
+								}
+
 							}
 							break;
 
@@ -688,7 +883,6 @@ namespace CumulusMX
 										cumulus.LogDebugMessage($"WL current: Exception: {ex.Message}");
 									}
 								}
-
 							}
 							break;
 
@@ -1517,8 +1711,6 @@ namespace CumulusMX
 							var recordTs = Utils.FromUnixTime(data.ts);
 
 							// Temperature & Humidity
-							if (cumulus.WllPrimaryTempHum == data.tx_id)
-							{
 								/*
 								 * Available fields
 								 * deg_days_cool
@@ -1536,423 +1728,379 @@ namespace CumulusMX
 								 * wind_chill
 								 */
 
-								try
+							try
+							{
+								// do humidity
+								if (data.hum_out.HasValue)
 								{
-									// do humidity
-									if (data.hum_out != null)
+									DoOutdoorHumidity(Convert.ToInt32(data.hum_out.Value), recordTs);
+								}
+								else
+								{
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Humidity data on TxId {data.tx_id}");
+								}
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing Primary humidity value on TxId {data.tx_id}. Error: {ex.Message}");
+							}
+
+							// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
+							try
+							{
+								if (data.temp_out.HasValue && data.temp_out == -99)
+								{
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Primary temperature value found [-99] on TxId {data.tx_id}");
+								}
+								else
+								{
+									cumulus.LogDebugMessage($"WL.com historic: using temp/hum data from TxId {data.tx_id}");
+
+									// do high temp
+									if (data.temp_out_hi.HasValue)
 									{
-										DoOutdoorHumidity(Convert.ToInt32(data.hum_out), recordTs);
+										DoOutdoorTemp(ConvertTempFToUser(data.temp_out_hi.Value), recordTs);
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Humidity data on TxId {data.tx_id}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature (high) data on TxId {data.tx_id}");
 									}
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogMessage($"WL.com historic: Error processing Primary humidity value on TxId {data.tx_id}. Error: {ex.Message}");
-								}
 
-								// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
-								try
-								{
-									if (data.temp_out != null && data.temp_out == -99)
+									// do low temp
+									if (data.temp_out_lo.HasValue)
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Primary temperature value found [-99] on TxId {data.tx_id}");
+										DoOutdoorTemp(ConvertTempFToUser(data.temp_out_lo.Value), recordTs);
 									}
 									else
 									{
-										cumulus.LogDebugMessage($"WL.com historic: using temp/hum data from TxId {data.tx_id}");
-
-										// do high temp
-										if (data.temp_out_hi != null)
-										{
-											DoOutdoorTemp(ConvertTempFToUser((double) data.temp_out_hi), recordTs);
-										}
-										else
-										{
-											cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature (high) data on TxId {data.tx_id}");
-										}
-
-										// do low temp
-										if (data.temp_out_lo != null)
-										{
-											DoOutdoorTemp(ConvertTempFToUser((double) data.temp_out_lo), recordTs);
-										}
-										else
-										{
-											cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature (low) data on TxId {data.tx_id}");
-										}
-
-										// do last temp
-										if (data.temp_out != null)
-										{
-											DoOutdoorTemp(ConvertTempFToUser((double) data.temp_out), recordTs);
-
-											// set the values for daily average, arch_int is in seconds, but always whole minutes
-											tempsamplestoday += data.arch_int / 60;
-											TempTotalToday += ConvertTempFToUser(data.temp_out.Value) * data.arch_int / 60;
-
-											// update chill hours
-											if (OutdoorTemperature < cumulus.ChillHourThreshold)
-											{
-												// add interval minutes to chill hours - arch_int in seconds
-												ChillHours += (data.arch_int / 3600.0);
-											}
-
-											// update heating/cooling degree days
-											UpdateDegreeDays(data.arch_int / 60);
-										}
-										else
-										{
-											cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature data on TxId {data.tx_id}");
-										}
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature (low) data on TxId {data.tx_id}");
 									}
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogMessage($"WL.com historic: Error processing Primary temperature value on TxId {data.tx_id}. Error: {ex.Message}");
-								}
 
-
-								try
-								{
-									// do last DP
-									if (data.dew_point_out != null)
+									// do last temp
+									if (data.temp_out.HasValue)
 									{
-										DoOutdoorDewpoint(ConvertTempFToUser((double) data.dew_point_out), recordTs);
+										DoOutdoorTemp(ConvertTempFToUser(data.temp_out.Value), recordTs);
+
+										// set the values for daily average, arch_int is in seconds, but always whole minutes
+										tempsamplestoday += data.arch_int / 60;
+										TempTotalToday += ConvertTempFToUser(data.temp_out.Value) * data.arch_int / 60;
+
+										// update chill hours
+										if (OutdoorTemperature < cumulus.ChillHourThreshold)
+										{
+											// add interval minutes to chill hours - arch_int in seconds
+											ChillHours += (data.arch_int / 3600.0);
+										}
+
+										// update heating/cooling degree days
+										UpdateDegreeDays(data.arch_int / 60);
 									}
 									else
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Dew Point data on TxId {data.tx_id}");
-									}
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogMessage($"WL.com historic: Error processing dew point value on TxId {data.tx_id}. Error: {ex.Message}");
-								}
-
-								if (!cumulus.StationOptions.CalculatedWC)
-								{
-									// use wind chill from WLL - otherwise we calculate it at the end of processing the historic record when we have all the data
-									try
-									{
-										// do last WC
-										if (data.wind_chill != null)
-										{
-											DoWindChill(ConvertTempFToUser((double) data.wind_chill), recordTs);
-										}
-										else
-										{
-											cumulus.LogMessage($"WL.com historic: Warning, no valid Wind Chill data on TxId {data.tx_id}");
-										}
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WL.com historic: Error processing wind chill value on TxId {data.tx_id}. Error: {ex.Message}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Temperature data on TxId {data.tx_id}");
 									}
 								}
 							}
-							else
-							{   // Check for Extra temperature/humidity settings
-								for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing Primary temperature value on TxId {data.tx_id}. Error: {ex.Message}");
+							}
+
+
+							try
+							{
+								// do last DP
+								if (data.dew_point_out.HasValue)
 								{
-									if (cumulus.WllExtraTempTx[tempTxId] != data.tx_id) continue;
+									DoOutdoorDewpoint(ConvertTempFToUser(data.dew_point_out.Value), recordTs);
+								}
+								else
+								{
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Dew Point data on TxId {data.tx_id}");
+								}
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing dew point value on TxId {data.tx_id}. Error: {ex.Message}");
+							}
 
-									try
+							if (!cumulus.StationOptions.CalculatedWC)
+							{
+								// use wind chill from WLL - otherwise we calculate it at the end of processing the historic record when we have all the data
+								try
+								{
+									// do last WC
+									if (data.wind_chill.HasValue)
 									{
-										if (data.temp_out == null || data.temp_out == -99 )
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Extra temperature value on TxId {data.tx_id}");
-										}
-										else
-										{
-											cumulus.LogDebugMessage($"WL.com historic: using extra temp data from TxId {data.tx_id}");
-
-											DoExtraTemp(ConvertTempFToUser((double) data.temp_out), tempTxId);
-										}
+										DoWindChill(ConvertTempFToUser(data.wind_chill.Value), recordTs);
 									}
-									catch (Exception ex)
+									else
 									{
-										cumulus.LogMessage($"WL.com historic: Error processing extra temp value on TxId {data.tx_id}");
-										cumulus.LogDebugMessage($"WL.com historic: Exception {ex.Message}");
+										cumulus.LogMessage($"WL.com historic: Warning, no valid Wind Chill data on TxId {data.tx_id}");
 									}
-
-									if (!cumulus.WllExtraHumTx[tempTxId]) continue;
-
-									try
-									{
-										if (data.hum_out != null)
-										{
-											DoExtraHum((double) data.hum_out, tempTxId);
-										}
-									}
-									catch (Exception ex)
-									{
-										cumulus.LogMessage($"WL.com historic: Error processing extra humidity value on TxId {data.tx_id}. Error: {ex.Message}");
-									}
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogMessage($"WL.com historic: Error processing wind chill value on TxId {data.tx_id}. Error: {ex.Message}");
 								}
 							}
 
 							// Wind
-							if (cumulus.WllPrimaryWind == data.tx_id)
+							/*
+								* Available fields
+								*
+								* wind_dir_of_hi
+								* wind_dir_of_prevail
+								* wind_num_samples
+								* wind_run
+								* wind_speed_avg
+								* wind_speed_hi
+								*
+								*/
+
+							try
 							{
-								/*
-								 * Available fields
-								 *
-								 * wind_dir_of_hi
-								 * wind_dir_of_prevail
-								 * wind_num_samples
-								 * wind_run
-								 * wind_speed_avg
-								 * wind_speed_hi
-								 *
-								 */
-
-								try
+								if (data.wind_speed_hi.HasValue && data.wind_dir_of_hi.HasValue && data.wind_speed_avg.HasValue)
 								{
-									if (data.wind_speed_hi != null && data.wind_dir_of_hi != null && data.wind_speed_avg != null)
-									{
-										var gust = ConvertWindMPHToUser((double) data.wind_speed_hi);
-										var spd = ConvertWindMPHToUser((double) data.wind_speed_avg);
-										// dir is a direction code: 0=N, 1=NNE, ... 14=NW, 15=NNW - convert to degress
-										var dir = (int) ((data.wind_dir_of_hi ?? 0) * 22.5);
-										cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data.tx_id}");
-										DoWind(gust, dir, spd, recordTs);
-										RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
-										//AddValuesToRecentWind(spd, spd, recordTs.AddSeconds(-data.arch_int), recordTs);
-									}
-									else
-									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Wind data on TxId {data.tx_id}");
-									}
-
-									if (data.wind_speed_avg != null)
-									{
-										WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertWindMPHToUser((double) data.wind_speed_avg));
-
-										// add in 'archivePeriod' minutes worth of wind speed to windrun
-										int interval = data.arch_int / 60;
-										WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
-									}
-									else
-									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Wind data (avg) on TxId {data.tx_id}");
-									}
+									var gust = ConvertWindMPHToUser(data.wind_speed_hi.Value);
+									var spd = ConvertWindMPHToUser(data.wind_speed_avg.Value);
+									// dir is a direction code: 0=N, 1=NNE, ... 14=NW, 15=NNW - convert to degress
+									var dir = (int) ((data.wind_dir_of_hi ?? 0) * 22.5);
+									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data.tx_id}");
+									DoWind(gust, dir, spd, recordTs);
+									RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
+									//AddValuesToRecentWind(spd, spd, recordTs.AddSeconds(-data.arch_int), recordTs);
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogMessage($"WL.com historic: Error processing wind values on TxId {data.tx_id}. Error: {ex.Message}");
+									cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Wind data on TxId {data.tx_id}");
 								}
+
+								if (data.wind_speed_avg.HasValue)
+								{
+									WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertWindMPHToUser((double) data.wind_speed_avg.Value));
+
+									// add in 'archivePeriod' minutes worth of wind speed to windrun
+									int interval = data.arch_int / 60;
+									WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+								}
+								else
+								{
+									cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Wind data (avg) on TxId {data.tx_id}");
+								}
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing wind values on TxId {data.tx_id}. Error: {ex.Message}");
 							}
 
 							// Rainfall
-							if (cumulus.WllPrimaryRain == data.tx_id)
+							/*
+								* Available fields:
+								*
+								* rain_rate_hi_clicks
+								* rain_rate_hi_in
+								* rain_rate_hi_mm
+								* rainfall_clicks
+								* rainfall_in
+								* rainfall_mm
+								*/
+
+
+							// The WL API v2 does not provide any running totals for rainfall  :(
+							// So we will have to add the interval data to the running total and hope it all works out!
+
+							try
 							{
-								/*
-								 * Available fields:
-								 *
-								 * rain_rate_hi_clicks
-								 * rain_rate_hi_in
-								 * rain_rate_hi_mm
-								 * rainfall_clicks
-								 * rainfall_in
-								 * rainfall_mm
-								 */
-
-
-								// The WL API v2 does not provide any running totals for rainfall  :(
-								// So we will have to add the interval data to the running total and hope it all works out!
-
-								try
+								if (data.rainfall_clicks != null && data.rain_rate_hi_clicks.HasValue)
 								{
-									if (data.rainfall_clicks != null && data.rain_rate_hi_clicks != null)
+									cumulus.LogDebugMessage($"WL.com historic: using rain data from TxId {data.tx_id}");
+
+									var rain = ConvertRainClicksToUser(data.rainfall_clicks.Value, cumulus.DavisOptions.RainGaugeType);
+									var rainrate = ConvertRainClicksToUser(data.rain_rate_hi_clicks.Value, cumulus.DavisOptions.RainGaugeType);
+									if (rain > 0)
 									{
-										cumulus.LogDebugMessage($"WL.com historic: using rain data from TxId {data.tx_id}");
-
-										var rain = ConvertRainClicksToUser((double) data.rainfall_clicks, cumulus.DavisOptions.RainGaugeType);
-										var rainrate = ConvertRainClicksToUser((double) data.rain_rate_hi_clicks, cumulus.DavisOptions.RainGaugeType);
-										if (rain > 0)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Adding rain {rain.ToString(cumulus.RainFormat)}");
-										}
-										rain += Raincounter;
-
-										if (rainrate < 0)
-										{
-											rainrate = 0;
-										}
-
-										DoRain(rain, rainrate, recordTs);
+										cumulus.LogDebugMessage($"WL.com historic: Adding rain {rain.ToString(cumulus.RainFormat)}");
 									}
-									else
+									rain += Raincounter;
+
+									if (rainrate < 0)
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Rain data on TxId {data.tx_id}");
+										rainrate = 0;
 									}
+
+									DoRain(rain, rainrate, recordTs);
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogMessage($"WL.com historic: Error processing rain data on TxId {data.tx_id}. Error:{ex.Message}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Rain data on TxId {data.tx_id}");
 								}
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing rain data on TxId {data.tx_id}. Error:{ex.Message}");
 							}
 
 							// UV
-							if (cumulus.WllPrimaryUV == data.tx_id)
+							/*
+								* Available fields
+								* "uv_dose"
+								* "uv_index_avg"
+								* "uv_index_hi"
+								*/
+							try
 							{
-								/*
-								 * Available fields
-								 * "uv_dose"
-								 * "uv_index_avg"
-								 * "uv_index_hi"
-								 */
-								try
+								if (data.uv_index_avg.HasValue)
 								{
-									if (data.uv_index_avg != null)
-									{
-										cumulus.LogDebugMessage($"WL.com historic: using UV data from TxId {data.tx_id}");
+									cumulus.LogDebugMessage($"WL.com historic: using UV data from TxId {data.tx_id}");
 
-										DoUV((double) data.uv_index_avg, recordTs);
-									}
-									else
-									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid UV data on TxId {data.tx_id}");
-									}
+									DoUV(data.uv_index_avg.Value, recordTs);
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogMessage($"WL.com historic: Error processing UV value on TxId {data.tx_id}. Error: {ex.Message}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid UV data on TxId {data.tx_id}");
 								}
-
 							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing UV value on TxId {data.tx_id}. Error: {ex.Message}");
+								}
 
 							// Solar
-							if (cumulus.WllPrimarySolar == data.tx_id)
+							/*
+								* Available fields
+								* "solar_energy"
+								* "solar_rad_avg"
+								* "solar_rad_hi"
+								* "et" (inches) - ET field is populated in the ISS archive records, which may not be the same as the solar
+								*/
+							try
 							{
-								/*
-								 * Available fields
-								 * "solar_energy"
-								 * "solar_rad_avg"
-								 * "solar_rad_hi"
-								 * "et" (inches) - ET field is populated in the ISS archive records, which may not be the same as the solar
-								 */
-								try
+								if (data.solar_rad_avg.HasValue)
 								{
-									if (data.solar_rad_avg != null)
-									{
-										cumulus.LogDebugMessage($"WL.com historic: using solar data from TxId {data.tx_id}");
-										DoSolarRad((int) data.solar_rad_avg, recordTs);
+									cumulus.LogDebugMessage($"WL.com historic: using solar data from TxId {data.tx_id}");
+									DoSolarRad(data.solar_rad_avg.Value, recordTs);
 
-										// add in archive period worth of sunshine, if sunny - arch_int in seconds
-										if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
-										{
-											SunshineHours += (data.arch_int / 3600.0);
-										}
-									}
-									else
+									// add in archive period worth of sunshine, if sunny - arch_int in seconds
+									if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
 									{
-										cumulus.LogMessage($"WL.com historic: Warning, no valid Solar data on TxId {data.tx_id}");
-									}
-
-									if (data.et != null && !cumulus.StationOptions.CalculatedET)
-									{
-										// wl.com ET is only available in record the start of each hour.
-										// The number is the total for the one hour period.
-										// This is unlike the existing VP2 when the ET is an annual running total
-										// So we try and mimic the VP behaviour
-										var newET = AnnualETTotal + ConvertRainINToUser((double) data.et);
-										cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser((double) data.et):F3} to ET");
-										DoET(newET, recordTs);
+										SunshineHours += (data.arch_int / 3600.0);
 									}
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogMessage($"WL.com historic: Error processing Solar value on TxId {data.tx_id}. Error: {ex.Message}");
+									cumulus.LogMessage($"WL.com historic: Warning, no valid Solar data on TxId {data.tx_id}");
 								}
+
+								if (data.et.HasValue && !cumulus.StationOptions.CalculatedET)
+								{
+									// wl.com ET is only available in record the start of each hour.
+									// The number is the total for the one hour period.
+									// This is unlike the existing VP2 when the ET is an annual running total
+									// So we try and mimic the VP behaviour
+									var newET = AnnualETTotal + ConvertRainINToUser(data.et.Value);
+									cumulus.LogDebugMessage($"WLL DecodeHistoric: Adding {ConvertRainINToUser(data.et.Value):F3} to ET");
+									DoET(newET, recordTs);
+								}
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogMessage($"WL.com historic: Error processing Solar value on TxId {data.tx_id}. Error: {ex.Message}");
 							}
 
 							string idx = "";
 
 							// Leaf Wetness
 							cumulus.LogDebugMessage($"WL.com historic: found Leaf/Soil data on TxId {data.tx_id}");
-
-							// We are relying on user configuration here, trap any errors
 							try
 							{
 
-								if (cumulus.WllExtraLeafTx1 == data.tx_id)
+								if (data.wet_leaf_1.HasValue)
 								{
-									idx = "wet_leaf_last_" + cumulus.WllExtraLeafIdx1;
-									if (data[idx] != null)
-										DoLeafWetness((double) data[idx], 1);
+									DoLeafWetness(data.wet_leaf_1.Value, 1);
 								}
-								if (cumulus.WllExtraLeafTx2 == data.tx_id)
+								if (data.wet_leaf_2.HasValue)
 								{
-									idx = "wet_leaf_last_" + cumulus.WllExtraLeafIdx2;
-									if (data[idx] != null)
-										DoLeafWetness((double) data[idx], 2);
+									DoLeafWetness(data.wet_leaf_2.Value, 2);
 								}
 							}
 							catch (Exception e)
 							{
-								cumulus.LogMessage($"Error, DecodeHistoric, LeafWetness txid={data.tx_id}, idx={idx}: {e.Message}");
+								cumulus.LogMessage($"Error, DecodeHistoric, LeafWetness txid={data.tx_id}: {e.Message}");
 							}
 
 
 							// Soil Moisture
 							try
 							{
-								if (cumulus.WllExtraSoilMoistureTx1 == data.tx_id)
+								for (var i = 1; i <= 4; i++)
 								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx1;
-									if (data[idx] == null)
+									idx = "moist_soil_" + i;
+
+									if (data[idx] != null)
 									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data.tx_id}");
-									}
-									else
-									{
-										DoSoilMoisture((double) data[idx], 1);
-									}
-								}
-								if (cumulus.WllExtraSoilMoistureTx2 == data.tx_id)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx2;
-									if (data[idx] == null)
-									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data.tx_id}");
-									}
-									else
-									{
-										DoSoilMoisture((double) data[idx], 2);
-									}
-								}
-								if (cumulus.WllExtraSoilMoistureTx3 == data.tx_id)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx3;
-									if (data[idx] == null)
-									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data.tx_id}");
-									}
-									else
-									{
-										DoSoilMoisture((double) data[idx], 3);
-									}
-								}
-								if (cumulus.WllExtraSoilMoistureTx4 == data.tx_id)
-								{
-									idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx4;
-									if (data[idx] == null)
-									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data.tx_id}");
-									}
-									else
-									{
-										DoSoilMoisture((double) data[idx], 4);
+										DoSoilMoisture((double) data[idx], i);
 									}
 								}
 							}
 							catch (Exception e)
 							{
 								cumulus.LogMessage($"Error, DecodeHistoric, SoilMoisture txid={data.tx_id}, idx={idx}: {e.Message}");
+							}
+
+
+							// Soil Temperature
+							try
+							{
+								for (var i = 1; i <= 4; i++)
+								{
+									idx = "temp_soil_" + i;
+
+									if (data[idx] != null)
+									{
+										DoSoilTemp((double) data[idx], i);
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								cumulus.LogMessage($"Error, DecodeHistoric, SoilTemp txid={data.tx_id}, idx={idx}: {e.Message}");
+							}
+
+							// Extra Temperature
+							try
+							{
+								for (var i = 1; i <= 4; i++)
+								{
+									idx = "temp_extra_" + i;
+
+									if (data[idx] != null)
+									{
+										DoExtraTemp((double) data[idx], i);
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								cumulus.LogMessage($"Error, DecodeHistoric, ExtraTemp txid={data.tx_id}, idx={idx}: {e.Message}");
+							}
+
+							// Extra Humidity
+							try
+							{
+								for (var i = 1; i <= 4; i++)
+								{
+									idx = "hum_extra_" + i;
+
+									if (data[idx] != null)
+									{
+										DoExtraHum((int) data[idx], i);
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								cumulus.LogMessage($"Error, DecodeHistoric, ExtraHum txid={data.tx_id}, idx={idx}: {e.Message}");
 							}
 						}
 						break;

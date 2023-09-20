@@ -773,52 +773,55 @@ namespace CumulusMX
 						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.daviswll.api.apiStationId;
 
-						cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
-						cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
-						cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
-						cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
-						cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
+						if (settings.general.stationtype == 11 || settings.general.stationtype == 19) // WLL & Cloud WLL/WLC only
+						{
+							cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
+							cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
+							cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
+							cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
+							cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
 
-						cumulus.WllExtraLeafTx1 = settings.daviswll.soilLeaf.extraLeaf.leafTx1;
-						cumulus.WllExtraLeafTx2 = settings.daviswll.soilLeaf.extraLeaf.leafTx2;
-						cumulus.WllExtraLeafIdx1 = settings.daviswll.soilLeaf.extraLeaf.leafIdx1;
-						cumulus.WllExtraLeafIdx2 = settings.daviswll.soilLeaf.extraLeaf.leafIdx2;
+							cumulus.WllExtraLeafTx1 = settings.daviswll.soilLeaf.extraLeaf.leafTx1;
+							cumulus.WllExtraLeafTx2 = settings.daviswll.soilLeaf.extraLeaf.leafTx2;
+							cumulus.WllExtraLeafIdx1 = settings.daviswll.soilLeaf.extraLeaf.leafIdx1;
+							cumulus.WllExtraLeafIdx2 = settings.daviswll.soilLeaf.extraLeaf.leafIdx2;
 
-						cumulus.WllExtraSoilMoistureIdx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx1;
-						cumulus.WllExtraSoilMoistureIdx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx2;
-						cumulus.WllExtraSoilMoistureIdx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx3;
-						cumulus.WllExtraSoilMoistureIdx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx4;
-						cumulus.WllExtraSoilMoistureTx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx1;
-						cumulus.WllExtraSoilMoistureTx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx2;
-						cumulus.WllExtraSoilMoistureTx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx3;
-						cumulus.WllExtraSoilMoistureTx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx4;
+							cumulus.WllExtraSoilMoistureIdx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx1;
+							cumulus.WllExtraSoilMoistureIdx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx2;
+							cumulus.WllExtraSoilMoistureIdx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx3;
+							cumulus.WllExtraSoilMoistureIdx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx4;
+							cumulus.WllExtraSoilMoistureTx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx1;
+							cumulus.WllExtraSoilMoistureTx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx2;
+							cumulus.WllExtraSoilMoistureTx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx3;
+							cumulus.WllExtraSoilMoistureTx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx4;
 
-						cumulus.WllExtraSoilTempIdx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx1;
-						cumulus.WllExtraSoilTempIdx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx2;
-						cumulus.WllExtraSoilTempIdx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx3;
-						cumulus.WllExtraSoilTempIdx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx4;
-						cumulus.WllExtraSoilTempTx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx1;
-						cumulus.WllExtraSoilTempTx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx2;
-						cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
-						cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
+							cumulus.WllExtraSoilTempIdx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx1;
+							cumulus.WllExtraSoilTempIdx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx2;
+							cumulus.WllExtraSoilTempIdx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx3;
+							cumulus.WllExtraSoilTempIdx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx4;
+							cumulus.WllExtraSoilTempTx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx1;
+							cumulus.WllExtraSoilTempTx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx2;
+							cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
+							cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
 
-						cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx1;
-						cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx2;
-						cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx3;
-						cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx4;
-						cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx5;
-						cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx6;
-						cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx7;
-						cumulus.WllExtraTempTx[8] = settings.daviswll.extraTemp.extraTempTx8;
+							cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx1;
+							cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx2;
+							cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx3;
+							cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx4;
+							cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx5;
+							cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx6;
+							cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx7;
+							cumulus.WllExtraTempTx[8] = settings.daviswll.extraTemp.extraTempTx8;
 
-						cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx1;
-						cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx2;
-						cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx3;
-						cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx4;
-						cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx5;
-						cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx6;
-						cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx7;
-						cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
+							cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx1;
+							cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx2;
+							cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx3;
+							cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx4;
+							cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx5;
+							cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx6;
+							cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx7;
+							cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
+						}
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
 

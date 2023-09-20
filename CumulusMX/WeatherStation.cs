@@ -4838,7 +4838,7 @@ namespace CumulusMX
 			{
 				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
 				{
-					// Loop2 data not available, or WLL, just use sea level (for now, anyway)
+					// Loop2 data not available, just use sea level (for now, anyway)
 					AltimeterPressure = Pressure;
 				}
 			}

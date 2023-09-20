@@ -23,7 +23,7 @@ namespace CumulusMX
 	}
 
 
-	// Data Structure type 3 & 4 - VP2 ISS archive record Type A
+	// Data Structure type 3 & 4 - VP2 ISS archive record Type A & B
 	public class WlHistorySensorDataType3_4
 	{
 		public int tx_id { get; set; }
@@ -69,8 +69,11 @@ namespace CumulusMX
 		public double? temp_extra_1 { get; set; }
 		public double? temp_extra_2 { get; set; }
 		public double? temp_extra_3 { get; set; }
+		public double? temp_extra_4 { get; set; }
 		public int? hum_extra_1 { get; set; }
 		public int? hum_extra_2 { get; set; }
+		public int? hum_extra_3 { get; set; }
+		public int? hum_extra_4 { get; set; }
 		public int? forecast_rule { get; set; }
 		public string forecast_desc { get; set; }
 		public double? abs_press { get; set; }
@@ -550,71 +553,72 @@ namespace CumulusMX
 	{
 		public int tx_id { get; set; }
 		//public int bar_trend { get; set; }
-		public double bar { get; set; }
-		public double temp_in { get; set; }
-		public int hum_in { get; set; }
-		public double temp_out { get; set; }
-		public int wind_speed { get; set; }
-		public int wind_speed_10_min_avg { get; set; }
-		public int wind_dir { get; set; }
-		public int temp_extra_1 { get; set; }
-		public int temp_extra_2 { get; set; }
-		public int temp_extra_3 { get; set; }
-		public int temp_extra_4 { get; set; }
-		public int temp_extra_5 { get; set; }
-		public int temp_extra_6 { get; set; }
-		public int temp_extra_7 { get; set; }
-		public int temp_soil_1 { get; set; }
-		public int temp_soil_2 { get; set; }
-		public int temp_soil_3 { get; set; }
-		public int temp_soil_4 { get; set; }
+		public double? bar { get; set; }
+		public double? temp_in { get; set; }
+		public int? hum_in { get; set; }
+		public double? temp_out { get; set; }
+		public int? wind_speed { get; set; }
+		public int? wind_speed_10_min_avg { get; set; }
+		public int? wind_dir { get; set; }
+		public int? temp_extra_1 { get; set; }
+		public int? temp_extra_2 { get; set; }
+		public int? temp_extra_3 { get; set; }
+		public int? temp_extra_4 { get; set; }
+		public int? temp_extra_5 { get; set; }
+		public int? temp_extra_6 { get; set; }
+		public int? temp_extra_7 { get; set; }
+		public int? temp_soil_1 { get; set; }
+		public int? temp_soil_2 { get; set; }
+		public int? temp_soil_3 { get; set; }
+		public int? temp_soil_4 { get; set; }
 		//public int temp_leaf_1 { get; set; }
 		//public int temp_leaf_2 { get; set; }
 		//public int temp_leaf_3 { get; set; }
 		//public int temp_leaf_4 { get; set; }
-		public int hum_out { get; set; }
-		public int hum_extra_1 { get; set; }
-		public int hum_extra_2 { get; set; }
-		public int hum_extra_3 { get; set; }
-		public int hum_extra_4 { get; set; }
-		public int hum_extra_5 { get; set; }
-		public int hum_extra_6 { get; set; }
-		public int hum_extra_7 { get; set; }
-		public int rain_rate_clicks { get; set; }
-		public double rain_rate_in { get; set; }
-		public double rain_rate_mm { get; set; }
-		public int uv { get; set; }
-		public int solar_rad { get; set; }
-		public int rain_storm_clicks { get; set; }
-		public double rain_storm_in { get; set; }
-		public double rain_storm_mm { get; set; }
-		public int rain_storm_start_date { get; set; }
-		public int rain_day_clicks { get; set; }
-		public double rain_day_in { get; set; }
-		public double rain_day_mm { get; set; }
-		public int rain_month_clicks { get; set; }
-		public double rain_month_in { get; set; }
-		public double rain_month_mm { get; set; }
-		public int rain_year_clicks { get; set; }
-		public double rain_year_in { get; set; }
-		public double rain_year_mm { get; set; }
-		public double et_day { get; set; }
-		public double et_month { get; set; }
-		public double et_year { get; set; }
-		public int moist_soil_1 { get; set; }
-		public int moist_soil_2 { get; set; }
-		public int moist_soil_3 { get; set; }
-		public int moist_soil_4 { get; set; }
-		public int wet_leaf_1 { get; set; }
-		public int wet_leaf_2 { get; set; }
-		public int wet_leaf_3 { get; set; }
-		public int wet_leaf_4 { get; set; }
-		public int forecast_rule { get; set; }
+		public int? hum_out { get; set; }
+		public int? hum_extra_1 { get; set; }
+		public int? hum_extra_2 { get; set; }
+		public int? hum_extra_3 { get; set; }
+		public int? hum_extra_4 { get; set; }
+		public int? hum_extra_5 { get; set; }
+		public int? hum_extra_6 { get; set; }
+		public int? hum_extra_7 { get; set; }
+		public int? rain_rate_clicks { get; set; }
+		public double? rain_rate_in { get; set; }
+		public double? rain_rate_mm { get; set; }
+		public int? uv { get; set; }
+		public int? solar_rad { get; set; }
+		public int? rain_storm_clicks { get; set; }
+		public double? rain_storm_in { get; set; }
+		public double? rain_storm_mm { get; set; }
+		public int? rain_storm_start_date { get; set; }
+		public int? rain_day_clicks { get; set; }
+		public double? rain_day_in { get; set; }
+		public double? rain_day_mm { get; set; }
+		public int? rain_month_clicks { get; set; }
+		public double? rain_month_in { get; set; }
+		public double? rain_month_mm { get; set; }
+		public int? rain_year_clicks { get; set; }
+		public double? rain_year_in { get; set; }
+		public double? rain_year_mm { get; set; }
+		public double? et_day { get; set; }
+		public double? et_month { get; set; }
+		public double? et_year { get; set; }
+		public int? moist_soil_1 { get; set; }
+		public int? moist_soil_2 { get; set; }
+		public int? moist_soil_3 { get; set; }
+		public int? moist_soil_4 { get; set; }
+		public int? wet_leaf_1 { get; set; }
+		public int? wet_leaf_2 { get; set; }
+		public int? wet_leaf_3 { get; set; }
+		public int? wet_leaf_4 { get; set; }
+		public int? forecast_rule { get; set; }
 		public string forescast_desc { get; set; }
-		public double dew_point { get; set; }
-		public double heat_index { get; set; }
-		public double wind_chill { get; set; }
-		public int wind_gust_10_min { get; set; }
+		public double? dew_point { get; set; }
+		public double? heat_index { get; set; }
+		public double? wind_chill { get; set; }
+		public int? wind_gust_10_min { get; set; }
+		public long ts { get; set; }
 	}
 
 	// TODO?

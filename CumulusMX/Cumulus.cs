@@ -636,10 +636,11 @@ namespace CumulusMX
 			"WeatherFlow Tempest",			// 16
 			"Simulator",					// 17
 			"Ecowitt Cloud",				// 18
-			"Davis Cloud"					// 19
+			"Davis Cloud (WLL/WLC)",		// 19
+			"Davis Cloud (VP2)"				// 20
 		};
 
-		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP" };
+		public string[] APRSstationtype = { "DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP" };
 
 		public string loggingfile;
 		public string ftpLogfile;
@@ -1560,7 +1561,8 @@ namespace CumulusMX
 					Manufacturer = ECOWITT;
 					station = new EcowittCloudStation(this);
 					break;
-				case StationTypes.DavisCloud:
+				case StationTypes.DavisCloudWll:
+				case StationTypes.DavisCloudVP2:
 					Manufacturer = DAVIS;
 					station = new DavisCloudStation(this);
 					break;
@@ -13661,7 +13663,8 @@ namespace CumulusMX
 		public const int Tempest = 16;
 		public const int Simulator = 17;
 		public const int EcowittCloud = 18;
-		public const int DavisCloud = 19;
+		public const int DavisCloudWll = 19;
+		public const int DavisCloudVP2 = 20;
 	}
 
 	/*
