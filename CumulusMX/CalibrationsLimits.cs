@@ -1,4 +1,6 @@
-﻿namespace CumulusMX
+﻿using System;
+
+namespace CumulusMX
 {
 	public class Calibrations
 	{

@@ -395,6 +395,7 @@ namespace CumulusMX
 					{
 						switch (req)
 						{
+							// recent data
 							case "tempdata.json":
 								await writer.WriteAsync(Station.GetTempGraphData(incremental, true, start));
 								break;
@@ -415,21 +416,6 @@ namespace CumulusMX
 								break;
 							case "solardata.json":
 								await writer.WriteAsync(Station.GetSolarGraphData(incremental, true, start));
-								break;
-							case "dailyrain.json":
-								await writer.WriteAsync(Station.GetDailyRainGraphData());
-								break;
-							case "sunhours.json":
-								await writer.WriteAsync(Station.GetSunHoursGraphData(true));
-								break;
-							case "dailytemp.json":
-								await writer.WriteAsync(Station.GetDailyTempGraphData(true));
-								break;
-							case "units.json":
-								await writer.WriteAsync(Station.GetUnits());
-								break;
-							case "graphconfig.json":
-								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							case "airqualitydata.json":
 								await writer.WriteAsync(Station.GetAqGraphData(incremental, start));
@@ -457,6 +443,23 @@ namespace CumulusMX
 								break;
 							case "co2sensor.json":
 								await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
+								break;
+							// daily data
+							case "dailyrain.json":
+								await writer.WriteAsync(Station.GetDailyRainGraphData());
+								break;
+							case "sunhours.json":
+								await writer.WriteAsync(Station.GetSunHoursGraphData(true));
+								break;
+							case "dailytemp.json":
+								await writer.WriteAsync(Station.GetDailyTempGraphData(true));
+								break;
+							case "units.json":
+								await writer.WriteAsync(Station.GetUnits());
+								break;
+							// config data
+							case "graphconfig.json":
+								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							case "availabledata.json":
 								await writer.WriteAsync(Station.GetAvailGraphData(true));

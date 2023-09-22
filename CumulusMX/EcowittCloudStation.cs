@@ -79,6 +79,7 @@ namespace CumulusMX
 					cumulus.LogMessage("Using the piezo rain sensor data");
 				}
 
+				DataTimeoutMins = 2;
 			}
 
 			if (main || (!main && cumulus.EcowittExtraUseAQI))

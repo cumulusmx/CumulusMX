@@ -46,6 +46,7 @@ namespace CumulusMX
 			public DateTime Timestamp;
 		}
 
+		public int DataTimeoutMins = 1;
 		private readonly Object monthIniThreadLock = new Object();
 		public readonly Object yearIniThreadLock = new Object();
 		public readonly Object alltimeIniThreadLock = new Object();
@@ -1946,7 +1947,7 @@ namespace CumulusMX
 		private void CheckForDataStopped()
 		{
 			// Check whether we have read data since the last clock minute.
-			if ((LastDataReadTimestamp != DateTime.MinValue) && (LastDataReadTimestamp == SavedLastDataReadTimestamp) && (LastDataReadTimestamp < DateTime.Now))
+			if ((LastDataReadTimestamp != DateTime.MinValue) && (LastDataReadTimestamp == SavedLastDataReadTimestamp) && (LastDataReadTimestamp < DateTime.Now) && (DateTime.Now.Subtract(LastDataReadTimestamp) > TimeSpan.FromMinutes(DataTimeoutMins)))
 			{
 				// Data input appears to have has stopped
 				if (!DataStopped)
@@ -5446,7 +5447,7 @@ namespace CumulusMX
 
 			CheckHighGust(calibratedgust, Bearing, timestamp);
 
-			WindRecent[nextwind].Gust = calibratedgust;
+			WindRecent[nextwind].Gust = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
 			WindRecent[nextwind].Speed = calibratedspeed;
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
@@ -5459,6 +5460,7 @@ namespace CumulusMX
 			{
 				int numvalues = 0;
 				double totalwind = 0;
+				double avg = 0;
 				var fromTime = timestamp - cumulus.AvgSpeedTime;
 				for (int i = 0; i < MaxWindRecent; i++)
 				{
@@ -5481,9 +5483,13 @@ namespace CumulusMX
 				}
 				// average the values, if we have enough samples
 				if (numvalues > 3)
-					WindAverage = totalwind / numvalues;
+					avg = totalwind / numvalues;
 				else
-					WindAverage = totalwind / 3;
+					avg = totalwind / 3;
+
+				// we want any calcibration to be applied from uncalibrated gust values
+				WindAverage = cumulus.Calib.WindSpeed.Calibrate(avg);
+
 				//cumulus.LogDebugMessage("next=" + nextwind + " wind=" + uncalibratedgust + " tot=" + totalwind + " numv=" + numvalues + " avg=" + WindAverage);
 			}
 			else
@@ -5504,7 +5510,8 @@ namespace CumulusMX
 						maxgust = WindRecent[i].Gust;
 					}
 				}
-				RecentMaxGust = maxgust;
+				// wind gust is stored uncaligrated, so we need to calibrate now
+				RecentMaxGust = cumulus.Calib.WindGust.Calibrate(maxgust);
 			}
 			else
 			{

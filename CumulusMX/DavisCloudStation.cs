@@ -10,6 +10,7 @@ using System.Timers;
 
 using ServiceStack;
 
+using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {
@@ -21,6 +22,8 @@ namespace CumulusMX
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
+		private int wlStationArchiveInterval = 5;
+		private bool wllastCurrentfectkOk;
 		private bool wllVoltageLow;
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private List<WlSensorListSensor> sensorList;
@@ -191,9 +194,9 @@ namespace CumulusMX
 				//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 				// Create a current conditions thread to poll readings every 10 seconds as temperature updates every 10 seconds
-				var archInt = GetWlCurrent(null, null);
+				GetWlCurrent(null, null);
 				tmrCurrent.Elapsed += GetWlCurrent;
-				tmrCurrent.Interval = 60 * 1000;  // Every 60 seconds
+				tmrCurrent.Interval = 30 * 1000;  // Every 30 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
@@ -249,9 +252,20 @@ namespace CumulusMX
 			}
 		}
 
-		private async int GetWlCurrent(object source, ElapsedEventArgs e)
+		private async void GetWlCurrent(object source, ElapsedEventArgs e)
 		{
-			int archInterval = -1;
+			// We only want to process at every archive interval, or on intial load, or if the last fetch was unsucessful
+			// Initial run, source will be null
+			// Possible intervals are 1, 5, or 30 minutes, fetch one minute after the archive time to allow for clock differences etc
+			var now = DateTime.Now;
+
+			if ((source != null && wllastCurrentfectkOk && ((now.Minute - 1) % wlStationArchiveInterval != 0)) || now.Second > 35)
+			{
+				cumulus.LogDebugMessage("GetWlCurrent: Skipping");
+				return;
+			}
+
+			wllastCurrentfectkOk = false;
 
 			cumulus.LogMessage("GetWlCurrent: Get WL.com Current Data");
 
@@ -259,7 +273,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("GetWlCurrent: Missing WeatherLink API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
-				return -1;
+				return;
 			}
 
 			if (cumulus.WllStationId < 10)
@@ -301,7 +315,7 @@ namespace CumulusMX
 					var error = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogMessage($"GetWlCurrent: WeatherLink API Current Error: {error.code}, {error.message}");
 					cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
-					return -1;
+					return;
 				}
 
 				currObj = responseBody.FromJson<WlCurrent>();
@@ -309,20 +323,20 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogMessage("GetWlCurrent: WeatherLink API Current: No data was returned. Check your Device Id.");
-					return -1;
+					return;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
 					if (currObj.sensors.Count == 0)
 					{
 						cumulus.LogMessage("GetWlCurrent: No current data available");
-						return -1;
+						return;
 					}
 					else
 					{
 						cumulus.LogMessage($"GetWlCurrent: Found {currObj.sensors.Count} sensors to process");
 
-						archInterval = DecodeCurrent(currObj.sensors);
+						DecodeCurrent(currObj.sensors);
 
 						if (startingUp)
 							startingUp = false;
@@ -332,7 +346,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("GetWlCurrent: Invalid current response received");
 					cumulus.LogMessage("Response body = " + responseBody.ToString());
-					return -1;
+					return;
 				}
 			}
 			catch (Exception ex)
@@ -345,13 +359,13 @@ namespace CumulusMX
 				}
 			}
 
-			return archInterval;
+			wllastCurrentfectkOk = true;
+
+			return;
 		}
 
-		private int DecodeCurrent(List<WlCurrentSensor> sensors)
+		private void DecodeCurrent(List<WlCurrentSensor> sensors)
 		{
-			int archInterval = -1;
-
 			try
 			{
 				var timestamp = DateTime.MinValue;
@@ -374,7 +388,6 @@ namespace CumulusMX
 								if (timestamp > lastDataUpdate)
 									lastDataUpdate = timestamp;
 
-								archInterval = data
 								// No battery info in VP2 records
 								// No RX state in VP2 records
 
@@ -1208,6 +1221,7 @@ namespace CumulusMX
 
 				cumulus.LogDebugMessage("WL current: Last data update = " + lastDataUpdate.ToString("s"));
 
+				/*
 				// syncronise the timer to read just after the next update
 				var time = (DateTime.Now - lastDataUpdate).TotalSeconds % 60;
 				// get difference to 60 seconds and add 10 seconds to allow the servers to update
@@ -1219,7 +1233,7 @@ namespace CumulusMX
 					tmrCurrent.Start();
 					cumulus.LogMessage($"WL current: Amending fetch timimg by {(time):F1} seconds");
 				};
-
+				*/
 			}
 			catch (Exception exp)
 			{
@@ -3212,8 +3226,6 @@ namespace CumulusMX
 		// Return true if only 1 result is found, else return false
 		private void GetAvailableStationIds(bool logToConsole = false)
 		{
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogMessage("WLLStations: Missing WeatherLink API data in the cumulus.ini file, aborting!");
@@ -3266,6 +3278,9 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage($"WLLStations: - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 						}
+
+						wlStationArchiveInterval = station.recording_interval;
+						DataTimeoutMins = wlStationArchiveInterval + 1;
 					}
 				}
 				if (stationsObj.stations.Count > 1 && cumulus.WllStationId < 10)
@@ -3282,6 +3297,7 @@ namespace CumulusMX
 
 					cumulus.LogDebugMessage($"WLLStations: Setting WLL parent ID = {stationsObj.stations[0].gateway_id}");
 					cumulus.WllParentId = stationsObj.stations[0].gateway_id;
+					wlStationArchiveInterval = stationsObj.stations[0].recording_interval;
 					return;
 				}
 			}
