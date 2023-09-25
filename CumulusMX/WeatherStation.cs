@@ -21,9 +21,13 @@ using EmbedIO.Utilities;
 
 using FluentFTP.Helpers;
 
+using Org.BouncyCastle.Ocsp;
+
 using ServiceStack.Text;
 
 using SQLite;
+
+using static System.Collections.Specialized.BitVector32;
 
 using Timer = System.Timers.Timer;
 
@@ -2277,16 +2281,18 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
+				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
+
 				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
-					sbUv.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].UV.ToString(cumulus.UVFormat, InvC)}],");
+					sbUv.Append($"[{jsTime},{data[i].UV.ToString(cumulus.UVFormat, InvC)}],");
 				}
 
 				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				{
-					sbSol.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{(int) data[i].SolarRad}],");
+					sbSol.Append($"[{jsTime},{(int) data[i].SolarRad}],");
 
-					sbMax.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{(int) data[i].SolarMax}],");
+					sbMax.Append($"[{jsTime},{(int) data[i].SolarMax}],");
 				}
 			}
 
@@ -2345,9 +2351,11 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				sbRain.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].RainToday.ToString(cumulus.RainFormat, InvC)}],");
+				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 
-				sbRate.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].RainRate.ToString(cumulus.RainFormat, InvC)}],");
+				sbRain.Append($"[{jsTime},{data[i].RainToday.ToString(cumulus.RainFormat, InvC)}],");
+
+				sbRate.Append($"[{jsTime},{data[i].RainRate.ToString(cumulus.RainFormat, InvC)}],");
 			}
 
 			if (sbRain[sbRain.Length - 1] == ',')
@@ -2384,13 +2392,15 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
+				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
+
 				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				{
-					sbOut.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].Humidity}],");
+					sbOut.Append($"[{jsTime},{data[i].Humidity}],");
 				}
 				if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 				{
-					sbIn.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].IndoorHumidity}],");
+					sbIn.Append($"[{jsTime},{data[i].IndoorHumidity}],");
 				}
 			}
 
@@ -2441,9 +2451,11 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				sb.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].WindDir}],");
+				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 
-				sbAvg.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].WindAvgDir}],");
+				sb.Append($"[{jsTime},{data[i].WindDir}],");
+
+				sbAvg.Append($"[{jsTime},{data[i].WindAvgDir}],");
 			}
 
 			if (sb[sb.Length - 1] == ',')
@@ -2479,9 +2491,10 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				sb.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].WindGust.ToString(cumulus.WindFormat, InvC)}],");
+				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
+				sb.Append($"[{jsTime},{data[i].WindGust.ToString(cumulus.WindFormat, InvC)}],");
 
-				sbSpd.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].WindSpeed.ToString(cumulus.WindAvgFormat, InvC)}],");
+				sbSpd.Append($"[{jsTime},{data[i].WindSpeed.ToString(cumulus.WindAvgFormat, InvC)}],");
 			}
 
 			if (sb[sb.Length - 1] == ',')
@@ -2555,29 +2568,31 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
+				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
+
 				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
-					sbIn.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].IndoorTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sbIn.Append($"[{jsTime},{data[i].IndoorTemp.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
-					sbDew.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].DewPoint.ToString(cumulus.TempFormat, InvC)}],");
+					sbDew.Append($"[{jsTime},{data[i].DewPoint.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
-					sbApp.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].AppTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sbApp.Append($"[{jsTime},{data[i].AppTemp.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
-					sbFeel.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+					sbFeel.Append($"[{jsTime},{data[i].FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-					sbChill.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].WindChill.ToString(cumulus.TempFormat, InvC)}],");
+					sbChill.Append($"[{jsTime},{data[i].WindChill.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-					sbHeat.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
+					sbHeat.Append($"[{jsTime},{data[i].HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
-					sbTemp.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].OutsideTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sbTemp.Append($"[{jsTime},{data[i].OutsideTemp.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-					sbHumidex.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{data[i].Humidex.ToString(cumulus.TempFormat, InvC)}],");
+					sbHumidex.Append($"[{jsTime},{data[i].Humidex.ToString(cumulus.TempFormat, InvC)}],");
 			}
 
 			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
@@ -2690,8 +2705,9 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
+					var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 					var val = data[i].Pm2p5 == -1 ? "null" : data[i].Pm2p5.ToString("F1", InvC);
-					sb2p5.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{val}],");
+					sb2p5.Append($"[{jsTime},{val}],");
 
 					// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
 					if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
@@ -2700,7 +2716,7 @@ namespace CumulusMX
 					{
 						append = true;
 						val = data[i].Pm10 == -1 ? "null" : data[i].Pm10.ToString("F1", InvC);
-						sb10.Append($"[{Utils.ToPseudoJSTime(data[i].Timestamp)},{val}],");
+						sb10.Append($"[{jsTime},{val}],");
 					}
 				}
 
@@ -2725,7 +2741,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraTempGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetExtraTempGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2754,12 +2770,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[13].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -2812,10 +2832,11 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local) && double.TryParse(st[i + 2], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString(cumulus.TempFormat, InvC)}],");
+											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
 							}
@@ -2866,7 +2887,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraDewPointGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetExtraDewPointGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -2895,12 +2916,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[15].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -2952,11 +2977,12 @@ namespace CumulusMX
 								if (entrydate > dateFrom)
 								{
 									// entry is from required period
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									var temp = 0.0;
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local) && double.TryParse(st[i + 22], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString(cumulus.TempFormat, InvC)}],");
+											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
 							}
@@ -3007,10 +3033,9 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetExtraHumGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetExtraHumGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
-			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
@@ -3037,12 +3062,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[14].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3095,10 +3124,11 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0;
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local) && int.TryParse(st[i + 12], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
+											sbExt[i].Append($"[{jsTime},{temp}],");
 									}
 								}
 							}
@@ -3149,7 +3179,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSoilTempGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetSoilTempGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3178,12 +3208,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[16].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3236,15 +3270,17 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
+
 									for (var i = 0; i < 4; i++)
 									{
 										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 32], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString(cumulus.TempFormat, InvC)}],");
+											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 									for (var i = 4; i < 16; i++)
 									{
 										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 40], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString(cumulus.TempFormat, InvC)}],");
+											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
 							}
@@ -3295,7 +3331,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetSoilMoistGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetSoilMoistGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3324,12 +3360,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[17].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3382,15 +3422,17 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0;
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
+
 									for (var i = 0; i < 4; i++)
 									{
 										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local) && int.TryParse(st[i + 36], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
+											sbExt[i].Append($"[{jsTime},{temp}],");
 									}
 									for (var i = 4; i < 16; i++)
 									{
 										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local) && int.TryParse(st[i + 52], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
+											sbExt[i].Append($"[{jsTime},{temp}],");
 									}
 								}
 							}
@@ -3441,7 +3483,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetLeafWetnessGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetLeafWetnessGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3470,12 +3512,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[20].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3528,10 +3574,12 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
+
 									for (var i = 0; i < 2; i++)
 									{
 										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && double.TryParse(st[i + 42], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp}],");
+											sbExt[i].Append($"[{jsTime},{temp}],");
 									}
 								}
 							}
@@ -3582,7 +3630,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetUserTempGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetUserTempGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = new CultureInfo("");
@@ -3611,12 +3659,16 @@ namespace CumulusMX
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[18].LastDataTime;
 			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
+			}
 			else
 			{
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3669,10 +3721,12 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									var temp = 0.0;
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
+
 									for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local) && double.TryParse(st[i + 76], out temp))
-											sbExt[i].Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString(cumulus.TempFormat, InvC)}],");
+											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
 							}
@@ -3813,29 +3867,31 @@ namespace CumulusMX
 
 								if (entrydate > dateFrom)
 								{
+									var jsTime = Utils.ToPseudoJSTime(entrydate);
+
 									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && double.TryParse(st[84], out temp))
-										sbCo2.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString("F1", InvC)}],");
+										sbCo2.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && double.TryParse(st[85], out temp))
-										sbCo2Avg.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString("F1", InvC)}],");
+										sbCo2Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && double.TryParse(st[86], out temp))
-										sbPm25.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString("F1", InvC)}],");
+										sbPm25.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && double.TryParse(st[87], out temp))
-										sbPm25Avg.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString("F1", InvC)}],");
+										sbPm25Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && double.TryParse(st[88], out temp))
-										sbPm10.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString("F1", InvC)}],");
+										sbPm10.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && double.TryParse(st[89], out temp))
-										sbPm10Avg.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString("F1", InvC)}],");
+										sbPm10Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && double.TryParse(st[90], out temp))
-										sbTemp.Append($"[{Utils.ToPseudoJSTime(entrydate)},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										sbTemp.Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && int.TryParse(st[91], out tempInt))
-										sbHum.Append($"[{Utils.ToPseudoJSTime(entrydate)},{tempInt}],");
+										sbHum.Append($"[{jsTime},{tempInt}],");
 								}
 							}
 							catch (Exception ex)
@@ -3948,6 +4004,681 @@ namespace CumulusMX
 				append = true;
 			}
 
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+
+		public string GetIntervalTempGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			bool append = false;
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{", 10240);
+			var sbIn = new StringBuilder("\"intemp\":[");
+			var sbDew = new StringBuilder("\"dew\":[");
+			var sbApp = new StringBuilder("\"apptemp\":[");
+			var sbFeel = new StringBuilder("\"feelslike\":[");
+			var sbChill = new StringBuilder("\"wchill\":[");
+			var sbHeat = new StringBuilder("\"heatindex\":[");
+			var sbTemp = new StringBuilder("\"temp\":[");
+			var sbHumidex = new StringBuilder("\"humidex\":[");
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			var fileDate = dateFrom;
+			var logFile = cumulus.GetLogFileName(fileDate);
+
+			var finished = false;
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervalTempGraphData: Processing log file - {logFile}");
+					var linenum = 0;
+					try
+					{
+						var logfile = File.ReadAllLines(logFile);
+
+						foreach (var line in logfile)
+						{
+							// process each record in the file
+							linenum++;
+
+							var rec = ParseLogFileRec(line, true);
+
+							if (rec.Date < dateFrom)
+								continue;
+
+							if (rec.Date > dateTo)
+							{
+								finished = true;
+								cumulus.LogDebugMessage("GetIntervalTempGraphData: Finished processing the log files");
+								break;
+							}
+
+							var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+							if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
+								sbIn.Append($"[{jsTime},{rec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
+								sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
+								sbApp.Append($"[{jsTime},{rec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
+								sbFeel.Append($"[{jsTime},{rec.FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
+								sbChill.Append($"[{jsTime},{rec.WindChill.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
+								sbHeat.Append($"[{jsTime},{rec.HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
+								sbTemp.Append($"[{jsTime},{rec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
+
+							if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
+								sbHumidex.Append($"[{jsTime},{rec.Humidex.ToString(cumulus.TempFormat, InvC)}],");
+						}
+
+					}
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"GetIntervalTempGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"GetIntervalTempGraphData: Log file  not found - {logFile}");
+				}
+
+				cumulus.LogDebugMessage($"GetIntervalTempGraphData: Finished processing log file - {logFile}");
+
+				if (!finished)
+				{
+					fileDate = fileDate.AddMonths(1);
+
+					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
+						finished = true;
+
+					logFile = cumulus.GetLogFileName(fileDate);
+				}
+			}
+
+			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
+			{
+				if (sbIn[sbIn.Length - 1] == ',')
+					sbIn.Length--;
+
+				sbIn.Append(']');
+				sb.Append(sbIn);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
+			{
+				if (sbDew[sbDew.Length - 1] == ',')
+					sbDew.Length--;
+
+				sbDew.Append(']');
+				sb.Append((append ? "," : "") + sbDew);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
+			{
+				if (sbApp[sbApp.Length - 1] == ',')
+					sbApp.Length--;
+
+				sbApp.Append(']');
+				sb.Append((append ? "," : "") + sbApp);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
+			{
+				if (sbFeel[sbFeel.Length - 1] == ',')
+					sbFeel.Length--;
+
+				sbFeel.Append(']');
+				sb.Append((append ? "," : "") + sbFeel);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
+			{
+				if (sbChill[sbChill.Length - 1] == ',')
+					sbChill.Length--;
+
+				sbChill.Append(']');
+				sb.Append((append ? "," : "") + sbChill);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
+			{
+				if (sbHeat[sbHeat.Length - 1] == ',')
+					sbHeat.Length--;
+
+				sbHeat.Append(']');
+				sb.Append((append ? "," : "") + sbHeat);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
+			{
+				if (sbTemp[sbTemp.Length - 1] == ',')
+					sbTemp.Length--;
+
+				sbTemp.Append(']');
+				sb.Append((append ? "," : "") + sbTemp);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
+			{
+				if (sbHumidex[sbHumidex.Length - 1] == ',')
+					sbHumidex.Length--;
+
+				sbHumidex.Append(']');
+				sb.Append((append ? "," : "") + sbHumidex);
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetIntervalHumGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var sb = new StringBuilder("{", 10240);
+			var sbOut = new StringBuilder("\"hum\":[");
+			var sbIn = new StringBuilder("\"inhum\":[");
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			var fileDate = dateFrom;
+			var logFile = cumulus.GetLogFileName(fileDate);
+
+			var finished = false;
+
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervalHumGraphData: Processing log file - {logFile}");
+					var linenum = 0;
+					try
+					{
+						var logfile = File.ReadAllLines(logFile);
+
+						foreach (var line in logfile)
+						{
+							// process each record in the file
+							linenum++;
+
+							var rec = ParseLogFileRec(line, true);
+
+							if (rec.Date < dateFrom)
+								continue;
+
+							if (rec.Date > dateTo)
+							{
+								finished = true;
+								cumulus.LogDebugMessage("GetIntervalHumGraphData: Finished processing the log files");
+								break;
+							}
+
+							var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+							if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
+							{
+								sbOut.Append($"[{jsTime},{rec.OutdoorHumidity}],");
+							}
+							if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
+							{
+								sbIn.Append($"[{jsTime},{rec.IndoorHumidity}],");
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"GetIntervalHumGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"GetIntervalHumGraphData: Log file  not found - {logFile}");
+				}
+
+				cumulus.LogDebugMessage($"GetIntervalHumGraphData: Finished processing log file - {logFile}");
+
+				if (!finished)
+				{
+					fileDate = fileDate.AddMonths(1);
+
+					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
+						finished = true;
+
+					logFile = cumulus.GetLogFileName(fileDate);
+				}
+			}
+
+
+			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
+			{
+				if (sbOut[sbOut.Length - 1] == ',')
+					sbOut.Length--;
+
+				sbOut.Append(']');
+
+				sb.Append(sbOut);
+			}
+
+			if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
+			{
+				if (sbIn[sbIn.Length - 1] == ',')
+					sbIn.Length--;
+
+				sbIn.Append(']');
+
+				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
+					sb.Append(',');
+
+				sb.Append(sbIn);
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+
+		}
+
+		public string GetIntervalSolarGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{");
+			var sbUv = new StringBuilder("\"UV\":[");
+			var sbSol = new StringBuilder("\"SolarRad\":[");
+			var sbMax = new StringBuilder("\"CurrentSolarMax\":[");
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			var fileDate = dateFrom;
+			var logFile = cumulus.GetLogFileName(fileDate);
+
+			var finished = false;
+
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervalSolarGraphData: Processing log file - {logFile}");
+					var linenum = 0;
+					try
+					{
+						var logfile = File.ReadAllLines(logFile);
+
+						foreach (var line in logfile)
+						{
+							// process each record in the file
+							linenum++;
+
+							var rec = ParseLogFileRec(line, true);
+
+							if (rec.Date < dateFrom)
+								continue;
+
+							if (rec.Date > dateTo)
+							{
+								finished = true;
+								cumulus.LogDebugMessage("GetIntervalSolarGraphData: Finished processing the log files");
+								break;
+							}
+
+							var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+							if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+							{
+								sbUv.Append($"[{jsTime},{rec.UV.ToString(cumulus.UVFormat, InvC)}],");
+							}
+
+							if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
+							{
+								sbSol.Append($"[{jsTime},{(int) rec.SolarRad}],");
+
+								sbMax.Append($"[{jsTime},{(int) rec.CurrentSolarMax}],");
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"GetIntervalSolarGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"GetIntervalSolarGraphData: Log file  not found - {logFile}");
+				}
+
+				cumulus.LogDebugMessage($"GetIntervalSolarGraphData: Finished processing log file - {logFile}");
+
+				if (!finished)
+				{
+					fileDate = fileDate.AddMonths(1);
+
+					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
+						finished = true;
+
+					logFile = cumulus.GetLogFileName(fileDate);
+				}
+			}
+
+			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+			{
+				if (sbUv[sbUv.Length - 1] == ',')
+					sbUv.Length--;
+
+				sbUv.Append(']');
+				sb.Append(sbUv);
+			}
+			if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
+			{
+				if (sbSol[sbSol.Length - 1] == ',')
+				{
+					sbSol.Length--;
+					sbMax.Length--;
+				}
+
+				sbSol.Append(']');
+				sbMax.Append(']');
+				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+				{
+					sb.Append(',');
+				}
+				sb.Append(sbSol);
+				sb.Append(',');
+				sb.Append(sbMax);
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+
+		}
+
+		public string GetIntervaPressGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var InvC = new CultureInfo("");
+			StringBuilder sb = new StringBuilder("{\"press\":[");
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			var fileDate = dateFrom;
+			var logFile = cumulus.GetLogFileName(fileDate);
+
+			var finished = false;
+
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervaPressGraphData: Processing log file - {logFile}");
+					var linenum = 0;
+					try
+					{
+						var logfile = File.ReadAllLines(logFile);
+
+						foreach (var line in logfile)
+						{
+							// process each record in the file
+							linenum++;
+
+							var rec = ParseLogFileRec(line, true);
+
+							if (rec.Date < dateFrom)
+								continue;
+
+							if (rec.Date > dateTo)
+							{
+								finished = true;
+								cumulus.LogDebugMessage("GetIntervaPressGraphData: Finished processing the log files");
+								break;
+							}
+
+							sb.Append($"[{Utils.ToPseudoJSTime(rec.Date)},{rec.Pressure.ToString(cumulus.PressFormat, InvC)}],");
+						}
+					}
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"GetIntervaPressGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"GetIntervaPressGraphData: Log file  not found - {logFile}");
+				}
+
+				cumulus.LogDebugMessage($"GetIntervaPressGraphData: Finished processing log file - {logFile}");
+
+				if (!finished)
+				{
+					fileDate = fileDate.AddMonths(1);
+
+					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
+						finished = true;
+
+					logFile = cumulus.GetLogFileName(fileDate);
+				}
+			}
+
+			if (sb[sb.Length - 1] == ',')
+				sb.Length--;
+
+			sb.Append("]}");
+			return sb.ToString();
+
+		}
+
+		public string GetIntervalWindGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{\"wgust\":[");
+			var sbSpd = new StringBuilder("\"wspeed\":[");
+			var sbBrg = new StringBuilder("\"bearing\":[");
+			var sbAvgBrg = new StringBuilder("\"avgbearing\":[");
+
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			var fileDate = dateFrom;
+			var logFile = cumulus.GetLogFileName(fileDate);
+
+			var finished = false;
+
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervalWindGraphData: Processing log file - {logFile}");
+					var linenum = 0;
+					try
+					{
+						var logfile = File.ReadAllLines(logFile);
+
+						foreach (var line in logfile)
+						{
+							// process each record in the file
+							linenum++;
+
+							var rec = ParseLogFileRec(line, true);
+
+							if (rec.Date < dateFrom)
+								continue;
+
+							if (rec.Date > dateTo)
+							{
+								finished = true;
+								cumulus.LogDebugMessage("GetIntervalWindGraphData: Finished processing the log files");
+								break;
+							}
+
+							var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+							sb.Append($"[{jsTime},{rec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)}],");
+
+							sbSpd.Append($"[{jsTime},{rec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)}],");
+
+							sbBrg.Append($"[{jsTime},{rec.Bearing}],");
+
+							sbAvgBrg.Append($"[{jsTime},{rec.AvgBearing}],");
+						}
+					}
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"GetIntervalWindGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"GetIntervalWindGraphData: Log file  not found - {logFile}");
+				}
+
+				cumulus.LogDebugMessage($"GetIntervalWindGraphData: Finished processing log file - {logFile}");
+
+				if (!finished)
+				{
+					fileDate = fileDate.AddMonths(1);
+
+					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
+						finished = true;
+
+					logFile = cumulus.GetLogFileName(fileDate);
+				}
+			}
+
+			if (sb[sb.Length - 1] == ',')
+			{
+				sb.Length--;
+				sbSpd.Length--;
+				sbBrg.Length--;
+				sbAvgBrg.Length--;
+			}
+
+			sb.Append("],");
+			sb.Append(sbSpd);
+			sb.Append("],");
+			sb.Append(sbBrg);
+			sb.Append("],");
+			sb.Append(sbAvgBrg);
+			sb.Append(']');
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetIntervalRainGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var InvC = new CultureInfo("");
+			var sb = new StringBuilder("{");
+			var sbRain = new StringBuilder("\"rfall\":[");
+			var sbRate = new StringBuilder("\"rrate\":[");
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			var fileDate = dateFrom;
+			var logFile = cumulus.GetLogFileName(fileDate);
+
+			var finished = false;
+
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervaRainGraphData: Processing log file - {logFile}");
+					var linenum = 0;
+					try
+					{
+						var logfile = File.ReadAllLines(logFile);
+
+						foreach (var line in logfile)
+						{
+							// process each record in the file
+							linenum++;
+
+							var rec = ParseLogFileRec(line, true);
+
+							if (rec.Date < dateFrom)
+								continue;
+
+							if (rec.Date > dateTo)
+							{
+								finished = true;
+								cumulus.LogDebugMessage("GetIntervaRainGraphData: Finished processing the log files");
+								break;
+							}
+
+							var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+							sbRain.Append($"[{jsTime},{rec.RainToday.ToString(cumulus.RainFormat, InvC)}],");
+
+							sbRate.Append($"[{jsTime},{rec.RainRate.ToString(cumulus.RainFormat, InvC)}],");
+						}
+					}
+					catch (Exception e)
+					{
+						cumulus.LogMessage($"GetIntervaRainGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"GetIntervaRainGraphData: Log file  not found - {logFile}");
+				}
+
+				cumulus.LogDebugMessage($"GetIntervaRainGraphData: Finished processing log file - {logFile}");
+
+				if (!finished)
+				{
+					fileDate = fileDate.AddMonths(1);
+
+					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
+						finished = true;
+
+					logFile = cumulus.GetLogFileName(fileDate);
+				}
+			}
+
+			if (sbRain[sbRain.Length - 1] == ',')
+			{
+				sbRain.Length--;
+				sbRate.Length--;
+			}
+			sbRain.Append("],");
+			sbRate.Append(']');
+			sb.Append(sbRain);
+			sb.Append(sbRate);
 			sb.Append('}');
 			return sb.ToString();
 		}
@@ -12981,6 +13712,11 @@ namespace CumulusMX
 		public string GetSelectaChartOptions()
 		{
 			return JsonSerializer.SerializeToString(cumulus.SelectaChartOptions);
+		}
+
+		public string GetSelectaPeriodOptions()
+		{
+			return JsonSerializer.SerializeToString(cumulus.SelectaPeriodOptions);
 		}
 
 

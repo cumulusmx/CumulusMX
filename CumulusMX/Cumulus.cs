@@ -433,6 +433,8 @@ namespace CumulusMX
 		public GraphOptions GraphOptions = new GraphOptions();
 
 		public SelectaChartOptions SelectaChartOptions = new SelectaChartOptions();
+		public SelectaChartOptions SelectaPeriodOptions = new SelectaChartOptions();
+
 
 		public DisplayOptions DisplayOptions = new DisplayOptions();
 
@@ -5802,6 +5804,13 @@ namespace CumulusMX
 				SelectaChartOptions.colours[i] = ini.GetValue("Select-a-Chart", "Colour" + i, "");
 			}
 
+			// Select-a-Period settings
+			for (int i = 0; i < SelectaPeriodOptions.series.Length; i++)
+			{
+				SelectaPeriodOptions.series[i] = ini.GetValue("Select-a-Period", "Series" + i, "0");
+				SelectaPeriodOptions.colours[i] = ini.GetValue("Select-a-Period", "Colour" + i, "");
+			}
+
 			// Email settings
 			SmtpOptions.Enabled = ini.GetValue("SMTP", "Enabled", false);
 			SmtpOptions.Server = ini.GetValue("SMTP", "ServerName", "");
@@ -6981,10 +6990,18 @@ namespace CumulusMX
 				}
 			}
 
+			// Select-a-Chart
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
 			{
 				ini.SetValue("Select-a-Chart", "Series" + i, SelectaChartOptions.series[i]);
 				ini.SetValue("Select-a-Chart", "Colour" + i, SelectaChartOptions.colours[i]);
+			}
+
+			// Select-a-Period
+			for (int i = 0; i < SelectaPeriodOptions.series.Length; i++)
+			{
+				ini.SetValue("Select-a-Period", "Series" + i, SelectaPeriodOptions.series[i]);
+				ini.SetValue("Select-a-Period", "Colour" + i, SelectaPeriodOptions.colours[i]);
 			}
 
 			// Email settings

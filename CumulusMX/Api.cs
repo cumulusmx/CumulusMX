@@ -382,11 +382,20 @@ namespace CumulusMX
 
 				var incremental = false;
 				DateTime? start = null;
+				DateTime? end = null;
 
-				if (this.Request.QueryString.AllKeys.Contains("start") && long.TryParse(this.Request.QueryString.Get("start"), out long ts))
+				if (Request.QueryString.AllKeys.Contains("start") && long.TryParse(Request.QueryString.Get("start"), out long ts))
 				{
 					start = Utils.FromUnixTime(ts);
-					incremental = true;
+					if (!Request.QueryString.AllKeys.Contains("end"))
+						incremental = true;
+				}
+
+				if (Request.QueryString.AllKeys.Contains("end") && long.TryParse(Request.QueryString.Get("end"), out ts))
+				{
+					end = Utils.FromUnixTime(ts);
+					if (end > DateTime.Now)
+						end = DateTime.Now;
 				}
 
 				try
@@ -444,6 +453,7 @@ namespace CumulusMX
 							case "co2sensor.json":
 								await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
 								break;
+
 							// daily data
 							case "dailyrain.json":
 								await writer.WriteAsync(Station.GetDailyRainGraphData());
@@ -457,6 +467,54 @@ namespace CumulusMX
 							case "units.json":
 								await writer.WriteAsync(Station.GetUnits());
 								break;
+
+							// interval data
+							case "intvtemp.json":
+								await writer.WriteAsync(Station.GetIntervalTempGraphData(true, start, end));
+								break;
+							case "intvwind.json":
+								await writer.WriteAsync(Station.GetIntervalWindGraphData(true, start, end));
+								break;
+							case "intvrain.json":
+								await writer.WriteAsync(Station.GetIntervalRainGraphData(true, start, end));
+								break;
+							case "intvpress.json":
+								await writer.WriteAsync(Station.GetIntervaPressGraphData(true, start, end));
+								break;
+							case "intvhum.json":
+								await writer.WriteAsync(Station.GetIntervalHumGraphData(true, start, end));
+								break;
+							case "intvsolar.json":
+								await writer.WriteAsync(Station.GetIntervalSolarGraphData(true, start, end));
+								break;
+							case "intvairquality.json":
+								// TODO
+								break;
+							case "intvextratemp.json":
+								await writer.WriteAsync(Station.GetExtraTempGraphData(false, true, start, end));
+								break;
+							case "intvextrahum.json":
+								await writer.WriteAsync(Station.GetExtraHumGraphData(false, true, start, end));
+								break;
+							case "intvextradew.json":
+								await writer.WriteAsync(Station.GetExtraDewPointGraphData(false, true, start, end));
+								break;
+							case "intvsoiltemp.json":
+								await writer.WriteAsync(Station.GetSoilTempGraphData(false, true, start, end));
+								break;
+							case "intvsoilmoist.json":
+								await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true, start, end));
+								break;
+							case "intvleafwetness.json":
+								await writer.WriteAsync(Station.GetLeafWetnessGraphData(false, true, start, end));
+								break;
+							case "intvusertemp.json":
+								await writer.WriteAsync(Station.GetUserTempGraphData(false, true, start, end));
+								break;
+							case "intvco2sensor.json":
+								// TODO
+								break;
+
 							// config data
 							case "graphconfig.json":
 								await writer.WriteAsync(Station.GetGraphConfig(true));
@@ -466,6 +524,9 @@ namespace CumulusMX
 								break;
 							case "selectachart.json":
 								await writer.WriteAsync(Station.GetSelectaChartOptions());
+								break;
+							case "selectaperiod.json":
+								await writer.WriteAsync(Station.GetSelectaPeriodOptions());
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -501,6 +562,9 @@ namespace CumulusMX
 						{
 							case "selectachart.json":
 								await writer.WriteAsync(stationSettings.SetSelectaChartOptions(HttpContext));
+								break;
+							case "selectaperiod.json":
+								await writer.WriteAsync(stationSettings.SetSelectaPeriodOptions(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;
