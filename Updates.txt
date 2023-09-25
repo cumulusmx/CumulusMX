@@ -6,6 +6,14 @@ New
 	- This station can also be used as a source of Extra Sensor data for your primary station
 	- It also makes available the URL of the latest camera on the Ecowitt cloud server via the new web tag <#EcowittCameraUrl>
 	- You can use the tag <ecowittcameraurl> in the URL field of HTTP Files to download the latest image
+- Adds a new station type of Davis Cloud.
+	- It grabs the data from the Davis WeatherLink cloud servers. The data is updated according to your subscription model
+		- Pro+ = 1 minute updates
+		- Pro  = 5 minute updates
+		- Free = 15 minute updates
+- Adds new Select-a-Period graphs to the dashboard interface.
+	- Similar to the existing Select-a-Graph which only show recent 1 minute data, the new charts show data at your logging resolution, but you can select any start and end dates from your historic data.
+	- Note: selecting a large date range can be quite slow as the data has to be read from the log files
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
@@ -23,7 +31,7 @@ Fixed
 		- webfiles\lib\steelseries\scripts\gauges.js
 - Ecowitt HTTP Station - fixed piezo rain rate not being decoded
 - All stations, fixed rain rate being recorded as zero in the recent graphs when MX was calculating the rate rather than the station supplying it
-
+- Wind average calibration is once again applied to live data when the option for MX to calculate the average is enabled
 
 
 3.26.0 - b3248
