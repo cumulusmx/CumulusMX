@@ -1,4 +1,4 @@
-3.27.0 - b3250
+3.27.0 - b3251
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
@@ -6,7 +6,7 @@ New
 	- This station can also be used as a source of Extra Sensor data for your primary station
 	- It also makes available the URL of the latest camera on the Ecowitt cloud server via the new web tag <#EcowittCameraUrl>
 	- You can use the tag <ecowittcameraurl> in the URL field of HTTP Files to download the latest image
-- Adds a new station type of Davis Cloud.
+- Adds a new station type of Davis Cloud
 	- It grabs the data from the Davis WeatherLink cloud servers. The data is updated according to your subscription model
 		- Pro+ = 1 minute updates
 		- Pro  = 5 minute updates
@@ -32,6 +32,8 @@ Fixed
 - Ecowitt HTTP Station - fixed piezo rain rate not being decoded
 - All stations, fixed rain rate being recorded as zero in the recent graphs when MX was calculating the rate rather than the station supplying it
 - Wind average calibration is once again applied to live data when the option for MX to calculate the average is enabled
+- Davis WLL 10 minute Gust speeds when no broadcasts are being received
+- Error 500 on Locale Strings settings page
 
 
 3.26.0 - b3248

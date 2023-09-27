@@ -825,7 +825,6 @@ namespace CumulusMX
 										else
 											currentAvgWindSpd = ConvertWindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
 
-
 										// pesky null values from WLL when it is calm
 										int wdir = data1.wind_dir_last ?? 0;
 										double wind = ConvertWindMPHToUser(data1.wind_speed_last ?? 0);
@@ -837,27 +836,32 @@ namespace CumulusMX
 										CalcRecentMaxGust = true;
 									}
 
-									if (cumulus.StationOptions.PeakGustMinutes >= 2)
+									double gust;
+									int gustDir;
+									if (cumulus.StationOptions.PeakGustMinutes <= 10)
 									{
-										var gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
-										var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
-										var gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
-										var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);
+										gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
+										gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+									}
+									else
+									{
+										gust = ConvertWindMPHToUser(data1.wind_speed_hi_last_10_min ?? 0);
+										gustDir = data1.wind_dir_at_hi_speed_last_10_min ?? 0;
+									}
 
-										// See if the current speed is higher than the current max
-										// We can then update the figure before the next data packet is read
+									var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
+									var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);
 
-										cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
+									// See if the current speed is higher than the current max
+									// We can then update the figure before the next data packet is read
 
-										if (gustCal > HiLoToday.HighGust)
-										{
-											// Check for spikes, and set highs
-											if (CheckHighGust(gustCal, gustDirCal, dateTime))
-											{
-												cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-												RecentMaxGust = gustCal;
-											}
-										}
+									cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
+
+									// Check for spikes, and set highs
+									if (CheckHighGust(gustCal, gustDirCal, dateTime))
+									{
+										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+										RecentMaxGust = gustCal;
 									}
 								}
 								catch (Exception ex)

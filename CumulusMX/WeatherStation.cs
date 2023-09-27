@@ -905,8 +905,8 @@ namespace CumulusMX
 
 				if (Log)
 				{
-					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + raindaystart.ToString() + " rain counter = " +
-									   Raincounter.ToString());
+					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + raindaystart.ToString("F2") + " rain counter = " +
+									   Raincounter.ToString("F2"));
 
 					if (cumulus.FineOffsetStation)
 					{
