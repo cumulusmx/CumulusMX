@@ -131,6 +131,7 @@ namespace CumulusMX
 						if (DateTime.Now >= nextFetch)
 						{
 							var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
+
 							if (data != null)
 							{
 								ProcessCurrentData(data, cumulus.cancellationToken);
@@ -343,8 +344,11 @@ namespace CumulusMX
 			{
 				try
 				{
-					DoSolarRad((int) data.solar_and_uvi.solar.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
-					DoUV(data.solar_and_uvi.uvi.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
+					if (data.solar_and_uvi.solar != null)
+						DoSolarRad((int) data.solar_and_uvi.solar.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
+
+					if (data.solar_and_uvi.uvi != null)
+						DoUV(data.solar_and_uvi.uvi.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
 				}
 				catch (Exception ex)
 				{
@@ -836,7 +840,7 @@ namespace CumulusMX
 		{
 			if (data.lightning != null)
 			{
-				if (data.lightning.distance.value != 255)
+				if (data.lightning.distance != null && data.lightning.distance.value != 255)
 				{
 					station.LightningStrikesToday = data.lightning.count.value;
 					station.LightningDistance = ConvertKmtoUserUnits(data.lightning.distance.value);
