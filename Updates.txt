@@ -19,6 +19,8 @@ Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
 - Additional keep-alive headers added to PHP uploads
 - PHP upload now uses HTTP GET for data sizes < 7000 bytes
+	- IMPORTANT: You must update the copy of upload.php on your web site with the latest version in this release
+- Dashboard gauges now follow the general dark theme
 
 Fixed
 - Fix for Davis average wind spike on restarts with catch-up

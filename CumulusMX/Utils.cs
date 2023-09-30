@@ -59,7 +59,7 @@ namespace CumulusMX
 
 		public static string ByteArrayToHexString(byte[] ba)
 		{
-			System.Text.StringBuilder hex = new System.Text.StringBuilder(ba.Length * 2);
+			System.Text.StringBuilder hex = new StringBuilder(ba.Length * 2);
 			foreach (byte b in ba)
 				hex.AppendFormat("{0:x2}", b);
 			return hex.ToString();
@@ -68,7 +68,7 @@ namespace CumulusMX
 
 		public static string GetMd5String(byte[] bytes)
 		{
-			using (var md5 = System.Security.Cryptography.MD5.Create())
+			using (var md5 = MD5.Create())
 			{
 				var hashBytes = md5.ComputeHash(bytes);
 				return ByteArrayToHexString(hashBytes);

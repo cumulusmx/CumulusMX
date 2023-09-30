@@ -8569,32 +8569,39 @@ namespace CumulusMX
 			{
 				string[] dirs = Directory.GetDirectories(dirpath);
 				Array.Sort(dirs);
-				var dirlist = new List<string>(dirs);
+				var dircnt = dirs.Length;
 
-				while (dirlist.Count > 10)
+				foreach (var dir in dirs)
 				{
+					// leave the last 10 in place
+					if (dircnt <= 10)
+						break;
+
 					try
 					{
-						if (Path.GetFileName(dirlist[0]) == "daily")
+						if (Path.GetFileName(dir) == "daily")
 						{
 							LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
-							break;
+							continue;
 						}
 						else
 						{
-							Directory.Delete(dirlist[0], true);
-							dirlist.RemoveAt(0);
+							Directory.Delete(dir, true);
+							dircnt--;
 						}
 					}
 					catch (UnauthorizedAccessException)
 					{
-						LogErrorMessage("BackupData: Error, no permission to read/delete folder: " + dirlist[0]);
+						LogErrorMessage("BackupData: Error, no permission to read/delete folder: " + dir);
+						LogConsoleMessage("Error, no permission to read/delete folder: " + dir, ConsoleColor.Yellow);
+						break;
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"BackupData: Error while attempting to read/delete folder: {dirlist[0]}, error message: {ex.Message}");
+						LogErrorMessage($"BackupData: Error while attempting to read/delete folder: {dir}, error message: {ex.Message}");
+						LogConsoleMessage($"Error while attempting to read/delete folder: {dir}, error message: {ex.Message}", ConsoleColor.Yellow);
+						break;
 					}
-
 				}
 
 				string foldername = timestamp.ToString("yyyyMMddHHmmss");

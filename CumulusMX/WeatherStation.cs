@@ -6128,7 +6128,8 @@ namespace CumulusMX
 			previousWind = windAvgMS;
 
 			calibratedgust = cumulus.Calib.WindGust.Calibrate(gustpar);
-			var calibratedspeed = speedpar < 0 ? WindAverage : cumulus.Calib.WindSpeed.Calibrate(speedpar);
+			var uncalibratedspeed = speedpar < 0 ? WindAverage : speedpar;
+			var calibratedspeed = cumulus.Calib.WindSpeed.Calibrate(uncalibratedspeed);
 
 			// use bearing of zero when calm
 			if ((Math.Abs(gustpar) < 0.001) && cumulus.StationOptions.UseZeroBearing)
@@ -6153,6 +6154,7 @@ namespace CumulusMX
 
 			windspeeds[nextwindvalue] = calibratedgust;
 			windbears[nextwindvalue] = Bearing;
+			nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 
 			// Recalculate wind rose data
 			lock (windcounts)
@@ -6174,12 +6176,10 @@ namespace CumulusMX
 				numwindvalues++;
 			}
 
-			nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
-
 			CheckHighGust(calibratedgust, Bearing, timestamp);
 
 			WindRecent[nextwind].Gust = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
-			WindRecent[nextwind].Speed = calibratedspeed;
+			WindRecent[nextwind].Speed = uncalibratedspeed;
 			WindRecent[nextwind].Timestamp = timestamp;
 			nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -6202,14 +6202,7 @@ namespace CumulusMX
 #endif
 
 						numvalues++;
-						if (cumulus.StationOptions.UseSpeedForAvgCalc)
-						{
-							totalwind += WindRecent[i].Speed;
-						}
-						else
-						{
-							totalwind += WindRecent[i].Gust;
-						}
+						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
 					}
 				}
 				// average the values, if we have enough samples
@@ -6218,8 +6211,12 @@ namespace CumulusMX
 				else
 					avg = totalwind / 3;
 
-				// we want any calcibration to be applied from uncalibrated gust values
-				WindAverage = cumulus.Calib.WindSpeed.Calibrate(avg);
+				if (speedpar < 0)
+					// we want to use already calibrated averages
+					WindAverage = avg;
+				else
+					// we want any calibration to be applied from uncalibrated gust values
+					WindAverage = cumulus.Calib.WindSpeed.Calibrate(avg);
 
 				//cumulus.LogDebugMessage("next=" + nextwind + " wind=" + uncalibratedgust + " tot=" + totalwind + " numv=" + numvalues + " avg=" + WindAverage);
 			}

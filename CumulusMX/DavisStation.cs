@@ -1997,7 +1997,8 @@ namespace CumulusMX
 				if (loopData.WindGust10Min < 200 && cumulus.StationOptions.PeakGustMinutes >= 10)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
-					var gust10min = cumulus.Calib.WindSpeed.Calibrate(ConvertWindMPHToUser(loopData.WindGust10Min));
+					var rawGust10min = ConvertWindMPHToUser(loopData.WindGust10Min);
+					var gust10min = cumulus.Calib.WindSpeed.Calibrate(rawGust10min);
 					var gustdir = loopData.WindGustDir;
 
 					cumulus.LogDebugMessage("LOOP2: 10-min gust: " + gust10min.ToString(cumulus.WindFormat));
@@ -2008,8 +2009,8 @@ namespace CumulusMX
 						RecentMaxGust = gust10min;
 
 						// add to recent values so normal calculation includes this value
-						WindRecent[nextwind].Gust = gust10min;
-						WindRecent[nextwind].Speed = WindAverage;
+						WindRecent[nextwind].Gust = rawGust10min;
+						WindRecent[nextwind].Speed = -1;
 						WindRecent[nextwind].Timestamp = now;
 						nextwind = (nextwind + 1) % MaxWindRecent;
 					}

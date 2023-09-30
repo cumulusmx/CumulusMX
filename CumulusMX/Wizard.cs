@@ -115,6 +115,12 @@ namespace CumulusMX
 				comportname = cumulus.ComportName
 			};
 
+			var ecowittapi = new JsonStationSettingsEcowittApi()
+			{
+				applicationkey = cumulus.EcowittApplicationKey,
+				userkey = cumulus.EcowittUserApiKey,
+				mac = cumulus.EcowittMacAddress
+			};
 
 			var station = new JsonWizardStation()
 			{
@@ -127,7 +133,8 @@ namespace CumulusMX
 				easyw = easyweather,
 				imet = imet,
 				wmr928 = wmr,
-				weatherflow = weatherflow
+				weatherflow = weatherflow,
+				ecowittapi = ecowittapi
 			};
 
 			var copy = new JsonWizardInternetCopy()
@@ -609,6 +616,25 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Ecowitt API
+				try
+				{
+					if (settings.station.ecowittapi != null)
+					{
+						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.applicationkey) ? null : settings.station.ecowittapi.applicationkey.Trim();
+						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.userkey) ? null : settings.station.ecowittapi.userkey.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.station.ecowittapi.mac) ? null : settings.station.ecowittapi.mac.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt API settings: " + ex.Message;
+					cumulus.LogMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// Save the settings
 				cumulus.WriteIniFile();
 			}
@@ -687,6 +713,7 @@ namespace CumulusMX
 		public JsonWizardImet imet { get; set; }
 		public JsonStationSettingsWMR928 wmr928 { get; set; }
 		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
+		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 	}
 
 	internal class JsonWizardDavisVp

@@ -1564,7 +1564,7 @@ namespace CumulusMX
 					data.aqiPm10_24hr = AirQualityIndices.US_EPApm10(data.pm10_24hr);
 					data.aqiPm10_nowcast = AirQualityIndices.US_EPApm10(data.pm10_nowcast);
 					break;
-				case 1: // UK CMEAP
+				case 1: // UK COMEAP
 					data.aqiPm2p5 = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5);
 					data.aqiPm2p5_1hr = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5_1hr);
 					data.aqiPm2p5_3hr = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5_3hr);
