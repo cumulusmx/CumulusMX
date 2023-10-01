@@ -36,6 +36,7 @@ Fixed
 - Wind average calibration is once again applied to live data when the option for MX to calculate the average is enabled
 - Davis WLL 10 minute Gust speeds when no broadcasts are being received
 - Error 500 on Locale Strings settings page
+- Fix CO₂ sensor being visible on graphs by default
 
 
 3.26.0 - b3248
