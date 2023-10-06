@@ -56,7 +56,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
+				cumulus.LogMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}", Cumulus.LogLevel.Error);
 				cumulus.LogConsoleMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
 			}
 		}
@@ -293,7 +293,7 @@ namespace CumulusMX
 
 			if ((channel > 3) || (channel < 1))
 			{
-				cumulus.LogMessage("WMR928 channel error, ch=" + channel);
+				cumulus.LogMessage("WMR928 channel error, ch=" + channel, Cumulus.LogLevel.Error);
 				channel = 1;
 			}
 
@@ -358,7 +358,7 @@ namespace CumulusMX
 
 			if ((channel > 3) || (channel < 1))
 			{
-				cumulus.LogMessage("WMR928 channel error, ch=" + channel);
+				cumulus.LogMessage("WMR928 channel error, ch=" + channel, Cumulus.LogLevel.Error);
 				channel = 1;
 			}
 

@@ -58,7 +58,8 @@ namespace CumulusMX
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				ftplogging = cumulus.FtpOptions.Logging,
 				emaillogging = cumulus.SmtpOptions.Logging,
-				spikelogging = cumulus.ErrorLogSpikeRemoval
+				spikelogging = cumulus.ErrorLogSpikeRemoval,
+				errorlistlevel = (int) cumulus.ErrorListLoggingLevel
 			};
 
 			var options = new JsonProgramSettingsGeneralOptions()
@@ -110,7 +111,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Program Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Program Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -139,6 +140,7 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
 				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
+				cumulus.ErrorListLoggingLevel = (Cumulus.LogLevel) settings.logging.errorlistlevel;
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
@@ -190,7 +192,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Program Options: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				errorMsg += msg + "\n\n";
 				context.Response.StatusCode = 500;
 			}
@@ -235,6 +237,7 @@ namespace CumulusMX
 		public bool ftplogging { get; set; }
 		public bool emaillogging { get; set; }
 		public bool spikelogging { get; set; }
+		public int errorlistlevel { get; set; }
 	}
 	public class JsonProgramSettingsGeneralOptions
 	{

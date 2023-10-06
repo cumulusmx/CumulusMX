@@ -73,7 +73,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Http File Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Http File Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -127,8 +127,8 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				var msg = "HTTP file: Error processing settings: " + ex.Message;
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -143,7 +143,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
 				{
-					cumulus.LogMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
+					cumulus.LogMessage("DownloadHttpFile: The Ecowitt Camera URL is not available", Cumulus.LogLevel.Warning);
 					return;
 				}
 				else

@@ -56,7 +56,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error opening TCP port: " + ex.Message);
+					cumulus.LogMessage("Error opening TCP port: " + ex.Message, Cumulus.LogLevel.Error);
 					Thread.Sleep(5000 * attempt);
 				}
 			}
@@ -83,7 +83,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
+					cumulus.LogMessage("Error reconnecting Ecowitt Gateway: " + ex.Message, Cumulus.LogLevel.Error);
 				}
 			}
 			else
@@ -167,13 +167,13 @@ namespace CumulusMX
 				{
 					if (bytesRead > 0)
 					{
-						cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
+						cumulus.LogMessage($"DoCommand({cmdName}): Invalid response", Cumulus.LogLevel.Warning);
 						cumulus.LogDebugMessage($"command resp={buffer[2]}, checksum=" + (ChecksumOk(buffer, (int) Enum.Parse(typeof(CommandRespSize), cmdName)) ? "OK" : "BAD"));
 						cumulus.LogDataMessage("Received " + BitConverter.ToString(buffer, 0, bytesRead - 1));
 					}
 					else
 					{
-						cumulus.LogMessage($"DoCommand({cmdName}): No response received");
+						cumulus.LogMessage($"DoCommand({cmdName}): No response received", Cumulus.LogLevel.Warning);
 					}
 					return null;
 				}
@@ -184,7 +184,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"DoCommand({cmdName}): Error - " + ex.Message);
+				cumulus.LogMessage($"DoCommand({cmdName}): Error - " + ex.Message, Cumulus.LogLevel.Error);
 				cumulus.LogMessage("Attempting to reopen the TCP port");
 				Thread.Sleep(1000);
 				OpenTcpPort(ipAddress, tcpPort);
@@ -227,7 +227,7 @@ namespace CumulusMX
 			// sanity check the size
 			if (size + 3 + lengthBytes > data.Length)
 			{
-				cumulus.LogMessage($"Ckecksum: Error - Calculated data length [{size}] exceeds the buffer size!");
+				cumulus.LogMessage($"Ckecksum: Error - Calculated data length [{size}] exceeds the buffer size!", Cumulus.LogLevel.Error);
 				return false;
 			}
 
@@ -239,7 +239,7 @@ namespace CumulusMX
 
 			if (checksum != data[size + 1])
 			{
-				cumulus.LogMessage("Checksum: Error - Bad checksum");
+				cumulus.LogMessage("Checksum: Error - Bad checksum", Cumulus.LogLevel.Error);
 				return false;
 			}
 

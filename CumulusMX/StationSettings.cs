@@ -513,7 +513,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -532,7 +532,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Rainfall settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -548,7 +548,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Growing Degree Day settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -563,7 +563,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Temperature Sum settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -577,7 +577,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Chill Hours settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -605,7 +605,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Solar settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -625,7 +625,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Forecast settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -659,7 +659,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Location settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -694,7 +694,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Options settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -709,7 +709,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Log roll-over settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -749,7 +749,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Davis VP/VP2/Vue settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -848,7 +848,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WLL/Davis Cloud settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -861,7 +861,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Log interval setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -879,7 +879,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing GW1000 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -910,7 +910,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1008,7 +1008,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt sensor mapping: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1027,7 +1027,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = $"Error processing WeatherFlow settings: {ex.Message}";
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1048,7 +1048,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing EasyWeather settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1069,7 +1069,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Fine Offset settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1091,7 +1091,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Instromet settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1107,7 +1107,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WMR928 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1125,7 +1125,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt API settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1163,7 +1163,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1202,7 +1202,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1215,7 +1215,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Records Began Date: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1226,7 +1226,7 @@ namespace CumulusMX
 				{
 					if (cumulus.StationType != settings.general.stationtype)
 					{
-						cumulus.LogMessage("Station type changed, restart required");
+						cumulus.LogMessage("Station type changed, restart required", Cumulus.LogLevel.Warning);
 						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
 					cumulus.StationType = settings.general.stationtype;
@@ -1235,7 +1235,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Station Type setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1248,7 +1248,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Accessibility setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1260,7 +1260,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Station settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
@@ -1312,7 +1312,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						returnMsg = "Error aborting a currently running upload";
-						cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+						cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}", Cumulus.LogLevel.Error);
 						return returnMsg;
 					}
 				}
@@ -1363,14 +1363,14 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					returnMsg = "Error starting a new upload";
-					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}", Cumulus.LogLevel.Error);
 				}
 				cumulus.LogDebugMessage("Upload Now: Process complete");
 				return returnMsg;
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Upload Now: General error: {ex.Message}");
+				cumulus.LogMessage($"Upload Now: General error: {ex.Message}", Cumulus.LogLevel.Error);
 				context.Response.StatusCode = 500;
 				return $"Error: {ex.Message}";
 			}
@@ -1408,7 +1408,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error select-a-chart Options: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1418,7 +1418,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Update Selectaschhrt options error: " + ex.Message, Cumulus.LogLevel.Error);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
@@ -1451,7 +1451,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error select-a-period Options: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1461,7 +1461,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Update selecaperiod options error: " + ex.Message, Cumulus.LogLevel.Error);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}

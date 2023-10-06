@@ -507,7 +507,7 @@ namespace CumulusMX
 				}
 				catch (Exception E)
 				{
-					cumulus.LogMessage("Error on line " + linenum + " of " + LogFile + ": " + E.Message);
+					cumulus.LogMessage("Error on line " + linenum + " of " + LogFile + ": " + E.Message, Cumulus.LogLevel.Error);
 				}
 			}
 
@@ -1871,7 +1871,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("Minimum data set of pressure, temperature, and wind is not available and NoSensorCheck is not enabled. Skip processing");
+					cumulus.LogMessage("Minimum data set of pressure, temperature, and wind is not available and NoSensorCheck is not enabled. Skip processing", Cumulus.LogLevel.Error);
 				}
 			}
 
@@ -1968,7 +1968,7 @@ namespace CumulusMX
 				}*/
 				if (cumulus.ReportDataStoppedErrors)
 				{
-					cumulus.LogMessage("*** Data input appears to have stopped");
+					cumulus.LogMessage("*** Data input appears to have stopped", Cumulus.LogLevel.Error);
 				}
 			}
 			else
@@ -2000,7 +2000,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("Error reading SRsunshine.dat: " + ex.Message);
+						cumulus.LogMessage("Error reading SRsunshine.dat: " + ex.Message, Cumulus.LogLevel.Error);
 					}
 				}
 			}
@@ -2119,7 +2119,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}", Cumulus.LogLevel.Error);
 					}
 				}
 			}
@@ -2193,7 +2193,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}");
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}", Cumulus.LogLevel.Error);
 					}
 				}
 
@@ -2224,7 +2224,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+						cumulus.LogMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}", Cumulus.LogLevel.Error);
 					}
 				}
 
@@ -4089,7 +4089,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetIntervalTempGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetIntervalTempGraphData: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -4251,7 +4251,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetIntervalHumGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetIntervalHumGraphData: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -4364,7 +4364,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetIntervalSolarGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetIntervalSolarGraphData: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -4465,7 +4465,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetIntervaPressGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetIntervaPressGraphData: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -4554,7 +4554,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetIntervalWindGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetIntervalWindGraphData: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -4648,7 +4648,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetIntervaRainGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"GetIntervaRainGraphData: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -5757,7 +5757,7 @@ namespace CumulusMX
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value
 				{
-					cumulus.LogMessage(" ****Rain counter reset confirmed: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
+					cumulus.LogMessage(" ****Rain counter reset confirmed: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter, Cumulus.LogLevel.Warning);
 
 					// set the start of day figure so it reflects the rain
 					// so far today
@@ -6438,7 +6438,7 @@ namespace CumulusMX
 		{
 			if (StartOfDaySunHourCounter < -9998)
 			{
-				cumulus.LogMessage("No start of day sun counter. Start counting from now");
+				cumulus.LogMessage("No start of day sun counter. Start counting from now", Cumulus.LogLevel.Warning);
 				StartOfDaySunHourCounter = hrs;
 			}
 
@@ -7474,7 +7474,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("Error creating NOAA reports: " + ex.Message);
+						cumulus.LogMessage("Error creating NOAA reports: " + ex.Message, Cumulus.LogLevel.Error);
 					}
 				}
 
@@ -7519,7 +7519,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("Error executing external program: " + ex.Message);
+						cumulus.LogMessage("Error executing external program: " + ex.Message, Cumulus.LogLevel.Error);
 					}
 				}
 
@@ -7715,8 +7715,8 @@ namespace CumulusMX
 
 					if ((HiLoToday.HighTemp < -400) || (HiLoToday.LowTemp > 900))
 					{
-						cumulus.LogMessage("***Error: Daily values are still at default at end of day");
-						cumulus.LogMessage("Data not logged to dayfile.txt");
+						cumulus.LogMessage("***Error: Daily values are still at default at end of day", Cumulus.LogLevel.Error);
+						cumulus.LogMessage("Data not logged to dayfile.txt", Cumulus.LogLevel.Error);
 						return;
 					}
 					else
@@ -7738,7 +7738,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error writing to dayfile.txt: " + ex.Message);
+					cumulus.LogMessage("Error writing to dayfile.txt: " + ex.Message, Cumulus.LogLevel.Error);
 					retries--;
 					await System.Threading.Tasks.Task.Delay(250);
 				}
@@ -8224,7 +8224,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("An error occurred during the station start-up: " + ex.Message);
+				cumulus.LogMessage("An error occurred during the station start-up: " + ex.Message, Cumulus.LogLevel.Error);
 			}
 		}
 
@@ -8327,7 +8327,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"UpdateGraphDataAqEntry: Exception caught: {e.Message}");
+				cumulus.LogMessage($"UpdateGraphDataAqEntry: Exception caught: {e.Message}", Cumulus.LogLevel.Error);
 			}
 		}
 
@@ -8684,7 +8684,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage("Error in dominant wind direction calculation");
+					cumulus.LogMessage("Error in dominant wind direction calculation", Cumulus.LogLevel.Error);
 				}
 			}
 
@@ -8790,7 +8790,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("LoadRecent: Error querying database for latest record - " + e.Message);
+				cumulus.LogMessage("LoadRecent: Error querying database for latest record - " + e.Message, Cumulus.LogLevel.Error);
 			}
 
 
@@ -8850,19 +8850,19 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								cumulus.LogMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Warning);
 								cumulus.LogMessage("Please edit the file to correct the error");
 								errorCount++;
 								if (errorCount >= 10)
 								{
-									cumulus.LogMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of graph data");
+									cumulus.LogMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of graph data", Cumulus.LogLevel.Error);
 								}
 							}
 						}
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 
@@ -8873,7 +8873,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"LoadRecent: Error inserting recent data into database: {e.Message}");
+						cumulus.LogMessage($"LoadRecent: Error inserting recent data into database: {e.Message}", Cumulus.LogLevel.Error);
 					}
 
 				}
@@ -8913,7 +8913,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("LoadRecentAqFromDataLogs: Error querying database for oldest record without AQ data - " + e.Message);
+				cumulus.LogMessage("LoadRecentAqFromDataLogs: Error querying database for oldest record without AQ data - " + e.Message, Cumulus.LogLevel.Error);
 			}
 
 			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
@@ -8932,7 +8932,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error - The primary AQ sensor is not set to a valid value, currently={cumulus.StationOptions.PrimaryAqSensor}");
+				cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error - The primary AQ sensor is not set to a valid value, currently={cumulus.StationOptions.PrimaryAqSensor}", Cumulus.LogLevel.Error);
 				return;
 			}
 
@@ -8993,12 +8993,12 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Warning);
 								cumulus.LogMessage("Please edit the file to correct the error");
 								errorCount++;
 								if (errorCount >= 20)
 								{
-									cumulus.LogMessage($"LoadRecentAqFromDataLogs: Too many errors reading {logFile} - aborting load of graph data");
+									cumulus.LogMessage($"LoadRecentAqFromDataLogs: Too many errors reading {logFile} - aborting load of graph data", Cumulus.LogLevel.Error);
 								}
 							}
 						}
@@ -9007,7 +9007,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage($"LoadRecentAqFromDataLogs: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Error);
 						cumulus.LogMessage("Please edit the file to correct the error");
 						RecentDataDb.Rollback();
 					}
@@ -9095,7 +9095,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					cumulus.LogMessage($"LoadLast3Hour: Error loading data from database : {e.Message}");
+					cumulus.LogMessage($"LoadLast3Hour: Error loading data from database : {e.Message}", Cumulus.LogLevel.Error);
 				}
 			}
 			cumulus.LogMessage($"LoadLast3Hour: Loaded {result.Count} entries to last 3 hour data list");
@@ -9117,7 +9117,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"LoadWindData: Error loading data from database : {e.Message}");
+				cumulus.LogMessage($"LoadWindData: Error loading data from database : {e.Message}", Cumulus.LogLevel.Error);
 			}
 
 			try
@@ -9126,7 +9126,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"LoadWindData: Error loading pointer from database : {e.Message}");
+				cumulus.LogMessage($"LoadWindData: Error loading pointer from database : {e.Message}", Cumulus.LogLevel.Error);
 			}
 
 			cumulus.LogMessage($"LoadWindData: Loaded {result.Count} entries to WindRecent data list");
@@ -9160,7 +9160,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"SaveWindData: Error saving RecentWind to the database : {ex.Message}");
+				cumulus.LogMessage($"SaveWindData: Error saving RecentWind to the database : {ex.Message}", Cumulus.LogLevel.Error);
 				RecentDataDb.Rollback();
 			}
 		}
@@ -9204,12 +9204,12 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								cumulus.LogMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
+								cumulus.LogMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}", Cumulus.LogLevel.Warning);
 								cumulus.LogMessage("Please edit the file to correct the error");
 								errorCount++;
 								if (errorCount >= 20)
 								{
-									cumulus.LogMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data");
+									cumulus.LogMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data", Cumulus.LogLevel.Error);
 								}
 							}
 						} while (!(sr.EndOfStream || errorCount >= 20));
@@ -9222,7 +9222,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					cumulus.LogMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
+					cumulus.LogMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}", Cumulus.LogLevel.Error);
 					cumulus.LogMessage("Please edit the file to correct the error");
 				}
 
@@ -9233,7 +9233,7 @@ namespace CumulusMX
 			else
 			{
 				var msg = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				return msg;
 			}
 		}
@@ -9561,7 +9561,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error parsing log file record: " + ex.Message);
+				cumulus.LogMessage("Error parsing log file record: " + ex.Message, Cumulus.LogLevel.Error);
 				cumulus.LogDataMessage("Log record: " + data);
 				throw ex;
 			}
@@ -10205,7 +10205,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing alltime.ini file: " + ex.Message);
+				cumulus.LogMessage("Error writing alltime.ini file: " + ex.Message, Cumulus.LogLevel.Error);
 			}
 		}
 
@@ -10379,7 +10379,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error writing MonthlyAlltime.ini file: " + ex.Message);
+				cumulus.LogMessage("Error writing MonthlyAlltime.ini file: " + ex.Message, Cumulus.LogLevel.Error);
 			}
 		}
 
@@ -10612,7 +10612,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error writing month.ini file: " + ex.Message);
+					cumulus.LogMessage("Error writing month.ini file: " + ex.Message, Cumulus.LogLevel.Error);
 				}
 			}
 			cumulus.LogDebugMessage("End writing to Month.ini file");
@@ -10791,7 +10791,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error writing year.ini file: " + ex.Message);
+					cumulus.LogMessage("Error writing year.ini file: " + ex.Message, Cumulus.LogLevel.Error);
 				}
 			}
 		}
@@ -12934,7 +12934,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetDayFile: Error - " + ex.ToString());
+				cumulus.LogMessage("GetDayFile: Error - " + ex.ToString(), Cumulus.LogLevel.Error);
 			}
 
 			return "";
@@ -13019,7 +13019,7 @@ namespace CumulusMX
 
 				if (!File.Exists(logfile))
 				{
-					cumulus.LogMessage($"GetLogFile: Error, file does not exist: {logfile}");
+					cumulus.LogMessage($"GetLogFile: Error, file does not exist: {logfile}", Cumulus.LogLevel.Error);
 					return "";
 				}
 
@@ -13153,7 +13153,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.ToString());
+				cumulus.LogMessage("GetLogfile: Error - " + ex.ToString(), Cumulus.LogLevel.Error);
 			}
 
 			return "";
@@ -13222,7 +13222,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.ToString());
+				cumulus.LogMessage("GetCachedSqlCommands: Error - " + ex.ToString(), Cumulus.LogLevel.Error);
 			}
 
 			return "";
@@ -14883,7 +14883,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					cumulus.LogMessage("CWOP error: " + e.Message);
+					cumulus.LogMessage("CWOP error: " + e.Message, Cumulus.LogLevel.Error);
 				}
 			}
 		}

@@ -257,7 +257,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error reading diary database: " + e.Message);
+				cumulus.LogMessage("Error reading diary database: " + e.Message, Cumulus.LogLevel.Error);
 				depth = 0;
 			}
 			return depth;
@@ -274,7 +274,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error reading diary database: " + e.Message);
+				cumulus.LogMessage("Error reading diary database: " + e.Message, Cumulus.LogLevel.Error);
 				lying = 0;
 			}
 			return lying;
@@ -291,7 +291,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error reading diary database: " + e.Message);
+				cumulus.LogMessage("Error reading diary database: " + e.Message, Cumulus.LogLevel.Error);
 				falling = 0;
 			}
 			return falling;
@@ -323,7 +323,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'm=n', found 'm={minsagostr}'");
+					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'm=n', found 'm={minsagostr}'", Cumulus.LogLevel.Warning);
 				}
 			}
 			if (hoursagostr != null)
@@ -334,7 +334,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'h=n', found 'h={hoursagostr}'");
+					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'h=n', found 'h={hoursagostr}'", Cumulus.LogLevel.Warning);
 				}
 			}
 			if (daysagostr != null)
@@ -345,7 +345,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'd=n', found 'd={daysagostr}'");
+					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'd=n', found 'd={daysagostr}'", Cumulus.LogLevel.Warning);
 				}
 			}
 			if (minsago < 0)
@@ -370,7 +370,7 @@ namespace CumulusMX
 				{
 					// problem converting parameter, use current month instead
 					month = DateTime.Now.Month;
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n', found 'mon={monthstr}'");
+					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n', found 'mon={monthstr}'", Cumulus.LogLevel.Warning);
 				}
 			}
 			else
@@ -5188,7 +5188,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error processing SystemUpTime web tag");
+				cumulus.LogMessage("Error processing SystemUpTime web tag", Cumulus.LogLevel.Error);
 				cumulus.LogMessage(ex.Message);
 				return "Error";
 			}

@@ -1,4 +1,4 @@
-3.27.0 - b3251
+3.27.0 - b3252
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
@@ -14,6 +14,11 @@ New
 - Adds new Select-a-Period graphs to the dashboard interface.
 	- Similar to the existing Select-a-Graph which only show recent 1 minute data, the new charts show data at your logging resolution, but you can select any start and end dates from your historic data.
 	- Note: selecting a large date range can be quite slow as the data has to be read from the log files
+- You can now regenerate ALL missing NOAA reports from either the Month or Year NOAA screens
+	- Note: Unlike the (Re)Generate button, the new option will not overwrite existing report files, it will only create missing ones
+- There is a new Latest Errors display in the dashboard - Utils | Latest Errors
+	- By default it displays the last 50 Warnings and Errors encountered by CMX, if you are seeing too many warnings that are expected, you can opt to log only errors in Settings | Program Settings | Logging Options
+
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version

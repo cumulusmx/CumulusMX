@@ -48,7 +48,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("Error opening COM port: " + ex.Message, Cumulus.LogLevel.Error);
 				//MessageBox.Show(ex.Message);
 			}
 
@@ -214,7 +214,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("WRST: Invalid checksum");
+						cumulus.LogMessage("WRST: Invalid checksum", Cumulus.LogLevel.Error);
 					}
 				}
 				catch
@@ -223,7 +223,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("RDST: Invalid checksum");
+				cumulus.LogMessage("RDST: Invalid checksum", Cumulus.LogLevel.Error);
 			}
 		}
 
@@ -363,7 +363,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Unable to read log count");
+				cumulus.LogMessage("Unable to read log count", Cumulus.LogLevel.Error);
 			}
 
 			return num;
@@ -552,7 +552,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage("Error in earliest timestamp, unable to process logger data");
+					cumulus.LogMessage("Error in earliest timestamp, unable to process logger data", Cumulus.LogLevel.Error);
 					dataOK = false;
 				}
 
@@ -585,7 +585,7 @@ namespace CumulusMX
 							}
 							catch (Exception E)
 							{
-								cumulus.LogMessage("Error in timestamp, skipping entry. Error = " + E.Message);
+								cumulus.LogMessage("Error in timestamp, skipping entry. Error = " + E.Message, Cumulus.LogLevel.Error);
 								timestamp = DateTime.MinValue;
 							}
 
@@ -815,7 +815,7 @@ namespace CumulusMX
 						}
 						catch (Exception E)
 						{
-							cumulus.LogMessage("Error in data: " + E.Message);
+							cumulus.LogMessage("Error in data: " + E.Message, Cumulus.LogLevel.Error);
 						}
 					}
 				}
@@ -899,7 +899,7 @@ namespace CumulusMX
 
 				if (sl.Count != 10 && sl[0] != "rdlv")
 				{
-					cumulus.LogMessage($"RDLV: Unexpected response: {response}");
+					cumulus.LogMessage($"RDLV: Unexpected response: {response}", Cumulus.LogLevel.Warning);
 					return;
 				}
 
@@ -921,7 +921,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"RDLV: Unexpected wind dir/speed format, found: {sl[DIRPOS]}/{sl[WINDPOS]}");
+					cumulus.LogMessage($"RDLV: Unexpected wind dir/speed format, found: {sl[DIRPOS]}/{sl[WINDPOS]}", Cumulus.LogLevel.Warning);
 				}
 
 
@@ -937,7 +937,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"RDLV: Unexpected temperature 1 format, found: {sl[TEMP1POS]}");
+					cumulus.LogMessage($"RDLV: Unexpected temperature 1 format, found: {sl[TEMP1POS]}", Cumulus.LogLevel.Warning);
 				}
 
 				if (!string.IsNullOrEmpty(sl[TEMP2POS]))  // TEMP2 is optional
@@ -957,7 +957,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage($"RDLV: Unexpected temperature 2 format, found: {sl[TEMP2POS]}");
+						cumulus.LogMessage($"RDLV: Unexpected temperature 2 format, found: {sl[TEMP2POS]}", Cumulus.LogLevel.Warning);
 					}
 				}
 
@@ -968,7 +968,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"RDLV: Unexpected humidity format, found: {sl[RELHUMPOS]}");
+					cumulus.LogMessage($"RDLV: Unexpected humidity format, found: {sl[RELHUMPOS]}", Cumulus.LogLevel.Warning);
 				}
 
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
@@ -978,7 +978,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"RDLV: Unexpected pressure format, found: {sl[PRESSPOS]}");
+					cumulus.LogMessage($"RDLV: Unexpected pressure format, found: {sl[PRESSPOS]}", Cumulus.LogLevel.Warning);
 				}
 
 
@@ -988,7 +988,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"RDLV: Unexpected rain format, found: {sl[RAINPOS]}");
+					cumulus.LogMessage($"RDLV: Unexpected rain format, found: {sl[RAINPOS]}", Cumulus.LogLevel.Warning);
 				}
 
 				if (!string.IsNullOrEmpty(sl[SUNPOS]) && double.TryParse(sl[SUNPOS], NumberStyles.Float, provider, out varDbl))
@@ -997,7 +997,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage($"RDLV: Unexpected rain format, found: {sl[RAINPOS]}");
+					cumulus.LogMessage($"RDLV: Unexpected rain format, found: {sl[RAINPOS]}", Cumulus.LogLevel.Warning);
 				}
 
 				if (temp1 > -999 && humidity > -999)
@@ -1020,7 +1020,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("RDLV: Invalid checksum:");
+				cumulus.LogMessage("RDLV: Invalid checksum:", Cumulus.LogLevel.Error);
 				cumulus.LogMessage(response);
 			}
 

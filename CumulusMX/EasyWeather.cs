@@ -209,7 +209,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error while processing easyweather file: " + ex.Message);
+					cumulus.LogMessage("Error while processing easyweather file: " + ex.Message, Cumulus.LogLevel.Error);
 				}
 			}
 			else

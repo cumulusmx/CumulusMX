@@ -38,7 +38,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing 3rdParty Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("3rdParty Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -79,7 +79,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing wunderground settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -101,7 +101,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Windy settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -132,7 +132,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing AWEKAS settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -158,7 +158,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WeatherCloud settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -180,7 +180,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing PWS weather settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -204,7 +204,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WOW settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -226,7 +226,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing CWOP settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -246,7 +246,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing OpenWeatherMap settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -266,7 +266,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WindGuru settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -328,7 +328,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Custom settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -342,7 +342,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Third Party settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Third Party data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;

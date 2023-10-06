@@ -51,7 +51,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage("error opening COM port: " + ex.Message, Cumulus.LogLevel.Error);
 				//MessageBox.Show(ex.Message);
 			}
 

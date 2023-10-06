@@ -57,7 +57,7 @@
     <PackageReference Include="MailKit" Version="4.2.0" />
     <PackageReference Include="MQTTnet" Version="4.3.1.873" />
     <PackageReference Include="MySqlConnector" Version="2.2.7" />
-    <PackageReference Include="ServiceStack.Text" Version="6.10.0" />
+    <PackageReference Include="ServiceStack.Text" Version="6.11.0" />
     <PackageReference Include="SSH.NET" Version="2020.0.2" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
@@ -77,7 +77,7 @@
     <StartupObject>CumulusMX.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Copyright>Copyright ©  2015-2023 Cumulus MX</Copyright>
-    <Version>3.27.0.3251</Version>
+    <Version>3.27.0.3252</Version>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 32&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x86.dll&quot; &quot;$(TargetDir)\x86\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 64&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x64.dll&quot; &quot;$(TargetDir)\x64\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y" />

@@ -347,7 +347,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -477,7 +477,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Graph settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -500,7 +500,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Display Options settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -508,7 +508,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Display settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("Display Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;

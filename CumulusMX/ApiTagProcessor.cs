@@ -70,7 +70,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"API tag: Error - {ex.Message}");
+				cumulus.LogMessage($"API tag: Error - {ex.Message}", Cumulus.LogLevel.Error);
 				output.Append($"\"ERROR\":\"{ex.Message}\"}}");
 			}
 
@@ -99,7 +99,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"API tag: Error - {ex.Message}");
+				cumulus.LogMessage($"API tag: Error - {ex.Message}", Cumulus.LogLevel.Error);
 				return $"{{\"ERROR\":\"{ex.Message}\"}}";
 			}
 		}

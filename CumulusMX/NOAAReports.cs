@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -35,7 +37,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error creating NOAA yearly report: {e.Message}");
+				cumulus.LogMessage($"Error creating NOAA yearly report: {e.Message}", Cumulus.LogLevel.Error);
 				throw;
 			}
 			return report;
@@ -62,10 +64,106 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error creating NOAA yearly report '{reportName}': {e.Message}");
+				cumulus.LogMessage($"Error creating NOAA yearly report '{reportName}': {e.Message}", Cumulus.LogLevel.Error);
 				throw;
 			}
 			return report;
+		}
+
+		public string GenerateMissing()
+		{
+			var missingMonths = new List<DateTime>();
+			var missingYears = new List<DateTime>();
+			var checkDate = cumulus.RecordsBeganDateTime.Date;
+			string reportName;
+			var now = DateTime.Now;
+
+
+			var lastRptDate = GetLastReportDate();
+			var lastYear = 0;
+
+			// iterate all years and months since records began date
+			var doMore = true;
+			while (doMore)
+			{
+				// first check the yearly report
+				if (lastYear != checkDate.Year)
+				{
+					reportName = checkDate.ToString(cumulus.NOAAconf.YearFile);
+
+					if (!File.Exists(cumulus.ReportPath + reportName))
+					{
+						missingYears.Add(checkDate);
+					}
+					lastYear = checkDate.Year;
+				}
+
+				// then check the monthly report
+				reportName = checkDate.ToString(cumulus.NOAAconf.MonthFile);
+
+				if (!File.Exists(cumulus.ReportPath + reportName))
+				{
+					missingMonths.Add(checkDate);
+				}
+
+				// increment the month
+				// note this may reset the day
+				checkDate = checkDate.AddMonths(1);
+				
+				if (checkDate.Year == lastRptDate.Year && checkDate.Month == lastRptDate.Month)
+				{
+					doMore = false;
+				}
+			}
+
+
+			if (missingMonths.Count > 0 || missingYears.Count > 0)
+			{
+				// spawn a task to recreate the reports, but don't wait for it to complete
+
+				Task.Run(() =>
+				{
+					// first do the months
+					foreach (var month in missingMonths)
+					{
+						GenerateNoaaMonthReport(month.Year, month.Month);
+					}
+
+					// then the years
+					foreach (var year in missingYears)
+					{
+						GenerateNoaaYearReport(year.Year);
+					}
+				});
+
+				// report back how many reports are being created
+				var sb = new StringBuilder("Recreating the following reports...\n");
+				if (missingMonths.Count > 0)
+				{
+					sb.AppendLine("Monthly:");
+					foreach (var rpt in missingMonths)
+					{
+						sb.AppendLine("\t" + rpt.ToString("MMM yyyy"));
+					}
+				}
+
+				if (missingYears.Count > 0)
+				{
+					sb.AppendLine("\nYearly:");
+					foreach (var rpt in missingYears)
+					{
+						sb.AppendLine("\t" + rpt.ToString("yyyy"));
+					}
+				}
+
+				sb.Append("\nThis may take a little while, you can check the progress in the MX diags log");
+
+				return sb.ToString();
+			}
+			else
+			{
+				return "There are no missing reports to recreate. If you want to recreate some exisitng reports you must first delete them from your Reports folder";
+			}
 		}
 
 		public string GetNoaaYearReport(int year)
@@ -82,7 +180,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error getting NOAA yearly report '{reportName}': {e.Message}");
+				cumulus.LogMessage($"Error getting NOAA yearly report '{reportName}': {e.Message}", Cumulus.LogLevel.Error);
 				report = "Something went wrong!";
 			}
 			return report;
@@ -102,7 +200,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error getting NOAA monthly report '{reportName}': {e.Message}");
+				cumulus.LogMessage($"Error getting NOAA monthly report '{reportName}': {e.Message}", Cumulus.LogLevel.Error);
 				report = "Something went wrong!";
 			}
 			return report;
@@ -173,6 +271,35 @@ namespace CumulusMX
 				return cumulus.ReportPath + logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
 			else
 				return logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
+		}
+
+		private DateTime GetLastReportDate()
+		{
+			// returns the datetime of the latest possible report
+			var now = DateTime.Now;
+			DateTime reportDate;
+
+			if (cumulus.RolloverHour == 0)
+			{
+				reportDate = now.AddDays(-1);
+			}
+			else
+			{
+				TimeZone tz = TimeZone.CurrentTimeZone;
+
+				if (cumulus.Use10amInSummer && tz.IsDaylightSavingTime(now))
+				{
+					// Locale is currently on Daylight (summer) time
+					reportDate = now.AddHours(-10);
+				}
+				else
+				{
+					// Locale is currently on Standard time or unknown
+					reportDate = now.AddHours(-9);
+				}
+			}
+
+			return reportDate.Date;
 		}
 	}
 }

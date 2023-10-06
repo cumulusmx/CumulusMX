@@ -275,7 +275,7 @@ namespace CumulusMX
 						ProcessPondPacket();
 						break;
 					default:
-						cumulus.LogMessage("Unknown packet type: " + currentPacketType.ToString("X2"));
+						cumulus.LogMessage("Unknown packet type: " + currentPacketType.ToString("X2"), Cumulus.LogLevel.Warning);
 						return;
 				}
 
@@ -621,7 +621,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"SendReset: Error - {ex.Message}");
+				cumulus.LogMessage($"SendReset: Error - {ex.Message}", Cumulus.LogLevel.Error);
 			}
 		}
 

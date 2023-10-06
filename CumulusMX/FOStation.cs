@@ -98,7 +98,7 @@ namespace CumulusMX
 						{
 							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({cumulus.logints[cumulus.DataLogInterval]} mins)";
 							cumulus.LogConsoleMessage(msg);
-							cumulus.LogMessage(msg);
+							cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
 							if (cumulus.FineOffsetOptions.SetLoggerInterval)
 							{
 								var retries = 2;
@@ -128,7 +128,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									cumulus.LogMessage("Failed to set new logging interval");
+									cumulus.LogMessage("Failed to set new logging interval", Cumulus.LogLevel.Warning);
 								}
 							}
 						}
@@ -208,7 +208,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message, Cumulus.LogLevel.Error);
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
@@ -425,7 +425,7 @@ namespace CumulusMX
 				if (historydata.inHum > 100 || historydata.inHum < 0)
 				{
 					// 255 is the overflow value, when RH gets below 10% - ignore
-					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum);
+					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum, Cumulus.LogLevel.Warning);
 				}
 				else
 				{
@@ -435,7 +435,7 @@ namespace CumulusMX
 				// Indoor Temperature ===================================================
 				if (historydata.inTemp < -50 || historydata.inTemp > 50)
 				{
-					cumulus.LogMessage("Ignoring bad data: intemp = " + historydata.inTemp);
+					cumulus.LogMessage("Ignoring bad data: intemp = " + historydata.inTemp, Cumulus.LogLevel.Warning);
 				}
 				else
 				{
@@ -446,7 +446,7 @@ namespace CumulusMX
 
 				if ((historydata.pressure < cumulus.EwOptions.MinPressMB) || (historydata.pressure > cumulus.EwOptions.MaxPressMB))
 				{
-					cumulus.LogMessage("Ignoring bad data: pressure = " + historydata.pressure);
+					cumulus.LogMessage("Ignoring bad data: pressure = " + historydata.pressure, Cumulus.LogLevel.Warning);
 					cumulus.LogMessage("                   offset = " + pressureOffset);
 				}
 				else
@@ -456,7 +456,7 @@ namespace CumulusMX
 
 				if (historydata.SensorContactLost)
 				{
-					cumulus.LogMessage("Sensor contact lost; ignoring outdoor data");
+					cumulus.LogMessage("Sensor contact lost; ignoring outdoor data", Cumulus.LogLevel.Warning);
 				}
 				else
 				{
@@ -464,7 +464,7 @@ namespace CumulusMX
 					if (historydata.outHum > 100 || historydata.outHum < 0)
 					{
 						// 255 is the overflow value, when RH gets below 10% - ignore
-						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum);
+						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum, Cumulus.LogLevel.Warning);
 					}
 					else
 					{
@@ -474,11 +474,11 @@ namespace CumulusMX
 					// Wind =================================================================
 					if (historydata.windGust > 60 || historydata.windGust < 0)
 					{
-						cumulus.LogMessage("Ignoring bad data: gust = " + historydata.windGust);
+						cumulus.LogMessage("Ignoring bad data: gust = " + historydata.windGust, Cumulus.LogLevel.Warning);
 					}
 					else if (historydata.windSpeed > 60 || historydata.windSpeed < 0)
 					{
-						cumulus.LogMessage("Ignoring bad data: speed = " + historydata.windSpeed);
+						cumulus.LogMessage("Ignoring bad data: speed = " + historydata.windSpeed, Cumulus.LogLevel.Warning);
 					}
 					else
 					{
@@ -488,7 +488,7 @@ namespace CumulusMX
 					// Outdoor Temperature ==================================================
 					if (historydata.outTemp < -50 || historydata.outTemp > 70)
 					{
-						cumulus.LogMessage("Ignoring bad data: outtemp = " + historydata.outTemp);
+						cumulus.LogMessage("Ignoring bad data: outtemp = " + historydata.outTemp, Cumulus.LogLevel.Warning);
 					}
 					else
 					{
@@ -527,7 +527,7 @@ namespace CumulusMX
 
 					if (raindiff > 100)
 					{
-						cumulus.LogMessage("Warning: large increase in rain gauge tip count: " + raindiff);
+						cumulus.LogMessage("Warning: large increase in rain gauge tip count: " + raindiff, Cumulus.LogLevel.Warning);
 						rainrate = 0;
 					}
 					else
@@ -571,7 +571,7 @@ namespace CumulusMX
 					{
 						if (historydata.uvVal < 0 || historydata.uvVal > 16)
 						{
-							cumulus.LogMessage("Invalid UV-I value ignored: " + historydata.uvVal);
+							cumulus.LogMessage("Invalid UV-I value ignored: " + historydata.uvVal, Cumulus.LogLevel.Warning);
 						}
 						else
 							DoUV(historydata.uvVal, timestamp);
@@ -588,7 +588,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage("Invalid solar value ignored: " + historydata.solarVal);
+							cumulus.LogMessage("Invalid solar value ignored: " + historydata.solarVal, Cumulus.LogLevel.Warning);
 						}
 					}
 				}
@@ -687,13 +687,13 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("Stream open failed");
+					cumulus.LogMessage("Stream open failed", Cumulus.LogLevel.Error);
 					return false;
 				}
 			}
 			else
 			{
-				cumulus.LogMessage("*** Fine Offset station not found ***");
+				cumulus.LogMessage("*** Fine Offset station not found ***", Cumulus.LogLevel.Error);
 				cumulus.LogMessage("Found the following USB HID Devices...");
 				int cnt = 0;
 				foreach (HidDevice device in devicelist.GetHidDevices())
@@ -704,7 +704,7 @@ namespace CumulusMX
 
 				if (cnt == 0)
 				{
-					cumulus.LogMessage("No USB HID devices found!");
+					cumulus.LogMessage("No USB HID devices found!", Cumulus.LogLevel.Error);
 				}
 
 				return false;
@@ -754,7 +754,7 @@ namespace CumulusMX
 			{
 				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red, true);
 				cumulus.LogMessage(ex.Message);
-				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				cumulus.LogMessage("Error sending command to station - it may need resetting", Cumulus.LogLevel.Error);
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
@@ -777,7 +777,7 @@ namespace CumulusMX
 				{
 					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red, true);
 					cumulus.LogMessage(ex.Message);
-					cumulus.LogMessage("Error reading data from station - it may need resetting");
+					cumulus.LogMessage("Error reading data from station - it may need resetting", Cumulus.LogLevel.Error);
 					if (!DataStopped)
 					{
 						DataStoppedTime = DateTime.Now;
@@ -819,7 +819,7 @@ namespace CumulusMX
 			{
 				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
 				cumulus.LogMessage(ex.Message);
-				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				cumulus.LogMessage("Error sending command to station - it may need resetting", Cumulus.LogLevel.Error);
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
@@ -850,7 +850,7 @@ namespace CumulusMX
 
 				if (!OpenHidDevice())
 				{
-					cumulus.LogMessage("Failed to reopen the USB device");
+					cumulus.LogMessage("Failed to reopen the USB device", Cumulus.LogLevel.Error);
 					return;
 				}
 			}
@@ -1192,7 +1192,7 @@ namespace CumulusMX
 				if (inhum > 100 || inhum < 0)
 				{
 					// bad value
-					cumulus.LogMessage("Ignoring bad data: inhum = " + inhum);
+					cumulus.LogMessage("Ignoring bad data: inhum = " + inhum, Cumulus.LogLevel.Warning);
 				}
 				else
 				{
@@ -1218,7 +1218,7 @@ namespace CumulusMX
 
 				if (intemp < -50 || intemp > 50)
 				{
-					cumulus.LogMessage("Ignoring bad data: intemp = " + intemp);
+					cumulus.LogMessage("Ignoring bad data: intemp = " + intemp, Cumulus.LogLevel.Warning);
 				}
 				else
 				{
@@ -1231,7 +1231,7 @@ namespace CumulusMX
 				if (pressure < cumulus.EwOptions.MinPressMB || pressure > cumulus.EwOptions.MaxPressMB)
 				{
 					// bad value
-					cumulus.LogMessage("Ignoring bad data: pressure = " + pressure);
+					cumulus.LogMessage("Ignoring bad data: pressure = " + pressure, Cumulus.LogLevel.Warning);
 					cumulus.LogMessage("                     offset = " + pressureOffset);
 				}
 				else
@@ -1252,7 +1252,7 @@ namespace CumulusMX
 				if ((status & 0x40) != 0)
 				{
 					SensorContactLost = true;
-					cumulus.LogMessage("Sensor contact lost; ignoring outdoor data");
+					cumulus.LogMessage("Sensor contact lost; ignoring outdoor data", Cumulus.LogLevel.Warning);
 				}
 				else
 				{
@@ -1263,7 +1263,7 @@ namespace CumulusMX
 					if (outhum > 100 || outhum < 0)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: outhum = " + outhum);
+						cumulus.LogMessage("Ignoring bad data: outhum = " + outhum, Cumulus.LogLevel.Warning);
 					}
 					else
 					{
@@ -1287,12 +1287,12 @@ namespace CumulusMX
 					if (gust > 60 || gust < 0)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: gust = " + gust);
+						cumulus.LogMessage("Ignoring bad data: gust = " + gust, Cumulus.LogLevel.Warning);
 					}
 					else if (windspeed > 60 || windspeed < 0)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: speed = " + gust);
+						cumulus.LogMessage("Ignoring bad data: speed = " + gust, Cumulus.LogLevel.Warning);
 					}
 					else
 					{
@@ -1307,7 +1307,7 @@ namespace CumulusMX
 					if (outtemp < -50 || outtemp > 70)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: outtemp = " + outtemp);
+						cumulus.LogMessage("Ignoring bad data: outtemp = " + outtemp, Cumulus.LogLevel.Warning);
 					}
 					else
 					{
@@ -1351,7 +1351,7 @@ namespace CumulusMX
 
 					if (raindiff > cumulus.EwOptions.MaxRainTipDiff)
 					{
-						cumulus.LogMessage("Warning: large difference in rain gauge tip count: " + raindiff);
+						cumulus.LogMessage("Warning: large difference in rain gauge tip count: " + raindiff, Cumulus.LogLevel.Warning);
 
 						ignoreraincount++;
 

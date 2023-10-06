@@ -219,7 +219,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing MySQL Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				cumulus.LogDebugMessage("MySQL Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -378,7 +378,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -402,7 +402,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("MySQL Create Table: Error encountered during MySQL operation.");
+					cumulus.LogMessage("MySQL Create Table: Error encountered during MySQL operation.", Cumulus.LogLevel.Error);
 					cumulus.LogMessage(ex.Message);
 					res = "Error: " + ex.Message;
 				}
@@ -477,7 +477,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("MySQL Update Table: Error encountered during MySQL operation.");
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogMessage(ex.Message, Cumulus.LogLevel.Error);
 				res = "Error: " + ex.Message;
 			}
 
