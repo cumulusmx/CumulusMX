@@ -10,6 +10,8 @@ using System.Timers;
 
 using ServiceStack;
 
+using static System.Collections.Specialized.BitVector32;
+
 namespace CumulusMX
 {
 	internal class DavisCloudStation : WeatherStation
@@ -479,6 +481,31 @@ namespace CumulusMX
 							DoFeelsLike(lastRecordTime);
 							DoHumidex(lastRecordTime);
 							DoCloudBaseHeatIndex(lastRecordTime);
+
+							DoForecast(string.Empty, false);
+
+							UpdateStatusPanel(lastRecordTime);
+							UpdateMQTT();
+
+							// SensorContactLost = localSensorContactLost;
+
+							cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW");
+
+							cumulus.LogDebugMessage("WL current: Last data update = " + lastRecordTime.ToString("s"));
+
+
+							//// syncronise the timer to read just after the next update
+							//var time = (DateTime.Now - lastDataUpdate).TotalSeconds % 60;
+							//// get difference to 60 seconds and add 10 seconds to allow the servers to update
+							//// allow a drift of 5 seconds (10 + 5 = 15)
+							//if (time > 15)
+							//{
+							//	tmrCurrent.Interval = (70 - time) * 1000;
+							//	tmrCurrent.Stop();
+							//	tmrCurrent.Start();
+							//	cumulus.LogMessage($"WL current: Amending fetch timimg by {(time):F1} seconds");
+							//};
+
 						}
 
 						if (startingUp)
@@ -1865,6 +1892,12 @@ namespace CumulusMX
 							var data = json.FromJsv<WlHistorySensorDataType3_4>();
 							lastRecordTime = Utils.FromUnixTime(data.ts);
 
+							if (data.arch_int != wlStationArchiveInterval || DataTimeoutMins != data.arch_int + 1)
+							{
+								wlStationArchiveInterval = data.arch_int;
+								DataTimeoutMins = wlStationArchiveInterval + 1;
+							}
+
 							// Temperature & Humidity
 								/*
 								 * Available fields
@@ -2319,6 +2352,12 @@ namespace CumulusMX
 						{
 							var data = json.FromJsv<WlHistorySensorDataType24>();
 							lastRecordTime = Utils.FromUnixTime(data.ts);
+
+							if (data.arch_int != wlStationArchiveInterval || DataTimeoutMins != data.arch_int + 1)
+							{
+								wlStationArchiveInterval = data.arch_int;
+								DataTimeoutMins = wlStationArchiveInterval + 1;
+							}
 
 							// Temperature & Humidity
 							if (cumulus.WllPrimaryTempHum == data.tx_id)

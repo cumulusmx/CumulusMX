@@ -5191,7 +5191,7 @@ namespace CumulusMX
 			LowTempAlarm.Notify = ini.GetValue("Alarms", "LowTempAlarmNotify", false);
 			LowTempAlarm.Email = ini.GetValue("Alarms", "LowTempAlarmEmail", false);
 			LowTempAlarm.Latch = ini.GetValue("Alarms", "LowTempAlarmLatch", false);
-			LowTempAlarm.LatchHours = ini.GetValue("Alarms", "LowTempAlarmLatchHours", 24);
+			LowTempAlarm.LatchHours = ini.GetValue("Alarms", "LowTempAlarmLatchHours", 24.0);
 			LowTempAlarm.Action = ini.GetValue("Alarms", "LowTempAlarmAction", "");
 			LowTempAlarm.ActionParams = ini.GetValue("Alarms", "LowTempAlarmActionParams", "");
 
@@ -5207,7 +5207,7 @@ namespace CumulusMX
 			HighTempAlarm.Notify = ini.GetValue("Alarms", "HighTempAlarmNotify", false);
 			HighTempAlarm.Email = ini.GetValue("Alarms", "HighTempAlarmEmail", false);
 			HighTempAlarm.Latch = ini.GetValue("Alarms", "HighTempAlarmLatch", false);
-			HighTempAlarm.LatchHours = ini.GetValue("Alarms", "HighTempAlarmLatchHours", 24);
+			HighTempAlarm.LatchHours = ini.GetValue("Alarms", "HighTempAlarmLatchHours", 24.0);
 			HighTempAlarm.Action = ini.GetValue("Alarms", "HighTempAlarmAction", "");
 			HighTempAlarm.ActionParams = ini.GetValue("Alarms", "HighTempAlarmActionParams", "");
 
@@ -5223,7 +5223,7 @@ namespace CumulusMX
 			TempChangeAlarm.Notify = ini.GetValue("Alarms", "TempChangeAlarmNotify", false);
 			TempChangeAlarm.Email = ini.GetValue("Alarms", "TempChangeAlarmEmail", false);
 			TempChangeAlarm.Latch = ini.GetValue("Alarms", "TempChangeAlarmLatch", false);
-			TempChangeAlarm.LatchHours = ini.GetValue("Alarms", "TempChangeAlarmLatchHours", 24);
+			TempChangeAlarm.LatchHours = ini.GetValue("Alarms", "TempChangeAlarmLatchHours", 24.0);
 			TempChangeAlarm.Action = ini.GetValue("Alarms", "TempChangeAlarmAction", "");
 			TempChangeAlarm.ActionParams = ini.GetValue("Alarms", "TempChangeAlarmActionParams", "");
 
@@ -5239,7 +5239,7 @@ namespace CumulusMX
 			LowPressAlarm.Notify = ini.GetValue("Alarms", "LowPressAlarmNotify", false);
 			LowPressAlarm.Email = ini.GetValue("Alarms", "LowPressAlarmEmail", false);
 			LowPressAlarm.Latch = ini.GetValue("Alarms", "LowPressAlarmLatch", false);
-			LowPressAlarm.LatchHours = ini.GetValue("Alarms", "LowPressAlarmLatchHours", 24);
+			LowPressAlarm.LatchHours = ini.GetValue("Alarms", "LowPressAlarmLatchHours", 24.0);
 			LowPressAlarm.Action = ini.GetValue("Alarms", "LowPressAlarmAction", "");
 			LowPressAlarm.ActionParams = ini.GetValue("Alarms", "LowPressAlarmActionParams", "");
 
@@ -5255,7 +5255,7 @@ namespace CumulusMX
 			HighPressAlarm.Notify = ini.GetValue("Alarms", "HighPressAlarmNotify", false);
 			HighPressAlarm.Email = ini.GetValue("Alarms", "HighPressAlarmEmail", false);
 			HighPressAlarm.Latch = ini.GetValue("Alarms", "HighPressAlarmLatch", false);
-			HighPressAlarm.LatchHours = ini.GetValue("Alarms", "HighPressAlarmLatchHours", 24);
+			HighPressAlarm.LatchHours = ini.GetValue("Alarms", "HighPressAlarmLatchHours", 24.0);
 			HighPressAlarm.Action = ini.GetValue("Alarms", "HighPressAlarmAction", "");
 			HighPressAlarm.ActionParams = ini.GetValue("Alarms", "HighPressAlarmActionParams", "");
 
@@ -5271,7 +5271,7 @@ namespace CumulusMX
 			PressChangeAlarm.Notify = ini.GetValue("Alarms", "PressChangeAlarmNotify", false);
 			PressChangeAlarm.Email = ini.GetValue("Alarms", "PressChangeAlarmEmail", false);
 			PressChangeAlarm.Latch = ini.GetValue("Alarms", "PressChangeAlarmLatch", false);
-			PressChangeAlarm.LatchHours = ini.GetValue("Alarms", "PressChangeAlarmLatchHours", 24);
+			PressChangeAlarm.LatchHours = ini.GetValue("Alarms", "PressChangeAlarmLatchHours", 24.0);
 			PressChangeAlarm.Action = ini.GetValue("Alarms", "PressChangeAlarmAction", "");
 			PressChangeAlarm.ActionParams = ini.GetValue("Alarms", "PressChangeAlarmActionParams", "");
 
@@ -5287,7 +5287,7 @@ namespace CumulusMX
 			HighRainTodayAlarm.Notify = ini.GetValue("Alarms", "HighRainTodayAlarmNotify", false);
 			HighRainTodayAlarm.Email = ini.GetValue("Alarms", "HighRainTodayAlarmEmail", false);
 			HighRainTodayAlarm.Latch = ini.GetValue("Alarms", "HighRainTodayAlarmLatch", false);
-			HighRainTodayAlarm.LatchHours = ini.GetValue("Alarms", "HighRainTodayAlarmLatchHours", 24);
+			HighRainTodayAlarm.LatchHours = ini.GetValue("Alarms", "HighRainTodayAlarmLatchHours", 24.0);
 			HighRainTodayAlarm.Action = ini.GetValue("Alarms", "HighRainTodayAlarmAction", "");
 			HighRainTodayAlarm.ActionParams = ini.GetValue("Alarms", "HighRainTodayAlarmActionParams", "");
 
@@ -5303,7 +5303,7 @@ namespace CumulusMX
 			HighRainRateAlarm.Notify = ini.GetValue("Alarms", "HighRainRateAlarmNotify", false);
 			HighRainRateAlarm.Email = ini.GetValue("Alarms", "HighRainRateAlarmEmail", false);
 			HighRainRateAlarm.Latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
-			HighRainRateAlarm.LatchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24);
+			HighRainRateAlarm.LatchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24.0);
 			HighRainRateAlarm.Action = ini.GetValue("Alarms", "HighRainRateAlarmAction", "");
 			HighRainRateAlarm.ActionParams = ini.GetValue("Alarms", "HighRainRateAlarmActionParams", "");
 
@@ -5313,7 +5313,7 @@ namespace CumulusMX
 			IsRainingAlarm.Notify = ini.GetValue("Alarms", "IsRainingAlarmNotify", false);
 			IsRainingAlarm.Email = ini.GetValue("Alarms", "IsRainingAlarmEmail", false);
 			IsRainingAlarm.Latch = ini.GetValue("Alarms", "IsRainingAlarmLatch", false);
-			IsRainingAlarm.LatchHours = ini.GetValue("Alarms", "IsRainingAlarmLatchHours", 1);
+			IsRainingAlarm.LatchHours = ini.GetValue("Alarms", "IsRainingAlarmLatchHours", 1.0);
 			IsRainingAlarm.Action = ini.GetValue("Alarms", "IsRainingAlarmAction", "");
 			IsRainingAlarm.ActionParams = ini.GetValue("Alarms", "IsRainingAlarmActionParams", "");
 
@@ -5329,7 +5329,7 @@ namespace CumulusMX
 			HighGustAlarm.Notify = ini.GetValue("Alarms", "HighGustAlarmNotify", false);
 			HighGustAlarm.Email = ini.GetValue("Alarms", "HighGustAlarmEmail", false);
 			HighGustAlarm.Latch = ini.GetValue("Alarms", "HighGustAlarmLatch", false);
-			HighGustAlarm.LatchHours = ini.GetValue("Alarms", "HighGustAlarmLatchHours", 24);
+			HighGustAlarm.LatchHours = ini.GetValue("Alarms", "HighGustAlarmLatchHours", 24.0);
 			HighGustAlarm.Action = ini.GetValue("Alarms", "HighGustAlarmAction", "");
 			HighGustAlarm.ActionParams = ini.GetValue("Alarms", "HighGustAlarmActionParams", "");
 
@@ -5345,7 +5345,7 @@ namespace CumulusMX
 			HighWindAlarm.Notify = ini.GetValue("Alarms", "HighWindAlarmNotify", false);
 			HighWindAlarm.Email = ini.GetValue("Alarms", "HighWindAlarmEmail", false);
 			HighWindAlarm.Latch = ini.GetValue("Alarms", "HighWindAlarmLatch", false);
-			HighWindAlarm.LatchHours = ini.GetValue("Alarms", "HighWindAlarmLatchHours", 24);
+			HighWindAlarm.LatchHours = ini.GetValue("Alarms", "HighWindAlarmLatchHours", 24.0);
 			HighWindAlarm.Action = ini.GetValue("Alarms", "HighWindAlarmAction", "");
 			HighWindAlarm.ActionParams = ini.GetValue("Alarms", "HighWindAlarmActionParams", "");
 
@@ -5360,7 +5360,7 @@ namespace CumulusMX
 			SensorAlarm.Notify = ini.GetValue("Alarms", "SensorAlarmNotify", true);
 			SensorAlarm.Email = ini.GetValue("Alarms", "SensorAlarmEmail", false);
 			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", true);
-			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 1);
+			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 1.0);
 			SensorAlarm.TriggerThreshold = ini.GetValue("Alarms", "SensorAlarmTriggerCount", 2);
 			SensorAlarm.Action = ini.GetValue("Alarms", "SensorAlarmAction", "");
 			SensorAlarm.ActionParams = ini.GetValue("Alarms", "SensorAlarmActionParams", "");
@@ -5376,7 +5376,7 @@ namespace CumulusMX
 			DataStoppedAlarm.Notify = ini.GetValue("Alarms", "DataStoppedAlarmNotify", true);
 			DataStoppedAlarm.Email = ini.GetValue("Alarms", "DataStoppedAlarmEmail", false);
 			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", true);
-			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 1);
+			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 1.0);
 			DataStoppedAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataStoppedAlarmTriggerCount", 2);
 			DataStoppedAlarm.Action = ini.GetValue("Alarms", "DataStoppedAlarmAction", "");
 			DataStoppedAlarm.ActionParams = ini.GetValue("Alarms", "DataStoppedAlarmActionParams", "");
@@ -5388,7 +5388,7 @@ namespace CumulusMX
 			BatteryLowAlarm.Notify = ini.GetValue("Alarms", "BatteryLowAlarmNotify", false);
 			BatteryLowAlarm.Email = ini.GetValue("Alarms", "BatteryLowAlarmEmail", false);
 			BatteryLowAlarm.Latch = ini.GetValue("Alarms", "BatteryLowAlarmLatch", false);
-			BatteryLowAlarm.LatchHours = ini.GetValue("Alarms", "BatteryLowAlarmLatchHours", 24);
+			BatteryLowAlarm.LatchHours = ini.GetValue("Alarms", "BatteryLowAlarmLatchHours", 24.0);
 			BatteryLowAlarm.TriggerThreshold = ini.GetValue("Alarms", "BatteryLowAlarmTriggerCount", 1);
 			BatteryLowAlarm.Action = ini.GetValue("Alarms", "BatteryLowAlarmAction", "");
 			BatteryLowAlarm.ActionParams = ini.GetValue("Alarms", "BatteryLowAlarmActionParams", "");
@@ -5399,7 +5399,7 @@ namespace CumulusMX
 			SpikeAlarm.Notify = ini.GetValue("Alarms", "DataSpikeAlarmNotify", true);
 			SpikeAlarm.Email = ini.GetValue("Alarms", "DataSpikeAlarmEmail", true);
 			SpikeAlarm.Latch = ini.GetValue("Alarms", "DataSpikeAlarmLatch", true);
-			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "DataSpikeAlarmLatchHours", 24);
+			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "DataSpikeAlarmLatchHours", 24.0);
 			SpikeAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataSpikeAlarmTriggerCount", 1);
 			SpikeAlarm.Action = ini.GetValue("Alarms", "DataSpikeAlarmAction", "");
 			SpikeAlarm.ActionParams = ini.GetValue("Alarms", "DataSpikeAlarmActionParams", "");
@@ -5410,7 +5410,7 @@ namespace CumulusMX
 			UpgradeAlarm.Notify = ini.GetValue("Alarms", "UpgradeAlarmNotify", true);
 			UpgradeAlarm.Email = ini.GetValue("Alarms", "UpgradeAlarmEmail", false);
 			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
-			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24);
+			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24.0);
 			UpgradeAlarm.Action = ini.GetValue("Alarms", "UpgradeAlarmAction", "");
 			UpgradeAlarm.ActionParams = ini.GetValue("Alarms", "UpgradeAlarmActionParams", "");
 
@@ -5420,7 +5420,7 @@ namespace CumulusMX
 			ThirdPartyAlarm.Notify = ini.GetValue("Alarms", "HttpUploadAlarmNotify", false);
 			ThirdPartyAlarm.Email = ini.GetValue("Alarms", "HttpUploadAlarmEmail", false);
 			ThirdPartyAlarm.Latch = ini.GetValue("Alarms", "HttpUploadAlarmLatch", false);
-			ThirdPartyAlarm.LatchHours = ini.GetValue("Alarms", "HttpUploadAlarmLatchHours", 24);
+			ThirdPartyAlarm.LatchHours = ini.GetValue("Alarms", "HttpUploadAlarmLatchHours", 24.0);
 			ThirdPartyAlarm.TriggerThreshold = ini.GetValue("Alarms", "HttpUploadAlarmTriggerCount", 1);
 			ThirdPartyAlarm.Action = ini.GetValue("Alarms", "HttpUploadAlarmAction", "");
 			ThirdPartyAlarm.ActionParams = ini.GetValue("Alarms", "HttpUploadAlarmActionParams", "");
@@ -5431,7 +5431,7 @@ namespace CumulusMX
 			MySqlUploadAlarm.Notify = ini.GetValue("Alarms", "MySqlUploadAlarmNotify", false);
 			MySqlUploadAlarm.Email = ini.GetValue("Alarms", "MySqlUploadAlarmEmail", false);
 			MySqlUploadAlarm.Latch = ini.GetValue("Alarms", "MySqlUploadAlarmLatch", false);
-			MySqlUploadAlarm.LatchHours = ini.GetValue("Alarms", "MySqlUploadAlarmLatchHours", 24);
+			MySqlUploadAlarm.LatchHours = ini.GetValue("Alarms", "MySqlUploadAlarmLatchHours", 24.0);
 			MySqlUploadAlarm.TriggerThreshold = ini.GetValue("Alarms", "MySqlUploadAlarmTriggerCount", 1);
 			MySqlUploadAlarm.Action = ini.GetValue("Alarms", "MySqlUploadAlarmAction", "");
 			MySqlUploadAlarm.ActionParams = ini.GetValue("Alarms", "MySqlUploadAlarmActionParams", "");
@@ -5442,7 +5442,7 @@ namespace CumulusMX
 			NewRecordAlarm.Notify = ini.GetValue("Alarms", "NewRecordAlarmNotify", false);
 			NewRecordAlarm.Email = ini.GetValue("Alarms", "NewRecordAlarmEmail", false);
 			NewRecordAlarm.Latch = ini.GetValue("Alarms", "NewRecordAlarmLatch", false);
-			NewRecordAlarm.LatchHours = ini.GetValue("Alarms", "NewRecordAlarmLatchHours", 24);
+			NewRecordAlarm.LatchHours = ini.GetValue("Alarms", "NewRecordAlarmLatchHours", 24.0);
 			NewRecordAlarm.Action = ini.GetValue("Alarms", "NewRecordAlarmAction", "");
 			NewRecordAlarm.ActionParams = ini.GetValue("Alarms", "NewRecordAlarmActionParams", "");
 
@@ -5452,7 +5452,7 @@ namespace CumulusMX
 			FtpAlarm.Notify = ini.GetValue("Alarms", "FtpAlarmNotify", false);
 			FtpAlarm.Email = ini.GetValue("Alarms", "FtpAlarmEmail", false);
 			FtpAlarm.Latch = ini.GetValue("Alarms", "FtpAlarmLatch", false);
-			FtpAlarm.LatchHours = ini.GetValue("Alarms", "FtpAlarmLatchHours", 24);
+			FtpAlarm.LatchHours = ini.GetValue("Alarms", "FtpAlarmLatchHours", 24.0);
 			FtpAlarm.Action = ini.GetValue("Alarms", "FtpAlarmAction", "");
 			FtpAlarm.ActionParams = ini.GetValue("Alarms", "FtpAlarmActionParams", "");
 

@@ -1,8 +1,8 @@
-3.27.0 - b3252
+3.27.0 - b3253
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
-	- It grabs the data from the Ecowitt cloud servers. This data is updated once a minute, and is slightly less rich than the locally available API data.
+	- It grabs the data from the Ecowitt cloud servers. This data is updated once a minute and is slightly less rich than the locally available API data.
 	- This station can also be used as a source of Extra Sensor data for your primary station
 	- It also makes available the URL of the latest camera on the Ecowitt cloud server via the new web tag <#EcowittCameraUrl>
 	- You can use the tag <ecowittcameraurl> in the URL field of HTTP Files to download the latest image
@@ -18,7 +18,6 @@ New
 	- Note: Unlike the (Re)Generate button, the new option will not overwrite existing report files, it will only create missing ones
 - There is a new Latest Errors display in the dashboard - Utils | Latest Errors
 	- By default it displays the last 50 Warnings and Errors encountered by CMX, if you are seeing too many warnings that are expected, you can opt to log only errors in Settings | Program Settings | Logging Options
-
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
@@ -42,6 +41,7 @@ Fixed
 - Davis WLL 10 minute Gust speeds when no broadcasts are being received
 - Error 500 on Locale Strings settings page
 - Fix CO₂ sensor being visible on graphs by default
+- Many Alarms were reverting the Latch Hours value to an integer on restart
 
 
 3.26.0 - b3248
