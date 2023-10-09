@@ -12836,6 +12836,18 @@ namespace CumulusMX
 			json.Append("&nbsp;hrs");
 			json.Append(sepStr);
 			json.Append("&nbsp;");
+			json.Append("\"],");
+
+			json.Append("[\"High UV-Index\",\"");
+			json.Append(HiLoToday.HighUv.ToString("F1"));
+			json.Append("&nbsp;");
+			json.Append(sepStr);
+			json.Append(HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(sepStr);
+			json.Append(HiLoYest.HighUv.ToString("F1"));
+			json.Append("&nbsp;");
+			json.Append(sepStr);
+			json.Append(HiLoYest.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
