@@ -186,7 +186,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error starting station: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Error starting station: " + ex.Message);
 			}
 		}
 
@@ -211,7 +211,7 @@ namespace CumulusMX
 
 			if (s.Count < 14)
 			{
-				cumulus.LogMessage("WM918 packet too short. Length = " + s.Count, Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("WM918 packet too short. Length = " + s.Count);
 				result = false;
 			}
 			else
@@ -220,7 +220,7 @@ namespace CumulusMX
 
 				if (csum != s[s.Count - 1])
 				{
-					cumulus.LogMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1], Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1]);
 					result = false;
 				}
 				else

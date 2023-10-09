@@ -31,7 +31,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
-				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
 				return;
 			}
 
@@ -239,7 +239,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage($"ProcessCurrentData: Error in Outdoor temp data - {ex.Message}", Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage($"ProcessCurrentData: Error in Outdoor temp data - {ex.Message}");
 						}
 					}
 				}
@@ -258,7 +258,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"ProcessCurrentData: Error in indoor data - {ex.Message}", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in indoor data - {ex.Message}");
 					}
 				}
 
@@ -276,7 +276,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"ProcessCurrentData: Error in pressure data - {ex.Message}", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in pressure data - {ex.Message}");
 					}
 				}
 
@@ -294,7 +294,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"ProcessCurrentData: Error in wind data - {ex.Message}", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in wind data - {ex.Message}");
 					}
 				}
 
@@ -314,7 +314,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage($"ProcessCurrentData: Error in tipper rainfall data - {ex.Message}", Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage($"ProcessCurrentData: Error in tipper rainfall data - {ex.Message}");
 						}
 					}
 				}
@@ -333,7 +333,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage($"ProcessCurrentData: Error in piezo rainfall data - {ex.Message}", Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage($"ProcessCurrentData: Error in piezo rainfall data - {ex.Message}");
 						}
 					}
 				}
@@ -352,7 +352,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in solar data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in solar data - {ex.Message}");
 				}
 			}
 
@@ -365,7 +365,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in extra temperature data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in extra temperature data - {ex.Message}");
 				}
 			}
 
@@ -378,7 +378,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in user temperature data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in user temperature data - {ex.Message}");
 				}
 			}
 
@@ -391,7 +391,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
 				}
 			}
 
@@ -404,7 +404,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in Leaf wetness data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leaf wetness data - {ex.Message}");
 				}
 			}
 
@@ -417,7 +417,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in Air Quality data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Air Quality data - {ex.Message}");
 				}
 			}
 
@@ -430,7 +430,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in CO₂ data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in CO₂ data - {ex.Message}");
 				}
 			}
 
@@ -443,7 +443,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in Lightning data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Lightning data - {ex.Message}");
 				}
 			}
 
@@ -456,7 +456,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ProcessCurrentData: Error in Leak data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leak data - {ex.Message}");
 				}
 			}
 
@@ -467,7 +467,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"ProcessCurrentData: Error in Battery data - {ex.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"ProcessCurrentData: Error in Battery data - {ex.Message}");
 			}
 
 			// === Camera ===
@@ -480,7 +480,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}");
 			}
 
 

@@ -62,7 +62,7 @@ namespace CumulusMX
 
 			mqttClient.DisconnectedAsync += (async e =>
 			{
-				cumulus.LogMessage("Error: MQTT disconnected from the server", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("Error: MQTT disconnected from the server");
 				await Task.Delay(TimeSpan.FromSeconds(5));
 
 				cumulus.LogDebugMessage("MQTT attempting to reconnect with server");
@@ -73,7 +73,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage("Error: MQTT reconnection to server failed", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("Error: MQTT reconnection to server failed");
 				}
 			});
 
@@ -98,7 +98,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("MQTT: Error - Not connected to MQTT server - message not sent", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("MQTT: Error - Not connected to MQTT server - message not sent");
 			}
 		}
 
@@ -110,7 +110,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("MQTT Error: failed to connect to the host", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("MQTT Error: failed to connect to the host");
 				cumulus.LogMessage(e.Message);
 			}
 		}
@@ -177,7 +177,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"UpdateMQTTfeed: Error processing the template file [{template}], error = {ex.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"UpdateMQTTfeed: Error processing the template file [{template}], error = {ex.Message}");
 			}
 		}
 	}

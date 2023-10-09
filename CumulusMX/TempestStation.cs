@@ -60,7 +60,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				if (ex.InnerException != null)
 				{
 					ex = Utils.GetOriginalException(ex);
@@ -553,7 +553,7 @@ namespace CumulusMX.Tempest
 						else
 						{
 							var msg = $"Error downloading tempest history: {apiResponse}";
-							cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage(msg);
 							cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
 							if (rp.status.status_code == 404)
 							{

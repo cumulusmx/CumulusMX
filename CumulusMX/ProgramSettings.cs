@@ -111,7 +111,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Program Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Program Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -192,7 +192,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Program Options: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				errorMsg += msg + "\n\n";
 				context.Response.StatusCode = 500;
 			}

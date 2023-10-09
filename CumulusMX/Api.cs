@@ -126,7 +126,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -213,7 +213,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -285,7 +285,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -326,7 +326,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -361,7 +361,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -539,7 +539,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -578,7 +578,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -643,7 +643,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/dailygraphdata: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/dailygraphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -693,7 +693,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/alltime: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/records/alltime: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -748,7 +748,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/month: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/records/month: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -795,7 +795,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/thismonth: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/records/thismonth: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -841,7 +841,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -942,7 +942,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -996,7 +996,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/todayyest: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/todayyest: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1082,7 +1082,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1198,7 +1198,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/settings: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/settings: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1291,7 +1291,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/setsettings: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/setsettings: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1343,7 +1343,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/reports: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/reports: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1400,7 +1400,7 @@ namespace CumulusMX
 					//using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					//	await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
 					Response.StatusCode = 500;
-					Program.cumulus.LogMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
 				}
 			}
 		}
@@ -1449,7 +1449,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1509,7 +1509,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1566,7 +1566,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1599,7 +1599,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"", Cumulus.LogLevel.Error);
+					Program.cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}

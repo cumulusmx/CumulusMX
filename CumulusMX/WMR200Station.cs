@@ -78,7 +78,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("WMR200 station not found!", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("WMR200 station not found!");
 				cumulus.LogConsoleMessage("WMR200 station not found!", ConsoleColor.Red);
 			}
 		}
@@ -1551,7 +1551,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("History packet too short. Sensor count = " + sensorcount, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("History packet too short. Sensor count = " + sensorcount);
 					cumulus.LogMessage(ex.Message);
 				}
 			}
@@ -1737,7 +1737,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("WMR200: Invalid CRC", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("WMR200: Invalid CRC");
 			}
 
 			if (gettingHistory)

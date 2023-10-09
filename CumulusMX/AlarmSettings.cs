@@ -333,7 +333,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Alarm Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Alarm Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -588,7 +588,7 @@ namespace CumulusMX
 				if (emailRequired && !EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
 				{
 					var msg = "ERROR: Alarm email option enabled and an invalid Alarm from email address entered";
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage(msg);
 					context.Response.StatusCode = 500;
 					return msg;
 				}
@@ -605,7 +605,7 @@ namespace CumulusMX
 					if (!EmailSender.CheckEmailAddress(emails[i]))
 					{
 						var msg = "ERROR: Invalid Alarm destination email address entered";
-						cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage(msg);
 						context.Response.StatusCode = 500;
 						return msg;
 					}
@@ -621,7 +621,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error processing Alarm settings: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Error processing Alarm settings: " + ex.Message);
 				cumulus.LogDebugMessage("Alarm Data: " + json);
 				context.Response.StatusCode = 500;
 				return ex.Message;
@@ -647,7 +647,7 @@ namespace CumulusMX
 				if (!EmailSender.CheckEmailAddress(result.fromEmail.Trim()))
 				{
 					var msg = "ERROR: Invalid Alarm from email address entered";
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage(msg);
 					context.Response.StatusCode = 500;
 					return msg;
 				}
@@ -661,7 +661,7 @@ namespace CumulusMX
 					if (!EmailSender.CheckEmailAddress(dest[i]))
 					{
 						var msg = "ERROR: Invalid Alarm destination email address entered";
-						cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage(msg);
 						context.Response.StatusCode = 500;
 						return msg;
 					}

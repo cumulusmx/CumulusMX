@@ -25,6 +25,7 @@ Changed
 - PHP upload now uses HTTP GET for data sizes < 7000 bytes
 	- IMPORTANT: You must update the copy of upload.php on your web site with the latest version in this release
 - Dashboard gauges now follow the general dark theme
+- Adds UV-I to dashboard today/yesterday
 
 Fixed
 - Fix for Davis average wind spike on restarts with catch-up

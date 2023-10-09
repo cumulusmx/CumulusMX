@@ -73,7 +73,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					// any others, log them and carry on
-					cumulus.LogMessage("Simulator Start: Exception = " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("Simulator Start: Exception = " + ex.Message);
 				}
 			}
 

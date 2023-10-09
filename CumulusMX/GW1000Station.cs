@@ -228,7 +228,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
-				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
 			}
 			else
@@ -248,7 +248,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				}
 			}
 
@@ -368,7 +368,7 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							cumulus.LogMessage("DiscoverGW1000: Error sending discovery request");
-							cumulus.LogMessage("DiscoverGW1000: Error: " + ex.Message, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("DiscoverGW1000: Error: " + ex.Message);
 						}
 						retryCount++;
 
@@ -377,7 +377,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("An error occurred during Ecowitt auto-discovery", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("An error occurred during Ecowitt auto-discovery");
 				cumulus.LogMessage("Error: " + ex.Message);
 			}
 
@@ -398,7 +398,7 @@ namespace CumulusMX
 				{
 					// We didn't find anything on the network
 					msg = "Failed to discover any Ecowitt devices";
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage(msg);
 					cumulus.LogConsoleMessage(msg, ConsoleColor.DarkYellow, true);
 					return false;
 				}
@@ -408,7 +408,7 @@ namespace CumulusMX
 					// If only one device is discovered, and its MAC address matches (or our MAC is blank), then just use it
 					if (cumulus.Gw1000IpAddress != discoveredDevices.IP[0])
 					{
-						cumulus.LogMessage("Discovered a new IP address for the Ecowitt device that does not match our current one", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("Discovered a new IP address for the Ecowitt device that does not match our current one");
 						cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
 						ipaddr = discoveredDevices.IP[0].Trim();
 						cumulus.Gw1000IpAddress = ipaddr;
@@ -446,7 +446,7 @@ namespace CumulusMX
 
 					string iplist = "";
 					msg = "Discovered more than one potential Ecowitt device.";
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage(msg);
 					cumulus.LogConsoleMessage(msg);
 					msg = "Please select the IP address from the list and enter it manually into the configuration";
 					cumulus.LogMessage(msg);
@@ -468,7 +468,7 @@ namespace CumulusMX
 			if (string.IsNullOrWhiteSpace(ipaddr))
 			{
 				var msg = "No IP address configured or discovered for your GW1000, please remedy and restart Cumulus MX";
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogConsoleMessage(msg);
 				return false;
 			}
@@ -489,7 +489,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Not Connected", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Not Connected");
 				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red, true);
 			}
 
@@ -533,7 +533,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"GetFirmwareVersion: Error retrieving/processing firmware version. Message - {ex.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"GetFirmwareVersion: Error retrieving/processing firmware version. Message - {ex.Message}");
 			}
 			return response;
 		}
@@ -585,7 +585,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetSensorIdsNew: Unexpected error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("GetSensorIdsNew: Unexpected error - " + ex.Message);
 				// no idea, so report battery as good
 				return false;
 			}
@@ -725,7 +725,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("PrintSensorInfoNew: Error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("PrintSensorInfoNew: Error - " + ex.Message);
 			}
 
 			return batteryLow;
@@ -1100,7 +1100,7 @@ namespace CumulusMX
 										if (volts <= 1.2)
 										{
 											batteryLow = true;
-											cumulus.LogMessage($"WN34 channel #{chan} battery LOW = {volts}V", Cumulus.LogLevel.Warning);
+											cumulus.LogWarningMessage($"WN34 channel #{chan} battery LOW = {volts}V");
 										}
 										else
 										{
@@ -1285,12 +1285,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("GetLiveData: Invalid response", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("GetLiveData: Invalid response");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetLiveData: Error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("GetLiveData: Error - " + ex.Message);
 			}
 		}
 
@@ -1316,13 +1316,13 @@ namespace CumulusMX
 
 			if (data == null)
 			{
-				cumulus.LogMessage("Nothing returned from System Info!", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("Nothing returned from System Info!");
 				return;
 			}
 
 			if (data.Length != 13)
 			{
-				cumulus.LogMessage("Unexpected response to System Info!", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("Unexpected response to System Info!");
 				return;
 			}
 			try
@@ -1371,7 +1371,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error processing System Info: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Error processing System Info: " + ex.Message);
 			}
 		}
 
@@ -1431,13 +1431,13 @@ namespace CumulusMX
 
 			if (data == null)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Nothing returned from Read Rain!", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("GetPiezoRainData: Nothing returned from Read Rain!");
 				return;
 			}
 
 			if (data.Length < 8)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Unexpected response to Read Rain!", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("GetPiezoRainData: Unexpected response to Read Rain!");
 				return;
 			}
 			try
@@ -1536,13 +1536,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Error processing Rain Info: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("GetPiezoRainData: Error processing Rain Info: " + ex.Message);
 			}
 		}
 
@@ -1589,7 +1589,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("DoCO2Decode: Error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("DoCO2Decode: Error - " + ex.Message);
 			}
 
 			return batteryLow;
@@ -1673,7 +1673,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;

@@ -101,11 +101,11 @@ namespace CumulusMX
 			{
 				if (DavisFirmwareVersion == "???" && cumulus.DavisOptions.UseLoop2)
 				{
-					cumulus.LogMessage("Unable to determine the firmware version, LOOP2 may not be supported", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("Unable to determine the firmware version, LOOP2 may not be supported");
 				}
 				else if ((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float) 1.9) && cumulus.DavisOptions.UseLoop2)
 				{
-					cumulus.LogMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
 					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini", ConsoleColor.Yellow);
 				}
 			}
@@ -138,7 +138,7 @@ namespace CumulusMX
 				{
 					if (cumulus.StationOptions.SyncTime)
 					{
-						cumulus.LogMessage($"Console clock: Console is {(int) timeDiff} seconds adrift, resetting it...", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage($"Console clock: Console is {(int) timeDiff} seconds adrift, resetting it...");
 
 						SetTime();
 						// Pause whilst the console sorts itself out
@@ -154,12 +154,12 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage("Console clock: Failed to read console time", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("Console clock: Failed to read console time");
 						}
 					}
 					else
 					{
-						cumulus.LogMessage($"Console clock: Console is {(int) timeDiff} seconds adrift but automatic setting is disabled - you should set the clock manually.", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage($"Console clock: Console is {(int) timeDiff} seconds adrift but automatic setting is disabled - you should set the clock manually.");
 					}
 				}
 				else
@@ -169,7 +169,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Console clock: Failed to read console time", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("Console clock: Failed to read console time");
 			}
 
 
@@ -259,11 +259,11 @@ namespace CumulusMX
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage("GetFirmwareVersion: Timed out waiting for a response", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("GetFirmwareVersion: Timed out waiting for a response");
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("GetFirmwareVersion: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("GetFirmwareVersion: Error - " + ex.Message);
 						cumulus.LogDebugMessage("GetFirmwareVersion: Attempting to reconnect to logger");
 						InitSerial();
 						cumulus.LogDebugMessage("GetFirmwareVersion: Reconnected to logger");
@@ -300,16 +300,16 @@ namespace CumulusMX
 					{
 						if (ex.Message.Contains("did not properly respond after a period of time"))
 						{
-							cumulus.LogMessage("GetFirmwareVersion: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("GetFirmwareVersion: Timed out waiting for a response");
 						}
 						else
 						{
-							cumulus.LogMessage("GetFirmwareVersion: Error - " + ex.Message, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("GetFirmwareVersion: Error - " + ex.Message);
 						}
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("GetFirmwareVersion: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("GetFirmwareVersion: Error - " + ex.Message);
 						cumulus.LogDebugMessage("GetFirmwareVersion: Attempting to reconnect to logger");
 						InitTCP();
 						cumulus.LogDebugMessage("GetFirmwareVersion: Reconnected to logger");
@@ -345,7 +345,7 @@ namespace CumulusMX
 
 						if (!WaitForACK(comport))
 						{
-							cumulus.LogMessage("CheckLoggerInterval: No ACK in response to requesting logger interval", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("CheckLoggerInterval: No ACK in response to requesting logger interval");
 							return;
 						}
 
@@ -360,11 +360,11 @@ namespace CumulusMX
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage("CheckLoggerInterval: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("CheckLoggerInterval: Timed out waiting for a response");
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("CheckLoggerInterval: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("CheckLoggerInterval: Error - " + ex.Message);
 						awakeStopWatch.Stop();
 					}
 				}
@@ -384,7 +384,7 @@ namespace CumulusMX
 
 						if (!WaitForACK(stream))
 						{
-							cumulus.LogMessage("CheckLoggerInterval: No ACK in response to requesting logger interval", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("CheckLoggerInterval: No ACK in response to requesting logger interval");
 							return;
 						}
 
@@ -401,17 +401,17 @@ namespace CumulusMX
 					{
 						if (ex.Message.Contains("did not properly respond after a period"))
 						{
-							cumulus.LogMessage("CheckLoggerInterval: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("CheckLoggerInterval: Timed out waiting for a response");
 						}
 						else
 						{
-							cumulus.LogMessage("CheckLoggerInterval: Error - " + ex.Message, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("CheckLoggerInterval: Error - " + ex.Message);
 							awakeStopWatch.Stop();
 						}
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("CheckLoggerInterval: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("CheckLoggerInterval: Error - " + ex.Message);
 						awakeStopWatch.Stop();
 					}
 				}
@@ -427,7 +427,7 @@ namespace CumulusMX
 				loggerInterval = readBuffer[0];
 				var msg = $"** WARNING: Your station logger interval {loggerInterval} mins does not match your Cumulus MX logging interval {cumulus.logints[cumulus.DataLogInterval]} mins";
 				cumulus.LogConsoleMessage(msg);
-				cumulus.LogMessage("CheckLoggerInterval: " + msg, Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("CheckLoggerInterval: " + msg);
 
 				if (cumulus.DavisOptions.SetLoggerInterval)
 				{
@@ -452,7 +452,7 @@ namespace CumulusMX
 
 						if (!WaitForACK(comport))
 						{
-							cumulus.LogMessage("SetLoggerInterval: No ACK in response to setting logger interval", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("SetLoggerInterval: No ACK in response to setting logger interval");
 							return;
 						}
 
@@ -462,11 +462,11 @@ namespace CumulusMX
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage("SetLoggerInterval: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("SetLoggerInterval: Timed out waiting for a response");
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("SetLoggerInterval: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("SetLoggerInterval: Error - " + ex.Message);
 						awakeStopWatch.Stop();
 					}
 				}
@@ -486,7 +486,7 @@ namespace CumulusMX
 
 						if (!WaitForACK(stream))
 						{
-							cumulus.LogMessage("SetLoggerInterval: No ACK in response to setting logger interval", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("SetLoggerInterval: No ACK in response to setting logger interval");
 							return;
 						}
 
@@ -498,17 +498,17 @@ namespace CumulusMX
 					{
 						if (ex.Message.Contains("did not properly respond after a period"))
 						{
-							cumulus.LogMessage("SetLoggerInterval: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("SetLoggerInterval: Timed out waiting for a response");
 						}
 						else
 						{
-							cumulus.LogMessage("SetLoggerInterval: Error - " + ex.Message, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("SetLoggerInterval: Error - " + ex.Message);
 							awakeStopWatch.Stop();
 						}
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("SetLoggerInterval: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("SetLoggerInterval: Error - " + ex.Message);
 						awakeStopWatch.Stop();
 					}
 				}
@@ -551,11 +551,11 @@ namespace CumulusMX
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage("GetReceptionStats: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("GetReceptionStats: Timed out waiting for a response");
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("GetReceptionStats: Error - " + ex.Message);
 						cumulus.LogDebugMessage("GetReceptionStats: Attempting to reconnect to logger");
 						InitSerial();
 						cumulus.LogDebugMessage("GetReceptionStats: Reconnected to logger");
@@ -592,11 +592,11 @@ namespace CumulusMX
 					{
 						if (ex.Message.Contains("did not properly respond after a period"))
 						{
-							cumulus.LogMessage("GetReceptionStats: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("GetReceptionStats: Timed out waiting for a response");
 						}
 						else
 						{
-							cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("GetReceptionStats: Error - " + ex.Message);
 							cumulus.LogDebugMessage("GetReceptionStats: Attempting to reconnect to logger");
 							InitTCP();
 							cumulus.LogDebugMessage("GetReceptionStats: Reconnected to logger");
@@ -604,7 +604,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("GetReceptionStats: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("GetReceptionStats: Error - " + ex.Message);
 						cumulus.LogDebugMessage("GetReceptionStats: Attempting to reconnect to logger");
 						InitTCP();
 						cumulus.LogDebugMessage("GetReceptionStats: Reconnected to logger");
@@ -645,7 +645,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("OpenTcpPort: Error - " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("OpenTcpPort: Error - " + ex.Message);
 				}
 			}
 
@@ -757,7 +757,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Logger archive reading thread completed");
 			if (e.Error != null)
 			{
-				cumulus.LogMessage("Archive reading thread apparently terminated with an error: " + e.Error.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Archive reading thread apparently terminated with an error: " + e.Error.Message);
 			}
 			//cumulus.LogMessage("Updating highs and lows");
 			//using (cumulusEntities dataContext = new cumulusEntities())
@@ -811,7 +811,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
@@ -921,7 +921,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage("Console clock: Failed to read console time", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("Console clock: Failed to read console time");
 						}
 
 						if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
@@ -939,7 +939,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								cumulus.LogMessage("Console clock: Failed to read console time", Cumulus.LogLevel.Warning);
+								cumulus.LogWarningMessage("Console clock: Failed to read console time");
 							}
 						}
 						else
@@ -975,7 +975,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"Failed to open the comm port ({cumulus.ComportName}). Error - {ex.Message}", Cumulus.LogLevel.Error);
+								cumulus.LogErrorMessage($"Failed to open the comm port ({cumulus.ComportName}). Error - {ex.Message}");
 							}
 							if (comport == null || !comport.IsOpen)
 							{
@@ -1040,7 +1040,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					// any others, log them and carry on
-					cumulus.LogMessage("Davis Start: Exception - " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("Davis Start: Exception - " + ex.Message);
 				}
 			}
 
@@ -1218,7 +1218,7 @@ namespace CumulusMX
 				if (stop)
 					return false;
 
-				cumulus.LogMessage("SendLoopCommand: Error sending LOOP command [" + commandString.Replace("\n", "") + "]: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("SendLoopCommand: Error sending LOOP command [" + commandString.Replace("\n", "") + "]: " + ex.Message);
 				cumulus.LogDebugMessage("SendLoopCommand: Attempting to reconnect to station");
 				InitSerial();
 				cumulus.LogDebugMessage("SendLoopCommand: Reconnected to station");
@@ -1287,7 +1287,7 @@ namespace CumulusMX
 			{
 				if (stop) return false;
 
-				cumulus.LogMessage("SendLoopCommand: Error sending LOOP command [" + commandString.Replace("\n", "") + "]: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("SendLoopCommand: Error sending LOOP command [" + commandString.Replace("\n", "") + "]: " + ex.Message);
 				cumulus.LogDebugMessage("SendLoopCommand: Attempting to reconnect to station");
 				InitTCP();
 				cumulus.LogDebugMessage("SendLoopCommand: Reconnected to station");
@@ -1346,19 +1346,19 @@ namespace CumulusMX
 						tmrComm.Stop();
 						if (comport.BytesToRead < loopDataLength)
 						{
-							cumulus.LogMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {comport.BytesToRead}", Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {comport.BytesToRead}");
 						}
 
 						comport.Read(loopString, 0, loopDataLength);
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage($"LOOP: {i + 1} - Timed out waiting for LOOP data", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage($"LOOP: {i + 1} - Timed out waiting for LOOP data");
 						return;
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("LOOP: Exception - " + ex, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("LOOP: Exception - " + ex);
 						cumulus.LogDebugMessage("LOOP: Attempting to reconnect to station");
 						InitSerial();
 						cumulus.LogDebugMessage("LOOP: Reconnected to station");
@@ -1386,7 +1386,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage("LOOP: Periodic disconnect error: " + ex.Message, Cumulus.LogLevel.Error);
+								cumulus.LogErrorMessage("LOOP: Periodic disconnect error: " + ex.Message);
 							}
 							finally
 							{
@@ -1415,7 +1415,7 @@ namespace CumulusMX
 
 						if (socket.Available < loopDataLength)
 						{
-							cumulus.LogMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}", Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
 						}
 
 						// Read the first 99 bytes of the buffer into the array
@@ -1425,11 +1425,11 @@ namespace CumulusMX
 					{
 						if (ex.Message.Contains("did not properly respond after a period"))
 						{
-							cumulus.LogMessage("LOOP: Timed out waiting for LOOP data", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("LOOP: Timed out waiting for LOOP data");
 						}
 						else
 						{
-							cumulus.LogMessage("LOOP: Receive error - " + ex, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("LOOP: Receive error - " + ex);
 							cumulus.LogMessage("LOOP: Reconnecting to station");
 							InitTCP();
 							cumulus.LogMessage("LOOP: Reconnected to station");
@@ -1438,7 +1438,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("LOOP: Receive error - " + ex, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("LOOP: Receive error - " + ex);
 						cumulus.LogMessage("LOOP: Reconnecting to station");
 						InitTCP();
 						cumulus.LogMessage("LOOP: Reconnected to station");
@@ -1499,7 +1499,7 @@ namespace CumulusMX
 
 				if (!CrcOk(loopString))
 				{
-					cumulus.LogMessage($"LOOP: {i + 1} - Packet CRC invalid", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"LOOP: {i + 1} - Packet CRC invalid");
 					continue;
 				}
 
@@ -1858,7 +1858,7 @@ namespace CumulusMX
 
 						if (comport.BytesToRead < loopDataLength)
 						{
-							cumulus.LogMessage($"LOOP2: Expected data not received, expected 99 bytes, got {comport.BytesToRead}", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"LOOP2: Expected data not received, expected 99 bytes, got {comport.BytesToRead}");
 						}
 
 						// Read the data from the buffer into the array
@@ -1866,12 +1866,12 @@ namespace CumulusMX
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage("LOOP2: Timed out waiting for LOOP2 data", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("LOOP2: Timed out waiting for LOOP2 data");
 						continue;
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("LOOP2: Error - " + ex, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("LOOP2: Error - " + ex);
 						cumulus.LogDebugMessage("LOOP2: Attempting to reconnect to logger");
 						InitSerial();
 						cumulus.LogDebugMessage("LOOP2: Reconnected to logger");
@@ -1891,7 +1891,7 @@ namespace CumulusMX
 
 						if (socket.Available < loopDataLength)
 						{
-							cumulus.LogMessage($"LOOP2: Expected data not received, expected 99 bytes got {socket.Available}", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"LOOP2: Expected data not received, expected 99 bytes got {socket.Available}");
 						}
 						// Read the first 99 bytes of the buffer into the array
 						socket.GetStream().Read(loopString, 0, loopDataLength);
@@ -2089,7 +2089,7 @@ namespace CumulusMX
 
 					if (!WakeVP(comport))
 					{
-						cumulus.LogMessage("GetArchiveData: Unable to wake VP", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("GetArchiveData: Unable to wake VP");
 					}
 
 					// send the command
@@ -2102,7 +2102,7 @@ namespace CumulusMX
 					ack = WaitForACK(comport);
 					if (!ack)
 					{
-						cumulus.LogMessage("GetArchiveData: No Ack in response to DMPAFT", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("GetArchiveData: No Ack in response to DMPAFT");
 						retries++;
 					}
 				} while (!ack && retries < 2);
@@ -2118,7 +2118,7 @@ namespace CumulusMX
 					{
 						if (!WakeVP(socket))
 						{
-							cumulus.LogMessage("GetArchiveData: Unable to wake VP", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("GetArchiveData: Unable to wake VP");
 						}
 
 						cumulus.LogMessage("GetArchiveData: Sending DMPAFT");
@@ -2128,14 +2128,14 @@ namespace CumulusMX
 						ack = WaitForACK(stream);
 						if (!ack)
 						{
-							cumulus.LogMessage("GetArchiveData: No Ack in response to DMPAFT", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("GetArchiveData: No Ack in response to DMPAFT");
 							retries++;
 						}
 					} while (!ack && retries < 2);
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("GetArchiveData: Error sending LOOP command [DMPAFT]: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("GetArchiveData: Error sending LOOP command [DMPAFT]: " + ex.Message);
 					cumulus.LogDebugMessage("GetArchiveData: Attempting to reconnect to station");
 					InitTCP();
 					cumulus.LogDebugMessage("GetArchiveData: Reconnected to station");
@@ -2146,7 +2146,7 @@ namespace CumulusMX
 
 			if (!ack)
 			{
-				cumulus.LogMessage("GetArchiveData: No Ack in response to DMPAFT, giving up", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("GetArchiveData: No Ack in response to DMPAFT, giving up");
 				return;
 			}
 
@@ -2175,7 +2175,7 @@ namespace CumulusMX
 				// wait for the ACK, this can take a while if it is going to dump a large number of records
 				if (!WaitForACK(comport, 5000))
 				{
-					cumulus.LogMessage("GetArchiveData: No ACK in response to sending date and time", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("GetArchiveData: No ACK in response to sending date and time");
 					return;
 				}
 
@@ -2204,7 +2204,7 @@ namespace CumulusMX
 
 				if (!WaitForACK(stream, 5000))
 				{
-					cumulus.LogMessage("GetArchiveData: No ACK in response to sending date and time", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("GetArchiveData: No ACK in response to sending date and time");
 					return;
 				}
 
@@ -2287,7 +2287,7 @@ namespace CumulusMX
 
 							if (tmrComm.timedout)
 							{
-								cumulus.LogMessage("GetArchiveData: The station has stopped sending archive data, ending attempts", Cumulus.LogLevel.Error);
+								cumulus.LogErrorMessage("GetArchiveData: The station has stopped sending archive data, ending attempts");
 								if (!Program.service)
 									Console.WriteLine(""); // flush the progress line
 								return;
@@ -2319,7 +2319,7 @@ namespace CumulusMX
 
 							if (responsePasses == 20)
 							{
-								cumulus.LogMessage("The station has stopped sending archive data", Cumulus.LogLevel.Error);
+								cumulus.LogErrorMessage("The station has stopped sending archive data");
 								if (!Program.service)
 									Console.WriteLine(""); // flush the progress line
 								return;
@@ -2344,7 +2344,7 @@ namespace CumulusMX
 					// if we still got bad data after maxPasses, give up
 					if (badCRC)
 					{
-						cumulus.LogMessage("GetArchiveData: Bad CRC", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("GetArchiveData: Bad CRC");
 						if (isSerial)
 							comport.Write(ESCstring, 0, 1);
 						else
@@ -2884,12 +2884,12 @@ namespace CumulusMX
 					return (true);
 				}
 
-				cumulus.LogMessage("WakeVP: *** VP2 Not woken", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("WakeVP: *** VP2 Not woken");
 				return (false);
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("WakeVP: Error - " + ex, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("WakeVP: Error - " + ex);
 				return (false);
 			}
 		}
@@ -3037,7 +3037,7 @@ namespace CumulusMX
 					Thread.Sleep(1000);
 				}
 
-				cumulus.LogMessage("WakeVP: *** Console Not woken", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("WakeVP: *** Console Not woken");
 				return (false);
 			}
 			catch (Exception ex)
@@ -3099,7 +3099,7 @@ namespace CumulusMX
 				{
 					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message, ConsoleColor.Red, true);
 					cumulus.LogConsoleMessage("Will retry in 30 seconds...");
-					cumulus.LogMessage("InitSerial: Error opening port - " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("InitSerial: Error opening port - " + ex.Message);
 				}
 
 				if (comport == null || !comport.IsOpen)
@@ -3170,7 +3170,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("InitSerial: Error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("InitSerial: Error - " + ex.Message);
 			}
 		}
 
@@ -3266,7 +3266,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("InitTCP: Error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("InitTCP: Error - " + ex.Message);
 			}
 		}
 
@@ -3513,7 +3513,7 @@ namespace CumulusMX
 
 						if (!WaitForACK(comport))
 						{
-							cumulus.LogMessage("getTime: No ACK", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("getTime: No ACK");
 							return DateTime.MinValue;
 						}
 
@@ -3529,12 +3529,12 @@ namespace CumulusMX
 					}
 					catch (TimeoutException)
 					{
-						cumulus.LogMessage("getTime: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("getTime: Timed out waiting for a response");
 						return DateTime.MinValue;
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("getTime: Error - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("getTime: Error - " + ex.Message);
 						return DateTime.MinValue;
 					}
 				}
@@ -3574,7 +3574,7 @@ namespace CumulusMX
 					{
 						if (ex.Message.Contains("did not properly respond after a period"))
 						{
-							cumulus.LogMessage("getTime: Timed out waiting for a response", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("getTime: Timed out waiting for a response");
 						}
 						else
 						{
@@ -3593,7 +3593,7 @@ namespace CumulusMX
 			cumulus.LogDataMessage("getTime: Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
 			if (bytesRead != 8)
 			{
-				cumulus.LogMessage("getTime: Expected 8 bytes, got " + bytesRead, Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("getTime: Expected 8 bytes, got " + bytesRead);
 			}
 			// CRC doesn't seem to compute?
 			//else if (!crcOK(buffer))
@@ -3608,7 +3608,7 @@ namespace CumulusMX
 				}
 				catch (Exception)
 				{
-					cumulus.LogMessage("getTime: Error in time format", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("getTime: Error in time format");
 				}
 			}
 			return DateTime.MinValue;
@@ -3634,7 +3634,7 @@ namespace CumulusMX
 						// wait for the ACK
 						if (!WaitForACK(comport))
 						{
-							cumulus.LogMessage("SetTime: No ACK to SETTIME - Not setting the time", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("SetTime: No ACK to SETTIME - Not setting the time");
 							return;
 						}
 					}
@@ -3655,7 +3655,7 @@ namespace CumulusMX
 						// wait for the ACK
 						if (!WaitForACK(stream))
 						{
-							cumulus.LogMessage("SetTime: No ACK to SETTIME - Not setting the time", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("SetTime: No ACK to SETTIME - Not setting the time");
 							return;
 						}
 					}
@@ -3705,7 +3705,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("SetTime: Error, console time set failed", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("SetTime: Error, console time set failed");
 					}
 				}
 				else if (stream != null)
@@ -3718,7 +3718,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("SetTime: Error, console time set failed", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("SetTime: Error, console time set failed");
 					}
 				}
 			}

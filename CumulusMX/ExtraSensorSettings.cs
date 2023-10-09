@@ -185,7 +185,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing ExtraSensor Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("ExtraSensor Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -205,7 +205,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing General settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -244,7 +244,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing AirLink settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -368,7 +368,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -402,7 +402,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ambient settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -415,7 +415,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Blake-Larsen settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -446,7 +446,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing RG-11 settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -457,7 +457,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Extra Sensor settings: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Extra Sensor Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;

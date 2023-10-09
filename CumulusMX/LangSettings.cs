@@ -176,7 +176,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Localisation Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Localisation Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -197,7 +197,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Zambretti forecast settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -217,7 +217,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Moon phase settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -242,7 +242,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Beaufort settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -263,7 +263,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Trend settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -277,7 +277,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Air Quality settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -291,7 +291,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Solar settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -309,7 +309,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Davis Forecast settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -328,7 +328,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Extra Sensor Names: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -346,7 +346,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing CO2 settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -381,7 +381,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Alarm settings: " + ex.Message;
-					cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -392,7 +392,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Localisation settings: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Localisation Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;

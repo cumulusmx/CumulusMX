@@ -90,7 +90,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("SendEmail: Error - " + e, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("SendEmail: Error - " + e);
 			}
 			finally
 			{
@@ -155,7 +155,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("SendEmail: Error - " + e, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("SendEmail: Error - " + e);
 				retVal = e.Message;
 			}
 			finally

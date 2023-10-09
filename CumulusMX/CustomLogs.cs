@@ -90,7 +90,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Custom Interval Log Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Custom Interval Log Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -133,7 +133,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -157,7 +157,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Custom Daily Log Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Custom Daily Log Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -197,7 +197,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				context.Response.StatusCode = 500;
 				return msg;
 			}

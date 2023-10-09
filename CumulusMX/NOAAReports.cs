@@ -37,7 +37,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error creating NOAA yearly report: {e.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"Error creating NOAA yearly report: {e.Message}");
 				throw;
 			}
 			return report;
@@ -64,7 +64,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error creating NOAA yearly report '{reportName}': {e.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"Error creating NOAA yearly report '{reportName}': {e.Message}");
 				throw;
 			}
 			return report;
@@ -180,7 +180,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error getting NOAA yearly report '{reportName}': {e.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"Error getting NOAA yearly report '{reportName}': {e.Message}");
 				report = "Something went wrong!";
 			}
 			return report;
@@ -200,7 +200,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"Error getting NOAA monthly report '{reportName}': {e.Message}", Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"Error getting NOAA monthly report '{reportName}': {e.Message}");
 				report = "Something went wrong!";
 			}
 			return report;

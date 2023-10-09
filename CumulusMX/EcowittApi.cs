@@ -64,7 +64,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
-				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
 				return false;
 			}
@@ -241,7 +241,7 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogMessage("API.GetHistoricData: Error decoding the response - " + ex.Message, Cumulus.LogLevel.Error);
+									cumulus.LogErrorMessage("API.GetHistoricData: Error decoding the response - " + ex.Message);
 									cumulus.LastUpdateTime = endTime;
 									return false;
 								}
@@ -274,7 +274,7 @@ namespace CumulusMX
 					}
 					else // No idea what we got, dump it to the log
 					{
-						cumulus.LogMessage("API.GetHistoricData: Invalid historic message received", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("API.GetHistoricData: Invalid historic message received");
 						cumulus.LogDataMessage("API.GetHistoricData: Received: " + responseBody);
 						cumulus.LastUpdateTime = endTime;
 						return false;
@@ -292,7 +292,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("API.GetHistoricData: Exception: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("API.GetHistoricData: Exception: " + ex.Message);
 				cumulus.LastUpdateTime = endTime;
 				return false;
 			}
@@ -357,7 +357,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing indoor data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing indoor data. Exception: " + ex.Message);
 				}
 			}
 			// Outdoor Data
@@ -437,7 +437,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing outdoor data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing outdoor data. Exception: " + ex.Message);
 				}
 			}
 			// Wind Data
@@ -516,7 +516,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing wind data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing wind data. Exception: " + ex.Message);
 				}
 			}
 			// Pressure Data
@@ -549,7 +549,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing pressure data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing pressure data. Exception: " + ex.Message);
 				}
 			}
 			// Rainfall Data
@@ -656,7 +656,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing rainfall data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing rainfall data. Exception: " + ex.Message);
 				}
 			}
 			// Solar Data
@@ -712,7 +712,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing solar data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing solar data. Exception: " + ex.Message);
 				}
 			}
 			// Extra 8 channel sensors
@@ -827,7 +827,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra T/H data - chan[{i}]. Exception: {ex.Message}", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra T/H data - chan[{i}]. Exception: {ex.Message}");
 					}
 
 				}
@@ -859,7 +859,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra soil moisture data - chan[{i}]. Exception: {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra soil moisture data - chan[{i}]. Exception: {ex.Message}");
 				}
 				// User Temp Data
 				try
@@ -889,7 +889,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra user temp data - chan[{i}]. Exception: {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra user temp data - chan[{i}]. Exception: {ex.Message}");
 				}
 				// Leaf Wetness Data
 				try
@@ -919,7 +919,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing extra leaf wetness data - chan[{i}]. Exception:{ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra leaf wetness data - chan[{i}]. Exception:{ex.Message}");
 				}
 			}
 			// Indoor CO2
@@ -975,7 +975,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing indoor CO2 data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing indoor CO2 data. Exception: " + ex.Message);
 				}
 			}
 			// CO2 Combi
@@ -1031,7 +1031,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing CO2 combo data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing CO2 combo data. Exception: " + ex.Message);
 				}
 			}
 			// pm2.5 Combi
@@ -1063,7 +1063,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing pm 2.5 combo data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing pm 2.5 combo data. Exception: " + ex.Message);
 				}
 			}
 			// pm10 Combi
@@ -1095,7 +1095,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("API.ProcessHistoryData: Error in pre-processing pm 10 combo data. Exception: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing pm 10 combo data. Exception: " + ex.Message);
 				}
 			}
 			// 4 channel PM 2.5 sensors
@@ -1144,7 +1144,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"API.ProcessHistoryData: Error in pre-processing 4 chan pm 2.5 data - chan[{i}] . Exception: {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing 4 chan pm 2.5 data - chan[{i}] . Exception: {ex.Message}");
 				}
 			}
 
@@ -1269,12 +1269,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Insufficient data process wind", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Insufficient data process wind");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Wind data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Wind data - " + ex.Message);
 			}
 
 			// === Humidity ===
@@ -1287,7 +1287,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Missing indoor humidity data", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing indoor humidity data");
 				}
 
 				if (rec.Value.Humidity.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
@@ -1296,13 +1296,13 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Missing outdoor humidity data", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing outdoor humidity data");
 				}
 
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Humidity data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Humidity data - " + ex.Message);
 			}
 
 			// === Pressure ===
@@ -1317,12 +1317,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Missing pressure data", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing pressure data");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Pressure data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Pressure data - " + ex.Message);
 			}
 
 			// === Indoor temp ===
@@ -1336,12 +1336,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Missing indoor temperature data", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing indoor temperature data");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Indoor temp data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Indoor temp data - " + ex.Message);
 			}
 
 			// === Outdoor temp ===
@@ -1355,12 +1355,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Missing outdoor temperature data", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing outdoor temperature data");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Outdoor temp data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Outdoor temp data - " + ex.Message);
 			}
 
 			// === Rain ===
@@ -1387,12 +1387,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Missing rain data", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing rain data");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Rain data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Rain data - " + ex.Message);
 			}
 
 			// === Solar ===
@@ -1406,7 +1406,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Solar data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Solar data - " + ex.Message);
 			}
 
 			// === UVI ===
@@ -1420,7 +1420,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Solar data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Solar data - " + ex.Message);
 			}
 
 			// === Extra Sensors ===
@@ -1441,7 +1441,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
 				}
 				// === Extra Humidity ===
 				try
@@ -1457,7 +1457,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
 				}
 
 
@@ -1478,7 +1478,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ApplyHistoricData: Error in extra user temperature data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra user temperature data - {ex.Message}");
 				}
 
 				// === Soil Moisture ===
@@ -1491,7 +1491,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
 				}
 			}
 
@@ -1505,7 +1505,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message);
 			}
 
 			// === Indoor CO2 24hr avg ===
@@ -1518,7 +1518,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
 			}
 
 			// === PM 2.5 Combo
@@ -1531,7 +1531,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in AQI Combo pm2.5 data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm2.5 data - " + ex.Message);
 			}
 
 			// === PM 10 Combo
@@ -1544,7 +1544,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in AQI Combo pm10 data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm10 data - " + ex.Message);
 			}
 
 			// === 4 channel pm 2.5 ===
@@ -1559,7 +1559,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
 				}
 			}
 
@@ -1581,7 +1581,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Dew point data - " + ex.Message);
 			}
 
 			// === Wind Chill ===
@@ -1601,7 +1601,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Wind chill data - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Wind chill data - " + ex.Message);
 			}
 
 			// === Humidex ===
@@ -1618,12 +1618,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("ApplyHistoricData: Insufficient data to calculate Apparent/Feels Like temps", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("ApplyHistoricData: Insufficient data to calculate Apparent/Feels Like temps");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("ApplyHistoricData: Error in Humidex/Apparant/Feels Like - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in Humidex/Apparant/Feels Like - " + ex.Message);
 			}
 		}
 
@@ -1703,7 +1703,7 @@ namespace CumulusMX
 				if (responseCode != 200)
 				{
 					var currentError = responseBody.FromJson<ErrorResp>();
-					cumulus.LogMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
 					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					delay = 10;
 					return null;
@@ -1712,7 +1712,7 @@ namespace CumulusMX
 
 				if (responseBody == "{}")
 				{
-					cumulus.LogMessage("API.GetCurrentData: Ecowitt API Current: No data was returned.", Cumulus.LogLevel.Warning);
+					cumulus.LogWarningMessage("API.GetCurrentData: Ecowitt API Current: No data was returned.");
 					cumulus.LogConsoleMessage(" - No current data available");
 					delay = 10;
 					return null;
@@ -1757,7 +1757,7 @@ namespace CumulusMX
 				}
 				else // No idea what we got, dump it to the log
 				{
-					cumulus.LogMessage("API.GetCurrentData: Invalid current message received", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("API.GetCurrentData: Invalid current message received");
 					cumulus.LogDataMessage("API.GetCurrentData: Received: " + responseBody);
 					delay = 10;
 					return null;
@@ -1802,7 +1802,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("API.GetCurrentData: Exception: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("API.GetCurrentData: Exception: " + ex.Message);
 				delay = 10;
 				return null;
 			}

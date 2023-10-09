@@ -238,7 +238,7 @@ namespace CumulusMX
 
 			if (len == 0)
 			{
-				Program.cumulus.LogMessage($"TokenParser error in file: {SourceFile}, InputString is zero length", Cumulus.LogLevel.Warning);
+				Program.cumulus.LogWarningMessage($"TokenParser error in file: {SourceFile}, InputString is zero length");
 				return $"TokenParser error in file: {SourceFile}, InputString is zero length";
 			}
 
@@ -272,7 +272,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						Program.cumulus.LogMessage($"Web tag error in file: {SourceFile}", Cumulus.LogLevel.Warning);
+						Program.cumulus.LogWarningMessage($"Web tag error in file: {SourceFile}");
 						Program.cumulus.LogMessage($"token={match.Value}");
 						Program.cumulus.LogMessage($"Position in file (character)={match.Index}");
 						Program.cumulus.LogMessage($"Exception: i={i} len={len}");

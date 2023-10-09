@@ -60,7 +60,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Edit rain today: " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage("Edit rain today: " + ex.Message);
 				}
 			}
 
@@ -122,7 +122,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Edit Diary: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Edit Diary: " + ex.Message);
 				return "{\"result\":\"Failed\"}";
 			}
 		}
@@ -160,7 +160,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Delete Diary: " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Delete Diary: " + ex.Message);
 				return "{\"result\":\"Failed\"}";
 			}
 		}
@@ -585,7 +585,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("GetRecordsDayFile: Error no day file records found", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("GetRecordsDayFile: Error no day file records found");
 			}
 
 			json.Append($"\"highTempValDayfile\":\"{highTemp.GetValString(cumulus.TempFormat)}\",");
@@ -1100,7 +1100,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"GetRecordsLogFile: Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage($"GetRecordsLogFile: Error at line {linenum} of {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -2081,7 +2081,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Error failed to find day records", Cumulus.LogLevel.Warning);
+				cumulus.LogWarningMessage("Error failed to find day records");
 			}
 
 			for (var i = 0; i < 12; i++)
@@ -2603,7 +2603,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"Error at line {linenum} of {logFile} : {e.Message}", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage($"Error at line {linenum} of {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -3313,7 +3313,7 @@ namespace CumulusMX
 						}
 						catch
 						{
-							cumulus.LogMessage("EditDayFile: Failed, new data does not match required values", Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage("EditDayFile: Failed, new data does not match required values");
 							cumulus.LogMessage("EditDayFile: Data received - " + newLine);
 							context.Response.StatusCode = 500;
 
@@ -3401,7 +3401,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"EditDayFile: Failed, to update MySQL. Error = {ex.Message}", Cumulus.LogLevel.Error);
+								cumulus.LogErrorMessage($"EditDayFile: Failed, to update MySQL. Error = {ex.Message}");
 								cumulus.LogMessage($"EditDayFile: SQL Update statement = {updateStr}");
 								context.Response.StatusCode = 501;  // Use 501 to signal that SQL failed but file update was OK
 
@@ -3412,13 +3412,13 @@ namespace CumulusMX
 					else
 					{
 						// ohoh! The dates do not match
-						cumulus.LogMessage($"EditDayFile: Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"EditDayFile: Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}");
 						return $"{{\"errors\":{{\"General\":[\"<br>Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}\"]}}}}";
 					}
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"EditDayFile: Failed. Error = {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"EditDayFile: Failed. Error = {ex.Message}");
 					return "{\"errors\":{\"General\":[\"<br>Error occurred: " + ex.Message + "\"]}}";
 				}
 
@@ -3438,7 +3438,7 @@ namespace CumulusMX
 					var formDate = newData.data[i][0];
 					if (lineData[0] != formDate)
 					{
-						cumulus.LogMessage($"EditDayFile: Entry deletion failed. Line to delete does not match the file contents", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"EditDayFile: Entry deletion failed. Line to delete does not match the file contents");
 						cumulus.LogMessage($"EditDayFile: Line: {lineNum + 1}, filedate = {lineData[0]}, formdate = {formDate}");
 						context.Response.StatusCode = 500;
 						return $"{{\"errors\":{{\"Logfile\":[\"<br>Failed, line to delete does not match the file contents\", \"<br>Line: {lineNum + 1}, filedate = {lineData[0]}, formdate = {formDate}\"]}}}}";
@@ -3453,7 +3453,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"EditDayFile: Entry deletion failed. Error = - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"EditDayFile: Entry deletion failed. Error = - " + ex.Message);
 						cumulus.LogMessage($"EditDayFile: Entry data = " + newData.data[i]);
 						context.Response.StatusCode = 500;
 						return "{\"errors\":{\"Logfile\":[\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
@@ -3468,7 +3468,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"EditDayFile: Error writing to the dayfile. Error = - " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"EditDayFile: Error writing to the dayfile. Error = - " + ex.Message);
 					context.Response.StatusCode = 500;
 					return "{\"errors\":{\"Logfile\":[\"<br>Error writing to the dayfile. Error: " + ex.Message + "\"]}}";
 				}
@@ -3477,7 +3477,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"EditDayFile: Unrecognised action = " + newData.action, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"EditDayFile: Unrecognised action = " + newData.action);
 				context.Response.StatusCode = 500;
 				return "{\"errors\":{\"Logfile\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
 			}
@@ -3512,7 +3512,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"EditMySqlCache: Failed, to update MySQL statement. Error = {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"EditMySqlCache: Failed, to update MySQL statement. Error = {ex.Message}");
 					context.Response.StatusCode = 500;
 
 					return "{\"errors\":{\"MySqlCache\":[\"Failed to update MySQL cache\"]}, \"data\":[\"" + newRec.statement + "\"]";
@@ -3539,7 +3539,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"EditMySqlCache: Failed, to delete MySQL statement. Error = {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"EditMySqlCache: Failed, to delete MySQL statement. Error = {ex.Message}");
 					context.Response.StatusCode = 500;
 
 					return "{\"errors\":{\"MySqlCache\":[\"Failed to update MySQL cache\"]}, \"data\":[\"" + newRec.statement + "\"]";
@@ -3549,7 +3549,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"EditMySqlCache: Unrecognised action = " + newData.action, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"EditMySqlCache: Unrecognised action = " + newData.action);
 				context.Response.StatusCode = 500;
 				return "{\"errors\":{\"SQL cache\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
 			}
@@ -3613,7 +3613,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("EditDataLog: Failed, error = " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("EditDataLog: Failed, error = " + ex.Message);
 						cumulus.LogMessage("EditDataLog: Data received - " + newLine);
 						context.Response.StatusCode = 500;
 
@@ -3727,7 +3727,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}", Cumulus.LogLevel.Error);
+								cumulus.LogErrorMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
 								cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
 								context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
 
@@ -3781,7 +3781,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage($"EditDataLog: Entry deletion failed. Error = - " + ex.Message, Cumulus.LogLevel.Error);
+							cumulus.LogErrorMessage($"EditDataLog: Entry deletion failed. Error = - " + ex.Message);
 							cumulus.LogMessage($"EditDataLog: Entry data = - " + thisrec.ToJson());
 							context.Response.StatusCode = 500;
 							return "{\"errors\": { \"Logfile\": [\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
@@ -3789,7 +3789,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage($"EditDataLog: Error. Line to delete {newData.data[i][0]} {newData.data[i][1]} does not match the file contents {lineData[0]} {lineData[1]}", Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"EditDataLog: Error. Line to delete {newData.data[i][0]} {newData.data[i][1]} does not match the file contents {lineData[0]} {lineData[1]}");
 						context.Response.StatusCode = 500;
 						return "{\"errors\":{\"Logfile\":[\"Failed, line to delete does not match the file contents\"]}}";
 					}
@@ -3804,7 +3804,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"EditDataLog: Error writing to the logfile {logfile}. Error = - {ex.Message}", Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"EditDataLog: Error writing to the logfile {logfile}. Error = - {ex.Message}");
 					context.Response.StatusCode = 500;
 					return "{\"errors\":{\"Logfile\":[\"<br>Error writing to the logfile " + logfile + ". Error: " + ex.Message + "\"]}}";
 				}
@@ -3842,7 +3842,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error writing current conditions to file - " + e.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage("Error writing current conditions to file - " + e.Message);
 				return false;
 			}
 		}

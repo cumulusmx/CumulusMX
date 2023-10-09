@@ -136,7 +136,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing NOAA Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("NOAA Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -217,7 +217,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing NOAA settings: " + ex.Message;
-				cumulus.LogMessage(msg, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("NOAA data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;

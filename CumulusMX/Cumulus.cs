@@ -760,7 +760,7 @@ namespace CumulusMX
 				catch (FileNotFoundException)
 				{
 					var msg = "Error: cannot find the file: " + srcfile;
-					LogMessage(msg, Cumulus.LogLevel.Error);
+					LogErrorMessage(msg);
 					LogConsoleMessage(msg);
 					Program.exitSystem = true;
 					return;
@@ -768,7 +768,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = $"Error copying file {srcfile}: {ex.Message}";
-					LogMessage(msg, Cumulus.LogLevel.Error);
+					LogErrorMessage(msg);
 					LogConsoleMessage(msg);
 					Program.exitSystem = true;
 					return;
@@ -790,7 +790,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					LogMessage("Error: Unable to access the System Up Time performance counter. System up time will not be available", Cumulus.LogLevel.Error);
+					LogErrorMessage("Error: Unable to access the System Up Time performance counter. System up time will not be available");
 					LogDebugMessage($"Error: {e}");
 				}
 			}
@@ -1180,7 +1180,7 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogMessage($"PING #{cnt} to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}", Cumulus.LogLevel.Error);
+								LogErrorMessage($"PING #{cnt} to {ProgramOptions.StartupPingHost} failed with error: {e.InnerException.Message}");
 							}
 
 						}
@@ -1198,7 +1198,7 @@ namespace CumulusMX
 					if (DateTime.Now >= pingTimeoutDT)
 					{
 						// yep, so attempt to cancel the task
-						LogMessage($"Nothing returned from PING #{attempt}, attempting the cancel the task", Cumulus.LogLevel.Error);
+						LogErrorMessage($"Nothing returned from PING #{attempt}, attempting the cancel the task");
 						pingTokenSource.Cancel();
 						// and double the timeout for next attempt
 						pingTimeoutSecs *= 2;
@@ -1220,7 +1220,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogMessage($"PING #{attempt}: Error with DNS refresh - {ex.Message}", Cumulus.LogLevel.Error);
+								LogErrorMessage($"PING #{attempt}: Error with DNS refresh - {ex.Message}");
 							}
 						}
 					}
@@ -1229,7 +1229,7 @@ namespace CumulusMX
 				if (DateTime.Now >= escapeTime)
 				{
 					LogConsoleMessage(msg3, ConsoleColor.Yellow);
-					LogMessage(msg3, Cumulus.LogLevel.Warning);
+					LogWarningMessage(msg3);
 				}
 				else
 				{
@@ -1252,7 +1252,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"Error running start-up task: {ex.Message}", Cumulus.LogLevel.Error);
+					LogErrorMessage($"Error running start-up task: {ex.Message}");
 				}
 			}
 
@@ -1279,7 +1279,7 @@ namespace CumulusMX
 				if (duplicates.Count > 0)
 				{
 					LogConsoleMessage($"WARNING: Duplicate entries ({duplicates.Count}) found in your Weather Diary database - please see log file for details");
-					LogMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...", Cumulus.LogLevel.Warning);
+					LogWarningMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...");
 
 					foreach (var rec in duplicates)
 					{
@@ -2212,12 +2212,12 @@ namespace CumulusMX
 
 			if (WebUpdating == 1)
 			{
-				LogMessage("Warning, previous web update is still in progress, first chance, skipping this interval", Cumulus.LogLevel.Warning);
+				LogWarningMessage("Warning, previous web update is still in progress, first chance, skipping this interval");
 				WebUpdating++;
 			}
 			else if (WebUpdating >= 2)
 			{
-				LogMessage("Warning, previous web update is still in progress, second chance, aborting connection", Cumulus.LogLevel.Warning);
+				LogWarningMessage("Warning, previous web update is still in progress, second chance, aborting connection");
 				if (ftpThread.ThreadState == System.Threading.ThreadState.Running)
 					ftpThread.Abort();
 				LogMessage("Trying new web update");
@@ -2315,7 +2315,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Wunderground: ERROR - " + ex.Message, LogLevel.Warning);
+				LogWarningMessage("Wunderground: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "Wunderground: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2349,7 +2349,7 @@ namespace CumulusMX
 					LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
-						LogMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText, LogLevel.Warning);
+						LogWarningMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
 						ThirdPartyAlarm.LastMessage = "Windy: HTTP response - " + response.StatusCode;
 						ThirdPartyAlarm.Triggered = true;
 					}
@@ -2361,7 +2361,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Windy: ERROR - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("Windy: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "Windy: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2395,7 +2395,7 @@ namespace CumulusMX
 					LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
-						LogMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText, LogLevel.Warning);
+						LogWarningMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
 						ThirdPartyAlarm.LastMessage = "WindGuru: HTTP response - " + response.StatusCode;
 						ThirdPartyAlarm.Triggered = true;
 					}
@@ -2407,7 +2407,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("WindGuru: ERROR - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("WindGuru: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "WindGuru: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2447,7 +2447,7 @@ namespace CumulusMX
 
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
-						LogMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}", LogLevel.Warning);
+						LogWarningMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 						ThirdPartyAlarm.LastMessage = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
 						ThirdPartyAlarm.Triggered = true;
 						AWEKAS.Updating = false;
@@ -2466,7 +2466,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
-						LogMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}", LogLevel.Error);
+						LogErrorMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
 						ThirdPartyAlarm.LastMessage = "AWEKAS deserializing response: " + ex.Message;
 						ThirdPartyAlarm.Triggered = true;
 						AWEKAS.Updating = false;
@@ -2487,7 +2487,7 @@ namespace CumulusMX
 					{
 						if (respJson.minuploadtime > 0 && respJson.authentication == 0)
 						{
-							LogMessage("AWEKAS: Authentication error", LogLevel.Warning);
+							LogWarningMessage("AWEKAS: Authentication error");
 							if (AWEKAS.Interval < 300)
 							{
 								AWEKAS.RateLimited = true;
@@ -2500,7 +2500,7 @@ namespace CumulusMX
 						}
 						else if (respJson.minuploadtime == 0)
 						{
-							LogMessage("AWEKAS: Too many requests, rate limited", LogLevel.Warning);
+							LogWarningMessage("AWEKAS: Too many requests, rate limited");
 							// AWEKAS PLus allows minimum of 60 second updates, try that first
 							if (!AWEKAS.RateLimited && AWEKAS.Interval < 60)
 							{
@@ -2524,7 +2524,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							LogMessage("AWEKAS: Unknown error", LogLevel.Warning);
+							LogWarningMessage("AWEKAS: Unknown error");
 							ThirdPartyAlarm.LastMessage = "AWEKAS: Unknown error";
 							ThirdPartyAlarm.Triggered = true;
 						}
@@ -2559,7 +2559,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("AWEKAS: Exception = " + ex.Message, LogLevel.Error);
+				LogErrorMessage("AWEKAS: Exception = " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "AWEKAS: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2629,12 +2629,12 @@ namespace CumulusMX
 					if ((int) response.StatusCode == 200)
 						LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
 					else
-						LogMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}", LogLevel.Warning);
+						LogWarningMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
 				}
 			}
 			catch (Exception ex)
 			{
-				LogMessage("WeatherCloud: ERROR - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("WeatherCloud: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "WeatherCloud: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2672,7 +2672,7 @@ namespace CumulusMX
 					LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 					if (response.StatusCode != HttpStatusCode.NoContent)
 					{
-						LogMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}", LogLevel.Warning);
+						LogWarningMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}");
 						ThirdPartyAlarm.LastMessage = $"OpenWeatherMap: HTTP response - {response.StatusCode}, Response data = {responseBodyAsText}";
 						ThirdPartyAlarm.Triggered = true;
 					}
@@ -2684,7 +2684,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OpenWeatherMap: ERROR - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("OpenWeatherMap: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "OpenWeatherMap: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2715,7 +2715,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message);
 			}
 
 			return retVal;
@@ -2759,13 +2759,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"OpenWeatherMap: Failed to create new station. Error - {response.StatusCode}, text - {responseBodyAsText}", LogLevel.Warning);
+						LogWarningMessage($"OpenWeatherMap: Failed to create new station. Error - {response.StatusCode}, text - {responseBodyAsText}");
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OpenWeatherMap: Create station ERROR - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("OpenWeatherMap: Create station ERROR - " + ex.Message);
 			}
 		}
 
@@ -2796,7 +2796,7 @@ namespace CumulusMX
 					// multiple stations defined, the user must select which one to use
 					var msg = $"Multiple OpenWeatherMap stations found, please select the correct station id and enter it into your configuration";
 					LogConsoleMessage(msg);
-					LogMessage("OpenWeatherMap: " + msg, LogLevel.Warning);
+					LogWarningMessage("OpenWeatherMap: " + msg);
 					foreach (var station in stations)
 					{
 						msg = $"  Station Id = {station.id}, Name = {station.name}";
@@ -2821,7 +2821,7 @@ namespace CumulusMX
 			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
-				LogMessage($"Realtime[{cycle}]: Not all data is ready, aborting process", LogLevel.Warning);
+				LogWarningMessage($"Realtime[{cycle}]: Not all data is ready, aborting process");
 				return;
 			}
 
@@ -2831,7 +2831,7 @@ namespace CumulusMX
 				// Process any files
 				if (RealtimeCopyInProgress || RealtimeFtpInProgress)
 				{
-					LogMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.", LogLevel.Warning);
+					LogWarningMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
 				}
 				else
 				{
@@ -2854,13 +2854,13 @@ namespace CumulusMX
 							// real time interval is in ms, if a session has been uploading for 3 minutes - abort it and reconnect
 							if (realtimeFTPRetries * RealtimeInterval / 1000 > 3 * 60)
 							{
-								LogMessage($"Realtime[{cycle}]: Realtime has been in progress for more than 3 minutes, attempting to reconnect.", LogLevel.Warning);
+								LogWarningMessage($"Realtime[{cycle}]: Realtime has been in progress for more than 3 minutes, attempting to reconnect.");
 								//RealtimeFTPConnectionTest(cycle);
 								RealtimeFTPReconnect();
 							}
 							else
 							{
-								LogMessage($"Realtime[{cycle}]: No FTP attempted this cycle", LogLevel.Warning);
+								LogWarningMessage($"Realtime[{cycle}]: No FTP attempted this cycle");
 							}
 						}
 						else
@@ -3047,7 +3047,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							LogMessage("RealtimeReconnect: Realtime ftp connection failed to connect after reinitialisation", LogLevel.Warning);
+							LogWarningMessage("RealtimeReconnect: Realtime ftp connection failed to connect after reinitialisation");
 						}
 					}
 
@@ -3079,7 +3079,7 @@ namespace CumulusMX
 							if (pwd.Length == 0)
 							{
 								connected = false;
-								LogMessage("RealtimeReconnect: Realtime ftp connection test failed to get Present Working Directory", LogLevel.Warning);
+								LogWarningMessage("RealtimeReconnect: Realtime ftp connection test failed to get Present Working Directory");
 							}
 							else
 							{
@@ -3162,7 +3162,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"RealtimeLocalCopy[{cycle}]: Error copying [{srcFile}] to [{dstFile}. Error = {ex.Message}", LogLevel.Error);
+						LogErrorMessage($"RealtimeLocalCopy[{cycle}]: Error copying [{srcFile}] to [{dstFile}. Error = {ex.Message}");
 					}
 				}
 			}
@@ -3300,7 +3300,7 @@ namespace CumulusMX
 
 						if (!File.Exists(uploadfile))
 						{
-							LogMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}", LogLevel.Warning);
+							LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
 							return;
 						}
 
@@ -3445,7 +3445,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							LogMessage($"Realtime[{cycle}]: Warning, extra web file[{i}] not found! - {uploadfile}", LogLevel.Warning);
+							LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file[{i}] not found! - {uploadfile}");
 						}
 					}
 				}
@@ -3512,7 +3512,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							LogMessage($"Realtime[{cycle}]: Extra realtime web file[{i}] not found - {uploadfile}", LogLevel.Warning);
+							LogWarningMessage($"Realtime[{cycle}]: Extra realtime web file[{i}] not found - {uploadfile}");
 						}
 
 					}
@@ -4329,14 +4329,14 @@ namespace CumulusMX
 			if (Latitude > 90 || Latitude < -90)
 			{
 				Latitude = 0;
-				LogMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.", LogLevel.Error);
+				LogErrorMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
 			Longitude = ini.GetValue("Station", "Longitude", (decimal) 0.0);
 			if (Longitude > 180 || Longitude < -180)
 			{
 				Longitude = 0;
-				LogMessage($"Error, invalid longitude value in Cumulus.ini [{Longitude}], defaulting to zero.", LogLevel.Error);
+				LogErrorMessage($"Error, invalid longitude value in Cumulus.ini [{Longitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
 
@@ -4767,14 +4767,14 @@ namespace CumulusMX
 			if (!sshAuthenticationVals.Contains(FtpOptions.SshAuthen))
 			{
 				FtpOptions.SshAuthen = "password";
-				LogMessage($"Error, invalid SshFtpAuthentication value in Cumulus.ini [{FtpOptions.SshAuthen}], defaulting to Password.", LogLevel.Warning);
+				LogWarningMessage($"Error, invalid SshFtpAuthentication value in Cumulus.ini [{FtpOptions.SshAuthen}], defaulting to Password.");
 				rewriteRequired = true;
 			}
 			FtpOptions.SshPskFile = ini.GetValue("FTP site", "SshFtpPskFile", "");
 			if (FtpOptions.SshPskFile.Length > 0 && (FtpOptions.SshAuthen == "psk" || FtpOptions.SshAuthen == "password_psk") && !File.Exists(FtpOptions.SshPskFile))
 			{
 				FtpOptions.SshPskFile = "";
-				LogMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}].", LogLevel.Error);
+				LogErrorMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}].");
 				rewriteRequired = true;
 			}
 			FtpOptions.DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
@@ -8161,7 +8161,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"DoExtraLogFile: Error writing log entry {timestamp} - {ex.Message}", LogLevel.Error);
+					LogErrorMessage($"DoExtraLogFile: Error writing log entry {timestamp} - {ex.Message}");
 					retries--;
 					await Task.Delay(250);
 				}
@@ -8542,12 +8542,12 @@ namespace CumulusMX
 				else
 				{
 					LogConsoleMessage("Cumulus is already running - but 'Stop second instance' is disabled", ConsoleColor.Yellow);
-					LogMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing", LogLevel.Warning);
+					LogWarningMessage("Stop second instance: Cumulus is already running but 'Stop second instance' is disabled - continuing");
 				}
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Stop second instance: File Error! - " + ex, LogLevel.Warning);
+				LogWarningMessage("Stop second instance: File Error! - " + ex);
 				LogMessage("Stop second instance: File HResult - " + ex.HResult);
 				LogMessage("Stop second instance: File HResult - " + (ex.HResult & 0x0000FFFF));
 
@@ -8727,7 +8727,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				LogMessage($"BackupData: Error copying {src} - {e}", LogLevel.Error);
+				LogErrorMessage($"BackupData: Error copying {src} - {e}");
 			}
 		}
 
@@ -9097,11 +9097,20 @@ namespace CumulusMX
 			}
 		}
 
+
+		public void LogCriticalMessage(string message)
+		{
+			LogMessage(message, LogLevel.Critical);
+		}
+
 		public void LogErrorMessage(string message)
 		{
-			LatestError = message;
-			LatestErrorTS = DateTime.Now;
 			LogMessage(message, LogLevel.Error);
+		}
+
+		public void LogWarningMessage(string message)
+		{
+			LogMessage(message, LogLevel.Warning);
 		}
 
 		public void LogSpikeRemoval(string message)
@@ -9280,7 +9289,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								LogMessage($"Interval: Warning, extra web file[{i}] not found - {uploadfile}", LogLevel.Warning);
+								LogWarningMessage($"Interval: Warning, extra web file[{i}] not found - {uploadfile}");
 							}
 						}
 					}
@@ -9306,7 +9315,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("Interval: Error starting external program: " + ex.Message, LogLevel.Warning);
+						LogWarningMessage("Interval: Error starting external program: " + ex.Message);
 					}
 				}
 
@@ -9342,7 +9351,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("LocalCopy: Error with paths - " + ex.Message, LogLevel.Error);
+				LogErrorMessage("LocalCopy: Error with paths - " + ex.Message);
 			}
 
 
@@ -9376,12 +9385,12 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage("LocalCopy: Error copy NOAA reports - " + ex.Message, LogLevel.Error);
+						LogErrorMessage("LocalCopy: Error copy NOAA reports - " + ex.Message);
 					}
 				}
 				catch (Exception e)
 				{
-					LogMessage($"LocalCopy: Error copying file {srcfile} - {e.Message}", LogLevel.Error);
+					LogErrorMessage($"LocalCopy: Error copying file {srcfile} - {e.Message}");
 				}
 			}
 
@@ -9420,7 +9429,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						LogMessage($"LocalCopy: Error copying standard data file [{StdWebFiles[i].LocalFileName}]", LogLevel.Error);
+						LogErrorMessage($"LocalCopy: Error copying standard data file [{StdWebFiles[i].LocalFileName}]");
 						LogMessage($"LocalCopy: Error = {e.Message}");
 						failed++;
 					}
@@ -9462,7 +9471,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						LogMessage($"LocalCopy: Error copying graph data file [{srcfile}]", LogLevel.Error);
+						LogErrorMessage($"LocalCopy: Error copying graph data file [{srcfile}]");
 						LogMessage($"LocalCopy: Error = {e.Message}");
 						failed++;
 					}
@@ -9498,7 +9507,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						LogMessage($"LocalCopy: Error copying daily graph data file [{srcfile}]", LogLevel.Error);
+						LogErrorMessage($"LocalCopy: Error copying daily graph data file [{srcfile}]");
 						LogMessage($"LocalCopy: Error = {e.Message}");
 						failed++;
 					}
@@ -9518,7 +9527,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					LogMessage($"LocalCopy: Error copying moon image - {e.Message}", LogLevel.Error);
+					LogErrorMessage($"LocalCopy: Error copying moon image - {e.Message}");
 				}
 			}
 
@@ -10156,7 +10165,7 @@ namespace CumulusMX
 								}
 								catch (Exception e)
 								{
-									LogMessage($"SFTP[Int]: Error uploading moon image - {e.Message}", LogLevel.Error);
+									LogErrorMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
 									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
 								}
@@ -10456,7 +10465,7 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogMessage($"FTP[Int]: Error uploading moon image - {e.Message}", LogLevel.Error);
+								LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
 								FtpAlarm.Triggered = true;
 								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
 							}
@@ -10613,7 +10622,7 @@ namespace CumulusMX
 
 					if (!File.Exists(uploadfile))
 					{
-						LogMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!", LogLevel.Warning);
+						LogWarningMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!");
 						return;
 					}
 
@@ -11062,7 +11071,7 @@ namespace CumulusMX
 			{
 				if (!File.Exists(localfile))
 				{
-					LogMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}", LogLevel.Warning);
+					LogWarningMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
 					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
 					return true;
@@ -11097,7 +11106,7 @@ namespace CumulusMX
 			{
 				if (dataStream.Length == 0)
 				{
-					LogMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}", LogLevel.Warning);
+					LogWarningMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
 					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 
@@ -11158,7 +11167,7 @@ namespace CumulusMX
 
 				if (status.IsFailure())
 				{
-					LogMessage($"FTP[{cycleStr}]: Upload of {remotefile} failed", LogLevel.Error);
+					LogErrorMessage($"FTP[{cycleStr}]: Upload of {remotefile} failed");
 				}
 				else if (FTPRename)
 				{
@@ -11221,7 +11230,7 @@ namespace CumulusMX
 
 			if (!File.Exists(localfile))
 			{
-				LogMessage($"SFTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}", LogLevel.Warning);
+				LogWarningMessage($"SFTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
 				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
 
@@ -11427,7 +11436,7 @@ namespace CumulusMX
 			{
 				if (!File.Exists(localfile))
 				{
-					LogMessage($"PHP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}", LogLevel.Warning);
+					LogWarningMessage($"PHP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
 
 					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
@@ -11467,7 +11476,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(data))
 			{
-				LogMessage($"PHP[{cycleStr}]: Uploading to {remotefile}. Error: The data string is empty, ignoring this upload", LogLevel.Warning);
+				LogWarningMessage($"PHP[{cycleStr}]: Uploading to {remotefile}. Error: The data string is empty, ignoring this upload");
 
 				return false;
 			}
@@ -11582,7 +11591,7 @@ namespace CumulusMX
 							var responseBodyAsText = await response.Content.ReadAsStringAsync();
 							if (response.StatusCode != HttpStatusCode.OK)
 							{
-								LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}", LogLevel.Warning);
+								LogWarningMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response code = {(int)response.StatusCode}: {response.StatusCode}");
 								LogMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 							}
 							else
@@ -11645,6 +11654,12 @@ namespace CumulusMX
 					_ = ErrorList.Dequeue();
 				}
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message));
+			}
+
+			if (level >= LogLevel.Error)
+			{
+				LatestError = message;
+				LatestErrorTS = DateTime.Now;
 			}
 		}
 
@@ -11770,7 +11785,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Error encountered during Realtime file update.", LogLevel.Error);
+				LogErrorMessage("Error encountered during Realtime file update.");
 				LogMessage(ex.Message);
 			}
 		}
@@ -11911,7 +11926,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage("Error encountered during Realtime file update.", LogLevel.Error);
+				LogErrorMessage("Error encountered during Realtime file update.");
 				LogMessage(ex.Message);
 			}
 			return string.Empty;
@@ -12034,7 +12049,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					LogMessage($"ProcessTemplateFile: Error writing to file '{outputfile}', error was - {e}", LogLevel.Error);
+					LogErrorMessage($"ProcessTemplateFile: Error writing to file '{outputfile}', error was - {e}");
 				}
 			}
 		}
@@ -12057,7 +12072,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				LogMessage($"ProcessTemplateFile: Error, template file not found - {templatefile}", LogLevel.Warning);
+				LogWarningMessage($"ProcessTemplateFile: Error, template file not found - {templatefile}");
 			}
 			return string.Empty;
 		}
@@ -12080,7 +12095,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				LogMessage($"ProcessTemplateFile: Error, template file not found - {templatefile}", LogLevel.Warning);
+				LogWarningMessage($"ProcessTemplateFile: Error, template file not found - {templatefile}");
 			}
 			return string.Empty;
 		}
@@ -12308,7 +12323,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"CustomSqlSecs[{i}]: Error - " + ex.Message, LogLevel.Error);
+						LogErrorMessage($"CustomSqlSecs[{i}]: Error - " + ex.Message);
 					}
 				}
 				customMySqlSecondsUpdateInProgress = false;
@@ -12349,7 +12364,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"CustomSqlMins[{i}]: Error - " + ex.Message, LogLevel.Error);
+						LogErrorMessage($"CustomSqlMins[{i}]: Error - " + ex.Message);
 					}
 				}
 				customMySqlMinutesUpdateInProgress = false;
@@ -12382,7 +12397,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"CustomSqlRollover[{i}]: Error - " + ex.Message, LogLevel.Error);
+						LogErrorMessage($"CustomSqlRollover[{i}]: Error - " + ex.Message);
 					}
 				}
 				customMySqlRolloverUpdateInProgress = false;
@@ -12518,7 +12533,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"{callingFunction}: Error - " + ex.Message, LogLevel.Error);
+				LogErrorMessage($"{callingFunction}: Error - " + ex.Message);
 				SqlCatchingUp = false;
 			}
 		}
@@ -12577,7 +12592,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							LogMessage($"EOD: Error extra file {uploadfile} not found", LogLevel.Warning);
+							LogWarningMessage($"EOD: Error extra file {uploadfile} not found");
 						}
 					}
 				}
@@ -12679,11 +12694,11 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"RealtimeFTPLogin: Error connecting ftp - {ex.Message}", LogLevel.Error);
+					LogErrorMessage($"RealtimeFTPLogin: Error connecting ftp - {ex.Message}");
 					if (ex.InnerException != null)
 					{
 						ex = Utils.GetOriginalException(ex);
-						LogMessage($"RealtimeFTPLogin: Base exception - {ex.Message}", LogLevel.Error);
+						LogErrorMessage($"RealtimeFTPLogin: Base exception - {ex.Message}");
 					}
 					RealtimeFTP.Disconnect();
 				}
@@ -12720,7 +12735,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"RealtimeSSHLogin: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]", LogLevel.Warning);
+						LogWarningMessage($"RealtimeSSHLogin: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
 						return;
 					}
 
@@ -12749,7 +12764,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"RealtimeSSHLogin: Error connecting SFTP - {ex.Message}", LogLevel.Error);
+					LogErrorMessage($"RealtimeSSHLogin: Error connecting SFTP - {ex.Message}");
 				}
 			}
 		}
@@ -12770,7 +12785,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("WU update: " + ex.Message, LogLevel.Error);
+					LogErrorMessage("WU update: " + ex.Message);
 				}
 			}
 
@@ -12794,7 +12809,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("Windy update: " + ex.Message, LogLevel.Error);
+					LogErrorMessage("Windy update: " + ex.Message);
 				}
 			}
 
@@ -12824,7 +12839,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("PWS update: " + ex.Message, LogLevel.Error);
+					LogErrorMessage("PWS update: " + ex.Message);
 				}
 			}
 
@@ -12854,7 +12869,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("WOW update: " + ex.Message, LogLevel.Error);
+					LogErrorMessage("WOW update: " + ex.Message);
 				}
 			}
 
@@ -12894,7 +12909,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("OpenWeatherMap: Update error = " + ex.Message, LogLevel.Error);
+					LogErrorMessage("OpenWeatherMap: Update error = " + ex.Message);
 				}
 			}
 
@@ -12926,7 +12941,7 @@ namespace CumulusMX
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
-							LogMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}", LogLevel.Warning);
+							LogWarningMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
 							ThirdPartyAlarm.LastMessage = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
 							ThirdPartyAlarm.Triggered = true;
 						}
@@ -12939,7 +12954,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("PWS update: " + ex.Message, LogLevel.Error);
+					LogErrorMessage("PWS update: " + ex.Message);
 					ThirdPartyAlarm.LastMessage = "PWS: " + ex.Message;
 					ThirdPartyAlarm.Triggered = true;
 				}
@@ -12984,7 +12999,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage("WOW update: " + ex.Message, LogLevel.Error);
+					LogErrorMessage("WOW update: " + ex.Message);
 					ThirdPartyAlarm.LastMessage = "WOW: " + ex.Message;
 					ThirdPartyAlarm.Triggered = true;
 				}
@@ -13073,7 +13088,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}", LogLevel.Error);
+					LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
 					// if debug logging is disable, then log the failing statement anyway
 					if (!DebuggingEnabled)
 					{
@@ -13162,7 +13177,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}", LogLevel.Error);
+				LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
 				// if debug logging is disable, then log the failing statement anyway
 				if (!DebuggingEnabled)
 				{
@@ -13223,7 +13238,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"{CallingFunction}: Error buffering command - " + ex.Message, LogLevel.Error);
+						LogErrorMessage($"{CallingFunction}: Error buffering command - " + ex.Message);
 					}
 				}
 			}
@@ -13263,7 +13278,7 @@ namespace CumulusMX
 					{
 						var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
 						LogConsoleMessage(msg, ConsoleColor.Cyan);
-						LogMessage(msg, LogLevel.Warning);
+						LogWarningMessage(msg);
 						UpgradeAlarm.LastMessage = $"Build {LatestBuild} is available";
 						UpgradeAlarm.Triggered = true;
 					}
@@ -13274,7 +13289,7 @@ namespace CumulusMX
 					}
 					else if (int.Parse(Build) > int.Parse(LatestBuild))
 					{
-						LogMessage($"This Cumulus MX instance appears to be running a beta/test version. This build = {Build}, latest released build = {LatestBuild}", LogLevel.Warning);
+						LogWarningMessage($"This Cumulus MX instance appears to be running a beta/test version. This build = {Build}, latest released build = {LatestBuild}");
 					}
 					else
 					{
@@ -13542,13 +13557,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage("GetUploadFilename: No match found for <custinterval[1-10]> in " + input, LogLevel.Warning);
+						LogWarningMessage("GetUploadFilename: No match found for <custinterval[1-10]> in " + input);
 						return input;
 					}
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"GetUploadFilename: Error processing <custinterval[1-10]>, value='{input}', error: {ex.Message}", LogLevel.Error);
+					LogErrorMessage($"GetUploadFilename: Error processing <custinterval[1-10]>, value='{input}', error: {ex.Message}");
 				}
 			}
 
@@ -13593,13 +13608,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage("GetRemoteFileName: No match found for <custinterval[1-10]> in " + input, LogLevel.Warning);
+						LogWarningMessage("GetRemoteFileName: No match found for <custinterval[1-10]> in " + input);
 						return input;
 					}
 				}
 				catch (Exception ex)
 				{
-					LogMessage($"GetRemoteFileName: Error processing <custinterval[1-10]>, input='{input}', error: {ex.Message}", LogLevel.Error);
+					LogErrorMessage($"GetRemoteFileName: Error processing <custinterval[1-10]>, input='{input}', error: {ex.Message}");
 				}
 			}
 
@@ -13650,7 +13665,7 @@ namespace CumulusMX
 			// If an error occurred, display the exception to the user.
 			if (e.Error != null)
 			{
-				LogMessage("Ping failed: " + e.Error.Message + " > " + e.Error.GetBaseException().Message, LogLevel.Warning);
+				LogWarningMessage("Ping failed: " + e.Error.Message + " > " + e.Error.GetBaseException().Message);
 			}
 			else
 			{

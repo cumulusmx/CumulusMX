@@ -140,7 +140,7 @@ namespace CumulusMX
 
 						if (gust == null || dir == null || avg == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing wind data", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing wind data");
 						}
 						else
 						{
@@ -152,7 +152,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Wind data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Wind data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in wind data - " + ex.Message;
 					}
@@ -170,7 +170,7 @@ namespace CumulusMX
 
 						if (humIn == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing indoor humidity", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing indoor humidity");
 						}
 						else
 						{
@@ -180,7 +180,7 @@ namespace CumulusMX
 
 						if (humOut == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing outdoor humidity", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing outdoor humidity");
 						}
 						else
 						{
@@ -190,7 +190,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Humidity data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Humidity data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in humidity data - " + ex.Message;
 					}
@@ -207,7 +207,7 @@ namespace CumulusMX
 
 						if (press == null)
 						{
-							cumulus.LogMessage("ProcessData: Error, missing baro pressure", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("ProcessData: Error, missing baro pressure");
 						}
 						else
 						{
@@ -227,7 +227,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Pressure data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Pressure data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in baro pressure data - " + ex.Message;
 					}
@@ -242,7 +242,7 @@ namespace CumulusMX
 
 						if (temp == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing indoor temp", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing indoor temp");
 						}
 						else
 						{
@@ -252,7 +252,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Indoor temp data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Indoor temp data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in indoor temp data - " + ex.Message;
 					}
@@ -267,7 +267,7 @@ namespace CumulusMX
 
 						if (temp == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing outdoor temp", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing outdoor temp");
 						}
 						else
 						{
@@ -277,7 +277,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Outdoor temp data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Outdoor temp data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in outdoor temp data - " + ex.Message;
 					}
@@ -300,7 +300,7 @@ namespace CumulusMX
 
 						if (rain == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing rainfall", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing rainfall");
 						}
 						else
 						{
@@ -311,7 +311,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Rain data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Rain data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in rainfall data - " + ex.Message;
 					}
@@ -329,7 +329,7 @@ namespace CumulusMX
 						}
 						else if (dewpnt == null)
 						{
-							cumulus.LogMessage($"ProcessData: Error, missing dew point", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage($"ProcessData: Error, missing dew point");
 						}
 						else
 						{
@@ -340,7 +340,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Dew point data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in dew point data - " + ex.Message;
 					}
@@ -360,7 +360,7 @@ namespace CumulusMX
 							var chill = data["windchillf"];
 							if (chill == null)
 							{
-								cumulus.LogMessage($"ProcessData: Error, missing dew point", Cumulus.LogLevel.Warning);
+								cumulus.LogWarningMessage($"ProcessData: Error, missing dew point");
 							}
 							else
 							{
@@ -371,7 +371,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage("ProcessData: Error in Dew point data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage("ProcessData: Error in Dew point data - " + ex.Message);
 						context.Response.StatusCode = 500;
 						return "Failed: Error in dew point data - " + ex.Message;
 					}
@@ -391,12 +391,12 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage("ProcessData: Insufficient data to calculate Apparent/Feels Like temps", Cumulus.LogLevel.Warning);
+							cumulus.LogWarningMessage("ProcessData: Insufficient data to calculate Apparent/Feels Like temps");
 						}
 					}
 					else
 					{
-						cumulus.LogMessage("ProcessData: Insufficient data to calculate Humidex and Apparent/Feels Like temps", Cumulus.LogLevel.Warning);
+						cumulus.LogWarningMessage("ProcessData: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
 					}
 				}
 
@@ -411,7 +411,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in extra temperature data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in extra temperature data - " + ex.Message);
 					}
 				}
 
@@ -426,7 +426,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in extra humidity data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in extra humidity data - " + ex.Message);
 					}
 				}
 
@@ -441,7 +441,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in solar data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in solar data - " + ex.Message);
 					}
 				}
 
@@ -456,7 +456,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in UV data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in UV data - " + ex.Message);
 					}
 				}
 
@@ -471,7 +471,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Soil temp data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in Soil temp data - " + ex.Message);
 					}
 				}
 
@@ -486,7 +486,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Soil moisture data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in Soil moisture data - " + ex.Message);
 					}
 				}
 
@@ -509,7 +509,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Air Quality data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in Air Quality data - " + ex.Message);
 					}
 				}
 
@@ -528,7 +528,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in CO₂ data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in CO₂ data - " + ex.Message);
 					}
 				}
 
@@ -546,7 +546,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Lightning data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in Lightning data - " + ex.Message);
 					}
 				}
 
@@ -561,7 +561,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Leak data - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error in Leak data - " + ex.Message);
 					}
 				}
 
@@ -587,7 +587,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"{procName}: Error in Battery data - " + ex.Message, Cumulus.LogLevel.Error);
+					cumulus.LogErrorMessage($"{procName}: Error in Battery data - " + ex.Message);
 				}
 
 
@@ -600,7 +600,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error calculating extra sensor dew points - " + ex.Message, Cumulus.LogLevel.Error);
+						cumulus.LogErrorMessage($"{procName}: Error calculating extra sensor dew points - " + ex.Message);
 					}
 				}
 
@@ -612,7 +612,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"{procName}: Error - " + ex.Message, Cumulus.LogLevel.Error);
+				cumulus.LogErrorMessage($"{procName}: Error - " + ex.Message);
 				context.Response.StatusCode = 500;
 				return "Failed: General error - " + ex.Message;
 			}
