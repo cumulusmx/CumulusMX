@@ -1,4 +1,4 @@
-3.27.0 - b3253
+3.27.0 - b3254
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
@@ -26,6 +26,7 @@ Changed
 	- IMPORTANT: You must update the copy of upload.php on your web site with the latest version in this release
 - Dashboard gauges now follow the general dark theme
 - Adds UV-I to dashboard today/yesterday
+- PHP Upload now closes the connection before it errors if the host server sends a maximum number of allowed requests per session
 
 Fixed
 - Fix for Davis average wind spike on restarts with catch-up

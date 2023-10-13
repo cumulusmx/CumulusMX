@@ -461,6 +461,9 @@ namespace CumulusMX
 		public bool RealtimeIntervalEnabled; // The timer is to be started
 		private int realtimeFTPRetries; // Count of failed realtime FTP attempts
 
+		private bool phpMaxUploadsReset = true;
+		private int phpMaxUploads = int.MaxValue;
+
 		// Wunderground settings
 		public WebUploadWund Wund = new WebUploadWund();
 
@@ -1751,11 +1754,14 @@ namespace CumulusMX
 			};
 
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
+			// 5 second timeout
+			phpUploadHttpClient.Timeout = new TimeSpan(0, 0, 5);
 
 			// persistent connection
-			phpUploadHttpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
-			phpUploadHttpClient.DefaultRequestHeaders.Add("Keep-Alive", "timeout=600");
-			phpUploadHttpClient.Timeout = Timeout.InfiniteTimeSpan;
+			phpUploadHttpClient.DefaultRequestHeaders.Add("Keep-Alive", "timeout=86400");
+
+			var sp = ServicePointManager.FindServicePoint(new Uri(FtpOptions.PhpUrl));
+			sp.MaxIdleTime = Timeout.Infinite;
 		}
 
 
@@ -1768,9 +1774,19 @@ namespace CumulusMX
 				{
 					request.Headers.Add("Accept", "text/html");
 					request.Headers.Add("Accept-Encoding", "gzip, deflate");
+
+					if (phpMaxUploads <= 0)
+					{
+						LogDebugMessage("PHP upload - limit of requests reached, closing connection after this request");
+						request.Headers.Add("Connection", "close");
+						phpMaxUploadsReset = true;
+					}
+
 					var response = await phpUploadHttpClient.SendAsync(request);
 					response.EnsureSuccessStatusCode();
 					var encoding = response.Content.Headers.ContentEncoding;
+
+
 
 					FtpOptions.PhpCompression = encoding.Count == 0 ? "none" : encoding.First();
 
@@ -1782,12 +1798,42 @@ namespace CumulusMX
 					{
 						LogDebugMessage($"PHP upload supports {FtpOptions.PhpCompression} compression");
 					}
+
+					// Check the max requests
+					if (phpMaxUploadsReset)
+					{
+						CheckPhpMaxUploads(response.Headers);
+					}
+
+					phpMaxUploads--;
 				}
 				catch (Exception ex)
 				{
 					LogExceptionMessage(ex, "TestPhpUploadCompression: Error - ");
 				}
 			}
+		}
+
+		private void CheckPhpMaxUploads(System.Net.Http.Headers.HttpResponseHeaders headers)
+		{
+			phpMaxUploads = int.MaxValue;
+
+			if (phpMaxUploadsReset && headers.Connection.Contains("keep-alive"))
+			{
+				var keepalive = headers.Connection.ToString();
+				LogDebugMessage("PHP upload, server responded with Keep-Alive: " + keepalive);
+				if (keepalive.ContainsCI("max="))
+				{
+					var regex = new Regex(@"max[\s]*=[\s]*([\d]+)");
+					var match = regex.Match(keepalive);
+					if (regex.IsMatch(keepalive))
+					{
+						phpMaxUploads = int.Parse(match.Groups[1].Value);
+						LogDebugMessage($"PHP upload - will reset connection after {phpMaxUploads} requests");
+					}
+				}
+			}
+			phpMaxUploadsReset = false;
 		}
 
 		private void CustomHttpSecondsTimerTick(object sender, ElapsedEventArgs e)
@@ -11508,6 +11554,13 @@ namespace CumulusMX
 							request.Headers.Add("OLDEST", oldest);
 						}
 
+						if (phpMaxUploads <= 0)
+						{
+							LogDebugMessage("PHP[{cycleStr}]: Limit of requests reached, closing connection after this request");
+							request.Headers.Add("Connection", "close");
+							phpMaxUploadsReset = true;
+						}
+
 						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
 						request.Headers.Add("SIGNATURE", signature);
 
@@ -11600,6 +11653,14 @@ namespace CumulusMX
 								LogDataMessage($"PHP[{cycleStr}]: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 							}
 
+							// Check the max requests
+							if (phpMaxUploadsReset)
+							{
+								CheckPhpMaxUploads(response.Headers);
+							}
+
+							phpMaxUploads--;
+
 							if (outStream != null)
 								outStream.Dispose();
 
@@ -11653,7 +11714,7 @@ namespace CumulusMX
 				{
 					_ = ErrorList.Dequeue();
 				}
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message));
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message));
 			}
 
 			if (level >= LogLevel.Error)
@@ -11745,7 +11806,7 @@ namespace CumulusMX
 			{
 				_ = ErrorList.Dequeue();
 			}
-			ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message));
+			ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message));
 		}
 
 		/*
