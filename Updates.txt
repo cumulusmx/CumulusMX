@@ -19,7 +19,7 @@ New
 - There is a new Latest Errors display in the dashboard - Utils | Latest Errors
 	- By default it displays the last 50 Warnings and Errors encountered by CMX, if you are seeing too many warnings that are expected, you can opt to log only errors in Settings | Program Settings | Logging Options
 - The Cumulus settings can now be 'secured' with a username/password. NOTE: Because Cumulus does not use HTTPS these credentials can be snooped on the network, the security provided is limited.
-	- This feature has meant some minor changes to the Cumulus API; wsport.json, version.json, csvseparator.txt have moved to a new path /api/info/
+	- This feature has required some minor changes to the Cumulus API: wsport.json, version.json, dateformat.txt, and csvseparator.txt have moved to a new path /api/info/
 
 
 Changed
