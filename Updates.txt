@@ -62,6 +62,7 @@ Fixed
 - Error 500 on Locale Strings settings page
 - Fix CO₂ sensor being visible on graphs by default
 - Many Alarms were reverting the Latch Hours value to an integer on restart
+- If the graph data display options are changed and PHP incremental uploads are in use, then the uploads may start failing
 
 
 3.26.0 - b3248
