@@ -472,7 +472,6 @@ namespace CumulusMX
 					cumulus.GraphOptions.Colour.CO2Sensor.Pm10Avg = settings.Graphs.colour.co2.pm10avg;
 					cumulus.GraphOptions.Colour.CO2Sensor.Temp = settings.Graphs.colour.co2.temp;
 					cumulus.GraphOptions.Colour.CO2Sensor.Hum = settings.Graphs.colour.co2.hum;
-
 				}
 				catch (Exception ex)
 				{
@@ -523,6 +522,7 @@ namespace CumulusMX
 				cumulus.GraphDataFiles[i].CreateRequired = true;
 				cumulus.GraphDataFiles[i].FtpRequired = true;
 				cumulus.GraphDataFiles[i].CopyRequired = true;
+				cumulus.GraphDataFiles[i].Incremental = false;
 			}
 			for (var i = 0; i < cumulus.GraphDataEodFiles.Length; i++)
 			{
