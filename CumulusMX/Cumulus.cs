@@ -1438,6 +1438,7 @@ namespace CumulusMX
 					.WithController<Api.SettingsController>()
 					.WithController<Api.ReportsController>()
 					.WithController<Api.UtilsController>()
+					.WithController<Api.InfoController>()
 				)
 				.WithWebApi("/station", m => m
 					.WithController<Api.HttpStation>()
@@ -4318,6 +4319,10 @@ namespace CumulusMX
 			}
 			ErrorListLoggingLevel = (LogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int)LogLevel.Warning);
 
+			ProgramOptions.SecureSettings = ini.GetValue("Program", "SecureSettings", false);
+			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", "");
+			ProgramOptions.SettingsPassword = ini.GetValue("Program", "SettingsPassword", "");
+
 			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
 
 			StationType = ini.GetValue("Station", "Type", -1);
@@ -5989,6 +5994,10 @@ namespace CumulusMX
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
+
+			ini.SetValue("Program", "SecureSettings", ProgramOptions.SecureSettings);
+			ini.SetValue("Program", "SettingsUsername", ProgramOptions.SettingsUsername);
+			ini.SetValue("Program", "SettingsPassword", ProgramOptions.SettingsPassword);
 
 
 			ini.SetValue("Station", "Type", StationType);
@@ -13862,6 +13871,9 @@ namespace CumulusMX
 		public int DataStoppedMins { get; set; }
 		public string TimeFormat { get; set; }
 		public string TimeFormatLong { get; set; }
+		public bool SecureSettings { get; set; }
+		public string SettingsUsername { get; set; }
+		public string SettingsPassword { get; set; }
 	}
 
 	public class CultureConfig

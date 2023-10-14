@@ -18,6 +18,9 @@ New
 	- Note: Unlike the (Re)Generate button, the new option will not overwrite existing report files, it will only create missing ones
 - There is a new Latest Errors display in the dashboard - Utils | Latest Errors
 	- By default it displays the last 50 Warnings and Errors encountered by CMX, if you are seeing too many warnings that are expected, you can opt to log only errors in Settings | Program Settings | Logging Options
+- The Cumulus settings can now be 'secured' with a username/password. NOTE: Because Cumulus does not use HTTPS these credentials can be snooped on the network, the security provided is limited.
+	- This feature has meant some minor changes to the Cumulus API; wsport.json, version.json, csvseparator.txt have moved to a new path /api/info/
+
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
@@ -27,6 +30,21 @@ Changed
 - Dashboard gauges now follow the general dark theme
 - Adds UV-I to dashboard today/yesterday
 - PHP Upload now closes the connection before it errors if the host server sends a maximum number of allowed requests per session
+- The following web tags have been deprecated and will be removed in some future release:
+		CO2-24h
+		CO2-pm2p5
+		CO2-pm2p5-24h
+		CO2-pm10
+		CO2-temp
+		CO2-hum
+	Please switch to the new names:
+		CO2_24h
+		CO2_pm2p5
+		CO2_pm2p5_24h
+		CO2_pm10
+		CO2_temp
+		CO2_hum
+
 
 Fixed
 - Fix for Davis average wind spike on restarts with catch-up

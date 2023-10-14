@@ -74,6 +74,13 @@ namespace CumulusMX
 				timeFormat = cumulus.ProgramOptions.TimeFormat
 			};
 
+			var security = new JsonProgramSettingsSecurity()
+			{
+				securesettings = cumulus.ProgramOptions.SecureSettings,
+				username = cumulus.ProgramOptions.SettingsUsername,
+				password = cumulus.ProgramOptions.SettingsPassword,
+			};
+
 			var settings = new JsonProgramSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -81,7 +88,8 @@ namespace CumulusMX
 				shutdown = shutdown,
 				logging = logging,
 				options = options,
-				culture = culture
+				culture = culture,
+				security = security
 			};
 
 			//return JsonConvert.SerializeObject(data);
@@ -146,6 +154,10 @@ namespace CumulusMX
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
+
+				cumulus.ProgramOptions.SecureSettings = settings.security.securesettings;
+				cumulus.ProgramOptions.SettingsUsername = (settings.security.username ?? string.Empty).Trim();
+				cumulus.ProgramOptions.SettingsPassword = (settings.security.password ?? string.Empty).Trim();
 
 				if (cumulus.ProgramOptions.TimeFormat == "t")
 					cumulus.ProgramOptions.TimeFormatLong = "T";
@@ -212,6 +224,7 @@ namespace CumulusMX
 		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
 		public JsonProgramSettingsCultureOptions culture { get; set; }
+		public JsonProgramSettingsSecurity security { get; set; }
 	}
 
 	public class JsonProgramSettingsStartupOptions
@@ -254,5 +267,11 @@ namespace CumulusMX
 		public bool datastoppedexit { get; set; }
 		public int datastoppedmins { get; set; }
 		public JsonProgramSettingsTask shutdowntask { get; set; }
+	}
+	public class JsonProgramSettingsSecurity
+	{
+		public bool securesettings { get; set;}
+		public string username { get; set; }
+		public string password { get; set; }
 	}
 }

@@ -144,6 +144,11 @@ namespace CumulusMX
 
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
 						string res;
@@ -272,10 +277,16 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetDiarySummary());
 								break;
 							case "mysqlcache.json":
-								await writer.WriteAsync(Station.GetCachedSqlCommands(draw, start, length, search));
+								if (await Authenticate(HttpContext))
+								{
+									await writer.WriteAsync(Station.GetCachedSqlCommands(draw, start, length, search));
+								}
 								break;
 							case "errorlog.json":
-								await writer.WriteAsync(Program.cumulus.GetErrorLog());
+								if (await Authenticate(HttpContext))
+								{
+									await writer.WriteAsync(Program.cumulus.GetErrorLog());
+								}
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1094,35 +1105,14 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/settings/{req}")]
 			public async Task SettingsGet(string req)
 			{
-				/* string authorization = context.Request.Headers["Authorization"];
-				 string userInfo;
-				 string username = "";
-				 string password = "";
-				 if (authorization != null)
-				 {
-					 byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
-					 userInfo = System.Text.Encoding.UTF8.GetString(tempConverted);
-					 string[] usernamePassword = userInfo.Split(new string[] {":"}, StringSplitOptions.RemoveEmptyEntries);
-					 username = usernamePassword[0];
-					 password = usernamePassword[1];
-					 Console.WriteLine("username = "+username+" password = "+password);
-				 }
-				 else
-				 {
-					 var errorResponse = new
-					 {
-						 Title = "Authentication required",
-						 ErrorCode = "Authentication required",
-						 Description = "You must authenticate",
-					 };
-
-					 context.Response.StatusCode = 401;
-					 return context.JsonResponse(errorResponse);
-				 }*/
-
 				try
 				{
 					Response.ContentType = "application/json";
+
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
 
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
@@ -1155,12 +1145,6 @@ namespace CumulusMX
 							case "noaadata.json":
 								await writer.WriteAsync(noaaSettings.GetAlpacaFormData());
 								break;
-							case "wsport.json":
-								await writer.WriteAsync(stationSettings.GetWSport());
-								break;
-							case "version.json":
-								await writer.WriteAsync(stationSettings.GetVersion());
-								break;
 							case "mysqldata.json":
 								await writer.WriteAsync(mySqlSettings.GetAlpacaFormData());
 								break;
@@ -1169,14 +1153,6 @@ namespace CumulusMX
 								break;
 							case "wizard.json":
 								await writer.WriteAsync(wizard.GetAlpacaFormData());
-								break;
-							case "dateformat.txt":
-								Response.ContentType = "text/plain";
-								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
-								break;
-							case "csvseparator.txt":
-								Response.ContentType = "text/plain";
-								await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
 								break;
 							case "customlogsintvl.json":
 								await writer.WriteAsync(customLogs.GetAlpacaFormDataIntvl());
@@ -1209,6 +1185,11 @@ namespace CumulusMX
 				try
 				{
 					Response.ContentType = "application/json";
+
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
 
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
@@ -1354,6 +1335,11 @@ namespace CumulusMX
 				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					int month, year;
 					Response.ContentType = "text/plain";
@@ -1533,6 +1519,11 @@ namespace CumulusMX
 
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
 						switch (req)
@@ -1584,6 +1575,11 @@ namespace CumulusMX
 
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
 						switch (req)
@@ -1603,6 +1599,96 @@ namespace CumulusMX
 					Response.StatusCode = 500;
 				}
 			}
+		}
+
+		// Info
+		public class InfoController : WebApiController
+		{
+			[Route(HttpVerbs.Get, "/info/{req}")]
+			public async Task InfoGet(string req)
+			{
+				try
+				{
+					Response.ContentType = "application/json";
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+					{
+						switch (req)
+						{
+							case "wsport.json":
+								await writer.WriteAsync(stationSettings.GetWSport());
+								break;
+							case "version.json":
+								await writer.WriteAsync(stationSettings.GetVersion());
+								break;
+							case "dateformat.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
+								break;
+							case "csvseparator.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
+								break;
+							case "alarms.json":
+								await writer.WriteAsync(alarmSettings.GetAlarmInfo());
+								break;
+							default:
+								Response.StatusCode = 404;
+								break;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Program.cumulus.LogErrorMessage($"api/info: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+		private static async  Task<bool> Authenticate(IHttpContext context)
+		{
+			string authorization = context.Request.Headers["Authorization"];
+			string userInfo;
+			string username;
+			string password;
+
+			if (Program.cumulus.ProgramOptions.SecureSettings)
+			{
+				if (authorization != null)
+				{
+					byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
+					userInfo = Encoding.UTF8.GetString(tempConverted);
+					string[] usernamePassword = userInfo.Split(new char[] { ':' });
+					username = usernamePassword[0] ?? string.Empty;
+					password = usernamePassword[1] ?? string.Empty;
+
+					if (username == Program.cumulus.ProgramOptions.SettingsUsername && password == Program.cumulus.ProgramOptions.SettingsPassword)
+					{
+						return true;
+					}
+					else
+					{
+						context.Response.StatusCode = 401;
+						context.Response.ContentType = "application/json";
+						context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"My Realm\"");
+						using (var writer = context.OpenResponseText(new UTF8Encoding(false)))
+							await writer.WriteAsync("{\"Title\":\"Authentication required\",\"ErrorCode\":\"Authentication required\",\"Description\":\"You must authenticate\"}");
+
+						return false;
+					}
+				}
+				else
+				{
+					context.Response.StatusCode = 401;
+					context.Response.ContentType = "application/json";
+					context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"My Realm\"");
+					using (var writer = context.OpenResponseText(new UTF8Encoding(false)))
+						await writer.WriteAsync("{\"Title\":\"Authentication required\",\"ErrorCode\":\"Authentication required\",\"Description\":\"You must authenticate\"}");
+
+					return false;
+				}
+			}
+
+			return true;
 		}
 	}
 }
