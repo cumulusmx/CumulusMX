@@ -1270,7 +1270,7 @@ namespace CumulusMX
 						send[idx] = (byte) customServer.Length;
 						// set server string
 						Encoding.ASCII.GetBytes(customServer).CopyTo(send, idx + 1);
-						idx += 1 + server.Length;
+						idx += 1 + customServer.Length;
 						// set the port id
 						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort) customPort).CopyTo(send, idx);
 						// set the interval
