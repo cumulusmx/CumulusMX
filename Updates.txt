@@ -29,7 +29,7 @@ Changed
 	- IMPORTANT: You must update the copy of upload.php on your web site with the latest version in this release
 - Dashboard gauges now follow the general dark theme
 - Adds UV-I to dashboard today/yesterday
-- PHP Upload now closes the connection before it errors if the host server sends a maximum number of allowed requests per session
+- PHP Upload now closes the connection before it errors - if the host server sends a maximum number of allowed requests per session
 - The following web tags have been deprecated and will be removed in some future release:
 		CO2-24h
 		CO2-pm2p5
@@ -62,7 +62,8 @@ Fixed
 - Error 500 on Locale Strings settings page
 - Fix CO₂ sensor being visible on graphs by default
 - Many Alarms were reverting the Latch Hours value to an integer on restart
-- If the graph data display options are changed and PHP incremental uploads are in use, then the uploads may start failing
+- If the graph data display options are changed whilst PHP incremental uploads are in use, then the uploads may start failing
+- Web tag #rmidnight was being reset before the EOD processing (midnight rollover)
 
 
 3.26.0 - b3248

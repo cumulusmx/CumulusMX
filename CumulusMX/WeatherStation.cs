@@ -1923,12 +1923,6 @@ namespace CumulusMX
 				DoForecast("", true);
 			}
 
-			if (now.Hour == 0)
-			{
-				ResetMidnightRain(now);
-				//RecalcSolarFactor(now);
-			}
-
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 
 			if (now.Hour == rollHour)
@@ -1938,6 +1932,8 @@ namespace CumulusMX
 
 			if (now.Hour == 0)
 			{
+				ResetMidnightRain(now);
+				//RecalcSolarFactor(now);
 				ResetSunshineHours(now);
 				ResetMidnightTemperatures(now);
 			}

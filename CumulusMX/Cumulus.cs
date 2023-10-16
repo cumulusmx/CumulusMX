@@ -11723,7 +11723,7 @@ namespace CumulusMX
 				{
 					_ = ErrorList.Dequeue();
 				}
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message));
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
 			}
 
 			if (level >= LogLevel.Error)

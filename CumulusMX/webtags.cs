@@ -542,8 +542,10 @@ namespace CumulusMX
 			// we add on the meteo day start hour to 00:00 today
 			var startOfDay = DateTime.Today.AddHours(-cumulus.GetHourInc());
 			// then if that is later than now we are still in the previous day, so subtract a day
-			if (startOfDay > DateTime.Now)
+			// Allow a 20 second grace into the following day so we still have the previous days total just after rollover
+			if (startOfDay > DateTime.Now.AddSeconds(-20))
 				startOfDay = startOfDay.AddDays(-1);
+
 			var hours = (DateTime.Now - startOfDay).TotalHours;
 			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * hours;
 			// just after rollover the numbers will be silly, so return zero for the first 15 minutes
