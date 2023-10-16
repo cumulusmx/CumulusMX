@@ -64,6 +64,7 @@ Fixed
 - Many Alarms were reverting the Latch Hours value to an integer on restart
 - If the graph data display options are changed whilst PHP incremental uploads are in use, then the uploads may start failing
 - Web tag #rmidnight was being reset before the EOD processing (midnight rollover)
+- Fix bug setting HTTP Ecowitt station custom server
 
 
 3.26.0 - b3248
