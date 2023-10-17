@@ -1668,7 +1668,7 @@ namespace CumulusMX
 		public List<JsonEcowittForward> forward { get; set; }
 	}
 
-	internal class JsonEcowittForward
+	public class JsonEcowittForward
 	{
 		public string url { get; set; }
 	}

@@ -250,7 +250,7 @@ namespace CumulusMX
 
 				var retVal = ApplyData(text, main, ts);
 
-				ForwardData(text);
+				ForwardData(text, main);
 
 				if (retVal != "")
 				{
@@ -1331,15 +1331,17 @@ namespace CumulusMX
 			}
 		}
 
-		private void ForwardData(string data)
+		private void ForwardData(string data, bool main)
 		{
 			var encoding = new UTF8Encoding(false);
 
-			for (int i = 0; i < cumulus.EcowittForwarders.Length; i++)
+			var forwarders = main ? cumulus.EcowittForwarders : cumulus.EcowittExtraForwarders;
+
+			for (int i = 0; i < forwarders.Length; i++)
 			{
-				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
+				if (!string.IsNullOrEmpty(forwarders[i]))
 				{
-					var url = cumulus.EcowittForwarders[i];
+					var url = forwarders[i];
 					var idx = i;
 					cumulus.LogDebugMessage("ForwardData: Forwarding Ecowitt data to: " + url);
 

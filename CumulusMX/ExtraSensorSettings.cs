@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -86,6 +87,16 @@ namespace CumulusMX
 
 				mappings = ecowittwn34map
 			};
+
+			ecowitt.forward = new List<JsonEcowittForward>();
+
+			for (var i = 0; i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))
+				{
+					ecowitt.forward.Add(new JsonEcowittForward() { url = cumulus.EcowittExtraForwarders[i] });
+				}
+			}
 
 			var ambient = new JsonExtraSensorAmbient()
 			{
@@ -356,6 +367,18 @@ namespace CumulusMX
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
 
+						for (var i = 0; i < 10; i++)
+						{
+							if (i < settings.httpSensors.ecowitt.forward.Count)
+							{
+								cumulus.EcowittExtraForwarders[i] = string.IsNullOrWhiteSpace(settings.httpSensors.ecowitt.forward[i].url) ? null : settings.httpSensors.ecowitt.forward[i].url.Trim();
+							}
+							else
+							{
+								cumulus.EcowittExtraForwarders[i] = null;
+							}
+						}
+
 						// Also enable extra logging if applicable
 						if (cumulus.EcowittExtraUseTempHum || cumulus.EcowittExtraUseSoilTemp || cumulus.EcowittExtraUseSoilMoist || cumulus.EcowittExtraUseLeafWet || cumulus.EcowittExtraUseUserTemp || cumulus.EcowittExtraUseAQI || cumulus.EcowittExtraUseCo2)
 						{
@@ -530,6 +553,7 @@ namespace CumulusMX
 		public string localaddr { get; set; }
 		public int interval { get; set; }
 		public JsonStationSettingsEcowittMappings mappings { get; set; }
+		public List<JsonEcowittForward> forward { get; set; }
 	}
 
 
