@@ -20,7 +20,7 @@ New
 	- By default it displays the last 50 Warnings and Errors encountered by CMX, if you are seeing too many warnings that are expected, you can opt to log only errors in Settings | Program Settings | Logging Options
 - The Cumulus settings can now be 'secured' with a username/password. NOTE: Because Cumulus does not use HTTPS these credentials can be snooped on the network, the security provided is limited.
 	- This feature has required some minor changes to the Cumulus API: wsport.json, version.json, dateformat.txt, and csvseparator.txt have moved to a new path /api/info/
-
+- Add forwarders to Ecowitt Extra Sensors station type
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
