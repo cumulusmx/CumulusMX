@@ -1,4 +1,4 @@
-3.27.0 - b3254
+3.27.0 - b3255
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
@@ -21,6 +21,7 @@ New
 - The Cumulus settings can now be 'secured' with a username/password. NOTE: Because Cumulus does not use HTTPS these credentials can be snooped on the network, the security provided is limited.
 	- This feature has required some minor changes to the Cumulus API: wsport.json, version.json, dateformat.txt, and csvseparator.txt have moved to a new path /api/info/
 - Add forwarders to Ecowitt Extra Sensors station type
+
 
 Changed
 - Internal changes to update the Visual Studio project files from the previous legacy version
