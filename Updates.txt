@@ -1,4 +1,4 @@
-3.27.0 - b3255
+3.27.0 - b3256
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
@@ -66,6 +66,7 @@ Fixed
 - If the graph data display options are changed whilst PHP incremental uploads are in use, then the uploads may start failing
 - Web tag #rmidnight was being reset before the EOD processing (midnight rollover)
 - Fix bug setting HTTP Ecowitt station custom server
+- AirLink Health error messages on start-up when Airlink is associated with the main station
 
 
 3.26.0 - b3248

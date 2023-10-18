@@ -246,9 +246,8 @@ namespace CumulusMX
 			cumulus.LogMessage($"AirLink {locationStr} Starting up");
 			try
 			{
-				// Get the current conditions and health immediately to populate the web tags
+				// Get the current conditions immediately to populate the web tags
 				GetAlCurrent(null, null);
-				GetWlHistoricHealth();
 
 				// Create a current conditions thread to poll readings every 30 seconds
 				tmrCurrent.Elapsed += GetAlCurrent;
@@ -259,6 +258,9 @@ namespace CumulusMX
 				// Only poll health data here if the AirLink is a stand-alone device - the stand-alone history flag shows we have all the required info to poll wl.com
 				if (standaloneHistory)
 				{
+					// Get the health immediately to populate the web tags
+					GetWlHistoricHealth();
+
 					// get the health data every 15 minutes
 					tmrHealth = new System.Timers.Timer();
 					tmrHealth.Elapsed += HealthTimerTick;
