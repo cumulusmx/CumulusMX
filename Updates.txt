@@ -67,6 +67,7 @@ Fixed
 - Web tag #rmidnight was being reset before the EOD processing (midnight rollover)
 - Fix bug setting HTTP Ecowitt station custom server
 - AirLink Health error messages on start-up when Airlink is associated with the main station
+- Davis VP2 applying average wind speed calibration to the gust value in LOOP2 packets
 
 
 3.26.0 - b3248

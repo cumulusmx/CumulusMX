@@ -1998,8 +1998,8 @@ namespace CumulusMX
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
 					var rawGust10min = ConvertWindMPHToUser(loopData.WindGust10Min);
-					var gust10min = cumulus.Calib.WindSpeed.Calibrate(rawGust10min);
-					var gustdir = loopData.WindGustDir;
+					var gust10min = cumulus.Calib.WindGust.Calibrate(rawGust10min);
+					var gustdir = (int)cumulus.Calib.WindDir.Calibrate(loopData.WindGustDir);
 
 					cumulus.LogDebugMessage("LOOP2: 10-min gust: " + gust10min.ToString(cumulus.WindFormat));
 
