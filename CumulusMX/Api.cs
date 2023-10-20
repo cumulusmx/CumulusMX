@@ -15,6 +15,7 @@ namespace CumulusMX
 	public static class Api
 	{
 		internal static WeatherStation Station;
+		internal static Cumulus cumulus;
 		public static ProgramSettings programSettings;
 		internal static StationSettings stationSettings;
 		public static InternetSettings internetSettings;
@@ -126,7 +127,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -218,7 +219,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -285,7 +286,7 @@ namespace CumulusMX
 							case "errorlog.json":
 								if (await Authenticate(HttpContext))
 								{
-									await writer.WriteAsync(Program.cumulus.GetErrorLog());
+									await writer.WriteAsync(cumulus.GetErrorLog());
 								}
 								break;
 							default:
@@ -296,7 +297,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -337,7 +338,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -372,7 +373,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -550,7 +551,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -589,7 +590,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -654,7 +655,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/dailygraphdata: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/dailygraphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -704,7 +705,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/records/alltime: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/alltime: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -759,7 +760,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/records/month: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/month: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -806,7 +807,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/records/thismonth: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/thismonth: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -852,7 +853,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -953,7 +954,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1007,7 +1008,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/todayyest: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/todayyest: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1093,7 +1094,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1174,7 +1175,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/settings: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/settings: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1272,7 +1273,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/setsettings: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/setsettings: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1284,7 +1285,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/reports/{req}")]
 			public async Task GetData(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
+				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1324,7 +1325,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/reports: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/reports: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1332,7 +1333,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/genreports/{req}")]
 			public async Task GenReports(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
+				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
 				try
 				{
 					if (!(await Authenticate(HttpContext)))
@@ -1386,7 +1387,7 @@ namespace CumulusMX
 					//using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					//	await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
 					Response.StatusCode = 500;
-					Program.cumulus.LogErrorMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
 				}
 			}
 		}
@@ -1435,7 +1436,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1495,7 +1496,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1533,7 +1534,7 @@ namespace CumulusMX
 								break;
 							case "purgemysql":
 								var cnt = 0;
-								while (Program.cumulus.MySqlFailedList.TryDequeue(out var item))
+								while (cumulus.MySqlFailedList.TryDequeue(out var item))
 								{
 									cnt++;
 								};
@@ -1557,7 +1558,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1595,7 +1596,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1639,7 +1640,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogErrorMessage($"api/info: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/info: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1651,7 +1652,7 @@ namespace CumulusMX
 			string username;
 			string password;
 
-			if (Program.cumulus.ProgramOptions.SecureSettings)
+			if (cumulus.ProgramOptions.SecureSettings)
 			{
 				if (authorization != null)
 				{
@@ -1661,7 +1662,7 @@ namespace CumulusMX
 					username = usernamePassword[0] ?? string.Empty;
 					password = usernamePassword[1] ?? string.Empty;
 
-					if (username == Program.cumulus.ProgramOptions.SettingsUsername && password == Program.cumulus.ProgramOptions.SettingsPassword)
+					if (username == cumulus.ProgramOptions.SettingsUsername && password == cumulus.ProgramOptions.SettingsPassword)
 					{
 						return true;
 					}

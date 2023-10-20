@@ -1447,6 +1447,7 @@ namespace CumulusMX
 
 			// Set up the API web server
 			// Some APi functions require the station, so set them after station initialisation
+			Api.cumulus = this;
 			Api.programSettings = new ProgramSettings(this);
 			Api.stationSettings = new StationSettings(this);
 			Api.internetSettings = new InternetSettings(this);
