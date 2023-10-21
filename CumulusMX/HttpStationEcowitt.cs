@@ -1335,7 +1335,7 @@ namespace CumulusMX
 		{
 			var encoding = new UTF8Encoding(false);
 
-			var forwarders = main ? cumulus.EcowittForwarders : cumulus.EcowittExtraForwarders;
+			var forwarders = main || cumulus.EcowittExtraUseMainForwarders ? cumulus.EcowittForwarders : cumulus.EcowittExtraForwarders;
 
 			for (int i = 0; i < forwarders.Length; i++)
 			{

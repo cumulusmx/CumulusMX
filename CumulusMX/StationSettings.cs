@@ -164,13 +164,13 @@ namespace CumulusMX
 				interval = cumulus.EcowittCustomInterval
 			};
 
-			ecowitt.forward = new List<JsonEcowittForward>();
+			ecowitt.forward = new List<JsonEcowittForwardList>();
 
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
 				{
-					ecowitt.forward.Add(new JsonEcowittForward() { url = cumulus.EcowittForwarders[i] });
+					ecowitt.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittForwarders[i] });
 				}
 			}
 
@@ -1665,10 +1665,10 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
-		public List<JsonEcowittForward> forward { get; set; }
+		public List<JsonEcowittForwardList> forward { get; set; }
 	}
 
-	public class JsonEcowittForward
+	public class JsonEcowittForwardList
 	{
 		public string url { get; set; }
 	}
@@ -1693,6 +1693,12 @@ namespace CumulusMX
 		public int wn34chan6 { get; set; }
 		public int wn34chan7 { get; set; }
 		public int wn34chan8 { get; set; }
+	}
+
+	public class JsonExtraSensorForwarders
+	{
+		public bool usemain { get; set; }
+		public List<JsonEcowittForwardList> forward { get; set; }
 	}
 
 	internal class JsonStationSettingsWMR928

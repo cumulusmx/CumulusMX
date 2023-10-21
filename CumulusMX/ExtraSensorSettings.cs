@@ -88,13 +88,17 @@ namespace CumulusMX
 				mappings = ecowittwn34map
 			};
 
-			ecowitt.forward = new List<JsonEcowittForward>();
+			ecowitt.forwarders = new JsonExtraSensorForwarders()
+			{
+				usemain = cumulus.EcowittExtraUseMainForwarders
+			};
 
+			ecowitt.forwarders.forward = new List<JsonEcowittForwardList>();
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))
 				{
-					ecowitt.forward.Add(new JsonEcowittForward() { url = cumulus.EcowittExtraForwarders[i] });
+					ecowitt.forwarders.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
 				}
 			}
 
@@ -367,15 +371,20 @@ namespace CumulusMX
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
 
-						for (var i = 0; i < 10; i++)
+						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders.usemain;
+
+						if (!cumulus.EcowittExtraUseMainForwarders)
 						{
-							if (i < settings.httpSensors.ecowitt.forward.Count)
+							for (var i = 0; i < 10; i++)
 							{
-								cumulus.EcowittExtraForwarders[i] = string.IsNullOrWhiteSpace(settings.httpSensors.ecowitt.forward[i].url) ? null : settings.httpSensors.ecowitt.forward[i].url.Trim();
-							}
-							else
-							{
-								cumulus.EcowittExtraForwarders[i] = null;
+								if (i < settings.httpSensors.ecowitt.forwarders.forward.Count)
+								{
+									cumulus.EcowittExtraForwarders[i] = string.IsNullOrWhiteSpace(settings.httpSensors.ecowitt.forwarders.forward[i].url) ? null : settings.httpSensors.ecowitt.forwarders.forward[i].url.Trim();
+								}
+								else
+								{
+									cumulus.EcowittExtraForwarders[i] = null;
+								}
 							}
 						}
 
@@ -553,7 +562,7 @@ namespace CumulusMX
 		public string localaddr { get; set; }
 		public int interval { get; set; }
 		public JsonStationSettingsEcowittMappings mappings { get; set; }
-		public List<JsonEcowittForward> forward { get; set; }
+		public JsonExtraSensorForwarders forwarders { get; set; }
 	}
 
 

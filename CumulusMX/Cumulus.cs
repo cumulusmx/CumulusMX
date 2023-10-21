@@ -4724,6 +4724,7 @@ namespace CumulusMX
 			{
 				EcowittForwarders[i] = ini.GetValue("GW1000", "Forwarder" + i, "");
 			}
+			EcowittExtraUseMainForwarders = ini.GetValue("GW1000", "ExtraUseMainForwarders", false);
 			// extra forwarders
 			for (int i = 0; i < EcowittExtraForwarders.Length; i++)
 			{
@@ -6215,6 +6216,7 @@ namespace CumulusMX
 					ini.SetValue("GW1000", "Forwarder" + i, EcowittForwarders[i].ToString());
 			}
 			// extra forwarders
+			ini.SetValue("GW1000", "ExtraUseMainForwarders", EcowittExtraUseMainForwarders);
 			for (int i = 0; i < EcowittExtraForwarders.Length; i++)
 			{
 				if (string.IsNullOrEmpty(EcowittExtraForwarders[i]))
@@ -7545,6 +7547,7 @@ namespace CumulusMX
 		public string EcowittExtraLocalAddr { get; set; }
 		public int EcowittExtraCustomInterval { get; set; }
 		public string[] EcowittForwarders = new string[10];
+		public bool EcowittExtraUseMainForwarders { get; set; }
 		public string[] EcowittExtraForwarders = new string[10];
 
 		public int[] EcowittMapWN34 = new int[9];
