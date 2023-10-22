@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
+using System.Web.Compilation;
 
 using EmbedIO.Utilities;
 
@@ -419,6 +420,7 @@ namespace CumulusMX
 			//RecentDataDb = new SQLiteConnection(":memory:", true);
 			//RecentDataDb = new SQLiteConnection(cumulus.dbfile, false);
 			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+			CheckSqliteDatabase(false);
 			RecentDataDb.CreateTable<RecentData>();
 			RecentDataDb.CreateTable<SqlCache>();
 			RecentDataDb.CreateTable<CWindRecent>();
@@ -433,6 +435,54 @@ namespace CumulusMX
 			versionCheckTime = new DateTime(1, 1, 1, rnd.Next(0, 23), rnd.Next(0, 59), 0);
 
 			SensorReception = new Dictionary<string, byte>();
+		}
+
+		private void CheckSqliteDatabase(bool giveup)
+		{
+			bool rebuild = false;
+			int errorCount = 0;
+			try
+			{
+				cumulus.LogMessage("Checking SQLite integrity...");
+				var cmd = RecentDataDb.CreateCommand("PRAGMA quick_check;");
+				var res = cmd.ExecuteQueryScalars<string>();
+
+				errorCount = res.Count();
+
+				foreach (var row in res)
+				{
+					cumulus.LogErrorMessage("SQLite integrity check result: " + row.Replace("\n", "\n    "));
+					if (row == "database disk image is malformed")
+						rebuild = true;
+				}
+
+				if (errorCount == 1 && res.First() == "ok")
+				{
+					return;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("SQLite integrity check failed - " + ex.Message);
+				rebuild = true;
+			}
+
+			if (rebuild || giveup)
+			{
+				cumulus.LogErrorMessage("Deleting RecentData database..");
+				RecentDataDb.Close();
+				File.Delete(cumulus.dbfile);
+				// Open database (create file if it doesn't exist)
+				SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
+				RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+			}
+			else if (errorCount > 0)
+			{
+				cumulus.LogErrorMessage("SQLite integrity check Failed, trying to compact database");
+				RecentDataDb.Execute("vacuum;");
+				cumulus.LogErrorMessage("SQLite compact database complete, retesting integriry...");
+				CheckSqliteDatabase(true);
+			}
 		}
 
 		public void ReloadFailedMySQLCommands()
@@ -1594,11 +1644,17 @@ namespace CumulusMX
 			}
 		}
 
-		private void RemoveOldRecentData(DateTime ts)
+		private async void RemoveOldRecentData(DateTime ts)
 		{
 			var deleteTime = ts.AddDays(-7);
-
-			RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime);
+			try
+			{
+				RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("RemoveOldRecentData: Failed to delete - " + ex.Message);
+			}
 		}
 
 		private void ClearAlarms()

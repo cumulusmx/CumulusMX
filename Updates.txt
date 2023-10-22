@@ -21,6 +21,7 @@ New
 - The Cumulus settings can now be 'secured' with a username/password. NOTE: Because Cumulus does not use HTTPS these credentials can be snooped on the network, the security provided is limited.
 	- This feature has required some minor changes to the Cumulus API: wsport.json, version.json, dateformat.txt, and csvseparator.txt have moved to a new path /api/info/
 - Add forwarders to Ecowitt Extra Sensors station type
+- Add an integrity check to the SQLite database on start-up
 
 
 Changed
