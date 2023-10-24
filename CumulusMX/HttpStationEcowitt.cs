@@ -640,6 +640,19 @@ namespace CumulusMX
 					}
 				}
 
+				// === Soil Moisture Raw ===
+				if (main || cumulus.EcowittExtraUseSoilMoist)
+				{
+					try
+					{
+						// soilad[1-16]
+						ProcessSoilMoistRaw(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil moisture Raw data - {ex.Message}");
+					}
+				}
 
 				// === Leaf Wetness ===
 				if (main || cumulus.EcowittExtraUseLeafWet)
@@ -979,6 +992,18 @@ namespace CumulusMX
 				if (data["soilmoisture" + i] != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilmoisture" + i], invNum), i);
+				}
+			}
+		}
+
+		private void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soilad" + i] != null)
+				{
+					// Do nothing for now
+					//station.DoSoilMoistureRaw(Convert.ToDouble(data["soilad" + i], invNum), i);
 				}
 			}
 		}
