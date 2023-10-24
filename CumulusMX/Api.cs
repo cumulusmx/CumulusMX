@@ -859,7 +859,7 @@ namespace CumulusMX
 			}
 
 			[Route(HttpVerbs.Get, "/records/thisperiod")]
-			public async Task GetThisPeriodRecordData(string req)
+			public async Task GetThisPeriodRecordData()
 			{
 				Response.ContentType = "application/json";
 

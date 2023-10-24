@@ -408,8 +408,8 @@ namespace CumulusMX
 		private List<string> OWMList = new List<string>();
 
 		// Use thread safe queues for the MySQL command lists
-		private ConcurrentQueue<SqlCache> MySqlList = new ConcurrentQueue<SqlCache>();
-		public ConcurrentQueue<SqlCache> MySqlFailedList = new ConcurrentQueue<SqlCache>();
+		private readonly ConcurrentQueue<SqlCache> MySqlList = new ConcurrentQueue<SqlCache>();
+		public readonly ConcurrentQueue<SqlCache> MySqlFailedList = new ConcurrentQueue<SqlCache>();
 
 		// Calibration settings
 		/// <summary>
@@ -661,7 +661,7 @@ namespace CumulusMX
 
 		//private PingReply pingReply;
 
-		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
+		private readonly SemaphoreSlim uploadCountLimitSemaphoreSlim;
 
 		// Global cancellation token for when CMX is stopping
 		public readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -9486,8 +9486,6 @@ namespace CumulusMX
 				}
 			}
 			LogDebugMessage($"LocalCopy: Done copying standard web files - Success: {success}, Failed: {failed}");
-
-			var oldset = DateTime.Now.AddHours(-GraphHours);
 
 			LogDebugMessage("LocalCopy: Copying graph data files");
 			success = 0;

@@ -36,7 +36,7 @@ namespace CumulusMX
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private Version fwVersion;
-		private string gatewayType;
+		//private string gatewayType;
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
@@ -503,7 +503,7 @@ namespace CumulusMX
 					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
 					if (fwString.Length > 1)
 					{
-						gatewayType = fwString[0];
+						//gatewayType = fwString[0];
 						fwVersion = new Version(fwString[1]);
 					}
 					else

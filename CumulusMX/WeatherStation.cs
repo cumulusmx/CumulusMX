@@ -1646,7 +1646,7 @@ namespace CumulusMX
 			}
 		}
 
-		private async void RemoveOldRecentData(DateTime ts)
+		private void RemoveOldRecentData(DateTime ts)
 		{
 			var deleteTime = ts.AddDays(-7);
 			try
@@ -2145,7 +2145,7 @@ namespace CumulusMX
 		public void CreateGraphDataFiles()
 		{
 			// Chart data for Highcharts graphs
-			string json = "";
+			string json;
 			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
 				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
@@ -3385,7 +3385,6 @@ namespace CumulusMX
 		public string GetSoilMoistGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
-			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
@@ -3537,7 +3536,6 @@ namespace CumulusMX
 		public string GetLeafWetnessGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
-			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
@@ -4052,7 +4050,6 @@ namespace CumulusMX
 
 				sbHum.Append("]");
 				sb.Append((append ? "," : "") + sbHum);
-				append = true;
 			}
 
 			sb.Append('}');
