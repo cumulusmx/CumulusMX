@@ -449,6 +449,12 @@ namespace CumulusMX
 
 				errorCount = res.Count();
 
+				if (errorCount == 1 && res.First() == "ok")
+				{
+					cumulus.LogMessage("SQLite integrity check OK");
+					return;
+				}
+
 				foreach (var row in res)
 				{
 					cumulus.LogErrorMessage("SQLite integrity check result: " + row.Replace("\n", "\n    "));
@@ -456,10 +462,6 @@ namespace CumulusMX
 						rebuild = true;
 				}
 
-				if (errorCount == 1 && res.First() == "ok")
-				{
-					return;
-				}
 			}
 			catch (Exception ex)
 			{

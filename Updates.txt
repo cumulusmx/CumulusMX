@@ -1,4 +1,4 @@
-3.27.0 - b3256
+3.27.0 - b3257
 ——————————————
 New
 - Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
