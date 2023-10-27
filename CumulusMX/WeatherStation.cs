@@ -6276,7 +6276,6 @@ namespace CumulusMX
 				WindAverageUncalibrated = uncalibratedspeed;
 			}
 
-			cumulus.LogDebugMessage($"DoWind: New: gust={RecentMaxGust:F1}, speed={WindAverage:F1}, latest:{WindLatest:F1}");
 
 			if (CalcRecentMaxGust)
 			{
@@ -6299,9 +6298,8 @@ namespace CumulusMX
 				RecentMaxGust = calibratedgust;
 			}
 
-#if DEBUGWIND
-			cumulus.LogDebugMessage($"New Wind Values: Gust:{RecentMaxGust:F1} Speed:{WindAverage:F1}");
-#endif
+			cumulus.LogDebugMessage($"DoWind: New: gust={RecentMaxGust:F1}, speed={WindAverage:F1}, latest:{WindLatest:F1}");
+
 			CheckHighAvgSpeed(timestamp);
 
 			WindVec[nextwindvec].X = calibratedgust * Math.Sin(DegToRad(Bearing));
@@ -6433,7 +6431,7 @@ namespace CumulusMX
 
 		public void AddValuesToRecentWind(double gust, double speed, DateTime start, DateTime end)
 		{
-			for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(5))
+			for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(3))
 			{
 				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 

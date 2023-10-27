@@ -380,10 +380,6 @@ namespace CumulusMX
 
 		public int RecordSetTimeoutHrs = 24;
 
-		private const int VP2SERIALCONNECTION = 0;
-		//private const int VP2USBCONNECTION = 1;
-		//private const int VP2TCPIPCONNECTION = 2;
-
 		public string AlltimeIniFile;
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
@@ -4341,7 +4337,7 @@ namespace CumulusMX
 				DavisOptions.RainGaugeType = -1;
 				rewriteRequired = true;
 			}
-			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", VP2SERIALCONNECTION);
+			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", 0);
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 

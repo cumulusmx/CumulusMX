@@ -798,7 +798,7 @@ namespace CumulusMX
 			try
 			{
 				// set this temporarily, so speed is done from average and not peak gust from logger
-				cumulus.StationOptions.UseSpeedForAvgCalc = true;
+				//cumulus.StationOptions.UseSpeedForAvgCalc = true;
 				do
 				{
 					GetArchiveData();
@@ -806,7 +806,7 @@ namespace CumulusMX
 				} while (archiveRun < maxArchiveRuns);
 
 				// restore the setting
-				cumulus.StationOptions.UseSpeedForAvgCalc = false;
+				//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
 			}
 			catch (Exception ex)
@@ -2495,8 +2495,8 @@ namespace CumulusMX
 									bearing = 0;
 								}
 
-								DoWind(wind, (int) (bearing * 22.5), avgwind, timestamp);
 								AddValuesToRecentWind(avgwind, avgwind, timestamp.AddMinutes(-interval), timestamp);
+								DoWind(wind, (int) (bearing * 22.5), avgwind, timestamp);
 
 								if (ConvertUserWindToMS(WindAverage) < 1.5)
 								{
