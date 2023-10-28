@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
-using MySqlConnector;
-using ServiceStack;
-using EmbedIO;
-using System.Text;
-using MySqlConnector.Logging;
-using System.Collections.Generic;
-using Org.BouncyCastle.Asn1.Cms;
-using System.Globalization;
 using System.Runtime.Serialization;
-using System.Xml.Linq;
+using System.Text;
+
+using EmbedIO;
+
+using MySqlConnector;
+
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -130,7 +130,7 @@ namespace CumulusMX
 			};
 
 			cmdCnt = 0;
-			for (var i = 0;i < 10; i++)
+			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomTimed.Commands[i]))
 					cmdCnt++;
@@ -219,7 +219,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing MySQL Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("MySQL Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -378,7 +378,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -402,7 +402,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("MySQL Create Table: Error encountered during MySQL operation.");
+					cumulus.LogErrorMessage("MySQL Create Table: Error encountered during MySQL operation.");
 					cumulus.LogMessage(ex.Message);
 					res = "Error: " + ex.Message;
 				}
@@ -477,7 +477,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("MySQL Update Table: Error encountered during MySQL operation.");
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogErrorMessage(ex.Message);
 				res = "Error: " + ex.Message;
 			}
 

@@ -1,5 +1,6 @@
-﻿using EmbedIO.WebSockets;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+
+using EmbedIO.WebSockets;
 
 namespace CumulusMX
 {

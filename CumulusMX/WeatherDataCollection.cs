@@ -2,12 +2,12 @@
 
 namespace CumulusMX
 {
-    internal class WeatherDataCollection : ObservableCollection<WeatherData>
-    {
-        public WeatherDataCollection()
-        {
+	internal class WeatherDataCollection : ObservableCollection<WeatherData>
+	{
+		public WeatherDataCollection()
+		{
 
-        }
+		}
 
-    }
+	}
 }

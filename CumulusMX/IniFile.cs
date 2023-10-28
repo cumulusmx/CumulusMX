@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using FluentFTP.Helpers;
 
 namespace CumulusMX
 {
@@ -16,7 +15,7 @@ namespace CumulusMX
 	internal class IniFile
 	{
 
-#region "Declarations"
+		#region "Declarations"
 
 		// *** Lock for thread-safe access to file and local cache ***
 		private readonly object m_Lock = new object();
@@ -35,14 +34,14 @@ namespace CumulusMX
 		private bool m_Lazy = false;
 
 		// *** Local cache ***
-		private readonly Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string,Dictionary<string, string>>();
+		private readonly Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string, Dictionary<string, string>>();
 
 		// *** Local cache modified flag ***
 		private bool m_CacheModified = false;
 
-#endregion
+		#endregion
 
-#region "Methods"
+		#region "Methods"
 
 		// *** Constructor ***
 		public IniFile(string FileName)
@@ -56,7 +55,7 @@ namespace CumulusMX
 		}
 
 		// *** Initialization ***
-		private void Initialize (string FileName, bool Lazy)
+		private void Initialize(string FileName, bool Lazy)
 		{
 			m_FileName = FileName;
 			m_Lazy = Lazy;
@@ -273,7 +272,7 @@ namespace CumulusMX
 				{
 					// *** If it doesn't, add it ***
 					Section = new Dictionary<string, string>();
-					m_Sections.Add(SectionName,Section);
+					m_Sections.Add(SectionName, Section);
 				}
 
 				// *** Modify the value ***
@@ -340,11 +339,11 @@ namespace CumulusMX
 			StringBuilder sb = new StringBuilder();
 			foreach (byte b in Value)
 			{
-				string hex = Convert.ToString(b,16);
+				string hex = Convert.ToString(b, 16);
 				int l = hex.Length;
 				if (l > 2)
 				{
-					sb.Append(hex.Substring(l-2,2));
+					sb.Append(hex.Substring(l - 2, 2));
 				}
 				else
 				{
@@ -365,7 +364,7 @@ namespace CumulusMX
 
 			l /= 2;
 			byte[] Result = new byte[l];
-			for (int i=0; i<l; i++) Result[i] = Convert.ToByte(Value.Substring(i*2,2),16);
+			for (int i = 0; i < l; i++) Result[i] = Convert.ToByte(Value.Substring(i * 2, 2), 16);
 			return Result;
 		}
 
@@ -453,7 +452,7 @@ namespace CumulusMX
 		// *** Getters for various types ***
 		internal bool GetValue(string SectionName, string Key, bool DefaultValue)
 		{
-			string StringValue=GetValue(SectionName, Key, DefaultValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
 			int Value;
 			if (int.TryParse(StringValue, out Value)) return (Value != 0);
 			return DefaultValue;
@@ -461,7 +460,7 @@ namespace CumulusMX
 
 		internal int GetValue(string SectionName, string Key, int DefaultValue)
 		{
-			string StringValue=GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
+			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
 			int Value;
 			if (int.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value)) return Value;
 			return DefaultValue;
@@ -469,7 +468,7 @@ namespace CumulusMX
 
 		internal double GetValue(string SectionName, string Key, double DefaultValue)
 		{
-			string StringValue=GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
+			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
 			double Value;
 			if (double.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value)) return Value;
 			return DefaultValue;

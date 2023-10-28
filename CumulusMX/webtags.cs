@@ -5,13 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
-using FluentFTP.Helpers;
-using Org.BouncyCastle.Ocsp;
+
 using Swan;
 
 namespace CumulusMX
 {
-	public delegate string WebTagFunction(Dictionary<string,string> tagParams);
+	public delegate string WebTagFunction(Dictionary<string, string> tagParams);
 
 	internal class WebTags
 	{
@@ -258,7 +257,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error reading diary database: " + e.Message);
+				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
 				depth = 0;
 			}
 			return depth;
@@ -275,7 +274,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error reading diary database: " + e.Message);
+				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
 				lying = 0;
 			}
 			return lying;
@@ -292,7 +291,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("Error reading diary database: " + e.Message);
+				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
 				falling = 0;
 			}
 			return falling;
@@ -324,7 +323,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'm=n', found 'm={minsagostr}'");
+					cumulus.LogWarningMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'm=n', found 'm={minsagostr}'");
 				}
 			}
 			if (hoursagostr != null)
@@ -335,7 +334,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'h=n', found 'h={hoursagostr}'");
+					cumulus.LogWarningMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'h=n', found 'h={hoursagostr}'");
 				}
 			}
 			if (daysagostr != null)
@@ -346,7 +345,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'd=n', found 'd={daysagostr}'");
+					cumulus.LogWarningMessage($"Error: Webtag <#{tagParams.Get("webtag")}>, expecting an integer value for parameter 'd=n', found 'd={daysagostr}'");
 				}
 			}
 			if (minsago < 0)
@@ -371,7 +370,7 @@ namespace CumulusMX
 				{
 					// problem converting parameter, use current month instead
 					month = DateTime.Now.Month;
-					cumulus.LogMessage($"Error: Webtag <#{tagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n', found 'mon={monthstr}'");
+					cumulus.LogWarningMessage($"Error: Webtag <#{tagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n', found 'mon={monthstr}'");
 				}
 			}
 			else
@@ -543,8 +542,10 @@ namespace CumulusMX
 			// we add on the meteo day start hour to 00:00 today
 			var startOfDay = DateTime.Today.AddHours(-cumulus.GetHourInc());
 			// then if that is later than now we are still in the previous day, so subtract a day
-			if (startOfDay > DateTime.Now)
+			// Allow a 20 second grace into the following day so we still have the previous days total just after rollover
+			if (startOfDay > DateTime.Now.AddSeconds(-20))
 				startOfDay = startOfDay.AddDays(-1);
+
 			var hours = (DateTime.Now - startOfDay).TotalHours;
 			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * hours;
 			// just after rollover the numbers will be silly, so return zero for the first 15 minutes
@@ -3246,6 +3247,11 @@ namespace CumulusMX
 			return cumulus.WebcamURL;
 		}
 
+		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
+		{
+			return string.IsNullOrEmpty(station.EcowittCameraUrl) ? string.Empty : station.EcowittCameraUrl;
+		}
+
 
 		private string Tagtempunit(Dictionary<string, string> tagParams)
 		{
@@ -4347,7 +4353,6 @@ namespace CumulusMX
 			return "0";
 		}
 
-
 		// Monthly highs and lows - values
 		private string TagMonthTempH(Dictionary<string, string> tagParams)
 		{
@@ -5185,7 +5190,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error processing SystemUpTime web tag");
+				cumulus.LogErrorMessage("Error processing SystemUpTime web tag");
 				cumulus.LogMessage(ex.Message);
 				return "Error";
 			}
@@ -5490,7 +5495,7 @@ namespace CumulusMX
 			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
-		private string TagRecentRainToday(Dictionary<string,string> tagParams)
+		private string TagRecentRainToday(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5499,7 +5504,7 @@ namespace CumulusMX
 			return CheckRcDp(CheckRainUnit(result.Count == 0 ? station.RainToday : result[0].RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
-		private string TagRecentSolarRad(Dictionary<string,string> tagParams)
+		private string TagRecentSolarRad(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5508,7 +5513,7 @@ namespace CumulusMX
 			return result.Count == 0 ? station.SolarRad.ToString("F0") : result[0].SolarRad.ToString("F0");
 		}
 
-		private string TagRecentUv(Dictionary<string,string> tagParams)
+		private string TagRecentUv(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5517,7 +5522,7 @@ namespace CumulusMX
 			return CheckRcDp(result.Count == 0 ? station.UV : result[0].UV, tagParams, cumulus.UVDPlaces);
 		}
 
-		private string TagRecentTs(Dictionary<string,string> tagParams)
+		private string TagRecentTs(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
@@ -5527,52 +5532,52 @@ namespace CumulusMX
 		}
 
 		// Recent history with commas replaced
-		private string TagRcRecentOutsideTemp(Dictionary<string,string> tagParams)
+		private string TagRcRecentOutsideTemp(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentOutsideTemp(tagParams));
 		}
 
-		private string TagRcRecentWindSpeed(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindSpeed(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindSpeed(tagParams));
 		}
 
-		private string TagRcRecentWindGust(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindGust(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindGust(tagParams));
 		}
 
-		private string TagRcRecentWindLatest(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindLatest(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindLatest(tagParams));
 		}
 
-		private string TagRcRecentWindChill(Dictionary<string,string> tagParams)
+		private string TagRcRecentWindChill(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentWindChill(tagParams));
 		}
 
-		private string TagRcRecentDewPoint(Dictionary<string,string> tagParams)
+		private string TagRcRecentDewPoint(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentDewPoint(tagParams));
 		}
 
-		private string TagRcRecentHeatIndex(Dictionary<string,string> tagParams)
+		private string TagRcRecentHeatIndex(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentHeatIndex(tagParams));
 		}
 
-		private string TagRcRecentPressure(Dictionary<string,string> tagParams)
+		private string TagRcRecentPressure(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentPressure(tagParams));
 		}
 
-		private string TagRcRecentRainToday(Dictionary<string,string> tagParams)
+		private string TagRcRecentRainToday(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentRainToday(tagParams));
 		}
 
-		private string TagRcRecentUv(Dictionary<string,string> tagParams)
+		private string TagRcRecentUv(Dictionary<string, string> tagParams)
 		{
 			return ReplaceCommas(TagRecentUv(tagParams));
 		}
@@ -5964,6 +5969,7 @@ namespace CumulusMX
 				{ "forumurl", Tagforumurl },
 				{ "webcam", Tagwebcam },
 				{ "webcamurl", Tagwebcamurl },
+				{ "EcowittCameraUrl", TagEcowittCameraUrl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
 				{ "tempunitnoenc", Tagtempunitnoenc },
@@ -6111,6 +6117,13 @@ namespace CumulusMX
 				{ "CO2-pm10-24h", TagCO2_pm10_24h },
 				{ "CO2-temp", TagC02_temp },
 				{ "CO2-hum", TagC02_hum },
+				{ "CO2_24h", TagCO2_24h },
+				{ "CO2_pm2p5", TagCO2_pm2p5 },
+				{ "CO2_pm2p5_24h", TagCO2_pm2p5_24h },
+				{ "CO2_pm10", TagCO2_pm10 },
+				{ "CO2_pm10_24h", TagCO2_pm10_24h },
+				{ "CO2_temp", TagC02_temp },
+				{ "CO2_hum", TagC02_hum },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },
@@ -6519,7 +6532,7 @@ namespace CumulusMX
 			}
 		}
 
-		public string GetWebTagText(string tagString, Dictionary<string,string> tagParams)
+		public string GetWebTagText(string tagString, Dictionary<string, string> tagParams)
 		{
 			return webTagDictionary.ContainsKey(tagString) ? webTagDictionary[tagString](tagParams) : string.Copy(string.Empty);
 		}

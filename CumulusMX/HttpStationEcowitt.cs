@@ -1,20 +1,14 @@
 ﻿using System;
-using EmbedIO;
-using System.IO;
-using System.Web;
-using System.Globalization;
 using System.Collections.Specialized;
-using System.Reflection;
-using ServiceStack.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Globalization;
+using System.IO;
 using System.Net.Http;
-using static CumulusMX.EmailSender;
-using static ServiceStack.Diagnostics.Events;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+
+using EmbedIO;
+
 
 namespace CumulusMX
 {
@@ -167,7 +161,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
-				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
+				cumulus.LogWarningMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
 			}
 			else
@@ -187,7 +181,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+					cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				}
 			}
 
@@ -229,6 +223,7 @@ namespace CumulusMX
 
 			PASSKEY=<PassKey>&stationtype=GW1100A_V2.1.4&runtime=2336207&dateutc=2022-05-13+08:55:11&tempinf=73.0&humidityin=38&baromrelin=30.156&baromabsin=29.297&tempf=63.0&humidity=49&winddir=71&windspeedmph=2.68&windgustmph=11.86&maxdailygust=15.21&solarradiation=694.87&uv=5&rainratein=0.000&eventrainin=0.000&hourlyrainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=0.591&yearlyrainin=14.591&temp1f=67.8&humidity1=43&temp2f=68.7&humidity2=47&temp3f=62.6&humidity3=51&temp4f=62.6&humidity4=51&temp5f=-1.5&temp6f=76.1&humidity6=47&temp7f=44.4&humidity7=49&soilmoisture1=14&soilmoisture2=50&soilmoisture3=20&soilmoisture4=25&pm25_ch1=7.0&pm25_avg_24h_ch1=7.6&pm25_ch2=6.0&pm25_avg_24h_ch2=8.3&tf_co2=72.9&humi_co2=44&pm25_co2=1.2&pm25_24h_co2=2.6&pm10_co2=1.5&pm10_24h_co2=3.0&co2=387&co2_24h=536&lightning_num=0&lightning=31&lightning_time=1652304268&leak_ch2=0&wh65batt=0&wh80batt=2.74&wh26batt=0&batt1=0&batt2=0&batt3=0&batt4=0&batt5=0&batt6=0&batt7=0&soilbatt1=1.3&soilbatt2=1.4&soilbatt3=1.4&soilbatt4=1.4&pm25batt1=4&pm25batt2=4&wh57batt=5&leakbatt2=4&co2_batt=6&freq=868M&model=GW1100A
 
+			PASSKEY=<PassKey>&stationtype=EasyWeatherPro_V5.1.1&runtime=4&dateutc=2023-09-03+07:29:16&tempinf=70.0&humidityin=89&baromrelin=29.811&baromabsin=29.811&tempf=52.7&humidity=92&winddir=223&windspeedmph=1.79&windgustmph=4.92&maxdailygust=15.88&solarradiation=39.31&uv=0&pm25_ch1=4.0&pm25_avg_24h_ch1=3.1&rrain_piezo=0.254&erain_piezo=0.126&hrain_piezo=0.016&drain_piezo=0.126&wrain_piezo=0.189&mrain_piezo=0.126&yrain_piezo=34.882&ws90cap_volt=3.7&ws90_ver=126&gain10_piezo=1.00&gain20_piezo=1.00&gain30_piezo=1.00&gain40_piezo=1.00&gain50_piezo=1.00&pm25batt1=3&wh90batt=2.94&freq=868M&model=HP2564AE_Pro_V1.8.1&interval=16
 			 */
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
@@ -255,7 +250,7 @@ namespace CumulusMX
 
 				var retVal = ApplyData(text, main, ts);
 
-				ForwardData(text);
+				ForwardData(text, main);
 
 				if (retVal != "")
 				{
@@ -265,7 +260,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"{procName}: Error - {ex.Message}");
+				cumulus.LogErrorMessage($"{procName}: Error - {ex.Message}");
 				context.Response.StatusCode = 500;
 				return "Failed: General error - " + ex.Message;
 			}
@@ -357,7 +352,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Wind data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Wind data - {ex.Message}");
 						return "Failed: Error in wind data - " + ex.Message;
 					}
 
@@ -372,7 +367,7 @@ namespace CumulusMX
 
 						if (humIn == null)
 						{
-							cumulus.LogMessage($"{procName}: Error, missing indoor humidity");
+							cumulus.LogWarningMessage($"{procName}: Error, missing indoor humidity");
 						}
 						else
 						{
@@ -395,7 +390,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Humidity data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Humidity data - {ex.Message}");
 						return "Failed: Error in humidity data - " + ex.Message;
 					}
 
@@ -431,7 +426,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Pressure data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Pressure data - {ex.Message}");
 						return "Failed: Error in baro pressure data - " + ex.Message;
 					}
 
@@ -455,7 +450,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Indoor temp data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Indoor temp data - {ex.Message}");
 						return "Failed: Error in indoor temp data - " + ex.Message;
 					}
 
@@ -479,7 +474,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Outdoor temp data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Outdoor temp data - {ex.Message}");
 						return "Failed: Error in outdoor temp data - " + ex.Message;
 					}
 
@@ -522,14 +517,14 @@ namespace CumulusMX
 						else
 						{
 							rain = data["yrain_piezo"];
-							rRate = data["​rrain_piezo"];
+							rRate = data["rrain_piezo"];
 						}
 
 						if (rRate == null)
 						{
 							// No rain rate, so we will calculate it
 							calculaterainrate = true;
-							rRate = "0";
+							rRate = "-999";
 						}
 						else
 						{
@@ -550,7 +545,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Rain data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Rain data - {ex.Message}");
 						return "Failed: Error in rainfall data - " + ex.Message;
 					}
 				}
@@ -565,7 +560,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in extra temperature data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in extra temperature data - {ex.Message}");
 					}
 				}
 
@@ -580,7 +575,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in extra humidity data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in extra humidity data - {ex.Message}");
 					}
 				}
 
@@ -595,7 +590,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in solar data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in solar data - {ex.Message}");
 					}
 				}
 
@@ -610,7 +605,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in UV data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in UV data - {ex.Message}");
 					}
 				}
 
@@ -626,7 +621,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Soil temp data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Soil temp data - {ex.Message}");
 					}
 				}
 
@@ -641,10 +636,23 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Soil moisture data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Soil moisture data - {ex.Message}");
 					}
 				}
 
+				// === Soil Moisture Raw ===
+				if (main || cumulus.EcowittExtraUseSoilMoist)
+				{
+					try
+					{
+						// soilad[1-16]
+						ProcessSoilMoistRaw(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil moisture Raw data - {ex.Message}");
+					}
+				}
 
 				// === Leaf Wetness ===
 				if (main || cumulus.EcowittExtraUseLeafWet)
@@ -657,7 +665,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Leaf wetness data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Leaf wetness data - {ex.Message}");
 					}
 				}
 
@@ -672,7 +680,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in User Temp data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in User Temp data - {ex.Message}");
 					}
 				}
 
@@ -688,7 +696,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Air Quality data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Air Quality data - {ex.Message}");
 					}
 				}
 
@@ -710,7 +718,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in CO₂ data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in CO₂ data - {ex.Message}");
 					}
 				}
 
@@ -727,7 +735,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Lightning data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Lightning data - {ex.Message}");
 					}
 				}
 
@@ -742,7 +750,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Leak data - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error in Leak data - {ex.Message}");
 					}
 				}
 
@@ -771,7 +779,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"{procName}: Error in Battery data - {ex.Message}");
+					cumulus.LogErrorMessage($"{procName}: Error in Battery data - {ex.Message}");
 				}
 
 
@@ -784,7 +792,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error calculating extra sensor dew points - {ex.Message}");
+						cumulus.LogErrorMessage($"{procName}: Error calculating extra sensor dew points - {ex.Message}");
 					}
 				}
 
@@ -805,7 +813,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"{procName}: Error extracting firmware version - {ex.Message}");
+					cumulus.LogErrorMessage($"{procName}: Error extracting firmware version - {ex.Message}");
 				}
 
 				if (main)
@@ -825,7 +833,7 @@ namespace CumulusMX
 						}
 						else if (dewpnt == null)
 						{
-							cumulus.LogMessage($"{procName}: Error, missing dew point");
+							cumulus.LogWarningMessage($"{procName}: Error, missing dew point");
 						}
 						else
 						{
@@ -835,7 +843,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in Dew point data - " + ex.Message);
+						cumulus.LogErrorMessage($"{procName}: Error in Dew point data - " + ex.Message);
 						return "Failed: Error in dew point data - " + ex.Message;
 					}
 
@@ -852,7 +860,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								cumulus.LogMessage($"{procName}: Insufficient data to calculate wind chill");
+								cumulus.LogWarningMessage($"{procName}: Insufficient data to calculate wind chill");
 							}
 						}
 						else
@@ -860,7 +868,7 @@ namespace CumulusMX
 							var chill = data["windchillf"];
 							if (chill == null)
 							{
-								cumulus.LogMessage($"{procName}: Error, missing wind chill");
+								cumulus.LogWarningMessage($"{procName}: Error, missing wind chill");
 							}
 							else
 							{
@@ -871,7 +879,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"{procName}: Error in wind chill data - " + ex.Message);
+						cumulus.LogErrorMessage($"{procName}: Error in wind chill data - " + ex.Message);
 						return "Failed: Error in wind chill data - " + ex.Message;
 					}
 
@@ -890,12 +898,12 @@ namespace CumulusMX
 						}
 						else
 						{
-							cumulus.LogMessage($"{procName}: Insufficient data to calculate Apparent/Feels Like temps");
+							cumulus.LogWarningMessage($"{procName}: Insufficient data to calculate Apparent/Feels Like temps");
 						}
 					}
 					else
 					{
-						cumulus.LogMessage($"{procName}: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
+						cumulus.LogWarningMessage($"{procName}: Insufficient data to calculate Humidex and Apparent/Feels Like temps");
 					}
 				}
 
@@ -906,7 +914,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"{procName}: Error - {ex.Message}");
+				cumulus.LogErrorMessage($"{procName}: Error - {ex.Message}");
 				return "Failed: General error - " + ex.Message;
 			}
 
@@ -949,7 +957,7 @@ namespace CumulusMX
 		{
 			if (data["solarradiation"] != null)
 			{
-				station.DoSolarRad((int)Convert.ToDouble(data["solarradiation"], invNum), recDate);
+				station.DoSolarRad((int) Convert.ToDouble(data["solarradiation"], invNum), recDate);
 			}
 		}
 
@@ -984,6 +992,18 @@ namespace CumulusMX
 				if (data["soilmoisture" + i] != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilmoisture" + i], invNum), i);
+				}
+			}
+		}
+
+		private void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soilad" + i] != null)
+				{
+					// Do nothing for now
+					//station.DoSoilMoistureRaw(Convert.ToDouble(data["soilad" + i], invNum), i);
 				}
 			}
 		}
@@ -1148,18 +1168,18 @@ namespace CumulusMX
 			lowBatt = lowBatt || (data["wh90batt"] != null && Convert.ToDouble(data["wh90batt"], invNum) <= 2.4);
 			for (var i = 1; i < 5; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
+				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["pm25batt" + i] != null && data["pm25batt" + i] == "1");
 				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
-				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["tf_batt" + i] != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
+				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["tf_batt" + i] != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 			}
 
@@ -1262,25 +1282,25 @@ namespace CumulusMX
 						length += 2 + 2 + 1 + 1; // + port + interval + type + active
 						var send = new byte[length];
 						// set ID
-						send[0] = (byte)id.Length;
+						send[0] = (byte) id.Length;
 						Encoding.ASCII.GetBytes(id).CopyTo(send, 1);
 
 						// set password
 						idx = 1 + id.Length;
-						send[idx] = (byte)pass.Length;
+						send[idx] = (byte) pass.Length;
 						Encoding.ASCII.GetBytes(id).CopyTo(send, idx + 1);
 
 						// set server string length
 						idx += 1 + pass.Length;
-						send[idx] = (byte)customServer.Length;
+						send[idx] = (byte) customServer.Length;
 						// set server string
 						Encoding.ASCII.GetBytes(customServer).CopyTo(send, idx + 1);
-						idx += 1 + server.Length;
+						idx += 1 + customServer.Length;
 						// set the port id
-						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort)customPort).CopyTo(send, idx);
+						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort) customPort).CopyTo(send, idx);
 						// set the interval
 						idx += 2;
-						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort)customIntv).CopyTo(send, idx);
+						GW1000Api.ConvertUInt16ToLittleEndianByteArray((ushort) customIntv).CopyTo(send, idx);
 						// set type
 						idx += 2;
 						send[idx] = 0;
@@ -1293,7 +1313,7 @@ namespace CumulusMX
 
 						if (retData == null || retData[4] != 0)
 						{
-							cumulus.LogMessage("Error - failed to set the Ecowitt Gateway config");
+							cumulus.LogErrorMessage("Error - failed to set the Ecowitt Gateway config");
 						}
 						else
 						{
@@ -1307,17 +1327,17 @@ namespace CumulusMX
 					{
 						ecPath = customPath;
 						var path = new byte[ecPath.Length + wuPath.Length + 2];
-						path[0] = (byte)ecPath.Length;
+						path[0] = (byte) ecPath.Length;
 						Encoding.ASCII.GetBytes(ecPath).CopyTo(path, 1);
 						idx = 1 + ecPath.Length;
-						path[idx] = (byte)wuPath.Length;
+						path[idx] = (byte) wuPath.Length;
 						Encoding.ASCII.GetBytes(wuPath).CopyTo(path, idx + 1);
 
 						var retData = api.DoCommand(GW1000Api.Commands.CMD_WRITE_USER_PATH, path);
 
 						if (retData == null || retData[4] != 0)
 						{
-							cumulus.LogMessage("Error - failed to set the Ecowitt Gateway Custom Server Path");
+							cumulus.LogErrorMessage("Error - failed to set the Ecowitt Gateway Custom Server Path");
 						}
 						else
 						{
@@ -1327,24 +1347,26 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error setting Ecowitt Gateway Custom Server config: " + ex.Message);
+					cumulus.LogErrorMessage("Error setting Ecowitt Gateway Custom Server config: " + ex.Message);
 				}
 			}
 			else
 			{
-				cumulus.LogMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+				cumulus.LogErrorMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
 			}
 		}
 
-		private void ForwardData(string data)
+		private void ForwardData(string data, bool main)
 		{
 			var encoding = new UTF8Encoding(false);
 
-			for (int i = 0; i < cumulus.EcowittForwarders.Length; i++)
+			var forwarders = main || cumulus.EcowittExtraUseMainForwarders ? cumulus.EcowittForwarders : cumulus.EcowittExtraForwarders;
+
+			for (int i = 0; i < forwarders.Length; i++)
 			{
-				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
+				if (!string.IsNullOrEmpty(forwarders[i]))
 				{
-					var url = cumulus.EcowittForwarders[i];
+					var url = forwarders[i];
 					var idx = i;
 					cumulus.LogDebugMessage("ForwardData: Forwarding Ecowitt data to: " + url);
 

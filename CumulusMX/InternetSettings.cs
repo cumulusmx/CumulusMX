@@ -4,9 +4,11 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
-using ServiceStack;
+
 using EmbedIO;
-using static ServiceStack.Diagnostics.Events;
+
+using ServiceStack;
+
 
 namespace CumulusMX
 {
@@ -40,7 +42,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Internet Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Internet Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -67,7 +69,7 @@ namespace CumulusMX
 								cumulus.TestPhpUploadCompression();
 							}
 						}
-						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.website.sslftp;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.website.sslftp;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
@@ -118,7 +120,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing website settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -193,7 +195,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing web settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -214,7 +216,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing external programs: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -245,7 +247,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing MQTT settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -272,7 +274,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Moon image settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -288,7 +290,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing HTTP proxy settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -317,7 +319,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Email settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -331,7 +333,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Misc settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -369,7 +371,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Internet settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Internet data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
@@ -407,7 +409,7 @@ namespace CumulusMX
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
-				sslftp = (int)cumulus.FtpOptions.FtpMode,
+				sslftp = (int) cumulus.FtpOptions.FtpMode,
 				hostname = cumulus.FtpOptions.Hostname,
 				password = cumulus.FtpOptions.Password,
 				username = cumulus.FtpOptions.Username,
@@ -456,7 +458,7 @@ namespace CumulusMX
 				};
 			}
 
-			for (var i =0; i < cumulus.GraphDataFiles.Length; i++)
+			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
 				websettingsinterval.graphfiles.files[i] = new JsonInternetSettingsFileSettings()
 				{
@@ -678,7 +680,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogErrorMessage("Error updating Extra Web file settings: " + ex.Message);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}

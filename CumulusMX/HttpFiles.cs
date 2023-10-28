@@ -1,35 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-//using System.Net.Security;
 using System.Runtime.Serialization;
-//using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web.Hosting;
+
 using EmbedIO;
-using Org.BouncyCastle.Asn1.Cms;
+
 using ServiceStack;
 using ServiceStack.Text;
-using Swan.Formatters;
-using static CumulusMX.Cumulus;
+
 
 namespace CumulusMX
 {
 	internal class HttpFiles
 	{
 		private readonly Cumulus cumulus;
+		private readonly WeatherStation station;
 
-		public HttpFiles(Cumulus cumulus)
+		public HttpFiles(Cumulus cumulus, WeatherStation station)
 		{
 			this.cumulus = cumulus;
+			this.station = station;
 		}
 
 		public string GetAlpacaFormData()
@@ -79,7 +73,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Http File Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Http File Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -133,8 +127,8 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				var msg = "HTTP file: Error processing settings: " + ex.Message;
+				cumulus.LogErrorMessage(msg);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -143,8 +137,28 @@ namespace CumulusMX
 
 		public async Task DownloadHttpFile(string url, string filename)
 		{
+			string modUrl;
+
+			if (url == "<ecowittcameraurl>")
+			{
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				{
+					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
+					return;
+				}
+				else
+				{
+					url = station.EcowittCameraUrl;
+					// do not append timestamp, it is already unique
+					modUrl = url;
+				}
+			}
+			else
+			{
+				modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			}
+
 			cumulus.LogDebugMessage($"DownloadHttpFile: Downloading from {url} to {filename}");
-			var modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 
 			try
 			{

@@ -1,10 +1,11 @@
-﻿using HidSharp;
-using System;
+﻿using System;
 using System.ComponentModel;
-using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Timers;
+
+using HidSharp;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -77,7 +78,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("WMR200 station not found!");
+				cumulus.LogErrorMessage("WMR200 station not found!");
 				cumulus.LogConsoleMessage("WMR200 station not found!", ConsoleColor.Red);
 			}
 		}
@@ -305,7 +306,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				reset = new byte[] {0x00, 0x20, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00};
+				reset = new byte[] { 0x00, 0x20, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00 };
 			}
 
 			stream.Write(reset);
@@ -358,7 +359,7 @@ namespace CumulusMX
 			else
 			{
 				// packet CRC is in last two bytes, low byte then high byte
-				var packetCRC = (packetBuffer[packetLen - 1]*256) + packetBuffer[packetLen - 2];
+				var packetCRC = (packetBuffer[packetLen - 1] * 256) + packetBuffer[packetLen - 2];
 
 				var calculatedCRC = 0;
 
@@ -564,7 +565,7 @@ namespace CumulusMX
 			if (sensor == cumulus.WMR200TempChannel)
 			{
 				// outdoor hum
-				DoOutdoorHumidity(packetBuffer[10],now);
+				DoOutdoorHumidity(packetBuffer[10], now);
 				// outdoor temp
 				if ((packetBuffer[9] & 0x80) == 0x80)
 				{
@@ -575,8 +576,8 @@ namespace CumulusMX
 					sign = 1;
 				}
 
-				num = sign*((packetBuffer[9] & 0xF)*256 + packetBuffer[8])/10.0;
-				DoOutdoorTemp(ConvertTempCToUser(num),now);
+				num = sign * ((packetBuffer[9] & 0xF) * 256 + packetBuffer[8]) / 10.0;
+				DoOutdoorTemp(ConvertTempCToUser(num), now);
 				// outdoor dewpoint
 				if ((packetBuffer[12] & 0x80) == 0x80)
 				{
@@ -586,7 +587,7 @@ namespace CumulusMX
 				{
 					sign = 1;
 				}
-				num = sign*((packetBuffer[12] & 0xF)*256 + packetBuffer[11])/10.0;
+				num = sign * ((packetBuffer[12] & 0xF) * 256 + packetBuffer[11]) / 10.0;
 				DoOutdoorDewpoint(ConvertTempCToUser(num), now);
 
 				DoApparentTemp(now);
@@ -607,7 +608,7 @@ namespace CumulusMX
 				{
 					sign = 1;
 				}
-				num = (sign*((packetBuffer[9] & 0xF)*256 + packetBuffer[8]))/10.0;
+				num = (sign * ((packetBuffer[9] & 0xF) * 256 + packetBuffer[8])) / 10.0;
 				DoIndoorTemp(ConvertTempCToUser(num));
 			}
 			if ((sensor > 1) && (sensor < 11))
@@ -615,7 +616,7 @@ namespace CumulusMX
 				WMR200ChannelPresent[sensor] = true;
 				// outdoor hum
 				WMR200ExtraHumValues[sensor] = packetBuffer[10];
-				DoExtraHum(WMR200ExtraHumValues[sensor],sensor);
+				DoExtraHum(WMR200ExtraHumValues[sensor], sensor);
 				// outdoor temp
 				if ((packetBuffer[9] & 0x80) == 0x80)
 				{
@@ -639,7 +640,7 @@ namespace CumulusMX
 				}
 
 				WMR200ExtraDPValues[sensor] = ConvertTempCToUser((sign * ((packetBuffer[12] & 0xF) * 256 + packetBuffer[11])) / 10.0);
-				DoExtraDP(WMR200ExtraDPValues[sensor],sensor);
+				DoExtraDP(WMR200ExtraDPValues[sensor], sensor);
 				ExtraSensorsDetected = true;
 			}
 		}
@@ -718,9 +719,9 @@ namespace CumulusMX
 			//Byte 20: (cL) Check-sum low  byte
 			//Byte 21: (cH) Check-sum high byte
 
-			double counter = (((packetBuffer[14]*256) + packetBuffer[13])/100.0);
+			double counter = (((packetBuffer[14] * 256) + packetBuffer[13]) / 100.0);
 
-			var rate = ((packetBuffer[8]*256) + packetBuffer[7])/100.0;
+			var rate = ((packetBuffer[8] * 256) + packetBuffer[7]) / 100.0;
 
 			// check for overflow  (9999 mm = approx 393 in) and set to 999 mm/hr
 			if (rate > 393)
@@ -740,7 +741,7 @@ namespace CumulusMX
 			if (cumulus.Units.Rain == 0)
 			{
 				// mm
-				num = value*25.4;
+				num = value * 25.4;
 			}
 			else
 			{
@@ -850,11 +851,11 @@ namespace CumulusMX
 			DateTime now = DateTime.Now;
 
 			// bearing
-			int bearing = (int) ((packetBuffer[7] & 0xF)*22.5);
+			int bearing = (int) ((packetBuffer[7] & 0xF) * 22.5);
 			// gust
-			double gust = ((packetBuffer[10] & 0xF)*256 + packetBuffer[9])/10.0;
+			double gust = ((packetBuffer[10] & 0xF) * 256 + packetBuffer[9]) / 10.0;
 			// average
-			double average = ((packetBuffer[11]*16) + (packetBuffer[10]/16))/10.0;
+			double average = ((packetBuffer[11] * 16) + (packetBuffer[10] / 16)) / 10.0;
 
 			DoWind(ConvertWindMSToUser(gust), bearing, ConvertWindMSToUser(average), now);
 
@@ -865,12 +866,12 @@ namespace CumulusMX
 				// it can't/won't do it if temp isn't available, so don't
 				// bother calling anyway
 
-				DoWindChill(OutdoorTemperature,now);
+				DoWindChill(OutdoorTemperature, now);
 			}
 			else
 			{
 				// wind chill is in Fahrenheit!
-				var wc = (packetBuffer[12] + (packetBuffer[13] & 0xF)*256)/10.0;
+				var wc = (packetBuffer[12] + (packetBuffer[13] & 0xF) * 256) / 10.0;
 
 				if ((packetBuffer[13] & 0x80) == 0x80)
 					wc = -wc;
@@ -881,7 +882,7 @@ namespace CumulusMX
 					wc = MeteoLib.FtoC(wc);
 				}
 
-				DoWindChill(wc,now);
+				DoWindChill(wc, now);
 			}
 		}
 
@@ -945,14 +946,14 @@ namespace CumulusMX
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
 
-			double slp = ((packetBuffer[10] & 0xF)*256) + packetBuffer[9];
-			DoPressure(ConvertPressMBToUser(slp),DateTime.Now);
+			double slp = ((packetBuffer[10] & 0xF) * 256) + packetBuffer[9];
+			DoPressure(ConvertPressMBToUser(slp), DateTime.Now);
 
-			StationPressure = ConvertPressMBToUser(((packetBuffer[8] & 0xF)*256) + packetBuffer[7]);
+			StationPressure = ConvertPressMBToUser(((packetBuffer[8] & 0xF) * 256) + packetBuffer[7]);
 
 			UpdatePressureTrendString();
 
-			var forecast = packetBuffer[8]/16;
+			var forecast = packetBuffer[8] / 16;
 			string fcstr;
 
 			switch (forecast)
@@ -983,7 +984,7 @@ namespace CumulusMX
 					break;
 			}
 
-			DoForecast(fcstr,false);
+			DoForecast(fcstr, false);
 		}
 
 		private void ProcessUVPacket()
@@ -1034,7 +1035,7 @@ namespace CumulusMX
 			if (num > 16)
 				num = 16;
 
-			DoUV(num,DateTime.Now);
+			DoUV(num, DateTime.Now);
 
 			// UV value is stored as channel 1 of the extra sensors
 			WMR200ExtraHumValues[1] = num;
@@ -1433,21 +1434,21 @@ namespace CumulusMX
 			}
 			previousHistoryTimeStamp = timestamp;
 			// pressure
-			StationPressure = ConvertPressMBToUser(((packetBuffer[29] & 0xF)*256) + packetBuffer[28]);
-			double num = ((packetBuffer[31] & 0xF)*256) + packetBuffer[30];
-			DoPressure(ConvertPressMBToUser(num),timestamp);
+			StationPressure = ConvertPressMBToUser(((packetBuffer[29] & 0xF) * 256) + packetBuffer[28]);
+			double num = ((packetBuffer[31] & 0xF) * 256) + packetBuffer[30];
+			DoPressure(ConvertPressMBToUser(num), timestamp);
 
 			// bearing
-			int bearing = (int) ((packetBuffer[20] & 0xF)*22.5);
+			int bearing = (int) ((packetBuffer[20] & 0xF) * 22.5);
 			// gust
-			double gust = ((packetBuffer[23] & 0xF)*256 + packetBuffer[22])/10.0;
+			double gust = ((packetBuffer[23] & 0xF) * 256 + packetBuffer[22]) / 10.0;
 			// average
-			double average = ((packetBuffer[24]*16) + (packetBuffer[23]/16))/10.0;
+			double average = ((packetBuffer[24] * 16) + (packetBuffer[23] / 16)) / 10.0;
 
-			DoWind(ConvertWindMSToUser(gust), bearing,ConvertWindMSToUser(average), timestamp);
+			DoWind(ConvertWindMSToUser(gust), bearing, ConvertWindMSToUser(average), timestamp);
 
 			// add in 'interval' minutes worth of wind speed to windrun
-			WindRunToday += (WindAverage*WindRunHourMult[cumulus.Units.Wind]*interval*60)/1000.0;
+			WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60) / 1000.0;
 			// update dominant wind bearing
 			CalculateDominantWindBearing(Bearing, WindAverage, interval);
 			int sensorcount = packetBuffer[32];
@@ -1455,7 +1456,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					var offset = 33 + (i*7);
+					var offset = 33 + (i * 7);
 					var sensornumber = packetBuffer[offset] & 0xF;
 					int sign;
 					if (sensornumber == 0)
@@ -1472,13 +1473,13 @@ namespace CumulusMX
 						{
 							sign = 1;
 						}
-						DoIndoorTemp(ConvertTempCToUser(sign*((packetBuffer[offset + 2] & 0xF)*256 + packetBuffer[offset + 1]))/10.0);
+						DoIndoorTemp(ConvertTempCToUser(sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1])) / 10.0);
 					}
 					else if (sensornumber == cumulus.WMR200TempChannel)
 					{
 						// channel 1 outdoor sensor
 						// outdoor humidity
-						DoOutdoorHumidity(packetBuffer[offset + 3],timestamp);
+						DoOutdoorHumidity(packetBuffer[offset + 3], timestamp);
 						// outdoor temp
 						if ((packetBuffer[offset + 2] & 0x80) == 0x80)
 						{
@@ -1488,14 +1489,14 @@ namespace CumulusMX
 						{
 							sign = 1;
 						}
-						DoOutdoorTemp(ConvertTempCToUser((sign*((packetBuffer[offset + 2] & 0xF)*256 + packetBuffer[offset + 1]))/10.0),timestamp);
+						DoOutdoorTemp(ConvertTempCToUser((sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1])) / 10.0), timestamp);
 
 						// update heating/cooling degree days
 						UpdateDegreeDays(interval);
 
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += interval;
-						TempTotalToday += (OutdoorTemperature*interval);
+						TempTotalToday += (OutdoorTemperature * interval);
 
 						// update chill hours
 						if (OutdoorTemperature < cumulus.ChillHourThreshold)
@@ -1514,14 +1515,14 @@ namespace CumulusMX
 							sign = 1;
 						}
 
-						DoOutdoorDewpoint(ConvertTempCToUser((sign*((packetBuffer[offset + 5] & 0xF)*256 + packetBuffer[offset + 4]))/10.0),timestamp);
+						DoOutdoorDewpoint(ConvertTempCToUser((sign * ((packetBuffer[offset + 5] & 0xF) * 256 + packetBuffer[offset + 4])) / 10.0), timestamp);
 					}
 
 					if (sensornumber > 1 && sensornumber < 11)
 					{
 						// extra sensors
 						// humidity
-						DoExtraHum(packetBuffer[offset + 3],sensornumber);
+						DoExtraHum(packetBuffer[offset + 3], sensornumber);
 
 						// temperature
 						if ((packetBuffer[offset + 2] & 0x80) == 0x80)
@@ -1533,7 +1534,7 @@ namespace CumulusMX
 							sign = 1;
 						}
 
-						DoExtraTemp(ConvertTempCToUser((sign*((packetBuffer[offset + 2] & 0xF)*256 + packetBuffer[offset + 1]))/10.0),sensornumber);
+						DoExtraTemp(ConvertTempCToUser((sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1])) / 10.0), sensornumber);
 
 						// dew point
 						if ((packetBuffer[offset + 5] & 0x80) == 0x80)
@@ -1545,12 +1546,12 @@ namespace CumulusMX
 							sign = 1;
 						}
 
-						DoExtraDP(ConvertTempCToUser((sign*((packetBuffer[offset + 5] & 0xF)*256 + packetBuffer[offset + 4]))/10.0),sensornumber);
+						DoExtraDP(ConvertTempCToUser((sign * ((packetBuffer[offset + 5] & 0xF) * 256 + packetBuffer[offset + 4])) / 10.0), sensornumber);
 					}
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("History packet too short. Sensor count = " + sensorcount);
+					cumulus.LogErrorMessage("History packet too short. Sensor count = " + sensorcount);
 					cumulus.LogMessage(ex.Message);
 				}
 			}
@@ -1563,33 +1564,33 @@ namespace CumulusMX
 				// bother calling anyway
 				if (TempReadyToPlot)
 				{
-					DoWindChill(OutdoorTemperature,timestamp);
+					DoWindChill(OutdoorTemperature, timestamp);
 				}
 			}
 			else
 			{
 				// wind chill is in Fahrenheit!
-				var wc = MeteoLib.FtoC((packetBuffer[25] + (packetBuffer[26] & 0xF)*256)/10.0);
+				var wc = MeteoLib.FtoC((packetBuffer[25] + (packetBuffer[26] & 0xF) * 256) / 10.0);
 
 				if (cumulus.Units.Rain == 0)
 				{
 					wc = MeteoLib.FtoC(wc);
 				}
 
-				DoWindChill(wc,timestamp);
+				DoWindChill(wc, timestamp);
 			}
 
 			// rain
-			var counter = ((packetBuffer[14]*256) + packetBuffer[13])/100.0;
+			var counter = ((packetBuffer[14] * 256) + packetBuffer[13]) / 100.0;
 
-			var rate = ((packetBuffer[8]*256) + packetBuffer[7])/100.0;
+			var rate = ((packetBuffer[8] * 256) + packetBuffer[7]) / 100.0;
 
-			DoRain(ConvertRainINToUser(counter),ConvertRainINToUser(rate),timestamp);
+			DoRain(ConvertRainINToUser(counter), ConvertRainINToUser(rate), timestamp);
 
 			// UV
 			if (packetBuffer[27] != 0xFF)
 			{
-				DoUV(packetBuffer[27] & 0xFF,timestamp);
+				DoUV(packetBuffer[27] & 0xFF, timestamp);
 			}
 
 			// do solar rad, even though there's no sensor,
@@ -1601,7 +1602,7 @@ namespace CumulusMX
 			DoHumidex(timestamp);
 			DoCloudBaseHeatIndex(timestamp);
 
-			cumulus.DoLogFile(timestamp,false);
+			cumulus.DoLogFile(timestamp, false);
 			cumulus.MySqlRealtimeFile(999, false, timestamp);
 			cumulus.DoCustomIntervalLogs(timestamp);
 
@@ -1736,7 +1737,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("WMR200: Invalid CRC");
+				cumulus.LogErrorMessage("WMR200: Invalid CRC");
 			}
 
 			if (gettingHistory)

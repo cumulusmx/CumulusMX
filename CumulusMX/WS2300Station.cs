@@ -51,7 +51,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogErrorMessage("error opening COM port: " + ex.Message);
 				//MessageBox.Show(ex.Message);
 			}
 
@@ -176,7 +176,7 @@ namespace CumulusMX
 						histData.outTemp = outtemp;
 						histData.pressure = press;
 						histData.rainTotal = raincount;
-						histData.windBearing = (int)bearing;
+						histData.windBearing = (int) bearing;
 						histData.windGust = windspeed;
 						histData.windSpeed = windspeed;
 						histData.dewpoint = dewpoint;
@@ -562,7 +562,7 @@ namespace CumulusMX
 
 			pressure = ConvertPressMBToUser(pressure);
 
-			humindoor = (int)((tempint - (tempint % 10000)) / 10000.0);
+			humindoor = (int) ((tempint - (tempint % 10000)) / 10000.0);
 
 			humoutdoor = (data[5] >> 4) * 10 + (data[5] & 0xF);
 
@@ -612,7 +612,7 @@ namespace CumulusMX
 			}
 
 			// Outdoor humidity ====================================================================
-			if(!stop)
+			if (!stop)
 			{
 				int outhum = Ws2300OutdoorHumidity();
 				if ((outhum > 0) && (outhum <= 100) && ((previoushum == 999) || (Math.Abs(outhum - previoushum) < cumulus.Spike.HumidityDiff)))
@@ -667,7 +667,7 @@ namespace CumulusMX
 
 				if ((Pressure > 850) && (Pressure < 1200))
 				{
-					StationPressure = ConvertPressMBToUser(pressure * pressure + cumulus.Calib.Press.Mult2 + pressure * cumulus.Calib.Press.Mult + ConvertPressMBToUser(cumulus.Calib.Press.Offset));
+					StationPressure = ConvertPressMBToUser(cumulus.Calib.Press.Calibrate(pressure));
 					// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
 				}
 			}
@@ -690,7 +690,7 @@ namespace CumulusMX
 				if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.Spike.WindDiff)))
 				{
 					previouswind = wind;
-					DoWind(ConvertWindMSToUser(wind), (int)direction, -1, now);
+					DoWind(ConvertWindMSToUser(wind), (int) direction, -1, now);
 				}
 				else
 				{
@@ -1294,7 +1294,7 @@ namespace CumulusMX
 		/// <returns></returns>
 		private byte ws2300commandChecksum4(int number)
 		{
-			return (byte)(number + 0x30);
+			return (byte) (number + 0x30);
 		}
 
 		/// <summary>
@@ -1312,7 +1312,7 @@ namespace CumulusMX
 				checksum += data[i];
 			}
 
-			return (byte)(checksum & 0xFF);
+			return (byte) (checksum & 0xFF);
 		}
 
 		/// <summary>
@@ -1324,7 +1324,7 @@ namespace CumulusMX
 		{
 			byte encodednumber;
 
-			encodednumber = (byte)(0xC2 + number * 4);
+			encodednumber = (byte) (0xC2 + number * 4);
 
 			if (encodednumber > 0xfe)
 				encodednumber = 0xfe;
@@ -1340,7 +1340,7 @@ namespace CumulusMX
 		/// <returns></returns>
 		private byte ws2300commandChecksum0to3(byte command, int sequence)
 		{
-			return (byte)(sequence * 16 + ((command) - 0x82) / 4);
+			return (byte) (sequence * 16 + ((command) - 0x82) / 4);
 		}
 
 		/*
@@ -1371,8 +1371,8 @@ namespace CumulusMX
 
 			for (int i = 0; i < numbytes; i++)
 			{
-				byte nibble = (byte)((addressIn >> (4 * (3 - i))) & 0x0F);
-				addressOut[i] = (byte)(0x82 + (nibble * 4));
+				byte nibble = (byte) ((addressIn >> (4 * (3 - i))) & 0x0F);
+				addressOut[i] = (byte) (0x82 + (nibble * 4));
 			}
 		}
 
@@ -1428,7 +1428,7 @@ namespace CumulusMX
 			cumulus.LogDataMessage("ReadSerial");
 			try
 			{
-				answer = (byte)comport.ReadByte();
+				answer = (byte) comport.ReadByte();
 			}
 			catch (Exception ex)
 			{

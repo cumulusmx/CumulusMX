@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Threading;
 using System.Reflection;
-using ServiceStack.Text;
+using System.Threading;
+
 using EmbedIO;
-using static Swan.Terminal;
-using Swan.Formatters;
+
 using ServiceStack;
-using System.Globalization;
+using ServiceStack.Text;
+
 
 namespace CumulusMX
 {
@@ -163,13 +164,13 @@ namespace CumulusMX
 				interval = cumulus.EcowittCustomInterval
 			};
 
-			ecowitt.forward = new List<JsonEcowittForward>();
+			ecowitt.forward = new List<JsonEcowittForwardList>();
 
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittForwarders[i]))
 				{
-					ecowitt.forward.Add(new JsonEcowittForward() { url = cumulus.EcowittForwarders[i] });
+					ecowitt.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittForwarders[i] });
 				}
 			}
 
@@ -239,7 +240,7 @@ namespace CumulusMX
 
 			LatToDMS(cumulus.Latitude, out deg, out min, out sec, out hem);
 
-			var latitude = new JsonStationSettingsLatLong() {degrees = deg, minutes = min, seconds = sec, hemisphere = hem};
+			var latitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
 			LongToDMS(cumulus.Longitude, out deg, out min, out sec, out hem);
 
@@ -455,7 +456,7 @@ namespace CumulusMX
 				coordinate = longitude;
 				hem = "East";
 			}
-			int secs = (int)(coordinate * 60 * 60);
+			int secs = (int) (coordinate * 60 * 60);
 
 			s = secs % 60;
 
@@ -479,7 +480,7 @@ namespace CumulusMX
 				hem = "North";
 			}
 
-			int secs = (int)(coordinate * 60 * 60);
+			int secs = (int) (coordinate * 60 * 60);
 
 			s = secs % 60;
 
@@ -512,7 +513,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -531,7 +532,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Rainfall settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -547,7 +548,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Growing Degree Day settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -562,7 +563,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Temperature Sum settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -576,7 +577,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Chill Hours settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -604,7 +605,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Solar settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -624,7 +625,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Forecast settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -658,7 +659,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Location settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -693,7 +694,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Options settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -708,7 +709,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Log roll-over settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -748,74 +749,81 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Davis VP/VP2/Vue settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
 
-				// WLL
+				// WLL/Davis Cloud
 				try
 				{
 					if (settings.daviswll != null)
 					{
-						cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
-						cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
-						cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
+						if (settings.general.stationtype == 11) // WLL only
+						{
+							cumulus.DavisOptions.ConnectionType = 2; // Always TCP/IP for WLL
+							cumulus.WLLAutoUpdateIpAddress = settings.daviswll.network.autoDiscover;
+							cumulus.DavisOptions.IPAddr = string.IsNullOrWhiteSpace(settings.daviswll.network.ipaddress) ? null : settings.daviswll.network.ipaddress.Trim();
+
+							cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
+							cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
+						}
 
 						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
 						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.daviswll.api.apiStationId;
 
-						cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
-						cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
-						cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
-						cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
-						cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
+						if (settings.general.stationtype == 11 || settings.general.stationtype == 19) // WLL & Cloud WLL/WLC only
+						{
+							cumulus.WllPrimaryRain = settings.daviswll.primary.rain;
+							cumulus.WllPrimarySolar = settings.daviswll.primary.solar;
+							cumulus.WllPrimaryTempHum = settings.daviswll.primary.temphum;
+							cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
+							cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
 
-						cumulus.WllExtraLeafTx1 = settings.daviswll.soilLeaf.extraLeaf.leafTx1;
-						cumulus.WllExtraLeafTx2 = settings.daviswll.soilLeaf.extraLeaf.leafTx2;
-						cumulus.WllExtraLeafIdx1 = settings.daviswll.soilLeaf.extraLeaf.leafIdx1;
-						cumulus.WllExtraLeafIdx2 = settings.daviswll.soilLeaf.extraLeaf.leafIdx2;
+							cumulus.WllExtraLeafTx1 = settings.daviswll.soilLeaf.extraLeaf.leafTx1;
+							cumulus.WllExtraLeafTx2 = settings.daviswll.soilLeaf.extraLeaf.leafTx2;
+							cumulus.WllExtraLeafIdx1 = settings.daviswll.soilLeaf.extraLeaf.leafIdx1;
+							cumulus.WllExtraLeafIdx2 = settings.daviswll.soilLeaf.extraLeaf.leafIdx2;
 
-						cumulus.WllExtraSoilMoistureIdx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx1;
-						cumulus.WllExtraSoilMoistureIdx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx2;
-						cumulus.WllExtraSoilMoistureIdx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx3;
-						cumulus.WllExtraSoilMoistureIdx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx4;
-						cumulus.WllExtraSoilMoistureTx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx1;
-						cumulus.WllExtraSoilMoistureTx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx2;
-						cumulus.WllExtraSoilMoistureTx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx3;
-						cumulus.WllExtraSoilMoistureTx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx4;
+							cumulus.WllExtraSoilMoistureIdx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx1;
+							cumulus.WllExtraSoilMoistureIdx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx2;
+							cumulus.WllExtraSoilMoistureIdx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx3;
+							cumulus.WllExtraSoilMoistureIdx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx4;
+							cumulus.WllExtraSoilMoistureTx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx1;
+							cumulus.WllExtraSoilMoistureTx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx2;
+							cumulus.WllExtraSoilMoistureTx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx3;
+							cumulus.WllExtraSoilMoistureTx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx4;
 
-						cumulus.WllExtraSoilTempIdx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx1;
-						cumulus.WllExtraSoilTempIdx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx2;
-						cumulus.WllExtraSoilTempIdx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx3;
-						cumulus.WllExtraSoilTempIdx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx4;
-						cumulus.WllExtraSoilTempTx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx1;
-						cumulus.WllExtraSoilTempTx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx2;
-						cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
-						cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
+							cumulus.WllExtraSoilTempIdx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx1;
+							cumulus.WllExtraSoilTempIdx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx2;
+							cumulus.WllExtraSoilTempIdx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx3;
+							cumulus.WllExtraSoilTempIdx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx4;
+							cumulus.WllExtraSoilTempTx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx1;
+							cumulus.WllExtraSoilTempTx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx2;
+							cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
+							cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
 
-						cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx1;
-						cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx2;
-						cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx3;
-						cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx4;
-						cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx5;
-						cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx6;
-						cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx7;
-						cumulus.WllExtraTempTx[8] = settings.daviswll.extraTemp.extraTempTx8;
+							cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx1;
+							cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx2;
+							cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx3;
+							cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx4;
+							cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx5;
+							cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx6;
+							cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx7;
+							cumulus.WllExtraTempTx[8] = settings.daviswll.extraTemp.extraTempTx8;
 
-						cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx1;
-						cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx2;
-						cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx3;
-						cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx4;
-						cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx5;
-						cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx6;
-						cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx7;
-						cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
+							cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx1;
+							cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx2;
+							cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx3;
+							cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx4;
+							cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx5;
+							cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx6;
+							cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx7;
+							cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
+						}
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
-						cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
-						cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
 
 
 						// Automatically enable extra logging?
@@ -839,8 +847,8 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing WLL settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					var msg = "Error processing WLL/Davis Cloud settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -853,7 +861,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Log interval setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -871,7 +879,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing GW1000 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -902,7 +910,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1000,7 +1008,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt sensor mapping: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1019,7 +1027,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = $"Error processing WeatherFlow settings: {ex.Message}";
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1040,7 +1048,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing EasyWeather settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1061,7 +1069,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Fine Offset settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1083,7 +1091,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Instromet settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1099,7 +1107,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WMR928 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1117,7 +1125,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt API settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1155,7 +1163,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1194,7 +1202,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1207,7 +1215,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Records Began Date: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1218,7 +1226,7 @@ namespace CumulusMX
 				{
 					if (cumulus.StationType != settings.general.stationtype)
 					{
-						cumulus.LogMessage("Station type changed, restart required");
+						cumulus.LogWarningMessage("Station type changed, restart required");
 						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
 					cumulus.StationType = settings.general.stationtype;
@@ -1227,7 +1235,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Station Type setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1240,7 +1248,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Accessibility setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1252,7 +1260,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Station settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
@@ -1304,7 +1312,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						returnMsg = "Error aborting a currently running upload";
-						cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+						cumulus.LogErrorMessage($"Upload Now: {returnMsg}: {ex.Message}");
 						return returnMsg;
 					}
 				}
@@ -1352,17 +1360,17 @@ namespace CumulusMX
 					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 					cumulus.ftpThread.Start();
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					returnMsg = "Error starting a new upload";
-					cumulus.LogMessage($"Upload Now: {returnMsg}: {ex.Message}");
+					cumulus.LogErrorMessage($"Upload Now: {returnMsg}: {ex.Message}");
 				}
 				cumulus.LogDebugMessage("Upload Now: Process complete");
 				return returnMsg;
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Upload Now: General error: {ex.Message}");
+				cumulus.LogErrorMessage($"Upload Now: General error: {ex.Message}");
 				context.Response.StatusCode = 500;
 				return $"Error: {ex.Message}";
 			}
@@ -1400,7 +1408,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error select-a-chart Options: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -1410,13 +1418,57 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
+				cumulus.LogErrorMessage("Update Selectaschhrt options error: " + ex.Message);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
+
+		internal string SetSelectaPeriodOptions(IHttpContext context)
+		{
+			var errorMsg = "";
+			context.Response.StatusCode = 200;
+			// get the response
+			try
+			{
+				cumulus.LogMessage("Updating select-a-period settings");
+
+				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+				var json = WebUtility.UrlDecode(data);
+
+				// de-serialize it to the settings structure
+				var settings = JsonSerializer.DeserializeFromString<JsonSelectaChartSettings>(json);
+
+				// process the settings
+				try
+				{
+					cumulus.SelectaPeriodOptions.series = settings.series;
+					cumulus.SelectaPeriodOptions.colours = settings.colours;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error select-a-period Options: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// Save the settings
+				cumulus.WriteIniFile();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("Update selecaperiod options error: " + ex.Message);
+				context.Response.StatusCode = 500;
+				return ex.Message;
+			}
+
+			return context.Response.StatusCode == 200 ? "success" : errorMsg;
+		}
+
 
 		internal string GetWSport()
 		{
@@ -1613,10 +1665,10 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
-		public List<JsonEcowittForward> forward { get; set; }
+		public List<JsonEcowittForwardList> forward { get; set; }
 	}
 
-	internal class JsonEcowittForward
+	public class JsonEcowittForwardList
 	{
 		public string url { get; set; }
 	}
@@ -1641,6 +1693,12 @@ namespace CumulusMX
 		public int wn34chan6 { get; set; }
 		public int wn34chan7 { get; set; }
 		public int wn34chan8 { get; set; }
+	}
+
+	public class JsonExtraSensorForwarders
+	{
+		public bool usemain { get; set; }
+		public List<JsonEcowittForwardList> forward { get; set; }
 	}
 
 	internal class JsonStationSettingsWMR928

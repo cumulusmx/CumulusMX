@@ -1,21 +1,18 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using Swan;
-using Renci.SshNet.Messages;
 using System.Security.Cryptography;
-using ServiceStack;
-using System.IO;
 using System.Text;
-using static SQLite.SQLite3;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using ServiceStack.Text;
-using System.Threading;
-using System.Web.UI.WebControls;
+
+using ServiceStack;
+
+using Swan;
+
 
 // A rag tag of useful functions
 
@@ -62,7 +59,7 @@ namespace CumulusMX
 
 		public static string ByteArrayToHexString(byte[] ba)
 		{
-			System.Text.StringBuilder hex = new System.Text.StringBuilder(ba.Length * 2);
+			System.Text.StringBuilder hex = new StringBuilder(ba.Length * 2);
 			foreach (byte b in ba)
 				hex.AppendFormat("{0:x2}", b);
 			return hex.ToString();
@@ -71,7 +68,7 @@ namespace CumulusMX
 
 		public static string GetMd5String(byte[] bytes)
 		{
-			using (var md5 = System.Security.Cryptography.MD5.Create())
+			using (var md5 = MD5.Create())
 			{
 				var hashBytes = md5.ComputeHash(bytes);
 				return ByteArrayToHexString(hashBytes);
@@ -193,7 +190,7 @@ namespace CumulusMX
 					.Select(g => g.Address)
 					.First();
 			}
-			catch {}
+			catch { }
 			try
 			{
 				// next just return the first IPv4 address found
@@ -206,7 +203,7 @@ namespace CumulusMX
 					}
 				}
 			}
-			catch {}
+			catch { }
 
 			// finally, give up and just return a 0.0.0.0 IP!
 			return IPAddress.Any;

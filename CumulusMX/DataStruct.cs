@@ -328,7 +328,7 @@ namespace CumulusMX
 		[IgnoreDataMember]
 		public double HighRainRateToday { get; set; }
 
-		[DataMember(Name="HighRainRateToday")]
+		[DataMember(Name = "HighRainRateToday")]
 		public string HighRainRateTodayRounded
 		{
 			get => HighRainRateToday.ToString(cumulus.RainFormat);
@@ -524,7 +524,7 @@ namespace CumulusMX
 		[IgnoreDataMember]
 		public double WindRunToday { get; set; }
 
-		[DataMember(Name="WindRunToday")]
+		[DataMember(Name = "WindRunToday")]
 		public string WindRunTodayRounded
 		{
 			get => WindRunToday.ToString(cumulus.WindRunFormat);

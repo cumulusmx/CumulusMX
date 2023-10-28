@@ -2,8 +2,10 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
-using ServiceStack;
+
 using EmbedIO;
+
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -35,7 +37,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Calibration Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Calibration Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -47,7 +49,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Updating calibration settings");
 
 				// offsets
-				cumulus.Calib.Press.Offset = Convert.ToDouble(settings.pressure.offset,invC);
+				cumulus.Calib.Press.Offset = Convert.ToDouble(settings.pressure.offset, invC);
 				cumulus.Calib.Temp.Offset = Convert.ToDouble(settings.temp.offset, invC);
 				cumulus.Calib.InTemp.Offset = Convert.ToDouble(settings.tempin.offset, invC);
 				cumulus.Calib.Hum.Offset = settings.hum.offset;
@@ -115,7 +117,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error setting Calibration settings: " + ex.Message);
+				cumulus.LogErrorMessage("Error setting Calibration settings: " + ex.Message);
 				cumulus.LogDebugMessage("Calibration Data: " + json);
 				context.Response.StatusCode = 500;
 				return ex.Message;
@@ -155,7 +157,7 @@ namespace CumulusMX
 
 			var hum = new JsonCalibrationSettings()
 			{
-				offset = (int)cumulus.Calib.Hum.Offset,
+				offset = (int) cumulus.Calib.Hum.Offset,
 				multiplier = cumulus.Calib.Hum.Mult,
 				multiplier2 = cumulus.Calib.Hum.Mult2,
 				spike = cumulus.Spike.HumidityDiff
@@ -186,7 +188,7 @@ namespace CumulusMX
 
 			var winddir = new JsonCalibrationSettings()
 			{
-				offset = (int)cumulus.Calib.WindDir.Offset
+				offset = (int) cumulus.Calib.WindDir.Offset
 			};
 
 			var rain = new JsonCalibrationSettings()

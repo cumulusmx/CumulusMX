@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace CumulusMX
 {
@@ -60,7 +56,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error opening TCP port: " + ex.Message);
+					cumulus.LogErrorMessage("Error opening TCP port: " + ex.Message);
 					Thread.Sleep(5000 * attempt);
 				}
 			}
@@ -87,7 +83,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
+					cumulus.LogErrorMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
 				}
 			}
 			else
@@ -171,13 +167,13 @@ namespace CumulusMX
 				{
 					if (bytesRead > 0)
 					{
-						cumulus.LogMessage($"DoCommand({cmdName}): Invalid response");
+						cumulus.LogWarningMessage($"DoCommand({cmdName}): Invalid response");
 						cumulus.LogDebugMessage($"command resp={buffer[2]}, checksum=" + (ChecksumOk(buffer, (int) Enum.Parse(typeof(CommandRespSize), cmdName)) ? "OK" : "BAD"));
 						cumulus.LogDataMessage("Received " + BitConverter.ToString(buffer, 0, bytesRead - 1));
 					}
 					else
 					{
-						cumulus.LogMessage($"DoCommand({cmdName}): No response received");
+						cumulus.LogWarningMessage($"DoCommand({cmdName}): No response received");
 					}
 					return null;
 				}
@@ -188,7 +184,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"DoCommand({cmdName}): Error - " + ex.Message);
+				cumulus.LogErrorMessage($"DoCommand({cmdName}): Error - " + ex.Message);
 				cumulus.LogMessage("Attempting to reopen the TCP port");
 				Thread.Sleep(1000);
 				OpenTcpPort(ipAddress, tcpPort);
@@ -231,7 +227,7 @@ namespace CumulusMX
 			// sanity check the size
 			if (size + 3 + lengthBytes > data.Length)
 			{
-				cumulus.LogMessage($"Ckecksum: Error - Calculated data length [{size}] exceeds the buffer size!");
+				cumulus.LogErrorMessage($"Ckecksum: Error - Calculated data length [{size}] exceeds the buffer size!");
 				return false;
 			}
 
@@ -243,7 +239,7 @@ namespace CumulusMX
 
 			if (checksum != data[size + 1])
 			{
-				cumulus.LogMessage("Checksum: Error - Bad checksum");
+				cumulus.LogErrorMessage("Checksum: Error - Bad checksum");
 				return false;
 			}
 
@@ -602,7 +598,7 @@ namespace CumulusMX
 				Data[3] = (byte) (3 + data.Length);
 				data.CopyTo(Data, 4);
 
-				var Checksum = (byte)(command + Data[3]);
+				var Checksum = (byte) (command + Data[3]);
 				for (int i = 0; i < data.Length; i++)
 				{
 					Checksum += data[i];
@@ -613,17 +609,17 @@ namespace CumulusMX
 
 		internal static UInt16 ConvertBigEndianUInt16(byte[] array, int start)
 		{
-			return (UInt16)(array[start] << 8 | array[start + 1]);
+			return (UInt16) (array[start] << 8 | array[start + 1]);
 		}
 
 		internal static Int16 ConvertBigEndianInt16(byte[] array, int start)
 		{
-			return (Int16)((array[start] << 8) + array[start + 1]);
+			return (Int16) ((array[start] << 8) + array[start + 1]);
 		}
 
 		internal static UInt32 ConvertBigEndianUInt32(byte[] array, int start)
 		{
-			return (UInt32)(array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
+			return (UInt32) (array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
 		}
 
 		internal static byte[] ConvertUInt16ToLittleEndianByteArray(UInt16 ui16)

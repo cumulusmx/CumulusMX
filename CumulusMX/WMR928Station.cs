@@ -23,7 +23,7 @@ namespace CumulusMX
 
 		private bool stop;
 
-		private readonly int[] WMR928PacketLength = {11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255};
+		private readonly int[] WMR928PacketLength = { 11, 16, 9, 9, 7, 13, 14, 0, 0, 0, 0, 0, 0, 0, 5, 9, 255 };
 
 		public WMR928Station(Cumulus cumulus) : base(cumulus)
 		{
@@ -44,7 +44,7 @@ namespace CumulusMX
 
 			try
 			{
-				comport = new SerialPort(cumulus.ComportName, 9600, Parity.None, 8, StopBits.One) {Handshake = Handshake.None, RtsEnable = true, DtrEnable = true};
+				comport = new SerialPort(cumulus.ComportName, 9600, Parity.None, 8, StopBits.One) { Handshake = Handshake.None, RtsEnable = true, DtrEnable = true };
 				comport.Open();
 
 				cumulus.NormalRunning = true;
@@ -56,7 +56,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
+				cumulus.LogErrorMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
 				cumulus.LogConsoleMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
 			}
 		}
@@ -293,7 +293,7 @@ namespace CumulusMX
 
 			if ((channel > 3) || (channel < 1))
 			{
-				cumulus.LogMessage("WMR928 channel error, ch=" + channel);
+				cumulus.LogErrorMessage("WMR928 channel error, ch=" + channel);
 				channel = 1;
 			}
 
@@ -309,7 +309,7 @@ namespace CumulusMX
 			if (cumulus.WMR928TempChannel == channel)
 			{
 				// use this sensor as main temp sensor
-				TempBattStatus = buff[3]/16;
+				TempBattStatus = buff[3] / 16;
 
 				DoOutdoorTemp(WMR928ExtraTempValues[channel], DateTime.Now);
 
@@ -358,7 +358,7 @@ namespace CumulusMX
 
 			if ((channel > 3) || (channel < 1))
 			{
-				cumulus.LogMessage("WMR928 channel error, ch=" + channel);
+				cumulus.LogErrorMessage("WMR928 channel error, ch=" + channel);
 				channel = 1;
 			}
 
@@ -380,7 +380,7 @@ namespace CumulusMX
 			if (cumulus.WMR928TempChannel == channel)
 			{
 				// use this sensor as main temp and hum sensor
-				TempBattStatus = buff[3]/16;
+				TempBattStatus = buff[3] / 16;
 
 				// Extract humidity
 				DoOutdoorHumidity(BCDchartoint(buff[6]), DateTime.Now);
@@ -403,18 +403,18 @@ namespace CumulusMX
 			// Wind Chill W1W2 (WS gives sign)
 			// Checksum C1C2
 
-			WindBattStatus = buff[3]/16;
+			WindBattStatus = buff[3] / 16;
 
-			double current = (double) (BCDchartoint(buff[5])/10 + (BCDchartoint(buff[6])*10))/10;
-			double average = (double) (BCDchartoint(buff[7]) + ((BCDchartoint(buff[8])%10)*100))/10;
-			int bearing = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100);
+			double current = (double) (BCDchartoint(buff[5]) / 10 + (BCDchartoint(buff[6]) * 10)) / 10;
+			double average = (double) (BCDchartoint(buff[7]) + ((BCDchartoint(buff[8]) % 10) * 100)) / 10;
+			int bearing = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100);
 
 			DoWind(ConvertWindMSToUser(current), bearing, ConvertWindMSToUser(average), DateTime.Now);
 
 			// Extract wind chill
 			double wc = BCDchartoint(buff[9]);
 
-			if (buff[9]/16 == 8) wc = -wc;
+			if (buff[9] / 16 == 8) wc = -wc;
 
 			DoWindChill(ConvertTempCToUser(wc), DateTime.Now);
 		}
@@ -436,11 +436,11 @@ namespace CumulusMX
 			// Checksum C1C2
 			// the unknown byte has values such as 0x80 or 0x90
 
-			RainBattStatus = buff[3]/16;
+			RainBattStatus = buff[3] / 16;
 			// MainForm.Rainbatt.Position := (15-rain_batt_status)*100 DIV 15;
 
-			double raincounter = ConvertRainMMToUser(BCDchartoint(buff[6]) + (BCDchartoint(buff[7])*100));
-			double rainrate = ConvertRainMMToUser(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5])%10)*100));
+			double raincounter = ConvertRainMMToUser(BCDchartoint(buff[6]) + (BCDchartoint(buff[7]) * 100));
+			double rainrate = ConvertRainMMToUser(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100));
 
 			DoRain(raincounter, rainrate, DateTime.Now);
 		}
@@ -459,7 +459,7 @@ namespace CumulusMX
 
 			if (cumulus.WMR928TempChannel == 0)
 			{
-				TempBattStatus = buff[3]/16;
+				TempBattStatus = buff[3] / 16;
 
 				// Extract humidity
 				int hum = BCDchartoint(buff[6]);
@@ -495,12 +495,12 @@ namespace CumulusMX
 			// Checksum C1C2
 			// the unknown byte seems to be fixed at 00
 
-			IndoorBattStatus = buff[3]/16;
+			IndoorBattStatus = buff[3] / 16;
 
 			// Extract temp (tenths of deg C) in BCD; bytes 4 (LSB) and 5 (MSB)
-			double temp10 = BCDchartoint(buff[4]) + (BCDchartoint(buff[5])*100);
+			double temp10 = BCDchartoint(buff[4]) + (BCDchartoint(buff[5]) * 100);
 
-			DoIndoorTemp(temp10/10);
+			DoIndoorTemp(temp10 / 10);
 
 			// humidity in BCD; byte 6
 			DoIndoorHumidity(BCDchartoint(buff[6]));
@@ -508,8 +508,8 @@ namespace CumulusMX
 			// local pressure (not BCD); byte 8, with 856mb offset
 			double loc = buff[8] + 856;
 			StationPressure = ConvertPressMBToUser(loc);
-			double num = BCDchartoint((buff[10])/10) + BCDchartoint(buff[11])*10 + (BCDchartoint(buff[12])*1000);
-			double slcorr = num/10.0 - 600;
+			double num = BCDchartoint((buff[10]) / 10) + BCDchartoint(buff[11]) * 10 + (BCDchartoint(buff[12]) * 1000);
+			double slcorr = num / 10.0 - 600;
 
 			DoPressure(ConvertPressMBToUser(loc + slcorr), DateTime.Now);
 
@@ -518,7 +518,7 @@ namespace CumulusMX
 			string forecast = String.Empty;
 
 			// forecast - top 4 bits of byte 9
-			int fcnum = buff[9]/16;
+			int fcnum = buff[9] / 16;
 			switch (fcnum)
 			{
 				case 2:
@@ -553,7 +553,7 @@ namespace CumulusMX
 			// Checksum C1C2
 			// the unknown byte seems to be fixed at 00
 
-			IndoorBattStatus = buff[3]/16;
+			IndoorBattStatus = buff[3] / 16;
 			//MainForm.Indoorbatt.Position := (15-indoor_batt_status)*100 DIV 15;
 
 			// Extract temp (tenths of deg C) in BCD;
@@ -568,7 +568,7 @@ namespace CumulusMX
 			double loc = buff[8] + 795;
 			StationPressure = ConvertPressMBToUser(loc);
 			// SL pressure correction; bytes 10 (LSB) and 11 (MSB)
-			double num = BCDchartoint(buff[10]/10) + (BCDchartoint(buff[11])*10) + buff[8];
+			double num = BCDchartoint(buff[10] / 10) + (BCDchartoint(buff[11]) * 10) + buff[8];
 			DoPressure(num, DateTime.Now);
 
 			UpdatePressureTrendString();

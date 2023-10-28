@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+
 using EmbedIO;
+
 using ServiceStack;
 
 namespace CumulusMX
@@ -91,7 +90,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Custom Interval Log Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Custom Interval Log Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -134,7 +133,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				context.Response.StatusCode = 500;
 				return msg;
 			}
@@ -158,7 +157,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Custom Daily Log Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Custom Daily Log Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -198,7 +197,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				context.Response.StatusCode = 500;
 				return msg;
 			}

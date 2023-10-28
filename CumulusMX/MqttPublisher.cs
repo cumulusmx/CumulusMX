@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using MQTTnet;
 using MQTTnet.Client;
+
 using ServiceStack;
 
 namespace CumulusMX
@@ -22,7 +24,7 @@ namespace CumulusMX
 
 			var mqttFactory = new MqttFactory();
 
-			mqttClient = (MqttClient)mqttFactory.CreateMqttClient();
+			mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
 
 			var clientId = Guid.NewGuid().ToString();
 
@@ -60,7 +62,7 @@ namespace CumulusMX
 
 			mqttClient.DisconnectedAsync += (async e =>
 			{
-				cumulus.LogMessage("Error: MQTT disconnected from the server");
+				cumulus.LogWarningMessage("Error: MQTT disconnected from the server");
 				await Task.Delay(TimeSpan.FromSeconds(5));
 
 				cumulus.LogDebugMessage("MQTT attempting to reconnect with server");
@@ -71,7 +73,7 @@ namespace CumulusMX
 				}
 				catch
 				{
-					cumulus.LogMessage("Error: MQTT reconnection to server failed");
+					cumulus.LogErrorMessage("Error: MQTT reconnection to server failed");
 				}
 			});
 
@@ -96,7 +98,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("MQTT: Error - Not connected to MQTT server - message not sent");
+				cumulus.LogErrorMessage("MQTT: Error - Not connected to MQTT server - message not sent");
 			}
 		}
 
@@ -108,7 +110,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("MQTT Error: failed to connect to the host");
+				cumulus.LogErrorMessage("MQTT Error: failed to connect to the host");
 				cumulus.LogMessage(e.Message);
 			}
 		}
@@ -175,7 +177,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"UpdateMQTTfeed: Error process the template file [{template}], error = {ex.Message}");
+				cumulus.LogErrorMessage($"UpdateMQTTfeed: Error processing the template file [{template}], error = {ex.Message}");
 			}
 		}
 	}

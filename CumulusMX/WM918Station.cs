@@ -8,11 +8,11 @@ namespace CumulusMX
 {
 	class WM918Station : WeatherStation
 	{
-		private const int  WM918HumidData = 0x8F;
-		private const int  WM918TempData  = 0x9F;
-		private const int  WM918BaroData  = 0xAF;
-		private const int  WM918RainData  = 0xBF;
-		private const int  WM918WindData  = 0xCF;
+		private const int WM918HumidData = 0x8F;
+		private const int WM918TempData = 0x9F;
+		private const int WM918BaroData = 0xAF;
+		private const int WM918RainData = 0xBF;
+		private const int WM918WindData = 0xCF;
 
 		private readonly int[] WM918PacketLength = { 0, 0, 0, 0, 0, 0, 0, 0, 35, 34, 31, 14, 27, 0, 0, 0, 255 };
 
@@ -186,10 +186,10 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage(ex.Message);
-				//MessageBox.Show(ex.Message);
+				cumulus.LogErrorMessage("Error starting station: " + ex.Message);
 			}
 		}
+
 
 		public override void Stop()
 		{
@@ -211,7 +211,7 @@ namespace CumulusMX
 
 			if (s.Count < 14)
 			{
-				cumulus.LogMessage("WM918 packet too short. Length = " + s.Count);
+				cumulus.LogWarningMessage("WM918 packet too short. Length = " + s.Count);
 				result = false;
 			}
 			else
@@ -220,7 +220,7 @@ namespace CumulusMX
 
 				if (csum != s[s.Count - 1])
 				{
-					cumulus.LogMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1]);
+					cumulus.LogErrorMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1]);
 					result = false;
 				}
 				else
@@ -290,11 +290,11 @@ namespace CumulusMX
 			// Wind Chill W1W2 (WS bit 1 gives sign)
 			// Checksum C1C2
 
-			double current =  ConvertWindMSToUser((double)(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100)) / 10);
-			double average = ConvertWindMSToUser((double)(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100)) / 10);
+			double current = ConvertWindMSToUser((double) (BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100)) / 10);
+			double average = ConvertWindMSToUser((double) (BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100)) / 10);
 			int bearing = BCDchartoint(buff[2]) / 10 + (BCDchartoint(buff[3]) * 10);
 
-			DoWind(current, bearing ,average, DateTime.Now);
+			DoWind(current, bearing, average, DateTime.Now);
 
 			// Extract wind chill
 			int wc = BCDchartoint(buff[16]);
@@ -303,7 +303,7 @@ namespace CumulusMX
 
 			if (wc > -70)
 			{
-				DoWindChill(ConvertTempCToUser(wc),DateTime.Now);
+				DoWindChill(ConvertTempCToUser(wc), DateTime.Now);
 			}
 		}
 
@@ -319,31 +319,35 @@ namespace CumulusMX
 			// Sea-Level pressure S1S2S3S4.SD
 			// Checksum C1C2
 
-			DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[18])),DateTime.Now);
+			DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[18])), DateTime.Now);
 
-			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2])*100);
+			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2]) * 100);
 			StationPressure = ConvertPressMBToUser(locPress);
 
-			double pressure =  ConvertPressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
+			double pressure = ConvertPressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
 				((BCDchartoint(buff[5]) % 10) * 1000));
 
-			DoPressure(pressure,DateTime.Now);
+			DoPressure(pressure, DateTime.Now);
 
 			UpdatePressureTrendString();
 
-			string forecast=String.Empty;
+			string forecast = String.Empty;
 
 			// Forecast
 			int num = buff[6] & 0xF;
 			switch (num)
 			{
-				case 1: forecast = "Sunny";
+				case 1:
+					forecast = "Sunny";
 					break;
-				case 2: forecast = "Cloudy";
+				case 2:
+					forecast = "Cloudy";
 					break;
-				case 4: forecast = "Partly Cloudy";
+				case 4:
+					forecast = "Partly Cloudy";
 					break;
-				case 8: forecast = "Rain";
+				case 8:
+					forecast = "Rain";
 					break;
 			}
 
@@ -360,7 +364,7 @@ namespace CumulusMX
 			// Outdoor temp
 			double temp10 = BCDchartoint(buff[16]) + (((buff[17]) & 0x7) * 100);
 
-			if ((buff[17] & 0x08) == 8)  temp10 = -temp10;
+			if ((buff[17] & 0x08) == 8) temp10 = -temp10;
 
 			if (temp10 > -500)
 			{
@@ -370,7 +374,7 @@ namespace CumulusMX
 			// Indoor temp
 			temp10 = BCDchartoint(buff[1]) + (((buff[2]) & 0x7) * 100);
 
-			if ((buff[2] & 0x08) == 8)  temp10 = -temp10;
+			if ((buff[2] & 0x08) == 8) temp10 = -temp10;
 
 			DoIndoorTemp(ConvertTempCToUser(temp10 / 10));
 
@@ -396,7 +400,7 @@ namespace CumulusMX
 			double raincounter = ConvertRainMMToUser(BCDchartoint(buff[5]) + (BCDchartoint(buff[6]) * 100));
 			double rainrate = ConvertRainMMToUser(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100));
 
-			DoRain(raincounter,rainrate,DateTime.Now);
+			DoRain(raincounter, rainrate, DateTime.Now);
 		}
 
 		private void WM918Humid(List<int> buff)
@@ -407,7 +411,7 @@ namespace CumulusMX
 
 			DoIndoorHumidity(BCDchartoint(buff[8]));
 
-			DoOutdoorHumidity(BCDchartoint(buff[20]),DateTime.Now);
+			DoOutdoorHumidity(BCDchartoint(buff[20]), DateTime.Now);
 		}
 	}
 }

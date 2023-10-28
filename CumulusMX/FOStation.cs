@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO.Ports;
 using System.Threading;
 using System.Timers;
+
 using HidSharp;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -97,16 +98,38 @@ namespace CumulusMX
 						{
 							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({cumulus.logints[cumulus.DataLogInterval]} mins)";
 							cumulus.LogConsoleMessage(msg);
-							cumulus.LogMessage(msg);
+							cumulus.LogWarningMessage(msg);
 							if (cumulus.FineOffsetOptions.SetLoggerInterval)
 							{
-								WriteAddress(0x10, (byte)cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
-								WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
+								var retries = 2;
+
+								cumulus.LogMessage($"Attempting to set console logging interval to {cumulus.logints[cumulus.DataLogInterval]} mins");
 								do
 								{
-									Thread.Sleep(1000);  // sleep to let it reconfigure
-									ReadAddress(0x10, data);
-								} while (data[9] != 0);
+									WriteAddress(0x10, (byte) cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
+									WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
+
+									int readAttempts = 3;
+
+									do
+									{
+										Thread.Sleep(1000);  // sleep to let it reconfigure
+										ReadAddress(0x10, data);
+										readAttempts--;
+									} while (data[0] != cumulus.logints[cumulus.DataLogInterval] && readAttempts >= 0);
+
+
+									retries--;
+								} while (data[0] != cumulus.logints[cumulus.DataLogInterval] && retries >= 0);
+
+								if (data[0] == cumulus.logints[cumulus.DataLogInterval])
+								{
+									cumulus.LogMessage("Successfully set new logging interval");
+								}
+								else
+								{
+									cumulus.LogWarningMessage("Failed to set new logging interval");
+								}
 							}
 						}
 					}
@@ -185,7 +208,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
@@ -288,27 +311,27 @@ namespace CumulusMX
 					histData.followinginterval = followinginterval;
 					histData.inHum = data[1] == 255 ? 10 : data[1];
 					histData.outHum = data[4] == 255 ? 10 : data[4];
-					double outtemp = (data[5] + (data[6] & 0x7F)*256)/10.0f;
+					double outtemp = (data[5] + (data[6] & 0x7F) * 256) / 10.0f;
 					var sign = (byte) (data[6] & 0x80);
 					if (sign == 0x80) outtemp = -outtemp;
 					if (outtemp > -200) histData.outTemp = outtemp;
-					histData.windGust = (data[10] + ((data[11] & 0xF0)*16))/10.0f;
-					histData.windSpeed = (data[9] + ((data[11] & 0x0F)*256))/10.0f;
-					histData.windBearing = (int) (data[12]*22.5f);
+					histData.windGust = (data[10] + ((data[11] & 0xF0) * 16)) / 10.0f;
+					histData.windSpeed = (data[9] + ((data[11] & 0x0F) * 256)) / 10.0f;
+					histData.windBearing = (int) (data[12] * 22.5f);
 
-					histData.rainCounter = data[13] + (data[14]*256);
+					histData.rainCounter = data[13] + (data[14] * 256);
 
-					double intemp = (data[2] + (data[3] & 0x7F)*256)/10.0f;
+					double intemp = (data[2] + (data[3] & 0x7F) * 256) / 10.0f;
 					sign = (byte) (data[3] & 0x80);
 					if (sign == 0x80) intemp = -intemp;
 					histData.inTemp = intemp;
 					// Get pressure and convert to sea level
-					histData.pressure = (data[7] + (data[8]*256))/10.0f + pressureOffset;
+					histData.pressure = (data[7] + (data[8] * 256)) / 10.0f + pressureOffset;
 					histData.SensorContactLost = (data[15] & 0x40) == 0x40;
 					if (hasSolar)
 					{
 						histData.uvVal = data[19];
-						histData.solarVal = (data[16] + (data[17]*256) + (data[18]*65536))/10.0;
+						histData.solarVal = (data[16] + (data[17] * 256) + (data[18] * 65536)) / 10.0;
 					}
 
 					datalist.Add(histData);
@@ -402,7 +425,7 @@ namespace CumulusMX
 				if (historydata.inHum > 100 || historydata.inHum < 0)
 				{
 					// 255 is the overflow value, when RH gets below 10% - ignore
-					cumulus.LogMessage("Ignoring bad data: inhum = " + historydata.inHum);
+					cumulus.LogWarningMessage("Ignoring bad data: inhum = " + historydata.inHum);
 				}
 				else
 				{
@@ -412,7 +435,7 @@ namespace CumulusMX
 				// Indoor Temperature ===================================================
 				if (historydata.inTemp < -50 || historydata.inTemp > 50)
 				{
-					cumulus.LogMessage("Ignoring bad data: intemp = " + historydata.inTemp);
+					cumulus.LogWarningMessage("Ignoring bad data: intemp = " + historydata.inTemp);
 				}
 				else
 				{
@@ -423,7 +446,7 @@ namespace CumulusMX
 
 				if ((historydata.pressure < cumulus.EwOptions.MinPressMB) || (historydata.pressure > cumulus.EwOptions.MaxPressMB))
 				{
-					cumulus.LogMessage("Ignoring bad data: pressure = " + historydata.pressure);
+					cumulus.LogWarningMessage("Ignoring bad data: pressure = " + historydata.pressure);
 					cumulus.LogMessage("                   offset = " + pressureOffset);
 				}
 				else
@@ -433,7 +456,7 @@ namespace CumulusMX
 
 				if (historydata.SensorContactLost)
 				{
-					cumulus.LogMessage("Sensor contact lost; ignoring outdoor data");
+					cumulus.LogWarningMessage("Sensor contact lost; ignoring outdoor data");
 				}
 				else
 				{
@@ -441,7 +464,7 @@ namespace CumulusMX
 					if (historydata.outHum > 100 || historydata.outHum < 0)
 					{
 						// 255 is the overflow value, when RH gets below 10% - ignore
-						cumulus.LogMessage("Ignoring bad data: outhum = " + historydata.outHum);
+						cumulus.LogWarningMessage("Ignoring bad data: outhum = " + historydata.outHum);
 					}
 					else
 					{
@@ -451,11 +474,11 @@ namespace CumulusMX
 					// Wind =================================================================
 					if (historydata.windGust > 60 || historydata.windGust < 0)
 					{
-						cumulus.LogMessage("Ignoring bad data: gust = " + historydata.windGust);
+						cumulus.LogWarningMessage("Ignoring bad data: gust = " + historydata.windGust);
 					}
 					else if (historydata.windSpeed > 60 || historydata.windSpeed < 0)
 					{
-						cumulus.LogMessage("Ignoring bad data: speed = " + historydata.windSpeed);
+						cumulus.LogWarningMessage("Ignoring bad data: speed = " + historydata.windSpeed);
 					}
 					else
 					{
@@ -465,14 +488,14 @@ namespace CumulusMX
 					// Outdoor Temperature ==================================================
 					if (historydata.outTemp < -50 || historydata.outTemp > 70)
 					{
-						cumulus.LogMessage("Ignoring bad data: outtemp = " + historydata.outTemp);
+						cumulus.LogWarningMessage("Ignoring bad data: outtemp = " + historydata.outTemp);
 					}
 					else
 					{
 						DoOutdoorTemp(ConvertTempCToUser(historydata.outTemp), timestamp);
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += historydata.interval;
-						TempTotalToday += (OutdoorTemperature*historydata.interval);
+						TempTotalToday += (OutdoorTemperature * historydata.interval);
 					}
 
 					// update chill hours
@@ -504,7 +527,7 @@ namespace CumulusMX
 
 					if (raindiff > 100)
 					{
-						cumulus.LogMessage("Warning: large increase in rain gauge tip count: " + raindiff);
+						cumulus.LogWarningMessage("Warning: large increase in rain gauge tip count: " + raindiff);
 						rainrate = 0;
 					}
 					else
@@ -519,7 +542,7 @@ namespace CumulusMX
 						}
 					}
 
-					DoRain(ConvertRainMMToUser(historydata.rainCounter*0.3), rainrate, timestamp);
+					DoRain(ConvertRainMMToUser(historydata.rainCounter * 0.3), rainrate, timestamp);
 
 					prevraintotal = historydata.rainCounter;
 
@@ -548,32 +571,32 @@ namespace CumulusMX
 					{
 						if (historydata.uvVal < 0 || historydata.uvVal > 16)
 						{
-							cumulus.LogMessage("Invalid UV-I value ignored: " + historydata.uvVal);
+							cumulus.LogWarningMessage("Invalid UV-I value ignored: " + historydata.uvVal);
 						}
 						else
 							DoUV(historydata.uvVal, timestamp);
 
 						if (historydata.solarVal >= 0 && historydata.solarVal <= 300000)
 						{
-							DoSolarRad((int)Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
+							DoSolarRad((int) Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
 
 							// add in archive period worth of sunshine, if sunny
 							if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
-								SunshineHours += (historydata.interval/60.0);
+								SunshineHours += (historydata.interval / 60.0);
 
 							LightValue = historydata.solarVal;
 						}
 						else
 						{
-							cumulus.LogMessage("Invalid solar value ignored: " + historydata.solarVal);
+							cumulus.LogWarningMessage("Invalid solar value ignored: " + historydata.solarVal);
 						}
 					}
 				}
 				// add in 'following interval' minutes worth of wind speed to windrun
 				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.followinginterval + " minutes = " +
-								(WindAverage*WindRunHourMult[cumulus.Units.Wind]*historydata.followinginterval/60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+								(WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += (WindAverage*WindRunHourMult[cumulus.Units.Wind]*historydata.followinginterval/60.0);
+				WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0);
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(historydata.interval);
@@ -583,9 +606,9 @@ namespace CumulusMX
 
 				CheckForWindrunHighLow(timestamp);
 
-				bw.ReportProgress((totalentries - datalist.Count)*100/totalentries, "processing");
+				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				cumulus.DoLogFile(timestamp,false);
+				cumulus.DoLogFile(timestamp, false);
 				cumulus.DoCustomIntervalLogs(timestamp);
 
 				if (cumulus.StationOptions.LogExtraSensors)
@@ -613,7 +636,7 @@ namespace CumulusMX
 				{
 					processedCount++;
 
-					Console.Write("\r - processed " + (((double)processedCount) / recCount).ToString("P0"));
+					Console.Write("\r - processed " + (((double) processedCount) / recCount).ToString("P0"));
 				}
 			}
 
@@ -664,13 +687,13 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("Stream open failed");
+					cumulus.LogErrorMessage("Stream open failed");
 					return false;
 				}
 			}
 			else
 			{
-				cumulus.LogMessage("*** Fine Offset station not found ***");
+				cumulus.LogErrorMessage("*** Fine Offset station not found ***");
 				cumulus.LogMessage("Found the following USB HID Devices...");
 				int cnt = 0;
 				foreach (HidDevice device in devicelist.GetHidDevices())
@@ -681,7 +704,7 @@ namespace CumulusMX
 
 				if (cnt == 0)
 				{
-					cumulus.LogMessage("No USB HID devices found!");
+					cumulus.LogErrorMessage("No USB HID devices found!");
 				}
 
 				return false;
@@ -705,7 +728,7 @@ namespace CumulusMX
 			const int responseLength = 9;
 			const int startByte = 1;
 
-			var request = new byte[] {0, 0xa1, highbyte, lowbyte, 0x20, 0xa1, highbyte, lowbyte, 0x20};
+			var request = new byte[] { 0, 0xa1, highbyte, lowbyte, 0x20, 0xa1, highbyte, lowbyte, 0x20 };
 
 			int ptr = 0;
 
@@ -731,7 +754,7 @@ namespace CumulusMX
 			{
 				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red, true);
 				cumulus.LogMessage(ex.Message);
-				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				cumulus.LogErrorMessage("Error sending command to station - it may need resetting");
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
@@ -754,7 +777,7 @@ namespace CumulusMX
 				{
 					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red, true);
 					cumulus.LogMessage(ex.Message);
-					cumulus.LogMessage("Error reading data from station - it may need resetting");
+					cumulus.LogErrorMessage("Error reading data from station - it may need resetting");
 					if (!DataStopped)
 					{
 						DataStoppedTime = DateTime.Now;
@@ -765,7 +788,7 @@ namespace CumulusMX
 					return false;
 				}
 
-				var recData = " Data" + i + ": "  + BitConverter.ToString(response, startByte, responseLength - startByte);
+				var recData = " Data" + i + ": " + BitConverter.ToString(response, startByte, responseLength - startByte);
 				for (int j = startByte; j < responseLength; j++)
 				{
 					buff[ptr++] = response[j];
@@ -777,8 +800,8 @@ namespace CumulusMX
 
 		private bool WriteAddress(int address, byte val)
 		{
-			var addrlowbyte = (byte)(address & 0xFF);
-			var addrhighbyte = (byte)(address >> 8);
+			var addrlowbyte = (byte) (address & 0xFF);
+			var addrhighbyte = (byte) (address >> 8);
 
 			var request = new byte[] { 0, 0xa2, addrhighbyte, addrlowbyte, 0x20, 0xa2, val, 0, 0x20 };
 
@@ -796,7 +819,7 @@ namespace CumulusMX
 			{
 				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
 				cumulus.LogMessage(ex.Message);
-				cumulus.LogMessage("Error sending command to station - it may need resetting");
+				cumulus.LogErrorMessage("Error sending command to station - it may need resetting");
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
@@ -827,7 +850,7 @@ namespace CumulusMX
 
 				if (!OpenHidDevice())
 				{
-					cumulus.LogMessage("Failed to reopen the USB device");
+					cumulus.LogErrorMessage("Failed to reopen the USB device");
 					return;
 				}
 			}
@@ -931,7 +954,7 @@ namespace CumulusMX
 					// Check that were not within N seconds of the station updating memory
 					if (FOSensorClockTime != DateTime.MinValue)
 					{
-						secsToSkip = (int)(Math.Floor(now.Subtract(FOSensorClockTime).TotalSeconds)) % 48;
+						secsToSkip = (int) (Math.Floor(now.Subtract(FOSensorClockTime).TotalSeconds)) % 48;
 
 						sensorclockOK = (secsToSkip >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) && (secsToSkip <= (47 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
 					}
@@ -939,7 +962,7 @@ namespace CumulusMX
 					bool stationclockOK = true;
 					if (FOStationClockTime != DateTime.MinValue)
 					{
-						secsToSkip = (int)(Math.Floor(now.Subtract(FOStationClockTime).TotalSeconds)) % 60;
+						secsToSkip = (int) (Math.Floor(now.Subtract(FOStationClockTime).TotalSeconds)) % 60;
 
 						stationclockOK = (secsToSkip >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) && (secsToSkip <= (59 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
 					}
@@ -948,7 +971,7 @@ namespace CumulusMX
 					bool solarclockOK = true;
 					if (hasSolar && FOSolarClockTime != DateTime.MinValue)
 					{
-						secsToSkip = (int)(Math.Floor(now.Subtract(FOSolarClockTime).TotalSeconds)) % 60;
+						secsToSkip = (int) (Math.Floor(now.Subtract(FOSolarClockTime).TotalSeconds)) % 60;
 
 						solarclockOK = (secsToSkip >= (cumulus.FineOffsetOptions.ReadAvoidPeriod - 1)) && (secsToSkip <= (59 - cumulus.FineOffsetOptions.ReadAvoidPeriod));
 					}
@@ -1000,7 +1023,7 @@ namespace CumulusMX
 				return;
 			}
 
-			int addr = (data[31]*256) + data[30];
+			int addr = (data[31] * 256) + data[30];
 
 			cumulus.LogDataMessage("First block read, addr = " + addr.ToString("X4"));
 
@@ -1155,7 +1178,7 @@ namespace CumulusMX
 					}
 				}
 
-					readCounter++;
+				readCounter++;
 			}
 
 
@@ -1169,7 +1192,7 @@ namespace CumulusMX
 				if (inhum > 100 || inhum < 0)
 				{
 					// bad value
-					cumulus.LogMessage("Ignoring bad data: inhum = " + inhum);
+					cumulus.LogWarningMessage("Ignoring bad data: inhum = " + inhum);
 				}
 				else
 				{
@@ -1186,7 +1209,7 @@ namespace CumulusMX
 				}
 
 				// Indoor temperature ===============================================
-				double intemp = ((data[2]) + (data[3] & 0x7F)*256)/10.0f;
+				double intemp = ((data[2]) + (data[3] & 0x7F) * 256) / 10.0f;
 				var sign = (byte) (data[3] & 0x80);
 				if (sign == 0x80)
 				{
@@ -1195,7 +1218,7 @@ namespace CumulusMX
 
 				if (intemp < -50 || intemp > 50)
 				{
-					cumulus.LogMessage("Ignoring bad data: intemp = " + intemp);
+					cumulus.LogWarningMessage("Ignoring bad data: intemp = " + intemp);
 				}
 				else
 				{
@@ -1203,12 +1226,12 @@ namespace CumulusMX
 				}
 
 				// Pressure =========================================================
-				double pressure = (data[7] + ((data[8] & 0x3f)*256))/10.0f + pressureOffset;
+				double pressure = (data[7] + ((data[8] & 0x3f) * 256)) / 10.0f + pressureOffset;
 
 				if (pressure < cumulus.EwOptions.MinPressMB || pressure > cumulus.EwOptions.MaxPressMB)
 				{
 					// bad value
-					cumulus.LogMessage("Ignoring bad data: pressure = " + pressure);
+					cumulus.LogWarningMessage("Ignoring bad data: pressure = " + pressure);
 					cumulus.LogMessage("                     offset = " + pressureOffset);
 				}
 				else
@@ -1218,7 +1241,7 @@ namespace CumulusMX
 					// EWpressure offset is difference between rel and abs in hPa
 					// PressOffset is user calibration in user units.
 					var offsetPress = pressure - pressureOffset;
-					pressure = offsetPress * offsetPress * cumulus.Calib.Press.Mult2 +  offsetPress * cumulus.Calib.Press.Mult + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
+					pressure = offsetPress * offsetPress * cumulus.Calib.Press.Mult2 + offsetPress * cumulus.Calib.Press.Mult + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
 
 					StationPressure = ConvertPressMBToUser(pressure);
 
@@ -1229,7 +1252,7 @@ namespace CumulusMX
 				if ((status & 0x40) != 0)
 				{
 					SensorContactLost = true;
-					cumulus.LogMessage("Sensor contact lost; ignoring outdoor data");
+					cumulus.LogWarningMessage("Sensor contact lost; ignoring outdoor data");
 				}
 				else
 				{
@@ -1240,7 +1263,7 @@ namespace CumulusMX
 					if (outhum > 100 || outhum < 0)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: outhum = " + outhum);
+						cumulus.LogWarningMessage("Ignoring bad data: outhum = " + outhum);
 					}
 					else
 					{
@@ -1257,19 +1280,19 @@ namespace CumulusMX
 					}
 
 					// Wind =============================================================
-					double gust = (data[10] + ((data[11] & 0xF0)*16))/10.0f;
-					double windspeed = (data[9] + ((data[11] & 0x0F)*256))/10.0f;
-					var winddir = (int) (data[12]*22.5f);
+					double gust = (data[10] + ((data[11] & 0xF0) * 16)) / 10.0f;
+					double windspeed = (data[9] + ((data[11] & 0x0F) * 256)) / 10.0f;
+					var winddir = (int) (data[12] * 22.5f);
 
 					if (gust > 60 || gust < 0)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: gust = " + gust);
+						cumulus.LogWarningMessage("Ignoring bad data: gust = " + gust);
 					}
 					else if (windspeed > 60 || windspeed < 0)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: speed = " + gust);
+						cumulus.LogWarningMessage("Ignoring bad data: speed = " + gust);
 					}
 					else
 					{
@@ -1277,14 +1300,14 @@ namespace CumulusMX
 					}
 
 					// Outdoor Temperature ==============================================
-					double outtemp = ((data[5]) + (data[6] & 0x7F)*256)/10.0f;
+					double outtemp = ((data[5]) + (data[6] & 0x7F) * 256) / 10.0f;
 					sign = (byte) (data[6] & 0x80);
 					if (sign == 0x80) outtemp = -outtemp;
 
 					if (outtemp < -50 || outtemp > 70)
 					{
 						// bad value
-						cumulus.LogMessage("Ignoring bad data: outtemp = " + outtemp);
+						cumulus.LogWarningMessage("Ignoring bad data: outtemp = " + outtemp);
 					}
 					else
 					{
@@ -1316,7 +1339,7 @@ namespace CumulusMX
 					}
 
 					// Rain ============================================================
-					int raintot = data[13] + (data[14]*256);
+					int raintot = data[13] + (data[14] * 256);
 					if (prevraintotal == -1)
 					{
 						// first reading
@@ -1328,16 +1351,16 @@ namespace CumulusMX
 
 					if (raindiff > cumulus.EwOptions.MaxRainTipDiff)
 					{
-						cumulus.LogMessage("Warning: large difference in rain gauge tip count: " + raindiff);
+						cumulus.LogWarningMessage("Warning: large difference in rain gauge tip count: " + raindiff);
 
 						ignoreraincount++;
 
 						if (ignoreraincount == 6)
 						{
 							cumulus.LogMessage("Six consecutive rain readings; accepting value. Adjusting start of day figure to compensate");
-							raindaystart += (raindiff*0.3);
+							raindaystart += (raindiff * 0.3);
 							// adjust current rain total counter
-							Raincounter += (raindiff*0.3);
+							Raincounter += (raindiff * 0.3);
 							cumulus.LogMessage("Setting raindaystart to " + raindaystart);
 							ignoreraincount = 0;
 						}
@@ -1353,18 +1376,18 @@ namespace CumulusMX
 
 					if (ignoreraincount == 0)
 					{
-						DoRain(ConvertRainMMToUser(raintot*0.3), -1, now);
+						DoRain(ConvertRainMMToUser(raintot * 0.3), -1, now);
 						prevraintotal = raintot;
 					}
 
 					// Solar/UV
 					if (hasSolar)
 					{
-						LightValue = (data[16] + (data[17]*256) + (data[18]*65536))/10.0;
+						LightValue = (data[16] + (data[17] * 256) + (data[18] * 65536)) / 10.0;
 
 						if (LightValue < 300000)
 						{
-							DoSolarRad((int)(LightValue * cumulus.SolarOptions.LuxToWM2), now);
+							DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), now);
 						}
 
 						int UVreading = data[19];
@@ -1436,7 +1459,7 @@ namespace CumulusMX
 
 			if (stationSyncDone && previousStationClock == DateTime.MinValue)
 			{
-				secsdiff = (int)Math.Floor((FOStationClockTime - previousStationClock).TotalSeconds) % 60;
+				secsdiff = (int) Math.Floor((FOStationClockTime - previousStationClock).TotalSeconds) % 60;
 				if (secsdiff > 30)
 				{
 					secsdiff = 60 - secsdiff;
@@ -1458,7 +1481,7 @@ namespace CumulusMX
 			{
 				if (solarSyncDone && previousSolarClock != DateTime.MinValue)
 				{
-					secsdiff = (int)Math.Floor((FOSolarClockTime - previousSolarClock).TotalSeconds) % 60;
+					secsdiff = (int) Math.Floor((FOSolarClockTime - previousSolarClock).TotalSeconds) % 60;
 					if (secsdiff > 30)
 					{
 						secsdiff = 60 - secsdiff;

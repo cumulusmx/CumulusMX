@@ -1,15 +1,12 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Runtime.InteropServices;
-using System.Net;
-using System.Timers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Globalization;
 using System.Threading.Tasks;
+using System.Timers;
+
 using ServiceStack.Text;
 
 namespace CumulusMX
@@ -39,7 +36,7 @@ namespace CumulusMX
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private Version fwVersion;
-		private string gatewayType;
+		//private string gatewayType;
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
@@ -231,7 +228,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
-				cumulus.LogMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
+				cumulus.LogWarningMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
 				cumulus.LastUpdateTime = DateTime.Now;
 			}
 			else
@@ -251,7 +248,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("Exception occurred reading archive data: " + ex.Message);
+					cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				}
 			}
 
@@ -371,7 +368,7 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							cumulus.LogMessage("DiscoverGW1000: Error sending discovery request");
-							cumulus.LogMessage("Error: " + ex.Message);
+							cumulus.LogErrorMessage("DiscoverGW1000: Error: " + ex.Message);
 						}
 						retryCount++;
 
@@ -380,7 +377,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("An error occurred during Ecowitt auto-discovery");
+				cumulus.LogErrorMessage("An error occurred during Ecowitt auto-discovery");
 				cumulus.LogMessage("Error: " + ex.Message);
 			}
 
@@ -401,7 +398,7 @@ namespace CumulusMX
 				{
 					// We didn't find anything on the network
 					msg = "Failed to discover any Ecowitt devices";
-					cumulus.LogMessage(msg);
+					cumulus.LogWarningMessage(msg);
 					cumulus.LogConsoleMessage(msg, ConsoleColor.DarkYellow, true);
 					return false;
 				}
@@ -411,7 +408,7 @@ namespace CumulusMX
 					// If only one device is discovered, and its MAC address matches (or our MAC is blank), then just use it
 					if (cumulus.Gw1000IpAddress != discoveredDevices.IP[0])
 					{
-						cumulus.LogMessage("Discovered a new IP address for the Ecowitt device that does not match our current one");
+						cumulus.LogWarningMessage("Discovered a new IP address for the Ecowitt device that does not match our current one");
 						cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
 						ipaddr = discoveredDevices.IP[0].Trim();
 						cumulus.Gw1000IpAddress = ipaddr;
@@ -449,7 +446,7 @@ namespace CumulusMX
 
 					string iplist = "";
 					msg = "Discovered more than one potential Ecowitt device.";
-					cumulus.LogMessage(msg);
+					cumulus.LogWarningMessage(msg);
 					cumulus.LogConsoleMessage(msg);
 					msg = "Please select the IP address from the list and enter it manually into the configuration";
 					cumulus.LogMessage(msg);
@@ -471,7 +468,7 @@ namespace CumulusMX
 			if (string.IsNullOrWhiteSpace(ipaddr))
 			{
 				var msg = "No IP address configured or discovered for your GW1000, please remedy and restart Cumulus MX";
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogConsoleMessage(msg);
 				return false;
 			}
@@ -492,7 +489,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Not Connected");
+				cumulus.LogErrorMessage("Not Connected");
 				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red, true);
 			}
 
@@ -506,7 +503,7 @@ namespace CumulusMX
 					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
 					if (fwString.Length > 1)
 					{
-						gatewayType = fwString[0];
+						//gatewayType = fwString[0];
 						fwVersion = new Version(fwString[1]);
 					}
 					else
@@ -536,7 +533,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"GetFirmwareVersion: Error retrieving/processing firmware version. Message - {ex.Message}");
+				cumulus.LogErrorMessage($"GetFirmwareVersion: Error retrieving/processing firmware version. Message - {ex.Message}");
 			}
 			return response;
 		}
@@ -588,7 +585,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetSensorIdsNew: Unexpected error - " + ex.Message);
+				cumulus.LogErrorMessage("GetSensorIdsNew: Unexpected error - " + ex.Message);
 				// no idea, so report battery as good
 				return false;
 			}
@@ -707,7 +704,7 @@ namespace CumulusMX
 						// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 4000 && updateRate != 4000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {(updateRate/1000):D} seconds to 4 seconds");
+							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 4 seconds");
 							updateRate = 4000;
 						}
 						battV = data[battPos] * 0.02;
@@ -728,7 +725,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("PrintSensorInfoNew: Error - " + ex.Message);
+				cumulus.LogErrorMessage("PrintSensorInfoNew: Error - " + ex.Message);
 			}
 
 			return batteryLow;
@@ -830,7 +827,7 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x05: //Heat index (℃)
-								// cumulus calculates this
+									   // cumulus calculates this
 								idx += 2;
 								break;
 							case 0x06: //Indoor Humidity(%)
@@ -903,10 +900,10 @@ namespace CumulusMX
 								idx += 4;
 								break;
 							case 0x15: //Light (lux)
-								// Save the Lux value
+									   // Save the Lux value
 								LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
 								// convert Lux to W/m² - approximately!
-								DoSolarRad((int)(LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
+								DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
 								idx += 4;
 								break;
 							case 0x16: //UV (µW/cm²) - what use is this!
@@ -917,7 +914,7 @@ namespace CumulusMX
 								idx += 1;
 								break;
 							case 0x18: //Date and time
-								// does not appear to be implemented
+									   // does not appear to be implemented
 								idx += 6;
 								break;
 							case 0x19: //Day max wind(m/s)
@@ -972,7 +969,7 @@ namespace CumulusMX
 							case 0x45: //Soil Temperature14 (℃)
 							case 0x47: //Soil Temperature15 (℃)
 							case 0x49: //Soil Temperature16 (℃)
-								// figure out the channel number
+									   // figure out the channel number
 								chan = data[idx - 1] - 0x2B + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
 								tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
@@ -995,14 +992,14 @@ namespace CumulusMX
 							case 0x46: //Soil Moisture14 (%)
 							case 0x48: //Soil Moisture15 (%)
 							case 0x4A: //Soil Moisture16 (%)
-								// figure out the channel number
+									   // figure out the channel number
 								chan = data[idx - 1] - 0x2C + 2; // -> 2,4,6,8...
 								chan /= 2; // -> 1,2,3,4...
 								DoSoilMoisture(data[idx], chan);
 								idx += 1;
 								break;
 							case 0x4C: //All sensor lowbatt 16 char
-								// This has been deprecated since v1.6.5 - now use CMD_READ_SENSOR_ID_NEW
+									   // This has been deprecated since v1.6.5 - now use CMD_READ_SENSOR_ID_NEW
 								/*
 								if (tenMinuteChanged && fwVersion.CompareTo(new Version("1.6.5")) >= 0)
 								{
@@ -1103,7 +1100,7 @@ namespace CumulusMX
 										if (volts <= 1.2)
 										{
 											batteryLow = true;
-											cumulus.LogMessage($"WN34 channel #{chan} battery LOW = {volts}V");
+											cumulus.LogWarningMessage($"WN34 channel #{chan} battery LOW = {volts}V");
 										}
 										else
 										{
@@ -1129,8 +1126,8 @@ namespace CumulusMX
 								idx += 16;
 								break;
 							case 0x71: // Ambient ONLY - AQI
-								//TODO: Not doing anything with this yet
-								//idx += 2; // SEEMS TO BE VARIABLE
+									   //TODO: Not doing anything with this yet
+									   //idx += 2; // SEEMS TO BE VARIABLE
 								cumulus.LogDebugMessage("Found a device 0x71 - Ambient AQI. No decode for this yet");
 								// We will have lost our place now, so bail out
 								idx = size;
@@ -1288,12 +1285,12 @@ namespace CumulusMX
 				}
 				else
 				{
-					cumulus.LogMessage("GetLiveData: Invalid response");
+					cumulus.LogWarningMessage("GetLiveData: Invalid response");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetLiveData: Error - " + ex.Message);
+				cumulus.LogErrorMessage("GetLiveData: Error - " + ex.Message);
 			}
 		}
 
@@ -1319,13 +1316,13 @@ namespace CumulusMX
 
 			if (data == null)
 			{
-				cumulus.LogMessage("Nothing returned from System Info!");
+				cumulus.LogWarningMessage("Nothing returned from System Info!");
 				return;
 			}
 
 			if (data.Length != 13)
 			{
-				cumulus.LogMessage("Unexpected response to System Info!");
+				cumulus.LogWarningMessage("Unexpected response to System Info!");
 				return;
 			}
 			try
@@ -1344,7 +1341,7 @@ namespace CumulusMX
 
 				var mainSensor = data[5] == 0 ? "WH24" : "Other than WH24";
 
-				var unix = (int)GW1000Api.ConvertBigEndianUInt32(data, 6);
+				var unix = (int) GW1000Api.ConvertBigEndianUInt32(data, 6);
 				var date = Utils.FromUnixTime(unix);
 				var autoDST = data[11] != 0;
 
@@ -1352,7 +1349,7 @@ namespace CumulusMX
 				var offset = TimeZone.CurrentTimeZone.GetUtcOffset(now);
 				if (autoDST && TimeZoneInfo.Local.IsDaylightSavingTime(date))
 				{
-					unix -= (int)Math.Round(offset.TotalSeconds);
+					unix -= (int) Math.Round(offset.TotalSeconds);
 					date = date.AddSeconds(-offset.TotalSeconds);
 				}
 
@@ -1374,7 +1371,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error processing System Info: " + ex.Message);
+				cumulus.LogErrorMessage("Error processing System Info: " + ex.Message);
 			}
 		}
 
@@ -1434,13 +1431,13 @@ namespace CumulusMX
 
 			if (data == null)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Nothing returned from Read Rain!");
+				cumulus.LogErrorMessage("GetPiezoRainData: Nothing returned from Read Rain!");
 				return;
 			}
 
 			if (data.Length < 8)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Unexpected response to Read Rain!");
+				cumulus.LogErrorMessage("GetPiezoRainData: Unexpected response to Read Rain!");
 				return;
 			}
 			try
@@ -1539,13 +1536,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						cumulus.LogMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
+						cumulus.LogErrorMessage("GetPiezoRainData: Error, no piezo rain data found in the response");
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetPiezoRainData: Error processing Rain Info: " + ex.Message);
+				cumulus.LogErrorMessage("GetPiezoRainData: Error processing Rain Info: " + ex.Message);
 			}
 		}
 
@@ -1592,7 +1589,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("DoCO2Decode: Error - " + ex.Message);
+				cumulus.LogErrorMessage("DoCO2Decode: Error - " + ex.Message);
 			}
 
 			return batteryLow;
@@ -1676,7 +1673,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
+				cumulus.LogErrorMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;

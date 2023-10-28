@@ -95,9 +95,9 @@ namespace CumulusMX
 				year--;
 			}
 
-			b = (int)Math.Floor(year / 400.0) - (int)Math.Floor(year / 100.0) + (int)Math.Floor(year / 4.0);
+			b = (int) Math.Floor(year / 400.0) - (int) Math.Floor(year / 100.0) + (int) Math.Floor(year / 4.0);
 			a = 365.0 * year - 679004.0;
-			return a + b + (int)Math.Floor(30.6001 * (month + 1)) + day;
+			return a + b + (int) Math.Floor(30.6001 * (month + 1)) + day;
 		}
 
 		private static double Frac(double x)
@@ -106,7 +106,7 @@ namespace CumulusMX
 			//  returns the fractional part of x as used in minimoon and minisun
 			//
 			double a;
-			a = x - (int)Math.Floor(x);
+			a = x - (int) Math.Floor(x);
 			return a;
 		}
 
@@ -120,7 +120,7 @@ namespace CumulusMX
 			double a;
 			double b;
 			b = x / 360;
-			a = 360 * (b - (int)Math.Floor(b));
+			a = 360 * (b - (int) Math.Floor(b));
 			if (a < 0)
 			{
 				a += 360;
@@ -338,10 +338,10 @@ namespace CumulusMX
 						sett = 1;
 					}
 				} // end of nz = 1 case
-				//
-				//   case where two events are found in this interval
-				//   (rare but whole reason we are not using simple iteration)
-				//
+				  //
+				  //   case where two events are found in this interval
+				  //   (rare but whole reason we are not using simple iteration)
+				  //
 				if (nz == 2)
 				{
 					if (ye < 0.0)
@@ -364,12 +364,12 @@ namespace CumulusMX
 				hour += 2.0;
 
 			} // end of while loop
-			//
-			// now search has completed, we compile the string to pass back
-			// to the user. The string depends on several combinations
-			// of the above flag (always above or always below) and the rise
-			// and sett flags
-			//
+			  //
+			  // now search has completed, we compile the string to pass back
+			  // to the user. The string depends on several combinations
+			  // of the above flag (always above or always below) and the rise
+			  // and sett flags
+			  //
 			if (rise == 1 || sett == 1)
 			{
 				if (rise == 1)

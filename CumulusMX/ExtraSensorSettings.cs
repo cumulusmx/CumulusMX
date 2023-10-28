@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using ServiceStack;
+
 using EmbedIO;
+
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -85,6 +88,20 @@ namespace CumulusMX
 				mappings = ecowittwn34map
 			};
 
+			ecowitt.forwarders = new JsonExtraSensorForwarders()
+			{
+				usemain = cumulus.EcowittExtraUseMainForwarders
+			};
+
+			ecowitt.forwarders.forward = new List<JsonEcowittForwardList>();
+			for (var i = 0; i < 10; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))
+				{
+					ecowitt.forwarders.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
+				}
+			}
+
 			var ambient = new JsonExtraSensorAmbient()
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
@@ -109,6 +126,8 @@ namespace CumulusMX
 				httpStation.extraStation = 0;
 			else if (cumulus.AmbientExtraEnabled)
 				httpStation.extraStation = 1;
+			else if (cumulus.EcowittCloudExtraEnabled)
+				httpStation.extraStation = 2;
 			else
 				httpStation.extraStation = -1;
 
@@ -181,7 +200,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing ExtraSensor Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("ExtraSensor Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -201,7 +220,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing General settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -240,7 +259,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing AirLink settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -248,9 +267,11 @@ namespace CumulusMX
 				// Ecowitt Extra settings
 				try
 				{
-					if (settings.httpSensors.extraStation == 0)
+					if (settings.httpSensors.extraStation == 0 || settings.httpSensors.extraStation == 2)
 					{
-						cumulus.EcowittExtraEnabled = true;
+						cumulus.EcowittExtraEnabled = settings.httpSensors.extraStation == 0;
+						cumulus.EcowittCloudExtraEnabled = settings.httpSensors.extraStation == 2;
+
 						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
@@ -350,6 +371,23 @@ namespace CumulusMX
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
 
+						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders.usemain;
+
+						if (!cumulus.EcowittExtraUseMainForwarders)
+						{
+							for (var i = 0; i < 10; i++)
+							{
+								if (i < settings.httpSensors.ecowitt.forwarders.forward.Count)
+								{
+									cumulus.EcowittExtraForwarders[i] = string.IsNullOrWhiteSpace(settings.httpSensors.ecowitt.forwarders.forward[i].url) ? null : settings.httpSensors.ecowitt.forwarders.forward[i].url.Trim();
+								}
+								else
+								{
+									cumulus.EcowittExtraForwarders[i] = null;
+								}
+							}
+						}
+
 						// Also enable extra logging if applicable
 						if (cumulus.EcowittExtraUseTempHum || cumulus.EcowittExtraUseSoilTemp || cumulus.EcowittExtraUseSoilMoist || cumulus.EcowittExtraUseLeafWet || cumulus.EcowittExtraUseUserTemp || cumulus.EcowittExtraUseAQI || cumulus.EcowittExtraUseCo2)
 						{
@@ -362,7 +400,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ecowitt settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -396,7 +434,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Ambient settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -409,7 +447,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Blake-Larsen settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -440,7 +478,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing RG-11 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -451,7 +489,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Extra Sensor settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Extra Sensor Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
@@ -524,6 +562,7 @@ namespace CumulusMX
 		public string localaddr { get; set; }
 		public int interval { get; set; }
 		public JsonStationSettingsEcowittMappings mappings { get; set; }
+		public JsonExtraSensorForwarders forwarders { get; set; }
 	}
 
 

@@ -84,16 +84,16 @@ namespace CumulusMX
 					Program.cumulus.LogMessage("POWER: Detected system OEM EVENT");
 					break;
 				case PowerBroadcastStatus.PowerStatusChange:
-					Program.cumulus.LogMessage("POWER: Detected system POWER STATUS CHANGE");
+					Program.cumulus.LogWarningMessage("POWER: Detected system POWER STATUS CHANGE");
 					break;
 				case PowerBroadcastStatus.QuerySuspend:
-					Program.cumulus.LogMessage("POWER: Detected system QUERY SUSPEND");
+					Program.cumulus.LogWarningMessage("POWER: Detected system QUERY SUSPEND");
 					break;
 				case PowerBroadcastStatus.QuerySuspendFailed:
 					Program.cumulus.LogMessage("POWER: Detected system QUERY SUSPEND FAILED");
 					break;
 				case PowerBroadcastStatus.ResumeAutomatic:
-					Program.cumulus.LogMessage("POWER: Detected system RESUME AUTOMATIC");
+					Program.cumulus.LogWarningMessage("POWER: Detected system RESUME AUTOMATIC");
 					break;
 				case PowerBroadcastStatus.ResumeCritical:
 					Program.cumulus.LogMessage("POWER: Detected system RESUME CRITICAL, stopping service");
@@ -103,7 +103,7 @@ namespace CumulusMX
 					Program.exitSystem = true;
 					break;
 				case PowerBroadcastStatus.ResumeSuspend:
-					Program.cumulus.LogMessage("POWER: Detected system RESUMING FROM STANDBY");
+					Program.cumulus.LogWarningMessage("POWER: Detected system RESUMING FROM STANDBY");
 					break;
 				case PowerBroadcastStatus.Suspend:
 					Program.cumulus.LogMessage("POWER: Detected system GOING TO STANDBY, stopping service");

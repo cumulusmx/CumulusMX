@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using ServiceStack;
+
 using EmbedIO;
+
+using ServiceStack;
 
 namespace CumulusMX
 {
@@ -308,6 +310,158 @@ namespace CumulusMX
 			return retObject.ToJson();
 		}
 
+		public string GetAlarmInfo()
+		{
+			//var InvC = new CultureInfo("");
+
+			var data = new JsonAlarmInfoData()
+			{
+				tempBelow = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.LowTempAlarm.Enabled,
+					SoundEnabled = cumulus.LowTempAlarm.Sound,
+					Sound = cumulus.LowTempAlarm.SoundFile,
+					Notify = cumulus.LowTempAlarm.Notify
+				},
+				tempAbove = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.HighTempAlarm.Enabled,
+					SoundEnabled = cumulus.HighTempAlarm.Sound,
+					Sound = cumulus.HighTempAlarm.SoundFile,
+					Notify = cumulus.HighTempAlarm.Notify
+				},
+				tempChange = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.TempChangeAlarm.Enabled,
+					SoundEnabled = cumulus.TempChangeAlarm.Sound,
+					Sound = cumulus.TempChangeAlarm.SoundFile,
+					Notify = cumulus.TempChangeAlarm.Notify
+				},
+				pressBelow = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.LowPressAlarm.Enabled,
+					SoundEnabled = cumulus.LowPressAlarm.Sound,
+					Sound = cumulus.LowPressAlarm.SoundFile,
+					Notify = cumulus.LowPressAlarm.Notify
+				},
+				pressAbove = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.HighPressAlarm.Enabled,
+					SoundEnabled = cumulus.HighPressAlarm.Sound,
+					Sound = cumulus.HighPressAlarm.SoundFile,
+					Notify = cumulus.HighPressAlarm.Notify
+				},
+				pressChange = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.PressChangeAlarm.Enabled,
+					SoundEnabled = cumulus.PressChangeAlarm.Sound,
+					Sound = cumulus.PressChangeAlarm.SoundFile,
+					Notify = cumulus.PressChangeAlarm.Notify
+				},
+				rainAbove = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.HighRainTodayAlarm.Enabled,
+					SoundEnabled = cumulus.HighRainTodayAlarm.Sound,
+					Sound = cumulus.HighRainTodayAlarm.SoundFile,
+					Notify = cumulus.HighRainTodayAlarm.Notify
+				},
+				rainRateAbove = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.HighRainRateAlarm.Enabled,
+					SoundEnabled = cumulus.HighRainRateAlarm.Sound,
+					Sound = cumulus.HighRainRateAlarm.SoundFile,
+					Notify = cumulus.HighRainRateAlarm.Notify
+				},
+				isRaining = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.IsRainingAlarm.Enabled,
+					SoundEnabled = cumulus.IsRainingAlarm.Sound,
+					Sound = cumulus.IsRainingAlarm.SoundFile,
+					Notify = cumulus.IsRainingAlarm.Notify
+				},
+				gustAbove = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.HighGustAlarm.Enabled,
+					SoundEnabled = cumulus.HighGustAlarm.Sound,
+					Sound = cumulus.HighGustAlarm.SoundFile,
+					Notify = cumulus.HighGustAlarm.Notify
+				},
+				windAbove = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.HighWindAlarm.Enabled,
+					SoundEnabled = cumulus.HighWindAlarm.Sound,
+					Sound = cumulus.HighWindAlarm.SoundFile,
+					Notify = cumulus.HighWindAlarm.Notify
+				},
+				contactLost = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.SensorAlarm.Enabled,
+					SoundEnabled = cumulus.SensorAlarm.Sound,
+					Sound = cumulus.SensorAlarm.SoundFile,
+					Notify = cumulus.SensorAlarm.Notify
+				},
+				newRecord = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.NewRecordAlarm.Enabled,
+					SoundEnabled = cumulus.NewRecordAlarm.Sound,
+					Sound = cumulus.NewRecordAlarm.SoundFile,
+					Notify = cumulus.NewRecordAlarm.Notify
+				},
+				dataStopped = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.DataStoppedAlarm.Enabled,
+					SoundEnabled = cumulus.DataStoppedAlarm.Sound,
+					Sound = cumulus.DataStoppedAlarm.SoundFile,
+					Notify = cumulus.DataStoppedAlarm.Notify
+				},
+				batteryLow = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.BatteryLowAlarm.Enabled,
+					SoundEnabled = cumulus.BatteryLowAlarm.Sound,
+					Sound = cumulus.BatteryLowAlarm.SoundFile,
+					Notify = cumulus.BatteryLowAlarm.Notify
+				},
+				spike = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.SpikeAlarm.Enabled,
+					SoundEnabled = cumulus.SpikeAlarm.Sound,
+					Sound = cumulus.SpikeAlarm.SoundFile,
+					Notify = cumulus.SpikeAlarm.Notify
+				},
+				upgrade = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.UpgradeAlarm.Enabled,
+					SoundEnabled = cumulus.UpgradeAlarm.Sound,
+					Sound = cumulus.UpgradeAlarm.SoundFile,
+					Notify = cumulus.UpgradeAlarm.Notify
+				},
+				httpUpload = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.ThirdPartyAlarm.Enabled,
+					SoundEnabled = cumulus.ThirdPartyAlarm.Sound,
+					Sound = cumulus.ThirdPartyAlarm.SoundFile,
+					Notify = cumulus.ThirdPartyAlarm.Notify
+				},
+				mySqlUpload = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.MySqlUploadAlarm.Enabled,
+					SoundEnabled = cumulus.MySqlUploadAlarm.Sound,
+					Sound = cumulus.MySqlUploadAlarm.SoundFile,
+					Notify = cumulus.MySqlUploadAlarm.Notify
+				},
+				ftpUpload = new JsonAlarmInfo()
+				{
+					Enabled = cumulus.FtpAlarm.Enabled,
+					SoundEnabled = cumulus.FtpAlarm.Sound,
+					Sound = cumulus.FtpAlarm.SoundFile,
+					Notify = cumulus.FtpAlarm.Notify
+				}
+			};
+
+			return data.ToJson();
+		}
+
+
 		public string UpdateAlarmSettings(IHttpContext context)
 		{
 			var json = "";
@@ -331,7 +485,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Alarm Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Alarm Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -586,7 +740,7 @@ namespace CumulusMX
 				if (emailRequired && !EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
 				{
 					var msg = "ERROR: Alarm email option enabled and an invalid Alarm from email address entered";
-					cumulus.LogMessage(msg);
+					cumulus.LogWarningMessage(msg);
 					context.Response.StatusCode = 500;
 					return msg;
 				}
@@ -603,7 +757,7 @@ namespace CumulusMX
 					if (!EmailSender.CheckEmailAddress(emails[i]))
 					{
 						var msg = "ERROR: Invalid Alarm destination email address entered";
-						cumulus.LogMessage(msg);
+						cumulus.LogWarningMessage(msg);
 						context.Response.StatusCode = 500;
 						return msg;
 					}
@@ -619,7 +773,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error processing Alarm settings: " + ex.Message);
+				cumulus.LogErrorMessage("Error processing Alarm settings: " + ex.Message);
 				cumulus.LogDebugMessage("Alarm Data: " + json);
 				context.Response.StatusCode = 500;
 				return ex.Message;
@@ -645,7 +799,7 @@ namespace CumulusMX
 				if (!EmailSender.CheckEmailAddress(result.fromEmail.Trim()))
 				{
 					var msg = "ERROR: Invalid Alarm from email address entered";
-					cumulus.LogMessage(msg);
+					cumulus.LogWarningMessage(msg);
 					context.Response.StatusCode = 500;
 					return msg;
 				}
@@ -659,7 +813,7 @@ namespace CumulusMX
 					if (!EmailSender.CheckEmailAddress(dest[i]))
 					{
 						var msg = "ERROR: Invalid Alarm destination email address entered";
-						cumulus.LogMessage(msg);
+						cumulus.LogWarningMessage(msg);
 						context.Response.StatusCode = 500;
 						return msg;
 					}
@@ -725,6 +879,39 @@ namespace CumulusMX
 		public int Threshold { get; set; }
 		public string Action { get; set; }
 		public string ActionParams { get; set; }
+	}
+
+	public class JsonAlarmInfoData
+	{
+		public JsonAlarmInfo tempBelow { get; set; }
+		public JsonAlarmInfo tempAbove { get; set; }
+		public JsonAlarmInfo tempChange { get; set; }
+		public JsonAlarmInfo pressBelow { get; set; }
+		public JsonAlarmInfo pressAbove { get; set; }
+		public JsonAlarmInfo pressChange { get; set; }
+		public JsonAlarmInfo rainAbove { get; set; }
+		public JsonAlarmInfo rainRateAbove { get; set; }
+		public JsonAlarmInfo gustAbove { get; set; }
+		public JsonAlarmInfo windAbove { get; set; }
+		public JsonAlarmInfo newRecord { get; set; }
+		public JsonAlarmInfo contactLost { get; set; }
+		public JsonAlarmInfo dataStopped { get; set; }
+		public JsonAlarmInfo batteryLow { get; set; }
+		public JsonAlarmInfo spike { get; set; }
+		public JsonAlarmInfo upgrade { get; set; }
+		public JsonAlarmInfo httpUpload { get; set; }
+		public JsonAlarmInfo mySqlUpload { get; set; }
+		public JsonAlarmInfo isRaining { get; set; }
+		public JsonAlarmInfo ftpUpload { get; set; }
+	}
+
+
+	public class JsonAlarmInfo
+	{
+		public bool Enabled { get; set; }
+		public bool SoundEnabled { get; set; }
+		public string Sound { get; set; }
+		public bool Notify { get; set; }
 	}
 
 	public class JsonAlarmEmail

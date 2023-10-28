@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
-using SQLite;
-using Swan.Formatters;
+
 
 namespace CumulusMX
 {
 	public static class Api
 	{
 		internal static WeatherStation Station;
+		internal static Cumulus cumulus;
 		public static ProgramSettings programSettings;
 		internal static StationSettings stationSettings;
 		public static InternetSettings internetSettings;
-		public static ThirdPartySettings  thirdpartySettings;
+		public static ThirdPartySettings thirdpartySettings;
 		public static ExtraSensorSettings extraSensorSettings;
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
@@ -47,7 +47,7 @@ namespace CumulusMX
 				if (ch <= 0x7f)
 					sb.Append(ch);
 				else
-					sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int)ch);
+					sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int) ch);
 			}
 			return sb.ToString();
 		}
@@ -127,7 +127,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -145,6 +145,11 @@ namespace CumulusMX
 
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
 						string res;
@@ -214,7 +219,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -273,16 +278,26 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetDiarySummary());
 								break;
 							case "mysqlcache.json":
-								await writer.WriteAsync(Station.GetCachedSqlCommands(draw, start, length, search));
+								if (await Authenticate(HttpContext))
+								{
+									await writer.WriteAsync(Station.GetCachedSqlCommands(draw, start, length, search));
+								}
+								break;
+							case "errorlog.json":
+								if (await Authenticate(HttpContext))
+								{
+									await writer.WriteAsync(cumulus.GetErrorLog());
+								}
 								break;
 							default:
 								Response.StatusCode = 404;
 								break;
 						}
-					}				}
+					}
+				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/data: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -323,7 +338,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -358,7 +373,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -382,11 +397,20 @@ namespace CumulusMX
 
 				var incremental = false;
 				DateTime? start = null;
+				DateTime? end = null;
 
-				if (this.Request.QueryString.AllKeys.Contains("start") && long.TryParse(this.Request.QueryString.Get("start"), out long ts))
+				if (Request.QueryString.AllKeys.Contains("start") && long.TryParse(Request.QueryString.Get("start"), out long ts))
 				{
 					start = Utils.FromUnixTime(ts);
-					incremental = true;
+					if (!Request.QueryString.AllKeys.Contains("end"))
+						incremental = true;
+				}
+
+				if (Request.QueryString.AllKeys.Contains("end") && long.TryParse(Request.QueryString.Get("end"), out ts))
+				{
+					end = Utils.FromUnixTime(ts);
+					if (end > DateTime.Now)
+						end = DateTime.Now;
 				}
 
 				try
@@ -395,6 +419,7 @@ namespace CumulusMX
 					{
 						switch (req)
 						{
+							// recent data
 							case "tempdata.json":
 								await writer.WriteAsync(Station.GetTempGraphData(incremental, true, start));
 								break;
@@ -415,21 +440,6 @@ namespace CumulusMX
 								break;
 							case "solardata.json":
 								await writer.WriteAsync(Station.GetSolarGraphData(incremental, true, start));
-								break;
-							case "dailyrain.json":
-								await writer.WriteAsync(Station.GetDailyRainGraphData());
-								break;
-							case "sunhours.json":
-								await writer.WriteAsync(Station.GetSunHoursGraphData(true));
-								break;
-							case "dailytemp.json":
-								await writer.WriteAsync(Station.GetDailyTempGraphData(true));
-								break;
-							case "units.json":
-								await writer.WriteAsync(Station.GetUnits());
-								break;
-							case "graphconfig.json":
-								await writer.WriteAsync(Station.GetGraphConfig(true));
 								break;
 							case "airqualitydata.json":
 								await writer.WriteAsync(Station.GetAqGraphData(incremental, start));
@@ -458,20 +468,90 @@ namespace CumulusMX
 							case "co2sensor.json":
 								await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
 								break;
+
+							// daily data
+							case "dailyrain.json":
+								await writer.WriteAsync(Station.GetDailyRainGraphData());
+								break;
+							case "sunhours.json":
+								await writer.WriteAsync(Station.GetSunHoursGraphData(true));
+								break;
+							case "dailytemp.json":
+								await writer.WriteAsync(Station.GetDailyTempGraphData(true));
+								break;
+							case "units.json":
+								await writer.WriteAsync(Station.GetUnits());
+								break;
+
+							// interval data
+							case "intvtemp.json":
+								await writer.WriteAsync(Station.GetIntervalTempGraphData(true, start, end));
+								break;
+							case "intvwind.json":
+								await writer.WriteAsync(Station.GetIntervalWindGraphData(true, start, end));
+								break;
+							case "intvrain.json":
+								await writer.WriteAsync(Station.GetIntervalRainGraphData(true, start, end));
+								break;
+							case "intvpress.json":
+								await writer.WriteAsync(Station.GetIntervaPressGraphData(true, start, end));
+								break;
+							case "intvhum.json":
+								await writer.WriteAsync(Station.GetIntervalHumGraphData(true, start, end));
+								break;
+							case "intvsolar.json":
+								await writer.WriteAsync(Station.GetIntervalSolarGraphData(true, start, end));
+								break;
+							case "intvairquality.json":
+								// TODO
+								break;
+							case "intvextratemp.json":
+								await writer.WriteAsync(Station.GetExtraTempGraphData(false, true, start, end));
+								break;
+							case "intvextrahum.json":
+								await writer.WriteAsync(Station.GetExtraHumGraphData(false, true, start, end));
+								break;
+							case "intvextradew.json":
+								await writer.WriteAsync(Station.GetExtraDewPointGraphData(false, true, start, end));
+								break;
+							case "intvsoiltemp.json":
+								await writer.WriteAsync(Station.GetSoilTempGraphData(false, true, start, end));
+								break;
+							case "intvsoilmoist.json":
+								await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true, start, end));
+								break;
+							case "intvleafwetness.json":
+								await writer.WriteAsync(Station.GetLeafWetnessGraphData(false, true, start, end));
+								break;
+							case "intvusertemp.json":
+								await writer.WriteAsync(Station.GetUserTempGraphData(false, true, start, end));
+								break;
+							case "intvco2sensor.json":
+								// TODO
+								break;
+
+							// config data
+							case "graphconfig.json":
+								await writer.WriteAsync(Station.GetGraphConfig(true));
+								break;
 							case "availabledata.json":
 								await writer.WriteAsync(Station.GetAvailGraphData(true));
 								break;
 							case "selectachart.json":
 								await writer.WriteAsync(Station.GetSelectaChartOptions());
 								break;
+							case "selectaperiod.json":
+								await writer.WriteAsync(Station.GetSelectaPeriodOptions());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
 						}
-					}				}
+					}
+				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -498,6 +578,9 @@ namespace CumulusMX
 							case "selectachart.json":
 								await writer.WriteAsync(stationSettings.SetSelectaChartOptions(HttpContext));
 								break;
+							case "selectaperiod.json":
+								await writer.WriteAsync(stationSettings.SetSelectaPeriodOptions(HttpContext));
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -507,7 +590,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/graphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -572,7 +655,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/dailygraphdata: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/dailygraphdata: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -622,7 +705,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/alltime: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/alltime: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -677,7 +760,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/month: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/month: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -724,7 +807,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/thismonth: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/thismonth: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -770,13 +853,13 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/thisyear: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
 
 			[Route(HttpVerbs.Get, "/records/thisperiod")]
-			public async Task GetThisPeriodRecordData(string req)
+			public async Task GetThisPeriodRecordData()
 			{
 				Response.ContentType = "application/json";
 
@@ -799,7 +882,7 @@ namespace CumulusMX
 						if (query.AllKeys.Contains("startdate"))
 						{
 							// we expect "yyyy-mm-dd"
-							var start  = query["startdate"].Split('-');
+							var start = query["startdate"].Split('-');
 
 							if (!Int32.TryParse(start[0], out startyear) || startyear < 2000 || startyear > 2050)
 							{
@@ -871,7 +954,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -925,7 +1008,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/todayyest: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/todayyest: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1011,7 +1094,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1023,35 +1106,14 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/settings/{req}")]
 			public async Task SettingsGet(string req)
 			{
-				/* string authorization = context.Request.Headers["Authorization"];
-				 string userInfo;
-				 string username = "";
-				 string password = "";
-				 if (authorization != null)
-				 {
-					 byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
-					 userInfo = System.Text.Encoding.UTF8.GetString(tempConverted);
-					 string[] usernamePassword = userInfo.Split(new string[] {":"}, StringSplitOptions.RemoveEmptyEntries);
-					 username = usernamePassword[0];
-					 password = usernamePassword[1];
-					 Console.WriteLine("username = "+username+" password = "+password);
-				 }
-				 else
-				 {
-					 var errorResponse = new
-					 {
-						 Title = "Authentication required",
-						 ErrorCode = "Authentication required",
-						 Description = "You must authenticate",
-					 };
-
-					 context.Response.StatusCode = 401;
-					 return context.JsonResponse(errorResponse);
-				 }*/
-
 				try
 				{
 					Response.ContentType = "application/json";
+
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
 
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
@@ -1084,12 +1146,6 @@ namespace CumulusMX
 							case "noaadata.json":
 								await writer.WriteAsync(noaaSettings.GetAlpacaFormData());
 								break;
-							case "wsport.json":
-								await writer.WriteAsync(stationSettings.GetWSport());
-								break;
-							case "version.json":
-								await writer.WriteAsync(stationSettings.GetVersion());
-								break;
 							case "mysqldata.json":
 								await writer.WriteAsync(mySqlSettings.GetAlpacaFormData());
 								break;
@@ -1098,14 +1154,6 @@ namespace CumulusMX
 								break;
 							case "wizard.json":
 								await writer.WriteAsync(wizard.GetAlpacaFormData());
-								break;
-							case "dateformat.txt":
-								Response.ContentType = "text/plain";
-								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
-								break;
-							case "csvseparator.txt":
-								Response.ContentType = "text/plain";
-								await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
 								break;
 							case "customlogsintvl.json":
 								await writer.WriteAsync(customLogs.GetAlpacaFormDataIntvl());
@@ -1127,7 +1175,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/settings: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/settings: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1138,6 +1186,11 @@ namespace CumulusMX
 				try
 				{
 					Response.ContentType = "application/json";
+
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
 
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
@@ -1220,7 +1273,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/setsettings: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/setsettings: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1232,7 +1285,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/reports/{req}")]
 			public async Task GetData(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
+				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1272,7 +1325,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/reports: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/reports: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1280,28 +1333,38 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/genreports/{req}")]
 			public async Task GenReports(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(Program.cumulus, Station);
+				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					int month, year;
 					Response.ContentType = "text/plain";
 
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
-						if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
-						{
-							await writer.WriteAsync("Invalid year supplied: " + year);
-							Response.StatusCode = 406;
-							return;
-						}
-
 						switch (req)
 						{
 							case "noaayear":
+								if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+								{
+									await writer.WriteAsync("Invalid year supplied: " + year);
+									Response.StatusCode = 406;
+									return;
+								}
 								await writer.WriteAsync(noaarpts.GenerateNoaaYearReport(year));
 								break;
 							case "noaamonth":
+								if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+								{
+									await writer.WriteAsync("Invalid year supplied: " + year);
+									Response.StatusCode = 406;
+									return;
+								}
 								if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
 								{
 									await writer.WriteAsync("Invalid month supplied: " + month);
@@ -1309,6 +1372,9 @@ namespace CumulusMX
 									return;
 								}
 								await writer.WriteAsync(noaarpts.GenerateNoaaMonthReport(year, month));
+								break;
+							case "all":
+								await writer.WriteAsync(noaarpts.GenerateMissing());
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1321,7 +1387,7 @@ namespace CumulusMX
 					//using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					//	await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
 					Response.StatusCode = 500;
-					Program.cumulus.LogMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
 				}
 			}
 		}
@@ -1370,7 +1436,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1430,7 +1496,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/httpstation: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1454,6 +1520,11 @@ namespace CumulusMX
 
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
 						switch (req)
@@ -1463,7 +1534,7 @@ namespace CumulusMX
 								break;
 							case "purgemysql":
 								var cnt = 0;
-								while (Program.cumulus.MySqlFailedList.TryDequeue(out var item))
+								while (cumulus.MySqlFailedList.TryDequeue(out var item))
 								{
 									cnt++;
 								};
@@ -1487,7 +1558,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/utils: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
@@ -1505,6 +1576,11 @@ namespace CumulusMX
 
 				try
 				{
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
 						switch (req)
@@ -1520,10 +1596,100 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					Program.cumulus.LogMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogErrorMessage($"api/edit: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}
+		}
+
+		// Info
+		public class InfoController : WebApiController
+		{
+			[Route(HttpVerbs.Get, "/info/{req}")]
+			public async Task InfoGet(string req)
+			{
+				try
+				{
+					Response.ContentType = "application/json";
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+					{
+						switch (req)
+						{
+							case "wsport.json":
+								await writer.WriteAsync(stationSettings.GetWSport());
+								break;
+							case "version.json":
+								await writer.WriteAsync(stationSettings.GetVersion());
+								break;
+							case "dateformat.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
+								break;
+							case "csvseparator.txt":
+								Response.ContentType = "text/plain";
+								await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
+								break;
+							case "alarms.json":
+								await writer.WriteAsync(alarmSettings.GetAlarmInfo());
+								break;
+							default:
+								Response.StatusCode = 404;
+								break;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/info: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+		private static async  Task<bool> Authenticate(IHttpContext context)
+		{
+			string authorization = context.Request.Headers["Authorization"];
+			string userInfo;
+			string username;
+			string password;
+
+			if (cumulus.ProgramOptions.SecureSettings)
+			{
+				if (authorization != null)
+				{
+					byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
+					userInfo = Encoding.UTF8.GetString(tempConverted);
+					string[] usernamePassword = userInfo.Split(new char[] { ':' });
+					username = usernamePassword[0] ?? string.Empty;
+					password = usernamePassword[1] ?? string.Empty;
+
+					if (username == cumulus.ProgramOptions.SettingsUsername && password == cumulus.ProgramOptions.SettingsPassword)
+					{
+						return true;
+					}
+					else
+					{
+						context.Response.StatusCode = 401;
+						context.Response.ContentType = "application/json";
+						context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"My Realm\"");
+						using (var writer = context.OpenResponseText(new UTF8Encoding(false)))
+							await writer.WriteAsync("{\"Title\":\"Authentication required\",\"ErrorCode\":\"Authentication required\",\"Description\":\"You must authenticate\"}");
+
+						return false;
+					}
+				}
+				else
+				{
+					context.Response.StatusCode = 401;
+					context.Response.ContentType = "application/json";
+					context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"My Realm\"");
+					using (var writer = context.OpenResponseText(new UTF8Encoding(false)))
+						await writer.WriteAsync("{\"Title\":\"Authentication required\",\"ErrorCode\":\"Authentication required\",\"Description\":\"You must authenticate\"}");
+
+					return false;
+				}
+			}
+
+			return true;
 		}
 	}
 }

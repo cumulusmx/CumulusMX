@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using static System.Collections.Specialized.BitVector32;
+
 
 namespace CumulusMX
 {
@@ -165,7 +163,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					cumulus.LogMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {e}");
+					cumulus.LogErrorMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {e}");
 					cumulus.LogMessage("Please edit the file to correct the error");
 				}
 			}
@@ -188,7 +186,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error in NOAA dominant wind direction calculation: " + ex.Message);
+				cumulus.LogErrorMessage("Error in NOAA dominant wind direction calculation: " + ex.Message);
 				domdir = 0;
 			}
 			return avgwindspeed;
@@ -270,7 +268,7 @@ namespace CumulusMX
 					if (dayList[daynumber].valid)
 					{
 						// already had this date - error!
-						cumulus.LogMessage($"Duplicate entry in dayfile: {day.Date}.");
+						cumulus.LogWarningMessage($"Duplicate entry in dayfile: {day.Date}.");
 						continue;
 					}
 
@@ -437,7 +435,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Error processing dayfile data for {currDate}: {ex.Message}");
+				cumulus.LogErrorMessage($"Error processing dayfile data for {currDate}: {ex.Message}");
 				cumulus.LogMessage("Please edit the file to correct the error");
 			}
 
@@ -498,7 +496,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {ex}");
+					cumulus.LogErrorMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {ex}");
 					cumulus.LogMessage("Please edit the file to correct the error");
 					// set the days after this error as invalid
 					for (var i = daynumber; i < dayList.Length - 1; i++)
@@ -539,7 +537,7 @@ namespace CumulusMX
 						}
 						catch
 						{
-							cumulus.LogMessage("Error in NOAA dominant wind direction calculation ");
+							cumulus.LogErrorMessage("Error in NOAA dominant wind direction calculation");
 						}
 
 						if (dayList[i].winddomdir == 0)
@@ -568,7 +566,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				cumulus.LogMessage("Error in NOAA dominant wind direction calculation ");
+				cumulus.LogErrorMessage("Error in NOAA dominant wind direction calculation");
 				overalldomdir = 0;
 			}
 
@@ -945,7 +943,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"Error at line {linenum} of dayfile.txt: {ex.Message}");
+				cumulus.LogErrorMessage($"Error at line {linenum} of dayfile.txt: {ex.Message}");
 				cumulus.LogMessage("Please edit the file to correct the error");
 			}
 
@@ -1226,7 +1224,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogMessage($"CreateYearlyReport: Error creating wind section: {e.Message}");
+						cumulus.LogErrorMessage($"CreateYearlyReport: Error creating wind section: {e.Message}");
 						cumulus.LogDebugMessage("CreateYearlyReport: Last line generated was...");
 						cumulus.LogDebugMessage($"CreateYearlyReport: \"{repLine}\"");
 						throw;
@@ -1237,7 +1235,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"CreateYearlyReport: Error creating the report: {e.Message}");
+				cumulus.LogErrorMessage($"CreateYearlyReport: Error creating the report: {e.Message}");
 				cumulus.LogDebugMessage("CreateYearlyReport: Output generated so far was...");
 				cumulus.LogDebugMessage(string.Join("\n", output));
 				throw;
@@ -1267,7 +1265,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage($"CreateYearlyReport: Error creating wind summary: {e.Message}");
+				cumulus.LogErrorMessage($"CreateYearlyReport: Error creating wind summary: {e.Message}");
 				cumulus.LogDebugMessage("CreateYearlyReport: Last line generated was...");
 				cumulus.LogDebugMessage($"CreateYearlyReport: \"{repLine}\"");
 				throw;
@@ -1282,7 +1280,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("Error in NOAA dominant wind direction calculation: " + ex.Message);
+				cumulus.LogErrorMessage("Error in NOAA dominant wind direction calculation: " + ex.Message);
 				domdir = 0;
 			}
 

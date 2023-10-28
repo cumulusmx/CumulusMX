@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
-using System.Linq;
-using System.Timers;
-using System.Net.Http;
-using Tmds.MDns;
-using System.Net;
-using System.ComponentModel;
-using System.Collections.Generic;
-using ServiceStack;
-using Swan;
 using System.Threading.Tasks;
-using ServiceStack.Text;
+using System.Timers;
+
+using ServiceStack;
+
+using Swan;
+
+using Tmds.MDns;
 
 namespace CumulusMX
 {
@@ -107,7 +108,7 @@ namespace CumulusMX
 				{
 					// We didn't find anything on the network
 					msg = "Failed to discover any AirLink devices";
-					cumulus.LogMessage("ZeroConf Service: " + msg);
+					cumulus.LogWarningMessage("ZeroConf Service: " + msg);
 					cumulus.LogConsoleMessage(msg);
 				}
 				else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname) && numOfAirLinks == 1)
@@ -159,8 +160,8 @@ namespace CumulusMX
 
 					if (discovered.IP[idx] != ipaddr)
 					{
-						cumulus.LogMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
-						cumulus.LogMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
+						cumulus.LogWarningMessage($"ZeroConf Service: Discovered a new IP address for the {locationStr} AirLink that does not match our current one");
+						cumulus.LogWarningMessage($"ZeroConf Service: Changing previous {locationStr} IP address: {ipaddr} to {discovered.IP[idx]}");
 						ipaddr = discovered.IP[idx];
 						if (indoor)
 							cumulus.AirLinkInIPAddr = ipaddr;
@@ -245,9 +246,8 @@ namespace CumulusMX
 			cumulus.LogMessage($"AirLink {locationStr} Starting up");
 			try
 			{
-				// Get the current conditions and health immediately to populate the web tags
+				// Get the current conditions immediately to populate the web tags
 				GetAlCurrent(null, null);
-				GetWlHistoricHealth();
 
 				// Create a current conditions thread to poll readings every 30 seconds
 				tmrCurrent.Elapsed += GetAlCurrent;
@@ -258,6 +258,9 @@ namespace CumulusMX
 				// Only poll health data here if the AirLink is a stand-alone device - the stand-alone history flag shows we have all the required info to poll wl.com
 				if (standaloneHistory)
 				{
+					// Get the health immediately to populate the web tags
+					GetWlHistoricHealth();
+
 					// get the health data every 15 minutes
 					tmrHealth = new System.Timers.Timer();
 					tmrHealth.Elapsed += HealthTimerTick;
@@ -341,8 +344,8 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage("GetAlCurrent: Error processing the AirLink response");
-							cumulus.LogMessage("GetAlCurrent: Error: " + ex.Message);
+							cumulus.LogErrorMessage("GetAlCurrent: Error processing the AirLink response");
+							cumulus.LogErrorMessage("GetAlCurrent: Error: " + ex.Message);
 						}
 						retry = 9;
 					}
@@ -359,7 +362,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage($"GetAlCurrent: {locationStr} - Invalid IP address: {ip}");
+				cumulus.LogErrorMessage($"GetAlCurrent: {locationStr} - Invalid IP address: {ip}");
 			}
 			updateInProgress = false;
 		}
@@ -572,7 +575,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("AirLink: Exception occurred reading archive data: " + ex.Message);
+				cumulus.LogErrorMessage("AirLink: Exception occurred reading archive data: " + ex.Message);
 			}
 		}
 
@@ -589,7 +592,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 				{
-					cumulus.LogMessage("GetWlHistoricData: Missing AirLink WeatherLink API data in the configuration, aborting!");
+					cumulus.LogWarningMessage("GetWlHistoricData: Missing AirLink WeatherLink API data in the configuration, aborting!");
 					return;
 				}
 
@@ -601,7 +604,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret))
 				{
-					cumulus.LogMessage("GetWlHistoricData: Missing WLL WeatherLink API data in the configuration, aborting!");
+					cumulus.LogWarningMessage("GetWlHistoricData: Missing WLL WeatherLink API data in the configuration, aborting!");
 					return;
 				}
 
@@ -614,7 +617,7 @@ namespace CumulusMX
 			if (stationId < 10)
 			{
 				var msg = "No AirLink WeatherLink API station ID in the configuration";
-				cumulus.LogMessage(msg);
+				cumulus.LogWarningMessage(msg);
 				cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 				return;
 			}
@@ -663,7 +666,7 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink API Historic Response code: {responseCode}");
 					cumulus.LogDataMessage($"GetWlHistoricData: WeatherLink API Historic Response: {responseBody}");
 				}
@@ -671,7 +674,7 @@ namespace CumulusMX
 				if (responseCode != 200)
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
-					cumulus.LogMessage($"GetWlHistoricData: WeatherLink API Historic Error: {errObj.code}, {errObj.message}");
+					cumulus.LogErrorMessage($"GetWlHistoricData: WeatherLink API Historic Error: {errObj.code}, {errObj.message}");
 					cumulus.LogConsoleMessage($" - Error {errObj.code}: {errObj.message}");
 					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
@@ -679,52 +682,54 @@ namespace CumulusMX
 
 				if (responseBody == "{}")
 				{
-					cumulus.LogMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
+					cumulus.LogWarningMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					cumulus.LogConsoleMessage(" - No historic data available");
 					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
-
-				if (!responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
+				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
-					cumulus.LogMessage("GetWlHistoricData: Invalid historic message received");
-					cumulus.LogDataMessage("GetWlHistoricData: Received: " + responseBody);
-					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
-					return;
-				}
 
-				histObj = responseBody.FromJson<WlHistory>();
+					histObj = responseBody.FromJson<WlHistory>();
 
-				// get the sensor data with the most number of history records
-				int idxOfSensorWithMostRecs = 0;
-				for (var i = 0; i < histObj.sensors.Count; i++)
-				{
-					if (histObj.sensors[i].sensor_type != 504)
+					// get the sensor data with the most number of history records
+					int idxOfSensorWithMostRecs = 0;
+					for (var i = 0; i < histObj.sensors.Count; i++)
 					{
-						var recs = histObj.sensors[i].data.Count;
-						if (recs > noOfRecs)
+						if (histObj.sensors[i].sensor_type != 504)
 						{
-							noOfRecs = recs;
-							idxOfSensorWithMostRecs = i;
+							var recs = histObj.sensors[i].data.Count;
+							if (recs > noOfRecs)
+							{
+								noOfRecs = recs;
+								idxOfSensorWithMostRecs = i;
+							}
 						}
 					}
+
+					sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
+
+					if (noOfRecs == 0)
+					{
+						cumulus.LogMessage("GetWlHistoricData: No historic data available");
+						cumulus.LogConsoleMessage(" - No historic data available");
+						airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
+						return;
+					}
+
+					cumulus.LogMessage($"GetWlHistoricData: Found {noOfRecs} historic records to process");
 				}
-
-				sensorWithMostRecs = histObj.sensors[idxOfSensorWithMostRecs];
-
-				if (noOfRecs == 0)
+				else // No idea what we got, dump it to the log
 				{
-					cumulus.LogMessage("GetWlHistoricData: No historic data available");
-					cumulus.LogConsoleMessage(" - No historic data available");
-					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
+					cumulus.LogErrorMessage("GetWlHistoricData: Invalid historic message received");
+					cumulus.LogMessage("GetWlHistoricData: Received: " + responseBody);
+					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
-
-				cumulus.LogMessage($"GetWlHistoricData: Found {noOfRecs} historic records to process");
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("GetWlHistoricData:  Exception: " + ex.Message);
+				cumulus.LogErrorMessage("GetWlHistoricData:  Exception: " + ex.Message);
 				airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 				return;
 			}
@@ -804,12 +809,12 @@ namespace CumulusMX
 					cumulus.DoAirLinkLogFile(timestamp);
 
 					if (!Program.service)
-						Console.Write("\r - processed " + (((double)dataIndex + 1) / noOfRecs).ToString("P0"));
+						Console.Write("\r - processed " + (((double) dataIndex + 1) / noOfRecs).ToString("P0"));
 					cumulus.LogMessage($"GetWlHistoricData: {(dataIndex + 1)} of {noOfRecs} archive entries processed");
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("GetWlHistoricData: Exception: " + ex.Message);
+					cumulus.LogErrorMessage("GetWlHistoricData: Exception: " + ex.Message);
 				}
 			}
 
@@ -867,7 +872,7 @@ namespace CumulusMX
 
 							if (data17.temp_avg == -99)
 							{
-								cumulus.LogMessage($"DecodeAlHistoric: No valid temperature value found");
+								cumulus.LogWarningMessage($"DecodeAlHistoric: No valid temperature value found");
 							}
 							else
 							{
@@ -933,7 +938,7 @@ namespace CumulusMX
 								// If we are the primary AQ sensor,
 								// and we are not linked to a WLL,
 								// then add the PM data into the graphdata list
-								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
+								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
 								{
 									//station.UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
 									station.UpdateRecentDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
@@ -964,7 +969,7 @@ namespace CumulusMX
 								// If we are the primary AQ sensor,
 								// and we are not linked to a WLL,
 								// then add the PM data into the graphdata list
-								if (cumulus.StationOptions.PrimaryAqSensor == (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
+								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
 								{
 									//station.UpdateGraphDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
 									station.UpdateRecentDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
@@ -986,7 +991,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"DecodeAlHistoric: {locationStr} - Exception: {ex.Message}");
+				cumulus.LogErrorMessage($"DecodeAlHistoric: {locationStr} - Exception: {ex.Message}");
 			}
 		}
 
@@ -1016,7 +1021,7 @@ namespace CumulusMX
 				{
 					var msg = "Missing AirLink WeatherLink API key/secret in the cumulus.ini file";
 					cumulus.LogConsoleMessage(msg);
-					cumulus.LogMessage("AirLinkHealth: " + msg);
+					cumulus.LogWarningMessage("AirLinkHealth: " + msg);
 					return;
 				}
 				apiKey = cumulus.AirLinkApiKey;
@@ -1026,7 +1031,7 @@ namespace CumulusMX
 				{
 					var msg = "Missing AirLink WeatherLink API station Id in the cumulus.ini file";
 					cumulus.LogConsoleMessage(msg);
-					cumulus.LogMessage("AirLinkHealth: " + msg);
+					cumulus.LogWarningMessage("AirLinkHealth: " + msg);
 					GetAvailableStationIds();
 					return;
 				}
@@ -1036,7 +1041,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret) || cumulus.WllStationId < 10)
 				{
-					cumulus.LogMessage("AirLinkHealth: Missing WLL WeatherLink API key/secret/station Id in the cumulus.ini file, aborting!");
+					cumulus.LogWarningMessage("AirLinkHealth: Missing WLL WeatherLink API key/secret/station Id in the cumulus.ini file, aborting!");
 					return;
 				}
 				apiKey = cumulus.WllApiKey;
@@ -1071,20 +1076,20 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDataMessage($"AirLinkHealth: WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
 				if (responseCode != 200)
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
-					cumulus.LogMessage($"AirLinkHealth: WeatherLink API Error: {errObj.code}, {errObj.message}");
+					cumulus.LogErrorMessage($"AirLinkHealth: WeatherLink API Error: {errObj.code}, {errObj.message}");
 					return;
 				}
 
 				if (responseBody == "{}")
 				{
-					cumulus.LogMessage("AirLinkHealth: WeatherLink API: No data was returned. Check your Device Id.");
+					cumulus.LogWarningMessage("AirLinkHealth: WeatherLink API: No data was returned. Check your Device Id.");
 					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
@@ -1092,7 +1097,7 @@ namespace CumulusMX
 				if (!responseBody.StartsWith("{\"sensors\":[{\"lsid\"")) // sanity check
 				{
 					// No idea what we got, dump it to the log
-					cumulus.LogMessage("AirLinkHealth: Invalid historic message received");
+					cumulus.LogErrorMessage("AirLinkHealth: Invalid historic message received");
 					cumulus.LogDataMessage("AirLinkHealth: Received: " + responseBody);
 					return;
 				}
@@ -1121,12 +1126,12 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("AirLinkHealth: exception: " + ex.Message);
+					cumulus.LogErrorMessage("AirLinkHealth: exception: " + ex.Message);
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage("AirLinkHealth: exception: " + ex.Message);
+				cumulus.LogErrorMessage("AirLinkHealth: exception: " + ex.Message);
 			}
 
 			//cumulus.BatteryLowAlarmState = TxBatText.Contains("LOW") || wllVoltageLow;
@@ -1194,7 +1199,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"AirLinkHealth: {locationStr} - Error processing firmware version: {ex.Message}");
+						cumulus.LogErrorMessage($"AirLinkHealth: {locationStr} - Error processing firmware version: {ex.Message}");
 						cumulus.LogMessage($"AirLinkHealth: {locationStr} - No valid firmware version found");
 						if (indoor)
 						{
@@ -1220,7 +1225,7 @@ namespace CumulusMX
 					{
 						var upt = TimeSpan.FromSeconds(data.uptime);
 						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-								(int)upt.TotalDays,
+								(int) upt.TotalDays,
 								upt.Hours,
 								upt.Minutes,
 								upt.Seconds);
@@ -1228,14 +1233,14 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"AirLinkHealth: {locationStr} - Error processing uptime: {ex.Message}");
+						cumulus.LogErrorMessage($"AirLinkHealth: {locationStr} - Error processing uptime: {ex.Message}");
 					}
 
 					try
 					{
 						var upt = TimeSpan.FromSeconds(data.link_uptime);
 						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-								(int)upt.TotalDays,
+								(int) upt.TotalDays,
 								upt.Hours,
 								upt.Minutes,
 								upt.Seconds);
@@ -1243,13 +1248,13 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"AirLinkHealth: {locationStr} - Error processing link uptime: {ex.Message}");
+						cumulus.LogErrorMessage($"AirLinkHealth: {locationStr} - Error processing link uptime: {ex.Message}");
 					}
 
 					// Only present if WiFi attached
 					if (!data.wifi_rssi.HasValue)
 					{
-						cumulus.LogMessage($"AirLinkHealth: {locationStr} - No WiFi RSSI value found");
+						cumulus.LogWarningMessage($"AirLinkHealth: {locationStr} - No WiFi RSSI value found");
 					}
 					else
 					{
@@ -1266,8 +1271,8 @@ namespace CumulusMX
 
 					try
 					{
-						var txCnt = (int)data.tx_packets;
-						var rxCnt = (int)data.rx_packets;
+						var txCnt = (int) data.tx_packets;
+						var rxCnt = (int) data.rx_packets;
 						var dropped = data.dropped_packets;
 						var bad = data.packet_errors;
 						var error = data.network_error.HasValue ? data.network_error.Value.ToString() : "none";
@@ -1275,12 +1280,12 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogMessage($"AirLinkHealth: {locationStr} - Error processing xmt count: {ex.Message}");
+						cumulus.LogErrorMessage($"AirLinkHealth: {locationStr} - Error processing xmt count: {ex.Message}");
 					}
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage($"AirLinkHealth: {locationStr} - Exception caught in health data: {ex.Message}");
+					cumulus.LogErrorMessage($"AirLinkHealth: {locationStr} - Exception caught in health data: {ex.Message}");
 				}
 			}
 		}
@@ -1317,14 +1322,14 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
 				if (responseCode != 200)
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
-					cumulus.LogMessage($"WeatherLink API Error: {errObj.code} - {errObj.message}");
+					cumulus.LogWarningMessage($"WeatherLink API Error: {errObj.code} - {errObj.message}");
 					return false;
 				}
 
@@ -1340,7 +1345,7 @@ namespace CumulusMX
 
 					if ((station.station_id == cumulus.AirLinkInStationId || station.station_id == cumulus.AirLinkOutStationId) && station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
 					{
-						cumulus.LogMessage($" - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
+						cumulus.LogWarningMessage($" - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 					}
 				}
 				if (stationsObj.stations.Count > 1)
@@ -1379,13 +1384,13 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 			{
-				cumulus.LogMessage("GetAvailableSensors: WeatherLink AirLink API data is missing in the configuration, aborting!");
+				cumulus.LogWarningMessage("GetAvailableSensors: WeatherLink AirLink API data is missing in the configuration, aborting!");
 				return;
 			}
 
 			if ((indoor && cumulus.AirLinkInStationId < 10) || (!indoor && cumulus.AirLinkOutStationId < 10))
 			{
-				cumulus.LogMessage($"GetAvailableSensors: No WeatherLink AirLink API station ID has been configured, aborting!");
+				cumulus.LogWarningMessage($"GetAvailableSensors: No WeatherLink AirLink API station ID has been configured, aborting!");
 				return;
 			}
 
@@ -1405,14 +1410,14 @@ namespace CumulusMX
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
-					responseCode = (int)response.StatusCode;
+					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"GetAvailableSensors: WeatherLink API Response: {responseCode}: {responseBody}");
 				}
 
 				if (responseCode != 200)
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
-					cumulus.LogMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
 					return;
 				}
 
@@ -1561,7 +1566,7 @@ namespace CumulusMX
 					data.aqiPm10_24hr = AirQualityIndices.US_EPApm10(data.pm10_24hr);
 					data.aqiPm10_nowcast = AirQualityIndices.US_EPApm10(data.pm10_nowcast);
 					break;
-				case 1: // UK CMEAP
+				case 1: // UK COMEAP
 					data.aqiPm2p5 = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5);
 					data.aqiPm2p5_1hr = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5_1hr);
 					data.aqiPm2p5_3hr = AirQualityIndices.UK_COMEAPpm2p5(data.pm2p5_3hr);
@@ -1654,7 +1659,7 @@ namespace CumulusMX
 					break;
 
 				default:
-					cumulus.LogMessage($"DoAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");
+					cumulus.LogErrorMessage($"DoAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");
 					break;
 			}
 
@@ -1711,17 +1716,17 @@ namespace CumulusMX
 			public double pm_2p5_nowcast { get; set; }
 
 
-			public double pm_10 { get; set; }		// Type 6
-			public double pm_10p0 { get; set; }	// Type 5
+			public double pm_10 { get; set; }       // Type 6
+			public double pm_10p0 { get; set; } // Type 5
 			public double pm_10_last { get; set; }
-			public double pm_10_last_1_hour { get; set; }		// Type 6
-			public double pm_10p0_last_1_hour { get; set; }	// Type 5
-			public double pm_10_last_3_hours { get; set; }		// Type 6
+			public double pm_10_last_1_hour { get; set; }       // Type 6
+			public double pm_10p0_last_1_hour { get; set; } // Type 5
+			public double pm_10_last_3_hours { get; set; }      // Type 6
 			public double pm_10p0_last_3_hours { get; set; }   // Type 5
-			public double pm_10_last_24_hours { get; set; }	// Type 6
+			public double pm_10_last_24_hours { get; set; } // Type 6
 			public double pm_10p0_last_24_hours { get; set; }  // Type 5
-			public double pm_10_nowcast { get; set; }		// Type 6
-			public double pm_10p0_nowcast { get; set; }	// Type 5
+			public double pm_10_nowcast { get; set; }       // Type 6
+			public double pm_10p0_nowcast { get; set; } // Type 5
 
 			public int pct_pm_data_last_1_hour { get; set; }
 			public int pct_pm_data_last_3_hours { get; set; }

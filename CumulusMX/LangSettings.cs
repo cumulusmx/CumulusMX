@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.UI;
+
 using EmbedIO;
-using Org.BouncyCastle.Crypto;
+
 using ServiceStack;
 using ServiceStack.Text;
-using SQLite;
+
 
 namespace CumulusMX
 {
@@ -132,7 +127,7 @@ namespace CumulusMX
 				httpStopped = cumulus.ThirdPartyAlarm.EmailMsg,
 				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg,
 				newRecord = cumulus.NewRecordAlarm.EmailMsg,
-				ftpStopped =cumulus.FtpAlarm.EmailMsg
+				ftpStopped = cumulus.FtpAlarm.EmailMsg
 			};
 
 			var settings = new Settings()
@@ -154,7 +149,7 @@ namespace CumulusMX
 				solar = solar,
 				davisForecast = davisForecast,
 				co2 = co2,
-				alarms= alarms
+				alarms = alarms
 			};
 
 
@@ -181,7 +176,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Localisation Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Localisation Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -202,7 +197,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Zambretti forecast settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -222,7 +217,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Moon phase settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -247,7 +242,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Beaufort settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -268,7 +263,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Trend settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -282,7 +277,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Air Quality settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -296,7 +291,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Solar settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -307,14 +302,14 @@ namespace CumulusMX
 				{
 					cumulus.Trans.DavisForecast1 = settings.davisForecast.forecast1;
 					for (var i = 1; i <= settings.davisForecast.forecast2.Length; i++)
-						cumulus.Trans.DavisForecast2[i] = settings.davisForecast.forecast2[i-1].Trim();
+						cumulus.Trans.DavisForecast2[i] = settings.davisForecast.forecast2[i - 1].Trim();
 					for (var i = 1; i <= settings.davisForecast.forecast3.Length; i++)
-						cumulus.Trans.DavisForecast3[i] = settings.davisForecast.forecast3[i-1].Trim();
+						cumulus.Trans.DavisForecast3[i] = settings.davisForecast.forecast3[i - 1].Trim();
 				}
 				catch (Exception ex)
 				{
 					var msg = "Error processing Davis Forecast settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -333,7 +328,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Extra Sensor Names: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -351,7 +346,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing CO2 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -386,7 +381,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Alarm settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -397,7 +392,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Localisation settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Localisation Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;

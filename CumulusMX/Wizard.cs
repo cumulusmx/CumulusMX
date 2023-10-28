@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+
+using EmbedIO;
+
 using ServiceStack;
 using ServiceStack.Text;
-using EmbedIO;
 
 namespace CumulusMX
 {
@@ -24,7 +26,7 @@ namespace CumulusMX
 				description = cumulus.LocationDesc,
 				latitude = cumulus.Latitude,
 				longitude = cumulus.Longitude,
-				altitude = (int)cumulus.Altitude,
+				altitude = (int) cumulus.Altitude,
 				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
 			};
 
@@ -81,7 +83,7 @@ namespace CumulusMX
 			};
 
 			var weatherflow = new JsonStationSettingsWeatherFlow()
-				{deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist};
+			{ deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist };
 
 			var gw1000 = new JsonStationSettingsGw1000Conn()
 			{
@@ -113,6 +115,12 @@ namespace CumulusMX
 				comportname = cumulus.ComportName
 			};
 
+			var ecowittapi = new JsonStationSettingsEcowittApi()
+			{
+				applicationkey = cumulus.EcowittApplicationKey,
+				userkey = cumulus.EcowittUserApiKey,
+				mac = cumulus.EcowittMacAddress
+			};
 
 			var station = new JsonWizardStation()
 			{
@@ -125,7 +133,8 @@ namespace CumulusMX
 				easyw = easyweather,
 				imet = imet,
 				wmr928 = wmr,
-				weatherflow = weatherflow
+				weatherflow = weatherflow,
+				ecowittapi = ecowittapi
 			};
 
 			var copy = new JsonWizardInternetCopy()
@@ -139,7 +148,7 @@ namespace CumulusMX
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
 				ftpport = cumulus.FtpOptions.Port,
-				sslftp = (int)cumulus.FtpOptions.FtpMode,
+				sslftp = (int) cumulus.FtpOptions.FtpMode,
 				hostname = cumulus.FtpOptions.Hostname,
 				password = cumulus.FtpOptions.Password,
 				username = cumulus.FtpOptions.Username,
@@ -206,7 +215,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Set-up Wizard Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Wizard Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -223,7 +232,7 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.internet.ftp.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols)settings.internet.ftp.sslftp;
+						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.internet.ftp.sslftp;
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
 						{
 							cumulus.FtpOptions.Directory = string.IsNullOrWhiteSpace(settings.internet.ftp.directory) ? string.Empty : settings.internet.ftp.directory.Trim();
@@ -305,7 +314,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing internet settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -340,7 +349,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing web settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -364,7 +373,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Location settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -400,7 +409,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Units settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -417,7 +426,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Logging setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -427,7 +436,7 @@ namespace CumulusMX
 				{
 					if (cumulus.StationType != settings.station.stationtype)
 					{
-						cumulus.LogMessage("Station type changed, restart required");
+						cumulus.LogWarningMessage("Station type changed, restart required");
 						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
 					}
 					cumulus.StationType = settings.station.stationtype;
@@ -436,7 +445,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Station Type setting: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -469,7 +478,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Davis VP/VP2/Vue settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -498,7 +507,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WLL settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -516,7 +525,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing GW1000 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -535,7 +544,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = $"Error processing WeatherFlow settings: {ex.Message}";
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -552,7 +561,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Fine Offset settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -569,7 +578,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing EasyWeather settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -586,7 +595,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing Instromet settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
@@ -602,10 +611,29 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing WMR928 settings: " + ex.Message;
-					cumulus.LogMessage(msg);
+					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
+
+				// Ecowitt API
+				try
+				{
+					if (settings.station.ecowittapi != null)
+					{
+						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.applicationkey) ? null : settings.station.ecowittapi.applicationkey.Trim();
+						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.userkey) ? null : settings.station.ecowittapi.userkey.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.station.ecowittapi.mac) ? null : settings.station.ecowittapi.mac.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt API settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -613,7 +641,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Wizard settings: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Station Data: " + json);
 				errorMsg += msg;
 				context.Response.StatusCode = 500;
@@ -624,10 +652,10 @@ namespace CumulusMX
 
 		private string degToString(decimal degrees, bool lat)
 		{
-			var degs = (int)Math.Floor(Math.Abs(degrees));
+			var degs = (int) Math.Floor(Math.Abs(degrees));
 			var minsF = (Math.Abs(degrees) - degs) * 60;
-			var secs = (int)Math.Round((minsF - Math.Floor(minsF)) * 60);
-			var mins = (int)Math.Floor(minsF);
+			var secs = (int) Math.Round((minsF - Math.Floor(minsF)) * 60);
+			var mins = (int) Math.Floor(minsF);
 			string hemi;
 			if (lat)
 				hemi = degrees >= 0 ? "N" : "S";
@@ -685,6 +713,7 @@ namespace CumulusMX
 		public JsonWizardImet imet { get; set; }
 		public JsonStationSettingsWMR928 wmr928 { get; set; }
 		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
+		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 	}
 
 	internal class JsonWizardDavisVp

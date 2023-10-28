@@ -1,13 +1,15 @@
 ﻿using System;
-using MailKit.Net.Smtp;
-using MimeKit;
-using System.Text.RegularExpressions;
-using MailKit;
-using System.Threading;
-using System.IO;
-using System.CodeDom.Compiler;
 using System.CodeDom;
+using System.CodeDom.Compiler;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+
+using MailKit;
+using MailKit.Net.Smtp;
+
+using MimeKit;
 
 namespace CumulusMX
 {
@@ -69,7 +71,7 @@ namespace CumulusMX
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 					}
 
-					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
+					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions) cumulus.SmtpOptions.SslOption);
 
 					// Note: since we don't have an OAuth2 token, disable
 					// the XOAUTH2 authentication mechanism.
@@ -88,7 +90,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("SendEmail: Error - " + e);
+				cumulus.LogErrorMessage("SendEmail: Error - " + e);
 			}
 			finally
 			{
@@ -132,7 +134,7 @@ namespace CumulusMX
 
 				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
-					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions)cumulus.SmtpOptions.SslOption);
+					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions) cumulus.SmtpOptions.SslOption);
 					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
 
 					// Note: since we don't have an OAuth2 token, disable
@@ -153,7 +155,7 @@ namespace CumulusMX
 			}
 			catch (Exception e)
 			{
-				cumulus.LogMessage("SendEmail: Error - " + e);
+				cumulus.LogErrorMessage("SendEmail: Error - " + e);
 				retVal = e.Message;
 			}
 			finally

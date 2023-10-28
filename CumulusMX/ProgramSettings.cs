@@ -3,9 +3,10 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
-using ServiceStack.Text;
+
 using EmbedIO;
-using System.Diagnostics;
+
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -57,7 +58,8 @@ namespace CumulusMX
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				ftplogging = cumulus.FtpOptions.Logging,
 				emaillogging = cumulus.SmtpOptions.Logging,
-				spikelogging = cumulus.ErrorLogSpikeRemoval
+				spikelogging = cumulus.ErrorLogSpikeRemoval,
+				errorlistlevel = (int) cumulus.ErrorListLoggingLevel
 			};
 
 			var options = new JsonProgramSettingsGeneralOptions()
@@ -72,6 +74,13 @@ namespace CumulusMX
 				timeFormat = cumulus.ProgramOptions.TimeFormat
 			};
 
+			var security = new JsonProgramSettingsSecurity()
+			{
+				securesettings = cumulus.ProgramOptions.SecureSettings,
+				username = cumulus.ProgramOptions.SettingsUsername,
+				password = cumulus.ProgramOptions.SettingsPassword,
+			};
+
 			var settings = new JsonProgramSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -79,7 +88,8 @@ namespace CumulusMX
 				shutdown = shutdown,
 				logging = logging,
 				options = options,
-				culture = culture
+				culture = culture,
+				security = security
 			};
 
 			//return JsonConvert.SerializeObject(data);
@@ -109,7 +119,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error de-serializing Program Settings JSON: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				cumulus.LogDebugMessage("Program Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
@@ -138,11 +148,16 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
 				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
+				cumulus.ErrorListLoggingLevel = (Cumulus.LogLevel) settings.logging.errorlistlevel;
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
+
+				cumulus.ProgramOptions.SecureSettings = settings.security.securesettings;
+				cumulus.ProgramOptions.SettingsUsername = (settings.security.username ?? string.Empty).Trim();
+				cumulus.ProgramOptions.SettingsPassword = (settings.security.password ?? string.Empty).Trim();
 
 				if (cumulus.ProgramOptions.TimeFormat == "t")
 					cumulus.ProgramOptions.TimeFormatLong = "T";
@@ -189,7 +204,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				var msg = "Error processing Program Options: " + ex.Message;
-				cumulus.LogMessage(msg);
+				cumulus.LogErrorMessage(msg);
 				errorMsg += msg + "\n\n";
 				context.Response.StatusCode = 500;
 			}
@@ -209,6 +224,7 @@ namespace CumulusMX
 		public JsonProgramSettingsLoggingOptions logging { get; set; }
 		public JsonProgramSettingsGeneralOptions options { get; set; }
 		public JsonProgramSettingsCultureOptions culture { get; set; }
+		public JsonProgramSettingsSecurity security { get; set; }
 	}
 
 	public class JsonProgramSettingsStartupOptions
@@ -217,7 +233,7 @@ namespace CumulusMX
 		public int startuppingescape { get; set; }
 		public int startupdelay { get; set; }
 		public int startupdelaymaxuptime { get; set; }
-		public JsonProgramSettingsTask startuptask {get; set;}
+		public JsonProgramSettingsTask startuptask { get; set; }
 	}
 
 	public class JsonProgramSettingsTask
@@ -234,6 +250,7 @@ namespace CumulusMX
 		public bool ftplogging { get; set; }
 		public bool emaillogging { get; set; }
 		public bool spikelogging { get; set; }
+		public int errorlistlevel { get; set; }
 	}
 	public class JsonProgramSettingsGeneralOptions
 	{
@@ -250,5 +267,11 @@ namespace CumulusMX
 		public bool datastoppedexit { get; set; }
 		public int datastoppedmins { get; set; }
 		public JsonProgramSettingsTask shutdowntask { get; set; }
+	}
+	public class JsonProgramSettingsSecurity
+	{
+		public bool securesettings { get; set;}
+		public string username { get; set; }
+		public string password { get; set; }
 	}
 }

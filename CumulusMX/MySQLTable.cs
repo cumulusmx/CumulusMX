@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -82,8 +79,8 @@ namespace CumulusMX
 
 		public string PrimaryKey
 		{
-			get 
-			{	
+			get
+			{
 				return _PrimaryKey;
 			}
 			set
@@ -121,7 +118,7 @@ namespace CumulusMX
 			internal string Name;
 			internal string Attributes;
 
-			public Column (string ColName, string ColAttributes)
+			public Column(string ColName, string ColAttributes)
 			{
 				Name = ColName;
 				Attributes = ColAttributes;

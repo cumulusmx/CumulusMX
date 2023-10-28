@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
 using EmbedIO;
 
 namespace CumulusMX
@@ -69,7 +70,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"API tag: Error - {ex.Message}");
+				cumulus.LogErrorMessage($"API tag: Error - {ex.Message}");
 				output.Append($"\"ERROR\":\"{ex.Message}\"}}");
 			}
 
@@ -98,7 +99,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogMessage($"API tag: Error - {ex.Message}");
+				cumulus.LogErrorMessage($"API tag: Error - {ex.Message}");
 				return $"{{\"ERROR\":\"{ex.Message}\"}}";
 			}
 		}

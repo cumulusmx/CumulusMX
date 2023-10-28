@@ -1,4 +1,77 @@
-3.26.0 - b3247
+3.27.0 - b3257
+——————————————
+New
+- Adds a new station type of Ecowitt Cloud. This is intended to be used with those Ecowitt console that no not have a local API, cannot use the HTTP protocol, or are located remotely.
+	- It grabs the data from the Ecowitt cloud servers. This data is updated once a minute and is slightly less rich than the locally available API data.
+	- This station can also be used as a source of Extra Sensor data for your primary station
+	- It also makes available the URL of the latest camera on the Ecowitt cloud server via the new web tag <#EcowittCameraUrl>
+	- You can use the tag <ecowittcameraurl> in the URL field of HTTP Files to download the latest image
+- Adds a new station type of Davis Cloud
+	- It grabs the data from the Davis WeatherLink cloud servers. The data is updated according to your subscription model
+		- Pro+ = 1 minute updates
+		- Pro  = 5 minute updates
+		- Free = 15 minute updates
+- Adds new Select-a-Period graphs to the dashboard interface.
+	- Similar to the existing Select-a-Graph which only show recent 1 minute data, the new charts show data at your logging resolution, but you can select any start and end dates from your historic data.
+	- Note: selecting a large date range can be quite slow as the data has to be read from the log files
+- You can now regenerate ALL missing NOAA reports from either the Month or Year NOAA screens
+	- Note: Unlike the (Re)Generate button, the new option will not overwrite existing report files, it will only create missing ones
+- There is a new Latest Errors display in the dashboard - Utils | Latest Errors
+	- By default it displays the last 50 Warnings and Errors encountered by CMX, if you are seeing too many warnings that are expected, you can opt to log only errors in Settings | Program Settings | Logging Options
+- The Cumulus settings can now be 'secured' with a username/password. NOTE: Because Cumulus does not use HTTPS these credentials can be snooped on the network, the security provided is limited.
+	- This feature has required some minor changes to the Cumulus API: wsport.json, version.json, dateformat.txt, and csvseparator.txt have moved to a new path /api/info/
+- Add forwarders to Ecowitt Extra Sensors station type
+- Add an integrity check to the SQLite database on start-up
+
+
+Changed
+- Internal changes to update the Visual Studio project files from the previous legacy version
+- Additional keep-alive headers added to PHP uploads
+- PHP upload now uses HTTP GET for data sizes < 7000 bytes
+	- IMPORTANT: You must update the copy of upload.php on your web site with the latest version in this release
+- Dashboard gauges now follow the general dark theme
+- Adds UV-I to dashboard today/yesterday
+- PHP Upload now closes the connection before it errors - if the host server sends a maximum number of allowed requests per session
+- The following web tags have been deprecated and will be removed in some future release:
+		CO2-24h
+		CO2-pm2p5
+		CO2-pm2p5-24h
+		CO2-pm10
+		CO2-temp
+		CO2-hum
+	Please switch to the new names:
+		CO2_24h
+		CO2_pm2p5
+		CO2_pm2p5_24h
+		CO2_pm10
+		CO2_temp
+		CO2_hum
+
+
+Fixed
+- Fix for Davis average wind spike on restarts with catch-up
+- Bug in Fine Offset console logger interval setting
+- Error saving Locale Strings page - new all-time record alarm was missing
+- Default Web Site:
+	- Fix Select-a-Charts for Davis soil moisture sensors limiting the graph to a maximum value of 100 cb
+		- webfiles\js\selectachart.js
+	- Fixed some rounding errors when converting windspeeds to non-native units
+		- webfiles\lib\steelseries\scripts\gauges.js
+- Ecowitt HTTP Station - fixed piezo rain rate not being decoded
+- All stations, fixed rain rate being recorded as zero in the recent graphs when MX was calculating the rate rather than the station supplying it
+- Wind average calibration is once again applied to live data when the option for MX to calculate the average is enabled
+- Davis WLL 10 minute Gust speeds when no broadcasts are being received
+- Error 500 on Locale Strings settings page
+- Fix CO₂ sensor being visible on graphs by default
+- Many Alarms were reverting the Latch Hours value to an integer on restart
+- If the graph data display options are changed whilst PHP incremental uploads are in use, then the uploads may start failing
+- Web tag #rmidnight was being reset before the EOD processing (midnight rollover)
+- Fix bug setting HTTP Ecowitt station custom server
+- AirLink Health error messages on start-up when Airlink is associated with the main station
+- Davis VP2 applying average wind speed calibration to the gust value in LOOP2 packets
+
+
+3.26.0 - b3248
 ——————————————
 New
 - MQTT has a new behaviour - Only update a topic if the data has changed
