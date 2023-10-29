@@ -2321,7 +2321,7 @@ namespace CumulusMX
 						Wund.ErrorFlagCount++;
 						if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
 						{
-							LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
+							LogWarningMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
 							ThirdPartyAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
 							ThirdPartyAlarm.Triggered = true;
 							Wund.ErrorFlagCount = 0;
@@ -2382,7 +2382,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("Windy: ERROR - " + ex.Message);
+				LogWarningMessage("Windy: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "Windy: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2428,7 +2428,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("WindGuru: ERROR - " + ex.Message);
+				LogWarningMessage("WindGuru: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "WindGuru: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2487,7 +2487,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
-						LogErrorMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
+						LogWarningMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
 						ThirdPartyAlarm.LastMessage = "AWEKAS deserializing response: " + ex.Message;
 						ThirdPartyAlarm.Triggered = true;
 						AWEKAS.Updating = false;
@@ -2580,7 +2580,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("AWEKAS: Exception = " + ex.Message);
+				LogWarningMessage("AWEKAS: Exception = " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "AWEKAS: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2655,7 +2655,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("WeatherCloud: ERROR - " + ex.Message);
+				LogWarningMessage("WeatherCloud: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "WeatherCloud: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2705,7 +2705,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("OpenWeatherMap: ERROR - " + ex.Message);
+				LogWarningMessage("OpenWeatherMap: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "OpenWeatherMap: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2736,7 +2736,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message);
+				LogWarningMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message);
 			}
 
 			return retVal;
@@ -2786,7 +2786,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("OpenWeatherMap: Create station ERROR - " + ex.Message);
+				LogWarningMessage("OpenWeatherMap: Create station ERROR - " + ex.Message);
 			}
 		}
 
@@ -2934,7 +2934,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
+							LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
 						}
 					}
 				}
@@ -3034,11 +3034,11 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							reinit = true;
-							LogDebugMessage($"RealtimeReconnect: Error reconnecting ftp server - {ex.Message}");
+							LogErrorMessage($"RealtimeReconnect: Error reconnecting ftp server - {ex.Message}");
 							if (ex.InnerException != null)
 							{
 								ex = Utils.GetOriginalException(ex);
-								LogDebugMessage($"RealtimeReconnect: Base exception - {ex.Message}");
+								LogErrorMessage($"RealtimeReconnect: Base exception - {ex.Message}");
 							}
 						}
 					}
@@ -3109,7 +3109,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogDebugMessage($"RealtimeReconnect: Realtime ftp connection test Failed - {ex.Message}");
+							LogErrorMessage($"RealtimeReconnect: Realtime ftp connection test Failed - {ex.Message}");
 
 							if (ex.InnerException != null)
 							{
@@ -12827,11 +12827,27 @@ namespace CumulusMX
 				try
 				{
 					using (var response = await MyHttpClient.GetAsync(WundList[i]))
-						LogMessage("WU Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+					{
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("WU Response: " + response.ReasonPhrase);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "WU Response: " + response.StatusCode + ": " + response.ReasonPhrase;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("WU update: " + ex.Message);
+					var msg = "WU update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12851,11 +12867,27 @@ namespace CumulusMX
 				try
 				{
 					using (var response = await MyHttpClient.GetAsync(WindyList[i]))
-						LogMessage("Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+					{
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("Windy Response: " + response.ReasonPhrase);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("Windy update: " + ex.Message);
+					var msg = "Windy update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12880,12 +12912,26 @@ namespace CumulusMX
 					using (var response = await MyHttpClient.GetAsync(PWSList[i]))
 					{
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						LogMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("PWS Response: " + responseBodyAsText);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "PWS Response: " + response.StatusCode + ": " + responseBodyAsText;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("PWS update: " + ex.Message);
+					var msg = "PWS update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12910,12 +12956,26 @@ namespace CumulusMX
 					using (var response = await MyHttpClient.GetAsync(WOWList[i]))
 					{
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						LogMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("WOW Response: " + responseBodyAsText);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "WOW Response: " + response.StatusCode + ": " + responseBodyAsText;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("WOW update: " + ex.Message);
+					var msg = "WOW update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12948,14 +13008,26 @@ namespace CumulusMX
 					{
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
-						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
-						if (response.StatusCode != HttpStatusCode.NoContent)
-							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+						if (status == "OK")
+						{
+							LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = $"OpenWeatherMap: Status = {response.StatusCode}, Response data = {responseBodyAsText}";
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("OpenWeatherMap: Update error = " + ex.Message);
+					var msg = "OpenWeatherMap: Update error = " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12987,21 +13059,23 @@ namespace CumulusMX
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
-							LogWarningMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
-							ThirdPartyAlarm.LastMessage = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							var msg = $"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
 							ThirdPartyAlarm.Triggered = true;
 						}
 						else
 						{
-							LogDebugMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+							LogDebugMessage("PWS Response: " + responseBodyAsText);
 							ThirdPartyAlarm.Triggered = false;
 						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("PWS update: " + ex.Message);
-					ThirdPartyAlarm.LastMessage = "PWS: " + ex.Message;
+					var msg = "PWS update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
 					ThirdPartyAlarm.Triggered = true;
 				}
 				finally
@@ -13032,8 +13106,9 @@ namespace CumulusMX
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
-							LogMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-							ThirdPartyAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							var msg = $"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
 							ThirdPartyAlarm.Triggered = true;
 						}
 						else
@@ -13045,8 +13120,9 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("WOW update: " + ex.Message);
-					ThirdPartyAlarm.LastMessage = "WOW: " + ex.Message;
+					var msg = "WOW update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
 					ThirdPartyAlarm.Triggered = true;
 				}
 				finally
