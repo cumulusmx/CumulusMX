@@ -62,9 +62,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -137,9 +137,9 @@ namespace CumulusMX
 			{
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -236,9 +236,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -313,9 +313,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -352,9 +352,9 @@ namespace CumulusMX
 
 					if (Station == null)
 					{
+						Response.StatusCode = 503;
 						using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-							await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-						Response.StatusCode = 500;
+							await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 						return;
 					}
 
@@ -389,9 +389,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -563,9 +563,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -602,9 +602,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -717,9 +717,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -772,9 +772,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -970,9 +970,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -1024,9 +1024,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"The station is not running\"}}");
-					Response.StatusCode = 500;
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"503\",\"Description\":\"The station is not running\"}}");
 					return;
 				}
 
@@ -1413,7 +1413,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									Response.StatusCode = 500;
+									Response.StatusCode = 503;
 									await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
 								}
 								break;
@@ -1424,7 +1424,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									Response.StatusCode = 500;
+									Response.StatusCode = 503;
 									await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
 								}
 								break;
@@ -1460,7 +1460,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									Response.StatusCode = 500;
+									Response.StatusCode = 503;
 									await writer.WriteAsync("HTTP Station (Wunderground) is not running");
 								}
 								break;
@@ -1472,7 +1472,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									Response.StatusCode = 500;
+									Response.StatusCode = 503;
 									await writer.WriteAsync("HTTP Station (Ambient) is not running");
 								}
 								break;
@@ -1484,7 +1484,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									Response.StatusCode = 500;
+									Response.StatusCode = 503;
 									await writer.WriteAsync("HTTP Station (Ambient) is not running");
 								}
 								break;
@@ -1512,9 +1512,9 @@ namespace CumulusMX
 
 				if (Station == null)
 				{
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 						await writer.WriteAsync("The station is not running");
-					Response.StatusCode = 500;
 					return;
 				}
 
@@ -1568,7 +1568,7 @@ namespace CumulusMX
 			{
 				if (Station == null)
 				{
-					Response.StatusCode = 500;
+					Response.StatusCode = 503;
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 						await writer.WriteAsync("The station is not running");
 					return;
