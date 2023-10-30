@@ -31,6 +31,7 @@ using FluentFTP.Helpers;
 using MySqlConnector;
 
 using Renci.SshNet;
+using Renci.SshNet.Compression;
 
 using ServiceStack;
 using ServiceStack.Text;
@@ -11624,6 +11625,17 @@ namespace CumulusMX
 
 									request.Content = streamContent;
 								}
+							}
+							else
+							{
+								request.Headers.Add("Content_Type", "text/plain");
+
+								outStream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+								streamContent = new StreamContent(outStream);
+								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+								streamContent.Headers.ContentLength = outStream.Length;
+
+								request.Content = streamContent;
 							}
 						}
 
