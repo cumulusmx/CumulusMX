@@ -481,9 +481,22 @@ namespace CumulusMX
 			else if (errorCount > 0)
 			{
 				cumulus.LogErrorMessage("SQLite integrity check Failed, trying to compact database");
-				RecentDataDb.Execute("vacuum;");
-				cumulus.LogErrorMessage("SQLite compact database complete, retesting integriry...");
-				CheckSqliteDatabase(true);
+				try
+				{
+					RecentDataDb.Execute("vacuum;");
+					cumulus.LogMessage("SQLite compact database complete, retesting integriry...");
+					CheckSqliteDatabase(true);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("SQLite compress failed - " + ex.Message);
+					cumulus.LogErrorMessage("Deleting RecentData database..");
+					RecentDataDb.Close();
+					File.Delete(cumulus.dbfile);
+					// Open database (create file if it doesn't exist)
+					SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
+					RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+				}
 			}
 		}
 
