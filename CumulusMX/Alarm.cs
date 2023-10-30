@@ -15,7 +15,7 @@ namespace CumulusMX
 			{
 				enabled = value;
 
-				// if we are disabled, clear any exisitng alarms
+				// if we are disabled, clear any existing alarms
 				if (!value)
 				{
 					triggered = false;
@@ -178,7 +178,7 @@ namespace CumulusMX
 			{
 				enabled = value;
 
-				// if we are disabled, clear any exisitng alarms
+				// if we are disabled, clear any existing alarms
 				if (!value)
 				{
 					upTriggered = false;

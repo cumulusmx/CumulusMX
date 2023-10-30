@@ -109,7 +109,7 @@ namespace CumulusMX
 				// increment the month
 				// note this may reset the day
 				checkDate = checkDate.AddMonths(1);
-				
+
 				if (checkDate.Year == lastRptDate.Year && checkDate.Month == lastRptDate.Month)
 				{
 					doMore = false;
@@ -162,7 +162,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				return "There are no missing reports to recreate. If you want to recreate some exisitng reports you must first delete them from your Reports folder";
+				return "There are no missing reports to recreate. If you want to recreate some existing reports you must first delete them from your Reports folder";
 			}
 		}
 
