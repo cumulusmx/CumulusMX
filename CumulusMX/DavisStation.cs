@@ -1358,7 +1358,7 @@ namespace CumulusMX
 						tmrComm.Stop();
 						if (comport.BytesToRead < loopDataLength)
 						{
-							cumulus.LogErrorMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {comport.BytesToRead}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {comport.BytesToRead}");
 						}
 
 						comport.Read(loopString, 0, loopDataLength);
@@ -1427,7 +1427,7 @@ namespace CumulusMX
 
 						if (socket.Available < loopDataLength)
 						{
-							cumulus.LogErrorMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
 						}
 
 						// Read the first 99 bytes of the buffer into the array

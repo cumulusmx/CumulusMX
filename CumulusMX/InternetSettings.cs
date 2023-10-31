@@ -107,6 +107,7 @@ namespace CumulusMX
 							cumulus.FtpOptions.PhpUrl = settings.website.phpurl;
 							cumulus.FtpOptions.PhpSecret = settings.website.phpsecret;
 							cumulus.FtpOptions.PhpIgnoreCertErrors = settings.website.advanced.phpignorecerts;
+							cumulus.FtpOptions.PhpUseGet = settings.website.advanced.phpuseget;
 							cumulus.FtpOptions.MaxConcurrentUploads = settings.website.advanced.maxuploads;
 						}
 					}
@@ -392,6 +393,7 @@ namespace CumulusMX
 				disableftpsexplicit = cumulus.FtpOptions.DisableExplicit,
 				ignorecerts = cumulus.FtpOptions.IgnoreCertErrors,
 				phpignorecerts = cumulus.FtpOptions.PhpIgnoreCertErrors,
+				phpuseget = cumulus.FtpOptions.PhpUseGet,
 				maxuploads = cumulus.FtpOptions.MaxConcurrentUploads
 			};
 
@@ -710,6 +712,7 @@ namespace CumulusMX
 		public bool ignorecerts { get; set; }
 		public bool phpignorecerts { get; set; }
 		public int maxuploads { get; set; }
+		public bool phpuseget {  get; set; }
 	}
 
 	public class JsonInternetSettingsWebsite

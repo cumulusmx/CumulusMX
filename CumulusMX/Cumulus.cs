@@ -1061,6 +1061,7 @@ namespace CumulusMX
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
 				LogMessage("Maximum concurrent PHP Uploads = " + FtpOptions.MaxConcurrentUploads);
+				LogMessage("PHP using GET = " + FtpOptions.PhpUseGet);
 			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
@@ -3268,6 +3269,9 @@ namespace CumulusMX
 						var idx = i;
 						tasklist.Add(Task.Run(async () =>
 						{
+#if DEBUG
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
+#endif
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
 							{
@@ -3288,7 +3292,7 @@ namespace CumulusMX
 							{
 								uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 							}
 							return true;
@@ -3314,7 +3318,6 @@ namespace CumulusMX
 					.ToList()
 					.ForEach(item =>
 					{
-
 						var uploadfile = item.local;
 						var remotefile = item.remote;
 
@@ -4836,6 +4839,7 @@ namespace CumulusMX
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", boolWindows ? 4 : 1);
+			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
 			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);
@@ -6369,6 +6373,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
 			ini.SetValue("FTP site", "PHP-Secret", FtpOptions.PhpSecret);
 			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
+			ini.SetValue("FTP site", "PHP-UseGet", FtpOptions.PhpUseGet);
 			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
 
 
@@ -11574,7 +11579,7 @@ namespace CumulusMX
 						}
 
 						// if content < 7 KB-ish
-						if (len < 7000)
+						if (len < 7000 && FtpOptions.PhpUseGet)
 						{
 
 							if (!binary)
@@ -11585,7 +11590,7 @@ namespace CumulusMX
 							request.Method = HttpMethod.Get;
 							request.Headers.Add("DATA", data);
 						}
-						// else > 7 kB
+						// else > 7 kB or GET is disabled
 						else
 						{
 							// send as POST
@@ -14033,6 +14038,7 @@ namespace CumulusMX
 		public bool PhpIgnoreCertErrors { get; set; }
 		public string PhpCompression { get; set; } = "none";
 		public int MaxConcurrentUploads { get; set; }
+		public bool PhpUseGet {  get; set; }
 	}
 
 	public class FileGenerationOptions

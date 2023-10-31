@@ -11,6 +11,9 @@ Fixed
 - MX crash on start-up if the SQLite database has certain corruptions
 - Fix for PHP uploads when no compression is supported by the server (or the network was down when MX started)
 - VP2 error message "No Ack in response to DMPAFT" on start-up
+- Ecowitt Cloud API settings are no longer mandatory for Ecowitt station (bug introduced in 3.27.0)
+- Fix for error 500 in upload.php when debug is enabled (only occurred on some servers)
+- PHP uploads using HTTP GET were uploading to the same destination file on one server. Added an Internet advanced option to disable the use of GET and fallback to using POST for all files
 
 
 3.27.0 - b3257
