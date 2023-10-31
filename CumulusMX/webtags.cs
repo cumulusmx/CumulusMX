@@ -5140,6 +5140,16 @@ namespace CumulusMX
 			return cumulus.LatestError;
 		}
 
+		private string TagLatestErrorEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForWeb(cumulus.LatestError);
+		}
+
+		private string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(cumulus.LatestError);
+		}
+
 		private string TagLatestErrorDate(Dictionary<string, string> tagParams)
 		{
 			return cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(cumulus.LatestErrorTS, "ddddd", tagParams);
@@ -6387,6 +6397,8 @@ namespace CumulusMX
 				{ "YearLowDailyTempRangeD", TagYearLowDailyTempRangeD },
 				// misc
 				{ "LatestError", TagLatestError },
+				{ "LatestErrorEnc", TagLatestErrorEnc },
+				{ "LatestErrorJsEnc", TagLatestErrorJsEnc },
 				{ "LatestErrorDate", TagLatestErrorDate },
 				{ "LatestErrorTime", TagLatestErrorTime },
 				{ "ErrorLight", Tagerrorlight },
