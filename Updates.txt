@@ -10,7 +10,7 @@ Fixed
 - "Object is not intialized" error from the API when the station is not yet ready
 - MX crash on start-up if the SQLite database has certain corruptions
 - Fix for PHP uploads when no compression is supported by the server (or the network was down when MX started)
-
+- VP2 error message "No Ack in response to DMPAFT" on start-up
 
 
 3.27.0 - b3257

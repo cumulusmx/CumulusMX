@@ -802,6 +802,18 @@ namespace CumulusMX
 				do
 				{
 					GetArchiveData();
+
+					// The VP" seems to need a nudge after a DMPAFT command
+					if (isSerial)
+					{
+						WakeVP(comport, true);
+					}
+					else
+					{
+						WakeVP(socket, true);
+					}
+
+
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns);
 
@@ -2087,6 +2099,7 @@ namespace CumulusMX
 				{
 					comport.DiscardInBuffer();
 
+
 					if (!WakeVP(comport))
 					{
 						cumulus.LogWarningMessage("GetArchiveData: Unable to wake VP");
@@ -2814,10 +2827,10 @@ namespace CumulusMX
 		//      4. If the console has not woken up after 3 attempts, then signal a connection error
 		// After the console has woken up, it will remain awake for 2 minutes. Every time the VP
 		// receives another character, the 2 minute timer will be reset.
-		private bool WakeVP(SerialPort serialPort)
+		private bool WakeVP(SerialPort serialPort, bool force = false)
 		{
 			// Check if we haven't sent a command within the last two minutes - use 1:50 (110,000 ms) to be safe
-			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000)
+			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
 			{
 				cumulus.LogDebugMessage("WakeVP: Not required");
 				awakeStopWatch.Restart();
@@ -2894,7 +2907,7 @@ namespace CumulusMX
 			}
 		}
 
-		private bool WakeVP(TcpClient thePort)
+		private bool WakeVP(TcpClient thePort, bool force = false)
 		{
 			const int maxPasses = 3;
 			int retryCount = 0;
