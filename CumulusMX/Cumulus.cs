@@ -11714,7 +11714,7 @@ namespace CumulusMX
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
 			}
 
-			if (level >= LogLevel.Error)
+			if (level >= ErrorListLoggingLevel)
 			{
 				LatestError = message;
 				LatestErrorTS = DateTime.Now;
