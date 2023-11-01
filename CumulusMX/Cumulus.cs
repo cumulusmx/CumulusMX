@@ -12171,6 +12171,7 @@ namespace CumulusMX
 			airLinkIn?.Start();
 			ecowittExtra?.Start();
 			ambientExtra?.Start();
+			ecowittCloudExtra?.Start();
 
 			LogMessage("Start Timers");
 			// start the general one-minute timer

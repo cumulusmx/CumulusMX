@@ -1,4 +1,4 @@
-3.27.1 - b3258
+3.27.1 - b3259
 ——————————————
 New
 - Two new web tags for the Latest Error. These tags will encode the string for either HTML or JavaScript: #LatestErrorEnc, #LatestErrorJsEnc
@@ -14,6 +14,7 @@ Fixed
 - Ecowitt Cloud API settings are no longer mandatory for Ecowitt station (bug introduced in 3.27.0)
 - Fix for error 500 in upload.php when debug is enabled (only occurred on some servers)
 - PHP uploads using HTTP GET were uploading to the same destination file on one server. Added an Internet advanced option to disable the use of GET and fallback to using POST for all files
+- Ecowitt Extra Cloud sensor station type not starting as expected
 
 
 3.27.0 - b3257
