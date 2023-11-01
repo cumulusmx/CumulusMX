@@ -15,7 +15,9 @@ Fixed
 - Fix for error 500 in upload.php when debug is enabled (only occurred on some servers)
 - PHP uploads using HTTP GET were uploading to the same destination file on one server. Added an Internet advanced option to disable the use of GET and fallback to using POST for all files
 - Ecowitt Extra Cloud sensor station type not starting as expected
+- Ecowitt Extra Cloud sensor station can now pick up the latest web cam URL
 - Some new record alarms not setting the email message correctly
+
 
 
 3.27.0 - b3257

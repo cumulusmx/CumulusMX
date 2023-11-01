@@ -4697,6 +4697,7 @@ namespace CumulusMX
 			EcowittExtraUseCo2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 			EcowittExtraUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+			EcowittExtraUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", true);
 			EcowittSetCustomServer = ini.GetValue("GW1000", "SetCustomServer", false);
 			EcowittGatewayAddr = ini.GetValue("GW1000", "EcowittGwAddr", "0.0.0.0");
 			var localIp = Utils.GetIpWithDefaultGateway();
@@ -6192,6 +6193,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
 			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
+			ini.SetValue("GW1000", "ExtraSensorUseCamera", EcowittExtraUseCamera);
 			ini.SetValue("GW1000", "SetCustomServer", EcowittSetCustomServer);
 			ini.SetValue("GW1000", "EcowittGwAddr", EcowittGatewayAddr);
 			ini.SetValue("GW1000", "EcowittLocalAddr", EcowittLocalAddr);
@@ -7539,6 +7541,7 @@ namespace CumulusMX
 		public bool EcowittExtraUseCo2 { get; set; }
 		public bool EcowittExtraUseLightning { get; set; }
 		public bool EcowittExtraUseLeak { get; set; }
+		public bool EcowittExtraUseCamera { get; set; }
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
