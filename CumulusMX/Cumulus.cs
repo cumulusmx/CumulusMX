@@ -2961,8 +2961,8 @@ namespace CumulusMX
 				return;
 
 			RealtimeFtpReconnecting = true;
-			FtpAlarm.Triggered = true;
 			FtpAlarm.LastMessage = "Realtime re-connecting";
+			FtpAlarm.Triggered = true;
 			await Task.Run(() =>
 			{
 				bool connected;
@@ -10003,8 +10003,8 @@ namespace CumulusMX
 						{
 							LogFtpMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
 
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
+							FtpAlarm.Triggered = true;
 
 							if ((uint) ex.HResult == 0x80004005) // Could not resolve host
 							{
@@ -10038,8 +10038,8 @@ namespace CumulusMX
 								catch (Exception e)
 								{
 									LogFtpMessage($"SFTP[Int]: Error uploading file - {e.Message}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
+									FtpAlarm.Triggered = true;
 								}
 								NOAAconf.NeedFtp = false;
 							}
@@ -10087,15 +10087,15 @@ namespace CumulusMX
 										{
 											LogFtpMessage($"SFTP[Int]: Error uploading Extra web file #{i} [{uploadfile}]");
 											LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
-											FtpAlarm.Triggered = true;
 											FtpAlarm.LastMessage = $"Error uploading Extra web file #{i} [{uploadfile}";
+											FtpAlarm.Triggered = true;
 										}
 									}
 									else
 									{
 										LogFtpMessage($"SFTP[Int]: Extra web file #{i} [{uploadfile}] not found!");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error Extra web file #{i} [{uploadfile} not found";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10135,8 +10135,8 @@ namespace CumulusMX
 									{
 										LogFtpMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10169,8 +10169,8 @@ namespace CumulusMX
 									{
 										LogFtpMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading graph data file [{uploadfile}] - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10198,8 +10198,8 @@ namespace CumulusMX
 									{
 										LogFtpMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading daily graph data file [{uploadfile}] - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10217,8 +10217,8 @@ namespace CumulusMX
 								catch (Exception e)
 								{
 									LogErrorMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10297,8 +10297,8 @@ namespace CumulusMX
 					{
 						LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message);
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -10338,8 +10338,8 @@ namespace CumulusMX
 							catch (Exception e)
 							{
 								LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}");
-								FtpAlarm.Triggered = true;
 								FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
+								FtpAlarm.Triggered = true;
 							}
 							NOAAconf.NeedFtp = false;
 						}
@@ -10388,8 +10388,8 @@ namespace CumulusMX
 									catch (Exception e)
 									{
 										LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 								else
@@ -10435,8 +10435,8 @@ namespace CumulusMX
 								catch (Exception e)
 								{
 									LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10468,8 +10468,8 @@ namespace CumulusMX
 								{
 									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]");
 									LogFtpMessage($"FTP[Int]: Error = {e}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10498,8 +10498,8 @@ namespace CumulusMX
 								{
 									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]");
 									LogFtpMessage($"FTP[Int]: Error = {e}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10517,8 +10517,8 @@ namespace CumulusMX
 							catch (Exception e)
 							{
 								LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
-								FtpAlarm.Triggered = true;
 								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+								FtpAlarm.Triggered = true;
 							}
 						}
 					}
@@ -10576,8 +10576,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA files");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10635,8 +10635,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA Year file");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10725,8 +10725,8 @@ namespace CumulusMX
 						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading file {uploadfile} to: {remotefile} - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10815,8 +10815,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading file {item.RemoteFileName} - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10907,8 +10907,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading graph data file [{item.RemoteFileName}] - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10985,8 +10985,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.RemoteFileName}] - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -11051,8 +11051,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, "PHP[Int]: Error uploading moon image");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading moon image - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -11089,8 +11089,8 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogExceptionMessage(ex, "PHP[Int]: Error waiting on upload tasks");
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = "Error waiting on upload tasks";
+						FtpAlarm.Triggered = true;
 					}
 				}
 				//LogDebugMessage($"PHP[Int]: EOD Graph files upload complete, {tasklist.Count()} files processed");
@@ -11123,8 +11123,8 @@ namespace CumulusMX
 				if (!File.Exists(localfile))
 				{
 					LogWarningMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
+					FtpAlarm.Triggered = true;
 					return true;
 				}
 
@@ -11136,8 +11136,8 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error reading {localfile} - {ex.Message}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error reading {localfile} - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11158,8 +11158,8 @@ namespace CumulusMX
 				if (dataStream.Length == 0)
 				{
 					LogWarningMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
 
 					return true;
 				}
@@ -11199,8 +11199,8 @@ namespace CumulusMX
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"Error deleting {remotefile} : {ex.Message}";
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -11234,8 +11234,8 @@ namespace CumulusMX
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefiletmp} to {remotefile} : {ex.Message}");
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"Error renaming {remotefiletmp} to {remotefile} : {ex.Message}";
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -11251,8 +11251,8 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11282,8 +11282,8 @@ namespace CumulusMX
 			if (!File.Exists(localfile))
 			{
 				LogWarningMessage($"SFTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
+				FtpAlarm.Triggered = true;
 
 				return true;
 			}
@@ -11303,8 +11303,8 @@ namespace CumulusMX
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {localfile}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {localfile}";
+				FtpAlarm.Triggered = true;
 
 				if (cycle >= 0)
 					RealtimeFTPReconnect();
@@ -11323,8 +11323,8 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: Error reading {localfile} - {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error reading {localfile} - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11344,8 +11344,8 @@ namespace CumulusMX
 			if (dataStream.Length == 0)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
 				return false;
 			}
 
@@ -11354,8 +11354,8 @@ namespace CumulusMX
 				if (conn == null || !conn.IsConnected)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The SFTP object is null or not connected - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
 
 					if (cycle >= 0)
 						RealtimeFTPReconnect();
@@ -11367,8 +11367,8 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
 
 				if (cycle >= 0)
 					RealtimeFTPReconnect();
@@ -11392,16 +11392,16 @@ namespace CumulusMX
 				catch (ObjectDisposedException)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
 					return false;
 				}
 				catch (Exception ex)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefilename} : {ex.Message}");
 
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error uploading {remotefilename} : {ex.Message}";
+					FtpAlarm.Triggered = true;
 
 					if (ex.Message.Contains("Permission denied")) // Non-fatal
 						return true;
@@ -11429,16 +11429,16 @@ namespace CumulusMX
 					catch (ObjectDisposedException)
 					{
 						LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"The SFTP object is disposed during renaming of {remotefile}";
+						FtpAlarm.Triggered = true;
 						return false;
 					}
 					catch (Exception ex)
 					{
 						LogFtpMessage($"SFTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"Error renaming {remotefilename} to {remotefile} : {ex.Message}";
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -11454,16 +11454,16 @@ namespace CumulusMX
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = "The SFTP object is disposed";
+				FtpAlarm.Triggered = true;
 				return false;
 			}
 			catch (Exception ex)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefile} - {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11489,8 +11489,8 @@ namespace CumulusMX
 				{
 					LogWarningMessage($"PHP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
 
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
+					FtpAlarm.Triggered = true;
 
 					return false;
 				}
@@ -11514,8 +11514,8 @@ namespace CumulusMX
 			{
 				LogDebugMessage($"PHP[{cycleStr}]: Error - {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $" Error - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				return false;
 			}
@@ -11678,8 +11678,8 @@ namespace CumulusMX
 				{
 					LogExceptionMessage(ex, $"PHP[{cycleStr}]: Error uploading to {remotefile}");
 
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $" Error uploading to {remotefile} - {ex.Message}";
+					FtpAlarm.Triggered = true;
 
 					retry++;
 					if (retry < 2)
@@ -11690,8 +11690,8 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogExceptionMessage(ex, $"PHP[{cycleStr}]: Error uploading to {remotefile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $" Error uploading to {remotefile} - {ex.Message}";
+					FtpAlarm.Triggered = true;
 					retry = 99;
 				}
 				finally

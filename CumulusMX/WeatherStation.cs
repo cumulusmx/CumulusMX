@@ -6578,8 +6578,8 @@ namespace CumulusMX
 				File.AppendAllText(cumulus.Alltimelogfile, sb.ToString());
 			}
 
-			cumulus.NewRecordAlarm.Triggered = true;
 			cumulus.NewRecordAlarm.LastMessage = rec.Desc + " = " + string.Format("{0,7:0.000}", value);
+			cumulus.NewRecordAlarm.Triggered = true;
 		}
 
 		public void SetMonthlyAlltime(AllTimeRec rec, double value, DateTime timestamp)

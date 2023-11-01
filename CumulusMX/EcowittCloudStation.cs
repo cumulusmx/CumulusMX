@@ -95,6 +95,8 @@ namespace CumulusMX
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
 
+			ecowittApi = new EcowittApi(cumulus, this);
+
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (main)
 			{
@@ -114,7 +116,10 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Starting Ecowitt Cloud station");
 
-			cumulus.StartTimersAndSensors();
+			if (station == null)
+			{
+				cumulus.StartTimersAndSensors();
+			}
 
 			liveTask = Task.Run(() =>
 			{
@@ -170,9 +175,6 @@ namespace CumulusMX
 
 			try
 			{
-
-				ecowittApi = new EcowittApi(cumulus, this);
-
 				do
 				{
 					GetHistoricData();

@@ -371,7 +371,7 @@ namespace CumulusMX
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
 
-						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders.usemain;
+						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders == null ? true : settings.httpSensors.ecowitt.forwarders.usemain;
 
 						if (!cumulus.EcowittExtraUseMainForwarders)
 						{
