@@ -6165,7 +6165,7 @@ namespace CumulusMX
 		// Use -1 for the average if you want to feedback the current average for a calculated moving average
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
-			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
+			cumulus.LogDebugMessage($"DoWind: latest={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 
 			// Spike removal is in m/s
 			var windGustMS = ConvertUserWindToMS(gustpar);

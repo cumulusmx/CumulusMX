@@ -31,7 +31,6 @@ using FluentFTP.Helpers;
 using MySqlConnector;
 
 using Renci.SshNet;
-using Renci.SshNet.Compression;
 
 using ServiceStack;
 using ServiceStack.Text;
@@ -1586,6 +1585,8 @@ namespace CumulusMX
 					LogMessage("Station type not set = " + StationType);
 					break;
 			}
+
+			LogMessage($"Wind settings: Calc avg speed = {StationOptions.CalcuateAverageWindSpeed}, Use speed for avg = {StationOptions.UseSpeedForLatest}");
 
 			if (station != null)
 			{
