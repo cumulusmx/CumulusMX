@@ -716,7 +716,7 @@ namespace CumulusMX
 			FOSensorClockTime = ini.GetValue("FineOffset", "FOSensorClockTime", DateTime.MinValue);
 			FOStationClockTime = ini.GetValue("FineOffset", "FOStationClockTime", DateTime.MinValue);
 			FOSolarClockTime = ini.GetValue("FineOffset", "FOSolarClockTime", DateTime.MinValue);
-			if (cumulus.FineOffsetOptions.SyncReads)
+			if (cumulus.FineOffsetOptions.SyncReads && (cumulus.StationType == StationTypes.FineOffset || cumulus.StationType == StationTypes.FineOffsetSolar))
 			{
 				cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString());
 				cumulus.LogMessage("Station clock " + FOStationClockTime.ToLongTimeString());

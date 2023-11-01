@@ -1586,7 +1586,7 @@ namespace CumulusMX
 					break;
 			}
 
-			LogMessage($"Wind settings: Calc avg speed = {StationOptions.CalcuateAverageWindSpeed}, Use speed for avg = {StationOptions.UseSpeedForLatest}");
+			LogMessage($"Wind settings: Calc avg speed={StationOptions.CalcuateAverageWindSpeed}, Use speed for avg={StationOptions.UseSpeedForLatest}, Gust time={StationOptions.PeakGustMinutes}, Avg time={StationOptions.AvgSpeedMinutes}");
 
 			if (station != null)
 			{
