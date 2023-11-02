@@ -6327,12 +6327,31 @@ namespace CumulusMX
 			// Now add up all the values within the required period
 			double totalwindX = 0;
 			double totalwindY = 0;
+			int diffFrom = 0;
+			int diffTo = 0;
+
 			for (int i = 0; i < MaxWindRecent; i++)
 			{
 				if (timestamp - WindVec[i].Timestamp < cumulus.AvgBearingTime)
 				{
 					totalwindX += WindVec[i].X;
 					totalwindY += WindVec[i].Y;
+
+					if (WindVec[i].Bearing != 0)
+					{
+						// this reading was within the last N minutes
+						int difference = getShortestAngle(AvgBearing, WindVec[i].Bearing);
+						if ((difference > diffTo))
+						{
+							diffTo = difference;
+							BearingRangeTo = WindVec[i].Bearing;
+						}
+						if ((difference < diffFrom))
+						{
+							diffFrom = difference;
+							BearingRangeFrom = WindVec[i].Bearing;
+						}
+					}
 				}
 			}
 			if (totalwindX == 0)
@@ -6365,38 +6384,26 @@ namespace CumulusMX
 
 			AvgBearingText = CompassPoint(AvgBearing);
 
-			int diffFrom = 0;
-			int diffTo = 0;
-			BearingRangeFrom = AvgBearing;
-			BearingRangeTo = AvgBearing;
-			if (AvgBearing != 0)
+			if (Math.Abs(WindAverage) < 0.01)
 			{
-				for (int i = 0; i <= MaxWindRecent - 1; i++)
-				{
-					if ((timestamp - WindVec[i].Timestamp < cumulus.AvgBearingTime) && (WindVec[i].Bearing != 0))
-					{
-						// this reading was within the last N minutes
-						int difference = getShortestAngle(AvgBearing, WindVec[i].Bearing);
-						if ((difference > diffTo))
-						{
-							diffTo = difference;
-							BearingRangeTo = WindVec[i].Bearing;
-							// Calculate rounded up value
-							BearingRangeTo10 = (int) (Math.Ceiling(WindVec[i].Bearing / 10.0) * 10);
-						}
-						if ((difference < diffFrom))
-						{
-							diffFrom = difference;
-							BearingRangeFrom = WindVec[i].Bearing;
-							BearingRangeFrom10 = (int) (Math.Floor(WindVec[i].Bearing / 10.0) * 10);
-						}
-					}
-				}
+				BearingRangeFrom = 0;
+				BearingRangeFrom10 = 0;
+				BearingRangeTo = 0;
+				BearingRangeTo10 = 0;
 			}
 			else
 			{
-				BearingRangeFrom10 = 0;
-				BearingRangeTo10 = 0;
+				// Calculate rounded up/down values
+				BearingRangeFrom10 = (int) (Math.Floor(BearingRangeFrom / 10.0) * 10);
+				BearingRangeTo10 = (int) (Math.Ceiling(BearingRangeTo / 10.0) * 10) % 360;
+				if (cumulus.StationOptions.UseZeroBearing && BearingRangeFrom10 == 0)
+				{
+					BearingRangeFrom10 = 360;
+				}
+				if (cumulus.StationOptions.UseZeroBearing && BearingRangeTo10 == 0)
+				{
+					BearingRangeTo10 = 360;
+				}
 			}
 
 			WindReadyToPlot = true;
