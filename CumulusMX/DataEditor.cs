@@ -8,6 +8,7 @@ using System.Text;
 using EmbedIO;
 
 using ServiceStack;
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -64,25 +65,28 @@ namespace CumulusMX
 				}
 			}
 
-			var json = "{\"raintoday\":\"" + station.RainToday.ToString(cumulus.RainFormat, invC) +
-				"\",\"raincounter\":\"" + station.Raincounter.ToString(cumulus.RainFormat, invC) +
-				"\",\"startofdayrain\":\"" + station.raindaystart.ToString(cumulus.RainFormat, invC) +
-				"\",\"rainmult\":\"" + cumulus.Calib.Rain.Mult.ToString("F3", invC) + "\"}";
-
-			return json;
+			return new JsonObject
+			{
+				["raintoday"] = station.RainToday.ToString(cumulus.RainFormat, invC),
+				["raincounter"] = station.Raincounter.ToString(cumulus.RainFormat, invC),
+				["startofdayrain"] = station.raindaystart.ToString(cumulus.RainFormat, invC),
+				["rainmult"] = cumulus.Calib.Rain.Mult.ToString("F3", invC)
+			}.ToJson();
 		}
 
 		internal string GetRainTodayEditData()
 		{
 			var invC = new CultureInfo("");
 			var step = (cumulus.RainDPlaces == 1 ? "0.1" : "0.01");
-			var json = "{\"raintoday\":\"" + station.RainToday.ToString(cumulus.RainFormat, invC) +
-				"\",\"raincounter\":\"" + station.Raincounter.ToString(cumulus.RainFormat, invC) +
-				"\",\"startofdayrain\":\"" + station.raindaystart.ToString(cumulus.RainFormat, invC) +
-				"\",\"rainmult\":\"" + cumulus.Calib.Rain.Mult.ToString("F3", invC) +
-				"\",\"step\":\"" + step + "\"}";
 
-			return json;
+			return new JsonObject
+			{
+				["raintoday"] = station.RainToday.ToString(cumulus.RainFormat, invC),
+				["raincounter"] = station.Raincounter.ToString(cumulus.RainFormat, invC),
+				["startofdayrain"] = station.raindaystart.ToString(cumulus.RainFormat, invC),
+				["rainmult"] = cumulus.Calib.Rain.Mult.ToString("F3", invC),
+				["step"] = step
+			}.ToJson();
 		}
 
 		internal string EditDiary(IHttpContext context)
@@ -99,7 +103,7 @@ namespace CumulusMX
 				}
 
 
-				ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
+				JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
 				{
 					if (string.IsNullOrWhiteSpace(datetimeStr))
 					{
@@ -119,7 +123,7 @@ namespace CumulusMX
 
 				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 
-			}
+		}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("Edit Diary: " + ex.Message);
@@ -171,78 +175,77 @@ namespace CumulusMX
 			const string dateStampFormat = "d";
 			const string monthFormat = "MMM yyyy";
 
-			// Records - Temperature values
-			var json = new StringBuilder("{", 1700);
-			json.Append($"\"highTempVal\":\"{station.AllTime.HighTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowTempVal\":\"{station.AllTime.LowTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDewPointVal\":\"{station.AllTime.HighDewPoint.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDewPointVal\":\"{station.AllTime.LowDewPoint.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highApparentTempVal\":\"{station.AllTime.HighAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowApparentTempVal\":\"{station.AllTime.LowAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highFeelsLikeVal\":\"{station.AllTime.HighFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowFeelsLikeVal\":\"{station.AllTime.LowFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHumidexVal\":\"{station.AllTime.HighHumidex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowWindChillVal\":\"{station.AllTime.LowChill.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHeatIndexVal\":\"{station.AllTime.HighHeatIndex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempVal\":\"{station.AllTime.HighMinTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempVal\":\"{station.AllTime.LowMaxTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDailyTempRangeVal\":\"{station.AllTime.HighDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDailyTempRangeVal\":\"{station.AllTime.LowDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-			// Records - Temperature timestamps
-			json.Append($"\"highTempTime\":\"{station.AllTime.HighTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowTempTime\":\"{station.AllTime.LowTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDewPointTime\":\"{station.AllTime.HighDewPoint.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowDewPointTime\":\"{station.AllTime.LowDewPoint.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highApparentTempTime\":\"{station.AllTime.HighAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowApparentTempTime\":\"{station.AllTime.LowAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highFeelsLikeTime\":\"{station.AllTime.HighFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowFeelsLikeTime\":\"{station.AllTime.LowFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHumidexTime\":\"{station.AllTime.HighHumidex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowWindChillTime\":\"{station.AllTime.LowChill.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHeatIndexTime\":\"{station.AllTime.HighHeatIndex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMinTempTime\":\"{station.AllTime.HighMinTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowMaxTempTime\":\"{station.AllTime.LowMaxTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyTempRangeTime\":\"{station.AllTime.HighDailyTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"lowDailyTempRangeTime\":\"{station.AllTime.LowDailyTempRange.GetTsString(dateStampFormat)}\",");
-			// Records - Humidity values
-			json.Append($"\"highHumidityVal\":\"{station.AllTime.HighHumidity.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"lowHumidityVal\":\"{station.AllTime.LowHumidity.GetValString(cumulus.HumFormat)}\",");
-			// Records - Humidity times
-			json.Append($"\"highHumidityTime\":\"{station.AllTime.HighHumidity.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowHumidityTime\":\"{station.AllTime.LowHumidity.GetTsString(timeStampFormat)}\",");
-			// Records - Pressure values
-			json.Append($"\"highBarometerVal\":\"{station.AllTime.HighPress.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"lowBarometerVal\":\"{station.AllTime.LowPress.GetValString(cumulus.PressFormat)}\",");
-			// Records - Pressure times
-			json.Append($"\"highBarometerTime\":\"{station.AllTime.HighPress.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowBarometerTime\":\"{station.AllTime.LowPress.GetTsString(timeStampFormat)}\",");
-			// Records - Wind values
-			json.Append($"\"highGustVal\":\"{station.AllTime.HighGust.GetValString(cumulus.WindFormat)}\",");
-			json.Append($"\"highWindVal\":\"{station.AllTime.HighWind.GetValString(cumulus.WindAvgFormat)}\",");
-			json.Append($"\"highWindRunVal\":\"{station.AllTime.HighWindRun.GetValString(cumulus.WindRunFormat)}\",");
-			// Records - Wind times
-			json.Append($"\"highGustTime\":\"{station.AllTime.HighGust.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindTime\":\"{station.AllTime.HighWind.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindRunTime\":\"{station.AllTime.HighWindRun.GetTsString(dateStampFormat)}\",");
-			// Records - Rain values
-			json.Append($"\"highRainRateVal\":\"{station.AllTime.HighRainRate.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highHourlyRainVal\":\"{station.AllTime.HourlyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highDailyRainVal\":\"{station.AllTime.DailyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRain24hVal\":\"{station.AllTime.HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highMonthlyRainVal\":\"{station.AllTime.MonthlyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"longestDryPeriodVal\":\"{station.AllTime.LongestDryPeriod.GetValString("f0")}\",");
-			json.Append($"\"longestWetPeriodVal\":\"{station.AllTime.LongestWetPeriod.GetValString("f0")}\",");
-			// Records - Rain times
-			json.Append($"\"highRainRateTime\":\"{station.AllTime.HighRainRate.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHourlyRainTime\":\"{station.AllTime.HourlyRain.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyRainTime\":\"{station.AllTime.DailyRain.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highRain24hTime\":\"{station.AllTime.HighRain24Hours.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMonthlyRainTime\":\"{station.AllTime.MonthlyRain.GetTsString(monthFormat)}\",");
-			json.Append($"\"longestDryPeriodTime\":\"{station.AllTime.LongestDryPeriod.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"longestWetPeriodTime\":\"{station.AllTime.LongestWetPeriod.GetTsString(dateStampFormat)}\"");
-			json.Append('}');
-
-			return json.ToString();
+			return new JsonObject
+			{
+				// Records - Temperature values
+				["highTempVal"] = station.AllTime.HighTemp.GetValString(cumulus.TempFormat),
+				["lowTempVal"] = station.AllTime.LowTemp.GetValString(cumulus.TempFormat),
+				["highDewPointVal"] = station.AllTime.HighDewPoint.GetValString(cumulus.TempFormat),
+				["lowDewPointVal"] = station.AllTime.LowDewPoint.GetValString(cumulus.TempFormat),
+				["highApparentTempVal"] = station.AllTime.HighAppTemp.GetValString(cumulus.TempFormat),
+				["lowApparentTempVal"] = station.AllTime.LowAppTemp.GetValString(cumulus.TempFormat),
+				["highFeelsLikeVal"] = station.AllTime.HighFeelsLike.GetValString(cumulus.TempFormat),
+				["lowFeelsLikeVal"] = station.AllTime.LowFeelsLike.GetValString(cumulus.TempFormat),
+				["highHumidexVal"] = station.AllTime.HighHumidex.GetValString(cumulus.TempFormat),
+				["lowWindChillVal"] = station.AllTime.LowChill.GetValString(cumulus.TempFormat),
+				["highHeatIndexVal"] = station.AllTime.HighHeatIndex.GetValString(cumulus.TempFormat),
+				["highMinTempVal"] = station.AllTime.HighMinTemp.GetValString(cumulus.TempFormat),
+				["lowMaxTempVal"] = station.AllTime.LowMaxTemp.GetValString(cumulus.TempFormat),
+				["highDailyTempRangeVal"] = station.AllTime.HighDailyTempRange.GetValString(cumulus.TempFormat),
+				["lowDailyTempRangeVal"] = station.AllTime.LowDailyTempRange.GetValString(cumulus.TempFormat),
+				// Records - Temperature timestamps
+				["highTempTime"] = station.AllTime.HighTemp.GetTsString(timeStampFormat),
+				["lowTempTime"] = station.AllTime.LowTemp.GetTsString(timeStampFormat),
+				["highDewPointTime"] = station.AllTime.HighDewPoint.GetTsString(timeStampFormat),
+				["lowDewPointTime"] = station.AllTime.LowDewPoint.GetTsString(timeStampFormat),
+				["highApparentTempTime"] = station.AllTime.HighAppTemp.GetTsString(timeStampFormat),
+				["lowApparentTempTime"] = station.AllTime.LowAppTemp.GetTsString(timeStampFormat),
+				["highFeelsLikeTime"] = station.AllTime.HighFeelsLike.GetTsString(timeStampFormat),
+				["lowFeelsLikeTime"] = station.AllTime.LowFeelsLike.GetTsString(timeStampFormat),
+				["highHumidexTime"] = station.AllTime.HighHumidex.GetTsString(timeStampFormat),
+				["lowWindChillTime"] = station.AllTime.LowChill.GetTsString(timeStampFormat),
+				["highHeatIndexTime"] = station.AllTime.HighHeatIndex.GetTsString(timeStampFormat),
+				["highMinTempTime"] = station.AllTime.HighMinTemp.GetTsString(timeStampFormat),
+				["lowMaxTempTime"] = station.AllTime.LowMaxTemp.GetTsString(timeStampFormat),
+				["highDailyTempRangeTime"] = station.AllTime.HighDailyTempRange.GetTsString(dateStampFormat),
+				["lowDailyTempRangeTime"] = station.AllTime.LowDailyTempRange.GetTsString(dateStampFormat),
+				// Records - Humidity values
+				["highHumidityVal"] = station.AllTime.HighHumidity.GetValString(cumulus.HumFormat),
+				["lowHumidityVal"] = station.AllTime.LowHumidity.GetValString(cumulus.HumFormat),
+				// Records - Humidity times
+				["highHumidityTime"] = station.AllTime.HighHumidity.GetTsString(timeStampFormat),
+				["lowHumidityTime"] = station.AllTime.LowHumidity.GetTsString(timeStampFormat),
+				// Records - Pressure values
+				["highBarometerVal"] = station.AllTime.HighPress.GetValString(cumulus.PressFormat),
+				["lowBarometerVal"] = station.AllTime.LowPress.GetValString(cumulus.PressFormat),
+				// Records - Pressure times
+				["highBarometerTime"] = station.AllTime.HighPress.GetTsString(timeStampFormat),
+				["lowBarometerTime"] = station.AllTime.LowPress.GetTsString(timeStampFormat),
+				// Records - Wind values
+				["highGustVal"] = station.AllTime.HighGust.GetValString(cumulus.WindFormat),
+				["highWindVal"] = station.AllTime.HighWind.GetValString(cumulus.WindAvgFormat),
+				["highWindRunVal"] = station.AllTime.HighWindRun.GetValString(cumulus.WindRunFormat),
+				// Records - Wind times
+				["highGustTime"] = station.AllTime.HighGust.GetTsString(timeStampFormat),
+				["highWindTime"] = station.AllTime.HighWind.GetTsString(timeStampFormat),
+				["highWindRunTime"] = station.AllTime.HighWindRun.GetTsString(dateStampFormat),
+				// Records - Rain values
+				["highRainRateVal"] = station.AllTime.HighRainRate.GetValString(cumulus.RainFormat),
+				["highHourlyRainVal"] = station.AllTime.HourlyRain.GetValString(cumulus.RainFormat),
+				["highDailyRainVal"] = station.AllTime.DailyRain.GetValString(cumulus.RainFormat),
+				["highRain24hVal"] = station.AllTime.HighRain24Hours.GetValString(cumulus.RainFormat),
+				["highMonthlyRainVal"] = station.AllTime.MonthlyRain.GetValString(cumulus.RainFormat),
+				["longestDryPeriodVal"] = station.AllTime.LongestDryPeriod.GetValString("f0"),
+				["longestWetPeriodVal"] = station.AllTime.LongestWetPeriod.GetValString("f0"),
+				// Records - Rain times
+				["highRainRateTime"] = station.AllTime.HighRainRate.GetTsString(timeStampFormat),
+				["highHourlyRainTime"] = station.AllTime.HourlyRain.GetTsString(timeStampFormat),
+				["highDailyRainTime"] = station.AllTime.DailyRain.GetTsString(dateStampFormat),
+				["highRain24hTime"] = station.AllTime.HighRain24Hours.GetTsString(timeStampFormat),
+				["highMonthlyRainTime"] = station.AllTime.MonthlyRain.GetTsString(monthFormat),
+				["longestDryPeriodTime"] = station.AllTime.LongestDryPeriod.GetTsString(dateStampFormat),
+				["longestWetPeriodTime"] = station.AllTime.LongestWetPeriod.GetTsString(dateStampFormat)
+			}.ToJson();
 		}
 
 		internal string GetRecordsDayFile(string recordType, DateTime? start = null, DateTime? end = null)
@@ -316,8 +319,6 @@ namespace CumulusMX
 			var thisDateDry = DateTime.MinValue;
 			var thisDateWet = DateTime.MinValue;
 			var firstRec = true;
-
-			var json = new StringBuilder("{", 2048);
 
 			int rainThreshold;
 			if (cumulus.RainDayThreshold > 0)
@@ -588,70 +589,67 @@ namespace CumulusMX
 				cumulus.LogWarningMessage("GetRecordsDayFile: Error no day file records found");
 			}
 
-			json.Append($"\"highTempValDayfile\":\"{highTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highTempTimeDayfile\":\"{highTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowTempValDayfile\":\"{lowTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowTempTimeDayfile\":\"{lowTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDewPointValDayfile\":\"{highDewPt.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDewPointTimeDayfile\":\"{highDewPt.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowDewPointValDayfile\":\"{lowDewPt.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDewPointTimeDayfile\":\"{lowDewPt.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highApparentTempValDayfile\":\"{highAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highApparentTempTimeDayfile\":\"{highAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowApparentTempValDayfile\":\"{lowAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowApparentTempTimeDayfile\":\"{lowAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highFeelsLikeValDayfile\":\"{highFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highFeelsLikeTimeDayfile\":\"{highFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowFeelsLikeValDayfile\":\"{lowFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowFeelsLikeTimeDayfile\":\"{lowFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHumidexValDayfile\":\"{highHumidex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHumidexTimeDayfile\":\"{highHumidex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowWindChillValDayfile\":\"{lowWindChill.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowWindChillTimeDayfile\":\"{lowWindChill.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHeatIndexValDayfile\":\"{highHeatInd.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHeatIndexTimeDayfile\":\"{highHeatInd.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMinTempValDayfile\":\"{highMinTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTimeDayfile\":\"{highMinTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowMaxTempValDayfile\":\"{lowMaxTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTimeDayfile\":\"{lowMaxTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyTempRangeValDayfile\":\"{highTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDailyTempRangeTimeDayfile\":\"{highTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"lowDailyTempRangeValDayfile\":\"{lowTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDailyTempRangeTimeDayfile\":\"{lowTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highHumidityValDayfile\":\"{highHum.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"highHumidityTimeDayfile\":\"{highHum.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowHumidityValDayfile\":\"{lowHum.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"lowHumidityTimeDayfile\":\"{lowHum.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highBarometerValDayfile\":\"{highBaro.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"highBarometerTimeDayfile\":\"{highBaro.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowBarometerValDayfile\":\"{lowBaro.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"lowBarometerTimeDayfile\":\"{lowBaro.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highGustValDayfile\":\"{highGust.GetValString(cumulus.WindFormat)}\",");
-			json.Append($"\"highGustTimeDayfile\":\"{highGust.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindValDayfile\":\"{highWind.GetValString(cumulus.WindAvgFormat)}\",");
-			json.Append($"\"highWindTimeDayfile\":\"{highWind.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindRunValDayfile\":\"{highWindRun.GetValString(cumulus.WindRunFormat)}\",");
-			json.Append($"\"highWindRunTimeDayfile\":\"{highWindRun.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highRainRateValDayfile\":\"{highRainRate.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRainRateTimeDayfile\":\"{highRainRate.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHourlyRainValDayfile\":\"{highRainHour.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highHourlyRainTimeDayfile\":\"{highRainHour.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyRainValDayfile\":\"{highRainDay.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highDailyRainTimeDayfile\":\"{highRainDay.GetTsString(dateStampFormat)}\",");
-			if (recordType != "thismonth")
+			return new JsonObject
 			{
-				json.Append($"\"highMonthlyRainValDayfile\":\"{highRainMonth.GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"highMonthlyRainTimeDayfile\":\"{highRainMonth.GetTsString(monthFormat)}\",");
-			}
-			json.Append($"\"highRain24hValDayfile\":\"{highRain24h.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRain24hTimeDayfile\":\"{highRain24h.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"longestDryPeriodValDayfile\":\"{dryPeriod.GetValString()}\",");
-			json.Append($"\"longestDryPeriodTimeDayfile\":\"{dryPeriod.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"longestWetPeriodValDayfile\":\"{wetPeriod.GetValString()}\",");
-			json.Append($"\"longestWetPeriodTimeDayfile\":\"{wetPeriod.GetTsString(dateStampFormat)}\"");
-			json.Append('}');
-
-			return json.ToString();
+				["highTempValDayfile"] = highTemp.GetValString(cumulus.TempFormat),
+				["highTempTimeDayfile"] = highTemp.GetTsString(timeStampFormat),
+				["lowTempValDayfile"] = lowTemp.GetValString(cumulus.TempFormat),
+				["lowTempTimeDayfile"] = lowTemp.GetTsString(timeStampFormat),
+				["highDewPointValDayfile"] = highDewPt.GetValString(cumulus.TempFormat),
+				["highDewPointTimeDayfile"] = highDewPt.GetTsString(timeStampFormat),
+				["lowDewPointValDayfile"] = lowDewPt.GetValString(cumulus.TempFormat),
+				["lowDewPointTimeDayfile"] = lowDewPt.GetTsString(timeStampFormat),
+				["highApparentTempValDayfile"] = highAppTemp.GetValString(cumulus.TempFormat),
+				["highApparentTempTimeDayfile"] = highAppTemp.GetTsString(timeStampFormat),
+				["lowApparentTempValDayfile"] = lowAppTemp.GetValString(cumulus.TempFormat),
+				["lowApparentTempTimeDayfile"] = lowAppTemp.GetTsString(timeStampFormat),
+				["highFeelsLikeValDayfile"] = highFeelsLike.GetValString(cumulus.TempFormat),
+				["highFeelsLikeTimeDayfile"] = highFeelsLike.GetTsString(timeStampFormat),
+				["lowFeelsLikeValDayfile"] = lowFeelsLike.GetValString(cumulus.TempFormat),
+				["lowFeelsLikeTimeDayfile"] = lowFeelsLike.GetTsString(timeStampFormat),
+				["highHumidexValDayfile"] = highHumidex.GetValString(cumulus.TempFormat),
+				["highHumidexTimeDayfile"] = highHumidex.GetTsString(timeStampFormat),
+				["lowWindChillValDayfile"] = lowWindChill.GetValString(cumulus.TempFormat),
+				["lowWindChillTimeDayfile"] = lowWindChill.GetTsString(timeStampFormat),
+				["highHeatIndexValDayfile"] = highHeatInd.GetValString(cumulus.TempFormat),
+				["highHeatIndexTimeDayfile"] = highHeatInd.GetTsString(timeStampFormat),
+				["highMinTempValDayfile"] = highMinTemp.GetValString(cumulus.TempFormat),
+				["highMinTempTimeDayfile"] = highMinTemp.GetTsString(timeStampFormat),
+				["lowMaxTempValDayfile"] = lowMaxTemp.GetValString(cumulus.TempFormat),
+				["lowMaxTempTimeDayfile"] = lowMaxTemp.GetTsString(timeStampFormat),
+				["highDailyTempRangeValDayfile"] = highTempRange.GetValString(cumulus.TempFormat),
+				["highDailyTempRangeTimeDayfile"] = highTempRange.GetTsString(dateStampFormat),
+				["lowDailyTempRangeValDayfile"] = lowTempRange.GetValString(cumulus.TempFormat),
+				["lowDailyTempRangeTimeDayfile"] = lowTempRange.GetTsString(dateStampFormat),
+				["highHumidityValDayfile"] = highHum.GetValString(cumulus.HumFormat),
+				["highHumidityTimeDayfile"] = highHum.GetTsString(timeStampFormat),
+				["lowHumidityValDayfile"] = lowHum.GetValString(cumulus.HumFormat),
+				["lowHumidityTimeDayfile"] = lowHum.GetTsString(timeStampFormat),
+				["highBarometerValDayfile"] = highBaro.GetValString(cumulus.PressFormat),
+				["highBarometerTimeDayfile"] = highBaro.GetTsString(timeStampFormat),
+				["lowBarometerValDayfile"] = lowBaro.GetValString(cumulus.PressFormat),
+				["lowBarometerTimeDayfile"] = lowBaro.GetTsString(timeStampFormat),
+				["highGustValDayfile"] = highGust.GetValString(cumulus.WindFormat),
+				["highGustTimeDayfile"] = highGust.GetTsString(timeStampFormat),
+				["highWindValDayfile"] = highWindRun.GetValString(cumulus.WindRunFormat),
+				["highWindTimeDayfile"] = highWindRun.GetTsString(dateStampFormat),
+				["highWindRunValDayfile"] = highWindRun.GetValString(cumulus.WindRunFormat),
+				["highWindRunTimeDayfile"] = highWindRun.GetTsString(dateStampFormat),
+				["highRainRateValDayfile"] = highRainRate.GetValString(cumulus.RainFormat),
+				["highRainRateTimeDayfile"] = highRainRate.GetTsString(timeStampFormat),
+				["highHourlyRainValDayfile"] = highRainHour.GetValString(cumulus.RainFormat),
+				["highHourlyRainTimeDayfile"] = highRainHour.GetTsString(timeStampFormat),
+				["highDailyRainValDayfile"] = highRainDay.GetValString(cumulus.RainFormat),
+				["highDailyRainTimeDayfile"] = highRainDay.GetTsString(dateStampFormat),
+				["highMonthlyRainValDayfile"] = highRainMonth.GetValString(cumulus.RainFormat),
+				["highMonthlyRainTimeDayfile"] = highRainMonth.GetTsString(monthFormat),
+				["highRain24hValDayfile"] = highRain24h.GetValString(cumulus.RainFormat),
+				["highRain24hTimeDayfile"] = highRain24h.GetTsString(timeStampFormat),
+				["longestDryPeriodValDayfile"] = dryPeriod.GetValString(),
+				["longestDryPeriodTimeDayfile"] = dryPeriod.GetTsString(dateStampFormat),
+				["longestWetPeriodValDayfile"] = wetPeriod.GetValString(),
+				["longestWetPeriodTimeDayfile"] = wetPeriod.GetTsString(dateStampFormat)
+			}.ToJson();
 		}
 
 		internal string GetRecordsLogFile(string recordType)
@@ -660,7 +658,6 @@ namespace CumulusMX
 			const string dateStampFormat = "d";
 			const string monthFormat = "MMM yyyy";
 
-			var json = new StringBuilder("{", 2048);
 			DateTime filedate, datefrom;
 
 			switch (recordType)
@@ -1136,81 +1133,71 @@ namespace CumulusMX
 				dryPeriod.Ts = thisDateDry;
 			}
 
-			json.Append($"\"highTempValLogfile\":\"{highTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highTempTimeLogfile\":\"{highTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowTempValLogfile\":\"{lowTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowTempTimeLogfile\":\"{lowTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDewPointValLogfile\":\"{highDewPt.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDewPointTimeLogfile\":\"{highDewPt.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowDewPointValLogfile\":\"{lowDewPt.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDewPointTimeLogfile\":\"{lowDewPt.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highApparentTempValLogfile\":\"{highAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highApparentTempTimeLogfile\":\"{highAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowApparentTempValLogfile\":\"{lowAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowApparentTempTimeLogfile\":\"{lowAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highFeelsLikeValLogfile\":\"{highFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highFeelsLikeTimeLogfile\":\"{highFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowFeelsLikeValLogfile\":\"{lowFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowFeelsLikeTimeLogfile\":\"{lowFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHumidexValLogfile\":\"{highHumidex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHumidexTimeLogfile\":\"{highHumidex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowWindChillValLogfile\":\"{lowWindChill.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowWindChillTimeLogfile\":\"{lowWindChill.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHeatIndexValLogfile\":\"{highHeatInd.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHeatIndexTimeLogfile\":\"{highHeatInd.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMinTempValLogfile\":\"{highMinTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTimeLogfile\":\"{highMinTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowMaxTempValLogfile\":\"{lowMaxTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTimeLogfile\":\"{lowMaxTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyTempRangeValLogfile\":\"{highTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDailyTempRangeTimeLogfile\":\"{highTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"lowDailyTempRangeValLogfile\":\"{lowTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDailyTempRangeTimeLogfile\":\"{lowTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highHumidityValLogfile\":\"{highHum.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"highHumidityTimeLogfile\":\"{highHum.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowHumidityValLogfile\":\"{lowHum.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"lowHumidityTimeLogfile\":\"{lowHum.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highBarometerValLogfile\":\"{highBaro.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"highBarometerTimeLogfile\":\"{highBaro.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowBarometerValLogfile\":\"{lowBaro.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"lowBarometerTimeLogfile\":\"{lowBaro.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highGustValLogfile\":\"{highGust.GetValString(cumulus.WindFormat)}\",");
-			json.Append($"\"highGustTimeLogfile\":\"{highGust.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindValLogfile\":\"{highWind.GetValString(cumulus.WindAvgFormat)}\",");
-			json.Append($"\"highWindTimeLogfile\":\"{highWind.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindRunValLogfile\":\"{highWindRun.GetValString(cumulus.WindRunFormat)}\",");
-			json.Append($"\"highWindRunTimeLogfile\":\"{highWindRun.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highRainRateValLogfile\":\"{highRainRate.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRainRateTimeLogfile\":\"{highRainRate.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHourlyRainValLogfile\":\"{highRainHour.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highHourlyRainTimeLogfile\":\"{highRainHour.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyRainValLogfile\":\"{highRainDay.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highDailyRainTimeLogfile\":\"{highRainDay.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highRain24hValLogfile\":\"{highRain24h.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRain24hTimeLogfile\":\"{highRain24h.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMonthlyRainValLogfile\":\"{highRainMonth.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highMonthlyRainTimeLogfile\":\"{highRainMonth.GetTsString(monthFormat)}\",");
-			if (recordType == "alltime")
-			{
-				json.Append($"\"longestDryPeriodValLogfile\":\"{dryPeriod.GetValString()}\",");
-				json.Append($"\"longestDryPeriodTimeLogfile\":\"{dryPeriod.GetTsString(dateStampFormat)}\",");
-				json.Append($"\"longestWetPeriodValLogfile\":\"{wetPeriod.GetValString()}\",");
-				json.Append($"\"longestWetPeriodTimeLogfile\":\"{wetPeriod.GetTsString(dateStampFormat)}\"");
-			}
-			else
-			{
-				json.Append($"\"longestDryPeriodValLogfile\":\"{dryPeriod.GetValString()}\",");
-				json.Append($"\"longestDryPeriodTimeLogfile\":\"{dryPeriod.GetTsString(dateStampFormat)}\",");
-				json.Append($"\"longestWetPeriodValLogfile\":\"{wetPeriod.GetValString()}\",");
-				json.Append($"\"longestWetPeriodTimeLogfile\":\"{wetPeriod.GetTsString(dateStampFormat)}\"");
-			}
-			json.Append('}');
-
 			watch.Stop();
 			var elapsed = watch.ElapsedMilliseconds;
 			cumulus.LogDebugMessage($"GetRecordsLogFile: Logfiles parse = {elapsed} ms");
 
-			return json.ToString();
+			return new JsonObject
+			{
+				["highTempValLogfile"] = highTemp.GetValString(cumulus.TempFormat),
+				["highTempTimeLogfile"] = highTemp.GetTsString(timeStampFormat),
+				["lowTempValLogfile"] = lowTemp.GetValString(timeStampFormat),
+				["lowTempTimeLogfile"] = lowTemp.GetTsString(timeStampFormat),
+				["highDewPointValLogfile"] = highDewPt.GetValString(cumulus.TempFormat),
+				["highDewPointTimeLogfile"] = highDewPt.GetTsString(timeStampFormat),
+				["lowDewPointValLogfile"] = lowDewPt.GetValString(cumulus.TempFormat),
+				["lowDewPointTimeLogfile"] = lowDewPt.GetTsString(timeStampFormat),
+				["highApparentTempValLogfile"] = highAppTemp.GetValString(cumulus.TempFormat),
+				["highApparentTempTimeLogfile"] = highAppTemp.GetTsString(timeStampFormat),
+				["lowApparentTempValLogfile"] = lowAppTemp.GetValString(cumulus.TempFormat),
+				["lowApparentTempTimeLogfile"] = lowAppTemp.GetTsString(timeStampFormat),
+				["highFeelsLikeValLogfile"] = highFeelsLike.GetValString(cumulus.TempFormat),
+				["highFeelsLikeTimeLogfile"] = highFeelsLike.GetTsString(timeStampFormat),
+				["lowFeelsLikeValLogfile"] = lowFeelsLike.GetValString(cumulus.TempFormat),
+				["lowFeelsLikeTimeLogfile"] = lowFeelsLike.GetTsString(timeStampFormat),
+				["highHumidexValLogfile"] = highHumidex.GetValString(cumulus.TempFormat),
+				["highHumidexTimeLogfile"] = highHumidex.GetTsString(timeStampFormat),
+				["lowWindChillValLogfile"] = lowWindChill.GetValString(cumulus.TempFormat),
+				["lowWindChillTimeLogfile"] = lowWindChill.GetTsString(timeStampFormat),
+				["highHeatIndexValLogfile"] = highHeatInd.GetValString(cumulus.TempFormat),
+				["highHeatIndexTimeLogfile"] = highHeatInd.GetTsString(timeStampFormat),
+				["highMinTempValLogfile"] = highMinTemp.GetValString(cumulus.TempFormat),
+				["highMinTempTimeLogfile"] = highMinTemp.GetTsString(timeStampFormat),
+				["lowMaxTempValLogfile"] = lowMaxTemp.GetValString(cumulus.TempFormat),
+				["lowMaxTempTimeLogfile"] = lowMaxTemp.GetTsString(timeStampFormat),
+				["highDailyTempRangeValLogfile"] = highTempRange.GetValString(cumulus.TempFormat),
+				["highDailyTempRangeTimeLogfile"] = highTempRange.GetTsString(dateStampFormat),
+				["lowDailyTempRangeValLogfile"] = lowTempRange.GetValString(cumulus.TempFormat),
+				["lowDailyTempRangeTimeLogfile"] = lowTempRange.GetTsString(dateStampFormat),
+				["highHumidityValLogfile"] = highHum.GetValString(cumulus.HumFormat),
+				["highHumidityTimeLogfile"] = highHum.GetTsString(timeStampFormat),
+				["lowHumidityValLogfile"] = lowHum.GetValString(cumulus.HumFormat),
+				["lowHumidityTimeLogfile"] = lowHum.GetTsString(timeStampFormat),
+				["highBarometerValLogfile"] = highBaro.GetValString(cumulus.PressFormat),
+				["highBarometerTimeLogfile"] = highBaro.GetTsString(timeStampFormat),
+				["lowBarometerValLogfile"] = lowBaro.GetValString(cumulus.PressFormat),
+				["lowBarometerTimeLogfile"] = lowBaro.GetTsString(timeStampFormat),
+				["highGustValLogfile"] = highGust.GetValString(cumulus.WindFormat),
+				["highGustTimeLogfile"] = highGust.GetTsString(timeStampFormat),
+				["highWindValLogfile"] = highWind.GetValString(cumulus.WindAvgFormat),
+				["highWindTimeLogfile"] = highWind.GetTsString(timeStampFormat),
+				["highWindRunValLogfile"] = highWindRun.GetValString(cumulus.WindRunFormat),
+				["highWindRunTimeLogfile"] = highWindRun.GetTsString(dateStampFormat),
+				["highRainRateValLogfile"] = highRainRate.GetValString(cumulus.RainFormat),
+				["highRainRateTimeLogfile"] = highRainRate.GetTsString(timeStampFormat),
+				["highHourlyRainValLogfile"] = highRainHour.GetValString(cumulus.RainFormat),
+				["highHourlyRainTimeLogfile"] = highRainHour.GetTsString(timeStampFormat),
+				["highDailyRainValLogfile"] = highRainDay.GetValString(cumulus.RainFormat),
+				["highDailyRainTimeLogfile"] = highRainDay.GetTsString(dateStampFormat),
+				["highRain24hValLogfile"] = highRain24h.GetValString(cumulus.RainFormat),
+				["highRain24hTimeLogfile"] = highRain24h.GetTsString(timeStampFormat),
+				["highMonthlyRainValLogfile"] = highRainMonth.GetValString(cumulus.RainFormat),
+				["highMonthlyRainTimeLogfile"] = highRainMonth.GetTsString(monthFormat),
+				["longestDryPeriodValLogfile"] = dryPeriod.GetValString(),
+				["longestDryPeriodTimeLogfile"] = dryPeriod.GetTsString(dateStampFormat),
+				["longestWetPeriodValLogfile"] = wetPeriod.GetValString(),
+				["longestWetPeriodTimeLogfile"] = wetPeriod.GetTsString(dateStampFormat)
+			}.ToJson();
 		}
 
 		/*
@@ -1639,82 +1626,80 @@ namespace CumulusMX
 			const string dateStampFormat = "d";
 			const string monthFormat = "MMM yyyy";
 
-			var json = new StringBuilder("{", 21000);
+			var jsonObj = new JsonObject();
 			for (var m = 1; m <= 12; m++)
 			{
 				// Records - Temperature values
-				json.Append($"\"{m}-highTempVal\":\"{station.MonthlyRecs[m].HighTemp.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowTempVal\":\"{station.MonthlyRecs[m].LowTemp.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highDewPointVal\":\"{station.MonthlyRecs[m].HighDewPoint.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowDewPointVal\":\"{station.MonthlyRecs[m].LowDewPoint.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highApparentTempVal\":\"{station.MonthlyRecs[m].HighAppTemp.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowApparentTempVal\":\"{station.MonthlyRecs[m].LowAppTemp.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highFeelsLikeVal\":\"{station.MonthlyRecs[m].HighFeelsLike.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowFeelsLikeVal\":\"{station.MonthlyRecs[m].LowFeelsLike.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highHumidexVal\":\"{station.MonthlyRecs[m].HighHumidex.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowWindChillVal\":\"{station.MonthlyRecs[m].LowChill.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highHeatIndexVal\":\"{station.MonthlyRecs[m].HighHeatIndex.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highMinTempVal\":\"{station.MonthlyRecs[m].HighMinTemp.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempVal\":\"{station.MonthlyRecs[m].LowMaxTemp.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highDailyTempRangeVal\":\"{station.MonthlyRecs[m].HighDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowDailyTempRangeVal\":\"{station.MonthlyRecs[m].LowDailyTempRange.GetValString(cumulus.TempFormat)}\",");
+				jsonObj.Add($"{m}-highTempVal", station.MonthlyRecs[m].HighTemp.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowTempVal", station.MonthlyRecs[m].LowTemp.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highDewPointVal", station.MonthlyRecs[m].HighDewPoint.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowDewPointVal", station.MonthlyRecs[m].LowDewPoint.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highApparentTempVal", station.MonthlyRecs[m].HighAppTemp.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowApparentTempVal", station.MonthlyRecs[m].LowAppTemp.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highFeelsLikeVal", station.MonthlyRecs[m].HighFeelsLike.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowFeelsLikeVal", station.MonthlyRecs[m].LowFeelsLike.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highHumidexVal", station.MonthlyRecs[m].HighHumidex.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowWindChillVal", station.MonthlyRecs[m].LowChill.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highHeatIndexVal", station.MonthlyRecs[m].HighHeatIndex.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highMinTempVal", station.MonthlyRecs[m].HighMinTemp.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowMaxTempVal", station.MonthlyRecs[m].LowMaxTemp.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highDailyTempRangeVal", station.MonthlyRecs[m].HighDailyTempRange.GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowDailyTempRangeVal", station.MonthlyRecs[m].LowDailyTempRange.GetValString(cumulus.TempFormat));
 				// Records - Temperature timestamps
-				json.Append($"\"{m}-highTempTime\":\"{station.MonthlyRecs[m].HighTemp.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowTempTime\":\"{station.MonthlyRecs[m].LowTemp.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDewPointTime\":\"{station.MonthlyRecs[m].HighDewPoint.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowDewPointTime\":\"{station.MonthlyRecs[m].LowDewPoint.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highApparentTempTime\":\"{station.MonthlyRecs[m].HighAppTemp.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowApparentTempTime\":\"{station.MonthlyRecs[m].LowAppTemp.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highFeelsLikeTime\":\"{station.MonthlyRecs[m].HighFeelsLike.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowFeelsLikeTime\":\"{station.MonthlyRecs[m].LowFeelsLike.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHumidexTime\":\"{station.MonthlyRecs[m].HighHumidex.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowWindChillTime\":\"{station.MonthlyRecs[m].LowChill.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHeatIndexTime\":\"{station.MonthlyRecs[m].HighHeatIndex.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMinTempTime\":\"{station.MonthlyRecs[m].HighMinTemp.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempTime\":\"{station.MonthlyRecs[m].LowMaxTemp.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDailyTempRangeTime\":\"{station.MonthlyRecs[m].HighDailyTempRange.GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-lowDailyTempRangeTime\":\"{station.MonthlyRecs[m].LowDailyTempRange.GetTsString(dateStampFormat)}\",");
+				jsonObj.Add($"{m}-highTempTime", station.MonthlyRecs[m].HighTemp.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowTempTime", station.MonthlyRecs[m].LowTemp.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDewPointTime", station.MonthlyRecs[m].HighDewPoint.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowDewPointTime", station.MonthlyRecs[m].LowDewPoint.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highApparentTempTime", station.MonthlyRecs[m].HighAppTemp.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowApparentTempTime", station.MonthlyRecs[m].LowAppTemp.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highFeelsLikeTime", station.MonthlyRecs[m].HighFeelsLike.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowFeelsLikeTime", station.MonthlyRecs[m].LowFeelsLike.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHumidexTime", station.MonthlyRecs[m].HighHumidex.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowWindChillTime", station.MonthlyRecs[m].LowChill.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHeatIndexTime", station.MonthlyRecs[m].HighHeatIndex.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highMinTempTime", station.MonthlyRecs[m].HighMinTemp.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowMaxTempTime", station.MonthlyRecs[m].LowMaxTemp.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDailyTempRangeTime", station.MonthlyRecs[m].HighDailyTempRange.GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-lowDailyTempRangeTime", station.MonthlyRecs[m].LowDailyTempRange.GetTsString(dateStampFormat));
 				// Records - Humidity values
-				json.Append($"\"{m}-highHumidityVal\":\"{station.MonthlyRecs[m].HighHumidity.GetValString(cumulus.HumFormat)}\",");
-				json.Append($"\"{m}-lowHumidityVal\":\"{station.MonthlyRecs[m].LowHumidity.GetValString(cumulus.HumFormat)}\",");
+				jsonObj.Add($"{m}-highHumidityVal", station.MonthlyRecs[m].HighHumidity.GetValString(cumulus.HumFormat));
+				jsonObj.Add($"{m}-lowHumidityVal", station.MonthlyRecs[m].LowHumidity.GetValString(cumulus.HumFormat));
 				// Records - Humidity times
-				json.Append($"\"{m}-highHumidityTime\":\"{station.MonthlyRecs[m].HighHumidity.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowHumidityTime\":\"{station.MonthlyRecs[m].LowHumidity.GetTsString(timeStampFormat)}\",");
+				jsonObj.Add($"{m}-highHumidityTime", station.MonthlyRecs[m].HighHumidity.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowHumidityTime", station.MonthlyRecs[m].LowHumidity.GetTsString(timeStampFormat));
 				// Records - Pressure values
-				json.Append($"\"{m}-highBarometerVal\":\"{station.MonthlyRecs[m].HighPress.GetValString(cumulus.PressFormat)}\",");
-				json.Append($"\"{m}-lowBarometerVal\":\"{station.MonthlyRecs[m].LowPress.GetValString(cumulus.PressFormat)}\",");
+				jsonObj.Add($"{m}-highBarometerVal", station.MonthlyRecs[m].HighPress.GetValString(cumulus.PressFormat));
+				jsonObj.Add($"{m}-lowBarometerVal", station.MonthlyRecs[m].LowPress.GetValString(cumulus.PressFormat));
 				// Records - Pressure times
-				json.Append($"\"{m}-highBarometerTime\":\"{station.MonthlyRecs[m].HighPress.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowBarometerTime\":\"{station.MonthlyRecs[m].LowPress.GetTsString(timeStampFormat)}\",");
+				jsonObj.Add($"{m}-highBarometerTime", station.MonthlyRecs[m].HighPress.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowBarometerTime", station.MonthlyRecs[m].LowPress.GetTsString(timeStampFormat));
 				// Records - Wind values
-				json.Append($"\"{m}-highGustVal\":\"{station.MonthlyRecs[m].HighGust.GetValString(cumulus.WindFormat)}\",");
-				json.Append($"\"{m}-highWindVal\":\"{station.MonthlyRecs[m].HighWind.GetValString(cumulus.WindAvgFormat)}\",");
-				json.Append($"\"{m}-highWindRunVal\":\"{station.MonthlyRecs[m].HighWindRun.GetValString(cumulus.WindRunFormat)}\",");
+				jsonObj.Add($"{m}-highGustVal", station.MonthlyRecs[m].HighGust.GetValString(cumulus.WindFormat));
+				jsonObj.Add($"{m}-highWindVal", station.MonthlyRecs[m].HighWind.GetValString(cumulus.WindAvgFormat));
+				jsonObj.Add($"{m}-highWindRunVal", station.MonthlyRecs[m].HighWindRun.GetValString(cumulus.WindRunFormat));
 				// Records - Wind times
-				json.Append($"\"{m}-highGustTime\":\"{station.MonthlyRecs[m].HighGust.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highWindTime\":\"{station.MonthlyRecs[m].HighWind.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highWindRunTime\":\"{station.MonthlyRecs[m].HighWindRun.GetTsString(dateStampFormat)}\",");
+				jsonObj.Add($"{m}-highGustTime", station.MonthlyRecs[m].HighGust.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highWindTime", station.MonthlyRecs[m].HighWind.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highWindRunTime", station.MonthlyRecs[m].HighWindRun.GetTsString(dateStampFormat));
 				// Records - Rain values
-				json.Append($"\"{m}-highRainRateVal\":\"{station.MonthlyRecs[m].HighRainRate.GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highHourlyRainVal\":\"{station.MonthlyRecs[m].HourlyRain.GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highDailyRainVal\":\"{station.MonthlyRecs[m].DailyRain.GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highRain24hVal\":\"{station.MonthlyRecs[m].HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainVal\":\"{station.MonthlyRecs[m].MonthlyRain.GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-longestDryPeriodVal\":\"{station.MonthlyRecs[m].LongestDryPeriod.GetValString("f0")}\",");
-				json.Append($"\"{m}-longestWetPeriodVal\":\"{station.MonthlyRecs[m].LongestWetPeriod.GetValString("f0")}\",");
+				jsonObj.Add($"{m}-highRainRateVal", station.MonthlyRecs[m].HighRainRate.GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highHourlyRainVal", station.MonthlyRecs[m].HourlyRain.GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highDailyRainVal", station.MonthlyRecs[m].DailyRain.GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highRain24hVal", station.MonthlyRecs[m].HighRain24Hours.GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highMonthlyRainVal", station.MonthlyRecs[m].MonthlyRain.GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-longestDryPeriodVal", station.MonthlyRecs[m].LongestDryPeriod.GetValString("f0"));
+				jsonObj.Add($"{m}-longestWetPeriodVal", station.MonthlyRecs[m].LongestWetPeriod.GetValString("f0"));
 				// Records - Rain times
-				json.Append($"\"{m}-highRainRateTime\":\"{station.MonthlyRecs[m].HighRainRate.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHourlyRainTime\":\"{station.MonthlyRecs[m].HourlyRain.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDailyRainTime\":\"{station.MonthlyRecs[m].DailyRain.GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highRain24hTime\":\"{station.MonthlyRecs[m].HighRain24Hours.GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainTime\":\"{station.MonthlyRecs[m].MonthlyRain.GetTsString(monthFormat)}\",");
-				json.Append($"\"{m}-longestDryPeriodTime\":\"{station.MonthlyRecs[m].LongestDryPeriod.GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-longestWetPeriodTime\":\"{station.MonthlyRecs[m].LongestWetPeriod.GetTsString(dateStampFormat)}\",");
+				jsonObj.Add($"{m}-highRainRateTime", station.MonthlyRecs[m].HighRainRate.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHourlyRainTime", station.MonthlyRecs[m].HourlyRain.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDailyRainTime", station.MonthlyRecs[m].DailyRain.GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highRain24hTime", station.MonthlyRecs[m].HighRain24Hours.GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highMonthlyRainTime", station.MonthlyRecs[m].MonthlyRain.GetTsString(monthFormat));
+				jsonObj.Add($"{m}-longestDryPeriodTime", station.MonthlyRecs[m].LongestDryPeriod.GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-longestWetPeriodTime", station.MonthlyRecs[m].LongestWetPeriod.GetTsString(dateStampFormat));
 			}
-			json.Length--;
-			json.Append('}');
 
-			return json.ToString();
+			return jsonObj.ToJson();
 		}
 
 		internal string GetMonthlyRecDayFile()
@@ -1795,8 +1780,6 @@ namespace CumulusMX
 			var thisDateWet = DateTime.MinValue;
 			int monthOffset;
 			var firstEntry = true;
-
-			var json = new StringBuilder("{", 25500);
 
 			int rainThreshold;
 			if (cumulus.RainDayThreshold > 0)
@@ -2084,72 +2067,72 @@ namespace CumulusMX
 				cumulus.LogWarningMessage("Error failed to find day records");
 			}
 
+			var jsonObj = new JsonObject();
+
 			for (var i = 0; i < 12; i++)
 			{
 				var m = i + 1;
-				json.Append($"\"{m}-highTempValDayfile\":\"{highTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highTempTimeDayfile\":\"{highTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowTempValDayfile\":\"{lowTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowTempTimeDayfile\":\"{lowTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDewPointValDayfile\":\"{highDewPt[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highDewPointTimeDayfile\":\"{highDewPt[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowDewPointValDayfile\":\"{lowDewPt[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowDewPointTimeDayfile\":\"{lowDewPt[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highApparentTempValDayfile\":\"{highAppTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highApparentTempTimeDayfile\":\"{highAppTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowApparentTempValDayfile\":\"{lowAppTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowApparentTempTimeDayfile\":\"{lowAppTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highFeelsLikeValDayfile\":\"{highFeelsLike[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highFeelsLikeTimeDayfile\":\"{highFeelsLike[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowFeelsLikeValDayfile\":\"{lowFeelsLike[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowFeelsLikeTimeDayfile\":\"{lowFeelsLike[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHumidexValDayfile\":\"{highHumidex[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highHumidexTimeDayfile\":\"{highHumidex[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowWindChillValDayfile\":\"{lowWindChill[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowWindChillTimeDayfile\":\"{lowWindChill[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHeatIndexValDayfile\":\"{highHeatInd[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highHeatIndexTimeDayfile\":\"{highHeatInd[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMinTempValDayfile\":\"{highMinTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highMinTempTimeDayfile\":\"{highMinTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempValDayfile\":\"{lowMaxTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempTimeDayfile\":\"{lowMaxTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDailyTempRangeValDayfile\":\"{highTempRange[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highDailyTempRangeTimeDayfile\":\"{highTempRange[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-lowDailyTempRangeValDayfile\":\"{lowTempRange[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowDailyTempRangeTimeDayfile\":\"{lowTempRange[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highHumidityValDayfile\":\"{highHum[i].GetValString(cumulus.HumFormat)}\",");
-				json.Append($"\"{m}-highHumidityTimeDayfile\":\"{highHum[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowHumidityValDayfile\":\"{lowHum[i].GetValString(cumulus.HumFormat)}\",");
-				json.Append($"\"{m}-lowHumidityTimeDayfile\":\"{lowHum[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highBarometerValDayfile\":\"{highBaro[i].GetValString(cumulus.PressFormat)}\",");
-				json.Append($"\"{m}-highBarometerTimeDayfile\":\"{highBaro[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowBarometerValDayfile\":\"{lowBaro[i].GetValString(cumulus.PressFormat)}\",");
-				json.Append($"\"{m}-lowBarometerTimeDayfile\":\"{lowBaro[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highGustValDayfile\":\"{highGust[i].GetValString(cumulus.WindFormat)}\",");
-				json.Append($"\"{m}-highGustTimeDayfile\":\"{highGust[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highWindValDayfile\":\"{highWind[i].GetValString(cumulus.WindAvgFormat)}\",");
-				json.Append($"\"{m}-highWindTimeDayfile\":\"{highWind[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highWindRunValDayfile\":\"{highWindRun[i].GetValString(cumulus.WindRunFormat)}\",");
-				json.Append($"\"{m}-highWindRunTimeDayfile\":\"{highWindRun[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highRainRateValDayfile\":\"{highRainRate[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highRainRateTimeDayfile\":\"{highRainRate[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHourlyRainValDayfile\":\"{highRainHour[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highHourlyRainTimeDayfile\":\"{highRainHour[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDailyRainValDayfile\":\"{highRainDay[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highDailyRainTimeDayfile\":\"{highRainDay[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highRain24hValDayfile\":\"{highRain24h[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highRain24hTimeDayfile\":\"{highRain24h[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainValDayfile\":\"{highRainMonth[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainTimeDayfile\":\"{highRainMonth[i].GetTsString(monthFormat)}\",");
-				json.Append($"\"{m}-longestDryPeriodValDayfile\":\"{dryPeriod[i].GetValString()}\",");
-				json.Append($"\"{m}-longestDryPeriodTimeDayfile\":\"{dryPeriod[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-longestWetPeriodValDayfile\":\"{wetPeriod[i].GetValString()}\",");
-				json.Append($"\"{m}-longestWetPeriodTimeDayfile\":\"{wetPeriod[i].GetTsString(dateStampFormat)}\",");
+				jsonObj.Add($"{m}-highTempValDayfile", highTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highTempTimeDayfile", highTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowTempValDayfile", lowTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowTempTimeDayfile", lowTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDewPointValDayfile", highDewPt[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highDewPointTimeDayfile", highDewPt[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowDewPointValDayfile", lowDewPt[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowDewPointTimeDayfile", lowDewPt[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highApparentTempValDayfile", highAppTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highApparentTempTimeDayfile", highAppTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowApparentTempValDayfile", lowAppTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowApparentTempTimeDayfile", lowAppTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highFeelsLikeValDayfile", highFeelsLike[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highFeelsLikeTimeDayfile", highFeelsLike[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowFeelsLikeValDayfile", lowFeelsLike[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowFeelsLikeTimeDayfile", lowFeelsLike[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHumidexValDayfile", highHumidex[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highHumidexTimeDayfile", highHumidex[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowWindChillValDayfile", lowWindChill[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowWindChillTimeDayfile", lowWindChill[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHeatIndexValDayfile", highHeatInd[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highHeatIndexTimeDayfile", highHeatInd[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highMinTempValDayfile", highMinTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highMinTempTimeDayfile", highMinTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowMaxTempValDayfile", lowMaxTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowMaxTempTimeDayfile", lowMaxTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDailyTempRangeValDayfile", highTempRange[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highDailyTempRangeTimeDayfile", highTempRange[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-lowDailyTempRangeValDayfile", lowTempRange[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowDailyTempRangeTimeDayfile", lowTempRange[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highHumidityValDayfile", highHum[i].GetValString(cumulus.HumFormat));
+				jsonObj.Add($"{m}-highHumidityTimeDayfile", highHum[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowHumidityValDayfile", lowHum[i].GetValString(cumulus.HumFormat));
+				jsonObj.Add($"{m}-lowHumidityTimeDayfile", lowHum[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highBarometerValDayfile", highBaro[i].GetValString(cumulus.PressFormat));
+				jsonObj.Add($"{m}-highBarometerTimeDayfile", highBaro[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowBarometerValDayfile", lowBaro[i].GetValString(cumulus.PressFormat));
+				jsonObj.Add($"{m}-lowBarometerTimeDayfile", lowBaro[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highGustValDayfile", highGust[i].GetValString(cumulus.WindFormat));
+				jsonObj.Add($"{m}-highGustTimeDayfile", highGust[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highWindValDayfile", highWind[i].GetValString(cumulus.WindAvgFormat));
+				jsonObj.Add($"{m}-highWindTimeDayfile", highWind[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highWindRunValDayfile", highWindRun[i].GetValString(cumulus.WindRunFormat));
+				jsonObj.Add($"{m}-highWindRunTimeDayfile", highWindRun[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highRainRateValDayfile", highRainRate[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highRainRateTimeDayfile", highRainRate[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHourlyRainValDayfile", highRainHour[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highHourlyRainTimeDayfile", highRainHour[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDailyRainValDayfile", highRainDay[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highDailyRainTimeDayfile", highRainDay[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highRain24hValDayfile", highRain24h[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highRain24hTimeDayfile", highRain24h[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highMonthlyRainValDayfile", highRainMonth[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highMonthlyRainTimeDayfile", highRainMonth[i].GetTsString(monthFormat));
+				jsonObj.Add($"{m}-longestDryPeriodValDayfile", dryPeriod[i].GetValString());
+				jsonObj.Add($"{m}-longestDryPeriodTimeDayfile", dryPeriod[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-longestWetPeriodValDayfile", wetPeriod[i].GetValString());
+				jsonObj.Add($"{m}-longestWetPeriodTimeDayfile", wetPeriod[i].GetTsString(dateStampFormat));
 			}
-			json.Length--;
-			json.Append('}');
 
-			return json.ToString();
+			return jsonObj.ToJson();
 		}
 
 		internal string GetMonthlyRecLogFile()
@@ -2158,7 +2141,6 @@ namespace CumulusMX
 			const string dateStampFormat = "d";
 			const string monthFormat = "MMM yyyy";
 
-			var json = new StringBuilder("{", 25500);
 			var datefrom = cumulus.RecordsBeganDateTime;
 			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
 			var dateto = DateTime.Now;
@@ -2627,77 +2609,76 @@ namespace CumulusMX
 			hourRainLog.Clear();
 			rain24hLog.Clear();
 
+			var jsonObj = new JsonObject();
+
 			for (var i = 0; i < 12; i++)
 			{
 				var m = i + 1;
-				json.Append($"\"{m}-highTempValLogfile\":\"{highTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highTempTimeLogfile\":\"{highTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowTempValLogfile\":\"{lowTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowTempTimeLogfile\":\"{lowTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDewPointValLogfile\":\"{highDewPt[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highDewPointTimeLogfile\":\"{highDewPt[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowDewPointValLogfile\":\"{lowDewPt[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowDewPointTimeLogfile\":\"{lowDewPt[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highApparentTempValLogfile\":\"{highAppTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highApparentTempTimeLogfile\":\"{highAppTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowApparentTempValLogfile\":\"{lowAppTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowApparentTempTimeLogfile\":\"{lowAppTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highFeelsLikeValLogfile\":\"{highFeelsLike[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highFeelsLikeTimeLogfile\":\"{highFeelsLike[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowFeelsLikeValLogfile\":\"{lowFeelsLike[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowFeelsLikeTimeLogfile\":\"{lowFeelsLike[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHumidexValLogfile\":\"{highHumidex[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highHumidexTimeLogfile\":\"{highHumidex[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowWindChillValLogfile\":\"{lowWindChill[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowWindChillTimeLogfile\":\"{lowWindChill[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHeatIndexValLogfile\":\"{highHeatInd[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highHeatIndexTimeLogfile\":\"{highHeatInd[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMinTempValLogfile\":\"{highMinTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highMinTempTimeLogfile\":\"{highMinTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempValLogfile\":\"{lowMaxTemp[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowMaxTempTimeLogfile\":\"{lowMaxTemp[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDailyTempRangeValLogfile\":\"{highTempRange[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-highDailyTempRangeTimeLogfile\":\"{highTempRange[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-lowDailyTempRangeValLogfile\":\"{lowTempRange[i].GetValString(cumulus.TempFormat)}\",");
-				json.Append($"\"{m}-lowDailyTempRangeTimeLogfile\":\"{lowTempRange[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highHumidityValLogfile\":\"{highHum[i].GetValString(cumulus.HumFormat)}\",");
-				json.Append($"\"{m}-highHumidityTimeLogfile\":\"{highHum[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowHumidityValLogfile\":\"{lowHum[i].GetValString(cumulus.HumFormat)}\",");
-				json.Append($"\"{m}-lowHumidityTimeLogfile\":\"{lowHum[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highBarometerValLogfile\":\"{highBaro[i].GetValString(cumulus.PressFormat)}\",");
-				json.Append($"\"{m}-highBarometerTimeLogfile\":\"{highBaro[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-lowBarometerValLogfile\":\"{lowBaro[i].GetValString(cumulus.PressFormat)}\",");
-				json.Append($"\"{m}-lowBarometerTimeLogfile\":\"{lowBaro[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highGustValLogfile\":\"{highGust[i].GetValString(cumulus.WindFormat)}\",");
-				json.Append($"\"{m}-highGustTimeLogfile\":\"{highGust[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highWindValLogfile\":\"{highWind[i].GetValString(cumulus.WindAvgFormat)}\",");
-				json.Append($"\"{m}-highWindTimeLogfile\":\"{highWind[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highWindRunValLogfile\":\"{highWindRun[i].GetValString(cumulus.WindRunFormat)}\",");
-				json.Append($"\"{m}-highWindRunTimeLogfile\":\"{highWindRun[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highRainRateValLogfile\":\"{highRainRate[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highRainRateTimeLogfile\":\"{highRainRate[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highHourlyRainValLogfile\":\"{highRainHour[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highHourlyRainTimeLogfile\":\"{highRainHour[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highDailyRainValLogfile\":\"{highRainDay[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highDailyRainTimeLogfile\":\"{highRainDay[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-highRain24hValLogfile\":\"{highRain24h[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highRain24hTimeLogfile\":\"{highRain24h[i].GetTsString(timeStampFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainValLogfile\":\"{highRainMonth[i].GetValString(cumulus.RainFormat)}\",");
-				json.Append($"\"{m}-highMonthlyRainTimeLogfile\":\"{highRainMonth[i].GetTsString(monthFormat)}\",");
-				json.Append($"\"{m}-longestDryPeriodValLogfile\":\"{dryPeriod[i].GetValString()}\",");
-				json.Append($"\"{m}-longestDryPeriodTimeLogfile\":\"{dryPeriod[i].GetTsString(dateStampFormat)}\",");
-				json.Append($"\"{m}-longestWetPeriodValLogfile\":\"{wetPeriod[i].GetValString()}\",");
-				json.Append($"\"{m}-longestWetPeriodTimeLogfile\":\"{wetPeriod[i].GetTsString(dateStampFormat)}\",");
+				jsonObj.Add($"{m}-highTempValLogfile", highTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highTempTimeLogfile", highTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowTempValLogfile", lowTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowTempTimeLogfile", lowTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDewPointValLogfile", highDewPt[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highDewPointTimeLogfile", highDewPt[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowDewPointValLogfile", lowDewPt[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowDewPointTimeLogfile", lowDewPt[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highApparentTempValLogfile", highAppTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highApparentTempTimeLogfile", highAppTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowApparentTempValLogfile", lowAppTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowApparentTempTimeLogfile", lowAppTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highFeelsLikeValLogfile", highFeelsLike[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highFeelsLikeTimeLogfile", highFeelsLike[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowFeelsLikeValLogfile", lowFeelsLike[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowFeelsLikeTimeLogfile", lowFeelsLike[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHumidexValLogfile", highHumidex[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highHumidexTimeLogfile", highHumidex[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowWindChillValLogfile", lowWindChill[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowWindChillTimeLogfile", lowWindChill[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHeatIndexValLogfile", highHeatInd[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highHeatIndexTimeLogfile", highHeatInd[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highMinTempValLogfile", highMinTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highMinTempTimeLogfile", highMinTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowMaxTempValLogfile", lowMaxTemp[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowMaxTempTimeLogfile", lowMaxTemp[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDailyTempRangeValLogfile", highTempRange[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-highDailyTempRangeTimeLogfile", highTempRange[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-lowDailyTempRangeValLogfile", lowTempRange[i].GetValString(cumulus.TempFormat));
+				jsonObj.Add($"{m}-lowDailyTempRangeTimeLogfile", lowTempRange[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highHumidityValLogfile", highHum[i].GetValString(cumulus.HumFormat));
+				jsonObj.Add($"{m}-highHumidityTimeLogfile", highHum[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowHumidityValLogfile", lowHum[i].GetValString(cumulus.HumFormat));
+				jsonObj.Add($"{m}-lowHumidityTimeLogfile", lowHum[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highBarometerValLogfile", highBaro[i].GetValString(cumulus.PressFormat));
+				jsonObj.Add($"{m}-highBarometerTimeLogfile", highBaro[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-lowBarometerValLogfile", lowBaro[i].GetValString(cumulus.PressFormat));
+				jsonObj.Add($"{m}-lowBarometerTimeLogfile", lowBaro[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highGustValLogfile", highGust[i].GetValString(cumulus.WindFormat));
+				jsonObj.Add($"{m}-highGustTimeLogfile", highGust[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highWindValLogfile", highWind[i].GetValString(cumulus.WindAvgFormat));
+				jsonObj.Add($"{m}-highWindTimeLogfile", highWind[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highWindRunValLogfile", highWindRun[i].GetValString(cumulus.WindRunFormat));
+				jsonObj.Add($"{m}-highWindRunTimeLogfile", highWindRun[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highRainRateValLogfile", highRainRate[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highRainRateTimeLogfile", highRainRate[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highHourlyRainValLogfile", highRainHour[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highHourlyRainTimeLogfile", highRainHour[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highDailyRainValLogfile", highRainDay[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highDailyRainTimeLogfile", highRainDay[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-highRain24hValLogfile", highRain24h[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highRain24hTimeLogfile", highRain24h[i].GetTsString(timeStampFormat));
+				jsonObj.Add($"{m}-highMonthlyRainValLogfile", highRainMonth[i].GetValString(cumulus.RainFormat));
+				jsonObj.Add($"{m}-highMonthlyRainTimeLogfile", highRainMonth[i].GetTsString(monthFormat));
+				jsonObj.Add($"{m}-longestDryPeriodValLogfile", dryPeriod[i].GetValString());
+				jsonObj.Add($"{m}-longestDryPeriodTimeLogfile", dryPeriod[i].GetTsString(dateStampFormat));
+				jsonObj.Add($"{m}-longestWetPeriodValLogfile", wetPeriod[i].GetValString());
+				jsonObj.Add($"{m}-longestWetPeriodTimeLogfile", wetPeriod[i].GetTsString(dateStampFormat));
 			}
-
-			json.Length--;
-			json.Append('}');
 
 			watch.Stop();
 			var elapsed = watch.ElapsedMilliseconds;
 			cumulus.LogDebugMessage($"Monthly recs editor Logfiles load = {elapsed} ms");
 
-			return json.ToString();
+			return jsonObj.ToJson();
 		}
 
 		internal string GetThisMonthRecData()
@@ -2705,72 +2686,70 @@ namespace CumulusMX
 			const string timeStampFormat = "g";
 			const string dateStampFormat = "d";
 
-			var json = new StringBuilder("{", 1700);
-			// Records - Temperature
-			json.Append($"\"highTempVal\":\"{station.ThisMonth.HighTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highTempTime\":\"{station.ThisMonth.HighTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowTempVal\":\"{station.ThisMonth.LowTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowTempTime\":\"{station.ThisMonth.LowTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDewPointVal\":\"{station.ThisMonth.HighDewPoint.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDewPointTime\":\"{station.ThisMonth.HighDewPoint.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowDewPointVal\":\"{station.ThisMonth.LowDewPoint.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDewPointTime\":\"{station.ThisMonth.LowDewPoint.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highApparentTempVal\":\"{station.ThisMonth.HighAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highApparentTempTime\":\"{station.ThisMonth.HighAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowApparentTempVal\":\"{station.ThisMonth.LowAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowApparentTempTime\":\"{station.ThisMonth.LowAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highFeelsLikeVal\":\"{station.ThisMonth.HighFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highFeelsLikeTime\":\"{station.ThisMonth.HighFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowFeelsLikeVal\":\"{station.ThisMonth.LowFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowFeelsLikeTime\":\"{station.ThisMonth.LowFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHumidexVal\":\"{station.ThisMonth.HighHumidex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHumidexTime\":\"{station.ThisMonth.HighHumidex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowWindChillVal\":\"{station.ThisMonth.LowChill.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowWindChillTime\":\"{station.ThisMonth.LowChill.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHeatIndexVal\":\"{station.ThisMonth.HighHeatIndex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHeatIndexTime\":\"{station.ThisMonth.HighHeatIndex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMinTempVal\":\"{station.ThisMonth.HighMinTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTime\":\"{station.ThisMonth.HighMinTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowMaxTempVal\":\"{station.ThisMonth.LowMaxTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTime\":\"{station.ThisMonth.LowMaxTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyTempRangeVal\":\"{station.ThisMonth.HighDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDailyTempRangeTime\":\"{station.ThisMonth.HighDailyTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"lowDailyTempRangeVal\":\"{station.ThisMonth.LowDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDailyTempRangeTime\":\"{station.ThisMonth.LowDailyTempRange.GetTsString(dateStampFormat)}\",");
-			// Records - Humidity
-			json.Append($"\"highHumidityVal\":\"{station.ThisMonth.HighHumidity.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"highHumidityTime\":\"{station.ThisMonth.HighHumidity.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowHumidityVal\":\"{station.ThisMonth.LowHumidity.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"lowHumidityTime\":\"{station.ThisMonth.LowHumidity.GetTsString(timeStampFormat)}\",");
-			// Records - Pressure
-			json.Append($"\"highBarometerVal\":\"{station.ThisMonth.HighPress.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"highBarometerTime\":\"{station.ThisMonth.HighPress.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowBarometerVal\":\"{station.ThisMonth.LowPress.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"lowBarometerTime\":\"{station.ThisMonth.LowPress.GetTsString(timeStampFormat)}\",");
-			// Records - Wind
-			json.Append($"\"highGustVal\":\"{station.ThisMonth.HighGust.GetValString(cumulus.WindFormat)}\",");
-			json.Append($"\"highGustTime\":\"{station.ThisMonth.HighGust.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindVal\":\"{station.ThisMonth.HighWind.GetValString(cumulus.WindAvgFormat)}\",");
-			json.Append($"\"highWindTime\":\"{station.ThisMonth.HighWind.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindRunVal\":\"{station.ThisMonth.HighWindRun.GetValString(cumulus.WindRunFormat)}\",");
-			json.Append($"\"highWindRunTime\":\"{station.ThisMonth.HighWindRun.GetTsString(dateStampFormat)}\",");
-			// Records - Rain
-			json.Append($"\"highRainRateVal\":\"{station.ThisMonth.HighRainRate.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRainRateTime\":\"{station.ThisMonth.HighRainRate.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHourlyRainVal\":\"{station.ThisMonth.HourlyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highHourlyRainTime\":\"{station.ThisMonth.HourlyRain.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyRainVal\":\"{station.ThisMonth.DailyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highDailyRainTime\":\"{station.ThisMonth.DailyRain.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highRain24hVal\":\"{station.ThisMonth.HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRain24hTime\":\"{station.ThisMonth.HighRain24Hours.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"longestDryPeriodVal\":\"{station.ThisMonth.LongestDryPeriod.GetValString("F0")}\",");
-			json.Append($"\"longestDryPeriodTime\":\"{station.ThisMonth.LongestDryPeriod.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"longestWetPeriodVal\":\"{station.ThisMonth.LongestWetPeriod.GetValString("F0")}\",");
-			json.Append($"\"longestWetPeriodTime\":\"{station.ThisMonth.LongestWetPeriod.GetTsString(dateStampFormat)}\"");
-
-			json.Append('}');
-
-			return json.ToString();
+			return new JsonObject
+			{
+				// Records - Temperature
+				["highTempVal"] = station.ThisMonth.HighTemp.GetValString(cumulus.TempFormat),
+				["highTempTime"] = station.ThisMonth.HighTemp.GetTsString(timeStampFormat),
+				["lowTempVal"] = station.ThisMonth.LowTemp.GetValString(cumulus.TempFormat),
+				["lowTempTime"] = station.ThisMonth.LowTemp.GetTsString(timeStampFormat),
+				["highDewPointVal"] = station.ThisMonth.HighDewPoint.GetValString(cumulus.TempFormat),
+				["highDewPointTime"] = station.ThisMonth.HighDewPoint.GetTsString(timeStampFormat),
+				["lowDewPointVal"] = station.ThisMonth.LowDewPoint.GetValString(cumulus.TempFormat),
+				["lowDewPointTime"] = station.ThisMonth.LowDewPoint.GetTsString(timeStampFormat),
+				["highApparentTempVal"] = station.ThisMonth.HighAppTemp.GetValString(cumulus.TempFormat),
+				["highApparentTempTime"] = station.ThisMonth.HighAppTemp.GetTsString(timeStampFormat),
+				["lowApparentTempVal"] = station.ThisMonth.LowAppTemp.GetValString(cumulus.TempFormat),
+				["lowApparentTempTime"] = station.ThisMonth.LowAppTemp.GetTsString(timeStampFormat),
+				["highFeelsLikeVal"] = station.ThisMonth.HighFeelsLike.GetValString(cumulus.TempFormat),
+				["highFeelsLikeTime"] = station.ThisMonth.HighFeelsLike.GetTsString(timeStampFormat),
+				["lowFeelsLikeVal"] = station.ThisMonth.LowFeelsLike.GetValString(cumulus.TempFormat),
+				["lowFeelsLikeTime"] = station.ThisMonth.LowFeelsLike.GetTsString(timeStampFormat),
+				["highHumidexVal"] = station.ThisMonth.HighHumidex.GetValString(cumulus.TempFormat),
+				["highHumidexTime"] = station.ThisMonth.HighHumidex.GetTsString(timeStampFormat),
+				["lowWindChillVal"] = station.ThisMonth.LowChill.GetValString(cumulus.TempFormat),
+				["lowWindChillTime"] = station.ThisMonth.LowChill.GetTsString(timeStampFormat),
+				["highHeatIndexVal"] = station.ThisMonth.HighHeatIndex.GetValString(cumulus.TempFormat),
+				["highHeatIndexTime"] = station.ThisMonth.HighHeatIndex.GetTsString(timeStampFormat),
+				["highMinTempVal"] = station.ThisMonth.HighMinTemp.GetValString(cumulus.TempFormat),
+				["highMinTempTime"] = station.ThisMonth.HighMinTemp.GetTsString(timeStampFormat),
+				["lowMaxTempVal"] = station.ThisMonth.LowMaxTemp.GetValString(cumulus.TempFormat),
+				["lowMaxTempTime"] = station.ThisMonth.LowMaxTemp.GetTsString(timeStampFormat),
+				["highDailyTempRangeVal"] = station.ThisMonth.HighDailyTempRange.GetValString(cumulus.TempFormat),
+				["highDailyTempRangeTime"] = station.ThisMonth.HighDailyTempRange.GetTsString(dateStampFormat),
+				["lowDailyTempRangeVal"] = station.ThisMonth.LowDailyTempRange.GetValString(cumulus.TempFormat),
+				["lowDailyTempRangeTime"] = station.ThisMonth.LowDailyTempRange.GetTsString(dateStampFormat),
+				// Records - Humidity
+				["highHumidityVal"] = station.ThisMonth.HighHumidity.GetValString(cumulus.HumFormat),
+				["highHumidityTime"] = station.ThisMonth.HighHumidity.GetTsString(timeStampFormat),
+				["lowHumidityVal"] = station.ThisMonth.LowHumidity.GetValString(cumulus.HumFormat),
+				["lowHumidityTime"] = station.ThisMonth.LowHumidity.GetTsString(timeStampFormat),
+				// Records - Pressure
+				["highBarometerVal"] = station.ThisMonth.HighPress.GetValString(cumulus.PressFormat),
+				["highBarometerTime"] = station.ThisMonth.HighPress.GetTsString(timeStampFormat),
+				["lowBarometerVal"] = station.ThisMonth.LowPress.GetValString(cumulus.PressFormat),
+				["lowBarometerTime"] = station.ThisMonth.LowPress.GetTsString(timeStampFormat),
+				// Records - Wind
+				["highGustVal"] = station.ThisMonth.HighGust.GetValString(cumulus.WindFormat),
+				["highGustTime"] = station.ThisMonth.HighGust.GetTsString(timeStampFormat),
+				["highWindVal"] = station.ThisMonth.HighWind.GetValString(cumulus.WindAvgFormat),
+				["highWindTime"] = station.ThisMonth.HighWind.GetTsString(timeStampFormat),
+				["highWindRunVal"] = station.ThisMonth.HighWindRun.GetValString(cumulus.WindRunFormat),
+				["highWindRunTime"] = station.ThisMonth.HighWindRun.GetTsString(dateStampFormat),
+				// Records - Rain
+				["highRainRateVal"] = station.ThisMonth.HighRainRate.GetValString(cumulus.RainFormat),
+				["highRainRateTime"] = station.ThisMonth.HighRainRate.GetTsString(timeStampFormat),
+				["highHourlyRainVal"] = station.ThisMonth.HourlyRain.GetValString(cumulus.RainFormat),
+				["highHourlyRainTime"] = station.ThisMonth.HourlyRain.GetTsString(timeStampFormat),
+				["highDailyRainVal"] = station.ThisMonth.DailyRain.GetValString(cumulus.RainFormat),
+				["highDailyRainTime"] = station.ThisMonth.DailyRain.GetTsString(dateStampFormat),
+				["highRain24hVal"] = station.ThisMonth.HighRain24Hours.GetValString(cumulus.RainFormat),
+				["highRain24hTime"] = station.ThisMonth.HighRain24Hours.GetTsString(timeStampFormat),
+				["longestDryPeriodVal"] = station.ThisMonth.LongestDryPeriod.GetValString("F0"),
+				["longestDryPeriodTime"] = station.ThisMonth.LongestDryPeriod.GetTsString(dateStampFormat),
+				["longestWetPeriodVal"] = station.ThisMonth.LongestWetPeriod.GetValString("F0"),
+				["longestWetPeriodTime"] = station.ThisMonth.LongestWetPeriod.GetTsString(dateStampFormat)
+			}.ToJson();
 		}
 
 		internal string EditThisMonthRecs(IHttpContext context)
@@ -2976,74 +2955,71 @@ namespace CumulusMX
 			const string dateStampFormat = "d";
 			const string monthFormat = "MMM yyyy";
 
-			var json = new StringBuilder("{", 1800);
-			// Records - Temperature
-			json.Append($"\"highTempVal\":\"{station.ThisYear.HighTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highTempTime\":\"{station.ThisYear.HighTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowTempVal\":\"{station.ThisYear.LowTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowTempTime\":\"{station.ThisYear.LowTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDewPointVal\":\"{station.ThisYear.HighDewPoint.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDewPointTime\":\"{station.ThisYear.HighDewPoint.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowDewPointVal\":\"{station.ThisYear.LowDewPoint.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDewPointTime\":\"{station.ThisYear.LowDewPoint.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highApparentTempVal\":\"{station.ThisYear.HighAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highApparentTempTime\":\"{station.ThisYear.HighAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowApparentTempVal\":\"{station.ThisYear.LowAppTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowApparentTempTime\":\"{station.ThisYear.LowAppTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highFeelsLikeVal\":\"{station.ThisYear.HighFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highFeelsLikeTime\":\"{station.ThisYear.HighFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowFeelsLikeVal\":\"{station.ThisYear.LowFeelsLike.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowFeelsLikeTime\":\"{station.ThisYear.LowFeelsLike.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHumidexVal\":\"{station.ThisYear.HighHumidex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHumidexTime\":\"{station.ThisYear.HighHumidex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowWindChillVal\":\"{station.ThisYear.LowChill.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowWindChillTime\":\"{station.ThisYear.LowChill.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHeatIndexVal\":\"{station.ThisYear.HighHeatIndex.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highHeatIndexTime\":\"{station.ThisYear.HighHeatIndex.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMinTempVal\":\"{station.ThisYear.HighMinTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highMinTempTime\":\"{station.ThisYear.HighMinTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowMaxTempVal\":\"{station.ThisYear.LowMaxTemp.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowMaxTempTime\":\"{station.ThisYear.LowMaxTemp.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyTempRangeVal\":\"{station.ThisYear.HighDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"highDailyTempRangeTime\":\"{station.ThisYear.HighDailyTempRange.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"lowDailyTempRangeVal\":\"{station.ThisYear.LowDailyTempRange.GetValString(cumulus.TempFormat)}\",");
-			json.Append($"\"lowDailyTempRangeTime\":\"{station.ThisYear.LowDailyTempRange.GetTsString(dateStampFormat)}\",");
-			// Records - Humidity
-			json.Append($"\"highHumidityVal\":\"{station.ThisYear.HighHumidity.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"highHumidityTime\":\"{station.ThisYear.HighHumidity.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowHumidityVal\":\"{station.ThisYear.LowHumidity.GetValString(cumulus.HumFormat)}\",");
-			json.Append($"\"lowHumidityTime\":\"{station.ThisYear.LowHumidity.GetTsString(timeStampFormat)}\",");
-			// Records - Pressure
-			json.Append($"\"highBarometerVal\":\"{station.ThisYear.HighPress.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"highBarometerTime\":\"{station.ThisYear.HighPress.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"lowBarometerVal\":\"{station.ThisYear.LowPress.GetValString(cumulus.PressFormat)}\",");
-			json.Append($"\"lowBarometerTime\":\"{station.ThisYear.LowPress.GetTsString(timeStampFormat)}\",");
-			// Records - Wind
-			json.Append($"\"highGustVal\":\"{station.ThisYear.HighGust.GetValString(cumulus.WindFormat)}\",");
-			json.Append($"\"highGustTime\":\"{station.ThisYear.HighGust.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindVal\":\"{station.ThisYear.HighWind.GetValString(cumulus.WindAvgFormat)}\",");
-			json.Append($"\"highWindTime\":\"{station.ThisYear.HighWind.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highWindRunVal\":\"{station.ThisYear.HighWindRun.GetValString(cumulus.WindRunFormat)}\",");
-			json.Append($"\"highWindRunTime\":\"{station.ThisYear.HighWindRun.GetTsString(dateStampFormat)}\",");
-			// Records - Rain
-			json.Append($"\"highRainRateVal\":\"{station.ThisYear.HighRainRate.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRainRateTime\":\"{station.ThisYear.HighRainRate.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highHourlyRainVal\":\"{station.ThisYear.HourlyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highHourlyRainTime\":\"{station.ThisYear.HourlyRain.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highDailyRainVal\":\"{station.ThisYear.DailyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highDailyRainTime\":\"{station.ThisYear.DailyRain.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"highRain24hVal\":\"{station.ThisYear.HighRain24Hours.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highRain24hTime\":\"{station.ThisYear.HighRain24Hours.GetTsString(timeStampFormat)}\",");
-			json.Append($"\"highMonthlyRainVal\":\"{station.ThisYear.MonthlyRain.GetValString(cumulus.RainFormat)}\",");
-			json.Append($"\"highMonthlyRainTime\":\"{station.ThisYear.MonthlyRain.GetTsString(monthFormat)}\",");
-			json.Append($"\"longestDryPeriodVal\":\"{station.ThisYear.LongestDryPeriod.GetValString("F0")}\",");
-			json.Append($"\"longestDryPeriodTime\":\"{station.ThisYear.LongestDryPeriod.GetTsString(dateStampFormat)}\",");
-			json.Append($"\"longestWetPeriodVal\":\"{station.ThisYear.LongestWetPeriod.GetValString("F0")}\",");
-			json.Append($"\"longestWetPeriodTime\":\"{station.ThisYear.LongestWetPeriod.GetTsString(dateStampFormat)}\"");
-
-			json.Append('}');
-
-			return json.ToString();
+			return new JsonObject
+			{
+				["highTempVal"] = station.ThisYear.HighTemp.GetValString(cumulus.TempFormat),
+				["highTempTime"] = station.ThisYear.HighTemp.GetTsString(timeStampFormat),
+				["lowTempVal"] = station.ThisYear.LowTemp.GetValString(cumulus.TempFormat),
+				["lowTempTime"] = station.ThisYear.LowTemp.GetTsString(timeStampFormat),
+				["highDewPointVal"] = station.ThisYear.HighDewPoint.GetValString(cumulus.TempFormat),
+				["highDewPointTime"] = station.ThisYear.HighDewPoint.GetTsString(timeStampFormat),
+				["lowDewPointVal"] = station.ThisYear.LowDewPoint.GetValString(cumulus.TempFormat),
+				["lowDewPointTime"] = station.ThisYear.LowDewPoint.GetTsString(timeStampFormat),
+				["highApparentTempVal"] = station.ThisYear.HighAppTemp.GetValString(cumulus.TempFormat),
+				["highApparentTempTime"] = station.ThisYear.HighAppTemp.GetTsString(timeStampFormat),
+				["lowApparentTempVal"] = station.ThisYear.LowAppTemp.GetValString(cumulus.TempFormat),
+				["lowApparentTempTime"] = station.ThisYear.LowAppTemp.GetTsString(timeStampFormat),
+				["highFeelsLikeVal"] = station.ThisYear.HighFeelsLike.GetValString(cumulus.TempFormat),
+				["highFeelsLikeTime"] = station.ThisYear.HighFeelsLike.GetTsString(timeStampFormat),
+				["lowFeelsLikeVal"] = station.ThisYear.LowFeelsLike.GetValString(cumulus.TempFormat),
+				["lowFeelsLikeTime"] = station.ThisYear.LowFeelsLike.GetTsString(timeStampFormat),
+				["highHumidexVal"] = station.ThisYear.HighHumidex.GetValString(cumulus.TempFormat),
+				["highHumidexTime"] = station.ThisYear.HighHumidex.GetTsString(timeStampFormat),
+				["lowWindChillVal"] = station.ThisYear.LowChill.GetValString(cumulus.TempFormat),
+				["lowWindChillTime"] = station.ThisYear.LowChill.GetTsString(timeStampFormat),
+				["highHeatIndexVal"] = station.ThisYear.HighHeatIndex.GetValString(cumulus.TempFormat),
+				["highHeatIndexTime"] = station.ThisYear.HighHeatIndex.GetTsString(timeStampFormat),
+				["highMinTempVal"] = station.ThisYear.HighMinTemp.GetValString(cumulus.TempFormat),
+				["highMinTempTime"] = station.ThisYear.HighMinTemp.GetTsString(timeStampFormat),
+				["lowMaxTempVal"] = station.ThisYear.LowMaxTemp.GetValString(cumulus.TempFormat),
+				["lowMaxTempTime"] = station.ThisYear.LowMaxTemp.GetTsString(timeStampFormat),
+				["highDailyTempRangeVal"] = station.ThisYear.HighDailyTempRange.GetValString(cumulus.TempFormat),
+				["highDailyTempRangeTime"] = station.ThisYear.HighDailyTempRange.GetTsString(dateStampFormat),
+				["lowDailyTempRangeVal"] = station.ThisYear.LowDailyTempRange.GetValString(cumulus.TempFormat),
+				["lowDailyTempRangeTime"] = station.ThisYear.LowDailyTempRange.GetTsString(dateStampFormat),
+				// Records - Humidity
+				["highHumidityVal"] = station.ThisYear.HighHumidity.GetValString(cumulus.HumFormat),
+				["highHumidityTime"] = station.ThisYear.HighHumidity.GetTsString(timeStampFormat),
+				["lowHumidityVal"] = station.ThisYear.LowHumidity.GetValString(cumulus.HumFormat),
+				["lowHumidityTime"] = station.ThisYear.LowHumidity.GetTsString(timeStampFormat),
+				// Records - Pressure
+				["highBarometerVal"] = station.ThisYear.HighPress.GetValString(cumulus.PressFormat),
+				["highBarometerTime"] = station.ThisYear.HighPress.GetTsString(timeStampFormat),
+				["lowBarometerVal"] = station.ThisYear.LowPress.GetValString(cumulus.PressFormat),
+				["lowBarometerTime"] = station.ThisYear.LowPress.GetTsString(timeStampFormat),
+				// Records - Wind
+				["highGustVal"] = station.ThisYear.HighGust.GetValString(cumulus.WindFormat),
+				["highGustTime"] = station.ThisYear.HighGust.GetTsString(timeStampFormat),
+				["highWindVal"] = station.ThisYear.HighWind.GetValString(cumulus.WindAvgFormat),
+				["highWindTime"] = station.ThisYear.HighWind.GetTsString(timeStampFormat),
+				["highWindRunVal"] = station.ThisYear.HighWindRun.GetValString(cumulus.WindRunFormat),
+				["highWindRunTime"] = station.ThisYear.HighWindRun.GetTsString(dateStampFormat),
+				// Records - Rain
+				["highRainRateVal"] = station.ThisYear.HighRainRate.GetValString(cumulus.RainFormat),
+				["highRainRateTime"] = station.ThisYear.HighRainRate.GetTsString(timeStampFormat),
+				["highHourlyRainVal"] = station.ThisYear.HourlyRain.GetValString(cumulus.RainFormat),
+				["highHourlyRainTime"] = station.ThisYear.HourlyRain.GetTsString(timeStampFormat),
+				["highDailyRainVal"] = station.ThisYear.DailyRain.GetValString(cumulus.RainFormat),
+				["highDailyRainTime"] = station.ThisYear.DailyRain.GetTsString(dateStampFormat),
+				["highRain24hVal"] = station.ThisYear.HighRain24Hours.GetValString(cumulus.RainFormat),
+				["highRain24hTime"] = station.ThisYear.HighRain24Hours.GetTsString(timeStampFormat),
+				["highMonthlyRainVal"] = station.ThisYear.MonthlyRain.GetValString(cumulus.RainFormat),
+				["highMonthlyRainTime"] = station.ThisYear.MonthlyRain.GetTsString(monthFormat),
+				["longestDryPeriodVal"] = station.ThisYear.LongestDryPeriod.GetValString("F0"),
+				["longestDryPeriodTime"] = station.ThisYear.LongestDryPeriod.GetTsString(dateStampFormat),
+				["longestWetPeriodVal"] = station.ThisYear.LongestWetPeriod.GetValString("F0"),
+				["longestWetPeriodTime"] = station.ThisYear.LongestWetPeriod.GetTsString(dateStampFormat)
+			}.ToJson();
 		}
 
 		internal string EditThisYearRecs(IHttpContext context)

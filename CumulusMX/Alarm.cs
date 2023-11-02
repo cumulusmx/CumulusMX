@@ -131,7 +131,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogMessage($"Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
+								cumulus.LogErrorMessage($"Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
 							}
 						}
 					}
@@ -297,7 +297,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
+							cumulus.LogErrorMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
 						}
 					}
 				}
@@ -371,7 +371,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
+							cumulus.LogErrorMessage($"Alarm: Error executing external program '{Action}': {ex.Message}");
 						}
 					}
 				}

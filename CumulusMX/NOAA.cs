@@ -161,6 +161,11 @@ namespace CumulusMX
 						totalwinddirY += (windspeed * Math.Cos((winddir * (Math.PI / 180))));
 					}
 				}
+				catch (IOException ex)
+				{
+					cumulus.LogErrorMessage($"Error reading log file {logFile}: {ex.Message}");
+					cumulus.LogMessage("Please check the file for errors");
+				}
 				catch (Exception e)
 				{
 					cumulus.LogErrorMessage($"Error at line {linenum}, column {idx}, value '{(st.Count >= idx ? st[idx] : "")}' of {logFile} : {e}");
