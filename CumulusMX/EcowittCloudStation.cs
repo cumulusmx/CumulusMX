@@ -8,7 +8,7 @@ namespace CumulusMX
 	internal class EcowittCloudStation : WeatherStation
 	{
 		private readonly WeatherStation station;
-		private EcowittApi ecowittApi;
+		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
 		private Task liveTask;
 		private readonly bool main;

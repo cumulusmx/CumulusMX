@@ -1066,7 +1066,7 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging)
 			{
-				CreateFtpLogFile(ftpLogfile);
+				CreateFtpLogFile();
 			}
 
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
@@ -4203,13 +4203,13 @@ namespace CumulusMX
 					var oldfile = ftpLogfile;
 					ftpLogfile = RemoveOldDiagsFiles("FTP");
 					LogFtpMessage("Rotating FTP log file, new log file will be: " + ftpLogfile.Split(DirectorySeparator).Last());
-					CreateFtpLogFile(ftpLogfile);
+					CreateFtpLogFile();
 					LogFtpMessage("Rotated FTP log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
 				}
 			}
 		}
 
-		public void CreateFtpLogFile(string filename)
+		public void CreateFtpLogFile()
 		{
 			if (FtpTraceListener != null)
 			{
@@ -11782,7 +11782,7 @@ namespace CumulusMX
 					// Let's try closing and the existing log file and reopening
 					LogDebugMessage($"LogFluentFtpMessage: Error = {ex.Message}");
 					ftpLogfile = RemoveOldDiagsFiles("FTP");
-					CreateFtpLogFile(ftpLogfile);
+					CreateFtpLogFile();
 				}
 			}
 		}

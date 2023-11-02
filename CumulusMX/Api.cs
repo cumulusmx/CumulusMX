@@ -488,13 +488,13 @@ namespace CumulusMX
 								await writer.WriteAsync(Station.GetIntervalTempGraphData(true, start, end));
 								break;
 							case "intvwind.json":
-								await writer.WriteAsync(Station.GetIntervalWindGraphData(true, start, end));
+								await writer.WriteAsync(Station.GetIntervalWindGraphData(start, end));
 								break;
 							case "intvrain.json":
-								await writer.WriteAsync(Station.GetIntervalRainGraphData(true, start, end));
+								await writer.WriteAsync(Station.GetIntervalRainGraphData(start, end));
 								break;
 							case "intvpress.json":
-								await writer.WriteAsync(Station.GetIntervaPressGraphData(true, start, end));
+								await writer.WriteAsync(Station.GetIntervalPressGraphData(start, end));
 								break;
 							case "intvhum.json":
 								await writer.WriteAsync(Station.GetIntervalHumGraphData(true, start, end));

@@ -502,7 +502,7 @@ namespace CumulusMX
 
 		public void ReloadFailedMySQLCommands()
 		{
-			while (cumulus.MySqlFailedList.TryDequeue(out var tmp))
+			while (cumulus.MySqlFailedList.TryDequeue(out var _))
 			{
 				// do nothing
 			};
@@ -4479,7 +4479,7 @@ namespace CumulusMX
 
 		}
 
-		public string GetIntervaPressGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		public string GetIntervalPressGraphData(DateTime? start = null, DateTime? end = null)
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{\"press\":[");
@@ -4556,7 +4556,7 @@ namespace CumulusMX
 
 		}
 
-		public string GetIntervalWindGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		public string GetIntervalWindGraphData(DateTime? start = null, DateTime? end = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{\"wgust\":[");
@@ -4656,7 +4656,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetIntervalRainGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		public string GetIntervalRainGraphData(DateTime? start = null, DateTime? end = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
@@ -6481,7 +6481,7 @@ namespace CumulusMX
 				WindRecent[nextwind].Timestamp = ts;
 				nextwind = (nextwind + 1) % MaxWindRecent;
 
-				windspeeds[nextwindvalue] = calibratedgust;
+				windspeeds[nextwindvalue] = calGust;
 				windbears[nextwindvalue] = calBearing;
 				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 			}
