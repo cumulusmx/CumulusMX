@@ -6166,7 +6166,7 @@ namespace CumulusMX
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
 			cumulus.LogDebugMessage($"DoWind: latest={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
-
+			// if we have a spike in wind speed or gust, ignore the reading
 			// Spike removal is in m/s
 			var windGustMS = ConvertUserWindToMS(gustpar);
 			var windAvgMS = speedpar == -1 ? previousWind : ConvertUserWindToMS(speedpar);
@@ -6449,16 +6449,41 @@ namespace CumulusMX
 			cumulus.LogDebugMessage($"InitialiseWind: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 		}
 
-		public void AddValuesToRecentWind(double gust, double speed, DateTime start, DateTime end)
+		public void AddValuesToRecentWind(double gust, double speed, int bearing, DateTime start, DateTime end)
 		{
+			var calGust = cumulus.Calib.WindGust.Calibrate(gust);
+			int calBearing;
+
+			// use bearing of zero when calm
+			if ((Math.Abs(gust) < 0.001) && cumulus.StationOptions.UseZeroBearing)
+			{
+				calBearing = 0;
+			}
+			else
+			{
+				calBearing = (bearing + (int) cumulus.Calib.WindDir.Offset) % 360;
+				if (calBearing < 0)
+				{
+					calBearing = 360 + calBearing;
+				}
+
+				if (calBearing == 0)
+				{
+					calBearing = 360;
+				}
+			}
+
+
 			for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(3))
 			{
-				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
-
 				WindRecent[nextwind].Gust = gust;
 				WindRecent[nextwind].Speed = speed;
 				WindRecent[nextwind].Timestamp = ts;
 				nextwind = (nextwind + 1) % MaxWindRecent;
+
+				windspeeds[nextwindvalue] = calibratedgust;
+				windbears[nextwindvalue] = calBearing;
+				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 			}
 		}
 

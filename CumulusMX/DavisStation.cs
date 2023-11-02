@@ -2505,13 +2505,10 @@ namespace CumulusMX
 							if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
 							{
 								int bearing = archiveData.WindDirection;
-								if (bearing == 255)
-								{
-									bearing = 0;
-								}
+								bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
-								AddValuesToRecentWind(avgwind, avgwind, timestamp.AddMinutes(-interval), timestamp);
-								DoWind(wind, (int) (bearing * 22.5), avgwind, timestamp);
+								AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
+								DoWind(wind, bearing, avgwind, timestamp);
 
 								if (ConvertUserWindToMS(WindAverage) < 1.5)
 								{
@@ -2524,7 +2521,7 @@ namespace CumulusMX
 								}
 
 								// update dominant wind bearing
-								CalculateDominantWindBearing((int) (bearing * 22.5), WindAverage, interval);
+								CalculateDominantWindBearing(bearing, WindAverage, interval);
 							}
 
 							DoApparentTemp(timestamp);
