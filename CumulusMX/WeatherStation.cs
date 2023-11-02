@@ -6169,7 +6169,7 @@ namespace CumulusMX
 
 			// Spike removal is in m/s
 			var windGustMS = ConvertUserWindToMS(gustpar);
-			var windAvgMS = ConvertUserWindToMS(speedpar == -1 ? previousWind : speedpar);
+			var windAvgMS = speedpar == -1 ? previousWind : ConvertUserWindToMS(speedpar);
 
 			if (((Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff) && (previousGust != 999)) ||
 				((Math.Abs(windAvgMS - previousWind) > cumulus.Spike.WindDiff) && (previousWind != 999)) ||
