@@ -17,7 +17,8 @@ Fixed
 - Ecowitt Extra Cloud sensor station type not starting as expected
 - Ecowitt Extra Cloud sensor station can now pick up the latest web cam URL
 - Some new record alarms not setting the email message correctly
-
+- Fix for wind spike testing applying unit conversion multiple times in some circumstances
+- Davis VP2, if requested changing the logger interval is now done after reading catch-up data so the archive is not cleared before catch-up
 
 
 3.27.0 - b3257

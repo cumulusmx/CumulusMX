@@ -276,11 +276,11 @@ namespace CumulusMX
 				// Ecowitt Extra settings
 				try
 				{
-					if (settings.httpSensors.extraStation == 0 || settings.httpSensors.extraStation == 2)
-					{
-						cumulus.EcowittExtraEnabled = settings.httpSensors.extraStation == 0;
-						cumulus.EcowittCloudExtraEnabled = settings.httpSensors.extraStation == 2;
+					cumulus.EcowittExtraEnabled = settings.httpSensors.extraStation == 0;
+					cumulus.EcowittCloudExtraEnabled = settings.httpSensors.extraStation == 2;
 
+					if (cumulus.EcowittExtraEnabled || cumulus.EcowittCloudExtraEnabled)
+					{
 						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
@@ -407,8 +407,6 @@ namespace CumulusMX
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
 					}
-					else
-						cumulus.EcowittExtraEnabled = false;
 				}
 				catch (Exception ex)
 				{
@@ -440,9 +438,9 @@ namespace CumulusMX
 				// Ambient Extra settings
 				try
 				{
-					if (settings.httpSensors.extraStation == 1)
+					cumulus.AmbientExtraEnabled = settings.httpSensors.extraStation == 1;
+					if (cumulus.AmbientExtraEnabled)
 					{
-						cumulus.AmbientExtraEnabled = true;
 						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
 						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
 						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
@@ -460,8 +458,6 @@ namespace CumulusMX
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
 					}
-					else
-						cumulus.AmbientExtraEnabled = false;
 				}
 				catch (Exception ex)
 				{

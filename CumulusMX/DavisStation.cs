@@ -120,9 +120,6 @@ namespace CumulusMX
 				DecodeReceptionStats(recepStats);
 			}
 
-			// check the logger interval
-			CheckLoggerInterval();
-
 			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime);
 
 			var consoleclock = GetTime();
@@ -200,6 +197,11 @@ namespace CumulusMX
 				// Read the data from the logger
 				startReadingHistoryData();
 			}
+
+			// check the logger interval
+			// do this after reading the history so we do not wipe it out before we read it!
+			CheckLoggerInterval();
+
 		}
 
 		private void DecodeReceptionStats(string recepStats)
