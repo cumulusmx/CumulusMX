@@ -1,7 +1,11 @@
 3.27.1 - b3259
 ——————————————
 New
-- Two new web tags for the Latest Error. These tags will encode the string for either HTML or JavaScript: #LatestErrorEnc, #LatestErrorJsEnc
+- Two new web tags for the Latest Error. These tags will encode the string for either HTML or JavaScript: <#LatestErrorEnc>, <#LatestErrorJsEnc>
+- New web tag for monthly wind run total <#windrunmonth>
+	- Without parameters it returns the total for the current month so far (excluding today)
+	- You can add parameters "year" and "month" to return the value for a particular month. Eg. <#windrunmonth year=2022 month=3>
+	- Like the existing <#windrun> it also accepts the "unit" parameter to return the value in miles, kilometers, or nautical miles
 
 Changed
 - All third-party upload issues are now classified as Warnings

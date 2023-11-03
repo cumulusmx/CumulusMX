@@ -517,6 +517,20 @@ namespace CumulusMX
 			return CheckRcDp(CheckWindRunUnit(station.WindRunToday, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
+		private string Tagwindrunmonth(Dictionary<string, string> tagParams)
+		{
+			if (!int.TryParse(tagParams.Get("year"), out int year))
+			{
+				year = DateTime.Now.Year;
+			}
+			if (!int.TryParse(tagParams.Get("month"), out int month))
+			{
+				month = DateTime.Now.Month;
+			}
+
+			return CheckRcDp(CheckWindRunUnit(station.GetWindRunMonth(year, month), tagParams), tagParams, cumulus.WindRunDPlaces);
+		}
+
 		private string Tagwspeed(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckWindUnit(station.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
@@ -5685,6 +5699,7 @@ namespace CumulusMX
 				{ "domwinddirY", TagdomwinddirY },
 				{ "tomorrowdaylength", Tagtomorrowdaylength },
 				{ "windrun", Tagwindrun },
+				{ "windrunmonth", Tagwindrunmonth },
 				{ "domwindbearing", Tagdomwindbearing },
 				{ "domwinddir", Tagdomwinddir },
 				{ "heatdegdays", Tagheatdegdays },

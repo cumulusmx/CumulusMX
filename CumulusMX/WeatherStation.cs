@@ -1370,6 +1370,13 @@ namespace CumulusMX
 		/// </summary>
 		public double WindRunToday { get; set; } = 0;
 
+		public double GetWindRunMonth(int year, int month)
+		{
+			var startDate = new DateTime(year, month, 1);
+			var enddate = startDate.AddMonths(1);
+			return DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
+		}
+
 		/// <summary>
 		/// Extra Temps
 		/// </summary>
