@@ -9,6 +9,7 @@ New
 
 Changed
 - All third-party upload issues are now classified as Warnings
+- Third party components for FTP(S) and SFTP updated
 
 Fixed
 - "Object is not intialized" error from the API when the station is not yet ready
