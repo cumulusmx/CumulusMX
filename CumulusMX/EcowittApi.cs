@@ -76,7 +76,14 @@ namespace CumulusMX
 
 			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
 			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
-			sb.Append($"&mac={cumulus.EcowittMacAddress}");
+			if (ulong.TryParse(cumulus.EcowittMacAddress, out _))
+			{
+				sb.Append($"&imei={cumulus.EcowittMacAddress}");
+			}
+			else
+			{
+				sb.Append($"&mac={cumulus.EcowittMacAddress}");
+			}
 			sb.Append($"&start_date={apiStartDate:yyyy-MM-dd'%20'HH:mm:ss}");
 			sb.Append($"&end_date={apiEndDate:yyyy-MM-dd'%20'HH:mm:ss}");
 
@@ -1639,7 +1646,14 @@ namespace CumulusMX
 
 			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
 			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
-			sb.Append($"&mac={cumulus.EcowittMacAddress}");
+			if (ulong.TryParse(cumulus.EcowittMacAddress, out _))
+			{
+				sb.Append($"&imei={cumulus.EcowittMacAddress}");
+			}
+			else
+			{
+				sb.Append($"&mac={cumulus.EcowittMacAddress}");
+			}
 
 			// Request the data in the correct units
 			sb.Append($"&temp_unitid={cumulus.Units.Temp + 1}"); // 1=C, 2=F
@@ -1765,8 +1779,8 @@ namespace CumulusMX
 
 				if (!token.IsCancellationRequested)
 				{
-					// indoor values should always be present, so use them for teh data timestamp
-					var dataTime = Utils.FromUnixTime(currObj.data.indoor.temperature.time);
+					// pressure values should always be present, so use them for the data timestamp, if not try the outdoor temp
+					var dataTime = Utils.FromUnixTime(currObj.data.pressure == null ? currObj.data.outdoor.temperature.time : currObj.data.pressure.absolute.time);
 					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
 
 					if (dataTime != LastCurrentDataTime)

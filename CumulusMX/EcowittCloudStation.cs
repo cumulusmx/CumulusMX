@@ -22,7 +22,7 @@ namespace CumulusMX
 
 			if (main)
 			{
-				cumulus.LogMessage("Creating Ecowitt Cloud");
+				cumulus.LogMessage("Creating Ecowitt Cloud Station");
 			}
 			else
 			{
@@ -101,10 +101,6 @@ namespace CumulusMX
 			if (main)
 			{
 				Task.Run(getAndProcessHistoryData);
-			}
-			else
-			{
-				cumulus.LogMessage("Extra Sensors - Ecowitt Cloud");
 			}
 		}
 
@@ -491,7 +487,7 @@ namespace CumulusMX
 			cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
 
-			var updateTime = Utils.FromUnixTime(data.outdoor == null ? data.indoor.temperature.time : data.indoor.temperature.time);
+			var updateTime = Utils.FromUnixTime(data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time);
 			thisStation.UpdateStatusPanel(updateTime);
 			thisStation.UpdateMQTT();
 
