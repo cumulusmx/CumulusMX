@@ -1,4 +1,4 @@
-3.27.1 - b3259
+3.27.1 - b3260
 ——————————————
 New
 - Two new web tags for the Latest Error. These tags will encode the string for either HTML or JavaScript: <#LatestErrorEnc>, <#LatestErrorJsEnc>
@@ -24,7 +24,7 @@ Fixed
 - Some new record alarms not setting the email message correctly
 - Fix for wind spike testing applying unit conversion multiple times in some circumstances
 - Davis VP2, if requested changing the logger interval is now done after reading catch-up data so the archive is not cleared before catch-up
-- Fix error 500 in the config Wizard for davis Cloud stations
+- Fix error 500 in the config Wizard for Davis Cloud stations
 - Fix Wizard and Settings screens did not allow the entry of an IMEI number for the Ecowitt Cloud API device ID
 
 
