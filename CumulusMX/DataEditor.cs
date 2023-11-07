@@ -632,7 +632,7 @@ namespace CumulusMX
 				["highGustValDayfile"] = highGust.GetValString(cumulus.WindFormat),
 				["highGustTimeDayfile"] = highGust.GetTsString(timeStampFormat),
 				["highWindValDayfile"] = highWindRun.GetValString(cumulus.WindRunFormat),
-				["highWindTimeDayfile"] = highWindRun.GetTsString(dateStampFormat),
+				["highWindTimeDayfile"] = highWindRun.GetTsString(timeStampFormat),
 				["highWindRunValDayfile"] = highWindRun.GetValString(cumulus.WindRunFormat),
 				["highWindRunTimeDayfile"] = highWindRun.GetTsString(dateStampFormat),
 				["highRainRateValDayfile"] = highRainRate.GetValString(cumulus.RainFormat),
@@ -1220,185 +1220,104 @@ namespace CumulusMX
 			// Eg "name=highTempValvalue=134.6&pk=1"
 			var newData = text.Split('&');
 			var field = newData[0].Split('=')[1];
-			var value = newData[1].Split('=')[1];
+
+			var txtValue = newData[1].Split('=')[1];
+			var value = double.Parse(txtValue);
+
+			var txtTime = newData[2].Split('=')[1];
+			var time = localeDateTimeStrToDate(txtTime);
+
 			try
 			{
 				switch (field)
 				{
-					case "highTempVal":
-						station.SetAlltime(station.AllTime.HighTemp, double.Parse(value), station.AllTime.HighTemp.Ts);
+					case "highTemp":
+						station.SetAlltime(station.AllTime.HighTemp, value, time);
 						break;
-					case "highTempTime":
-						station.SetAlltime(station.AllTime.HighTemp, station.AllTime.HighTemp.Val, localeDateTimeStrToDate(value));
+					case "lowTemp":
+						station.SetAlltime(station.AllTime.LowTemp, value, time);
 						break;
-					case "lowTempVal":
-						station.SetAlltime(station.AllTime.LowTemp, double.Parse(value), station.AllTime.LowTemp.Ts);
+					case "highDewPoint":
+						station.SetAlltime(station.AllTime.HighDewPoint, value, time);
 						break;
-					case "lowTempTime":
-						station.SetAlltime(station.AllTime.LowTemp, station.AllTime.LowTemp.Val, localeDateTimeStrToDate(value));
+					case "lowDewPoint":
+						station.SetAlltime(station.AllTime.LowDewPoint, value, time);
 						break;
-					case "highDewPointVal":
-						station.SetAlltime(station.AllTime.HighDewPoint, double.Parse(value), station.AllTime.HighDewPoint.Ts);
+					case "highApparentTemp":
+						station.SetAlltime(station.AllTime.HighAppTemp, value, time);
 						break;
-					case "highDewPointTime":
-						station.SetAlltime(station.AllTime.HighDewPoint, station.AllTime.HighDewPoint.Val, localeDateTimeStrToDate(value));
+					case "lowApparentTemp":
+						station.SetAlltime(station.AllTime.LowAppTemp, value, time);
 						break;
-					case "lowDewPointVal":
-						station.SetAlltime(station.AllTime.LowDewPoint, double.Parse(value), station.AllTime.LowDewPoint.Ts);
+					case "highFeelsLike":
+						station.SetAlltime(station.AllTime.HighFeelsLike, value, time);
 						break;
-					case "lowDewPointTime":
-						station.SetAlltime(station.AllTime.LowDewPoint, station.AllTime.LowDewPoint.Val, localeDateTimeStrToDate(value));
+					case "lowFeelsLike":
+						station.SetAlltime(station.AllTime.LowFeelsLike, value, time);
 						break;
-					case "highApparentTempVal":
-						station.SetAlltime(station.AllTime.HighAppTemp, double.Parse(value), station.AllTime.HighAppTemp.Ts);
+					case "highHumidex":
+						station.SetAlltime(station.AllTime.HighHumidex, value, time);
 						break;
-					case "highApparentTempTime":
-						station.SetAlltime(station.AllTime.HighAppTemp, station.AllTime.HighAppTemp.Val, localeDateTimeStrToDate(value));
+					case "lowWindChill":
+						station.SetAlltime(station.AllTime.LowChill, value, time);
 						break;
-					case "lowApparentTempVal":
-						station.SetAlltime(station.AllTime.LowAppTemp, double.Parse(value), station.AllTime.LowAppTemp.Ts);
+					case "highHeatIndex":
+						station.SetAlltime(station.AllTime.HighHeatIndex, value, time);
 						break;
-					case "lowApparentTempTime":
-						station.SetAlltime(station.AllTime.LowAppTemp, station.AllTime.LowAppTemp.Val, localeDateTimeStrToDate(value));
+					case "highMinTemp":
+						station.SetAlltime(station.AllTime.HighMinTemp, value, time);
 						break;
-					case "highFeelsLikeVal":
-						station.SetAlltime(station.AllTime.HighFeelsLike, double.Parse(value), station.AllTime.HighFeelsLike.Ts);
+					case "lowMaxTemp":
+						station.SetAlltime(station.AllTime.LowMaxTemp, value, time);
 						break;
-					case "highFeelsLikeTime":
-						station.SetAlltime(station.AllTime.HighFeelsLike, station.AllTime.HighFeelsLike.Val, localeDateTimeStrToDate(value));
+					case "highDailyTempRange":
+						station.SetAlltime(station.AllTime.HighDailyTempRange, value, time);
 						break;
-					case "lowFeelsLikeVal":
-						station.SetAlltime(station.AllTime.LowFeelsLike, double.Parse(value), station.AllTime.LowFeelsLike.Ts);
+					case "lowDailyTempRange":
+						station.SetAlltime(station.AllTime.LowDailyTempRange, value, time);
 						break;
-					case "lowFeelsLikeTime":
-						station.SetAlltime(station.AllTime.LowFeelsLike, station.AllTime.LowFeelsLike.Val, localeDateTimeStrToDate(value));
+					case "highHumidity":
+						station.SetAlltime(station.AllTime.HighHumidity, int.Parse(txtValue), time);
 						break;
-					case "highHumidexVal":
-						station.SetAlltime(station.AllTime.HighHumidex, double.Parse(value), station.AllTime.HighHumidex.Ts);
+					case "lowHumidity":
+						station.SetAlltime(station.AllTime.LowHumidity, int.Parse(txtValue), time);
 						break;
-					case "highHumidexTime":
-						station.SetAlltime(station.AllTime.HighHumidex, station.AllTime.HighHumidex.Val, localeDateTimeStrToDate(value));
+					case "highBarometer":
+						station.SetAlltime(station.AllTime.HighPress, value, time);
 						break;
-					case "lowWindChillVal":
-						station.SetAlltime(station.AllTime.LowChill, double.Parse(value), station.AllTime.LowChill.Ts);
+					case "lowBarometer":
+						station.SetAlltime(station.AllTime.LowPress, value, time);
 						break;
-					case "lowWindChillTime":
-						station.SetAlltime(station.AllTime.LowChill, station.AllTime.LowChill.Val, localeDateTimeStrToDate(value));
+					case "highGust":
+						station.SetAlltime(station.AllTime.HighGust, value, time);
 						break;
-					case "highHeatIndexVal":
-						station.SetAlltime(station.AllTime.HighHeatIndex, double.Parse(value), station.AllTime.HighHeatIndex.Ts);
+					case "highWind":
+						station.SetAlltime(station.AllTime.HighWind, value, time);
 						break;
-					case "highHeatIndexTime":
-						station.SetAlltime(station.AllTime.HighHeatIndex, station.AllTime.HighHeatIndex.Val, localeDateTimeStrToDate(value));
+					case "highWindRun":
+						station.SetAlltime(station.AllTime.HighWindRun, value, time);
 						break;
-					case "highMinTempVal":
-						station.SetAlltime(station.AllTime.HighMinTemp, double.Parse(value), station.AllTime.HighMinTemp.Ts);
+					case "highRainRate":
+						station.SetAlltime(station.AllTime.HighRainRate, value, time);
 						break;
-					case "highMinTempTime":
-						station.SetAlltime(station.AllTime.HighMinTemp, station.AllTime.HighMinTemp.Val, localeDateTimeStrToDate(value));
+					case "highHourlyRain":
+						station.SetAlltime(station.AllTime.HourlyRain, value, time);
 						break;
-					case "lowMaxTempVal":
-						station.SetAlltime(station.AllTime.LowMaxTemp, double.Parse(value), station.AllTime.LowMaxTemp.Ts);
+					case "highDailyRain":
+						station.SetAlltime(station.AllTime.DailyRain, value, time);
 						break;
-					case "lowMaxTempTime":
-						station.SetAlltime(station.AllTime.LowMaxTemp, station.AllTime.LowMaxTemp.Val, localeDateTimeStrToDate(value));
+					case "highRain24h":
+						station.SetAlltime(station.AllTime.HighRain24Hours, value, time);
 						break;
-					case "highDailyTempRangeVal":
-						station.SetAlltime(station.AllTime.HighDailyTempRange, double.Parse(value), station.AllTime.HighDailyTempRange.Ts);
-						break;
-					case "highDailyTempRangeTime":
-						station.SetAlltime(station.AllTime.HighDailyTempRange, station.AllTime.HighDailyTempRange.Val, localeDateTimeStrToDate(value));
-						break;
-					case "lowDailyTempRangeVal":
-						station.SetAlltime(station.AllTime.LowDailyTempRange, double.Parse(value), station.AllTime.LowDailyTempRange.Ts);
-						break;
-					case "lowDailyTempRangeTime":
-						station.SetAlltime(station.AllTime.LowDailyTempRange, station.AllTime.LowDailyTempRange.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highHumidityVal":
-						station.SetAlltime(station.AllTime.HighHumidity, double.Parse(value), station.AllTime.HighHumidity.Ts);
-						break;
-					case "highHumidityTime":
-						station.SetAlltime(station.AllTime.HighHumidity, station.AllTime.HighHumidity.Val, localeDateTimeStrToDate(value));
-						break;
-					case "lowHumidityVal":
-						station.SetAlltime(station.AllTime.LowHumidity, double.Parse(value), station.AllTime.LowHumidity.Ts);
-						break;
-					case "lowHumidityTime":
-						station.SetAlltime(station.AllTime.LowHumidity, station.AllTime.LowHumidity.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highBarometerVal":
-						station.SetAlltime(station.AllTime.HighPress, double.Parse(value), station.AllTime.HighPress.Ts);
-						break;
-					case "highBarometerTime":
-						station.SetAlltime(station.AllTime.HighPress, station.AllTime.HighPress.Val, localeDateTimeStrToDate(value));
-						break;
-					case "lowBarometerVal":
-						station.SetAlltime(station.AllTime.LowPress, double.Parse(value), station.AllTime.LowPress.Ts);
-						break;
-					case "lowBarometerTime":
-						station.SetAlltime(station.AllTime.LowPress, station.AllTime.LowPress.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highGustVal":
-						station.SetAlltime(station.AllTime.HighGust, double.Parse(value), station.AllTime.HighGust.Ts);
-						break;
-					case "highGustTime":
-						station.SetAlltime(station.AllTime.HighGust, station.AllTime.HighGust.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highWindVal":
-						station.SetAlltime(station.AllTime.HighWind, double.Parse(value), station.AllTime.HighWind.Ts);
-						break;
-					case "highWindTime":
-						station.SetAlltime(station.AllTime.HighWind, station.AllTime.HighWind.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highWindRunVal":
-						station.SetAlltime(station.AllTime.HighWindRun, double.Parse(value), station.AllTime.HighWindRun.Ts);
-						break;
-					case "highWindRunTime":
-						station.SetAlltime(station.AllTime.HighWindRun, station.AllTime.HighWindRun.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highRainRateVal":
-						station.SetAlltime(station.AllTime.HighRainRate, double.Parse(value), station.AllTime.HighRainRate.Ts);
-						break;
-					case "highRainRateTime":
-						station.SetAlltime(station.AllTime.HighRainRate, station.AllTime.HighRainRate.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highHourlyRainVal":
-						station.SetAlltime(station.AllTime.HourlyRain, double.Parse(value), station.AllTime.HourlyRain.Ts);
-						break;
-					case "highHourlyRainTime":
-						station.SetAlltime(station.AllTime.HourlyRain, station.AllTime.HourlyRain.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highDailyRainVal":
-						station.SetAlltime(station.AllTime.DailyRain, double.Parse(value), station.AllTime.DailyRain.Ts);
-						break;
-					case "highDailyRainTime":
-						station.SetAlltime(station.AllTime.DailyRain, station.AllTime.DailyRain.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highRain24hVal":
-						station.SetAlltime(station.AllTime.HighRain24Hours, double.Parse(value), station.AllTime.HighRain24Hours.Ts);
-						break;
-					case "highRain24hTime":
-						station.SetAlltime(station.AllTime.HighRain24Hours, station.AllTime.HighRain24Hours.Val, localeDateTimeStrToDate(value));
-						break;
-					case "highMonthlyRainVal":
-						station.SetAlltime(station.AllTime.MonthlyRain, double.Parse(value), station.AllTime.MonthlyRain.Ts);
-						break;
-					case "highMonthlyRainTime":
+					case "highMonthlyRain":
 						// MM/yyyy
-						station.SetAlltime(station.AllTime.MonthlyRain, station.AllTime.MonthlyRain.Val, localeMonthYearStrToDate(value));
+						station.SetAlltime(station.AllTime.MonthlyRain, value, localeMonthYearStrToDate(txtTime));
 						break;
-					case "longestDryPeriodVal":
-						station.SetAlltime(station.AllTime.LongestDryPeriod, double.Parse(value), station.AllTime.LongestDryPeriod.Ts);
+					case "longestDryPeriod":
+						station.SetAlltime(station.AllTime.LongestDryPeriod, int.Parse(txtValue), time);
 						break;
-					case "longestDryPeriodTime":
-						station.SetAlltime(station.AllTime.LongestDryPeriod, station.AllTime.LongestDryPeriod.Val, localeDateTimeStrToDate(value));
-						break;
-					case "longestWetPeriodVal":
-						station.SetAlltime(station.AllTime.LongestWetPeriod, double.Parse(value), station.AllTime.LongestWetPeriod.Ts);
-						break;
-					case "longestWetPeriodTime":
-						station.SetAlltime(station.AllTime.LongestWetPeriod, station.AllTime.LongestWetPeriod.Val, localeDateTimeStrToDate(value));
+					case "longestWetPeriod":
+						station.SetAlltime(station.AllTime.LongestWetPeriod, int.Parse(txtValue), time);
 						break;
 					default:
 						return "Data index not recognised";
@@ -1420,193 +1339,111 @@ namespace CumulusMX
 			{
 				text = Uri.UnescapeDataString(reader.ReadToEnd());
 			}
-			// Eg "name=2-highTempValvalue=134.6&pk=1"
+			// Eg "name=2-highTemp&value=134.6&time=29/01/23 08:07"
 			var newData = text.Split('&');
+
 			var monthField = newData[0].Split('=')[1].Split('-');
 			var month = int.Parse(monthField[0]);
 			var field = monthField[1];
-			var value = newData[1].Split('=')[1];
+
+			var txtValue = newData[1].Split('=')[1];
+			var value = double.Parse(txtValue);
+
+			var txtTime = newData[2].Split('=')[1];
+			var time = localeDateTimeStrToDate(txtTime);
+
 			try
 			{
 				lock (station.monthlyalltimeIniThreadLock)
 				{
-					string[] dt;
 					switch (field)
 					{
-						case "highTempVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighTemp, double.Parse(value), station.MonthlyRecs[month].HighTemp.Ts);
+						case "highTemp":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighTemp, value, time);
 							break;
-						case "highTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighTemp, station.MonthlyRecs[month].HighTemp.Val, localeDateTimeStrToDate(value));
+						case "lowTemp":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowTemp, value, time);
 							break;
-						case "lowTempVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowTemp, double.Parse(value), station.MonthlyRecs[month].LowTemp.Ts);
+						case "highDewPoint":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDewPoint, value, time);
 							break;
-						case "lowTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowTemp, station.MonthlyRecs[month].LowTemp.Val, localeDateTimeStrToDate(value));
+						case "lowDewPoint":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowDewPoint, value, time);
 							break;
-						case "highDewPointVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDewPoint, double.Parse(value), station.MonthlyRecs[month].HighDewPoint.Ts);
+						case "highApparentTemp":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighAppTemp, value, time);
 							break;
-						case "highDewPointTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDewPoint, station.MonthlyRecs[month].HighDewPoint.Val, localeDateTimeStrToDate(value));
+						case "lowApparentTemp":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowAppTemp, value, time);
 							break;
-						case "lowDewPointVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowDewPoint, double.Parse(value), station.MonthlyRecs[month].LowDewPoint.Ts);
+						case "highFeelsLike":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighFeelsLike, value, time);
 							break;
-						case "lowDewPointTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowDewPoint, station.MonthlyRecs[month].LowDewPoint.Val, localeDateTimeStrToDate(value));
+						case "lowFeelsLike":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowFeelsLike, value, time);
 							break;
-						case "highApparentTempVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighAppTemp, double.Parse(value), station.MonthlyRecs[month].HighAppTemp.Ts);
+						case "highHumidex":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHumidex, value, time);
 							break;
-						case "highApparentTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighAppTemp, station.MonthlyRecs[month].HighAppTemp.Val, localeDateTimeStrToDate(value));
+						case "lowWindChill":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowChill, value, time);
 							break;
-						case "lowApparentTempVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowAppTemp, double.Parse(value), station.MonthlyRecs[month].LowAppTemp.Ts);
+						case "highHeatIndex":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHeatIndex, value, time);
 							break;
-						case "lowApparentTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowAppTemp, station.MonthlyRecs[month].LowAppTemp.Val, localeDateTimeStrToDate(value));
+						case "highMinTemp":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighMinTemp, value, time);
 							break;
-						case "highFeelsLikeVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighFeelsLike, double.Parse(value), station.MonthlyRecs[month].HighFeelsLike.Ts);
+						case "lowMaxTemp":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowMaxTemp, value, time);
 							break;
-						case "highFeelsLikeTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighFeelsLike, station.MonthlyRecs[month].HighFeelsLike.Val, localeDateTimeStrToDate(value));
+						case "highDailyTempRange":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDailyTempRange, value, time);
 							break;
-						case "lowFeelsLikeVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowFeelsLike, double.Parse(value), station.MonthlyRecs[month].LowFeelsLike.Ts);
+						case "lowDailyTempRange":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowDailyTempRange, value, time);
 							break;
-						case "lowFeelsLikeTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowFeelsLike, station.MonthlyRecs[month].LowFeelsLike.Val, localeDateTimeStrToDate(value));
+						case "highHumidity":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHumidity, int.Parse(txtValue), time);
 							break;
-						case "highHumidexVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHumidex, double.Parse(value), station.MonthlyRecs[month].HighHumidex.Ts);
+						case "lowHumidity":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowHumidity, int.Parse(txtValue), time);
 							break;
-						case "highHumidexTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHumidex, station.MonthlyRecs[month].HighHumidex.Val, localeDateTimeStrToDate(value));
+						case "highBarometer":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighPress, value, time);
 							break;
-						case "lowWindChillVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowChill, double.Parse(value), station.MonthlyRecs[month].LowChill.Ts);
+						case "lowBarometer":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowPress, value, time);
 							break;
-						case "lowWindChillTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowChill, station.MonthlyRecs[month].LowChill.Val, localeDateTimeStrToDate(value));
+						case "highGust":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighGust, value, time);
 							break;
-						case "highHeatIndexVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHeatIndex, double.Parse(value), station.MonthlyRecs[month].HighHeatIndex.Ts);
+						case "highWind":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWind, value, time);
 							break;
-						case "highHeatIndexTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHeatIndex, station.MonthlyRecs[month].HighHeatIndex.Val, localeDateTimeStrToDate(value));
+						case "highWindRun":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWindRun, value, time);
 							break;
-						case "highMinTempVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighMinTemp, double.Parse(value), station.MonthlyRecs[month].HighMinTemp.Ts);
+						case "highRainRate":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRainRate, value, time);
 							break;
-						case "highMinTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighMinTemp, station.MonthlyRecs[month].HighMinTemp.Val, localeDateTimeStrToDate(value));
+						case "highHourlyRain":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HourlyRain, value, time);
 							break;
-						case "lowMaxTempVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowMaxTemp, double.Parse(value), station.MonthlyRecs[month].LowMaxTemp.Ts);
+						case "highDailyRain":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].DailyRain, value, time);
 							break;
-						case "lowMaxTempTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowMaxTemp, station.MonthlyRecs[month].LowMaxTemp.Val, localeDateTimeStrToDate(value));
+						case "highRain24h":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRain24Hours, value, time);
 							break;
-						case "highDailyTempRangeVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDailyTempRange, double.Parse(value), station.MonthlyRecs[month].HighDailyTempRange.Ts);
+						case "highMonthlyRain":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].MonthlyRain, value, localeMonthYearStrToDate(txtTime));
 							break;
-						case "highDailyTempRangeTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighDailyTempRange, station.MonthlyRecs[month].HighDailyTempRange.Val, localeDateTimeStrToDate(value));
+						case "longestDryPeriod":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestDryPeriod, int.Parse(txtValue), time);
 							break;
-						case "lowDailyTempRangeVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowDailyTempRange, double.Parse(value), station.MonthlyRecs[month].LowDailyTempRange.Ts);
-							break;
-						case "lowDailyTempRangeTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowDailyTempRange, station.MonthlyRecs[month].LowDailyTempRange.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highHumidityVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHumidity, double.Parse(value), station.MonthlyRecs[month].HighHumidity.Ts);
-							break;
-						case "highHumidityTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighHumidity, station.MonthlyRecs[month].HighHumidity.Val, localeDateTimeStrToDate(value));
-							break;
-						case "lowHumidityVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowHumidity, double.Parse(value), station.MonthlyRecs[month].LowHumidity.Ts);
-							break;
-						case "lowHumidityTime":
-							dt = value.Split('+');
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowHumidity, station.MonthlyRecs[month].LowHumidity.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highBarometerVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighPress, double.Parse(value), station.MonthlyRecs[month].HighPress.Ts);
-							break;
-						case "highBarometerTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighPress, station.MonthlyRecs[month].HighPress.Val, localeDateTimeStrToDate(value));
-							break;
-						case "lowBarometerVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowPress, double.Parse(value), station.MonthlyRecs[month].LowPress.Ts);
-							break;
-						case "lowBarometerTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LowPress, station.MonthlyRecs[month].LowPress.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highGustVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighGust, double.Parse(value), station.MonthlyRecs[month].HighGust.Ts);
-							break;
-						case "highGustTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighGust, station.MonthlyRecs[month].HighGust.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highWindVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWind, double.Parse(value), station.MonthlyRecs[month].HighWind.Ts);
-							break;
-						case "highWindTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWind, station.MonthlyRecs[month].HighWind.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highWindRunVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWindRun, double.Parse(value), station.MonthlyRecs[month].HighWindRun.Ts);
-							break;
-						case "highWindRunTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWindRun, station.MonthlyRecs[month].HighWindRun.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highRainRateVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRainRate, double.Parse(value), station.MonthlyRecs[month].HighRainRate.Ts);
-							break;
-						case "highRainRateTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRainRate, station.MonthlyRecs[month].HighRainRate.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highHourlyRainVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HourlyRain, double.Parse(value), station.MonthlyRecs[month].HourlyRain.Ts);
-							break;
-						case "highHourlyRainTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HourlyRain, station.MonthlyRecs[month].HourlyRain.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highDailyRainVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].DailyRain, double.Parse(value), station.MonthlyRecs[month].DailyRain.Ts);
-							break;
-						case "highDailyRainTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].DailyRain, station.MonthlyRecs[month].DailyRain.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highRain24hVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRain24Hours, double.Parse(value), station.MonthlyRecs[month].HighRain24Hours.Ts);
-							break;
-						case "highRain24hTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighRain24Hours, station.MonthlyRecs[month].HighRain24Hours.Val, localeDateTimeStrToDate(value));
-							break;
-						case "highMonthlyRainVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].MonthlyRain, double.Parse(value), station.MonthlyRecs[month].MonthlyRain.Ts);
-							break;
-						case "highMonthlyRainTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].MonthlyRain, station.MonthlyRecs[month].MonthlyRain.Val, localeMonthYearStrToDate(value));
-							break;
-						case "longestDryPeriodVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestDryPeriod, double.Parse(value), station.MonthlyRecs[month].LongestDryPeriod.Ts);
-							break;
-						case "longestDryPeriodTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestDryPeriod, station.MonthlyRecs[month].LongestDryPeriod.Val, localeDateTimeStrToDate(value));
-							break;
-						case "longestWetPeriodVal":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestWetPeriod, double.Parse(value), station.MonthlyRecs[month].LongestWetPeriod.Ts);
-							break;
-						case "longestWetPeriodTime":
-							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestWetPeriod, station.MonthlyRecs[month].LongestWetPeriod.Val, localeDateTimeStrToDate(value));
+						case "longestWetPeriod":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestWetPeriod, int.Parse(txtValue), time);
 							break;
 						default:
 							return "Data index not recognised";
@@ -2761,181 +2598,134 @@ namespace CumulusMX
 			{
 				text = Uri.UnescapeDataString(reader.ReadToEnd());
 			}
-			// Eg "name=highTempValvalue=134.6&pk=1"
+			// Eg name=highTempVal&value=134.6&pk=1                   - From direct editing
+			// Eg name=highTempTime&value="04/11/2023 06:58"&pk=1     - From direct editing
+			// Eg name=highTemp&value=134.6&time="04/11/2023 06:58"   - From recorder "clicker"
+
 			var newData = text.Split('&');
 			var field = newData[0].Split('=')[1];
-			var value = newData[1].Split('=')[1];
+
+			var txtValue = newData[1].Split('=')[1];
+			var value = double.Parse(txtValue);
+
+			var txtTime = newData[2].Split('=')[1];
+			var time = localeDateTimeStrToDate(txtTime);
+
 			try
 			{
 				switch (field)
 				{
-					case "highTempVal":
-						station.ThisMonth.HighTemp.Val = double.Parse(value);
+					case "highTemp":
+						station.ThisMonth.HighTemp.Val = value;
+						station.ThisMonth.HighTemp.Ts = time;
 						break;
-					case "highTempTime":
-						station.ThisMonth.HighTemp.Ts = localeDateTimeStrToDate(value);
+					case "lowTemp":
+						station.ThisMonth.LowTemp.Val = value;
+						station.ThisMonth.LowTemp.Ts = time;
 						break;
-					case "lowTempVal":
-						station.ThisMonth.LowTemp.Val = double.Parse(value);
+					case "highDewPoint":
+						station.ThisMonth.HighDewPoint.Val =value;
+						station.ThisMonth.HighDewPoint.Ts = time;
 						break;
-					case "lowTempTime":
-						station.ThisMonth.LowTemp.Ts = localeDateTimeStrToDate(value);
+					case "lowDewPoint":
+						station.ThisMonth.LowDewPoint.Val = value;
+						station.ThisMonth.LowDewPoint.Ts = time;
 						break;
-					case "highDewPointVal":
-						station.ThisMonth.HighDewPoint.Val = double.Parse(value);
+					case "highApparentTemp":
+						station.ThisMonth.HighAppTemp.Val = value;
+						station.ThisMonth.HighAppTemp.Ts = time;
 						break;
-					case "highDewPointTime":
-						station.ThisMonth.HighDewPoint.Ts = localeDateTimeStrToDate(value);
+					case "lowApparentTemp":
+						station.ThisMonth.LowAppTemp.Val = value;
+						station.ThisMonth.LowAppTemp.Ts = time;
 						break;
-					case "lowDewPointVal":
-						station.ThisMonth.LowDewPoint.Val = double.Parse(value);
+					case "highFeelsLike":
+						station.ThisMonth.HighFeelsLike.Val = value;
+						station.ThisMonth.HighFeelsLike.Ts = time;
 						break;
-					case "lowDewPointTime":
-						station.ThisMonth.LowDewPoint.Ts = localeDateTimeStrToDate(value);
+					case "lowFeelsLike":
+						station.ThisMonth.LowFeelsLike.Val = value;
+						station.ThisMonth.LowFeelsLike.Ts = time;
 						break;
-					case "highApparentTempVal":
-						station.ThisMonth.HighAppTemp.Val = double.Parse(value);
+					case "highHumidex":
+						station.ThisMonth.HighHumidex.Val = value;
+						station.ThisMonth.HighHumidex.Ts = time;
 						break;
-					case "highApparentTempTime":
-						station.ThisMonth.HighAppTemp.Ts = localeDateTimeStrToDate(value);
+					case "lowWindChill":
+						station.ThisMonth.LowChill.Val =value;
+						station.ThisMonth.LowChill.Ts = time;
 						break;
-					case "lowApparentTempVal":
-						station.ThisMonth.LowAppTemp.Val = double.Parse(value);
+					case "highHeatIndex":
+						station.ThisMonth.HighHeatIndex.Val = value;
+						station.ThisMonth.HighHeatIndex.Ts = time;
 						break;
-					case "lowApparentTempTime":
-						station.ThisMonth.LowAppTemp.Ts = localeDateTimeStrToDate(value);
+					case "highMinTemp":
+						station.ThisMonth.HighMinTemp.Val = value;
+						station.ThisMonth.HighMinTemp.Ts = time;
 						break;
-					case "highFeelsLikeVal":
-						station.ThisMonth.HighFeelsLike.Val = double.Parse(value);
+					case "lowMaxTemp":
+						station.ThisMonth.LowMaxTemp.Val =value;
+						station.ThisMonth.LowMaxTemp.Ts = time;
 						break;
-					case "highFeelsLikeTime":
-						station.ThisMonth.HighFeelsLike.Ts = localeDateTimeStrToDate(value);
+					case "highDailyTempRange":
+						station.ThisMonth.HighDailyTempRange.Val = value;
+						station.ThisMonth.HighDailyTempRange.Ts = time;
 						break;
-					case "lowFeelsLikeVal":
-						station.ThisMonth.LowFeelsLike.Val = double.Parse(value);
+					case "lowDailyTempRange":
+						station.ThisMonth.LowDailyTempRange.Val = value;
+						station.ThisMonth.LowDailyTempRange.Ts = time;
 						break;
-					case "lowFeelsLikeTime":
-						station.ThisMonth.LowFeelsLike.Ts = localeDateTimeStrToDate(value);
+					case "highHumidity":
+						station.ThisMonth.HighHumidity.Val = int.Parse(txtValue);
+						station.ThisMonth.HighHumidity.Ts = time;
 						break;
-					case "highHumidexVal":
-						station.ThisMonth.HighHumidex.Val = double.Parse(value);
+					case "lowHumidity":
+						station.ThisMonth.LowHumidity.Val = int.Parse(txtValue);
+						station.ThisMonth.LowHumidity.Ts = time;
 						break;
-					case "highHumidexTime":
-						station.ThisMonth.HighHumidex.Ts = localeDateTimeStrToDate(value);
+					case "highBarometer":
+						station.ThisMonth.HighPress.Val = value;
+						station.ThisMonth.HighPress.Ts = time;
 						break;
-					case "lowWindChillVal":
-						station.ThisMonth.LowChill.Val = double.Parse(value);
+					case "lowBarometer":
+						station.ThisMonth.LowPress.Val = value;
+						station.ThisMonth.LowPress.Ts = time;
 						break;
-					case "lowWindChillTime":
-						station.ThisMonth.LowChill.Ts = localeDateTimeStrToDate(value);
+					case "highGust":
+						station.ThisMonth.HighGust.Val = value;
+						station.ThisMonth.HighGust.Ts = time;
 						break;
-					case "highHeatIndexVal":
-						station.ThisMonth.HighHeatIndex.Val = double.Parse(value);
+					case "highWind":
+						station.ThisMonth.HighWind.Val = value;
+						station.ThisMonth.HighWind.Ts = time;
 						break;
-					case "highHeatIndexTime":
-						station.ThisMonth.HighHeatIndex.Ts = localeDateTimeStrToDate(value);
+					case "highWindRun":
+						station.ThisMonth.HighWindRun.Val = value;
+						station.ThisMonth.HighWindRun.Ts = time;
 						break;
-					case "highMinTempVal":
-						station.ThisMonth.HighMinTemp.Val = double.Parse(value);
+					case "highRainRate":
+						station.ThisMonth.HighRainRate.Val = value;
+						station.ThisMonth.HighRainRate.Ts = time;
 						break;
-					case "highMinTempTime":
-						station.ThisMonth.HighMinTemp.Ts = localeDateTimeStrToDate(value);
+					case "highHourlyRain":
+						station.ThisMonth.HourlyRain.Val = value;
+						station.ThisMonth.HourlyRain.Ts = time;
 						break;
-					case "lowMaxTempVal":
-						station.ThisMonth.LowMaxTemp.Val = double.Parse(value);
+					case "highDailyRain":
+						station.ThisMonth.DailyRain.Val = value;
+						station.ThisMonth.DailyRain.Ts = time;
 						break;
-					case "lowMaxTempTime":
-						station.ThisMonth.LowMaxTemp.Ts = localeDateTimeStrToDate(value);
+					case "highRain24h":
+						station.ThisMonth.HighRain24Hours.Val = value;
+						station.ThisMonth.HighRain24Hours.Ts = time;
 						break;
-					case "highDailyTempRangeVal":
-						station.ThisMonth.HighDailyTempRange.Val = double.Parse(value);
+					case "longestDryPeriod":
+						station.ThisMonth.LongestDryPeriod.Val = int.Parse(txtValue);
+						station.ThisMonth.LongestDryPeriod.Ts = time;
 						break;
-					case "highDailyTempRangeTime":
-						station.ThisMonth.HighDailyTempRange.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "lowDailyTempRangeVal":
-						station.ThisMonth.LowDailyTempRange.Val = double.Parse(value);
-						break;
-					case "lowDailyTempRangeTime":
-						station.ThisMonth.LowDailyTempRange.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highHumidityVal":
-						station.ThisMonth.HighHumidity.Val = int.Parse(value);
-						break;
-					case "highHumidityTime":
-						station.ThisMonth.HighHumidity.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "lowHumidityVal":
-						station.ThisMonth.LowHumidity.Val = int.Parse(value);
-						break;
-					case "lowHumidityTime":
-						station.ThisMonth.LowHumidity.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highBarometerVal":
-						station.ThisMonth.HighPress.Val = double.Parse(value);
-						break;
-					case "highBarometerTime":
-						station.ThisMonth.HighPress.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "lowBarometerVal":
-						station.ThisMonth.LowPress.Val = double.Parse(value);
-						break;
-					case "lowBarometerTime":
-						station.ThisMonth.LowPress.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highGustVal":
-						station.ThisMonth.HighGust.Val = double.Parse(value);
-						break;
-					case "highGustTime":
-						station.ThisMonth.HighGust.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highWindVal":
-						station.ThisMonth.HighWind.Val = double.Parse(value);
-						break;
-					case "highWindTime":
-						station.ThisMonth.HighWind.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highWindRunVal":
-						station.ThisMonth.HighWindRun.Val = double.Parse(value);
-						break;
-					case "highWindRunTime":
-						station.ThisMonth.HighWindRun.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highRainRateVal":
-						station.ThisMonth.HighRainRate.Val = double.Parse(value);
-						break;
-					case "highRainRateTime":
-						station.ThisMonth.HighRainRate.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highHourlyRainVal":
-						station.ThisMonth.HourlyRain.Val = double.Parse(value);
-						break;
-					case "highHourlyRainTime":
-						station.ThisMonth.HourlyRain.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highDailyRainVal":
-						station.ThisMonth.DailyRain.Val = double.Parse(value);
-						break;
-					case "highDailyRainTime":
-						station.ThisMonth.DailyRain.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highRain24hVal":
-						station.ThisMonth.HighRain24Hours.Val = double.Parse(value);
-						break;
-					case "highRain24hTime":
-						station.ThisMonth.HighRain24Hours.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "longestDryPeriodVal":
-						station.ThisMonth.LongestDryPeriod.Val = int.Parse(value);
-						break;
-					case "longestDryPeriodTime":
-						station.ThisMonth.LongestDryPeriod.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "longestWetPeriodVal":
-						station.ThisMonth.LongestWetPeriod.Val = int.Parse(value);
-						break;
-					case "longestWetPeriodTime":
-						station.ThisMonth.LongestWetPeriod.Ts = localeDateTimeStrToDate(value);
+					case "longestWetPeriod":
+						station.ThisMonth.LongestWetPeriod.Val = int.Parse(txtValue);
+						station.ThisMonth.LongestWetPeriod.Ts = time;
 						break;
 					default:
 						return "Data index not recognised";
@@ -3034,185 +2824,133 @@ namespace CumulusMX
 			// Eg "name=highTempValvalue=134.6&pk=1"
 			var newData = text.Split('&');
 			var field = newData[0].Split('=')[1];
-			var value = newData[1].Split('=')[1];
+
+			var txtValue = newData[1].Split('=')[1];
+			var value = double.Parse(txtValue);
+
+			var txtTime = newData[2].Split('=')[1];
+			var time = localeDateTimeStrToDate(txtTime);
+
 			try
 			{
 				switch (field)
 				{
-					case "highTempVal":
-						station.ThisYear.HighTemp.Val = double.Parse(value);
+					case "highTemp":
+						station.ThisYear.HighTemp.Val = value;
+						station.ThisYear.HighTemp.Ts = time;
 						break;
-					case "highTempTime":
-						station.ThisYear.HighTemp.Ts = localeDateTimeStrToDate(value);
+					case "lowTemp":
+						station.ThisYear.LowTemp.Val = value;
+						station.ThisYear.LowTemp.Ts = time;
 						break;
-					case "lowTempVal":
-						station.ThisYear.LowTemp.Val = double.Parse(value);
+					case "highDewPoint":
+						station.ThisYear.HighDewPoint.Val = value;
+						station.ThisYear.HighDewPoint.Ts = time;
 						break;
-					case "lowTempTime":
-						station.ThisYear.LowTemp.Ts = localeDateTimeStrToDate(value);
+					case "lowDewPoint":
+						station.ThisYear.LowDewPoint.Val = value;
+						station.ThisYear.LowDewPoint.Ts = time;
 						break;
-					case "highDewPointVal":
-						station.ThisYear.HighDewPoint.Val = double.Parse(value);
+					case "highApparentTemp":
+						station.ThisYear.HighAppTemp.Val = value;
+						station.ThisYear.HighAppTemp.Ts = time;
 						break;
-					case "highDewPointTime":
-						station.ThisYear.HighDewPoint.Ts = localeDateTimeStrToDate(value);
+					case "lowApparentTemp":
+						station.ThisYear.LowAppTemp.Val = value;
+						station.ThisYear.LowAppTemp.Ts = time;
 						break;
-					case "lowDewPointVal":
-						station.ThisYear.LowDewPoint.Val = double.Parse(value);
+					case "highFeelsLike":
+						station.ThisYear.HighFeelsLike.Val = value;
+						station.ThisYear.HighFeelsLike.Ts = time;
 						break;
-					case "lowDewPointTime":
-						station.ThisYear.LowDewPoint.Ts = localeDateTimeStrToDate(value);
+					case "lowFeelsLike":
+						station.ThisYear.LowFeelsLike.Val = value;
+						station.ThisYear.LowFeelsLike.Ts = time;
 						break;
-					case "highApparentTempVal":
-						station.ThisYear.HighAppTemp.Val = double.Parse(value);
+					case "highHumidex":
+						station.ThisYear.HighHumidex.Val = value;
+						station.ThisYear.HighHumidex.Ts = time;
 						break;
-					case "highApparentTempTime":
-						station.ThisYear.HighAppTemp.Ts = localeDateTimeStrToDate(value);
+					case "lowWindChill":
+						station.ThisYear.LowChill.Val = value;
+						station.ThisYear.LowChill.Ts = time;
 						break;
-					case "lowApparentTempVal":
-						station.ThisYear.LowAppTemp.Val = double.Parse(value);
+					case "highHeatIndex":
+						station.ThisYear.HighHeatIndex.Val = value;
+						station.ThisYear.HighHeatIndex.Ts = time;
 						break;
-					case "lowApparentTempTime":
-						station.ThisYear.LowAppTemp.Ts = localeDateTimeStrToDate(value);
+					case "highMinTemp":
+						station.ThisYear.HighMinTemp.Val = value;
+						station.ThisYear.HighMinTemp.Ts = time;
 						break;
-					case "highFeelsLikeVal":
-						station.ThisYear.HighFeelsLike.Val = double.Parse(value);
+					case "lowMaxTemp":
+						station.ThisYear.LowMaxTemp.Val = value;
+						station.ThisYear.LowMaxTemp.Ts = time;
 						break;
-					case "highFeelsLikeTime":
-						station.ThisYear.HighFeelsLike.Ts = localeDateTimeStrToDate(value);
+					case "highDailyTempRange":
+						station.ThisYear.HighDailyTempRange.Val = value;
+						station.ThisYear.HighDailyTempRange.Ts = time;
 						break;
-					case "lowFeelsLikeVal":
-						station.ThisYear.LowFeelsLike.Val = double.Parse(value);
+					case "lowDailyTempRange":
+						station.ThisYear.LowDailyTempRange.Val = value;
+						station.ThisYear.LowDailyTempRange.Ts = time;
 						break;
-					case "lowFeelsLikeTime":
-						station.ThisYear.LowFeelsLike.Ts = localeDateTimeStrToDate(value);
+					case "highHumidity":
+						station.ThisYear.HighHumidity.Val = int.Parse(txtValue);
+						station.ThisYear.HighHumidity.Ts = time;
 						break;
-					case "highHumidexVal":
-						station.ThisYear.HighHumidex.Val = double.Parse(value);
+					case "lowHumidity":
+						station.ThisYear.LowHumidity.Val = int.Parse(txtValue);
+						station.ThisYear.LowHumidity.Ts = time;
 						break;
-					case "highHumidexTime":
-						station.ThisYear.HighHumidex.Ts = localeDateTimeStrToDate(value);
+					case "highBarometer":
+						station.ThisYear.HighPress.Val = value;
+						station.ThisYear.HighPress.Ts = time;
 						break;
-					case "lowWindChillVal":
-						station.ThisYear.LowChill.Val = double.Parse(value);
+					case "lowBarometer":
+						station.ThisYear.LowPress.Val = value;
+						station.ThisYear.LowPress.Ts = time;
 						break;
-					case "lowWindChillTime":
-						station.ThisYear.LowChill.Ts = localeDateTimeStrToDate(value);
+					case "highGust":
+						station.ThisYear.HighGust.Val = value;
+						station.ThisYear.HighGust.Ts = time;
 						break;
-					case "highHeatIndexVal":
-						station.ThisYear.HighHeatIndex.Val = double.Parse(value);
+					case "highWind":
+						station.ThisYear.HighWind.Val = value;
+						station.ThisYear.HighWind.Ts = time;
 						break;
-					case "highHeatIndexTime":
-						station.ThisYear.HighHeatIndex.Ts = localeDateTimeStrToDate(value);
+					case "highWindRun":
+						station.ThisYear.HighWindRun.Val = value;
+						station.ThisYear.HighWindRun.Ts = time;
 						break;
-					case "highMinTempVal":
-						station.ThisYear.HighMinTemp.Val = double.Parse(value);
+					case "highRainRate":
+						station.ThisYear.HighRainRate.Val = value;
+						station.ThisYear.HighRainRate.Ts = time;
 						break;
-					case "highMinTempTime":
-						station.ThisYear.HighMinTemp.Ts = localeDateTimeStrToDate(value);
+					case "highHourlyRain":
+						station.ThisYear.HourlyRain.Val = value;
+						station.ThisYear.HourlyRain.Ts = time;
 						break;
-					case "lowMaxTempVal":
-						station.ThisYear.LowMaxTemp.Val = double.Parse(value);
+					case "highDailyRain":
+						station.ThisYear.DailyRain.Val = value;
+						station.ThisYear.DailyRain.Ts = time;
 						break;
-					case "lowMaxTempTime":
-						station.ThisYear.LowMaxTemp.Ts = localeDateTimeStrToDate(value);
+					case "highRain24h":
+						station.ThisYear.HighRain24Hours.Val = value;
+						station.ThisYear.HighRain24Hours.Ts = time;
 						break;
-					case "highDailyTempRangeVal":
-						station.ThisYear.HighDailyTempRange.Val = double.Parse(value);
-						break;
-					case "highDailyTempRangeTime":
-						station.ThisYear.HighDailyTempRange.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "lowDailyTempRangeVal":
-						station.ThisYear.LowDailyTempRange.Val = double.Parse(value);
-						break;
-					case "lowDailyTempRangeTime":
-						station.ThisYear.LowDailyTempRange.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highHumidityVal":
-						station.ThisYear.HighHumidity.Val = int.Parse(value);
-						break;
-					case "highHumidityTime":
-						station.ThisYear.HighHumidity.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "lowHumidityVal":
-						station.ThisYear.LowHumidity.Val = int.Parse(value);
-						break;
-					case "lowHumidityTime":
-						station.ThisYear.LowHumidity.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highBarometerVal":
-						station.ThisYear.HighPress.Val = double.Parse(value);
-						break;
-					case "highBarometerTime":
-						station.ThisYear.HighPress.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "lowBarometerVal":
-						station.ThisYear.LowPress.Val = double.Parse(value);
-						break;
-					case "lowBarometerTime":
-						station.ThisYear.LowPress.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highGustVal":
-						station.ThisYear.HighGust.Val = double.Parse(value);
-						break;
-					case "highGustTime":
-						station.ThisYear.HighGust.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highWindVal":
-						station.ThisYear.HighWind.Val = double.Parse(value);
-						break;
-					case "highWindTime":
-						station.ThisYear.HighWind.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highWindRunVal":
-						station.ThisYear.HighWindRun.Val = double.Parse(value);
-						break;
-					case "highWindRunTime":
-						station.ThisYear.HighWindRun.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highRainRateVal":
-						station.ThisYear.HighRainRate.Val = double.Parse(value);
-						break;
-					case "highRainRateTime":
-						station.ThisYear.HighRainRate.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highHourlyRainVal":
-						station.ThisYear.HourlyRain.Val = double.Parse(value);
-						break;
-					case "highHourlyRainTime":
-						station.ThisYear.HourlyRain.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highDailyRainVal":
-						station.ThisYear.DailyRain.Val = double.Parse(value);
-						break;
-					case "highDailyRainTime":
-						station.ThisYear.DailyRain.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highRain24hVal":
-						station.ThisYear.HighRain24Hours.Val = double.Parse(value);
-						break;
-					case "highRain24hTime":
-						station.ThisYear.HighRain24Hours.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "highMonthlyRainVal":
-						station.ThisYear.MonthlyRain.Val = double.Parse(value);
-						break;
-					case "highMonthlyRainTime":
+					case "highMonthlyRain":
+						station.ThisYear.MonthlyRain.Val = value;
 						// MM/yyyy
-						station.ThisYear.MonthlyRain.Ts = localeMonthYearStrToDate(value);
+						station.ThisYear.MonthlyRain.Ts = localeMonthYearStrToDate(txtTime);
 						break;
-					case "longestDryPeriodVal":
-						station.ThisYear.LongestDryPeriod.Val = int.Parse(value);
+					case "longestDryPeriod":
+						station.ThisYear.LongestDryPeriod.Val = int.Parse(txtValue);
+						station.ThisYear.LongestDryPeriod.Ts = time;
 						break;
-					case "longestDryPeriodTime":
-						station.ThisYear.LongestDryPeriod.Ts = localeDateTimeStrToDate(value);
-						break;
-					case "longestWetPeriodVal":
-						station.ThisYear.LongestWetPeriod.Val = int.Parse(value);
-						break;
-					case "longestWetPeriodTime":
-						station.ThisYear.LongestWetPeriod.Ts = localeDateTimeStrToDate(value);
+					case "longestWetPeriod":
+						station.ThisYear.LongestWetPeriod.Val = int.Parse(txtValue);
+						station.ThisYear.LongestWetPeriod.Ts = time;
 						break;
 					default:
 						return "Data index not recognised";

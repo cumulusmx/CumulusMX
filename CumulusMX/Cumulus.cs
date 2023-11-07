@@ -4225,6 +4225,7 @@ namespace CumulusMX
 			var DavisBaudRates = new List<int> { 1200, 2400, 4800, 9600, 14400, 19200 };
 			ImetOptions.BaudRates = new List<int> { 19200, 115200 };
 			var rewriteRequired = false; // Do we need to re-save the ini file after migration processing or resetting options?
+			var recreateRequired = false; // Do we need to wipe the file to remove old entries?
 
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
@@ -4542,7 +4543,7 @@ namespace CumulusMX
 				try
 				{
 					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
-					rewriteRequired = true;
+					recreateRequired = true;
 				}
 				catch (Exception ex)
 				{
@@ -4756,7 +4757,7 @@ namespace CumulusMX
 			else
 			{
 				AirLinkIsNode = ini.GetValue("AirLink", "In-IsNode", false) || ini.GetValue("AirLink", "Out-IsNode", false);
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			AirLinkApiKey = ini.GetValue("AirLink", "WLv2ApiKey", "");
 			AirLinkApiSecret = ini.GetValue("AirLink", "WLv2ApiSecret", "");
@@ -5553,14 +5554,14 @@ namespace CumulusMX
 			{
 				SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactor", 0.8);
 				SolarOptions.RStransfactorDec = SolarOptions.RStransfactorJun;
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
 				if (ini.ValueExists("Solar", "RStransfactorJul"))
 				{
 					SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJul", 0.8);
-					rewriteRequired = true;
+					recreateRequired = true;
 				}
 				else
 				{
@@ -5572,14 +5573,14 @@ namespace CumulusMX
 			{
 				SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidity", 2.0);
 				SolarOptions.BrasTurbidityDec = SolarOptions.BrasTurbidityJun;
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
 				if (ini.ValueExists("Solar", "BrasTurbidityJul"))
 				{
 					SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJul", 2.0);
-					rewriteRequired = true;
+					recreateRequired = true;
 				}
 				else
 				{
@@ -5940,12 +5941,25 @@ namespace CumulusMX
 
 			LogMessage("Reading Cumulus.ini file completed");
 
-			if (rewriteRequired && File.Exists("Cumulus.ini"))
+			if ((rewriteRequired || recreateRequired) && File.Exists("Cumulus.ini"))
 			{
 				LogMessage("Some values in Cumulus.ini had invalid values, or new required entries have been created.");
 				LogMessage("Recreating Cumulus.ini to reflect the new configuration.");
-				LogDebugMessage("Deleting existing Cumulus.ini");
-				File.Delete("Cumulus.ini");
+				if (recreateRequired)
+				{
+					LogDebugMessage("Clearing existing Cumulus.ini");
+					try
+					{
+						using (var fs = new FileStream("Cumulus.ini", FileMode.Truncate))
+						{
+							// Truncate the file to zero bytes.
+						}
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage("Error clearing Cumulus.ini: " + ex.Message);
+					}
+				}
 				WriteIniFile();
 			}
 		}

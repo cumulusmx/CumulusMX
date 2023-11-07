@@ -10,6 +10,10 @@ New
 Changed
 - All third-party upload issues are now classified as Warnings
 - Third party components for FTP(S) and SFTP updated
+- If Cumulus.ini needs rewriting it is now overwritten, if it needs recreating it is first truncated to zero length. Previously the file was deleted and recreated in both instances which
+	made linking the file for example in Docker images impossible.
+- The records editors now set both value and date/time when you click on the record from the dayfile for monthly logs
+- The records editors now accept y/n key presses to update records or cancel
 
 Fixed
 - "Object is not intialized" error from the API when the station is not yet ready
