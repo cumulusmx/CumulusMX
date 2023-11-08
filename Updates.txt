@@ -6,6 +6,7 @@ New
 	- Without parameters it returns the total for the current month so far (excluding today)
 	- You can add parameters "year" and "month" to return the value for a particular month. Eg. <#windrunmonth year=2022 month=3>
 	- Like the existing <#windrun> it also accepts the "unit" parameter to return the value in miles, kilometers, or nautical miles
+- PHP upload advanced option to disable the use of GET for small files and fallback to using POST for all files
 
 Changed
 - All third-party upload issues are now classified as Warnings
