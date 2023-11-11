@@ -117,8 +117,8 @@ namespace CumulusMX
 
 			doSolar(recDate);
 
-			DoOutdoorDewpoint(0, recDate);
-			DoWindChill(0, recDate);
+			DoOutdoorDewpoint(-999, recDate);
+			DoWindChill(-999, recDate);
 			DoHumidex(recDate);
 			DoApparentTemp(recDate);
 			DoFeelsLike(recDate);

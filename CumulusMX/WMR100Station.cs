@@ -396,8 +396,7 @@ namespace CumulusMX
 
 				if (TempReadyToPlot)
 				{
-					wc = OutdoorTemperature;
-					DoWindChill(wc, now);
+					DoWindChill(-999, now);
 				}
 			}
 			else

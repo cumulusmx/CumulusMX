@@ -63,6 +63,11 @@ namespace CumulusMX
 					// We are using the primary T/H sensor
 					cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
 				}
+				else if (cumulus.Gw1000PrimaryTHSensor == 99)
+				{
+					cumulus.LogMessage("Overriding the default outdoor temp/hum data with the internal sensor");
+					cumulus.StationOptions.CalculatedDP = true;
+				}
 				else
 				{
 					// We are not using the primary T/H sensor
@@ -228,10 +233,10 @@ namespace CumulusMX
 						{
 							var time = Utils.FromUnixTime(data.outdoor.temperature.time);
 							DoOutdoorTemp(data.outdoor.temperature.value, time);
+							DoOutdoorHumidity(data.outdoor.humidity.value, time);
 							DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
 							DoFeelsLike(time);
 							DoApparentTemp(time);
-							DoOutdoorHumidity(data.outdoor.humidity.value, time);
 							DoHumidex(time);
 							DoCloudBaseHeatIndex(time);
 						}
@@ -251,6 +256,19 @@ namespace CumulusMX
 				{
 					try
 					{
+						// user has mapped the indoor sensor to the outdoor sensor
+						if (cumulus.Gw1000PrimaryTHSensor == 99)
+						{
+							var time = Utils.FromUnixTime(data.outdoor.temperature.time);
+							DoOutdoorTemp(data.indoor.temperature.value, time);
+							DoOutdoorHumidity(data.indoor.humidity.value, time);
+							DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
+							DoFeelsLike(time);
+							DoApparentTemp(time);
+							DoHumidex(time);
+							DoCloudBaseHeatIndex(time);
+						}
+
 						DoIndoorTemp(data.indoor.temperature.value);
 						DoIndoorHumidity(data.indoor.humidity.value);
 					}
@@ -288,7 +306,7 @@ namespace CumulusMX
 					try
 					{
 						DoWind(data.wind.wind_gust.value, data.wind.wind_direction.value, data.wind.wind_speed.value, Utils.FromUnixTime(data.wind.wind_gust.time));
-						DoWindChill(0, Utils.FromUnixTime(data.wind.wind_gust.time));
+						DoWindChill(-999, Utils.FromUnixTime(data.wind.wind_gust.time));
 					}
 					catch (Exception ex)
 					{

@@ -5399,14 +5399,22 @@ namespace CumulusMX
 		{
 			bool chillvalid = true;
 
-			if (cumulus.StationOptions.CalculatedWC)
+			if (cumulus.StationOptions.CalculatedWC || chillpar < -500)
 			{
 				// don"t try to calculate wind chill if we haven"t yet had wind and temp readings
 				if (TempReadyToPlot && WindReadyToPlot)
 				{
 					double TempinC = ConvertUserTempToC(OutdoorTemperature);
 					double windinKPH = ConvertUserWindToKPH(WindAverage);
-					WindChill = ConvertTempCToUser(MeteoLib.WindChill(TempinC, windinKPH));
+					// no wind chill below 1.5 m/s = 5.4 km
+					if (windinKPH >= 5.4)
+					{
+						WindChill = ConvertTempCToUser(MeteoLib.WindChill(TempinC, windinKPH));
+					}
+					else
+					{
+						WindChill = OutdoorTemperature;
+					}
 				}
 				else
 				{
@@ -5994,21 +6002,25 @@ namespace CumulusMX
 
 		public void DoOutdoorDewpoint(double dp, DateTime timestamp)
 		{
-			if (!cumulus.StationOptions.CalculatedDP)
+
+			if (cumulus.StationOptions.CalculatedDP || dp < -500)
 			{
-				if (ConvertUserTempToC(dp) <= cumulus.Limit.DewHigh)
-				{
-					OutdoorDewpoint = dp;
-					CheckForDewpointHighLow(timestamp);
-				}
-				else
-				{
-					var msg = $"Dew point greater than limit ({cumulus.Limit.DewHigh.ToString(cumulus.TempFormat)}); reading ignored: {dp.ToString(cumulus.TempFormat)}";
-					lastSpikeRemoval = DateTime.Now;
-					cumulus.SpikeAlarm.LastMessage = msg;
-					cumulus.SpikeAlarm.Triggered = true;
-					cumulus.LogSpikeRemoval(msg);
-				}
+				dp = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
+
+			}
+
+			if (ConvertUserTempToC(dp) <= cumulus.Limit.DewHigh)
+			{
+				OutdoorDewpoint = dp;
+				CheckForDewpointHighLow(timestamp);
+			}
+			else
+			{
+				var msg = $"Dew point greater than limit ({cumulus.Limit.DewHigh.ToString(cumulus.TempFormat)}); reading ignored: {dp.ToString(cumulus.TempFormat)}";
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = msg;
+				cumulus.SpikeAlarm.Triggered = true;
+				cumulus.LogSpikeRemoval(msg);
 			}
 		}
 

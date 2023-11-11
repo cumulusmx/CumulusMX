@@ -333,24 +333,13 @@ namespace CumulusMX
 				}
 
 				// Wind chill ==================================================================
-				if (cumulus.StationOptions.CalculatedWC)
+				if (historydata.windchill < ConvertTempCToUser(60))
 				{
-					if (ConvertUserWindToMS(WindAverage) < 1.5)
-					{
-						DoWindChill(OutdoorTemperature, timestamp);
-					}
-					else
-					{
-						// calculate wind chill from calibrated C temp and calibrated win in KPH
-						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
-					}
+					DoWindChill(historydata.windchill, timestamp);
 				}
 				else
 				{
-					if (historydata.windchill < ConvertTempCToUser(60))
-					{
-						DoWindChill(historydata.windchill, timestamp);
-					}
+					DoWindChill(-999, timestamp);
 				}
 
 				// Wind run ======================================================================
@@ -699,19 +688,12 @@ namespace CumulusMX
 				}
 
 				// wind chill
-				if (cumulus.StationOptions.CalculatedWC)
+				double wc = Ws2300WindChill();
+				if (wc > -100 && wc < 60)
 				{
-					DoWindChill(OutdoorTemperature, now);
+					DoWindChill(ConvertTempCToUser(wc), now);
 				}
-				else
-				{
-					double wc = Ws2300WindChill();
-					if (wc > -100 && wc < 60)
-					{
-						DoWindChill(ConvertTempCToUser(wc), now);
-					}
-				}
-			}
+		}
 
 			// Rain ===========================================================================
 			if (!stop)

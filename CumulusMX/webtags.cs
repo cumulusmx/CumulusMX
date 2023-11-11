@@ -12,14 +12,14 @@ namespace CumulusMX
 {
 	public delegate string WebTagFunction(Dictionary<string, string> tagParams);
 
-	internal class WebTags
+	public class WebTags
 	{
 		private Dictionary<string, WebTagFunction> webTagDictionary;
 
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
 
-		public WebTags(Cumulus cumulus, WeatherStation station)
+		internal WebTags(Cumulus cumulus, WeatherStation station)
 		{
 			this.cumulus = cumulus;
 			this.station = station;

@@ -31,6 +31,7 @@ namespace CumulusMX
 
 			// Tempest does not provide wind chill
 			cumulus.StationOptions.CalculatedWC = true;
+			cumulus.StationOptions.CalculatedDP = true;
 
 			// Tempest does not provide average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
@@ -161,22 +162,10 @@ namespace CumulusMX
 				cumulus.LogMessage(
 					$"TempestDoRainHist: Total Precip for Day: {Raincounter}");
 
-				OutdoorDewpoint =
-					ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature),
-						OutdoorHumidity));
-
-				CheckForDewpointHighLow(timestamp);
-
+				// calculate dp
+				DoOutdoorDewpoint(-999, timestamp);
 				// calculate wind chill
-
-				if (ConvertUserWindToMS(WindAverage) < 1.5)
-					DoWindChill(OutdoorTemperature, timestamp);
-				else
-					// calculate wind chill from calibrated C temp and calibrated win in KPH
-					DoWindChill(
-						ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature),
-							ConvertUserWindToKPH(WindAverage))), timestamp);
-
+				DoWindChill(-999, timestamp);
 				DoApparentTemp(timestamp);
 				DoFeelsLike(timestamp);
 				DoHumidex(timestamp);
@@ -286,6 +275,9 @@ namespace CumulusMX
 						);
 
 						ts = wp.Observation.Timestamp;
+
+						DoOutdoorHumidity((int) wp.Observation.Humidity, ts);
+
 						var userTemp = ConvertTempCToUser(Convert.ToDouble(wp.Observation.Temperature));
 
 						DoOutdoorTemp(userTemp, ts);
@@ -314,17 +306,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage(
 							$"TempestDoRain: Total Precip for Day: {Raincounter}");
 
-						DoOutdoorHumidity((int) wp.Observation.Humidity, ts);
-
-						OutdoorDewpoint =
-							ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature),
-								OutdoorHumidity));
-
-						CheckForDewpointHighLow(ts);
-
+						DoOutdoorDewpoint(-999, ts);
 						DoApparentTemp(ts);
 						DoFeelsLike(ts);
-						DoWindChill(userTemp, ts);
+						DoWindChill(-999, ts);
 						DoHumidex(ts);
 						DoCloudBaseHeatIndex(ts);
 

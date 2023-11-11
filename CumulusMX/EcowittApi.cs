@@ -1290,6 +1290,12 @@ namespace CumulusMX
 			{
 				if (rec.Value.IndoorHum.HasValue)
 				{
+					// user has mapped indoor humidity to outdoor
+					if (cumulus.Gw1000PrimaryTHSensor == 99)
+					{
+						station.DoOutdoorHumidity(rec.Value.IndoorHum.Value, rec.Key);
+					}
+
 					station.DoIndoorHumidity(rec.Value.IndoorHum.Value);
 				}
 				else
@@ -1297,9 +1303,12 @@ namespace CumulusMX
 					cumulus.LogWarningMessage("ApplyHistoricData: Missing indoor humidity data");
 				}
 
-				if (rec.Value.Humidity.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
+				if (rec.Value.Humidity.HasValue)
 				{
-					station.DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
+					if (cumulus.Gw1000PrimaryTHSensor == 0)
+					{
+						station.DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
+					}
 				}
 				else
 				{
@@ -1339,6 +1348,12 @@ namespace CumulusMX
 				if (rec.Value.IndoorTemp.HasValue)
 				{
 					var tempVal = (double) rec.Value.IndoorTemp;
+					// user has mapped indoor temperature to outdoor
+					if (cumulus.Gw1000PrimaryTHSensor == 99)
+					{
+						station.DoOutdoorTemp(tempVal, rec.Key);
+					}
+
 					station.DoIndoorTemp(tempVal);
 				}
 				else
@@ -1355,10 +1370,13 @@ namespace CumulusMX
 			// = avg for period
 			try
 			{
-				if (rec.Value.Temp.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
+				if (rec.Value.Temp.HasValue)
 				{
-					var tempVal = (double) rec.Value.Temp;
-					station.DoOutdoorTemp(tempVal, rec.Key);
+					if (cumulus.Gw1000PrimaryTHSensor == 0)
+					{
+						var tempVal = (double) rec.Value.Temp;
+						station.DoOutdoorTemp(tempVal, rec.Key);
+					}
 				}
 				else
 				{
@@ -1439,11 +1457,16 @@ namespace CumulusMX
 					if (rec.Value.ExtraTemp[i].HasValue)
 					{
 						var tempVal = (double) rec.Value.ExtraTemp[i];
+						station.DoExtraTemp(tempVal, i);
+
 						if (i == cumulus.Gw1000PrimaryTHSensor)
 						{
 							station.DoOutdoorTemp(tempVal, rec.Key);
 						}
-						station.DoExtraTemp(tempVal, i);
+					}
+					else if (i == cumulus.Gw1000PrimaryTHSensor)
+					{
+						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to outdoor temperature data");
 					}
 				}
 				catch (Exception ex)
@@ -1455,11 +1478,16 @@ namespace CumulusMX
 				{
 					if (rec.Value.ExtraHumidity[i].HasValue)
 					{
+						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
+
 						if (i == cumulus.Gw1000PrimaryTHSensor)
 						{
 							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, rec.Key);
 						}
-						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
+					}
+					else if (i == cumulus.Gw1000PrimaryTHSensor)
+					{
+						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
 					}
 				}
 				catch (Exception ex)
@@ -1576,14 +1604,14 @@ namespace CumulusMX
 			// === Dewpoint ===
 			try
 			{
-				if (cumulus.StationOptions.CalculatedDP)
-				{
-					station.DoOutdoorDewpoint(0, rec.Key);
-				}
-				else if (rec.Value.DewPoint.HasValue)
+				if (rec.Value.DewPoint.HasValue)
 				{
 					var val = (double) rec.Value.DewPoint;
 					station.DoOutdoorDewpoint(val, rec.Key);
+				}
+				else if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
+				{
+					station.DoOutdoorDewpoint(-999, rec.Key);
 				}
 			}
 			catch (Exception ex)
@@ -1594,16 +1622,10 @@ namespace CumulusMX
 			// === Wind Chill ===
 			try
 			{
-				if (cumulus.StationOptions.CalculatedWC && rec.Value.WindSpd.HasValue)
-				{
-					station.DoWindChill(0, rec.Key);
-				}
-				else
+				if (rec.Value.Temp.HasValue && rec.Value.WindSpd.HasValue)
 				{
 					// historic API does not provide Wind Chill so force calculation
-					cumulus.StationOptions.CalculatedWC = true;
-					station.DoWindChill(0, rec.Key);
-					cumulus.StationOptions.CalculatedWC = false;
+					station.DoWindChill(-999, rec.Key);
 				}
 			}
 			catch (Exception ex)
@@ -1611,21 +1633,24 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in Wind chill data - " + ex.Message);
 			}
 
-			// === Humidex ===
+			// === Humidex etc ===
 			try
 			{
-				station.DoHumidex(rec.Key);
-				station.DoCloudBaseHeatIndex(rec.Key);
+				if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
+				{
+					station.DoHumidex(rec.Key);
+					station.DoCloudBaseHeatIndex(rec.Key);
 
-				// === Apparent & Feels Like === - requires temp, hum, and windspeed
-				if (rec.Value.WindSpd.HasValue)
-				{
-					station.DoApparentTemp(rec.Key);
-					station.DoFeelsLike(rec.Key);
-				}
-				else
-				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Insufficient data to calculate Apparent/Feels Like temps");
+					// === Apparent & Feels Like === - requires temp, hum, and windspeed
+					if (rec.Value.WindSpd.HasValue)
+					{
+						station.DoApparentTemp(rec.Key);
+						station.DoFeelsLike(rec.Key);
+					}
+					else
+					{
+						cumulus.LogWarningMessage("ApplyHistoricData: Insufficient data to calculate Humidex/Apparent/Feels Like temps");
+					}
 				}
 			}
 			catch (Exception ex)

@@ -16,7 +16,6 @@ namespace CumulusMX
 	{
 		private WeatherStation station;
 		private readonly Cumulus cumulus;
-		private WebTags webtags;
 
 
 		internal DataEditor(Cumulus cumulus)
@@ -29,10 +28,6 @@ namespace CumulusMX
 			this.station = station;
 		}
 
-		internal void SetWebTags(WebTags webtags)
-		{
-			this.webtags = webtags;
-		}
 		//internal string EditRainToday(HttpListenerContext context)
 		internal string EditRainToday(IHttpContext context)
 		{
@@ -2966,7 +2961,21 @@ namespace CumulusMX
 
 		internal string GetCurrentCond()
 		{
-			return $"{{\"data\":\"{webtags.GetCurrCondText()}\"}}";
+			string res;
+			string fileName = cumulus.AppDir + "currentconditions.txt";
+			if (File.Exists(fileName))
+			{
+				using (StreamReader streamReader = new StreamReader(fileName))
+				{
+					res = streamReader.ReadToEnd();
+				}
+			}
+			else
+			{
+				res = string.Empty;
+			}
+			return res;
+
 		}
 
 		internal string EditCurrentCond(IHttpContext context)

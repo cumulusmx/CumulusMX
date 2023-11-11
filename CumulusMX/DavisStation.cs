@@ -1631,16 +1631,7 @@ namespace CumulusMX
 					DoET(ConvertRainINToUser(loopData.AnnualET), now);
 				}
 
-				if (ConvertUserWindToMS(WindAverage) < 1.5)
-				{
-					DoWindChill(OutdoorTemperature, now);
-				}
-				else
-				{
-					// calculate wind chill from calibrated C temp and calibrated win in KPH
-					DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), now);
-				}
-
+				DoWindChill(OutdoorTemperature, now);
 				DoApparentTemp(now);
 				DoFeelsLike(now);
 				DoHumidex(now);
@@ -2509,16 +2500,7 @@ namespace CumulusMX
 
 								AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
 								DoWind(wind, bearing, avgwind, timestamp);
-
-								if (ConvertUserWindToMS(WindAverage) < 1.5)
-								{
-									DoWindChill(OutdoorTemperature, timestamp);
-								}
-								else
-								{
-									// calculate wind chill from calibrated C temp and calibrated win in KPH
-									DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
-								}
+								DoWindChill(OutdoorTemperature, timestamp);
 
 								// update dominant wind bearing
 								CalculateDominantWindBearing(bearing, WindAverage, interval);
@@ -2668,7 +2650,7 @@ namespace CumulusMX
 
 							cumulus.LogMessage("GetArchiveData: Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
 
-							DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
+							DoWindChill(-999, timestamp);
 
 							DoApparentTemp(timestamp);
 							DoFeelsLike(timestamp);

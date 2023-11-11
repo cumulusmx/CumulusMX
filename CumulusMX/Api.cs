@@ -340,6 +340,8 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"{ex.Message}\"}}");
 				}
 			}
 
@@ -375,6 +377,8 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage($"api/tags: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
+					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
+						await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"500\",\"Description\":\"{ex.Message}\"}}");
 				}
 			}
 		}

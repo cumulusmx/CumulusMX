@@ -1280,16 +1280,7 @@ namespace CumulusMX
 				// Now we have the primary data, calculate the derived data
 				if (cumulus.StationOptions.CalculatedWC)
 				{
-					if (ConvertUserWindToMS(WindAverage) < 1.5)
-					{
-						// wind speed too low, use the temperature
-						DoWindChill(OutdoorTemperature, dateTime);
-					}
-					else
-					{
-						// calculate wind chill from calibrated C temp and calibrated wind in KPH
-						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
-					}
+					DoWindChill(OutdoorTemperature, dateTime);
 				}
 
 				DoApparentTemp(dateTime);

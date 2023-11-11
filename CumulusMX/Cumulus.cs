@@ -243,7 +243,7 @@ namespace CumulusMX
 
 		public PerformanceCounter UpTime;
 
-		private readonly WebTags webtags;
+		internal readonly WebTags WebTags;
 
 		internal Lang Trans = new Lang();
 
@@ -1643,13 +1643,11 @@ namespace CumulusMX
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
 				}
 
-				webtags = new WebTags(this, station);
-				webtags.InitialiseWebtags();
+				WebTags = new WebTags(this, station);
+				WebTags.InitialiseWebtags();
 
 				httpFiles = new HttpFiles(this, station);
 
-				Api.dataEditor.SetWebTags(webtags);
-				Api.tagProcessor.SetWebTags(webtags);
 				Api.httpFiles = httpFiles;
 
 				RealtimeTimer.Interval = RealtimeInterval;
@@ -3546,23 +3544,28 @@ namespace CumulusMX
 			}
 		}
 
+		private readonly object tokenParserLockObj = new object();
+
 		public void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
-			var tagParams = new Dictionary<string, string>();
-			var paramList = ParseParams(strToken);
-			var webTag = paramList[0];
-
-			tagParams.Add("webtag", webTag);
-			for (int i = 1; i < paramList.Count; i += 2)
+			lock (tokenParserLockObj)
 			{
-				// odd numbered entries are keys with "=" on the end - remove that
-				string key = paramList[i].Remove(paramList[i].Length - 1);
-				// even numbered entries are values
-				string value = paramList[i + 1];
-				tagParams.Add(key, value);
-			}
+				var tagParams = new Dictionary<string, string>();
+				var paramList = ParseParams(strToken);
+				var webTag = paramList[0];
 
-			strReplacement = webtags.GetWebTagText(webTag, tagParams);
+				tagParams.Add("webtag", webTag);
+				for (int i = 1; i < paramList.Count; i += 2)
+				{
+					// odd numbered entries are keys with "=" on the end - remove that
+					string key = paramList[i].Remove(paramList[i].Length - 1);
+					// even numbered entries are values
+					string value = paramList[i + 1];
+					tagParams.Add(key, value);
+				}
+
+				strReplacement = WebTags.GetWebTagText(webTag, tagParams);
+			}
 		}
 
 		private List<string> ParseParams(string line)
@@ -4683,7 +4686,7 @@ namespace CumulusMX
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
-			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number
+			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
