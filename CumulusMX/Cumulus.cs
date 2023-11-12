@@ -9879,6 +9879,13 @@ namespace CumulusMX
 
 				LogDebugMessage("ProcessHttpFiles: Uploading http files");
 
+				// do we perform a second chance compresssion test?
+				if (FtpOptions.PhpCompression == "none" && FtpOptions.PhpCompressionRetries == 0)
+				{
+					FtpOptions.PhpCompressionRetries++;
+					TestPhpUploadCompression();
+				}
+
 				HttpFilesConfig
 				.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload)
 				.ToList()
@@ -14060,6 +14067,7 @@ namespace CumulusMX
 		public string PhpSecret { get; set; }
 		public bool PhpIgnoreCertErrors { get; set; }
 		public string PhpCompression { get; set; } = "none";
+		public int PhpCompressionRetries { get; set; }
 		public int MaxConcurrentUploads { get; set; }
 		public bool PhpUseGet {  get; set; }
 	}

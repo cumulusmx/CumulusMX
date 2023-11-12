@@ -18,7 +18,7 @@ Changed
 - The records editors now accept y/n key presses to update records or cancel
 
 Fixed
-- "Object is not intialized" error from the API when the station is not yet ready
+- "Object is not initialized" error from the API when the station is not yet ready
 - MX crash on start-up if the SQLite database has certain corruptions
 - Fix for PHP uploads when no compression is supported by the server (or the network was down when MX started)
 - VP2 error message "No Ack in response to DMPAFT" on start-up
@@ -34,6 +34,7 @@ Fixed
 - Fix Wizard and Settings screens did not allow the entry of an IMEI number for the Ecowitt Cloud API device ID
 - Fix some potential errors in the dewpoint calculations on Ecowitt stations when using a mapped primary temp/hum sensor
 - Fix for zero length string error when parsing web tokens
+- Perform a second chance PHP upload compression test at the first upload interval if no compression detected at start-up
 
 
 3.27.0 - b3257
